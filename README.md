@@ -1,6 +1,6 @@
 # libpyiotcloud
 
-libpyiotcloud demonstrates remotely accessing FT900 microcontroller (MCU) from a web client application via iot cloud web server serving HTTPS REST APIs.
+libpyiotcloud demonstrates remotely accessing FT900 microcontroller (MCU) from a web client application via iot cloud web server serving HTTPS REST APIs with backend MQTT connectivity.
 
 
 
