@@ -3,6 +3,7 @@
 libpyiotcloud demonstrates remotely accessing FT900 microcontroller (MCU) from a web client application via iot cloud web server serving HTTPS REST APIs.
 
 
+
 ### Features:
 
     1. Dynamically generate unique ca-signed device certificates for FT900 
@@ -12,11 +13,15 @@ libpyiotcloud demonstrates remotely accessing FT900 microcontroller (MCU) from a
        C. reset device
 
 
+
 ### Architecture
 
 Instead of using 'serverless' IoT solutions like AWS IoT Core, GCP IoT Core or Azure IoT Hub, 
 we can create our own 'server-based' IoT solutions using Flask webserver, RabbitMQ message broker and Paho-MQTT client.
 This server-based IoT solution architecture can be deployed in local PC or in the cloud - AWS EC2, Linode or etc.
+
+<img src="https://github.com/richmondu/libpyiotcloud/blob/master/images/architecture.png" width="800"/>
+
 
 
 ### Instructions:
