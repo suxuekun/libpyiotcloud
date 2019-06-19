@@ -83,10 +83,10 @@ This server-based IoT solution architecture can be deployed in local PC or in th
 
 ### Performance
 
-The total round trip time for setting or getting the MCU GPIO is 2.01 seconds from the client application. But round trip time for the web server for sending MQTT publish and receiving MQTT response to/from FT900 is only 1 second.
+The total round trip time for setting or getting the MCU GPIO is 2.01 seconds from the client application. But round trip time for the web server for sending MQTT publish and receiving MQTT response to/from MCU is only 1 second.
 
-    client <-> webserver <-> FT900: 2.01 seconds
-    webserver <-> FT900: 1.00 second
+    client <-> webserver <-> MCU: 2.01 seconds
+    webserver <-> MCU: 1.00 second
     Note: the webserver is still on my local PC, not yet on Linode or AWS EC2
 
 Digging deeper, I found that the client call to HTTP getresponse() is causing the additional 1 second delay. 
