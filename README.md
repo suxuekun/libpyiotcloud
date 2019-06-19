@@ -4,7 +4,7 @@ libpyiotcloud demonstrates remote access of a microcontroller (MCU) from a web c
 
 
 
-### Features:
+### Features
 
     1. Access MCU remotely via REST APIs
        A. get/set GPIOs
@@ -15,7 +15,7 @@ libpyiotcloud demonstrates remote access of a microcontroller (MCU) from a web c
        B. mqtt over TLS for webserver and MCU communication
     3. Dynamically generate unique ca-signed device certificates for MCU 
        A. register_device API returns a unique device certificate + private key for the registered MCU device
-
+       B. the generated certificates will be used by the MCU to connect to the RabbitMQ MQTT broker. 
 
 
 ### Architecture
@@ -28,7 +28,7 @@ This server-based IoT solution architecture can be deployed in local PC or in th
 
 
 
-### Instructions:
+### Instructions
 
     1. Setup and run RabbitMQ broker
 
