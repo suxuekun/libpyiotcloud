@@ -1,6 +1,6 @@
 # libpyiotcloud
 
-libpyiotcloud demonstrates remote access of a microcontroller (MCU) from a web client application via iot cloud web server serving HTTPS REST APIs with backend MQTT connectivity.
+libpyiotcloud demonstrates remote access or control of a microcontroller (MCU) from a web client application via iot cloud web server serving HTTPS REST APIs with backend MQTT connectivity.
 
 
 
