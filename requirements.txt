@@ -1,0 +1,4 @@
+flask
+flask-json
+paho-mqtt
+pymongo
