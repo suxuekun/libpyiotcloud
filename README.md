@@ -6,11 +6,15 @@ libpyiotcloud demonstrates remotely accessing FT900 microcontroller (MCU) from a
 
 ### Features:
 
-    1. Dynamically generate unique ca-signed device certificates for FT900 
-    2. Access FT900 remotely via REST APIs
+    1. Access FT900 remotely via REST APIs
        A. get/set GPIOs
        B. get/set RTC
        C. reset device
+    2. Secure TLS connectivity [client --http over tls--> webserver <--mqtt over tls--> f900]
+       A. http over TLS for client app and webserver communication
+       B. mqtt over TLS for webserver and ft900 communication
+    3. Dynamically generate unique ca-signed device certificates for FT900 
+       A. register_device API returns a unique device certificate + private key for the registered FT900 device
 
 
 
