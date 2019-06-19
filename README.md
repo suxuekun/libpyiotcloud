@@ -10,12 +10,12 @@ libpyiotcloud demonstrates remote access of a microcontroller (MCU) from a web c
        A. get/set GPIOs
        B. get/set RTC
        C. reset device
-    2. Secure TLS connectivity [client --http over tls--> webserver <--mqtt over tls--> MCU]
+    2. Secure TLS connectivity [client --http over tls--> webserver <--mqtt over tls--> mqttbroker <--mqtt over tls--> MCU]
        A. http over TLS for client app and webserver communication
        B. mqtt over TLS for webserver and MCU communication
     3. Dynamically generate unique ca-signed device certificates for MCU 
        A. register_device API returns a unique device certificate + private key for the registered MCU device
-       B. the generated certificates will be used by the MCU to connect to the RabbitMQ MQTT broker. 
+       B. the generated certificates will be used by the MCU to connect to the MQTT broker. 
 
 
 ### Architecture
@@ -85,8 +85,8 @@ This server-based IoT solution architecture can be deployed in local PC or in th
 
 The total round trip time for setting or getting the MCU GPIO is 2.01 seconds from the client application. But round trip time for the web server for sending MQTT publish and receiving MQTT response to/from MCU is only 1 second.
 
-    client <-> webserver <-> MCU: 2.01 seconds
-    webserver <-> MCU: 1.00 second
+    client <-> webserver <-> mqttbroker <-> MCU: 2.01 seconds
+    webserver <-> mqttbroker <-> MCU: 1.00 second
     Note: the webserver is still on my local PC, not yet on Linode or AWS EC2
 
 The client call to HTTP getresponse() is causing the additional 1 second delay. https://docs.python.org/3/library/http.client.html#http.client.HTTPConnection.getresponse For mobile client application, this 1 second delay maybe less or more. This will depend on the equivalent function HTTP client getresponse() in Java for Android or Swift for iOS.
