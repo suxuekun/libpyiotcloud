@@ -1,20 +1,20 @@
 # libpyiotcloud
 
-libpyiotcloud demonstrates remotely accessing FT900 microcontroller (MCU) from a web client application via iot cloud web server serving HTTPS REST APIs with backend MQTT connectivity.
+libpyiotcloud demonstrates remotely accessing a microcontroller (MCU) from a web client application via iot cloud web server serving HTTPS REST APIs with backend MQTT connectivity.
 
 
 
 ### Features:
 
-    1. Access FT900 remotely via REST APIs
+    1. Access MCU remotely via REST APIs
        A. get/set GPIOs
        B. get/set RTC
        C. reset device
-    2. Secure TLS connectivity [client --http over tls--> webserver <--mqtt over tls--> f900]
+    2. Secure TLS connectivity [client --http over tls--> webserver <--mqtt over tls--> MCU]
        A. http over TLS for client app and webserver communication
-       B. mqtt over TLS for webserver and ft900 communication
-    3. Dynamically generate unique ca-signed device certificates for FT900 
-       A. register_device API returns a unique device certificate + private key for the registered FT900 device
+       B. mqtt over TLS for webserver and MCU communication
+    3. Dynamically generate unique ca-signed device certificates for MCU 
+       A. register_device API returns a unique device certificate + private key for the registered MCU device
 
 
 
@@ -70,7 +70,7 @@ This server-based IoT solution architecture can be deployed in local PC or in th
 
     3. Run web_server.bat
   
-    4. Run FT900 microcontroller
+    4. Run FT900 MCU
 
        device id: ft900device1
        device ca: rootca.pem
