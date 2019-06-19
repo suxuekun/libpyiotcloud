@@ -24,6 +24,7 @@ libpyiotcloud demonstrates remote access of a microcontroller (MCU) from a web c
 Instead of using 'serverless' IoT solutions like AWS IoT Core, GCP IoT Core or Azure IoT Hub, 
 we can create our own 'server-based' IoT solutions using Flask webserver, RabbitMQ message broker and Paho-MQTT client.
 This server-based IoT solution architecture can be deployed in local PC or in the cloud - AWS EC2, Linode or etc.
+Note that this is a simple design and will not likely scale to millions of devices.
 
 <img src="https://github.com/richmondu/libpyiotcloud/blob/master/images/architecture.png" width="800"/>
 
