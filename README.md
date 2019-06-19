@@ -9,8 +9,8 @@ libpyiotcloud demonstrates remote access or control of a microcontroller (MCU) f
     1. Access MCU remotely via HTTP REST APIs
        A. get/set GPIOs
        B. get/set RTC
-       C. get mac address
-       D. get ip/subnet/gateway
+       C. get MAC address
+       D. get IP/Subnet/Gateway addresses
        E. reset device
     2. Secure TLS connectivity [client --http over tls--> webserver <--mqtt over tls--> mqttbroker <--mqtt over tls--> MCU]
        A. http over TLS for client app and webserver communication
