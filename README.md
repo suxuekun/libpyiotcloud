@@ -29,7 +29,7 @@ libpyiotcloud demonstrates remote access and control of an MCU-based smart devic
 ### Architecture
 
 Instead of using 'serverless' IoT solutions like AWS IoT Core, GCP IoT Core or Azure IoT Hub, 
-we can create our own 'server-based' IoT solutions using Flask webserver, RabbitMQ message broker and Paho-MQTT client.
+we can create our own 'server-based' IoT solutions using Flask webserver, RabbitMQ message broker and Pika AMPQ client.
 This server-based IoT solution architecture can be deployed in local PC or in the cloud - AWS EC2, Linode or etc.
 
 
@@ -54,6 +54,8 @@ Note that this is a simple design and will not likely scale to millions of devic
         D. Add environment variable RABBITMQ_CONFIG_FILE %APPDATA%\RabbitMQ\rabbitmq.config
         E. Create configuration file %APPDATA%\RabbitMQ\rabbitmq.config based on rabbitmq.config.example
         F. Update configuration file to enable the following
+           {tcp_listeners, [5672]},
+           {ssl_listeners, [5671]},
            {loopback_users, []},
            {ssl_options, [{cacertfile, "rootca.pem"},
                           {certfile,   "server_cert.pem"},
