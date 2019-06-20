@@ -8,7 +8,7 @@ import time
 CONFIG_CERT_DIRECTORY  = "cert/"
 CONFIG_ROOTCA_CERT     = "rootca.pem"
 CONFIG_ROOTCA_KEY      = "rootca_pkey.pem"
-CONFIG_CERT_YEARS      = 1
+CONFIG_CERT_YEARS      = 10
 CONFIG_CERT_COUNTRY    = "SG"
 CONFIG_CERT_STATE      = "Singapore"
 CONFIG_CERT_CITY       = "Paya Lebar"
@@ -71,10 +71,12 @@ class certificate_generator:
 	def getca(self):
 		return CONFIG_CERT_DIRECTORY + CONFIG_ROOTCA_CERT
 
-	def test(self):
-		device_id = "mydevice"
+	def test(self, device_id):
 		cert = certificate_generator()
 		filename_cert, filename_pkey = cert.generate(device_id)
 		print(filename_cert)
 		print(filename_pkey)
 
+
+#cert = certificate_generator()
+#cert.test("localhost")
