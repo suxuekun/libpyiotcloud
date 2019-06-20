@@ -12,7 +12,8 @@ libpyiotcloud demonstrates remote access and control of an MCU-based smart devic
        C. get MAC address
        D. get IP/Subnet/Gateway addresses
        E. reset device
-    2. HTTP/AMPQ/MQTT support [client --HTTP--> webserver <--AMPQ--> messagebroker <--MQTT--> microcontroller]
+    2. HTTP/AMPQ/MQTT protocol support 
+       [client --HTTP--> webserver <--AMPQ--> messagebroker <--MQTT--> microcontroller]
        A. HTTP: client app and webserver communication
        B. AMPQ: webserver and messagebroker communication
        C. MQTT: messagebroker and microcontroller communication
