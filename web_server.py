@@ -15,15 +15,12 @@ if CONFIG_USE_AMPQ:
 else:
     import paho.mqtt.client as mqtt
 
-CONFIG_PREPEND_REPLY_TOPIC = "server"
-
 
 
 ###################################################################################
-# MQTT and HTTP configurations
+# MQTT, HTTP and AMPQ configurations
 ###################################################################################
 
-CONFIG_QOS                  = 1
 CONFIG_MQTT_USERNAME        = "guest"
 CONFIG_MQTT_PASSWORD        = "guest"
 CONFIG_MQTT_TLS_CA          = "cert/rootca.pem"
@@ -44,6 +41,9 @@ CONFIG_AMPQ_TLS_PKEY        = "cert/server_pkey.pem"
 CONFIG_AMPQ_HOST            = "localhost"
 CONFIG_AMPQ_TLS_PORT        = 5671
 CONFIG_AMPQ_PORT            = 5672
+
+CONFIG_PREPEND_REPLY_TOPIC  = "server"
+CONFIG_QOS                  = 1
 
 
 
