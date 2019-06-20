@@ -244,7 +244,7 @@ def subscribe_mqtt_topic(topic, subscribe=True):
             g_messaging_client.unsubscribe(topic)
 
 def on_ampq_message(ch, method, properties, body):
-    print("RCV: {} {}".format(method.routing_key, body))
+    #print("RCV: {} {}".format(method.routing_key, body))
     g_queue_dict[method.routing_key] = body
     print("RCV: {}".format(g_queue_dict))
     g_messaging_client.stop_consuming()
@@ -257,9 +257,9 @@ def publish_ampq_packet(topic, payload):
 def subscribe_ampq_thread(client):
     while True:
         try:
-            print("start consuming")
+            #print("start consuming")
             client.start_consuming()
-            print("end consuming")
+            #print("end consuming")
             break
         # Don't recover if connection was closed by broker
         except pika.exceptions.ConnectionClosedByBroker:
@@ -290,8 +290,8 @@ def subscribe_ampq_topic(topic, subscribe=True):
             device_name = topic[index+1:index2]
             myqueue = 'mqtt-subscription-{}qos{}'.format(device_name, CONFIG_QOS)
             g_messaging_client.queue_bind(queue=myqueue, exchange='amq.topic', routing_key=topic)
-            print("SUB: queue={}".format(myqueue))
-            print("SUB: topic={}".format(topic))
+            #print("SUB: queue={}".format(myqueue))
+            #print("SUB: topic={}".format(topic))
 
             g_messaging_client.basic_consume(queue=myqueue, on_message_callback=on_ampq_message)
             x = threading.Thread(target=subscribe_ampq_thread, args=(g_messaging_client,))
