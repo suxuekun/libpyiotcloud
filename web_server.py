@@ -53,6 +53,7 @@ def index():
 @g_http_server.route('/register_device', methods=['POST'])
 def register_device():
     data = request.get_json()
+    customer_id = data['customer_id']
     device_name = data['device_name']
     print('device_name={}'.format(device_name))
 
@@ -76,10 +77,31 @@ def register_device():
 @g_http_server.route('/unregister_device', methods=['POST'])
 def unregister_device():
     data = request.get_json()
+    customer_id = data['customer_id']
     device_name = data['device_name']
     print('device_name={}'.format(device_name))
+    data.pop('customer_id')
+    data.pop('device_name')
 
     return 'unregister_device'
+
+
+
+def generate_mqtt_publish_topic(data, api):
+    customer_id = data['customer_id']
+    device_name = data['device_name']
+    topic = customer_id + "/" + device_name + "/" + api 
+    return topic
+
+def generate_mqtt_publish_payload(data):
+    data.pop('customer_id')
+    data.pop('device_name')
+    payload = json.dumps(data)
+    return payload
+
+def generate_mqtt_subscribe_topic(topic):
+    topic = "server/" + topic
+    return topic
 
 
 @g_http_server.route('/get_gpio')
@@ -87,23 +109,21 @@ def get_gpio():
 
     start_time = time.time()
     api = 'get_gpio'
+
     # parse HTTP request
     data = request.get_json()
     print("\r\nAPI: {} request={}".format(api, data))
-    device_name = data['device_name']
-    number = int(data['number'])
 
     # send MQTT request
-    topic = device_name + "/" + api 
-    data.pop('device_name')
-    payload = json.dumps(data)
-#    start_time = time.time()
+    topic = generate_mqtt_publish_topic(data, api)
+    payload = generate_mqtt_publish_payload(data)
     publish_mqtt_packet(topic, payload)
 
     # recv MQTT response
-    topic = "server/" + topic + "/" + str(number)
+    topic = generate_mqtt_subscribe_topic(topic) + "/" + str(int(data['number']))
     subscribe_mqtt_topic(topic, subscribe=True)
-    data = wait_mqtt_message_recv(topic)
+    data = receive_mqtt_topic(topic)
+    subscribe_mqtt_topic(topic, subscribe=False)
     elapsed_time = time.time() - start_time
     print(elapsed_time)
 
@@ -117,24 +137,21 @@ def set_gpio():
 
     start_time = time.time()
     api = 'set_gpio'
+
     # parse HTTP request
     data = request.get_json()
     print("\r\nAPI: {} request={}".format(api, data))
-    device_name = data['device_name']
-    number = int(data['number'])
-    value = int(data['value'])
 
     # send MQTT request
-    topic = device_name + "/" + api
-    data.pop('device_name')
-    payload = json.dumps(data)
-#    start_time = time.time()
+    topic = generate_mqtt_publish_topic(data, api)
+    payload = generate_mqtt_publish_payload(data)
     publish_mqtt_packet(topic, payload)
 
     # recv MQTT response
-    topic = "server/" + topic + "/" + str(number)
+    topic = generate_mqtt_subscribe_topic(topic) + "/" + str(int(data['number']))
     subscribe_mqtt_topic(topic, subscribe=True)
-    data = wait_mqtt_message_recv(topic)
+    data = receive_mqtt_topic(topic)
+    subscribe_mqtt_topic(topic, subscribe=False)
     elapsed_time = time.time() - start_time
     print(elapsed_time)
 
@@ -149,21 +166,21 @@ def set_gpio():
 def get_rtc():
 
     api = 'get_rtc'
+
     # parse HTTP request
     data = request.get_json()
     print("\r\nAPI: {} request={}".format(api, data))
-    device_name = data['device_name']
 
     # send MQTT request
-    topic = device_name + "/" + api 
-    data.pop('device_name')
-    payload = json.dumps(data)
+    topic = generate_mqtt_publish_topic(data, api)
+    payload = generate_mqtt_publish_payload(data)
     publish_mqtt_packet(topic, payload)
 
     # recv MQTT response
-    topic = "server/" + topic
+    topic = generate_mqtt_subscribe_topic(topic)
     subscribe_mqtt_topic(topic, subscribe=True)
-    data = wait_mqtt_message_recv(topic)
+    data = receive_mqtt_topic(topic)
+    subscribe_mqtt_topic(topic, subscribe=False)
 
     # return HTTP response
     if data is None:
@@ -174,22 +191,21 @@ def get_rtc():
 def set_rtc():
 
     api = 'set_rtc'
+
     # parse HTTP request
     data = request.get_json()
     print("\r\nAPI: {} request={}".format(api, data))
-    device_name = data['device_name']
-    value = int(data['value'])
 
     # send MQTT request
-    topic = device_name + "/" + api 
-    data.pop('device_name')
-    payload = json.dumps(data)
+    topic = generate_mqtt_publish_topic(data, api)
+    payload = generate_mqtt_publish_payload(data)
     publish_mqtt_packet(topic, payload)
 
     # recv MQTT response
-    topic = "server/" + topic
+    topic = generate_mqtt_subscribe_topic(topic)
     subscribe_mqtt_topic(topic, subscribe=True)
-    data = wait_mqtt_message_recv(topic)
+    data = receive_mqtt_topic(topic)
+    subscribe_mqtt_topic(topic, subscribe=False)
 
     # return HTTP response
     if data is None:
@@ -202,21 +218,21 @@ def set_rtc():
 def get_status():
 
     api = 'get_status'
+
     # parse HTTP request
     data = request.get_json()
     print("\r\nAPI: {} request={}".format(api, data))
-    device_name = data['device_name']
 
     # send MQTT request
-    topic = device_name + "/" + api 
-    data.pop('device_name')
-    payload = json.dumps(data)
+    topic = generate_mqtt_publish_topic(data, api)
+    payload = generate_mqtt_publish_payload(data)
     publish_mqtt_packet(topic, payload)
 
     # recv MQTT response
-    topic = "server/" + topic
+    topic = generate_mqtt_subscribe_topic(topic)
     subscribe_mqtt_topic(topic, subscribe=True)
-    data = wait_mqtt_message_recv(topic)
+    data = receive_mqtt_topic(topic)
+    subscribe_mqtt_topic(topic, subscribe=False)
 
     # return HTTP response
     if data is None:
@@ -227,22 +243,149 @@ def get_status():
 def set_status():
 
     api = 'set_status'
+
     # parse HTTP request
     data = request.get_json()
     print("\r\nAPI: {} request={}".format(api, data))
-    device_name = data['device_name']
-    status = data['status']
 
     # send MQTT request
-    topic = device_name + "/" + api 
-    data.pop('device_name')
-    payload = json.dumps(data)
+    topic = generate_mqtt_publish_topic(data, api)
+    payload = generate_mqtt_publish_payload(data)
     publish_mqtt_packet(topic, payload)
 
     # recv MQTT response
-    topic = "server/" + topic
+    topic = generate_mqtt_subscribe_topic(topic)
     subscribe_mqtt_topic(topic, subscribe=True)
-    data = wait_mqtt_message_recv(topic)
+    data = receive_mqtt_topic(topic)
+    subscribe_mqtt_topic(topic, subscribe=False)
+
+    # return HTTP response
+    if data is None:
+        return api
+    return data
+
+
+
+@g_http_server.route('/get_mac')
+def get_mac():
+
+    api = 'get_mac'
+
+    # parse HTTP request
+    data = request.get_json()
+    print("\r\nAPI: {} request={}".format(api, data))
+
+    # send MQTT request
+    topic = generate_mqtt_publish_topic(data, api)
+    payload = generate_mqtt_publish_payload(data)
+    publish_mqtt_packet(topic, payload)
+
+    # recv MQTT response
+    topic = generate_mqtt_subscribe_topic(topic)
+    subscribe_mqtt_topic(topic, subscribe=True)
+    data = receive_mqtt_topic(topic)
+    subscribe_mqtt_topic(topic, subscribe=False)
+
+    # return HTTP response
+    if data is None:
+        return api
+    return data
+
+@g_http_server.route('/set_mac', methods=['POST'])
+def set_mac():
+
+    api = 'set_mac'
+
+    # parse HTTP request
+    data = request.get_json()
+    print("\r\nAPI: {} request={}".format(api, data))
+
+    # send MQTT request
+    topic = generate_mqtt_publish_topic(data, api)
+    payload = generate_mqtt_publish_payload(data)
+    publish_mqtt_packet(topic, payload)
+
+    # recv MQTT response
+    topic = generate_mqtt_subscribe_topic(topic)
+    subscribe_mqtt_topic(topic, subscribe=True)
+    data = receive_mqtt_topic(topic)
+    subscribe_mqtt_topic(topic, subscribe=False)
+
+    # return HTTP response
+    if data is None:
+        return api
+    return data
+
+
+@g_http_server.route('/get_ip')
+def get_ip():
+
+    api = 'get_ip'
+
+    # parse HTTP request
+    data = request.get_json()
+    print("\r\nAPI: {} request={}".format(api, data))
+
+    # send MQTT request
+    topic = generate_mqtt_publish_topic(data, api)
+    payload = generate_mqtt_publish_payload(data)
+    publish_mqtt_packet(topic, payload)
+
+    # recv MQTT response
+    topic = generate_mqtt_subscribe_topic(topic)
+    subscribe_mqtt_topic(topic, subscribe=True)
+    data = receive_mqtt_topic(topic)
+    subscribe_mqtt_topic(topic, subscribe=False)
+
+    # return HTTP response
+    if data is None:
+        return api
+    return data
+
+@g_http_server.route('/get_subnet')
+def get_subnet():
+
+    api = 'get_subnet'
+
+    # parse HTTP request
+    data = request.get_json()
+    print("\r\nAPI: {} request={}".format(api, data))
+
+    # send MQTT request
+    topic = generate_mqtt_publish_topic(data, api)
+    payload = generate_mqtt_publish_payload(data)
+    publish_mqtt_packet(topic, payload)
+
+    # recv MQTT response
+    topic = generate_mqtt_subscribe_topic(topic)
+    subscribe_mqtt_topic(topic, subscribe=True)
+    data = receive_mqtt_topic(topic)
+    subscribe_mqtt_topic(topic, subscribe=False)
+
+    # return HTTP response
+    if data is None:
+        return api
+    return data
+
+@g_http_server.route('/get_gateway')
+def get_gateway():
+
+    api = 'get_gateway'
+
+    # parse HTTP request
+    data = request.get_json()
+    print("\r\nAPI: {} request={}".format(api, data))
+
+    # send MQTT request
+    topic = generate_mqtt_publish_topic(data, api)
+    payload = generate_mqtt_publish_payload(data)
+    publish_mqtt_packet(topic, payload)
+
+    # recv MQTT response
+    topic = generate_mqtt_subscribe_topic(topic)
+    subscribe_mqtt_topic(topic, subscribe=True)
+    data = receive_mqtt_topic(topic)
+    subscribe_mqtt_topic(topic, subscribe=False)
 
     # return HTTP response
     if data is None:
@@ -278,7 +421,7 @@ def subscribe_mqtt_topic(topic, subscribe=True):
         else:
             g_mqtt_client.unsubscribe(topic)
 
-def wait_mqtt_message_recv(topic):
+def receive_mqtt_topic(topic):
     time.sleep(1)
     i = 0
     while True:
