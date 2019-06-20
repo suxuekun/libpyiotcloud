@@ -12,10 +12,15 @@ libpyiotcloud demonstrates remote access or control of a microcontroller (MCU) f
        C. get MAC address
        D. get IP/Subnet/Gateway addresses
        E. reset device
-    2. Secure TLS connectivity [client --http over tls--> webserver <--mqtt over tls--> mqttbroker <--mqtt over tls--> MCU]
-       A. http over TLS for client app and webserver communication
-       B. mqtt over TLS for webserver and MCU communication
-    3. Dynamically generate unique ca-signed device certificates for MCU 
+    2. HTTP/AMPQ/MQTT support [client --HTTP--> webserver <--AMPQ--> messagebroker <--MQTT--> microcontroller]
+       A. HTTP: client app and webserver communication
+       B. AMPQ: webserver and messagebroker communication
+       C. MQTT: messagebroker and microcontroller communication
+    3. Secure TLS connectivity 
+       A. HTTP over TLS: client app and webserver communication
+       B. AMPQ over TLS: webserver and messagebroker communication
+       C. MQTT over TLS: messagebroker and microcontroller communication
+    4. Dynamically generate unique ca-signed device certificates for MCU 
        A. register_device API returns a unique device certificate + private key for the registered MCU device
        B. the generated certificates will be used by the MCU to connect to the MQTT broker. 
 
