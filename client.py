@@ -253,6 +253,15 @@ def main():
 		print(certificates)
 		#unregister_device(conn, device_name)
 
+	######################################################
+	# Test get_status
+	if True:
+		try:
+			status = get_status(conn, customer_id, device_name)
+			print(status)
+		except:
+			print("Device is not running!")
+			return
 
 	######################################################
 	# Test get_gpio and set_gpio
@@ -326,10 +335,8 @@ def main():
 
 
 	######################################################
-	# Test get_status and restart_device
+	# Test restart_device
 	if True:
-		status = get_status(conn, customer_id, device_name)
-		print(status)
 		status = restart_device(conn, customer_id, device_name)
 		print(status)
 
