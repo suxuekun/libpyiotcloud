@@ -61,13 +61,17 @@ def get_default_headers():
 # REST APIs
 ###################################################################################
 
+def get_default_params(customer_id, device_name):
+	params = {}
+	params['customer_id'] = customer_id
+	params['device_name'] = device_name
+	return params
+
 ######################################################
 def register_device(conn, customer_id, device_name):
 	print("\r\nregister_device {}".format(device_name))
 	headers = get_default_headers()
-	params = {}
-	params['customer_id'] = customer_id
-	params['device_name'] = device_name
+	params = get_default_params(customer_id, device_name)
 	params = json.dumps(params)
 	request(conn, "POST", "/register_device", params, headers)
 	certificates = response(conn)
@@ -76,8 +80,7 @@ def register_device(conn, customer_id, device_name):
 def unregister_device(conn, device_name):
 	print("\r\nunregister_device {}".format(device_name))
 	headers = get_default_headers()
-	params = {}
-	params['device_name'] = device_name
+	params = get_default_params(customer_id, device_name)
 	params = json.dumps(params)
 	request(conn, "POST", "/unregister_device", params, headers)
 
@@ -85,9 +88,7 @@ def unregister_device(conn, device_name):
 def get_gpio(conn, customer_id, device_name, number):
 	print("\r\nget_gpio {} {} {}".format(customer_id, device_name, number))
 	headers = get_default_headers()
-	params = {}
-	params['customer_id'] = customer_id
-	params['device_name'] = device_name
+	params = get_default_params(customer_id, device_name)
 	params['number'] = number
 	params = json.dumps(params)
 	request(conn, "GET", "/get_gpio", params, headers)
@@ -98,9 +99,7 @@ def get_gpio(conn, customer_id, device_name, number):
 def set_gpio(conn, customer_id, device_name, number, value):
 	print("\r\nset_gpio {} {} {} {}".format(customer_id, device_name, number, value))
 	headers = get_default_headers()
-	params = {}
-	params['customer_id'] = customer_id
-	params['device_name'] = device_name
+	params = get_default_params(customer_id, device_name)
 	params['number'] = number
 	params['value'] = value
 	params = json.dumps(params)
@@ -111,9 +110,7 @@ def set_gpio(conn, customer_id, device_name, number, value):
 def get_rtc(conn, customer_id, device_name):
 	print("\r\nget_rtc {}".format(device_name))
 	headers = get_default_headers()
-	params = {}
-	params['customer_id'] = customer_id
-	params['device_name'] = device_name
+	params = get_default_params(customer_id, device_name)
 	params = json.dumps(params)
 	request(conn, "GET", "/get_rtc", params, headers)
 	value = response(conn)
@@ -123,9 +120,7 @@ def get_rtc(conn, customer_id, device_name):
 def set_rtc(conn, customer_id, device_name, epoch):
 	print("\r\nset_rtc {} {}".format(device_name, epoch))
 	headers = get_default_headers()
-	params = {}
-	params['customer_id'] = customer_id
-	params['device_name'] = device_name
+	params = get_default_params(customer_id, device_name)
 	params['value'] = epoch
 	params = json.dumps(params)
 	request(conn, "POST", "/set_rtc", params, headers)
@@ -135,9 +130,7 @@ def set_rtc(conn, customer_id, device_name, epoch):
 def get_status(conn, customer_id, device_name):
 	print("\r\nget_status {}".format(device_name))
 	headers = get_default_headers()
-	params = {}
-	params['customer_id'] = customer_id
-	params['device_name'] = device_name
+	params = get_default_params(customer_id, device_name)
 	params = json.dumps(params)
 	request(conn, "GET", "/get_status", params, headers)
 	status = response(conn)
@@ -147,9 +140,7 @@ def get_status(conn, customer_id, device_name):
 def restart_device(conn, customer_id, device_name):
 	print("\r\nrestart_device {}".format(device_name))
 	headers = get_default_headers()
-	params = {}
-	params['customer_id'] = customer_id
-	params['device_name'] = device_name
+	params = get_default_params(customer_id, device_name)
 	params['status'] = 'restart'
 	params = json.dumps(params)
 	request(conn, "POST", "/set_status", params, headers)
@@ -161,9 +152,7 @@ def restart_device(conn, customer_id, device_name):
 def get_mac(conn, customer_id, device_name):
 	print("\r\nget_mac {}".format(device_name))
 	headers = get_default_headers()
-	params = {}
-	params['customer_id'] = customer_id
-	params['device_name'] = device_name
+	params = get_default_params(customer_id, device_name)
 	params = json.dumps(params)
 	request(conn, "GET", "/get_mac", params, headers)
 	value = response(conn)
@@ -173,9 +162,7 @@ def get_mac(conn, customer_id, device_name):
 def set_mac(conn, customer_id, device_name, mac):
 	print("\r\nset_mac {} {}".format(device_name, mac))
 	headers = get_default_headers()
-	params = {}
-	params['customer_id'] = customer_id
-	params['device_name'] = device_name
+	params = get_default_params(customer_id, device_name)
 	params['value'] = mac
 	params = json.dumps(params)
 	request(conn, "POST", "/set_mac", params, headers)
@@ -187,9 +174,7 @@ def set_mac(conn, customer_id, device_name, mac):
 def get_ip(conn, customer_id, device_name):
 	print("\r\nget_ip {}".format(device_name))
 	headers = get_default_headers()
-	params = {}
-	params['customer_id'] = customer_id
-	params['device_name'] = device_name
+	params = get_default_params(customer_id, device_name)
 	params = json.dumps(params)
 	request(conn, "GET", "/get_ip", params, headers)
 	value = response(conn)
@@ -199,9 +184,7 @@ def get_ip(conn, customer_id, device_name):
 def get_subnet(conn, customer_id, device_name):
 	print("\r\nget_subnet {}".format(device_name))
 	headers = get_default_headers()
-	params = {}
-	params['customer_id'] = customer_id
-	params['device_name'] = device_name
+	params = get_default_params(customer_id, device_name)
 	params = json.dumps(params)
 	request(conn, "GET", "/get_subnet", params, headers)
 	value = response(conn)
@@ -211,9 +194,7 @@ def get_subnet(conn, customer_id, device_name):
 def get_gateway(conn, customer_id, device_name):
 	print("\r\nget_gateway {}".format(device_name))
 	headers = get_default_headers()
-	params = {}
-	params['customer_id'] = customer_id
-	params['device_name'] = device_name
+	params = get_default_params(customer_id, device_name)
 	params = json.dumps(params)
 	request(conn, "GET", "/get_gateway", params, headers)
 	value = response(conn)
