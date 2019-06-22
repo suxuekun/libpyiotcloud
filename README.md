@@ -24,7 +24,10 @@ libpyiotcloud demonstrates remote access and control of an MCU-based smart devic
     4. Dynamic generation of X509 certificates 
        A. register_device API returns a unique ca-signed device certificate + private key for the registered MCU device
        B. the generated certificates will be used by the MCU to connect to the MQTT broker. 
-
+    5. Device examples
+       A. FT900 MCU device using MQTT client
+       B. Device simulator using Paho-MQTT client 
+       C. Device simulator using Pika-AMQP client
 
 
 ### Architecture
