@@ -6,7 +6,7 @@ libpyiotcloud demonstrates remote access and control of an MCU-based smart devic
 
 ### Features
 
-    1. REST APIs to remotely access and control device
+    1. REST APIs to remotely control device
        A. get/set GPIOs
        B. get/set RTC
        C. get MAC address
@@ -21,8 +21,8 @@ libpyiotcloud demonstrates remote access and control of an MCU-based smart devic
        A. HTTP over TLS: client app and webserver communication
        B. AMQP over TLS: webserver and messagebroker communication
        C. MQTT over TLS: messagebroker and microcontroller communication
-    4. Dynamic generation of X509 certificates 
-       A. register_device API returns a unique ca-signed device certificate + private key for the registered MCU device
+    4. Dynamic generation of device certificates 
+       A. register_device API returns a unique ca-signed X509 certificate + private key.
        B. the generated certificates will be used by the MCU to connect to the MQTT broker. 
     5. Device examples
        A. FT900 MCU device using MQTT client
