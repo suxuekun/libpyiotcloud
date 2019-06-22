@@ -30,7 +30,7 @@ libpyiotcloud demonstrates remote access and control of an MCU-based smart devic
 ### Architecture
 
 Instead of using 'serverless' IoT solutions like AWS IoT Core, GCP IoT Core or Azure IoT Hub, 
-we can create our own 'server-based' IoT solutions using Flask webserver, RabbitMQ message broker and Pika AMPQ client.
+we can create our own 'server-based' IoT solutions using Flask webserver, RabbitMQ message broker and Pika AMQP client.
 This server-based IoT solution architecture can be deployed in local PC or in the cloud - AWS EC2, Linode or etc.
 
 
