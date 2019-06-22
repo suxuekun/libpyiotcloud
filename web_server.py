@@ -5,21 +5,26 @@ import threading
 from flask import Flask, request
 from flask_json import FlaskJSON, JsonError, json_response, as_json
 from certificate_generator import certificate_generator
-#from pymongo import MongoClient
 
 
 
 CONFIG_USE_AMPQ = True
 if CONFIG_USE_AMPQ:
-    import pika
+    import pika as amqp
 else:
     import paho.mqtt.client as mqtt
 
 
 
 ###################################################################################
-# MQTT, HTTP and AMPQ configurations
+# HTTP, MQTT and AMPQ configurations
 ###################################################################################
+
+CONFIG_HTTP_HOST            = "localhost"
+CONFIG_HTTP_PORT            = 443
+CONFIG_HTTP_TLS_CA          = "cert/rootca.pem"
+CONFIG_HTTP_TLS_CERT        = "cert/server_cert.pem"
+CONFIG_HTTP_TLS_PKEY        = "cert/server_pkey.pem"
 
 CONFIG_MQTT_USERNAME        = "guest"
 CONFIG_MQTT_PASSWORD        = "guest"
@@ -28,12 +33,6 @@ CONFIG_MQTT_TLS_CERT        = "cert/server_cert.pem"
 CONFIG_MQTT_TLS_PKEY        = "cert/server_pkey.pem"
 CONFIG_MQTT_HOST            = "localhost"
 CONFIG_MQTT_TLS_PORT        = 8883
-
-CONFIG_HTTP_HOST            = "localhost"
-CONFIG_HTTP_PORT            = 443
-CONFIG_HTTP_TLS_CA          = "cert/rootca.pem"
-CONFIG_HTTP_TLS_CERT        = "cert/server_cert.pem"
-CONFIG_HTTP_TLS_PKEY        = "cert/server_pkey.pem"
 
 CONFIG_AMPQ_TLS_CA          = "cert/rootca.pem"
 CONFIG_AMPQ_TLS_CERT        = "cert/server_cert.pem"
@@ -262,17 +261,17 @@ def subscribe_ampq_thread(client):
             #print("end consuming")
             break
         # Don't recover if connection was closed by broker
-        except pika.exceptions.ConnectionClosedByBroker:
+        except amqp.exceptions.ConnectionClosedByBroker:
             print("ConnectionClosedByBroker")
             time.sleep(1)
             continue
         # Don't recover on client errors
-        except pika.exceptions.AMQPChannelError:
+        except amqp.exceptions.AMQPChannelError:
             print("AMQPChannelError")
             time.sleep(1)
             continue
         # Recover on all other connection errors
-        except pika.exceptions.AMQPConnectionError:
+        except amqp.exceptions.AMQPConnectionError:
             print("AMQPConnectionError")
             time.sleep(1)
             continue
@@ -369,27 +368,27 @@ def init_ampq_client():
     use_tls = True
 
     # Set TLS certificates and access credentials
-    credentials = pika.PlainCredentials('guest', 'guest')
+    credentials = amqp.PlainCredentials('guest', 'guest')
     ssl_options = None
     if use_tls:
         context = ssl._create_unverified_context()
         #context = ssl.create_default_context(cafile=CONFIG_AMPQ_TLS_CA)
         #context.load_cert_chain(CONFIG_AMPQ_TLS_CERT, CONFIG_AMPQ_TLS_PKEY)
-        ssl_options = pika.SSLOptions(context) 
-        parameters = pika.ConnectionParameters(
+        ssl_options = amqp.SSLOptions(context) 
+        parameters = amqp.ConnectionParameters(
             CONFIG_AMPQ_HOST, 
             CONFIG_AMPQ_TLS_PORT, 
             credentials=credentials, 
             ssl_options=ssl_options)
     else:
-        parameters = pika.ConnectionParameters(
+        parameters = amqp.ConnectionParameters(
             CONFIG_AMPQ_HOST, 
             CONFIG_AMPQ_PORT, 
             credentials=credentials, 
             ssl_options=ssl_options)
 
     # Connect to AMPQ server
-    connection = pika.BlockingConnection(parameters)
+    connection = amqp.BlockingConnection(parameters)
     client = connection.channel()
 
     return client
