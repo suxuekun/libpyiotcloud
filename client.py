@@ -39,17 +39,26 @@ def initialize_context():
 ###################################################################################
 
 def request(conn, req_type, req_api, params, headers):
-	if headers:
-		conn.request(req_type, req_api, params, headers)
-	else:
-		conn.request(req_type, req_api, params)
+	try:
+		if headers:
+			conn.request(req_type, req_api, params, headers)
+		else:
+			conn.request(req_type, req_api, params)
+		return True
+	except:
+		print("Could not communicate with webserver!")
+	return False
 
 def response(conn):
-	r1 = conn.getresponse()
-	#print("response = {} {} [{}]".format(r1.status, r1.reason, r1.length))
-	if r1.length:
-		data = r1.read(r1.length)
-	return data.decode("utf-8")
+	try:
+		r1 = conn.getresponse()
+		#print("response = {} {} [{}]".format(r1.status, r1.reason, r1.length))
+		if r1.length:
+			data = r1.read(r1.length)
+		return data.decode("utf-8")
+	except:
+		print("Could not communicate with webserver!")
+	return None
 
 def get_default_headers():
 	headers = {"Content-type": "application/json", "Accept": "text/plain"}
@@ -226,7 +235,7 @@ def main():
 
 	######################################################
 	# Test register_device
-	if True:
+	if False:
 		start_time = time.time()
 		certificates = register_device(conn, customer_id, device_name)
 		elapsed_time = time.time() - start_time
