@@ -6,7 +6,7 @@ libpyiotcloud demonstrates remote access and control of an MCU-based smart devic
 
 ### Features
 
-    1. MCU remote remote via HTTP REST APIs
+    1. Remote access and control of device via HTTP REST APIs
        A. get/set GPIOs
        B. get/set RTC
        C. get MAC address
