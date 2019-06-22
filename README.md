@@ -1,6 +1,6 @@
 # libpyiotcloud
 
-libpyiotcloud demonstrates remote access and control of an MCU-based smart device from a web client application via iot cloud web server serving REST APIs (HTTP over TLS) with back-end AMPQ (over TLS) connectivity and device-side MQTT (over TLS) connectivity.
+libpyiotcloud demonstrates remote access and control of an MCU-based smart device from a web client application via iot cloud web server serving REST APIs (HTTP over TLS) with back-end AMQP (over TLS) connectivity and device-side MQTT (over TLS) connectivity.
 
 
 
@@ -12,14 +12,14 @@ libpyiotcloud demonstrates remote access and control of an MCU-based smart devic
        C. get MAC address
        D. get IP/Subnet/Gateway addresses
        E. reset device
-    2. HTTP/AMPQ/MQTT protocol support 
-       [client --HTTP--> webserver <--AMPQ--> messagebroker <--MQTT--> microcontroller]
+    2. HTTP/AMQP/MQTT protocol support 
+       [client --HTTP--> webserver <--AMQP--> messagebroker <--MQTT--> microcontroller]
        A. HTTP: client app and webserver communication
-       B. AMPQ: webserver and messagebroker communication
+       B. AMQP: webserver and messagebroker communication
        C. MQTT: messagebroker and microcontroller communication
     3. Secure TLS connectivity 
        A. HTTP over TLS: client app and webserver communication
-       B. AMPQ over TLS: webserver and messagebroker communication
+       B. AMQP over TLS: webserver and messagebroker communication
        C. MQTT over TLS: messagebroker and microcontroller communication
     4. Dynamic generation of X509 certificates 
        A. register_device API returns a unique ca-signed device certificate + private key for the registered MCU device
