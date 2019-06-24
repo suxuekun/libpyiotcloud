@@ -211,6 +211,13 @@ def get_gateway():
     return process_request(api)
 
 
+@g_http_server.route('/write_uart', methods=['POST'])
+def write_uart():
+    api = 'write_uart'
+    return process_request(api)
+
+
+
 
 ###################################################################################
 # MQTT callback handlers
@@ -288,6 +295,11 @@ def subscribe_ampq_topic(topic, subscribe=True):
             index2 = index + 1 + topic[index+1:].index('.')
             device_name = topic[index+1:index2]
             myqueue = 'mqtt-subscription-{}qos{}'.format(device_name, CONFIG_QOS)
+
+            #if True:
+            #    g_messaging_client.exchange_declare(exchange='amq.topic', exchange_type='topic', durable=True, auto_delete=False)
+            #    result = g_messaging_client.queue_declare(queue=myqueue, auto_delete=True)
+
             g_messaging_client.queue_bind(queue=myqueue, exchange='amq.topic', routing_key=topic)
             #print("SUB: queue={}".format(myqueue))
             #print("SUB: topic={}".format(topic))
