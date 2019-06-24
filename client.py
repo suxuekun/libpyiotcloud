@@ -211,6 +211,18 @@ def get_gateway(conn, customer_id, device_name):
 	return value['value']
 
 ######################################################
+def write_uart(conn, customer_id, device_name, data):
+	print("\r\nwrite_uart {} {}".format(device_name, data))
+	headers = get_default_headers()
+	params = get_default_params(customer_id, device_name)
+	params['data'] = data
+	params = json.dumps(params)
+	request(conn, "POST", "/write_uart", params, headers)
+	data = response(conn)
+	data = json.loads(data)
+	return data['data']
+
+######################################################
 def get_index(conn):
 	headers = None
 	params = None
@@ -252,6 +264,13 @@ def main():
 		except:
 			print("Device is not running!")
 			return
+
+	######################################################
+	# Test write_uart
+	if True:
+		data = "Hello World!"
+		data = write_uart(conn, customer_id, device_name, data)
+		print(data)
 
 	######################################################
 	# Test get_gpio and set_gpio
