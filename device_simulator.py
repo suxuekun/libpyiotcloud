@@ -2,14 +2,15 @@ import ssl
 import json
 import time
 import threading
+import netifaces
+import argparse
+import sys
+import pika as amqp
+import paho.mqtt.client as mqtt
 
 
 
-CONFIG_USE_AMPQ = True
-if CONFIG_USE_AMPQ:
-    import pika as amqp
-else:
-    import paho.mqtt.client as mqtt
+CONFIG_USE_AMPQ = False
 
 
 
@@ -19,6 +20,7 @@ else:
 
 g_messaging_client = None
 g_mqtt_connect = False
+g_gpio_values = {}
 
 
 ###################################################################################
@@ -45,6 +47,149 @@ CONFIG_AMPQ_PORT            = 5672
 
 CONFIG_PREPEND_REPLY_TOPIC  = ""
 CONFIG_QOS                  = 1
+CONFIG_SEPARATOR        = '/'
+
+
+
+###################################################################################
+# API handling
+###################################################################################
+
+def handle_api(api, subtopic, subpayload):
+
+    if api == "get_status":
+        topic = "server" + CONFIG_SEPARATOR + subtopic
+        payload = {}
+        payload["status"] = "running"
+        payload = json.dumps(payload)
+        publish_messaging_packet(topic, payload)
+
+    elif api == "write_uart":
+        topic = "server" + CONFIG_SEPARATOR + subtopic
+        payload = {}
+        subpayload = json.loads(subpayload)
+        payload["data"] = subpayload["data"]
+        payload = json.dumps(payload)
+        publish_messaging_packet(topic, payload)
+        print(subpayload["data"])
+
+    elif api == "get_gpio":
+        topic = "server" + CONFIG_SEPARATOR + subtopic
+        subpayload = json.loads(subpayload)
+
+        try:
+            value = g_gpio_values[str(subpayload["number"])]
+        except:
+            value = 0
+
+        payload = {}
+        payload["number"] = subpayload["number"]
+        payload["value"] = value
+        payload = json.dumps(payload)
+        publish_messaging_packet(topic, payload)
+
+    elif api == "set_gpio":
+        topic = "server" + CONFIG_SEPARATOR + subtopic
+        subpayload = json.loads(subpayload)
+
+        value = int(subpayload["value"])
+        g_gpio_values[str(subpayload["number"])] = value
+
+        payload = {}
+        payload["number"] = subpayload["number"]
+        payload["value"] = value
+        payload = json.dumps(payload)
+        publish_messaging_packet(topic, payload)
+
+
+    elif api == "get_rtc":
+        topic = "server" + CONFIG_SEPARATOR + subtopic
+        subpayload = json.loads(subpayload)
+
+        value = int(time.time())
+
+        payload = {}
+        payload["value"] = value
+        payload = json.dumps(payload)
+        publish_messaging_packet(topic, payload)
+
+    elif api == "set_rtc":
+        topic = "server" + CONFIG_SEPARATOR + subtopic
+        subpayload = json.loads(subpayload)
+
+        value = subpayload["value"]
+
+        payload = {}
+        payload["value"] = value
+        payload = json.dumps(payload)
+        publish_messaging_packet(topic, payload)
+
+
+    elif api == "get_mac":
+        topic = "server" + CONFIG_SEPARATOR + subtopic
+        subpayload = json.loads(subpayload)
+
+        gws = netifaces.gateways()
+        ifw = gws['default'][netifaces.AF_INET][1]
+        addrs = netifaces.ifaddresses(ifw)[netifaces.AF_LINK][0]
+        value = addrs['addr']
+
+        payload = {}
+        payload["value"] = value
+        payload = json.dumps(payload)
+        publish_messaging_packet(topic, payload)
+
+    elif api == "get_ip":
+        topic = "server" + CONFIG_SEPARATOR + subtopic
+        subpayload = json.loads(subpayload)
+
+        gws = netifaces.gateways()
+        ifw = gws['default'][netifaces.AF_INET][1]
+        addrs = netifaces.ifaddresses(ifw)[netifaces.AF_INET][0]
+        value = addrs['addr']
+
+        payload = {}
+        payload["value"] = value
+        payload = json.dumps(payload)
+        publish_messaging_packet(topic, payload)
+
+    elif api == "get_subnet":
+        topic = "server" + CONFIG_SEPARATOR + subtopic
+        subpayload = json.loads(subpayload)
+
+        gws = netifaces.gateways()
+        ifw = gws['default'][netifaces.AF_INET][1]
+        addrs = netifaces.ifaddresses(ifw)[netifaces.AF_INET][0]
+        value = addrs['netmask']
+
+        payload = {}
+        payload["value"] = value
+        payload = json.dumps(payload)
+        publish_messaging_packet(topic, payload)
+
+    elif api == "get_gateway":
+        topic = "server" + CONFIG_SEPARATOR + subtopic
+        subpayload = json.loads(subpayload)
+
+        gws = netifaces.gateways()
+        value = gws['default'][netifaces.AF_INET][0]
+
+        payload = {}
+        payload["value"] = value
+        payload = json.dumps(payload)
+        publish_messaging_packet(topic, payload)
+
+
+    elif api == "set_status":
+        topic = "server" + CONFIG_SEPARATOR + subtopic
+        subpayload = json.loads(subpayload)
+
+        status = "restarting"
+
+        payload = {}
+        payload["status"] = status
+        payload = json.dumps(payload)
+        publish_messaging_packet(topic, payload)
 
 
 
@@ -54,30 +199,23 @@ CONFIG_QOS                  = 1
 
 def on_mqtt_connect(client, userdata, flags, rc):
     global g_mqtt_connect
-    print("MQTT Connected with result code " + str(rc))
+    #print("MQTT Connected with result code " + str(rc))
     g_mqtt_connect = True
 
 def on_mqtt_message(client, userdata, msg):
-    print("MQTT Recv {}".format(userdata))
+    #print("MQTT Recv {}".format(userdata))
     print("MQTT Recv {}".format(msg.topic))
-    print("MQTT Recv {}".format(msg.payload))
+    #print("MQTT Recv {}".format(msg.payload))
 
-    expected_topic = "{}/{}/".format(CONFIG_CUSTOMER_ID, CONFIG_DEVICE_NAME)
+    expected_topic = "{}{}{}{}".format(CONFIG_CUSTOMER_ID, CONFIG_SEPARATOR, CONFIG_DEVICE_NAME, CONFIG_SEPARATOR)
     expected_topic_len = len(expected_topic)
     topic = msg.topic
     if topic[:expected_topic_len] != expected_topic:
         return
 
     api = topic[expected_topic_len:]
-    print(api)
-
-    if api == "get_status":
-        topic = "server/" + topic
-        payload = {}
-        payload["status"] = "running"
-        payload = json.dumps(payload)
-        publish_mqtt_packet(topic, payload)
-
+    #print(api)
+    handle_api(api, topic, msg.payload)
 
 def publish_mqtt_packet(topic, payload):
     print("PUB: topic={} payload={}".format(topic, payload))
@@ -93,9 +231,9 @@ def subscribe_mqtt_topic(topic, subscribe=True):
             g_messaging_client.unsubscribe(topic)
 
 def on_ampq_message(ch, method, properties, body):
-    print("RCV: {} {}".format(method.routing_key, body))
+    #print("RCV: {} {}".format(method.routing_key, body))
 
-    expected_topic = "{}.{}.".format(CONFIG_CUSTOMER_ID, CONFIG_DEVICE_NAME)
+    expected_topic = "{}{}{}{}".format(CONFIG_CUSTOMER_ID, CONFIG_SEPARATOR, CONFIG_DEVICE_NAME, CONFIG_SEPARATOR)
     expected_topic_len = len(expected_topic)
     topic = method.routing_key
     if topic[:expected_topic_len] != expected_topic:
@@ -104,21 +242,10 @@ def on_ampq_message(ch, method, properties, body):
 
     api = topic[expected_topic_len:]
     print(api)
-
-    if api == "get_status":
-        topic = "server." + topic
-        payload = {}
-        payload["status"] = "running"
-        payload = json.dumps(payload)
-        publish_ampq_packet(topic, payload)
-
-    #print("RCV: {} {}".format(method.routing_key, body))
-    #g_queue_dict[method.routing_key] = body
-    #print("RCV: {}".format(g_queue_dict))
-    #g_messaging_client.stop_consuming()
+    handle_api(api, topic, body)
 
 def publish_ampq_packet(topic, payload):
-    print("PUB: topic={} payload={}".format(topic, payload))
+    #print("PUB: topic={} payload={}".format(topic, payload))
     if g_messaging_client:
         g_messaging_client.basic_publish(exchange='amq.topic', routing_key=topic, body=payload.encode("utf-8"))
 
@@ -146,7 +273,7 @@ def subscribe_ampq_thread(client):
             continue
 
 def subscribe_ampq_topic(topic, subscribe=True):
-    print("SUB: topic={}".format(topic))
+    #print("SUB: topic={}".format(topic))
     if g_messaging_client:
         if subscribe:
             if CONFIG_PREPEND_REPLY_TOPIC == '':
@@ -154,14 +281,14 @@ def subscribe_ampq_topic(topic, subscribe=True):
             else:
                 index = len(CONFIG_PREPEND_REPLY_TOPIC)+1
 
-            index += topic[index:].index('.')
-            index2 = index + 1 + topic[index+1:].index('.')
+            index += topic[index:].index(CONFIG_SEPARATOR)
+            index2 = index + 1 + topic[index+1:].index(CONFIG_SEPARATOR)
             device_name = topic[index+1:index2]
             myqueue = 'mqtt-subscription-{}qos{}'.format(device_name, CONFIG_QOS)
 
             if True:
-                g_messaging_client.exchange_declare(exchange='amq.topic', exchange_type='topic', durable=True)
-                result = g_messaging_client.queue_declare(queue=myqueue)
+                g_messaging_client.exchange_declare(exchange='amq.topic', exchange_type='topic', durable=True, auto_delete=False)
+                result = g_messaging_client.queue_declare(queue=myqueue, auto_delete=True)
 
             g_messaging_client.queue_bind(queue=myqueue, exchange='amq.topic', routing_key=topic)
             #print("SUB: queue={}".format(myqueue))
@@ -190,7 +317,7 @@ def receive_messaging_topic(topic):
         try:
             data = g_queue_dict[topic].decode("utf-8")
             g_queue_dict.pop(topic)
-            print("API: response={}\r\n".format(data))
+            #print("API: response={}\r\n".format(data))
             return data
         except:
             #print("x")
@@ -238,7 +365,7 @@ def init_mqtt_client():
         client = None
 
     while True:
-        print(g_mqtt_connect)
+        #print(g_mqtt_connect)
         if g_mqtt_connect:
             break
         time.sleep(1)
@@ -289,8 +416,20 @@ def init_messaging_client():
 ###################################################################################
 # Main entry point
 ###################################################################################
+def parse_arguments(argv):
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--USE_AMQP', required=False, default=0, help='Use AMQP instead of MQTT')
+    return parser.parse_args(argv)
+
 
 if __name__ == '__main__':
+
+    args = parse_arguments(sys.argv[1:])
+    print("USE_AMQP={}".format(args.USE_AMQP))
+
+    CONFIG_USE_AMPQ = True if int((args.USE_AMQP))==1 else False
+    CONFIG_SEPARATOR = "." if int((args.USE_AMQP))==1 else "/"
 
     # Initialize MQTT/AMPQ client
     g_messaging_client = init_messaging_client()
@@ -300,11 +439,8 @@ if __name__ == '__main__':
 
 
     time.sleep(1)
-    if CONFIG_USE_AMPQ:
-        subtopic = "{}.{}.#".format(CONFIG_CUSTOMER_ID, CONFIG_DEVICE_NAME)
-    else:
-        subtopic = "{}/{}/#".format(CONFIG_CUSTOMER_ID, CONFIG_DEVICE_NAME)
-    print(subtopic)
+    subtopic = "{}{}{}{}#".format(CONFIG_CUSTOMER_ID, CONFIG_SEPARATOR, CONFIG_DEVICE_NAME, CONFIG_SEPARATOR)
+    #print(subtopic)
     subscribe_messaging_topic(subtopic)
 
     while True:
