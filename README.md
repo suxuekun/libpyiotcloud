@@ -11,6 +11,7 @@ libpyiotcloud demonstrates a custom IoT platform for remote access and control o
        C. get MAC address
        D. get IP/Subnet/Gateway addresses
        E. reset device
+       F. write UART
     2. HTTP/AMQP/MQTT protocol support 
        [client --HTTP--> webserver <--AMQP--> messagebroker <--MQTT--> microcontroller]
        A. HTTP: client app and webserver communication
