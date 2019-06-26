@@ -266,6 +266,7 @@ if __name__ == '__main__':
     g_messaging_client.initialize()
 
 
+    # Subscribe to messages sent for this device
     time.sleep(1)
     subtopic = "{}{}{}{}#".format(CONFIG_CUSTOMER_ID, CONFIG_SEPARATOR, CONFIG_DEVICE_NAME, CONFIG_SEPARATOR)
     #print(subtopic)
