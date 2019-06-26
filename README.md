@@ -104,7 +104,7 @@ The total round trip time for setting or getting the MCU GPIO is 2.01 seconds fr
 
     client <-> webserver <-> mqttbroker <-> MCU: 2.01 seconds
                webserver <-> mqttbroker <-> MCU: 1.00 second
-    Note: the webserver is still on my local PC, not yet on Linode or AWS EC2
+    Note: the webserver is still on my local PC, not yet on Linode or AWS EC2.
 
 The client call to HTTP getresponse() is causing the additional 1 second delay. https://docs.python.org/3/library/http.client.html#http.client.HTTPConnection.getresponse For mobile client application, this 1 second delay maybe less or more. This will depend on the equivalent function HTTP client getresponse() in Java for Android or Swift for iOS..
 
