@@ -11,8 +11,8 @@ import time
 
 CONFIG_HTTP_HOST     = "localhost"
 CONFIG_HTTP_PORT     = 443
-CONFIG_HTTP_TLS_CERT = "cert/ft900device1_cert.pem"
-CONFIG_HTTP_TLS_PKEY = "cert/ft900device1_pkey.pem"
+CONFIG_HTTP_TLS_CERT = "cert/app_cert.pem"
+CONFIG_HTTP_TLS_PKEY = "cert/app_pkey.pem"
 
 
 
@@ -230,20 +230,10 @@ def get_index(conn):
 
 
 
-###################################################################################
-# Demo REST APIs
-###################################################################################
 
-def main():
+def test(conn, customer_id, device_name):
 
-	conn = http.client.HTTPSConnection(
-		CONFIG_HTTP_HOST, 
-		CONFIG_HTTP_PORT, 
-		context=initialize_context())
-
-	customer_id = "richmond_umagat@brtchip_com"
-	device_name = "ft900device1"
-
+	print("Testing {} {}".format(customer_id, device_name))
 
 	######################################################
 	# Test register_device
@@ -348,6 +338,26 @@ def main():
 	if True:
 		status = restart_device(conn, customer_id, device_name)
 		print(status)
+
+
+###################################################################################
+# Demo REST APIs
+###################################################################################
+
+def main():
+
+	conn = http.client.HTTPSConnection(
+		CONFIG_HTTP_HOST, 
+		CONFIG_HTTP_PORT, 
+		context=initialize_context())
+
+	customer_id = "richmond_umagat@brtchip_com"
+
+	device_name = "ft900device1"
+	test(conn, customer_id, device_name)
+	device_name = "ft900device2"
+	test(conn, customer_id, device_name)
+
 
 
 if __name__ == '__main__':
