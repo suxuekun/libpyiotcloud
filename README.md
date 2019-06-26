@@ -34,7 +34,7 @@ libpyiotcloud demonstrates a custom IoT platform for remote access and control o
 
 Instead of using 'serverless' IoT solutions like AWS IoT Core, GCP IoT Core or Azure IoT Hub, 
 we can create our own 'server-based' IoT solutions using Flask webserver, RabbitMQ message broker and Pika AMQP client.
-This server-based IoT solution architecture can be deployed in local PC or in the cloud - AWS EC2, Linode, CloudAMQP, Heroku, Rackspace or etc.
+This server-based IoT solution architecture can be deployed in local PC or in the cloud - AWS EC2, Linode, CloudAMQP, Heroku, Rackspace, DigitalOcean or etc.
 
 
 <img src="https://github.com/richmondu/libpyiotcloud/blob/master/images/architecture.png" width="800"/>
