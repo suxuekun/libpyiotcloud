@@ -196,34 +196,29 @@ def handle_api(api, subtopic, subpayload):
 # MQTT/AMQP callback functions
 ###################################################################################
 
-def on_mqtt_message(client, userdata, msg):
-    #print("MQTT Recv {}".format(userdata))
-    print("MQTT Recv {}".format(msg.topic))
-    #print("MQTT Recv {}".format(msg.payload))
+def on_message(subtopic, subpayload):
 
     expected_topic = "{}{}{}{}".format(CONFIG_CUSTOMER_ID, CONFIG_SEPARATOR, CONFIG_DEVICE_NAME, CONFIG_SEPARATOR)
     expected_topic_len = len(expected_topic)
-    topic = msg.topic
-    if topic[:expected_topic_len] != expected_topic:
+
+    if subtopic[:expected_topic_len] != expected_topic:
         return
 
-    api = topic[expected_topic_len:]
+    api = subtopic[expected_topic_len:]
     #print(api)
-    handle_api(api, topic, msg.payload)
+    handle_api(api, subtopic, subpayload)
 
+
+def on_mqtt_message(client, userdata, msg):
+
+    print("RCV: MQTT {} {}".format(msg.topic, msg.payload))
+    on_message(msg.topic, msg.payload)
+
+  
 def on_amqp_message(ch, method, properties, body):
-    #print("RCV: {} {}".format(method.routing_key, body))
 
-    expected_topic = "{}{}{}{}".format(CONFIG_CUSTOMER_ID, CONFIG_SEPARATOR, CONFIG_DEVICE_NAME, CONFIG_SEPARATOR)
-    expected_topic_len = len(expected_topic)
-    topic = method.routing_key
-    if topic[:expected_topic_len] != expected_topic:
-        print("exit")
-        return
-
-    api = topic[expected_topic_len:]
-    print(api)
-    handle_api(api, topic, body)
+    print("RCV: AMQP {} {}".format(method.routing_key, body))
+    on_message(method.routing_key, body)
 
 
 
@@ -275,4 +270,3 @@ if __name__ == '__main__':
 
     while True:
         pass
-
