@@ -4,4 +4,4 @@ paho-mqtt
 pika
 pyopenssl
 argparse
-
+netifaces
