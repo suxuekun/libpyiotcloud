@@ -228,9 +228,10 @@ def parse_arguments(argv):
     parser = argparse.ArgumentParser()
     parser.add_argument('--USE_AMQP', required=False, default=1 if CONFIG_USE_AMQP else 0, help='Use AMQP instead of MQTT')
     parser.add_argument('--USE_DEVICE_NAME', required=False, default=CONFIG_DEVICE_NAME, help='Device name to use')
-    parser.add_argument('--USE_DEVICE_CA',   required=False, default=CONFIG_TLS_CA, help='Device CA certificate to use')
+    parser.add_argument('--USE_DEVICE_CA',   required=False, default=CONFIG_TLS_CA,   help='Device CA certificate to use')
     parser.add_argument('--USE_DEVICE_CERT', required=False, default=CONFIG_TLS_CERT, help='Device certificate to use')
     parser.add_argument('--USE_DEVICE_PKEY', required=False, default=CONFIG_TLS_PKEY, help='Device private key to use')
+    parser.add_argument('--USE_HOST', required=False, default=CONFIG_HOST, help='Host server to connect to')
     return parser.parse_args(argv)
 
 
