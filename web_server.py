@@ -128,19 +128,23 @@ def process_request(api):
     payload = generate_publish_payload(data)
     subtopic = generate_subscribe_topic(pubtopic, CONFIG_SEPARATOR)
 
-    # subscribe for response
-    g_messaging_client.subscribe(subtopic, subscribe=True)
+    try:
+        # subscribe for response
+        g_messaging_client.subscribe(subtopic, subscribe=True)
 
-    # publish request
-    g_messaging_client.publish(pubtopic, payload)
+        # publish request
+        g_messaging_client.publish(pubtopic, payload)
 
-    # receive response
-    response = receive_message(subtopic)
-    g_messaging_client.subscribe(subtopic, subscribe=False)
+        # receive response
+        response = receive_message(subtopic)
+        g_messaging_client.subscribe(subtopic, subscribe=False)
+
+    except:
+        response = None
 
     # return HTTP response
     if response is None:
-        return api
+        return 'Device is not running!', 400
     return response
 
 
