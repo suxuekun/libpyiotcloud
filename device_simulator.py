@@ -10,7 +10,7 @@ from messaging_client import messaging_client
 
 
 ###################################################################################
-# Enable to use AMPQ for webserver-to-messagebroker communication
+# Enable to use AMQP for webserver-to-messagebroker communication
 # Disable to use MQTT for webserver-to-messagebroker communication
 CONFIG_USE_AMQP = True
 ###################################################################################
@@ -27,7 +27,7 @@ g_gpio_values = {}
 
 
 ###################################################################################
-# MQTT and AMPQ configurations
+# MQTT and AMQP configurations
 ###################################################################################
 
 CONFIG_CUSTOMER_ID          = "richmond_umagat@brtchip_com"
