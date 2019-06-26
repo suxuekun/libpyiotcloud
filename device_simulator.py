@@ -37,9 +37,8 @@ CONFIG_TLS_CA               = "cert/rootca.pem"
 CONFIG_TLS_CERT             = "cert/ft900device1_cert.pem"
 CONFIG_TLS_PKEY             = "cert/ft900device1_pkey.pem"
 
-CONFIG_MQTT_HOST            = "localhost"
+CONFIG_HOST                 = "localhost"
 CONFIG_MQTT_TLS_PORT        = 8883
-CONFIG_AMQP_HOST            = "localhost"
 CONFIG_AMQP_TLS_PORT        = 5671
 
 CONFIG_PREPEND_REPLY_TOPIC  = ""
@@ -255,10 +254,10 @@ if __name__ == '__main__':
     print("Using {} for device-messagebroker communication!".format("AMQP" if CONFIG_USE_AMQP else "MQTT"))
     if CONFIG_USE_AMQP:
         g_messaging_client = messaging_client(CONFIG_USE_AMQP, on_amqp_message, device_name=CONFIG_DEVICE_NAME)
-        g_messaging_client.set_server(CONFIG_AMQP_HOST, CONFIG_AMQP_TLS_PORT)
+        g_messaging_client.set_server(CONFIG_HOST, CONFIG_AMQP_TLS_PORT)
     else:
         g_messaging_client = messaging_client(CONFIG_USE_AMQP, on_mqtt_message, device_name=CONFIG_DEVICE_NAME)
-        g_messaging_client.set_server(CONFIG_MQTT_HOST, CONFIG_MQTT_TLS_PORT)
+        g_messaging_client.set_server(CONFIG_HOST, CONFIG_MQTT_TLS_PORT)
     g_messaging_client.set_user_pass(CONFIG_USERNAME, CONFIG_PASSWORD)
     g_messaging_client.set_tls(CONFIG_TLS_CA, CONFIG_TLS_CERT, CONFIG_TLS_PKEY)
     try:
