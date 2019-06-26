@@ -27,7 +27,7 @@ g_gpio_values = {}
 
 
 ###################################################################################
-# MQTT and AMQP configurations
+# MQTT and AMQP default configurations
 ###################################################################################
 
 CONFIG_CUSTOMER_ID          = "richmond_umagat@brtchip_com"
@@ -230,10 +230,10 @@ def parse_arguments(argv):
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--USE_AMQP', required=False, default=1 if CONFIG_USE_AMQP else 0, help='Use AMQP instead of MQTT')
-    parser.add_argument('--USE_DEVICE_NAME', required=False, default=CONFIG_DEVICE_NAME,   help='Device name to use')
-    parser.add_argument('--USE_DEVICE_CA',   required=False, default=CONFIG_TLS_CA,        help='Device CA certificate to use'
-    parser.add_argument('--USE_DEVICE_CERT', required=False, default=CONFIG_TLS_CERT,      help='Device certificate to use')
-    parser.add_argument('--USE_DEVICE_PKEY', required=False, default=CONFIG_TLS_PKEY,      help='Device private key to use')
+    parser.add_argument('--USE_DEVICE_NAME', required=False, default=CONFIG_DEVICE_NAME, help='Device name to use')
+    parser.add_argument('--USE_DEVICE_CA',   required=False, default=CONFIG_TLS_CA, help='Device CA certificate to use')
+    parser.add_argument('--USE_DEVICE_CERT', required=False, default=CONFIG_TLS_CERT, help='Device certificate to use')
+    parser.add_argument('--USE_DEVICE_PKEY', required=False, default=CONFIG_TLS_PKEY, help='Device private key to use')
     return parser.parse_args(argv)
 
 
@@ -263,7 +263,10 @@ if __name__ == '__main__':
         g_messaging_client.set_server(CONFIG_MQTT_HOST, CONFIG_MQTT_TLS_PORT)
     g_messaging_client.set_user_pass(CONFIG_USERNAME, CONFIG_PASSWORD)
     g_messaging_client.set_tls(CONFIG_TLS_CA, CONFIG_TLS_CERT, CONFIG_TLS_PKEY)
-    g_messaging_client.initialize()
+    try:
+        g_messaging_client.initialize()
+    except:
+        print("Could not connect to message broker")
 
 
     # Subscribe to messages sent for this device
@@ -271,6 +274,7 @@ if __name__ == '__main__':
     subtopic = "{}{}{}{}#".format(CONFIG_CUSTOMER_ID, CONFIG_SEPARATOR, CONFIG_DEVICE_NAME, CONFIG_SEPARATOR)
     #print(subtopic)
     g_messaging_client.subscribe(subtopic, subscribe=True, declare=True, consume_continuously=True)
+
 
     while True:
         pass
