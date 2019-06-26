@@ -46,18 +46,22 @@ def request(conn, req_type, req_api, params, headers):
 			conn.request(req_type, req_api, params)
 		return True
 	except:
-		print("Could not communicate with webserver!")
+		print("REQ: Could not communicate with WEBSERVER! {}".format(""))
 	return False
 
 def response(conn):
 	try:
 		r1 = conn.getresponse()
-		#print("response = {} {} [{}]".format(r1.status, r1.reason, r1.length))
-		if r1.length:
-			data = r1.read(r1.length)
-		return data.decode("utf-8")
+		if r1.status == 200:
+			print("response = {} {} [{}]".format(r1.status, r1.reason, r1.length))
+			if r1.length:
+				data = r1.read(r1.length)
+			return data.decode("utf-8")
+		else:
+			print("RES: Could not communicate with DEVICE! {}".format(r1.status))
+			return None
 	except:
-		print("Could not communicate with webserver!")
+		print("RES: Could not communicate with DEVICE! {}".format(""))
 	return None
 
 def get_default_headers():
@@ -141,11 +145,15 @@ def get_status(conn, customer_id, device_name):
 	headers = get_default_headers()
 	params = get_default_params(customer_id, device_name)
 	params = json.dumps(params)
-	request(conn, "GET", "/get_status", params, headers)
-	status = response(conn)
-	status = json.loads(status)
-	return status['status']
-
+	if request(conn, "GET", "/get_status", params, headers):
+		status = response(conn)
+		if status:
+			status = json.loads(status)
+			return status['status']
+		else:
+			return "Not running"
+	else:
+		return "Unknown"
 def restart_device(conn, customer_id, device_name):
 	print("\r\nrestart_device {}".format(device_name))
 	headers = get_default_headers()
@@ -233,7 +241,7 @@ def get_index(conn):
 
 def test(conn, customer_id, device_name):
 
-	print("Testing {} {}".format(customer_id, device_name))
+	print("\r\nTesting {} {}".format(customer_id, device_name))
 
 	######################################################
 	# Test register_device
@@ -248,11 +256,8 @@ def test(conn, customer_id, device_name):
 	######################################################
 	# Test get_status
 	if True:
-		try:
-			status = get_status(conn, customer_id, device_name)
-			print(status)
-		except:
-			print("Device is not running!")
+		status = get_status(conn, customer_id, device_name)
+		if status == "Not running" or status == "Unknown":
 			return
 
 	######################################################
