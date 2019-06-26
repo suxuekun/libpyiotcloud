@@ -19,7 +19,7 @@ CONFIG_QOS                  = 1
 
 ###################################################################################
 # messaging_client
-# abstracts MQTT and AMPQ implementation
+# abstracts MQTT and AMQP implementation
 # used by both webserver and device_simulator
 ###################################################################################
 class messaging_client:
