@@ -1,23 +1,25 @@
 import ssl
 import json
 import time
-import threading
+import argparse
+import sys
 from flask import Flask, request
 from flask_json import FlaskJSON, JsonError, json_response, as_json
 from certificate_generator import certificate_generator
-
-
-
-CONFIG_USE_AMPQ = True
-if CONFIG_USE_AMPQ:
-    import pika as amqp
-else:
-    import paho.mqtt.client as mqtt
+from messaging_client import messaging_client
 
 
 
 ###################################################################################
-# HTTP, MQTT and AMPQ configurations
+# Enable to use AMPQ for webserver-to-messagebroker communication
+# Disable to use MQTT for webserver-to-messagebroker communication
+CONFIG_USE_AMQP = True
+###################################################################################
+
+
+
+###################################################################################
+# HTTP configurations
 ###################################################################################
 
 CONFIG_HTTP_HOST            = "localhost"
@@ -26,23 +28,19 @@ CONFIG_HTTP_TLS_CA          = "cert/rootca.pem"
 CONFIG_HTTP_TLS_CERT        = "cert/server_cert.pem"
 CONFIG_HTTP_TLS_PKEY        = "cert/server_pkey.pem"
 
-CONFIG_MQTT_USERNAME        = "guest"
-CONFIG_MQTT_PASSWORD        = "guest"
-CONFIG_MQTT_TLS_CA          = "cert/rootca.pem"
-CONFIG_MQTT_TLS_CERT        = "cert/server_cert.pem"
-CONFIG_MQTT_TLS_PKEY        = "cert/server_pkey.pem"
+CONFIG_USERNAME             = "guest"
+CONFIG_PASSWORD             = "guest"
+CONFIG_TLS_CA               = "cert/rootca.pem"
+CONFIG_TLS_CERT             = "cert/server_cert.pem"
+CONFIG_TLS_PKEY             = "cert/server_pkey.pem"
+
 CONFIG_MQTT_HOST            = "localhost"
 CONFIG_MQTT_TLS_PORT        = 8883
+CONFIG_AMQP_HOST            = "localhost"
+CONFIG_AMQP_TLS_PORT        = 5671
 
-CONFIG_AMPQ_TLS_CA          = "cert/rootca.pem"
-CONFIG_AMPQ_TLS_CERT        = "cert/server_cert.pem"
-CONFIG_AMPQ_TLS_PKEY        = "cert/server_pkey.pem"
-CONFIG_AMPQ_HOST            = "localhost"
-CONFIG_AMPQ_TLS_PORT        = 5671
-CONFIG_AMPQ_PORT            = 5672
-
+CONFIG_SEPARATOR            = '/'
 CONFIG_PREPEND_REPLY_TOPIC  = "server"
-CONFIG_QOS                  = 1
 
 
 
@@ -103,47 +101,42 @@ def unregister_device():
 
 
 
-def generate_messaging_publish_topic(data, api):
+def generate_publish_topic(data, api, separator):
     customer_id = data['customer_id']
     device_name = data['device_name']
-    if CONFIG_USE_AMPQ:
-        topic = customer_id + "." + device_name + "." + api 
-    else:
-        topic = customer_id + "/" + device_name + "/" + api 
+    topic = customer_id + separator + device_name + separator + api 
     return topic
 
-def generate_messaging_publish_payload(data):
+def generate_publish_payload(data):
     data.pop('customer_id')
     data.pop('device_name')
     payload = json.dumps(data)
     return payload
 
-def generate_messaging_subscribe_topic(topic):
-    if CONFIG_USE_AMPQ:
-        topic = CONFIG_PREPEND_REPLY_TOPIC + "." + topic
-    else:
-        topic = CONFIG_PREPEND_REPLY_TOPIC + "/" + topic
+def generate_subscribe_topic(topic, separator):
+    topic = CONFIG_PREPEND_REPLY_TOPIC + separator + topic
     return topic
 
 def process_request(api):
+
     # parse HTTP request
     data = request.get_json()
     print("\r\nAPI: {} request={}".format(api, data))
 
     # construct publish/subscribe topics and payloads
-    pubtopic = generate_messaging_publish_topic(data, api)
-    payload = generate_messaging_publish_payload(data)
-    subtopic = generate_messaging_subscribe_topic(pubtopic)
+    pubtopic = generate_publish_topic(data, api, CONFIG_SEPARATOR)
+    payload = generate_publish_payload(data)
+    subtopic = generate_subscribe_topic(pubtopic, CONFIG_SEPARATOR)
 
     # subscribe for response
-    subscribe_messaging_topic(subtopic, subscribe=True)
+    g_messaging_client.subscribe(subtopic, subscribe=True)
 
     # publish request
-    publish_messaging_packet(pubtopic, payload)
+    g_messaging_client.publish(pubtopic, payload)
 
     # receive response
-    response = receive_messaging_topic(subtopic)
-    subscribe_messaging_topic(subtopic, subscribe=False)
+    response = receive_message(subtopic)
+    g_messaging_client.subscribe(subtopic, subscribe=False)
 
     # return HTTP response
     if response is None:
@@ -218,13 +211,29 @@ def write_uart():
 
 
 
+###################################################################################
+# HTTP server initialization
+###################################################################################
+
+def init_http_server():
+    context = (CONFIG_HTTP_TLS_CERT, CONFIG_HTTP_TLS_PKEY)
+    g_http_server.run(ssl_context = context,
+        host     = CONFIG_HTTP_HOST, 
+        port     = CONFIG_HTTP_PORT, 
+        threaded = True, 
+        debug    = True)
+    return g_http_server
+
+
+def init_db_client():
+    #client = MongoClient('localhost', 27017)
+    return client
+
+
 
 ###################################################################################
-# MQTT callback handlers
+# MQTT/AMQP callback functions
 ###################################################################################
-
-def on_mqtt_connect(client, userdata, flags, rc):
-    print("MQTT Connected with result code " + str(rc))
 
 def on_mqtt_message(client, userdata, msg):
     if CONFIG_PREPEND_REPLY_TOPIC == '':
@@ -236,91 +245,12 @@ def on_mqtt_message(client, userdata, msg):
             g_queue_dict[msg.topic] = msg.payload
             print("RCV: {}".format(g_queue_dict))
 
-def publish_mqtt_packet(topic, payload):
-    print("PUB: topic={} payload={}".format(topic, payload))
-    if g_messaging_client:
-        g_messaging_client.publish(topic, payload, qos=CONFIG_QOS)
-
-def subscribe_mqtt_topic(topic, subscribe=True):
-    print("SUB: topic={}".format(topic))
-    if g_messaging_client:
-        if subscribe:
-            g_messaging_client.subscribe(topic, qos=CONFIG_QOS)
-        else:
-            g_messaging_client.unsubscribe(topic)
-
-def on_ampq_message(ch, method, properties, body):
+def on_amqp_message(ch, method, properties, body):
     #print("RCV: {} {}".format(method.routing_key, body))
     g_queue_dict[method.routing_key] = body
     print("RCV: {}".format(g_queue_dict))
-    g_messaging_client.stop_consuming()
 
-def publish_ampq_packet(topic, payload):
-    print("PUB: topic={} payload={}".format(topic, payload))
-    if g_messaging_client:
-        g_messaging_client.basic_publish(exchange='amq.topic', routing_key=topic, body=payload.encode("utf-8"))
-
-def subscribe_ampq_thread(client):
-    while True:
-        try:
-            #print("start consuming")
-            client.start_consuming()
-            #print("end consuming")
-            break
-        # Don't recover if connection was closed by broker
-        except amqp.exceptions.ConnectionClosedByBroker:
-            print("ConnectionClosedByBroker")
-            time.sleep(1)
-            continue
-        # Don't recover on client errors
-        except amqp.exceptions.AMQPChannelError:
-            print("AMQPChannelError")
-            time.sleep(1)
-            continue
-        # Recover on all other connection errors
-        except amqp.exceptions.AMQPConnectionError:
-            print("AMQPConnectionError")
-            time.sleep(1)
-            continue
-
-def subscribe_ampq_topic(topic, subscribe=True):
-    print("SUB: topic={}".format(topic))
-    if g_messaging_client:
-        if subscribe:
-            if CONFIG_PREPEND_REPLY_TOPIC == '':
-                index = 0
-            else:
-                index = len(CONFIG_PREPEND_REPLY_TOPIC)+1
-            index += topic[index:].index('.')
-            index2 = index + 1 + topic[index+1:].index('.')
-            device_name = topic[index+1:index2]
-            myqueue = 'mqtt-subscription-{}qos{}'.format(device_name, CONFIG_QOS)
-
-            #if True:
-            #    g_messaging_client.exchange_declare(exchange='amq.topic', exchange_type='topic', durable=True, auto_delete=False)
-            #    result = g_messaging_client.queue_declare(queue=myqueue, auto_delete=True)
-
-            g_messaging_client.queue_bind(queue=myqueue, exchange='amq.topic', routing_key=topic)
-            #print("SUB: queue={}".format(myqueue))
-            #print("SUB: topic={}".format(topic))
-
-            g_messaging_client.basic_consume(queue=myqueue, on_message_callback=on_ampq_message)
-            x = threading.Thread(target=subscribe_ampq_thread, args=(g_messaging_client,))
-            x.start()
-
-def publish_messaging_packet(topic, payload):
-    if CONFIG_USE_AMPQ:
-       publish_ampq_packet(topic, payload)
-    else:
-       publish_mqtt_packet(topic, payload)
-
-def subscribe_messaging_topic(topic, subscribe=True):
-    if CONFIG_USE_AMPQ:
-       subscribe_ampq_topic(topic, subscribe=subscribe)
-    else:
-       subscribe_mqtt_topic(topic, subscribe=subscribe)
-
-def receive_messaging_topic(topic):
+def receive_message(topic):
     time.sleep(1)
     i = 0
     while True:
@@ -340,119 +270,43 @@ def receive_messaging_topic(topic):
 
 
 ###################################################################################
-# Messaging client initialization
-###################################################################################
-
-def init_mqtt_client():
-    client = mqtt.Client()
-    client.on_connect = on_mqtt_connect
-    client.on_message = on_mqtt_message
-
-    # Set MQTT credentials
-    client.username_pw_set(CONFIG_MQTT_USERNAME, CONFIG_MQTT_PASSWORD)
-
-    # Set TLS certificates
-    client.tls_set(ca_certs = CONFIG_MQTT_TLS_CA,
-        certfile    = CONFIG_MQTT_TLS_CERT,
-        keyfile     = CONFIG_MQTT_TLS_PKEY,
-        cert_reqs   = ssl.CERT_REQUIRED,
-        tls_version = ssl.PROTOCOL_TLSv1_2,
-        ciphers=None)
-
-    # handle issue: 
-    #   hostname doesn't match xxxx
-    client.tls_insecure_set(True)
-
-    # handle issues: 
-    #   MQTT server is down OR 
-    #   invalid MQTT crendentials OR 
-    #   invalid TLS certificates
-    try:
-        client.connect(CONFIG_MQTT_HOST, CONFIG_MQTT_TLS_PORT)
-        client.loop_start()
-    except:
-        client = None
-
-    return client
-
-def init_ampq_client():
-
-    use_tls = True
-
-    # Set TLS certificates and access credentials
-    credentials = amqp.PlainCredentials('guest', 'guest')
-    ssl_options = None
-    if use_tls:
-        context = ssl._create_unverified_context()
-        #context = ssl.create_default_context(cafile=CONFIG_AMPQ_TLS_CA)
-        #context.load_cert_chain(CONFIG_AMPQ_TLS_CERT, CONFIG_AMPQ_TLS_PKEY)
-        ssl_options = amqp.SSLOptions(context) 
-        parameters = amqp.ConnectionParameters(
-            CONFIG_AMPQ_HOST, 
-            CONFIG_AMPQ_TLS_PORT, 
-            credentials=credentials, 
-            ssl_options=ssl_options)
-    else:
-        parameters = amqp.ConnectionParameters(
-            CONFIG_AMPQ_HOST, 
-            CONFIG_AMPQ_PORT, 
-            credentials=credentials, 
-            ssl_options=ssl_options)
-
-    # Connect to AMPQ server
-    connection = amqp.BlockingConnection(parameters)
-    client = connection.channel()
-
-    return client
-
-def init_messaging_client():
-    if CONFIG_USE_AMPQ:
-       client = init_ampq_client()
-       print("Using AMPQ for webserver-messagebroker communication!")
-    else:
-       client = init_mqtt_client()
-       print("Using MQTT for webserver-messagebroker communication!")
-    return client
-
-
-
-###################################################################################
-# HTTP server initialization
-###################################################################################
-
-def init_http_server():
-    context = (CONFIG_MQTT_TLS_CERT, CONFIG_MQTT_TLS_PKEY)
-    g_http_server.run(ssl_context = context,
-        host     = CONFIG_HTTP_HOST, 
-        port     = CONFIG_HTTP_PORT, 
-        threaded = True, 
-        debug    = True)
-    return g_http_server
-
-
-def init_db_client():
-    client = MongoClient('localhost', 27017)
-    return client
-
-
-
-###################################################################################
 # Main entry point
 ###################################################################################
 
+def parse_arguments(argv, default_value):
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--USE_AMQP', required=False, default=default_value, help='Use AMQP instead of MQTT')
+    return parser.parse_args(argv)
+
+
 if __name__ == '__main__':
 
+    default_value = 1 if CONFIG_USE_AMQP else 0
+    args = parse_arguments(sys.argv[1:], default_value)
+
+    CONFIG_USE_AMQP = True if int((args.USE_AMQP))==1 else False
+    CONFIG_SEPARATOR = "." if int((args.USE_AMQP))==1 else "/"
+    print("USE_AMQP={}".format(args.USE_AMQP))
+
+
+    # Initialize MQTT/AMQP client
+    print("Using {} for webserver-messagebroker communication!".format("AMQP" if CONFIG_USE_AMQP else "MQTT"))
+    if CONFIG_USE_AMQP:
+        g_messaging_client = messaging_client(CONFIG_USE_AMQP, on_amqp_message)
+        g_messaging_client.set_server(CONFIG_AMQP_HOST, CONFIG_AMQP_TLS_PORT)
+    else:
+        g_messaging_client = messaging_client(CONFIG_USE_AMQP, on_mqtt_message)
+        g_messaging_client.set_server(CONFIG_MQTT_HOST, CONFIG_MQTT_TLS_PORT)
+    g_messaging_client.set_user_pass(CONFIG_USERNAME, CONFIG_PASSWORD)
+    g_messaging_client.set_tls(CONFIG_TLS_CA, CONFIG_TLS_CERT, CONFIG_TLS_PKEY)
+    g_messaging_client.initialize()
+
     # Initialize certificate generator
-    g_certificate_generator = certificate_generator()
+    #g_certificate_generator = certificate_generator()
 
     # Initialize Database client
     #g_db_client = init_db_client()
-
-
-    # Initialize MQTT/AMPQ client
-    g_messaging_client = init_messaging_client()
-    if g_messaging_client is None:
-        print("Error: {} server is down!!!".format("AMPQ" if CONFIG_USE_AMPQ else "MQTT"))
 
     # Initialize HTTP server
     g_http_server = init_http_server()
