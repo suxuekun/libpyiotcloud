@@ -244,11 +244,13 @@ if __name__ == '__main__':
     CONFIG_TLS_CA = args.USE_DEVICE_CA
     CONFIG_TLS_CERT = args.USE_DEVICE_CERT
     CONFIG_TLS_PKEY = args.USE_DEVICE_PKEY
+    CONFIG_HOST = args.USE_HOST
     print("USE_AMQP={}".format(args.USE_AMQP))
     print("USE_DEVICE_NAME={}".format(args.USE_DEVICE_NAME))
     print("USE_DEVICE_CA={}".format(args.USE_DEVICE_CA))
     print("USE_DEVICE_CERT={}".format(args.USE_DEVICE_CERT))
     print("USE_DEVICE_PKEY={}".format(args.USE_DEVICE_PKEY))
+    print("USE_HOST={}".format(args.USE_HOST))
 
 
     # Initialize MQTT/AMQP client
