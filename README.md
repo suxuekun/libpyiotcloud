@@ -39,7 +39,12 @@ This server-based IoT solution architecture can be deployed in local PC or in th
 
 <img src="https://github.com/richmondu/libpyiotcloud/blob/master/images/architecture.png" width="800"/>
 
-Note that this is a simple design and will not likely scale to millions of devices.
+
+Notes:
+
+    1. This is a simple design and will not likely scale to millions of devices.
+    2. RabbitMQ supports AMQP, MQTT and MQTT over Websockets.
+    3. For MQTT and MQTT over Websockets to work, plugins must be installed in RabbitMQ.
 
 
 
