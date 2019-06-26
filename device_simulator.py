@@ -1,4 +1,4 @@
-import json
+I import json
 import time
 import netifaces
 import argparse
@@ -232,6 +232,8 @@ def parse_arguments(argv):
     parser.add_argument('--USE_DEVICE_CERT', required=False, default=CONFIG_TLS_CERT, help='Device certificate to use')
     parser.add_argument('--USE_DEVICE_PKEY', required=False, default=CONFIG_TLS_PKEY, help='Device private key to use')
     parser.add_argument('--USE_HOST', required=False, default=CONFIG_HOST, help='Host server to connect to')
+    parser.add_argument('--USE_USERNAME', required=False, default=CONFIG_USERNAME, help='Username to use in connection')
+    parser.add_argument('--USE_PASSWORD', required=False, default=CONFIG_PASSWORD, help='Password to use in connection')
     return parser.parse_args(argv)
 
 
