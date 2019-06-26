@@ -1,7 +1,5 @@
-import ssl
 import json
 import time
-import threading
 import netifaces
 import argparse
 import sys
