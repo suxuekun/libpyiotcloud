@@ -20,7 +20,6 @@ CONFIG_USE_AMQP = True
 ###################################################################################
 
 g_messaging_client = None
-g_mqtt_connect = False
 g_gpio_values = {}
 
 
