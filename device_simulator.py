@@ -239,15 +239,15 @@ def parse_arguments(argv):
 if __name__ == '__main__':
 
     args = parse_arguments(sys.argv[1:])
-    CONFIG_USE_AMQP = True if int((args.USE_AMQP))==1 else False
-    CONFIG_SEPARATOR = "." if int((args.USE_AMQP))==1 else "/"
+    CONFIG_USE_AMQP    = True if int((args.USE_AMQP))==1 else False
+    CONFIG_SEPARATOR   = "." if int((args.USE_AMQP))==1 else "/"
     CONFIG_DEVICE_NAME = args.USE_DEVICE_NAME
-    CONFIG_TLS_CA = args.USE_DEVICE_CA
-    CONFIG_TLS_CERT = args.USE_DEVICE_CERT
-    CONFIG_TLS_PKEY = args.USE_DEVICE_PKEY
-    CONFIG_HOST = args.USE_HOST
-    CONFIG_USERNAME = args.USE_USERNAME
-    CONFIG_PASSWORD = args.USE_PASSWORD
+    CONFIG_TLS_CA      = args.USE_DEVICE_CA
+    CONFIG_TLS_CERT    = args.USE_DEVICE_CERT
+    CONFIG_TLS_PKEY    = args.USE_DEVICE_PKEY
+    CONFIG_HOST        = args.USE_HOST
+    CONFIG_USERNAME    = args.USE_USERNAME
+    CONFIG_PASSWORD    = args.USE_PASSWORD
     print("USE_AMQP={}".format(args.USE_AMQP))
     print("USE_DEVICE_NAME={}".format(args.USE_DEVICE_NAME))
     print("USE_DEVICE_CA={}".format(args.USE_DEVICE_CA))
