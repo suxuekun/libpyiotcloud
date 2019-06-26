@@ -17,7 +17,7 @@ libpyiotcloud demonstrates a custom IoT platform for remote access and control o
        A. HTTP: client app and webserver communication
        B. AMQP: webserver and messagebroker communication
        C. MQTT: messagebroker and microcontroller communication
-    3. Secure TLS connectivity 
+    3. Secure TLS connectivity with X.509 certificate authentication
        A. HTTP over TLS: client app and webserver communication
        B. AMQP over TLS: webserver and messagebroker communication
        C. MQTT over TLS: messagebroker and microcontroller communication
