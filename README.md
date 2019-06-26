@@ -1,6 +1,6 @@
 # libpyiotcloud
 
-libpyiotcloud demonstrates a custom IoT platform for remote access and control of an MCU-based smart device from a web client application via REST APIs (HTTP over TLS) with back-end AMQP ( TLS) connectivity and device-side MQTT/AMQP (over TLS) connectivity.
+libpyiotcloud platform demonstrates a custom IoT platform for remote access and control of an MCU-based smart device from a web client application via REST APIs (HTTP over TLS) with back-end AMQP ( TLS) connectivity and device-side MQTT/AMQP (over TLS) connectivity.
 
 
 ### Features
