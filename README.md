@@ -87,12 +87,19 @@ Note that this is a simple design and will not likely scale to millions of devic
 
     3. Run web_server.bat
   
-    4. Run FT900 MCU
-
+    4. Run FT900 MCU with the following details:
+       OR run device_simulator_mqtt_ft900device1.bat and device_simulator_mqtt_ft900device2.bat
+       OR run device_simulator_amqp_ft900device1.bat and device_simulator_amqp_ft900device2.bat
+       
        device id: ft900device1
        device ca: rootca.pem
        device cert: ft900device1_cert.pem
        device pkey: ft900device1_pkey.pem
+
+       device id: ft900device2
+       device ca: rootca.pem
+       device cert: ft900device2_cert.pem
+       device pkey: ft900device2_pkey.pem
 
     5. Run client.bat
 
@@ -107,5 +114,4 @@ The total round trip time for setting or getting the MCU GPIO is 2.01 seconds fr
     Note: the webserver is still on my local PC, not yet on Linode or AWS EC2.
 
 The client call to HTTP getresponse() is causing the additional 1 second delay. https://docs.python.org/3/library/http.client.html#http.client.HTTPConnection.getresponse For mobile client application, this 1 second delay maybe less or more. This will depend on the equivalent function HTTP client getresponse() in Java for Android or Swift for iOS..
-
 
