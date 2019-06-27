@@ -28,8 +28,9 @@ with back-end AMQP (over TLS) connectivity and device-side MQTT/AMQP (over TLS) 
        B. the generated certificates will be used by the MCU to connect to the MQTT broker. 
     5. Device examples
        A. FT900 MCU device using LWIP-MQTT client
-       B. Device simulator using Paho-MQTT client 
-       C. Device simulator using Pika-AMQP client
+       B. Device simulator using Paho-MQTT client (Python)
+       C. Device simulator using Pika-AMQP client (Python)
+       D. Device simulator using MQTT client (NodeJS)
 
 
 ### Architecture
