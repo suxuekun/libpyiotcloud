@@ -53,7 +53,7 @@ def response(conn):
 	try:
 		r1 = conn.getresponse()
 		if r1.status == 200:
-			print("response = {} {} [{}]".format(r1.status, r1.reason, r1.length))
+			#print("response = {} {} [{}]".format(r1.status, r1.reason, r1.length))
 			if r1.length:
 				data = r1.read(r1.length)
 			return data.decode("utf-8")
