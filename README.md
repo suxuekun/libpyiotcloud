@@ -46,8 +46,8 @@ This server-based IoT solution architecture can be deployed in local PC or in th
 Notes:
 
     1. This is a simple design and will not likely scale to millions of devices.
-    2. RabbitMQ supports AMQP, MQTT and MQTT over Websockets.
-    3. For MQTT and MQTT over Websockets to work, plugins must be installed in RabbitMQ.
+    2. RabbitMQ supports AMQP and MQTT.
+    3. For MQTT to work, MQTT plugin must be installed in RabbitMQ.
 
 
 
@@ -104,7 +104,7 @@ Notes:
        device ca: rootca.pem
        device cert: ft900device1_cert.pem
        device pkey: ft900device1_pkey.pem
-
+       OR
        device id: ft900device2
        device ca: rootca.pem
        device cert: ft900device2_cert.pem
