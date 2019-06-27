@@ -40,8 +40,7 @@ CONFIG_HOST                 = "localhost"
 CONFIG_MQTT_TLS_PORT        = 8883
 CONFIG_AMQP_TLS_PORT        = 5671
 
-CONFIG_PREPEND_REPLY_TOPIC  = ""
-CONFIG_QOS                  = 1
+CONFIG_PREPEND_REPLY_TOPIC  = "server"
 CONFIG_SEPARATOR            = '/'
 
 
@@ -50,26 +49,31 @@ CONFIG_SEPARATOR            = '/'
 # API handling
 ###################################################################################
 
+def publish(topic, payload):
+    payload = json.dumps(payload)
+    g_messaging_client.publish(topic, payload)
+
+def generate_pubtopic(subtopic):
+    return CONFIG_PREPEND_REPLY_TOPIC + CONFIG_SEPARATOR + subtopic
+
 def handle_api(api, subtopic, subpayload):
 
     if api == "get_status":
-        topic = "server" + CONFIG_SEPARATOR + subtopic
+        topic = generate_pubtopic(subtopic)
         payload = {}
         payload["status"] = "running"
-        payload = json.dumps(payload)
-        g_messaging_client.publish(topic, payload)
+        publish(topic, payload)
 
     elif api == "write_uart":
-        topic = "server" + CONFIG_SEPARATOR + subtopic
+        topic = generate_pubtopic(subtopic)
         payload = {}
         subpayload = json.loads(subpayload)
         payload["data"] = subpayload["data"]
-        payload = json.dumps(payload)
-        g_messaging_client.publish(topic, payload)
+        publish(topic, payload)
         print(subpayload["data"])
 
     elif api == "get_gpio":
-        topic = "server" + CONFIG_SEPARATOR + subtopic
+        topic = generate_pubtopic(subtopic)
         subpayload = json.loads(subpayload)
 
         try:
@@ -80,11 +84,10 @@ def handle_api(api, subtopic, subpayload):
         payload = {}
         payload["number"] = subpayload["number"]
         payload["value"] = value
-        payload = json.dumps(payload)
-        g_messaging_client.publish(topic, payload)
+        publish(topic, payload)
 
     elif api == "set_gpio":
-        topic = "server" + CONFIG_SEPARATOR + subtopic
+        topic = generate_pubtopic(subtopic)
         subpayload = json.loads(subpayload)
 
         value = int(subpayload["value"])
@@ -93,35 +96,32 @@ def handle_api(api, subtopic, subpayload):
         payload = {}
         payload["number"] = subpayload["number"]
         payload["value"] = value
-        payload = json.dumps(payload)
-        g_messaging_client.publish(topic, payload)
+        publish(topic, payload)
 
 
     elif api == "get_rtc":
-        topic = "server" + CONFIG_SEPARATOR + subtopic
+        topic = generate_pubtopic(subtopic)
         subpayload = json.loads(subpayload)
 
         value = int(time.time())
 
         payload = {}
         payload["value"] = value
-        payload = json.dumps(payload)
-        g_messaging_client.publish(topic, payload)
+        publish(topic, payload)
 
     elif api == "set_rtc":
-        topic = "server" + CONFIG_SEPARATOR + subtopic
+        topic = generate_pubtopic(subtopic)
         subpayload = json.loads(subpayload)
 
         value = subpayload["value"]
 
         payload = {}
         payload["value"] = value
-        payload = json.dumps(payload)
-        g_messaging_client.publish(topic, payload)
+        publish(topic, payload)
 
 
     elif api == "get_mac":
-        topic = "server" + CONFIG_SEPARATOR + subtopic
+        topic = generate_pubtopic(subtopic)
         subpayload = json.loads(subpayload)
 
         gws = netifaces.gateways()
@@ -131,11 +131,10 @@ def handle_api(api, subtopic, subpayload):
 
         payload = {}
         payload["value"] = value
-        payload = json.dumps(payload)
-        g_messaging_client.publish(topic, payload)
+        publish(topic, payload)
 
     elif api == "get_ip":
-        topic = "server" + CONFIG_SEPARATOR + subtopic
+        topic = generate_pubtopic(subtopic)
         subpayload = json.loads(subpayload)
 
         gws = netifaces.gateways()
@@ -145,11 +144,10 @@ def handle_api(api, subtopic, subpayload):
 
         payload = {}
         payload["value"] = value
-        payload = json.dumps(payload)
-        g_messaging_client.publish(topic, payload)
+        publish(topic, payload)
 
     elif api == "get_subnet":
-        topic = "server" + CONFIG_SEPARATOR + subtopic
+        topic = generate_pubtopic(subtopic)
         subpayload = json.loads(subpayload)
 
         gws = netifaces.gateways()
@@ -159,11 +157,10 @@ def handle_api(api, subtopic, subpayload):
 
         payload = {}
         payload["value"] = value
-        payload = json.dumps(payload)
-        g_messaging_client.publish(topic, payload)
+        publish(topic, payload)
 
     elif api == "get_gateway":
-        topic = "server" + CONFIG_SEPARATOR + subtopic
+        topic = generate_pubtopic(subtopic)
         subpayload = json.loads(subpayload)
 
         gws = netifaces.gateways()
@@ -171,20 +168,18 @@ def handle_api(api, subtopic, subpayload):
 
         payload = {}
         payload["value"] = value
-        payload = json.dumps(payload)
-        g_messaging_client.publish(topic, payload)
+        publish(topic, payload)
 
 
     elif api == "set_status":
-        topic = "server" + CONFIG_SEPARATOR + subtopic
+        topic = generate_pubtopic(subtopic)
         subpayload = json.loads(subpayload)
 
         status = "restarting"
 
         payload = {}
         payload["status"] = status
-        payload = json.dumps(payload)
-        g_messaging_client.publish(topic, payload)
+        publish(topic, payload)
 
 
 
