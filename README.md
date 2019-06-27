@@ -95,9 +95,10 @@ Notes:
 
     3. Run web_server.bat
   
-    4. Run FT900 MCU with the following details:
-       OR run device_simulator_mqtt_ft900device1.bat and device_simulator_mqtt_ft900device2.bat
-       OR run device_simulator_amqp_ft900device1.bat and device_simulator_amqp_ft900device2.bat
+    4. Run device_simulator_mqtt_ft900device1.bat and device_simulator_mqtt_ft900device2.bat OR 
+       run device_simulator_amqp_ft900device1.bat and device_simulator_amqp_ft900device2.bat OR 
+       run device_simulator.js_mqtt_ft900device1.bat and device_simulator.js_mqtt_ft900device2.bat OR 
+       run FT900 MCU with the following details:
        
        device id: ft900device1
        device ca: rootca.pem
