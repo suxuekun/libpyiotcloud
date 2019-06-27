@@ -26,7 +26,7 @@ with back-end AMQP (over TLS) connectivity and device-side MQTT/AMQP (over TLS) 
     4. Dynamic generation of device certificates 
        A. register_device API returns a unique ca-signed X509 certificate + private key.
        B. the generated certificates will be used by the MCU to connect to the MQTT broker. 
-    5. Device examples
+    5. Microcontroller device and device simulatore examples
        A. FT900 MCU device using LWIP-MQTT client
        B. Device simulator using Python Paho-MQTT client
        C. Device simulator using Python Pika-AMQP client
