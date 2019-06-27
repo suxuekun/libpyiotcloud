@@ -226,7 +226,7 @@ def parse_arguments(argv):
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--USE_AMQP', required=False, default=1 if CONFIG_USE_AMQP else 0, help='Use AMQP instead of MQTT')
-    parser.add_argument('--USE_DEVICE_NAME', required=False, default=CONFIG_DEVICE_NAME, help='Device name to use')
+    parser.add_argument('--USE_DEVICE_NAME', required=False, default=CONFIG_DEVICE_NAME,   help='Device name to use')
     parser.add_argument('--USE_DEVICE_CA',   required=False, default=CONFIG_TLS_CA,   help='Device CA certificate to use')
     parser.add_argument('--USE_DEVICE_CERT', required=False, default=CONFIG_TLS_CERT, help='Device certificate to use')
     parser.add_argument('--USE_DEVICE_PKEY', required=False, default=CONFIG_TLS_PKEY, help='Device private key to use')
@@ -248,6 +248,7 @@ if __name__ == '__main__':
     CONFIG_HOST        = args.USE_HOST
     CONFIG_USERNAME    = args.USE_USERNAME
     CONFIG_PASSWORD    = args.USE_PASSWORD
+    print("")
     print("USE_AMQP={}".format(args.USE_AMQP))
     print("USE_DEVICE_NAME={}".format(args.USE_DEVICE_NAME))
     print("USE_DEVICE_CA={}".format(args.USE_DEVICE_CA))
@@ -256,6 +257,7 @@ if __name__ == '__main__':
     print("USE_HOST={}".format(args.USE_HOST))
     print("USE_USERNAME={}".format(args.USE_USERNAME))
     print("USE_PASSWORD={}".format(args.USE_PASSWORD))
+    print("")
 
 
     # Initialize MQTT/AMQP client
