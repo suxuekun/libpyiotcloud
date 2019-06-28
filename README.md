@@ -45,6 +45,7 @@ This server-based IoT solution architecture can be deployed in local PC or in th
 
 <img src="https://github.com/richmondu/libpyiotcloud/blob/master/images/architecture.png" width="800"/>
 
+<img src="https://github.com/richmondu/libpyiotcloud/blob/master/images/sequence.png" width="800"/>
 
 Notes:
 
