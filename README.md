@@ -55,6 +55,8 @@ Notes:
     2. RabbitMQ supports AMQP and MQTT.
     3. For MQTT to work, MQTT plugin must be installed in RabbitMQ.
     4. Login API will return a secret key that will be used for succeeduing API calls.
+    5. Register device API will return deviceid, rootca, device certificate and device private key.
+    6. Device shall use deviceid as MQTT client id and use the rootca, device certificate and device private key.
 
 
 
