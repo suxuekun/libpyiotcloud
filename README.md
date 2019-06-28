@@ -94,6 +94,10 @@ Device MQTT/AMQP Connectivity
     6. TLS ROOTCA: returned by register_device API
     7. TLS CERT: returned by register_device API
     8. TLS PKEY: returned by register_device API
+    9. MQTT SUBSCRIBE: deviceid/#
+    10. MQTT PUBLISH: server/deviceid/api
+    11. AMQP SUBSCRIBE: mqtt-subscription-deviceidqos1
+    12. AMQP PUBLISH: server.deviceid.api
 
 
 
