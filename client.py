@@ -74,34 +74,80 @@ def get_default_headers():
 # REST APIs
 ###################################################################################
 
-def get_default_params(customer_id, device_name):
+def signup(conn, username, password):
+	print("\r\nsignup {} {}".format(username, password))
+	headers = get_default_headers()
 	params = {}
-	params['customer_id'] = customer_id
-	params['device_name'] = device_name
+	params['username'] = username
+	params['password'] = password
+	params = json.dumps(params)
+	request(conn, "POST", "/signup", params, headers)
+	status = response(conn)
+	status = json.loads(status)
+	return status['status']
+
+def login(conn, username, password):
+	print("\r\nlogin {} {}".format(username, password))
+	headers = get_default_headers()
+	params = {}
+	params['username'] = username
+	params['password'] = password
+	params = json.dumps(params)
+	request(conn, "POST", "/login", params, headers)
+	secret = response(conn)
+	secret = json.loads(secret)
+	return secret['secret']
+
+######################################################
+def get_default_params(username, secret, devicename):
+	params = {}
+	params['username'] = username
+	params['secret'] = secret
+	params['devicename'] = devicename
+	return params
+
+def get_default_params_ex(username, secret, devicename):
+	params = {}
+	params['username'] = username
+	params['secret'] = secret
+	params['devicename'] = devicename
 	return params
 
 ######################################################
-def register_device(conn, customer_id, device_name):
-	print("\r\nregister_device {}".format(device_name))
+def get_device_list(conn, username, secret):
+	print("\r\nget_device_list {} {}".format(username, secret))
 	headers = get_default_headers()
-	params = get_default_params(customer_id, device_name)
+	params = {}
+	params['username'] = username
+	params['secret'] = secret
+	params = json.dumps(params)
+	request(conn, "GET", "/get_device_list", params, headers)
+	devices = response(conn)
+	return devices
+
+def register_device(conn, username, secret, devicename):
+	print("\r\nregister_device {} {} {}".format(username, secret, devicename))
+	headers = get_default_headers()
+	params = get_default_params(username, secret, devicename)
 	params = json.dumps(params)
 	request(conn, "POST", "/register_device", params, headers)
 	certificates = response(conn)
 	return certificates
 
-def unregister_device(conn, device_name):
-	print("\r\nunregister_device {}".format(device_name))
+def unregister_device(conn, username, secret, devicename):
+	print("\r\nunregister_device {} {}".format(username, secret, devicename))
 	headers = get_default_headers()
-	params = get_default_params(customer_id, device_name)
+	params = get_default_params(username, secret, devicename)
 	params = json.dumps(params)
 	request(conn, "POST", "/unregister_device", params, headers)
+	certificates = response(conn)
+	return certificates
 
 ######################################################
-def get_gpio(conn, customer_id, device_name, number):
-	print("\r\nget_gpio {} {} {}".format(customer_id, device_name, number))
+def get_gpio(conn, username, secret, devicename, number):
+	print("\r\nget_gpio {} {} {}".format(username, devicename, number))
 	headers = get_default_headers()
-	params = get_default_params(customer_id, device_name)
+	params = get_default_params(username, secret, devicename)
 	params['number'] = number
 	params = json.dumps(params)
 	request(conn, "GET", "/get_gpio", params, headers)
@@ -109,10 +155,10 @@ def get_gpio(conn, customer_id, device_name, number):
 	value = json.loads(value)
 	return int(value['value'])
 
-def set_gpio(conn, customer_id, device_name, number, value):
-	print("\r\nset_gpio {} {} {} {}".format(customer_id, device_name, number, value))
+def set_gpio(conn, username, secret, devicename, number, value):
+	print("\r\nset_gpio {} {} {} {}".format(username, devicename, number, value))
 	headers = get_default_headers()
-	params = get_default_params(customer_id, device_name)
+	params = get_default_params(username, secret, devicename)
 	params['number'] = number
 	params['value'] = value
 	params = json.dumps(params)
@@ -120,30 +166,30 @@ def set_gpio(conn, customer_id, device_name, number, value):
 	response(conn)
 
 ######################################################
-def get_rtc(conn, customer_id, device_name):
-	print("\r\nget_rtc {}".format(device_name))
+def get_rtc(conn, username, secret, devicename):
+	print("\r\nget_rtc {}".format(devicename))
 	headers = get_default_headers()
-	params = get_default_params(customer_id, device_name)
+	params = get_default_params(username, secret, devicename)
 	params = json.dumps(params)
 	request(conn, "GET", "/get_rtc", params, headers)
 	value = response(conn)
 	value = json.loads(value)
 	return int(value['value'])
 
-def set_rtc(conn, customer_id, device_name, epoch):
-	print("\r\nset_rtc {} {}".format(device_name, epoch))
+def set_rtc(conn, username, secret, devicename, epoch):
+	print("\r\nset_rtc {} {}".format(devicename, epoch))
 	headers = get_default_headers()
-	params = get_default_params(customer_id, device_name)
+	params = get_default_params(username, secret, devicename)
 	params['value'] = epoch
 	params = json.dumps(params)
 	request(conn, "POST", "/set_rtc", params, headers)
 	response(conn)
 
 ######################################################
-def get_status(conn, customer_id, device_name):
-	print("\r\nget_status {}".format(device_name))
+def get_status(conn, username, secret, devicename):
+	print("\r\nget_status {}".format(devicename))
 	headers = get_default_headers()
-	params = get_default_params(customer_id, device_name)
+	params = get_default_params(username, secret, devicename)
 	params = json.dumps(params)
 	if request(conn, "GET", "/get_status", params, headers):
 		status = response(conn)
@@ -154,10 +200,10 @@ def get_status(conn, customer_id, device_name):
 			return "Not running"
 	else:
 		return "Unknown"
-def restart_device(conn, customer_id, device_name):
-	print("\r\nrestart_device {}".format(device_name))
+def restart_device(conn, username, secret, devicename):
+	print("\r\nrestart_device {}".format(devicename))
 	headers = get_default_headers()
-	params = get_default_params(customer_id, device_name)
+	params = get_default_params(username, secret, devicename)
 	params['status'] = 'restart'
 	params = json.dumps(params)
 	request(conn, "POST", "/set_status", params, headers)
@@ -166,20 +212,20 @@ def restart_device(conn, customer_id, device_name):
 	return status['status']
 
 ######################################################
-def get_mac(conn, customer_id, device_name):
-	print("\r\nget_mac {}".format(device_name))
+def get_mac(conn, username, secret, devicename):
+	print("\r\nget_mac {}".format(devicename))
 	headers = get_default_headers()
-	params = get_default_params(customer_id, device_name)
+	params = get_default_params(username, secret, devicename)
 	params = json.dumps(params)
 	request(conn, "GET", "/get_mac", params, headers)
 	value = response(conn)
 	value = json.loads(value)
 	return value['value']
 
-def set_mac(conn, customer_id, device_name, mac):
-	print("\r\nset_mac {} {}".format(device_name, mac))
+def set_mac(conn, username, secret, devicename, mac):
+	print("\r\nset_mac {} {}".format(devicename, mac))
 	headers = get_default_headers()
-	params = get_default_params(customer_id, device_name)
+	params = get_default_params(username, secret, devicename)
 	params['value'] = mac
 	params = json.dumps(params)
 	request(conn, "POST", "/set_mac", params, headers)
@@ -188,30 +234,30 @@ def set_mac(conn, customer_id, device_name, mac):
 	return value['value']
 
 ######################################################
-def get_ip(conn, customer_id, device_name):
-	print("\r\nget_ip {}".format(device_name))
+def get_ip(conn, username, secret, devicename):
+	print("\r\nget_ip {}".format(devicename))
 	headers = get_default_headers()
-	params = get_default_params(customer_id, device_name)
+	params = get_default_params(username, secret, devicename)
 	params = json.dumps(params)
 	request(conn, "GET", "/get_ip", params, headers)
 	value = response(conn)
 	value = json.loads(value)
 	return value['value']
 
-def get_subnet(conn, customer_id, device_name):
-	print("\r\nget_subnet {}".format(device_name))
+def get_subnet(conn, username, secret, devicename):
+	print("\r\nget_subnet {}".format(devicename))
 	headers = get_default_headers()
-	params = get_default_params(customer_id, device_name)
+	params = get_default_params(username, secret, devicename)
 	params = json.dumps(params)
 	request(conn, "GET", "/get_subnet", params, headers)
 	value = response(conn)
 	value = json.loads(value)
 	return value['value']
 
-def get_gateway(conn, customer_id, device_name):
-	print("\r\nget_gateway {}".format(device_name))
+def get_gateway(conn, username, secret, devicename):
+	print("\r\nget_gateway {}".format(devicename))
 	headers = get_default_headers()
-	params = get_default_params(customer_id, device_name)
+	params = get_default_params(username, secret, devicename)
 	params = json.dumps(params)
 	request(conn, "GET", "/get_gateway", params, headers)
 	value = response(conn)
@@ -219,10 +265,10 @@ def get_gateway(conn, customer_id, device_name):
 	return value['value']
 
 ######################################################
-def write_uart(conn, customer_id, device_name, data):
-	print("\r\nwrite_uart {} {}".format(device_name, data))
+def write_uart(conn, username, secret, devicename, data):
+	print("\r\nwrite_uart {} {}".format(devicename, data))
 	headers = get_default_headers()
-	params = get_default_params(customer_id, device_name)
+	params = get_default_params(username, secret, devicename)
 	params['data'] = data
 	params = json.dumps(params)
 	request(conn, "POST", "/write_uart", params, headers)
@@ -239,24 +285,14 @@ def get_index(conn):
 
 
 
-def test(conn, customer_id, device_name):
+def test(conn, username, secret, devicename):
 
-	print("\r\nTesting {} {}".format(customer_id, device_name))
-
-	######################################################
-	# Test register_device
-	if False:
-		start_time = time.time()
-		certificates = register_device(conn, customer_id, device_name)
-		elapsed_time = time.time() - start_time
-		print(elapsed_time)
-		print(certificates)
-		#unregister_device(conn, device_name)
+	print("\r\nTesting {} {} {}".format(username, secret, devicename))
 
 	######################################################
 	# Test get_status
 	if True:
-		status = get_status(conn, customer_id, device_name)
+		status = get_status(conn, username, secret, devicename)
 		if status == "Not running" or status == "Unknown":
 			return
 
@@ -264,34 +300,34 @@ def test(conn, customer_id, device_name):
 	# Test write_uart
 	if True:
 		data = "Hello World!"
-		data = write_uart(conn, customer_id, device_name, data)
+		data = write_uart(conn, username, secret, devicename, data)
 		print(data)
 
 	######################################################
 	# Test get_gpio and set_gpio
 	if True:
 		start_time = time.time()
-		value = get_gpio(conn, customer_id, device_name, 12)
+		value = get_gpio(conn, username, secret, devicename, 12)
 		elapsed_time = time.time() - start_time
 		print(elapsed_time)
 
 		start_time = time.time()
-		set_gpio(conn, customer_id, device_name, 12, 0)
+		set_gpio(conn, username, secret, devicename, 12, 0)
 		elapsed_time = time.time() - start_time
 		print(elapsed_time)
 
 		start_time = time.time()
-		value = get_gpio(conn, customer_id, device_name, 12)
+		value = get_gpio(conn, username, secret, devicename, 12)
 		elapsed_time = time.time() - start_time
 		print(elapsed_time)
 
 		start_time = time.time()
-		set_gpio(conn, customer_id, device_name, 12, 1)
+		set_gpio(conn, username, secret, devicename, 12, 1)
 		elapsed_time = time.time() - start_time
 		print(elapsed_time)
 
 		start_time = time.time()
-		value = get_gpio(conn, customer_id, device_name, 12)
+		value = get_gpio(conn, username, secret, devicename, 12)
 		elapsed_time = time.time() - start_time
 		print(elapsed_time)
 
@@ -300,17 +336,17 @@ def test(conn, customer_id, device_name):
 	# Test get_rtc and set_rtc
 	if True:
 		start_time = time.time()
-		epoch = get_rtc(conn, customer_id, device_name)
+		epoch = get_rtc(conn, username, secret, devicename)
 		elapsed_time = time.time() - start_time
 		print(time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(epoch)))
 		
 		epoch = int(time.time())
 		start_time = time.time()
-		set_rtc(conn, customer_id, device_name, epoch)
+		set_rtc(conn, username, secret, devicename, epoch)
 		elapsed_time = time.time() - start_time
 		
 		start_time = time.time()
-		epoch = get_rtc(conn, customer_id, device_name)
+		epoch = get_rtc(conn, username, secret, devicename)
 		elapsed_time = time.time() - start_time
 		print(time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(epoch)))
 
@@ -318,30 +354,23 @@ def test(conn, customer_id, device_name):
 	######################################################
 	# Test get_mac, get_ip, get_subnet, get_gateway
 	if True:
-		mac = get_mac(conn, customer_id, device_name)
+		mac = get_mac(conn, username, secret, devicename)
 		print(mac)
 
-		ip = get_ip(conn, customer_id, device_name)
+		ip = get_ip(conn, username, secret, devicename)
 		print(ip)
 
-		subnet = get_subnet(conn, customer_id, device_name)
+		subnet = get_subnet(conn, username, secret, devicename)
 		print(subnet)
 
-		gateway = get_gateway(conn, customer_id, device_name)
+		gateway = get_gateway(conn, username, secret, devicename)
 		print(gateway)
-
-		#mac = "00:11:22:33:44:55"
-		#mac = set_mac(conn, device_name, mac)
-		#print(mac)
-		#time.sleep(3)
-		#status = restart_device(conn, device_name)
-		#print(status)
 
 
 	######################################################
 	# Test restart_device
 	if True:
-		status = restart_device(conn, customer_id, device_name)
+		status = restart_device(conn, username, secret, devicename)
 		print(status)
 
 
@@ -356,13 +385,66 @@ def main():
 		CONFIG_HTTP_PORT, 
 		context=initialize_context())
 
-	customer_id = "richmond_umagat@brtchip_com"
+	username = "richmond_umagat@brtchip_com"
+#	username = "richmond.umagat@brtchip.com"
+	password = "P@$$w0rd"
 
-	device_name = "ft900device1"
-	test(conn, customer_id, device_name)
-	device_name = "ft900device2"
-	test(conn, customer_id, device_name)
 
+	#####################################################
+	# Test user registration
+	#####################################################
+
+	if True:
+		status = signup(conn, username, password)
+		print(status)
+
+		secret = login(conn, username, password)
+		print(secret)
+
+
+	#####################################################
+	# Test device register
+	#####################################################
+
+	if True:
+		devices = get_device_list(conn, username, secret)
+		print(devices)
+
+		devicename = "ft900device1"
+		certificates = register_device(conn, username, secret, devicename)
+		print(certificates)
+
+		devicename = "ft900device2"
+		certificates = register_device(conn, username, secret, devicename)
+		print(certificates)
+
+
+	#####################################################
+	# Test device APIs
+	#####################################################
+
+	if True:
+		devicename = "ft900device1"
+		test(conn, username, secret, devicename)
+		devicename = "ft900device2"
+		test(conn, username, secret, devicename)
+
+
+	#####################################################
+	# Test device unregister
+	#####################################################
+	
+	if False:
+		devicename = "ft900device1"
+		certificates = unregister_device(conn, username, secret, devicename)
+		print(certificates)
+
+		devicename = "ft900device2"
+		certificates = unregister_device(conn, username, secret, devicename)
+		print(certificates)
+
+		devices = get_device_list(conn, username, secret)
+		print(devices)
 
 
 if __name__ == '__main__':
