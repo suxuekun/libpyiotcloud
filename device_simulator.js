@@ -8,7 +8,8 @@ var ArgumentParser = require('argparse');
 
 // default configurations
 var CONFIG_CUSTOMER_ID   = "richmond_umagat@brtchip_com"
-var CONFIG_DEVICE_NAME   = "ft900device1"
+//var CONFIG_DEVICE_NAME   = "ft900device1"
+var CONFIG_DEVICE_ID     = ""
 var CONFIG_USERNAME      = "guest"
 var CONFIG_PASSWORD      = "guest"
 var CONFIG_TLS_CA        = "cert/rootca.pem"
@@ -16,12 +17,13 @@ var CONFIG_TLS_CERT      = "cert/ft900device1_cert.pem"
 var CONFIG_TLS_PKEY      = "cert/ft900device1_pkey.pem"
 var CONFIG_HOST          = "localhost"
 var CONFIG_MQTT_TLS_PORT = 8883
+var CONFIG_PREPEND_REPLY_TOPIC  = "server/"
 
 
 
 // parse arguments
 var parser = new ArgumentParser.ArgumentParser({addHelp:true});
-parser.addArgument(['--USE_DEVICE_NAME'], {help: 'Device name to use'});
+parser.addArgument(['--USE_DEVICE_ID'],   {help: 'Device ID to use'});
 parser.addArgument(['--USE_DEVICE_CA'],   {help: 'Device CA certificate to use'});
 parser.addArgument(['--USE_DEVICE_CERT'], {help: 'Device certificate to use'});
 parser.addArgument(['--USE_DEVICE_PKEY'], {help: 'Device private key to use'});
@@ -30,9 +32,9 @@ parser.addArgument(['--USE_USERNAME'],    {help: 'Username to use in connection'
 parser.addArgument(['--USE_PASSWORD'],    {help: 'Password to use in connection'});
 
 var args = parser.parseArgs();
-if (args.USE_DEVICE_NAME != null) {
-    CONFIG_DEVICE_NAME = args.USE_DEVICE_NAME;
-    console.log(CONFIG_DEVICE_NAME);
+if (args.USE_DEVICE_ID != null) {
+    CONFIG_DEVICE_ID = args.USE_DEVICE_ID;
+    console.log(CONFIG_DEVICE_ID);
 }
 if (args.USE_DEVICE_CA != null) {
     CONFIG_TLS_CA = args.USE_DEVICE_CA;
@@ -75,20 +77,24 @@ var options =
     rejectUnauthorized: false,
     username:           CONFIG_USERNAME,
     password:           CONFIG_PASSWORD,
-    clientId:           CONFIG_DEVICE_NAME
+    clientId:           CONFIG_DEVICE_ID
 };
 var client  = mqtt.connect(options);
 
 // subscribe to topic
-var subtopic = CONFIG_CUSTOMER_ID + "/" + CONFIG_DEVICE_NAME + "/"
+var subscribed = false
+var subtopic = CONFIG_DEVICE_ID + "/"
 
 // handle connection
 client.on("connect", function()
 {
     if (client.connected == true) {
-        var topic = subtopic + "#";
-        console.log("subscribing " + topic);
-        client.subscribe(topic, {qos:1} );
+        if (subscribed == false) {
+            var topic = subtopic + "#";
+            console.log("subscribing " + topic);
+            client.subscribe(topic, {qos:1} );
+            subscribed = true;
+        }
     }
     else {
         console.log("connected  "+ client.connected);
@@ -98,20 +104,20 @@ client.on("connect", function()
 // handle API call
 function handle_api(api, topic, payload) {
     if (api == "get_status") {
-        pubtopic = "server/" + topic;
+        pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
         var obj = {
             "status": "running"
         };
         client.publish(pubtopic, JSON.stringify(obj));
     }
     else if (api == "write_uart") {
-        pubtopic = "server/" + topic;
+        pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
         var obj = JSON.parse(payload);
         console.log(obj.data); 
         client.publish(pubtopic, JSON.stringify(obj));
     }
     else if (api == "get_gpio") {
-        pubtopic = "server/" + topic;
+        pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
         var obj = JSON.parse(payload);
         var number = Number(obj.number);
         var obj = {
@@ -121,7 +127,7 @@ function handle_api(api, topic, payload) {
         client.publish(pubtopic, JSON.stringify(obj));
     }
     else if (api == "set_gpio") {
-        pubtopic = "server/" + topic;
+        pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
         var obj = JSON.parse(payload);
         var number = Number(obj.number);
         var value = Number(obj.value);
@@ -132,7 +138,7 @@ function handle_api(api, topic, payload) {
         client.publish(pubtopic, JSON.stringify(obj));
     }
     else if (api == "get_rtc") {
-        pubtopic = "server/" + topic;
+        pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
         var epoch = Math.trunc((new Date).getTime()/1000);
         console.log(epoch);
         var obj = {
@@ -141,7 +147,7 @@ function handle_api(api, topic, payload) {
         client.publish(pubtopic, JSON.stringify(obj));
     }
     else if (api == "set_rtc") {
-        pubtopic = "server/" + topic;
+        pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
         var obj = JSON.parse(payload);
         var value = Number(obj.value);
         console.log(value);
@@ -151,7 +157,7 @@ function handle_api(api, topic, payload) {
         client.publish(pubtopic, JSON.stringify(obj));
     }
     else if (api == "get_mac") {
-        pubtopic = "server/" + topic;
+        pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
 
         value = ""
         interfaces = os.networkInterfaces()
@@ -177,7 +183,7 @@ function handle_api(api, topic, payload) {
         client.publish(pubtopic, JSON.stringify(obj));
     }
     else if (api == "get_ip") {
-        pubtopic = "server/" + topic;
+        pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
 
         value = ""
         interfaces = os.networkInterfaces()
@@ -203,7 +209,7 @@ function handle_api(api, topic, payload) {
         client.publish(pubtopic, JSON.stringify(obj));
     }
     else if (api == "get_subnet") {
-        pubtopic = "server/" + topic;
+        pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
 
         value = ""
         interfaces = os.networkInterfaces()
@@ -229,7 +235,7 @@ function handle_api(api, topic, payload) {
         client.publish(pubtopic, JSON.stringify(obj));
     }
     else if (api == "get_gateway") {
-        pubtopic = "server/" + topic;
+        pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
 
         value = ""
         interfaces = os.networkInterfaces()
@@ -256,7 +262,7 @@ function handle_api(api, topic, payload) {
         client.publish(pubtopic, JSON.stringify(obj));
     }
     else if (api == "set_status") {
-        pubtopic = "server/" + topic;
+        pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
         var obj = JSON.parse(payload);
         var status = obj.status;
         console.log(status);
@@ -276,7 +282,7 @@ client.on('message', function(topic, message, packet)
 
     if (expected_topic == topic.substring(0, expected_topic.length)) {
         api = topic.substring(expected_topic.length, topic.length);
-        console.log(api);
+        //console.log(api);
         
         handle_api(api, topic, message)
     }
@@ -289,12 +295,7 @@ client.on("error", function(error)
     process.exit(1)
 });
 
-while (client.connected == false)
-{
-    sleep(1000);
-}
-
-while (client.connected == true)
+while (true)
 {
     sleep(1000);
 }
