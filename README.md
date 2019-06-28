@@ -7,23 +7,22 @@ with back-end AMQP (over TLS) connectivity and device-side MQTT/AMQP (over TLS) 
 
 ### Features
 
-    1. User Registration and Device Registration with dynamic generation of device certificates
+    1. User Registration and Device Registration
        A. Using MongoDB NoSQL database
-       B. register_device API returns a unique ca-signed X509 certificate + private key.
-       C. the generated certificates will be used by the MCU to connect to the MQTT broker. 
-    2. Device Control
+       B. Unique ca-signed certificate + privatekey generated for registered devices
+    2. Device Access/Control
        A. get/set GPIOs
        B. get/set RTC
        C. get MAC address
        D. get IP/Subnet/Gateway addresses
        E. reset device
        F. write UART
-    3. HTTP/AMQP/MQTT protocol support over secure TLS connectivity with X.509 certificate authentication
-       [client --HTTP over TLS--> webserver <--AMQP over TLS--> messagebroker <--MQTT over TLS--> microcontroller]
+    3. HTTPS/AMQPS/MQTTS Protocol Support
+       [client --HTTPS--> webserver <--AMQPS--> messagebroker <--MQTTS--> device]
        A. HTTP over TLS: client app accessing REST APIs from webserver
        B. AMQP over TLS: webserver and messagebroker communication
        C. MQTT over TLS: messagebroker and microcontroller communication
-    4. Microcontroller device and device simulator examples
+    4. Device examples
        A. FT900 MCU device (LWIP-MQTT client)
        B. Python Paho-MQTT client device simulator
        C. Python Pika-AMQP client device simulator
