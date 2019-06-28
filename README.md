@@ -54,6 +54,7 @@ Notes:
     1. This is a simple design and will not likely scale to millions of devices.
     2. RabbitMQ supports AMQP and MQTT.
     3. For MQTT to work, MQTT plugin must be installed in RabbitMQ.
+    4. Login API will return a secret key that will be used for succeeduing API calls.
 
 
 
