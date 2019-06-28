@@ -5,3 +5,4 @@ pika
 pyopenssl
 argparse
 netifaces
+pymongo
