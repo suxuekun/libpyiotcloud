@@ -84,6 +84,17 @@ Device Control APIs
     5. reset_device
     6. write_uart
 
+Device MQTT/AMQP Connectivity
+
+    1. HOST: ip address of RabbitMQ broker
+    2. PORT: 8883 (MQTT) or 5671 (AMQP)
+    3. USERNAME: guest
+    4. PASSWORD: guest
+    5. CLIENTID: deviceid (returned by register_device API)
+    6. TLS ROOTCA: returned by register_device API
+    7. TLS CERT: returned by register_device API
+    8. TLS PKEY: returned by register_device API
+
 
 
 ### Instructions
