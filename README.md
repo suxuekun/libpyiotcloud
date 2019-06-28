@@ -14,24 +14,20 @@ with back-end AMQP (over TLS) connectivity and device-side MQTT/AMQP (over TLS) 
        D. get IP/Subnet/Gateway addresses
        E. reset device
        F. write UART
-    2. HTTP/AMQP/MQTT protocol support 
-       [client --HTTP--> webserver <--AMQP--> messagebroker <--MQTT--> microcontroller]
-       A. HTTP: client app and webserver communication
-       B. AMQP: webserver and messagebroker communication
-       C. MQTT: messagebroker and microcontroller communication
-    3. Secure TLS connectivity with X.509 certificate authentication
+    2. HTTP/AMQP/MQTT protocol support over secure TLS connectivity with X.509 certificate authentication
+       [client --HTTP over TLS--> webserver <--AMQP over TLS--> messagebroker <--MQTT over TLS--> microcontroller]
        A. HTTP over TLS: client app and webserver communication
        B. AMQP over TLS: webserver and messagebroker communication
        C. MQTT over TLS: messagebroker and microcontroller communication
-    4. Dynamic generation of device certificates 
+    3. Dynamic generation of device certificates 
        A. register_device API returns a unique ca-signed X509 certificate + private key.
        B. the generated certificates will be used by the MCU to connect to the MQTT broker. 
-    5. Microcontroller device and device simulatore examples
-       A. FT900 MCU device using LWIP-MQTT client
-       B. Device simulator using Python Paho-MQTT client
-       C. Device simulator using Python Pika-AMQP client
-       D. Device simulator using NodeJS MQTT client
-    6. User registration and device registration 
+    4. Microcontroller device and device simulator examples
+       A. FT900 MCU device (LWIP-MQTT client)
+       B. Python Paho-MQTT client device simulator
+       C. Python Pika-AMQP client device simulator
+       D. NodeJS MQTT client device simulator
+    5. User registration and device registration 
        A. Using MongoDB NoSQL database
 
 
