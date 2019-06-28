@@ -31,9 +31,8 @@ with back-end AMQP (over TLS) connectivity and device-side MQTT/AMQP (over TLS) 
        B. Device simulator using Python Paho-MQTT client
        C. Device simulator using Python Pika-AMQP client
        D. Device simulator using NodeJS MQTT client
-    6. Database support
-       A. User registration
-       B. Device registration
+    6. User registration and device registration 
+       A. Using MongoDB NoSQL database
 
 
 ### Architecture
