@@ -59,13 +59,21 @@ Notes:
 User Registration APIs
 
     1. signup
+       - requires username, password
     2. login
+       - requires username, password
+       - returns secret key
 
 Device Registration APIs
 
     1. register_device
+       - requires username, secret, devicename
+       - returns deviceid, rootca, devicecert, devicepkey
     2. unregister_device
+       - requires username, secret, devicename
     3. get_device_list
+       - requires username, secret, devicename
+       - returns deviceid, rootca, devicecert, devicepkey for all devices registered by user
 
 Device Control APIs
 
