@@ -21,7 +21,7 @@ with back-end AMQP (over TLS) connectivity and device-side MQTT/AMQP (over TLS) 
        [client --HTTPS--> webserver <--AMQPS--> messagebroker <--MQTTS--> device]
        A. HTTP over TLS: client app accessing REST APIs from webserver
        B. AMQP over TLS: webserver and messagebroker communication
-       C. MQTT over TLS: messagebroker and microcontroller communication
+       C. MQTT over TLS: messagebroker and device communication
     4. Device examples
        A. FT900 MCU device (LWIP-MQTT client)
        B. Python Paho-MQTT client device simulator
