@@ -54,6 +54,30 @@ Notes:
 
 
 
+### Design
+
+User Registration APIs
+
+    1. signup
+    2. login
+
+Device Registration APIs
+
+    1. register_device
+    2. unregister_device
+    3. get_device_list
+
+Device Control APIs
+
+    1. get_gpio/set_GPIO
+    2. get_rtc/set_rtc
+    3. get_mac
+    4. get_ip/get_subnet/get_gateway
+    5. reset_device
+    6. write_uart
+
+
+
 ### Instructions
 
     1. Setup and run RabbitMQ broker
