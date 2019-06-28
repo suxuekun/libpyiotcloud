@@ -24,13 +24,13 @@ CONFIG_QOS                  = 1
 ###################################################################################
 class messaging_client:
 
-    def __init__(self, use_amqp, on_message_callback, device_name=None):
+    def __init__(self, use_amqp, on_message_callback, device_id=None):
         self.use_amqp = use_amqp
         self.client = None
         self.mqtt_connected = False
         self.on_message_callback = on_message_callback
         self.consume_continuously = False
-        self.device_name = device_name
+        self.device_id = device_id
 
     def set_server(self, host, port):
         self.host = host
@@ -57,10 +57,10 @@ class messaging_client:
         else:
             self.publish_mqtt(self.client, topic, payload)
 
-    def subscribe(self, topic, subscribe=True, declare=False, consume_continuously=False):
+    def subscribe(self, topic, subscribe=True, declare=False, consume_continuously=False, deviceid=None):
         self.consume_continuously = consume_continuously
         if self.use_amqp:
-            self.subscribe_ampq(self.client, topic, subscribe=subscribe, declare=declare)
+            self.subscribe_ampq(self.client, topic, subscribe=subscribe, declare=declare, deviceid=deviceid)
         else:
             self.subscribe_mqtt(self.client, topic, subscribe=subscribe)
 
@@ -91,8 +91,8 @@ class messaging_client:
         return client
 
     def initialize_mqtt(self):
-        if self.device_name:
-            client = mqtt.Client(client_id=self.device_name)
+        if self.device_id:
+            client = mqtt.Client(client_id=self.device_id)
         else:
             client = mqtt.Client()
         client.on_connect = self.on_mqtt_connect
@@ -137,18 +137,14 @@ class messaging_client:
         if client:
             client.publish(topic, payload, qos=CONFIG_QOS)
 
-    def subscribe_ampq(self, client, topic, subscribe=True, declare=False):
+    def subscribe_ampq(self, client, topic, subscribe=True, declare=False, deviceid=None):
         print("SUB: topic={}".format(topic))
         if client:
             if subscribe:
-                if CONFIG_PREPEND_REPLY_TOPIC == '':
-                    index = 0
+                if deviceid is not None:
+                    myqueue = 'mqtt-subscription-{}qos{}'.format(deviceid, CONFIG_QOS)
                 else:
-                    index = len(CONFIG_PREPEND_REPLY_TOPIC)+1
-                index += topic[index:].index(CONFIG_AMQP_SEPARATOR)
-                index2 = index + 1 + topic[index+1:].index(CONFIG_AMQP_SEPARATOR)
-                device_name = topic[index+1:index2]
-                myqueue = 'mqtt-subscription-{}qos{}'.format(device_name, CONFIG_QOS)
+                    myqueue = 'mqtt-subscription-{}qos{}'.format(self.device_id, CONFIG_QOS)
 
                 if declare:
                     client.exchange_declare(exchange='amq.topic', exchange_type='topic', durable=True, auto_delete=False)
@@ -186,7 +182,7 @@ class messaging_client:
                 client.unsubscribe(topic)
 
     def on_mqtt_connect(self, client, userdata, flags, rc):
-        print("MQTT Connected with result code " + str(rc))
+        #print("MQTT Connected with result code " + str(rc))
         self.mqtt_connected = True
 
     def on_mqtt_message(self, client, userdata, msg):
