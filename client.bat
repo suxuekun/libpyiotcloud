@@ -1,2 +1,2 @@
-python.exe client.py --USE_HOST "localhost"
+python.exe client.py
 pause
