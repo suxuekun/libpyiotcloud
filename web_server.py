@@ -26,11 +26,10 @@ CONFIG_PREPEND_REPLY_TOPIC  = "server"
 # global variables
 ###################################################################################
 
-g_certificate_generator = None
 g_messaging_client = None
-g_db_client = None
-app = Flask(__name__)
+g_database_client = None
 g_queue_dict  = {}
+app = Flask(__name__)
 FlaskJSON(app)
 
 
@@ -53,8 +52,8 @@ def signup():
 
     # check if username is already in database
     print("\r\nBefore addition...")
-#    g_db_client.delete_user(username)
-    if g_db_client.find_user(username):
+#    g_database_client.delete_user(username)
+    if g_database_client.find_user(username):
         print("Username {} already exist!\r\n".format(username))
         response = {}
         response['status'] = 'NG, username already exist'
@@ -62,11 +61,11 @@ def signup():
         return response
 
     # add entry in database
-    g_db_client.add_user(username, password)
+    g_database_client.add_user(username, password)
 
     # Print database entries
     print("\r\nAfter addition...")
-    g_db_client.display_users()
+    g_database_client.display_users()
 
     response = {}
     response['status'] = 'OK'
@@ -79,14 +78,14 @@ def login():
     username = data['username']
     password = data['password']
 
-    if not g_db_client.find_user(username):
+    if not g_database_client.find_user(username):
         response = {}
         response['status'] = 'NG, username does not exist'
         response['secret'] = 'Unknown'
         response = json.dumps(response)
         return response
 
-    if not g_db_client.check_password(username, password):
+    if not g_database_client.check_password(username, password):
         response = {}
         response['status'] = 'NG, password is incorrect'
         response['secret'] = 'Unknown'
@@ -95,7 +94,7 @@ def login():
 
     response = {}
     response['status'] = 'OK'
-    response['secret'] = g_db_client.get_secret(username)
+    response['secret'] = g_database_client.get_secret(username)
     response = json.dumps(response)
     return response
 
@@ -108,14 +107,14 @@ def get_device_list():
     print('get_device_list username={} secret={}'.format(username, secret))
 
     # check if username and secret is valid
-    if not g_db_client.check_secret(username, secret):
+    if not g_database_client.check_secret(username, secret):
         response = {}
         response['status'] = 'NG, secret is incorrect'
         response = json.dumps(response)
         print('NG, secret is incorrect')
         return response
 
-    devices = g_db_client.get_devices(username)
+    devices = g_database_client.get_devices(username)
     print(devices)
 
     response = {}
@@ -133,7 +132,7 @@ def register_device():
     print('username={} secret={} devicename={}'.format(username, secret, devicename))
 
     # check if username and secret is valid
-    if not g_db_client.check_secret(username, secret):
+    if not g_database_client.check_secret(username, secret):
         response = {}
         response['status'] = 'NG, secret is incorrect'
         response = json.dumps(response)
@@ -141,7 +140,7 @@ def register_device():
         return response
 
     # check if device is registered
-    if g_db_client.find_device(username, devicename):
+    if g_database_client.find_device(username, devicename):
         response = {}
         response['status'] = 'NG, device already registered'
         response = json.dumps(response)
@@ -159,7 +158,7 @@ def register_device():
     print(ca)
 
     # add device to database
-    deviceid = g_db_client.add_device(username, devicename, cert, pkey)
+    deviceid = g_database_client.add_device(username, devicename, cert, pkey)
     print(deviceid)
 
     response = {}
@@ -181,7 +180,7 @@ def unregister_device():
     print('username={} secret={} devicename={}'.format(username, secret, devicename))
 
     # check if username and secret is valid
-    if not g_db_client.check_secret(username, secret):
+    if not g_database_client.check_secret(username, secret):
         response = {}
         response['status'] = 'NG, secret is incorrect'
         response = json.dumps(response)
@@ -189,7 +188,7 @@ def unregister_device():
         return response
 
     # check if device is registered
-    if not g_db_client.find_device(username, devicename):
+    if not g_database_client.find_device(username, devicename):
         response = {}
         response['status'] = 'NG, device not registered'
         response = json.dumps(response)
@@ -197,7 +196,7 @@ def unregister_device():
         return response
 
     # delete device from database
-    g_db_client.delete_device(username, devicename)
+    g_database_client.delete_device(username, devicename)
 
     response = {}
     response['status'] = 'OK'
@@ -234,13 +233,13 @@ def process_request(api):
     secret = data['secret']
     devicename = data['devicename']
     # check if username and secret is valid
-    if not g_db_client.check_secret(username, secret):
+    if not g_database_client.check_secret(username, secret):
         return 'Device secret is not valid!', 400
     # check if device is registered
-    if not g_db_client.find_device(username, devicename):
+    if not g_database_client.find_device(username, devicename):
         return 'Device is not registered!', 400
     # get deviceid for subscribe purpose (AMQP)
-    deviceid = g_db_client.get_deviceid(username, devicename)
+    deviceid = g_database_client.get_deviceid(username, devicename)
 
     # construct publish/subscribe topics and payloads
     pubtopic = generate_publish_topic(data, deviceid, api, CONFIG_SEPARATOR)
@@ -379,7 +378,7 @@ def receive_message(topic):
 def initialize():
     global CONFIG_SEPARATOR
     global g_messaging_client
-    global g_db_client
+    global g_database_client
 
     CONFIG_SEPARATOR = "." if config.CONFIG_USE_AMQP==1 else "/"
 
@@ -396,8 +395,8 @@ def initialize():
     g_messaging_client.initialize()
 
     # Initialize Database client
-    g_db_client = database_client()
-    g_db_client.initialize()
+    g_database_client = database_client()
+    g_database_client.initialize()
 
 
 # Initialize globally so that no issue with GUnicorn integration
