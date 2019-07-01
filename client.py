@@ -10,17 +10,21 @@ from client_config import config
 # Initialize context
 ###################################################################################
 
-def initialize_context():
-	if True:
-		context = ssl._create_unverified_context()
+def initialize_http_connection():
+	if config.CONFIG_USE_TLS:
+		if True:
+			context = ssl._create_unverified_context()
+		else:
+			context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
+			context.verify_mode = ssl.CERT_REQUIRED
+			context.load_cert_chain(config.CONFIG_TLS_CERT, config.CONFIG_TLS_PKEY)
+			#context.load_verify_locations(
+			#	config.CONFIG_TLS_CERT, config.CONFIG_TLS_CERT, config.CONFIG_TLS_PKEY)
+			#context.check_hostname = False
+		conn = http.client.HTTPSConnection(config.CONFIG_HOST, config.CONFIG_TLS_PORT, context=initialize_context())
 	else:
-		context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
-		context.verify_mode = ssl.CERT_REQUIRED
-		context.load_cert_chain(config.CONFIG_TLS_CERT, config.CONFIG_TLS_PKEY)
-		#context.load_verify_locations(
-		#	config.CONFIG_TLS_CERT, config.CONFIG_TLS_CERT, config.CONFIG_TLS_PKEY)
-		#context.check_hostname = False
-	return context
+		conn = http.client.HTTPConnection(config.CONFIG_HOST, config.CONFIG_PORT)
+	return conn
 
 
 
@@ -370,7 +374,7 @@ def test(conn, username, secret, devicename):
 
 def main():
 
-	conn = http.client.HTTPSConnection(config.CONFIG_HOST, config.CONFIG_PORT, context=initialize_context())
+	conn = initialize_http_connection()
 
 	username = "richmond_umagat@brtchip_com"
 #	username = "richmond.umagat@brtchip.com"
