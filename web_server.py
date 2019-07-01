@@ -7,8 +7,8 @@ from flask import Flask, request
 from flask_json import FlaskJSON, JsonError, json_response, as_json
 from certificate_generator import certificate_generator
 from messaging_client import messaging_client
-from pymongo import MongoClient
 from web_server_config import config
+from web_server_database import database_client
 
 
 
@@ -38,133 +38,7 @@ FlaskJSON(app)
 # HTTP REST APIs
 ###################################################################################
 
-def compute_secret(timestamp, username, password):
-    key = timestamp.encode('utf-8')
-    message = (username + password).encode('utf-8')
-    secret = hmac.new(key, message, hashlib.sha1).hexdigest()
-    return secret
 
-def display_users():
-    users = g_db_client['profiles']
-    if users:
-        for user in users.find({},{'username': 1, 'password':1, 'secret':1}):
-            print(user)
-
-def find_user(username):
-    users = g_db_client['profiles']
-    if users:
-        for user in users.find({},{'username': 1}):
-            #print(user)
-            if user['username'] == username:
-                return True
-    return False
-
-def check_password(username, password):
-    users = g_db_client['profiles']
-    if users:
-        for user in users.find({},{'username': 1, 'password':1}):
-            #print(user)
-            if user['username'] == username and user['password'] == password:
-                return True
-    return False
-
-def get_secret(username):
-    users = g_db_client['profiles']
-    if users:
-        for user in users.find({},{'username': 1, 'secret': 1}):
-            #print(user)
-            if user['username'] == username:
-                return user['secret']
-    return None
-
-def check_secret(username, secret):
-    users = g_db_client['profiles']
-    if users:
-        for user in users.find({},{'username': 1, 'secret':1}):
-            #print(user)
-            if user['username'] == username and user['secret'] == secret:
-                return True
-    return False
-
-def delete_user(username):
-    users = g_db_client['profiles']
-    if users:
-        myquery = { 'username': username }
-        users.delete_one(myquery)
-
-def add_user(username, password):
-    timestamp = str(int(time.time()))
-    secret = compute_secret(timestamp, username, password)
-    profile = {}
-    profile['username']  = username
-    profile['password']  = password
-    profile['timestamp'] = timestamp
-    profile['secret']    = secret
-    #print('post={}'.format(profile))
-    g_db_client.profiles.insert_one(profile)
-
-def compute_deviceid(timestamp, username, devicename):
-    key = timestamp.encode('utf-8')
-    message = (username + devicename).encode('utf-8')
-    secret = hmac.new(key, message, hashlib.sha1).hexdigest()
-    return secret
-
-def display_devices(username):
-    devices = g_db_client['devices']
-    if devices:
-        for device in devices.find({},{'username': 1, 'devicename':1, 'deviceid': 1, 'timestamp':1, 'cert':1, 'pkey':1}):
-            if device['username'] == username:
-                print(device)
-
-def get_devices(username):
-    device_list = []
-    devices = g_db_client['devices']
-    if devices:
-        for device in devices.find({},{'username': 1, 'devicename':1, 'deviceid': 1, 'timestamp':1, 'cert':1, 'pkey':1}):
-            if device['username'] == username:
-                device.pop('username')
-                device.pop('timestamp')
-                device.pop('_id')
-                device_list.append(device)
-    return device_list
-
-def add_device(username, devicename, cert, pkey):
-    timestamp = str(int(time.time()))
-    deviceid = compute_deviceid(timestamp, username, devicename)
-    device = {}
-    device['username']   = username
-    device['devicename'] = devicename
-    device['deviceid']   = deviceid
-    device['timestamp']  = timestamp
-    device['cert']       = cert
-    device['pkey']       = pkey
-    #print('post={}'.format(device))
-    g_db_client.devices.insert_one(device)
-    return deviceid
-
-def delete_device(username, devicename):
-    devices = g_db_client['devices']
-    if devices:
-        myquery = { 'username': username, 'devicename': devicename }
-        devices.delete_one(myquery)
-
-def find_device(username, devicename):
-    devices = g_db_client['devices']
-    if devices:
-        for device in devices.find({},{'username': 1, 'devicename': 1}):
-            #print(user)
-            if device['username'] == username and device['devicename'] == devicename:
-                return True
-    return False
-
-def get_deviceid(username, devicename):
-    devices = g_db_client['devices']
-    if devices:
-        for device in devices.find({},{'username': 1, 'devicename': 1, 'deviceid': 1}):
-            #print(user)
-            if device['username'] == username and device['devicename'] == devicename:
-                return device['deviceid']
-    return None
 
 
 
@@ -182,8 +56,8 @@ def signup():
 
     # check if username is already in database
     print("\r\nBefore addition...")
-#    delete_user(username)
-    if find_user(username):
+#    g_db_client.delete_user(username)
+    if g_db_client.find_user(username):
         print("Username {} already exist!\r\n".format(username))
         response = {}
         response['status'] = 'NG, username already exist'
@@ -191,11 +65,11 @@ def signup():
         return response
 
     # add entry in database
-    add_user(username, password)
+    g_db_client.add_user(username, password)
 
     # Print database entries
     print("\r\nAfter addition...")
-    display_users()
+    g_db_client.display_users()
 
     response = {}
     response['status'] = 'OK'
@@ -208,14 +82,14 @@ def login():
     username = data['username']
     password = data['password']
 
-    if not find_user(username):
+    if not g_db_client.find_user(username):
         response = {}
         response['status'] = 'NG, username does not exist'
         response['secret'] = 'Unknown'
         response = json.dumps(response)
         return response
 
-    if not check_password(username, password):
+    if not g_db_client.check_password(username, password):
         response = {}
         response['status'] = 'NG, password is incorrect'
         response['secret'] = 'Unknown'
@@ -224,7 +98,7 @@ def login():
 
     response = {}
     response['status'] = 'OK'
-    response['secret'] = get_secret(username)
+    response['secret'] = g_db_client.get_secret(username)
     response = json.dumps(response)
     return response
 
@@ -237,14 +111,14 @@ def get_device_list():
     print('get_device_list username={} secret={}'.format(username, secret))
 
     # check if username and secret is valid
-    if not check_secret(username, secret):
+    if not g_db_client.check_secret(username, secret):
         response = {}
         response['status'] = 'NG, secret is incorrect'
         response = json.dumps(response)
         print('NG, secret is incorrect')
         return response
 
-    devices = get_devices(username)
+    devices = g_db_client.get_devices(username)
     print(devices)
 
     response = {}
@@ -262,7 +136,7 @@ def register_device():
     print('username={} secret={} devicename={}'.format(username, secret, devicename))
 
     # check if username and secret is valid
-    if not check_secret(username, secret):
+    if not g_db_client.check_secret(username, secret):
         response = {}
         response['status'] = 'NG, secret is incorrect'
         response = json.dumps(response)
@@ -270,7 +144,7 @@ def register_device():
         return response
 
     # check if device is registered
-    if find_device(username, devicename):
+    if g_db_client.find_device(username, devicename):
         response = {}
         response['status'] = 'NG, device already registered'
         response = json.dumps(response)
@@ -288,7 +162,7 @@ def register_device():
     print(ca)
 
     # add device to database
-    deviceid = add_device(username, devicename, cert, pkey)
+    deviceid = g_db_client.add_device(username, devicename, cert, pkey)
     print(deviceid)
 
     response = {}
@@ -310,7 +184,7 @@ def unregister_device():
     print('username={} secret={} devicename={}'.format(username, secret, devicename))
 
     # check if username and secret is valid
-    if not check_secret(username, secret):
+    if not g_db_client.check_secret(username, secret):
         response = {}
         response['status'] = 'NG, secret is incorrect'
         response = json.dumps(response)
@@ -318,7 +192,7 @@ def unregister_device():
         return response
 
     # check if device is registered
-    if not find_device(username, devicename):
+    if not g_db_client.find_device(username, devicename):
         response = {}
         response['status'] = 'NG, device not registered'
         response = json.dumps(response)
@@ -326,7 +200,7 @@ def unregister_device():
         return response
 
     # delete device from database
-    delete_device(username, devicename)
+    g_db_client.delete_device(username, devicename)
 
     response = {}
     response['status'] = 'OK'
@@ -363,13 +237,13 @@ def process_request(api):
     secret = data['secret']
     devicename = data['devicename']
     # check if username and secret is valid
-    if not check_secret(username, secret):
+    if not g_db_client.check_secret(username, secret):
         return 'Device secret is not valid!', 400
     # check if device is registered
-    if not find_device(username, devicename):
+    if not g_db_client.find_device(username, devicename):
         return 'Device is not registered!', 400
     # get deviceid for subscribe purpose (AMQP)
-    deviceid = get_deviceid(username, devicename)
+    deviceid = g_db_client.get_deviceid(username, devicename)
 
     # construct publish/subscribe topics and payloads
     pubtopic = generate_publish_topic(data, deviceid, api, CONFIG_SEPARATOR)
@@ -467,20 +341,15 @@ def write_uart():
 # HTTP server initialization
 ###################################################################################
 
-def init_http_server():
-    context = (config.CONFIG_HTTP_TLS_CERT, config.CONFIG_HTTP_TLS_PKEY)
+def http_server():
+    context = (config.CONFIG_HTTP_TLS_CERT, 
+        config.CONFIG_HTTP_TLS_PKEY)
     app.run(ssl_context = context,
         host     = config.CONFIG_HTTP_HOST, 
         port     = config.CONFIG_HTTP_PORT, 
         threaded = True, 
         debug    = True)
     return app
-
-
-def init_db_client():
-    mongo_client = MongoClient('localhost', 27017)
-    client = mongo_client['iotcloud-database']
-    return client
 
 
 
@@ -545,10 +414,12 @@ if __name__ == '__main__':
 
 
     # Initialize Database client
-    g_db_client = init_db_client()
+    g_db_client = database_client()
+    g_db_client.initialize()
+
 
     # Initialize HTTP server
-    app = init_http_server()
+    app = http_server()
 
     # Initialize certificate generator
     #g_certificate_generator = certificate_generator()
