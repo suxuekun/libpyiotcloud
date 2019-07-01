@@ -1,3 +1,6 @@
+import time
+import hmac
+import hashlib
 from pymongo import MongoClient
 from web_server_config import config
 
@@ -69,7 +72,7 @@ class database_client:
 
 	def add_user(self, username, password):
 		timestamp = str(int(time.time()))
-		secret = compute_secret(timestamp, username, password)
+		secret = self.compute_secret(timestamp, username, password)
 		profile = {}
 		profile['username']  = username
 		profile['password']  = password
@@ -106,7 +109,7 @@ class database_client:
 
 	def add_device(self, username, devicename, cert, pkey):
 		timestamp = str(int(time.time()))
-		deviceid = compute_deviceid(timestamp, username, devicename)
+		deviceid = self.compute_deviceid(timestamp, username, devicename)
 		device = {}
 		device['username']   = username
 		device['devicename'] = devicename
