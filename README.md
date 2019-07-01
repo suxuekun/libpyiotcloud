@@ -7,28 +7,26 @@ with back-end AMQP (over TLS) connectivity and device-side MQTT/AMQP (over TLS) 
 
 ### Features
 
-    1. REST APIs to remotely control device
+    1. User Registration and Device Registration
+       A. Using MongoDB NoSQL database
+       B. Unique ca-signed certificate + privatekey generated for registered devices
+    2. Device Access/Control
        A. get/set GPIOs
        B. get/set RTC
        C. get MAC address
        D. get IP/Subnet/Gateway addresses
        E. reset device
        F. write UART
-    2. HTTP/AMQP/MQTT protocol support over secure TLS connectivity with X.509 certificate authentication
-       [client --HTTP over TLS--> webserver <--AMQP over TLS--> messagebroker <--MQTT over TLS--> microcontroller]
-       A. HTTP over TLS: client app and webserver communication
+    3. HTTPS/AMQPS/MQTTS Protocol Support
+       [client --HTTPS--> webserver <--AMQPS--> messagebroker <--MQTTS--> device]
+       A. HTTP over TLS: client app accessing REST APIs from webserver
        B. AMQP over TLS: webserver and messagebroker communication
-       C. MQTT over TLS: messagebroker and microcontroller communication
-    3. Dynamic generation of device certificates 
-       A. register_device API returns a unique ca-signed X509 certificate + private key.
-       B. the generated certificates will be used by the MCU to connect to the MQTT broker. 
-    4. Microcontroller device and device simulator examples
+       C. MQTT over TLS: messagebroker and device communication
+    4. Device examples
        A. FT900 MCU device (LWIP-MQTT client)
        B. Python Paho-MQTT client device simulator
        C. Python Pika-AMQP client device simulator
        D. NodeJS MQTT client device simulator
-    5. User registration and device registration 
-       A. Using MongoDB NoSQL database
 
 
 ### Architecture
@@ -53,6 +51,53 @@ Notes:
     4. Login API will return a secret key that will be used for succeeduing API calls.
     5. Register device API will return deviceid, rootca, device certificate and device private key.
     6. Device shall use deviceid as MQTT client id and use the rootca, device certificate and device private key.
+
+
+
+### Design
+
+User Registration APIs
+
+    1. signup
+       - requires username, password
+    2. login
+       - requires username, password
+       - returns secret key
+
+Device Registration APIs
+
+    1. register_device
+       - requires username, secret, devicename
+       - returns deviceid, rootca, devicecert, devicepkey
+    2. unregister_device
+       - requires username, secret, devicename
+    3. get_device_list
+       - requires username, secret, devicename
+       - returns deviceid, rootca, devicecert, devicepkey for all devices registered by user
+
+Device Control APIs
+
+    1. get_gpio/set_GPIO
+    2. get_rtc/set_rtc
+    3. get_mac
+    4. get_ip/get_subnet/get_gateway
+    5. reset_device
+    6. write_uart
+
+Device MQTT/AMQP Connectivity
+
+    1. HOST: ip address of RabbitMQ broker
+    2. PORT: 8883 (MQTT) or 5671 (AMQP)
+    3. USERNAME: guest
+    4. PASSWORD: guest
+    5. CLIENTID: deviceid (returned by register_device API)
+    6. TLS ROOTCA: returned by register_device API
+    7. TLS CERT: returned by register_device API
+    8. TLS PKEY: returned by register_device API
+    9. MQTT SUBSCRIBE: deviceid/#
+    10. MQTT PUBLISH: server/deviceid/api
+    11. AMQP SUBSCRIBE: mqtt-subscription-deviceidqos1
+    12. AMQP PUBLISH: server.deviceid.api
 
 
 
