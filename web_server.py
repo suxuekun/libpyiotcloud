@@ -37,9 +37,8 @@ CONFIG_TLS_CA               = "cert/rootca.pem"
 CONFIG_TLS_CERT             = "cert/server_cert.pem"
 CONFIG_TLS_PKEY             = "cert/server_pkey.pem"
 
-CONFIG_MQTT_HOST            = "localhost"
+CONFIG_HOST                 = "localhost"
 CONFIG_MQTT_TLS_PORT        = 8883
-CONFIG_AMQP_HOST            = "localhost"
 CONFIG_AMQP_TLS_PORT        = 5671
 
 CONFIG_SEPARATOR            = '/'
@@ -54,9 +53,9 @@ CONFIG_PREPEND_REPLY_TOPIC  = "server"
 g_certificate_generator = None
 g_messaging_client = None
 g_db_client = None
-g_http_server = Flask(__name__)
+app = Flask(__name__)
 g_queue_dict  = {}
-FlaskJSON(g_http_server)
+FlaskJSON(app)
 
 
 
@@ -194,13 +193,13 @@ def get_deviceid(username, devicename):
 
 
 
-@g_http_server.route('/')
+@app.route('/')
 def index():
     return 'Hello, World!'
 
 
 
-@g_http_server.route('/signup', methods=['POST'])
+@app.route('/signup', methods=['POST'])
 def signup():
     data = request.get_json()
     username = data['username']
@@ -228,7 +227,7 @@ def signup():
     response = json.dumps(response)
     return response
 
-@g_http_server.route('/login', methods=['POST'])
+@app.route('/login', methods=['POST'])
 def login():
     data = request.get_json()
     username = data['username']
@@ -255,7 +254,7 @@ def login():
     return response
 
 
-@g_http_server.route('/get_device_list')
+@app.route('/get_device_list')
 def get_device_list():
     data = request.get_json()
     username = data['username']
@@ -279,7 +278,7 @@ def get_device_list():
     response = json.dumps(response)
     return response
 
-@g_http_server.route('/register_device', methods=['POST'])
+@app.route('/register_device', methods=['POST'])
 def register_device():
     data = request.get_json()
     username = data['username']
@@ -327,7 +326,7 @@ def register_device():
     response = json.dumps(response)
     return response
 
-@g_http_server.route('/unregister_device', methods=['POST'])
+@app.route('/unregister_device', methods=['POST'])
 def unregister_device():
     data = request.get_json()
     username = data['username']
@@ -422,67 +421,67 @@ def process_request(api):
     return response
 
 
-@g_http_server.route('/get_gpio')
+@app.route('/get_gpio')
 def get_gpio():
     api = 'get_gpio'
     return process_request(api)
 
-@g_http_server.route('/set_gpio', methods=['POST'])
+@app.route('/set_gpio', methods=['POST'])
 def set_gpio():
     api = 'set_gpio'
     return process_request(api)
 
 
-@g_http_server.route('/get_rtc')
+@app.route('/get_rtc')
 def get_rtc():
     api = 'get_rtc'
     return process_request(api)
 
-@g_http_server.route('/set_rtc', methods=['POST'])
+@app.route('/set_rtc', methods=['POST'])
 def set_rtc():
     api = 'set_rtc'
     return process_request(api)
 
 
-@g_http_server.route('/get_status')
+@app.route('/get_status')
 def get_status():
     api = 'get_status'
     return process_request(api)
 
-@g_http_server.route('/set_status', methods=['POST'])
+@app.route('/set_status', methods=['POST'])
 def set_status():
     api = 'set_status'
     return process_request(api)
 
 
-@g_http_server.route('/get_mac')
+@app.route('/get_mac')
 def get_mac():
     api = 'get_mac'
     return process_request(api)
 
-@g_http_server.route('/set_mac', methods=['POST'])
+@app.route('/set_mac', methods=['POST'])
 def set_mac():
     api = 'set_mac'
     return process_request(api)
 
 
-@g_http_server.route('/get_ip')
+@app.route('/get_ip')
 def get_ip():
     api = 'get_ip'
     return process_request(api)
 
-@g_http_server.route('/get_subnet')
+@app.route('/get_subnet')
 def get_subnet():
     api = 'get_subnet'
     return process_request(api)
 
-@g_http_server.route('/get_gateway')
+@app.route('/get_gateway')
 def get_gateway():
     api = 'get_gateway'
     return process_request(api)
 
 
-@g_http_server.route('/write_uart', methods=['POST'])
+@app.route('/write_uart', methods=['POST'])
 def write_uart():
     api = 'write_uart'
     return process_request(api)
@@ -494,13 +493,14 @@ def write_uart():
 ###################################################################################
 
 def init_http_server():
+    print(CONFIG_HTTP_HOST)
     context = (CONFIG_HTTP_TLS_CERT, CONFIG_HTTP_TLS_PKEY)
-    g_http_server.run(ssl_context = context,
+    app.run(ssl_context = context,
         host     = CONFIG_HTTP_HOST, 
         port     = CONFIG_HTTP_PORT, 
         threaded = True, 
         debug    = True)
-    return g_http_server
+    return app
 
 
 def init_db_client():
@@ -552,31 +552,33 @@ def receive_message(topic):
 # Main entry point
 ###################################################################################
 
-def parse_arguments(argv, default_value):
+def parse_arguments(argv):
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--USE_AMQP', required=False, default=default_value, help='Use AMQP instead of MQTT')
+    parser.add_argument('--USE_AMQP', required=False, default=1 if CONFIG_USE_AMQP else 0, help='Use AMQP instead of MQTT')
+    parser.add_argument('--USE_HOST', required=False, default=CONFIG_HOST, help='Message broker to connect to')
     return parser.parse_args(argv)
 
 
 if __name__ == '__main__':
 
-    default_value = 1 if CONFIG_USE_AMQP else 0
-    args = parse_arguments(sys.argv[1:], default_value)
+    args = parse_arguments(sys.argv[1:])
 
     CONFIG_USE_AMQP = True if int((args.USE_AMQP))==1 else False
     CONFIG_SEPARATOR = "." if int((args.USE_AMQP))==1 else "/"
+    CONFIG_HOST = args.USE_HOST
     print("USE_AMQP={}".format(args.USE_AMQP))
+    print("USE_HOST={}".format(args.USE_HOST))
 
 
     # Initialize MQTT/AMQP client
     print("Using {} for webserver-messagebroker communication!".format("AMQP" if CONFIG_USE_AMQP else "MQTT"))
     if CONFIG_USE_AMQP:
         g_messaging_client = messaging_client(CONFIG_USE_AMQP, on_amqp_message)
-        g_messaging_client.set_server(CONFIG_AMQP_HOST, CONFIG_AMQP_TLS_PORT)
+        g_messaging_client.set_server(CONFIG_HOST, CONFIG_AMQP_TLS_PORT)
     else:
         g_messaging_client = messaging_client(CONFIG_USE_AMQP, on_mqtt_message)
-        g_messaging_client.set_server(CONFIG_MQTT_HOST, CONFIG_MQTT_TLS_PORT)
+        g_messaging_client.set_server(CONFIG_HOST, CONFIG_MQTT_TLS_PORT)
     g_messaging_client.set_user_pass(CONFIG_USERNAME, CONFIG_PASSWORD)
     g_messaging_client.set_tls(CONFIG_TLS_CA, CONFIG_TLS_CERT, CONFIG_TLS_PKEY)
     g_messaging_client.initialize()
@@ -586,7 +588,7 @@ if __name__ == '__main__':
     g_db_client = init_db_client()
 
     # Initialize HTTP server
-    g_http_server = init_http_server()
+    app = init_http_server()
 
     # Initialize certificate generator
     #g_certificate_generator = certificate_generator()
