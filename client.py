@@ -2,6 +2,8 @@ import http.client
 import ssl
 import json
 import time
+import argparse
+import sys
 
 
 
@@ -9,10 +11,10 @@ import time
 # HTTP configurations
 ###################################################################################
 
-CONFIG_HTTP_HOST     = "localhost"
-CONFIG_HTTP_PORT     = 443
-CONFIG_HTTP_TLS_CERT = "cert/app_cert.pem"
-CONFIG_HTTP_TLS_PKEY = "cert/app_pkey.pem"
+CONFIG_HOST     = "localhost"
+CONFIG_PORT     = 443
+CONFIG_TLS_CERT = "cert/app_cert.pem"
+CONFIG_TLS_PKEY = "cert/app_pkey.pem"
 
 
 
@@ -26,7 +28,7 @@ def initialize_context():
 	else:
 		context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
 		context.verify_mode = ssl.CERT_REQUIRED
-		context.load_cert_chain(CONFIG_HTTP_TLS_CERT, CONFIG_HTTP_TLS_PKEY)
+		context.load_cert_chain(CONFIG_TLS_CERT, CONFIG_TLS_PKEY)
 		#context.load_verify_locations(
 		#	CONFIG_HTTP_TLS_CERT, CONFIG_HTTP_TLS_CERT, CONFIG_HTTP_TLS_PKEY)
 		#context.check_hostname = False
@@ -378,12 +380,13 @@ def test(conn, username, secret, devicename):
 # Demo REST APIs
 ###################################################################################
 
-def main():
+def main(args):
 
-	conn = http.client.HTTPSConnection(
-		CONFIG_HTTP_HOST, 
-		CONFIG_HTTP_PORT, 
-		context=initialize_context())
+	CONFIG_HOST = args.USE_HOST
+	print("USE_HOST={}".format(args.USE_HOST))
+
+
+	conn = http.client.HTTPSConnection(CONFIG_HOST, CONFIG_PORT, context=initialize_context())
 
 	username = "richmond_umagat@brtchip_com"
 #	username = "richmond.umagat@brtchip.com"
@@ -447,5 +450,12 @@ def main():
 		print(devices)
 
 
+def parse_arguments(argv):
+
+	parser = argparse.ArgumentParser()
+	parser.add_argument('--USE_HOST', required=False, default=CONFIG_HOST, help='Web server to connect to')
+	return parser.parse_args(argv)
+
+
 if __name__ == '__main__':
-	main()
+	main(parse_arguments(sys.argv[1:]))
