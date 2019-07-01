@@ -1,8 +1,8 @@
-flask
-flask-json
-paho-mqtt
-pika
-pyopenssl
-argparse
-netifaces
-pymongo
+flask==1.0.3
+flask-json==0.3.3
+paho-mqtt==1.3.1
+pika==1.0.1
+pyopenssl==19.0.0
+argparse==1.4.0
+netifaces==0.10.9
+pymongo==3.8.0
