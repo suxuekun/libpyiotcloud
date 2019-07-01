@@ -33,7 +33,8 @@ with back-end AMQP (over TLS) connectivity and device-side MQTT/AMQP (over TLS) 
 
 Instead of using 'serverless' IoT solutions like AWS IoT Core, GCP IoT Core or Azure IoT Hub, 
 we can create our own 'server-based' IoT solutions using 
-Flask web framework, Nginx web server, GUnicorn WSGI server, RabbitMQ message broker, Pika AMQP client, Paho MQTT client and MongoDB NoSQL database.
+Flask web framework, GUnicorn WSGI server, Nginx web server, 
+RabbitMQ message broker, Pika AMQP client, Paho MQTT client and MongoDB NoSQL database.
 This server-based IoT solution architecture can be deployed in local PC or in the cloud - AWS EC2, Linode, CloudAMQP, Heroku, Rackspace, DigitalOcean or etc.
 
 
@@ -52,7 +53,7 @@ Notes:
     4. Login API will return a secret key that will be used for succeeduing API calls.
     5. Register device API will return deviceid, rootca, device certificate and device private key.
     6. Device shall use deviceid as MQTT client id and use the rootca, device certificate and device private key.
-
+    7. The webserver has been tested on Linux using GUnicorn.
 
 
 ### Design
@@ -144,15 +145,20 @@ Device MQTT/AMQP Connectivity
 
        pip install -r requirements.txt
 
+       When running in Linux, need to install gunicorn as well
+       pip install gunicorn
+
     3. Install MongoDB database.
-    
+
     4. Run web_server.bat
-  
+
+       When running in Linux, run web_server.sh
+
     5. Run device_simulator.py_mqtt_ft900device1.bat and device_simulator.py_mqtt_ft900device2.bat OR 
        run device_simulator.py_amqp_ft900device1.bat and device_simulator.py_amqp_ft900device2.bat OR 
        run device_simulator.js_mqtt_ft900device1.bat and device_simulator.js_mqtt_ft900device2.bat OR 
        run FT900 MCU with the following details:
-       
+
        device id: ft900device1
        device ca: rootca.pem
        device cert: ft900device1_cert.pem
