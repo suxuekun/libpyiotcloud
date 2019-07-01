@@ -105,6 +105,8 @@ Device MQTT/AMQP Connectivity
 
 ### Instructions
 
+    0. Install Python 3.6.6
+
     1. Setup and run RabbitMQ broker
 
         // Installation
@@ -145,8 +147,9 @@ Device MQTT/AMQP Connectivity
 
        pip install -r requirements.txt
 
-       When running in Linux, need to install gunicorn as well
-       pip install gunicorn
+       When running in Linux, need to install gunicorn and nginx as well
+       sudo pip install gunicorn
+       sudo apt-get install nginx
 
     3. Install MongoDB database.
 
