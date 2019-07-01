@@ -1,3 +1,4 @@
+import os
 import ssl
 import json
 import time
@@ -37,10 +38,6 @@ FlaskJSON(app)
 ###################################################################################
 # HTTP REST APIs
 ###################################################################################
-
-
-
-
 
 @app.route('/')
 def index():
@@ -338,22 +335,6 @@ def write_uart():
 
 
 ###################################################################################
-# HTTP server initialization
-###################################################################################
-
-def http_server():
-    context = (config.CONFIG_HTTP_TLS_CERT, 
-        config.CONFIG_HTTP_TLS_PKEY)
-    app.run(ssl_context = context,
-        host     = config.CONFIG_HTTP_HOST, 
-        port     = config.CONFIG_HTTP_PORT, 
-        threaded = True, 
-        debug    = True)
-    return app
-
-
-
-###################################################################################
 # MQTT/AMQP callback functions
 ###################################################################################
 
@@ -395,12 +376,14 @@ def receive_message(topic):
 # Main entry point
 ###################################################################################
 
-if __name__ == '__main__':
+def initialize():
+    global CONFIG_SEPARATOR
+    global g_messaging_client
+    global g_db_client
 
     CONFIG_SEPARATOR = "." if config.CONFIG_USE_AMQP==1 else "/"
 
-
-    # Initialize MQTT/AMQP client
+    # Initialize Message broker client
     print("Using {} for webserver-messagebroker communication!".format("AMQP" if config.CONFIG_USE_AMQP else "MQTT"))
     if config.CONFIG_USE_AMQP:
         g_messaging_client = messaging_client(config.CONFIG_USE_AMQP, on_amqp_message)
@@ -412,15 +395,32 @@ if __name__ == '__main__':
     g_messaging_client.set_tls(config.CONFIG_TLS_CA, config.CONFIG_TLS_CERT, config.CONFIG_TLS_PKEY)
     g_messaging_client.initialize()
 
-
     # Initialize Database client
     g_db_client = database_client()
     g_db_client.initialize()
 
 
-    # Initialize HTTP server
-    app = http_server()
+# Initialize globally so that no issue with GUnicorn integration
+if os.name == 'posix':
+    initialize()
 
-    # Initialize certificate generator
-    #g_certificate_generator = certificate_generator()
+
+if __name__ == '__main__':
+
+    if os.name == 'nt':
+        initialize()
+
+    # Initialize HTTP server
+    if config.CONFIG_HTTP_USE_TLS:
+        context = (config.CONFIG_HTTP_TLS_CERT, config.CONFIG_HTTP_TLS_PKEY)
+        port = config.CONFIG_HTTP_TLS_PORT
+    else:
+        context = None
+        port = config.CONFIG_HTTP_PORT
+    app.run(ssl_context = context,
+        host     = config.CONFIG_HTTP_HOST, 
+        port     = port, 
+        threaded = True, 
+        debug    = True)
+
 

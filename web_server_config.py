@@ -1,8 +1,10 @@
 class config:
 
 	# Web server settings
+	CONFIG_HTTP_USE_TLS         = True
 	CONFIG_HTTP_HOST            = "localhost"
-	CONFIG_HTTP_PORT            = 443
+	CONFIG_HTTP_PORT            = 80
+	CONFIG_HTTP_TLS_PORT        = 443
 	CONFIG_HTTP_TLS_CA          = "cert/rootca.pem"
 	CONFIG_HTTP_TLS_CERT        = "cert/server_cert.pem"
 	CONFIG_HTTP_TLS_PKEY        = "cert/server_pkey.pem"
