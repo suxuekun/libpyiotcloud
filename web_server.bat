@@ -1,1 +1,2 @@
-python.exe web_server.py --USE_AMQP 1 --USE_HOST "localhost"
+python.exe web_server.py
+pause
