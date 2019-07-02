@@ -16,10 +16,15 @@ This server-based IoT solution architecture can be deployed in local PC or in th
 AWS EC2, Linode, Heroku, Rackspace, DigitalOcean or etc.
 
 Nginx web server - https://www.nginx.com/
+
 GUnicorn WSGI server - https://gunicorn.org/
+
 Flask web framework - http://flask.pocoo.org/
+
 RabbitMQ message broker - https://www.rabbitmq.com/
+
 MongoDB NoSQL database - https://www.mongodb.com/
+
 OpenSSL cryptography - https://www.openssl.org/
 
 
