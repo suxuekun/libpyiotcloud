@@ -5,10 +5,19 @@ remotely from a mobile or desktop web application via REST APIs (<b>HTTP over TL
 with back-end <b>AMQP over TLS</b> connectivity and device-side <b>MQTT over TLS</b> connectivity.
 
 
+### Background
+
+Popular cloud platforms such as Amazon Web Services, Google Cloud Platform and Microsoft Azure provide their IoT platforms, namely, AWS IoT Core, GCP IoT Core or Azure IoT Hub.
+
+There are also dedicated IoT providers such as [Adafruit.IO](https://io.adafruit.com/), [Ubidots](https://ubidots.com/) and [ThingSpeak](https://thingspeak.com/)
+
+These IoT platforms are good but are limited in that they are focused on sensor data dashboarding.
+It requires device to frequently send sensor data in order to generate graphs. 
+It lacks support for providing features to remotely access and control memory-constrained microcontrollers.
+
 
 ### Architecture
 
-Instead of using 'serverless' IoT cloud platform of AWS IoT Core, GCP IoT Core or Azure IoT Hub, 
 we can create our own 'server-based' IoT cloud platform solutions using 
 Flask, GUnicorn, Nginx, RabbitMQ and MongoDB.
 This server-based IoT solution architecture can be deployed in local PC or in the cloud - 
