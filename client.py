@@ -21,7 +21,7 @@ def initialize_http_connection():
 			#context.load_verify_locations(
 			#	config.CONFIG_TLS_CERT, config.CONFIG_TLS_CERT, config.CONFIG_TLS_PKEY)
 			#context.check_hostname = False
-		conn = http.client.HTTPSConnection(config.CONFIG_HOST, config.CONFIG_TLS_PORT, context=initialize_context())
+		conn = http.client.HTTPSConnection(config.CONFIG_HOST, config.CONFIG_TLS_PORT, context=context)
 	else:
 		conn = http.client.HTTPConnection(config.CONFIG_HOST, config.CONFIG_PORT)
 	return conn
