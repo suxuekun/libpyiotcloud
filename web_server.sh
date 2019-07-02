@@ -1,1 +1,1 @@
-gunicorn --bind 0.0.0.0:8000 web_server:app
+gunicorn --bind 192.168.100.17:8000 web_server:app
