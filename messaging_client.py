@@ -60,9 +60,9 @@ class messaging_client:
     def subscribe(self, topic, subscribe=True, declare=False, consume_continuously=False, deviceid=None):
         self.consume_continuously = consume_continuously
         if self.use_amqp:
-            self.subscribe_ampq(self.client, topic, subscribe=subscribe, declare=declare, deviceid=deviceid)
+            return self.subscribe_ampq(self.client, topic, subscribe=subscribe, declare=declare, deviceid=deviceid)
         else:
-            self.subscribe_mqtt(self.client, topic, subscribe=subscribe)
+            return self.subscribe_mqtt(self.client, topic, subscribe=subscribe)
 
     def initialize_ampq(self):
         use_tls = True
@@ -149,13 +149,21 @@ class messaging_client:
                 if declare:
                     client.exchange_declare(exchange='amq.topic', exchange_type='topic', durable=True, auto_delete=False)
                     result = client.queue_declare(queue=myqueue, auto_delete=True)
-                client.queue_bind(queue=myqueue, exchange='amq.topic', routing_key=topic)
 
-                client.basic_consume(queue=myqueue, on_message_callback=self.on_amqp_message)
-                x = threading.Thread(target=self.subscribe_amqp_thread, args=(client,))
-                x.start()
+                try:
+                    print("SUB: queue_bind")
+                    client.queue_bind(queue=myqueue, exchange='amq.topic', routing_key=topic)
+                    print("SUB: basic_consume")
+                    client.basic_consume(queue=myqueue, on_message_callback=self.on_amqp_message)
+                    x = threading.Thread(target=self.subscribe_amqp_thread, args=(client,))
+                    x.start()
+                except:
+                    print("SUB: exception! Please check if device is connected with correct deviceid=\r\n{}".format(deviceid))
+                    return False
+        return True
 
     def subscribe_amqp_thread(self, client):
+        print("SUB: thread")
         while True:
             try:
                 client.start_consuming()
@@ -177,9 +185,16 @@ class messaging_client:
         print("SUB: topic={}".format(topic))
         if client:
             if subscribe:
-                client.subscribe(topic, qos=CONFIG_QOS)
+                try:
+                    client.subscribe(topic, qos=CONFIG_QOS)
+                except:
+                    return False
             else:
-                client.unsubscribe(topic)
+                try:
+                    client.unsubscribe(topic)
+                except:
+                    return False
+        return True
 
     def on_mqtt_connect(self, client, userdata, flags, rc):
         #print("MQTT Connected with result code " + str(rc))
