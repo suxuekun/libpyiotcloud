@@ -37,16 +37,16 @@ Flask web framework, GUnicorn WSGI server, Nginx web server,
 RabbitMQ message broker, Pika AMQP client, Paho MQTT client and MongoDB NoSQL database.
 This server-based IoT solution architecture can be deployed in local PC or in the cloud - AWS EC2, Linode, CloudAMQP, Heroku, Rackspace, DigitalOcean or etc.
 
-High-Level architecture diagram:
+#### High-Level architecture diagram:
 <img src="https://github.com/richmondu/libpyiotcloud/blob/master/images/architecture.png" width="800"/>
 
-UML Use case diagram:
+#### UML Use case diagram:
 <img src="https://github.com/richmondu/libpyiotcloud/blob/master/images/usecase.png" width="800"/>
 
-UML Sequence diagram:
+#### UML Sequence diagram:
 <img src="https://github.com/richmondu/libpyiotcloud/blob/master/images/sequence.png" width="800"/>
 
-UML Sequence diagram:
+#### UML Sequence diagram:
 <img src="https://github.com/richmondu/libpyiotcloud/blob/master/images/sequence2.png" width="800"/>
 
 
@@ -63,7 +63,7 @@ Notes:
 
 ### Design
 
-User Registration APIs
+#### User Registration APIs
 
     1. signup
        - requires username, password
@@ -71,7 +71,7 @@ User Registration APIs
        - requires username, password
        - returns secret key
 
-Device Registration APIs
+#### Device Registration APIs
 
     1. register_device
        - requires username, secret, devicename
@@ -82,7 +82,7 @@ Device Registration APIs
        - requires username, secret, devicename
        - returns deviceid, rootca, devicecert, devicepkey for all devices registered by user
 
-Device Control APIs
+#### Device Control APIs
 
     1. get_gpio/set_GPIO
     2. get_rtc/set_rtc
@@ -91,7 +91,7 @@ Device Control APIs
     5. reset_device
     6. write_uart
 
-Device MQTT/AMQP Connectivity
+#### Device MQTT/AMQP Connectivity
 
     1. HOST: ip address of RabbitMQ broker
     2. PORT: 8883 (MQTT) or 5671 (AMQP)
@@ -186,7 +186,6 @@ Device MQTT/AMQP Connectivity
 
 ### Performance
 
-
 #### Windows 
 
 The total round trip time for setting or getting the MCU GPIO is 2.01 seconds from the client application. But round trip time for the web server for sending MQTT publish and receiving MQTT response to/from MCU is only 1 second.
@@ -196,7 +195,6 @@ The total round trip time for setting or getting the MCU GPIO is 2.01 seconds fr
     Note: the webserver is still on my local PC, not yet on Linode or AWS EC2.
 
 The client call to HTTP getresponse() is causing the additional 1 second delay. https://docs.python.org/3/library/http.client.html#http.client.HTTPConnection.getresponse For mobile client application, this 1 second delay maybe less or more. This will depend on the equivalent function HTTP client getresponse() in Java for Android or Swift for iOS..
-
 
 #### Linux
 
