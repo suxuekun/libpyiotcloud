@@ -148,8 +148,8 @@ Device MQTT/AMQP Connectivity
        pip install -r requirements.txt
 
        When running in Linux, need to install gunicorn and nginx as well
-       sudo pip install gunicorn
-       sudo apt-get install nginx
+       sudo pip install gunicorn [https://www.digitalocean.com/community/tutorials/how-to-serve-flask-applications-with-gunicorn-and-nginx-on-ubuntu-18-04]
+       sudo apt-get install nginx [https://www.digitalocean.com/community/tutorials/how-to-install-nginx-on-ubuntu-16-04]
 
     3. Install MongoDB database.
 
@@ -185,4 +185,5 @@ The total round trip time for setting or getting the MCU GPIO is 2.01 seconds fr
     Note: the webserver is still on my local PC, not yet on Linode or AWS EC2.
 
 The client call to HTTP getresponse() is causing the additional 1 second delay. https://docs.python.org/3/library/http.client.html#http.client.HTTPConnection.getresponse For mobile client application, this 1 second delay maybe less or more. This will depend on the equivalent function HTTP client getresponse() in Java for Android or Swift for iOS..
+
 
