@@ -1,4 +1,5 @@
-set DEVICE_ID="c2bfb6ec02f4bb0cb146fe4b2c7752a90d02f79d"
+::set DEVICE_ID="0925b1e6c15c6f55a10fb2c22af58ee036744af8"
+set DEVICE_ID="37601281d3fcba385c22d1758cb5f96116db62d3"
 set DEVICE_CA="cert/rootca.pem"
 set DEVICE_CERT="cert/ft900device1_cert.pem"
 set DEVICE_PKEY="cert/ft900device1_pkey.pem"
