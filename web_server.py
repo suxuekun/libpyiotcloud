@@ -248,16 +248,19 @@ def process_request(api):
 
     try:
         # subscribe for response
-        g_messaging_client.subscribe(subtopic, subscribe=True, deviceid=deviceid)
+        ret = g_messaging_client.subscribe(subtopic, subscribe=True, deviceid=deviceid)
+        if ret:
+            # publish request
+            g_messaging_client.publish(pubtopic, payload)
 
-        # publish request
-        g_messaging_client.publish(pubtopic, payload)
-
-        # receive response
-        response = receive_message(subtopic)
-        g_messaging_client.subscribe(subtopic, subscribe=False)
-
+            # receive response
+            response = receive_message(subtopic)
+            g_messaging_client.subscribe(subtopic, subscribe=False)
+        else:
+            print("process_request Please check if device is connected with correct deviceid=\r\n{}".format(deviceid))
+            response = None
     except:
+        print("process_request: exception!")
         response = None
 
     # return HTTP response
