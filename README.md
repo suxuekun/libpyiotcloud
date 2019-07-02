@@ -15,16 +15,16 @@ we can create our own 'server-based' IoT cloud platform solutions using
 This server-based IoT solution architecture can be deployed in local PC or in the cloud - 
 AWS EC2, Linode, Heroku, Rackspace, DigitalOcean or etc.
 
+Nginx web server - https://www.nginx.com/
+GUnicorn WSGI server - https://gunicorn.org/
+Flask web framework - http://flask.pocoo.org/
+RabbitMQ message broker - https://www.rabbitmq.com/
+MongoDB NoSQL database - https://www.mongodb.com/
+OpenSSL cryptography - https://www.openssl.org/
+
 
 #### High-level architecture diagram:
 <img src="https://github.com/richmondu/libpyiotcloud/blob/master/images/architecture.png" width="800"/>
-
-    Nginx web server - https://www.nginx.com/
-    GUnicorn WSGI server - https://gunicorn.org/
-    Flask web framework - http://flask.pocoo.org/
-    RabbitMQ message broker - https://www.rabbitmq.com/
-    MongoDB NoSQL database - https://www.mongodb.com/
-    OpenSSL cryptography - https://www.openssl.org/
 
 #### UML Use case diagram:
 <img src="https://github.com/richmondu/libpyiotcloud/blob/master/images/usecase.png" width="800"/>
