@@ -92,12 +92,17 @@ AWS EC2, Linode, Heroku, Rackspace, DigitalOcean or etc.
 
 #### Device Control APIs
 
-    1. get_gpio/set_GPIO
-    2. get_rtc/set_rtc
-    3. get_mac
-    4. get_ip/get_subnet/get_gateway
-    5. reset_device
-    6. write_uart
+    1. get_gpio
+    2. set_GPIO
+    3. get_rtc
+    4. set_rtc
+    5. get_mac
+    6. get_ip
+    7. get_subnet
+    8. get_gateway
+    9. get_status
+    10. set_status (including reset device)
+    11. write_uart
 
 #### Device MQTT/AMQP Connectivity
 
