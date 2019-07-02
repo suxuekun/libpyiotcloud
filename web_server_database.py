@@ -4,7 +4,7 @@ import hashlib
 import datetime
 from web_server_config import config
 from pymongo import MongoClient # MongoDB
-import psycopg2                 # PostgreSQL
+#import psycopg2                # PostgreSQL
 
 
 
@@ -248,7 +248,8 @@ class database_client_postgresql:
         self.client = None
 
     def initialize(self):
-        self.client = psycopg2.connect("dbname={} user=postgres password=1234".format(config.CONFIG_POSTGRESQL_DB))
+        #self.client = psycopg2.connect("dbname={} user=postgres password=1234".format(config.CONFIG_POSTGRESQL_DB))
+        pass
 
 
 class database_viewer:
