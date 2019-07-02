@@ -5,7 +5,43 @@ from a web client application via REST APIs (HTTP over TLS)
 with back-end AMQP (over TLS) connectivity and device-side MQTT/AMQP (over TLS) connectivity.
 
 
-### Features
+
+### Architecture
+
+Instead of using 'serverless' IoT solutions like AWS IoT Core, GCP IoT Core or Azure IoT Hub, 
+we can create our own 'server-based' IoT solutions using 
+Flask web framework, GUnicorn WSGI server, Nginx web server, 
+RabbitMQ message broker, Pika AMQP client, Paho MQTT client and MongoDB NoSQL database.
+This server-based IoT solution architecture can be deployed in local PC or in the cloud - AWS EC2, Linode, CloudAMQP, Heroku, Rackspace, DigitalOcean or etc.
+
+
+#### High-level architecture diagram:
+<img src="https://github.com/richmondu/libpyiotcloud/blob/master/images/architecture.png" width="800"/>
+
+#### UML Use case diagram:
+<img src="https://github.com/richmondu/libpyiotcloud/blob/master/images/usecase.png" width="800"/>
+
+#### UML Sequence diagram:
+<img src="https://github.com/richmondu/libpyiotcloud/blob/master/images/sequence.png" width="800"/>
+
+#### UML Sequence diagram:
+<img src="https://github.com/richmondu/libpyiotcloud/blob/master/images/sequence2.png" width="800"/>
+
+#### Notes:
+
+    1. This is a simple design and will not likely scale to millions of devices.
+    2. RabbitMQ supports AMQP and MQTT.
+    3. For MQTT to work, MQTT plugin must be installed in RabbitMQ.
+    4. Login API will return a secret key that will be used for succeeduing API calls.
+    5. Register device API will return deviceid, rootca, device certificate and device private key.
+    6. Device shall use deviceid as MQTT client id and use the rootca, device certificate and device private key.
+    7. The webserver has been tested on Linux using GUnicorn.
+
+
+
+### Design
+
+#### Features
 
     1. User Registration and Device Registration
        A. Using MongoDB NoSQL database
@@ -27,42 +63,7 @@ with back-end AMQP (over TLS) connectivity and device-side MQTT/AMQP (over TLS) 
        B. Python Paho-MQTT client device simulator
        C. Python Pika-AMQP client device simulator
        D. NodeJS MQTT client device simulator
-
-
-### Architecture
-
-Instead of using 'serverless' IoT solutions like AWS IoT Core, GCP IoT Core or Azure IoT Hub, 
-we can create our own 'server-based' IoT solutions using 
-Flask web framework, GUnicorn WSGI server, Nginx web server, 
-RabbitMQ message broker, Pika AMQP client, Paho MQTT client and MongoDB NoSQL database.
-This server-based IoT solution architecture can be deployed in local PC or in the cloud - AWS EC2, Linode, CloudAMQP, Heroku, Rackspace, DigitalOcean or etc.
-
-#### High-level architecture diagram:
-<img src="https://github.com/richmondu/libpyiotcloud/blob/master/images/architecture.png" width="800"/>
-
-#### UML Use case diagram:
-<img src="https://github.com/richmondu/libpyiotcloud/blob/master/images/usecase.png" width="800"/>
-
-#### UML Sequence diagram:
-<img src="https://github.com/richmondu/libpyiotcloud/blob/master/images/sequence.png" width="800"/>
-
-#### UML Sequence diagram:
-<img src="https://github.com/richmondu/libpyiotcloud/blob/master/images/sequence2.png" width="800"/>
-
-
-Notes:
-
-    1. This is a simple design and will not likely scale to millions of devices.
-    2. RabbitMQ supports AMQP and MQTT.
-    3. For MQTT to work, MQTT plugin must be installed in RabbitMQ.
-    4. Login API will return a secret key that will be used for succeeduing API calls.
-    5. Register device API will return deviceid, rootca, device certificate and device private key.
-    6. Device shall use deviceid as MQTT client id and use the rootca, device certificate and device private key.
-    7. The webserver has been tested on Linux using GUnicorn.
-
-
-### Design
-
+       
 #### User Registration APIs
 
     1. signup
