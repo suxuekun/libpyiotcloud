@@ -1,0 +1,2 @@
+python.exe web_server_database_viewer.py
+pause

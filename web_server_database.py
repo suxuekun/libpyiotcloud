@@ -33,6 +33,9 @@ class database_client:
     def display_users(self):
         self._base.display_users()
 
+    def get_registered_users(self):
+        return self._base.get_registered_users()
+
     def find_user(self, username):
         return self._base.find_user(username)
 
@@ -58,6 +61,9 @@ class database_client:
 
     def display_devices(self, username):
         self._base.display_devices(username)
+
+    def get_registered_devices(self):
+        return self._base.get_registered_devices()
 
     def get_devices(self, username):
         return self._base.get_devices(username)
@@ -241,7 +247,31 @@ class database_client_postgresql:
         self.client = None
 
     def initialize(self):
-        self.client = psycopg2.connect("dbname={} user=postgres password=postgres".format(CONFIG_POSTGRESQL_DB))
+        self.client = psycopg2.connect("dbname={} user=postgres password=1234".format(config.CONFIG_POSTGRESQL_DB))
 
+
+class database_viewer:
+
+    def __init__(self, model=database_models.MONGODB):
+        self.client = database_client(model)
+        self.client.initialize()
+
+    def show(self):
+        users = self.client.get_registered_users()
+        for user in users.find({},{'username': 1, 'password': 1, 'timestamp': 1, 'secret': 1}):
+            print("username : {}".format(user["username"]))
+            print("password : {}".format(user["password"]))
+            print("timestamp: {}".format(user["timestamp"]))
+            print("secret   : {}".format(user["secret"]))
+            print("devices  :")
+            devices = self.client.get_registered_devices()
+            if devices:
+                for device in devices.find({},{'username': 1, 'devicename':1, 'deviceid': 1, 'timestamp':1, 'cert':1, 'pkey':1}):
+                    if device['username'] == user["username"]:
+                        print("    devicename    : {}".format(device["devicename"]))
+                        print("        deviceid  : {}".format(device["deviceid"]))
+                        print("        timestamp : {}".format(device["timestamp"]))
+                        print("        cert      : {}...".format(device["cert"][28:68]))
+                        print("        pkey      : {}...".format(device["pkey"][28:68]))
 
 
