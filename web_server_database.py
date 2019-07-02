@@ -1,6 +1,7 @@
 import time
 import hmac
 import hashlib
+import datetime
 from web_server_config import config
 from pymongo import MongoClient # MongoDB
 import psycopg2                 # PostgreSQL
@@ -256,22 +257,29 @@ class database_viewer:
         self.client = database_client(model)
         self.client.initialize()
 
+    def epoch_to_datetime(self, epoch):
+        return datetime.datetime.fromtimestamp(int(epoch)).strftime('%Y-%m-%d %H:%M:%S')
+
     def show(self):
         users = self.client.get_registered_users()
         for user in users.find({},{'username': 1, 'password': 1, 'timestamp': 1, 'secret': 1}):
-            print("username : {}".format(user["username"]))
-            print("password : {}".format(user["password"]))
-            print("timestamp: {}".format(user["timestamp"]))
+            print("USERNAME : {}".format(user["username"]))
+            print("PASSWORD : {}".format(user["password"]))
+            print("timestamp: {}".format(self.epoch_to_datetime(user["timestamp"])))
             print("secret   : {}".format(user["secret"]))
             print("devices  :")
             devices = self.client.get_registered_devices()
             if devices:
                 for device in devices.find({},{'username': 1, 'devicename':1, 'deviceid': 1, 'timestamp':1, 'cert':1, 'pkey':1}):
                     if device['username'] == user["username"]:
-                        print("    devicename    : {}".format(device["devicename"]))
+                        print("    DEVICENAME    : {}".format(device["devicename"]))
                         print("        deviceid  : {}".format(device["deviceid"]))
-                        print("        timestamp : {}".format(device["timestamp"]))
-                        print("        cert      : {}...".format(device["cert"][28:68]))
-                        print("        pkey      : {}...".format(device["pkey"][28:68]))
+                        print("        timestamp : {}".format(self.epoch_to_datetime(device["timestamp"])))
+                        if True:
+                            print("        cert      : {}...".format(device["cert"][28:68]))
+                            print("        pkey      : {}...".format(device["pkey"][28:68]))
+                        else:
+                            print("        cert      : {}".format(device["cert"]))
+                            print("        pkey      : {}".format(device["pkey"]))
 
 
