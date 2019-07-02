@@ -1,6 +1,6 @@
 # libpyiotcloud
 
-libpyiotcloud platform demonstrates a custom IoT platform for remote access and control of an MCU-based smart device 
+libpyiotcloud platform demonstrates a custom IoT cloud platform for remote access and control of an MCU-based smart device 
 from a web client application via REST APIs (HTTP over TLS) 
 with back-end AMQP (over TLS) connectivity and device-side MQTT/AMQP (over TLS) connectivity.
 
@@ -8,11 +8,12 @@ with back-end AMQP (over TLS) connectivity and device-side MQTT/AMQP (over TLS) 
 
 ### Architecture
 
-Instead of using 'serverless' IoT solutions like AWS IoT Core, GCP IoT Core or Azure IoT Hub, 
-we can create our own 'server-based' IoT solutions using 
+Instead of using 'serverless' IoT cloud platform of AWS IoT Core, GCP IoT Core or Azure IoT Hub, 
+we can create our own 'server-based' IoT cloud platform solutions using 
 Flask web framework, GUnicorn WSGI server, Nginx web server, 
 RabbitMQ message broker, Pika AMQP client, Paho MQTT client and MongoDB NoSQL database.
-This server-based IoT solution architecture can be deployed in local PC or in the cloud - AWS EC2, Linode, CloudAMQP, Heroku, Rackspace, DigitalOcean or etc.
+This server-based IoT solution architecture can be deployed in local PC or in the cloud 
+- AWS EC2, Linode, Heroku, Rackspace, DigitalOcean or etc.
 
 
 #### High-level architecture diagram:
