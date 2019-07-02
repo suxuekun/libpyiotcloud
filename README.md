@@ -115,7 +115,7 @@ It can be deployed in local PC or in the cloud - AWS EC2, Linode, Heroku, Racksp
     2. PORT: 8883 (MQTT) or 5671 (AMQP)
     3. USERNAME: guest
     4. PASSWORD: guest
-    5. CLIENTID: deviceid (returned by register_device API)
+    5. CLIENTID: deviceid returned by register_device API
     6. TLS ROOTCA: returned by register_device API
     7. TLS CERT: returned by register_device API
     8. TLS PKEY: returned by register_device API
@@ -124,6 +124,22 @@ It can be deployed in local PC or in the cloud - AWS EC2, Linode, Heroku, Racksp
     11. AMQP SUBSCRIBE: mqtt-subscription-deviceidqos1
     12. AMQP PUBLISH: server.deviceid.api
 
+
+#### Device MQTT/AMQP Processing
+
+    MQTT
+    1. Subscribe to deviceid/#
+    2. Receive MQTT payload with topic "deviceid/api"
+    3. Parse the api
+    4. Process the api with the given payload
+    5. Publish answer to topic "server/deviceid/api"
+
+    AMQP
+    1. Subscribe to mqtt-subscription-deviceidqos1
+    2. Receive MQTT payload with topic "deviceid.api"
+    3. Parse the api
+    4. Process the api with the given payload
+    5. Publish answer to topic "server.deviceid.api"
 
 
 ### Instructions
