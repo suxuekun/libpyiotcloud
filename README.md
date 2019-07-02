@@ -148,9 +148,12 @@ Device MQTT/AMQP Connectivity
        pip install -r requirements.txt
 
        When running in Linux, need to install gunicorn and nginx as well
-       sudo pip install gunicorn [https://www.digitalocean.com/community/tutorials/how-to-serve-flask-applications-with-gunicorn-and-nginx-on-ubuntu-18-04]
-       sudo apt-get install nginx [https://www.digitalocean.com/community/tutorials/how-to-install-nginx-on-ubuntu-16-04]
-
+       sudo pip install gunicorn 
+       sudo apt-get install nginx 
+       Then setup Nginx using the links below:
+       [https://www.digitalocean.com/community/tutorials/how-to-serve-flask-applications-with-gunicorn-and-nginx-on-ubuntu-18-04]
+       [https://www.digitalocean.com/community/tutorials/how-to-install-nginx-on-ubuntu-16-04]
+       
     3. Install MongoDB database.
 
     4. Run web_server.bat
