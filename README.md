@@ -10,8 +10,7 @@ with back-end <b>AMQP over TLS</b> connectivity and device-side <b>MQTT over TLS
 
 Instead of using 'serverless' IoT cloud platform of AWS IoT Core, GCP IoT Core or Azure IoT Hub, 
 we can create our own 'server-based' IoT cloud platform solutions using 
-<b>Flask</b> web framework, <b>GUnicorn</b> WSGI server, <b>Nginx</b> web server, 
-<b>RabbitMQ</b> message broker, <b>Pika</b> AMQP client, <b>Paho</b> MQTT client and <b>MongoDB</b> NoSQL database.
+Flask, GUnicorn, Nginx, RabbitMQ and MongoDB.
 This server-based IoT solution architecture can be deployed in local PC or in the cloud - 
 AWS EC2, Linode, Heroku, Rackspace, DigitalOcean or etc.
 
