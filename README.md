@@ -12,8 +12,8 @@ Instead of using 'serverless' IoT cloud platform of AWS IoT Core, GCP IoT Core o
 we can create our own 'server-based' IoT cloud platform solutions using 
 Flask web framework, GUnicorn WSGI server, Nginx web server, 
 RabbitMQ message broker, Pika AMQP client, Paho MQTT client and MongoDB NoSQL database.
-This server-based IoT solution architecture can be deployed in local PC or in the cloud 
-- AWS EC2, Linode, Heroku, Rackspace, DigitalOcean or etc.
+This server-based IoT solution architecture can be deployed in local PC or in the cloud - 
+AWS EC2, Linode, Heroku, Rackspace, DigitalOcean or etc.
 
 
 #### High-level architecture diagram:
