@@ -201,6 +201,18 @@ It can be deployed in local PC or in the cloud - AWS EC2, Linode, Heroku, Racksp
     6. Run client.bat
 
 
+### Testing
+
+#### MQTT/AMQP Device
+
+- [FT900 MCU device (LWIP-MQTT client)](https://github.com/richmondu/FT900/tree/master/IoT/ft90x_iot_brtcloud)
+
+#### MQTT/AMQP Device simulators
+
+- [Python Paho-MQTT client device simulator](https://github.com/richmondu/libpyiotcloud/blob/master/device_simulator.py)
+- [Python Pika-AMQP client device simulator](https://github.com/richmondu/libpyiotcloud/blob/master/device_simulator.py)
+- [NodeJS MQTT client device simulator](https://github.com/richmondu/libpyiotcloud/blob/master/device_simulator.js)
+
 
 ### Performance
 
