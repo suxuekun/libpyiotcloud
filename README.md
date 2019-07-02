@@ -37,7 +37,7 @@ Flask web framework, GUnicorn WSGI server, Nginx web server,
 RabbitMQ message broker, Pika AMQP client, Paho MQTT client and MongoDB NoSQL database.
 This server-based IoT solution architecture can be deployed in local PC or in the cloud - AWS EC2, Linode, CloudAMQP, Heroku, Rackspace, DigitalOcean or etc.
 
-#### High-Level architecture diagram:
+#### High-level architecture diagram:
 <img src="https://github.com/richmondu/libpyiotcloud/blob/master/images/architecture.png" width="800"/>
 
 #### UML Use case diagram:
