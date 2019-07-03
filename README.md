@@ -12,6 +12,7 @@ These IoT platforms are good (in fact, I have tested it with FT900 - refer to [f
 But these IoT platforms are limited in that they are focused on sensor data dashboarding.
 This requires device to frequently send sensor data in order to generate graphs. 
 It lacks support for the use-case of remote access and control memory-constrained microcontrollers.
+In this use-case, the device only sends the data when queried.
 
 
 ### Architecture
