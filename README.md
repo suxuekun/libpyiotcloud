@@ -11,7 +11,7 @@ Popular cloud platforms such as Amazon Web Services, Google Cloud Platform and M
 These IoT platforms are good (in fact, I have tested it with FT900 - refer to [ft90x_iot_aws_gcp_azure](https://github.com/richmondu/FT900/tree/master/IoT/ft90x_iot_aws_gcp_azure). 
 But these IoT platforms are limited in that they are focused on sensor data dashboarding.
 This requires device to frequently send sensor data in order to generate graphs. 
-It lacks support for providing features to remotely access and control memory-constrained microcontrollers.
+It lacks support for the use-case of remote access and control memory-constrained microcontrollers.
 
 
 ### Architecture
