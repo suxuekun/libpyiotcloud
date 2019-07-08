@@ -477,11 +477,6 @@ def main():
 			devicename = device["devicename"]
 			test(conn, username, token, devicename)
 
-#		devicename = "ft900device1"
-#		test(conn, username, token, devicename)
-#		devicename = "ft900device2"
-#		test(conn, username, token, devicename)
-
 
 	#####################################################
 	# Test device unregister
