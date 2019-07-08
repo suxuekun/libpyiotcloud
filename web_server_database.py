@@ -13,43 +13,45 @@ from web_server_cognito_client import cognito_client
 class database_models:
 
     MONGODB    = 0
-    COGNITO    = 1
+    AWSCOGNITO = 1
     POSTGRESQL = 2
 
 
 
-###################################################
-# USER database   : Cognito or MongoDB or PostgreSQL
+##########################################################
+# USER database   : AWS Cognito or MongoDB or PostgreSQL
 # DEVICE database : MongoDB or PostgreSQL
-###################################################
+##########################################################
 class database_client:
 
-    def __init__(self, model_users=database_models.COGNITO, model_devices=database_models.MONGODB):
-        self.use_cognito = True if model_users==database_models.COGNITO else False
+    def __init__(self, model_users=database_models.AWSCOGNITO, model_devices=database_models.MONGODB):
+        self.use_cognito = True if model_users==database_models.AWSCOGNITO else False
 
-        if model_users == database_models.COGNITO:
+        # user database
+        if model_users == database_models.AWSCOGNITO:
             self._users = database_client_cognito()
         elif model_users == database_models.MONGODB:
             self._users = database_client_mongodb()
         elif model_users == database_models.POSTGRESQL:
             self._users = database_client_postgresql()
 
+        # device database
         if model_devices == database_models.MONGODB:
             self._devices = database_client_mongodb()
         elif model_devices == database_models.POSTGRESQL:
             self._devices = database_client_postgresql()
 
     def initialize(self):
-        self._devices.initialize()
         self._users.initialize()
+        self._devices.initialize()
 
     def is_using_cognito(self):
         return self.use_cognito
 
 
-    ###################################################
+    ##########################################################
     # users
-    ###################################################
+    ##########################################################
 
     def get_registered_users(self):
         return self._users.get_registered_users()
@@ -76,9 +78,9 @@ class database_client:
         return self._users.get_confirmationcode(username)
 
 
-    ###################################################
+    ##########################################################
     # devices
-    ###################################################
+    ##########################################################
 
     def display_devices(self, username):
         self._devices.display_devices(username)
@@ -130,9 +132,9 @@ class database_client_cognito:
         self.access_token = None
 
 
-    ###################################################
+    ##########################################################
     # users
-    ###################################################
+    ##########################################################
 
     def get_registered_users(self):
         (result, users) = self.client.admin_list_users()
@@ -186,9 +188,9 @@ class database_client_mongodb:
         self.client = mongo_client[config.CONFIG_MONGODB_DB]
 
 
-    ###################################################
+    ##########################################################
     # users
-    ###################################################
+    ##########################################################
 
     def get_registered_users(self):
         return self.client[config.CONFIG_MONGODB_TB_PROFILES]
@@ -274,9 +276,9 @@ class database_client_mongodb:
         return False
 
 
-    ###################################################
+    ##########################################################
     # devices
-    ###################################################
+    ##########################################################
 
     def get_registered_devices(self):
         return self.client[config.CONFIG_MONGODB_TB_DEVICES]
@@ -351,8 +353,8 @@ class database_client_postgresql:
 
 class database_viewer:
 
-    def __init__(self, model_users=database_models.COGNITO, model_devices=database_models.MONGODB):
-        self.client = database_client(model_users, model_devices)
+    def __init__(self):
+        self.client = database_client()
         self.client.initialize()
 
     def epoch_to_datetime(self, epoch):
