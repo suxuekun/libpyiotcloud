@@ -203,11 +203,31 @@ It can be deployed in local PC or in the cloud - AWS EC2, Linode, Heroku, Racksp
        
     3. Install MongoDB database.
 
-    4. Run web_server.bat
+    4. Setup Amazon Cognito account
+       A. Click on "Manage User Pools"
+       B. Click on "Create a user pool"
+       C. Type Pool name and click "Step through settings"
+       D. Check "family name" and "given name" and click "Next step"
+       E. Click "Next step"
+       F. Click "Next step"
+       G. Click "Next step"
+       H. Click "Next step"
+       I. Click "Next step"
+       J. Click "Add an app client", type App client name, uncheck "Generate client secret", 
+          click "Create app client" and click "Next step"
+       K. Click "Next step"
+       L. Click "Create pool"
+   
+    5. Update web_server_cognito_config.py
+       A. CONFIG_USER_POOL_REGION = Region of Cognito User Pool ex. "ap-southeast-1"
+       B. CONFIG_USER_POOL_ID     = Copy from General settings/Pool Id
+       C. CONFIG_CLIENT_ID        = Copy from General settings/App clients/App client id
+
+    6. Run web_server.bat
 
        When running in Linux, run web_server.sh
 
-    5. Run device_simulator.py_mqtt_ft900device1.bat and device_simulator.py_mqtt_ft900device2.bat OR 
+    7. Run device_simulator.py_mqtt_ft900device1.bat and device_simulator.py_mqtt_ft900device2.bat OR 
        run device_simulator.py_amqp_ft900device1.bat and device_simulator.py_amqp_ft900device2.bat OR 
        run device_simulator.js_mqtt_ft900device1.bat and device_simulator.js_mqtt_ft900device2.bat OR 
        run FT900 MCU with the following details:
@@ -222,7 +242,7 @@ It can be deployed in local PC or in the cloud - AWS EC2, Linode, Heroku, Racksp
        device cert: ft900device2_cert.pem
        device pkey: ft900device2_pkey.pem
 
-    6. Run client.bat
+    8. Run client.bat
 
 
 ### Testing
