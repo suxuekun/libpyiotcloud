@@ -1,2 +1,3 @@
 python.exe web_server_database_viewer.py > web_server_database_viewer.txt
+python.exe web_server_database_viewer.py
 pause
