@@ -10,7 +10,6 @@ from certificate_generator import certificate_generator
 from messaging_client import messaging_client
 from web_server_config import config
 from web_server_database import database_client
-from web_server_cognito_client import cognito_client
 
 
 
@@ -30,7 +29,6 @@ CONFIG_PREPEND_REPLY_TOPIC  = "server"
 g_messaging_client = None
 g_database_client = None
 g_queue_dict  = {}
-g_cognito_client = None
 app = Flask(__name__)
 FlaskJSON(app)
 
@@ -56,8 +54,6 @@ def signup():
     familyname = data['familyname']
 
     # check if username is already in database
-    print("\r\nBefore addition...")
-#    g_database_client.delete_user(username)
     if g_database_client.find_user(username):
         print("Username {} already exist!\r\n".format(username))
         response = {}
@@ -66,15 +62,18 @@ def signup():
         return response
 
     # add entry in database
-    confirmationcode = g_database_client.add_user(username, password, email, givenname, familyname)
-
-    # Print database entries
-    print("\r\nAfter addition...")
-    g_database_client.display_users()
+    result = g_database_client.add_user(username, password, email, givenname, familyname)
+    if not result:
+        response = {}
+        response['status'] = 'NG'
+        response = json.dumps(response)
+        return response
+    confirmationcode = g_database_client.get_confirmationcode(username)
 
     response = {}
     response['status'] = 'OK'
-    response['confirmationcode'] = confirmationcode
+    if confirmationcode:
+        response['confirmationcode'] = confirmationcode
     response = json.dumps(response)
     return response
 
@@ -108,20 +107,21 @@ def login():
     if not g_database_client.find_user(username):
         response = {}
         response['status'] = 'NG, username does not exist'
-        response['secret'] = 'Unknown'
+        response['token'] = 'Unknown'
         response = json.dumps(response)
         return response
 
-    if not g_database_client.check_password(username, password):
+    token = g_database_client.login(username, password)
+    if not token:
         response = {}
         response['status'] = 'NG, password is incorrect'
-        response['secret'] = 'Unknown'
+        response['token'] = 'Unknown'
         response = json.dumps(response)
         return response
 
     response = {}
     response['status'] = 'OK'
-    response['secret'] = g_database_client.get_secret(username)
+    response['token'] = token
     response = json.dumps(response)
     return response
 
@@ -130,15 +130,15 @@ def login():
 def get_device_list():
     data = request.get_json()
     username = data['username']
-    secret = data['secret']
-    print('get_device_list username={} secret={}'.format(username, secret))
+    token = data['token']
+    print('get_device_list username={} token={}'.format(username, token))
 
-    # check if username and secret is valid
-    if not g_database_client.check_secret(username, secret):
+    # check if username and token is valid
+    if not g_database_client.verify_token(username, token):
         response = {}
-        response['status'] = 'NG, secret is incorrect'
+        response['status'] = 'NG, token is incorrect'
         response = json.dumps(response)
-        print('NG, secret is incorrect')
+        print('NG, token is incorrect')
         return response
 
     devices = g_database_client.get_devices(username)
@@ -154,16 +154,16 @@ def get_device_list():
 def register_device():
     data = request.get_json()
     username = data['username']
-    secret = data['secret']
+    token = data['token']
     devicename = data['devicename']
-    print('username={} secret={} devicename={}'.format(username, secret, devicename))
+    print('username={} token={} devicename={}'.format(username, token, devicename))
 
-    # check if username and secret is valid
-    if not g_database_client.check_secret(username, secret):
+    # check if username and token is valid
+    if not g_database_client.verify_token(username, token):
         response = {}
-        response['status'] = 'NG, secret is incorrect'
+        response['status'] = 'NG, token is incorrect'
         response = json.dumps(response)
-        print('NG, secret is incorrect')
+        print('NG, token is incorrect')
         return response
 
     # check if device is registered
@@ -202,16 +202,16 @@ def register_device():
 def unregister_device():
     data = request.get_json()
     username = data['username']
-    secret = data['secret']
+    token = data['token']
     devicename = data['devicename']
-    print('username={} secret={} devicename={}'.format(username, secret, devicename))
+    print('username={} token={} devicename={}'.format(username, token, devicename))
 
-    # check if username and secret is valid
-    if not g_database_client.check_secret(username, secret):
+    # check if username and token is valid
+    if not g_database_client.verify_token(username, token):
         response = {}
-        response['status'] = 'NG, secret is incorrect'
+        response['status'] = 'NG, token is incorrect'
         response = json.dumps(response)
-        print('NG, secret is incorrect')
+        print('NG, token is incorrect')
         return response
 
     # check if device is registered
@@ -241,7 +241,7 @@ def generate_publish_topic(data, deviceid, api, separator):
 
 def generate_publish_payload(data):
     data.pop('username')
-    data.pop('secret')
+    data.pop('token')
     data.pop('devicename')
     payload = json.dumps(data)
     return payload
@@ -257,11 +257,11 @@ def process_request(api):
     print("\r\nAPI: {} request={}".format(api, data))
 
     username = data['username']
-    secret = data['secret']
+    token = data['token']
     devicename = data['devicename']
-    # check if username and secret is valid
-    if not g_database_client.check_secret(username, secret):
-        return 'Device secret is not valid!', 400
+    # check if username and token is valid
+    if not g_database_client.verify_token(username, token):
+        return 'Device token is not valid!', 400
     # check if device is registered
     if not g_database_client.find_device(username, devicename):
         return 'Device is not registered!', 400
@@ -428,8 +428,6 @@ def initialize():
     g_database_client = database_client()
     g_database_client.initialize()
 
-    # Initialize Cognito client
-    g_cognito_client = cognito_client()
 
 
 # Initialize globally so that no issue with GUnicorn integration
