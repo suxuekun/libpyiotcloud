@@ -257,6 +257,11 @@ It can be deployed in local PC or in the cloud - AWS EC2, Linode, Heroku, Racksp
 - [Python Pika-AMQP client device simulator](https://github.com/richmondu/libpyiotcloud/blob/master/device_simulator.py)
 - [NodeJS MQTT client device simulator](https://github.com/richmondu/libpyiotcloud/blob/master/device_simulator.js)
 
+#### Test utilities
+
+- web_server_database_viewer.bat
+
+
 
 ### Performance
 
