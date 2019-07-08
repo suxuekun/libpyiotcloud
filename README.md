@@ -38,10 +38,10 @@ It can be deployed in local PC or in the cloud - AWS EC2, Linode, Heroku, Racksp
 <img src="https://github.com/richmondu/libpyiotcloud/blob/master/images/sequence1.png" width="800"/>
 
 #### UML Sequence diagram (device registration):
-<img src="https://github.com/richmondu/libpyiotcloud/blob/master/images/sequence.png" width="800"/>
+<img src="https://github.com/richmondu/libpyiotcloud/blob/master/images/sequence2.png" width="800"/>
 
 #### UML Sequence diagram (device access/control):
-<img src="https://github.com/richmondu/libpyiotcloud/blob/master/images/sequence2.png" width="800"/>
+<img src="https://github.com/richmondu/libpyiotcloud/blob/master/images/sequence3.png" width="800"/>
 
 #### Notes:
 
