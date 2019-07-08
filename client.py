@@ -444,8 +444,9 @@ def main():
 		devices = get_device_list(conn, username, token)
 		print(devices)
 		devices = json.loads(devices)
+		if devices["status"] != "OK":
+			return
 		devices = devices["devices"]
-
 
 	#####################################################
 	# Test device register
@@ -461,7 +462,10 @@ def main():
 		print(certificates)
 
 		devices = get_device_list(conn, username, token)
-		print(devices)
+		devices = json.loads(devices)
+		if devices["status"] != "OK":
+			return
+		devices = devices["devices"]
 
 
 	#####################################################
