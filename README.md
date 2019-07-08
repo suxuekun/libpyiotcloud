@@ -60,9 +60,10 @@ It can be deployed in local PC or in the cloud - AWS EC2, Linode, Heroku, Racksp
 
 #### Features
 
-    1. User Registration and Device Registration
-       A. Using MongoDB NoSQL database
-       B. Unique ca-signed certificate + privatekey generated for registered devices
+    1. User sign-up/sign-in and Device Registration
+       A. Using Amazon Cognito for user sign-up/sign-in
+       B. Using MongoDB NoSQL database
+       C. Unique ca-signed certificate + privatekey generated for registered devices
     2. Device Access/Control
        A. get/set GPIOs
        B. get/set RTC
