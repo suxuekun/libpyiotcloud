@@ -29,7 +29,7 @@ It can be deployed in local PC or in the cloud - AWS EC2, Linode, Heroku, Racksp
 
 
 #### High-level architecture diagram:
-<img src="https://github.com/richmondu/libpyiotcloud/blob/master/images/architecture.png" width="800"/>
+<img src="https://github.com/richmondu/libpyiotcloud/blob/master/images/architecture.png" width="1000"/>
 
 #### UML Use case diagram:
 <img src="https://github.com/richmondu/libpyiotcloud/blob/master/images/usecase.png" width="800"/>
