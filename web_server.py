@@ -10,6 +10,7 @@ from certificate_generator import certificate_generator
 from messaging_client import messaging_client
 from web_server_config import config
 from web_server_database import database_client
+from web_server_cognito_client import cognito_client
 
 
 
@@ -29,6 +30,7 @@ CONFIG_PREPEND_REPLY_TOPIC  = "server"
 g_messaging_client = None
 g_database_client = None
 g_queue_dict  = {}
+g_cognito_client = None
 app = Flask(__name__)
 FlaskJSON(app)
 
@@ -49,6 +51,9 @@ def signup():
     data = request.get_json()
     username = data['username']
     password = data['password']
+    email = data['email']
+    givenname = data['givenname']
+    familyname = data['familyname']
 
     # check if username is already in database
     print("\r\nBefore addition...")
@@ -61,7 +66,7 @@ def signup():
         return response
 
     # add entry in database
-    g_database_client.add_user(username, password)
+    confirmationcode = g_database_client.add_user(username, password, email, givenname, familyname)
 
     # Print database entries
     print("\r\nAfter addition...")
@@ -69,8 +74,30 @@ def signup():
 
     response = {}
     response['status'] = 'OK'
+    response['confirmationcode'] = confirmationcode
     response = json.dumps(response)
     return response
+
+@app.route('/confirm_signup', methods=['POST'])
+def confirm_signup():
+    data = request.get_json()
+    username = data['username']
+    confirmationcode = data['confirmationcode']
+
+    # confirm user in database
+    result = g_database_client.confirm_user(username, confirmationcode)
+    if not result:
+        print("Incorrect code! {} {}\r\n".format(username, confirmationcode))
+        response = {}
+        response['status'] = 'NG, incorrect code'
+        response = json.dumps(response)
+        return response
+
+    response = {}
+    response['status'] = 'OK'
+    response = json.dumps(response)
+    return response
+
 
 @app.route('/login', methods=['POST'])
 def login():
@@ -400,6 +427,9 @@ def initialize():
     # Initialize Database client
     g_database_client = database_client()
     g_database_client.initialize()
+
+    # Initialize Cognito client
+    g_cognito_client = cognito_client()
 
 
 # Initialize globally so that no issue with GUnicorn integration

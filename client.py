@@ -68,17 +68,30 @@ def get_default_headers():
 # REST APIs
 ###################################################################################
 
-def signup(conn, username, password):
-	print("\r\nsignup {} {}".format(username, password))
+def signup(conn, username, password, email, givenname, familyname):
+	print("\r\nsignup {} {}".format(username, password, email, givenname, familyname))
 	headers = get_default_headers()
 	params = {}
 	params['username'] = username
 	params['password'] = password
+	params['email'] = email
+	params['givenname'] = givenname
+	params['familyname'] = familyname
 	params = json.dumps(params)
 	request(conn, "POST", "/signup", params, headers)
 	status = response(conn)
-	status = json.loads(status)
-	return status['status']
+	return status
+
+def confirm_signup(conn, username, confirmation_code):
+	print("\r\nconfirm_signup {} {}".format(username, confirmation_code))
+	headers = get_default_headers()
+	params = {}
+	params['username'] = username
+	params['confirmationcode'] = confirmation_code
+	params = json.dumps(params)
+	request(conn, "POST", "/confirm_signup", params, headers)
+	status = response(conn)
+	return status
 
 def login(conn, username, password):
 	print("\r\nlogin {} {}".format(username, password))
@@ -376,9 +389,12 @@ def main():
 
 	conn = initialize_http_connection()
 
-	username = "richmond_umagat@brtchip_com"
-#	username = "richmond.umagat@brtchip.com"
+
+	username = "richmondu"
 	password = "P@$$w0rd"
+	email = "richmond.umagat@yahoo.com"
+	givenname = "Richmond"
+	familyname = "Umagat"
 
 
 	#####################################################
@@ -386,8 +402,13 @@ def main():
 	#####################################################
 
 	if True:
-		status = signup(conn, username, password)
+		status = signup(conn, username, password, email, givenname, familyname)
 		print(status)
+		status = json.loads(status)
+		if status["status"] == "OK":
+			confirmation_code = status["confirmationcode"]
+			status = confirm_signup(conn, username, confirmation_code)
+			print(status)
 
 		secret = login(conn, username, password)
 		print(secret)

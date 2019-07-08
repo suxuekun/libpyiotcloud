@@ -2,6 +2,7 @@ import time
 import hmac
 import hashlib
 import datetime
+import random
 from web_server_config import config
 from pymongo import MongoClient # MongoDB
 #import psycopg2                # PostgreSQL
@@ -52,9 +53,11 @@ class database_client:
     def delete_user(self, username):
         self._base.delete_user(username)
 
-    def add_user(self, username, password):
-        self._base.add_user(username, password)
+    def add_user(self, username, password, email, givenname, familyname):
+        return self._base.add_user(username, password, email, givenname, familyname)
 
+    def confirm_user(self, username, confirmationcode):
+        return self._base.confirm_user(username, confirmationcode)
 
     ###################################################
     # devices
@@ -87,9 +90,9 @@ class database_utils:
     def __init__(self):
         pass
 
-    def compute_secret(self, timestamp, username, password):
+    def compute_secret(self, timestamp, username, password, email, givenname, familyname):
         key = timestamp.encode('utf-8')
-        message = (username + password).encode('utf-8')
+        message = (username + password + email + givenname + familyname).encode('utf-8')
         secret = hmac.new(key, message, hashlib.sha1).hexdigest()
         return secret
 
@@ -165,16 +168,38 @@ class database_client_mongodb:
             myquery = { 'username': username }
             users.delete_one(myquery)
 
-    def add_user(self, username, password):
+    def add_user(self, username, password, email, givenname, familyname):
         timestamp = str(int(time.time()))
-        secret = database_utils().compute_secret(timestamp, username, password)
+        secret = database_utils().compute_secret(timestamp, username, password, email, givenname, familyname)
+        confirmationcode = ''.join(["%s" % random.randint(0, 9) for num in range(0, 6)])
         profile = {}
-        profile['username']  = username
-        profile['password']  = password
-        profile['timestamp'] = timestamp
-        profile['secret']    = secret
+        profile['username']         = username
+        profile['password']         = password
+        profile['email']            = email
+        profile['givenname']        = givenname
+        profile['familyname']       = familyname
+        profile['timestamp']        = timestamp
+        profile['secret']           = secret
+        profile['status']           = "UNCONFIRMED"
+        profile['confirmationcode'] = confirmationcode
         #print('post={}'.format(profile))
         self.client.profiles.insert_one(profile)
+        return confirmationcode
+
+    def confirm_user(self, username, confirmationcode):
+        users = self.get_registered_users()
+        if users:
+            for user in users.find({},{'username': 1, 'password': 1, 'email': 1, 'givenname': 1, 'familyname': 1, 'timestamp': 1, 'secret': 1, 'status': 1, 'confirmationcode': 1 }):
+                if user['username'] == username:
+                    print(user)
+                    if user['status'] == "UNCONFIRMED":
+                        if user['confirmationcode'] == confirmationcode:
+                            user['status'] = "CONFIRMED"
+                            users.replace_one({'username': username}, user)
+                            return True
+                    elif user['status'] == "CONFIRMED":
+                        return True
+        return False
 
 
     ###################################################
@@ -263,24 +288,41 @@ class database_viewer:
 
     def show(self):
         users = self.client.get_registered_users()
-        for user in users.find({},{'username': 1, 'password': 1, 'timestamp': 1, 'secret': 1}):
-            print("USERNAME : {}".format(user["username"]))
-            print("PASSWORD : {}".format(user["password"]))
-            print("timestamp: {}".format(self.epoch_to_datetime(user["timestamp"])))
-            print("secret   : {}".format(user["secret"]))
-            print("devices  :")
+        for user in users.find({},{'username': 1, 'password': 1, 'email': 1, 'givenname': 1, 'familyname': 1, 'timestamp': 1, 'secret': 1, 'status': 1, 'confirmationcode': 1}):
+            print("USERNAME   : {}".format(user["username"]))
+            print("PASSWORD   : {}".format(user["password"]))
+            print("EMAIL      : {}".format(user["email"]))
+            print("GIVENNAME  : {}".format(user["givenname"]))
+            print("FAMILYNAME : {}".format(user["familyname"]))
+            print("timestamp  : {}".format(self.epoch_to_datetime(user["timestamp"])))
+            print("secret     : {}".format(user["secret"]))
+            print("status     : {}".format(user["status"]))
+            print("confirmationcode : {}".format(user["confirmationcode"]))
+            print("devices    :")
             devices = self.client.get_registered_devices()
             if devices:
                 for device in devices.find({},{'username': 1, 'devicename':1, 'deviceid': 1, 'timestamp':1, 'cert':1, 'pkey':1}):
                     if device['username'] == user["username"]:
-                        print("    DEVICENAME    : {}".format(device["devicename"]))
+                        print("\r\n    DEVICENAME    : {}".format(device["devicename"]))
                         print("        deviceid  : {}".format(device["deviceid"]))
                         print("        timestamp : {}".format(self.epoch_to_datetime(device["timestamp"])))
-                        if True:
+                        if False:
                             print("        cert      : {}...".format(device["cert"][28:68]))
                             print("        pkey      : {}...".format(device["pkey"][28:68]))
                         else:
-                            print("        cert      : {}".format(device["cert"]))
-                            print("        pkey      : {}".format(device["pkey"]))
+                            print("        cert      : \r\n{}".format(device["cert"]))
+                            print("        pkey      : \r\n{}".format(device["pkey"]))
+
+    def reset(self):
+        users = self.client.get_registered_users()
+        for user in users.find({},{'username': 1}):
+            devices = self.client.get_registered_devices()
+            if devices:
+                for device in devices.find({},{'username': 1, 'devicename':1}):
+                    if device['username'] == user["username"]:
+                        self.client.delete_device(device['username'], device["devicename"])
+                        print("Deleted device {}".format(device["devicename"]))
+            self.client.delete_user(user["username"])
+            print("Deleted user {}".format(user["username"]))
 
 
