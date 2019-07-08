@@ -28,6 +28,9 @@ It can be deployed in local PC or in the cloud - AWS EC2, Linode, Heroku, Racksp
 - OpenSSL cryptography - https://www.openssl.org/
 - Amazon Cognito - https://aws.amazon.com/cognito/
 
+An alternative solution is using serverless solution composing of 
+AWS API Gateway, AWS DynamoDB, AWS Lambda, AWS Cognito and AmazonMQ.
+
 
 #### High-level architecture diagram:
 <img src="https://github.com/richmondu/libpyiotcloud/blob/master/images/architecture.png" width="1000"/>
