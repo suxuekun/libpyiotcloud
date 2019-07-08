@@ -34,10 +34,13 @@ It can be deployed in local PC or in the cloud - AWS EC2, Linode, Heroku, Racksp
 #### UML Use case diagram:
 <img src="https://github.com/richmondu/libpyiotcloud/blob/master/images/usecase.png" width="800"/>
 
-#### UML Sequence diagram:
+#### UML Sequence diagram (user sign-up/sign-in):
+<img src="https://github.com/richmondu/libpyiotcloud/blob/master/images/sequence1.png" width="800"/>
+
+#### UML Sequence diagram (device registration):
 <img src="https://github.com/richmondu/libpyiotcloud/blob/master/images/sequence.png" width="800"/>
 
-#### UML Sequence diagram:
+#### UML Sequence diagram (device access/control):
 <img src="https://github.com/richmondu/libpyiotcloud/blob/master/images/sequence2.png" width="800"/>
 
 #### Notes:
