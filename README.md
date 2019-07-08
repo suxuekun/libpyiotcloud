@@ -17,7 +17,7 @@ In this use-case, the device only sends the data when queried.
 
 ### Architecture
 
-This IoT platform is a server-based IoT cloud platform that leverages Flask, GUnicorn, Nginx, RabbitMQ and MongoDB.
+This IoT platform is a server-based IoT cloud platform that leverages Flask, GUnicorn, Nginx, RabbitMQ, MongoDB and Amazon Cognito.
 It can be deployed in local PC or in the cloud - AWS EC2, Linode, Heroku, Rackspace, DigitalOcean or etc.
 
 - Nginx web server - https://www.nginx.com/
@@ -26,6 +26,7 @@ It can be deployed in local PC or in the cloud - AWS EC2, Linode, Heroku, Racksp
 - RabbitMQ message broker - https://www.rabbitmq.com/
 - MongoDB NoSQL database - https://www.mongodb.com/
 - OpenSSL cryptography - https://www.openssl.org/
+- Amazon Cognito - https://aws.amazon.com/cognito/
 
 
 #### High-level architecture diagram:
@@ -48,7 +49,7 @@ It can be deployed in local PC or in the cloud - AWS EC2, Linode, Heroku, Racksp
     1. This is a simple design and will not likely scale to millions of devices.
     2. RabbitMQ supports AMQP and MQTT.
     3. For MQTT to work, MQTT plugin must be installed in RabbitMQ.
-    4. Login API will return a secret key that will be used for succeeduing API calls.
+    4. Login API will return an access token that will be used for succeeding API calls.
     5. Register device API will return deviceid, rootca, device certificate and device private key.
     6. Device shall use deviceid as MQTT client id and use the rootca, device certificate and device private key.
     7. The webserver has been tested on Linux using GUnicorn.
@@ -82,21 +83,24 @@ It can be deployed in local PC or in the cloud - AWS EC2, Linode, Heroku, Racksp
        
 #### User Registration APIs
 
-    1. signup
+    1. sign_up
+       - requires username, password, email, firstname, lastname
+       - confirmation code will be sent to email
+    2. confirm_sign_up
+       - requires username, confirmation
+    3. login
        - requires username, password
-    2. login
-       - requires username, password
-       - returns secret key
+       - returns access_token
 
 #### Device Registration APIs
 
     1. register_device
-       - requires username, secret, devicename
+       - requires username, access_token, devicename
        - returns deviceid, rootca, devicecert, devicepkey
     2. unregister_device
-       - requires username, secret, devicename
+       - requires username, access_token, devicename
     3. get_device_list
-       - requires username, secret, devicename
+       - requires username, access_token, devicename
        - returns deviceid, rootca, devicecert, devicepkey for all devices registered by user
 
 #### Device Control APIs
