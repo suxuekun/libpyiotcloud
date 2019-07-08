@@ -481,7 +481,7 @@ def main():
 	#####################################################
 	# Test device unregister
 	#####################################################
-	
+
 	if False:
 		devicename = "ft900device1"
 		certificates = unregister_device(conn, username, token, devicename)
