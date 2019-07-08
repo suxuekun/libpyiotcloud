@@ -13,25 +13,35 @@ from web_server_cognito_client import cognito_client
 class database_models:
 
     MONGODB    = 0
-    POSTGRESQL = 1
+    COGNITO    = 1
+    POSTGRESQL = 2
 
 
 
+###################################################
+# USER database   : Cognito or MongoDB or PostgreSQL
+# DEVICE database : MongoDB or PostgreSQL
+###################################################
 class database_client:
 
-    def __init__(self, model=database_models.MONGODB):
-        self.use_cognito = True
-        if model == database_models.MONGODB:
-            self._base = database_client_mongodb()
-            if self.use_cognito:
-                self._users = database_client_cognito()
-        elif model == database_models.POSTGRESQL:
-            self._base = database_client_postgresql()
+    def __init__(self, model_users=database_models.COGNITO, model_devices=database_models.MONGODB):
+        self.use_cognito = True if model_users==database_models.COGNITO else False
+
+        if model_users == database_models.COGNITO:
+            self._users = database_client_cognito()
+        elif model_users == database_models.MONGODB:
+            self._users = database_client_mongodb()
+        elif model_users == database_models.POSTGRESQL:
+            self._users = database_client_postgresql()
+
+        if model_devices == database_models.MONGODB:
+            self._devices = database_client_mongodb()
+        elif model_devices == database_models.POSTGRESQL:
+            self._devices = database_client_postgresql()
 
     def initialize(self):
-        self._base.initialize()
-        if self.use_cognito:
-            self._users.initialize()
+        self._devices.initialize()
+        self._users.initialize()
 
     def is_using_cognito(self):
         return self.use_cognito
@@ -42,44 +52,28 @@ class database_client:
     ###################################################
 
     def get_registered_users(self):
-        if self.use_cognito:
-            return self._users.get_registered_users()
-        return self._base.get_registered_users()
+        return self._users.get_registered_users()
 
     def find_user(self, username):
-        if self.use_cognito:
-            return self._users.find_user(username)
-        return self._base.find_user(username)
+        return self._users.find_user(username)
 
     def login(self, username, password):
-        if self.use_cognito:
-            return self._users.login(username, password)
-        return self._base.login(username, password)
+        return self._users.login(username, password)
 
     def verify_token(self, username, token):
-        if self.use_cognito:
-            return self._users.verify_token(username, token)
-        return self._base.verify_token(username, token)
+        return self._users.verify_token(username, token)
 
     def delete_user(self, username):
-        if self.use_cognito:
-            self._users.delete_user(username)
-        self._base.delete_user(username)
+        self._users.delete_user(username)
 
     def add_user(self, username, password, email, givenname, familyname):
-        if self.use_cognito:
-            return self._users.add_user(username, password, email, givenname, familyname)
-        return self._base.add_user(username, password, email, givenname, familyname)
+        return self._users.add_user(username, password, email, givenname, familyname)
 
     def confirm_user(self, username, confirmationcode):
-        if self.use_cognito:
-            return self._users.confirm_user(username, confirmationcode)
-        return self._base.confirm_user(username, confirmationcode)
+        return self._users.confirm_user(username, confirmationcode)
 
     def get_confirmationcode(self, username):
-        if self.use_cognito:
-            return self._users.get_confirmationcode(username)
-        return self._base.get_confirmationcode(username)
+        return self._users.get_confirmationcode(username)
 
 
     ###################################################
@@ -87,25 +81,25 @@ class database_client:
     ###################################################
 
     def display_devices(self, username):
-        self._base.display_devices(username)
+        self._devices.display_devices(username)
 
     def get_registered_devices(self):
-        return self._base.get_registered_devices()
+        return self._devices.get_registered_devices()
 
     def get_devices(self, username):
-        return self._base.get_devices(username)
+        return self._devices.get_devices(username)
 
     def add_device(self, username, devicename, cert, pkey):
-        return self._base.add_device(username, devicename, cert, pkey)
+        return self._devices.add_device(username, devicename, cert, pkey)
 
     def delete_device(self, username, devicename):
-        self._base.delete_device(username, devicename)
+        self._devices.delete_device(username, devicename)
 
     def find_device(self, username, devicename):
-        return self._base.find_device(username, devicename)
+        return self._devices.find_device(username, devicename)
 
     def get_deviceid(self, username, devicename):
-        return self._base.get_deviceid(username, devicename)
+        return self._devices.get_deviceid(username, devicename)
 
 
 class database_utils:
@@ -141,41 +135,30 @@ class database_client_cognito:
     ###################################################
 
     def get_registered_users(self):
-        print("\r\nadmin_list_users")
         (result, users) = self.client.admin_list_users()
-        print(result)
         if not result:
             return None
         return users
 
     def find_user(self, username):
-        print("\r\nadmin_list_users")
         (result, users) = self.client.admin_list_users()
-        print(result)
         if result == False:
             return True
         if users:
             for user in users:
                 if user["username"] == username:
-                    print("username: {} found!".format(username))
                     return True
-        print("username: {} NOT found!".format(username))
         return False
 
     def login(self, username, password):
-        print("\r\nlogin")
         (result, response) = self.client.login(username, password)
-        print(result)
         if not result:
             return None
         self.access_token = response['AuthenticationResult']['AccessToken']
-        print(self.access_token)
         return self.access_token
 
     def verify_token(self, username, token):
-        print("\r\nverify_token")
         valid = self.client.verify_token(token, username)
-        print("token is {}!".format("valid" if valid else "invalid"))
         return valid
 
     def get_confirmationcode(self, username):
@@ -185,15 +168,11 @@ class database_client_cognito:
         pass
 
     def add_user(self, username, password, email, givenname, familyname):
-        print("\r\nsign_up")
         (result, response) = self.client.sign_up(username, password, email=email, given_name=givenname, family_name=familyname)
-        print(result)
         return result
 
     def confirm_user(self, username, confirmationcode):
-        print("\r\nconfirm_sign_up")
         (result, response) = self.client.confirm_sign_up(username, confirmationcode)
-        print(result)
         return result
 
 
@@ -372,8 +351,8 @@ class database_client_postgresql:
 
 class database_viewer:
 
-    def __init__(self, model=database_models.MONGODB):
-        self.client = database_client(model)
+    def __init__(self, model_users=database_models.COGNITO, model_devices=database_models.MONGODB):
+        self.client = database_client(model_users, model_devices)
         self.client.initialize()
 
     def epoch_to_datetime(self, epoch):
@@ -381,57 +360,58 @@ class database_viewer:
 
     def show(self):
         users = self.client.get_registered_users()
-        if not self.client.is_using_cognito:
-            for user in users.find({},{'username': 1, 'password': 1, 'email': 1, 'givenname': 1, 'familyname': 1, 'timestamp': 1, 'token': 1, 'status': 1, 'confirmationcode': 1}):
-                print("USERNAME   : {}".format(user["username"]))
-                print("PASSWORD   : {}".format(user["password"]))
-                print("EMAIL      : {}".format(user["email"]))
-                print("GIVENNAME  : {}".format(user["givenname"]))
-                print("FAMILYNAME : {}".format(user["familyname"]))
-                print("timestamp  : {}".format(self.epoch_to_datetime(user["timestamp"])))
-                print("token      : {}".format(user["token"]))
-                print("status     : {}".format(user["status"]))
-                print("confirmationcode : {}".format(user["confirmationcode"]))
-                print("devices    :")
-                devices = self.client.get_registered_devices()
-                if devices:
-                    for device in devices.find({},{'username': 1, 'devicename':1, 'deviceid': 1, 'timestamp':1, 'cert':1, 'pkey':1}):
-                        if device['username'] == user["username"]:
-                            print("\r\n    DEVICENAME    : {}".format(device["devicename"]))
-                            print("        deviceid  : {}".format(device["deviceid"]))
-                            print("        timestamp : {}".format(self.epoch_to_datetime(device["timestamp"])))
-                            if False:
-                                print("        cert      : {}...".format(device["cert"][28:68]))
-                                print("        pkey      : {}...".format(device["pkey"][28:68]))
-                            else:
-                                print("        cert      : \r\n{}".format(device["cert"]))
-                                print("        pkey      : \r\n{}".format(device["pkey"]))
-                print("")
-        else:
-            for user in users:
-                print("USERNAME     : {}".format(user["username"]))
-                print("EMAIL        : {}".format(user["email"]))
-                print("GIVENNAME    : {}".format(user["given_name"]))
-                print("FAMILYNAME   : {}".format(user["family_name"]))
-                print("creationdate : {}".format(user["creationdate"]))
-                print("modifieddate : {}".format(user["modifieddate"]))
-                print("enabled      : {}".format(user["enabled"]))
-                print("status       : {}".format(user["status"]))
-                print("devices      :")
-                devices = self.client.get_registered_devices()
-                if devices:
-                    for device in devices.find({},{'username': 1, 'devicename':1, 'deviceid': 1, 'timestamp':1, 'cert':1, 'pkey':1}):
-                        if device['username'] == user["username"]:
-                            print("\r\n    DEVICENAME    : {}".format(device["devicename"]))
-                            print("        deviceid  : {}".format(device["deviceid"]))
-                            print("        timestamp : {}".format(self.epoch_to_datetime(device["timestamp"])))
-                            if False:
-                                print("        cert      : {}...".format(device["cert"][28:68]))
-                                print("        pkey      : {}...".format(device["pkey"][28:68]))
-                            else:
-                                print("        cert      : \r\n{}".format(device["cert"]))
-                                print("        pkey      : \r\n{}".format(device["pkey"]))
-                print("")
+        if users:
+            if not self.client.is_using_cognito:
+                for user in users.find({},{'username': 1, 'password': 1, 'email': 1, 'givenname': 1, 'familyname': 1, 'timestamp': 1, 'token': 1, 'status': 1, 'confirmationcode': 1}):
+                    print("USERNAME   : {}".format(user["username"]))
+                    print("PASSWORD   : {}".format(user["password"]))
+                    print("EMAIL      : {}".format(user["email"]))
+                    print("GIVENNAME  : {}".format(user["givenname"]))
+                    print("FAMILYNAME : {}".format(user["familyname"]))
+                    print("timestamp  : {}".format(self.epoch_to_datetime(user["timestamp"])))
+                    print("token      : {}".format(user["token"]))
+                    print("status     : {}".format(user["status"]))
+                    print("confirmationcode : {}".format(user["confirmationcode"]))
+                    print("devices    :")
+                    devices = self.client.get_registered_devices()
+                    if devices:
+                        for device in devices.find({},{'username': 1, 'devicename':1, 'deviceid': 1, 'timestamp':1, 'cert':1, 'pkey':1}):
+                            if device['username'] == user["username"]:
+                                print("\r\n    DEVICENAME    : {}".format(device["devicename"]))
+                                print("        deviceid  : {}".format(device["deviceid"]))
+                                print("        timestamp : {}".format(self.epoch_to_datetime(device["timestamp"])))
+                                if False:
+                                    print("        cert      : {}...".format(device["cert"][28:68]))
+                                    print("        pkey      : {}...".format(device["pkey"][28:68]))
+                                else:
+                                    print("        cert      : \r\n{}".format(device["cert"]))
+                                    print("        pkey      : \r\n{}".format(device["pkey"]))
+                    print("")
+            else:
+                for user in users:
+                    print("USERNAME     : {}".format(user["username"]))
+                    print("EMAIL        : {}".format(user["email"]))
+                    print("GIVENNAME    : {}".format(user["given_name"]))
+                    print("FAMILYNAME   : {}".format(user["family_name"]))
+                    print("creationdate : {}".format(user["creationdate"]))
+                    print("modifieddate : {}".format(user["modifieddate"]))
+                    print("enabled      : {}".format(user["enabled"]))
+                    print("status       : {}".format(user["status"]))
+                    print("devices      :")
+                    devices = self.client.get_registered_devices()
+                    if devices:
+                        for device in devices.find({},{'username': 1, 'devicename':1, 'deviceid': 1, 'timestamp':1, 'cert':1, 'pkey':1}):
+                            if device['username'] == user["username"]:
+                                print("\r\n    DEVICENAME    : {}".format(device["devicename"]))
+                                print("        deviceid  : {}".format(device["deviceid"]))
+                                print("        timestamp : {}".format(self.epoch_to_datetime(device["timestamp"])))
+                                if False:
+                                    print("        cert      : {}...".format(device["cert"][28:68]))
+                                    print("        pkey      : {}...".format(device["pkey"][28:68]))
+                                else:
+                                    print("        cert      : \r\n{}".format(device["cert"]))
+                                    print("        pkey      : \r\n{}".format(device["pkey"]))
+                    print("")
 
 
     def reset(self):
