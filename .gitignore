@@ -1,5 +1,6 @@
 # Project specific
 cert/rootca_pkey.pem
+web_server_database_viewer.txt
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
