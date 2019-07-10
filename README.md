@@ -263,7 +263,7 @@ AWS API Gateway, AWS DynamoDB, AWS Lambda, AWS Cognito and AmazonMQ.
 
 #### Test utilities
 
-- web_server_database_viewer.bat
+- web_server_database_viewer.bat - view registered devices (MongoDB) and registered users (Amazon Cognito)
 
 
 
