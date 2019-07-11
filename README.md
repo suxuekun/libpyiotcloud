@@ -66,7 +66,7 @@ AWS API Gateway, AWS DynamoDB, AWS Lambda, AWS Cognito and AmazonMQ.
 
     1. User sign-up/sign-in and Device Registration
        A. Using Amazon Cognito for user sign-up/sign-in
-       B. Using MongoDB NoSQL database
+       B. Using MongoDB NoSQL database for storing device info during device registration
        C. Unique ca-signed certificate + privatekey generated for registered devices
     2. Device Access/Control
        A. get/set GPIOs
