@@ -28,6 +28,7 @@ It can be deployed in local PC or in the cloud - AWS EC2, Linode, Heroku, Racksp
 - OpenSSL cryptography - https://www.openssl.org/
 - Amazon Cognito - https://aws.amazon.com/cognito/
 - Amazon Pinpoint - https://aws.amazon.com/pinpoint/
+- Amazon SNS - https://aws.amazon.com/sns/
 
 An alternative solution is using serverless solution composing of 
 AWS API Gateway, AWS DynamoDB, AWS Lambda, AWS Cognito and AmazonMQ.
