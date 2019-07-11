@@ -399,6 +399,42 @@
 				xhr.send(JSON.stringify({"username": username, "token": token, "devicename": devicename, "value": value}));
 			}
 
+			function trigger_notification(username, token) {
+				var devicename = document.getElementById("devicename_test").value;
+				console.log("test_device = " + devicename);
+				if (devicename.length==0) {
+					document.getElementById("notification_status").innerHTML = "testing failed! devicename is empty!";
+					return;
+				}
+
+				var recipient = document.getElementById("notification_recipient").value;
+				console.log("recipient = " + recipient);
+				if (recipient.length==0) {
+					document.getElementById("notification_status").innerHTML = "testing failed! recipient is empty!";
+					return;
+				}
+
+				var message = document.getElementById("notification_message").value;
+				console.log("message = " + message);
+				if (message.length==0) {
+					document.getElementById("notification_status").innerHTML = "testing failed! message is empty!";
+					return;
+				}
+
+				var xhr = new XMLHttpRequest();
+				xhr.open("POST", "/trigger_notification", true);
+				xhr.setRequestHeader('Content-Type', 'application/json');
+				xhr.onreadystatechange = function() { // Call a function when the state changes.
+					if (this.readyState == XMLHttpRequest.DONE && this.status == 200) {
+						document.getElementById("notification_status").innerHTML = "Status: OK";
+					}
+					else if (this.readyState === XMLHttpRequest.DONE && this.status != 200) {
+						document.getElementById("notification_status").innerHTML = "Status: " + "not running";
+					}
+				}
+				xhr.send(JSON.stringify({"username": username, "token": token, "devicename": devicename, "recipient": recipient, "message": message}));
+			}
+
 			async function test_device(username, token) {
 				document.getElementById("devicename").innerHTML = "DeviceName:";
 				document.getElementById("devicestatus").innerHTML = "Status:";
@@ -517,10 +553,17 @@
 				<a class="button" onclick="get_gpio('{{username}}', '{{token}}')" >Get GPIO</a>
 				<a class="button" onclick="set_gpio('{{username}}', '{{token}}')" >Set GPIO</a>
 
-				<br/>
+				<br/><br/><br/>
 				<a id="uart">         UART:       </a>
 				<textarea rows = "5" cols = "60" id="uarttext">Some text</textarea>
 				<a class="button" onclick="write_uart('{{username}}', '{{token}}')" >Write UART</a>
+
+				<br/><br/><br/><br/>
+				<a id="notification"> Notification:    </a>
+				<a class="button" onclick="trigger_notification('{{username}}', '{{token}}')" >Trigger Email/SMS Notification</a><br/><br/>
+				<input type="text" id="notification_recipient" style="width: 250px;" placeholder="Email or PhoneNumber"><br/>
+				<textarea rows = "5" cols = "60" id="notification_message">Some text</textarea><br/>
+				<a id="notification_status"> Status: </a>
 
 			</div>
 		</div>
