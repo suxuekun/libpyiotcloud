@@ -1,11 +1,9 @@
 import json
 import time
-import netifaces
 import argparse
 import sys
-import boto3
 from messaging_client import messaging_client
-from notification_manager_config import notification_config
+from notification_client import notification_client
 
 
 
@@ -46,61 +44,6 @@ CONFIG_PREPEND_REPLY_TOPIC  = "server"
 CONFIG_SEPARATOR            = '/'
 
 
-###################################################################################
-# Notification configuration
-###################################################################################
-
-g_aws_access_key_id     = notification_config.ACCESS_KEY
-g_aws_secret_access_key = notification_config.SECRET_KEY
-g_pinpoint_project_id   = notification_config.PINPOINT_ID
-g_region_name           = notification_config.PINPOINT_REGION
-g_email_from            = notification_config.PINPOINT_EMAIL
-
-
-
-###################################################################################
-# Notification functions
-###################################################################################
-
-def send_email(pinpoint, email_recipient, email_message, email_subject):
-    response = pinpoint.send_messages(
-        ApplicationId=g_pinpoint_project_id,
-        MessageRequest={
-            'Addresses': {email_recipient: { 'ChannelType': 'EMAIL'}},
-            'MessageConfiguration': {
-                'EmailMessage': {
-                    'FromAddress': g_email_from,
-                    'SimpleEmail':  {
-                        'Subject':  {'Charset': 'UTF-8', 'Data': email_subject},
-                        'TextPart': {'Charset': 'UTF-8', 'Data': email_message}
-                    }
-                }
-            }
-        }
-    )
-    return response
-
-def send_sms(pinpoint, sms_recipient, sms_message):
-    response = pinpoint.send_messages(
-        ApplicationId=g_pinpoint_project_id,
-        MessageRequest={
-            'Addresses': {sms_recipient: {'ChannelType': 'SMS'}},
-            'MessageConfiguration': {
-                'SMSMessage': {
-                    'Body': sms_message
-                }
-            }
-        }
-    )
-    return response
-
-def send_message(pinpoint, recipient, message, subject=None):
-    if subject is None:
-        response = send_sms(pinpoint, recipient, message)
-    else:
-        response = send_email(pinpoint, recipient, message, subject)
-    return response
-
 
 ###################################################################################
 # MQTT/AMQP callback functions
@@ -115,7 +58,7 @@ def on_message(subtopic, subpayload):
     is_email = True if recipient.find("@")!=-1 else False
     subject = "FT900 IoT Cloud Platform Notifications" if is_email else None
 
-    response = send_message(g_notification_client, recipient, message, subject=subject)
+    response = g_notification_client.send_message(recipient, message, subject=subject)
     print("\r\nSending message='{}' to recipient='{}' done. {} {}\r\n\r\n".format(
         message, recipient,
         response["ResponseMetadata"]["HTTPStatusCode"]==200, 
@@ -178,10 +121,8 @@ if __name__ == '__main__':
 
 
     # Initialize Notification (Pinpoint or SNS)
-    g_notification_client = boto3.Session(
-        aws_access_key_id=g_aws_access_key_id,
-        aws_secret_access_key=g_aws_secret_access_key,
-        region_name=g_region_name).client('pinpoint')
+    g_notification_client = notification_client()
+    g_notification_client.initialize()
 
 
     # Initialize MQTT/AMQP client
