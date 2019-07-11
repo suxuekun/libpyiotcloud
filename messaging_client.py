@@ -4,6 +4,7 @@ import time
 import threading
 import pika as amqp
 import paho.mqtt.client as mqtt
+import random 
 
 
 
@@ -31,6 +32,7 @@ class messaging_client:
         self.on_message_callback = on_message_callback
         self.consume_continuously = False
         self.device_id = device_id
+        self.tag = ''.join(["%s" % random.randint(0, 9) for num in range(16)])
 
     def set_server(self, host, port):
         self.host = host
@@ -64,6 +66,12 @@ class messaging_client:
         else:
             return self.subscribe_mqtt(self.client, topic, subscribe=subscribe)
 
+    def is_connected(self):
+        if self.use_amqp:
+            return True
+        else:
+            return self.mqtt_connected
+
     def initialize_ampq(self):
         use_tls = True
         # Set TLS certificates and access credentials
@@ -96,6 +104,7 @@ class messaging_client:
         else:
             client = mqtt.Client()
         client.on_connect = self.on_mqtt_connect
+        client.on_disconnect = self.on_mqtt_disconnect
         client.on_message = self.on_mqtt_message
         # Set MQTT credentials
         client.username_pw_set(self.username, self.password)
@@ -143,6 +152,7 @@ class messaging_client:
             if subscribe:
                 if deviceid is not None:
                     myqueue = 'mqtt-subscription-{}qos{}'.format(deviceid, CONFIG_QOS)
+                    self.device_id = deviceid
                 else:
                     myqueue = 'mqtt-subscription-{}qos{}'.format(self.device_id, CONFIG_QOS)
 
@@ -154,7 +164,7 @@ class messaging_client:
                     print("SUB: queue_bind")
                     client.queue_bind(queue=myqueue, exchange='amq.topic', routing_key=topic)
                     print("SUB: basic_consume")
-                    client.basic_consume(queue=myqueue, on_message_callback=self.on_amqp_message)
+                    client.basic_consume(queue=myqueue, on_message_callback=self.on_amqp_message, consumer_tag=self.tag)
                     x = threading.Thread(target=self.subscribe_amqp_thread, args=(client,))
                     x.start()
                 except:
@@ -197,8 +207,12 @@ class messaging_client:
         return True
 
     def on_mqtt_connect(self, client, userdata, flags, rc):
-        #print("MQTT Connected with result code " + str(rc))
+        print("MQTT Connected with result code " + str(rc))
         self.mqtt_connected = True
+
+    def on_mqtt_disconnect(self, client, userdata, rc):
+        print("MQTT Disconnected with result code " + str(rc))
+        self.mqtt_connected = False
 
     def on_mqtt_message(self, client, userdata, msg):
         self.on_message_callback(client, userdata, msg)
@@ -207,4 +221,8 @@ class messaging_client:
         self.on_message_callback(ch, method, properties, body)
         if not self.consume_continuously:
             self.client.stop_consuming()
+            myqueue = 'mqtt-subscription-{}qos{}'.format(self.device_id, CONFIG_QOS)
+            self.client.queue_unbind(queue=myqueue, exchange='amq.topic', routing_key=method.routing_key)
+            self.client.basic_cancel(self.tag)
+
 
