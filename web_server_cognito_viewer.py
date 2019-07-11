@@ -96,7 +96,7 @@ def test_user():
 		#################################################################
 		# update user profile
 		#################################################################
-		if True:
+		if False:
 			print("\r\nupdate_user")
 			first_name = "Lebron"
 			last_name  = "James"
@@ -109,7 +109,7 @@ def test_user():
 		#################################################################
 		# change user password
 		#################################################################
-		if True:
+		if False:
 			print("\r\nchange_password")
 			new_password = 'P@$$w0rd'
 			(result, response) = cg.change_password(access_token, password, new_password)
@@ -120,7 +120,7 @@ def test_user():
 		#################################################################
 		# verify token
 		#################################################################
-		if True:
+		if False:
 			print("\r\nverify_token")
 			valid = cg.verify_token(access_token, username)
 			print("token is {}!".format("valid" if valid else "invalid"))
@@ -174,7 +174,7 @@ def test_admin():
 		#################################################################
 		# disable user
 		#################################################################
-		if True:
+		if False:
 			print("\r\nadmin_disable_user")
 			username = "richmondu"
 			(result, users) = cg.admin_disable_user(username)
@@ -187,7 +187,7 @@ def test_admin():
 		#################################################################
 		# enable user
 		#################################################################
-		if True:
+		if False:
 			print("\r\nadmin_enable_user")
 			username = "richmondu"
 			(result, users) = cg.admin_enable_user(username)
@@ -211,7 +211,7 @@ def test_admin():
 		#################################################################
 		# add user to group
 		#################################################################
-		if True:
+		if False:
 			print("\r\nadmin_add_user_to_group")
 			username = "richmondu"
 			groupname = "PaidUsersGroup"
@@ -225,7 +225,7 @@ def test_admin():
 		#################################################################
 		# remove user from group
 		#################################################################
-		if True:
+		if False:
 			print("\r\nadmin_remove_user_from_group")
 			username = "richmondu"
 			groupname = "PaidUsersGroup"
