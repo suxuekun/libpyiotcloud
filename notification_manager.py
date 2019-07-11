@@ -5,6 +5,7 @@ import sys
 import threading
 from messaging_client import messaging_client
 from notification_client import notification_client
+from notification_config import config as notification_config
 
 
 
@@ -68,7 +69,7 @@ def on_message(subtopic, subpayload):
     message = payload["message"]
 
     is_email = True if recipient.find("@")!=-1 else False
-    subject = "FT900 IoT Cloud Platform Notifications" if is_email else None
+    subject = notification_config.PINPOINT_EMAIL_SUBJECT if is_email else None
 
     thr = threading.Thread(target = notification_thread, args = (recipient, message, subject, ))
     thr.start()
