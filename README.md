@@ -17,7 +17,7 @@ In this use-case, the device only sends the data when queried.
 
 ### Architecture
 
-This IoT platform is a server-based IoT cloud platform that leverages Flask, GUnicorn, Nginx, RabbitMQ, MongoDB and Amazon Cognito.
+This IoT platform is a server-based IoT cloud platform that leverages Flask, GUnicorn, Nginx, RabbitMQ, MongoDB, Amazon Cognito and Amazon Pinpoint.
 It can be deployed in local PC or in the cloud - AWS EC2, Linode, Heroku, Rackspace, DigitalOcean or etc.
 
 - Nginx web server - https://www.nginx.com/
@@ -27,6 +27,7 @@ It can be deployed in local PC or in the cloud - AWS EC2, Linode, Heroku, Racksp
 - MongoDB NoSQL database - https://www.mongodb.com/
 - OpenSSL cryptography - https://www.openssl.org/
 - Amazon Cognito - https://aws.amazon.com/cognito/
+- Amazon Pinpoint - https://aws.amazon.com/pinpoint/
 
 An alternative solution is using serverless solution composing of 
 AWS API Gateway, AWS DynamoDB, AWS Lambda, AWS Cognito and AmazonMQ.
