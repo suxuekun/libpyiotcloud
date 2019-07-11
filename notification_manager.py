@@ -56,10 +56,15 @@ def notification_thread(recipient, message, subject):
 
     response = g_notification_client.send_message(recipient, message, subject=subject)
 
-    print("\r\nSending message='{}' to recipient='{}' done. {} {}\r\n\r\n".format(
-        message, recipient,
-        response["ResponseMetadata"]["HTTPStatusCode"]==200, 
-        response["MessageResponse"]["Result"][recipient]["StatusCode"]==200))
+    try:
+        print("\r\nSending message='{}' to recipient='{}' done. {} {}\r\n\r\n".format(
+            message, recipient,
+            response["ResponseMetadata"]["HTTPStatusCode"]==200, 
+            response["MessageResponse"]["Result"][recipient]["StatusCode"]==200))
+    except:
+        print("\r\nSending message='{}' to recipient='{}' done. {}\r\n\r\n".format(
+            message, recipient,
+            response["ResponseMetadata"]["HTTPStatusCode"]==200))
 
 
 def on_message(subtopic, subpayload):

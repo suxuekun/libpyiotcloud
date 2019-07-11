@@ -26,11 +26,11 @@ class notification_client:
 
 class notification_client_pinpoint:
 
-    def __init__(self, model=notification_models.PINPOINT):
+    def __init__(self):
         self.aws_access_key_id     = config.ACCESS_KEY
         self.aws_secret_access_key = config.SECRET_KEY
-        self.pinpoint_project_id   = config.PINPOINT_ID
         self.region_name           = config.PINPOINT_REGION
+        self.pinpoint_project_id   = config.PINPOINT_ID
         self.email_from            = config.PINPOINT_EMAIL
 
     def initialize(self):
@@ -79,6 +79,25 @@ class notification_client_pinpoint:
         return response
 
 
+class notification_client_sns:
 
+    def __init__(self):
+        self.aws_access_key_id     = config.ACCESS_KEY
+        self.aws_secret_access_key = config.SECRET_KEY
+        self.region_name           = config.SNS_REGION
+        self.sns_topic_arn         = config.SNS_TOPIC_ARN
+
+    def initialize(self):
+        self.client = boto3.Session(
+            aws_access_key_id = self.aws_access_key_id,
+            aws_secret_access_key = self.aws_secret_access_key,
+            region_name = self.region_name).client('sns')
+
+    def send_message(self, recipient, message, subject=None):
+        if subject is None:
+            response = self.client.publish(Message=message, PhoneNumber=recipient)
+        else:
+            response = self.client.publish(Message=message, TopicArn=self.sns_topic_arn)
+        return response
 
 
