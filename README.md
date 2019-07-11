@@ -127,6 +127,8 @@ AWS API Gateway, AWS DynamoDB, AWS Lambda, AWS Cognito and AmazonMQ.
     9. get_status
     10. set_status (including reset device)
     11. write_uart
+    12. trigger_notification
+
 
 #### Device MQTT/AMQP Connectivity
 
