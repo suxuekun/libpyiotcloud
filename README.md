@@ -87,7 +87,9 @@ AWS API Gateway, AWS DynamoDB, AWS Lambda, AWS Cognito and AmazonMQ.
        D. NodeJS MQTT client device simulator
     5. Email/SMS notifications
        A. Using Amazon Pinpoint
-
+       B. Device-initiated: [device --> messagebroker --> notifmanager -> amazonpinpoint]
+       C. Client-initiated: [client --> webserver --> messagebroker --> device --> messagebroker --> notifmanager -> amazonpinpoint]
+ 
       
 #### User Registration APIs
 
