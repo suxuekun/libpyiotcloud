@@ -2,6 +2,7 @@ import json
 import time
 import argparse
 import sys
+import threading
 from messaging_client import messaging_client
 from notification_client import notification_client
 
@@ -49,6 +50,17 @@ CONFIG_SEPARATOR            = '/'
 # MQTT/AMQP callback functions
 ###################################################################################
 
+
+def notification_thread(recipient, message, subject):
+
+    response = g_notification_client.send_message(recipient, message, subject=subject)
+
+    print("\r\nSending message='{}' to recipient='{}' done. {} {}\r\n\r\n".format(
+        message, recipient,
+        response["ResponseMetadata"]["HTTPStatusCode"]==200, 
+        response["MessageResponse"]["Result"][recipient]["StatusCode"]==200))
+
+
 def on_message(subtopic, subpayload):
 
     payload = json.loads(subpayload)
@@ -58,11 +70,8 @@ def on_message(subtopic, subpayload):
     is_email = True if recipient.find("@")!=-1 else False
     subject = "FT900 IoT Cloud Platform Notifications" if is_email else None
 
-    response = g_notification_client.send_message(recipient, message, subject=subject)
-    print("\r\nSending message='{}' to recipient='{}' done. {} {}\r\n\r\n".format(
-        message, recipient,
-        response["ResponseMetadata"]["HTTPStatusCode"]==200, 
-        response["MessageResponse"]["Result"][recipient]["StatusCode"]==200))
+    thr = threading.Thread(target = notification_thread, args = (recipient, message, subject, ))
+    thr.start()
 
 
 def on_mqtt_message(client, userdata, msg):
@@ -120,7 +129,7 @@ if __name__ == '__main__':
     print("")
 
 
-    # Initialize Notification (Pinpoint or SNS)
+    # Initialize Notification client (Pinpoint or SNS)
     g_notification_client = notification_client()
     g_notification_client.initialize()
 
