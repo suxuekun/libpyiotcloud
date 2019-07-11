@@ -4,7 +4,8 @@ import json
 import time
 import hmac
 import hashlib
-from flask import Flask, request
+import flask
+import is_safe_url
 from flask_json import FlaskJSON, JsonError, json_response, as_json
 from certificate_generator import certificate_generator
 from messaging_client import messaging_client
@@ -29,7 +30,7 @@ CONFIG_PREPEND_REPLY_TOPIC  = "server"
 g_messaging_client = None
 g_database_client = None
 g_queue_dict  = {}
-app = Flask(__name__)
+app = flask.Flask(__name__)
 FlaskJSON(app)
 
 
@@ -40,18 +41,28 @@ FlaskJSON(app)
 
 @app.route('/')
 def index():
-    return 'Hello, World!'
+    return flask.render_template('index.html')
 
 
 
 @app.route('/signup', methods=['POST'])
 def signup():
-    data = request.get_json()
-    username = data['username']
-    password = data['password']
-    email = data['email']
-    givenname = data['givenname']
-    familyname = data['familyname']
+    try:
+        test_mode = True
+        data = flask.request.get_json()
+        username = data['username']
+        password = data['password']
+        email = data['email']
+        givenname = data['givenname']
+        familyname = data['familyname']
+    except:
+        test_mode = False
+        username = flask.request.form['username']
+        password = flask.request.form['password']
+        email = flask.request.form['email']
+        givenname = flask.request.form['givenname']
+        familyname = flask.request.form['familyname']
+    print('signup username={} password={} email={} givenname={} familyname={}'.format(username, password, email, givenname, familyname))
 
     # check if username is already in database
     if g_database_client.find_user(username):
@@ -75,13 +86,24 @@ def signup():
     if confirmationcode:
         response['confirmationcode'] = confirmationcode
     response = json.dumps(response)
-    return response
+    if test_mode:
+        return response
+    return flask.redirect('static/confirm_signup.html')
 
 @app.route('/confirm_signup', methods=['POST'])
 def confirm_signup():
-    data = request.get_json()
-    username = data['username']
-    confirmationcode = data['confirmationcode']
+    try:
+        test_mode = True
+        data = flask.request.get_json()
+        username = data['username']
+        confirmationcode = data['confirmationcode']
+    except:
+        test_mode = False
+        username = flask.request.form['username']
+        confirmationcode = flask.request.form['confirmationcode']
+        print(username)
+        print(confirmationcode)
+    print('confirm_signup username={} confirmationcode={}'.format(username, confirmationcode))
 
     # confirm user in database
     result = g_database_client.confirm_user(username, confirmationcode)
@@ -95,40 +117,107 @@ def confirm_signup():
     response = {}
     response['status'] = 'OK'
     response = json.dumps(response)
-    return response
+    if test_mode:
+        return response
+    return flask.redirect('static/login.html')
 
 
 @app.route('/login', methods=['POST'])
 def login():
-    data = request.get_json()
-    username = data['username']
-    password = data['password']
+    try:
+        test_mode = True
+        data = flask.request.get_json()
+        username = data['username']
+        password = data['password']
+        print('JSON login username={} password={}'.format(username, password))
+    except:
+        test_mode = False
+        username = flask.request.form['username']
+        password = flask.request.form['password']
+        print('login username={} password={}'.format(username, password))
 
     if not g_database_client.find_user(username):
         response = {}
-        response['status'] = 'NG, username does not exist'
+        response['status'] = 'Username does not exist'
         response['token'] = 'Unknown'
         response = json.dumps(response)
-        return response
+        if test_mode:
+            return response
+        return flask.redirect('static/login.html')
 
     token = g_database_client.login(username, password)
     if not token:
         response = {}
-        response['status'] = 'NG, password is incorrect'
+        response['status'] = 'Password is incorrect'
         response['token'] = 'Unknown'
         response = json.dumps(response)
-        return response
+        if test_mode:
+            return response
+        return flask.redirect('static/login.html')
 
     response = {}
     response['status'] = 'OK'
     response['token'] = token
     response = json.dumps(response)
+    print(response)
+    if test_mode:
+        return token
+    return flask.render_template('account.html', username=username, token=token)
+
+
+@app.route('/logout', methods=['POST'])
+def logout():
+    print("logout")
+    data = flask.request.get_json()
+    username = data['username']
+    token = data['token']
+    print('logout username={} token={}'.format(username, token))
+
+    # check if username and token is valid
+    if not g_database_client.verify_token(username, token):
+        response = {}
+        response['status'] = 'NG, token is incorrect'
+        response = json.dumps(response)
+        return response
+
+    g_database_client.logout(token)
+
+    response = {}
+    response['status'] = 'OK'
+    response = json.dumps(response)
+    print(response)
     return response
 
 
-@app.route('/get_device_list')
+
+
+@app.route('/get_user_info', methods=['POST', 'GET'])
+def get_user_info():
+    data = flask.request.get_json()
+    username = data['username']
+    token = data['token']
+    print('get_user_info username={} token={}'.format(username, token))
+
+    # check if username and token is valid
+    if not g_database_client.verify_token(username, token):
+        response = {}
+        response['status'] = 'NG, token is incorrect'
+        response = json.dumps(response)
+        print('NG, token is incorrect')
+        return response
+
+    info = g_database_client.get_user_info(token)
+    print(info)
+
+    response = {}
+    response['status'] = 'OK'
+    response["info"] = str(info)
+    response = json.dumps(response)
+    return response
+
+@app.route('/get_device_list', methods=['POST', 'GET'])
 def get_device_list():
-    data = request.get_json()
+    data = flask.request.get_json()
     username = data['username']
     token = data['token']
     print('get_device_list username={} token={}'.format(username, token))
@@ -146,13 +235,68 @@ def get_device_list():
 
     response = {}
     response['status'] = 'OK'
-    response["devices"] = devices
+    response["devices"] = str(devices)
     response = json.dumps(response)
+    return response
+
+@app.route('/get_device_list_count', methods=['POST', 'GET'])
+def get_device_list_count():
+    data = flask.request.get_json()
+    username = data['username']
+    token = data['token']
+    print('get_device_list_count username={} token={}'.format(username, token))
+
+    # check if username and token is valid
+    if not g_database_client.verify_token(username, token):
+        response = {}
+        response['status'] = 'NG, token is incorrect'
+        response = json.dumps(response)
+        print('NG, token is incorrect')
+        return response
+
+    devices = g_database_client.get_devices(username)
+    print(len(devices))
+
+    response = {}
+    response['status'] = 'OK'
+    response["count"] = len(devices)
+    response = json.dumps(response)
+    return response
+
+@app.route('/get_device_index', methods=['POST', 'GET'])
+def get_device_index():
+    data = flask.request.get_json()
+    username = data['username']
+    token = data['token']
+    index = int(data['index'])
+    print('get_device_index username={} token={} index={}'.format(username, token, index))
+
+    # check if username and token is valid
+    if not g_database_client.verify_token(username, token):
+        response = {}
+        response['status'] = 'NG, token is incorrect'
+        response = json.dumps(response)
+        print('NG, token is incorrect')
+        return response
+
+    devices = g_database_client.get_devices(username)
+    if index >= len(devices):
+        response = {}
+        response['status'] = 'NG, token is incorrect'
+        response = json.dumps(response)
+        print('NG, token is incorrect')
+        return response
+
+    response = {}
+    response['status'] = 'OK'
+    response["device"] = str(devices[index])
+    response = json.dumps(response)
+    print(response)
     return response
 
 @app.route('/register_device', methods=['POST'])
 def register_device():
-    data = request.get_json()
+    data = flask.request.get_json()
     username = data['username']
     token = data['token']
     devicename = data['devicename']
@@ -200,7 +344,7 @@ def register_device():
 
 @app.route('/unregister_device', methods=['POST'])
 def unregister_device():
-    data = request.get_json()
+    data = flask.request.get_json()
     username = data['username']
     token = data['token']
     devicename = data['devicename']
@@ -253,7 +397,7 @@ def generate_subscribe_topic(topic, separator):
 def process_request(api):
 
     # parse HTTP request
-    data = request.get_json()
+    data = flask.request.get_json()
     print("\r\nAPI: {} request={}".format(api, data))
 
     username = data['username']
@@ -296,7 +440,7 @@ def process_request(api):
     return response
 
 
-@app.route('/get_gpio')
+@app.route('/get_gpio', methods=['POST', 'GET'])
 def get_gpio():
     api = 'get_gpio'
     return process_request(api)
@@ -307,7 +451,7 @@ def set_gpio():
     return process_request(api)
 
 
-@app.route('/get_rtc')
+@app.route('/get_rtc', methods=['POST', 'GET'])
 def get_rtc():
     api = 'get_rtc'
     return process_request(api)
@@ -318,7 +462,7 @@ def set_rtc():
     return process_request(api)
 
 
-@app.route('/get_status')
+@app.route('/get_status', methods=['POST', 'GET'])
 def get_status():
     api = 'get_status'
     return process_request(api)
@@ -329,7 +473,7 @@ def set_status():
     return process_request(api)
 
 
-@app.route('/get_mac')
+@app.route('/get_mac', methods=['POST', 'GET'])
 def get_mac():
     api = 'get_mac'
     return process_request(api)
@@ -340,17 +484,17 @@ def set_mac():
     return process_request(api)
 
 
-@app.route('/get_ip')
+@app.route('/get_ip', methods=['POST', 'GET'])
 def get_ip():
     api = 'get_ip'
     return process_request(api)
 
-@app.route('/get_subnet')
+@app.route('/get_subnet', methods=['POST', 'GET'])
 def get_subnet():
     api = 'get_subnet'
     return process_request(api)
 
-@app.route('/get_gateway')
+@app.route('/get_gateway', methods=['POST', 'GET'])
 def get_gateway():
     api = 'get_gateway'
     return process_request(api)
@@ -393,9 +537,10 @@ def receive_message(topic):
             return data
         except:
             #print("x")
-            #time.sleep(1)
+            time.sleep(1)
             i += 1
-        if i > 5:
+        if i >= 5:
+            print("receive_message timed_out")
             break
     return None
 
@@ -418,7 +563,7 @@ def initialize():
         g_messaging_client = messaging_client(config.CONFIG_USE_AMQP, on_amqp_message)
         g_messaging_client.set_server(config.CONFIG_HOST, config.CONFIG_AMQP_TLS_PORT)
     else:
-        g_messaging_client = messaging_client(CONFIG_USE_AMQP, on_mqtt_message)
+        g_messaging_client = messaging_client(config.CONFIG_USE_AMQP, on_mqtt_message)
         g_messaging_client.set_server(config.CONFIG_HOST, config.CONFIG_MQTT_TLS_PORT)
     g_messaging_client.set_user_pass(config.CONFIG_USERNAME, config.CONFIG_PASSWORD)
     g_messaging_client.set_tls(config.CONFIG_TLS_CA, config.CONFIG_TLS_CERT, config.CONFIG_TLS_PKEY)
