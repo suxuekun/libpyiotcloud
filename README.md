@@ -85,7 +85,10 @@ AWS API Gateway, AWS DynamoDB, AWS Lambda, AWS Cognito and AmazonMQ.
        B. Python Paho-MQTT client device simulator
        C. Python Pika-AMQP client device simulator
        D. NodeJS MQTT client device simulator
-       
+    5. Email/SMS notifications
+       A. Using Amazon Pinpoint
+
+      
 #### User Registration APIs
 
     1. sign_up
