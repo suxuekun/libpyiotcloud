@@ -24,7 +24,7 @@ class config:
     CONFIG_TLS_PKEY             = "cert/server_pkey.pem"
 
     # Message broker settings
-    CONFIG_USE_AMQP             = True
+    CONFIG_USE_AMQP             = False
     CONFIG_HOST                 = "localhost"
     CONFIG_MQTT_TLS_PORT        = 8883
     CONFIG_AMQP_TLS_PORT        = 5671
