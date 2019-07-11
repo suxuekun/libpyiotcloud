@@ -1,6 +1,4 @@
-# This library should contain the access key and secret key
-
-class notification_config:
+class config:
 
     ACCESS_KEY      = ''
     SECRET_KEY      = ''
