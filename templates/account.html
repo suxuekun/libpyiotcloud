@@ -262,13 +262,13 @@
 				return new Promise(function(resolve, reject) {
 					xhr.onreadystatechange = function() { // Call a function when the state changes.
 						if (this.readyState == XMLHttpRequest.DONE && this.status == 200) {
-							document.getElementById("devicestatus").innerHTML = "Status: " + "restarting";
+							document.getElementById("devicestatus").innerHTML = "Status: " + "running";
 							var jsonResponse = JSON.parse(xhr.responseText);
 							var value = jsonResponse.value;
 							resolve(value);
 						}
 						else if (this.readyState === XMLHttpRequest.DONE && this.status != 200) {
-							reject("Error, status code = " + xhr.status);
+							document.getElementById("devicestatus").innerHTML = "Status: " + "not running";
 						}
 					}
 					xhr.send(JSON.stringify({"username": username, "token": token, "devicename": devicename}));
