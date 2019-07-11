@@ -4,24 +4,536 @@
 		<title>
 			Bridgtek IoT Platform - Account
 		</title>
-		<link rel="stylesheet" href="css/styles.css">
-		<link rel="stylesheet" href="css/styles2.css">
+		<link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}"  />
+		<link rel="stylesheet" href="{{ url_for('static', filename='css/styles2.css') }}" />
+		<script>
+			function logout(username, token) {
+				var xhr = new XMLHttpRequest();
+				xhr.open("POST", "/logout", true);
+				xhr.setRequestHeader('Content-Type', 'application/json');
+				xhr.onreadystatechange = function() { // Call a function when the state changes.
+					if (this.readyState === XMLHttpRequest.DONE && this.status === 200) {
+						location.replace("{{ url_for('static', filename='login.html') }}");
+					}
+				}
+				xhr.send(JSON.stringify({"username": username, "token": token}));
+			}
+
+			async function get_device_list_count(username, token) {
+				var xhr = new XMLHttpRequest();
+				xhr.open("POST", "/get_device_list_count", true);
+				xhr.setRequestHeader('Content-Type', 'application/json');
+				return new Promise(function(resolve, reject) {
+					xhr.onreadystatechange = function() { // Call a function when the state changes.
+						if (this.readyState == XMLHttpRequest.DONE && this.status == 200) {
+							var jsonResponse = JSON.parse(xhr.responseText);
+							var count = jsonResponse.count;
+//							document.getElementById("demo").innerHTML = count;
+							resolve(count);
+						}
+						else if (this.readyState === XMLHttpRequest.DONE && this.status != 200) {
+							reject("Error, status code = " + xhr.status);
+						}
+					}
+					xhr.send(JSON.stringify({"username": username, "token": token}));
+				});
+			}
+
+			async function get_device_index(username, token, index) {
+				var xhr = new XMLHttpRequest();
+				xhr.open("POST", "/get_device_index", true);
+				xhr.setRequestHeader('Content-Type', 'application/json');
+				return new Promise(function(resolve, reject) {
+					xhr.onreadystatechange = function() { // Call a function when the state changes.
+						if (this.readyState == XMLHttpRequest.DONE && this.status == 200) {
+							var jsonResponse = JSON.parse(xhr.responseText);
+							var device = jsonResponse.device;
+//							document.getElementById("demo" + index.toString()).innerHTML = device;
+							resolve(device);
+						}
+						else if (this.readyState === XMLHttpRequest.DONE && this.status != 200) {
+							reject("Error, status code = " + xhr.status);
+						}
+					}
+					xhr.send(JSON.stringify({"username": username, "token": token, "index": index}));
+				});
+			}
+
+			async function get_device_list(username, token) {
+				let count = await get_device_list_count(username, token);
+				console.log(count)
+				document.getElementById("devicecount").innerHTML = count;
+
+				var i = 0;
+				for (i=0; i<count; i++) {
+					let result = await get_device_index(username, token, i)
+					document.getElementById("device" + (i+1).toString()).innerHTML = result;
+				}
+				for (i=count; i<3; i++) {
+					document.getElementById("device" + (i+1).toString()).innerHTML = "Device" + (i+1).toString();
+				}
+			}
+
+			function get_user_info(username, token) {
+				var xhr = new XMLHttpRequest();
+				xhr.open("POST", "/get_user_info", true);
+				xhr.setRequestHeader('Content-Type', 'application/json');
+				xhr.onreadystatechange = function() { // Call a function when the state changes.
+					if (this.readyState == XMLHttpRequest.DONE && this.status == 200) {
+						var jsonResponse = JSON.parse(xhr.responseText);
+						var info = jsonResponse.info;
+						document.getElementById("user").innerHTML = info;
+						console.log(info)
+					}
+					else if (this.readyState === XMLHttpRequest.DONE && this.status != 200) {
+						console.log("Error, status code = " + xhr.status);
+					}
+				}
+				xhr.send(JSON.stringify({"username": username, "token": token}));
+			}
+
+			function add_device(username, token) {
+				var devicename = document.getElementById("devicename_add").value;
+				console.log("add_device = " + devicename);
+				if (devicename.length==0) {
+					document.getElementById("status").innerHTML = "adding failed! devicename is empty!";
+					return;
+				}
+				document.getElementById("status").innerHTML = devicename;
+				var xhr = new XMLHttpRequest();
+				xhr.open("POST", "/register_device", true);
+				xhr.setRequestHeader('Content-Type', 'application/json');
+				xhr.onreadystatechange = function() { // Call a function when the state changes.
+					if (this.readyState == XMLHttpRequest.DONE && this.status == 200) {
+						document.getElementById("status").innerHTML = devicename + " added successfully!";
+						console.log("Device added successfully!")
+					}
+					else if (this.readyState === XMLHttpRequest.DONE && this.status != 200) {
+						console.log("Error, status code = " + xhr.status);
+					}
+				}
+				xhr.send(JSON.stringify({"username": username, "token": token, "devicename": devicename}));
+			}
+			
+			function remove_device(username, token) {
+				var devicename = document.getElementById("devicename_remove").value;
+				console.log("remove_device = " + devicename);
+				if (devicename.length==0) {
+					document.getElementById("status").innerHTML = "removing failed! devicename is empty!";
+					return;
+				}
+				document.getElementById("status").innerHTML = devicename;
+				var xhr = new XMLHttpRequest();
+				xhr.open("POST", "/unregister_device", true);
+				xhr.setRequestHeader('Content-Type', 'application/json');
+				xhr.onreadystatechange = function() { // Call a function when the state changes.
+					if (this.readyState == XMLHttpRequest.DONE && this.status == 200) {
+						document.getElementById("status").innerHTML = devicename + " removed successfully!";
+						console.log("Device added successfully!")
+					}
+					else if (this.readyState === XMLHttpRequest.DONE && this.status != 200) {
+						console.log("Error, status code = " + xhr.status);
+					}
+				}
+				xhr.send(JSON.stringify({"username": username, "token": token, "devicename": devicename}));
+			}
+
+
+			async function get_mac(username, token, devicename) {
+				var xhr = new XMLHttpRequest();
+				xhr.open("POST", "/get_mac", true);
+				xhr.setRequestHeader('Content-Type', 'application/json');
+				return new Promise(function(resolve, reject) {
+					xhr.onreadystatechange = function() { // Call a function when the state changes.
+						if (this.readyState == XMLHttpRequest.DONE && this.status == 200) {
+							var jsonResponse = JSON.parse(xhr.responseText);
+							var value = jsonResponse.value;
+							resolve(value);
+						}
+						else if (this.readyState === XMLHttpRequest.DONE && this.status != 200) {
+							reject("Error, status code = " + xhr.status);
+						}
+					}
+					xhr.send(JSON.stringify({"username": username, "token": token, "devicename": devicename}));
+				});
+			}
+
+			async function get_ip(username, token, devicename) {
+				var xhr = new XMLHttpRequest();
+				xhr.open("POST", "/get_ip", true);
+				xhr.setRequestHeader('Content-Type', 'application/json');
+				return new Promise(function(resolve, reject) {
+					xhr.onreadystatechange = function() { // Call a function when the state changes.
+						if (this.readyState == XMLHttpRequest.DONE && this.status == 200) {
+							var jsonResponse = JSON.parse(xhr.responseText);
+							var value = jsonResponse.value;
+							resolve(value);
+						}
+						else if (this.readyState === XMLHttpRequest.DONE && this.status != 200) {
+							reject("Error, status code = " + xhr.status);
+						}
+					}
+					xhr.send(JSON.stringify({"username": username, "token": token, "devicename": devicename}));
+				});
+			}
+
+			async function get_subnet(username, token, devicename) {
+				var xhr = new XMLHttpRequest();
+				xhr.open("POST", "/get_subnet", true);
+				xhr.setRequestHeader('Content-Type', 'application/json');
+				return new Promise(function(resolve, reject) {
+					xhr.onreadystatechange = function() { // Call a function when the state changes.
+						if (this.readyState == XMLHttpRequest.DONE && this.status == 200) {
+							var jsonResponse = JSON.parse(xhr.responseText);
+							var value = jsonResponse.value;
+							resolve(value);
+						}
+						else if (this.readyState === XMLHttpRequest.DONE && this.status != 200) {
+							reject("Error, status code = " + xhr.status);
+						}
+					}
+					xhr.send(JSON.stringify({"username": username, "token": token, "devicename": devicename}));
+				});
+			}
+
+			async function get_gateway(username, token, devicename) {
+				var xhr = new XMLHttpRequest();
+				xhr.open("POST", "/get_gateway", true);
+				xhr.setRequestHeader('Content-Type', 'application/json');
+				return new Promise(function(resolve, reject) {
+					xhr.onreadystatechange = function() { // Call a function when the state changes.
+						if (this.readyState == XMLHttpRequest.DONE && this.status == 200) {
+							var jsonResponse = JSON.parse(xhr.responseText);
+							var value = jsonResponse.value;
+							resolve(value);
+						}
+						else if (this.readyState === XMLHttpRequest.DONE && this.status != 200) {
+							reject("Error, status code = " + xhr.status);
+						}
+					}
+					xhr.send(JSON.stringify({"username": username, "token": token, "devicename": devicename}));
+				});
+			}
+
+			async function get_rtc(username, token, devicename) {
+				var xhr = new XMLHttpRequest();
+				xhr.open("POST", "/get_rtc", true);
+				xhr.setRequestHeader('Content-Type', 'application/json');
+				return new Promise(function(resolve, reject) {
+					xhr.onreadystatechange = function() { // Call a function when the state changes.
+						if (this.readyState == XMLHttpRequest.DONE && this.status == 200) {
+							var jsonResponse = JSON.parse(xhr.responseText);
+							var value = jsonResponse.value;
+							resolve(value);
+						}
+						else if (this.readyState === XMLHttpRequest.DONE && this.status != 200) {
+							reject("Error, status code = " + xhr.status);
+						}
+					}
+					xhr.send(JSON.stringify({"username": username, "token": token, "devicename": devicename}));
+				});
+			}
+
+			function set_rtc(username, token) {
+				var devicename = document.getElementById("devicename_test").value;
+				console.log("test_device = " + devicename);
+				if (devicename.length==0) {
+					document.getElementById("deviceinfo").innerHTML = "testing failed! devicename is empty!";
+					return;
+				}
+				var epochtime = (new Date()).getTime() / 1000;
+				
+				var xhr = new XMLHttpRequest();
+				xhr.open("POST", "/set_rtc", true);
+				xhr.setRequestHeader('Content-Type', 'application/json');
+				xhr.onreadystatechange = function() { // Call a function when the state changes.
+					if (this.readyState == XMLHttpRequest.DONE && this.status == 200) {
+							var jsonResponse = JSON.parse(xhr.responseText);
+							var value = jsonResponse.value;
+					}
+				}
+				xhr.send(JSON.stringify({"username": username, "token": token, "devicename": devicename, "value": epochtime}));
+			}
+
+			async function get_status(username, token, devicename) {
+				var xhr = new XMLHttpRequest();
+				xhr.open("POST", "/get_status", true);
+				xhr.setRequestHeader('Content-Type', 'application/json');
+				return new Promise(function(resolve, reject) {
+					xhr.onreadystatechange = function() { // Call a function when the state changes.
+						if (this.readyState == XMLHttpRequest.DONE && this.status == 200) {
+							document.getElementById("devicestatus").innerHTML = "Status: " + "restarting";
+							var jsonResponse = JSON.parse(xhr.responseText);
+							var value = jsonResponse.value;
+							resolve(value);
+						}
+						else if (this.readyState === XMLHttpRequest.DONE && this.status != 200) {
+							reject("Error, status code = " + xhr.status);
+						}
+					}
+					xhr.send(JSON.stringify({"username": username, "token": token, "devicename": devicename}));
+				});
+			}
+
+			function reset_device(username, token) {
+				var devicename = document.getElementById("devicename_test").value;
+				console.log("test_device = " + devicename);
+				if (devicename.length==0) {
+					document.getElementById("deviceinfo").innerHTML = "testing failed! devicename is empty!";
+					return;
+				}
+
+				var xhr = new XMLHttpRequest();
+				xhr.open("POST", "/set_status", true);
+				xhr.setRequestHeader('Content-Type', 'application/json');
+				xhr.onreadystatechange = function() { // Call a function when the state changes.
+					if (this.readyState == XMLHttpRequest.DONE && this.status == 200) {
+						document.getElementById("devicestatus").innerHTML = "Status: " + "restarting";
+					}
+					else if (this.readyState === XMLHttpRequest.DONE && this.status != 200) {
+						document.getElementById("devicestatus").innerHTML = "Status: " + "not running";
+					}
+				}
+				xhr.send(JSON.stringify({"username": username, "token": token, "devicename": devicename, "value": "restart"}));
+			}
+
+			function get_gpio(username, token) {
+				var devicename = document.getElementById("devicename_test").value;
+				console.log("test_device = " + devicename);
+				if (devicename.length==0) {
+					document.getElementById("deviceinfo").innerHTML = "testing failed! devicename is empty!";
+					return;
+				}
+
+				var number = document.getElementById("gpionumber").value;
+				console.log("number = " + number);
+				if (number.length==0) {
+					document.getElementById("deviceinfo").innerHTML = "testing failed! GPIO number is empty!";
+					return;
+				}
+
+				var xhr = new XMLHttpRequest();
+				xhr.open("POST", "/get_gpio", true);
+				xhr.setRequestHeader('Content-Type', 'application/json');
+				xhr.onreadystatechange = function() { // Call a function when the state changes.
+					if (this.readyState == XMLHttpRequest.DONE && this.status == 200) {
+						var jsonResponse = JSON.parse(xhr.responseText);
+						var value = jsonResponse.value;
+						console.log(value)
+						document.getElementById("gpiovalue").value  = value.toString();
+					}
+					else if (this.readyState === XMLHttpRequest.DONE && this.status != 200) {
+						document.getElementById("devicestatus").innerHTML = "Status: " + "not running";
+					}
+				}
+				xhr.send(JSON.stringify({"username": username, "token": token, "devicename": devicename, "number": parseInt(number)}));
+			}
+
+			function set_gpio(username, token) {
+				var devicename = document.getElementById("devicename_test").value;
+				console.log("test_device = " + devicename);
+				if (devicename.length==0) {
+					document.getElementById("deviceinfo").innerHTML = "testing failed! devicename is empty!";
+					return;
+				}
+
+				var number = document.getElementById("gpionumber").value;
+				console.log("number = " + number);
+				if (number.length==0) {
+					document.getElementById("deviceinfo").innerHTML = "testing failed! GPIO number is empty!";
+					return;
+				}
+
+				var value = document.getElementById("gpiovalue").value;
+				console.log("number = " + value);
+				if (value.length==0) {
+					document.getElementById("deviceinfo").innerHTML = "testing failed! GPIO value is empty!";
+					return;
+				}
+
+				var xhr = new XMLHttpRequest();
+				xhr.open("POST", "/set_gpio", true);
+				xhr.setRequestHeader('Content-Type', 'application/json');
+				xhr.onreadystatechange = function() { // Call a function when the state changes.
+					if (this.readyState == XMLHttpRequest.DONE && this.status == 200) {
+						var jsonResponse = JSON.parse(xhr.responseText);
+						var value = jsonResponse.value;
+						console.log(value)
+						document.getElementById("deviceinfo").innerHTML = "GPIO " + number + " is set to " + value + "!";
+					}
+					else if (this.readyState === XMLHttpRequest.DONE && this.status != 200) {
+						document.getElementById("devicestatus").innerHTML = "Status: " + "not running";
+					}
+				}
+				xhr.send(JSON.stringify({"username": username, "token": token, "devicename": devicename, "number": parseInt(number), "value": parseInt(value)}));
+			}
+
+			function write_uart(username, token) {
+				var devicename = document.getElementById("devicename_test").value;
+				console.log("test_device = " + devicename);
+				if (devicename.length==0) {
+					document.getElementById("deviceinfo").innerHTML = "testing failed! devicename is empty!";
+					return;
+				}
+
+				var value = document.getElementById("uarttext").value;
+				console.log("value = " + value);
+				if (value.length==0) {
+					document.getElementById("deviceinfo").innerHTML = "testing failed! UART text is empty!";
+					return;
+				}
+
+				var xhr = new XMLHttpRequest();
+				xhr.open("POST", "/write_uart", true);
+				xhr.setRequestHeader('Content-Type', 'application/json');
+				xhr.onreadystatechange = function() { // Call a function when the state changes.
+					if (this.readyState == XMLHttpRequest.DONE && this.status == 200) {
+						var jsonResponse = JSON.parse(xhr.responseText);
+						var value = jsonResponse.value;
+						console.log(value)
+					}
+					else if (this.readyState === XMLHttpRequest.DONE && this.status != 200) {
+						document.getElementById("devicestatus").innerHTML = "Status: " + "not running";
+					}
+				}
+				xhr.send(JSON.stringify({"username": username, "token": token, "devicename": devicename, "value": value}));
+			}
+
+			async function test_device(username, token) {
+				document.getElementById("devicename").innerHTML = "DeviceName:";
+				document.getElementById("devicestatus").innerHTML = "Status:";
+				document.getElementById("mac").innerHTML = "MacAddress:";
+				document.getElementById("ip").innerHTML = "IPAddress:";
+				document.getElementById("subnet").innerHTML = "SubnetMask:";
+				document.getElementById("gateway").innerHTML = "Gateway:";
+				document.getElementById("rtc").innerHTML = "RTCTime:";
+
+				var devicename = document.getElementById("devicename_test").value;
+				console.log("test_device = " + devicename);
+				if (devicename.length==0) {
+					document.getElementById("deviceinfo").innerHTML = "testing failed! devicename is empty!";
+					return;
+				}
+				document.getElementById("devicename").innerHTML = "DeviceName: " + devicename;
+
+				let value = await get_status(username, token, devicename);
+				console.log(value)
+				document.getElementById("devicestatus").innerHTML = "Status: " + value;
+
+				if (value == "running") {
+					value = await get_mac(username, token, devicename);
+					console.log(value)
+					document.getElementById("mac").innerHTML = "MacAddress: " + value;
+
+					value = await get_ip(username, token, devicename);
+					console.log(value)
+					document.getElementById("ip").innerHTML = "IPAddress: " + value;
+
+					value = await get_subnet(username, token, devicename);
+					console.log(value)
+					document.getElementById("subnet").innerHTML = "SubnetMask: " + value;
+
+					value = await get_gateway(username, token, devicename);
+					console.log(value)
+					document.getElementById("gateway").innerHTML = "Gateway: " + value;
+
+					value = await get_rtc(username, token, devicename);
+					console.log(value)
+					document.getElementById("rtc").innerHTML = "RTCTime: " + value;
+				}
+				else {
+					value = "Unknown"
+					document.getElementById("mac").innerHTML = "MacAddress: " + value;
+					document.getElementById("ip").innerHTML = "IPAddress: " + value;
+					document.getElementById("subnet").innerHTML = "SubnetMask: " + value;
+					document.getElementById("gateway").innerHTML = "Gateway: " + value;
+					document.getElementById("rtc").innerHTML = "RTCTime: " + value;
+				}
+			}
+		</script>
 	</head>
 
 	<body>
 		<div class="topnav">
-			<img src="images/logo.png">
-			<a href="login.html" class="button" style="float:right" >LOGOUT</a>
+			<img src="{{ url_for('static', filename='images/logo.png') }}" />
+			<a class="button" style="float:right" onclick="logout('{{username}}', '{{token}}')" >LOGOUT</a>
 		</div>
 
 		<div class="row">
 			<div class="card">
-				<div class="fakeimg" style="height:400px;">Account</div>
+				<br/>
+				<p>Welcome back <b>{{ username }}</b>!</p>
+				<p>Your access token is <b>{{ token }}</b>!</p>
+			</div>
+		</div>
+
+		<div class="row">
+			<div class="card">
+				<a class="button" onclick="get_user_info('{{username}}', '{{token}}')" >Show Userinfo</a>
+				<br/><br/><br/>
+				<a id="user">Demo</a>
+			</div>
+		</div>
+
+		<div class="row">
+			<div class="card">
+				<a class="button" onclick="get_device_list('{{username}}', '{{token}}')" >Show Devices</a>
+
+				<a class="button" onclick="add_device('{{username}}', '{{token}}')" >Add Device</a>
+				<input type="text" id="devicename_add" style="width: 150px;" placeholder="Device name">
+
+				<a class="button" onclick="remove_device('{{username}}', '{{token}}')" >Remove Device</a>
+				<input type="text" id="devicename_remove" style="width: 150px;" placeholder="Device name">
+
+				<br/><br/>
+				<a id="status">Status</a><br/><br/>
+				<a id="devicecount">NumDevices</a><br/><br/>
+				<a id="device1">Device1</a><br/><br/>
+				<a id="device2">Device2</a><br/><br/>
+				<a id="device3">Device3</a>
+			</div>
+		</div>
+
+		<div class="row">
+			<div class="card">
+				<a class="button" onclick="test_device('{{username}}', '{{token}}')" >Test Device</a>
+				<input type="text" id="devicename_test" style="width: 150px;" placeholder="Device name">
+				<a class="button" onclick="reset_device('{{username}}', '{{token}}')" >Reset Device</a>
+				<a class="button" onclick="set_rtc('{{username}}', '{{token}}')" >Set RTC</a>
+
+				<br/><br/>
+				<a id="deviceinfo">   DeviceInfo: </a><br/><br/>
+				<a id="devicename">   DeviceName: </a><br/><br/>
+				<a id="devicestatus"> Status:     </a><br/><br/>
+				<a id="mac">          MacAddress: </a><br/><br/>
+				<a id="ip">           IPAddress:  </a><br/><br/>
+				<a id="subnet">       SubnetMask: </a><br/><br/>
+				<a id="gateway">      Gateway:    </a><br/><br/>
+				<a id="rtc">          RTCTime:    </a><br/><br/>
+
+				<a id="gpio">         GPIO:       </a>
+				<input type="text" id="gpionumber" style="width: 150px;" placeholder="GPIO number">
+				<input type="text" id="gpiovalue" style="width: 150px;" placeholder="GPIO value">
+				<a class="button" onclick="get_gpio('{{username}}', '{{token}}')" >Get GPIO</a>
+				<a class="button" onclick="set_gpio('{{username}}', '{{token}}')" >Set GPIO</a>
+
+				<br/>
+				<a id="uart">         UART:       </a>
+				<textarea rows = "5" cols = "60" id="uarttext">Some text</textarea>
+				<a class="button" onclick="write_uart('{{username}}', '{{token}}')" >Write UART</a>
+
+			</div>
+		</div>
+
+		<div class="row">
+			<div class="card">
+				<br/><br/><br/><br/><br/><br/><br/><br/>
 			</div>
 		</div>
 
 		<div class="footer">
 			<p>Copyright @ 2019 Bridgetek Pte. Ltd. All rights reserved.</p>
 		</div>
+
 	</body>
 </html>

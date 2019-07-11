@@ -4,14 +4,14 @@
 		<title>
 			Bridgtek IoT Platform
 		</title>
-		<link rel="stylesheet" href="css/styles.css">
-		<link rel="stylesheet" href="css/styles2.css">
+		<link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}"  />
+		<link rel="stylesheet" href="{{ url_for('static', filename='css/styles2.css') }}" />
 	</head>
 
 	<body>
 		<div class="topnav">
-			<img src="images/logo.png">
-			<a href="login.html" class="button" style="float:right; margin-right:20px">LOGIN</a>
+			<img src="{{ url_for('static', filename='images/logo.png') }}" />
+			<a href="{{ url_for('static', filename='login.html') }}" class="button" style="float:right; margin-right:20px">LOGIN</a>
 		</div>
 
 		<div class="row">
@@ -23,5 +23,6 @@
 		<div class="footer">
 			<p>Copyright @ 2019 Bridgetek Pte. Ltd. All rights reserved.</p>
 		</div>
+		
 	</body>
 </html>
