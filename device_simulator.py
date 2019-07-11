@@ -60,16 +60,16 @@ def handle_api(api, subtopic, subpayload):
     if api == "get_status":
         topic = generate_pubtopic(subtopic)
         payload = {}
-        payload["status"] = "running"
+        payload["value"] = "running"
         publish(topic, payload)
 
     elif api == "write_uart":
         topic = generate_pubtopic(subtopic)
         payload = {}
         subpayload = json.loads(subpayload)
-        payload["data"] = subpayload["data"]
+        payload["value"] = subpayload["value"]
         publish(topic, payload)
-        print(subpayload["data"])
+        print(subpayload["value"])
 
     elif api == "get_gpio":
         topic = generate_pubtopic(subtopic)
@@ -177,7 +177,7 @@ def handle_api(api, subtopic, subpayload):
         status = "restarting"
 
         payload = {}
-        payload["status"] = status
+        payload["value"] = status
         publish(topic, payload)
 
 
@@ -278,5 +278,7 @@ if __name__ == '__main__':
     g_messaging_client.subscribe(subtopic, subscribe=True, declare=True, consume_continuously=True)
 
 
-    while True:
+    while g_messaging_client.is_connected():
         pass
+
+    print("application exits!")

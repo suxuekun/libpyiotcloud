@@ -199,10 +199,10 @@ def get_status(conn, username, token, devicename):
 	params = get_default_params(username, token, devicename)
 	params = json.dumps(params)
 	if request(conn, "GET", "/get_status", params, headers):
-		status = response(conn)
-		if status:
-			status = json.loads(status)
-			return status['status']
+		value = response(conn)
+		if value:
+			value = json.loads(value)
+			return value['value']
 		else:
 			return "Not running"
 	else:
@@ -211,12 +211,12 @@ def restart_device(conn, username, token, devicename):
 	print("\r\nrestart_device {}".format(devicename))
 	headers = get_default_headers()
 	params = get_default_params(username, token, devicename)
-	params['status'] = 'restart'
+	params['value'] = 'restart'
 	params = json.dumps(params)
 	request(conn, "POST", "/set_status", params, headers)
-	status = response(conn)
-	status = json.loads(status)
-	return status['status']
+	value = response(conn)
+	value = json.loads(value)
+	return value['value']
 
 ######################################################
 def get_mac(conn, username, token, devicename):
@@ -272,16 +272,16 @@ def get_gateway(conn, username, token, devicename):
 	return value['value']
 
 ######################################################
-def write_uart(conn, username, token, devicename, data):
-	print("\r\nwrite_uart {} {}".format(devicename, data))
+def write_uart(conn, username, token, devicename, value):
+	print("\r\nwrite_uart {} {}".format(devicename, value))
 	headers = get_default_headers()
 	params = get_default_params(username, token, devicename)
-	params['data'] = data
+	params['value'] = value
 	params = json.dumps(params)
 	request(conn, "POST", "/write_uart", params, headers)
-	data = response(conn)
-	data = json.loads(data)
-	return data['data']
+	value = response(conn)
+	value = json.loads(value)
+	return value['value']
 
 ######################################################
 def get_index(conn):

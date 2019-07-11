@@ -106,14 +106,14 @@ function handle_api(api, topic, payload) {
     if (api == "get_status") {
         pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
         var obj = {
-            "status": "running"
+            "value": "running"
         };
         client.publish(pubtopic, JSON.stringify(obj));
     }
     else if (api == "write_uart") {
         pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
         var obj = JSON.parse(payload);
-        console.log(obj.data); 
+        console.log(obj.value); 
         client.publish(pubtopic, JSON.stringify(obj));
     }
     else if (api == "get_gpio") {
@@ -264,10 +264,10 @@ function handle_api(api, topic, payload) {
     else if (api == "set_status") {
         pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
         var obj = JSON.parse(payload);
-        var status = obj.status;
-        console.log(status);
+        var value = obj.value;
+        console.log(value);
         var obj = {
-            "status": "restarting"
+            "value": "restarting"
         };
         client.publish(pubtopic, JSON.stringify(obj));
     }
