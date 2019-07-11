@@ -59,8 +59,14 @@ class database_client:
     def find_user(self, username):
         return self._users.find_user(username)
 
+    def get_user_info(self, access_token):
+        return self._users.get_user_info(access_token)
+
     def login(self, username, password):
         return self._users.login(username, password)
+
+    def logout(self, token):
+        return self._users.logout(token)
 
     def verify_token(self, username, token):
         return self._users.verify_token(username, token)
@@ -152,12 +158,22 @@ class database_client_cognito:
                     return True
         return False
 
+    def get_user_info(self, access_token):
+        (result, users) = self.client.get_user(access_token)
+        if result == False:
+            return None
+        return users
+
     def login(self, username, password):
         (result, response) = self.client.login(username, password)
         if not result:
             return None
         self.access_token = response['AuthenticationResult']['AccessToken']
         return self.access_token
+
+    def logout(self, token):
+        (result, response) = self.client.logout(token)
+        print("cognito logout = {}".format(result))
 
     def verify_token(self, username, token):
         valid = self.client.verify_token(token, username)
@@ -210,6 +226,9 @@ class database_client_mongodb:
                     return True
         return False
 
+    def get_user_info(self, access_token):
+        return None
+
     def login(self, username, password):
         users = self.get_registered_users()
         if users:
@@ -217,6 +236,9 @@ class database_client_mongodb:
                 if user['username'] == username and user['password'] == password:
                     return user['token']
         return None
+
+    def logout(self, token):
+        pass
 
     def verify_token(self, username, token):
         users = self.get_registered_users()
@@ -300,6 +322,7 @@ class database_client_mongodb:
                     device.pop('timestamp')
                     device.pop('_id')
                     device_list.append(device)
+                    #device_list.append(str(device))
         return device_list
 
     def add_device(self, username, devicename, cert, pkey):
