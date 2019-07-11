@@ -505,6 +505,11 @@ def write_uart():
     api = 'write_uart'
     return process_request(api)
 
+@app.route('/trigger_notification', methods=['POST'])
+def trigger_notification():
+    api = 'trigger_notification'
+    return process_request(api)
+
 
 
 ###################################################################################
