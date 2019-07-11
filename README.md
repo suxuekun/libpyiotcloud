@@ -157,6 +157,14 @@ AWS API Gateway, AWS DynamoDB, AWS Lambda, AWS Cognito and AmazonMQ.
     4. Process the api with the given payload
     5. Publish answer to topic "server.deviceid.api"
 
+#### Email/SMS Notifications
+
+    1. Device can trigger Notification Manager to send email or SNS via Amazon Pinpoint (or Amazon SNS)
+       device -> messagebroker -> notificationmanager -> pinpoint
+    2. Notification manager subscribes to topic "server/deviceid/trigger_notifications"
+       Once it receives a message on this topic, it will trigger Amazon Pinpoint to send the email or SMS.
+    3. Web client application can also trigger device to send email/SMS notifications via the trigger_notification REST API.
+       webclient -> webserver(rest api) -> messagebroker -> device -> messagebroker -> notificationmanager -> pinpoint
 
 ### Instructions
 
