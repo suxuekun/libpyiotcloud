@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>
+			Bridgtek IoT Platform - Login
+		</title>
+		<link rel="stylesheet" href="css/styles.css"  />
+		<link rel="stylesheet" href="css/styles2.css" />
+		<script>
+			function login() {
+				var username = document.forms["loginForm"]["username"].value;
+				var password = document.forms["loginForm"]["password"].value;
+				var xhr = new XMLHttpRequest();
+				xhr.open("POST", "/login", true);
+				xhr.setRequestHeader('Content-Type', 'application/json');
+				xhr.onreadystatechange = function() { // Call a function when the state changes.
+					if (this.readyState === XMLHttpRequest.DONE && this.status === 200) {
+						console.log(xhr.responseText);
+
+						window.location.replace("account.html?username=" + username + "&token=" + xhr.responseText);
+					}
+				}
+				xhr.send(JSON.stringify({"username": username, "password": password}));
+			}
+		</script>
+	</head>
+
+	<body>
+		<div class="topnav2">
+			<img src="images/logo.png" />
+			<a href="contact.html" style="float:right; margin-right:20px">CONTACT</a>
+			<a href="index.html" style="float:right">HOME</a>
+		</div>
+
+		<div class="row" style="margin:120px auto" align="center">
+			<div class="card">
+				<form name="loginForm" method="post" action="/login">
+					<fieldset align="left">
+						<h2>Login to your account</h2>
+						<br/>
+						<label for="username"><b>Username</b></label>
+						<br/>
+						<input type="text" id="username" name="username" placeholder="Username" required>
+						<br/>
+						<label for="password"><b>Password</b></label>
+						<br/>
+						<input type="text" id="password" name="password" placeholder="Password" required>
+						<br/>
+
+						<input type="submit" name= "submit" value="Login"/>
+						<br/>
+
+						<br/>
+						<a href="signup.html"><h5>Register Now</h5></a>
+						<a href="reset_password.html"><h5>Forgot Username or Password</h5></a>
+						<br/>
+					</fieldset>
+				</form>
+			</div>
+		</div>
+
+						
+		<div class="footer">
+			<p>Copyright @ 2019 Bridgetek Pte. Ltd. All rights reserved.</p>
+		</div>
+		
+
+	</body>
+</html>

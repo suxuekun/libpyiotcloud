@@ -1,0 +1,33 @@
+input[type=text], select {
+  font-size: 14px;
+  width: 100%;
+  padding: 14px 20px;
+  margin: 8px 0;
+  display: inline-block;
+  border: 1px solid #999;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+input[type=submit] {
+  width: 100px;
+  height: 40px;
+  background-color: #b30000;
+  color: white;
+  padding: 14px 20px;
+  margin: 8px 0;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+input[type=submit]:hover {
+  background-color: #FF0000;
+}
+
+fieldset { 
+  padding:5px 30px;
+  width:300px;
+  line-height:1.4;
+  border-radius: 10px;
+}
