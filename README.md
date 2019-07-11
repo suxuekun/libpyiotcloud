@@ -22,13 +22,13 @@ It can be deployed in local PC or in the cloud - AWS EC2, Linode, Heroku, Racksp
 
 - Nginx web server - https://www.nginx.com/
 - GUnicorn WSGI server - https://gunicorn.org/
-- Flask web framework - http://flask.pocoo.org/
-- RabbitMQ message broker - https://www.rabbitmq.com/
+- Flask web framework (REST API) - http://flask.pocoo.org/
+- RabbitMQ message broker (MQTT, AMQP) - https://www.rabbitmq.com/
 - MongoDB NoSQL database - https://www.mongodb.com/
-- OpenSSL cryptography - https://www.openssl.org/
-- Amazon Cognito - https://aws.amazon.com/cognito/
-- Amazon Pinpoint - https://aws.amazon.com/pinpoint/
-- Amazon SNS - https://aws.amazon.com/sns/
+- OpenSSL cryptography (X509 certificates) - https://www.openssl.org/
+- Amazon Cognito (user sign-up/sign-in) - https://aws.amazon.com/cognito/
+- Amazon Pinpoint (email/SMS notifications) - https://aws.amazon.com/pinpoint/
+- Amazon SNS (email/SMS notifications) - https://aws.amazon.com/sns/
 
 An alternative solution is using serverless solution composing of 
 AWS API Gateway, AWS DynamoDB, AWS Lambda, AWS Cognito and AmazonMQ.
