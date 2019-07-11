@@ -181,6 +181,12 @@ def handle_api(api, subtopic, subpayload):
         publish(topic, payload)
 
 
+    elif api == "trigger_notification":
+        topic = generate_pubtopic(subtopic)
+        subpayload = json.loads(subpayload)
+        publish(topic, subpayload)
+
+
 
 ###################################################################################
 # MQTT/AMQP callback functions
