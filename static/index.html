@@ -6,6 +6,33 @@
 		</title>
 		<link rel="stylesheet" href="css/styles.css"  />
 		<link rel="stylesheet" href="css/styles2.css" />
+		<style>
+		* {
+		  box-sizing: border-box;
+		}
+
+		/* Create two unequal columns that floats next to each other */
+		.column {
+		  float: left;
+		  padding: 10px;
+		  height: 300px; /* Should be removed. Only for demonstration */
+		}
+
+		.left {
+		  width: 75%;
+		}
+
+		.right {
+		  width: 25%;
+		}
+
+		/* Clear floats after the columns */
+		.row:after {
+		  content: "";
+		  display: table;
+		  clear: both;
+		}
+		</style>
 	</head>
 
 	<body>
@@ -15,10 +42,52 @@
 		</div>
 
 		<div class="row">
-			<div class="card">
-				<div class="fakeimg" style="height:400px;">Home</div>
+
+			<div class="column left">
+				<br/><br/><br/><br/>
+				<p>
+
+					<h1>FT900 IoT Cloud Platform</h1>
+					<a>Bridgetek releases IoT cloud platform to easily bridge FT900 series of microcontrollers to the cloud.</a><br/><br/>
+
+					<a>This IoT platform is not your usual IoT platform. It focuses on remote device access and control.</a><br/><br/>
+					<a>For sensor data graphing and data analysis, refer to the IoT platforms of AWS, GCP and Azure.</a><br/><br/>
+				</p>
+
+				<p>
+					<h1>FT900 IoT Device Framework</h1>
+					<a>Bridgetek officially release FT900 IoT device framework to easily and securely bridge FT900 series of microcontrollers to the cloud.</a><br/><br/>
+
+					<a>FT900 can securely connect to FT900 IoT Cloud Platform and can also connect to your favorite IoT cloud platforms by simply creating an IoT project via our customized Eclipse IDE with FT900 toolchain.</a><br/><br/>
+
+					<a>IoT platforms of popular cloud providers:</a>
+					<ul>
+						<li>Amazon Web Services - IoT Core </li>
+						<li>Google Cloud Platform - IoT Core </li>
+						<li>Microsoft Azure - IoT Hub </li>
+					</ul>
+
+					<a>FT900 has also been tested to work with popular IoT platform providers listed below. Simple configuration file changes are needed.</a><br/><br/>
+
+					<a>Dedicated IoT platform providers:</a>
+					<ul>
+						<li>Adafruit.io</li>
+						<li>Ubidots</li>
+						<li>ThingSpeak</li>
+					</ul>
+				</p>
+
 			</div>
+
+			<div class="column right">
+				<br/><br/>
+				<br/><br/>
+				<a class="twitter-timeline" href="https://twitter.com/Bridgetek1?ref_src=twsrc%5Etfw">Tweets by Bridgetek1</a> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+				<br/>
+			</div>
+
 		</div>
+
 
 		<div class="footer">
 			<p>Copyright @ 2019 Bridgetek Pte. Ltd. All rights reserved.</p>
