@@ -252,12 +252,9 @@ class cognito_client:
 				user_attributes["enabled"] = user["Enabled"]
 				user_attributes["status"] = user["UserStatus"]
 				user_list.append(user_attributes)
-
 		except:
 			return (False, None)
 		return (self.__get_result(response), user_list)
-
-
 
 	def admin_display_users(self, users):
 		print()
