@@ -4,15 +4,15 @@
 		<title>
 			Bridgtek IoT Platform - Confirm Signup
 		</title>
-		<link rel="stylesheet" href="css/styles.css"  />
-		<link rel="stylesheet" href="css/styles2.css" />
+		<link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}"  />
+		<link rel="stylesheet" href="{{ url_for('static', filename='css/styles2.css') }}" />
 	</head>
 
 	<body>
 		<div class="topnav2">
-			<img src="images/logo.png" />
-			<a href="contact.html" style="float:right; margin-right:20px">CONTACT</a>
-			<a href="index.html" style="float:right">HOME</a>
+			<img src="{{ url_for('static', filename='images/logo.png') }}" />
+			<a href="{{ url_for('static', filename='contact.html') }}" style="float:right; margin-right:20px">CONTACT</a>
+			<a href="{{ url_for('static', filename='index.html') }}" style="float:right">HOME</a>
 		</div>
 
 
@@ -24,7 +24,7 @@
 						<br/>
 						<label for="username"><b>Username</b></label>
 						<br/>
-						<input type="text" id="username" name="username" placeholder="Username" required>
+						<input type="text" id="username" name="username" placeholder="Username" value="{{ username_val }}" required>  </input>
 						<br/>
 						<label for="confirmationcode"><b>Confirmation Code</b></label>
 						<br/>
