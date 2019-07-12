@@ -5,7 +5,7 @@ remotely from a mobile or desktop web application via REST APIs (<b>HTTP over TL
 with back-end <b>AMQP over TLS</b> connectivity and device-side <b>MQTT over TLS</b> connectivity.
 
 
-### Background
+# Background
 
 Popular cloud platforms such as Amazon Web Services, Google Cloud Platform and Microsoft Azure provide their IoT platforms, namely, [AWS IoT Core](https://aws.amazon.com/iot/), [GCP IoT Core](https://cloud.google.com/iot-core/) or [Azure IoT Hub](https://azure.microsoft.com/en-us/services/iot-hub/). There are also dedicated IoT providers such as [Adafruit.IO](https://io.adafruit.com/), [Ubidots](https://ubidots.com/) and [ThingSpeak](https://thingspeak.com/). 
 These IoT platforms are good (in fact, I have tested it with FT900 - refer to [ft90x_iot_aws_gcp_azure](https://github.com/richmondu/FT900/tree/master/IoT/ft90x_iot_aws_gcp_azure). 
@@ -15,7 +15,7 @@ It lacks support for the use-case of remote access and control memory-constraine
 In this use-case, the device only sends the data when queried.
 
 
-### Architecture
+# Architecture
 
 This IoT platform is a server-based IoT cloud platform that leverages Flask, GUnicorn, Nginx, RabbitMQ, MongoDB, Amazon Cognito and Amazon Pinpoint.
 It can be deployed in local PC or in the cloud - AWS EC2, Linode, Heroku, Rackspace, DigitalOcean or etc.
@@ -34,22 +34,22 @@ An alternative solution is using serverless solution composing of
 AWS API Gateway, AWS DynamoDB, AWS Lambda, AWS Cognito and AmazonMQ.
 
 
-#### High-level architecture diagram:
+### High-level architecture diagram:
 <img src="https://github.com/richmondu/libpyiotcloud/blob/master/images/architecture.png" width="1000"/>
 
-#### UML Use case diagram:
+### UML Use case diagram:
 <img src="https://github.com/richmondu/libpyiotcloud/blob/master/images/usecase.png" width="800"/>
 
-#### UML Sequence diagram (user sign-up/sign-in):
+### UML Sequence diagram (user sign-up/sign-in):
 <img src="https://github.com/richmondu/libpyiotcloud/blob/master/images/sequence1.png" width="800"/>
 
-#### UML Sequence diagram (device registration):
+### UML Sequence diagram (device registration):
 <img src="https://github.com/richmondu/libpyiotcloud/blob/master/images/sequence2.png" width="800"/>
 
-#### UML Sequence diagram (device access/control):
+### UML Sequence diagram (device access/control):
 <img src="https://github.com/richmondu/libpyiotcloud/blob/master/images/sequence3.png" width="800"/>
 
-#### Notes:
+### Notes:
 
     1. This is a simple design and will not likely scale to millions of devices.
     2. RabbitMQ supports AMQP and MQTT.
@@ -61,9 +61,9 @@ AWS API Gateway, AWS DynamoDB, AWS Lambda, AWS Cognito and AmazonMQ.
 
 
 
-### Design
+# Design
 
-#### Features
+### Features
 
     1. User sign-up/sign-in and Device Registration
        A. Using Amazon Cognito for user sign-up/sign-in
@@ -92,7 +92,7 @@ AWS API Gateway, AWS DynamoDB, AWS Lambda, AWS Cognito and AmazonMQ.
        C. Client-initiated: [client --> webserver --> messagebroker --> device --> messagebroker --> notifmanager -> amazonpinpoint]
  
       
-#### User Sign-up/Sign-In APIs
+### REST APIs for User Sign-up/Sign-In
 
     1. sign_up
        - requires username, password, email, firstname, lastname
@@ -102,24 +102,33 @@ AWS API Gateway, AWS DynamoDB, AWS Lambda, AWS Cognito and AmazonMQ.
     3. login
        - requires username, password
        - returns access_token
-    4. forgot_password
+    4. logout
+       - requires username, access key
+    5. forgot_password
        - requires email address
        - confirmation code will be sent to email
-    5. confirm_forgot_password
+    6. confirm_forgot_password
        - requires username, new password, confirmation code
 
-#### Device Registration APIs
+### REST APIs for Device Registration/Management
 
     1. register_device
        - requires username, access_token, devicename
        - returns deviceid, rootca, devicecert, devicepkey
+         which shall be used on the actual microcontroller device
     2. unregister_device
        - requires username, access_token, devicename
     3. get_device_list
-       - requires username, access_token, devicename
-       - returns deviceid, rootca, devicecert, devicepkey for all devices registered by user
+       - requires username, access_token
+       - returns device info [devicename, deviceid, rootca, devicecert, devicepkey for all devices registered by user]
+    4. get_device_list_count
+       - requires username, access_token
+       - returns length of device list
+    5. get_device_index
+       - requires username, access_token, index
+       - returns device info for device[index]
 
-#### Device Control APIs
+### REST APIs for Device Access/Control
 
     1. get_gpio
     2. set_GPIO
@@ -135,8 +144,9 @@ AWS API Gateway, AWS DynamoDB, AWS Lambda, AWS Cognito and AmazonMQ.
     12. trigger_notification
 
 
-#### Device MQTT/AMQP Connectivity
+### Device settings for MQTT/AMQP Connectivity
 
+    User must first register a device in the portal. Registering a device will return deviceid, rootca, cert and pkey.
     1. HOST: ip address of RabbitMQ broker
     2. PORT: 8883 (MQTT) or 5671 (AMQP)
     3. USERNAME: guest
@@ -151,8 +161,9 @@ AWS API Gateway, AWS DynamoDB, AWS Lambda, AWS Cognito and AmazonMQ.
     12. AMQP PUBLISH: server.deviceid.api
 
 
-#### Device MQTT/AMQP Processing
+### Device MQTT/AMQP Processing
 
+    Device can either use MQTT or AMQP. For FT900 MCU device, only MQTT is currently supported.
     MQTT
     1. Subscribe to deviceid/#
     2. Receive MQTT payload with topic "deviceid/api"
@@ -167,7 +178,7 @@ AWS API Gateway, AWS DynamoDB, AWS Lambda, AWS Cognito and AmazonMQ.
     4. Process the api with the given payload
     5. Publish answer to topic "server.deviceid.api"
 
-#### Email/SMS Notifications
+### Email/SMS Notifications
 
     1. Device can trigger Notification Manager to send email or SNS via Amazon Pinpoint (or Amazon SNS)
        device -> messagebroker -> notificationmanager -> pinpoint
@@ -176,7 +187,7 @@ AWS API Gateway, AWS DynamoDB, AWS Lambda, AWS Cognito and AmazonMQ.
     3. Web client application can also trigger device to send email/SMS notifications via the trigger_notification REST API.
        webclient -> webserver(rest api) -> messagebroker -> device -> messagebroker -> notificationmanager -> pinpoint
 
-### Instructions
+# Instructions
 
     0. Install Python 3.6.6
 
@@ -271,27 +282,27 @@ AWS API Gateway, AWS DynamoDB, AWS Lambda, AWS Cognito and AmazonMQ.
     8. Run client.bat
 
 
-### Testing
+# Testing
 
-#### MQTT/AMQP Device
+### MQTT/AMQP Device
 
 - [FT900 MCU device (LWIP-MQTT client)](https://github.com/richmondu/FT900/tree/master/IoT/ft90x_iot_brtcloud)
 
-#### MQTT/AMQP Device simulators
+### MQTT/AMQP Device simulators
 
 - [Python Paho-MQTT client device simulator](https://github.com/richmondu/libpyiotcloud/blob/master/device_simulator.py)
 - [Python Pika-AMQP client device simulator](https://github.com/richmondu/libpyiotcloud/blob/master/device_simulator.py)
 - [NodeJS MQTT client device simulator](https://github.com/richmondu/libpyiotcloud/blob/master/device_simulator.js)
 
-#### Test utilities
+### Test utilities
 
 - web_server_database_viewer.bat - view registered devices (MongoDB) and registered users (Amazon Cognito)
 
 
 
-### Performance
+# Performance
 
-#### Windows 
+### Windows 
 
 The total round trip time for setting or getting the MCU GPIO is 2.01 seconds from the client application. But round trip time for the web server for sending MQTT publish and receiving MQTT response to/from MCU is only 1 second.
 
@@ -301,7 +312,7 @@ The total round trip time for setting or getting the MCU GPIO is 2.01 seconds fr
 
 The client call to HTTP getresponse() is causing the additional 1 second delay. https://docs.python.org/3/library/http.client.html#http.client.HTTPConnection.getresponse For mobile client application, this 1 second delay maybe less or more. This will depend on the equivalent function HTTP client getresponse() in Java for Android or Swift for iOS..
 
-#### Linux
+### Linux
 
 In Linux, the total round trip time is only 1 second.
 
