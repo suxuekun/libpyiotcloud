@@ -102,10 +102,12 @@ AWS API Gateway, AWS DynamoDB, AWS Lambda, AWS Cognito and AmazonMQ.
     3. login
        - requires username, password
        - returns access_token
-    4. forgot_password
+    4. logout
+       - requires username, access key
+    5. forgot_password
        - requires email address
        - confirmation code will be sent to email
-    5. confirm_forgot_password
+    6. confirm_forgot_password
        - requires username, new password, confirmation code
 
 #### Device Registration APIs
@@ -116,8 +118,14 @@ AWS API Gateway, AWS DynamoDB, AWS Lambda, AWS Cognito and AmazonMQ.
     2. unregister_device
        - requires username, access_token, devicename
     3. get_device_list
-       - requires username, access_token, devicename
-       - returns deviceid, rootca, devicecert, devicepkey for all devices registered by user
+       - requires username, access_token
+       - returns device info [devicename, deviceid, rootca, devicecert, devicepkey for all devices registered by user]
+    4. get_device_list_count
+       - requires username, access_token
+       - returns length of device list
+    5. get_device_index
+       - requires username, access_token, index
+       - returns device info for device[index]
 
 #### Device Control APIs
 
