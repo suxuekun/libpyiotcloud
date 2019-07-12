@@ -59,6 +59,9 @@ class database_client:
     def find_user(self, username):
         return self._users.find_user(username)
 
+    def find_email(self, email):
+        return self._users.find_email(email)
+
     def get_user_info(self, access_token):
         return self._users.get_user_info(access_token)
 
@@ -82,6 +85,12 @@ class database_client:
 
     def get_confirmationcode(self, username):
         return self._users.get_confirmationcode(username)
+
+    def forgot_password(self, username):
+        return self._users.forgot_password(username)
+
+    def confirm_forgot_password(self, username, confirmation_code, new_password):
+        return self._users.confirm_forgot_password(username, confirmation_code, new_password)
 
 
     ##########################################################
@@ -158,6 +167,16 @@ class database_client_cognito:
                     return True
         return False
 
+    def find_email(self, email):
+        (result, users) = self.client.admin_list_users()
+        if result == False:
+            return None
+        if users:
+            for user in users:
+                if user["email"] == email:
+                    return user["username"]
+        return None
+
     def get_user_info(self, access_token):
         (result, users) = self.client.get_user(access_token)
         if result == False:
@@ -193,6 +212,14 @@ class database_client_cognito:
         (result, response) = self.client.confirm_sign_up(username, confirmationcode)
         return result
 
+    def forgot_password(self, username):
+        (result, response) = self.client.forgot_password(username)
+        return result
+
+    def confirm_forgot_password(self, username, confirmation_code, new_password):
+        (result, response) = self.client.confirm_forgot_password(username, confirmation_code, new_password)
+        return result
+
 
 class database_client_mongodb:
 
@@ -225,6 +252,15 @@ class database_client_mongodb:
                 if user['username'] == username:
                     return True
         return False
+
+    def find_email(self, email):
+        users = self.get_registered_users()
+        if users:
+            for user in users.find({},{'email': 1}):
+                #print(user)
+                if user['email'] == email:
+                    return user['username']
+        return None
 
     def get_user_info(self, access_token):
         return None
@@ -295,6 +331,12 @@ class database_client_mongodb:
                             return True
                     elif user['status'] == "CONFIRMED":
                         return True
+        return False
+
+    def forgot_password(self, username):
+        return False
+
+    def confirm_forgot_password(self, username, confirmation_code, new_password):
         return False
 
 
