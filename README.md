@@ -316,3 +316,11 @@ The client call to HTTP getresponse() is causing the additional 1 second delay. 
 
 In Linux, the total round trip time is only 1 second.
 
+
+# Action Items
+
+1. Support Docker containerization
+2. Support AWS EC2 deployment
+3. Support Kubernetes scalability
+4. Add manager/admin page in Web client (see all users and devices registered by each user)
+5. Add logging for debugging/troubleshooting
