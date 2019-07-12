@@ -324,3 +324,4 @@ In Linux, the total round trip time is only 1 second.
 3. Support Kubernetes scalability
 4. Add manager/admin page in Web client (see all users and devices registered by each user)
 5. Add logging for debugging/troubleshooting
+6. Access key timeout/refresh
