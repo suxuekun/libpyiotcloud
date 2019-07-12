@@ -5,7 +5,6 @@ import time
 import hmac
 import hashlib
 import flask
-import is_safe_url
 from flask_json import FlaskJSON, JsonError, json_response, as_json
 from certificate_generator import certificate_generator
 from messaging_client import messaging_client
