@@ -115,6 +115,7 @@ AWS API Gateway, AWS DynamoDB, AWS Lambda, AWS Cognito and AmazonMQ.
     1. register_device
        - requires username, access_token, devicename
        - returns deviceid, rootca, devicecert, devicepkey
+         which shall be used on the actual microcontroller device
     2. unregister_device
        - requires username, access_token, devicename
     3. get_device_list
