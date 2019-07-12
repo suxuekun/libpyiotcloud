@@ -41,9 +41,67 @@ FlaskJSON(app)
 
 @app.route('/')
 def index():
-    return flask.render_template('index.html')
+    #return flask.render_template('index.html')
+    return flask.redirect('static/index.html')
 
 
+@app.route('/forgot_password', methods=['POST'])
+def forgot_password():
+    try:
+        test_mode = True
+        data = flask.request.get_json()
+        email = data['email']
+    except:
+        test_mode = False
+        email = flask.request.form['email']
+
+    # check if email is in database
+    username = g_database_client.find_email(email)
+    if username is None:
+        print("Email {} already exist!\r\n".format(email))
+        response = {}
+        response['status'] = 'NG, email does not exist'
+        response = json.dumps(response)
+        return response
+
+    result = g_database_client.forgot_password(username)
+    if not result:
+        print("Forgot password failed!\r\n".format(email))
+        response = {}
+        response['status'] = 'NG, forgot password failed'
+        response = json.dumps(response)
+        return response
+
+    print("username={}".format(username))
+    return flask.render_template('confirm_reset_password.html', username_val=username)
+
+@app.route('/confirm_forgot_password', methods=['POST'])
+def confirm_forgot_password():
+    try:
+        data = flask.request.get_json()
+        username = data['username']
+        confirmationcode = data['confirmationcode']
+        password = data['password']
+    except:
+        test_mode = False
+        username = flask.request.form['username']
+        confirmationcode = flask.request.form['confirmationcode']
+        password = flask.request.form['password']
+    print('confirm_forgot_password username={} confirmationcode={} password={}'.format(username, confirmationcode, password))
+
+    # confirm user in database
+    result = g_database_client.confirm_forgot_password(username, confirmationcode, password)
+    if not result:
+        print("Incorrect code! {} {}\r\n".format(username, confirmationcode))
+        response = {}
+        response['status'] = 'NG, incorrect code'
+        response = json.dumps(response)
+        return response
+
+    response = {}
+    response['status'] = 'OK'
+    response = json.dumps(response)
+    return flask.redirect('static/login.html')
 
 @app.route('/signup', methods=['POST'])
 def signup():
@@ -72,6 +130,14 @@ def signup():
         response = json.dumps(response)
         return response
 
+    # check if email is already in database
+    if g_database_client.find_email(email) is not None:
+        print("Email {} already exist!\r\n".format(email))
+        response = {}
+        response['status'] = 'NG, email already exist'
+        response = json.dumps(response)
+        return response
+
     # add entry in database
     result = g_database_client.add_user(username, password, email, givenname, familyname)
     if not result:
@@ -88,7 +154,9 @@ def signup():
     response = json.dumps(response)
     if test_mode:
         return response
-    return flask.redirect('static/confirm_signup.html')
+    print("username={}".format("'"+username+"'"))
+#    return flask.redirect(flask.url_for('static', filename='confirm_signup.html', username_val=username))
+    return flask.render_template('confirm_signup.html', username_val=username)
 
 @app.route('/confirm_signup', methods=['POST'])
 def confirm_signup():
@@ -150,6 +218,7 @@ def login():
         response = {}
         response['status'] = 'Password is incorrect'
         response['token'] = 'Unknown'
+        print(response['status'])
         response = json.dumps(response)
         if test_mode:
             return response
@@ -158,8 +227,8 @@ def login():
     response = {}
     response['status'] = 'OK'
     response['token'] = token
-    response = json.dumps(response)
     print(response)
+    response = json.dumps(response)
     if test_mode:
         return token
     return flask.render_template('account.html', username=username, token=token)
@@ -211,7 +280,7 @@ def get_user_info():
 
     response = {}
     response['status'] = 'OK'
-    response["info"] = str(info)
+    response["info"] = json.dumps(info)
     response = json.dumps(response)
     return response
 
@@ -289,7 +358,7 @@ def get_device_index():
 
     response = {}
     response['status'] = 'OK'
-    response["device"] = str(devices[index])
+    response["device"] = json.dumps(devices[index])
     response = json.dumps(response)
     print(response)
     return response
