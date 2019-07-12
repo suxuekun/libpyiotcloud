@@ -92,7 +92,7 @@ AWS API Gateway, AWS DynamoDB, AWS Lambda, AWS Cognito and AmazonMQ.
        C. Client-initiated: [client --> webserver --> messagebroker --> device --> messagebroker --> notifmanager -> amazonpinpoint]
  
       
-#### User Sign-up/Sign-In APIs
+#### REST APIs for User Sign-up/Sign-In
 
     1. sign_up
        - requires username, password, email, firstname, lastname
@@ -110,7 +110,7 @@ AWS API Gateway, AWS DynamoDB, AWS Lambda, AWS Cognito and AmazonMQ.
     6. confirm_forgot_password
        - requires username, new password, confirmation code
 
-#### Device Registration APIs
+#### REST APIs for Device Registration/Management
 
     1. register_device
        - requires username, access_token, devicename
@@ -128,7 +128,7 @@ AWS API Gateway, AWS DynamoDB, AWS Lambda, AWS Cognito and AmazonMQ.
        - requires username, access_token, index
        - returns device info for device[index]
 
-#### Device Control APIs
+#### REST APIs for Device Control
 
     1. get_gpio
     2. set_GPIO
@@ -144,8 +144,9 @@ AWS API Gateway, AWS DynamoDB, AWS Lambda, AWS Cognito and AmazonMQ.
     12. trigger_notification
 
 
-#### Device MQTT/AMQP Connectivity
+#### Device settings for MQTT/AMQP Connectivity
 
+    User must first register a device in the portal. Registering a device will return deviceid, rootca, cert and pkey.
     1. HOST: ip address of RabbitMQ broker
     2. PORT: 8883 (MQTT) or 5671 (AMQP)
     3. USERNAME: guest
@@ -162,6 +163,7 @@ AWS API Gateway, AWS DynamoDB, AWS Lambda, AWS Cognito and AmazonMQ.
 
 #### Device MQTT/AMQP Processing
 
+    Device can either use MQTT or AMQP. For FT900 MCU device, only MQTT is currently supported.
     MQTT
     1. Subscribe to deviceid/#
     2. Receive MQTT payload with topic "deviceid/api"
