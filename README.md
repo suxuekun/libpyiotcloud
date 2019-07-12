@@ -128,7 +128,7 @@ AWS API Gateway, AWS DynamoDB, AWS Lambda, AWS Cognito and AmazonMQ.
        - requires username, access_token, index
        - returns device info for device[index]
 
-### REST APIs for Device Control
+### REST APIs for Device Access/Control
 
     1. get_gpio
     2. set_GPIO
