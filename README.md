@@ -92,7 +92,7 @@ AWS API Gateway, AWS DynamoDB, AWS Lambda, AWS Cognito and AmazonMQ.
        C. Client-initiated: [client --> webserver --> messagebroker --> device --> messagebroker --> notifmanager -> amazonpinpoint]
  
       
-#### User Registration APIs
+#### User Sign-up/Sign-In APIs
 
     1. sign_up
        - requires username, password, email, firstname, lastname
@@ -102,6 +102,11 @@ AWS API Gateway, AWS DynamoDB, AWS Lambda, AWS Cognito and AmazonMQ.
     3. login
        - requires username, password
        - returns access_token
+    4. forgot_password
+       - requires email address
+       - confirmation code will be sent to email
+    5. confirm_forgot_password
+       - requires username, new password, confirmation code
 
 #### Device Registration APIs
 
