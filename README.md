@@ -30,8 +30,11 @@ It can be deployed in local PC or in the cloud - AWS EC2, Linode, Heroku, Racksp
 - Amazon Pinpoint (email/SMS notifications) - https://aws.amazon.com/pinpoint/
 - Amazon SNS (email/SMS notifications) - https://aws.amazon.com/sns/
 
-An alternative solution is using serverless solution composing of 
-AWS API Gateway, AWS DynamoDB, AWS Lambda, AWS Cognito and AmazonMQ.
+An alternative solution is using an AWS serverless solution wherein:
+
+- AWS API Gateway+AWS Lambda will replace Flask+Gunicorn+Nginx
+- AWS DynamoDB will replace MongoDB
+- AmazonMQ will replace RabbitMQ
 
 
 ### High-level architecture diagram:
