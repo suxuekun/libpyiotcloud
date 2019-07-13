@@ -180,7 +180,7 @@ AWS API Gateway, AWS DynamoDB, AWS Lambda, AWS Cognito and AmazonMQ.
 
 ### Email/SMS Notifications
 
-    1. Device can trigger Notification Manager to send email or SNS via Amazon Pinpoint (or Amazon SNS)
+    1. Device can trigger Notification Manager to send email/SMS via Amazon Pinpoint
        device -> messagebroker -> notificationmanager -> pinpoint
     2. Notification manager subscribes to topic "server/deviceid/trigger_notifications"
        Once it receives a message on this topic, it will trigger Amazon Pinpoint to send the email or SMS.
