@@ -33,6 +33,13 @@ class messaging_client:
         self.consume_continuously = False
         self.device_id = device_id
         self.tag = ''.join(["%s" % random.randint(0, 9) for num in range(16)])
+        self.host = None
+        self.port = None
+        self.username = None
+        self.password = None
+        self.ca = None
+        self.cert = None
+        self.pkey = None
 
     def set_server(self, host, port):
         self.host = host
@@ -75,24 +82,39 @@ class messaging_client:
     def initialize_ampq(self):
         use_tls = True
         # Set TLS certificates and access credentials
-        credentials = amqp.PlainCredentials(self.username, self.password)
+        if self.username and self.password:
+            credentials = amqp.PlainCredentials(self.username, self.password)
+        else:
+            credentials = None
         ssl_options = None
         if use_tls:
             context = ssl._create_unverified_context()
             #context = ssl.create_default_context(cafile=CONFIG_AMQP_TLS_CA)
             #context.load_cert_chain(CONFIG_AMQP_TLS_CERT, CONFIG_AMQP_TLS_PKEY)
-            ssl_options = amqp.SSLOptions(context) 
-            parameters = amqp.ConnectionParameters(
-                self.host, 
-                self.port, 
-                credentials=credentials, 
-                ssl_options=ssl_options)
+            ssl_options = amqp.SSLOptions(context)
+            if credentials:
+                parameters = amqp.ConnectionParameters(
+                    self.host, 
+                    self.port, 
+                    credentials=credentials, 
+                    ssl_options=ssl_options)
+            else:
+                parameters = amqp.ConnectionParameters(
+                    self.host, 
+                    self.port, 
+                    ssl_options=ssl_options)
         else:
-            parameters = amqp.ConnectionParameters(
-                self.host, 
-                self.port, 
-                credentials=credentials, 
-                ssl_options=ssl_options)
+            if credentials:
+                parameters = amqp.ConnectionParameters(
+                    self.host, 
+                    self.port, 
+                    credentials=credentials, 
+                    ssl_options=ssl_options)
+            else:
+                parameters = amqp.ConnectionParameters(
+                    self.host, 
+                    self.port, 
+                    ssl_options=ssl_options)
         # Connect to AMPQ server
         connection = amqp.BlockingConnection(parameters)
         client = connection.channel()
@@ -107,7 +129,8 @@ class messaging_client:
         client.on_disconnect = self.on_mqtt_disconnect
         client.on_message = self.on_mqtt_message
         # Set MQTT credentials
-        client.username_pw_set(self.username, self.password)
+        if self.username and self.password:
+            client.username_pw_set(self.username, self.password)
         # Set TLS certificates
         client.tls_set(ca_certs = self.ca,
             certfile    = self.cert,
