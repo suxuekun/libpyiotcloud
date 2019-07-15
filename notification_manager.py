@@ -30,7 +30,7 @@ g_gpio_values = {}
 # MQTT and AMQP default configurations
 ###################################################################################
 
-CONFIG_DEVICE_ID            = ""
+CONFIG_DEVICE_ID            = "notification_manager"
 
 CONFIG_USERNAME             = None
 CONFIG_PASSWORD             = None
