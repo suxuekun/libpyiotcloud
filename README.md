@@ -243,6 +243,12 @@ An alternative solution is using an AWS serverless solution wherein:
            copy rootca.pem
            copy server_cert.pem
            copy server_pkey.pem
+        F. Check RabbitMQ 
+           sudo service rabbitmq-server start
+           sudo service rabbitmq-server stop
+           sudo service rabbitmq-server status
+           sudo service rabbitmq-server restart
+
 
         WINDOWS:
         
