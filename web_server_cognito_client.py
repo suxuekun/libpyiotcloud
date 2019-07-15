@@ -9,14 +9,20 @@ import ast
 class cognito_client:
 
 	def __init__(self):
-		self.client_id   = config.CONFIG_CLIENT_ID
-		self.pool_id     = config.CONFIG_USER_POOL_ID
-		self.pool_region = config.CONFIG_USER_POOL_REGION
-		self.keys        = None
-		self.keys_iss    = None
+		self.aws_access_key_id     = config.CONFIG_ACCESS_KEY
+		self.aws_secret_access_key = config.CONFIG_SECRET_KEY
+		self.client_id             = config.CONFIG_CLIENT_ID
+		self.pool_id               = config.CONFIG_USER_POOL_ID
+		self.pool_region           = config.CONFIG_USER_POOL_REGION
+		self.keys                  = None
+		self.keys_iss              = None
 
 	def __get_client(self):
-		return boto3.Session(region_name=self.pool_region).client('cognito-idp')
+		#return boto3.Session(region_name=self.pool_region).client('cognito-idp')
+		return boto3.Session(
+			aws_access_key_id = self.aws_access_key_id,
+			aws_secret_access_key = self.aws_secret_access_key,
+			region_name = self.pool_region).client('cognito-idp')
 
 	def __get_result(self, response):
 		return True if response["ResponseMetadata"]["HTTPStatusCode"] == 200 else False

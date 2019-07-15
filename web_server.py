@@ -41,7 +41,7 @@ FlaskJSON(app)
 @app.route('/')
 def index():
     #return flask.render_template('index.html')
-    return flask.redirect('static/index.html')
+    return flask.redirect(flask.url_for('static', filename='index.html'))
 
 
 @app.route('/forgot_password', methods=['POST'])

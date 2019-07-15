@@ -286,8 +286,8 @@ def test_admin():
 #####################################################################
 def main(args):
 
-	#test_user()
-	test_admin()
+	test_user()
+	#test_admin()
 
 
 def parse_arguments(argv):
