@@ -1,0 +1,16 @@
+[Unit]
+Description=Gunicorn instance to serve libpyiotcloud web_server
+After=network.target
+
+[Service]
+User=richmondu
+Group=www-data
+
+WorkingDirectory=/home/richmondu/Desktop/libpyiotcloud
+Environment="PATH=/usr/local/bin"
+ExecStart=/usr/local/bin/gunicorn --workers=1 --bind 192.168.100.17:8000 --forwarded-allow-ips="*" -m 007 wsgi:app
+
+[Install]
+WantedBy=multi-user.target
+
+
