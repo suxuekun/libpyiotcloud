@@ -203,7 +203,18 @@ An alternative solution is using an AWS serverless solution wherein:
        sudo make altinstall
        python3.6 -V
 
-    1. Setup and run RabbitMQ broker
+    1. Install Python and python libraries in requirements.txt
+
+       pip install -r requirements.txt
+
+       When running in Linux, need to install gunicorn and nginx as well
+       sudo pip install gunicorn 
+       sudo apt-get install nginx 
+       Then setup Nginx using the links below:
+       [https://www.digitalocean.com/community/tutorials/how-to-serve-flask-applications-with-gunicorn-and-nginx-on-ubuntu-18-04]
+       [https://www.digitalocean.com/community/tutorials/how-to-install-nginx-on-ubuntu-16-04]
+      
+    2. Setup and run RabbitMQ broker
 
         // Installation
         A. Install Erlang http://www.erlang.org/downloads]
@@ -239,17 +250,6 @@ An alternative solution is using an AWS serverless solution wherein:
         H. Copy certificates to %APPDATA%\RabbitMQ 
            rootca.pem, server_cert.pem, server_pkey.pem
 
-    2. Install Python and python libraries in requirements.txt
-
-       pip install -r requirements.txt
-
-       When running in Linux, need to install gunicorn and nginx as well
-       sudo pip install gunicorn 
-       sudo apt-get install nginx 
-       Then setup Nginx using the links below:
-       [https://www.digitalocean.com/community/tutorials/how-to-serve-flask-applications-with-gunicorn-and-nginx-on-ubuntu-18-04]
-       [https://www.digitalocean.com/community/tutorials/how-to-install-nginx-on-ubuntu-16-04]
-       
     3. Install MongoDB database.
 
     4. Setup Amazon Cognito account
