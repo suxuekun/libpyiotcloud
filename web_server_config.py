@@ -17,15 +17,15 @@ class config:
     CONFIG_HTTP_TLS_PKEY        = "cert/server_pkey.pem"
 
     # Message broker credentials
-    CONFIG_USERNAME             = "guest"
-    CONFIG_PASSWORD             = "guest"
+    CONFIG_USERNAME             = None
+    CONFIG_PASSWORD             = None
     CONFIG_TLS_CA               = "cert/rootca.pem"
     CONFIG_TLS_CERT             = "cert/server_cert.pem"
     CONFIG_TLS_PKEY             = "cert/server_pkey.pem"
 
     # Message broker settings
     CONFIG_USE_AMQP             = False
-    CONFIG_HOST                 = "localhost"
+    CONFIG_HOST                 = "192.168.100.11" #"localhost"
     CONFIG_MQTT_TLS_PORT        = 8883
     CONFIG_AMQP_TLS_PORT        = 5671
 

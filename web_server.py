@@ -638,7 +638,8 @@ def initialize():
     else:
         g_messaging_client = messaging_client(config.CONFIG_USE_AMQP, on_mqtt_message)
         g_messaging_client.set_server(config.CONFIG_HOST, config.CONFIG_MQTT_TLS_PORT)
-    g_messaging_client.set_user_pass(config.CONFIG_USERNAME, config.CONFIG_PASSWORD)
+    if config.CONFIG_USERNAME and config.CONFIG_PASSWORD:
+        g_messaging_client.set_user_pass(config.CONFIG_USERNAME, config.CONFIG_PASSWORD)
     g_messaging_client.set_tls(config.CONFIG_TLS_CA, config.CONFIG_TLS_CERT, config.CONFIG_TLS_PKEY)
     g_messaging_client.initialize()
 
