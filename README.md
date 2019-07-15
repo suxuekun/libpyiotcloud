@@ -216,6 +216,36 @@ An alternative solution is using an AWS serverless solution wherein:
       
     2. Setup and run RabbitMQ broker
 
+        LINUX:
+        
+        // Installation
+        A. Install Erlang
+           wget https://packages.erlang-solutions.com/erlang-solutions_1.0_all.deb
+           sudo dpkg -i erlang-solutions_1.0_all.deb
+           sudo apt-get update
+           sudo apt-get install erlang
+        B. Install RabbitMQ
+           curl -s https://packagecloud.io/install/repositories/rabbitmq/rabbitmq-server/script.deb.sh | sudo bash
+           sudo apt-get install rabbitmq-server=3.7.16-1
+        C. Install RabbitMQ MQTT plugin
+           sudo rabbitmq-plugins enable rabbitmq_mqtt
+        
+        // Configuration
+        D. Update port firewall
+           sudo ufw allow 8883
+           sudo ufw allow 5671
+           sudo ufw deny 1883
+           sudo ufw deny 5672
+        E. Configure RabbitMQ
+           cd /etc/rabbitmq
+           sudo chmod 777 .
+           copy rabbitmq.config
+           copy rootca.pem
+           copy server_cert.pem
+           copy server_pkey.pem
+
+        WINDOWS:
+        
         // Installation
         A. Install Erlang http://www.erlang.org/downloads]
         B. Install RabbitMQ [https://www.rabbitmq.com/install-windows.html]
