@@ -152,8 +152,8 @@ An alternative solution is using an AWS serverless solution wherein:
     User must first register a device in the portal. Registering a device will return deviceid, rootca, cert and pkey.
     1. HOST: ip address of RabbitMQ broker
     2. PORT: 8883 (MQTT) or 5671 (AMQP)
-    3. USERNAME: guest
-    4. PASSWORD: guest
+    3. USERNAME: NULL
+    4. PASSWORD: NULL
     5. CLIENTID: deviceid returned by register_device API
     6. TLS ROOTCA: returned by register_device API
     7. TLS CERT: returned by register_device API
