@@ -227,7 +227,7 @@ An alternative solution is using an AWS serverless solution wherein:
         D. Add environment variable RABBITMQ_CONFIG_FILE %APPDATA%\RabbitMQ\rabbitmq.config
         E. Create configuration file %APPDATA%\RabbitMQ\rabbitmq.config based on rabbitmq.config.example
         F. Update configuration file to enable the following
-           {tcp_listeners, [5672]},
+           {tcp_listeners, []},
            {ssl_listeners, [5671]},
            {loopback_users, []},
            {ssl_options, [{cacertfile, "rootca.pem"},
@@ -236,10 +236,8 @@ An alternative solution is using an AWS serverless solution wherein:
                           {verify,     verify_peer},
                           {fail_if_no_peer_cert, false},
                           {ciphers,  ["RSA-AES128-SHA", "RSA-AES256-SHA"]} ]}
-           {default_user, <<"guest">>},
-           {default_pass, <<"guest">>},
-           {allow_anonymous, false},
-           {tcp_listeners, [1883]},
+           {allow_anonymous, true},
+           {tcp_listeners, []},
            {ssl_listeners, [8883]}
         G. Restart RabbitMQ
            >> Open RabbitMQ Command Prompt
