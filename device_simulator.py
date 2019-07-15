@@ -29,8 +29,8 @@ g_gpio_values = {}
 
 CONFIG_DEVICE_ID            = ""
 
-CONFIG_USERNAME             = "guest"
-CONFIG_PASSWORD             = "guest"
+CONFIG_USERNAME             = None
+CONFIG_PASSWORD             = None
 CONFIG_TLS_CA               = "cert/rootca.pem"
 CONFIG_TLS_CERT             = "cert/ft900device1_cert.pem"
 CONFIG_TLS_PKEY             = "cert/ft900device1_pkey.pem"
@@ -268,7 +268,8 @@ if __name__ == '__main__':
     else:
         g_messaging_client = messaging_client(CONFIG_USE_AMQP, on_mqtt_message, device_id=CONFIG_DEVICE_ID)
         g_messaging_client.set_server(CONFIG_HOST, CONFIG_MQTT_TLS_PORT)
-    g_messaging_client.set_user_pass(CONFIG_USERNAME, CONFIG_PASSWORD)
+    if CONFIG_USERNAME and CONFIG_PASSWORD:
+        g_messaging_client.set_user_pass(CONFIG_USERNAME, CONFIG_PASSWORD)
     g_messaging_client.set_tls(CONFIG_TLS_CA, CONFIG_TLS_CERT, CONFIG_TLS_PKEY)
     try:
         g_messaging_client.initialize()
@@ -279,8 +280,7 @@ if __name__ == '__main__':
     # Subscribe to messages sent for this device
     time.sleep(1)
     subtopic = "{}{}#".format(CONFIG_DEVICE_ID, CONFIG_SEPARATOR)
-    #subtopic = "{}{}{}{}#".format(CONFIG_CUSTOMER_ID, CONFIG_SEPARATOR, CONFIG_DEVICE_NAME, CONFIG_SEPARATOR)
-    #print(subtopic)
+    print(subtopic)
     g_messaging_client.subscribe(subtopic, subscribe=True, declare=True, consume_continuously=True)
 
 
