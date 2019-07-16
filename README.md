@@ -298,7 +298,9 @@ An alternative solution is using an AWS serverless solution wherein:
        WINDOWS: [https://www.mongodb.com/download-center/community?jmp=docs]
        Download and run MSI installer from the link above
 
-    4. Setup Amazon Cognito account
+    4. Setup Amazon Cognito.
+    
+       // Amazon Cognito cloud setup
        A. Click on "Manage User Pools"
        B. Click on "Create a user pool"
        C. Type Pool name and click "Step through settings"
@@ -313,16 +315,16 @@ An alternative solution is using an AWS serverless solution wherein:
        K. Click "Next step"
        L. Click "Create pool"
    
-    5. Update web_server_cognito_config.py
+       // Update web_server_cognito_config.py
        A. CONFIG_USER_POOL_REGION = Region of Cognito User Pool ex. "ap-southeast-1"
        B. CONFIG_USER_POOL_ID     = Copy from General settings/Pool Id
        C. CONFIG_CLIENT_ID        = Copy from General settings/App clients/App client id
 
-    6. Run web_server.bat
+    5. Run web_server.bat
 
        When running in Linux, run web_server.sh
 
-    7. Run device_simulator.py_mqtt_ft900device1.bat and device_simulator.py_mqtt_ft900device2.bat OR 
+    6. Run device_simulator.py_mqtt_ft900device1.bat and device_simulator.py_mqtt_ft900device2.bat OR 
        run device_simulator.py_amqp_ft900device1.bat and device_simulator.py_amqp_ft900device2.bat OR 
        run device_simulator.js_mqtt_ft900device1.bat and device_simulator.js_mqtt_ft900device2.bat OR 
        run FT900 MCU with the following details:
@@ -337,7 +339,7 @@ An alternative solution is using an AWS serverless solution wherein:
        device cert: ft900device2_cert.pem
        device pkey: ft900device2_pkey.pem
 
-    8. Run client.bat
+    7. Browse https://127.0.0.1 [or run client.bat for API testing]
 
 
 # Testing
