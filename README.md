@@ -192,7 +192,9 @@ An alternative solution is using an AWS serverless solution wherein:
 
 # Instructions
 
-    0. Install Python 3.6.6
+
+### Install Python 3.6.6
+
        sudo apt-get install build-essential checkinstall
        sudo apt-get install libreadline-gplv2-dev libncursesw5-dev libssl-dev libsqlite3-dev tk-dev libgdbm-dev libc6-dev libbz2-dev
        cd /usr/src
@@ -203,7 +205,8 @@ An alternative solution is using an AWS serverless solution wherein:
        sudo make altinstall
        python3.6 -V
 
-    1. Install Python and python libraries in requirements.txt
+
+### Install Python and python libraries in requirements.txt
 
        pip install -r requirements.txt
 
@@ -213,8 +216,9 @@ An alternative solution is using an AWS serverless solution wherein:
        Then setup Nginx using the links below:
        [https://www.digitalocean.com/community/tutorials/how-to-serve-flask-applications-with-gunicorn-and-nginx-on-ubuntu-18-04]
        [https://www.digitalocean.com/community/tutorials/how-to-install-nginx-on-ubuntu-16-04]
-      
-    2. Setup and run RabbitMQ broker
+   
+
+### Setup and run RabbitMQ broker
 
         LINUX:
         
@@ -284,7 +288,8 @@ An alternative solution is using an AWS serverless solution wherein:
         H. Copy certificates to %APPDATA%\RabbitMQ 
            rootca.pem, server_cert.pem, server_pkey.pem
 
-    3. Install MongoDB database.
+
+### Install MongoDB database.
        
        LINUX: [https://docs.mongodb.com/manual/tutorial/install-mongodb-on-ubuntu/]
        
@@ -298,7 +303,8 @@ An alternative solution is using an AWS serverless solution wherein:
        WINDOWS: [https://www.mongodb.com/download-center/community?jmp=docs]
        Download and run MSI installer from the link above
 
-    4. Setup Amazon Cognito.
+
+### Setup Amazon Cognito.
     
        // Amazon Cognito cloud setup
        A. Click on "Manage User Pools"
@@ -320,11 +326,12 @@ An alternative solution is using an AWS serverless solution wherein:
        B. CONFIG_USER_POOL_ID     = Copy from General settings/Pool Id
        C. CONFIG_CLIENT_ID        = Copy from General settings/App clients/App client id
 
-    5. Run web_server.bat
 
-       When running in Linux, run web_server.sh
+### Others
 
-    6. Run device_simulator.py_mqtt_ft900device1.bat and device_simulator.py_mqtt_ft900device2.bat OR 
+       Run web_server.bat
+
+       Run device_simulator.py_mqtt_ft900device1.bat and device_simulator.py_mqtt_ft900device2.bat OR 
        run device_simulator.py_amqp_ft900device1.bat and device_simulator.py_amqp_ft900device2.bat OR 
        run device_simulator.js_mqtt_ft900device1.bat and device_simulator.js_mqtt_ft900device2.bat OR 
        run FT900 MCU with the following details:
@@ -339,7 +346,7 @@ An alternative solution is using an AWS serverless solution wherein:
        device cert: ft900device2_cert.pem
        device pkey: ft900device2_pkey.pem
 
-    7. Browse https://127.0.0.1 [or run client.bat for API testing]
+       Browse https://127.0.0.1 [or run client.bat for API testing]
 
 
 # Testing
