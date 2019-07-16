@@ -357,7 +357,7 @@ class database_client_mongodb:
     def get_devices(self, username):
         device_list = []
         devices = self.get_registered_devices()
-        if devices:
+        if devices and devices.count():
             for device in devices.find({},{'username': 1, 'devicename':1, 'deviceid': 1, 'timestamp':1, 'cert':1, 'pkey':1}):
                 if device['username'] == username:
                     device.pop('username')
@@ -441,8 +441,8 @@ class database_viewer:
                     print("confirmationcode : {}".format(user["confirmationcode"]))
                     print("devices    :")
                     devices = self.client.get_registered_devices()
-                    if devices:
-                        for device in devices.find({},{'username': 1, 'devicename':1, 'deviceid': 1, 'timestamp':1, 'cert':1, 'pkey':1}):
+                    if devices and devices.count():
+                        for device in devices.find():
                             if device['username'] == user["username"]:
                                 print("\r\n    DEVICENAME    : {}".format(device["devicename"]))
                                 print("        deviceid  : {}".format(device["deviceid"]))
@@ -466,8 +466,8 @@ class database_viewer:
                     print("status       : {}".format(user["status"]))
                     print("devices      :")
                     devices = self.client.get_registered_devices()
-                    if devices:
-                        for device in devices.find({},{'username': 1, 'devicename':1, 'deviceid': 1, 'timestamp':1, 'cert':1, 'pkey':1}):
+                    if devices and devices.count():
+                        for device in devices.find({'username': user["username"]}):
                             if device['username'] == user["username"]:
                                 print("\r\n    DEVICENAME    : {}".format(device["devicename"]))
                                 print("        deviceid  : {}".format(device["deviceid"]))
@@ -483,7 +483,7 @@ class database_viewer:
 
     def reset(self):
         users = self.client.get_registered_users()
-        for user in users.find({},{'username': 1}):
+        for user in users:
             devices = self.client.get_registered_devices()
             if devices:
                 for device in devices.find({},{'username': 1, 'devicename':1}):
