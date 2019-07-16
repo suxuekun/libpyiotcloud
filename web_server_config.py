@@ -25,7 +25,7 @@ class config:
 
     # Message broker settings
     CONFIG_USE_AMQP             = False
-    CONFIG_HOST                 = "192.168.100.11" #"localhost"
+    CONFIG_HOST                 = "localhost"
     CONFIG_MQTT_TLS_PORT        = 8883
     CONFIG_AMQP_TLS_PORT        = 5671
 
@@ -35,5 +35,3 @@ class config:
     CONFIG_MONGODB_DB           = "iotcloud-database"
     CONFIG_MONGODB_TB_PROFILES  = "profiles"
     CONFIG_MONGODB_TB_DEVICES   = "devices"
-
-    CONFIG_POSTGRESQL_DB        = "iotcloud-database"
