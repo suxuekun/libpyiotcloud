@@ -215,7 +215,9 @@ An alternative solution is using an AWS serverless solution wherein:
        copy web_server.service to /etc/systemd/system
        sudo systemctl start web_server
        sudo systemctl status web_server
-
+       sudo nano /etc/systemd/system/web_server.service
+       gunicorn --bind ip:port wsgi:app // test
+       
        // NGINX
        sudo apt-get install nginx
        copy web_server to /etc/nginx/sites-available
@@ -223,7 +225,8 @@ An alternative solution is using an AWS serverless solution wherein:
        sudo nginx -t
        sudo systemctl start nginx
        sudo systemctl status nginx
-
+       sudo nano /etc/nginx/sites-available/web_server
+       
        [https://www.digitalocean.com/community/tutorials/how-to-serve-flask-applications-with-gunicorn-and-nginx-on-ubuntu-18-04]
        [https://www.digitalocean.com/community/tutorials/how-to-install-nginx-on-ubuntu-16-04]
    
