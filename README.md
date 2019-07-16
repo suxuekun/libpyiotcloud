@@ -405,8 +405,7 @@ In Linux, the total round trip time is only 1 second.
 # Action Items
 
 1. Support Docker containerization
-2. Support AWS EC2 deployment
-3. Support Kubernetes scalability
-4. Add manager/admin page in Web client (see all users and devices registered by each user)
-5. Add logging for debugging/troubleshooting
-6. Access key timeout/refresh
+2. Support Kubernetes scalability
+3. Add manager/admin page in Web client (see all users and devices registered by each user)
+4. Add logging for debugging/troubleshooting
+5. Fix access key timeout issue
