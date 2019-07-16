@@ -193,7 +193,7 @@ An alternative solution is using an AWS serverless solution wherein:
 # Instructions
 
 
-### Install Python 3.6.6
+### Install Python 3.6.6 and Python libraries
 
        sudo apt-get install build-essential checkinstall
        sudo apt-get install libreadline-gplv2-dev libncursesw5-dev libssl-dev libsqlite3-dev tk-dev libgdbm-dev libc6-dev libbz2-dev
@@ -204,16 +204,26 @@ An alternative solution is using an AWS serverless solution wherein:
        sudo ./configure --enable-optimizations
        sudo make altinstall
        python3.6 -V
-
-
-### Install Python and python libraries in requirements.txt
-
+       
        pip install -r requirements.txt
 
-       When running in Linux, need to install gunicorn and nginx as well
-       sudo pip install gunicorn 
-       sudo apt-get install nginx 
-       Then setup Nginx using the links below:
+
+### Install Gunicorn and Nginx
+
+       // GUNICORN
+       sudo pip install gunicorn
+       copy web_server.service to /etc/systemd/system
+       sudo systemctl start web_server
+       sudo systemctl status web_server
+
+       // NGINX
+       sudo apt-get install nginx
+       copy web_server to /etc/nginx/sites-available
+       sudo ln -s /etc/nginx/sites-available/web_server /etc/nginx/sites-enabled
+       sudo nginx -t
+       sudo systemctl start nginx
+       sudo systemctl status nginx
+
        [https://www.digitalocean.com/community/tutorials/how-to-serve-flask-applications-with-gunicorn-and-nginx-on-ubuntu-18-04]
        [https://www.digitalocean.com/community/tutorials/how-to-install-nginx-on-ubuntu-16-04]
    
@@ -349,7 +359,7 @@ An alternative solution is using an AWS serverless solution wherein:
        Browse https://127.0.0.1 [or run client.bat for API testing]
 
 
-# Testing
+# Testing and Troubleshooting
 
 ### MQTT/AMQP Device
 
@@ -365,6 +375,11 @@ An alternative solution is using an AWS serverless solution wherein:
 
 - web_server_database_viewer.bat - view registered devices (MongoDB) and registered users (Amazon Cognito)
 
+### Troubleshooting
+
+- sudo service mongod status 
+- sudo systemctl status web_server
+- sudo systemctl status nginx
 
 
 # Performance
