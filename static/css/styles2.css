@@ -9,6 +9,17 @@ input[type=text], select {
   box-sizing: border-box;
 }
 
+input[type=password], select {
+  font-size: 14px;
+  width: 100%;
+  padding: 14px 20px;
+  margin: 8px 0;
+  display: inline-block;
+  border: 1px solid #999;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
 input[type=submit] {
   width: 100px;
   height: 40px;
