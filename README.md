@@ -372,7 +372,7 @@ An alternative solution is using an AWS serverless solution wherein:
 
 - [Python Paho-MQTT client device simulator](https://github.com/richmondu/libpyiotcloud/tree/master/device_simulator/device_simulator.py)
 - [Python Pika-AMQP client device simulator](https://github.com/richmondu/libpyiotcloud/tree/master/device_simulator/device_simulator.py)
-- [NodeJS MQTT client device simulator] (https://github.com/richmondu/libpyiotcloud/tree/master/device_simulator/device_simulator.js)
+- [NodeJS MQTT client device simulator](https://github.com/richmondu/libpyiotcloud/tree/master/device_simulator/device_simulator.js)
 
 ### Test utilities
 
