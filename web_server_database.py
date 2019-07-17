@@ -358,7 +358,7 @@ class database_client_mongodb:
         device_list = []
         devices = self.get_registered_devices()
         if devices and devices.count():
-            for device in devices.find({},{'username': 1, 'devicename':1, 'deviceid': 1, 'timestamp':1, 'cert':1, 'pkey':1}):
+            for device in devices.find({'username': username},{'username': 1, 'devicename':1, 'deviceid': 1, 'timestamp':1, 'cert':1, 'pkey':1}):
                 if device['username'] == username:
                     device.pop('username')
                     device.pop('timestamp')
