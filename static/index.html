@@ -47,20 +47,25 @@
 				<br/><br/><br/><br/>
 				<p>
 
-					<h1>FT900 IoT Cloud Platform</h1>
-					<a>Bridgetek releases IoT cloud platform to easily bridge FT900 series of microcontrollers to the cloud.</a><br/><br/>
+					<h1>Bridgetek IoT Cloud Platform</h1>
+
+					<h2>FT90x IoT Cloud Platform</h2>
+
+					<a>Bridgetek releases an IoT cloud platform powered by Amazon Web Services (AWS) to easily bridge FT90x series of microcontrollers to the cloud.</a> <br/><br/>
 
 					<a>This IoT platform is not your usual IoT platform. It focuses on remote device access and control.</a>
-					<a>For sensor data graphing and data analysis, use the IoT platforms of AWS, GCP and Azure.</a><br/><br/>
+					<a>For sensor data graphing and data analysis use-case scenarios, please use the IoT platforms of AWS, GCP and Azure.</a> <br/><br/>
 
-					<a>Test procedure:</a>
+					<a>IoT Made Easy</a>
 					<ol>
 						<li>Create an account then login</li>
 						<li>Register a device (can register multiple devices)</li>
-						<li>Copy the device information (DEVICE_ID, TLS_CERT and TLS_PKEY)</li>
-						<li>Run the device (using the DEVICE_ID, TLS_CERT, TLS_PKEY and Bridgetek TLS_ROOT_CA)</li>
-						<li>Access and control the device (set/get gpio/rtc, get ip/subnet/gateway/mac addresses, write uart)</li>
+						<li>Copy the registered device information (DEVICE_ID, DEVICE_TLS_CERT and DEVICE_TLS_PKEY)</li>
+						<li>Run the registered device (using the DEVICE_ID, DEVICE_TLS_CERT, DEVICE_TLS_PKEY and Bridgetek TLS_ROOT_CA)</li>
+						<li>Access and control the registered device (set/get gpio/rtc, get ip/subnet/gateway/mac addresses, write uart)</li>
 					</ol>
+
+					<a href="signup.html">Get started for free!</a> <br/><br/>
 
 					<a>Device credentials/certificates:</a>
 					<ul>
@@ -70,40 +75,43 @@
 						<li>Username: NULL</li>
 						<li>Password: NULL</li>
 						<li>Root CA certificate: TLS_ROOT_CA</li>
-						<li>Certificate: TLS_CERT</li>
-						<li>Private key: TLS_PKEY</li>
+						<li>Certificate: DEVICE_TLS_CERT</li>
+						<li>Private key: DEVICE_TLS_PKEY</li>
 						<li>Subscribe topic: DEVICE_ID/# (MQTT) or mqtt-subscription-DEVICE_IDqos1 (AMQP)</li>
 						<li>Publish topic: server/DEVICE_ID/API_NAME (MQTT) or server.DEVICE_ID.api (AMQP)</li>
 					</ul>
 
 					<a>Sample device implementations:</a>
 					<ul>
-						<li><a href="https://github.com/richmondu/FT900/tree/master/IoT/ft90x_iot_brtcloud">FT900 device</a></li>
-						<li><a href="https://github.com/richmondu/libpyiotcloud/tree/master/device_simulator">MQTT/AMQP device simulators (both Python and NodeJS)</a></li>
+						<li><a href="https://github.com/richmondu/FT900/tree/master/IoT/ft90x_iot_brtcloud">FT900 MQTT device</a></li>
+						<li><a href="https://github.com/richmondu/libpyiotcloud/tree/master/device_simulator">MQTT device simulators (Python and NodeJS)</a></li>
+						<li><a href="https://github.com/richmondu/libpyiotcloud/tree/master/device_simulator">AMQP device simulators (Python)</a></li>
 					</ul>
 
-				</p>
+					<a href="https://brtchip.com/product-shop/">Buy your FT90x devices now!</a>
 
-				<p>
-					<h1>FT900 IoT Device Framework</h1>
-					<a>Bridgetek officially release FT900 IoT device framework to easily and securely bridge FT900 series of microcontrollers to the cloud.</a><br/><br/>
 
-					<a>FT900 can securely connect to FT900 IoT Cloud Platform and can also connect to AWS/GCP/Azure IoT cloud platforms by simply creating an IoT project via our customized Eclipse IDE with FT900 toolchain.</a><br/><br/>
+
+					<h2>FT90x IoT Device Framework</h2>
+
+					<a>Bridgetek officially releases IoT device framework to easily and securely bridge FT90x series of microcontrollers to the cloud.</a> <br/><br/>
+
+					<a>FT900 can securely connect to FT90x IoT Cloud Platform and AWS/GCP/Azure IoT Cloud Platforms by simply creating an IoT project via our customized Eclipse IDE with FT90x toolchain.</a> <br/><br/>
 
 					<a>IoT platforms of popular cloud providers:</a>
 					<ul>
-						<li>Amazon Web Services - IoT Core </li>
-						<li>Google Cloud Platform - IoT Core </li>
-						<li>Microsoft Azure - IoT Hub </li>
+						<li><a href="https://aws.amazon.com/iot-core/">Amazon Web Services - IoT Core </a></li>
+						<li><a href="https://cloud.google.com/iot-core/">Google Cloud Platform - IoT Core </a></li>
+						<li><a href="https://azure.microsoft.com/en-us/services/iot-hub/">Microsoft Azure - IoT Hub </a></li>
 					</ul>
 
-					<a>FT900 has also been tested to work with popular IoT platform providers listed below. Simple configuration file changes are needed.</a><br/><br/>
+					<a>FT900 has also been tested to work with popular IoT platform providers listed below. Simple configuration file changes are needed.</a> <br/><br/>
 
 					<a>Dedicated IoT platform providers:</a>
 					<ul>
-						<li>Adafruit.io</li>
-						<li>Ubidots</li>
-						<li>ThingSpeak</li>
+						<li><a href="https://io.adafruit.com/">Adafruit.io</a></li>
+						<li><a href="https://ubidots.com/">Ubidots</a></li>
+						<li><a href="https://thingspeak.com/">ThingSpeak</a></li>
 					</ul>
 				</p>
 
