@@ -361,14 +361,18 @@ An alternative solution is using an AWS serverless solution wherein:
 
        // AWS EC2 setup
        A. Create a t2.micro instance of Ubuntu 16.04
-       B. Dowload authentication certificate for SSH access 
-       C. Enable ports: 22 (SSH), 8883 (MQTTS), 5671 (AMQPS), 443 (HTTPS)
+       B. Dowload "Private key file for authentication" for SSH access
+       C. Copy the "IPv4 Public IP" address
+       D. Enable ports: 22 (SSH), 8883 (MQTTS), 5671 (AMQPS), 443 (HTTPS)
 
        // PUTTY setup (for SSH console access)
-       A.       
+       A. Go to Category > Connection > SSH > Auth, then click Browse for "Private key file for authentication"    
+       B. Set "hostname (or IP address)" to "ubuntu@IPV4_PUBLIC_IP_ADDRESS"
        
        // WINSCP setup (for SSH file transfer access)
-       A.       
+       A. Create New Site
+       B. Set "Host name:" to IPV4_PUBLIC_IP_ADDRESS
+       C. Set "User name:" to ubuntu
 
 
 # Testing and Troubleshooting
