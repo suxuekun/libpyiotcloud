@@ -7,14 +7,12 @@ var ArgumentParser = require('argparse');
 
 
 // default configurations
-var CONFIG_CUSTOMER_ID   = "richmond_umagat@brtchip_com"
-//var CONFIG_DEVICE_NAME   = "ft900device1"
 var CONFIG_DEVICE_ID     = ""
 var CONFIG_USERNAME      = null
 var CONFIG_PASSWORD      = null
-var CONFIG_TLS_CA        = "cert/rootca.pem"
-var CONFIG_TLS_CERT      = "cert/ft900device1_cert.pem"
-var CONFIG_TLS_PKEY      = "cert/ft900device1_pkey.pem"
+var CONFIG_TLS_CA        = "../cert/rootca.pem"
+var CONFIG_TLS_CERT      = "../cert/ft900device1_cert.pem"
+var CONFIG_TLS_PKEY      = "../cert/ft900device1_pkey.pem"
 var CONFIG_HOST          = "localhost"
 var CONFIG_MQTT_TLS_PORT = 8883
 var CONFIG_PREPEND_REPLY_TOPIC  = "server/"

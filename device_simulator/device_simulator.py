@@ -3,7 +3,12 @@ import time
 import netifaces
 import argparse
 import sys
-from messaging_client import messaging_client
+import os
+import inspect
+currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+parentdir = os.path.dirname(currentdir)
+sys.path.insert(0,parentdir)
+from messaging_client import messaging_client # common module from parent directory
 
 
 
@@ -31,9 +36,9 @@ CONFIG_DEVICE_ID            = ""
 
 CONFIG_USERNAME             = None
 CONFIG_PASSWORD             = None
-CONFIG_TLS_CA               = "cert/rootca.pem"
-CONFIG_TLS_CERT             = "cert/ft900device1_cert.pem"
-CONFIG_TLS_PKEY             = "cert/ft900device1_pkey.pem"
+CONFIG_TLS_CA               = "../cert/rootca.pem"
+CONFIG_TLS_CERT             = "../cert/ft900device1_cert.pem"
+CONFIG_TLS_PKEY             = "../cert/ft900device1_pkey.pem"
 
 CONFIG_HOST                 = "localhost"
 CONFIG_MQTT_TLS_PORT        = 8883
@@ -225,14 +230,14 @@ def on_amqp_message(ch, method, properties, body):
 def parse_arguments(argv):
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--USE_AMQP', required=False, default=1 if CONFIG_USE_AMQP else 0, help='Use AMQP instead of MQTT')
-    parser.add_argument('--USE_DEVICE_ID', required=False, default=CONFIG_DEVICE_ID,    help='Device ID to use')
-    parser.add_argument('--USE_DEVICE_CA',   required=False, default=CONFIG_TLS_CA,   help='Device CA certificate to use')
-    parser.add_argument('--USE_DEVICE_CERT', required=False, default=CONFIG_TLS_CERT, help='Device certificate to use')
-    parser.add_argument('--USE_DEVICE_PKEY', required=False, default=CONFIG_TLS_PKEY, help='Device private key to use')
-    parser.add_argument('--USE_HOST',        required=False, default=CONFIG_HOST,     help='Host server to connect to')
-    parser.add_argument('--USE_USERNAME',    required=False, default=CONFIG_USERNAME, help='Username to use in connection')
-    parser.add_argument('--USE_PASSWORD',    required=False, default=CONFIG_PASSWORD, help='Password to use in connection')
+    parser.add_argument('--USE_AMQP',        required=False, default=1 if CONFIG_USE_AMQP else 0, help='Use AMQP instead of MQTT')
+    parser.add_argument('--USE_DEVICE_ID',   required=False, default=CONFIG_DEVICE_ID, help='Device ID to use')
+    parser.add_argument('--USE_DEVICE_CA',   required=False, default=CONFIG_TLS_CA,    help='Device CA certificate to use')
+    parser.add_argument('--USE_DEVICE_CERT', required=False, default=CONFIG_TLS_CERT,  help='Device certificate to use')
+    parser.add_argument('--USE_DEVICE_PKEY', required=False, default=CONFIG_TLS_PKEY,  help='Device private key to use')
+    parser.add_argument('--USE_HOST',        required=False, default=CONFIG_HOST,      help='Host server to connect to')
+    parser.add_argument('--USE_USERNAME',    required=False, default=CONFIG_USERNAME,  help='Username to use in connection')
+    parser.add_argument('--USE_PASSWORD',    required=False, default=CONFIG_PASSWORD,  help='Password to use in connection')
     return parser.parse_args(argv)
 
 
