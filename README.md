@@ -366,13 +366,13 @@ An alternative solution is using an AWS serverless solution wherein:
 
 ### MQTT/AMQP Device
 
-- [FT900 MCU device (LWIP-MQTT client)](https://github.com/richmondu/FT900/tree/master/IoT/ft90x_iot_brtcloud)
+- [FT900 MCU device (LWIP-MQTT over mbedTLS client)](https://github.com/richmondu/FT900/tree/master/IoT/ft90x_iot_brtcloud)
 
 ### MQTT/AMQP Device simulators
 
-- [Python Paho-MQTT client device simulator](https://github.com/richmondu/libpyiotcloud/blob/master/device_simulator.py)
-- [Python Pika-AMQP client device simulator](https://github.com/richmondu/libpyiotcloud/blob/master/device_simulator.py)
-- [NodeJS MQTT client device simulator](https://github.com/richmondu/libpyiotcloud/blob/master/device_simulator.js)
+- [Python Paho-MQTT client device simulator](https://github.com/richmondu/libpyiotcloud/tree/master/device_simulator/device_simulator.py)
+- [Python Pika-AMQP client device simulator](https://github.com/richmondu/libpyiotcloud/tree/master/device_simulator/device_simulator.py)
+- [NodeJS MQTT client device simulator] (https://github.com/richmondu/libpyiotcloud/tree/master/device_simulator/device_simulator.js)
 
 ### Test utilities
 
