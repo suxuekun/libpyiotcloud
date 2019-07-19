@@ -488,7 +488,12 @@ An alternative solution is using an AWS serverless solution wherein:
               config:
                 - subnet: 172.18.0.0/16
                   gateway: 172.18.0.1
-          
+        
+        // test
+        https:// 192.168.99.100
+        mqtts:// 192.168.99.100:8883
+        amqps:// 192.168.99.100:5671
+
 
 # Testing and Troubleshooting
 
