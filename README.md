@@ -426,7 +426,64 @@ An alternative solution is using an AWS serverless solution wherein:
         docker rm mdb
         docker rm app
         docker rm ngx
-        
+
+### Dockercompose
+
+        version: '2.4'
+        services:
+          rabbitmq:
+            build: ./rabbitmq
+            restart: always
+            networks:
+              mydockernet:
+                ipv4_address: 172.18.0.2
+            ports:
+              - "8883:8883"
+              - "5671:5671"
+            expose:
+              - "8883"
+              - "5671"
+          mongodb:
+            build: ./mongodb
+            restart: always
+            networks:
+              mydockernet:
+                ipv4_address: 172.18.0.3
+            ports:
+              - "27017:27017"
+            volumes:
+              - "/data:/data/db"
+          webapp:
+            build: ./webapp
+            restart: always
+            networks:
+              mydockernet:
+                ipv4_address: 172.18.0.4
+            ports:
+              - "8000:8000"
+            depends_on:
+              - rabbitmq
+              - mongodb
+          nginx:
+            build: ./nginx
+            restart: always
+            networks:
+              mydockernet:
+                ipv4_address: 172.18.0.5
+            ports:
+              - "443:443"
+            expose:
+              - "443"
+            depends_on:
+              - webapp
+        networks:
+          mydockernet:
+            driver: bridge
+            ipam:
+              config:
+                - subnet: 172.18.0.0/16
+                  gateway: 172.18.0.1
+          
 
 # Testing and Troubleshooting
 
