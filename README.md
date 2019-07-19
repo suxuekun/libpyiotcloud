@@ -531,7 +531,9 @@ In Linux, the total round trip time is only 1 second.
 
 # Action Items
 
-1. Support Kubernetes scalability
-2. Add manager/admin page in Web client (see all users and devices registered by each user)
-3. Add logging for debugging/troubleshooting
-4. Fix access key timeout issue
+1. Use Ionic front-end framework for cross-platform mobile, web, and desktop apps
+2. Add message counter for free-tier subscription
+3. Add manager/admin page in Web client (see all users and devices registered by each user)
+4. Add logging for debugging/troubleshooting
+5. Fix access key timeout issue
+6. Support Kubernetes scalability
