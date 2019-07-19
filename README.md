@@ -429,6 +429,10 @@ An alternative solution is using an AWS serverless solution wherein:
 
 ### Dockercompose
 
+        docker-compose -f docker-compose.yml config
+        docker-compose up
+
+        // docker-compose.yml
         version: '2.4'
         services:
           rabbitmq:
