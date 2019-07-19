@@ -374,6 +374,59 @@ An alternative solution is using an AWS serverless solution wherein:
        C. Set "User name:" to ubuntu
 
 
+### Dockerfiles
+
+        // RABBITMQ Dockerfile
+        FROM rabbitmq:3.7
+        RUN rabbitmq-plugins enable --offline rabbitmq_management
+        RUN rabbitmq-plugins enable --offline rabbitmq_mqtt
+        COPY src/ /etc/rabbitmq/
+        EXPOSE 5671
+        EXPOSE 8883
+
+        // MONGODB Dockerfile
+        FROM mongo:latest
+        VOLUME ["/data/db"]
+        WORKDIR /data
+        EXPOSE 27017
+
+        // WEBAPP Dockerfile
+        FROM python:3.6.6
+        RUN mkdir -p /usr/src/app/libpyiotcloud
+        WORKDIR /usr/src/app/libpyiotcloud
+        COPY libpyiotcloud/ /usr/src/app/libpyiotcloud/
+        RUN pip install --no-cache-dir -r requirements.txt
+        CMD ["gunicorn", "--workers=1", "--bind=0.0.0.0:8000", "--forwarded-allow-ips='*'", "wsgi:app"]
+        EXPOSE 8000
+
+        // NGINX Dockerfile
+        FROM nginx:latest
+        RUN rm /etc/nginx/conf.d/default.conf
+        COPY src/ /etc/nginx/conf.d/
+        EXPOSE 443
+
+        // CREATE and RUN
+        docker network create --subnet=172.18.0.0/16 mydockernet
+        docker build -t rmq .
+        docker run --net mydockernet --ip 172.18.0.2 -d -p 8883:8883 -p 5671:5671 -p 15672:15672 --name rmq rmq
+        docker build -t mdb .
+        docker run --net mydockernet --ip 172.18.0.3 -d -p 27017:27017 -v /data:/data/db --name mdb mdb
+        docker build -t app .
+        docker run --net mydockernet --ip 172.18.0.4 -d -p 8000:8000 --name app app
+        docker build -t ngx .
+        docker run --net mydockernet --ip 172.18.0.5 -d -p 443:443 --name ngx ngx
+
+        // STOP and REMOVE
+        docker stop rmq
+        docker stop mdb
+        docker stop app
+        docker stop ngx
+        docker rm rmq
+        docker rm mdb
+        docker rm app
+        docker rm ngx
+        
+
 # Testing and Troubleshooting
 
 ### MQTT/AMQP Device
