@@ -54,13 +54,12 @@ An alternative solution is using an AWS serverless solution wherein:
 
 ### Notes:
 
-    1. This is a simple design and will not likely scale to millions of devices.
-    2. RabbitMQ supports AMQP and MQTT.
-    3. For MQTT to work, MQTT plugin must be installed in RabbitMQ.
-    4. Login API will return an access token that will be used for succeeding API calls.
-    5. Register device API will return deviceid, rootca, device certificate and device private key.
-    6. Device shall use deviceid as MQTT client id and use the rootca, device certificate and device private key.
-    7. The webserver has been tested on Linux using GUnicorn.
+    1. RabbitMQ supports AMQP and MQTT.
+    2. For MQTT to work, MQTT plugin must be installed in RabbitMQ.
+    3. Login API will return an access token that will be used for succeeding API calls.
+    4. Register device API will return deviceid, rootca, device certificate and device private key.
+    5. Device shall use deviceid as MQTT client id and use the rootca, device certificate and device private key.
+    6. The webserver has been tested on Linux Ubuntu 16.04 using GUnicorn and Nginx.
 
 
 
