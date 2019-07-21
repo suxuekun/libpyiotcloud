@@ -118,6 +118,7 @@ def parse_arguments(argv):
 
 if __name__ == '__main__':
 
+    time.sleep(15) # TODO: Fix hack for Dockercompose
     args = parse_arguments(sys.argv[1:])
     CONFIG_USE_AMQP    = True if int((args.USE_AMQP))==1 else False
     CONFIG_SEPARATOR   = "." if int((args.USE_AMQP))==1 else "/"
