@@ -1,0 +1,7 @@
+docker build -t rmq .
+docker run -d -p 8883:8883 -p 5671:5671 -p 15672:15672 --name rmq rmq
+
+docker-machine ls // get the ip address for testing with MQTT.FX
+
+docker stop rmq
+docker rm rmq
