@@ -437,10 +437,14 @@ An alternative solution is using an AWS serverless solution wherein:
         docker rm app
         docker rm ngx
 
+
 ### Dockercompose
 
         docker-compose -f docker-compose.yml config
+        docker-compose build
         docker-compose up
+        docker-compose ps
+        docker-compose down
 
         // docker-compose.yml
         version: '2.4'
