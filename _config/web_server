@@ -1,29 +1,14 @@
 server {
     #listen 80;
     listen 443 ssl;
-    server_name 192.168.100.17;
+    server_name 172.18.0.5;
 
-    #include snippets/self-signed.conf;
-    #ssl on;
-    #ssl_certificate /etc/nginx/ssl/nginx.crt;
-    #ssl_certificate_key /etc/nginx/ssl/nginx.key;
+    ssl_certificate /etc/nginx/conf.d/ssl-cert-snakeoil.pem;
+    ssl_certificate_key /etc/nginx/conf.d/ssl-cert-snakeoil.key;
+    #ssl_certificate /etc/ssl/certs/ssl-cert-snakeoil.pem;
+    #ssl_certificate_key /etc/ssl/private/ssl-cert-snakeoil.key;
 
-
-    ssl_certificate /etc/ssl/certs/ssl-cert-snakeoil.pem;
-    ssl_certificate_key /etc/ssl/private/ssl-cert-snakeoil.key;
-    
     location / {
-        include proxy_params;
-        proxy_pass http://192.168.100.17:8000;
-#        proxy_passreverse https://192.168.100.17:8000;
-
-#        proxy_set_header Host $host;
-#        proxy_set_header X-Fordwarded-port 443;
-#        proxy_set_header X-Scheme $scheme;
-#        proxy_set_header X-Forwarded-Protocol $scheme;
-#        proxy_set_header X-Real-IP $remote_addr;
-#        proxy_set_header X-Fordwarded-For $proxy_add_x_forwarded_for;
-
-#        proxy_redirect https:// $scheme://;
+        proxy_pass http://172.18.0.4:8000;
     }
 }
