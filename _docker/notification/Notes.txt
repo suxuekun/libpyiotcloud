@@ -1,0 +1,8 @@
+docker build -t nmg .
+docker run -d --name nmg nmg
+
+	docker ps -a
+	docker-machine ls // get the ip address for testing with MQTT.FX
+
+docker stop nmg
+docker rm nmg
