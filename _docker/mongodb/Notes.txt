@@ -1,0 +1,5 @@
+docker build -t mdb .
+docker run -d -p 27017:27017 -v /data:/data/db --name mdb mdb
+
+docker stop mdb
+docker rm mdb
