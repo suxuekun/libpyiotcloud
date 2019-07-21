@@ -17,8 +17,9 @@ In this use-case, the device only sends the data when queried.
 
 # Architecture
 
-This IoT platform is a server-based IoT cloud platform that leverages Flask, GUnicorn, Nginx, RabbitMQ, MongoDB, Amazon Cognito and Amazon Pinpoint.
-It can be deployed in local PC or in the cloud - AWS EC2, Linode, Heroku, Rackspace, DigitalOcean or etc.
+This IoT platform is a server-based IoT cloud platform that leverages 
+Flask, GUnicorn, Nginx, RabbitMQ, MongoDB, Amazon Cognito, Amazon Pinpoint and Docker. 
+It can be deployed in a local PC or in the cloud - AWS EC2, Linode, Heroku, Rackspace, DigitalOcean or etc.
 
 - Nginx web server - https://www.nginx.com/
 - GUnicorn WSGI server - https://gunicorn.org/
@@ -29,6 +30,7 @@ It can be deployed in local PC or in the cloud - AWS EC2, Linode, Heroku, Racksp
 - Amazon Cognito (user sign-up/sign-in) - https://aws.amazon.com/cognito/
 - Amazon Pinpoint (email/SMS notifications) - https://aws.amazon.com/pinpoint/
 - Amazon SNS (email/SMS notifications) - https://aws.amazon.com/sns/
+- Docker containerization - https://www.docker.com/
 
 An alternative solution is using an AWS serverless solution wherein:
 
@@ -54,13 +56,12 @@ An alternative solution is using an AWS serverless solution wherein:
 
 ### Notes:
 
-    1. This is a simple design and will not likely scale to millions of devices.
-    2. RabbitMQ supports AMQP and MQTT.
-    3. For MQTT to work, MQTT plugin must be installed in RabbitMQ.
-    4. Login API will return an access token that will be used for succeeding API calls.
-    5. Register device API will return deviceid, rootca, device certificate and device private key.
-    6. Device shall use deviceid as MQTT client id and use the rootca, device certificate and device private key.
-    7. The webserver has been tested on Linux using GUnicorn.
+    1. RabbitMQ supports AMQP and MQTT.
+    2. For MQTT to work, MQTT plugin must be installed in RabbitMQ.
+    3. Login API will return an access token that will be used for succeeding API calls.
+    4. Register device API will return deviceid, rootca, device certificate and device private key.
+    5. Device shall use deviceid as MQTT client id and use the rootca, device certificate and device private key.
+    6. The webserver has been tested on Linux Ubuntu 16.04 using GUnicorn and Nginx.
 
 
 
@@ -375,6 +376,125 @@ An alternative solution is using an AWS serverless solution wherein:
        C. Set "User name:" to ubuntu
 
 
+### Dockerfiles
+
+        // RABBITMQ Dockerfile
+        FROM rabbitmq:3.7
+        RUN rabbitmq-plugins enable --offline rabbitmq_management
+        RUN rabbitmq-plugins enable --offline rabbitmq_mqtt
+        COPY src/ /etc/rabbitmq/
+        EXPOSE 5671
+        EXPOSE 8883
+
+        // MONGODB Dockerfile
+        FROM mongo:latest
+        VOLUME ["/data/db"]
+        WORKDIR /data
+        EXPOSE 27017
+
+        // WEBAPP Dockerfile
+        FROM python:3.6.6
+        RUN mkdir -p /usr/src/app/libpyiotcloud
+        WORKDIR /usr/src/app/libpyiotcloud
+        COPY libpyiotcloud/ /usr/src/app/libpyiotcloud/
+        RUN pip install --no-cache-dir -r requirements.txt
+        CMD ["gunicorn", "--workers=1", "--bind=0.0.0.0:8000", "--forwarded-allow-ips='*'", "wsgi:app"]
+        EXPOSE 8000
+
+        // NGINX Dockerfile
+        FROM nginx:latest
+        RUN rm /etc/nginx/conf.d/default.conf
+        COPY src/ /etc/nginx/conf.d/
+        EXPOSE 443
+
+        // CREATE and RUN
+        docker network create --subnet=172.18.0.0/16 mydockernet
+        docker build -t rmq .
+        docker run --net mydockernet --ip 172.18.0.2 -d -p 8883:8883 -p 5671:5671 -p 15672:15672 --name rmq rmq
+        docker build -t mdb .
+        docker run --net mydockernet --ip 172.18.0.3 -d -p 27017:27017 -v /data:/data/db --name mdb mdb
+        docker build -t app .
+        docker run --net mydockernet --ip 172.18.0.4 -d -p 8000:8000 --name app app
+        docker build -t ngx .
+        docker run --net mydockernet --ip 172.18.0.5 -d -p 443:443 --name ngx ngx
+
+        // STOP and REMOVE
+        docker stop rmq
+        docker stop mdb
+        docker stop app
+        docker stop ngx
+        docker rm rmq
+        docker rm mdb
+        docker rm app
+        docker rm ngx
+
+### Dockercompose
+
+        docker-compose -f docker-compose.yml config
+        docker-compose up
+
+        // docker-compose.yml
+        version: '2.4'
+        services:
+          rabbitmq:
+            build: ./rabbitmq
+            restart: always
+            networks:
+              mydockernet:
+                ipv4_address: 172.18.0.2
+            ports:
+              - "8883:8883"
+              - "5671:5671"
+            expose:
+              - "8883"
+              - "5671"
+          mongodb:
+            build: ./mongodb
+            restart: always
+            networks:
+              mydockernet:
+                ipv4_address: 172.18.0.3
+            ports:
+              - "27017:27017"
+            volumes:
+              - "/data:/data/db"
+          webapp:
+            build: ./webapp
+            restart: always
+            networks:
+              mydockernet:
+                ipv4_address: 172.18.0.4
+            ports:
+              - "8000:8000"
+            depends_on:
+              - rabbitmq
+              - mongodb
+          nginx:
+            build: ./nginx
+            restart: always
+            networks:
+              mydockernet:
+                ipv4_address: 172.18.0.5
+            ports:
+              - "443:443"
+            expose:
+              - "443"
+            depends_on:
+              - webapp
+        networks:
+          mydockernet:
+            driver: bridge
+            ipam:
+              config:
+                - subnet: 172.18.0.0/16
+                  gateway: 172.18.0.1
+        
+        // test
+        https:// 192.168.99.100
+        mqtts:// 192.168.99.100:8883
+        amqps:// 192.168.99.100:5671
+
+
 # Testing and Troubleshooting
 
 ### MQTT/AMQP Device
@@ -417,8 +537,9 @@ In Linux, the total round trip time is only 1 second.
 
 # Action Items
 
-1. Support Docker containerization
-2. Support Kubernetes scalability
+1. Use Ionic front-end framework for cross-platform mobile, web, and desktop apps
+2. Add message counter for free-tier subscription
 3. Add manager/admin page in Web client (see all users and devices registered by each user)
 4. Add logging for debugging/troubleshooting
 5. Fix access key timeout issue
+6. Support Kubernetes scalability
