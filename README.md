@@ -428,6 +428,8 @@ An alternative solution is using an AWS serverless solution wherein:
         docker run --net mydockernet --ip 172.18.0.5 -d -p 443:443 --name ngx ngx
 
         // STOP and REMOVE
+        docker ps
+        docker ps -a
         docker stop rmq
         docker stop mdb
         docker stop app
@@ -436,6 +438,7 @@ An alternative solution is using an AWS serverless solution wherein:
         docker rm mdb
         docker rm app
         docker rm ngx
+        docker network rm mydockernet
 
 
 ### Dockercompose
@@ -443,6 +446,7 @@ An alternative solution is using an AWS serverless solution wherein:
         docker-compose -f docker-compose.yml config
         docker-compose build
         docker-compose up
+        docker-compose up -d
         docker-compose ps
         docker-compose down
 
