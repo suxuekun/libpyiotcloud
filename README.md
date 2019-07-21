@@ -407,6 +407,15 @@ An alternative solution is using an AWS serverless solution wherein:
         COPY src/ /etc/nginx/conf.d/
         EXPOSE 443
 
+        // NOTIFICATION Dockerfile
+        FROM python:3.6.6
+        RUN mkdir -p /usr/src/app/notification_manager
+        WORKDIR /usr/src/app/notification_manager
+        COPY src/ /usr/src/app/notification_manager/
+        WORKDIR /usr/src/app/notification_manager/notification_manager
+        RUN pip install --no-cache-dir -r requirements.txt
+        CMD ["python", "-u", "notification_manager.py", "--USE_HOST", "172.18.0.2"]
+
         // CREATE and RUN
         docker network create --subnet=172.18.0.0/16 mydockernet
         docker build -t rmq .
@@ -481,6 +490,17 @@ An alternative solution is using an AWS serverless solution wherein:
               - "443"
             depends_on:
               - webapp
+          notification:
+            build: ./notification
+            restart: always
+            networks:
+              mydockernet:
+                ipv4_address: 172.18.0.6
+            depends_on:
+              - rabbitmq
+              - nginx
+              - webapp
+              - mongodb              
         networks:
           mydockernet:
             driver: bridge
