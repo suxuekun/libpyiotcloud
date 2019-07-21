@@ -25,12 +25,12 @@ class config:
 
     # Message broker settings
     CONFIG_USE_AMQP             = False
-    CONFIG_HOST                 = "localhost"
+    CONFIG_HOST                 = "172.18.0.2"
     CONFIG_MQTT_TLS_PORT        = 8883
     CONFIG_AMQP_TLS_PORT        = 5671
 
     # Database settings
-    CONFIG_MONGODB_HOST         = "localhost"
+    CONFIG_MONGODB_HOST         = "172.18.0.3"
     CONFIG_MONGODB_PORT         = 27017
     CONFIG_MONGODB_DB           = "iotcloud-database"
     CONFIG_MONGODB_TB_PROFILES  = "profiles"
