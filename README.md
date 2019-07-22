@@ -443,6 +443,15 @@ An alternative solution is using an AWS serverless solution wherein:
 
 ### Dockercompose
 
+        Prerequisite: set the following environment variables
+        - AWS_ACCESS_KEY_ID
+        - AWS_SECRET_ACCESS_KEY
+        - AWS_COGNITO_CLIENT_ID
+        - AWS_COGNITO_USERPOOL_ID
+        - AWS_COGNITO_USERPOOL_REGION       
+        - AWS_PINPOINT_ID
+        - AWS_PINPOINT_REGION
+      
         docker-compose -f docker-compose.yml config
         docker-compose build
         docker-compose up
@@ -486,6 +495,12 @@ An alternative solution is using an AWS serverless solution wherein:
             depends_on:
               - rabbitmq
               - mongodb
+            environment:
+              - AWS_ACCESS_KEY_ID
+              - AWS_SECRET_ACCESS_KEY
+              - AWS_COGNITO_CLIENT_ID
+              - AWS_COGNITO_USERPOOL_ID
+              - AWS_COGNITO_USERPOOL_REGION
           nginx:
             build: ./nginx
             restart: always
@@ -508,7 +523,12 @@ An alternative solution is using an AWS serverless solution wherein:
               - rabbitmq
               - nginx
               - webapp
-              - mongodb              
+              - mongodb
+            environment:
+              - AWS_ACCESS_KEY_ID
+              - AWS_SECRET_ACCESS_KEY
+              - AWS_PINPOINT_ID
+              - AWS_PINPOINT_REGION              
         networks:
           mydockernet:
             driver: bridge
