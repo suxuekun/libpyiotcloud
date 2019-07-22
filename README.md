@@ -78,7 +78,7 @@ An alternative solution is using an AWS serverless solution wherein:
        - get/set GPIOs, get/set RTC, get MAC address, reset device
        - get IP/Subnet/Gateway addresses, write UART
     3. HTTPS/AMQPS/MQTTS Protocol Support
-       [client --HTTPS--> webserver <--MQTTS (or AMQPS)--> messagebroker <--MQTTS (and AMQPS)--> device]
+       [client --HTTPS--> webserver <--MQTTS (or AMQPS)--> msgbroker <--MQTTS (and AMQPS)--> device]
        A. HTTP over TLS: client app accessing REST APIs from webserver
        B. AMQP over TLS: webserver and messagebroker communication
        C. MQTT over TLS: messagebroker and device communication
