@@ -354,6 +354,15 @@ An alternative solution is using an AWS serverless solution wherein:
        C. Browse https://127.0.0.1 [or run client.bat for API testing]
 
 
+### Certificates
+
+       1. NGINX: rootca.pem rootca.pkey
+       2. RabbitMQ: rootca.pem, client_A.pem, client_A.pkey
+       3. WebApp: rootca.pem, client_B.pem, client_B.pkey
+       4. Notification: rootca.pem, client_C.pem, client_C.pkey
+       5. Device: rootca.pem, device_X.pem, device_X.pkey
+
+
 ### AWS EC2
 
        // AWS EC2 setup
