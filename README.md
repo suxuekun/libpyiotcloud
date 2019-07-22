@@ -487,7 +487,7 @@ An alternative solution is using an AWS serverless solution wherein:
             ports:
               - "27017:27017"
             volumes:
-              - "/data:/data/db"
+              - "mydockervol:/data/db"
           webapp:
             build: ./webapp
             restart: always
@@ -540,7 +540,10 @@ An alternative solution is using an AWS serverless solution wherein:
               config:
                 - subnet: 172.18.0.0/16
                   gateway: 172.18.0.1
-        
+        volumes:
+          mydockervol:
+            driver: local
+    
         // test
         https:// 192.168.99.100
         mqtts:// 192.168.99.100:8883
