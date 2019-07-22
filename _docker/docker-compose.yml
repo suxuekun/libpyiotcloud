@@ -21,7 +21,7 @@ services:
     ports:
       - "27017:27017"
     volumes:
-      - "/data:/data/db"
+      - "mydockervol:/data/db"
   webapp:
     build: ./webapp
     restart: always
@@ -33,6 +33,12 @@ services:
     depends_on:
       - rabbitmq
       - mongodb
+    environment:
+      - AWS_ACCESS_KEY_ID
+      - AWS_SECRET_ACCESS_KEY
+      - AWS_COGNITO_CLIENT_ID
+      - AWS_COGNITO_USERPOOL_ID
+      - AWS_COGNITO_USERPOOL_REGION
   nginx:
     build: ./nginx
     restart: always
@@ -56,10 +62,17 @@ services:
       - nginx
       - webapp
       - mongodb
+    environment:
+      - AWS_ACCESS_KEY_ID
+      - AWS_SECRET_ACCESS_KEY
+      - AWS_PINPOINT_ID
+      - AWS_PINPOINT_REGION
 networks:
   mydockernet:
     driver: bridge
     ipam:
       config:
         - subnet: 172.18.0.0/16
-
+volumes:
+  mydockervol:
+    driver: local
