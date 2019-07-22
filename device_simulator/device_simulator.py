@@ -290,17 +290,16 @@ if __name__ == '__main__':
             except:
                 print("Could not connect to message broker! exception!")
 
-
         # Subscribe to messages sent for this device
         time.sleep(1)
         subtopic = "{}{}#".format(CONFIG_DEVICE_ID, CONFIG_SEPARATOR)
         print(subtopic)
         g_messaging_client.subscribe(subtopic, subscribe=True, declare=True, consume_continuously=True)
 
-
+        # Exit when disconnection happens
         while g_messaging_client.is_connected():
             pass
-
         g_messaging_client.release()
+
 
     print("application exits!")
