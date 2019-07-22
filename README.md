@@ -176,6 +176,7 @@ An alternative solution is using an AWS serverless solution wherein:
     4. Process the api with the given payload
     5. Publish answer to topic "server.deviceid.api"
 
+
 ### Email/SMS Notifications
 
     1. Device can trigger Notification Manager to send email/SMS via Amazon Pinpoint
@@ -184,6 +185,7 @@ An alternative solution is using an AWS serverless solution wherein:
        Once it receives a message on this topic, it will trigger Amazon Pinpoint to send the email or SMS.
     3. Web client application can also trigger device to send email/SMS notifications via the trigger_notification REST API.
        webclient -> webserver(rest api) -> messagebroker -> device -> messagebroker -> notificationmanager -> pinpoint
+
 
 # Instructions
 
@@ -368,6 +370,17 @@ An alternative solution is using an AWS serverless solution wherein:
        A. Create New Site
        B. Set "Host name:" to IPV4_PUBLIC_IP_ADDRESS
        C. Set "User name:" to ubuntu
+
+
+### AWS Credentials
+
+       1. AWS_ACCESS_KEY_ID
+       2. AWS_SECRET_ACCESS_KEY
+       3. AWS_COGNITO_CLIENT_ID
+       4. AWS_COGNITO_USERPOOL_ID
+       5. AWS_COGNITO_USERPOOL_REGION       
+       6. AWS_PINPOINT_ID
+       7. AWS_PINPOINT_REGION
 
 
 ### Dockerfiles
