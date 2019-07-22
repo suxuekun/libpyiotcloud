@@ -641,7 +641,15 @@ def initialize():
     if config.CONFIG_USERNAME and config.CONFIG_PASSWORD:
         g_messaging_client.set_user_pass(config.CONFIG_USERNAME, config.CONFIG_PASSWORD)
     g_messaging_client.set_tls(config.CONFIG_TLS_CA, config.CONFIG_TLS_CERT, config.CONFIG_TLS_PKEY)
-    g_messaging_client.initialize()
+    while True:
+        try:
+            result = g_messaging_client.initialize(timeout=5)
+            if not result:
+                print("Could not connect to message broker!")
+            else:
+                break
+        except:
+            print("Could not connect to message broker! exception!")
 
     # Initialize Database client
     g_database_client = database_client()

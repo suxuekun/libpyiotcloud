@@ -54,11 +54,12 @@ class messaging_client:
         self.cert = cert
         self.pkey = pkey
 
-    def initialize(self):
+    def initialize(self, timeout=0):
         if self.use_amqp:
             self.client = self.initialize_ampq()
         else:
-            self.client = self.initialize_mqtt()
+            self.client = self.initialize_mqtt(timeout)
+        return False if self.client is None else True
 
     def publish(self, topic, payload):
         if self.use_amqp:
@@ -120,7 +121,7 @@ class messaging_client:
         client = connection.channel()
         return client
 
-    def initialize_mqtt(self):
+    def initialize_mqtt(self, timeout):
         if self.device_id:
             client = mqtt.Client(client_id=self.device_id)
         else:
@@ -151,11 +152,18 @@ class messaging_client:
         except:
             client = None
 
+        trial = 0
         while True:
             #print(self.mqtt_connected)
             if self.mqtt_connected:
                 break
             time.sleep(1)
+            trial += 1
+            if timeout > 0 and timeout == trial:
+                #print("timeout")
+                client.disconnect()
+                client = None
+                break
 
         return client
 

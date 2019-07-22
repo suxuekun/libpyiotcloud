@@ -118,7 +118,6 @@ def parse_arguments(argv):
 
 if __name__ == '__main__':
 
-    time.sleep(15) # TODO: Fix hack for Dockercompose
     args = parse_arguments(sys.argv[1:])
     CONFIG_USE_AMQP    = True if int((args.USE_AMQP))==1 else False
     CONFIG_SEPARATOR   = "." if int((args.USE_AMQP))==1 else "/"
@@ -157,10 +156,15 @@ if __name__ == '__main__':
     if CONFIG_USERNAME and CONFIG_PASSWORD:
         g_messaging_client.set_user_pass(CONFIG_USERNAME, CONFIG_PASSWORD)
     g_messaging_client.set_tls(CONFIG_TLS_CA, CONFIG_TLS_CERT, CONFIG_TLS_PKEY)
-    try:
-        g_messaging_client.initialize()
-    except:
-        print("Could not connect to message broker")
+    while True:
+        try:
+            result = g_messaging_client.initialize(timeout=5)
+            if not result:
+                print("Could not connect to message broker!")
+            else:
+                break
+        except:
+            print("Could not connect to message broker! exception!")
 
 
     # Subscribe to messages sent for this device
