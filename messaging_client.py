@@ -29,6 +29,7 @@ class messaging_client:
         self.use_amqp = use_amqp
         self.client = None
         self.mqtt_connected = False
+        self.amqp_connected = False
         self.on_message_callback = on_message_callback
         self.consume_continuously = False
         self.device_id = device_id
@@ -63,7 +64,7 @@ class messaging_client:
 
     def release(self):
         if self.use_amqp:
-            pass
+            self.release_amqp(self.client)
         else:
             self.release_mqtt(self.client)
 
@@ -82,7 +83,7 @@ class messaging_client:
 
     def is_connected(self):
         if self.use_amqp:
-            return True
+            return self.amqp_connected
         else:
             return self.mqtt_connected
 
@@ -123,9 +124,21 @@ class messaging_client:
                     self.port, 
                     ssl_options=ssl_options)
         # Connect to AMPQ server
-        connection = amqp.BlockingConnection(parameters)
+        try:
+            connection = amqp.BlockingConnection(parameters)
+        except:
+            self.amqp_connected = False
+            return None
         client = connection.channel()
+        self.amqp_connected = True
         return client
+
+    def release_amqp(self, client):
+        try:
+            self.amqp_connected = False
+            client.close()
+        except:
+            pass
 
     def initialize_mqtt(self, timeout):
         if self.device_id:
@@ -225,15 +238,21 @@ class messaging_client:
             except amqp.exceptions.ConnectionClosedByBroker:
                 print("ConnectionClosedByBroker")
                 time.sleep(1)
-                continue
+                break
             except amqp.exceptions.AMQPChannelError:
                 print("AMQPChannelError")
                 time.sleep(1)
-                continue
+                break
             except amqp.exceptions.AMQPConnectionError:
                 print("AMQPConnectionError")
                 time.sleep(1)
-                continue
+                break
+        if self.consume_continuously:
+            try:
+                client.close()
+            except:
+                pass
+            self.amqp_connected = False
 
     def subscribe_mqtt(self, client, topic, subscribe=True):
         print("SUB: topic={}".format(topic))
@@ -264,7 +283,7 @@ class messaging_client:
     def on_amqp_message(self, ch, method, properties, body):
         self.on_message_callback(ch, method, properties, body)
         if not self.consume_continuously:
-            self.client.stop_consuming()
+            self.client.stop_consuming(consumer_tag=self.tag)
             myqueue = 'mqtt-subscription-{}qos{}'.format(self.device_id, CONFIG_QOS)
             self.client.queue_unbind(queue=myqueue, exchange='amq.topic', routing_key=method.routing_key)
             self.client.basic_cancel(self.tag)
