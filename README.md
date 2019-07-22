@@ -443,6 +443,10 @@ An alternative solution is using an AWS serverless solution wherein:
 
 ### Dockercompose
 
+1. Internal network created for the docker containers
+2. Persistent volume for mongodb database created
+3. AWS credentials + cognito/pinpoint IDs are environment variables [no longer hardcoded in code]
+
         Prerequisite: set the following environment variables
         - AWS_ACCESS_KEY_ID
         - AWS_SECRET_ACCESS_KEY
