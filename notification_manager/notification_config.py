@@ -1,12 +1,15 @@
+import os
+
+
 class config:
 
-    ACCESS_KEY             = ""
-    SECRET_KEY             = ""
+    CONFIG_ACCESS_KEY             = os.environ["AWS_ACCESS_KEY_ID"]
+    CONFIG_SECRET_KEY             = os.environ["AWS_SECRET_ACCESS_KEY"]
 
-    PINPOINT_ID            = ""
-    PINPOINT_REGION        = "us-east-1"
-    PINPOINT_EMAIL         = "richmond.umagat@gmail.com"
-    PINPOINT_EMAIL_SUBJECT = "FT900 IoT Cloud Platform Notifications"
+    CONFIG_PINPOINT_ID            = os.environ["AWS_PINPOINT_ID"]
+    CONFIG_PINPOINT_REGION        = os.environ["AWS_PINPOINT_REGION"]
+    CONFIG_PINPOINT_EMAIL         = "richmond.umagat@gmail.com"
+    CONFIG_PINPOINT_EMAIL_SUBJECT = "FT900 IoT Cloud Platform Notifications"
 
-    SNS_TOPIC_ARN          = ""
-    SNS_REGION             = "ap-southeast-1"
+    CONFIG_SNS_TOPIC_ARN          = ""
+    CONFIG_SNS_REGION             = ""

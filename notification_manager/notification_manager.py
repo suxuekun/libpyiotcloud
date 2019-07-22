@@ -79,7 +79,7 @@ def on_message(subtopic, subpayload):
     message = payload["message"]
 
     is_email = True if recipient.find("@")!=-1 else False
-    subject = notification_config.PINPOINT_EMAIL_SUBJECT if is_email else None
+    subject = notification_config.CONFIG_PINPOINT_EMAIL_SUBJECT if is_email else None
 
     thr = threading.Thread(target = notification_thread, args = (recipient, message, subject, ))
     thr.start()
