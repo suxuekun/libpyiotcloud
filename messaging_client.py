@@ -61,6 +61,12 @@ class messaging_client:
             self.client = self.initialize_mqtt(timeout)
         return False if self.client is None else True
 
+    def release(self):
+        if self.use_amqp:
+            pass
+        else:
+            self.release_mqtt(self.client)
+
     def publish(self, topic, payload):
         if self.use_amqp:
             self.publish_ampq(self.client, topic, payload)
@@ -166,6 +172,13 @@ class messaging_client:
                 break
 
         return client
+
+    def release_mqtt(self, client):
+        try:
+            self.mqtt_connected = False
+            client.disconnect()
+        except:
+            pass
 
     def publish_ampq(self, client, topic, payload):
         print("PUB: topic={} payload={}".format(topic, payload))
