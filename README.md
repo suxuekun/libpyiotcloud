@@ -69,33 +69,27 @@ An alternative solution is using an AWS serverless solution wherein:
 
 ### Features
 
-    1. User sign-up/sign-in and Device Registration
-       A. Using Amazon Cognito for user sign-up/sign-in
-       B. Using MongoDB NoSQL database for storing device info during device registration
-       C. Unique ca-signed certificate + privatekey generated for registered devices
-    2. Device Access/Control
-       A. get/set GPIOs
-       B. get/set RTC
-       C. get MAC address
-       D. get IP/Subnet/Gateway addresses
-       E. reset device
-       F. write UART
+    1. User sign-up/sign-in, Device Registration, Email/SMS Notifications
+       A. Amazon Cognito for user sign-up and sign-in
+       B. MongoDB NoSQL database for storing registered device information
+       C. OpenSSL for generating certificates on-demand for registered devices
+       D. Email/SMS notifications using AmazonPinpoint (device-initiated, client-initiated)
+    2. Device Access/Control via Flask+GUnicorn+Nginx
+       - get/set GPIOs, get/set RTC, get MAC address, reset device
+       - get IP/Subnet/Gateway addresses, write UART
     3. HTTPS/AMQPS/MQTTS Protocol Support
-       [client --HTTPS--> webserver <--AMQPS--> messagebroker <--MQTTS--> device]
+       [client --HTTPS--> webserver <--MQTTS (or AMQPS)--> messagebroker <--MQTTS (and AMQPS)--> device]
        A. HTTP over TLS: client app accessing REST APIs from webserver
        B. AMQP over TLS: webserver and messagebroker communication
        C. MQTT over TLS: messagebroker and device communication
-    4. Device examples
+    4. Device examples and simulators
        A. FT900 MCU device (LWIP-MQTT client)
-       B. Python Paho-MQTT client device simulator
-       C. Python Pika-AMQP client device simulator
-       D. NodeJS MQTT client device simulator
-    5. Email/SMS notifications
-       A. Using Amazon Pinpoint
-       B. Device-initiated: [device --> messagebroker --> notifmanager -> amazonpinpoint]
-       C. Client-initiated: [client --> webserver --> messagebroker --> device --> messagebroker --> notifmanager -> amazonpinpoint]
- 
-      
+       B. MQTT device simulators (Python Paho-MQTT and NodeJS)
+       C. AMQP device simulator (Python Pika-AMQP)
+    5. Deployment to AWS EC2 as microservices using Docker
+       - 5 microservices/docker containers [rabbitmq, mongodb, webapp, nginx, notification]
+
+
 ### REST APIs for User Sign-up/Sign-In
 
     1. sign_up
