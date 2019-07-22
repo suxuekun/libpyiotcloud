@@ -180,7 +180,10 @@ class messaging_client:
             trial += 1
             if timeout > 0 and timeout == trial:
                 #print("timeout")
-                client.disconnect()
+                try:
+                    client.disconnect()
+                except:
+                    pass
                 client = None
                 break
 
