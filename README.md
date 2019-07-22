@@ -30,7 +30,7 @@ It can be deployed in a local PC or in the cloud - AWS EC2, Linode, Heroku, Rack
 - Amazon Cognito (user sign-up/sign-in) - https://aws.amazon.com/cognito/
 - Amazon Pinpoint (email/SMS notifications) - https://aws.amazon.com/pinpoint/
 - Amazon SNS (email/SMS notifications) - https://aws.amazon.com/sns/
-- Docker containerization - https://www.docker.com/
+- Docker containerization (dockerfiles, docker-compose) - https://www.docker.com/
 
 An alternative solution is using an AWS serverless solution wherein:
 
