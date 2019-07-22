@@ -426,6 +426,8 @@ An alternative solution is using an AWS serverless solution wherein:
         docker run --net mydockernet --ip 172.18.0.4 -d -p 8000:8000 --name app app
         docker build -t ngx .
         docker run --net mydockernet --ip 172.18.0.5 -d -p 443:443 --name ngx ngx
+        docker build -t nmg .
+        docker run --net mydockernet --ip 172.18.0.6 -d --name nmg nmg
 
         // STOP and REMOVE
         docker ps
@@ -434,10 +436,12 @@ An alternative solution is using an AWS serverless solution wherein:
         docker stop mdb
         docker stop app
         docker stop ngx
+        docker stop nmg
         docker rm rmq
         docker rm mdb
         docker rm app
         docker rm ngx
+        docker rm nmg
         docker network rm mydockernet
 
 
