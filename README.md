@@ -366,20 +366,33 @@ An alternative solution is using an AWS serverless solution wherein:
 ### AWS EC2
 
        // AWS EC2 setup
-       A. Create a t2.micro instance of Ubuntu 16.04
+       A. Create a t2.micro instance of Amazon Linux (or Ubuntu 16.04 if not using Docker)
        B. Dowload "Private key file for authentication" for SSH access
        C. Copy the "IPv4 Public IP" address
        D. Enable ports: 22 (SSH), 8883 (MQTTS), 5671 (AMQPS), 443 (HTTPS)
 
        // PUTTY setup (for SSH console access)
        A. Go to Category > Connection > SSH > Auth, then click Browse for "Private key file for authentication"    
-       B. Set "hostname (or IP address)" to "ubuntu@IPV4_PUBLIC_IP_ADDRESS"
+       B. Set "hostname (or IP address)" to "ec2-user@IPV4_PUBLIC_IP_ADDRESS" (or "ubuntu@IPV4_PUBLIC_IP_ADDRESS" if using Ubuntu)
        
        // WINSCP setup (for SSH file transfer access)
        A. Create New Site
        B. Set "Host name:" to IPV4_PUBLIC_IP_ADDRESS
-       C. Set "User name:" to ubuntu
+       C. Set "User name:" to ec2-user (or ubuntu if using Ubuntu)
 
+       // Docker installation
+       sudo yum update -y
+       sudo yum install -y docker
+       sudo service start docker
+       sudo usermod -aG docker ec2-user
+       curl -L https://github.com/docker/compose/releases/download/1.24.1/docker-compose-`uname -s`-`uname -m` -o /usr/local/bin/docker-compose
+       chmod +x /usr/local/bin/docker-compose
+ 
+       // Docker run
+       docker-compose -f docker-compose.yml config
+       docker-compose build
+       docker-compose up
+        
 
 ### AWS Credentials
 
