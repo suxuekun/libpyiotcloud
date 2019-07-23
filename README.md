@@ -416,6 +416,10 @@ An alternative solution is using an AWS serverless solution wherein:
 
 ### Dockerfiles
 
+1. The platform has been divided into 5 microservices: rabbitmq, mongodb, webapp, nginx, notification_manager
+2. Each microservice is contained in a separate docker container
+3. Each docker container has a dockerfile
+
         // RABBITMQ Dockerfile
         FROM rabbitmq:3.7
         RUN rabbitmq-plugins enable --offline rabbitmq_management
@@ -507,16 +511,7 @@ An alternative solution is using an AWS serverless solution wherein:
         - AWS_PINPOINT_ID
         - AWS_PINPOINT_REGION
 
-4. Docker-compose commands
-
-        docker-compose -f docker-compose.yml config
-        docker-compose build
-        docker-compose up
-        docker-compose up -d
-        docker-compose ps
-        docker-compose down
-
-5. Docker-compose file
+4. Docker-compose file
 
         // docker-compose.yml
         version: '2.4'
@@ -603,6 +598,15 @@ An alternative solution is using an AWS serverless solution wherein:
         https:// 192.168.99.100
         mqtts:// 192.168.99.100:8883
         amqps:// 192.168.99.100:5671
+
+5. Docker-compose commands
+
+        docker-compose -f docker-compose.yml config
+        docker-compose build
+        docker-compose up
+        docker-compose up -d // run as daemon
+        docker-compose ps
+        docker-compose down
 
 
 # Testing and Troubleshooting
