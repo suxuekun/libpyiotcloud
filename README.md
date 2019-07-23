@@ -486,7 +486,16 @@ An alternative solution is using an AWS serverless solution wherein:
 ### Dockercompose
 
 1. Internal network created for the docker containers
+
+        sudo docker network ls
+        sudo docker network inspect mydockernet
+    
 2. Persistent volume for mongodb database created
+
+        sudo docker volume ls
+        sudo docker volume inspect mydockervol // get the mountpoint
+        sudo ls <mountpoint>
+
 3. AWS credentials + cognito/pinpoint IDs are environment variables [no longer hardcoded in code]
 
         Prerequisite: set the following environment variables
@@ -497,13 +506,17 @@ An alternative solution is using an AWS serverless solution wherein:
         - AWS_COGNITO_USERPOOL_REGION       
         - AWS_PINPOINT_ID
         - AWS_PINPOINT_REGION
-      
+
+4. Docker-compose commands
+
         docker-compose -f docker-compose.yml config
         docker-compose build
         docker-compose up
         docker-compose up -d
         docker-compose ps
         docker-compose down
+
+5. Docker-compose file
 
         // docker-compose.yml
         version: '2.4'
