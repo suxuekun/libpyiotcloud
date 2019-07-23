@@ -357,9 +357,9 @@ An alternative solution is using an AWS serverless solution wherein:
 ### Certificates
 
        1. NGINX: rootca.pem rootca.pkey
-       2. RabbitMQ: rootca.pem, client_A.pem, client_A.pkey
-       3. WebApp: rootca.pem, client_B.pem, client_B.pkey
-       4. Notification: rootca.pem, client_C.pem, client_C.pkey
+       2. RabbitMQ: rootca.pem, server_cert.pem, server_pkey.pem
+       3. WebApp: rootca.pem, server_cert.pem, server_pkey.pem
+       4. Notification: rootca.pem, notification_manager_cert.pem, notification_manager_pkey.pem
        5. Device: rootca.pem, device_X.pem, device_X.pkey
 
 
