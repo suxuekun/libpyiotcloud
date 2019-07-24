@@ -413,7 +413,26 @@ An alternative solution is using an AWS serverless solution wherein:
        6. AWS_PINPOINT_ID
        7. AWS_PINPOINT_REGION
 
+### Docker
 
+        Overheads:
+        1. Networking: 100 microseconds slower which is neglible. 
+           [Not ideal for time-sensitive forex or stock trading market]
+        2. Size: Dockers is lightweight.
+        3. CPU/RAM: Virtually none on Linux.
+        4. Learning: its easier than i thought, many documentations available 
+           [Linux familiarity is the overhead]
+
+        Advantages:
+        1. Automates installation and deployment 
+           [abstracts Linux knowledge requirements for installations/running]
+        2. Automates developer/QA testing 
+           [anyone can reproduce and on their own Windows 7 machine using Docker Toolbox]
+        3. Simplifies maintenance and upgrade
+           Dockerfile and Docker-compose file are basically Linux bash scripts
+           But Dockerfile and Docker-compose file are very readable
+           Easy to add/replace microservices in case needed
+   
 ### Dockerfiles
 
 1. The platform has been divided into 5 microservices: rabbitmq, mongodb, webapp, nginx, notification_manager
