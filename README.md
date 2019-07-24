@@ -674,5 +674,5 @@ In Linux, the total round trip time is only 1 second.
 2. Add message counter for free-tier subscription
 3. Add manager/admin page in Web client (see all users and devices registered by each user)
 4. Add logging for debugging/troubleshooting
-5. Fix access key timeout issue
+5. Handle refreshing Cognito access key while user is still online
 6. Support Kubernetes scalability
