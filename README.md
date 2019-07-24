@@ -1,6 +1,6 @@
 # libpyiotcloud
 
-libpyiotcloud platform demonstrates a custom IoT cloud platform for secure access and control of an MCU-based smart device 
+libpyiotcloud platform demonstrates a dockerized custom IoT cloud platform for secure access and control of an MCU-based smart device 
 remotely from a mobile or desktop web application via REST APIs (<b>HTTP over TLS</b>) 
 with back-end <b>AMQP over TLS</b> connectivity and device-side <b>MQTT over TLS</b> connectivity.
 
@@ -357,29 +357,51 @@ An alternative solution is using an AWS serverless solution wherein:
 ### Certificates
 
        1. NGINX: rootca.pem rootca.pkey
-       2. RabbitMQ: rootca.pem, client_A.pem, client_A.pkey
-       3. WebApp: rootca.pem, client_B.pem, client_B.pkey
-       4. Notification: rootca.pem, client_C.pem, client_C.pkey
+       2. RabbitMQ: rootca.pem, server_cert.pem, server_pkey.pem
+       3. WebApp: rootca.pem, server_cert.pem, server_pkey.pem
+       4. Notification: rootca.pem, notification_manager_cert.pem, notification_manager_pkey.pem
        5. Device: rootca.pem, device_X.pem, device_X.pkey
 
 
 ### AWS EC2
 
        // AWS EC2 setup
-       A. Create a t2.micro instance of Ubuntu 16.04
+       A. Create a t2.micro instance of Amazon Linux (or Ubuntu 16.04 if not using Docker)
        B. Dowload "Private key file for authentication" for SSH access
        C. Copy the "IPv4 Public IP" address
        D. Enable ports: 22 (SSH), 8883 (MQTTS), 5671 (AMQPS), 443 (HTTPS)
 
        // PUTTY setup (for SSH console access)
        A. Go to Category > Connection > SSH > Auth, then click Browse for "Private key file for authentication"    
-       B. Set "hostname (or IP address)" to "ubuntu@IPV4_PUBLIC_IP_ADDRESS"
+       B. Set "hostname (or IP address)" to "ec2-user@IPV4_PUBLIC_IP_ADDRESS" (or "ubuntu@IPV4_PUBLIC_IP_ADDRESS" if using Ubuntu)
        
        // WINSCP setup (for SSH file transfer access)
        A. Create New Site
        B. Set "Host name:" to IPV4_PUBLIC_IP_ADDRESS
-       C. Set "User name:" to ubuntu
+       C. Set "User name:" to ec2-user (or ubuntu if using Ubuntu)
 
+       // Docker installation
+       sudo yum update -y
+       sudo yum install -y docker
+       sudo service start docker
+       sudo usermod -aG docker ec2-user
+       curl -L https://github.com/docker/compose/releases/download/1.24.1/docker-compose-`uname -s`-`uname -m` -o /usr/local/bin/docker-compose
+       chmod +x /usr/local/bin/docker-compose
+ 
+       // Set the AWS environment variables
+       export AWS_ACCESS_KEY_ID=""
+       export AWS_SECRET_ACCESS_KEY=""
+       export AWS_COGNITO_CLIENT_ID=""
+       export AWS_COGNITO_USERPOOL_ID=""
+       export AWS_COGNITO_USERPOOL_REGION=""
+       export AWS_PINPOINT_ID=""
+       export AWS_PINPOINT_REGION=""       
+
+       // Docker run
+       docker-compose -f docker-compose.yml config
+       docker-compose build
+       docker-compose up
+        
 
 ### AWS Credentials
 
@@ -393,6 +415,10 @@ An alternative solution is using an AWS serverless solution wherein:
 
 
 ### Dockerfiles
+
+1. The platform has been divided into 5 microservices: rabbitmq, mongodb, webapp, nginx, notification_manager
+2. Each microservice is contained in a separate docker container
+3. Each docker container has a dockerfile
 
         // RABBITMQ Dockerfile
         FROM rabbitmq:3.7
@@ -464,7 +490,16 @@ An alternative solution is using an AWS serverless solution wherein:
 ### Dockercompose
 
 1. Internal network created for the docker containers
+
+        sudo docker network ls
+        sudo docker network inspect mydockernet
+    
 2. Persistent volume for mongodb database created
+
+        sudo docker volume ls
+        sudo docker volume inspect mydockervol // get the mountpoint
+        sudo ls <mountpoint>
+
 3. AWS credentials + cognito/pinpoint IDs are environment variables [no longer hardcoded in code]
 
         Prerequisite: set the following environment variables
@@ -475,13 +510,8 @@ An alternative solution is using an AWS serverless solution wherein:
         - AWS_COGNITO_USERPOOL_REGION       
         - AWS_PINPOINT_ID
         - AWS_PINPOINT_REGION
-      
-        docker-compose -f docker-compose.yml config
-        docker-compose build
-        docker-compose up
-        docker-compose up -d
-        docker-compose ps
-        docker-compose down
+
+4. Docker-compose file
 
         // docker-compose.yml
         version: '2.4'
@@ -568,6 +598,15 @@ An alternative solution is using an AWS serverless solution wherein:
         https:// 192.168.99.100
         mqtts:// 192.168.99.100:8883
         amqps:// 192.168.99.100:5671
+
+5. Docker-compose commands
+
+        docker-compose -f docker-compose.yml config
+        docker-compose build
+        docker-compose up
+        docker-compose up -d // run as daemon
+        docker-compose ps
+        docker-compose down
 
 
 # Testing and Troubleshooting
