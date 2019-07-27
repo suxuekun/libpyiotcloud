@@ -1,7 +1,7 @@
 # libpyiotcloud
 
-libpyiotcloud is a dockerized IoT platform for secure access and control of an MCU-based smart device 
-remotely from a mobile or desktop web application via REST APIs (<b>HTTP over TLS</b>) 
+libpyiotcloud is a dockerized IoT platform for secure remote access and control of an MCU-based smart device 
+from a mobile or desktop web application via REST APIs (<b>HTTP over TLS</b>) 
 with back-end <b>AMQP over TLS</b> connectivity and device-side <b>MQTT over TLS</b> connectivity.
 
 
