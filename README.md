@@ -188,8 +188,23 @@ An alternative solution is using an AWS serverless solution wherein:
        webclient -> webserver(rest api) -> messagebroker -> device -> messagebroker -> notificationmanager -> pinpoint
 
 
-# Instructions
+# Instructions (Docker)
 
+    0. Install Docker
+    1. Set AWS credentials + cognito/pinpoint IDs as environment variables
+       export AWS_ACCESS_KEY_ID=""
+       export AWS_SECRET_ACCESS_KEY=""
+       export AWS_COGNITO_CLIENT_ID=""
+       export AWS_COGNITO_USERPOOL_ID=""
+       export AWS_COGNITO_USERPOOL_REGION=""     
+       export AWS_PINPOINT_ID=""
+       export AWS_PINPOINT_REGION=""
+    2. Build and execute Docker-compose file
+       docker-compose build
+       docker-compose up
+
+
+# Manual Instructions (non-Docker)
 
 ### Install Python 3.6.6 and Python libraries
 
