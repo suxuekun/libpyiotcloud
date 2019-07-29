@@ -1,6 +1,8 @@
 # Project specific
-cert/rootca_pkey.pem
-web_server_database_viewer.txt
+aws-config.txt
+webapp/src/cert/rootca_pkey.pem
+_client_simulator/__pycache__
+_device_simulator/__pycache__
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

@@ -3,11 +3,6 @@ import time
 import netifaces
 import argparse
 import sys
-import os
-import inspect
-currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
-parentdir = os.path.dirname(currentdir)
-sys.path.insert(0,parentdir)
 from messaging_client import messaging_client # common module from parent directory
 
 
