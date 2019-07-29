@@ -202,7 +202,8 @@ An alternative solution is using an AWS serverless solution wherein:
     2. Build and execute Docker-compose file
        docker-compose build
        docker-compose up
-
+    3. Test by browsing https://192.168.99.100 or https://<aws_ec2_hostname> or https://<aws_ec2_ip>
+    
 
 # Manual Instructions (non-Docker)
 
