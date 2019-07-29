@@ -88,6 +88,7 @@ An alternative solution is using an AWS serverless solution wherein:
        C. AMQP device simulator (Python Pika-AMQP)
     5. Deployment to AWS EC2 as microservices using Docker
        - 5 microservices/docker containers [rabbitmq, mongodb, webapp, nginx, notification]
+       - with Dockerfiles and Docker-compose file
 
 
 ### REST APIs for User Sign-up/Sign-In
