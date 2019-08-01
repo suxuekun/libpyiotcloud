@@ -436,6 +436,9 @@ An alternative solution is using an AWS serverless solution wherein:
        export AWS_PINPOINT_REGION=""       
        export AWS_PINPOINT_EMAIL=""       
 
+       // Download the repository
+       via WinSCP or git
+       
        // Docker run
        docker-compose -f docker-compose.yml config
        docker-compose build
