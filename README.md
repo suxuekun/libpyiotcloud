@@ -199,6 +199,7 @@ An alternative solution is using an AWS serverless solution wherein:
        export AWS_COGNITO_USERPOOL_REGION=""     
        export AWS_PINPOINT_ID=""
        export AWS_PINPOINT_REGION=""
+       export AWS_PINPOINT_EMAIL=""
     2. Build and execute Docker-compose file
        docker-compose build
        docker-compose up
@@ -371,6 +372,7 @@ An alternative solution is using an AWS serverless solution wherein:
        // Update environment variables
        A. AWS_PINPOINT_REGION = Region of Cognito User Pool ex. "ap-southeast-1"
        B. AWS_PINPOINT_ID     = Copy from "All projects"
+       C. AWS_PINPOINT_EMAIL  = Email registered to be used for email sender
           
 
 ### Others
@@ -432,6 +434,7 @@ An alternative solution is using an AWS serverless solution wherein:
        export AWS_COGNITO_USERPOOL_REGION=""
        export AWS_PINPOINT_ID=""
        export AWS_PINPOINT_REGION=""       
+       export AWS_PINPOINT_EMAIL=""       
 
        // Docker run
        docker-compose -f docker-compose.yml config
@@ -448,6 +451,7 @@ An alternative solution is using an AWS serverless solution wherein:
        5. AWS_COGNITO_USERPOOL_REGION       
        6. AWS_PINPOINT_ID
        7. AWS_PINPOINT_REGION
+       8. AWS_PINPOINT_EMAIL
 
 ### Docker
 
@@ -565,6 +569,7 @@ An alternative solution is using an AWS serverless solution wherein:
         - AWS_COGNITO_USERPOOL_REGION       
         - AWS_PINPOINT_ID
         - AWS_PINPOINT_REGION
+        - AWS_PINPOINT_EMAIL
 
 4. Docker-compose file
 
