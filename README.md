@@ -410,8 +410,9 @@ An alternative solution is using an AWS serverless solution wherein:
        D. Enable ports: 22 (SSH), 8883 (MQTTS), 5671 (AMQPS), 443 (HTTPS)
 
        // PUTTY setup (for SSH console access)
-       A. Go to Category > Connection > SSH > Auth, then click Browse for "Private key file for authentication"    
-       B. Set "hostname (or IP address)" to "ec2-user@IPV4_PUBLIC_IP_ADDRESS" (or "ubuntu@IPV4_PUBLIC_IP_ADDRESS" if using Ubuntu)
+       A. Create PPK file from the PEM file downloaded from EC2 using PuttyGEN
+       B. Using Putty, go to Category > Connection > SSH > Auth, then click Browse for "Private key file for authentication"    
+       C. Set "hostname (or IP address)" to "ec2-user@IPV4_PUBLIC_IP_ADDRESS" (or "ubuntu@IPV4_PUBLIC_IP_ADDRESS" if using Ubuntu)
        
        // WINSCP setup (for SSH file transfer access)
        A. Create New Site
