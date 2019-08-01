@@ -643,6 +643,7 @@ An alternative solution is using an AWS serverless solution wherein:
               - AWS_SECRET_ACCESS_KEY
               - AWS_PINPOINT_ID
               - AWS_PINPOINT_REGION              
+              - AWS_PINPOINT_EMAIL              
         networks:
           mydockernet:
             driver: bridge
