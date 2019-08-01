@@ -676,25 +676,41 @@ An alternative solution is using an AWS serverless solution wherein:
 
 # Testing and Troubleshooting
 
-### MQTT/AMQP Device
+### Using FT900 (Currently tested with an FT900 RevC board-MM900EV1B only)
 
-- [FT900 MCU device (LWIP-MQTT over mbedTLS client)](https://github.com/richmondu/FT900/tree/master/IoT/ft90x_iot_brtcloud)
+        1. Download the FT900 code from https://github.com/richmondu/FT900/tree/master/IoT/ft90x_iot_brtcloud
+        2. Update USE_DEVICE_ID in Includes/iot_config.h to match the generated ID of the registered device in the portal
+        3. Build and run FT900 code 
+        4. Access/control the device via the portal
 
-### MQTT/AMQP Device simulators
+### Using device simulators
 
-- [Python Paho-MQTT client device simulator](https://github.com/richmondu/libpyiotcloud/tree/master/device_simulator/device_simulator.py)
-- [Python Pika-AMQP client device simulator](https://github.com/richmondu/libpyiotcloud/tree/master/device_simulator/device_simulator.py)
-- [NodeJS MQTT client device simulator](https://github.com/richmondu/libpyiotcloud/tree/master/device_simulator/device_simulator.js)
+        1. Download the device simulators from https://github.com/richmondu/libpyiotcloud/tree/master/_device_simulator
+           Choose from any of the 3: 
+           Python-MQTT device simulator
+           Python-AMQP device simulator
+           Javascript-MQTT device simulator
+        2. Update DEVICE_ID in the corresponding batch script to match the generated ID of the registered device in the portal
+        3. Run the updated batch script
+        4. Access/control the device via the portal
 
 ### Test utilities
 
-- web_server_database_viewer.bat - view registered devices (MongoDB) and registered users (Amazon Cognito)
+        web_server_database_viewer.bat 
+        - view registered devices (MongoDB) and registered users (Amazon Cognito)
 
 ### Troubleshooting
 
-- sudo service mongod status 
-- sudo systemctl status web_server
-- sudo systemctl status nginx
+        Dockerized:
+        - docker-compose ps
+        - docker ps
+        - docker network ls
+        - docker volume ls
+
+        Manual:
+        - sudo service mongod status 
+        - sudo systemctl status web_server
+        - sudo systemctl status nginx
 
 
 # Performance
