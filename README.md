@@ -348,11 +348,30 @@ An alternative solution is using an AWS serverless solution wherein:
        K. Click "Next step"
        L. Click "Create pool"
    
-       // Update web_server_cognito_config.py
-       A. CONFIG_USER_POOL_REGION = Region of Cognito User Pool ex. "ap-southeast-1"
-       B. CONFIG_USER_POOL_ID     = Copy from General settings/Pool Id
-       C. CONFIG_CLIENT_ID        = Copy from General settings/App clients/App client id
+       // Update environment variables
+       A. AWS_COGNITO_USERPOOL_REGION = Region of Cognito User Pool ex. "ap-southeast-1"
+       B. AWS_COGNITO_USERPOOL_ID     = Copy from General settings/Pool Id
+       C. AWS_COGNITO_CLIENT_ID       = Copy from General settings/App clients/App client id
 
+
+### Setup Amazon Pinpoint.
+    
+       // Amazon Pinpoint cloud setup
+       A. Click on "Create a project"
+       B. Under Settings, click on "Email". 
+          Under Identities tab, click Edit button.
+          Select "Verify a new email address" and input "Email address".
+          Check email and click on the link. 
+          Get back on AWS and click Save.
+       C. Under Settings, click on "SMS and voice". 
+          Under SMS settings tab, click Edit button.
+          Select "Enable the SMS channel for this project" and click "Save changes" button.
+       D. Copy the Project ID and region for the environment variables.   
+          
+       // Update environment variables
+       A. AWS_PINPOINT_REGION = Region of Cognito User Pool ex. "ap-southeast-1"
+       B. AWS_PINPOINT_ID     = Copy from "All projects"
+          
 
 ### Others
 
