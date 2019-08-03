@@ -14,6 +14,11 @@ This requires device to frequently send sensor data in order to generate graphs.
 It lacks support for the use-case of remote access and control memory-constrained microcontrollers.
 In this use-case, the device only sends the data when queried.
 
+Comparable IoT platforms for our use-case of remote device access and control include the IoT platforms of 
+TP-Link (with Kasa mobile application) for TPLink smart bulbs/smart plugs, and 
+Xiaomi (YeeLight mobile app) for Xiaomi's smart smart bulbs/smart plugs.
+However, our IoT platforms is generic for all smart devices that can be build on top of our in-house FT900 Microcontrollers.
+
 
 # Architecture
 
