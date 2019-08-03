@@ -17,7 +17,8 @@ In this use-case, the device only sends the data when queried.
 Comparable IoT platforms for our use-case of remote device access and control include the IoT platforms of 
 TP-Link (with Kasa mobile application) for TPLink smart bulbs/smart plugs, and 
 Xiaomi (YeeLight mobile app) for Xiaomi's smart smart bulbs/smart plugs.
-However, this IoT platform is generic for all smart devices that can be build on top of any MCU, but primarily using our in-house FT9XX MCUs.
+However, these IoT platforms are tied up to their smart devices and IoT products.
+Our IoT platform is generic for all smart devices and IoT devices that can be build on top of any MCU, but primarily using our in-house FT9XX MCUs.
 
 
 # Architecture
