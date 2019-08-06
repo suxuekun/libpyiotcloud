@@ -10,3 +10,6 @@ boto3==1.9.159
 warrant==0.6.1
 jose==1.0.0
 gunicorn
+flask_cors==3.0.8
+flask_api==1.1.0
+

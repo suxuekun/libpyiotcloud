@@ -86,6 +86,9 @@ class database_client:
     def get_confirmationcode(self, username):
         return self._users.get_confirmationcode(username)
 
+    def resend_confirmationcode(self, username):
+        return self._users.resend_confirmationcode(username)
+
     def forgot_password(self, username):
         return self._users.forgot_password(username)
 
@@ -201,6 +204,10 @@ class database_client_cognito:
     def get_confirmationcode(self, username):
         return None
 
+    def resend_confirmationcode(self, username):
+        (result, response) = self.client.resend_confirmation_code(username)
+        return result
+
     def delete_user(self, username):
         pass
 
@@ -293,6 +300,9 @@ class database_client_mongodb:
                 if user['username'] == username:
                     return user['confirmationcode']
         return None
+
+    def resend_confirmationcode(self, username):
+        pass
 
     def delete_user(self, username):
         users = self.get_registered_users()
@@ -390,11 +400,13 @@ class database_client_mongodb:
     def find_device(self, username, devicename):
         devices = self.get_registered_devices()
         if devices:
-            for device in devices.find({},{'username': 1, 'devicename': 1}):
+            for device in devices.find({},{'username': 1, 'devicename': 1, 'deviceid': 1, 'cert':1, 'pkey':1}):
                 #print(user)
                 if device['username'] == username and device['devicename'] == devicename:
-                    return True
-        return False
+                    device.pop('username')
+                    device.pop('_id')
+                    return device
+        return None
 
     def get_deviceid(self, username, devicename):
         devices = self.get_registered_devices()

@@ -84,6 +84,16 @@ class cognito_client:
 			return (False, None)
 		return (self.__get_result(response), response)
 
+	def resend_confirmation_code(self, username):
+		params = {
+			'ClientId'        : self.client_id,
+			'Username'        : username
+		}
+		try:
+			response = self.__get_client().resend_confirmation_code(**params)
+		except:
+			return (False, None)
+		return (self.__get_result(response), response)
 
 
 	def forgot_password(self, username):
