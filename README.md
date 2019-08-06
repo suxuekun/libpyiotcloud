@@ -586,7 +586,7 @@ An alternative solution is using an AWS serverless solution wherein:
 4. Docker-compose file
 
         // docker-compose.yml
-        version: '2.4'
+        version: '3.7'
         services:
           rabbitmq:
             build: ./rabbitmq
