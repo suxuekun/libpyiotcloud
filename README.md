@@ -37,8 +37,8 @@ It can be deployed in a local PC or in the cloud - AWS EC2, Linode, Heroku, Rack
 - Amazon Pinpoint (email/SMS notifications) - https://aws.amazon.com/pinpoint/
 - Amazon SNS (email/SMS notifications) - https://aws.amazon.com/sns/
 - Docker containerization (dockerfiles, docker-compose) - https://www.docker.com/
-- Ionic frontend framework - https://ionicframework.com/
-
+- Ionic mobile/web frontend framework - https://ionicframework.com/
+- Postman (API testing tool) - https://www.getpostman.com/
 
 An alternative solution is using an AWS serverless solution wherein:
 
