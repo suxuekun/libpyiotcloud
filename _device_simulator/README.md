@@ -7,6 +7,8 @@ Then install the required python libraries of the application:
 
     pip install -r requirements.txt
 
+Run the __mqtt or __amqp batch scripts. (Both MQTT and AMQP prototcols are supported.)
+
 
 ### Device simulators (Javascript):
 
