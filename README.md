@@ -747,4 +747,4 @@ In Linux, the total round trip time is only 1 second.
 3. Add manager/admin page in Web client (see all users and devices registered by each user)
 4. Add logging for debugging/troubleshooting
 5. Handle refreshing Cognito access key while user is still online
-6. Support Kubernetes scalability
+6. Support Kubernetes orchestration
