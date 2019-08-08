@@ -72,6 +72,8 @@ An alternative solution is using an AWS serverless solution wherein:
     4. Register device API will return deviceid, rootca, device certificate and device private key.
     5. Device shall use deviceid as MQTT client id and use the rootca, device certificate and device private key.
     6. The webserver has been tested on Linux Ubuntu 16.04 using GUnicorn and Nginx.
+    7. Web app: browser->nginx->ionic->gunicorn->flask ...
+    8. Mobile apps: app->nginx->gunicorn->flask ...
 
 
 
