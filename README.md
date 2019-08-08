@@ -105,54 +105,47 @@ An alternative solution is using an AWS serverless solution wherein:
 
 ### REST APIs for User Sign-up/Sign-In
 
-    1. sign_up
+    1. /user/sign_up
        - requires username, password, email, firstname, lastname
        - confirmation code will be sent to email
-    2. confirm_sign_up
+    2. /user/confirm_sign_up
        - requires username, confirmation
-    3. login
+    3. /user/login
        - requires username, password
        - returns access_token
-    4. logout
+    4. /user/logout
        - requires username, access key
-    5. forgot_password
+    5. /user/forgot_password
        - requires email address
        - confirmation code will be sent to email
-    6. confirm_forgot_password
+    6. /user/confirm_forgot_password
        - requires username, new password, confirmation code
 
 ### REST APIs for Device Registration/Management
 
-    1. register_device
+    1. devices/register_device
        - requires username, access_token, devicename
        - returns deviceid, rootca, devicecert, devicepkey
          which shall be used on the actual microcontroller device
-    2. unregister_device
+    2. devices/unregister_device
        - requires username, access_token, devicename
-    3. get_device_list
+    3. devices/get_device_list
        - requires username, access_token
        - returns device info [devicename, deviceid, rootca, devicecert, devicepkey for all devices registered by user]
-    4. get_device_list_count
+    4. devices/get_device_list_count
        - requires username, access_token
        - returns length of device list
-    5. get_device_index
+    5. devices/get_device_index
        - requires username, access_token, index
        - returns device info for device[index]
 
 ### REST APIs for Device Access/Control
 
-    1. get_gpio
-    2. set_GPIO
-    3. get_rtc
-    4. set_rtc
-    5. get_mac
-    6. get_ip
-    7. get_subnet
-    8. get_gateway
-    9. get_status
-    10. set_status (including reset device)
-    11. write_uart
-    12. trigger_notification
+    1. /devices/device/gpio
+    2. /devices/device/rtc
+    3. /devices/device/ethernet
+    4. /devices/device/uart
+    5. /devices/device/notifications
 
 
 ### Device settings for MQTT/AMQP Connectivity
