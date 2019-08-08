@@ -1,7 +1,9 @@
-docker build -t app .
-docker run -d -p 8000:8000 --name app app
+docker build -t webapp .
+docker run -d -p 8100:8100 --name webapp webapp
 
 docker-machine ls // get the ip address for testing with MQTT.FX
 
 docker stop app 
 docker rm app 
+
+

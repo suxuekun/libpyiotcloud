@@ -1,0 +1,7 @@
+docker build -t api .
+docker run -d -p 8000:8000 --name api api
+
+docker-machine ls // get the ip address for testing with MQTT.FX
+
+docker stop api
+docker rm api

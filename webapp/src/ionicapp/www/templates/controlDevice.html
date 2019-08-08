@@ -1,0 +1,37 @@
+<ion-view title="Control Device" hide-back-button="true" nav-transition="none" id="page15" class="page_width">
+  <ion-nav-buttons side="right" class="has-header">
+    <button class="button icon ion-social-rss" ng-click="submitStatus()"></button>
+  </ion-nav-buttons>
+  <ion-content padding="true" class="has-header">
+    <div id="controlDevice-markdown19" ng-click="submitView()" style="text-align:center;" class="show-list-numbers-and-dots">
+      <p style="color:#444444;font-size:18px;">
+        <strong> {{ data.devicename }} </strong>
+      </p>
+    </div>
+    <div id="controlDevice-markdown39" style="text-align:center;" class="show-list-numbers-and-dots">
+      <p style="color:#444444;font-size:15px;">Status:
+        <strong>{{ data.status }}</strong>
+      </p>
+    </div>
+    <button id="controlDevice-button21" ng-click="submitEthernet()" style="font-size:18px;text-align:left;" class="button button-dark button-large button-outline icon-right ion-network widget_button">Ethernet</button>
+    <button id="controlDevice-button43" style="font-size:18px;text-align:left;" class="button button-dark button-large icon-right ion-wifi widget_button">WiFi</button>
+    <div class="spacer" style="width: 300px; height: 5px;"></div>
+    <button id="controlDevice-button18" ng-click="submitGPIO()" style="font-size:18px;text-align:left;" class="button button-dark button-large button-outline icon-right ion-pin widget_button">GPIO</button>
+    <button id="controlDevice-button19" ng-click="submitRTC()" style="font-size:18px;text-align:left;" class="button button-dark button-large button-outline icon-right ion-ios-clock widget_button">RTC</button>
+    <div class="spacer" style="height: 5px;"></div>
+    <button id="controlDevice-button20" ng-click="submitUART()" style="font-size:18px;text-align:left;" class="button button-dark button-large button-outline icon-right ion-ios-monitor widget_button">UART</button>
+    <button id="controlDevice-button22" ng-click="submitNotifications()" style="font-size:14px;text-align:left;" class="button button-dark button-large button-outline icon-right ion-android-notifications widget_button">Notification</button>
+    <div class="spacer" style="height: 5px;"></div>
+    <button id="controlDevice-button37" style="font-size:18px;text-align:left;" class="button button-dark button-large icon-right ion-android-color-palette widget_button">Color</button>
+    <button id="controlDevice-button41" style="font-size:14px;text-align:left;" class="button button-dark button-large icon-right ion-ios-color-wand widget_button">Brightness</button>
+    <div class="spacer" style="height: 5px;"></div>
+    <button id="controlDevice-button39" style="font-size:14px;text-align:left;" class="button button-dark button-large icon-right ion-bonfire widget_button">Temperature</button>
+    <button id="controlDevice-button42" style="font-size:18px;text-align:left;" class="button button-dark button-large icon-right ion-bonfire widget_button">Humidity</button>
+    <div class="spacer" style="height: 5px;"></div>
+    <button id="controlDevice-button35" style="font-size:18px;text-align:left;" class="button button-dark button-large icon-right ion-android-volume-up widget_button">Volume</button>
+    <button id="controlDevice-button34" style="font-size:18px;text-align:left;" class="button button-dark button-large button-outline icon-right ion-android-settings widget_button">Custom</button>
+    <div class="spacer" style="height: 5px;"></div>
+    <button id="controlDevice-button40" ng-click="submitRestart()" style="font-size:18px;text-align:left;" class="button button-dark button-large button-outline icon-right ion-refresh widget_button">Restart</button>
+    <a ui-sref="menu.devices({&quot;username&quot;:&quot;&quot;+ data.username +&quot;&quot;,&quot;token&quot;:&quot;&quot;+ data.token +&quot;&quot;})" id="controlDevice-button47" class="button button-positive button-small button-block button-clear">Back to Devices</a>
+  </ion-content>
+</ion-view>

@@ -1,0 +1,30 @@
+<ion-view title="Device Ethernet" hide-back-button="true" cache-view="false" nav-transition="none" id="page16" class="page_width">
+  <ion-content padding="true" class="has-header">
+    <div id="deviceEthernet-markdown20" style="text-align:center;" class="show-list-numbers-and-dots">
+      <p style="color:#444444;font-size:18px;">
+        <strong> {{ data.devicename }} </strong>
+      </p>
+    </div>
+    <form id="deviceEthernet-form23" class="list">
+      <label class="item item-input" id="deviceEthernet-input36">
+        <span class="input-label">IP Address</span>
+        <input type="text" placeholder="" ng-model="data.ipaddr" readonly="">
+      </label>
+      <label class="item item-input" id="deviceEthernet-input37">
+        <span class="input-label">Subnet Mask</span>
+        <input type="text" placeholder="" ng-model="data.subnet" readonly="">
+      </label>
+      <label class="item item-input" id="deviceEthernet-input39">
+        <span class="input-label">Gateway</span>
+        <input type="text" placeholder="" ng-model="data.gateway" readonly="">
+      </label>
+      <label class="item item-input" id="deviceEthernet-input40">
+        <span class="input-label">MAC Address</span>
+        <input type="text" placeholder="" ng-model="data.macaddr" readonly="">
+      </label>
+    </form>
+    <button id="deviceEthernet-button32" ng-click="submit()" class="button button-dark button-block">Get</button>
+    <a ui-sref="controlDevice({&quot;devicename&quot;:&quot;&quot;+ data.devicename +&quot;&quot;,&quot;username&quot;:&quot;&quot;+ data.username +&quot;&quot;,&quot;token&quot;:&quot;&quot;+ data.token +&quot;&quot;})" id="deviceEthernet-button10"
+      class="button button-positive button-small button-block button-clear">Back to Device Control</a>
+  </ion-content>
+</ion-view>

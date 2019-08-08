@@ -1,0 +1,23 @@
+<ion-view title="Device Notifications" hide-back-button="true" cache-view="false" nav-transition="none" id="page20" class="page_width">
+  <ion-content padding="true" class="has-header">
+    <div id="deviceNotifications-markdown24" style="text-align:center;" class="show-list-numbers-and-dots">
+      <p style="color:#444444;font-size:18px;">
+        <strong> {{ data.devicename }} </strong>
+      </p>
+    </div>
+    <form id="deviceNotifications-form14" class="list">
+      <h5 id="deviceNotifications-heading19" style="color:#444444;">Recipient</h5>
+      <label class="item item-input" id="deviceNotifications-input30" name="input-recipient">
+        <input type="text" placeholder="Email or SMS" ng-model="data.recipient">
+      </label>
+    </form>
+    <h5 id="deviceNotifications-heading20" style="color:#444444;">Message</h5>
+    <form id="deviceNotifications-form15" class="list">
+      <label class="item item-input message_textarea" id="deviceNotifications-textarea1" name="textarea-message">
+        <span class="input-label"></span><textarea placeholder="Message" ng-model="data.message"></textarea></label>
+    </form>
+    <button id="deviceNotifications-button25" ng-click="submit()" class="button button-dark button-block">Submit</button>
+    <a ui-sref="controlDevice({&quot;devicename&quot;:&quot;&quot;+ data.devicename +&quot;&quot;,&quot;username&quot;:&quot;&quot;+ data.username +&quot;&quot;,&quot;token&quot;:&quot;&quot;+ data.token +&quot;&quot;})" id="deviceNotifications-button50"
+      class="button button-positive button-small button-block button-clear">Back to Device Control</a>
+  </ion-content>
+</ion-view>

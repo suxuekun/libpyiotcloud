@@ -1,11 +1,16 @@
-FROM python:3.6.6
+FROM node:10.6-alpine
 
-RUN mkdir -p /usr/src/app/libpyiotcloud
-WORKDIR /usr/src/app/libpyiotcloud
-COPY src/ /usr/src/app/libpyiotcloud/
-RUN pip install --no-cache-dir -r requirements.txt
+RUN npm install -g ionic gulp
+RUN node -v
+RUN npm -v
+RUN ionic -v
+RUN uname -r
 
-CMD ["gunicorn", "--workers=1", "--bind=0.0.0.0:8000", "--forwarded-allow-ips='*'", "wsgi:app"]
+RUN mkdir -p /usr/src/app/ionicapp
+WORKDIR /usr/src/app/ionicapp
+COPY src/ionicapp/ /usr/src/app/ionicapp/
+RUN npm rebuild node-sass
 
-EXPOSE 8000
+CMD ["ionic", "serve", "--address=172.18.0.5", "--port=8100", "--no-open", "--no-livereload", "--consolelogs", "--no-proxy"]
 
+EXPOSE 8100
