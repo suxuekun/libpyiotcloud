@@ -457,8 +457,12 @@ Device access APIs requires username, devicename and access token returned by lo
        // Docker run
        docker-compose -f docker-compose.yml config
        docker-compose build
-       docker-compose up
-        
+       docker-compose up OR docker-compose up -d
+       
+       // Docker stop
+       docker-compose down
+       docker-compose rm
+       
 
 ### AWS Credentials
 
@@ -511,7 +515,7 @@ Device access APIs requires username, devicename and access token returned by lo
         WORKDIR /data
         EXPOSE 27017
 
-        // WEBAPP Dockerfile
+        // RESTAPI Flask Dockerfile
         FROM python:3.6.6
         RUN mkdir -p /usr/src/app/libpyiotcloud
         WORKDIR /usr/src/app/libpyiotcloud
@@ -519,7 +523,18 @@ Device access APIs requires username, devicename and access token returned by lo
         RUN pip install --no-cache-dir -r requirements.txt
         CMD ["gunicorn", "--workers=1", "--bind=0.0.0.0:8000", "--forwarded-allow-ips='*'", "wsgi:app"]
         EXPOSE 8000
-
+        
+        // WEBAPP Ionic Dockerfile
+        FROM node:10.6-alpine
+        RUN npm install -g ionic gulp
+        RUN mkdir -p /usr/src/app/ionicapp
+        WORKDIR /usr/src/app/ionicapp
+        COPY src/ionicapp/ /usr/src/app/ionicapp/
+        RUN npm install -D -E @ionic/v1-toolkit
+        RUN npm rebuild node-sass
+        CMD ["ionic", "serve", "--address=172.18.0.5", "--port=8100", "--no-open", "--no-livereload", "--consolelogs", "--no-proxy"]
+        EXPOSE 8100        
+        
         // NGINX Dockerfile
         FROM nginx:latest
         RUN rm /etc/nginx/conf.d/default.conf
@@ -541,27 +556,31 @@ Device access APIs requires username, devicename and access token returned by lo
         docker run --net mydockernet --ip 172.18.0.2 -d -p 8883:8883 -p 5671:5671 -p 15672:15672 --name rmq rmq
         docker build -t mdb .
         docker run --net mydockernet --ip 172.18.0.3 -d -p 27017:27017 -v /data:/data/db --name mdb mdb
+        docker build -t api .
+        docker run --net mydockernet --ip 172.18.0.4 -d -p 8000:8000 --name api api
         docker build -t app .
-        docker run --net mydockernet --ip 172.18.0.4 -d -p 8000:8000 --name app app
+        docker run --net mydockernet --ip 172.18.0.5 -d -p 8100:8100 --name app app
         docker build -t ngx .
-        docker run --net mydockernet --ip 172.18.0.5 -d -p 443:443 --name ngx ngx
+        docker run --net mydockernet --ip 172.18.0.6 -d -p 443:443 --name ngx ngx
         docker build -t nmg .
-        docker run --net mydockernet --ip 172.18.0.6 -d --name nmg nmg
+        docker run --net mydockernet --ip 172.18.0.7 -d --name nmg nmg
 
         // STOP and REMOVE
         docker ps
         docker ps -a
         docker stop rmq
         docker stop mdb
+        docker stop api
         docker stop app
         docker stop ngx
         docker stop nmg
         docker rm rmq
         docker rm mdb
+        docker rm api
         docker rm app
         docker rm ngx
         docker rm nmg
-        docker network rm mydockernet
+        docker network prune OR docker network rm mydockernet
 
 
 ### Dockercompose
@@ -616,8 +635,8 @@ Device access APIs requires username, devicename and access token returned by lo
               - "27017:27017"
             volumes:
               - "mydockervol:/data/db"
-          webapp:
-            build: ./webapp
+          restapi:
+            build: ./restapi
             restart: always
             networks:
               mydockernet:
@@ -633,50 +652,58 @@ Device access APIs requires username, devicename and access token returned by lo
               - AWS_COGNITO_CLIENT_ID
               - AWS_COGNITO_USERPOOL_ID
               - AWS_COGNITO_USERPOOL_REGION
-          nginx:
-            build: ./nginx
+          webapp:
+            build: ./webapp
             restart: always
             networks:
               mydockernet:
                 ipv4_address: 172.18.0.5
             ports:
+              - "8100:8100"
+            depends_on:
+              - restapi
+          nginx:
+            build: ./nginx
+            restart: always
+            networks:
+              mydockernet:
+                ipv4_address: 172.18.0.6
+            ports:
               - "443:443"
             expose:
               - "443"
             depends_on:
+              - restapi
               - webapp
           notification:
             build: ./notification
             restart: always
             networks:
               mydockernet:
-                ipv4_address: 172.18.0.6
+                ipv4_address: 172.18.0.7
             depends_on:
-              - rabbitmq
               - nginx
-              - webapp
-              - mongodb
             environment:
               - AWS_ACCESS_KEY_ID
               - AWS_SECRET_ACCESS_KEY
               - AWS_PINPOINT_ID
-              - AWS_PINPOINT_REGION              
-              - AWS_PINPOINT_EMAIL              
+              - AWS_PINPOINT_REGION
+              - AWS_PINPOINT_EMAIL
         networks:
           mydockernet:
             driver: bridge
             ipam:
               config:
                 - subnet: 172.18.0.0/16
-                  gateway: 172.18.0.1
         volumes:
           mydockervol:
-            driver: local
+            driver: local 
     
         // test
         https:// 192.168.99.100
         mqtts:// 192.168.99.100:8883
         amqps:// 192.168.99.100:5671
+
 
 5. Docker-compose commands
 
@@ -717,8 +744,13 @@ Device access APIs requires username, devicename and access token returned by lo
 
         Dockerized:
         - docker-compose ps
+        - docker-compose down
+        - docker-compose rm
         - docker ps
+        - docker stop <container ID>
+        - docker rm <container ID>
         - docker network ls
+        - docker network prune
         - docker volume ls
 
         Manual:
