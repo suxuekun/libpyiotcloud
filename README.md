@@ -28,6 +28,8 @@ Our IoT platform is generic for all smart devices and IoT devices that can be bu
 This IoT platform is a server-based IoT cloud platform that leverages 
 Flask, GUnicorn, Nginx, RabbitMQ, MongoDB, Amazon Cognito, Amazon Pinpoint and Docker. 
 It can be deployed in a local PC or in the cloud - AWS EC2, Linode, Heroku, Rackspace, DigitalOcean or etc.
+The web app is made of Ionic framework so it can be compiled as Android and iOS mobile apps.
+
 
 - Nginx web server - https://www.nginx.com/
 - GUnicorn WSGI server - https://gunicorn.org/
