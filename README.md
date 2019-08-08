@@ -409,11 +409,20 @@ Device access APIs requires username, devicename and access token returned by lo
 
 ### Certificates
 
-       1. NGINX: rootca.pem rootca.pkey
-       2. RabbitMQ: rootca.pem, server_cert.pem, server_pkey.pem
-       3. WebApp: rootca.pem, server_cert.pem, server_pkey.pem
-       4. Notification: rootca.pem, notification_manager_cert.pem, notification_manager_pkey.pem
-       5. Device: rootca.pem, device_X.pem, device_X.pkey
+       // CA-certificate signed by trusted authority - Comodo, Verisign, etc.
+       0. ROOTCA.pem (with a secret ROOTCA_PKEY.pem)
+       
+       // Customer-facing
+       1. NGINX: ROOTCA.pem rootca.pkey
+       2. RabbitMQ: ROOTCA.pem, server_cert.pem, server_pkey.pem
+       
+       // Internal
+       3. WebApp: None
+       4. RestAPI: server_cert.pem, server_pkey.pem
+       5. Notification: ROOTCA.pem, notification_manager_cert.pem, notification_manager_pkey.pem
+       
+       // Device
+       6. Device: ROOTCA.pem, device_X.pem, device_X.pkey
 
 
 ### AWS EC2
