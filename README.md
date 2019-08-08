@@ -742,9 +742,8 @@ In Linux, the total round trip time is only 1 second.
 
 # Action Items
 
-1. Use Ionic front-end framework for cross-platform mobile, web, and desktop apps
-2. Add message counter for free-tier subscription
-3. Add manager/admin page in Web client (see all users and devices registered by each user)
-4. Add logging for debugging/troubleshooting
-5. Handle refreshing Cognito access key while user is still online
-6. Support Kubernetes orchestration
+1. Add message counter for free-tier subscription
+2. Add manager/admin page in Web client (see all users and devices registered by each user)
+3. Add logging for debugging/troubleshooting
+4. Handle refreshing Cognito access key while user is still online
+5. Support Kubernetes orchestration
