@@ -4,7 +4,7 @@ RUN npm install -g ionic gulp
 RUN node -v
 RUN npm -v
 RUN ionic -v
-RUN npm install --save @ionic/v1-toolkit --no-confirm
+RUN npm install i -D -E @ionic/v1-toolkit
 
 RUN mkdir -p /usr/src/app/ionicapp
 WORKDIR /usr/src/app/ionicapp
