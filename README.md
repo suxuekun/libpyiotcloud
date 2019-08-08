@@ -791,3 +791,7 @@ In Linux, the total round trip time is only 1 second.
 1. The private key for rootca is not committed in restapi/src/cert/ [for security purposes].
 2. The value of rest_api variable in webapp/src/ionicapp/www/js/server.js should correspond to AWS EC2 public IP address.
    [this may be changed to an environment variable if possible]
+3. The Ionic iOS/Android mobile simulators can be viewed online at XXX but requires the following
+   - "C:\Program Files (x86)\Google\Chrome\Application\chrome.exe" --ignore-certificate-errors
+   - OR chrome://flags/#allow-insecure-localhost
+   - OR install the following [certificate](https://raw.githubusercontent.com/richmondu/libpyiotcloud/master/nginx/src/ssl-cert-snakeoil.pem.crt)
