@@ -123,19 +123,19 @@ An alternative solution is using an AWS serverless solution wherein:
 
 ### REST APIs for Device Registration/Management
 
-    1. devices/register_device
+    1. /devices/register_device
        - requires username, access_token, devicename
        - returns deviceid, rootca, devicecert, devicepkey
          which shall be used on the actual microcontroller device
-    2. devices/unregister_device
+    2. /devices/unregister_device
        - requires username, access_token, devicename
-    3. devices/get_device_list
+    3. /devices/get_device_list
        - requires username, access_token
        - returns device info [devicename, deviceid, rootca, devicecert, devicepkey for all devices registered by user]
-    4. devices/get_device_list_count
+    4. /devices/get_device_list_count
        - requires username, access_token
        - returns length of device list
-    5. devices/get_device_index
+    5. /devices/get_device_index
        - requires username, access_token, index
        - returns device info for device[index]
 
