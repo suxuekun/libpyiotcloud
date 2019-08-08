@@ -123,7 +123,12 @@ An alternative solution is using an AWS serverless solution wherein:
     6. /user/confirm_forgot_password
        - requires username, new password, confirmation code
 
+User login returns an access token that must be used in succeeding API requests.
+
+
 ### REST APIs for Device Registration/Management
+
+Device registration APIs requires username and access token returned by login.
 
     1. /devices/register_device
        - requires username, access_token, devicename
@@ -142,6 +147,8 @@ An alternative solution is using an AWS serverless solution wherein:
        - returns device info for device[index]
 
 ### REST APIs for Device Access/Control
+
+Device access APIs requires username, devicename and access token returned by login.
 
     1. /devices/device/gpio
     2. /devices/device/rtc
