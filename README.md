@@ -783,3 +783,10 @@ In Linux, the total round trip time is only 1 second.
 3. Add logging for debugging/troubleshooting
 4. Handle refreshing Cognito access key while user is still online
 5. Support Kubernetes orchestration
+
+
+# Reminders
+
+1. The private key for rootca is not committed in restapi/src/cert/ [for security purposes].
+2. The value of rest_api variable in webapp/src/ionicapp/www/js/server.js should correspond to AWS EC2 public IP address.
+   [this may be changed to an environment variable if possible]
