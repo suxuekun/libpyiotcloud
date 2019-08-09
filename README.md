@@ -792,9 +792,10 @@ In Linux, the total round trip time is only 1 second.
 
 1. Add message counter for free-tier subscription
 2. Add manager/admin page in Web client (see all users and devices registered by each user)
-3. Add logging for debugging/troubleshooting
-4. Handle refreshing Cognito access key while user is still online
-5. Support Kubernetes orchestration
+3. Add displaying of device communication
+4. Add logging for debugging/troubleshooting
+5. Handle refreshing Cognito access key while user is still online
+6. Support Kubernetes orchestration
 
 
 # Reminders
