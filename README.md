@@ -43,6 +43,8 @@ The web app is made of Ionic framework so it can be compiled as Android and iOS 
 - Docker containerization (dockerfiles, docker-compose) - https://www.docker.com/
 - Ionic mobile/web frontend framework - https://ionicframework.com/
 - Postman (API testing tool) - https://www.getpostman.com/
+- GoDaddy domain hosting and SSL certificate - https://godaddy.com
+
 
 An alternative solution is using an AWS serverless solution wherein:
 
