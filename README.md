@@ -800,9 +800,12 @@ In Linux, the total round trip time is only 1 second.
 # Reminders
 
 1. The private key for rootca is not committed in restapi/src/cert/ [for security purposes].
-2. The value of rest_api variable in webapp/src/ionicapp/www/js/server.js should correspond to AWS EC2 public IP address.
+2. The value of rest_api variable in webapp/src/ionicapp/www/js/server.js should correspond to the GoDaddy domain name or AWS EC2 public IP address.
    [this may be changed to an environment variable if possible]
-3. The Ionic iOS/Android mobile simulators can be viewed online at https://creator.ionic.io/share/xxxASKMExxx but requires the following
+   When using local machine, 192.168.99.100 is the default docker ip.
+3. When using self-signed certificate on NGINX,
+   The Ionic iOS/Android mobile simulators can be viewed online at https://creator.ionic.io/share/xxxASKMExxx but requires the following
    - "C:\Program Files (x86)\Google\Chrome\Application\chrome.exe" --ignore-certificate-errors
    - OR chrome://flags/#allow-insecure-localhost
    - OR install the following [certificate](https://raw.githubusercontent.com/richmondu/libpyiotcloud/master/nginx/src/ssl-cert-snakeoil.pem.crt)
+   [no longer needed after buying SSL certificates.
