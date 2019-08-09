@@ -796,7 +796,7 @@ In Linux, the total round trip time is only 1 second.
 4. Add logging for debugging/troubleshooting
 5. Handle refreshing Cognito access key while user is still online
 6. Support Kubernetes orchestration
-
+7. Add feature to enable MFA (Multi factor authentication via email/SMS).
 
 # Reminders
 
