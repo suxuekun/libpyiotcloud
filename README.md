@@ -78,6 +78,7 @@ An alternative solution is using an AWS serverless solution wherein:
     6. The webserver has been tested on Linux Ubuntu 16.04 using GUnicorn and Nginx.
     7. Web app: browser->nginx->ionic->gunicorn->flask ...
     8. Mobile apps: app->nginx->gunicorn->flask ...
+    9. HTTPs requests from web and mobile apps goes thru NGINX which forwards requests to either Ionic web app or Gunicorn-Flask REST APIs.
 
 
 
