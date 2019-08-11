@@ -109,7 +109,8 @@ An alternative solution is using an AWS serverless solution wherein:
     5. Deployment to AWS EC2 as microservices using Docker
        - 5 microservices/docker containers [rabbitmq, mongodb, webapp, nginx, notification]
        - with Dockerfiles and Docker-compose file
-    6. Ionic web app that can be compiled as iOS/Android mobile apps 
+    6. Ionic web app can be compiled as iOS/Android mobile apps
+       - SSL certificate bought from GoDaddy.com registered on NGINX.
 
 
 ### REST APIs for User Sign-up/Sign-In
