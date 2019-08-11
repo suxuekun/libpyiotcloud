@@ -79,6 +79,7 @@ An alternative solution is using an AWS serverless solution wherein:
     7. Web app: browser->nginx->ionic->gunicorn->flask ...
     8. Mobile apps: app->nginx->gunicorn->flask ...
     9. HTTPs requests from web and mobile apps goes thru NGINX which forwards requests to either Ionic web app or Gunicorn-Flask REST APIs.
+    10. SSL certificate bought from GoDaddy goes to NGINX.
 
 
 
