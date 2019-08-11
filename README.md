@@ -80,6 +80,8 @@ An alternative solution is using an AWS serverless solution wherein:
     8. Mobile apps: app->nginx->gunicorn->flask ...
     9. HTTPs requests from web and mobile apps goes thru NGINX which forwards requests to either Ionic web app or Gunicorn-Flask REST APIs.
     10. SSL certificate bought from GoDaddy goes to NGINX.
+    11. SSL certificate bought is tied up with the website domain.
+    12. DNS A record must be modified in GoDaddy to match the public IP address of the AWS EC2 instance.
 
 
 
