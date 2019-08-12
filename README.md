@@ -803,6 +803,8 @@ In Linux, the total round trip time is only 1 second.
 6. Support Kubernetes orchestration
 7. Add feature to enable MFA (Multi factor authentication via email/SMS).
 8. Add signup/login using Facebook account
+9. Build and Android APK of the Ionic web app
+
 
 # Reminders
 
