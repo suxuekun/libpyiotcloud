@@ -805,6 +805,7 @@ In Linux, the total round trip time is only 1 second.
 8. Add signup/login using Facebook account
 9. Build and Android APK of the Ionic web app
 10. Support displaying of device communication history with RabbitMQ.
+11. Support an online device emulator. (Each user can run 1 online device emulator.)
 
 
 # Reminders
