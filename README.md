@@ -56,6 +56,16 @@ An alternative solution is using an AWS serverless solution wherein:
 ### High-level architecture diagram:
 <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/architecture.png" width="1000"/>
 
+6 docker containers and microservices
+
+1. Webserver - Nginx
+2. Webapp - Ionic
+3. Restapi - Flask with Gunicorn
+4. Messaging - RabbitMQ
+5. Database - MongoDB
+6. Notification - Pinpoint
+
+
 ### UML Use case diagram:
 <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/usecase.png" width="800"/>
 
