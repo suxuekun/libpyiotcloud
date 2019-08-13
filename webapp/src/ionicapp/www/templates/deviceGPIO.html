@@ -1,4 +1,7 @@
 <ion-view title="Device GPIO" hide-back-button="true" cache-view="false" nav-transition="none" id="page17" class="page_width">
+  <ion-nav-buttons side="left" class="has-header">
+    <button class="button button-icon icon ion-android-close" ng-click="submitDeviceList()"></button>
+  </ion-nav-buttons>
   <ion-content padding="true" class="has-header">
     <div id="deviceGPIO-markdown21" style="text-align:center;" class="show-list-numbers-and-dots">
       <p style="color:#444444;font-size:18px;">
@@ -6,6 +9,11 @@
       </p>
     </div>
     <form id="deviceGPIO-form18" class="list">
+      <div id="deviceGPIO-markdown11" style="text-align:center;" class="show-list-numbers-and-dots">
+        <p style="color:#444444;font-size:15px;">Status:
+          <strong>{{ data.devicestatus }}</strong>
+        </p>
+      </div>
       <label class="item item-input" id="deviceGPIO-input32" name="input-gpionumber">
         <span class="input-label">GPIO Number</span>
         <input type="number" placeholder="" ng-model="data.gpionumber">
@@ -16,7 +24,5 @@
     </form>
     <button id="deviceGPIO-button29" ng-click="submitGet()" class="button button-dark widget_button">Get</button>
     <button id="deviceGPIO-button30" ng-click="submitSet()" class="button button-dark widget_button">Set</button>
-    <a ui-sref="controlDevice({&quot;devicename&quot;:&quot;&quot;+ data.devicename +&quot;&quot;,&quot;username&quot;:&quot;&quot;+ data.username +&quot;&quot;,&quot;token&quot;:&quot;&quot;+ data.token +&quot;&quot;})" id="deviceGPIO-button13"
-      class="button button-positive button-small button-block button-clear">Back to Device Control</a>
   </ion-content>
 </ion-view>

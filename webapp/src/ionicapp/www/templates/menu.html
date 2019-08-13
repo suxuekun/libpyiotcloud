@@ -10,25 +10,33 @@
   </ion-side-menu-content>
   <ion-side-menu side="left" id="side-menu21" style="background-color:#FFFFFF;">
     <ion-content padding="false" style="top:0px !important;" class="side-menu-left ">
-      <div class="spacer" style="width: 268px; height: 64px;"></div>
+      <div class="spacer" style="width: 268px; height: 33px;"></div>
       <div id="menu-markdown8" style="text-align:center;" class="show-list-numbers-and-dots">
-        <p style="color:#444444;font-size:18px;">
+        <p style="color:#444444;font-size:20px;">
           <strong> {{ data.username }} </strong>
         </p>
       </div>
-      <div class="spacer" style="width: 268px; height: 20px;"></div>
       <ion-list id="menu-list1" class="manual-list-fullwidth">
         <ion-item class="item-icon-left dark" id="menu-list-item2" ui-sref="menu.account({})" menu-close="">
           <i class="icon ion-person"></i>Account</ion-item>
         <ion-item class="item-icon-left dark" id="menu-list-item1" ui-sref="menu.devices({&quot;username&quot;:&quot;&quot;+ data.username +&quot;&quot;,&quot;token&quot;:&quot;&quot;+ data.token +&quot;&quot;})" menu-close="">
           <i class="icon ion-ios-keypad"></i>Devices</ion-item>
-        <ion-item class="item-icon-left dark" id="menu-list-item18" ui-sref="menu.settings()" menu-close="">
+        <ion-item class="item-icon-left dark" id="menu-list-item18" ui-sref="menu.history()" menu-close="">
+          <i class="icon ion-android-clipboard"></i>History</ion-item>
+        <ion-item class="item-icon-left dark" id="menu-list-item4" ui-sref="menu.settings()" menu-close="">
           <i class="icon ion-settings"></i>Settings</ion-item>
         <ion-item class="item-icon-left dark" id="menu-list-item17" ui-sref="menu.help()" menu-close="">
           <i class="icon ion-help-circled"></i>Help</ion-item>
         <ion-item class="item-icon-left dark" id="menu-list-item3" ng-click="submitLogout()">
           <i class="icon ion-log-out"></i>Logout</ion-item>
       </ion-list>
+      <div class="spacer" style="width: 268px; height: 30px;"></div>
+      <div id="menu-markdown9" style="text-align:center;" class="show-list-numbers-and-dots">
+        <p style="color:#444444;">
+          <strong>Terms of Services</strong> and
+          <strong>Privacy Policy</strong>
+        </p>
+      </div>
     </ion-content>
   </ion-side-menu>
 </ion-side-menus>

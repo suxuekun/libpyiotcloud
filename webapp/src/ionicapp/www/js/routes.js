@@ -105,18 +105,14 @@ angular.module('app.routes', [])
     }
   })
 
-  .state('menu.registerDevice', {
+  .state('registerDevice', {
     url: '/page_register_device',
 	params: {
 		username: "",
 		token: ""		
 },
-    views: {
-      'side-menu21': {
-        templateUrl: 'templates/registerDevice.html',
-        controller: 'registerDeviceCtrl'
-      }
-    }
+    templateUrl: 'templates/registerDevice.html',
+    controller: 'registerDeviceCtrl'
   })
 
   .state('viewDevice', {
@@ -150,7 +146,8 @@ angular.module('app.routes', [])
 	params: {
 		devicename: "",
 		username: "",
-		token: ""		
+		token: "",
+		devicestatus: ""		
 },
     templateUrl: 'templates/deviceEthernet.html',
     controller: 'deviceEthernetCtrl'
@@ -161,7 +158,8 @@ angular.module('app.routes', [])
 	params: {
 		devicename: "",
 		username: "",
-		token: ""		
+		token: "",
+		devicestatus: ""		
 },
     templateUrl: 'templates/deviceGPIO.html',
     controller: 'deviceGPIOCtrl'
@@ -172,7 +170,8 @@ angular.module('app.routes', [])
 	params: {
 		devicename: "",
 		username: "",
-		token: ""		
+		token: "",
+		devicestatus: ""		
 },
     templateUrl: 'templates/deviceUART.html',
     controller: 'deviceUARTCtrl'
@@ -183,7 +182,8 @@ angular.module('app.routes', [])
 	params: {
 		devicename: "",
 		username: "",
-		token: ""		
+		token: "",
+		devicestatus: ""		
 },
     templateUrl: 'templates/deviceRTC.html',
     controller: 'deviceRTCCtrl'
@@ -194,10 +194,21 @@ angular.module('app.routes', [])
 	params: {
 		devicename: "",
 		username: "",
-		token: ""		
+		token: "",
+		devicestatus: ""		
 },
     templateUrl: 'templates/deviceNotifications.html',
     controller: 'deviceNotificationsCtrl'
+  })
+
+  .state('menu.history', {
+    url: '/page_history',
+    views: {
+      'side-menu21': {
+        templateUrl: 'templates/history.html',
+        controller: 'historyCtrl'
+      }
+    }
   })
 
 $urlRouterProvider.otherwise('/page_home')

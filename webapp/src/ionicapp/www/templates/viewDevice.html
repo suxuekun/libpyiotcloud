@@ -1,4 +1,7 @@
 <ion-view title="View Device" hide-back-button="true" nav-transition="none" id="page13" style="background-color:#FFFFFF;" class="page_width">
+  <ion-nav-buttons side="left" class="has-header">
+    <button class="button button-icon icon ion-android-close" ng-click="submitDeviceList()"></button>
+  </ion-nav-buttons>
   <ion-nav-buttons side="right" class="has-header">
     <button class="button button-icon icon ion-trash-b" ng-click="submitDelete()"></button>
   </ion-nav-buttons>
@@ -20,13 +23,9 @@
       </label>
     </form>
     <button id="viewDevice-button46" ng-click="submitTest()" class="button button-dark button-block">Control Device</button>
-    <button id="viewDevice-button23" ng-click="submitDeviceList()" class="button button-positive button-small button-block button-clear">Back to Devices</button>
-    <div class="spacer" style="height: 10px;"></div>
-    <div class="spacer" style="height: 10px;"></div>
     <div id="viewDevice-markdown15" class="show-list-numbers-and-dots">
       <p style="color:#444444;font-size:7px;">Certificate: {{ data.devicecert }}</p>
     </div>
-    <div class="spacer" style="height: 10px;"></div>
     <div id="viewDevice-markdown16" class="show-list-numbers-and-dots">
       <p style="color:#444444;font-size:7px;">Private Key: {{ data.devicepkey }}</p>
     </div>

@@ -1,4 +1,7 @@
 <ion-view title="Device UART" hide-back-button="true" cache-view="false" nav-transition="none" id="page18" class="page_width">
+  <ion-nav-buttons side="left" class="has-header">
+    <button class="button button-icon icon ion-android-close" ng-click="submitDeviceList()"></button>
+  </ion-nav-buttons>
   <ion-content padding="true" class="has-header">
     <div id="deviceUART-markdown22" style="text-align:center;" class="show-list-numbers-and-dots">
       <p style="color:#444444;font-size:18px;">
@@ -6,11 +9,14 @@
       </p>
     </div>
     <form id="deviceUART-form17" class="list">
+      <div id="deviceUART-markdown25" style="text-align:center;" class="show-list-numbers-and-dots">
+        <p style="color:#444444;font-size:15px;">Status:
+          <strong>{{ data.devicestatus }}</strong>
+        </p>
+      </div>
       <label class="item item-input message_textarea" id="deviceUART-textarea2" name="textarea-message">
         <span class="input-label"></span><textarea placeholder="Message" ng-model="data.message"></textarea></label>
     </form>
     <button id="deviceUART-button28" ng-click="submit()" class="button button-dark button-block">Submit</button>
-    <a ui-sref="controlDevice({&quot;devicename&quot;:&quot;&quot;+ data.devicename +&quot;&quot;,&quot;username&quot;:&quot;&quot;+ data.username +&quot;&quot;,&quot;token&quot;:&quot;&quot;+ data.token +&quot;&quot;})" id="deviceUART-button48"
-      class="button button-positive button-small button-block button-clear">Back to Device Control</a>
   </ion-content>
 </ion-view>

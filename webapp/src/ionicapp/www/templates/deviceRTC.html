@@ -1,8 +1,16 @@
 <ion-view title="Device RTC" hide-back-button="true" cache-view="false" nav-transition="none" id="page19" class="page_width">
+  <ion-nav-buttons side="left" class="has-header">
+    <button class="button button-icon icon ion-android-close" ng-click="submitDeviceList()"></button>
+  </ion-nav-buttons>
   <ion-content padding="true" class="has-header">
     <div id="deviceRTC-markdown23" style="text-align:center;" class="show-list-numbers-and-dots">
       <p style="color:#444444;font-size:18px;">
         <strong> {{ data.devicename }} </strong>
+      </p>
+    </div>
+    <div id="deviceRTC-markdown26" style="text-align:center;" class="show-list-numbers-and-dots">
+      <p style="color:#444444;font-size:15px;">Status:
+        <strong>{{ data.devicestatus }}</strong>
       </p>
     </div>
     <h5 id="deviceRTC-heading21" style="color:#444444;">Device DateTime</h5>
@@ -16,7 +24,5 @@
     </form>
     <button id="deviceRTC-button26" ng-click="submitGet()" class="button button-dark button-block">Get</button>
     <button id="deviceRTC-button27" ng-click="submitSet()" class="button button-dark button-block">Set</button>
-    <a ui-sref="controlDevice({&quot;devicename&quot;:&quot;&quot;+ data.devicename +&quot;&quot;,&quot;username&quot;:&quot;&quot;+ data.username +&quot;&quot;,&quot;token&quot;:&quot;&quot;+ data.token +&quot;&quot;})" id="deviceRTC-button49"
-      class="button button-positive button-small button-block button-clear">Back to Device Control</a>
   </ion-content>
 </ion-view>

@@ -36,7 +36,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Device
 
     $scope.submitAdd = function() {
 
-        $state.go('menu.registerDevice', $scope.data);
+        $state.go('registerDevice', $scope.data);
     }
     
     $scope.submitRefresh = function() {
@@ -258,7 +258,9 @@ function ($scope, $stateParams, $http, Server, User) {
         console.log("ACCOUNT enter ionicView");
         
         
-        if ($scope.data.username !== "" || $scope.data.token !== "") {
+        if (($scope.data.username !== User.get_username()) && 
+            ($scope.data.token !== User.get_token())) {
+                
             $scope.data.username = User.get_username();
             $scope.data.token = User.get_token();
             
@@ -284,10 +286,10 @@ function ($scope, $stateParams, $http, Server, User) {
 }
 ])
    
-.controller('menuCtrl', ['$scope', '$stateParams', '$state', 'User', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+.controller('menuCtrl', ['$scope', '$stateParams', '$state', '$ionicPopup', 'User', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
 // You can include any angular dependencies as parameters for this function
 // TIP: Access Route Parameters for your page via $stateParams.parameterName
-function ($scope, $stateParams, $state, User) {
+function ($scope, $stateParams, $state, $ionicPopup, User) {
 
     $scope.data = {
         'username': User.get_username(), //$stateParams.username,
@@ -313,21 +315,44 @@ function ($scope, $stateParams, $state, User) {
 
     $scope.submitLogout = function() {
         
+        $ionicPopup.alert({
+            title: 'Log out',
+            template: 'Are you sure you want to log out?',
+            buttons: [
+                { 
+                    text: 'No',
+                    type: 'button-negative',
+                },
+                {
+                    text: 'Yes',
+                    type: 'button-positive',
+                    onTap: function(e) {
+                        $scope.submitLogoutAction();
+                    }
+                }
+            ]            
+        });            
+        
+        
+    }
+    
+    $scope.submitLogoutAction = function() {
         $scope.data.username = "";        
         $scope.data.token = "";        
         User.clear();
         $state.go('login');
     }
+    
 }
 
   
   
 ])
    
-.controller('loginCtrl', ['$scope', '$stateParams', '$state', '$http', 'Server', 'User', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+.controller('loginCtrl', ['$scope', '$stateParams', '$state', '$ionicPopup', '$http', 'Server', 'User', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
 // You can include any angular dependencies as parameters for this function
 // TIP: Access Route Parameters for your page via $stateParams.parameterName
-function ($scope, $stateParams, $state, $http, Server, User) {
+function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
 
     var server = Server.rest_api;
     
@@ -338,20 +363,16 @@ function ($scope, $stateParams, $state, $http, Server, User) {
     
     $scope.submit = function() {
         
-        console.log("username=" + $scope.data.username);
-        console.log("password=" + $scope.data.password);
+        //console.log("username=" + $scope.data.username);
+        //console.log("password=" + $scope.data.password);
 
         // Handle invalid input        
-        if ($scope.data.username.trim().length === 0) {
-            console.log("ERROR: Login username is empty!");
-            // TODO: replace alert with ionic alert
-            alert("ERROR: Login username is empty!");
+        if ($scope.data.username.length === 0) {
+            $ionicPopup.alert({title: 'Login Error', template: 'Username is empty!'});
             return;
         }
-        else if ($scope.data.password.trim().length === 0) {
-            console.log("ERROR: Login password is empty!");
-            // TODO: replace alert with ionic alert
-            alert("ERROR: Login password is empty!");
+        else if ($scope.data.password.length === 0) {
+            $ionicPopup.alert({title: 'Login Error', template: 'Password is empty!'});
             return;
         }
  
@@ -363,8 +384,8 @@ function ($scope, $stateParams, $state, $http, Server, User) {
             data: $scope.data
         })
         .then(function (result) {
-            // Handle successful login
-            console.log(result.data);
+            // Handle successful
+            //console.log(result.data);
 
             var user_data = {
                 'username': $scope.data.username,
@@ -376,25 +397,22 @@ function ($scope, $stateParams, $state, $http, Server, User) {
             $state.go('menu.devices', user_data);
         })
         .catch(function (error) {
-            // Handle failed login
+            // Handle failed
             if (error.data !== null) {
-                console.log("ERROR: Login failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
-                // TODO: replace alert with ionic alert
-                alert("ERROR: Login failed with " + error.status + " " + error.statusText +"! " + error.data.message); 
+                console.log(error.status + " " + error.statusText);
+                $ionicPopup.alert({title: 'Login Error', template: error.data.message});
             }
             else {
-                console.log("ERROR: Login failed because server is down!"); 
-                // TODO: replace alert with ionic alert
-                alert("ERROR: Login failed because server is down!");
+                $ionicPopup.alert({title: 'Login Error', template: 'Server is down!'});
             }
         });
     }
 }])
    
-.controller('signupCtrl', ['$scope', '$stateParams', '$state', '$http', 'Server', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+.controller('signupCtrl', ['$scope', '$stateParams', '$state', '$ionicPopup', '$http', 'Server', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
 // You can include any angular dependencies as parameters for this function
 // TIP: Access Route Parameters for your page via $stateParams.parameterName
-function ($scope, $stateParams, $state, $http, Server) {
+function ($scope, $stateParams, $state, $ionicPopup, $http, Server) {
 
     var server = Server.rest_api;
 
@@ -408,60 +426,45 @@ function ($scope, $stateParams, $state, $http, Server) {
     }
     
     $scope.submit = function() {
-        console.log("username=" + $scope.data.username);
-        console.log("password=" + $scope.data.password);
-        console.log("password2=" + $scope.data.password2);
-        console.log("email=" + $scope.data.email);
-        console.log("givenname=" + $scope.data.givenname);
-        console.log("familyname=" + $scope.data.familyname);
-        
         // Handle invalid input        
-        if ($scope.data.username.trim().length === 0) {
-            console.log("ERROR: Signup username is empty!");
-            // TODO: replace alert with ionic alert
-            alert("ERROR: Signup username is empty!");
+        if ($scope.data.username.length === 0) {
+            $ionicPopup.alert({title: 'Signup Error', template: 'Username is empty!'});
             return;
         }
-        else if ($scope.data.password.trim().length === 0) {
-            console.log("ERROR: Signup password is empty!");
-            // TODO: replace alert with ionic alert
-            alert("ERROR: Signup password is empty!");
+        else if ($scope.data.password.length === 0) {
+            $ionicPopup.alert({title: 'Signup Error', template: 'Password is empty!'});
             return;
         }
-        else if ($scope.data.password.trim().length < 6) {
-            console.log("ERROR: Signup password should be at least 6 characters!");
-            // TODO: replace alert with ionic alert
-            alert("ERROR: Signup password should be at least 6 characters!");
+        else if ($scope.data.password.length < 6) {
+            $ionicPopup.alert({title: 'Signup Error', template: 'Password should be at least 6 characters!'});
             return;
         }        
         else if ($scope.data.password2 !== $scope.data.password) {
-            console.log("ERROR: Signup confirm password does not match!");
-            // TODO: replace alert with ionic alert
-            alert("ERROR: Signup confirm password does not match!");
+            $ionicPopup.alert({title: 'Signup Error', template: 'Passwords do not match!'});
             return;
         }
         else if ($scope.data.email === undefined) {
-            console.log("ERROR: Signup email is invalid!");
-            // TODO: replace alert with ionic alert
-            alert("ERROR: Signup email is invalid!");
+            $ionicPopup.alert({title: 'Signup Error', template: 'Email is invalid!'});
             return;
         }        
-        else if ($scope.data.email.trim().length === 0) {
-            console.log("ERROR: Signup email is empty!");
-            // TODO: replace alert with ionic alert
-            alert("ERROR: Signup email is empty!");
+        else if ($scope.data.email.length === 0) {
+            $ionicPopup.alert({title: 'Signup Error', template: 'Email is empty!'});
             return;
         }        
-        else if ($scope.data.givenname.trim().length === 0) {
-            console.log("ERROR: Signup firstname is empty!");
-            // TODO: replace alert with ionic alert
-            alert("ERROR: Signup firstname is empty!");
+        else if ($scope.data.givenname === undefined) {
+            $ionicPopup.alert({title: 'Signup Error', template: 'First name is invalid!'});
             return;
         }        
-        else if ($scope.data.familyname.trim().length === 0) {
-            console.log("ERROR: Signup lastname is empty!");
-            // TODO: replace alert with ionic alert
-            alert("ERROR: Signup lastname is empty!");
+        else if ($scope.data.familyname === undefined) {
+            $ionicPopup.alert({title: 'Signup Error', template: 'Last name is invalid!'});
+            return;
+        }        
+        else if ($scope.data.givenname.length === 0) {
+            $ionicPopup.alert({title: 'Signup Error', template: 'First name is empty!'});
+            return;
+        }        
+        else if ($scope.data.familyname.length === 0) {
+            $ionicPopup.alert({title: 'Signup Error', template: 'Last name is empty!'});
             return;
         }
         
@@ -483,27 +486,23 @@ function ($scope, $stateParams, $state, $http, Server) {
             $state.go('confirmRegistration', $scope.data);
         })
         .catch(function (error) {
-            // Handle failed login
-            console.log(error);
+            // Handle failed
             if (error.data !== null) {
-                console.log("ERROR: Signup failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
-                // TODO: replace alert with ionic alert
-                alert("ERROR: Signup failed with " + error.status + " " + error.statusText + "! " + error.data.message);
+                console.log(error.status + " " + error.statusText);
+                $ionicPopup.alert({title: 'Signup Error', template: error.data.message});
             }
             else {
-                console.log("ERROR: Signup failed because server is down!"); 
-                // TODO: replace alert with ionic alert
-                alert("ERROR: Signup failed because server is down!");
+                $ionicPopup.alert({title: 'Signup Error', template: 'Server is down!'});
             }
             return;
         });       
     }
 }])
    
-.controller('recoverCtrl', ['$scope', '$stateParams', '$state', '$http', 'Server', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+.controller('recoverCtrl', ['$scope', '$stateParams', '$state', '$ionicPopup', '$http', 'Server', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
 // You can include any angular dependencies as parameters for this function
 // TIP: Access Route Parameters for your page via $stateParams.parameterName
-function ($scope, $stateParams, $state, $http, Server) {
+function ($scope, $stateParams, $state, $ionicPopup, $http, Server) {
 
     var server = Server.rest_api;
 
@@ -516,15 +515,11 @@ function ($scope, $stateParams, $state, $http, Server) {
 
         // Handle invalid input
         if ($scope.data.email === undefined) {
-            console.log("ERROR: Account Recover email is invalid!");
-            // TODO: replace alert with ionic alert
-            alert("ERROR: Account Recover email is invalid!");
+            $ionicPopup.alert({title: 'Recovery Error', template: 'Email is empty!'});
             return;
         }          
         else if ($scope.data.email.trim().length === 0) {
-            console.log("ERROR: Account Recover email is empty!");
-            // TODO: replace alert with ionic alert
-            alert("ERROR: Account Recover email is empty!");
+            $ionicPopup.alert({title: 'Recovery Error', template: 'Email is empty!'});
             return;
         }
 
@@ -548,24 +543,25 @@ function ($scope, $stateParams, $state, $http, Server) {
             // Handle failed login
             console.log(error);
             if (error.data !== null) {
-                console.log("ERROR: Account Recover failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
-                // TODO: replace alert with ionic alert
-                alert("ERROR: Account Recover failed with " + error.status + " " + error.statusText + "! " + error.data.message);
+                console.log(error.status + " " + error.statusText);
+                $ionicPopup.alert({title: 'Recovery Error', template: error.data.message});
             }
             else {
-                console.log("ERROR: Account Recover failed because server is down!"); 
-                // TODO: replace alert with ionic alert
-                alert("ERROR: Account Recover failed because server is down!");
+                $ionicPopup.alert({title: 'Recovery Error', template: 'Server is down!'});
             }
             return;
         });
     }
+    
+    $scope.submitCancel = function() {
+        $state.go('login');
+    }    
 }])
    
-.controller('resetPasswordCtrl', ['$scope', '$stateParams', '$state', '$http', 'Server', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+.controller('resetPasswordCtrl', ['$scope', '$stateParams', '$state', '$ionicPopup', '$http', 'Server', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
 // You can include any angular dependencies as parameters for this function
 // TIP: Access Route Parameters for your page via $stateParams.parameterName
-function ($scope, $stateParams, $state, $http, Server) {
+function ($scope, $stateParams, $state, $ionicPopup, $http, Server) {
 
     var server = Server.rest_api;
 
@@ -582,34 +578,36 @@ function ($scope, $stateParams, $state, $http, Server) {
         console.log("password=" + $scope.data.password);
         
         // Handle invalid input        
-        if ($scope.data.username.trim().length === 0) {
-            console.log("ERROR: Reset Password username is empty!");
-            // TODO: replace alert with ionic alert
-            alert("ERROR: Reset Password username is empty!");
+        if ($scope.data.username === undefined) {
+            $ionicPopup.alert({title: 'Recovery Error', template: 'Username is empty!'});
+            return;
+        }
+        else if ($scope.data.username.trim().length === 0) {
+            $ionicPopup.alert({title: 'Recovery Error', template: 'Username is empty!'});
+            return;
+        }
+        else if ($scope.data.confirmationcode === undefined) {
+            $ionicPopup.alert({title: 'Recovery Error', template: 'Code is empty!'});
             return;
         }
         else if ($scope.data.confirmationcode.trim().length === 0) {
-            console.log("ERROR: Reset Password code is empty!");
-            // TODO: replace alert with ionic alert
-            alert("ERROR: Reset Password code is empty!");
+            $ionicPopup.alert({title: 'Recovery Error', template: 'Code is empty!'});
+            return;
+        }
+        else if ($scope.data.password === undefined) {
+            $ionicPopup.alert({title: 'Recovery Error', template: 'Password is empty!'});
             return;
         }
         else if ($scope.data.password.trim().length === 0) {
-            console.log("ERROR: Reset Password password is empty!");
-            // TODO: replace alert with ionic alert
-            alert("ERROR: Reset Password password is empty!");
+            $ionicPopup.alert({title: 'Recovery Error', template: 'Password is empty!'});
             return;
         }
         else if ($scope.data.password.trim().length < 6) {
-            console.log("ERROR: Reset Password password should be at least 6 characters!");
-            // TODO: replace alert with ionic alert
-            alert("ERROR: Reset Password password should be at least 6 characters!");
+            $ionicPopup.alert({title: 'Recovery Error', template: 'Password should be at least 6 characters!'});
             return;
         } 
         else if ($scope.data.password2 !== $scope.data.password) {
-            console.log("ERROR: Reset Password confirm password does not match!");
-            // TODO: replace alert with ionic alert
-            alert("ERROR: Reset Password confirm password does not match!");
+            $ionicPopup.alert({title: 'Recovery Error', template: 'Passwords do not match!'});
             return;
         } 
 
@@ -621,33 +619,35 @@ function ($scope, $stateParams, $state, $http, Server) {
             data: $scope.data
         })
         .then(function (result) {
-            // Handle successful login
+            // Handle successful
             console.log(result.data);
-            alert("Recovery completed!");
+            $ionicPopup.alert({title: 'Recovery', template: 'Recovery completed!'});
             $state.go('login');            
         })
         .catch(function (error) {
-            // Handle failed login
+            // Handle failed
             console.log(error);
             if (error.data !== null) {
-                console.log("ERROR: Reset Password failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
-                // TODO: replace alert with ionic alert
-                alert("ERROR: Reset Password failed with " + error.status + " " + error.statusText + "! " + error.data.message);
+                console.log(error.status + " " + error.statusText);
+                $ionicPopup.alert({title: 'Recovery Error', template: error.data.message});
             }
             else {
-                console.log("ERROR: Reset Password failed because server is down!"); 
-                // TODO: replace alert with ionic alert
-                alert("ERROR: Reset Password failed because server is down!");
+                $ionicPopup.alert({title: 'Recovery Error', template: 'Server is down!'});
             }
             return;
         });
     }
+    
+    $scope.submitCancel = function() {
+        $state.go('recover');
+    }    
+    
 }])
    
-.controller('confirmRegistrationCtrl', ['$scope', '$stateParams', '$state', '$http', 'Server', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+.controller('confirmRegistrationCtrl', ['$scope', '$stateParams', '$state', '$ionicPopup', '$http', 'Server', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
 // You can include any angular dependencies as parameters for this function
 // TIP: Access Route Parameters for your page via $stateParams.parameterName
-function ($scope, $stateParams, $state, $http, Server) {
+function ($scope, $stateParams, $state, $ionicPopup, $http, Server) {
 
     var server = Server.rest_api;
     
@@ -661,16 +661,12 @@ function ($scope, $stateParams, $state, $http, Server) {
         console.log("confirmationcode=" + $scope.data.confirmationcode);
         
         // Handle invalid input        
-        if ($scope.data.username.trim().length === 0) {
-            console.log("ERROR: Confirm registration code is empty!");
-            // TODO: replace alert with ionic alert
-            alert("ERROR: Username is empty!");
+        if ($scope.data.confirmationcode === undefined) {
+            $ionicPopup.alert({title: 'Signup Error', template: 'Code is empty!'});
             return;
         }
-        else if ($scope.data.confirmationcode.trim().length === 0) {
-            console.log("ERROR: Confirm registration code is empty!");
-            // TODO: replace alert with ionic alert
-            alert("ERROR: Confirm registration code is empty!");
+        else if ($scope.data.confirmationcode.length === 0) {
+            $ionicPopup.alert({title: 'Signup Error', template: 'Code is empty!'});
             return;
         }
 
@@ -682,23 +678,20 @@ function ($scope, $stateParams, $state, $http, Server) {
             data: $scope.data
         })
         .then(function (result) {
-            // Handle successful login
+            // Handle successful
             console.log(result.data);
-            alert("Registration completed!");
+            $ionicPopup.alert({title: 'Signup', template: 'Registration completed!'});
             $state.go('login');
         })
         .catch(function (error) {
-            // Handle failed login
+            // Handle failed
             console.log(error);
             if (error.data !== null) {
-                console.log("ERROR: Confirm registration failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
-                // TODO: replace alert with ionic alert
-                alert("ERROR: Confirm registration failed with " + error.status + " " + error.statusText + "! " + error.data.message);
+                console.log(error.status + " " + error.statusText);
+                $ionicPopup.alert({title: 'Signup Error', template: error.data.message});
             }
             else {
-                console.log("ERROR: Confirm registration failed because server is down!"); 
-                // TODO: replace alert with ionic alert
-                alert("ERROR: Confirm registration failed because server is down!");
+                $ionicPopup.alert({title: 'Signup Error', template: 'Server is down!'});
             }
             return;
         });       
@@ -708,10 +701,12 @@ function ($scope, $stateParams, $state, $http, Server) {
         console.log("username=" + $scope.data.username);
 
         // Handle invalid input        
-        if ($scope.data.username.trim().length === 0) {
-            console.log("ERROR: Confirm registration code is empty!");
-            // TODO: replace alert with ionic alert
-            alert("ERROR: Username is empty!");
+        if ($scope.data.username === undefined) {
+            $ionicPopup.alert({title: 'Signup Error', template: 'Username is empty!'});
+            return;
+        }
+        else if ($scope.data.username.length === 0) {
+            $ionicPopup.alert({title: 'Signup Error', template: 'Username is empty!'});
             return;
         }
 
@@ -727,26 +722,27 @@ function ($scope, $stateParams, $state, $http, Server) {
             data: param
         })
         .then(function (result) {
-            // Handle successful login
+            // Handle successful
             console.log(result.data);
-            alert("Confirmation code resent successfully! Please chek your email!");
+            $ionicPopup.alert({title: 'Signup', template: 'Confirmation code resent successfully! Please chek your email!'});
         })
         .catch(function (error) {
-            // Handle failed login
-            console.log(error);
+            // Handle failed
             if (error.data !== null) {
-                console.log("ERROR: Confirm registration failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
-                // TODO: replace alert with ionic alert
-                alert("ERROR: Confirm registration failed with " + error.status + " " + error.statusText + "! " + error.data.message);
+                console.log(error.status + " " + error.statusText);
+                $ionicPopup.alert({title: 'Signup Error', template: error.data.message});
             }
             else {
-                console.log("ERROR: Confirm registration failed because server is down!"); 
-                // TODO: replace alert with ionic alert
-                alert("ERROR: Confirm registration failed because server is down!");
+                $ionicPopup.alert({title: 'Signup Error', template: 'Server is down!'});
             }
             return;
         });       
+    }
+    
+    $scope.submitCancel = function() {
+        $state.go('signup');
     }    
+    
 }])
    
 .controller('helpCtrl', ['$scope', '$stateParams', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
@@ -846,6 +842,14 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, Devices) {
             }
         });         
     }
+    
+    $scope.submitDeviceList = function() {
+        var device_param = {
+            'username': $scope.data.username,
+            'token': $scope.data.token
+        }
+        $state.go('menu.devices', device_param, {reload: true});
+    }
 }])
    
 .controller('viewDeviceCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
@@ -942,9 +946,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server) {
             'username': $scope.data.username,
             'token': $scope.data.token
         }
-        $state.reload('menu.devices');
         $state.go('menu.devices', device_param, {reload: true});
-   }
+    }
 }])
    
 .controller('controlDeviceCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
@@ -958,34 +961,55 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server) {
         'username': $stateParams.username,
         'token': $stateParams.token,
         'devicename': $stateParams.devicename,
-        'status': 'UKNOWN'
+        'devicestatus': 'UNKNOWN'
     }
 
     $scope.submitEthernet = function() {
         console.log("devicename=" + $scope.data.devicename);
+        if ($scope.data.devicestatus === 'UNKNOWN') {
+            return;
+        }
         $state.go('deviceEthernet', $scope.data, {animate: false} );
     }
 
     $scope.submitGPIO = function() {
         console.log("devicename=" + $scope.data.devicename);
+        if ($scope.data.devicestatus === 'UNKNOWN') {
+            return;
+        }
         $state.go('deviceGPIO', $scope.data, {animate: false} );
     }    
 
     $scope.submitUART = function() {
         console.log("devicename=" + $scope.data.devicename);
+        if ($scope.data.devicestatus === 'UNKNOWN') {
+            return;
+        }
         $state.go('deviceUART', $scope.data, {animate: false} );
     }    
 
     $scope.submitRTC = function() {
         console.log("devicename=" + $scope.data.devicename);
+        if ($scope.data.devicestatus === 'UNKNOWN') {
+            return;
+        }
         $state.go('deviceRTC', $scope.data, {animate: false} );
     }    
 
     $scope.submitNotifications = function() {
         console.log("devicename=" + $scope.data.devicename);
+        if ($scope.data.devicestatus === 'UNKNOWN') {
+            return;
+        }
         $state.go('deviceNotifications', $scope.data, {animate: false} );
     }
-    
+
+    $scope.submitNotYetSupported = function() {
+        if ($scope.data.devicestatus === 'UNKNOWN') {
+            return;
+        }
+        $ionicPopup.alert({title: 'Error', template: 'Feature is not yet supported!'});
+    }
     
     
     handle_error = function(error) {
@@ -1013,12 +1037,12 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server) {
         .then(function (result) {
             console.log(result.data);
 
-            $scope.data.status = 'RUNNING';
+            $scope.data.devicestatus = 'RUNNING';
         })
         .catch(function (error) {
             handle_error(error);
             
-            $scope.data.status = 'NOT RUNNING';
+            $scope.data.devicestatus = 'NOT RUNNING';
             
             //$ionicPopup.alert({
             //    title: 'Device Status',
@@ -1050,6 +1074,11 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server) {
     
     $scope.submitRestart = function() {
         console.log("devicename=" + $scope.data.devicename);
+
+        if ($scope.data.devicestatus !== 'RUNNING') {
+            $ionicPopup.alert({title: 'Device Error', template: 'Device is NOT RUNNING!'});
+            return;
+        }
 
         var param = {
             'username': $scope.data.username,
@@ -1135,14 +1164,22 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server) {
             }
         });         
     }    
-    
+ 
+    $scope.submitDeviceList = function() {
+        var device_param = {
+            'username': $scope.data.username,
+            'token': $scope.data.token
+        }
+        $state.go('menu.devices', device_param, {reload: true});
+    }
+   
     $scope.submitStatus();
 }])
    
-.controller('deviceEthernetCtrl', ['$scope', '$stateParams', '$http', '$ionicPopup', 'Server', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+.controller('deviceEthernetCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
 // You can include any angular dependencies as parameters for this function
 // TIP: Access Route Parameters for your page via $stateParams.parameterName
-function ($scope, $stateParams, $http, $ionicPopup, Server) {
+function ($scope, $stateParams, $state, $http, $ionicPopup, Server) {
 
     var server = Server.rest_api;
 
@@ -1150,6 +1187,7 @@ function ($scope, $stateParams, $http, $ionicPopup, Server) {
         'username': $stateParams.username,
         'token': $stateParams.token,
         'devicename': $stateParams.devicename,
+        'devicestatus': $stateParams.devicestatus,
 
         'ipaddr': $scope.ipaddr,
         'subnet': $scope.subnet,
@@ -1251,6 +1289,11 @@ function ($scope, $stateParams, $http, $ionicPopup, Server) {
         console.log("gateway=" + $scope.data.gateway);
         console.log("macaddr=" + $scope.data.macaddr);
 
+        if ($scope.data.devicestatus !== 'RUNNING') {
+            $ionicPopup.alert({title: 'Device Error', template: 'Device is NOT RUNNING!'});
+            return;
+        }
+
         var param = {
             'username': $scope.data.username,
             'token': $scope.data.token,
@@ -1263,13 +1306,23 @@ function ($scope, $stateParams, $http, $ionicPopup, Server) {
         get_gateway(param);
         get_mac(param);
     }
+
+    $scope.submitDeviceList = function() {
+        console.log("hello");
+        var device_param = {
+            'username': $scope.data.username,
+            'token': $scope.data.token,
+            'devicename': $scope.data.devicename
+        }
+        $state.go('controlDevice', device_param);
+    }
     
 }])
    
-.controller('deviceGPIOCtrl', ['$scope', '$stateParams', '$http', '$ionicPopup', 'Server', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+.controller('deviceGPIOCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
 // You can include any angular dependencies as parameters for this function
 // TIP: Access Route Parameters for your page via $stateParams.parameterName
-function ($scope, $stateParams, $http, $ionicPopup, Server) {
+function ($scope, $stateParams, $state, $http, $ionicPopup, Server) {
 
     var server = Server.rest_api;
 
@@ -1277,6 +1330,7 @@ function ($scope, $stateParams, $http, $ionicPopup, Server) {
         'username': $stateParams.username,
         'token': $stateParams.token,
         'devicename': $stateParams.devicename,
+        'devicestatus': $stateParams.devicestatus,
         
         'gpionumber': $scope.gpionumber,
         'gpiovalue': $scope.gpiovalue,
@@ -1353,6 +1407,11 @@ function ($scope, $stateParams, $http, $ionicPopup, Server) {
         console.log("devicename=" + $scope.data.devicename);
         console.log("gpionumber=" + $scope.data.gpionumber);
 
+        if ($scope.data.devicestatus !== 'RUNNING') {
+            $ionicPopup.alert({title: 'Device Error', template: 'Device is NOT RUNNING!'});
+            return;
+        }
+
         // Handle invalid input
         if ($scope.data.gpionumber === undefined) {
             console.log("ERROR: GPIO number is empty!");
@@ -1376,6 +1435,11 @@ function ($scope, $stateParams, $http, $ionicPopup, Server) {
         console.log("gpionumber=" + $scope.data.gpionumber);
         console.log("gpiovalueset=" + $scope.data.gpiovalueset);
 
+        if ($scope.data.devicestatus !== 'RUNNING') {
+            $ionicPopup.alert({title: 'Device Error', template: 'Device is NOT RUNNING!'});
+            return;
+        }
+
         // Handle invalid input
         if ($scope.data.gpionumber === undefined) {
             console.log("ERROR: GPIO number is empty!");
@@ -1397,13 +1461,24 @@ function ($scope, $stateParams, $http, $ionicPopup, Server) {
         }
 
         set_gpio(param);
-   }
+    }
+  
+    $scope.submitDeviceList = function() {
+        console.log("hello");
+        var device_param = {
+            'username': $scope.data.username,
+            'token': $scope.data.token,
+            'devicename': $scope.data.devicename
+        }
+        $state.go('controlDevice', device_param);
+    }
+  
 }])
    
-.controller('deviceUARTCtrl', ['$scope', '$stateParams', '$http', '$ionicPopup', 'Server', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+.controller('deviceUARTCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
 // You can include any angular dependencies as parameters for this function
 // TIP: Access Route Parameters for your page via $stateParams.parameterName
-function ($scope, $stateParams, $http, $ionicPopup, Server) {
+function ($scope, $stateParams, $state, $http, $ionicPopup, Server) {
 
     var server = Server.rest_api;
 
@@ -1411,6 +1486,7 @@ function ($scope, $stateParams, $http, $ionicPopup, Server) {
         'username': $stateParams.username,
         'token': $stateParams.token,
         'devicename': $stateParams.devicename,
+        'devicestatus': $stateParams.devicestatus,
         
         'message': $scope.message
     }
@@ -1454,6 +1530,11 @@ function ($scope, $stateParams, $http, $ionicPopup, Server) {
         console.log("devicename=" + $scope.data.devicename);
         console.log("message=" + $scope.data.message);
 
+        if ($scope.data.devicestatus !== 'RUNNING') {
+            $ionicPopup.alert({title: 'Device Error', template: 'Device is NOT RUNNING!'});
+            return;
+        }
+
         var param = {
             'username': $scope.data.username,
             'token': $scope.data.token,
@@ -1463,12 +1544,24 @@ function ($scope, $stateParams, $http, $ionicPopup, Server) {
 
         set_uart(param);
     }
+
+    $scope.submitDeviceList = function() {
+        console.log("hello");
+        
+        var device_param = {
+            'username': $scope.data.username,
+            'token': $scope.data.token,
+            'devicename': $scope.data.devicename
+        }
+        $state.go('controlDevice', device_param);
+    }
+
 }])
    
-.controller('deviceRTCCtrl', ['$scope', '$stateParams', '$http', '$ionicPopup', 'Server', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+.controller('deviceRTCCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
 // You can include any angular dependencies as parameters for this function
 // TIP: Access Route Parameters for your page via $stateParams.parameterName
-function ($scope, $stateParams, $http, $ionicPopup, Server) {
+function ($scope, $stateParams, $state, $http, $ionicPopup, Server) {
 
     var server = Server.rest_api;
 
@@ -1476,6 +1569,7 @@ function ($scope, $stateParams, $http, $ionicPopup, Server) {
         'username': $stateParams.username,
         'token': $stateParams.token,
         'devicename': $stateParams.devicename,
+        'devicestatus': $stateParams.devicestatus,
         
         'epoch': $scope.epoch,
         'datetime' : $scope.datetime,
@@ -1548,6 +1642,11 @@ function ($scope, $stateParams, $http, $ionicPopup, Server) {
         console.log("devicename=" + $scope.data.devicename);
         console.log("datetime=" + $scope.data.datetime);
         console.log("epoch=" + $scope.data.epoch);
+
+        if ($scope.data.devicestatus !== 'RUNNING') {
+            $ionicPopup.alert({title: 'Device Error', template: 'Device is NOT RUNNING!'});
+            return;
+        }
         
         var param = {
             'username': $scope.data.username,
@@ -1562,7 +1661,12 @@ function ($scope, $stateParams, $http, $ionicPopup, Server) {
         console.log("devicename=" + $scope.data.devicename);
         console.log("datetimeset=" + $scope.data.datetimeset);
 
-        var seconds = Math.round((new Date).getTime() / 1000);
+        if ($scope.data.devicestatus !== 'RUNNING') {
+            $ionicPopup.alert({title: 'Device Error', template: 'Device is NOT RUNNING!'});
+            return;
+        }
+
+        var seconds = Math.round((new Date()).getTime() / 1000);
         console.log(seconds);
         
         var param = {
@@ -1574,13 +1678,23 @@ function ($scope, $stateParams, $http, $ionicPopup, Server) {
 
         set_rtc(param);
     }    
+
+    $scope.submitDeviceList = function() {
+        console.log("hello");
+        var device_param = {
+            'username': $scope.data.username,
+            'token': $scope.data.token,
+            'devicename': $scope.data.devicename
+        }
+        $state.go('controlDevice', device_param);
+    }
     
 }])
    
-.controller('deviceNotificationsCtrl', ['$scope', '$stateParams', '$http', '$ionicPopup', 'Server', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+.controller('deviceNotificationsCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
 // You can include any angular dependencies as parameters for this function
 // TIP: Access Route Parameters for your page via $stateParams.parameterName
-function ($scope, $stateParams, $http, $ionicPopup, Server) {
+function ($scope, $stateParams, $state, $http, $ionicPopup, Server) {
 
     var server = Server.rest_api;
 
@@ -1588,6 +1702,7 @@ function ($scope, $stateParams, $http, $ionicPopup, Server) {
         'username': $stateParams.username,
         'token': $stateParams.token,
         'devicename': $stateParams.devicename,
+        'devicestatus': $stateParams.devicestatus,
         
         'recipient': $scope.recipient,
         'message': $scope.message
@@ -1632,7 +1747,12 @@ function ($scope, $stateParams, $http, $ionicPopup, Server) {
         console.log("devicename=" + $scope.data.devicename);
         console.log("recipient=" + $scope.data.recipient);
         console.log("message=" + $scope.data.message);
-        
+ 
+        if ($scope.data.devicestatus !== 'RUNNING') {
+            $ionicPopup.alert({title: 'Device Error', template: 'Device is NOT RUNNING!'});
+            return;
+        }
+       
         var param = {
             'username': $scope.data.username,
             'token': $scope.data.token,
@@ -1643,5 +1763,24 @@ function ($scope, $stateParams, $http, $ionicPopup, Server) {
 
         set_notifications(param);      
     }    
+    
+    $scope.submitDeviceList = function() {
+        console.log("hello");
+        var device_param = {
+            'username': $scope.data.username,
+            'token': $scope.data.token,
+            'devicename': $scope.data.devicename
+        }
+        $state.go('controlDevice', device_param);
+    }
+    
+}])
+   
+.controller('historyCtrl', ['$scope', '$stateParams', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+// You can include any angular dependencies as parameters for this function
+// TIP: Access Route Parameters for your page via $stateParams.parameterName
+function ($scope, $stateParams) {
+
+
 }])
  
