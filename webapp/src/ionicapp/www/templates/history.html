@@ -1,3 +1,29 @@
 <ion-view title="History" hide-back-button="true" nav-transition="none" id="page14" class="page_width">
-  <ion-content padding="true" class="has-header"></ion-content>
+  <ion-content padding="true" class="has-header">
+    <ion-list id="history-list14">
+      <label class="item item-input" id="history-search1">
+        <i class="icon ion-search placeholder-icon"></i>
+        <input type="search" placeholder="">
+      </label>
+      <div class="item item-body" id="history-list-item-container3" ng-repeat="item in items">
+        <div id="history-markdown49" class="show-list-numbers-and-dots">
+          <p style="margin-top:0px;color:#444444;font-size:16px;">{{ item.direction }}
+            <strong> {{ item.devicename }} </strong>
+          </p>
+        </div>
+        <div id="history-markdown50" class="show-list-numbers-and-dots">
+          <p style="margin-top:0px;color:#444444;font-size:12px;">{{ item.deviceid }}</p>
+        </div>
+        <div id="history-markdown56" class="show-list-numbers-and-dots">
+          <p style="margin-top:0px;color:#444444;font-size:12px;">Topic: {{ item.topic }}</p>
+        </div>
+        <div id="history-markdown52" class="show-list-numbers-and-dots">
+          <p style="margin-top:0px;color:#444444;font-size:12px;">Message: {{ item.payload }}</p>
+        </div>
+        <div id="history-markdown55" class="show-list-numbers-and-dots">
+          <p style="margin-top:0px;color:#444444;font-size:12px;">Datetime: {{ item.timestamp }}</p>
+        </div>
+      </div>
+    </ion-list>
+  </ion-content>
 </ion-view>

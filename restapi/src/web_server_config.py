@@ -35,3 +35,4 @@ class config:
     CONFIG_MONGODB_DB           = "iotcloud-database"
     CONFIG_MONGODB_TB_PROFILES  = "profiles"
     CONFIG_MONGODB_TB_DEVICES   = "devices"
+    CONFIG_MONGODB_TB_HISTORY   = "history"

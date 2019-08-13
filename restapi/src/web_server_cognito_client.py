@@ -349,9 +349,9 @@ class cognito_client:
 			for group in groups:
 				group_attributes = {}
 				group_attributes["groupname"] = group["GroupName"]
-				group_attributes["description"] = group["Description"]
-				group_attributes["modifieddate"] = group["LastModifiedDate"]
-				group_attributes["creationdate"] = group["CreationDate"]
+				#group_attributes["description"] = group["Description"]
+				#group_attributes["modifieddate"] = str(group["LastModifiedDate"])
+				#group_attributes["creationdate"] = str(group["CreationDate"])
 				group_list.append(group_attributes)
 		except:
 			return (False, None)

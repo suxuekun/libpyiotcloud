@@ -76,6 +76,15 @@ services:
       - AWS_PINPOINT_ID
       - AWS_PINPOINT_REGION
       - AWS_PINPOINT_EMAIL
+  history:
+    build: ./history
+    restart: always
+    networks:
+      mydockernet:
+        ipv4_address: 172.18.0.8
+    depends_on:
+      - rabbitmq
+      - mongodb
 networks:
   mydockernet:
     driver: bridge

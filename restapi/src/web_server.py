@@ -353,6 +353,57 @@ def get_user_info():
 #########################
 
 
+########################################################################################################
+# POST/DELETE/GET /user/subscription
+# { 'username': string, 'token': string }
+# Response:
+# {'status': 'OK', 'message': string, 'subscription': string}}
+# {'status': 'NG', 'message': string}
+########################################################################################################
+@app.route('/user/subscription', methods=['POST', 'DELETE', 'PATCH'])
+def get_subscription():
+    data = flask.request.get_json()
+    username = data['username']
+    token = data['token']
+    print('get_subscription username={} token={}'.format(username, token))
+
+    # check if a parameter is empty
+    if len(username) == 0 or len(token) == 0:
+        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+        print('\r\nERROR Userinfo: Empty parameter found\r\n')
+        # NOTE:
+        # No need to return error code status.HTTP_401_UNAUTHORIZED since this is a logout
+        return response
+
+    # check if username and token is valid
+    if not g_database_client.verify_token(username, token):
+        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
+        print('\r\nERROR Userinfo: Token is invalid [{}]\r\n'.format(username))
+        # NOTE:
+        # No need to return error code status.HTTP_401_UNAUTHORIZED since this is a logout
+        return response
+
+    if flask.request.method == 'POST':
+        group = g_database_client.add_user_to_group(username)
+        response = json.dumps({'status': 'OK', 'message': 'User subscribed successfully.', 'group': group})
+        print('\r\nUser subscribed successful: {}\r\n{}\r\n'.format(username, response))
+        return response
+
+    elif flask.request.method == 'DELETE':
+        group = g_database_client.remove_user_from_group(username)
+        response = json.dumps({'status': 'OK', 'message': 'User unsubscribed successfully.', 'group': group})
+        print('\r\nUser unsubscribed successful: {}\r\n{}\r\n'.format(username, response))
+        return response
+
+    elif flask.request.method == 'PATCH': # todo: replace PATCH with GET, investigate why GET is not working
+        group = g_database_client.get_user_group(username)
+        response = json.dumps({'status': 'OK', 'message': 'User subscription queried successfully.', 'group': group})
+        print('\r\nUser subscription queried successful: {}\r\n{}\r\n'.format(username, response))
+        return response
+
+
+#########################
+
 
 ########################################################################################################
 # NOTE: GET is not working so use POST instead
@@ -473,6 +524,42 @@ def register_device():
 
 #########################
 
+
+########################################################################################################
+# NOTE: GET is not working so use POST instead
+# POST /user/histories
+# { 'username': string, 'token': string }
+# Response:
+# {'status': 'OK', 'message': string, 'histories': array[{'devicename': string, ...}, {'devicename': string, ...}]}
+# {'status': 'NG', 'message': string}
+########################################################################################################
+@app.route('/user/histories', methods=['POST', 'GET'])
+def get_user_histories():
+    data = flask.request.get_json()
+    username = data['username']
+    token = data['token']
+    #print('get_user_histories username={} token={}'.format(username, token))
+
+    # check if a parameter is empty
+    if len(username) == 0 or len(token) == 0:
+        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+        print('\r\nERROR Histories: Empty parameter found\r\n')
+        return response, status.HTTP_400_BAD_REQUEST
+
+    # check if username and token is valid
+    if not g_database_client.verify_token(username, token):
+        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
+        print('\r\nERROR Histories: Token is invalid [{}]\r\n'.format(username))
+        return response, status.HTTP_401_UNAUTHORIZED
+
+    histories = g_database_client.get_user_history(username)
+    print(histories)
+
+    response = json.dumps({'status': 'OK', 'message': 'User histories queried successfully.', 'histories': histories})
+    return response
+
+
+#########################
 
 
 ########################################################################################################

@@ -204,10 +204,10 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Device
     
 }])
    
-.controller('accountCtrl', ['$scope', '$stateParams', '$http', 'Server', 'User', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+.controller('accountCtrl', ['$scope', '$stateParams', '$ionicPopup', '$http', 'Server', 'User', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
 // You can include any angular dependencies as parameters for this function
 // TIP: Access Route Parameters for your page via $stateParams.parameterName
-function ($scope, $stateParams, $http, Server, User) {
+function ($scope, $stateParams, $ionicPopup, $http, Server, User) {
 
     var server = Server.rest_api;
 
@@ -217,7 +217,8 @@ function ($scope, $stateParams, $http, Server, User) {
 
         'fullname': 'Unknown',
         'email': 'Unknown',
-        'subscription': 'FREE'
+        'subscription': 'Unknown',
+        'expiration': 'N/A'
     }
 
     handle_error = function(error) {
@@ -234,6 +235,84 @@ function ($scope, $stateParams, $http, Server, User) {
         }
     }  
     
+    get_subscription = function(param) {
+        // Send HTTP request to REST API
+        $http({
+            method: 'PATCH',
+            url: server + '/user/subscription',
+            headers: {'Content-Type': 'application/json'},
+            data: param
+        })
+        .then(function (result) {
+            console.log("ACCOUNT OK");
+            console.log(result.data);
+
+            console.log(result.data.group);    
+            console.log(result.data.group.length);
+            if (result.data.group.length === 0) {
+                $scope.data.subscription = "FREE";
+                $scope.data.expiration = "N/A"
+            }
+            else if (result.data.group.length === 1) {
+                if (result.data.group[0].groupname === 'PaidSubscribers') {
+                    $scope.data.subscription = "PAID";
+                    $scope.data.expiration = "Unknown";
+                }
+            }
+        })
+        .catch(function (error) {
+            handle_error(error);
+        }); 
+    }     
+
+    upgrade_subscription = function(param) {
+        // Send HTTP request to REST API
+        $http({
+            method: 'POST',
+            url: server + '/user/subscription',
+            headers: {'Content-Type': 'application/json'},
+            data: param
+        })
+        .then(function (result) {
+            console.log("UPGRADE");
+            console.log(result.data);
+            
+            $ionicPopup.alert({title: 'Subscription', template: 'Subscription has been upgraded!'});
+            
+            get_subscription({
+                'username': $scope.data.username,
+                'token': $scope.data.token
+            });
+        })
+        .catch(function (error) {
+            handle_error(error);
+        }); 
+    }     
+
+    downgrade_subscription = function(param) {
+        // Send HTTP request to REST API
+        $http({
+            method: 'DELETE',
+            url: server + '/user/subscription',
+            headers: {'Content-Type': 'application/json'},
+            data: param
+        })
+        .then(function (result) {
+            console.log("DOWNGRADE");
+            console.log(result.data);
+            
+            $ionicPopup.alert({title: 'Subscription', template: 'Subscription has been downgraded!'});
+            
+            get_subscription({
+                'username': $scope.data.username,
+                'token': $scope.data.token
+            });
+        })
+        .catch(function (error) {
+            handle_error(error);
+        }); 
+    }
+    
     get_profile = function(param) {
         // Send HTTP request to REST API
         $http({
@@ -248,6 +327,11 @@ function ($scope, $stateParams, $http, Server, User) {
             
             $scope.data.fullname = result.data.info.given_name + " " + result.data.info.family_name;
             $scope.data.email = result.data.info.email;
+            
+            get_subscription({
+                'username': $scope.data.username,
+                'token': $scope.data.token
+            });
         })
         .catch(function (error) {
             handle_error(error);
@@ -282,6 +366,38 @@ function ($scope, $stateParams, $http, Server, User) {
     $scope.submitUpgrade = function() {
         console.log("username=" + $scope.data.username);
         console.log("token=" + $scope.data.token);
+        
+        if ($scope.data.subscription === 'FREE') {
+            //$scope.data.subscription = 'PAID';
+            upgrade_subscription({
+                'username': $scope.data.username,
+                'token': $scope.data.token
+            });
+        }
+        else if ($scope.data.subscription === 'PAID') {
+            
+            $ionicPopup.alert({
+                title: 'Subscription',
+                template: 'Are you sure you want to downgrade your subscription?',
+                buttons: [
+                    { 
+                        text: 'No',
+                        type: 'button-negative',
+                    },
+                    {
+                        text: 'Yes',
+                        type: 'button-positive',
+                        onTap: function(e) {
+                            downgrade_subscription({
+                                'username': $scope.data.username,
+                                'token': $scope.data.token
+                            });
+                        }
+                    }
+                ]            
+            });             
+            
+        }
     }
 }
 ])
@@ -1776,11 +1892,72 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server) {
     
 }])
    
-.controller('historyCtrl', ['$scope', '$stateParams', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+.controller('historyCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Devices', 'Histories', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
 // You can include any angular dependencies as parameters for this function
 // TIP: Access Route Parameters for your page via $stateParams.parameterName
-function ($scope, $stateParams) {
+function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Devices, Histories) {
 
-
+    var server = Server.rest_api;
+    
+    $scope.data = {
+        'username': User.get_username(), //$stateParams.username,
+        'token': User.get_token()        //$stateParams.token
+    }
+    
+   
+    
+    $scope.items = [];
+/*    
+        {
+            "direction": "To",
+            "deviceid" : "1234567890",
+            "devicename": "ft900device1",
+            "topic": "get_gpio",
+            "payload": { "number": "10"},
+            "datetime": "datetime"
+        },
+        {
+            "direction": "To",
+            "deviceid" : "1234567891",
+            "devicename": "ft900device2",
+            "topic": "set_uart",
+            "payload": "Hello World!",
+            "datetime": "datetime"
+        },
+        {
+            "direction": "To",
+            "deviceid" : "1234567892",
+            "devicename": "ft900device3",
+            "topic": "trigger_notification",
+            "payload": "Open sesame",
+            "datetime": "datetime"
+        },
+        
+    ];
+*/    
+    
+    $scope.submitRefresh = function() {
+    
+        Histories.fetch($scope.data).then(function(res) {
+            //res.sort(function(a, b){return a['timestamp']-b['timestamp']});
+            //res.reverse();
+            $scope.items = res;
+            
+            console.log(res);
+            
+            
+            //if ($scope.items.length === 0) {        
+                //$ionicPopup.alert({
+                //    title: 'Query Devices',
+                //    template: 'No devices registered!',
+                //});
+            //}
+        }); 
+    }
+    
+    $scope.$on('$ionicView.enter', function(e) {
+        console.log("DEVICES enter ionicView REFRESH LIST");
+        $scope.submitRefresh();
+    });    
 }])
  

@@ -12,6 +12,7 @@ angular.module('server', [])
     // When not using docker, this should point to the Flask REST API address
     //////////////////////////////////////////////////////////////////////////////////////////////
     var rest_api = 'https://richmondu.com';
+//    var rest_api = 'https://localhost';
 
     console.log(rest_api);
     var result = { 'rest_api': rest_api }

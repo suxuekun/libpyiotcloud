@@ -6,6 +6,7 @@
       </p>
     </div>
     <form id="account-form16" class="list">
+      <ion-item class="item-divider" id="account-list-item-divider2"> Profile</ion-item>
       <label class="item item-input" id="account-input43">
         <span class="input-label">NAME</span>
         <input type="text" placeholder="" readonly="" ng-model="data.fullname">
@@ -15,11 +16,16 @@
         <input type="email" placeholder="" readonly="" ng-model="data.email">
       </label>
       <ion-toggle toggle-class="toggle-positive" id="account-toggle6">MULTI-FACTOR AUTH</ion-toggle>
+      <ion-item class="item-divider" id="account-list-item-divider1"> Subscription</ion-item>
       <label class="item item-input" id="account-input45">
-        <span class="input-label">SUBSCRIPTION</span>
+        <span class="input-label">TYPE</span>
         <input type="text" placeholder="" readonly="" ng-model="data.subscription">
       </label>
+      <label class="item item-input" id="account-input46">
+        <span class="input-label">EXPIRE</span>
+        <input type="text" placeholder="" readonly="" ng-model="data.expiration">
+      </label>
     </form>
-    <button id="account-button33" ng-click="submitUpgrade()" class="button button-dark button-block">Upgrade subscription</button>
+    <button id="account-button33" ng-click="submitUpgrade()" class="button button-dark button-block">Upgrade/downgrade subscription</button>
   </ion-content>
 </ion-view>

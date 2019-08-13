@@ -3,10 +3,9 @@ import hmac
 import hashlib
 import datetime
 import random
-from web_server_config import config
-from pymongo import MongoClient # MongoDB
-#import psycopg2                # PostgreSQL
-from web_server_cognito_client import cognito_client
+from history_config import config
+from pymongo import MongoClient
+#from web_server_cognito_client import cognito_client
 
 
 
@@ -24,16 +23,16 @@ class database_models:
 ##########################################################
 class database_client:
 
-    def __init__(self, model_users=database_models.AWSCOGNITO, model_devices=database_models.MONGODB):
+    def __init__(self, model_users=database_models.MONGODB, model_devices=database_models.MONGODB):
         self.use_cognito = True if model_users==database_models.AWSCOGNITO else False
 
         # user database
-        if model_users == database_models.AWSCOGNITO:
-            self._users = database_client_cognito()
-        elif model_users == database_models.MONGODB:
-            self._users = database_client_mongodb()
-        elif model_users == database_models.POSTGRESQL:
-            self._users = database_client_postgresql()
+        #if model_users == database_models.AWSCOGNITO:
+        #    self._users = database_client_cognito()
+        #elif model_users == database_models.MONGODB:
+        #    self._users = database_client_mongodb()
+        #elif model_users == database_models.POSTGRESQL:
+        #    self._users = database_client_postgresql()
 
         # device database
         if model_devices == database_models.MONGODB:
@@ -42,7 +41,7 @@ class database_client:
             self._devices = database_client_postgresql()
 
     def initialize(self):
-        self._users.initialize()
+        #self._users.initialize()
         self._devices.initialize()
 
     def is_using_cognito(self):

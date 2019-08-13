@@ -1,8 +1,8 @@
 /* !!! IMPORTANT: Rename "mymodule" below and add your module to Angular Modules above. */
 
-angular.module('devices', [])
+angular.module('histories', [])
 
-.service('Devices', ['$http', 'Server', function($http, Server){
+.service('Histories', ['$http', 'Server', function($http, Server){
     
     var server = Server.rest_api;
 
@@ -12,14 +12,14 @@ angular.module('devices', [])
             // Send HTTP request to REST API
             return $http({
                 method: 'POST',
-                url: server + '/devices',
+                url: server + '/user/histories',
                 headers: {'Content-Type': 'application/json'},
                 data: userdata //$scope.data
             })
             .then(function (result) {
                 // Handle successful login
                 console.log(result.data);
-                return result.data.devices;
+                return result.data.histories;
             })
             .catch(function (error) {
                 // Handle failed login
