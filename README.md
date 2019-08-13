@@ -805,15 +805,14 @@ In Linux, the total round trip time is only 1 second.
 
 1. Add message counter for free-tier subscription
 2. Add manager/admin page in Web client (see all users and devices registered by each user)
-3. Add displaying of device communication
+3. Add displaying of device communication history with RabbitMQ.
 4. Add logging for debugging/troubleshooting
 5. Handle refreshing Cognito access key while user is still online
 6. Support Kubernetes orchestration
 7. Add feature to enable MFA (Multi factor authentication via email/SMS).
 8. Add signup/login using Facebook account
 9. Build and Android APK of the Ionic web app
-10. Support displaying of device communication history with RabbitMQ.
-11. Support an online device emulator. (Each user can run 1 online device emulator.)
+10. Support an online device emulator. (Each user can run 1 online device emulator.)
 
 
 # Reminders
