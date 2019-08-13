@@ -751,8 +751,14 @@ Device access APIs requires username, devicename and access token returned by lo
         - Accepting of Android SDK license
           cd %LOCALAPPDATA%\Android\sdk\tools\bin
           sdkmanager.bat --licenses
-        - Build using 'ionic cordova build android'
-
+        - Build using 
+          'ionic cordova build android'
+        - Run on an Android emulator, 
+          'ionic cordova emulate android --target=Nexus_5X_API_29_x86'
+          target can be checked using %LOCALAPPDATA%\Android\sdk\tools\bin\avdmanager list avd
+        - Run on an Android device
+          Copy platforms\android\app\build\outputs\apk\debug\app-debug.apk
+          
 
 # Testing and Troubleshooting
 
