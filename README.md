@@ -742,7 +742,16 @@ Device access APIs requires username, devicename and access token returned by lo
 
 ### Ionic
 
-I utilized Ionic Creator in building the web app (that can be built as Android or iOS mobile application).
+        I utilized Ionic Creator in building the web app (that can be built as Android or iOS mobile application).
+
+        To build Android mobile app using the Ionic web app requires the following:
+
+        - Installation of [Java SE Development Kit 8](https://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html)
+        - Installation of Android Studio (with Android SDK)
+        - Accepting of Android SDK license
+          cd %LOCALAPPDATA%\Android\sdk\tools\bin
+          sdkmanager.bat --licenses
+  
 
 
 # Testing and Troubleshooting
