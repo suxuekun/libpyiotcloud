@@ -56,14 +56,15 @@ An alternative solution is using an AWS serverless solution wherein:
 ### High-level architecture diagram:
 <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/architecture.png" width="1000"/>
 
-6 docker containers and microservices
+7 docker containers and microservices
 
 1. Webserver - Nginx
 2. Webapp - Ionic
 3. Restapi - Flask with Gunicorn
 4. Messaging - RabbitMQ
 5. Database - MongoDB
-6. Notification - Pinpoint
+6. Notification
+7. Historian
 
 
 ### UML Use case diagram:
@@ -117,7 +118,7 @@ An alternative solution is using an AWS serverless solution wherein:
        B. MQTT device simulators (Python Paho-MQTT and NodeJS)
        C. AMQP device simulator (Python Pika-AMQP)
     5. Deployment to AWS EC2 as microservices using Docker
-       - 5 microservices/docker containers [rabbitmq, mongodb, webapp, nginx, notification]
+       - 7 microservices/docker containers [rabbitmq, mongodb, webapp, restapi, nginx, notification, historian]
        - with Dockerfiles and Docker-compose file
     6. Ionic web app can be compiled as iOS/Android mobile apps
        - SSL certificate bought from GoDaddy.com registered on NGINX.
