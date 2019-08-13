@@ -3,7 +3,7 @@
 To build Android mobile app using the Ionic web app requires the following:
 
 - Installation of [Java SE Development Kit 8](https://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html)
-- Installation of Android Studio (with Android SDK)
+- Installation of [Android Studio (with Android SDK)](https://developer.android.com/studio)
 - Accepting of Android SDK license
   cd %LOCALAPPDATA%\Android\sdk\tools\bin
   sdkmanager.bat --licenses
