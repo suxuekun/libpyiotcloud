@@ -856,15 +856,14 @@ In Linux, the total round trip time is only 1 second.
 
 # Action Items
 
-1. Add message counter for free-tier subscription
-2. Add manager/admin page in Web client (see all users and devices registered by each user)
-3. Add displaying of device communication history with RabbitMQ.
-4. Add logging for debugging/troubleshooting
-5. Handle refreshing Cognito access key while user is still online
-6. Support Kubernetes orchestration
-7. Add feature to enable MFA (Multi factor authentication via email/SMS).
-8. Add signup/login using Facebook account
-9. Support an online device emulator. (Each user can run 1 online device emulator.)
+1. Add signup/login using Facebook account
+2. Add feature to enable MFA (Multi factor authentication via email/SMS).
+3. Add message counter for free-tier subscription
+4. Handle refreshing Cognito access key while user is online for a long time
+5. [Low] Add file logging of microservices for easier debugging/troubleshooting
+6. [Low] Add manager/admin page in Web client (see all users and devices registered by each user)
+7. [Low] Support an online device emulator. (Each user can run 1 online device emulator.)
+8. [Low] Support Kubernetes orchestration
 
 
 # Reminders
