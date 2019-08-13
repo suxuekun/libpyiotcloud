@@ -121,7 +121,8 @@ An alternative solution is using an AWS serverless solution wherein:
        - with Dockerfiles and Docker-compose file
     6. Ionic web app can be compiled as iOS/Android mobile apps
        - SSL certificate bought from GoDaddy.com registered on NGINX.
-
+       - Webapp compiled for Android using Ionic but requiring Android Studio/SDK 
+       
 
 ### REST APIs for User Sign-up/Sign-In
 
