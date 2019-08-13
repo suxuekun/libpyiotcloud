@@ -40,6 +40,7 @@ The web app is made of Ionic framework so it can be compiled as Android and iOS 
 - Amazon SNS (email/SMS notifications) - https://aws.amazon.com/sns/
 - Docker containerization (dockerfiles, docker-compose) - https://www.docker.com/
 - Ionic mobile/web frontend framework - https://ionicframework.com/
+- Ionic Creator - https://creator.ionic.io
 - Postman (API testing tool) - https://www.getpostman.com/
 - GoDaddy domain and SSL certificate - https://godaddy.com
 - Android Studio (Building Ionic webapp to Androidapp) - https://developer.android.com/studio
