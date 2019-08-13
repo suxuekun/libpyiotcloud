@@ -579,6 +579,15 @@ Device access APIs requires username, devicename and access token returned by lo
         RUN pip install --no-cache-dir -r requirements.txt
         CMD ["python", "-u", "notification_manager.py", "--USE_HOST", "172.18.0.2"]
 
+        // HISTORIAN Dockerfile
+        FROM python:3.6.6
+        RUN mkdir -p /usr/src/app/history_manager
+        WORKDIR /usr/src/app/history_manager
+        COPY src/ /usr/src/app/history_manager/
+        WORKDIR /usr/src/app/history_manager/history_manager
+        RUN pip install --no-cache-dir -r requirements.txt
+        CMD ["python", "-u", "history_manager.py", "--USE_HOST", "172.18.0.2"]
+
         // CREATE and RUN
         docker network create --subnet=172.18.0.0/16 mydockernet
         docker build -t rmq .
@@ -593,6 +602,8 @@ Device access APIs requires username, devicename and access token returned by lo
         docker run --net mydockernet --ip 172.18.0.6 -d -p 443:443 --name ngx ngx
         docker build -t nmg .
         docker run --net mydockernet --ip 172.18.0.7 -d --name nmg nmg
+        docker build -t hst .
+        docker run --net mydockernet --ip 172.18.0.8 -d --name hst hst
 
         // STOP and REMOVE
         docker ps
@@ -603,12 +614,14 @@ Device access APIs requires username, devicename and access token returned by lo
         docker stop app
         docker stop ngx
         docker stop nmg
+        docker stop hst
         docker rm rmq
         docker rm mdb
         docker rm api
         docker rm app
         docker rm ngx
         docker rm nmg
+        docker rm hst
         docker network prune OR docker network rm mydockernet
 
 
@@ -718,12 +731,21 @@ Device access APIs requires username, devicename and access token returned by lo
               - AWS_PINPOINT_ID
               - AWS_PINPOINT_REGION
               - AWS_PINPOINT_EMAIL
+          history:
+            build: ./history
+            restart: always
+            networks:
+              mydockernet:
+                ipv4_address: 172.18.0.8
+            depends_on:
+              - rabbitmq
+              - mongodb              
         networks:
           mydockernet:
             driver: bridge
             ipam:
               config:
-                - subnet: 172.18.0.0/16
+              - subnet: 172.18.0.0/16
         volumes:
           mydockervol:
             driver: local 
