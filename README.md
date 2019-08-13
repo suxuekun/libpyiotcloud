@@ -751,7 +751,7 @@ Device access APIs requires username, devicename and access token returned by lo
         - Accepting of Android SDK license
           cd %LOCALAPPDATA%\Android\sdk\tools\bin
           sdkmanager.bat --licenses
-  
+        - Build using 'ionic cordova build android'
 
 
 # Testing and Troubleshooting
