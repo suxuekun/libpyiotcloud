@@ -13,7 +13,7 @@ To build Android mobile app using the Ionic web app requires the following:
 
   - ionic cordova build android
   
-- Run on an Android emulator, 
+- Run on an <b>Android emulator</b> from <b>Android Studio</b>, 
 
   - ionic cordova emulate android --target=Nexus_5X_API_29_x86
   - FYI: %LOCALAPPDATA%\Android\sdk\tools\bin\avdmanager list avd
