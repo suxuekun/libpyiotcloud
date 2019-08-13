@@ -42,6 +42,7 @@ The web app is made of Ionic framework so it can be compiled as Android and iOS 
 - Ionic mobile/web frontend framework - https://ionicframework.com/
 - Postman (API testing tool) - https://www.getpostman.com/
 - GoDaddy domain and SSL certificate - https://godaddy.com
+- Android Studio (Building Ionic webapp to Androidapp) - https://developer.android.com/studio
 
 
 An alternative solution is using an AWS serverless solution wherein:
@@ -740,10 +741,12 @@ Device access APIs requires username, devicename and access token returned by lo
         docker-compose down
 
 
-### Ionic
+### Ionic Web/Mobile apps
 
+        // Web app
         I utilized Ionic Creator in building the web app (that can be built as Android or iOS mobile application).
 
+        // Android app
         To build Android mobile app using the Ionic web app requires the following:
 
         - Installation of [Java SE Development Kit 8](https://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html)
