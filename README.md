@@ -748,7 +748,6 @@ Device access APIs requires username, devicename and access token returned by lo
 
         // Android app
         To build Android mobile app using the Ionic web app requires the following:
-
         - Installation of [Java SE Development Kit 8](https://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html)
         - Installation of Android Studio (with Android SDK)
         - Accepting of Android SDK license
@@ -762,6 +761,12 @@ Device access APIs requires username, devicename and access token returned by lo
         - Run on an Android device
           Copy platforms\android\app\build\outputs\apk\debug\app-debug.apk
           
+        // iOS app
+        To build iOS mobile app using the Ionic web app requires the following:
+        - MacOS
+        - xcode
+        - TODO
+
 
 # Testing and Troubleshooting
 
