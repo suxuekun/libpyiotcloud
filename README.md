@@ -740,6 +740,11 @@ Device access APIs requires username, devicename and access token returned by lo
         docker-compose down
 
 
+### Ionic
+
+I utilized Ionic Creator in building the web app (that can be built as Android or iOS mobile application).
+
+
 # Testing and Troubleshooting
 
 ### Using FT900 (Currently tested with an FT900 RevC board-MM900EV1B only)
