@@ -15,7 +15,7 @@ CONFIG_USE_AMQP = True
 
 ###################################################################################
 CONFIG_NOTIFICATION_UART_LISTEN = "Hello World"
-CONFIG_NOTIFICATION_RECIPIENT = "richmond.umagat@gmail.com"
+CONFIG_NOTIFICATION_RECIPIENT = "richmond.umagat@brtchip.com"
 CONFIG_NOTIFICATION_MESSAGE = "Hi, How are you today?"
 ###################################################################################
 
@@ -74,6 +74,7 @@ def handle_api(api, subtopic, subpayload):
 
         # Trigger an Email/SMS notification when the UART message received contains a specific phrase!
         if subpayload["value"].find(CONFIG_NOTIFICATION_UART_LISTEN) >= 0:
+            print("Keyword detected on message!")
             payload = {}
             payload["recipient"] = CONFIG_NOTIFICATION_RECIPIENT
             payload["message"] = CONFIG_NOTIFICATION_MESSAGE
@@ -81,13 +82,11 @@ def handle_api(api, subtopic, subpayload):
             topicX = topic_array[0] + CONFIG_SEPARATOR + "trigger_notification"
             topicX = generate_pubtopic(topicX)
             publish(topicX, payload)
-            print(payload["recipient"])
-            print(payload["message"])
+            print("Notification triggered to email/SMS recipient!")
 
         payload = {}
         payload["value"] = subpayload["value"]
         publish(topic, payload)
-        print(payload["value"])
 
     elif api == "get_gpio":
         topic = generate_pubtopic(subtopic)
@@ -203,6 +202,7 @@ def handle_api(api, subtopic, subpayload):
         topic = generate_pubtopic(subtopic)
         subpayload = json.loads(subpayload)
         publish(topic, subpayload)
+        print("Notification triggered to email/SMS recipient!")
 
 
 

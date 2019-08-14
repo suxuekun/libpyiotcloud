@@ -6,6 +6,11 @@ var ArgumentParser = require('argparse');
 
 
 
+// UART notification configuration
+var CONFIG_NOTIFICATION_UART_LISTEN = "Hello World"
+var CONFIG_NOTIFICATION_RECIPIENT   = "richmond.umagat@brtchip.com"
+var CONFIG_NOTIFICATION_MESSAGE    = "Hi, How are you today?"
+
 // default configurations
 var CONFIG_DEVICE_ID     = ""
 var CONFIG_USERNAME      = null
@@ -111,8 +116,24 @@ function handle_api(api, topic, payload) {
     else if (api == "write_uart") {
         pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
         var obj = JSON.parse(payload);
-        console.log(obj.value); 
+        console.log(obj.value);
+        if (obj.value.includes(CONFIG_NOTIFICATION_UART_LISTEN)) {
+            console.log("Keyword detected on message!");
+            var deviceid = (topic.split("/", 1))[0];
+            var topicX = CONFIG_PREPEND_REPLY_TOPIC + deviceid + "/" + "trigger_notification";
+            var payloadX = {
+                "recipient": CONFIG_NOTIFICATION_RECIPIENT,
+                "message": CONFIG_NOTIFICATION_MESSAGE
+            }
+            client.publish(topicX, JSON.stringify(payloadX));
+            console.log("Notification triggered to email/SMS recipient!");
+        }
         client.publish(pubtopic, JSON.stringify(obj));
+    }
+    else if (api == "trigger_notification"){
+        pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
+        client.publish(pubtopic, payload);
+        console.log("Notification triggered to email/SMS recipient!");
     }
     else if (api == "get_gpio") {
         pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
