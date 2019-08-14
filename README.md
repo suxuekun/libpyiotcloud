@@ -58,13 +58,13 @@ An alternative solution is using an AWS serverless solution wherein:
 
 7 docker containers and microservices
 
-1. Webserver - Nginx
-2. Webapp - Ionic
-3. Restapi - Flask with Gunicorn
-4. Messaging - RabbitMQ
-5. Database - MongoDB
-6. Notification
-7. Historian
+1. Webserver - Nginx (contains SSL certificates; all requests go through this; it forwards to HTTP requests to webapp or restapi)
+2. Webapp - Ionic (front-end web framework that can also be compiled for Android)
+3. Restapi - Flask with Gunicorn (back-end API called by web app and mobile apps)
+4. Messaging - RabbitMQ (device communicates directly with RabbitMQ; web and mobile apps communicates to device via RabbitMQ)
+5. Database - MongoDB (database for storing device information for registered devices)
+6. Notification (handles sending of messages to email/SMS recipients)
+7. Historian ()
 
 
 ### UML Use case diagram:
