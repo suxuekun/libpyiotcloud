@@ -28,29 +28,29 @@ Flask, GUnicorn, Nginx, RabbitMQ, MongoDB, Amazon Cognito, Amazon Pinpoint and D
 It can be deployed in a local PC or in the cloud - AWS EC2, Linode, Heroku, Rackspace, DigitalOcean or etc.
 The web app is made of Ionic framework so it can be compiled as Android and iOS mobile apps.
 
-
-- Nginx web server - https://www.nginx.com/
-- GUnicorn WSGI server - https://gunicorn.org/
-- Flask web framework (REST API) - http://flask.pocoo.org/
-- RabbitMQ message broker (MQTT, AMQP) - https://www.rabbitmq.com/
-- MongoDB NoSQL database - https://www.mongodb.com/
-- OpenSSL cryptography (X509 certificates) - https://www.openssl.org/
-- Amazon Cognito (user sign-up/sign-in) - https://aws.amazon.com/cognito/
-- Amazon Pinpoint (email/SMS notifications) - https://aws.amazon.com/pinpoint/
-- Amazon SNS (email/SMS notifications) - https://aws.amazon.com/sns/
-- Docker containerization (dockerfiles, docker-compose) - https://www.docker.com/
-- Ionic mobile/web frontend framework - https://ionicframework.com/
-- Ionic Creator - https://creator.ionic.io
-- Postman (API testing tool) - https://www.getpostman.com/
-- GoDaddy domain and SSL certificate - https://godaddy.com
-- Android Studio (Building Ionic webapp to Androidapp) - https://developer.android.com/studio
+- <b>LucidChart</b> UML diagrams - https://www.lucidchart.com
+- <b>Nginx</b> web server - https://www.nginx.com/
+- <b>GUnicorn</b> WSGI server - https://gunicorn.org/
+- <b>Flask</b> web framework (REST API) - http://flask.pocoo.org/
+- <b>RabbitMQ</b> message broker (MQTT, AMQP) - https://www.rabbitmq.com/
+- <b>MongoDB</b> NoSQL database - https://www.mongodb.com/
+- <b>OpenSSL</b> cryptography (X509 certificates) - https://www.openssl.org/
+- <b>Amazon Cognito</b> (user sign-up/sign-in) - https://aws.amazon.com/cognito/
+- <b>Amazon Pinpoint</b> (email/SMS notifications) - https://aws.amazon.com/pinpoint/
+- <b>Amazon SNS</b> (email/SMS notifications) - https://aws.amazon.com/sns/
+- <b>Docker</b> containerization (dockerfiles, docker-compose) - https://www.docker.com/
+- <b>Ionic</b> mobile/web frontend framework - https://ionicframework.com/
+- <b>Ionic Creator</b> - https://creator.ionic.io
+- <b>Postman</b> (API testing tool) - https://www.getpostman.com/
+- <b>GoDaddy</b> domain and SSL certificate - https://godaddy.com
+- <b>Android Studio</b> (Building Ionic webapp to Androidapp) - https://developer.android.com/studio
 
 
 An alternative solution is using an AWS serverless solution wherein:
 
-- AWS API Gateway+AWS Lambda will replace Flask+Gunicorn+Nginx
-- AWS DynamoDB will replace MongoDB
-- AmazonMQ will replace RabbitMQ
+- <b>AWS API Gateway+AWS Lambda</b> will replace Flask+Gunicorn+Nginx
+- <b>AWS DynamoDB</b> will replace MongoDB
+- <b>AmazonMQ</b> will replace RabbitMQ
 
 
 ### High-level architecture diagram:
@@ -58,13 +58,13 @@ An alternative solution is using an AWS serverless solution wherein:
 
 7 docker containers and microservices
 
-1. Webserver - Nginx
-2. Webapp - Ionic
-3. Restapi - Flask with Gunicorn
-4. Messaging - RabbitMQ
-5. Database - MongoDB
-6. Notification
-7. Historian
+1. <b>Webserver</b> - Nginx (contains SSL certificate; all requests go to NGINX; forwards HTTP requests to webapp or restapi)
+2. <b>Webapp</b> - Ionic (front-end web framework that can also be compiled for Android and iOS)
+3. <b>Restapi</b> - Flask with Gunicorn (back-end API called by web app and mobile apps)
+4. <b>Messaging</b> - RabbitMQ (device communicates w/RabbitMQ; web/mobile apps communicates to device via RabbitMQ)
+5. <b>Database</b> - MongoDB (database for storing device information for registered devices)
+6. <b>Notification</b> (handles sending of messages to email/SMS recipients)
+7. <b>Historian</b> (handles saving of device requests and responses for each devices of all users)
 
 
 ### UML Use case diagram:
