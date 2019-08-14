@@ -72,8 +72,8 @@ def handle_api(api, subtopic, subpayload):
         subpayload = json.loads(subpayload)
         print(subpayload["value"])
 
-        # Send a notification when a specific message is received
-        if subpayload["value"] == CONFIG_NOTIFICATION_UART_LISTEN:
+        # Trigger an Email/SMS notification when the UART message received contains a specific phrase!
+        if subpayload["value"].find(CONFIG_NOTIFICATION_UART_LISTEN) >= 0:
             payload = {}
             payload["recipient"] = CONFIG_NOTIFICATION_RECIPIENT
             payload["message"] = CONFIG_NOTIFICATION_MESSAGE
