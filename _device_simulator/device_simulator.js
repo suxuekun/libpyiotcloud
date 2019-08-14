@@ -7,7 +7,7 @@ var ArgumentParser = require('argparse');
 
 
 // UART notification configuration
-var CONFIG_NOTIFICATION_UART_LISTEN = "Hello World"
+var CONFIG_NOTIFICATION_UART_KEYWORD = "Hello World"
 var CONFIG_NOTIFICATION_RECIPIENT   = "richmond.umagat@brtchip.com"
 var CONFIG_NOTIFICATION_MESSAGE    = "Hi, How are you today?"
 
@@ -117,7 +117,9 @@ function handle_api(api, topic, payload) {
         pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
         var obj = JSON.parse(payload);
         console.log(obj.value);
-        if (obj.value.includes(CONFIG_NOTIFICATION_UART_LISTEN)) {
+
+        // Trigger an Email/SMS notification when the UART message received contains a specific phrase!
+        if (obj.value.includes(CONFIG_NOTIFICATION_UART_KEYWORD)) {
             console.log("Keyword detected on message!");
             var deviceid = (topic.split("/", 1))[0];
             var topicX = CONFIG_PREPEND_REPLY_TOPIC + deviceid + "/" + "trigger_notification";

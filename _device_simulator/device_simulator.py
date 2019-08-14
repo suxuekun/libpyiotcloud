@@ -14,7 +14,7 @@ CONFIG_USE_AMQP = True
 ###################################################################################
 
 ###################################################################################
-CONFIG_NOTIFICATION_UART_LISTEN = "Hello World"
+CONFIG_NOTIFICATION_UART_KEYWORD = "Hello World"
 CONFIG_NOTIFICATION_RECIPIENT = "richmond.umagat@brtchip.com"
 CONFIG_NOTIFICATION_MESSAGE = "Hi, How are you today?"
 ###################################################################################
@@ -73,7 +73,7 @@ def handle_api(api, subtopic, subpayload):
         print(subpayload["value"])
 
         # Trigger an Email/SMS notification when the UART message received contains a specific phrase!
-        if subpayload["value"].find(CONFIG_NOTIFICATION_UART_LISTEN) >= 0:
+        if subpayload["value"].find(CONFIG_NOTIFICATION_UART_KEYWORD) >= 0:
             print("Keyword detected on message!")
             payload = {}
             payload["recipient"] = CONFIG_NOTIFICATION_RECIPIENT
