@@ -61,7 +61,7 @@ An alternative solution is using an AWS serverless solution wherein:
 1. Webserver - Nginx (contains SSL certificate; all requests go to NGINX; forwards HTTP requests to webapp/restapi)
 2. Webapp - Ionic (front-end web framework that can also be compiled for Android and iOS)
 3. Restapi - Flask with Gunicorn (back-end API called by web app and mobile apps)
-4. Messaging - RabbitMQ (device communicates with RabbitMQ; web/mobile apps communicates to device via RabbitMQ)
+4. Messaging - RabbitMQ (device communicates w/RabbitMQ; web/mobile apps communicates to device via RabbitMQ)
 5. Database - MongoDB (database for storing device information for registered devices)
 6. Notification (handles sending of messages to email/SMS recipients)
 7. Historian (handles saving of device requests and responses for each devices of all users)
