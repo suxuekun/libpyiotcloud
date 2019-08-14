@@ -13,7 +13,11 @@ from messaging_client import messaging_client # common module from parent direct
 CONFIG_USE_AMQP = True
 ###################################################################################
 
-
+###################################################################################
+CONFIG_NOTIFICATION_UART_LISTEN = "Hello World"
+CONFIG_NOTIFICATION_RECIPIENT = "richmond.umagat@gmail.com"
+CONFIG_NOTIFICATION_MESSAGE = "Hi, How are you today?"
+###################################################################################
 
 ###################################################################################
 # global variables
@@ -65,11 +69,25 @@ def handle_api(api, subtopic, subpayload):
 
     elif api == "write_uart":
         topic = generate_pubtopic(subtopic)
-        payload = {}
         subpayload = json.loads(subpayload)
+        print(subpayload["value"])
+
+        # Send a notification when a specific message is received
+        if subpayload["value"] == CONFIG_NOTIFICATION_UART_LISTEN:
+            payload = {}
+            payload["recipient"] = CONFIG_NOTIFICATION_RECIPIENT
+            payload["message"] = CONFIG_NOTIFICATION_MESSAGE
+            topic_array = subtopic.split(CONFIG_SEPARATOR, 1)
+            topicX = topic_array[0] + CONFIG_SEPARATOR + "trigger_notification"
+            topicX = generate_pubtopic(topicX)
+            publish(topicX, payload)
+            print(payload["recipient"])
+            print(payload["message"])
+
+        payload = {}
         payload["value"] = subpayload["value"]
         publish(topic, payload)
-        print(subpayload["value"])
+        print(payload["value"])
 
     elif api == "get_gpio":
         topic = generate_pubtopic(subtopic)
