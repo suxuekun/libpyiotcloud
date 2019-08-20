@@ -465,7 +465,6 @@ Device access APIs requires username, devicename and access token returned by lo
 
 
        // Generating device certificates
-       
        A. RSA
           1. openssl genrsa -out ft900device1_pkey.pem 2048
           2. openssl req -new -out ft900device1.csr -key ft900device1_pkey.pem
