@@ -436,6 +436,7 @@ Device access APIs requires username, devicename and access token returned by lo
        The certificate in RabbitMQ can be self-signed.
        But the certificate in NGINX should be signed by trusted authority for production because web browsers issues warning when server certificate is self-signed.
 
+
        // Generating self-signed certificates using OpenSSL
        A. RSA
           1. openssl genrsa -out rootCA_pkey.pem 2048
@@ -461,6 +462,19 @@ Device access APIs requires username, devicename and access token returned by lo
              Common Name: brtchip.com
              Email Address: support.emea@brtchip.com
           3. openssl req -x509 -sha256 -days 3650 -key rootCA_pkey.pem -in csr.csr -out rootCA_cert.pem
+
+
+       // Generating device certificates
+       
+       A. RSA
+          1. openssl genrsa -out ft900device1_pkey.pem 2048
+          2. openssl req -new -out ft900device1.csr -key ft900device1_pkey.pem
+          3. openssl x509 -req -in ft900device1.csr -CA rootCA.pem -CAkey rootCA_pkey.pem -CAcreateserial -out ft900device1_cert.pem -days 3650
+
+       B. ECDSA
+          1. openssl ecparam -genkey -name prime256v1 -out ft900device1_pkey.pem
+          2. openssl req -new -out ft900device1.csr -key ft900device1_pkey.pem
+          3. openssl x509 -req -in ft900device1.csr -CA rootca_ecdsa_cert.pem -CAkey rootca_ecdsa_pkey.pem -CAcreateserial -out ft900device1_cert.pem -days 3650
 
 
        // CA-certificate signed by trusted authority - Comodo, Verisign, etc.
