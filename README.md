@@ -428,6 +428,41 @@ Device access APIs requires username, devicename and access token returned by lo
 
 ### Certificates
 
+       // Notes: 
+       The rootca certificate stored in RabbitMQ is for MQTT/AMQP device authentication. 
+       This is different from the certificate stored in NGINX bought from GoDaddy.
+       1. RabbitMQ (self-signed) ca,cert,pkey - for MQTTS/AMQPS
+       2. NGINX (signed by trusted authority)cert,pkey - for HTTPS
+       The certificate in RabbitMQ can be self-signed.
+       But the certificate in NGINX should be signed by trusted authority for production because web browsers issues warning when server certificate is self-signed.
+
+       // Generating self-signed certificates using OpenSSL
+       A. RSA
+          1. openssl genrsa -out rootCA_pkey.pem 2048
+          2. openssl req -new -x509 -days 3650 -key rootCA_pkey.pem -out rootCA.pem
+             Example:
+             Country Name: SG
+             State or Province: Singapore
+             Locality: Paya Lebar
+             Organization Name: Bridgetek Pte Ltd
+             Organizational Unit Name: Engineering
+             Common Name: brtchip.com
+             Email Address: support.emea@brtchip.com
+
+       B. ECDSA
+          1. openssl ecparam -genkey -name prime256v1 -out rootCA_pkey.pem
+          2. openssl req -new -sha256 -key rootCA_pkey.pem -out rootCA_csr.csr
+             Example:
+             Country Name: SG
+             State or Province: Singapore
+             Locality: Paya Lebar
+             Organization Name: Bridgetek Pte Ltd
+             Organizational Unit Name: Engineering
+             Common Name: brtchip.com
+             Email Address: support.emea@brtchip.com
+          3. openssl req -x509 -sha256 -days 3650 -key rootCA_pkey.pem -in csr.csr -out rootCA_cert.pem
+
+
        // CA-certificate signed by trusted authority - Comodo, Verisign, etc.
        0. ROOTCA.pem (with a secret ROOTCA_PKEY.pem)
        
