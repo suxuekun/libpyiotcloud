@@ -35,6 +35,7 @@ The web app is made of Ionic framework so it can be compiled as Android and iOS 
 - <b>RabbitMQ</b> message broker (MQTT, AMQP) - https://www.rabbitmq.com/
 - <b>MongoDB</b> NoSQL database - https://www.mongodb.com/
 - <b>OpenSSL</b> cryptography (X509 certificates) - https://www.openssl.org/
+- <b>Amazon EC2</b> - https://aws.amazon.com/ec2/
 - <b>Amazon Cognito</b> (user sign-up/sign-in) - https://aws.amazon.com/cognito/
 - <b>Amazon Pinpoint</b> (email/SMS notifications) - https://aws.amazon.com/pinpoint/
 - <b>Amazon SNS</b> (email/SMS notifications) - https://aws.amazon.com/sns/
