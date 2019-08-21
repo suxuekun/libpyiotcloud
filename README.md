@@ -575,7 +575,7 @@ Device access APIs requires username, devicename and access token returned by lo
    
 ### Dockerfiles
 
-1. The platform has been divided into 5 microservices: rabbitmq, mongodb, webapp, nginx, notification_manager
+1. The platform has been divided into 7 microservices: rabbitmq, mongodb, restapi, webapp, nginx, notification_manager, history_manager
 2. Each microservice is contained in a separate docker container
 3. Each docker container has a dockerfile
 
