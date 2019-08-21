@@ -18,7 +18,7 @@ Comparable IoT platforms for our use-case of remote device access and control in
     - Xiaomi (YeeLight mobile app) for Xiaomi's smart smart bulbs/smart plugs.
 
 However, these IoT platforms are tied up to their smart devices.
-Our IoT platform is generic for all smart devices and IoT devices that can be build on top of any MCU, but primarily using our in-house FT9XX MCUs.
+This IoT platform is generic for all smart devices and IoT devices that can be build on top of any MCU, but preferably using FT9XX MCUs.
 
 
 # Architecture
