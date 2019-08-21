@@ -23,7 +23,7 @@ This IoT platform is generic for all smart devices and IoT devices that can be b
 
 # Architecture
 
-This IoT platform is a server-based IoT cloud platform that leverages 
+This IoT platform is a container-based IoT cloud platform that leverages 
 Flask, GUnicorn, Nginx, RabbitMQ, MongoDB, Amazon Cognito, Amazon Pinpoint and Docker. 
 It can be deployed in a local PC or in the cloud - AWS EC2, Linode, Heroku, Rackspace, DigitalOcean or etc.
 The web app is made of Ionic framework so it can be compiled as Android and iOS mobile apps using 1 code base.
