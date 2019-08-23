@@ -59,7 +59,10 @@ CONFIG_SEPARATOR            = '/'
 
 def notification_thread(recipient, message, subject):
 
-    response = g_notification_client.send_message(recipient, message, subject=subject)
+    try:
+        response = g_notification_client.send_message(recipient, message, subject=subject)
+    except:
+        return
 
     try:
         print("\r\nSending message='{}' to recipient='{}' done. {} {}\r\n\r\n".format(
@@ -74,27 +77,35 @@ def notification_thread(recipient, message, subject):
 
 def on_message(subtopic, subpayload):
 
-    payload = json.loads(subpayload)
-    recipient = payload["recipient"]
-    message = payload["message"]
+    try:
+        payload = json.loads(subpayload)
+        recipient = payload["recipient"]
+        message = payload["message"]
 
-    is_email = True if recipient.find("@")!=-1 else False
-    subject = notification_config.CONFIG_PINPOINT_EMAIL_SUBJECT if is_email else None
+        is_email = True if recipient.find("@")!=-1 else False
+        subject = notification_config.CONFIG_PINPOINT_EMAIL_SUBJECT if is_email else None
 
-    thr = threading.Thread(target = notification_thread, args = (recipient, message, subject, ))
-    thr.start()
+        thr = threading.Thread(target = notification_thread, args = (recipient, message, subject, ))
+        thr.start()
+    except:
+        return
 
 
 def on_mqtt_message(client, userdata, msg):
 
-    print("RCV: MQTT {} {}".format(msg.topic, msg.payload))
-    on_message(msg.topic, msg.payload)
-
+    try:
+        print("RCV: MQTT {} {}".format(msg.topic, msg.payload))
+        on_message(msg.topic, msg.payload)
+    except:
+        return
 
 def on_amqp_message(ch, method, properties, body):
 
-    print("RCV: AMQP {} {}".format(method.routing_key, body))
-    on_message(method.routing_key, body)
+    try:
+        print("RCV: AMQP {} {}".format(method.routing_key, body))
+        on_message(method.routing_key, body)
+    except:
+        return
 
 
 
