@@ -18,15 +18,15 @@ Comparable IoT platforms for our use-case of remote device access and control in
     - Xiaomi (YeeLight mobile app) for Xiaomi's smart smart bulbs/smart plugs.
 
 However, these IoT platforms are tied up to their smart devices.
-Our IoT platform is generic for all smart devices and IoT devices that can be build on top of any MCU, but primarily using our in-house FT9XX MCUs.
+This IoT platform is generic for all smart devices and IoT devices that can be build on top of any MCU, but preferably using FT9XX MCUs.
 
 
 # Architecture
 
-This IoT platform is a server-based IoT cloud platform that leverages 
-Flask, GUnicorn, Nginx, RabbitMQ, MongoDB, Amazon Cognito, Amazon Pinpoint and Docker. 
+This IoT platform is a container-based IoT cloud platform that leverages 
+Flask, GUnicorn, Nginx, RabbitMQ, MongoDB, Ionic, Amazon Cognito, Amazon Pinpoint and Docker. 
 It can be deployed in a local PC or in the cloud - AWS EC2, Linode, Heroku, Rackspace, DigitalOcean or etc.
-The web app is made of Ionic framework so it can be compiled as Android and iOS mobile apps.
+The web app is made of Ionic framework so it can be compiled as Android and iOS mobile apps using 1 code base.
 
 - <b>LucidChart</b> UML diagrams - https://www.lucidchart.com
 - <b>Nginx</b> web server - https://www.nginx.com/
@@ -35,6 +35,7 @@ The web app is made of Ionic framework so it can be compiled as Android and iOS 
 - <b>RabbitMQ</b> message broker (MQTT, AMQP) - https://www.rabbitmq.com/
 - <b>MongoDB</b> NoSQL database - https://www.mongodb.com/
 - <b>OpenSSL</b> cryptography (X509 certificates) - https://www.openssl.org/
+- <b>Amazon EC2</b> - https://aws.amazon.com/ec2/
 - <b>Amazon Cognito</b> (user sign-up/sign-in) - https://aws.amazon.com/cognito/
 - <b>Amazon Pinpoint</b> (email/SMS notifications) - https://aws.amazon.com/pinpoint/
 - <b>Amazon SNS</b> (email/SMS notifications) - https://aws.amazon.com/sns/
@@ -574,7 +575,7 @@ Device access APIs requires username, devicename and access token returned by lo
    
 ### Dockerfiles
 
-1. The platform has been divided into 5 microservices: rabbitmq, mongodb, webapp, nginx, notification_manager
+1. The platform has been divided into 7 microservices: rabbitmq, mongodb, restapi, webapp, nginx, notification_manager, history_manager
 2. Each microservice is contained in a separate docker container
 3. Each docker container has a dockerfile
 
