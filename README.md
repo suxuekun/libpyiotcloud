@@ -907,12 +907,14 @@ In Linux, the total round trip time is only 1 second.
 
 1. Add signup/login using Facebook account
 2. Add feature to enable MFA (Multi factor authentication via email/SMS).
-3. Add message counter for free-tier subscription
-4. Handle refreshing Cognito access key while user is online for a long time
-5. [Low] Add file logging of microservices for easier debugging/troubleshooting
-6. [Low] Add manager/admin page in Web client (see all users and devices registered by each user)
-7. [Low] Support an online device emulator. (Each user can run 1 online device emulator.)
-8. [Low] Support Kubernetes orchestration
+3. Add Twitter integration to notification manager.
+4. Add push notification integration to notification manager.
+5. Add message counter for free-tier subscription
+6. Handle refreshing Cognito access key while user is online for a long time
+7. [Low] Add file logging of microservices for easier debugging/troubleshooting
+8. [Low] Add manager/admin page in Web client (see all users and devices registered by each user)
+9. [Low] Support an online device emulator. (Each user can run 1 online device emulator.)
+10. [Low] Support Kubernetes orchestration
 
 
 # Reminders
