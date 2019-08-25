@@ -908,7 +908,7 @@ In Linux, the total round trip time is only 1 second.
 1. Add signup/login using Facebook account
 2. Add feature to enable MFA (Multi factor authentication via email/SMS).
 3. Add Twitter integration to notification manager.
-4. Add push notification integration to notification manager.
+4. Add mobile app push notification integration to notification manager.
 5. Add message counter for free-tier subscription
 6. Handle refreshing Cognito access key while user is online for a long time
 7. [Low] Add file logging of microservices for easier debugging/troubleshooting
