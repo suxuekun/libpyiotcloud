@@ -518,6 +518,7 @@ Device access APIs requires username, devicename and access token returned by lo
        sudo curl -L https://github.com/docker/compose/releases/download/1.24.1/docker-compose-`uname -s`-`uname -m` -o /usr/local/bin/docker-compose
        sudo chmod +x /usr/local/bin/docker-compose
        sudo service docker restart
+       restart putty
        
        // Set the AWS environment variables
        export AWS_ACCESS_KEY_ID=""
