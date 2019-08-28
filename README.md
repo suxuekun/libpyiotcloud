@@ -944,7 +944,10 @@ In Linux, the total round trip time is only 1 second.
 2. The value of rest_api variable in webapp/src/ionicapp/www/js/server.js should correspond to the GoDaddy domain name or AWS EC2 public IP address.
    [this may be changed to an environment variable if possible]
    When using local machine, 192.168.99.100 is the default docker ip.
-3. When using self-signed certificate on NGINX (currently using trusted certificates bought from GoDaddy.com but tied up to richmondu.com),
+3. When using self-signed certificate on NGINX,
    The Ionic iOS/Android mobile simulators can be viewed online at https://creator.ionic.io/share/xxxASKMExxx but requires the following
    - "C:\Program Files (x86)\Google\Chrome\Application\chrome.exe" --ignore-certificate-errors
    - OR type in browser chrome://flags/#allow-insecure-localhost
+4. The certificate bought from GoDaddy is different from the self-signed certificate for RabbitMQ.
+   - RABBITMQ: Uses the self-signed rootca; for MQTTS/AMQPS device connectivity
+   - NGINX: Uses the trusted certificate bought from GoDaddy; for HTTPS web/mobile connectivity; currently tied up to richmondu.com
