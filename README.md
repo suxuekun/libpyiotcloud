@@ -480,7 +480,7 @@ Device access APIs requires username, devicename and access token returned by lo
              Organizational Unit Name: Engineering
              Common Name: brtchip.com
              Email Address: support.emea@brtchip.com
-          3. openssl req -x509 -sha256 -days 3650 -key rootCA_pkey.pem -in csr.csr -out rootCA_cert.pem
+          3. openssl req -x509 -sha256 -days 3650 -key rootCA_pkey.pem -in rootCA_csr.csr -out rootCA_cert.pem
 
 
        // Generating device certificates
@@ -490,9 +490,9 @@ Device access APIs requires username, devicename and access token returned by lo
           3. openssl x509 -req -in ft900device1.csr -CA rootCA.pem -CAkey rootCA_pkey.pem -CAcreateserial -out ft900device1_cert.pem -days 3650
 
        B. ECDSA
-          1. openssl ecparam -genkey -name prime256v1 -out ft900device1_pkey.pem
+          1. openssl ecparam -genkey -name prime256v1 -out ft900device1_pkey.pem --noout
           2. openssl req -new -out ft900device1.csr -key ft900device1_pkey.pem
-          3. openssl x509 -req -in ft900device1.csr -CA rootca_ecdsa_cert.pem -CAkey rootca_ecdsa_pkey.pem -CAcreateserial -out ft900device1_cert.pem -days 3650
+          3. openssl x509 -req -in ft900device1.csr -CA rootca_cert.pem -CAkey rootca_pkey.pem -CAcreateserial -out ft900device1_cert.pem -days 3650
 
 
        // CA-certificate signed by trusted authority - Comodo, Verisign, etc.
