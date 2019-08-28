@@ -99,6 +99,13 @@ An alternative solution is using an AWS serverless solution wherein:
 
 # Design
 
+### User Interface
+
+<img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/ui_loginsignup.png" width="800"/>
+<img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/ui_deviceregistration.png" width="800"/>
+
+
+
 ### Features
 
     1. User sign-up/sign-in, Device Registration, Email/SMS Notifications
@@ -221,6 +228,8 @@ Device access APIs requires username, devicename and access token returned by lo
        Once it receives a message on this topic, it will trigger Amazon Pinpoint to send the email or SMS.
     3. Web client application can also trigger device to send email/SMS notifications via the trigger_notification REST API.
        webclient -> webserver(rest api) -> messagebroker -> device -> messagebroker -> notificationmanager -> pinpoint
+
+
 
 
 # Instructions (Docker)
