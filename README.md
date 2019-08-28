@@ -101,9 +101,14 @@ An alternative solution is using an AWS serverless solution wherein:
 
 ### User Interface
 
+User signup and login
 <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/ui_loginsignup.png" width="800"/>
+
+Device registration
 <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/ui_deviceregistration.png" width="800"/>
 
+Device access and control
+<img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/ui_deviceaccess.png" width="800"/>
 
 
 ### Features
