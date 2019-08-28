@@ -110,6 +110,10 @@ Device registration
 Device access and control
 <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/ui_deviceaccess.png" width="800"/>
 
+Menu, account, history
+<img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/ui_menuaccounthistory.png" width="800"/>
+
+
 
 ### Features
 
