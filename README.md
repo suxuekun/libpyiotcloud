@@ -103,6 +103,7 @@ An alternative solution is using an AWS serverless solution wherein:
 
 <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/ui_loginsignup.png" width="800"/>
 <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/ui_deviceregistration.png" width="800"/>
+<img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/ui_deviceaccess.png" width="800"/>
 
 
 
