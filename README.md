@@ -120,7 +120,7 @@ Menu, account, history
 
     1. User sign-up/sign-in, Device Registration, Email/SMS Notifications
        A. Amazon Cognito for user sign-up and sign-in
-       B. MongoDB NoSQL database for storing registered device information
+       B. MongoDB NoSQL database for storing registered device information and device requests/responses
        C. OpenSSL for generating certificates on-demand for registered devices
        D. Email/SMS notifications using AmazonPinpoint (device-initiated, client-initiated)
     2. Device Access/Control via Flask+GUnicorn+Nginx
