@@ -12,7 +12,7 @@ Update the device ID in the __mqtt or __amqp batch scripts then run. (Both MQTT 
 
 ### Device simulators (Javascript):
 
-No installation needed. Just update the device ID.
+No installation needed. Just update the device ID in the batch scripts then run.
 
 
 ### FT900 Device
