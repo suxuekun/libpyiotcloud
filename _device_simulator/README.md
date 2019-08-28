@@ -7,12 +7,12 @@ Then install the required python libraries of the application:
 
     pip install -r requirements.txt
 
-Run the __mqtt or __amqp batch scripts. (Both MQTT and AMQP prototcols are supported.)
+Update the device ID in the __mqtt or __amqp batch scripts then run. (Both MQTT and AMQP prototcols are supported.)
 
 
 ### Device simulators (Javascript):
 
-No installation needed.
+No installation needed. Just update the device ID.
 
 
 ### FT900 Device
