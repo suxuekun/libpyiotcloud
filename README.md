@@ -860,6 +860,8 @@ Device access APIs requires username, devicename and access token returned by lo
         - xcode
         - TODO
 
+<img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/ui_androidemulator.png" width="1000"/>
+
 
 # Testing and Troubleshooting
 
