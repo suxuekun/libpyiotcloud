@@ -947,6 +947,4 @@ In Linux, the total round trip time is only 1 second.
 3. When using self-signed certificate on NGINX (currently using trusted certificates bought from GoDaddy.com but tied up to richmondu.com),
    The Ionic iOS/Android mobile simulators can be viewed online at https://creator.ionic.io/share/xxxASKMExxx but requires the following
    - "C:\Program Files (x86)\Google\Chrome\Application\chrome.exe" --ignore-certificate-errors
-   - OR chrome://flags/#allow-insecure-localhost
-   - OR install the following [certificate](https://raw.githubusercontent.com/richmondu/libpyiotcloud/master/nginx/src/ssl-cert-snakeoil.pem.crt)
-   [no longer needed after buying trusted SSL certificates from GoDaddy.com.
+   - OR type in browser chrome://flags/#allow-insecure-localhost
