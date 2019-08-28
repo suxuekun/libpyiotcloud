@@ -20,4 +20,4 @@ To build Android mobile app using the Ionic web app requires the following:
   - FYI: %LOCALAPPDATA%\Android\sdk\tools\bin\avdmanager list avd
 
 
-<img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/android_emulator.png" width="1000"/>
+<img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/ui_androidemulator.png" width="1000"/>
