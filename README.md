@@ -936,7 +936,7 @@ In Linux, the total round trip time is only 1 second.
 7. [Low] Add file logging of microservices for easier debugging/troubleshooting
 8. [Low] Add manager/admin page in Web client (see all users and devices registered by each user)
 9. [Low] Support an online device emulator. (Each user can run 1 online device emulator.)
-10. [Low] Support Kubernetes orchestration
+10.[Low] Support Kubernetes orchestration
 
 
 # Reminders
