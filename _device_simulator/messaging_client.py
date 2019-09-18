@@ -160,7 +160,7 @@ class messaging_client:
             ciphers=None)
         # handle issue: 
         #   hostname doesn't match xxxx
-        client.tls_insecure_set(True)
+        #client.tls_insecure_set(True)
         # handle issues: 
         #   MQTT server is down OR 
         #   invalid MQTT crendentials OR 
