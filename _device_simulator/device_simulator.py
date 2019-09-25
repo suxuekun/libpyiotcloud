@@ -8,6 +8,7 @@ from messaging_client import messaging_client # common module from parent direct
 
 
 ###################################################################################
+CONFIG_USE_ECC = False
 # Enable to use AMQP for webserver-to-messagebroker communication
 # Disable to use MQTT for webserver-to-messagebroker communication
 CONFIG_USE_AMQP = True
@@ -243,6 +244,7 @@ def on_amqp_message(ch, method, properties, body):
 def parse_arguments(argv):
 
     parser = argparse.ArgumentParser()
+    parser.add_argument('--USE_ECC',         required=False, default=1 if CONFIG_USE_ECC else 0, help='Use ECC instead of RSA')
     parser.add_argument('--USE_AMQP',        required=False, default=1 if CONFIG_USE_AMQP else 0, help='Use AMQP instead of MQTT')
     parser.add_argument('--USE_DEVICE_ID',   required=False, default=CONFIG_DEVICE_ID, help='Device ID to use')
     parser.add_argument('--USE_DEVICE_CA',   required=False, default=CONFIG_TLS_CA,    help='Device CA certificate to use')
@@ -258,6 +260,7 @@ if __name__ == '__main__':
 
     args = parse_arguments(sys.argv[1:])
     CONFIG_USE_AMQP    = True if int((args.USE_AMQP))==1 else False
+    CONFIG_USE_ECC    = True if int((args.USE_ECC))==1 else False
     CONFIG_SEPARATOR   = "." if int((args.USE_AMQP))==1 else "/"
     CONFIG_DEVICE_ID   = args.USE_DEVICE_ID
     CONFIG_TLS_CA      = args.USE_DEVICE_CA
@@ -275,6 +278,7 @@ if __name__ == '__main__':
     print("USE_HOST={}".format(args.USE_HOST))
     print("USE_USERNAME={}".format(args.USE_USERNAME))
     print("USE_PASSWORD={}".format(args.USE_PASSWORD))
+    print("USE_ECC={}".format(args.USE_ECC))
     print("")
 
 
@@ -284,7 +288,7 @@ if __name__ == '__main__':
         g_messaging_client = messaging_client(CONFIG_USE_AMQP, on_amqp_message, device_id=CONFIG_DEVICE_ID)
         g_messaging_client.set_server(CONFIG_HOST, CONFIG_AMQP_TLS_PORT)
     else:
-        g_messaging_client = messaging_client(CONFIG_USE_AMQP, on_mqtt_message, device_id=CONFIG_DEVICE_ID)
+        g_messaging_client = messaging_client(CONFIG_USE_AMQP, on_mqtt_message, device_id=CONFIG_DEVICE_ID, use_ecc=CONFIG_USE_ECC)
         g_messaging_client.set_server(CONFIG_HOST, CONFIG_MQTT_TLS_PORT)
     if CONFIG_USERNAME and CONFIG_PASSWORD:
         g_messaging_client.set_user_pass(CONFIG_USERNAME, CONFIG_PASSWORD)
