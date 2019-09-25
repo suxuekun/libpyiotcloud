@@ -941,6 +941,12 @@ In Linux, the total round trip time is only 1 second.
 
 # Reminders
 
+0. List of files to change: 
+
+    - webapp\src\ionicapp\www\js\server.js 
+    - nginx\src\cert.pem
+    - nginx\src\pkey.pem
+    
 1. The private key for rootca is not committed in restapi/src/cert/ [for security purposes].
 2. The value of rest_api variable in webapp/src/ionicapp/www/js/server.js should correspond to the GoDaddy domain name or AWS EC2 public IP address.
    [this may be changed to an environment variable if possible]
