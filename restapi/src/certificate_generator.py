@@ -32,41 +32,46 @@ class certificate_generator:
 		self.ca_key=crypto.load_privatekey(crypto.FILETYPE_PEM, st_key)
 		self.ca_subj = self.ca_cert.get_subject()
 
-	def generate(self, device_id):
+	def generate(self, device_id, ecc=False):
 
 		# Device client certificate
-		client_key = crypto.PKey()
-		client_key.generate_key(crypto.TYPE_RSA, 2048)
-		client_cert = crypto.X509()
-		client_cert.set_version(0)
-		client_cert.set_serial_number(random.getrandbits(8*9))
-		client_subj = client_cert.get_subject()
-		client_cert.set_issuer(self.ca_subj)
-		client_cert.set_pubkey(client_key)
-		client_cert.gmtime_adj_notBefore(0)
-		client_cert.gmtime_adj_notAfter(CONFIG_CERT_YEARS*365*24*60*60)
-		client_cert.get_subject().C = CONFIG_CERT_COUNTRY
-		client_cert.get_subject().ST = CONFIG_CERT_STATE
-		client_cert.get_subject().L = CONFIG_CERT_CITY
-		client_cert.get_subject().O = CONFIG_CERT_COMPANY
-		client_cert.get_subject().OU = CONFIG_CERT_DEPARTMENT
-		client_cert.get_subject().CN = device_id
-		client_cert.sign(self.ca_key, 'sha256')
+		if ecc:
+			filename_cert = CONFIG_CERT_DIRECTORY + "ft900device1_cert.pem"
+			filename_pkey = CONFIG_CERT_DIRECTORY + "ft900device1_pkey.pem"
+			return filename_cert, filename_pkey
+		else:
+			client_key = crypto.PKey()
+			client_key.generate_key(crypto.TYPE_RSA, 2048)
+			client_cert = crypto.X509()
+			client_cert.set_version(0)
+			client_cert.set_serial_number(random.getrandbits(8*9))
+			client_subj = client_cert.get_subject()
+			client_cert.set_issuer(self.ca_subj)
+			client_cert.set_pubkey(client_key)
+			client_cert.gmtime_adj_notBefore(0)
+			client_cert.gmtime_adj_notAfter(CONFIG_CERT_YEARS*365*24*60*60)
+			client_cert.get_subject().C = CONFIG_CERT_COUNTRY
+			client_cert.get_subject().ST = CONFIG_CERT_STATE
+			client_cert.get_subject().L = CONFIG_CERT_CITY
+			client_cert.get_subject().O = CONFIG_CERT_COMPANY
+			client_cert.get_subject().OU = CONFIG_CERT_DEPARTMENT
+			client_cert.get_subject().CN = device_id
+			client_cert.sign(self.ca_key, 'sha256')
 
-		# Get epoch time as timestamp
-		timestamp = str(int(time.time()))
+			# Get epoch time as timestamp
+			timestamp = str(int(time.time()))
 
-		# Save certificate
-		filename_cert = CONFIG_CERT_DIRECTORY + device_id + "_" + timestamp + "_cert.pem"
-		with open(filename_cert, "wt") as f:
-			f.write(crypto.dump_certificate(crypto.FILETYPE_PEM, client_cert).decode("utf-8"))
+			# Save certificate
+			filename_cert = CONFIG_CERT_DIRECTORY + device_id + "_" + timestamp + "_cert.pem"
+			with open(filename_cert, "wt") as f:
+				f.write(crypto.dump_certificate(crypto.FILETYPE_PEM, client_cert).decode("utf-8"))
 
-		# Save private key
-		filename_pkey = CONFIG_CERT_DIRECTORY + device_id + "_" + timestamp + "_pkey.pem"
-		with open(filename_pkey, "wt") as f:
-			f.write(crypto.dump_privatekey(crypto.FILETYPE_PEM, client_key).decode("utf-8"))
+			# Save private key
+			filename_pkey = CONFIG_CERT_DIRECTORY + device_id + "_" + timestamp + "_pkey.pem"
+			with open(filename_pkey, "wt") as f:
+				f.write(crypto.dump_privatekey(crypto.FILETYPE_PEM, client_key).decode("utf-8"))
 
-		return filename_cert, filename_pkey
+			return filename_cert, filename_pkey
 
 	def getca(self):
 		return CONFIG_CERT_DIRECTORY + CONFIG_ROOTCA_CERT

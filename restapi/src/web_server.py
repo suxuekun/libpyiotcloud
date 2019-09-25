@@ -18,6 +18,7 @@ from flask_api import status
 # Some configurations
 ###################################################################################
 
+CONFIG_USE_ECC = True if int(os.environ["CONFIG_USE_ECC"]) == 1 else False
 CONFIG_SEPARATOR            = '/'
 CONFIG_PREPEND_REPLY_TOPIC  = "server"
 
@@ -473,7 +474,7 @@ def register_device():
             return response, status.HTTP_409_CONFLICT
 
         cg = certificate_generator()
-        cert, pkey = cg.generate(devicename)
+        cert, pkey = cg.generate(devicename, ecc=CONFIG_USE_ECC)
         ca = cg.getca()
         cert = open(cert).read()
         pkey = open(pkey).read()

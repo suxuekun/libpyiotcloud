@@ -12,16 +12,26 @@ class config:
     CONFIG_HTTP_HOST            = "localhost"
     CONFIG_HTTP_PORT            = 8000
     CONFIG_HTTP_TLS_PORT        = 443
-    CONFIG_HTTP_TLS_CA          = "cert/rootca.pem"
-    CONFIG_HTTP_TLS_CERT        = "cert/server_cert.pem"
-    CONFIG_HTTP_TLS_PKEY        = "cert/server_pkey.pem"
+    if int(os.environ["CONFIG_USE_ECC"])==1:
+        CONFIG_HTTP_TLS_CA          = "cert_ecc/rootca.pem"
+        CONFIG_HTTP_TLS_CERT        = "cert_ecc/server_cert.pem"
+        CONFIG_HTTP_TLS_PKEY        = "cert_ecc/server_pkey.pem"
+    else:
+        CONFIG_HTTP_TLS_CA          = "cert/rootca.pem"
+        CONFIG_HTTP_TLS_CERT        = "cert/server_cert.pem"
+        CONFIG_HTTP_TLS_PKEY        = "cert/server_pkey.pem"
 
     # Message broker credentials
     CONFIG_USERNAME             = None
     CONFIG_PASSWORD             = None
-    CONFIG_TLS_CA               = "cert/rootca.pem"
-    CONFIG_TLS_CERT             = "cert/server_cert.pem"
-    CONFIG_TLS_PKEY             = "cert/server_pkey.pem"
+    if int(os.environ["CONFIG_USE_ECC"])==1:
+        CONFIG_TLS_CA               = "cert_ecc/rootca.pem"
+        CONFIG_TLS_CERT             = "cert_ecc/server_cert.pem"
+        CONFIG_TLS_PKEY             = "cert_ecc/server_pkey.pem"
+    else:
+        CONFIG_TLS_CA               = "cert/rootca.pem"
+        CONFIG_TLS_CERT             = "cert/server_cert.pem"
+        CONFIG_TLS_PKEY             = "cert/server_pkey.pem"
 
     # Message broker settings
     CONFIG_USE_AMQP             = False
