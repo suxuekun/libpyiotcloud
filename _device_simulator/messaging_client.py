@@ -15,7 +15,7 @@ import random
 CONFIG_AMQP_SEPARATOR       = '.'
 CONFIG_PREPEND_REPLY_TOPIC  = "server"
 CONFIG_QOS                  = 1
-
+CONFIG_TLS_INSECURE         = False # handle issue: hostname doesn't match xxxx
 
 
 ###################################################################################
@@ -152,15 +152,23 @@ class messaging_client:
         if self.username and self.password:
             client.username_pw_set(self.username, self.password)
         # Set TLS certificates
-        client.tls_set(ca_certs = self.ca,
-            certfile    = self.cert,
-            keyfile     = self.pkey,
-            cert_reqs   = ssl.CERT_REQUIRED,
-            tls_version = ssl.PROTOCOL_TLSv1_2,
-            ciphers=None)
-        # handle issue: 
-        #   hostname doesn't match xxxx
-        client.tls_insecure_set(True)
+        if True:
+            ssl_ctx = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
+            ssl_ctx.load_cert_chain(self.cert, keyfile=self.pkey)
+            ssl_ctx.load_verify_locations(cafile=self.ca)
+            ssl_ctx.verify_mode = ssl.VerifyMode.CERT_REQUIRED
+            ssl_ctx.check_hostname = CONFIG_TLS_INSECURE
+            client.tls_set_context(ssl_ctx)
+        else:
+            client.tls_set(ca_certs = self.ca,
+                certfile    = self.cert,
+                keyfile     = self.pkey,
+                cert_reqs   = ssl.CERT_REQUIRED,
+                tls_version = ssl.PROTOCOL_TLSv1_2,
+                ciphers=None)
+            # handle issue: 
+            #   hostname doesn't match xxxx
+            client.tls_insecure_set(CONFIG_TLS_INSECURE)
         # handle issues: 
         #   MQTT server is down OR 
         #   invalid MQTT crendentials OR 
