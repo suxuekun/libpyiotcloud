@@ -254,6 +254,7 @@ Device access APIs requires username, devicename and access token returned by lo
        export AWS_PINPOINT_ID=""
        export AWS_PINPOINT_REGION=""
        export AWS_PINPOINT_EMAIL=""
+       export CONFIG_USE_ECC=1 or 0
     2. Build and execute Docker-compose file
        docker-compose build
        docker-compose up
@@ -547,7 +548,8 @@ Device access APIs requires username, devicename and access token returned by lo
        export AWS_COGNITO_USERPOOL_REGION=""
        export AWS_PINPOINT_ID=""
        export AWS_PINPOINT_REGION=""       
-       export AWS_PINPOINT_EMAIL=""       
+       export AWS_PINPOINT_EMAIL=""
+       export CONFIG_USE_ECC=1 or 0
 
        // Download the repository
        via WinSCP or git
@@ -723,6 +725,7 @@ Device access APIs requires username, devicename and access token returned by lo
         - AWS_PINPOINT_ID
         - AWS_PINPOINT_REGION
         - AWS_PINPOINT_EMAIL
+        - CONFIG_USE_ECC=1 or 0
 
 4. Docker-compose file
 
