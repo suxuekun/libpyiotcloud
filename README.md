@@ -741,6 +741,8 @@ Device access APIs requires username, devicename and access token returned by lo
             expose:
               - "8883"
               - "5671"
+            environment:
+              - CONFIG_USE_ECC              
           mongodb:
             build: ./mongodb
             restart: always
@@ -768,6 +770,7 @@ Device access APIs requires username, devicename and access token returned by lo
               - AWS_COGNITO_CLIENT_ID
               - AWS_COGNITO_USERPOOL_ID
               - AWS_COGNITO_USERPOOL_REGION
+              - CONFIG_USE_ECC              
           webapp:
             build: ./webapp
             restart: always
@@ -805,6 +808,7 @@ Device access APIs requires username, devicename and access token returned by lo
               - AWS_PINPOINT_ID
               - AWS_PINPOINT_REGION
               - AWS_PINPOINT_EMAIL
+              - CONFIG_USE_ECC              
           history:
             build: ./history
             restart: always
@@ -814,6 +818,8 @@ Device access APIs requires username, devicename and access token returned by lo
             depends_on:
               - rabbitmq
               - mongodb              
+            environment:
+              - CONFIG_USE_ECC              
         networks:
           mydockernet:
             driver: bridge
