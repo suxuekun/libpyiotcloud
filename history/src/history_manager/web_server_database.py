@@ -114,7 +114,19 @@ class database_client:
             for device in devices.find({'deviceid': deviceid},{'devicename':1, 'deviceid': 1}):
                 if device['deviceid'] == deviceid:
                     self._devices.add_device_history(device['devicename'], deviceid, topic, payload, direction)
-                    return
+                    break
+
+            # limit device history to 20 for each devices
+            devices_list = self._devices.get_device_history(deviceid, removeID=False)
+            if devices_list:
+                devices_list.sort(key=self.sort_user_history, reverse=True)
+                try:
+                    while len(devices_list) > 20:
+                        self._devices.delete_device_history(devices_list[-1]['deviceid'], devices_list[-1]['timestamp'], devices_list[-1]['_id'])
+                        devices_list.remove(devices_list[-1])
+                except:
+                    print("add_device_history Exception occurred")
+                    pass
 
     def get_device_history(self, deviceid):
         return self._devices.get_device_history(deviceid)
@@ -433,15 +445,25 @@ class database_client_mongodb:
         item['payload'] = payload
         history.insert_one(item);
 
-    def get_device_history(self, deviceid):
+    def get_device_history(self, deviceid, removeID=True):
         history_list = []
         histories = self.get_history_document();
         if histories:
             for history in histories.find({'deviceid': deviceid}):
                 if history['deviceid'] == deviceid:
-                    history.pop('_id')
+                    if removeID==True:
+                        history.pop('_id')
                     history_list.append(history)
         return history_list
+
+    def delete_device_history(self, deviceid, timestamp, id):
+        history = self.get_history_document();
+        try:
+            history.delete_one({'_id': id})
+            #history.delete_one({'deviceid': deviceid, 'timestamp': timestamp })
+        except:
+            print("delete_device_history: Exception occurred")
+            pass
 
 
     ##########################################################
