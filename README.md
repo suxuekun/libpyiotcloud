@@ -700,12 +700,17 @@ Device access APIs requires username, devicename and access token returned by lo
 
         sudo docker network ls
         sudo docker network inspect mydockernet
+        
+        sudo docker network prune
     
 2. Persistent volume for mongodb database created
 
         sudo docker volume ls
         sudo docker volume inspect mydockervol // get the mountpoint
         sudo ls <mountpoint>
+
+        sudo docker volume rm $(docker volume ls -qf dangling=true)
+        sudo docker volume ls -qf dangling=true
 
 3. AWS credentials + cognito/pinpoint IDs are environment variables [no longer hardcoded in code]
 
@@ -898,9 +903,12 @@ Device access APIs requires username, devicename and access token returned by lo
         - docker ps
         - docker stop <container ID>
         - docker rm <container ID>
+        
         - docker network ls
         - docker network prune
         - docker volume ls
+        - docker volume rm $(docker volume ls -qf dangling=true)
+        - docker volume ls -qf dangling=true
 
         Manual:
         - sudo service mongod status 
