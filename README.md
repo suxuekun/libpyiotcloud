@@ -829,6 +829,7 @@ Device access APIs requires username, devicename and access token returned by lo
 
         docker-compose -f docker-compose.yml config
         docker-compose build
+        docker-compose build --no-cache
         docker-compose up
         docker-compose up -d // run as daemon
         docker-compose ps
