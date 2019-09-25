@@ -14,6 +14,8 @@ from messaging_client import messaging_client
 
 
 ###################################################################################
+# Use ECC or RSA certificates
+CONFIG_USE_ECC = True if int(os.environ["CONFIG_USE_ECC"]) == 1 else False
 # Enable to use AMQP for webserver-to-messagebroker communication
 # Disable to use MQTT for webserver-to-messagebroker communication
 CONFIG_USE_AMQP = False
@@ -38,9 +40,15 @@ CONFIG_DEVICE_ID            = "history_manager"
 
 CONFIG_USERNAME             = None
 CONFIG_PASSWORD             = None
-CONFIG_TLS_CA               = "../cert/rootca.pem"
-CONFIG_TLS_CERT             = "../cert/history_manager_cert.pem"
-CONFIG_TLS_PKEY             = "../cert/history_manager_pkey.pem"
+
+if CONFIG_USE_ECC:
+    CONFIG_TLS_CA           = "../cert_ecc/rootca.pem"
+    CONFIG_TLS_CERT         = "../cert_ecc/history_manager_cert.pem"
+    CONFIG_TLS_PKEY         = "../cert_ecc/history_manager_pkey.pem"
+else:
+    CONFIG_TLS_CA           = "../cert/rootca.pem"
+    CONFIG_TLS_CERT         = "../cert/history_manager_cert.pem"
+    CONFIG_TLS_PKEY         = "../cert/history_manager_pkey.pem"
 
 CONFIG_HOST                 = "localhost"
 CONFIG_MQTT_TLS_PORT        = 8883
@@ -168,7 +176,7 @@ if __name__ == '__main__':
         try:
             result = g_messaging_client.initialize(timeout=5)
             if not result:
-                print("Could not connect to message broker!")
+                print("Could not connect to message broker! ECC={}".format(CONFIG_USE_ECC))
             else:
                 break
         except:
