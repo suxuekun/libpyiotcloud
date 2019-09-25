@@ -904,12 +904,14 @@ Device access APIs requires username, devicename and access token returned by lo
         - docker stop <container ID>
         - docker rm <container ID>
         
+        https://stackoverflow.com/questions/31909979/docker-machine-no-space-left-on-device
         - docker network ls
         - docker network prune
         - docker volume ls
         - docker volume rm $(docker volume ls -qf dangling=true)
         - docker volume ls -qf dangling=true
-
+        - docker system prune
+        
         Manual:
         - sudo service mongod status 
         - sudo systemctl status web_server
