@@ -12,6 +12,8 @@ services:
     expose:
       - "8883"
       - "5671"
+    environment:
+      - CONFIG_USE_ECC
   mongodb:
     build: ./mongodb
     restart: always
@@ -39,6 +41,7 @@ services:
       - AWS_COGNITO_CLIENT_ID
       - AWS_COGNITO_USERPOOL_ID
       - AWS_COGNITO_USERPOOL_REGION
+      - CONFIG_USE_ECC
   webapp:
     build: ./webapp
     restart: always
@@ -76,6 +79,7 @@ services:
       - AWS_PINPOINT_ID
       - AWS_PINPOINT_REGION
       - AWS_PINPOINT_EMAIL
+      - CONFIG_USE_ECC
   history:
     build: ./history
     restart: always
@@ -85,6 +89,8 @@ services:
     depends_on:
       - rabbitmq
       - mongodb
+    environment:
+      - CONFIG_USE_ECC
 networks:
   mydockernet:
     driver: bridge
