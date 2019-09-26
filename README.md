@@ -358,7 +358,8 @@ Device access APIs requires username, devicename and access token returned by lo
                           {keyfile,    "server_pkey.pem"},
                           {verify,     verify_peer},
                           {fail_if_no_peer_cert, false},
-                          {ciphers,  ["RSA-AES128-SHA", "RSA-AES256-SHA"]} ]}
+                          {ciphers,  ["RSA-AES128-SHA", "RSA-AES256-SHA"]}  ]} // RSA
+                          {ciphers,  ["ECDHE-ECDSA-AES128-SHA256", "ECDHE-ECDSA-AES128-GCM-SHA256"]}  ]} // ECC
            {allow_anonymous, true},
            {tcp_listeners, []},
            {ssl_listeners, [8883]}
@@ -370,6 +371,14 @@ Device access APIs requires username, devicename and access token returned by lo
            >> rabbitmq-service.bat start
         H. Copy certificates to %APPDATA%\RabbitMQ 
            rootca.pem, server_cert.pem, server_pkey.pem
+ 
+        // Ciphersuites
+        I. On RabbitMQ (server)
+           "RSA-AES128-SHA", "RSA-AES256-SHA" - for RSA
+           "ECDHE-ECDSA-AES128-SHA256", "ECDHE-ECDSA-AES128-GCM-SHA256" - for ECC
+        J. On Device (client)
+           MBEDTLS_TLS_RSA_WITH_AES_128_CBC_SHA,MBEDTLS_TLS_RSA_WITH_AES_256_CBC_SHA - for RSA
+           MBEDTLS_TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256 - for ECC
 
 
 ### Install MongoDB database.
@@ -448,6 +457,14 @@ Device access APIs requires username, devicename and access token returned by lo
 
 
 ### Certificates
+
+       // Ciphersuites
+       On RabbitMQ (server)
+          "RSA-AES128-SHA", "RSA-AES256-SHA" - for RSA
+          "ECDHE-ECDSA-AES128-SHA256", "ECDHE-ECDSA-AES128-GCM-SHA256" - for ECC
+       On Device (client)
+          MBEDTLS_TLS_RSA_WITH_AES_128_CBC_SHA,MBEDTLS_TLS_RSA_WITH_AES_256_CBC_SHA - for RSA
+          MBEDTLS_TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256 - for ECC
 
        // Notes: 
        The rootca certificate stored in RabbitMQ is for MQTT/AMQP device authentication. 
