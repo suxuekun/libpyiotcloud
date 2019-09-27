@@ -920,6 +920,13 @@ Device access APIs requires username, devicename and access token returned by lo
         web_server_database_viewer.bat 
         - view registered devices (MongoDB) and registered users (Amazon Cognito)
 
+### Testing on Windows
+
+        Note: RabbitMQ and MongoDB should have already been installed.
+        1. Run restapi\src\web_server.bat
+        2. Update rest_api to 'https://localhost' in webapp\src\ionicapp\www\js\server.js
+        3. Run "ionic serve" in webapp\src\ionicapp
+
 ### Troubleshooting
 
         Dockerized:
