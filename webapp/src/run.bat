@@ -1,0 +1,2 @@
+cd ionicapp
+ionic serve
