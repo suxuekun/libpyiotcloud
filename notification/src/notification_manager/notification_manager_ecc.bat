@@ -1,7 +1,7 @@
 set DEVICE_ID="notification_manager"
-set DEVICE_CA="../cert/rootca.pem"
-set DEVICE_CERT="../cert/notification_manager_cert.pem"
-set DEVICE_PKEY="../cert/notification_manager_pkey.pem"
+set DEVICE_CA="../cert_ecc/rootca.pem"
+set DEVICE_CERT="../cert_ecc/notification_manager_cert.pem"
+set DEVICE_PKEY="../cert_ecc/notification_manager_pkey.pem"
 
 set HOST="192.168.100.5"
 
