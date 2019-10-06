@@ -16,6 +16,8 @@ Comparable IoT platforms for our use-case of remote device access and control in
 
     - TP-Link (with Kasa mobile application) for TPLink smart bulbs/smart plugs, and 
     - Xiaomi (YeeLight mobile app) for Xiaomi's smart smart bulbs/smart plugs.
+    - Tuya IoT platform
+    - Blynk IoT platform
 
 However, these IoT platforms are tied up to their smart devices.
 This IoT platform is generic for all smart devices and IoT devices that can be build on top of any MCU, but preferably using FT9XX MCUs.
