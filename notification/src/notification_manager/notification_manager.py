@@ -68,38 +68,38 @@ CONFIG_SEPARATOR            = '/'
 
 def notification_thread(messaging_client, recipient, message, subject, type):
 
-	if type == type == notification_types.DEVICE:
-		topic = "{}{}trigger_notification".format(recipient, CONFIG_SEPARATOR)
-		print("topic={}".format(topic))
-		payload = {}
-		payload["recipient"] = recipient
-		payload["message"] = message
-		payload = json.dumps(payload)
-		print("payload={}".format(payload))
-		try:
-			messaging_client.publish(topic, payload)
-			print("\r\nSending message='{}' to recipient='{}' done.\r\n\r\n".format(message, recipient))
-		except:
-			print("PUBLISH FAILED!")
-	else:
-		try:
-			response = g_notification_client.send_message(recipient, message, subject=subject, type=type)
-		except:
-			return
+    if type == type == notification_types.DEVICE:
+        topic = "{}{}trigger_notification".format(recipient, CONFIG_SEPARATOR)
+        print("topic={}".format(topic))
+        payload = {}
+        payload["recipient"] = recipient
+        payload["message"] = message
+        payload = json.dumps(payload)
+        print("payload={}".format(payload))
+        try:
+            messaging_client.publish(topic, payload)
+            print("\r\nSending message='{}' to recipient='{}' done.\r\n\r\n".format(message, recipient))
+        except:
+            print("PUBLISH FAILED!")
+    else:
+        try:
+            response = g_notification_client.send_message(recipient, message, subject=subject, type=type)
+        except:
+            return
 
-		try:
-			print("\r\nSending message='{}' to recipient='{}' done. {} {}\r\n\r\n".format(
-				message, recipient,
-				response["ResponseMetadata"]["HTTPStatusCode"]==200, 
-				response["MessageResponse"]["Result"][recipient]["StatusCode"]==200))
-		except:
-			try:
-				print("\r\nSending message='{}' to recipient='{}' done. {}\r\n\r\n".format(
-					message, recipient,
-					response["ResponseMetadata"]["HTTPStatusCode"]==200))
-			except:
-				print("\r\nSending message='{}' to recipient='{}' done.\r\n\r\n".format(
-					message, recipient))
+        try:
+            print("\r\nSending message='{}' to recipient='{}' done. {} {}\r\n\r\n".format(
+                message, recipient,
+                response["ResponseMetadata"]["HTTPStatusCode"]==200, 
+                response["MessageResponse"]["Result"][recipient]["StatusCode"]==200))
+        except:
+            try:
+                print("\r\nSending message='{}' to recipient='{}' done. {}\r\n\r\n".format(
+                    message, recipient,
+                    response["ResponseMetadata"]["HTTPStatusCode"]==200))
+            except:
+                print("\r\nSending message='{}' to recipient='{}' done.\r\n\r\n".format(
+                    message, recipient))
 
 
 def on_message(subtopic, subpayload):
