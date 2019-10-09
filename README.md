@@ -53,7 +53,7 @@ An alternative solution is using an AWS serverless solution wherein:
 
 - <b>AWS API Gateway+AWS Lambda</b> will replace Flask+Gunicorn+Nginx
 - <b>AWS DynamoDB</b> will replace MongoDB
-- <b>AmazonMQ</b> will replace RabbitMQ
+- <b>AWS IoT</b> or <b>AmazonMQ</b> will replace RabbitMQ
 
 
 ### High-level architecture diagram:
