@@ -8,6 +8,13 @@ class notification_models:
     PINPOINT = 0
     SNS      = 1
 
+class notification_types:
+
+    UNKNOWN  = 0
+    EMAIL    = 1
+    SMS      = 2
+    DEVICE   = 3
+
 
 class notification_client:
 
@@ -20,8 +27,8 @@ class notification_client:
     def initialize(self):
         self._base.initialize()
 
-    def send_message(self, recipient, message, subject=None):
-        return self._base.send_message(recipient, message, subject)
+    def send_message(self, recipient, message, subject=None, type=notification_types.UNKNOWN):
+        return self._base.send_message(recipient, message, subject, type)
 
 
 class notification_client_pinpoint:
@@ -38,12 +45,15 @@ class notification_client_pinpoint:
             aws_access_key_id = self.aws_access_key_id,
             aws_secret_access_key = self.aws_secret_access_key,
             region_name = self.region_name).client('pinpoint')
+        self.messaging_client = None
 
-    def send_message(self, recipient, message, subject=None):
-        if subject is None:
+    def send_message(self, recipient, message, subject, type):
+        if type == notification_types.SMS:
             response = self.send_sms(recipient, message)
-        else:
+        elif type == notification_types.EMAIL:
             response = self.send_email(recipient, message, subject)
+        else:
+            return None
         return response
 
     def send_email(self, email_recipient, email_message, email_subject):
