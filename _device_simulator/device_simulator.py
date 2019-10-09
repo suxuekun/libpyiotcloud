@@ -202,8 +202,12 @@ def handle_api(api, subtopic, subpayload):
     elif api == "trigger_notification":
         topic = generate_pubtopic(subtopic)
         subpayload = json.loads(subpayload)
-        publish(topic, subpayload)
-        print("Notification triggered to email/SMS recipient!")
+
+        if subpayload["recipient"] == CONFIG_DEVICE_ID:
+            print(subpayload["message"])
+        else:
+            publish(topic, subpayload)
+            print("Notification triggered to email/SMS recipient!")
 
 
 
