@@ -231,8 +231,13 @@ Device access APIs requires username, devicename and access token returned by lo
     4. Process the api with the given payload
     5. Publish answer to topic "server.deviceid.api"
 
-
-### Email/SMS Notifications
+### Email/SMS Notifications (NEW)
+    1. STAND-ALONE use-case:
+       User can trigger SMS/Email/Device notification via UART or GPIO
+    2. APP-RELATED use-case:
+       User can update the device notification recipient and message from the web/mobile apps
+       
+### Email/SMS Notifications (OLD)
 
     1. Device can trigger Notification Manager to send email/SMS via Amazon Pinpoint
        device -> messagebroker -> notificationmanager -> pinpoint
