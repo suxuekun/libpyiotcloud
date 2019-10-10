@@ -47,6 +47,7 @@ The web app is made of Ionic framework so it can be compiled as Android and iOS 
 - <b>Postman</b> (API testing tool) - https://www.getpostman.com/
 - <b>GoDaddy</b> domain and SSL certificate - https://godaddy.com
 - <b>Android Studio</b> (Building Ionic webapp to Androidapp) - https://developer.android.com/studio
+- <b>Paypal</b> payment gateway - https://developer.paypal.com
 
 
 An alternative solution is using an AWS serverless solution wherein:
