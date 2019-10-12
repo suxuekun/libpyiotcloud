@@ -451,7 +451,12 @@ Device access APIs requires username, devicename and access token returned by lo
     
        A. Install Jenkins using Docker
        docker run -idt --name jenkins -v jenkins_home:/var/jenkins_home  -v /var/run/docker.sock:/var/run/docker.sock  -p 8080:8080 -p 50000:50000 jenkins/jenkins:2.178-slim
+       docker start jenkins
+       browse http://192.168.99.100:8080
+       docker logs jenkins // to get the password
+       docker stop jenkins
 
+       
 
 ### Others
 
