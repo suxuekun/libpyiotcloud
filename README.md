@@ -48,7 +48,7 @@ The web app is made of Ionic framework so it can be compiled as Android and iOS 
 - <b>GoDaddy</b> domain and SSL certificate - https://godaddy.com
 - <b>Android Studio</b> (Building Ionic webapp to Androidapp) - https://developer.android.com/studio
 - <b>Paypal</b> payment gateway - https://developer.paypal.com
-
+- <b>Jenkins</b> automation server for CI/CD - https://jenkins.io/
 
 An alternative solution is using an AWS serverless solution wherein:
 
@@ -446,6 +446,12 @@ Device access APIs requires username, devicename and access token returned by lo
        B. AWS_PINPOINT_ID     = Copy from "All projects"
        C. AWS_PINPOINT_EMAIL  = Email registered to be used for email sender
           
+
+### Jenkins
+    
+       A. Install Jenkins using Docker
+       docker run -idt --name jenkins -v jenkins_home:/var/jenkins_home  -v /var/run/docker.sock:/var/run/docker.sock  -p 8080:8080 -p 50000:50000 jenkins/jenkins:2.178-slim
+
 
 ### Others
 
