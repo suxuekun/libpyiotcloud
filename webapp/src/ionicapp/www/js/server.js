@@ -10,7 +10,7 @@ angular.module('server', [])
     // When using locally on docker, use https://192.168.99.100:443
     // When using locally on Windows, use https://localhost:443
     //////////////////////////////////////////////////////////////////////////////////////////////
-    var rest_api = 'https://richmondu.com';
+    var rest_api = 'https://192.168.99.100';
 
     console.log(rest_api);
     var result = { 'rest_api': rest_api }
