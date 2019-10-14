@@ -7,7 +7,8 @@ pipeline {
         stage("Docker-compose down") {
             steps {
                 sh "docker-compose down"
-                sh "docker-compose rm"
+                sh "docker-compose rm -f"
+                sh "docker network prune -f"
             }
         }
 
