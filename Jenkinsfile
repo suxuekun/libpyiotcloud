@@ -1,5 +1,4 @@
 pipeline {
-    agent { node { label 'swarm-ci' } }
 
     environment {
         AWS_ACCESS_KEY_ID2 = "${env.AWS_ACCESS_KEY_ID}"
