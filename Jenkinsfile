@@ -2,10 +2,6 @@ pipeline {
 
     agent any
 
-    environment {
-        AWS_ACCESS_KEY_ID = "${env.AWS_ACCESS_KEY_ID}"
-    }
-
     stages {
         stage("Prepare") {
             steps {
