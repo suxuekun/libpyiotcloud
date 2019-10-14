@@ -2,31 +2,30 @@ pipeline {
 
     agent any
 
-    environment {
-        AWS_ACCESS_KEY_ID = "${env.AWS_ACCESS_KEY_ID}"
-    }
-
     stages {
-        stage("Prepare") {
+
+        stage("Docker-compose config") {
             steps {
-                sh "printenv"
-                echo "AWS_ACCESS_KEY_ID=${env.AWS_ACCESS_KEY_ID}"
-                echo "${env.AWS_SECRET_ACCESS_KEY}"
-                echo "${env.AWS_COGNITO_CLIENT_ID}"
-                echo "${env.AWS_COGNITO_USERPOOL_ID}"
-                echo "${env.AWS_COGNITO_USERPOOL_REGION}"
-                echo "${env.AWS_PINPOINT_ID}"
-                echo "${env.AWS_PINPOINT_REGION}"
-                echo "${env.AWS_PINPOINT_EMAIL}"
-                echo "${env.CONFIG_USE_ECC}"
                 sh "docker-compose -f docker-compose.yml config"
+            }
+        }
+
+        stage("Docker-compose build") {
+            steps {
+                sh "docker-compose build --no-cache"
+            }
+        }
+
+        stage("Docker-compose up -d") {
+            steps {
+                sh "docker-compose run -d"
             }
         }
     }
 
     post {
       always {
-          echo "Post"
+          echo "Docker-compose completed"
       }
 
       success {
