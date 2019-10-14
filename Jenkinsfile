@@ -26,15 +26,15 @@ pipeline {
 
     post {
       always {
-          sh "Post"
+          echo "Post"
       }
 
       success {
-          sh "Success"
+          echo "Success"
       }
 
       failure {
-          sh "Fail"
+          echo "Fail"
       }
     }
 }
