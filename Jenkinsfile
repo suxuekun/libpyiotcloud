@@ -9,7 +9,7 @@ pipeline {
     stages {
         stage("Prepare") {
             steps {
-                echo "sh('printenv | sort')"
+                sh "printenv"
                 echo "AWS_ACCESS_KEY_ID=${env.AWS_ACCESS_KEY_ID}"
                 echo "${env.AWS_SECRET_ACCESS_KEY}"
                 echo "${env.AWS_COGNITO_CLIENT_ID}"
