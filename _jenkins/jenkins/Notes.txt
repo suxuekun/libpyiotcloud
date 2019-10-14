@@ -1,0 +1,22 @@
+docker ps
+docker run -u root --ip 172.18.0.100 -d --name jenkins -p 8080:8080 -p 50000:50000 -v jenkins-data:/var/jenkins_home -v /var/run/docker.sock:/var/run/docker.sock jenkinsci/blueocean
+docker stop jenkins
+docker rm jenkins
+
+browse http://192.168.99.100:8080
+docker logs jenkins 
+
+
+docker exec -it jenkins bash
+
+apk add openrc
+apk update
+apk add docker
+rc-update add docker boot
+service docker start
+
+apk add py-pip
+apk add python-dev libffi-dev openssl-dev gcc libc-dev make
+pip install docker-compose
+
+exit

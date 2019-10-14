@@ -1,0 +1,27 @@
+version: '3.7'
+services:
+  jenkins:
+    build: ./jenkins
+    ports:
+      - "8080:8080"
+      - "50000:50000"
+    expose:
+      - "8080"
+      - "50000"
+    environment:
+      - AWS_ACCESS_KEY_ID
+      - AWS_SECRET_ACCESS_KEY
+      - AWS_COGNITO_CLIENT_ID
+      - AWS_COGNITO_USERPOOL_ID
+      - AWS_COGNITO_USERPOOL_REGION
+      - AWS_PINPOINT_ID
+      - AWS_PINPOINT_REGION
+      - AWS_PINPOINT_EMAIL
+      - CONFIG_USE_ECC
+    volumes:
+      - "myjenkinsvol:/var/jenkins_home"
+      - "/var/run/docker.sock:/var/run/docker.sock"
+
+volumes:
+  myjenkinsvol:
+    driver: local
