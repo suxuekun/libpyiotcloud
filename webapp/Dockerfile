@@ -11,6 +11,6 @@ COPY src/ionicapp/ /usr/src/app/ionicapp/
 RUN npm install -D -E @ionic/v1-toolkit
 RUN npm rebuild node-sass
 
-CMD ["ionic", "serve", "--address=172.18.0.5", "--port=8100", "--no-open", "--no-livereload", "--consolelogs", "--no-proxy"]
+CMD ["ionic", "serve", "--address=172.18.0.5", "--port=8100", "--no-open", "--no-livereload"]
 
 EXPOSE 8100
