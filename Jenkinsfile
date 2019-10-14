@@ -4,6 +4,13 @@ pipeline {
 
     stages {
 
+        stage("Docker-compose down") {
+            steps {
+                sh "docker-compose down"
+                sh "docker-compose rm"
+            }
+        }
+
         stage("Docker-compose config") {
             steps {
                 sh "docker-compose -f docker-compose.yml config"
