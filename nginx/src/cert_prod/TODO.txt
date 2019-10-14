@@ -1,0 +1,3 @@
+Add cert.pem and pkey.pem with trusted certificates bought from GoDaddy.com or somewhere else.
+The certificate is usually tied up with the domain name.
+
