@@ -9,8 +9,6 @@ pipeline {
     stages {
         stage("Prepare") {
             steps {
-                sh '${env.AWS_ACCESS_KEY_ID}'
-                sh '${env.AWS_ACCESS_KEY_ID2}'
                 sh "docker-compose -f docker-compose.yml config"
             }
         }
