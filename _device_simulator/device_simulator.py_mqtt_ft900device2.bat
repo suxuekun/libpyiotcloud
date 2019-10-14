@@ -1,7 +1,7 @@
-set DEVICE_ID="48ce3d08c604ffae7e9f8c66d3142cd7395e5ce4"
+set DEVICE_ID="e5466a8923212c06bdd304d1e08d00b303636d4e"
 set DEVICE_CA="cert/rootca.pem"
-set DEVICE_CERT="cert/ft900device2_cert.pem"
-set DEVICE_PKEY="cert/ft900device2_pkey.pem"
+set DEVICE_CERT="cert/ft900device1_cert.pem"
+set DEVICE_PKEY="cert/ft900device1_pkey.pem"
 
 set HOST="richmondu.com"
 ::set HOST="192.168.99.100"
