@@ -9,7 +9,9 @@ pipeline {
     stages {
         stage("Prepare") {
             steps {
-                sh "docker-compose -f docker-compose.yml config"
+                withEnv(["PATH=$PATH:~/.local/bin"]){
+                    sh "docker-compose -f docker-compose.yml config"
+                }
             }
         }
     }
