@@ -2,11 +2,15 @@ pipeline {
 
     agent any
 
+    environment {
+        AWS_ACCESS_KEY_ID = "${env.AWS_ACCESS_KEY_ID}"
+    }
+
     stages {
         stage("Prepare") {
             steps {
                 withEnv(["PATH=$PATH:~/.local/bin"]){
-                    echo env.AWS_ACCESS_KEY_ID
+                    echo "AWS_ACCESS_KEY_ID=${env.AWS_ACCESS_KEY_ID}"
                     echo "${env.AWS_SECRET_ACCESS_KEY}"
                     echo "${env.AWS_COGNITO_CLIENT_ID}"
                     echo "${env.AWS_COGNITO_USERPOOL_ID}"
