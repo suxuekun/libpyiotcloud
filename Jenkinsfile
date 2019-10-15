@@ -29,6 +29,37 @@ pipeline {
                 sh "docker-compose up -d"
             }
         }
+
+
+        stage("MESSAGE BROKER tester") {
+            steps {
+                echo "MESSAGE BROKER tester STARTED"
+                sh "cd _jenkins/tester"
+                sh "python -v"
+                echo "MESSAGE BROKER tester COMPLETED"
+            }
+        }
+
+        stage("REST API tester") {
+            steps {
+                echo "REST API tester STARTED"
+                echo "REST API tester COMPLETED"
+            }
+        }
+
+        stage("DATABASE tester") {
+            steps {
+                echo "DATABASE tester STARTED"
+                echo "DATABASE tester COMPLETED"
+            }
+        }
+
+        stage("WEB APP tester") {
+            steps {
+                echo "WEB APP tester STARTED"
+                echo "WEB APP tester COMPLETED"
+            }
+        }
     }
 
     post {
