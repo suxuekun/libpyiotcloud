@@ -955,7 +955,11 @@ Device access APIs requires username, devicename and access token returned by lo
         - docker ps
         - docker stop <container ID>
         - docker rm <container ID>
-        
+
+        https://towardsdatascience.com/slimming-down-your-docker-images-275f0ca9337e
+        - docker container ls -s
+        - docker image ls
+
         https://stackoverflow.com/questions/31909979/docker-machine-no-space-left-on-device
         - docker network ls
         - docker network prune
