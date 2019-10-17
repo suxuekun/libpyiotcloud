@@ -38,7 +38,7 @@ class config:
     if os.name == 'nt':
         CONFIG_HOST             = "127.0.0.1"
     else:
-        CONFIG_HOST             = "rabbitmq"
+        CONFIG_HOST             = "172.18.0.2"
     CONFIG_MQTT_TLS_PORT        = 8883
     CONFIG_AMQP_TLS_PORT        = 5671
 
@@ -46,7 +46,7 @@ class config:
     if os.name == 'nt':
         CONFIG_MONGODB_HOST     = "127.0.0.1"
     else:
-        CONFIG_MONGODB_HOST     = "mongodb"
+        CONFIG_MONGODB_HOST     = "172.18.0.3"
     CONFIG_MONGODB_PORT         = 27017
     CONFIG_MONGODB_DB           = "iotcloud-database"
     CONFIG_MONGODB_TB_PROFILES  = "profiles"

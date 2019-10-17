@@ -52,7 +52,7 @@ else:
     CONFIG_TLS_CERT         = "../cert/notification_manager_cert.pem"
     CONFIG_TLS_PKEY         = "../cert/notification_manager_pkey.pem"
 
-CONFIG_HOST                 = "rabbitmq"
+CONFIG_HOST                 = "localhost"
 CONFIG_MQTT_TLS_PORT        = 8883
 CONFIG_AMQP_TLS_PORT        = 5671
 
