@@ -6,4 +6,4 @@ COPY src/ /usr/src/app/history_manager/
 WORKDIR /usr/src/app/history_manager/history_manager
 RUN pip install --no-cache-dir -r requirements.txt
 
-CMD ["python", "-u", "history_manager.py", "--USE_HOST", "172.18.0.2"]
+CMD ["python", "-u", "history_manager.py", "--USE_HOST", "rabbitmq"]
