@@ -73,6 +73,9 @@ pipeline {
 
       failure {
           echo "Fail"
+          sh "docker-compose down"
+          sh "docker-compose rm -f"
+          sh "docker network prune -f"
       }
     }
 }
