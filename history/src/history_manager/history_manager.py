@@ -50,7 +50,7 @@ else:
     CONFIG_TLS_CERT         = "../cert/history_manager_cert.pem"
     CONFIG_TLS_PKEY         = "../cert/history_manager_pkey.pem"
 
-CONFIG_HOST                 = "localhost"
+CONFIG_HOST                 = "rabbitmq"
 CONFIG_MQTT_TLS_PORT        = 8883
 CONFIG_AMQP_TLS_PORT        = 5671
 

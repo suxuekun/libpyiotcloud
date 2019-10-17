@@ -4,8 +4,7 @@ services:
     build: ./rabbitmq
     restart: always
     networks:
-      mydockernet:
-        ipv4_address: 172.18.0.2
+      - mydockernet
     ports:
       - "8883:8883"
       - "5671:5671"
@@ -18,8 +17,7 @@ services:
     build: ./mongodb
     restart: always
     networks:
-      mydockernet:
-        ipv4_address: 172.18.0.3
+      - mydockernet
     ports:
       - "27017:27017"
     volumes:
@@ -28,8 +26,7 @@ services:
     build: ./restapi
     restart: always
     networks:
-      mydockernet:
-        ipv4_address: 172.18.0.4
+      - mydockernet
     ports:
       - "8000:8000"
     depends_on:
@@ -46,8 +43,7 @@ services:
     build: ./webapp
     restart: always
     networks:
-      mydockernet:
-        ipv4_address: 172.18.0.5
+      - mydockernet
     ports:
       - "8100:8100"
     depends_on:
@@ -56,8 +52,7 @@ services:
     build: ./nginx
     restart: always
     networks:
-      mydockernet:
-        ipv4_address: 172.18.0.6
+      - mydockernet
     ports:
       - "443:443"
     expose:
@@ -69,8 +64,7 @@ services:
     build: ./notification
     restart: always
     networks:
-      mydockernet:
-        ipv4_address: 172.18.0.7
+      - mydockernet
     depends_on:
       - nginx
     environment:
@@ -84,8 +78,7 @@ services:
     build: ./history
     restart: always
     networks:
-      mydockernet:
-        ipv4_address: 172.18.0.8
+      - mydockernet
     depends_on:
       - rabbitmq
       - mongodb
