@@ -154,6 +154,7 @@ class cognito_client:
 			'AccessToken': access_token
 		}
 		try:
+			print("get_user")
 			response = self.__get_client().get_user(**params)
 			user_attributes = self.__cognito_to_dict(response["UserAttributes"])
 			user_attributes.pop("sub")
@@ -187,6 +188,36 @@ class cognito_client:
 
 
 
+	def admin_refresh_token(self, refresh_token):
+		params = {
+			'UserPoolId'      : self.pool_id,
+			'ClientId'        : self.client_id,
+			'AuthFlow'       : 'REFRESH_TOKEN',
+			'AuthParameters' : {
+				'REFRESH_TOKEN': refresh_token
+			},
+		}
+		try:
+			response = self.__get_client().admin_initiate_auth(**params)
+		except Exception as e:
+			print(e)
+			return (False, None)
+		return (self.__get_result(response), response)
+
+	def refresh_token(self, refresh_token):
+		params = {
+			'AuthFlow'       : 'REFRESH_TOKEN',
+			'AuthParameters' : {
+				'REFRESH_TOKEN': refresh_token
+			},
+			'ClientId'        : self.client_id
+		}
+		try:
+			response = self.__get_client().initiate_auth(**params)
+		except:
+			return (False, None)
+		return (self.__get_result(response), response)
+
 	def verify_token(self, token, username):
 		from jose import jwk, jwt
 		from jose.utils import base64url_decode
@@ -195,7 +226,7 @@ class cognito_client:
 		try:
 			headers = jwt.get_unverified_header(token)
 		except:
-			return False
+			return 6
 		kid = headers['kid']
 
 		# search for the kid in the downloaded public keys
@@ -206,7 +237,7 @@ class cognito_client:
 				break
 		if key_index == -1:
 			print('Public key not found in jwks.json')
-			return False
+			return 7
 
 		# construct the public key
 		public_key = jwk.construct(self.keys[key_index])
@@ -221,28 +252,28 @@ class cognito_client:
 		# verify the signature
 		if not public_key.verify(message.encode("utf8"), decoded_signature):
 			print('Signature verification failed')
-			return False
+			return 8
 
 		# since we passed the verification, we can now safely
 		# use the unverified claims
 		claims = jwt.get_unverified_claims(token)
 		if claims["token_use"] != "access":
 			print('Token is not an access token')
-			return False
+			return 1
 		curr_time = time.time()
 		if curr_time > claims["exp"] or curr_time < claims["iat"]:
-			print('Token is expired')
-			return False
+			print('Token is expired {} {}'.format(curr_time, claims["exp"]))
+			return 2
 		if claims["client_id"] != config.CONFIG_CLIENT_ID:
 			print('Token was not issued for this client_id')
-			return False
+			return 3
 		if claims["username"] != username:
 			print('Token was not issued for this username')
-			return False
+			return 4
 		if claims['iss'] != self.keys_iss:
 			print('Token was not issued for this pool_id')
-			return False
-		return True
+			return 5
+		return 0
 
 
 

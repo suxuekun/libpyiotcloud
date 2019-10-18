@@ -22,6 +22,18 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Device
         'token': User.get_token()        //$stateParams.token
     }
 
+    update_token = function(result) {
+        if (result != null) {
+            if (result.data.new_token != null) {
+                console.log("New Token exists!")
+                User.set({
+                    'username': $scope.data.username,
+                    'token': result.data.new_token
+                });
+                $scope.data.token = result.data.new_token;
+            }
+        }    
+    }
 
     $scope.submitTest = function(devicename) {
 
@@ -49,6 +61,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Device
                 //    template: 'No devices registered!',
                 //});
             }
+            $scope.data.token = User.get_token();
         });
 
 /*
@@ -105,6 +118,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Device
         .then(function (result) {
             // Handle successful login
             console.log(result.data);
+            update_token(result);
             var device_param = {
                 'username': $scope.data.username,
                 'token': $scope.data.token,
@@ -173,6 +187,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Device
         .then(function (result) {
             // Handle successful login
             console.log(result.data);
+            update_token(result);
             $scope.submitRefresh();
         })
         .catch(function (error) {
@@ -221,6 +236,19 @@ function ($scope, $stateParams, $ionicPopup, $http, Server, User) {
         'expiration': 'N/A'
     }
 
+    update_token = function(result) {
+        if (result != null) {
+            if (result.data.new_token != null) {
+                console.log("New Token exists!")
+                User.set({
+                    'username': $scope.data.username,
+                    'token': result.data.new_token
+                });
+                $scope.data.token = result.data.new_token;
+            }
+        }    
+    }
+
     handle_error = function(error) {
         // Handle failed login
         if (error.data !== null) {
@@ -246,7 +274,7 @@ function ($scope, $stateParams, $ionicPopup, $http, Server, User) {
         .then(function (result) {
             console.log("ACCOUNT OK");
             console.log(result.data);
-
+            update_token(result);
             console.log(result.data.group);    
             console.log(result.data.group.length);
             if (result.data.group.length === 0) {
@@ -276,6 +304,7 @@ function ($scope, $stateParams, $ionicPopup, $http, Server, User) {
         .then(function (result) {
             console.log("UPGRADE");
             console.log(result.data);
+            update_token(result);
             
             $ionicPopup.alert({title: 'Subscription', template: 'Subscription has been upgraded!'});
             
@@ -300,7 +329,7 @@ function ($scope, $stateParams, $ionicPopup, $http, Server, User) {
         .then(function (result) {
             console.log("DOWNGRADE");
             console.log(result.data);
-            
+            update_token(result);
             $ionicPopup.alert({title: 'Subscription', template: 'Subscription has been downgraded!'});
             
             get_subscription({
@@ -324,7 +353,7 @@ function ($scope, $stateParams, $ionicPopup, $http, Server, User) {
         .then(function (result) {
             console.log("ACCOUNT OK");
             console.log(result.data);
-            
+            update_token(result);
             $scope.data.fullname = result.data.info.given_name + " " + result.data.info.family_name;
             $scope.data.email = result.data.info.email;
             
@@ -501,7 +530,7 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
         })
         .then(function (result) {
             // Handle successful
-            //console.log(result.data);
+            console.log(result.data);
 
             var user_data = {
                 'username': $scope.data.username,
@@ -861,14 +890,6 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server) {
     
 }])
    
-.controller('helpCtrl', ['$scope', '$stateParams', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
-// You can include any angular dependencies as parameters for this function
-// TIP: Access Route Parameters for your page via $stateParams.parameterName
-function ($scope, $stateParams) {
-
-
-}])
-   
 .controller('settingsCtrl', ['$scope', '$stateParams', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
 // You can include any angular dependencies as parameters for this function
 // TIP: Access Route Parameters for your page via $stateParams.parameterName
@@ -877,19 +898,40 @@ function ($scope, $stateParams) {
 
 }])
    
-.controller('registerDeviceCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'Devices', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+.controller('helpCtrl', ['$scope', '$stateParams', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
 // You can include any angular dependencies as parameters for this function
 // TIP: Access Route Parameters for your page via $stateParams.parameterName
-function ($scope, $stateParams, $state, $http, $ionicPopup, Server, Devices) {
+function ($scope, $stateParams) {
+
+
+}])
+   
+.controller('registerDeviceCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'Devices', 'User', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+// You can include any angular dependencies as parameters for this function
+// TIP: Access Route Parameters for your page via $stateParams.parameterName
+function ($scope, $stateParams, $state, $http, $ionicPopup, Server, Devices, User) {
 
     var server = Server.rest_api;
 
     $scope.data = {
         'username': $stateParams.username,
-        'token': $stateParams.token,        
+        'token': User.get_token(),        
         'devicename': $scope.devicename
     }
     
+    update_token = function(result) {
+        if (result != null) {
+            if (result.data.new_token != null) {
+                console.log("New Token exists!")
+                User.set({
+                    'username': $scope.data.username,
+                    'token': result.data.new_token
+                });
+                $scope.data.token = result.data.new_token;
+            }
+        }    
+    }
+
     $scope.submit = function() {
         console.log("username=" + $scope.data.username);
         console.log("token=" + $scope.data.token);
@@ -925,6 +967,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, Devices) {
         .then(function (result) {
             // Handle successful login
             console.log(result.data);
+            update_token(result);
 
             var device_param = {
                 'username': $scope.data.username,
@@ -968,18 +1011,18 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, Devices) {
     }
 }])
    
-.controller('viewDeviceCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+.controller('viewDeviceCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
 // You can include any angular dependencies as parameters for this function
 // TIP: Access Route Parameters for your page via $stateParams.parameterName
 
 
-function ($scope, $stateParams, $state, $http, $ionicPopup, Server) {
+function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User) {
 
     var server = Server.rest_api;
 
     $scope.data = {
         'username': $stateParams.username,
-        'token': $stateParams.token,
+        'token': User.get_token(),
         'devicename': $stateParams.devicename,
         'deviceid': $stateParams.deviceid,
         'devicecert': $stateParams.devicecert,
@@ -1039,7 +1082,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server) {
         .then(function (result) {
             // Handle successful login
             console.log(result.data);
-
+            update_token(result);
             $state.go('menu.devices', device_param);                
         })
         .catch(function (error) {
@@ -1066,16 +1109,16 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server) {
     }
 }])
    
-.controller('controlDeviceCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+.controller('controlDeviceCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
 // You can include any angular dependencies as parameters for this function
 // TIP: Access Route Parameters for your page via $stateParams.parameterName
-function ($scope, $stateParams, $state, $http, $ionicPopup, Server) {
+function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User) {
 
     var server = Server.rest_api;
     
     $scope.data = {
         'username': $stateParams.username,
-        'token': $stateParams.token,
+        'token': User.get_token(),
         'devicename': $stateParams.devicename,
         'devicestatus': 'UNKNOWN'
     }
@@ -1126,7 +1169,21 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server) {
         }
         $ionicPopup.alert({title: 'Error', template: 'Feature is not yet supported!'});
     }
-    
+
+    update_token = function(result) {
+        if (result != null) {
+            if (result.data.new_token != null) {
+                console.log("New Token exists!")
+                User.set({
+                    'username': $scope.data.username,
+                    'token': result.data.new_token
+                });
+                console.log("Before " + $scope.data.token.access)
+                $scope.data.token = result.data.new_token;
+                console.log("After " + $scope.data.token.access)
+            }
+        }    
+    }
     
     handle_error = function(error) {
         // Handle failed login
@@ -1152,18 +1209,12 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server) {
         })
         .then(function (result) {
             console.log(result.data);
-
+            update_token(result);
             $scope.data.devicestatus = 'RUNNING';
         })
         .catch(function (error) {
             handle_error(error);
-            
             $scope.data.devicestatus = 'NOT RUNNING';
-            
-            //$ionicPopup.alert({
-            //    title: 'Device Status',
-            //    template: 'Device is not running!',
-            //});            
         }); 
     }    
 
@@ -1177,7 +1228,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server) {
         })
         .then(function (result) {
             console.log(result.data);
-
+            update_token(result);
             $ionicPopup.alert({
                 title: 'Device Status',
                 template: 'Device was restarted successfully!',
@@ -1253,6 +1304,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server) {
         .then(function (result) {
             // Handle successful login
             console.log(result.data);
+            update_token(result);
 
             var device_param = {
                 'username': $scope.data.username,
@@ -1292,16 +1344,16 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server) {
     $scope.submitStatus();
 }])
    
-.controller('deviceEthernetCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+.controller('deviceEthernetCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
 // You can include any angular dependencies as parameters for this function
 // TIP: Access Route Parameters for your page via $stateParams.parameterName
-function ($scope, $stateParams, $state, $http, $ionicPopup, Server) {
+function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User) {
 
     var server = Server.rest_api;
 
     $scope.data = {
         'username': $stateParams.username,
-        'token': $stateParams.token,
+        'token': User.get_token(),
         'devicename': $stateParams.devicename,
         'devicestatus': $stateParams.devicestatus,
 
@@ -1311,6 +1363,19 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server) {
         'macaddr': $scope.macaddr
     }
     
+    update_token = function(result) {
+        if (result != null) {
+            if (result.data.new_token != null) {
+                console.log("New Token exists!")
+                User.set({
+                    'username': $scope.data.username,
+                    'token': result.data.new_token
+                });
+                $scope.data.token = result.data.new_token;
+            }
+        }    
+    }
+
     handle_error = function(error) {
         // Handle failed login
         if (error.data !== null) {
@@ -1335,6 +1400,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server) {
         })
         .then(function (result) {
             console.log(result.data);
+            update_token(result);
             $scope.data.ipaddr = result.data.value;
         })
         .catch(function (error) {
@@ -1353,6 +1419,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server) {
         })
         .then(function (result) {
             console.log(result.data);
+            update_token(result);
             $scope.data.subnet = result.data.value;
         })
         .catch(function (error) {
@@ -1371,6 +1438,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server) {
         })
         .then(function (result) {
             console.log(result.data);
+            update_token(result);
             $scope.data.gateway = result.data.value;
         })
         .catch(function (error) {
@@ -1389,6 +1457,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server) {
         })
         .then(function (result) {
             console.log(result.data);
+            update_token(result);
             $scope.data.macaddr = result.data.value;
         })
         .catch(function (error) {
@@ -1435,22 +1504,35 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server) {
     
 }])
    
-.controller('deviceGPIOCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+.controller('deviceGPIOCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
 // You can include any angular dependencies as parameters for this function
 // TIP: Access Route Parameters for your page via $stateParams.parameterName
-function ($scope, $stateParams, $state, $http, $ionicPopup, Server) {
+function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User) {
 
     var server = Server.rest_api;
 
     $scope.data = {
         'username': $stateParams.username,
-        'token': $stateParams.token,
+        'token': User.get_token(),
         'devicename': $stateParams.devicename,
         'devicestatus': $stateParams.devicestatus,
         
         'gpionumber': $scope.gpionumber,
         'gpiovalue': $scope.gpiovalue,
         'gpiovalueset': $scope.gpiovalueset
+    }
+    
+    update_token = function(result) {
+        if (result != null) {
+            if (result.data.new_token != null) {
+                console.log("New Token exists!")
+                User.set({
+                    'username': $scope.data.username,
+                    'token': result.data.new_token
+                });
+                $scope.data.token = result.data.new_token;
+            }
+        }    
     }
     
     handle_error = function(error) {
@@ -1477,6 +1559,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server) {
         })
         .then(function (result) {
             console.log(result.data);
+            update_token(result);
             if (result.data.value === 1) {
                 $scope.data.gpiovalue = "High";
                 $scope.data.gpiovalueset = true;
@@ -1507,7 +1590,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server) {
         })
         .then(function (result) {
             console.log(result.data);
-            
+            update_token(result);
             $ionicPopup.alert({
                 title: 'Device GPIO',
                 template: 'GPIO was set successfully!',
@@ -1591,22 +1674,35 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server) {
   
 }])
    
-.controller('deviceUARTCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+.controller('deviceUARTCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
 // You can include any angular dependencies as parameters for this function
 // TIP: Access Route Parameters for your page via $stateParams.parameterName
-function ($scope, $stateParams, $state, $http, $ionicPopup, Server) {
+function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User) {
 
     var server = Server.rest_api;
 
     $scope.data = {
         'username': $stateParams.username,
-        'token': $stateParams.token,
+        'token': User.get_token(),
         'devicename': $stateParams.devicename,
         'devicestatus': $stateParams.devicestatus,
         
         'message': $scope.message
     }
     
+    update_token = function(result) {
+        if (result != null) {
+            if (result.data.new_token != null) {
+                console.log("New Token exists!")
+                User.set({
+                    'username': $scope.data.username,
+                    'token': result.data.new_token
+                });
+                $scope.data.token = result.data.new_token;
+            }
+        }    
+    }
+
     handle_error = function(error) {
         // Handle failed login
         if (error.data !== null) {
@@ -1631,7 +1727,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server) {
         })
         .then(function (result) {
             console.log(result.data);
-
+            update_token(result);
             $ionicPopup.alert({
                 title: 'Device UART',
                 template: 'Message was written to UART successfully!',
@@ -1674,16 +1770,16 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server) {
 
 }])
    
-.controller('deviceRTCCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+.controller('deviceRTCCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
 // You can include any angular dependencies as parameters for this function
 // TIP: Access Route Parameters for your page via $stateParams.parameterName
-function ($scope, $stateParams, $state, $http, $ionicPopup, Server) {
+function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User) {
 
     var server = Server.rest_api;
 
     $scope.data = {
         'username': $stateParams.username,
-        'token': $stateParams.token,
+        'token': User.get_token(),
         'devicename': $stateParams.devicename,
         'devicestatus': $stateParams.devicestatus,
         
@@ -1692,6 +1788,19 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server) {
         'datetimeset' : $scope.datetimeset
     }
     
+    update_token = function(result) {
+        if (result != null) {
+            if (result.data.new_token != null) {
+                console.log("New Token exists!")
+                User.set({
+                    'username': $scope.data.username,
+                    'token': result.data.new_token
+                });
+                $scope.data.token = result.data.new_token;
+            }
+        }    
+    }
+
     handle_error = function(error) {
         // Handle failed login
         if (error.data !== null) {
@@ -1716,6 +1825,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server) {
         })
         .then(function (result) {
             console.log(result.data);
+            update_token(result);
             $scope.data.epoch = result.data.value;
 
             var myDate = new Date(result.data.value*1000);
@@ -1743,7 +1853,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server) {
         })
         .then(function (result) {
             console.log(result.data);
-
+            update_token(result);
             $ionicPopup.alert({
                 title: 'Device RTC',
                 template: 'RTC was set successfully!',
@@ -1807,21 +1917,34 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server) {
     
 }])
    
-.controller('deviceNotificationsCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+.controller('deviceNotificationsCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
 // You can include any angular dependencies as parameters for this function
 // TIP: Access Route Parameters for your page via $stateParams.parameterName
-function ($scope, $stateParams, $state, $http, $ionicPopup, Server) {
+function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User) {
 
     var server = Server.rest_api;
 
     $scope.data = {
         'username': $stateParams.username,
-        'token': $stateParams.token,
+        'token': User.get_token(),
         'devicename': $stateParams.devicename,
         'devicestatus': $stateParams.devicestatus,
         
         'recipient': $scope.recipient,
         'message': $scope.message
+    }
+    
+    update_token = function(result) {
+        if (result != null) {
+            if (result.data.new_token != null) {
+                console.log("New Token exists!")
+                User.set({
+                    'username': $scope.data.username,
+                    'token': result.data.new_token
+                });
+                $scope.data.token = result.data.new_token;
+            }
+        }    
     }
     
     handle_error = function(error) {
@@ -1848,7 +1971,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server) {
         })
         .then(function (result) {
             console.log(result.data);
-
+            update_token(result);
             $ionicPopup.alert({
                 title: 'Device Notifications',
                 template: 'Notifications was triggered successfully!',
@@ -1938,14 +2061,20 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Device
     
     $scope.submitRefresh = function() {
     
-        Histories.fetch($scope.data).then(function(res) {
+        var user_data = {
+            'username': User.get_username(), //$stateParams.username,
+            'token': User.get_token()        //$stateParams.token
+        }
+    
+        Histories.fetch(user_data).then(function(res) {
             //res.sort(function(a, b){return a['timestamp']-b['timestamp']});
             //res.reverse();
             $scope.items = res;
             
             console.log(res);
             
-            
+            $scope.data.token = User.get_token();
+
             //if ($scope.items.length === 0) {        
                 //$ionicPopup.alert({
                 //    title: 'Query Devices',

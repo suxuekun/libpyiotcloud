@@ -2,7 +2,7 @@
 
 angular.module('devices', [])
 
-.service('Devices', ['$http', 'Server', function($http, Server){
+.service('Devices', ['$http', 'Server', 'User', function($http, Server, User){
     
     var server = Server.rest_api;
 
@@ -19,6 +19,17 @@ angular.module('devices', [])
             .then(function (result) {
                 // Handle successful login
                 console.log(result.data);
+                
+                if (result != null) {
+                    if (result.data.new_token != null) {
+                        console.log("New Token exists!")
+                        User.set({
+                            'username': userdata.username,
+                            'token': result.data.new_token
+                        });
+                    }
+                }    
+                
                 return result.data.devices;
             })
             .catch(function (error) {

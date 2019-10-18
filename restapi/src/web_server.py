@@ -74,8 +74,8 @@ def login():
         return response, status.HTTP_401_UNAUTHORIZED
 
     # check if password is valid
-    token = g_database_client.login(username, password)
-    if not token:
+    access, refresh, id = g_database_client.login(username, password)
+    if not access:
         # NOTE:
         # its not good to provide a specific error message for LOGIN
         # because it provides additional info for hackers
@@ -83,8 +83,9 @@ def login():
         print('\r\nERROR Login: Password is incorrect [{}]\r\n'.format(username))
         return response, status.HTTP_401_UNAUTHORIZED
 
-    response = json.dumps({'status': 'OK', 'token': token})
-    print('\r\nLogin successful: {}\r\n{}\r\n'.format(username, response))
+    response = json.dumps({'status': 'OK', 'token': {'access': access, 'refresh': refresh, 'id': id} })
+    print('\r\nLogin successful: {}\r\n'.format(username))
+    #print('\r\nLogin successful: {}\r\n{}\r\n'.format(username, response))
     return response
 
 ########################################################################################################
@@ -300,16 +301,24 @@ def logout():
         return response
 
     # check if username and token is valid
-    if not g_database_client.verify_token(username, token):
+    verify_ret, new_token = g_database_client.verify_token(username, token)
+    if verify_ret != 0:
         response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
         print('\r\nERROR Logout: Token is invalid [{}]\r\n'.format(username))
         # NOTE:
         # No need to return error code status.HTTP_401_UNAUTHORIZED since this is a logout
         return response
 
-    g_database_client.logout(token)
+    if new_token:
+        g_database_client.logout(new_token['access'])
+    else:
+        g_database_client.logout(token['access'])
 
-    response = json.dumps({'status': 'OK', 'message': 'User logout successfully.'})
+
+    msg = {'status': 'OK', 'message': 'User logout successfully.'}
+    if new_token:
+        msg['new_token'] = new_token
+    response = json.dumps(msg)
     print('\r\nLogout successful: {}\r\n{}\r\n'.format(username, response))
     return response
 
@@ -337,15 +346,24 @@ def get_user_info():
         return response
 
     # check if username and token is valid
-    if not g_database_client.verify_token(username, token):
+    verify_ret, new_token = g_database_client.verify_token(username, token)
+    if verify_ret != 0:
         response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
         print('\r\nERROR Userinfo: Token is invalid [{}]\r\n'.format(username))
         # NOTE:
         # No need to return error code status.HTTP_401_UNAUTHORIZED since this is a logout
         return response
 
-    info = g_database_client.get_user_info(token)
-    response = json.dumps({'status': 'OK', 'message': 'Userinfo queried successfully.', 'info': info})
+    if new_token:
+        info = g_database_client.get_user_info(new_token['access'])
+    else:
+        info = g_database_client.get_user_info(token['access'])
+
+
+    msg = {'status': 'OK', 'message': 'Userinfo queried successfully.', 'info': info}
+    if new_token:
+        msg['new_token'] = new_token
+    response = json.dumps(msg)
     print('\r\nUserinfo queried successful: {}\r\n{}\r\n'.format(username, response))
     return response
 
@@ -377,30 +395,33 @@ def get_subscription():
         return response
 
     # check if username and token is valid
-    if not g_database_client.verify_token(username, token):
+    verify_ret, new_token = g_database_client.verify_token(username, token)
+    if verify_ret != 0:
         response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
         print('\r\nERROR Userinfo: Token is invalid [{}]\r\n'.format(username))
         # NOTE:
         # No need to return error code status.HTTP_401_UNAUTHORIZED since this is a logout
         return response
 
+    msg = None
     if flask.request.method == 'POST':
         group = g_database_client.add_user_to_group(username)
-        response = json.dumps({'status': 'OK', 'message': 'User subscribed successfully.', 'group': group})
-        print('\r\nUser subscribed successful: {}\r\n{}\r\n'.format(username, response))
-        return response
+        msg = {'status': 'OK', 'message': 'User subscribed successfully.', 'group': group}
 
     elif flask.request.method == 'DELETE':
         group = g_database_client.remove_user_from_group(username)
-        response = json.dumps({'status': 'OK', 'message': 'User unsubscribed successfully.', 'group': group})
-        print('\r\nUser unsubscribed successful: {}\r\n{}\r\n'.format(username, response))
-        return response
+        msg = {'status': 'OK', 'message': 'User unsubscribed successfully.', 'group': group}
 
     elif flask.request.method == 'PATCH': # todo: replace PATCH with GET, investigate why GET is not working
         group = g_database_client.get_user_group(username)
-        response = json.dumps({'status': 'OK', 'message': 'User subscription queried successfully.', 'group': group})
-        print('\r\nUser subscription queried successful: {}\r\n{}\r\n'.format(username, response))
-        return response
+        msg = {'status': 'OK', 'message': 'User subscription queried successfully.', 'group': group}
+
+    if new_token:
+        msg['new_token'] = new_token
+    response = json.dumps(msg)
+    print('\r\n{}: {}\r\n{}\r\n'.format(msg['message'], username, response))
+    return response
+
 
 
 #########################
@@ -428,15 +449,21 @@ def get_device_list():
         return response, status.HTTP_400_BAD_REQUEST
 
     # check if username and token is valid
-    if not g_database_client.verify_token(username, token):
+    verify_ret, new_token = g_database_client.verify_token(username, token)
+    if verify_ret != 0:
         response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
         print('\r\nERROR Devices: Token is invalid [{}]\r\n'.format(username))
         return response, status.HTTP_401_UNAUTHORIZED
 
     devices = g_database_client.get_devices(username)
-    print(devices)
+    #print(devices)
 
-    response = json.dumps({'status': 'OK', 'message': 'Devices queried successfully.', 'devices': devices})
+
+    msg = {'status': 'OK', 'message': 'Devices queried successfully.', 'devices': devices}
+    if new_token:
+        msg['new_token'] = new_token
+    response = json.dumps(msg)
+    print('\r\nGet Devices successful: {}\r\n{} devices\r\n'.format(username, len(devices)))
     return response
 
 ########################################################################################################
@@ -461,7 +488,8 @@ def register_device():
         return response, status.HTTP_400_BAD_REQUEST
 
     # check if username and token is valid
-    if not g_database_client.verify_token(username, token):
+    verify_ret, new_token = g_database_client.verify_token(username, token)
+    if verify_ret != 0:
         response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
         print('\r\nERROR Devices: Token is invalid [{}]\r\n'.format(username))
         return response, status.HTTP_401_UNAUTHORIZED
@@ -488,7 +516,11 @@ def register_device():
         print(deviceid)
 
         device = {"devicename": devicename, "deviceid": deviceid, "cert": cert, "pkey": pkey, "ca": ca}
-        response = json.dumps({'status': 'OK', 'message': 'Devices registered successfully.', 'device': device})
+
+        msg = {'status': 'OK', 'message': 'Devices registered successfully.', 'device': device}
+        if new_token:
+            msg['new_token'] = new_token
+        response = json.dumps(msg)
         print('\r\nDevice registered successful: {}\r\n{}\r\n'.format(username, response))
         return response
 
@@ -503,7 +535,10 @@ def register_device():
         # delete device from database
         g_database_client.delete_device(username, devicename)
 
-        response = json.dumps({'status': 'OK', 'message': 'Devices unregistered successfully.'})
+        msg = {'status': 'OK', 'message': 'Devices unregistered successfully.'}
+        if new_token:
+            msg['new_token'] = new_token
+        response = json.dumps(msg)
         print('\r\nDevice unregistered successful: {}\r\n{}\r\n'.format(username, response))
         return response
 
@@ -516,8 +551,10 @@ def register_device():
             print('\r\nERROR Devices: Device is not registered [{},{}]\r\n'.format(username, devicename))
             return response, status.HTTP_400_BAD_REQUEST
 
-        print(device)
-        response = json.dumps({'status': 'OK', 'message': 'Devices queried successfully.', 'device': device})
+        msg = {'status': 'OK', 'message': 'Devices queried successfully.', 'device': device}
+        if new_token:
+            msg['new_token'] = new_token
+        response = json.dumps(msg)
         print('\r\nDevice queried successful: {}\r\n{}\r\n'.format(username, response))
         return response
 
@@ -548,7 +585,8 @@ def get_user_histories():
         return response, status.HTTP_400_BAD_REQUEST
 
     # check if username and token is valid
-    if not g_database_client.verify_token(username, token):
+    verify_ret, new_token = g_database_client.verify_token(username, token)
+    if verify_ret != 0:
         response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
         print('\r\nERROR Histories: Token is invalid [{}]\r\n'.format(username))
         return response, status.HTTP_401_UNAUTHORIZED
@@ -556,7 +594,11 @@ def get_user_histories():
     histories = g_database_client.get_user_history(username)
     print(histories)
 
-    response = json.dumps({'status': 'OK', 'message': 'User histories queried successfully.', 'histories': histories})
+
+    msg = {'status': 'OK', 'message': 'User histories queried successfully.', 'histories': histories}
+    if new_token:
+        msg['new_token'] = new_token
+    response = json.dumps(msg)
     return response
 
 
@@ -681,14 +723,16 @@ def process_request(api):
 
     # parse HTTP request
     data = flask.request.get_json()
-    print("\r\nAPI: {} request={}".format(api, data))
+    #print("\r\nAPI: {} request={}".format(api, data))
+    print("\r\nAPI: {} username={}".format(api, data['username']))
 
     username = data['username']
     token = data['token']
     devicename = data['devicename']
 
     # check if username and token is valid
-    if not g_database_client.verify_token(username, token):
+    verify_ret, new_token = g_database_client.verify_token(username, token)
+    if verify_ret != 0:
         response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
         print('\r\nERROR Token is invalid [{}]\r\n'.format(username))
         return response, status.HTTP_401_UNAUTHORIZED
@@ -718,25 +762,38 @@ def process_request(api):
             response = receive_message(subtopic)
             g_messaging_client.subscribe(subtopic, subscribe=False)
         else:
-            response = json.dumps({'status': 'NG', 'message': 'Could not communicate with device'})
+            msg = {'status': 'NG', 'message': 'Could not communicate with device'}
+            if new_token:
+                msg['new_token'] = new_token
+            response = json.dumps(msg)
             print('\r\nERROR Could not communicate with device [{}, {}]\r\n'.format(username, devicename))
             return response, status.HTTP_401_UNAUTHORIZED
     except:
-        response = json.dumps({'status': 'NG', 'message': 'Could not communicate with device'})
+        msg = {'status': 'NG', 'message': 'Could not communicate with device'}
+        if new_token:
+            msg['new_token'] = new_token
+        response = json.dumps(msg)
         print('\r\nERROR Could not communicate with device [{}, {}]\r\n'.format(username, devicename))
         return response, status.HTTP_401_UNAUTHORIZED
 
     # return HTTP response
     if response is None:
-        response = json.dumps({'status': 'NG', 'message': 'Could not communicate with device'})
+        msg = {'status': 'NG', 'message': 'Could not communicate with device'}
+        if new_token:
+            msg['new_token'] = new_token
+        response = json.dumps(msg)
         print('\r\nERROR Could not communicate with device [{}, {}]\r\n'.format(username, devicename))
         return response, status.HTTP_401_UNAUTHORIZED
 
     print(response)
+    msg = {'status': 'OK', 'message': 'Device accessed successfully.'}
+    if new_token:
+        msg['new_token'] = new_token
     try:
-        response = json.dumps({'status': 'OK', 'message': 'Device accessed successfully.', 'value': (json.loads(response))["value"]})
+        msg['value'] = (json.loads(response))["value"]
+        response = json.dumps(msg)
     except:
-        response = json.dumps({'status': 'OK', 'message': 'Device accessed successfully.'})
+        response = json.dumps(msg)
     return response
 
 

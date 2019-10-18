@@ -193,7 +193,6 @@ class database_client_cognito:
 
     def initialize(self):
         self.client = cognito_client()
-        self.access_token = None
 
 
     ##########################################################
@@ -235,17 +234,32 @@ class database_client_cognito:
     def login(self, username, password):
         (result, response) = self.client.login(username, password)
         if not result:
-            return None
-        self.access_token = response['AuthenticationResult']['AccessToken']
-        return self.access_token
+            return None, None, None
+        access_token = response['AuthenticationResult']['AccessToken']
+        refresh_token = response['AuthenticationResult']['RefreshToken']
+        id_token = response['AuthenticationResult']['IdToken']
+        return access_token, refresh_token, id_token
 
     def logout(self, token):
         (result, response) = self.client.logout(token)
         print("cognito logout = {}".format(result))
 
     def verify_token(self, username, token):
-        valid = self.client.verify_token(token, username)
-        return valid
+        result = self.client.verify_token(token['access'], username)
+        if result == 2: # token expired
+            print("Token expired!")
+            (result2, response) = self.client.refresh_token(token['refresh'])
+            if result2:
+                new_token = {}
+                new_token['access'] = response['AuthenticationResult']['AccessToken']
+                new_token['refresh'] = token['refresh']
+                new_token['id'] = response['AuthenticationResult']['IdToken']
+                print("Token refreshed! {} {}".format(result, response))
+                return 0, new_token
+        elif result != 0: # fail or unexpected error
+            print("Unexpected error! {}".format(result))
+            return result, None
+        return result, None
 
     def get_confirmationcode(self, username):
         return None
@@ -354,8 +368,8 @@ class database_client_mongodb:
             for user in users.find({},{'username': 1, 'token':1}):
                 #print(user)
                 if user['username'] == username and user['token'] == token:
-                    return True
-        return False
+                    return 0
+        return 1
 
     def get_confirmationcode(self, username):
         users = self.get_registered_users()

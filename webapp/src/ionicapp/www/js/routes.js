@@ -85,22 +85,22 @@ angular.module('app.routes', [])
     controller: 'confirmRegistrationCtrl'
   })
 
-  .state('menu.help', {
-    url: '/page_help',
-    views: {
-      'side-menu21': {
-        templateUrl: 'templates/help.html',
-        controller: 'helpCtrl'
-      }
-    }
-  })
-
   .state('menu.settings', {
     url: '/page_settings',
     views: {
       'side-menu21': {
         templateUrl: 'templates/settings.html',
         controller: 'settingsCtrl'
+      }
+    }
+  })
+
+  .state('menu.help', {
+    url: '/page_help',
+    views: {
+      'side-menu21': {
+        templateUrl: 'templates/help.html',
+        controller: 'helpCtrl'
       }
     }
   })
