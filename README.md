@@ -469,7 +469,7 @@ Device access APIs requires username, devicename and access token returned by lo
        // Kubernetes tools
        A. eksctl.exe is an Amazon EKS command line utility for creating and managing Kubernetes clusters on AWS.
        B. kubectl.exe is a Kubernetes command-line tool for controlling and managing Kubernetes clusters. 
-       C. kompose.exe is a tool to convert Docker Compose YAML file to Kubernetes orchestration YAML files.
+       C. kompose.exe is a tool to convert Docker Compose YML file to Kubernetes orchestration YAML files.
 
        // How EKS works?
        A. Install AWS CLI (1.16.x), eksctl (0.7.0) and kubectl (1.14.7) tools.
