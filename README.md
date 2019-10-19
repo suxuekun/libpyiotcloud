@@ -449,7 +449,7 @@ Device access APIs requires username, devicename and access token returned by lo
        C. AWS_PINPOINT_EMAIL  = Email registered to be used for email sender
           
 
-### Jenkins
+### Install Jenkins
     
        A. Install Jenkins using Docker
        docker run -idt --name jenkins -v jenkins_home:/var/jenkins_home  -v /var/run/docker.sock:/var/run/docker.sock  -p 8080:8080 -p 50000:50000 jenkins/jenkins:2.178-slim
@@ -458,7 +458,66 @@ Device access APIs requires username, devicename and access token returned by lo
        docker logs jenkins // to get the password
        docker stop jenkins
 
-       
+
+### Setup Amazon EKS (Kubernetes)
+
+       // How EKS works?
+       A. Install AWS CLI (1.16.x), eksctl (0.7.0) and kubectl (1.14.7) tools.
+       B. Create an Amazon EKS cluster and worker nodes using eksctl tool.
+       C. Connect to the EKS cluster then deploy and manage apps via kubectl.
+
+       // Setup
+       A. Install and configure AWS CLI
+          pip install awscli --upgrade //or https://s3.amazonaws.com/aws-cli/AWSCLI64PY3.msi
+          aws configure
+          -  access key id: ABC...
+          -  secret access key: XYZ... 
+          -  region: us-east-1
+          -  output: json
+
+       B. Install eksctl using chocolatey on admin-elevated shell
+          powershell
+          Set-ExecutionPolicy Bypass -Scope Process -Force; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
+          exit
+          chocolatey install -y eksctl aws-iam-authenticator
+          eksctl version
+
+       C. Install kubectl
+          powershell
+          curl -o kubectl.exe https://amazon-eks.s3-us-west-2.amazonaws.com/1.14.6/2019-08-22/bin/windows/amd64/kubectl.exe
+          exit
+          Copy kubectl.exe to C:\Program Files (x86)\Kubernetes
+          Add C:\Program Files (x86)\Kubernetes to environment Path variable
+          Reopen cmd and type "kubectl version --short --client"
+
+       D. Install kompose
+          curl -L https://github.com/kubernetes/kompose/releases/download/v1.16.0/kompose-windows-amd64.exe -o kompose.exe
+          kompose.exe convert // convert docker-compose.yml to Kubernetes yaml files
+        
+       // Instructions:
+       A. Create cluster and worker nodes via eksctl
+          eksctl create cluster --help
+          eksctl create cluster --name <CLUSTERNAME> --nodegroup-name <CLUSTERGRPNAME> --node-type t3.micro --nodes 2 --nodes-min 1 --nodes-max 3 --node-ami-family "AmazonLinux2"
+          kubectl get svc
+
+       B. Deploy and manage app via kubectl (using sample app)
+          kubectl apply -f *.yaml
+          kubectl get services
+          
+       C. To delete all services, deployments, volumes and replication controllers
+          kubectl get svc
+          kubectl get deployment
+          kubectl get persistentvolumeclaim
+          kubectl get rc
+
+          kubectl delete svc/*
+          kubectl delete deployment/*
+          kubectl delete persistentvolumeclaim/*
+          kubectl delete rc/*
+          
+       D. To delete the cluster and its associated worker nodes
+          eksctl delete cluster --name <CLUSTERNAME>
+
 
 ### Others
 
