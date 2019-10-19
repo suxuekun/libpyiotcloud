@@ -464,6 +464,7 @@ Device access APIs requires username, devicename and access token returned by lo
        // Amazon EKS (Elastic Kubernetes Services)
        - managed services to run Kubernetes on AWS without maintaining own Kubernetes server/control plane.
        - Kubernetes automates the deployment, scaling, and management of containerized applications.
+       - EKS costs 0.20 USD/hour (144 USD/month) and is FREE on GCP
 
        // Kubernetes tools
        A. eksctl.exe is an Amazon EKS command line utility for creating and managing Kubernetes clusters on AWS.
