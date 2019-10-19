@@ -49,6 +49,7 @@ The web app is made of Ionic framework so it can be compiled as Android and iOS 
 - <b>Android Studio</b> (Building Ionic webapp to Androidapp) - https://developer.android.com/studio
 - <b>Paypal</b> payment gateway - https://developer.paypal.com
 - <b>Jenkins</b> automation for CI/CD - https://jenkins.io/
+- <b>Kubernetes</b> container orchestration - https://kubernetes.io
 
 An alternative solution is using an AWS serverless solution wherein:
 
