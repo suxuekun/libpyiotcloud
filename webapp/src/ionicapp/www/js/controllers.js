@@ -944,7 +944,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, Devices, Use
             alert("ERROR: Register Device username is empty!");
             return;
         }
-        else if ($scope.data.token.trim().length === 0) {
+        else if ($scope.data.token.length === 0) {
             console.log("ERROR: Register Device token is empty!");
             // TODO: replace alert with ionic alert
             alert("ERROR: Register Device token is empty!");
@@ -1281,7 +1281,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User) {
             alert("ERROR: View Device username is empty!");
             return;
         }
-        else if ($scope.data.token.trim().length === 0) {
+        else if ($scope.data.token.length === 0) {
             console.log("ERROR: View Device token is empty!");
             // TODO: replace alert with ionic alert
             alert("ERROR: View Device token is empty!");
