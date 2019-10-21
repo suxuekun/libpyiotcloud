@@ -1020,6 +1020,9 @@ Device access APIs requires username, devicename and access token returned by lo
 
 ### Troubleshooting
 
+        IP:
+        - docker-machine ip
+        
         Dockerized:
         - docker-compose ps
         - docker-compose down
