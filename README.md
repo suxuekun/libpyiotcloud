@@ -1066,15 +1066,14 @@ In Linux, the total round trip time is only 1 second.
 # Action Items
 
 1.  Fix browser reload issue.
-2.  Fix slow login - takes 7 seconds (2 seconds if localhost). No GoDaddy-related. Migrated from GoDaddy to AWS Route53. 
-3.  Support Paypal payment integration.
-4.  Add signup/login using Facebook account.
-5.  Add feature to enable MFA (Multi factor authentication via email/SMS).
-6.  Add mobile app push notification integration to notification manager.
-7.  Add message counter for free-tier subscription.
-8.  Add Twitter integration to notification manager.
+2.  Support Paypal payment integration.
+3.  Add signup/login using Facebook account.
+4.  Add feature to enable MFA (Multi factor authentication via email/SMS).
+5.  Add message counter for free-tier subscription.
+6.  [Low] Add mobile app push notification integration to notification manager.
+7.  [Low] Add Twitter integration to notification manager.
 9.  [Low] Add file logging of microservices for easier debugging/troubleshooting
-10.  [Low] Add manager/admin page in Web client (see all users and devices registered by each user)
+10. [Low] Add manager/admin page in Web client (see all users and devices registered by each user)
 11. [Low] Support an online device emulator. (Each user can run 1 online device emulator.)
 12. [Low] Support Kubernetes orchestration.
 
