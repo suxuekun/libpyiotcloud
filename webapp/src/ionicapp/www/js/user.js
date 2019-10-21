@@ -6,9 +6,9 @@ angular.module('user', [])
     
     var ret = {
         set: function(user_data) {
-            console.log("set " + user_data.username);
+            //console.log("set " + user_data.username);
             window.localStorage.user_data = JSON.stringify(user_data);  
-            console.log("get " + JSON.parse(window.localStorage.user_data).username);
+            //console.log("get " + JSON.parse(window.localStorage.user_data).username);
         },
         
         clear: function() {

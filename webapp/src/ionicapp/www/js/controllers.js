@@ -213,7 +213,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Device
     
     
     $scope.$on('$ionicView.enter', function(e) {
-        console.log("DEVICES enter ionicView REFRESH LIST");
+        //console.log("DEVICES enter ionicView REFRESH LIST");
         $scope.submitRefresh();
     });
     
@@ -455,8 +455,8 @@ function ($scope, $stateParams, $state, $ionicPopup, User) {
     //    console.log("leave ionicView");
     //});
 
-    console.log("MENU " + $scope.data.username);
-    console.log("MENU " + User.get_username());
+    //console.log("MENU " + $scope.data.username);
+    //console.log("MENU " + User.get_username());
 
     $scope.submitLogout = function() {
         
@@ -521,6 +521,7 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
             return;
         }
  
+        console.log("login: " + new Date().getTime());
         // Send HTTP request to REST API
         $http({
             method: 'POST',
@@ -529,6 +530,7 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
             data: $scope.data
         })
         .then(function (result) {
+            console.log("login: OK " + new Date().getTime());
             // Handle successful
             console.log(result.data);
 
@@ -1270,9 +1272,9 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User) {
     }
     
     $scope.submitView = function() {
-        console.log("username=" + $scope.data.username);
-        console.log("token=" + $scope.data.token);
-        console.log("devicename=" + $scope.data.devicename);
+        //console.log("username=" + $scope.data.username);
+        //console.log("token=" + $scope.data.token);
+        //console.log("devicename=" + $scope.data.devicename);
 
         // Handle invalid input        
         if ($scope.data.username.trim().length === 0) {

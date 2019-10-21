@@ -65,6 +65,7 @@ def login():
         return response, status.HTTP_400_BAD_REQUEST
 
     # check if username does not exist
+    print('find_user')
     if not g_database_client.find_user(username):
         # NOTE:
         # its not good to provide a specific error message for LOGIN
@@ -74,6 +75,7 @@ def login():
         return response, status.HTTP_401_UNAUTHORIZED
 
     # check if password is valid
+    print('login')
     access, refresh, id = g_database_client.login(username, password)
     if not access:
         # NOTE:
