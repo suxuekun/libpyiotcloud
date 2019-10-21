@@ -508,6 +508,9 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
     
     $scope.submit = function() {
         
+        var spinner = document.getElementsByClassName("spinner");
+        spinner[0].style.visibility = "visible";
+
         //console.log("username=" + $scope.data.username);
         //console.log("password=" + $scope.data.password);
 
@@ -522,6 +525,7 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
         }
  
         console.log("login: " + new Date().getTime());
+        
         // Send HTTP request to REST API
         $http({
             method: 'POST',
@@ -530,6 +534,8 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
             data: $scope.data
         })
         .then(function (result) {
+            spinner[0].style.visibility = "hidden";
+            
             console.log("login: OK " + new Date().getTime());
             // Handle successful
             console.log(result.data);
@@ -544,6 +550,8 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
             $state.go('menu.devices', user_data);
         })
         .catch(function (error) {
+            spinner[0].style.visibility = "hidden";
+            
             // Handle failed
             if (error.data !== null) {
                 console.log(error.status + " " + error.statusText);
