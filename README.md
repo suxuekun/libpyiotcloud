@@ -26,7 +26,7 @@ This IoT platform is generic for all smart devices and IoT devices that can be b
 # Architecture
 
 This IoT platform is a container-based IoT cloud platform that leverages 
-Flask, GUnicorn, Nginx, RabbitMQ, MongoDB, Ionic, Amazon Cognito, Amazon Pinpoint and Docker. 
+Flask, GUnicorn, Nginx, RabbitMQ, MongoDB, Ionic, Amazon Cognito, Amazon Pinpoint, Paypal, Docker, Jenkins and many more.
 It can be deployed in a local PC or in the cloud - AWS EC2, Linode, Heroku, Rackspace, DigitalOcean or etc.
 The web app is made of Ionic framework so it can be compiled as Android and iOS mobile apps using one code base.
 
@@ -48,7 +48,9 @@ The web app is made of Ionic framework so it can be compiled as Android and iOS 
 - <b>GoDaddy</b> domain and SSL certificate - https://godaddy.com
 - <b>Android Studio</b> (Building Ionic webapp to Androidapp) - https://developer.android.com/studio
 - <b>Paypal</b> payment gateway - https://developer.paypal.com
-- <b>Jenkins</b> automation server for CI/CD - https://jenkins.io/
+- <b>Jenkins</b> automation for CI/CD - https://jenkins.io/
+- <b>Kubernetes</b> container orchestration - https://kubernetes.io
+- <b>Amazon EKS</b> Kubernetes service - https://aws.amazon.com/eks
 
 An alternative solution is using an AWS serverless solution wherein:
 
@@ -447,7 +449,7 @@ Device access APIs requires username, devicename and access token returned by lo
        C. AWS_PINPOINT_EMAIL  = Email registered to be used for email sender
           
 
-### Jenkins
+### Install Jenkins
     
        A. Install Jenkins using Docker
        docker run -idt --name jenkins -v jenkins_home:/var/jenkins_home  -v /var/run/docker.sock:/var/run/docker.sock  -p 8080:8080 -p 50000:50000 jenkins/jenkins:2.178-slim
@@ -456,7 +458,76 @@ Device access APIs requires username, devicename and access token returned by lo
        docker logs jenkins // to get the password
        docker stop jenkins
 
-       
+
+### Setup Amazon EKS (Kubernetes)
+
+       // Amazon EKS (Elastic Kubernetes Services)
+       - managed services to run Kubernetes on AWS without maintaining own Kubernetes server/control plane.
+       - Kubernetes automates the deployment, scaling, and management of containerized applications.
+       - EKS costs 0.20 USD/hour (144 USD/month) and is FREE on GCP
+
+       // Kubernetes tools
+       A. eksctl.exe is an Amazon EKS command line utility for creating and managing Kubernetes clusters on AWS.
+       B. kubectl.exe is a Kubernetes command-line tool for controlling and managing Kubernetes clusters. 
+       C. kompose.exe is a tool to convert Docker Compose YML file to Kubernetes orchestration YAML files.
+
+       // How EKS works?
+       A. Install AWS CLI (1.16.x), eksctl (0.7.0) and kubectl (1.14.7) tools.
+       B. Create an Amazon EKS cluster and worker nodes using eksctl tool.
+       C. Connect to the EKS cluster then deploy and manage apps via kubectl.
+
+       // Setup
+       A. Install and configure AWS CLI
+          pip install awscli --upgrade //or https://s3.amazonaws.com/aws-cli/AWSCLI64PY3.msi
+          aws configure
+          -  access key id: ABC...
+          -  secret access key: XYZ... 
+          -  region: us-east-1
+          -  output: json
+
+       B. Install eksctl using chocolatey on admin-elevated shell
+          powershell
+          Set-ExecutionPolicy Bypass -Scope Process -Force; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
+          exit
+          chocolatey install -y eksctl aws-iam-authenticator
+          eksctl version
+
+       C. Install kubectl
+          powershell
+          curl -o kubectl.exe https://amazon-eks.s3-us-west-2.amazonaws.com/1.14.6/2019-08-22/bin/windows/amd64/kubectl.exe
+          exit
+          Copy kubectl.exe to C:\Program Files (x86)\Kubernetes
+          Add C:\Program Files (x86)\Kubernetes to environment Path variable
+          Reopen cmd and type "kubectl version --short --client"
+
+       D. Install kompose
+          curl -L https://github.com/kubernetes/kompose/releases/download/v1.16.0/kompose-windows-amd64.exe -o kompose.exe
+          kompose.exe convert // convert docker-compose.yml to Kubernetes yaml files
+        
+       // Instructions:
+       A. Create cluster and worker nodes via eksctl
+          eksctl create cluster --help
+          eksctl create cluster --name <CLUSTERNAME> --nodegroup-name <CLUSTERGRPNAME> --node-type t3.micro --nodes 2 --nodes-min 1 --nodes-max 3 --node-ami-family "AmazonLinux2"
+          kubectl get svc
+
+       B. Deploy and manage app via kubectl (using sample app)
+          kubectl apply -f *.yaml
+          kubectl get services
+          
+       C. To delete all services, deployments, volumes and replication controllers
+          kubectl get svc
+          kubectl get deployment
+          kubectl get persistentvolumeclaim
+          kubectl get rc
+
+          kubectl delete svc/*
+          kubectl delete deployment/*
+          kubectl delete persistentvolumeclaim/*
+          kubectl delete rc/*
+          
+       D. To delete the cluster and its associated worker nodes
+          eksctl delete cluster --name <CLUSTERNAME>
+
 
 ### Others
 
@@ -993,16 +1064,17 @@ In Linux, the total round trip time is only 1 second.
 
 # Action Items
 
-1. Add signup/login using Facebook account
-2. Add feature to enable MFA (Multi factor authentication via email/SMS).
-3. Add Twitter integration to notification manager.
-4. Add mobile app push notification integration to notification manager.
-5. Add message counter for free-tier subscription
-6. Handle refreshing Cognito access key while user is online for a long time
-7. [Low] Add file logging of microservices for easier debugging/troubleshooting
-8. [Low] Add manager/admin page in Web client (see all users and devices registered by each user)
-9. [Low] Support an online device emulator. (Each user can run 1 online device emulator.)
-10.[Low] Support Kubernetes orchestration
+1.  Handle browser reload issue.
+2.  Support Paypal payment integration.
+3.  Add signup/login using Facebook account.
+4.  Add feature to enable MFA (Multi factor authentication via email/SMS).
+5.  Add mobile app push notification integration to notification manager.
+6.  Add message counter for free-tier subscription.
+7.  Add Twitter integration to notification manager.
+8.  [Low] Add file logging of microservices for easier debugging/troubleshooting
+9.  [Low] Add manager/admin page in Web client (see all users and devices registered by each user)
+10. [Low] Support an online device emulator. (Each user can run 1 online device emulator.)
+11. [Low] Support Kubernetes orchestration.
 
 
 # Reminders
