@@ -46,6 +46,7 @@ The web app is made of Ionic framework so it can be compiled as Android and iOS 
 - <b>Ionic Creator</b> - https://creator.ionic.io
 - <b>Postman</b> (API testing tool) - https://www.getpostman.com/
 - <b>GoDaddy</b> domain and SSL certificate - https://godaddy.com
+- <b>Amazon Route 53</b> DNS domain resolution - https://aws.amazon.com/route53
 - <b>Android Studio</b> (Building Ionic webapp to Androidapp) - https://developer.android.com/studio
 - <b>Paypal</b> payment gateway - https://developer.paypal.com
 - <b>Jenkins</b> automation for CI/CD - https://jenkins.io/
