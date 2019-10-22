@@ -12,7 +12,17 @@ Update the device ID in the __mqtt or __amqp batch scripts then run. (Both MQTT 
 
 ### Device simulators (Javascript):
 
-No installation needed. Just update the device ID in the batch scripts then run.
+Install NodeJS.
+
+Then install the required nodejs libraries of the application:
+
+    npm install mqtt
+    npm install fs
+    npm install system-sleep
+    npm install os
+    npm install argparse
+
+Update the device ID in the batch scripts then run.
 
 
 ### FT900 Device
