@@ -1,0 +1,2 @@
+python cognito_viewer.py
+pause

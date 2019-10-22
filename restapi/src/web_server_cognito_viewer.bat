@@ -1,2 +1,0 @@
-python web_server_cognito_viewer.py
-pause

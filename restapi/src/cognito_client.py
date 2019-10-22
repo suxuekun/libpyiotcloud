@@ -1,6 +1,6 @@
 import boto3
 from warrant.aws_srp import AWSSRP
-from web_server_cognito_config import config
+from cognito_config import config
 import time
 import ast
 

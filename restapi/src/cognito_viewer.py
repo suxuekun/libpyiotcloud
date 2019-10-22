@@ -1,4 +1,4 @@
-from web_server_cognito_client import cognito_client
+from cognito_client import cognito_client
 import argparse
 import sys
 

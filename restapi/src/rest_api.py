@@ -8,7 +8,7 @@ import flask
 from flask_json import FlaskJSON, JsonError, json_response, as_json
 from certificate_generator import certificate_generator
 from messaging_client import messaging_client
-from web_server_config import config
+from rest_api_config import config
 from web_server_database import database_client
 from flask_cors import CORS
 from flask_api import status

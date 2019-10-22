@@ -3,10 +3,10 @@ import hmac
 import hashlib
 import datetime
 import random
-from web_server_config import config
+from rest_api_config import config
 from pymongo import MongoClient # MongoDB
 #import psycopg2                # PostgreSQL
-from web_server_cognito_client import cognito_client
+from cognito_client import cognito_client
 
 
 
