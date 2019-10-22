@@ -12,4 +12,4 @@ jose==1.0.0
 gunicorn
 flask_cors==3.0.8
 flask_api==1.1.0
-
+paypalrestsdk==1.13.1
