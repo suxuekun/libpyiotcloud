@@ -7,6 +7,7 @@ from rest_api_config import config
 from pymongo import MongoClient # MongoDB
 #import psycopg2                # PostgreSQL
 from cognito_client import cognito_client
+from paypal_client import paypal_client
 
 
 
@@ -41,12 +42,45 @@ class database_client:
         elif model_devices == database_models.POSTGRESQL:
             self._devices = database_client_postgresql()
 
+        # subscriptions database
+        self._subscriptions = self._devices
+
+        # transactions database
+        self._transactions = self._devices
+
+
     def initialize(self):
         self._users.initialize()
         self._devices.initialize()
 
     def is_using_cognito(self):
         return self.use_cognito
+
+
+
+    ##########################################################
+    # transactions
+    ##########################################################
+
+    def transactions_paypal_set_payment(self, username, token, payment):
+        return self._transactions.paypal_set_payment(username, token, payment)
+
+    def transactions_paypal_execute_payment(self, username, token, payment):
+        return self._transactions.paypal_execute_payment(username, token, payment)
+
+    def transactions_paypal_verify_payment(self, username, token, payment):
+        return self._transactions.paypal_verify_payment(username, token, payment)
+
+
+    ##########################################################
+    # subscriptions
+    ##########################################################
+
+    def get_subscription(self, username):
+        return self._subscriptions.get_subscription(username)
+
+    def set_subscription(self, username, credits):
+        return self._subscriptions.set_subscription(username, credits)
 
 
     ##########################################################
@@ -315,6 +349,130 @@ class database_client_mongodb:
     def initialize(self):
         mongo_client = MongoClient(config.CONFIG_MONGODB_HOST, config.CONFIG_MONGODB_PORT)
         self.client = mongo_client[config.CONFIG_MONGODB_DB]
+        self.paypal = paypal_client()
+        self.paypal.initialize()
+
+
+    ##########################################################
+    # transaction
+    ##########################################################
+
+    def get_subscription_db(self):
+        return self.client[config.CONFIG_MONGODB_TB_TRANSACTIONS]
+
+    def paypal_set_payment(self, username, token, payment):
+        return_url = payment['return_url']
+        cancel_url = payment['cancel_url']
+        item_price = payment['item_price']
+        item_sku = payment['item_sku']
+        item_quantity = config.CONFIG_TRANSACTION_QUANTITY
+        item_currency = config.CONFIG_TRANSACTION_CURRENCY
+        item_name = config.CONFIG_TRANSACTION_NAME
+        item_description = config.CONFIG_TRANSACTION_DESCRIPTION
+
+        payment_object = self.paypal.create_payment(return_url, cancel_url, item_price, item_currency, item_quantity, item_name, item_sku, item_description)
+        #print(payment_object)
+        (status, payment) = self.paypal.send_payment(payment_object)
+        if not status:
+            print("Payment creation failed! {}".format(payment.error))
+            return
+        approval_url = self.paypal.get_payment_link(payment)
+        print("\r\nPayment creation successful!\r\n")
+
+        data = {
+            "paymentId": payment["id"],
+            "token": approval_url[approval_url.find("token=")+len("token="):],
+            "create_time": payment["create_time"],
+            "sku": item_sku,
+        }
+        print(data)
+        return approval_url, data["paymentId"], data["token"]
+
+    def paypal_execute_payment(self, username, token, payment):
+        payment_id = payment["paymentId"]
+        payer_id = payment["PayerID"]
+        payment_token = payment["token"]
+
+        result = self.paypal.execute_payment(payment_id, payer_id)
+        if not result:
+            print("Payment failed!")
+            return False
+
+        payment_result = self.paypal.fetch_payment(payment_id)
+        status = self.paypal.get_payment_status(payment_result)
+        if status != "approved":
+            print("Payment not yet completed! {}".format(status))
+            return False
+
+        print("Payment completed successfully!")
+        self.paypal.display_payment_result(payment_result)
+        return True
+
+    def paypal_verify_payment(self, username, token, payment):
+        payment_id = payment["paymentId"]
+        if not payment_id:
+            return False
+
+        payment_result = self.paypal.fetch_payment(payment_id)
+        if not payment_result:
+            return False
+
+        status = self.paypal.get_payment_status(payment_result)
+        if status != "approved":
+            print("Payment not yet completed! {}".format(status))
+            return False
+
+        print("Payment completed successfully!")
+        self.paypal.display_payment_result(payment_result)
+        return True
+
+
+    ##########################################################
+    # subscription
+    ##########################################################
+
+    def get_subscription_db(self):
+        return self.client[config.CONFIG_MONGODB_TB_SUBSCRIPTIONS]
+
+    def get_subscription(self, username):
+        found = False
+        subscriptions = self.get_subscription_db()
+        if subscriptions:
+            if True: # For easy reset of default type and credits
+                for subscription in subscriptions.find({},{'username': 1, 'type': 1, 'credits': 1}):
+                    if subscription['username'] == username:
+                        found = True
+                        subscription.pop('_id')
+                        subscription.pop('username')
+                        return subscription 
+
+        if not found:
+            subscription = {}
+            subscription['username'] = username
+            subscription['type'] = config.CONFIG_SUBSCRIPTION_TYPE
+            subscription['credits'] = config.CONFIG_SUBSCRIPTION_CREDITS
+            self.client.subscriptions.insert_one(subscription)
+            subscription.pop('_id')
+            subscription.pop('username')
+            return subscription
+        return None, None
+
+    def set_subscription(self, username, credits):
+        subscriptions = self.get_subscription_db()
+        if subscriptions:
+            if True: # For easy reset of default type and credits
+                for subscription in subscriptions.find({},{'username': 1, 'type': 1, 'credits': 1}):
+                    if subscription['username'] == username:
+                        current_amount = int(subscription['credits'])
+                        new_amount = int(subscription['credits']) + int(credits)
+                        print("current_amount={} new_amount={}".format(current_amount, new_amount))
+                        subscription['type'] = config.CONFIG_SUBSCRIPTION_PAID_TYPE
+                        subscription['credits'] = str(new_amount)
+                        self.client.subscriptions.replace_one({'username': username}, subscription)
+                        subscription.pop('_id')
+                        subscription.pop('username')
+                        return subscription 
+        return None
 
 
     ##########################################################

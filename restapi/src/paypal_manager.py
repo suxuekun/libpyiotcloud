@@ -42,11 +42,12 @@ def main(args):
 		return_url = CONFIG_RETURN_URL
 		cancel_url = CONFIG_CANCEL_URL
 		item_price = "7.00"
-		item_currency = "USD"
-		item_quantity = 1
-		item_name = "Premium Membership"
 		item_sku = "CREDITX7USD"
-		item_description = "Monthly subscription for premium access"
+
+		item_quantity = 1
+		item_currency = "USD"
+		item_name = "Bridgetek IoT Portal credits"
+		item_description = "Consumable credits for IoT Portal"
 
 		payment_object = paypal.create_payment(return_url, cancel_url, item_price, item_currency, item_quantity, item_name, item_sku, item_description)
 		#print(payment_object)

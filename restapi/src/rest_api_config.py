@@ -52,3 +52,14 @@ class config:
     CONFIG_MONGODB_TB_PROFILES  = "profiles"
     CONFIG_MONGODB_TB_DEVICES   = "devices"
     CONFIG_MONGODB_TB_HISTORY   = "history"
+    CONFIG_MONGODB_TB_SUBSCRIPTIONS = "subscriptions"
+    CONFIG_MONGODB_TB_TRANSACTIONS  = "transactions"
+
+    # Subscription/Payment
+    CONFIG_SUBSCRIPTION_TYPE       = "Free"
+    CONFIG_SUBSCRIPTION_PAID_TYPE  = "Paid"
+    CONFIG_SUBSCRIPTION_CREDITS    = "1000"
+    CONFIG_TRANSACTION_QUANTITY    = 1
+    CONFIG_TRANSACTION_CURRENCY    = "USD"
+    CONFIG_TRANSACTION_NAME        = "Bridgetek IoT Portal credits"
+    CONFIG_TRANSACTION_DESCRIPTION = "Consumable credits for IoT Portal"
