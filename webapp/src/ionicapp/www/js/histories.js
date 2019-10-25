@@ -20,8 +20,8 @@ angular.module('histories', [])
                 // Handle successful login
                 console.log(result.data);
                 
-                if (result != null) {
-                    if (result.data.new_token != null) {
+                if (result !== null) {
+                    if (result.data.new_token !== undefined) {
                         console.log("New Token exists!")
                         User.set({
                             'username': userdata.username,

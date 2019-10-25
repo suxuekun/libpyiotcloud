@@ -43,6 +43,22 @@ angular.module('app.routes', [])
     }
   })
 
+  .state('order', {
+    url: '/page_order',
+	params: {
+		username: "",
+		token: ""		
+},
+    templateUrl: 'templates/order.html',
+    controller: 'orderCtrl'
+  })
+
+  .state('paymentConfirmation', {
+    url: '/page_payment_confirmation',
+    templateUrl: 'templates/paymentConfirmation.html',
+    controller: 'paymentConfirmationCtrl'
+  })
+
   .state('menu', {
     url: '/menu',
     templateUrl: 'templates/menu.html',
