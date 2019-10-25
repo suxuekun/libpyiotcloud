@@ -383,9 +383,6 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
     ];
 
 
-
-
-
     $scope.data = {
         'username': User.get_username(),
         'token': User.get_token(),
@@ -451,8 +448,9 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
 
         console.log("process_payment_paypal");
 
-        var return_url = 'http://localhost:8100/#/page_payment_confirmation?' + 'username=' + $scope.data.username + '&access=' + $scope.data.token.access + '&credits=' + $scope.credits[0].points;
-        var cancel_url = 'http://localhost:8100/#/page_payment_confirmation?' + 'username=' + $scope.data.username + '&access=' + $scope.data.token.access;
+        var host_url = server; //"http://localhost:8100";
+        var return_url = host_url + '/#/page_payment_confirmation?' + 'username=' + $scope.data.username + '&access=' + $scope.data.token.access + '&credits=' + $scope.credits[0].points;
+        var cancel_url = host_url + '/#/page_payment_confirmation?' + 'username=' + $scope.data.username + '&access=' + $scope.data.token.access;
 
         console.log(return_url);
         console.log(cancel_url);
@@ -463,9 +461,9 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
             'payment': {
                 'return_url': return_url,
                 'cancel_url': cancel_url,
-                'item_sku': $scope.credits[0].id,
-                'item_credits': $scope.credits[0].points,
-                'item_price': $scope.credits[0].price,
+                'item_sku': $scope.data.id,
+                'item_credits': $scope.data.points,
+                'item_price': $scope.data.price,
             }
         };
        
@@ -482,7 +480,9 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
             console.log(result.data.approval_url);
             console.log(result.data.paymentId);
             console.log(result.data.token);
-            var win = window.open(result.data.approval_url,"_blank",'height=500,width=400,left=100,top=100,resizable=yes,scrollbars=yes,toolbar=no,menubar=no,location=no,directories=no,status=no',replace=false);
+
+            var win = window.open(result.data.approval_url,"_blank",
+                'height=500,width=400,left=100,top=100,resizable=yes,scrollbars=yes,toolbar=no,menubar=no,location=no,directories=no,status=no',replace=false);
 
             var timer = setInterval(function() {
                 if (win.closed) {
@@ -574,7 +574,6 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
                             text: 'OK',
                             type: 'button-positive',
                             onTap: function(e) {
-                                window.close();
                             }
                         }
                     ]
