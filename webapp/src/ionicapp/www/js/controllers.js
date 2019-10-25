@@ -449,7 +449,7 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
         console.log("process_payment_paypal");
 
         var host_url = server; //"http://localhost:8100";
-        var return_url = host_url + '/#/page_payment_confirmation?' + 'username=' + $scope.data.username + '&access=' + $scope.data.token.access + '&credits=' + $scope.credits[0].points;
+        var return_url = host_url + '/#/page_payment_confirmation?' + 'username=' + $scope.data.username + '&access=' + $scope.data.token.access + '&credits=' + $scope.data.points;
         var cancel_url = host_url + '/#/page_payment_confirmation?' + 'username=' + $scope.data.username + '&access=' + $scope.data.token.access;
 
         console.log(return_url);
