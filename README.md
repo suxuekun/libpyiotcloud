@@ -266,6 +266,9 @@ Device access APIs requires username, devicename and access token returned by lo
        export AWS_PINPOINT_REGION=""
        export AWS_PINPOINT_EMAIL=""
        export CONFIG_USE_ECC=1 or 0
+       export PAYPAL_CLIENT_ID=""
+       export PAYPAL_CLIENT_SECRET=""
+       
     2. Build and execute Docker-compose file
        docker-compose build
        docker-compose up
@@ -588,7 +591,9 @@ Device access APIs requires username, devicename and access token returned by lo
        export AWS_PINPOINT_REGION=""       
        export AWS_PINPOINT_EMAIL=""
        export CONFIG_USE_ECC=1 or 0
-
+       export PAYPAL_CLIENT_ID=""
+       export PAYPAL_CLIENT_SECRET=""
+       
        // Download the repository
        via WinSCP or git
        
@@ -612,6 +617,12 @@ Device access APIs requires username, devicename and access token returned by lo
        6. AWS_PINPOINT_ID
        7. AWS_PINPOINT_REGION
        8. AWS_PINPOINT_EMAIL
+
+       // Non-AWS credentials
+       CONFIG_USE_ECC
+       PAYPAL_CLIENT_ID
+       PAYPAL_CLIENT_SECRET
+
 
 ### Docker
 
@@ -764,6 +775,8 @@ Device access APIs requires username, devicename and access token returned by lo
         - AWS_PINPOINT_REGION
         - AWS_PINPOINT_EMAIL
         - CONFIG_USE_ECC=1 or 0
+        - PAYPAL_CLIENT_ID
+        - PAYPAL_CLIENT_SECRET
 
 4. Docker-compose file
 
@@ -811,7 +824,9 @@ Device access APIs requires username, devicename and access token returned by lo
               - AWS_COGNITO_CLIENT_ID
               - AWS_COGNITO_USERPOOL_ID
               - AWS_COGNITO_USERPOOL_REGION
-              - CONFIG_USE_ECC              
+              - CONFIG_USE_ECC  
+              - PAYPAL_CLIENT_ID
+              - PAYPAL_CLIENT_SECRET
           webapp:
             build: ./webapp
             restart: always
