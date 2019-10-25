@@ -39,6 +39,8 @@ services:
       - AWS_COGNITO_USERPOOL_ID
       - AWS_COGNITO_USERPOOL_REGION
       - CONFIG_USE_ECC
+      - PAYPAL_CLIENT_ID
+      - PAYPAL_CLIENT_SECRET
   webapp:
     build: ./webapp
     restart: always
