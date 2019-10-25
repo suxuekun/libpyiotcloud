@@ -931,6 +931,29 @@ Device access APIs requires username, devicename and access token returned by lo
 <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/ui_androidemulator.png" width="1000"/>
 
 
+### Setup Paypal
+
+        // Setup Paypal Sandbox accounts
+        - Login to https://developer.paypal.com
+        - Create a Sandbox Business account (for seller) and a Sandbox Personal account (for test buyer).
+        - Create a Sandbox App linked to a Sandbox business account. Copy the credentials: Client ID and Secret, to be used in the Paypal Python SDK.
+
+        // Code flow
+        - Initialize Paypal library by providing the App account credentials: Client ID and Secret.
+        - Setup payment information to Paypal including a Return URL and Cancel URL callbacks. A URL link will be returned pointing to Paypal page that buyer must approve transaction. Once customer cancels or approves the payment, the Return URL or Cancel URL will be called. If successful, the Return URL is called with the information of PayerID and PaymentID.
+        - Execute payment with the specified PayerID and PaymentID.
+        - Login to https://sandbox.paypal.com/ Check Sandbox Business account (for seller) to confirm the transaction and amount is credited. Check Sandbox Personal account (for test buyer) to confirm the transaction and amount is debited.
+
+        // Moving from Sandbox to Live:
+        - Developer account needs to be upgraded from personal account to business account.
+        - Similar as above but replace Sandbox to Live
+
+   <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/paypal_buycredits.png" width="400"/>
+   <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/paypal_selectorder.png" width="400"/>
+   <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/paypal_approval.png" width="400"/>
+   <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/paypal_paymentconfirmation.png" width="400"/>
+
+
 ### Setup Amazon EKS (Kubernetes)
 
        // Amazon EKS (Elastic Kubernetes Services)
