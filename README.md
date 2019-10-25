@@ -1085,12 +1085,13 @@ In Linux, the total round trip time is only 1 second.
 # Action Items
 
 1.  Fix browser reload issue.
-2.  Support Paypal payment integration.
-3.  Add signup/login using Facebook account.
-4.  Add feature to enable MFA (Multi factor authentication via email/SMS).
-5.  Add message counter for free-tier subscription.
-6.  [Low] Add mobile app push notification integration to notification manager.
-7.  [Low] Add Twitter integration to notification manager.
+2.  Add payment transaction history
+3.  Add credit card payment (Currently only Paypal is supported).
+4.  Add signup/login using Facebook account.
+5.  Add feature to enable MFA (Multi factor authentication via email/SMS).
+6.  Add message counter for free-tier subscription.
+7.  [Low] Add mobile app push notification integration to notification manager.
+8.  [Low] Add Twitter integration to notification manager.
 9.  [Low] Add file logging of microservices for easier debugging/troubleshooting
 10. [Low] Add manager/admin page in Web client (see all users and devices registered by each user)
 11. [Low] Support an online device emulator. (Each user can run 1 online device emulator.)
