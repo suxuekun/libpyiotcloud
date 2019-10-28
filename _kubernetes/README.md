@@ -5,6 +5,14 @@ Kubernetes support for IoT portal is now available.
 This has been tested using [Minikube](https://github.com/kubernetes/minikube), an application that allows users to run Kubernetes locally.  
 
 
+### Limitations:
+
+1. RabbitMQ is can be accessed using port 30883 (MQTTS) and 30671 (AMQPS) instead of 8883 and 5671, respectively.
+
+2. Webapp can be accessed using port 30443 (HTTPS) instead of port 443.
+
+To prevent random ports getting assigned, I had to specify the port number replacements.
+
 
 ### Instructions:
 
