@@ -1,6 +1,6 @@
 # IoT Portal on Kubernetes
 
-Support for IoT portal is now available. This has been tested using Minikube. 
+Support for IoT portal is now available. This has been tested using (Minikube)[https://github.com/kubernetes/minikube]. 
 
 
 
