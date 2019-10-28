@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mongodb
+  labels:
+    app: iotmongodb
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: iotmongodb
+  template:
+    metadata:
+      labels:
+        app: iotmongodb
+    spec:
+      volumes:
+        - name: mydockervol
+          persistentVolumeClaim:
+            claimName: mydockervol
+      containers:
+        - name: iotmongodb
+          image: richmondu/iotmongodb
+          ports:
+          - containerPort: 27017
+          volumeMounts:
+          - mountPath: /data/db
+            name: mydockervol

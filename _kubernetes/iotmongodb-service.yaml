@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongodb
+spec:
+  selector:
+    app: iotmongodb
+  type: NodePort
+  ports:
+  - name: db
+    port: 27017
+    targetPort: 27017
+    protocol: TCP

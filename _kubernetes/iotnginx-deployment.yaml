@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx
+  labels:
+    app: iotnginx
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: iotnginx
+  template:
+    metadata:
+      labels:
+        app: iotnginx
+    spec:
+      containers:
+        - name: iotnginx
+          image: richmondu/iotnginx
+          ports:
+          - containerPort: 443
