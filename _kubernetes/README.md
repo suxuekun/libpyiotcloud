@@ -55,7 +55,7 @@ This has been tested using [Minikube](https://github.com/kubernetes/minikube), a
         kubectl apply -f iotnginx-service.yaml
 
 
-X. Stop all
+9. Stop all
 
         kubectl delete service nginx
         kubectl delete deployment nginx
