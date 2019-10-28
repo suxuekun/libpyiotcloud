@@ -6,6 +6,8 @@ This has been tested using [Minikube](https://github.com/kubernetes/minikube), a
 
 <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/kubernetes_minikube.png" width="800"/>
 
+<img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/kubernetes_minikube_dashboard.png" width="800"/>
+
 
 ### Limitations:
 
