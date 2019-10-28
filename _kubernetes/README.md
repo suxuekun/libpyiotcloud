@@ -4,6 +4,8 @@ Kubernetes support for IoT portal is now available.
 
 This has been tested using [Minikube](https://github.com/kubernetes/minikube), an application that allows users to run Kubernetes locally.  
 
+<img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/kubernetes_minikube.png" width="800"/>
+
 
 ### Limitations:
 
