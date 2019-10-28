@@ -11,11 +11,14 @@ This has been tested using [Minikube](https://github.com/kubernetes/minikube), a
 
 ### Limitations:
 
-1. RabbitMQ can be accessed using port 30883 (MQTTS) and 30671 (AMQPS) instead of 8883 and 5671, respectively.
+1. Ports for RabbitMQ and Nginx are not the usual 8883 and 443. 
+   RabbitMQ can be accessed using port 30883 (MQTTS) and 30671 (AMQPS) instead of 8883 and 5671, respectively.
+   Webapp can be accessed using port 30443 (HTTPS) instead of port 443.
+   Note that to prevent random ports getting assigned, I had to specify the port number replacements.
 
-2. Webapp can be accessed using port 30443 (HTTPS) instead of port 443.
+2. The Kubernetes configuration files fetches the docker images from Docker.io not from local machine. 
+   Note that docker-compose fetches from local machine.
 
-Note that to prevent random ports getting assigned, I had to specify the port number replacements.
 
 
 ### Instructions:
