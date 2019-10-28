@@ -6,9 +6,9 @@ aws-config.sh
 aws-config-old.sh
 _client_simulator/__pycache__
 _device_simulator/__pycache__
+_device_simulator/node_modules
 _requirements
 _presentation
-*.yaml
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
