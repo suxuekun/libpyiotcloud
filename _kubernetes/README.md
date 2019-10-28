@@ -7,11 +7,11 @@ This has been tested using [Minikube](https://github.com/kubernetes/minikube), a
 
 ### Limitations:
 
-1. RabbitMQ is can be accessed using port 30883 (MQTTS) and 30671 (AMQPS) instead of 8883 and 5671, respectively.
+1. RabbitMQ can be accessed using port 30883 (MQTTS) and 30671 (AMQPS) instead of 8883 and 5671, respectively.
 
 2. Webapp can be accessed using port 30443 (HTTPS) instead of port 443.
 
-To prevent random ports getting assigned, I had to specify the port number replacements.
+Note that to prevent random ports getting assigned, I had to specify the port number replacements.
 
 
 ### Instructions:
