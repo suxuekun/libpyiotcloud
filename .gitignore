@@ -8,6 +8,7 @@ _client_simulator/__pycache__
 _device_simulator/__pycache__
 _device_simulator/node_modules
 _device_simulator/package-lock.json
+_kubernetes/environment.yaml
 _requirements
 _presentation
 
