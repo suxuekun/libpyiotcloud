@@ -25,7 +25,7 @@ This has been tested using [Minikube](https://github.com/kubernetes/minikube), a
 
 1. Set docker-registry
 
-        kubectl create secret docker-registry regcred --docker-server=docker.io --docker-username=<USERNAME> --docker-password=<PASSWORD> --docker-email=<EMAIL>
+        kubectl create secret docker-registry regcred --docker-server=docker.io --docker-username=USERNAME --docker-password=PASSWORD --docker-email=EMAIL
 
 
 2. Fill-up environment.yaml then run 
@@ -95,16 +95,16 @@ This has been tested using [Minikube](https://github.com/kubernetes/minikube), a
 - minikube start
 - minikube stop
 - minikube delete
-- minikube service <SERVICENAME> --url
+- minikube service SERVICENAME --url
 
 - kubectl get secrets
 - kubectl get deployments
 - kubectl get pods
 - kubectl get svc
 - kubectl get persistentvolumeclaim
-- kubectl log <PODNAME>
-- kubectl describe pod <PODNAME>
-- kubectl delete secret <SECRETNAME>
-- kubectl delete deployment <DEPLOYMENTNAME>
-- kubectl delete service <SERVICENAME>
-- kubectl delete persistentvolumeclaim <PERSISTENTVOLUMENAME>
+- kubectl log PODNAME
+- kubectl describe pod PODNAME
+- kubectl delete secret SECRETNAME
+- kubectl delete deployment DEPLOYMENTNAME
+- kubectl delete service SERVICENAME
+- kubectl delete persistentvolumeclaim PERSISTENTVOLUMENAME
