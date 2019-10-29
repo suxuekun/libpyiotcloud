@@ -23,6 +23,8 @@ This has been tested using [Minikube](https://github.com/kubernetes/minikube), a
 
 ### Instructions:
 
+0. Make sure docker images is committed to the docker repository. As the Kubernetes files fetches the docker images from the specified registry.
+
 1. Set docker-registry
 
         kubectl create secret docker-registry regcred --docker-server=docker.io --docker-username=USERNAME --docker-password=PASSWORD --docker-email=EMAIL
