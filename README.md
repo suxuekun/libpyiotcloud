@@ -76,6 +76,23 @@ An alternative solution is using an AWS serverless solution wherein:
 6. <b>Notification</b> (handles sending of messages to email/SMS recipients)
 7. <b>Historian</b> (handles saving of device requests and responses for each devices of all users)
 
+Front-end
+
+1. <b>Mobile</b>: mobile app -> (nginx -> gunicorn) -> RestAPI
+2. <b>Web</b>: browser -> (nginx -> gunicorn) -> RestAPI
+
+Back-end
+
+1. <b>RestAPI</b> (Flask) -> Cognito, MongoDB, Paypal
+2. <b>RabbitMQ</b>: accessed by device, notification service and history service
+3. <b>Notification service</b> -> RabbitMQ, Pinpoint, Twilio, Nexmo
+4. <b>History service</b> -> RabbitMQ, MongoDB
+
+Device
+
+1. <b>Device</b> -> RabbitMQ
+
+
 
 ### UML Use case diagram:
 <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/usecase.png" width="800"/>
