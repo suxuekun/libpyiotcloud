@@ -51,6 +51,7 @@ The web app is made of Ionic framework so it can be compiled as Android and iOS 
 - <b>Paypal</b> payment gateway - https://developer.paypal.com
 - <b>Jenkins</b> automation for CI/CD - https://jenkins.io/
 - <b>Kubernetes</b> container orchestration - https://kubernetes.io
+- <b>Minikube</b> local Kubernetes cluster - https://github.com/kubernetes/minikube
 - <b>Amazon EKS</b> Kubernetes service - https://aws.amazon.com/eks
 
 An alternative solution is using an AWS serverless solution wherein:
@@ -940,7 +941,11 @@ Device access APIs requires username, devicename and access token returned by lo
 
         // Code flow
         - Initialize Paypal library by providing the App account credentials: Client ID and Secret.
-        - Setup payment information to Paypal including a Return URL and Cancel URL callbacks. A URL link will be returned pointing to Paypal page that buyer must approve transaction. Once customer cancels or approves the payment, the Return URL or Cancel URL will be called. If successful, the Return URL is called with the information of PayerID and PaymentID.
+        - Setup payment information to Paypal including a Return URL and Cancel URL callbacks. 
+          A URL link will be returned pointing to Paypal page that buyer must approve transaction. 
+          Once customer cancels or approves the payment, the Return URL or Cancel URL will be called. 
+          If successful, the Return URL is called with the information of PayerID and PaymentID.
+          Make sure that browser is allowed to open popup windows.
         - Execute payment with the specified PayerID and PaymentID.
         - Login to https://sandbox.paypal.com/ Check Sandbox Business account (for seller) to confirm the transaction and amount is credited. Check Sandbox Personal account (for test buyer) to confirm the transaction and amount is debited.
 
@@ -948,6 +953,7 @@ Device access APIs requires username, devicename and access token returned by lo
         - Developer account needs to be upgraded from personal account to business account.
         - Similar as above but replace Sandbox to Live
 
+  
    <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/paypal_buycredits.png" width="400"/>
    <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/paypal_selectorder.png" width="400"/>
    <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/paypal_approval.png" width="400"/>

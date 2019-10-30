@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: history
+  labels:
+    app: iothistory
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: iothistory
+  template:
+    metadata:
+      labels:
+        app: iothistory
+    spec:
+      containers:
+        - name: iothistory
+          image: richmondu/iothistory
+          env:
+          - name: CONFIG_USE_ECC
+            valueFrom:
+              secretKeyRef:
+                name: environment
+                key: CONFIG_USE_ECC

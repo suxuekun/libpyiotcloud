@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rabbitmq
+  labels:
+    app: iotrabbitmq
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: iotrabbitmq
+  template:
+    metadata:
+      labels:
+        app: iotrabbitmq
+    spec:
+      containers:
+        - name: iotrabbitmq
+          image: richmondu/iotrabbitmq
+          ports:
+          - containerPort: 8883
+          - containerPort: 5671
+          env:
+          - name: CONFIG_USE_ECC
+            valueFrom:
+              secretKeyRef:
+                name: environment
+                key: CONFIG_USE_ECC          
+

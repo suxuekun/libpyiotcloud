@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: webapp
+  labels:
+    app: iotwebapp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: iotwebapp
+  template:
+    metadata:
+      labels:
+        app: iotwebapp
+    spec:
+      containers:
+        - name: iotwebapp
+          image: richmondu/iotwebapp
+          ports:
+          - containerPort: 8100

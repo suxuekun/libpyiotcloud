@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: restapi
+  labels:
+    app: iotrestapi
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: iotrestapi
+  template:
+    metadata:
+      labels:
+        app: iotrestapi
+    spec:
+      containers:
+        - name: iotrestapi
+          image: richmondu/iotrestapi
+          ports:
+          - containerPort: 8000
+          env:
+          - name: AWS_ACCESS_KEY_ID
+            valueFrom:
+              secretKeyRef:
+                name: environment
+                key: AWS_ACCESS_KEY_ID
+          - name: AWS_COGNITO_CLIENT_ID
+            valueFrom:
+              secretKeyRef:
+                name: environment
+                key: AWS_COGNITO_CLIENT_ID
+          - name: AWS_COGNITO_USERPOOL_ID
+            valueFrom:
+              secretKeyRef:
+                name: environment
+                key: AWS_COGNITO_USERPOOL_ID
+          - name: AWS_COGNITO_USERPOOL_REGION
+            valueFrom:
+              secretKeyRef:
+                name: environment
+                key: AWS_COGNITO_USERPOOL_REGION
+          - name: AWS_SECRET_ACCESS_KEY
+            valueFrom:
+              secretKeyRef:
+                name: environment
+                key: AWS_SECRET_ACCESS_KEY
+          - name: CONFIG_USE_ECC
+            valueFrom:
+              secretKeyRef:
+                name: environment
+                key: CONFIG_USE_ECC
+          - name: PAYPAL_CLIENT_ID
+            valueFrom:
+              secretKeyRef:
+                name: environment
+                key: PAYPAL_CLIENT_ID
+          - name: PAYPAL_CLIENT_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: environment
+                key: PAYPAL_CLIENT_SECRET
