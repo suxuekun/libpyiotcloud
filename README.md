@@ -48,8 +48,8 @@ The web app is made of Ionic framework so it can be compiled as Android and iOS 
 - <b>Android Studio</b> (Building Ionic webapp to Androidapp) - https://developer.android.com/studio
 - <b>Amazon Pinpoint</b> email/SMS messaging platform - https://aws.amazon.com/pinpoint/
 - <b>Amazon SNS</b> email/SMS messaging platform - https://aws.amazon.com/sns/
-- <b>Twilio</b>SMS messaging platform - https://www.twilio.com/
-- <b>Nexmo</b>SMS messaging platform - https://www.nexmo.com/
+- <b>Twilio</b> SMS messaging platform - https://www.twilio.com/
+- <b>Nexmo</b> SMS messaging platform - https://www.nexmo.com/
 - <b>Paypal</b> payment gateway - https://developer.paypal.com
 - <b>Jenkins</b> automation for CI/CD - https://jenkins.io/
 - <b>Kubernetes</b> container orchestration - https://kubernetes.io
