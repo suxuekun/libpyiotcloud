@@ -305,16 +305,20 @@ if __name__ == '__main__':
 
     while True:
         # Connect to MQTT/AMQP broker
+        ignore_hostname = False
         while True:
             try:
-                result = g_messaging_client.initialize(timeout=5)
+                (result, code) = g_messaging_client.initialize(timeout=5, ignore_hostname=ignore_hostname)
                 if not result:
-                    print("Could not connect to message broker!")
+                    print("Could not connect to message broker! {}".format(code))
+                    if code == 1:
+                        ignore_hostname = True
                 else:
                     break
             except:
                 print("Could not connect to message broker! exception!")
 
+        print("Connected to message broker!")
         # Subscribe to messages sent for this device
         time.sleep(1)
         subtopic = "{}{}#".format(CONFIG_DEVICE_ID, CONFIG_SEPARATOR)

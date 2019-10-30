@@ -56,12 +56,12 @@ class messaging_client:
         self.cert = cert
         self.pkey = pkey
 
-    def initialize(self, timeout=0):
+    def initialize(self, timeout=0, ignore_hostname=False):
         if self.use_amqp:
-            self.client = self.initialize_ampq()
+            (self.client, code) = self.initialize_ampq(ignore_hostname)
         else:
-            self.client = self.initialize_mqtt(timeout)
-        return False if self.client is None else True
+            (self.client, code) = self.initialize_mqtt(timeout, ignore_hostname)
+        return (False if self.client is None else True, code)
 
     def release(self):
         if self.use_amqp:
@@ -88,7 +88,8 @@ class messaging_client:
         else:
             return self.mqtt_connected
 
-    def initialize_ampq(self):
+    def initialize_ampq(self, ignore_hostname):
+        code = 0
         use_tls = True
         # Set TLS certificates and access credentials
         if self.username and self.password:
@@ -97,9 +98,11 @@ class messaging_client:
             credentials = None
         ssl_options = None
         if use_tls:
-            context = ssl._create_unverified_context()
-            #context = ssl.create_default_context(cafile=CONFIG_AMQP_TLS_CA)
-            #context.load_cert_chain(CONFIG_AMQP_TLS_CERT, CONFIG_AMQP_TLS_PKEY)
+            if ignore_hostname:
+                context = ssl._create_unverified_context()
+            else:
+                context = ssl.create_default_context(cafile=self.ca)
+                context.load_cert_chain(self.cert, self.pkey)
             ssl_options = amqp.SSLOptions(context)
             if credentials:
                 parameters = amqp.ConnectionParameters(
@@ -127,12 +130,14 @@ class messaging_client:
         # Connect to AMPQ server
         try:
             connection = amqp.BlockingConnection(parameters)
-        except:
+        except Exception as e:
             self.amqp_connected = False
-            return None
+            if (str(e).find("hostname") >= 0):
+                return (None, 1)
+            return (None, 0)
         client = connection.channel()
         self.amqp_connected = True
-        return client
+        return (client, code)
 
     def release_amqp(self, client):
         try:
@@ -141,7 +146,8 @@ class messaging_client:
         except:
             pass
 
-    def initialize_mqtt(self, timeout):
+    def initialize_mqtt(self, timeout, ignore_hostname):
+        code = 0
         if self.device_id:
             client = mqtt.Client(client_id=self.device_id)
         else:
@@ -158,7 +164,10 @@ class messaging_client:
             ssl_ctx.load_cert_chain(self.cert, keyfile=self.pkey)
             ssl_ctx.load_verify_locations(cafile=self.ca)
             ssl_ctx.verify_mode = ssl.VerifyMode.CERT_REQUIRED
-            ssl_ctx.check_hostname = self.use_ecc # True if ECC
+            if ignore_hostname:
+                ssl_ctx.check_hostname = False
+            else:
+                ssl_ctx.check_hostname = True
             client.tls_set_context(ssl_ctx)
         else:
             client.tls_set(ca_certs = self.ca,
@@ -169,7 +178,10 @@ class messaging_client:
                 ciphers=None)
             # handle issue: 
             #   hostname doesn't match xxxx
-            client.tls_insecure_set(not self.use_ecc) # False if ECC
+            if ignore_hostname:
+                client.tls_insecure_set(True)
+            else:
+                client.tls_insecure_set(False)
         # handle issues: 
         #   MQTT server is down OR 
         #   invalid MQTT crendentials OR 
@@ -178,8 +190,8 @@ class messaging_client:
             client.connect(self.host, self.port)
             client.loop_start()
         except Exception as e:
-            print("connect exception {} {}".format(self.host, self.port))
-            print(e)
+            if (str(e).find("hostname") >= 0 and str(e).find("doesn't match") >= 0):
+                return (None, 1)
             client = None
 
         trial = 0
@@ -198,7 +210,7 @@ class messaging_client:
                 client = None
                 break
 
-        return client
+        return (client, code)
 
     def release_mqtt(self, client):
         try:
