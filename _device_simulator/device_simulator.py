@@ -8,7 +8,7 @@ from messaging_client import messaging_client # common module from parent direct
 
 
 ###################################################################################
-CONFIG_USE_ECC = False
+CONFIG_USE_ECC = True
 # Enable to use AMQP for webserver-to-messagebroker communication
 # Disable to use MQTT for webserver-to-messagebroker communication
 CONFIG_USE_AMQP = True
@@ -36,9 +36,9 @@ CONFIG_DEVICE_ID            = ""
 
 CONFIG_USERNAME             = None
 CONFIG_PASSWORD             = None
-CONFIG_TLS_CA               = "../cert/rootca.pem"
-CONFIG_TLS_CERT             = "../cert/ft900device1_cert.pem"
-CONFIG_TLS_PKEY             = "../cert/ft900device1_pkey.pem"
+CONFIG_TLS_CA               = "../cert_ecc/rootca.pem"
+CONFIG_TLS_CERT             = "../cert_ecc/ft900device1_cert.pem"
+CONFIG_TLS_PKEY             = "../cert_ecc/ft900device1_pkey.pem"
 
 CONFIG_HOST                 = "localhost"
 CONFIG_MQTT_TLS_PORT        = 8883
@@ -255,6 +255,7 @@ def parse_arguments(argv):
     parser.add_argument('--USE_DEVICE_CERT', required=False, default=CONFIG_TLS_CERT,  help='Device certificate to use')
     parser.add_argument('--USE_DEVICE_PKEY', required=False, default=CONFIG_TLS_PKEY,  help='Device private key to use')
     parser.add_argument('--USE_HOST',        required=False, default=CONFIG_HOST,      help='Host server to connect to')
+    parser.add_argument('--USE_PORT',        required=False, default=0,                help='Host port to connect to')
     parser.add_argument('--USE_USERNAME',    required=False, default=CONFIG_USERNAME,  help='Username to use in connection')
     parser.add_argument('--USE_PASSWORD',    required=False, default=CONFIG_PASSWORD,  help='Password to use in connection')
     return parser.parse_args(argv)
@@ -271,6 +272,8 @@ if __name__ == '__main__':
     CONFIG_TLS_CERT    = args.USE_DEVICE_CERT
     CONFIG_TLS_PKEY    = args.USE_DEVICE_PKEY
     CONFIG_HOST        = args.USE_HOST
+    CONFIG_MQTT_TLS_PORT = int(args.USE_PORT)
+    CONFIG_AMQP_TLS_PORT = int(args.USE_PORT)
     CONFIG_USERNAME    = args.USE_USERNAME
     CONFIG_PASSWORD    = args.USE_PASSWORD
     print("")
@@ -280,6 +283,7 @@ if __name__ == '__main__':
     print("USE_DEVICE_CERT={}".format(args.USE_DEVICE_CERT))
     print("USE_DEVICE_PKEY={}".format(args.USE_DEVICE_PKEY))
     print("USE_HOST={}".format(args.USE_HOST))
+    print("USE_PORT={}".format(args.USE_PORT))
     print("USE_USERNAME={}".format(args.USE_USERNAME))
     print("USE_PASSWORD={}".format(args.USE_PASSWORD))
     print("USE_ECC={}".format(args.USE_ECC))

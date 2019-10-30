@@ -17,6 +17,7 @@ CONFIG_PREPEND_REPLY_TOPIC  = "server"
 CONFIG_QOS                  = 1
 
 
+
 ###################################################################################
 # messaging_client
 # abstracts MQTT and AMQP implementation
@@ -176,7 +177,9 @@ class messaging_client:
         try:
             client.connect(self.host, self.port)
             client.loop_start()
-        except:
+        except Exception as e:
+            print("connect exception {} {}".format(self.host, self.port))
+            print(e)
             client = None
 
         trial = 0
