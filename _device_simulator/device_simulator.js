@@ -31,6 +31,7 @@ parser.addArgument(['--USE_DEVICE_CA'],   {help: 'Device CA certificate to use'}
 parser.addArgument(['--USE_DEVICE_CERT'], {help: 'Device certificate to use'});
 parser.addArgument(['--USE_DEVICE_PKEY'], {help: 'Device private key to use'});
 parser.addArgument(['--USE_HOST'],        {help: 'Host server to connect to'});
+parser.addArgument(['--USE_PORT'],        {help: 'Host port to connect to'});
 parser.addArgument(['--USE_USERNAME'],    {help: 'Username to use in connection'});
 parser.addArgument(['--USE_PASSWORD'],    {help: 'Password to use in connection'});
 
@@ -54,6 +55,10 @@ if (args.USE_DEVICE_PKEY != null) {
 if (args.USE_HOST != null) {
     CONFIG_HOST = args.USE_HOST;
     console.log(CONFIG_HOST);
+}
+if (args.USE_PORT != null) {
+    CONFIG_MQTT_TLS_PORT = parseInt(args.USE_PORT);
+    console.log(CONFIG_MQTT_TLS_PORT);
 }
 if (args.USE_USERNAME != null) {
     CONFIG_USERNAME = args.USE_USERNAME;
@@ -95,7 +100,8 @@ client.on("connect", function()
         if (subscribed == false) {
             var topic = subtopic + "#";
             console.log("subscribing " + topic);
-            client.subscribe(topic, {qos:1} );
+            result = client.subscribe(topic, {qos:1} );
+			//console.log(result);
             subscribed = true;
         }
     }
@@ -106,12 +112,17 @@ client.on("connect", function()
 
 // handle API call
 function handle_api(api, topic, payload) {
-    if (api == "get_status") {
+	console.log("\r\n" + topic);
+
+    if (api == "get_status") {		
         pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
         var obj = {
             "value": "running"
         };
         client.publish(pubtopic, JSON.stringify(obj));
+
+		console.log(pubtopic);
+		console.log(JSON.stringify(obj));
     }
     else if (api == "write_uart") {
         pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
@@ -146,6 +157,9 @@ function handle_api(api, topic, payload) {
             "value": Number(0)
         };
         client.publish(pubtopic, JSON.stringify(obj));
+		
+		console.log(pubtopic);
+		console.log(JSON.stringify(obj));		
     }
     else if (api == "set_gpio") {
         pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
@@ -157,6 +171,9 @@ function handle_api(api, topic, payload) {
             "value": value
         };
         client.publish(pubtopic, JSON.stringify(obj));
+		
+		console.log(pubtopic);
+		console.log(JSON.stringify(obj));				
     }
     else if (api == "get_rtc") {
         pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
@@ -166,6 +183,9 @@ function handle_api(api, topic, payload) {
             "value": epoch
         };
         client.publish(pubtopic, JSON.stringify(obj));
+		
+		console.log(pubtopic);
+		console.log(JSON.stringify(obj));						
     }
     else if (api == "set_rtc") {
         pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
@@ -176,6 +196,9 @@ function handle_api(api, topic, payload) {
             "value": value
         };
         client.publish(pubtopic, JSON.stringify(obj));
+		
+		console.log(pubtopic);
+		console.log(JSON.stringify(obj));						
     }
     else if (api == "get_mac") {
         pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
@@ -184,13 +207,23 @@ function handle_api(api, topic, payload) {
         interfaces = os.networkInterfaces()
         var found = false
         for (var devName in interfaces) {
+			if (devName.includes("Loopback") == true) {
+				continue;
+			}
+			else if (devName.includes("VirtualBox") == true) {
+				continue;
+			}
+			else if (devName.includes("VMWare") == true || devName.includes("VMware") == true) {
+				continue;
+			}
             var iface = interfaces[devName];
             for (var i = 0; i < iface.length; i++) {
                 var alias = iface[i];
-                if (alias.family === 'IPv4' && alias.address !== '127.0.0.1' && !alias.internal)
+                if (alias.family === 'IPv4') {
                     value = alias.mac
                     found = true;
                     break;
+				}
             }
             if (found == true) {
                 break;
@@ -202,6 +235,9 @@ function handle_api(api, topic, payload) {
         };
 
         client.publish(pubtopic, JSON.stringify(obj));
+		
+		console.log(pubtopic);
+		console.log(JSON.stringify(obj));
     }
     else if (api == "get_ip") {
         pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
@@ -210,13 +246,23 @@ function handle_api(api, topic, payload) {
         interfaces = os.networkInterfaces()
         var found = false
         for (var devName in interfaces) {
+			if (devName.includes("Loopback") == true) {
+				continue;
+			}
+			else if (devName.includes("VirtualBox") == true) {
+				continue;
+			}
+			else if (devName.includes("VMWare") == true || devName.includes("VMware") == true) {
+				continue;
+			}
             var iface = interfaces[devName];
             for (var i = 0; i < iface.length; i++) {
                 var alias = iface[i];
-                if (alias.family === 'IPv4' && alias.address !== '127.0.0.1' && !alias.internal)
+                if (alias.family === 'IPv4') {
                     value = alias.address
                     found = true;
                     break;
+				}
             }
             if (found == true) {
                 break;
@@ -228,6 +274,9 @@ function handle_api(api, topic, payload) {
         };
 
         client.publish(pubtopic, JSON.stringify(obj));
+		
+		console.log(pubtopic);
+		console.log(JSON.stringify(obj));		
     }
     else if (api == "get_subnet") {
         pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
@@ -236,13 +285,23 @@ function handle_api(api, topic, payload) {
         interfaces = os.networkInterfaces()
         var found = false
         for (var devName in interfaces) {
+			if (devName.includes("Loopback") == true) {
+				continue;
+			}
+			else if (devName.includes("VirtualBox") == true) {
+				continue;
+			}
+			else if (devName.includes("VMWare") == true || devName.includes("VMware") == true) {
+				continue;
+			}
             var iface = interfaces[devName];
             for (var i = 0; i < iface.length; i++) {
                 var alias = iface[i];
-                if (alias.family === 'IPv4' && alias.address !== '127.0.0.1' && !alias.internal)
+                if (alias.family === 'IPv4') {
                     value = alias.netmask
                     found = true;
                     break;
+				}
             }
             if (found == true) {
                 break;
@@ -254,6 +313,9 @@ function handle_api(api, topic, payload) {
         };
 
         client.publish(pubtopic, JSON.stringify(obj));
+		
+		console.log(pubtopic);
+		console.log(JSON.stringify(obj));		
     }
     else if (api == "get_gateway") {
         pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
@@ -262,14 +324,24 @@ function handle_api(api, topic, payload) {
         interfaces = os.networkInterfaces()
         var found = false
         for (var devName in interfaces) {
+			if (devName.includes("Loopback") == true) {
+				continue;
+			}
+			else if (devName.includes("VirtualBox") == true) {
+				continue;
+			}
+			else if (devName.includes("VMWare") == true || devName.includes("VMware") == true) {
+				continue;
+			}
             var iface = interfaces[devName];
             for (var i = 0; i < iface.length; i++) {
                 var alias = iface[i];
-                if (alias.family === 'IPv4' && alias.address !== '127.0.0.1' && !alias.internal)
+                if (alias.family === 'IPv4') {
                     index = alias.cidr.indexOf("/");
                     value = alias.cidr.substring(0, index)
                     found = true;
                     break;
+				}
             }
             if (found == true) {
                 break;
@@ -281,6 +353,9 @@ function handle_api(api, topic, payload) {
         };
 
         client.publish(pubtopic, JSON.stringify(obj));
+		
+		console.log(pubtopic);
+		console.log(JSON.stringify(obj));		
     }
     else if (api == "set_status") {
         pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
@@ -291,6 +366,9 @@ function handle_api(api, topic, payload) {
             "value": "restarting"
         };
         client.publish(pubtopic, JSON.stringify(obj));
+		
+		console.log(pubtopic);
+		console.log(JSON.stringify(obj));		
     }
     else {
     }
