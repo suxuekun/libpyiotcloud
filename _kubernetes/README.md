@@ -35,23 +35,23 @@ This has been tested using [Minikube](https://github.com/kubernetes/minikube), a
         kubectl apply -f environment.yaml
 
 
-3. Run RabbitMQ
+3. Run MongoDB
+
+        kubectl apply -f iotmongodb-persistentvolumeclaim.yaml
+        kubectl apply -f iotmongodb-deployment.yaml
+        kubectl apply -f iotmongodb-service.yaml
+
+
+4. Run RabbitMQ
 
         kubectl apply -f iotrabbitmq-deployment.yaml
         kubectl apply -f iotrabbitmq-service.yaml
 
 
-4. Run history manager and notification manager
+5. Run history manager and notification manager
 
         kubectl apply -f iothistory-deployment.yaml
         kubectl apply -f iotnotification-deployment.yaml
-
-
-5. Run MongoDB
-
-        kubectl apply -f iotmongodb-persistentvolumeclaim.yaml
-        kubectl apply -f iotmongodb-deployment.yaml
-        kubectl apply -f iotmongodb-service.yaml
 
 
 6. Run RESTAPI
@@ -80,13 +80,13 @@ This has been tested using [Minikube](https://github.com/kubernetes/minikube), a
         kubectl delete deployment webapp
         kubectl delete service restapi
         kubectl delete deployment restapi
-        kubectl delete service mongodb
-        kubectl delete deployment mongodb
-        kubectl delete persistentvolumeclaim mydockervol
         kubectl delete deployment history
         kubectl delete deployment notification
         kubectl delete service rabbitmq
         kubectl delete deployment rabbitmq
+        kubectl delete service mongodb
+        kubectl delete deployment mongodb
+        kubectl delete persistentvolumeclaim mydockervol
         kubectl delete secret environment
         kubectl delete secret regcred
 
