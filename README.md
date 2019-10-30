@@ -78,8 +78,8 @@ An alternative solution is using an AWS serverless solution wherein:
 
 Front-end
 
-1. <b>Mobile</b>: mobile app -> (nginx -> gunicorn) -> RestAPI
-2. <b>Web</b>: browser -> (nginx -> gunicorn) -> RestAPI
+1. <b>Mobile</b>: Ionic mobile app -> (nginx -> gunicorn) -> RestAPI
+2. <b>Web</b>: browser -> (nginx -> gunicorn) -> Ionic web app -> RestAPI
 
 Back-end
 
