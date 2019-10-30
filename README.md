@@ -39,8 +39,6 @@ The web app is made of Ionic framework so it can be compiled as Android and iOS 
 - <b>OpenSSL</b> cryptography (X509 certificates) - https://www.openssl.org/
 - <b>Amazon EC2</b> - https://aws.amazon.com/ec2/
 - <b>Amazon Cognito</b> (user sign-up/sign-in) - https://aws.amazon.com/cognito/
-- <b>Amazon Pinpoint</b> (email/SMS notifications) - https://aws.amazon.com/pinpoint/
-- <b>Amazon SNS</b> (email/SMS notifications) - https://aws.amazon.com/sns/
 - <b>Docker</b> containerization (dockerfiles, docker-compose) - https://www.docker.com/
 - <b>Ionic</b> mobile/web frontend framework - https://ionicframework.com/
 - <b>Ionic Creator</b> - https://creator.ionic.io
@@ -48,6 +46,10 @@ The web app is made of Ionic framework so it can be compiled as Android and iOS 
 - <b>GoDaddy</b> domain and SSL certificate - https://godaddy.com
 - <b>Amazon Route 53</b> DNS domain resolution - https://aws.amazon.com/route53
 - <b>Android Studio</b> (Building Ionic webapp to Androidapp) - https://developer.android.com/studio
+- <b>Amazon Pinpoint</b> email/SMS messaging platform - https://aws.amazon.com/pinpoint/
+- <b>Amazon SNS</b> email/SMS messaging platform - https://aws.amazon.com/sns/
+- <b>Twilio</b>SMS messaging platform - https://www.twilio.com/
+- <b>Nexmo</b>SMS messaging platform - https://www.nexmo.com/
 - <b>Paypal</b> payment gateway - https://developer.paypal.com
 - <b>Jenkins</b> automation for CI/CD - https://jenkins.io/
 - <b>Kubernetes</b> container orchestration - https://kubernetes.io
@@ -125,11 +127,12 @@ Menu, account, history
 
 ### Features
 
-    1. User sign-up/sign-in, Device Registration, Email/SMS Notifications
+    1. User sign-up/sign-in, Device Registration, Email/SMS Notifications, Payment Gateway
        A. Amazon Cognito for user sign-up and sign-in
        B. MongoDB NoSQL database for storing registered device information and device requests/responses
        C. OpenSSL for generating certificates on-demand for registered devices
-       D. Email/SMS notifications using AmazonPinpoint (device-initiated, client-initiated)
+       D. Email/SMS notifications using AmazonPinpoint, Twilio, Nexmo (device-initiated, client-initiated)
+       E. Payment gateway using Paypal
     2. Device Access/Control via Flask+GUnicorn+Nginx
        - get/set GPIOs, get/set RTC, get MAC address, reset device
        - get IP/Subnet/Gateway addresses, write UART
@@ -142,9 +145,11 @@ Menu, account, history
        A. FT900 MCU device (LWIP-MQTT client)
        B. MQTT device simulators (Python Paho-MQTT and NodeJS)
        C. AMQP device simulator (Python Pika-AMQP)
-    5. Deployment to AWS EC2 as microservices using Docker
+    5. Deployment to AWS EC2 as microservices using Docker, Kubernetes and Jenkins
        - 7 microservices/docker containers [rabbitmq, mongodb, webapp, restapi, nginx, notification, historian]
-       - with Dockerfiles and Docker-compose file
+       - with Dockerfiles, Docker-compose file, Kubernetes files and Jenkinsfile
+       - Kubernetes files tested on Minikube
+       - Jenkinsfile for automated building and testing of docker images
     6. Ionic web app can be compiled as iOS/Android mobile apps
        - SSL certificate bought from GoDaddy.com registered on NGINX.
        - Webapp compiled for Android using Ionic but requiring Android Studio/SDK 
@@ -452,7 +457,7 @@ Device access APIs requires username, devicename and access token returned by lo
        A. AWS_PINPOINT_REGION = Region of Cognito User Pool ex. "ap-southeast-1"
        B. AWS_PINPOINT_ID     = Copy from "All projects"
        C. AWS_PINPOINT_EMAIL  = Email registered to be used for email sender
-          
+
 
 ### Install Jenkins
     
@@ -589,12 +594,19 @@ Device access APIs requires username, devicename and access token returned by lo
        export AWS_COGNITO_USERPOOL_ID=""
        export AWS_COGNITO_USERPOOL_REGION=""
        export AWS_PINPOINT_ID=""
-       export AWS_PINPOINT_REGION=""       
+       export AWS_PINPOINT_REGION=""
        export AWS_PINPOINT_EMAIL=""
        export CONFIG_USE_ECC=1 or 0
        export PAYPAL_CLIENT_ID=""
        export PAYPAL_CLIENT_SECRET=""
-       
+       export TWILIO_ACCOUNT_SID=""
+       export TWILIO_AUTH_TOKEN=""
+       export TWILIO_NUMBER_FROM=""
+       export NEXMO_KEY=""
+       export NEXMO_SECRET=""
+       export CONFIG_USE_EMAIL_MODEL=0
+       export CONFIG_USE_SMS_MODEL=0 pinpoint, 1 sns, 2 twilio, 3 nexmo
+
        // Download the repository
        via WinSCP or git
        
@@ -623,7 +635,13 @@ Device access APIs requires username, devicename and access token returned by lo
        CONFIG_USE_ECC
        PAYPAL_CLIENT_ID
        PAYPAL_CLIENT_SECRET
-
+       TWILIO_ACCOUNT_SID
+       TWILIO_AUTH_TOKEN
+       TWILIO_NUMBER_FROM
+       NEXMO_KEY
+       NEXMO_SECRET
+       CONFIG_USE_EMAIL_MODEL
+       CONFIG_USE_SMS_MODEL
 
 ### Docker
 
@@ -771,13 +789,20 @@ Device access APIs requires username, devicename and access token returned by lo
         - AWS_SECRET_ACCESS_KEY
         - AWS_COGNITO_CLIENT_ID
         - AWS_COGNITO_USERPOOL_ID
-        - AWS_COGNITO_USERPOOL_REGION       
+        - AWS_COGNITO_USERPOOL_REGION
         - AWS_PINPOINT_ID
         - AWS_PINPOINT_REGION
         - AWS_PINPOINT_EMAIL
         - CONFIG_USE_ECC=1 or 0
         - PAYPAL_CLIENT_ID
         - PAYPAL_CLIENT_SECRET
+        - TWILIO_ACCOUNT_SID
+        - TWILIO_AUTH_TOKEN
+        - TWILIO_NUMBER_FROM
+        - NEXMO_KEY
+        - NEXMO_SECRET
+        - CONFIG_USE_EMAIL_MODEL=0
+        - CONFIG_USE_SMS_MODEL=0 pinpoint, 1 sns, 2 twilio, 3 nexmo
 
 4. Docker-compose file
 
@@ -865,7 +890,14 @@ Device access APIs requires username, devicename and access token returned by lo
               - AWS_PINPOINT_ID
               - AWS_PINPOINT_REGION
               - AWS_PINPOINT_EMAIL
-              - CONFIG_USE_ECC              
+              - CONFIG_USE_ECC
+              - TWILIO_ACCOUNT_SID
+              - TWILIO_AUTH_TOKEN
+              - TWILIO_NUMBER_FROM
+              - NEXMO_KEY
+              - NEXMO_SECRET
+              - CONFIG_USE_EMAIL_MODEL
+              - CONFIG_USE_SMS_MODEL
           history:
             build: ./history
             restart: always
@@ -874,9 +906,9 @@ Device access APIs requires username, devicename and access token returned by lo
                 ipv4_address: 172.18.0.8
             depends_on:
               - rabbitmq
-              - mongodb              
+              - mongodb
             environment:
-              - CONFIG_USE_ECC              
+              - CONFIG_USE_ECC
         networks:
           mydockernet:
             driver: bridge

@@ -1,6 +1,8 @@
-from notification_config import config as notification_config
+from aws_config import config as aws_config
 from notification_client import notification_client
 from notification_client import notification_types
+from notification_client import notification_models
+from notification_config import config as notification_config
 import json
 import time
 import argparse
@@ -59,6 +61,10 @@ CONFIG_AMQP_TLS_PORT        = 5671
 CONFIG_PREPEND_REPLY_TOPIC  = "server"
 CONFIG_SEPARATOR            = '/'
 
+CONFIG_MODEL_EMAIL          = int(notification_config.CONFIG_USE_EMAIL_MODEL)
+CONFIG_MODEL_SMS            = int(notification_config.CONFIG_USE_SMS_MODEL)
+print("MODEL_EMAIL {}".format(CONFIG_MODEL_EMAIL))
+print("MODEL_SMS {}".format(CONFIG_MODEL_SMS))
 
 
 ###################################################################################
@@ -111,7 +117,7 @@ def on_message(subtopic, subpayload):
 
         is_email = True if recipient.find("@")!=-1 else False
         is_mobile = True if recipient[0] == '+' else False
-        subject = notification_config.CONFIG_PINPOINT_EMAIL_SUBJECT if is_email else None
+        subject = aws_config.CONFIG_PINPOINT_EMAIL_SUBJECT if is_email else None
         type = notification_types.UNKNOWN
         if is_email:
             type = notification_types.EMAIL
@@ -186,9 +192,14 @@ if __name__ == '__main__':
     print("")
 
 
-    # Initialize Notification client (Pinpoint or SNS)
-    g_notification_client = notification_client()
-    g_notification_client.initialize()
+    # Initialize Notification client (Pinpoint, SNS, Twilio or Nexmo)
+    model_email = CONFIG_MODEL_EMAIL
+    model_sms   = CONFIG_MODEL_SMS
+    g_notification_client = notification_client(model_email, model_sms)
+    try:
+        g_notification_client.initialize()
+    except:
+        print("Could not initialize notification model! exception!")
 
 
     # Initialize MQTT/AMQP client
