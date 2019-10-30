@@ -25,13 +25,13 @@ This has been tested using [Minikube](https://github.com/kubernetes/minikube), a
 
 0. Make sure docker images is committed to the docker repository. As the Kubernetes files fetches the docker images from the specified registry.
 
-1. Set docker-registry
+1. Set docker-registry (one-time only)
 
         kubectl create secret docker-registry regcred --docker-server=docker.io 
          --docker-username=USERNAME --docker-password=PASSWORD --docker-email=EMAIL
 
 
-2. Fill-up environment.yaml then run 
+2. Fill-up environment.yaml. Then run below.  (one-time only)
 
         kubectl apply -f environment.yaml
 
@@ -73,7 +73,7 @@ This has been tested using [Minikube](https://github.com/kubernetes/minikube), a
         kubectl apply -f iotnginx-service.yaml
 
 
-9. Stop all
+9. Delete all
 
         kubectl delete service nginx
         kubectl delete deployment nginx
@@ -88,6 +88,10 @@ This has been tested using [Minikube](https://github.com/kubernetes/minikube), a
         kubectl delete service mongodb
         kubectl delete deployment mongodb
         kubectl delete persistentvolumeclaim mydockervol
+        
+        
+10. Delete secrets (not really needed if you want to run again)
+        
         kubectl delete secret environment
         kubectl delete secret regcred
 
