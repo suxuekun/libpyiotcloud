@@ -42,7 +42,10 @@ services:
       - PAYPAL_CLIENT_ID
       - PAYPAL_CLIENT_SECRET
   webapp:
-    build: ./webapp
+    build: 
+      context: ./webapp
+      args:
+        config_use_apiurl: ${CONFIG_USE_APIURL}
     restart: always
     networks:
       - mydockernet
@@ -50,6 +53,8 @@ services:
       - "8100:8100"
     depends_on:
       - restapi
+    environment:
+      - CONFIG_USE_APIURL
   nginx:
     build: 
       context: ./nginx
