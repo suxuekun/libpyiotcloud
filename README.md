@@ -479,7 +479,7 @@ Device access APIs requires username, devicename and access token returned by lo
 ### Install Jenkins
     
        A. Install Jenkins using Docker
-       Go ro _jenkins\server
+       Go to _jenkins/server
        docker-compose -f docker-compose.yml config
        docker-compose build --no-cache
        docker-compose up -d
