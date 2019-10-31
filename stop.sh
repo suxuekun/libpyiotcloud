@@ -14,23 +14,25 @@ docker rm libpyiotcloud_master_history_1
 docker rm libpyiotcloud_master_mongodb_1
 docker rm libpyiotcloud_master_rabbitmq_1
 
-docker stop libpyiotcloud_notification_1
-docker stop libpyiotcloud_nginx_1
-docker stop libpyiotcloud_webapp_1
-docker stop libpyiotcloud_restapi_1
-docker stop libpyiotcloud_history_1
-docker stop libpyiotcloud_mongodb_1
-docker stop libpyiotcloud_rabbitmq_1
+docker stop iotportal_notification_1
+docker stop iotportal_nginx_1
+docker stop iotportal_webapp_1
+docker stop iotportal_restapi_1
+docker stop iotportal_history_1
+docker stop iotportal_mongodb_1
+docker stop iotportal_rabbitmq_1
 
-docker rm libpyiotcloud_notification_1
-docker rm libpyiotcloud_nginx_1
-docker rm libpyiotcloud_webapp_1
-docker rm libpyiotcloud_restapi_1
-docker rm libpyiotcloud_history_1
-docker rm libpyiotcloud_mongodb_1
-docker rm libpyiotcloud_rabbitmq_1
+docker rm iotportal_notification_1
+docker rm iotportal_nginx_1
+docker rm iotportal_webapp_1
+docker rm iotportal_restapi_1
+docker rm iotportal_history_1
+docker rm iotportal_mongodb_1
+docker rm iotportal_rabbitmq_1
+
+docker network prune -f
 
 docker-compose down
 docker-compose rm -f
-docker network prune -f
+
 
