@@ -632,6 +632,7 @@ Device access APIs requires username, devicename and access token returned by lo
        export CONFIG_USE_EMAIL_MODEL=0
        export CONFIG_USE_SMS_MODEL=0 pinpoint, 1 sns, 2 twilio, 3 nexmo
        export CONFIG_USE_CERTS="src_test/" or "src_prod/"
+       export CONFIG_USE_APIURL=""
 
        // Download the repository
        via WinSCP or git
@@ -644,7 +645,7 @@ Device access APIs requires username, devicename and access token returned by lo
        // Docker stop
        docker-compose down
        docker-compose rm
-       
+
 
 ### AWS Credentials
 
@@ -669,6 +670,7 @@ Device access APIs requires username, devicename and access token returned by lo
        CONFIG_USE_EMAIL_MODEL
        CONFIG_USE_SMS_MODEL
        CONFIG_USE_CERTS
+       CONFIG_USE_APIURL
 
 
 ### Docker
@@ -832,6 +834,7 @@ Device access APIs requires username, devicename and access token returned by lo
         - CONFIG_USE_EMAIL_MODEL=0
         - CONFIG_USE_SMS_MODEL=0 pinpoint, 1 sns, 2 twilio, 3 nexmo
         - CONFIG_USE_CERTS="src_test/"
+        - CONFIG_USE_APIURL
 
 4. Docker-compose file
 
@@ -883,7 +886,10 @@ Device access APIs requires username, devicename and access token returned by lo
               - PAYPAL_CLIENT_ID
               - PAYPAL_CLIENT_SECRET
           webapp:
-            build: ./webapp
+            build:
+              context: ./webapp
+              args:
+                config_use_apiurl: ${CONFIG_USE_APIURL}
             restart: always
             networks:
               mydockernet:
@@ -892,6 +898,8 @@ Device access APIs requires username, devicename and access token returned by lo
               - "8100:8100"
             depends_on:
               - restapi
+            environment:
+              - CONFIG_USE_APIURL
           nginx:
             build:
               context: ./nginx
