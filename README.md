@@ -631,6 +631,7 @@ Device access APIs requires username, devicename and access token returned by lo
        export NEXMO_SECRET=""
        export CONFIG_USE_EMAIL_MODEL=0
        export CONFIG_USE_SMS_MODEL=0 pinpoint, 1 sns, 2 twilio, 3 nexmo
+       export CONFIG_USE_CERTS="src_test/" or "src_prod/"
 
        // Download the repository
        via WinSCP or git
@@ -651,7 +652,7 @@ Device access APIs requires username, devicename and access token returned by lo
        2. AWS_SECRET_ACCESS_KEY
        3. AWS_COGNITO_CLIENT_ID
        4. AWS_COGNITO_USERPOOL_ID
-       5. AWS_COGNITO_USERPOOL_REGION       
+       5. AWS_COGNITO_USERPOOL_REGION
        6. AWS_PINPOINT_ID
        7. AWS_PINPOINT_REGION
        8. AWS_PINPOINT_EMAIL
@@ -667,6 +668,8 @@ Device access APIs requires username, devicename and access token returned by lo
        NEXMO_SECRET
        CONFIG_USE_EMAIL_MODEL
        CONFIG_USE_SMS_MODEL
+       CONFIG_USE_CERTS
+
 
 ### Docker
 
@@ -828,6 +831,7 @@ Device access APIs requires username, devicename and access token returned by lo
         - NEXMO_SECRET
         - CONFIG_USE_EMAIL_MODEL=0
         - CONFIG_USE_SMS_MODEL=0 pinpoint, 1 sns, 2 twilio, 3 nexmo
+        - CONFIG_USE_CERTS="src_test/"
 
 4. Docker-compose file
 
@@ -847,7 +851,7 @@ Device access APIs requires username, devicename and access token returned by lo
               - "8883"
               - "5671"
             environment:
-              - CONFIG_USE_ECC              
+              - CONFIG_USE_ECC
           mongodb:
             build: ./mongodb
             restart: always
@@ -889,7 +893,10 @@ Device access APIs requires username, devicename and access token returned by lo
             depends_on:
               - restapi
           nginx:
-            build: ./nginx
+            build:
+              context: ./nginx
+              args:
+                config_use_certs: ${CONFIG_USE_CERTS}
             restart: always
             networks:
               mydockernet:
@@ -901,6 +908,8 @@ Device access APIs requires username, devicename and access token returned by lo
             depends_on:
               - restapi
               - webapp
+            environment:
+              - CONFIG_USE_CERTS
           notification:
             build: ./notification
             restart: always
