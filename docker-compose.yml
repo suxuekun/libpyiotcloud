@@ -51,7 +51,10 @@ services:
     depends_on:
       - restapi
   nginx:
-    build: ./nginx
+    build: 
+      context: ./nginx
+      args:
+        config_use_certs: ${CONFIG_USE_CERTS}
     restart: always
     networks:
       - mydockernet
@@ -62,6 +65,8 @@ services:
     depends_on:
       - restapi
       - webapp
+    environment:
+      - CONFIG_USE_CERTS
   notification:
     build: ./notification
     restart: always
