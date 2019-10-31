@@ -1,7 +1,7 @@
 # Project specific
 
-nginx/src/cert_prod/cert.pem
-nginx/src/cert_prod/pkey.pem
+nginx/src_prod/cert/cert.pem
+nginx/src_prod/cert/pkey.pem
 aws-config.sh
 aws-config-old.sh
 _client_simulator/__pycache__
