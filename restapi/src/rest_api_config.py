@@ -9,7 +9,7 @@ class config:
         CONFIG_HTTP_USE_TLS     = True
     else:
         CONFIG_HTTP_USE_TLS     = False # Set to False when using GUnicorn (only in Linux)
-    CONFIG_HTTP_HOST            = "localhost"
+    CONFIG_HTTP_HOST            = "192.168.99.100"
     CONFIG_HTTP_PORT            = 8000
     CONFIG_HTTP_TLS_PORT        = 443
     if int(os.environ["CONFIG_USE_ECC"])==1:
