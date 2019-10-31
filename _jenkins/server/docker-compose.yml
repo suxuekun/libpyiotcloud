@@ -4,10 +4,8 @@ services:
     build: ./jenkins
     ports:
       - "8080:8080"
-      - "50000:50000"
     expose:
       - "8080"
-      - "50000"
     environment:
       - AWS_ACCESS_KEY_ID
       - AWS_SECRET_ACCESS_KEY
@@ -18,6 +16,13 @@ services:
       - AWS_PINPOINT_REGION
       - AWS_PINPOINT_EMAIL
       - CONFIG_USE_ECC
+      - TWILIO_ACCOUNT_SID
+      - TWILIO_AUTH_TOKEN
+      - TWILIO_NUMBER_FROM
+      - NEXMO_KEY
+      - NEXMO_SECRET
+      - CONFIG_USE_EMAIL_MODEL
+      - CONFIG_USE_SMS_MODEL
     volumes:
       - "myjenkinsvol:/var/jenkins_home"
       - "/var/run/docker.sock:/var/run/docker.sock"
