@@ -487,6 +487,9 @@ Device access APIs requires username, devicename and access token returned by lo
        browse http://DOCKERMACHINEIP:8080
        docker ps
        docker logs DOCKERJENKINSNAME // to get the password
+       docker exec -it CONTAINERID /bin/bash
+       cat /var/jenkins_home/secrets/initialAdminPassword // to get the password
+       exit
        Set password
        Install suggested plugins
 
