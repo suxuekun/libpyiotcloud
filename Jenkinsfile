@@ -9,7 +9,7 @@ pipeline {
                 echo "Copy certificates STARTED"
                 sh "sudo cp /home/ec2-user/certificates/cert.pem nginx/src_prod/cert/cert.pem"
                 sh "sudo cp /home/ec2-user/certificates/pkey.pem nginx/src_prod/cert/pkey.pem"
-                sh "ls -l nginx/src_prod/cert"
+                sh "sudo ls -l nginx/src_prod/cert"
                 echo "Copy certificates COMPLETED"
             }
         }
@@ -33,7 +33,7 @@ pipeline {
         stage("Docker-compose build") {
             steps {
                 echo "BUILDING docker images"
-                sh "ls -l nginx/src_prod/cert"
+                sh "sudo ls -l nginx/src_prod/cert"
                 sh "docker-compose build"
             }
         }
