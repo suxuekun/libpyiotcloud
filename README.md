@@ -284,6 +284,44 @@ Device access APIs requires username, devicename and access token returned by lo
 
 
 
+# Continuous Integration/Continuous Delivery (CI/CD)
+
+CI/CD via Jenkins has been setuped.
+
+This continuous delivery process automates deployment, minimizes downtime and reduces maintenance cost.
+
+- <b>Old method:</b> copy new code to EC2 => stop docker images via docker-compose down => build new docker images => run docker images
+
+- <b>New method:</b> Fully automated with Jenkins (github => jenkins => aws ec2)
+
+
+### Status
+
+- <b>Continuous delivery</b> = OK (Jenkins SERVER on AWS EC2)
+
+- <b>Continuous integration</b> = NG (Jenkins SERVER on local machine, TODO add automated testing)
+
+
+### Features
+
+Every commit to main branch of https://github.com/richmondu/libpyiotcloud triggers Jenkins to fetch latest code, build it, deploy to AWS EC2 and send email notifications.
+
+- This automated triggering is done via <b>Github Webhook</b> which calls a Jenkins webhook URL. 
+
+- <b>Email notification</b> is sent to the BRTCHIP team
+
+
+### Limitations
+
+Jenkins master is currently on the same AWS EC2 instance as the webapp
+
+- <b>Pros:</b> cost-effective - only 1 ec2 instance for now
+
+- <b>Cons:</b> scalable, share resources
+
+Note: Using Kubernetes will also change the infrastracture.
+
+
 
 # Instructions (Docker)
 
@@ -1189,45 +1227,6 @@ Device access APIs requires username, devicename and access token returned by lo
           
        D. To delete the cluster and its associated worker nodes
           eksctl delete cluster --name <CLUSTERNAME>
-
-
-
-# Continuous Integration/Continuous Delivery (CI/CD)
-
-CI/CD via Jenkins has been setuped.
-
-This continuous delivery process automates deployment, minimizes downtime and reduces maintenance cost.
-
-- <b>Old method:</b> copy new code to EC2 => stop docker images via docker-compose down => build new docker images => run docker images
-
-- <b>New method:</b> Fully automated with Jenkins (github => jenkins => aws ec2)
-
-
-### Status
-
-<b>Continuous delivery</b> = OK (Jenkins SERVER on AWS EC2)
-
-<b>Continuous integration</b> = NG (Jenkins SERVER on local machine, TODO add automated testing)
-
-
-### Features
-
-Every commit to main branch of https://github.com/richmondu/libpyiotcloud triggers Jenkins to fetch latest code, build it, deploy to AWS EC2 and send email notifications.
-
-This automated triggering is done via <b>Github Webhook</b> which calls a Jenkins webhook URL. 
-
-<b>Email notification</b> is sent to the BRTCHIP team
-
-
-### Limitations
-
-Jenkins master is currently on the same AWS EC2 instance as the webapp
-
-<b>Pros:</b> cost-effective - only 1 ec2 instance for now
-
-<b>Cons:</b> scalable, share resources
-
-Note: Using Kubernetes will also change the infrastracture.
 
 
 
