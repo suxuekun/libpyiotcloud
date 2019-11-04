@@ -1164,34 +1164,34 @@ CI/CD via Jenkins has been setuped.
 
 This continuous delivery process automates deployment, minimizes downtime and reduces maintenance cost.
 
-- Old method: copy new code to EC2 => stop docker images via docker-compose down => build new docker images => run docker images
+- <b>Old method:</b> copy new code to EC2 => stop docker images via docker-compose down => build new docker images => run docker images
 
-- New method: Fully automated with Jenkins (github => jenkins => aws ec2)
+- <b>New method:</b> Fully automated with Jenkins (github => jenkins => aws ec2)
 
 
 ### Status
 
-Continuous delivery    = OK (Jenkins SERVER on AWS EC2)
+<b>Continuous delivery</b> = OK (Jenkins SERVER on AWS EC2)
 
-Continuous integration = NG (Jenkins SERVER on local machine, TODO add automated testing)
+<b>Continuous integration</b> = NG (Jenkins SERVER on local machine, TODO add automated testing)
 
 
 ### Features
 
-Every commit to main branch of https://github.com/richmondu/libpyiotcloud triggers Jenkins to fetches latest code, builds it and deploys to AWS EC2.
+Every commit to main branch of https://github.com/richmondu/libpyiotcloud triggers Jenkins to fetch latest code, build it, deploy to AWS EC2 and send email notifications.
 
-This automated triggering is done via Github Webhook which calls a Jenkins webhook URL. 
+This automated triggering is done via <b>Github Webhook</b> which calls a Jenkins webhook URL. 
 
-Email notification is sent to the BRTCHIP team
+<b>Email notification</b> is sent to the BRTCHIP team
 
 
 ### Limitations
 
-Jenkins master is currently on the same AWS EC2 instance as the webapp, http://ec2-3-86-65-191.compute-1.amazonaws.com:8080
+Jenkins master is currently on the same AWS EC2 instance as the webapp
 
-Pros: cost-effective - only 1 ec2 instance for now
+<b>Pros:</b> cost-effective - only 1 ec2 instance for now
 
-Cons: scalable, share resources
+<b>Cons:</b> scalable, share resources
 
 Note: Using Kubernetes will also change the infrastracture.
 
