@@ -45,6 +45,7 @@
 
 2. Go to device_simulator folder and install the required nodejs libraries of the application:
 
+    - cd __device_simulator
     - npm install mqtt
     - npm install fs
     - npm install system-sleep
