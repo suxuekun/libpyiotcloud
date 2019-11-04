@@ -474,67 +474,6 @@ Device access APIs requires username, devicename and access token returned by lo
        A. AWS_PINPOINT_REGION = Region of Cognito User Pool ex. "ap-southeast-1"
        B. AWS_PINPOINT_ID     = Copy from "All projects"
        C. AWS_PINPOINT_EMAIL  = Email registered to be used for email sender
-
-
-### Install Jenkins (on local and on AWS EC2)
-    
-       // Install Jenkins using Docker
-       Go to _jenkins/server
-       docker-compose -f docker-compose.yml config
-       docker-compose build --no-cache
-       docker-compose up -d
-       docker-machine ip
-       browse http://DOCKERMACHINEIP:8080
-       docker ps
-       docker logs DOCKERJENKINSNAME // to get the password
-       docker exec -it CONTAINERID /bin/bash
-       cat /var/jenkins_home/secrets/initialAdminPassword // to get the password
-       exit
-       Set password
-       Install suggested plugins
-
-
-       // Install Jenkins on AWS EC2 without Docker
-       sudo yum update –y
-       
-       A. Install Java 8
-       sudo yum install -y java-1.8.0-openjdk.x86_64
-       sudo /usr/sbin/alternatives --set java /usr/lib/jvm/jre-1.8.0-openjdk.x86_64/bin/java
-       sudo /usr/sbin/alternatives --set javac /usr/lib/jvm/jre-1.8.0-openjdk.x86_64/bin/javac
-       sudo yum remove java-1.7.0
-       
-       B. Install Jenkins
-       sudo wget -O /etc/yum.repos.d/jenkins.repo http://pkg.jenkins-ci.org/redhat/jenkins.repo
-       sudo rpm --import https://pkg.jenkins.io/redhat/jenkins.io.key
-       sudo yum install jenkins -y
-       sudo service jenkins start
-       
-       C. Update Jenkins configuration file
-       sudo vi /etc/sysconfig/jenkins
-       Update value of JENKINS_USER to "ec2-user"
-       Update value of JENKINS_ARGS to "-Dmail.smtp.starttls.enable=true"
-       Add JENKINS_JAVA_OPTIONS with "-Dmail.smtp.starttls.enable=true"
-       :x
-       chown -R ec2-user:ec2-user /var/lib/jenkins
-       chown -R ec2-user:ec2-user /var/cache/jenkins
-       chown -R ec2-user:ec2-user /var/log/jenkins       
-       sudo service jenkins restart
-       
-       D. Set Jenkins email notification
-       System Admin e-mail address: JENKINS_ADMIN@brtchip.com
-       Enable Use SMTP Authentication
-       SMTP server: smtp.office365.com
-       Username: JENKINS_ADMIN@brtchip.com
-       Password: PASSWORD OF JENKINS_ADMIN@brtchip.com
-       SMTP Port: 587
-       Reply-To Address: JENKINS_ADMIN@brtchip.com
-       Charset UTF-8
-       Set environment variables in Global Properties/environment variables       
-
-       E. Set Github Webhook
-       Go to Github project repository > Settings >  Webhooks > Edit
-       Set Payload URL to the Jenkins server: http://JENKINS_URL:8080/github-webhook/
-       Go to Jenkins pipeline > Build Triggers > GitHub hook trigger for GITScm polling
        
 
 ### Others
@@ -1075,6 +1014,67 @@ Device access APIs requires username, devicename and access token returned by lo
    <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/paypal_selectorder.png" width="400"/>
    <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/paypal_approval.png" width="400"/>
    <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/paypal_paymentconfirmation.png" width="400"/>
+
+
+### Install Jenkins (on local and on AWS EC2)
+    
+       // Install Jenkins using Docker
+       Go to _jenkins/server
+       docker-compose -f docker-compose.yml config
+       docker-compose build --no-cache
+       docker-compose up -d
+       docker-machine ip
+       browse http://DOCKERMACHINEIP:8080
+       docker ps
+       docker logs DOCKERJENKINSNAME // to get the password
+       docker exec -it CONTAINERID /bin/bash
+       cat /var/jenkins_home/secrets/initialAdminPassword // to get the password
+       exit
+       Set password
+       Install suggested plugins
+
+
+       // Install Jenkins on AWS EC2 without Docker
+       sudo yum update –y
+       
+       A. Install Java 8
+       sudo yum install -y java-1.8.0-openjdk.x86_64
+       sudo /usr/sbin/alternatives --set java /usr/lib/jvm/jre-1.8.0-openjdk.x86_64/bin/java
+       sudo /usr/sbin/alternatives --set javac /usr/lib/jvm/jre-1.8.0-openjdk.x86_64/bin/javac
+       sudo yum remove java-1.7.0
+       
+       B. Install Jenkins
+       sudo wget -O /etc/yum.repos.d/jenkins.repo http://pkg.jenkins-ci.org/redhat/jenkins.repo
+       sudo rpm --import https://pkg.jenkins.io/redhat/jenkins.io.key
+       sudo yum install jenkins -y
+       sudo service jenkins start
+       
+       C. Update Jenkins configuration file
+       sudo vi /etc/sysconfig/jenkins
+       Update value of JENKINS_USER to "ec2-user"
+       Update value of JENKINS_ARGS to "-Dmail.smtp.starttls.enable=true"
+       Add JENKINS_JAVA_OPTIONS with "-Dmail.smtp.starttls.enable=true"
+       :x
+       chown -R ec2-user:ec2-user /var/lib/jenkins
+       chown -R ec2-user:ec2-user /var/cache/jenkins
+       chown -R ec2-user:ec2-user /var/log/jenkins       
+       sudo service jenkins restart
+       
+       D. Set Jenkins email notification
+       System Admin e-mail address: JENKINS_ADMIN@brtchip.com
+       Enable Use SMTP Authentication
+       SMTP server: smtp.office365.com
+       Username: JENKINS_ADMIN@brtchip.com
+       Password: PASSWORD OF JENKINS_ADMIN@brtchip.com
+       SMTP Port: 587
+       Reply-To Address: JENKINS_ADMIN@brtchip.com
+       Charset UTF-8
+       Set environment variables in Global Properties/environment variables       
+
+       E. Set Github Webhook
+       Go to Github project repository > Settings >  Webhooks > Edit
+       Set Payload URL to the Jenkins server: http://JENKINS_URL:8080/github-webhook/
+       Go to Jenkins pipeline > Build Triggers > GitHub hook trigger for GITScm polling
 
 
 ### Setup Amazon EKS (Kubernetes)
