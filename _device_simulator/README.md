@@ -1,20 +1,22 @@
 ### Device simulators (Python):
 
 
-Install Python (preferably v3.6.6 - only version that was tested)
+1. Install the latest Python 3.X.X from https://www.python.org/downloads/
 
-Then install the required python libraries of the application:
+2. Install the required python libraries of the application:
 
-    pip install -r requirements.txt
+   pip install -r requirements.txt OR python pip install -r requirements.txt
 
-Update the device ID in the __mqtt or __amqp batch scripts then run. (Both MQTT and AMQP prototcols are supported.)
+3. Update DEVICE_ID in device_simulator.py_mqtt_ft900device1_ecc.bat.
+
+4. Run device_simulator.py_mqtt_ft900device1_ecc.bat.
 
 
 ### Device simulators (Javascript):
 
-Install NodeJS.
+1. Install the latest NodeJS from https://nodejs.org/en/download/
 
-Then install the required nodejs libraries of the application:
+2. Go to device_simulator folder and install the required nodejs libraries of the application:
 
     npm install mqtt
     npm install fs
@@ -22,7 +24,9 @@ Then install the required nodejs libraries of the application:
     npm install os
     npm install argparse
 
-Update the device ID in the batch scripts then run.
+3. Update DEVICE_ID in device_simulator.js_mqtt_ft900device1_ecc.bat.
+
+4. Run device_simulator.js_mqtt_ft900device1_ecc.bat.
 
 
 ### FT900 Device
