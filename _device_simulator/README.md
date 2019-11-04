@@ -30,7 +30,7 @@
 4. Run <b>device_simulator.js_mqtt_ft900device1_ecc.bat</b>.
 
 
-### FT900 Device
+# FT900 Device (FT900RevC or IoTModule)
 
 https://github.com/richmondu/FT900/tree/master/IoT/ft90x_iot_brtcloud
 
