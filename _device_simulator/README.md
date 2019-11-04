@@ -31,9 +31,9 @@
 
 ### Test
 
-1. Update DEVICE_ID in <b>device_simulator.py_mqtt_ft900device1_ecc.bat</b>.
+1. Update DEVICE_ID in <b>device_simulator.py_mqtt_ecc.bat</b>.
 
-2. Run <b>device_simulator.py_mqtt_ft900device1_ecc.bat</b>.
+2. Run <b>device_simulator.py_mqtt_ecc.bat</b>.
 
 
 
@@ -53,9 +53,9 @@
 
 ### Test
 
-1. Update DEVICE_ID in <b>device_simulator.js_mqtt_ft900device1_ecc.bat</b>.
+1. Update DEVICE_ID in <b>device_simulator.js_mqtt_ecc.bat</b>.
 
-2. Run <b>device_simulator.js_mqtt_ft900device1_ecc.bat</b>.
+2. Run <b>device_simulator.js_mqtt_ecc.bat</b>.
 
 
 
