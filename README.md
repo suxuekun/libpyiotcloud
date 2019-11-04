@@ -1156,6 +1156,8 @@ Dev/test: 192.168.99.100 or docker-machine ip or localhost
 
 Production: richmondu.com or equivalent
 
+Notes:
+
 - This is used in webapp container, specifically in webapp\src\ionicapp\www\js\env.js
 
 
@@ -1164,6 +1166,8 @@ Production: richmondu.com or equivalent
 Dev/test: "src_test/"
 
 Production: "src_prod/"
+
+Notes:
 
 - This is used in nginx container.
 - src_prod certificates are not committed for security purposes.
