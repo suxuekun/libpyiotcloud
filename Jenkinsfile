@@ -9,7 +9,7 @@ pipeline {
                 echo "Copy certificates STARTED"
                 sh "cp /home/ec2-user/certificates/cert.pem nginx/src_prod/cert/cert.pem"
                 sh "cp /home/ec2-user/certificates/pkey.pem nginx/src_prod/cert/pkey.pem"
-                sh "rmdir -rf nginx/src_prod/cert/certificates"
+                sh "rmdir -r nginx/src_prod/cert/certificates"
                 sh "ls -l nginx/src_prod/cert"
                 echo "Copy certificates COMPLETED"
             }
