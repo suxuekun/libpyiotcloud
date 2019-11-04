@@ -997,6 +997,31 @@ Device access APIs requires username, devicename and access token returned by lo
 <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/ui_androidemulator.png" width="1000"/>
 
 
+### Setup Twilio
+
+        // Environment Variables
+        - TWILIO_ACCOUNT_SID
+        - TWILIO_AUTH_TOKEN
+        - TWILIO_NUMBER_FROM
+        
+        // Sending SMS
+        from twilio.rest import Client
+        client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
+        message = client.messages.create(from_='xxxx', body='hello world', to='+639175900612')
+
+
+### Setup Nexmo
+
+        // Environment Variables
+        - NEXMO_KEY
+        - NEXMO_SECRET
+
+        // Sending SMS
+        import nexmo
+        client = nexmo.Client(key=NEXMO_KEY, secret=NEXMO_SECRET)
+        client.send_message({'from': 'Nexmo', 'to': '639175900612', 'text': 'hello world',})
+
+
 ### Setup Paypal
 
         // Setup Paypal Sandbox accounts
