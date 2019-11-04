@@ -1153,6 +1153,7 @@ Device access APIs requires username, devicename and access token returned by lo
 ### CONFIG_USE_APIURL
 
 Dev/test: 192.168.99.100 or docker-machine ip or localhost
+
 Production: richmondu.com or equivalent
 
 - This is used in webapp container, specifically in webapp\src\ionicapp\www\js\env.js
@@ -1161,6 +1162,7 @@ Production: richmondu.com or equivalent
 ### CONFIG_USE_CERTS
 
 Dev/test: "src_test/"
+
 Production: "src_prod/"
 
 - This is used in nginx container.
