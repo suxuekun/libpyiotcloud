@@ -11,9 +11,8 @@ pipeline {
         stage("Copy production certificates") {
             steps {
                 echo "Copy certificates STARTED"
-                sh "chmod 777 -R nginx/src_prod/cert"
-                sh "cp /home/ec2-user/certificates/cert.pem nginx/src_prod/cert/cert.pem"
-                sh "cp /home/ec2-user/certificates/pkey.pem nginx/src_prod/cert/pkey.pem"
+                sh "sudo cp /home/ec2-user/certificates/cert.pem nginx/src_prod/cert/cert.pem"
+                sh "sudo cp /home/ec2-user/certificates/pkey.pem nginx/src_prod/cert/pkey.pem"
                 sh "ls -l nginx/src_prod/cert"
                 echo "Copy certificates COMPLETED"
             }
