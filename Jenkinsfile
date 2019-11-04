@@ -34,8 +34,8 @@ pipeline {
         stage("MESSAGE BROKER tester") {
             steps {
                 echo "MESSAGE BROKER tester STARTED"
-                sh "cd _jenkins/tester"
-                sh "python -v"
+                //sh "cd _jenkins/tester"
+                //sh "python -v"
                 echo "MESSAGE BROKER tester COMPLETED"
             }
         }
@@ -69,7 +69,8 @@ pipeline {
           echo "Sending email notification..."
           mail to: 'richmond.umagat@brtchip.com',
             subject: "Jenkins build email notification for ${currentBuild.projectName}",
-            body: "Jenkins build triggered ${env.BUILD_URL}.\nProject: ${currentBuild.fullDisplayName}\nRepository: ${env.BRANCH_NAME}\nResult: ${currentBuild.currentResult}\n"
+            body: "Jenkins build triggered ${env.BUILD_URL}.\nProject: ${currentBuild.projectName}\nResult: ${currentBuild.currentResult}\n"
+          echo "Sending email notification...DONE"
       }
 
       success {
