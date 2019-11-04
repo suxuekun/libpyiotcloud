@@ -91,13 +91,22 @@ pipeline {
 
     post {
         always {
-            echo "Docker-compose completed"
+            script {
+                echo "Docker-compose completed"
           
-            echo "Sending email notification.."
-            mail to: 'richmond.umagat@brtchip.com, richmond.umagat@gmail.com',
-                subject: "Jenkins notification - ${currentBuild.projectName}",
-                body: "Jenkins build triggered ${env.BUILD_URL}.\nProject: ${currentBuild.projectName}\nResult: ${currentBuild.currentResult}\n"
-            echo "Sending email notification..DONE"
+                echo "Sending email notification.."
+                if (env.CONFIG_USE_APIURL == "richmondu.com") {            
+                    mail to: 'richmond.umagat@brtchip.com, richmond.umagat@gmail.com',
+                        subject: "Jenkins notification - ${currentBuild.projectName}",
+                        body: "Jenkins build triggered ${env.BUILD_URL}.\nProject: ${currentBuild.projectName}\nResult: ${currentBuild.currentResult}\n"
+                }
+                else {
+                    mail to: 'richmond.umagat@brtchip.com',
+                        subject: "Jenkins notification - ${currentBuild.projectName}",
+                        body: "Jenkins build triggered ${env.BUILD_URL}.\nProject: ${currentBuild.projectName}\nResult: ${currentBuild.currentResult}\n"
+                }
+                echo "Sending email notification..DONE"
+            }
         }
 
         success {
