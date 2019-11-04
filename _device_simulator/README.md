@@ -61,5 +61,5 @@
 
 # FT900 device (FT900RevC or IoTModule)
 
-If you do have an FT900 board, refer to the instructions [here](https://github.com/richmondu/FT900/tree/master/IoT/ft90x_iot_brtcloud).
+If you have an FT900 board (FT900RevC or IoTModule), then refer to the instructions [here](https://github.com/richmondu/FT900/tree/master/IoT/ft90x_iot_brtcloud).
 
