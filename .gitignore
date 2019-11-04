@@ -8,9 +8,11 @@ _client_simulator/__pycache__
 _device_simulator/__pycache__
 _device_simulator/node_modules
 _device_simulator/package-lock.json
+_device_simulator/obsoleted_rsa
 _kubernetes/environment.yaml
 _requirements
 _presentation
+
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
