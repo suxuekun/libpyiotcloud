@@ -14,6 +14,7 @@ pipeline {
         
         stage("Docker-compose down") {
             steps {
+                echo "STOPPING running containers"
                 sh "docker-compose down"
                 sh "docker-compose rm -f"
                 sh "docker network prune -f"
@@ -22,18 +23,22 @@ pipeline {
 
         stage("Docker-compose config") {
             steps {
+                echo "CHECKING configuration"
                 sh "docker-compose -f docker-compose.yml config"
             }
         }
 
         stage("Docker-compose build") {
             steps {
-                sh "docker-compose build --no-cache"
+                echo "BUILDING docker images"
+                sh "ls -l nginx/src_prod/cert"
+                sh "docker-compose build"
             }
         }
 
         stage("Docker-compose up") {
             steps {
+                echo "RUNNING containers"
                 sh "docker-compose up -d"
             }
         }
