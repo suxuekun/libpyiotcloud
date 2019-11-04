@@ -85,11 +85,11 @@ pipeline {
         always {
             echo "Docker-compose completed"
           
-            echo "Sending email notification..."
+            echo "Sending email notification.."
             mail to: 'richmond.umagat@brtchip.com',
                 subject: "Jenkins notification - ${currentBuild.projectName}",
                 body: "Jenkins build triggered ${env.BUILD_URL}.\nProject: ${currentBuild.projectName}\nResult: ${currentBuild.currentResult}\n"
-            echo "Sending email notification...DONE"
+            echo "Sending email notification..DONE"
         }
 
         success {
