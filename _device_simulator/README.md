@@ -7,9 +7,9 @@
 
    pip install -r requirements.txt OR python pip install -r requirements.txt
 
-3. Update DEVICE_ID in device_simulator.py_mqtt_ft900device1_ecc.bat.
+3. Update DEVICE_ID in <b>device_simulator.py_mqtt_ft900device1_ecc.bat</b>.
 
-4. Run device_simulator.py_mqtt_ft900device1_ecc.bat.
+4. Run <b>device_simulator.py_mqtt_ft900device1_ecc.bat</b>.
 
 
 ### Device simulators (Javascript):
@@ -24,9 +24,9 @@
     npm install os
     npm install argparse
 
-3. Update DEVICE_ID in device_simulator.js_mqtt_ft900device1_ecc.bat.
+3. Update DEVICE_ID in <b>device_simulator.js_mqtt_ft900device1_ecc.bat</b>.
 
-4. Run device_simulator.js_mqtt_ft900device1_ecc.bat.
+4. Run <b>device_simulator.js_mqtt_ft900device1_ecc.bat</b>.
 
 
 ### FT900 Device
