@@ -7,14 +7,15 @@ pipeline {
         stage("Copy production certificates") {
             steps {
                 echo "Copy certificates STARTED"
-                def folder = new File('/home/ec2-user/certificates')
-                if (folder.exists()) {
-                     echo "Certificates folder exists!"
-                }
-                else {
-                     echo "Certificates folder does NOT exist!"
-                }
+                
                 // TODO: If production certificates exist, copy to nginx/src_prod/cert/
+                fileOperations([fileCopyOperation(
+                  excludes: '',
+                  flattenFiles: false,
+                  includes: '/home/ec2-user/certificates',
+                  targetLocation: "nginx/src_prod/cert"
+                )]).
+                    
                 echo "Copy certificates COMPLETED"
             }
         }
