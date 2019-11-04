@@ -12,7 +12,9 @@
     - Device simulator (NodeJS)
     - FT900 device (FT900RevC or IoTModule)
 
-4. Access and control the device via the IoT portal. (GPIO, RTC, UART, IP/MAC, etc)
+4. Run the device.
+
+5. Access and control the device via the IoT portal. (GPIO, RTC, UART, IP/MAC, etc)
 
 
 
