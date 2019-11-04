@@ -7,15 +7,7 @@ pipeline {
         stage("Copy production certificates") {
             steps {
                 echo "Copy certificates STARTED"
-                
-                // TODO: If production certificates exist, copy to nginx/src_prod/cert/
-                fileOperations([fileCopyOperation(
-                  excludes: '',
-                  flattenFiles: false,
-                  includes: '/home/ec2-user/certificates',
-                  targetLocation: "nginx/src_prod/cert"
-                )]).
-                    
+                sh "cp -ar /home/ec2-user/certificates/ nginx/src_prod/cert"
                 echo "Copy certificates COMPLETED"
             }
         }
