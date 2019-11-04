@@ -76,6 +76,9 @@ An alternative solution is using an AWS serverless solution wherein:
 6. <b>Notification</b> (handles sending of messages to email/SMS recipients)
 7. <b>Historian</b> (handles saving of device requests and responses for each devices of all users)
 
+
+<img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/architecture_frontend.png" width="1000"/>
+
 Front-end
 
 1. <b>Mobile</b>: Ionic mobile app -> (nginx -> gunicorn) -> RestAPI
@@ -83,10 +86,10 @@ Front-end
 
 Back-end
 
-1. <b>RestAPI</b> (Flask) -> Cognito, MongoDB, Paypal
-2. <b>RabbitMQ</b>: accessed by device, notification service and history service
-3. <b>Notification service</b> -> RabbitMQ, Pinpoint, Twilio, Nexmo
-4. <b>History service</b> -> RabbitMQ, MongoDB
+1. <b>RestAPI</b> (Flask) -> Cognito, MongoDB, Paypal, RabbitMQ
+2. <b>RabbitMQ</b>: accessed by restapi, device, notification service and history service
+3. <b>History service</b> -> RabbitMQ, MongoDB
+4. <b>Notification service</b> -> RabbitMQ, Pinpoint, Twilio, Nexmo
 
 Device
 
