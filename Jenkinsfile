@@ -12,8 +12,8 @@ pipeline {
             steps {
                 script {
                     echo "Copy certificates STARTED"
-                    echo "env[CONFIG_USE_APIURL]"
-                    if (env[CONFIG_USE_APIURL] == "richmondu.com") {
+                    echo "env.CONFIG_USE_APIURL"
+                    if (env.CONFIG_USE_APIURL == "richmondu.com") {
                         echo "Production"                    
                     }
                     sh "sudo cp /home/ec2-user/certificates/cert.pem nginx/src_prod/cert/cert.pem"
