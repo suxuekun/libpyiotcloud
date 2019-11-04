@@ -76,6 +76,9 @@ An alternative solution is using an AWS serverless solution wherein:
 6. <b>Notification</b> (handles sending of messages to email/SMS recipients)
 7. <b>Historian</b> (handles saving of device requests and responses for each devices of all users)
 
+
+<img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/architecture_frontend.png" width="1000"/>
+
 Front-end
 
 1. <b>Mobile</b>: Ionic mobile app -> (nginx -> gunicorn) -> RestAPI
