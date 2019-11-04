@@ -1203,14 +1203,7 @@ In Linux, the total round trip time is only 1 second.
 
 # Reminders
 
-0. List of files to change: 
-
-    - webapp\src\ionicapp\www\js\server.js 
-    - nginx\src\cert.pem
-    - nginx\src\pkey.pem
-    - rabbitmq\src\rabbitmq.config (for RSA) or rabbitmq_ecc.config (for ECC)
-    
-1. The private key for rootca is not committed in restapi/src/cert/ [for security purposes].
+1. The NGINX production certificates not committed for security purposes.
 2. The value of rest_api variable in webapp/src/ionicapp/www/js/server.js should correspond to the GoDaddy domain name or AWS EC2 public IP address.
    [this may be changed to an environment variable if possible]
    When using local machine, 192.168.99.100 is the default docker ip.
@@ -1221,5 +1214,4 @@ In Linux, the total round trip time is only 1 second.
 4. The certificate bought from GoDaddy is different from the self-signed certificate for RabbitMQ.
    - RABBITMQ: Uses the self-signed rootca; for MQTTS/AMQPS device connectivity
    - NGINX: Uses the trusted certificate bought from GoDaddy; for HTTPS web/mobile connectivity; currently tied up to richmondu.com
-5. Customers can directly use the (Flask) REST APIs. They can create their own front-end web/mobile apps that calls our REST APIs.
 
