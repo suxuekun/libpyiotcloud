@@ -1,3 +1,21 @@
+# How To Guide:
+
+0. Access the IoT portal [here](https://richmondu.com). (iOS/Android app simulators are also available [here](https://creator.ionic.io/share/8f86e2005ba5).)
+
+1. Create an account and login.
+
+2. Register a device (Registering a device will return a unique DEVICE_ID).
+
+3. Set the DEVICE_ID on the device.
+
+    - device simulator (Python)
+    - device simulator (NodeJS)
+    - actual FT900 device.
+
+4. Access and control the device via the IoT portal. (GPIO, RTC, UART, IP/MAC, etc)
+
+
+
 # Device simulators (Python):
 
 
@@ -32,5 +50,5 @@
 
 # FT900 Device (FT900RevC or IoTModule)
 
-https://github.com/richmondu/FT900/tree/master/IoT/ft90x_iot_brtcloud
+If you do have an FT900 board, refer to the instructions [here](https://github.com/richmondu/FT900/tree/master/IoT/ft90x_iot_brtcloud).
 
