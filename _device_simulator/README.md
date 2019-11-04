@@ -5,8 +5,8 @@
 
 2. Install the required python libraries of the application:
 
-- pip install -r requirements.txt OR
-- python pip install -r requirements.txt
+    - pip install -r requirements.txt OR
+    - python pip install -r requirements.txt
 
 3. Update DEVICE_ID in <b>device_simulator.py_mqtt_ft900device1_ecc.bat</b>.
 
@@ -19,11 +19,11 @@
 
 2. Go to device_simulator folder and install the required nodejs libraries of the application:
 
-- npm install mqtt
-- npm install fs
-- npm install system-sleep
-- npm install os
-- npm install argparse
+    - npm install mqtt
+    - npm install fs
+    - npm install system-sleep
+    - npm install os
+    - npm install argparse
 
 3. Update DEVICE_ID in <b>device_simulator.js_mqtt_ft900device1_ecc.bat</b>.
 
