@@ -28,7 +28,7 @@ pipeline {
 
         stage("Docker-compose build") {
             steps {
-                sh "docker-compose build"
+                sh "docker-compose build --no-cache"
             }
         }
 
