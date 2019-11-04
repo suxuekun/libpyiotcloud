@@ -13,7 +13,7 @@
 4. Run <b>device_simulator.py_mqtt_ft900device1_ecc.bat</b>.
 
 
-# Device simulators (Javascript):
+# Device simulators (NodeJS):
 
 1. Install the latest NodeJS from https://nodejs.org/en/download/
 
