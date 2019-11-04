@@ -1148,6 +1148,28 @@ Device access APIs requires username, devicename and access token returned by lo
 
 
 
+# Production environment
+
+### CONFIG_USE_APIURL
+
+Dev/test: 192.168.99.100 or docker-machine ip or localhost
+Production: richmondu.com or equivalent
+
+- This is used in webapp container, specifically in webapp\src\ionicapp\www\js\env.js
+
+
+### CONFIG_USE_CERTS
+
+Dev/test: "src_test/"
+Production: "src_prod/"
+
+- This is used in nginx container.
+- src_prod certificates are not committed for security purposes.
+- src_prod must contain the cert.pem and pkey.pem must be signed by trusted certificates bought from GoDaddy.com or etc
+- cert.pem and pkey.pem are usually linked to a specific domain (iotportal.brtchip.com)
+
+
+
 # Testing and Troubleshooting
 
 ### Using FT900 (Currently tested with an FT900 RevC board-MM900EV1B only)
@@ -1246,15 +1268,11 @@ In Linux, the total round trip time is only 1 second.
 
 # Reminders
 
-1. The NGINX production certificates not committed for security purposes.
-2. The value of rest_api variable in webapp/src/ionicapp/www/js/server.js should correspond to the GoDaddy domain name or AWS EC2 public IP address.
-   [this may be changed to an environment variable if possible]
-   When using local machine, 192.168.99.100 is the default docker ip.
-3. When using self-signed certificate on NGINX,
+1. When using self-signed certificate on NGINX,
    The Ionic iOS/Android mobile simulators can be viewed online at https://creator.ionic.io/share/xxxASKMExxx but requires the following
    - "C:\Program Files (x86)\Google\Chrome\Application\chrome.exe" --ignore-certificate-errors
    - OR type in browser chrome://flags/#allow-insecure-localhost
-4. The certificate bought from GoDaddy is different from the self-signed certificate for RabbitMQ.
+2. The certificate bought from GoDaddy is different from the self-signed certificate for RabbitMQ.
    - RABBITMQ: Uses the self-signed rootca; for MQTTS/AMQPS device connectivity
    - NGINX: Uses the trusted certificate bought from GoDaddy; for HTTPS web/mobile connectivity; currently tied up to richmondu.com
 
