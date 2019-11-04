@@ -9,7 +9,7 @@ _device_simulator/__pycache__
 _device_simulator/node_modules
 _device_simulator/package-lock.json
 _device_simulator/obsoleted_rsa
-_device_simulator/device_simulator.py_amqp_ft900device1_ecc.bat
+_device_simulator/device_simulator.py_amqp_ecc.bat
 _kubernetes/environment.yaml
 _requirements
 _presentation
