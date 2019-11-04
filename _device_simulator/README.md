@@ -26,8 +26,8 @@
 
 2. Install the required python libraries of the application:
 
-    - pip install -r requirements.txt OR
-    - python pip install -r requirements.txt
+    - pip install -r requirements.py.txt OR
+    - python pip install -r requirements.py.txt
 
 ### Test
 
