@@ -515,6 +515,10 @@ Device access APIs requires username, devicename and access token returned by lo
        Update value of JENKINS_ARGS to "-Dmail.smtp.starttls.enable=true"
        Add JENKINS_JAVA_OPTIONS with "-Dmail.smtp.starttls.enable=true"
        :x
+       chown -R ec2-user:ec2-user /var/lib/jenkins
+       chown -R ec2-user:ec2-user /var/cache/jenkins
+       chown -R ec2-user:ec2-user /var/log/jenkins       
+       sudo service jenkins restart
        
        D. Set Jenkins email notification
        System Admin e-mail address: JENKINS_ADMIN@brtchip.com
