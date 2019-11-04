@@ -88,8 +88,8 @@ Back-end
 
 1. <b>RestAPI</b> (Flask) -> Cognito, MongoDB, Paypal, RabbitMQ
 2. <b>RabbitMQ</b>: accessed by restapi, device, notification service and history service
-3. <b>Notification service</b> -> RabbitMQ, Pinpoint, Twilio, Nexmo
-4. <b>History service</b> -> RabbitMQ, MongoDB
+3. <b>History service</b> -> RabbitMQ, MongoDB
+4. <b>Notification service</b> -> RabbitMQ, Pinpoint, Twilio, Nexmo
 
 Device
 
