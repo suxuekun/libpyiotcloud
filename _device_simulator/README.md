@@ -1,4 +1,4 @@
-### Device simulators (Python):
+# Device simulators (Python):
 
 
 1. Install the latest Python 3.X.X from https://www.python.org/downloads/
@@ -13,7 +13,7 @@
 4. Run <b>device_simulator.py_mqtt_ft900device1_ecc.bat</b>.
 
 
-### Device simulators (Javascript):
+# Device simulators (Javascript):
 
 1. Install the latest NodeJS from https://nodejs.org/en/download/
 
