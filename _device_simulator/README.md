@@ -31,9 +31,9 @@
 
 ### Test
 
-1. Update DEVICE_ID in <b>device_simulator.py.bat</b>.
+1. Update DEVICE_ID in <b>device_simulator.py.bat</b>
 
-2. Run <b>device_simulator.py.bat</b>.
+2. Run <b>device_simulator.py.bat</b>
 
 
 
@@ -53,9 +53,9 @@
 
 ### Test
 
-1. Update DEVICE_ID in <b>device_simulator.js.bat</b>.
+1. Update DEVICE_ID in <b>device_simulator.js.bat</b>
 
-2. Run <b>device_simulator.js.bat</b>.
+2. Run <b>device_simulator.js.bat</b>
 
 
 
