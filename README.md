@@ -79,19 +79,25 @@ An alternative solution is using an AWS serverless solution wherein:
 
 <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/architecture_frontend.png" width="1000"/>
 
-Front-end
+<b>Front-end</b>
 
-1. <b>Mobile</b>: Ionic mobile app -> (nginx -> gunicorn) -> RestAPI
-2. <b>Web</b>: browser -> (nginx -> gunicorn) -> Ionic web app -> RestAPI
+1. <b>Mobile</b>: Ionic mobile app -> Nginx -> Backend
+2. <b>Web</b>: browser -> Nginx -> Ionic web app -> Backend
 
-Back-end
+
+<img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/architecture_backend.png" width="1000"/>
+
+<b>Back-end</b>
 
 1. <b>RestAPI</b> (Flask) -> Cognito, MongoDB, Paypal, RabbitMQ
 2. <b>RabbitMQ</b>: accessed by restapi, device, notification service and history service
 3. <b>History service</b> -> RabbitMQ, MongoDB
 4. <b>Notification service</b> -> RabbitMQ, Pinpoint, Twilio, Nexmo
 
-Device
+
+<img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/architecture_device.png" width="1000"/>
+
+<b>Device</b>
 
 1. <b>Device</b> -> RabbitMQ
 
