@@ -8,15 +8,15 @@
 
 3. Set the DEVICE_ID on the device.
 
-    - device simulator (Python)
-    - device simulator (NodeJS)
-    - actual FT900 device.
+    - Device simulator (Python)
+    - Device simulator (NodeJS)
+    - FT900 device (FT900RevC or IoTModule)
 
 4. Access and control the device via the IoT portal. (GPIO, RTC, UART, IP/MAC, etc)
 
 
 
-# Device simulators (Python):
+# Device simulator (Python):
 
 
 1. Install the latest Python 3.X.X from https://www.python.org/downloads/
@@ -31,7 +31,7 @@
 4. Run <b>device_simulator.py_mqtt_ft900device1_ecc.bat</b>.
 
 
-# Device simulators (NodeJS):
+# Device simulator (NodeJS):
 
 1. Install the latest NodeJS from https://nodejs.org/en/download/
 
@@ -48,7 +48,7 @@
 4. Run <b>device_simulator.js_mqtt_ft900device1_ecc.bat</b>.
 
 
-# FT900 Device (FT900RevC or IoTModule)
+# FT900 device (FT900RevC or IoTModule)
 
 If you do have an FT900 board, refer to the instructions [here](https://github.com/richmondu/FT900/tree/master/IoT/ft90x_iot_brtcloud).
 
