@@ -4,6 +4,14 @@ pipeline {
 
     stages {
 
+        stage("Copy production certificates") {
+            steps {
+                echo "Copy certificates STARTED"
+                // TODO: If production certificates exist, copy to nginx/src_prod/cert/
+                echo "Copy certificates COMPLETED"
+            }
+        }
+        
         stage("Docker-compose down") {
             steps {
                 sh "docker-compose down"
@@ -34,6 +42,7 @@ pipeline {
         stage("MESSAGE BROKER tester") {
             steps {
                 echo "MESSAGE BROKER tester STARTED"
+                // TODO
                 //sh "cd _jenkins/tester"
                 //sh "python -v"
                 echo "MESSAGE BROKER tester COMPLETED"
@@ -43,6 +52,7 @@ pipeline {
         stage("REST API tester") {
             steps {
                 echo "REST API tester STARTED"
+                // TODO
                 echo "REST API tester COMPLETED"
             }
         }
@@ -50,6 +60,7 @@ pipeline {
         stage("DATABASE tester") {
             steps {
                 echo "DATABASE tester STARTED"
+                // TODO
                 echo "DATABASE tester COMPLETED"
             }
         }
@@ -57,31 +68,32 @@ pipeline {
         stage("WEB APP tester") {
             steps {
                 echo "WEB APP tester STARTED"
+                // TODO
                 echo "WEB APP tester COMPLETED"
             }
         }
     }
 
     post {
-      always {
-          echo "Docker-compose completed"
+        always {
+            echo "Docker-compose completed"
           
-          echo "Sending email notification..."
-          mail to: 'richmond.umagat@brtchip.com',
-            subject: "Jenkins build email notification for ${currentBuild.projectName}",
-            body: "Jenkins build triggered ${env.BUILD_URL}.\nProject: ${currentBuild.projectName}\nResult: ${currentBuild.currentResult}\n"
-          echo "Sending email notification...DONE"
-      }
+            echo "Sending email notification..."
+            mail to: 'richmond.umagat@brtchip.com',
+                subject: "Jenkins build email notification for ${currentBuild.projectName}",
+                body: "Jenkins build triggered ${env.BUILD_URL}.\nProject: ${currentBuild.projectName}\nResult: ${currentBuild.currentResult}\n"
+            echo "Sending email notification...DONE"
+        }
 
-      success {
-          echo "Success"
-      }
+        success {
+            echo "Success"
+        }
 
-      failure {
-          echo "Fail"
-          sh "docker-compose down"
-          sh "docker-compose rm -f"
-          sh "docker network prune -f"
-      }
+        failure {
+            echo "Fail"
+            sh "docker-compose down"
+            sh "docker-compose rm -f"
+            sh "docker network prune -f"
+        }
     }
 }
