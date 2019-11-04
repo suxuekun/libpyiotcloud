@@ -68,8 +68,8 @@ pipeline {
           
           echo "Sending email notification..."
           mail to: 'richmond.umagat@brtchip.com',
-            subject: "Jenkins build email notification for ${currentBuild.fullDisplayName}",
-            body: "Jenkins build triggered ${env.BUILD_URL}.\nProject: ${currentBuild.fullDisplayName}\nResult: ${currentBuild.currentResult}\n"
+            subject: "Jenkins build email notification for ${currentBuild.projectName}",
+            body: "Jenkins build triggered ${env.BUILD_URL}.\nProject: ${currentBuild.fullDisplayName}\nRepository: ${env.BRANCH_NAME}\nResult: ${currentBuild.currentResult}\n"
       }
 
       success {
