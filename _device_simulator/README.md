@@ -18,6 +18,7 @@
 
 # Device simulator (Python):
 
+Setup:
 
 1. Install the latest Python 3.X.X from https://www.python.org/downloads/
 
@@ -26,12 +27,16 @@
     - pip install -r requirements.txt OR
     - python pip install -r requirements.txt
 
-3. Update DEVICE_ID in <b>device_simulator.py_mqtt_ft900device1_ecc.bat</b>.
+Test:
 
-4. Run <b>device_simulator.py_mqtt_ft900device1_ecc.bat</b>.
+1. Update DEVICE_ID in <b>device_simulator.py_mqtt_ft900device1_ecc.bat</b>.
+
+2. Run <b>device_simulator.py_mqtt_ft900device1_ecc.bat</b>.
 
 
 # Device simulator (NodeJS):
+
+Setup:
 
 1. Install the latest NodeJS from https://nodejs.org/en/download/
 
@@ -43,9 +48,11 @@
     - npm install os
     - npm install argparse
 
-3. Update DEVICE_ID in <b>device_simulator.js_mqtt_ft900device1_ecc.bat</b>.
+Test:
 
-4. Run <b>device_simulator.js_mqtt_ft900device1_ecc.bat</b>.
+1. Update DEVICE_ID in <b>device_simulator.js_mqtt_ft900device1_ecc.bat</b>.
+
+2. Run <b>device_simulator.js_mqtt_ft900device1_ecc.bat</b>.
 
 
 # FT900 device (FT900RevC or IoTModule)
