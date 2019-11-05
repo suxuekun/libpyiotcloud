@@ -24,7 +24,7 @@ This has been tested using [Minikube](https://github.com/kubernetes/minikube), a
 
 ### Instructions:
 
-0. Make sure docker images are committed to the docker repository. As the Kubernetes files will fetch the docker images from the specified container registry.
+1. Make sure docker images are committed to the docker repository. As the Kubernetes files will fetch the docker images from the specified container registry.
 
         docker-compose build --no-cache
         docker push richmondu/iotmongodb
@@ -36,60 +36,60 @@ This has been tested using [Minikube](https://github.com/kubernetes/minikube), a
         docker push richmondu/iotnginx
 
 
-1. Set docker-registry (one-time only)
+2. Set docker-registry (one-time only)
 
         kubectl create secret docker-registry regcred --docker-server=docker.io 
          --docker-username=USERNAME --docker-password=PASSWORD --docker-email=EMAIL
 
 
-2. Fill-up environment.yaml. Then run below.  (one-time only)
+3. Fill-up environment.yaml. Then run below.  (one-time only)
 
         kubectl apply -f environment.yaml
 
 
-3. Run MongoDB
+4. Run MongoDB
 
         kubectl apply -f iotmongodb-persistentvolumeclaim.yaml
         kubectl apply -f iotmongodb-deployment.yaml
         kubectl apply -f iotmongodb-service.yaml
 
 
-4. Run RabbitMQ
+5. Run RabbitMQ
 
         kubectl apply -f iotrabbitmq-deployment.yaml
         kubectl apply -f iotrabbitmq-service.yaml
 
 
-5. Run history manager and notification manager
+6. Run history manager and notification manager
 
         kubectl apply -f iothistory-deployment.yaml
         kubectl apply -f iotnotification-deployment.yaml
 
 
-6. Run RESTAPI
+7. Run RESTAPI
 
         kubectl apply -f iotrestapi-deployment.yaml
         kubectl apply -f iotrestapi-service.yaml
 
 
-7. Run Webapp
+8. Run Webapp
 
         kubectl apply -f iotwebapp-deployment.yaml
         kubectl apply -f iotwebapp-service.yaml
 
 
-8. Run Nginx
+9. Run Nginx
 
         kubectl apply -f iotnginx-deployment.yaml
         kubectl apply -f iotnginx-service.yaml
 
 
-9. Test web app
+10. Test web app
 
         https://MINIKUBE_IP:30443
 
 
-10. Delete all
+11. Delete all
 
         kubectl delete service nginx
         kubectl delete deployment nginx
@@ -106,7 +106,7 @@ This has been tested using [Minikube](https://github.com/kubernetes/minikube), a
         kubectl delete persistentvolumeclaim mydockervol
         
         
-11. Delete secrets (not really needed if you want to run again)
+12. Delete secrets (not really needed if you want to run again)
         
         kubectl delete secret environment
         kubectl delete secret regcred
@@ -114,20 +114,23 @@ This has been tested using [Minikube](https://github.com/kubernetes/minikube), a
 
 ### Notes:
 
-- minikube ip
-- minikube start
-- minikube stop
-- minikube delete
-- minikube service SERVICENAME --url
+         minikube ip
+         minikube start
+         minikube stop
+         minikube delete
+         minikube service SERVICENAME --url
 
-- kubectl get secrets
-- kubectl get deployments
-- kubectl get pods
-- kubectl get svc
-- kubectl get persistentvolumeclaim
-- kubectl log PODNAME
-- kubectl describe pod PODNAME
-- kubectl delete secret SECRETNAME
-- kubectl delete deployment DEPLOYMENTNAME
-- kubectl delete service SERVICENAME
-- kubectl delete persistentvolumeclaim PERSISTENTVOLUMENAME
+         kubectl get secrets
+         kubectl get deployments
+         kubectl get pods
+         kubectl get svc
+         kubectl get persistentvolumeclaim
+
+         kubectl get nodes
+         kubectl logs PODNAME
+         kubectl describe pod PODNAME
+         
+         kubectl delete secret SECRETNAME
+         kubectl delete deployment DEPLOYMENTNAME
+         kubectl delete service SERVICENAME
+         kubectl delete persistentvolumeclaim PERSISTENTVOLUMENAME
