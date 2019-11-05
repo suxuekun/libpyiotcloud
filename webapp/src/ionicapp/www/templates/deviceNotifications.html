@@ -14,15 +14,36 @@
           <strong>{{ data.devicestatus }}</strong>
         </p>
       </div>
-      <h5 id="deviceNotifications-heading19" style="color:#444444;">Recipient</h5>
-      <label class="item item-input" id="deviceNotifications-input30" name="input-recipient">
-        <input type="text" placeholder="Email or SMS" ng-model="data.recipient">
+      <div id="deviceNotifications-button-bar1" class="button-bar">
+        <button id="deviceNotifications-button48" ng-class="{'active': data.activeSection==1}" ng-click="changeSection(1)" class="button button-dark button-block">Email</button>
+        <button id="deviceNotifications-button49" ng-class="{'active': data.activeSection==2}" ng-click="changeSection(2)" class="button button-dark button-block">SMS</button>
+      </div>
+    </form>
+    <form id="deviceNotifications-form29" class="list" ng-show="data.activeSection==2">
+      <label class="item item-select" id="deviceNotifications-select4">
+        <span class="input-label">Country</span>
+        <select ng-show="data.activeSection==2" ng-model="data.smscountrycode" ng-options="cc.code as cc.id for cc in countrycodes"></select>
+      </label>
+      <label class="item item-input" id="deviceNotifications-input53" name="input-recipient">
+        <input type="text" placeholder="Phone number" ng-model="data.smsphonenumber" ng-show="data.activeSection==2">
       </label>
     </form>
-    <h5 id="deviceNotifications-heading20" style="color:#444444;">Message</h5>
-    <form id="deviceNotifications-form15" class="list">
-      <label class="item item-input message_textarea" id="deviceNotifications-textarea1" name="textarea-message">
+    <form id="deviceNotifications-form30" class="list" ng-show="data.activeSection==1">
+      <label class="item item-input" id="deviceNotifications-input51" name="input-recipient">
+        <input type="text" placeholder="Email address" ng-model="data.emailaddress" ng-show="data.activeSection==1">
+      </label>
+    </form>
+    <form id="deviceNotifications-form33" class="list">
+      <h5 id="deviceNotifications-heading14" style="color:#444444;">Message</h5>
+      <label class="item item-input" id="deviceNotifications-textarea3">
         <span class="input-label"></span><textarea placeholder="Message" ng-model="data.message"></textarea></label>
+    </form>
+    <form id="deviceNotifications-form28" class="list" ng-show="data.activeSection==2">
+      <h5 id="deviceNotifications-heading24" ng-show="data.activeSection==2" style="color:#444444;">SMS Options</h5>
+      <label class="item item-select" id="deviceNotifications-select5">
+        <span class="input-label">Source</span>
+        <select ng-options="cc.code as cc.id for cc in smsoptions" ng-model="data.smsoptionsid"></select>
+      </label>
     </form>
     <button id="deviceNotifications-button25" ng-click="submit()" class="button button-dark button-block">Submit</button>
   </ion-content>

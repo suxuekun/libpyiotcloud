@@ -1884,7 +1884,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User) {
         'gpiovalue': $scope.gpiovalue,
         'gpiovalueset': $scope.gpiovalueset
     }
-    
+
     update_token = function(result) {
         if (result !== null) {
             if (result.data.new_token !== undefined) {
@@ -2287,20 +2287,51 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User) {
 
     var server = Server.rest_api;
 
+    $scope.countrycodes = [
+        {   "id": "China +86",          "code": "+86"   },
+        {   "id": "India +91",          "code": "+91"   },
+        {   "id": "Philippines +63",    "code": "+63"   },
+        {   "id": "Singapore +65",      "code": "+65"   },
+        {   "id": "Taiwan +886",        "code": "+886"  },
+        {   "id": "United Kingdom +44", "code": "+44"   },
+        {   "id": "United States +1",   "code": "+1"    },
+        {   "id": "Vietnam +84",        "code": "+84"   },
+    ];
+
+    $scope.smsoptions = [
+        {   "id": "AWS Pinpoint",       "code": "0"     },
+        {   "id": "AWS SNS",            "code": "1"     },
+        {   "id": "Twilio",             "code": "2"     },
+        {   "id": "Nexmo",              "code": "3"     },
+    ];
+
+
     $scope.data = {
         'username': $stateParams.username,
         'token': User.get_token(),
         'devicename': $stateParams.devicename,
         'devicestatus': $stateParams.devicestatus,
         
-        'recipient': $scope.recipient,
-        'message': $scope.message
-    }
-    
+        'recipient': "",
+        'message': $scope.message,
+        
+        'activeSection' : 1,
+        'emailaddress'  : $scope.emailaddress,
+        'smsphonenumber': $scope.smsphonenumber,
+        'smscountrycode': $scope.countrycodes[2].code,
+        'smscountryid'  : $scope.countrycodes[2].id,
+        'smsoptionsid': $scope.smsoptions[0].code,
+    };
+
+
+    $scope.changeSection = function(s) {
+        $scope.data.activeSection = s;
+    };
+
     update_token = function(result) {
         if (result !== null) {
             if (result.data.new_token !== undefined) {
-                console.log("New Token exists!")
+                console.log("New Token exists!");
                 User.set({
                     'username': $scope.data.username,
                     'token': result.data.new_token
@@ -2308,7 +2339,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User) {
                 $scope.data.token = result.data.new_token;
             }
         }    
-    }
+    };
     
     handle_error = function(error) {
         // Handle failed login
@@ -2322,7 +2353,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User) {
             // TODO: replace alert with ionic alert
             alert("ERROR: Server is down!");
         }
-    }     
+    };    
 
     set_notifications = function(param) {
         // Send HTTP request to REST API
@@ -2343,28 +2374,57 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User) {
         .catch(function (error) {
             handle_error(error);
         }); 
-    }
+    };
 
     $scope.submit = function() {
         console.log("devicename=" + $scope.data.devicename);
-        console.log("recipient=" + $scope.data.recipient);
         console.log("message=" + $scope.data.message);
  
+
         if ($scope.data.devicestatus !== 'RUNNING') {
             $ionicPopup.alert({title: 'Device Error', template: 'Device is NOT RUNNING!'});
             return;
         }
-       
-        var param = {
-            'username': $scope.data.username,
-            'token': $scope.data.token,
-            'devicename': $scope.data.devicename,
-            'recipient': $scope.data.recipient,
-            'message': $scope.data.message
+
+        if ($scope.data.activeSection == 1) {
+            // email
+            console.log("emailaddress=" + $scope.data.emailaddress);
+            $scope.data.recipient = $scope.data.emailaddress;
+        }
+        else {
+            // sms
+            console.log("smscountrycode=" + $scope.data.smscountrycode);
+            console.log("smsphonenumber=" + $scope.data.smsphonenumber);
+            $scope.data.recipient = $scope.data.smscountrycode + $scope.data.smsphonenumber;
+            console.log("recipient=" + $scope.data.recipient);
+            console.log("smsoptionsid=" + $scope.data.smsoptionsid);
         }
 
-        set_notifications(param);      
-    }    
+
+        if ($scope.data.activeSection == 1) {
+            // email
+            var param = {
+                'username': $scope.data.username,
+                'token': $scope.data.token,
+                'devicename': $scope.data.devicename,
+                'recipient': $scope.data.recipient,
+                'message': $scope.data.message
+            };
+            set_notifications(param);      
+        }
+        else {
+            // sms
+            var param = {
+                'username': $scope.data.username,
+                'token': $scope.data.token,
+                'devicename': $scope.data.devicename,
+                'recipient': $scope.data.recipient,
+                'message': $scope.data.message,
+                'options': $scope.data.smsoptionsid // TESTING ONLY
+            };
+            set_notifications(param);      
+        }
+    };  
     
     $scope.submitDeviceList = function() {
         console.log("hello");
@@ -2372,9 +2432,9 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User) {
             'username': $scope.data.username,
             'token': $scope.data.token,
             'devicename': $scope.data.devicename
-        }
+        };
         $state.go('controlDevice', device_param);
-    }
+    };
     
 }])
    
