@@ -23,7 +23,7 @@ This has been tested using [Minikube](https://github.com/kubernetes/minikube), a
 
 ### Instructions:
 
-0. Make sure docker images is committed to the docker repository. As the Kubernetes files fetches the docker images from the specified registry.
+0. Make sure docker images are committed to the docker repository. As the Kubernetes files will fetch the docker images from the specified container registry.
 
         docker-compose build --no-cache
         docker push richmondu/iotmongodb
