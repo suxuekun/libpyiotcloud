@@ -72,9 +72,10 @@ print("MODEL_SMS {}".format(CONFIG_MODEL_SMS))
 ###################################################################################
 
 
-def notification_thread(messaging_client, recipient, message, subject, type):
+def notification_thread(messaging_client, recipient, message, subject, type, options):
 
     if type == type == notification_types.DEVICE:
+        # Send to another device
         topic = "{}{}trigger_notification".format(recipient, CONFIG_SEPARATOR)
         print("topic={}".format(topic))
         payload = {}
@@ -88,11 +89,27 @@ def notification_thread(messaging_client, recipient, message, subject, type):
         except:
             print("PUBLISH FAILED!")
     else:
-        try:
-            response = g_notification_client.send_message(recipient, message, subject=subject, type=type)
-        except:
-            return
+        # Send to SMS or email
+        if options >= 0:
+            # With options parameter
+            print("OPTIONS = {}".format(options))
 
+            if options == 1:
+                options = 0
+            new_client = notification_client(notification_models.PINPOINT, options)
+            new_client.initialize()
+            try:
+                response = new_client.send_message(recipient, message, subject=subject, type=type)
+            except:
+                return
+        else:
+            # No options parameter
+            try:
+                response = g_notification_client.send_message(recipient, message, subject=subject, type=type)
+            except:
+                return
+
+        # Display result
         try:
             print("\r\nSending message='{}' to recipient='{}' done. {} {}\r\n\r\n".format(
                 message, recipient,
@@ -115,6 +132,10 @@ def on_message(subtopic, subpayload):
         recipient = payload["recipient"]
         message = payload["message"]
 
+        options = -1
+        if payload.get("options") is not None:
+            options = int(payload["options"])
+
         is_email = True if recipient.find("@")!=-1 else False
         is_mobile = True if recipient[0] == '+' else False
         subject = aws_config.CONFIG_PINPOINT_EMAIL_SUBJECT if is_email else None
@@ -126,7 +147,7 @@ def on_message(subtopic, subpayload):
         else:
             type = notification_types.DEVICE
 
-        thr = threading.Thread(target = notification_thread, args = (g_messaging_client, recipient, message, subject, type, ))
+        thr = threading.Thread(target = notification_thread, args = (g_messaging_client, recipient, message, subject, type, options, ))
         thr.start()
     except:
         return
