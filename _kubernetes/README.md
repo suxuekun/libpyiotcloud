@@ -25,6 +25,16 @@ This has been tested using [Minikube](https://github.com/kubernetes/minikube), a
 
 0. Make sure docker images is committed to the docker repository. As the Kubernetes files fetches the docker images from the specified registry.
 
+        docker-compose build --no-cache
+        docker push richmondu/iotmongodb
+        docker push richmondu/iotrabbitmq
+        docker push richmondu/iothistory
+        docker push richmondu/iotnotification
+        docker push richmondu/iotrestapi
+        docker push richmondu/iotwebapp
+        docker push richmondu/iotnginx
+
+
 1. Set docker-registry (one-time only)
 
         kubectl create secret docker-registry regcred --docker-server=docker.io 
