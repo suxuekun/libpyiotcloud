@@ -5,6 +5,7 @@ set DEVICE_PKEY="cert_ecc/ft900device1_pkey.pem"
 
 set HOST="richmondu.com"
 set PORT="8883"
+::set HOST="localhost"
 ::set HOST="192.168.99.106"
 ::set PORT="30883"
 

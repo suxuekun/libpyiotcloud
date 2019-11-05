@@ -1,10 +1,11 @@
-set DEVICE_ID="2edbe5ed81fe2ac0f2f103db9751885264c98f97"
+set DEVICE_ID="efa4c8663739c4b380e25164e58ff89bfbd27976"
 set DEVICE_CA="cert_ecc/rootca.pem"
 set DEVICE_CERT="cert_ecc/ft900device1_cert.pem"
 set DEVICE_PKEY="cert_ecc/ft900device1_pkey.pem"
 
 set HOST="richmondu.com"
 set PORT="8883"
+::set HOST="localhost"
 ::set HOST="192.168.99.106"
 ::set PORT="30883"
 
