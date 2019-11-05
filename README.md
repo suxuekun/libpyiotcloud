@@ -1035,7 +1035,13 @@ Note: Using Kubernetes will also change the infrastracture.
 <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/ui_androidemulator.png" width="1000"/>
 
 
-### Setup Twilio
+### Setup Twilio and Nexmo
+
+<img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/sms_messaging_screenshot.png" width="1000"/>
+
+<img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/sms_messaging.png" width="400"/>
+
+#### Twilio
 
         // Environment Variables
         - TWILIO_ACCOUNT_SID
@@ -1047,8 +1053,7 @@ Note: Using Kubernetes will also change the infrastracture.
         client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
         message = client.messages.create(from_='xxxx', body='hello world', to='+639175900612')
 
-
-### Setup Nexmo
+#### Nexmo
 
         // Environment Variables
         - NEXMO_KEY
