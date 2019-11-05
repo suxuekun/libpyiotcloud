@@ -5,7 +5,6 @@ metadata:
 spec:
   selector:
     app: iotmongodb
-  type: NodePort
   ports:
   - name: db
     port: 27017
