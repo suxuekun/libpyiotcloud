@@ -48,3 +48,38 @@ spec:
               secretKeyRef:
                 name: environment
                 key: CONFIG_USE_ECC
+          - name: TWILIO_ACCOUNT_SID
+            valueFrom:
+              secretKeyRef:
+                name: environment
+                key: TWILIO_ACCOUNT_SID
+          - name: TWILIO_AUTH_TOKEN
+            valueFrom:
+              secretKeyRef:
+                name: environment
+                key: TWILIO_AUTH_TOKEN
+          - name: TWILIO_NUMBER_FROM
+            valueFrom:
+              secretKeyRef:
+                name: environment
+                key: TWILIO_NUMBER_FROM
+          - name: NEXMO_KEY
+            valueFrom:
+              secretKeyRef:
+                name: environment
+                key: NEXMO_KEY
+          - name: NEXMO_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: environment
+                key: NEXMO_SECRET
+          - name: CONFIG_USE_EMAIL_MODEL
+            valueFrom:
+              secretKeyRef:
+                name: environment
+                key: CONFIG_USE_EMAIL_MODEL
+          - name: CONFIG_USE_SMS_MODEL
+            valueFrom:
+              secretKeyRef:
+                name: environment
+                key: CONFIG_USE_SMS_MODEL

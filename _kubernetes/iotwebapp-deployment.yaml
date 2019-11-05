@@ -19,3 +19,9 @@ spec:
           image: richmondu/iotwebapp
           ports:
           - containerPort: 8100
+          env:
+          - name: CONFIG_USE_APIURL
+            valueFrom:
+              secretKeyRef:
+                name: environment
+                key: CONFIG_USE_APIURL

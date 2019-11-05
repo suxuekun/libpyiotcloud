@@ -19,3 +19,10 @@ spec:
           image: richmondu/iotnginx
           ports:
           - containerPort: 443
+          env:
+          - name: CONFIG_USE_CERTS
+            valueFrom:
+              secretKeyRef:
+                name: environment
+                key: CONFIG_USE_CERTS
+          
