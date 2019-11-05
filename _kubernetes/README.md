@@ -73,7 +73,12 @@ This has been tested using [Minikube](https://github.com/kubernetes/minikube), a
         kubectl apply -f iotnginx-service.yaml
 
 
-9. Delete all
+9. Test web app
+
+        https://MINIKUBE_IP:30443
+
+
+10. Delete all
 
         kubectl delete service nginx
         kubectl delete deployment nginx
@@ -90,7 +95,7 @@ This has been tested using [Minikube](https://github.com/kubernetes/minikube), a
         kubectl delete persistentvolumeclaim mydockervol
         
         
-10. Delete secrets (not really needed if you want to run again)
+11. Delete secrets (not really needed if you want to run again)
         
         kubectl delete secret environment
         kubectl delete secret regcred
