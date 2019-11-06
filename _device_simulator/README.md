@@ -54,6 +54,8 @@
 
 2. Run <b>device_simulator.py.bat</b>
 
+    <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/device_simulator_bootup_py.png" width="600"/>
+
 
 
 # Device simulator (NodeJS):
@@ -79,6 +81,7 @@
     
 2. Run <b>device_simulator.js.bat</b>
 
+    <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/device_simulator_bootup_js.png" width="600"/>
 
 
 # FT900 device (FT900RevC or IoTModule)
