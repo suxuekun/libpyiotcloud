@@ -26,6 +26,13 @@ Kubernetes support for IoT portal is now available. It has been tested on both M
 
 ### Setup:
 
+Major differences between Minikube and Amazon EKS:
+
+1. Amazon EKS requires creating the Kubernetes cluster using the eksctl tool.
+2. Minikube only uses 1 worker node while Amazon EKS can create multiple worker nodes.
+3. Minikube load balancer will assign a random port (3XXXX).
+
+
 #### Minikube
 
          minikube start
@@ -51,9 +58,8 @@ Kubernetes support for IoT portal is now available. It has been tested on both M
          eksctl delete cluster --name ft90xiotportal 
 
          // Limitation
-         Currently, it requires to spin up 5 EC2 instances as worker nodes. Otherwise, the deployment of containers will be stuck in PENDING (no available pods)
+         Currently, it requires to spin up 5 EC2 instances as worker nodes. Otherwise, the deployment of containers will be stuck in PENDING (no available pods). Need to investigate since having 5 EC2 instances can be costly.
          
-
 
 ### Instructions:
 
