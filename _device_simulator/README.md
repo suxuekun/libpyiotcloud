@@ -83,6 +83,8 @@
 
 1. Update DEVICE_ID in <b>device_simulator.py.bat</b>
 
+   NOTE: To get a device ID, you must first register a device in the IoT Portal.
+
     <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/device_simulator_deviceid_py.png" width="600"/>
 
 2. Run <b>device_simulator.py.bat</b>
@@ -110,6 +112,8 @@
 
 1. Update DEVICE_ID in <b>device_simulator.js.bat</b>
 
+   NOTE: To get a device ID, you must first register a device in the IoT Portal.
+   
     <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/device_simulator_deviceid_js.png" width="600"/>
     
 2. Run <b>device_simulator.js.bat</b>
