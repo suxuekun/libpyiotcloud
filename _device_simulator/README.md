@@ -6,6 +6,23 @@
 
 2. Register a device (Registering a device will return a unique DEVICE_ID).
 
+    <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/tutorial_adddevice.png" width="600"/>
+    
+    To add a device, click on the "+" button on the top right of the window.
+    
+    <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/tutorial_adddevice_2.png" width="600"/>
+
+    Type a name for the device. Ex. "Smart Device 1"
+    
+    <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/tutorial_adddevice_3.png" width="600"/>
+    
+    Wait for the device to be registered. A popup up window will appear that the device has been registered.
+
+    <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/tutorial_adddevice_4.png" width="600"/>
+
+    Copy the DEVICE ID by double clicking on it and typing Ctrl+C.
+    
+
 3. Set the DEVICE_ID on the device.
 
     - Device simulator (Python)
@@ -33,6 +50,8 @@
 
 1. Update DEVICE_ID in <b>device_simulator.py.bat</b>
 
+    <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/device_simulator_deviceid_py.png" width="600"/>
+
 2. Run <b>device_simulator.py.bat</b>
 
 
@@ -56,6 +75,8 @@
 
 1. Update DEVICE_ID in <b>device_simulator.js.bat</b>
 
+    <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/device_simulator_deviceid_js.png" width="600"/>
+    
 2. Run <b>device_simulator.js.bat</b>
 
 
