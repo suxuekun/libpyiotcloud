@@ -276,22 +276,27 @@ if __name__ == '__main__':
     CONFIG_AMQP_TLS_PORT = int(args.USE_PORT)
     CONFIG_USERNAME    = args.USE_USERNAME
     CONFIG_PASSWORD    = args.USE_PASSWORD
-    print("")
-    print("USE_AMQP={}".format(args.USE_AMQP))
-    print("USE_DEVICE_ID={}".format(args.USE_DEVICE_ID))
-    print("USE_DEVICE_CA={}".format(args.USE_DEVICE_CA))
-    print("USE_DEVICE_CERT={}".format(args.USE_DEVICE_CERT))
-    print("USE_DEVICE_PKEY={}".format(args.USE_DEVICE_PKEY))
-    print("USE_HOST={}".format(args.USE_HOST))
-    print("USE_PORT={}".format(args.USE_PORT))
-    print("USE_USERNAME={}".format(args.USE_USERNAME))
-    print("USE_PASSWORD={}".format(args.USE_PASSWORD))
-    print("USE_ECC={}".format(args.USE_ECC))
-    print("")
+
+    print("\n\n")
+    print("Copyright (C) Bridgetek Pte Ltd")
+    print("-------------------------------------------------------")
+    print("Welcome to IoT Device Controller example...\n")
+    print("Demonstrate remote access of FT900 via Bridgetek IoT Cloud")
+    print("-------------------------------------------------------")
+
+    print("\nTLS CERTIFICATES")
+    print("ca:   {}".format(args.USE_DEVICE_CA))
+    print("cert: {}".format(args.USE_DEVICE_CERT))
+    print("pkey: {}".format(args.USE_DEVICE_PKEY))
+
+    print("\nMQTT CREDENTIALS")
+    print("host: {}:{}".format(args.USE_HOST, args.USE_PORT))
+    print("id:   {}".format(args.USE_DEVICE_ID))
+    print("user: {}".format(args.USE_USERNAME))
+    print("pass: {}".format(args.USE_PASSWORD))
 
 
     # Initialize MQTT/AMQP client
-    print("Using {} for device-messagebroker communication!".format("AMQP" if CONFIG_USE_AMQP else "MQTT"))
     if CONFIG_USE_AMQP:
         g_messaging_client = messaging_client(CONFIG_USE_AMQP, on_amqp_message, device_id=CONFIG_DEVICE_ID)
         g_messaging_client.set_server(CONFIG_HOST, CONFIG_AMQP_TLS_PORT)
@@ -318,11 +323,9 @@ if __name__ == '__main__':
             except:
                 print("Could not connect to message broker! exception!")
 
-        print("Connected to message broker!")
         # Subscribe to messages sent for this device
         time.sleep(1)
         subtopic = "{}{}#".format(CONFIG_DEVICE_ID, CONFIG_SEPARATOR)
-        print(subtopic)
         g_messaging_client.subscribe(subtopic, subscribe=True, declare=True, consume_continuously=True)
 
         # Exit when disconnection happens

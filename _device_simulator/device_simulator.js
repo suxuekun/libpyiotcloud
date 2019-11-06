@@ -24,6 +24,13 @@ var CONFIG_PREPEND_REPLY_TOPIC  = "server/"
 
 
 
+console.log("\n\n");
+console.log("Copyright (C) Bridgetek Pte Ltd");
+console.log("-------------------------------------------------------");
+console.log("Welcome to IoT Device Controller example...\n");
+console.log("Demonstrate remote access of FT900 via Bridgetek IoT Cloud");
+console.log("-------------------------------------------------------");
+
 // parse arguments
 var parser = new ArgumentParser.ArgumentParser({addHelp:true});
 parser.addArgument(['--USE_DEVICE_ID'],   {help: 'Device ID to use'});
@@ -38,36 +45,40 @@ parser.addArgument(['--USE_PASSWORD'],    {help: 'Password to use in connection'
 var args = parser.parseArgs();
 if (args.USE_DEVICE_ID != null) {
     CONFIG_DEVICE_ID = args.USE_DEVICE_ID;
-    console.log(CONFIG_DEVICE_ID);
 }
 if (args.USE_DEVICE_CA != null) {
     CONFIG_TLS_CA = args.USE_DEVICE_CA;
-    console.log(CONFIG_TLS_CA);
 }
 if (args.USE_DEVICE_CERT != null) {
     CONFIG_TLS_CERT = args.USE_DEVICE_CERT;
-    console.log(CONFIG_TLS_CERT);
 }
 if (args.USE_DEVICE_PKEY != null) {
     CONFIG_TLS_PKEY = args.USE_DEVICE_PKEY;
-    console.log(CONFIG_TLS_PKEY);
 }
 if (args.USE_HOST != null) {
     CONFIG_HOST = args.USE_HOST;
-    console.log(CONFIG_HOST);
 }
 if (args.USE_PORT != null) {
     CONFIG_MQTT_TLS_PORT = parseInt(args.USE_PORT);
-    console.log(CONFIG_MQTT_TLS_PORT);
 }
 if (args.USE_USERNAME != null) {
     CONFIG_USERNAME = args.USE_USERNAME;
-    console.log(CONFIG_USERNAME);
 }
 if (args.USE_PASSWORD != null) {
     CONFIG_PASSWORD = args.USE_PASSWORD;
-    console.log(CONFIG_PASSWORD);
 }
+
+
+console.log("\nTLS CERTIFICATES");
+console.log("ca:   " + CONFIG_TLS_CA);
+console.log("cert: " + CONFIG_TLS_CERT);
+console.log("pkey: " + CONFIG_TLS_PKEY);
+
+console.log("\nMQTT CREDENTIALS");
+console.log("host: " + CONFIG_HOST + ":" + CONFIG_MQTT_TLS_PORT);
+console.log("id:   " + CONFIG_DEVICE_ID);
+console.log("user: " + CONFIG_USERNAME);
+console.log("pass: " + CONFIG_PASSWORD);
 
 
 // connect to server
@@ -97,12 +108,15 @@ var subtopic = CONFIG_DEVICE_ID + "/"
 client.on("connect", function()
 {
     if (client.connected == true) {
+        console.log("\nMQTT CONNECTED");
+
         if (subscribed == false) {
             var topic = subtopic + "#";
-            console.log("subscribing " + topic);
+            console.log("\nSUB: " + topic);
             result = client.subscribe(topic, {qos:1} );
-			//console.log(result);
+            //console.log(result);
             subscribed = true;
+            console.log("\nDevice is now ready! Control this device from IoT Portal https://richmondu.com");
         }
     }
     else {

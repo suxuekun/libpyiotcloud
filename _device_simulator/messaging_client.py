@@ -230,7 +230,7 @@ class messaging_client:
             client.publish(topic, payload, qos=CONFIG_QOS)
 
     def subscribe_ampq(self, client, topic, subscribe=True, declare=False, deviceid=None):
-        print("SUB: topic={}".format(topic))
+        print("SUB: {}".format(topic))
         if client:
             if subscribe:
                 if deviceid is not None:
@@ -281,7 +281,7 @@ class messaging_client:
             self.amqp_connected = False
 
     def subscribe_mqtt(self, client, topic, subscribe=True):
-        print("SUB: topic={}".format(topic))
+        print("SUB: {}".format(topic))
         if client:
             if subscribe:
                 try:
@@ -293,14 +293,15 @@ class messaging_client:
                     client.unsubscribe(topic)
                 except:
                     return False
+        print("\nDevice is now ready! Control this device from IoT Portal https://richmondu.com")
         return True
 
     def on_mqtt_connect(self, client, userdata, flags, rc):
-        print("MQTT Connected with result code " + str(rc))
+        print("\nMQTT CONNECTED")
         self.mqtt_connected = True
 
     def on_mqtt_disconnect(self, client, userdata, rc):
-        print("MQTT Disconnected with result code " + str(rc))
+        print("\nMQTT DISCONNECTED")
         self.mqtt_connected = False
 
     def on_mqtt_message(self, client, userdata, msg):
