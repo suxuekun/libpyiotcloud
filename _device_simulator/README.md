@@ -2,11 +2,11 @@
 
 0. Access the IoT portal.
     
-    Via webapp https://richmondu.com
+    Via <b>webapp</b> https://richmondu.com
 
-    Via iOS/Android app simulators https://creator.ionic.io/share/8f86e2005ba5
+    Via <b>iOS/Android app simulators</b> https://creator.ionic.io/share/8f86e2005ba5
  
-    Via "Ionic Creator" mobile app from Apple App Store or Google Play - Use code: B26EB3
+    Via <b>Ionic Creator mobile app</b> from Apple App Store or Google Play - Use code: B26EB3
 
 
 1. Create an account and login.
