@@ -4,6 +4,23 @@
 
 1. Create an account and login.
 
+    <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/tutorial_signuplogin.png" width="600"/>
+    
+    Click on No account yet to create an account.
+
+    <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/tutorial_signuplogin_2.png" width="600"/>
+    
+    Input the details. Username can be same as email.
+
+    <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/tutorial_signuplogin_3.png" width="600"/>
+    
+    Input the 6-digit code sent to your email.
+
+    <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/tutorial_signuplogin_4.png" width="600"/>
+    
+    You can now login using your specified username and password.
+
+
 2. Register a device (Registering a device will return a unique DEVICE_ID).
 
     <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/tutorial_adddevice.png" width="600"/>
