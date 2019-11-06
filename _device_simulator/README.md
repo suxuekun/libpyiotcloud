@@ -55,12 +55,16 @@
 
     <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/tutorial_testdevice_5.png" width="600"/>
 
-    Select Notifications. Select Email. Type your email address and the message then click "Submit" button. Note that your email must first be registered in AWS Notifications. Contact me to registered your email address. This a limitation of AWS Pinpoint in Sandbox mode.
+    Select Notifications. Select Email. Type your email address and the message then click "Submit" button. You should receive the email. 
+    
+    Note that your email must first be registered in AWS Notifications. Contact me to registered your email address. This a limitation of AWS Pinpoint in Sandbox mode.
     
 
     <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/tutorial_testdevice_6.png" width="600"/>
 
-    Select Notifications. Select SMS. Choose country, input phone number and the message. Then click Submit. Note AWS Pinpoint in Sandbox mode has limit in the number of SMS messages that can be sent. So test wisely. You can also select the source of SMS - AWS Pinpoint, Twilio or Nexmo.
+    Select Notifications. Select SMS. Choose country, input phone number and the message. Then click Submit. You should receive the SMS. 
+    
+    Note AWS Pinpoint in Sandbox mode has limit in the number of SMS messages that can be sent. So test wisely. You can also select the source of SMS - AWS Pinpoint, Twilio or Nexmo.
 
 
 
