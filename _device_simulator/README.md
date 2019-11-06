@@ -25,9 +25,9 @@
 
 3. Set the DEVICE_ID on the device.
 
-    - Device simulator (Python)
-    - Device simulator (NodeJS)
-    - FT900 device (FT900RevC or IoTModule)
+    - Device simulator (Python) - device_simulator.py.bat
+    - Device simulator (NodeJS) - device_simulator.js.bat
+    - FT900 device (FT900RevC or IoTModule) - iot_config.h
 
 4. Run the device.
 
