@@ -58,7 +58,9 @@ Major differences between Minikube and Amazon EKS:
          eksctl delete cluster --name ft90xiotportal 
 
          // Limitation
-         Currently, it requires to spin up 5 EC2 instances as worker nodes. Otherwise, the deployment of containers will be stuck in PENDING (no available pods). Need to investigate since having 5 EC2 instances can be costly.
+         Currently, it requires to spin up 5 EC2 instances as worker nodes. 
+         Otherwise, the deployment of containers will be stuck in PENDING (no available pods). 
+         Need to investigate since having 5 EC2 instances can be costly.
          
 
 ### Instructions:
