@@ -48,9 +48,23 @@
     Select UART. Type "hello world" on the message box then click "Submit" button to be displayed on the device.
 
 
-    <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/tutorial_testdevice_3.png" width="600"/>
+    <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/tutorial_testdevice_4.png" width="600"/>
 
     Select GPIO. Type "10" on GPIO Number then click "Get" button to get the value of the GPIO.
+
+
+    <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/tutorial_testdevice_5.png" width="600"/>
+
+    Select Notifications. Select Email. Type your email address and the message then click "Submit" button. You should receive the email. 
+    
+    Note that your email must first be registered in AWS Notifications. Contact me to registered your email address. This a limitation of AWS Pinpoint in Sandbox mode.
+    
+
+    <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/tutorial_testdevice_6.png" width="600"/>
+
+    Select Notifications. Select SMS. Choose country, input phone number and the message. Then click Submit. You should receive the SMS. 
+    
+    Note AWS Pinpoint in Sandbox mode has limit in the number of SMS messages that can be sent. So test wisely. You can also select the source of SMS - AWS Pinpoint, Twilio or Nexmo.
 
 
 
@@ -68,6 +82,8 @@
 ### Test
 
 1. Update DEVICE_ID in <b>device_simulator.py.bat</b>
+
+   NOTE: To get a device ID, you must first register a device in the IoT Portal.
 
     <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/device_simulator_deviceid_py.png" width="600"/>
 
@@ -96,6 +112,8 @@
 
 1. Update DEVICE_ID in <b>device_simulator.js.bat</b>
 
+   NOTE: To get a device ID, you must first register a device in the IoT Portal.
+   
     <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/device_simulator_deviceid_js.png" width="600"/>
     
 2. Run <b>device_simulator.js.bat</b>
