@@ -1,25 +1,58 @@
 # IoT Portal on Kubernetes
 
-Kubernetes support for IoT portal is now available. 
+Kubernetes support for IoT portal is now available. It has been tested on both Minikube and Amazon EKS.
 
-This has been tested using [Minikube](https://github.com/kubernetes/minikube), an application that allows users to run Kubernetes locally.  
+
+### Amazon EKS
+
+Amazon EKS is a service that allows users to run Kubernetes in AWS without needing to install and operate your own Kubernetes clusters.
+
+<img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/kubernetes_eks.png" width="800"/>
+
+<img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/kubernetes_eks_cluster.png" width="800"/>
+
+<img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/kubernetes_eks_workernodes.png" width="800"/>
+
+
+### Minikube
+
+[Minikube](https://github.com/kubernetes/minikube) is an application that allows users to run Kubernetes locally.  
 
 <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/kubernetes_minikube.png" width="800"/>
 
 <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/kubernetes_minikube_dashboard.png" width="800"/>
 
 
-### Limitations:
 
-1. Ports for RabbitMQ and Nginx are not the usual 8883 and 443. 
-   RabbitMQ can be accessed using port 30883 (MQTTS) and 30671 (AMQPS) instead of 8883 and 5671, respectively.
-   Webapp can be accessed using port 30443 (HTTPS) instead of port 443.
-   Note that to prevent random ports (30000-32767) getting assigned, I had to specify the port number replacements.
-   Based on some forums, this behavior is specific to Minikube only.
-   
-2. The Kubernetes configuration files fetches the docker images from Docker.io not from local machine. 
-   Note that docker-compose fetches from local machine.
+### Setup:
 
+#### Minikube
+
+         minikube start
+         
+         // To stop and/or delete
+         minikube stop
+         minikube delete
+
+         // Limitations
+         Ports for RabbitMQ and Nginx are not the usual 8883 and 443. 
+         RabbitMQ can be accessed using port 30883 (MQTTS) and 30671 (AMQPS) instead of 8883 and 5671, respectively.
+         Webapp can be accessed using port 30443 (HTTPS) instead of port 443.
+         Note that to prevent random ports (30000-32767) getting assigned, I had to specify the port number replacements.
+         Based on some forums, this behavior is specific to Minikube only.
+         
+
+#### Amazon EKS
+
+         eksctl create cluster --name ft90xiotportal --version 1.14 --nodegroup-name ft90xiotportalgrp --node-type t3.micro --nodes 3 --nodes-min 1 --nodes-max 4
+         eksctl scale nodegroup --cluster ft90xiotportal --name ft90xiotportalgrp --nodes 5  
+
+         // To delete
+         eksctl delete cluster --name ft90xiotportal 
+
+         // Limitation
+         Currently, it requires to spin up 5 EC2 instances as worker nodes. Otherwise, the deployment of containers will be stuck in PENDING (no available pods)
+         
 
 
 ### Instructions:
