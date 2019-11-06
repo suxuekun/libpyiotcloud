@@ -5,7 +5,7 @@ Kubernetes support for IoT portal is now available. It has been tested on both M
 
 ### Amazon EKS
 
-Amazon EKS is a service that allows users to run Kubernetes in AWS without needing to install and operate your own Kubernetes clusters.
+[Amazon EKS](https://aws.amazon.com/eks/) is a service that allows users to run Kubernetes in AWS without needing to install and operate your own Kubernetes clusters.
 
 <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/kubernetes_eks.png" width="800"/>
 
