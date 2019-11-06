@@ -36,12 +36,21 @@
     <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/tutorial_testdevice.png" width="600"/>
 
     Click on the top right button to check if device is RUNNING or NOT RUNNING. Make sure device is RUNNING before proceeding.
-    
+
+
     <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/tutorial_testdevice_2.png" width="600"/>
     
     Select Ethernet. Click on Get to retrieve the network-related information of the device.
 
+
+    <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/tutorial_testdevice_3.png" width="600"/>
+    
     Select UART. Type "hello world" on the message box then click "Submit" button to be displayed on the device.
+
+
+    <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/tutorial_testdevice_3.png" width="600"/>
+
+    Select GPIO. Type "10" on GPIO Number then click "Get" button to get the value of the GPIO.
 
 
 
