@@ -41,6 +41,9 @@
     
     Select Ethernet. Click on Get to retrieve the network-related information of the device.
 
+    Select UART. Type "hello world" on the message box then click "Submit" button to be displayed on the device.
+
+
 
 # Device simulator (Python):
 
