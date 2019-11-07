@@ -55,7 +55,7 @@
 
 4. Run the device.
 
-    <b>Refer to corresponding sections below for more details with screenshots.<b>
+    <b>Refer to corresponding sections below for more details with screenshots.</b>
 
 
 5. Access and control the device via the IoT portal. (GPIO, RTC, UART, IP/MAC, etc)
