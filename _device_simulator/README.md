@@ -6,6 +6,10 @@ This page contains a step-by-step tutorial on how to use the IoT Portal includin
 
     A. Detailed step-by-step guide with screenshots
         0. Access the IoT portal.
+           a. Via webapp https://richmondu.com
+           b. Via iOS/Android app simulators https://creator.ionic.io/share/8f86e2005ba5
+           c. Via Ionic Creator mobile app from Apple App Store or Google Play - Use code: <b>B26EB3</b>
+           d. Via Android mobile - Use the APK binary here: https://github.com/richmondu/libpyiotcloud/tree/master/_android_app
         1. Create an account and login.
         2. Register a device (Registering a device will return a unique DEVICE_ID).
         3. Set the DEVICE_ID on the device.
@@ -24,16 +28,25 @@ This page contains a step-by-step tutorial on how to use the IoT Portal includin
 
 0. Access the IoT portal.
     
+    The IoT portal can be accessed in 4 ways:
+    
     - Via <b>webapp</b> https://richmondu.com
     
-    <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/iotportal_website.png" width="600"/>
+        <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/iotportal_website.png" width="600"/>
     
     - Via <b>iOS/Android app simulators</b> https://creator.ionic.io/share/8f86e2005ba5
     
-    <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/iotportal_mobilesimulators.png" width="600"/>
+        <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/iotportal_mobilesimulators.png" width="600"/>
     
     - Via <b>Ionic Creator mobile app</b> from Apple App Store or Google Play - Use code: <b>B26EB3</b>
 
+        <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/iotportal_ioniccreatorapp.png" width="600"/>
+
+    - Via <b>Android mobile</b> - Use the APK binary here: https://github.com/richmondu/libpyiotcloud/tree/master/_android_app
+    
+        <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/ui_androidemulator.png" width="600"/>
+    
+    
 
 1. Create an account and login.
 
