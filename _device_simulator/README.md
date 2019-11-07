@@ -173,7 +173,7 @@
 
     <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/device_simulator_py.png" width="600"/>
 
-    After installation, open a command prompt and type Python. You should see the version of the Python installed.
+    After installation, open a command prompt and type "Python". You should see the version of the "Python" installed.
     
 
 2. Install the required python libraries of the application:
@@ -204,14 +204,20 @@
 
 1. Install the latest NodeJS from https://nodejs.org/en/download/
 
-2. Go to device_simulator folder and install the required nodejs libraries of the application:
+    <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/device_simulator_js.png" width="600"/>
 
-    - cd __device_simulator
-    - npm install mqtt
-    - npm install fs
-    - npm install system-sleep
-    - npm install os
-    - npm install argparse
+    After installation, open a command prompt and type "npm". You should see the version of the "npm" installed.
+
+
+2. Install the required nodejs libraries of the application:
+
+    - npm install -g mqtt
+    - npm install -g fs
+    - npm install -g system-sleep
+    - npm install -g os
+    - npm install -g argparse
+
+    <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/device_simulator_requirements_js.png" width="600"/>
 
 ### Test
 
