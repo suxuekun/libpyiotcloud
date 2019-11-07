@@ -51,7 +51,7 @@ Major differences between Minikube and Amazon EKS:
 
 #### Amazon EKS
 
-         eksctl create cluster --name ft90xiotportal --version 1.14 --nodegroup-name ft90xiotportalgrp --node-type t3.micro --nodes 3 --nodes-min 1 --nodes-max 4
+         eksctl create cluster --name ft90xiotportal --version 1.14 --nodegroup-name ft90xiotportalgrp --node-type t2.micro --nodes 3 --nodes-min 1 --nodes-max 4
          eksctl scale nodegroup --cluster ft90xiotportal --name ft90xiotportalgrp --nodes 5  
 
          // To delete
