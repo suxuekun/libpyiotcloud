@@ -89,7 +89,14 @@
     Note AWS Pinpoint in Sandbox mode has limit in the number of SMS messages that can be sent. So test wisely. You can also select the source of SMS - AWS Pinpoint, Twilio or Nexmo.
 
 
-6. Test buying credits using Paypal.
+6. Check device history.
+
+    <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/tutorial_checkhistory.png" width="600"/>
+
+    Go to History Page. This will display the transaction received and sent by each of the devices in descending order.
+
+
+7. Test buying credits using Paypal.
 
     <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/tutorial_buycredits.png" width="600"/>
     
