@@ -9,7 +9,7 @@ This page contains a step-by-step tutorial on how to use the IoT Portal includin
            a. Via webapp https://richmondu.com
            b. Via iOS/Android app simulators https://creator.ionic.io/share/8f86e2005ba5
            c. Via Ionic Creator mobile app from Apple App Store or Google Play - Use code: <b>B26EB3</b>
-           d. Via Android mobile - Use the APK binary here: https://github.com/richmondu/libpyiotcloud/tree/master/_android_app
+           d. Via Android mobile app - Use the latest APK binary here: https://github.com/richmondu/libpyiotcloud/tree/master/_android_app
         1. Create an account and login.
         2. Register a device (Registering a device will return a unique DEVICE_ID).
         3. Set the DEVICE_ID on the device.
@@ -42,7 +42,7 @@ This page contains a step-by-step tutorial on how to use the IoT Portal includin
 
         <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/iotportal_ioniccreatorapp.png" width="600"/>
 
-    - Via <b>Android mobile</b> - Use the APK binary here: https://github.com/richmondu/libpyiotcloud/tree/master/_android_app
+    - Via <b>Android mobile app</b> - Use the latest APK binary here: https://github.com/richmondu/libpyiotcloud/tree/master/_android_app
     
         <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/ui_androidemulator.png" width="600"/>
     
