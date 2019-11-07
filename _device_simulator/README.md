@@ -192,6 +192,8 @@
 
 1. Update DEVICE_ID in <b>iot_config.h</b>
 
+    NOTE: To get a device ID, you must first register a device in the IoT Portal.
+
     <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/code_ft90Xiotbrtcloud.png" width="600"/>
     
 2. Compile code and load the binary.
