@@ -171,10 +171,18 @@
 
 1. Install the latest Python 3.X.X from https://www.python.org/downloads/
 
+    <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/device_simulator_py.png" width="600"/>
+
+    After installation, open a command prompt and type Python. You should see the version of the Python installed.
+    
+
 2. Install the required python libraries of the application:
 
     - pip install -r requirements.py.txt OR
     - python pip install -r requirements.py.txt
+
+    <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/device_simulator_requirements_py.png" width="600"/>
+
 
 ### Test
 
