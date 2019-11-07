@@ -15,7 +15,7 @@
 
     <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/tutorial_signuplogin_2.png" width="600"/>
     
-    Input the details. Username can be same as email.
+    Input the details. Username can be same as email. Note that a confirmation code will be sent to your email.
 
     <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/tutorial_signuplogin_3.png" width="600"/>
     
@@ -127,6 +127,28 @@
 
     You'll be redirected back to the original window with a popup indicating the new credit balance.
 
+
+8. Test username and password recovery.
+
+    <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/tutorial_forgotpassword.png" width="600"/>
+    
+    Click on "Forgot username or password?" link.
+    
+    
+    <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/tutorial_forgotpassword_2.png" width="600"/>
+    
+    Input your email address then click on "Submit" button. Note that a confirmation code will be sent to your email.
+    
+    
+    <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/tutorial_forgotpassword_3.png" width="600"/>
+    
+    Input the confirmation code including your new password. Then click on "Submit" button.
+    
+
+    <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/tutorial_forgotpassword_4.png" width="600"/>
+
+    You can now login with your username and new password.
+    
 
 
 # Device simulator (Python):
