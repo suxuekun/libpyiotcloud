@@ -110,6 +110,11 @@
     Go to History Page. This will display the transaction received and sent by each of the devices in descending order.
 
 
+    <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/tutorial_checkhistory_2.png" width="600"/>
+
+    Select a device from the list to filter transactions for that specific device.
+
+
 7. Test buying credits using Paypal.
 
     <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/tutorial_buycredits.png" width="600"/>
