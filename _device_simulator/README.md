@@ -11,15 +11,18 @@
 
     <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/tutorial_signuplogin.png" width="600"/>
     
-    Click on No account yet to create an account.
+    Click on "No account yet? Get started for free" link to create an account.
+
 
     <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/tutorial_signuplogin_2.png" width="600"/>
     
     Input the details. Username can be same as email. Note that a confirmation code will be sent to your email.
 
+
     <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/tutorial_signuplogin_3.png" width="600"/>
     
     Input the 6-digit code sent to your email.
+
 
     <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/tutorial_signuplogin_4.png" width="600"/>
     
@@ -31,14 +34,17 @@
     <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/tutorial_adddevice.png" width="600"/>
     
     To add a device, click on the "+" button on the top right of the window.
-    
+
+
     <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/tutorial_adddevice_2.png" width="600"/>
 
     Type a name for the device. Ex. "Smart Device 1"
-    
+
+
     <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/tutorial_adddevice_3.png" width="600"/>
     
     Wait for the device to be registered. A popup up window will appear that the device has been registered.
+
 
     <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/tutorial_adddevice_4.png" width="600"/>
 
@@ -175,9 +181,11 @@
     
     Swipe the device to the right. The View and Delete buttons will appear. Click on the "Delete" button.
     
+    
     <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/tutorial_deletedevice_2.png" width="600"/>
     
     A confirmation popup will appear to delete the device.
+    
     
     <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/tutorial_deletedevice_3.png" width="600"/>
 
