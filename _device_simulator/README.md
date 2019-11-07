@@ -6,10 +6,10 @@ This page contains a step-by-step tutorial on how to use the IoT Portal includin
 
     A. Detailed step-by-step guide with screenshots
         0. Access the IoT portal.
-           a. Via webapp https://richmondu.com
-           b. Via iOS/Android app simulators https://creator.ionic.io/share/8f86e2005ba5
-           c. Via Ionic Creator mobile app from Apple App Store or Google Play - Use code: <b>B26EB3</b>
-           d. Via Android mobile app - Use the latest APK binary here: https://github.com/richmondu/libpyiotcloud/tree/master/_android_app
+           a. Via web app https://richmondu.com
+           b. Via Android mobile app - Install APK: https://github.com/richmondu/libpyiotcloud/tree/master/_android_app
+           c. Via Ionic Creator mobile app simulators https://creator.ionic.io/share/8f86e2005ba5
+           d. Via Ionic Creator mobile app from Apple App Store or Google Play - Use code: <b>B26EB3</b>
         1. Create an account and login.
         2. Register a device (Registering a device will return a unique DEVICE_ID).
         3. Set the DEVICE_ID on the device.
@@ -34,7 +34,11 @@ This page contains a step-by-step tutorial on how to use the IoT Portal includin
     
         <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/iotportal_website.png" width="600"/>
     
-    - Via <b>iOS/Android app simulators</b> https://creator.ionic.io/share/8f86e2005ba5
+    - Via <b>Android mobile app</b> - Install the latest APK: https://github.com/richmondu/libpyiotcloud/tree/master/_android_app
+    
+        <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/ui_androidemulator.png" width="600"/>
+        
+    - Via <b>Ionic Creator mobile app simulators</b> https://creator.ionic.io/share/8f86e2005ba5
     
         <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/iotportal_mobilesimulators.png" width="600"/>
     
@@ -42,9 +46,6 @@ This page contains a step-by-step tutorial on how to use the IoT Portal includin
 
         <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/iotportal_ioniccreatorapp.png" width="600"/>
 
-    - Via <b>Android mobile app</b> - Use the latest APK binary here: https://github.com/richmondu/libpyiotcloud/tree/master/_android_app
-    
-        <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/ui_androidemulator.png" width="600"/>
     
     
 
