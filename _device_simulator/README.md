@@ -162,6 +162,21 @@
     <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/tutorial_forgotpassword_4.png" width="600"/>
 
     You can now login with your username and new password.
+
+
+9. Test deleting a device.
+
+    <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/tutorial_deletedevice.png" width="600"/>
+    
+    Swipe the device to the right. The View and Delete buttons will appear. Click on the "Delete" button.
+    
+    <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/tutorial_deletedevice_2.png" width="600"/>
+    
+    A confirmation popup will appear to delete the device.
+    
+    <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/tutorial_deletedevice_3.png" width="600"/>
+
+    The list of devices will automatically be updated to remove the deleted device.
     
 
 
