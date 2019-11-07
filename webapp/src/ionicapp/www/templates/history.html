@@ -1,9 +1,13 @@
 <ion-view title="History" hide-back-button="true" nav-transition="none" id="page14" class="page_width">
   <ion-content padding="true" class="has-header">
+    <div class="spacer" style="width: 300px; height: 15px;"></div>
+    <div id="history-markdown61" class="show-list-numbers-and-dots">
+      <p style="color:#000000;font-size:16px;">Result: {{ items.length }} transactions</p>
+    </div>
     <ion-list id="history-list14">
-      <label class="item item-input" id="history-search1">
-        <i class="icon ion-search placeholder-icon"></i>
-        <input type="search" placeholder="">
+      <label class="item item-select" id="history-select6">
+        <span class="input-label">Select</span>
+        <select ng-options="devices.indexOf(deviceidx) as deviceidx for deviceidx in devices" ng-model="deviceidx" ng-change="updateSelection(deviceidx)"></select>
       </label>
       <div class="item item-body" id="history-list-item-container3" ng-repeat="item in items">
         <div id="history-markdown49" class="show-list-numbers-and-dots">

@@ -19,6 +19,7 @@ $ionicons-font-path: "../lib/ionic/fonts" !default;
 	height: 150px;
 }
 
+// Login
 .spinner {
 	border: 16px solid #f3f3f3;
 	border-radius: 50%;
@@ -32,6 +33,7 @@ $ionicons-font-path: "../lib/ionic/fonts" !default;
 	visibility: hidden;
 }
 
+// Payment
 .spinner2 {
 	border: 16px solid #f3f3f3;
 	border-radius: 50%;
@@ -43,6 +45,62 @@ $ionicons-font-path: "../lib/ionic/fonts" !default;
 	-webkit-animation: spin 2s linear infinite;
 	animation: spin 2s linear infinite;
 	visibility: visible;
+}
+
+// Signup
+.spinner3 {
+	border: 16px solid #f3f3f3;
+	border-radius: 50%;
+	border-top: 16px solid #444444;
+	border-bottom: 16px solid #444444;
+	width: 80px;
+	height: 80px;
+	margin: 0% auto;
+	-webkit-animation: spin 2s linear infinite;
+	animation: spin 2s linear infinite;
+	visibility: hidden;
+}
+
+// Confirm Registration
+.spinner4 {
+	border: 16px solid #f3f3f3;
+	border-radius: 50%;
+	border-top: 16px solid #444444;
+	border-bottom: 16px solid #444444;
+	width: 80px;
+	height: 80px;
+	margin: 0% auto;
+	-webkit-animation: spin 2s linear infinite;
+	animation: spin 2s linear infinite;
+	visibility: hidden;
+}
+
+// Recover
+.spinner5 {
+	border: 16px solid #f3f3f3;
+	border-radius: 50%;
+	border-top: 16px solid #444444;
+	border-bottom: 16px solid #444444;
+	width: 80px;
+	height: 80px;
+	margin: 0% auto;
+	-webkit-animation: spin 2s linear infinite;
+	animation: spin 2s linear infinite;
+	visibility: hidden;
+}
+
+// Reset Password
+.spinner6 {
+	border: 16px solid #f3f3f3;
+	border-radius: 50%;
+	border-top: 16px solid #444444;
+	border-bottom: 16px solid #444444;
+	width: 80px;
+	height: 80px;
+	margin: 0% auto;
+	-webkit-animation: spin 2s linear infinite;
+	animation: spin 2s linear infinite;
+	visibility: hidden;
 }
 
 @-webkit-keyframes spin {

@@ -14,18 +14,20 @@ function ($scope, $stateParams) {
 function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Devices) {
 
     var server = Server.rest_api;
-    
+
     $scope.devices = [];
 
     $scope.data = {
         'username': User.get_username(), //$stateParams.username,
         'token': User.get_token()        //$stateParams.token
-    }
+    };
+
+    $scope.showHelp = false;
 
     update_token = function(result) {
         if (result !== null) {
             if (result.data.new_token !== undefined) {
-                console.log("New Token exists!")
+                console.log("New Token exists!");
                 User.set({
                     'username': $scope.data.username,
                     'token': result.data.new_token
@@ -33,7 +35,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Device
                 $scope.data.token = result.data.new_token;
             }
         }    
-    }
+    };
 
     $scope.submitTest = function(devicename) {
 
@@ -41,18 +43,19 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Device
             'username': $scope.data.username,
             'token': $scope.data.token,
             'devicename': devicename
-        }
+        };
        
         $state.go('controlDevice', device_param );
-    }
+    };
 
     $scope.submitAdd = function() {
 
         $state.go('registerDevice', $scope.data);
-    }
+    };
     
     $scope.submitRefresh = function() {
 
+        // Fetch devices
         Devices.fetch($scope.data).then(function(res) {
             $scope.devices = res;
             if ($scope.devices.length === 0) {        
@@ -93,7 +96,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Device
             $scope.devices = [];
         });
 */
-    }
+    };
     
     $scope.submitView = function(device) {
         console.log("view" + device.devicename);
@@ -106,7 +109,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Device
             'username': $scope.data.username,
             'token': $scope.data.token,
             'devicename': device.devicename
-        }        
+        };     
         
         // Send HTTP request to REST API
         $http({
@@ -127,7 +130,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Device
                 'devicecert': result.data.device.cert,
                 'devicepkey': result.data.device.pkey,
                 'deviceca': result.data.device.ca
-            }
+            };
             $state.go('viewDevice', device_param);
         })
         .catch(function (error) {
@@ -143,7 +146,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Device
                 alert("ERROR: Server is down!");
             }
         }); 
-    }
+    };
 
     $scope.submitDelete = function(device) {
         $ionicPopup.alert({
@@ -163,7 +166,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Device
                 }
             ]            
         });            
-    }
+    };
     
     $scope.submitDeleteAction = function(device) {
         console.log("delete");
@@ -175,7 +178,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Device
             'username': $scope.data.username,
             'token': $scope.data.token,
             'devicename': device.devicename
-        }        
+        };       
         
         // Send HTTP request to REST API
         $http({
@@ -203,7 +206,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Device
                 alert("ERROR: Server is down!");
             }
         });         
-    }
+    };
     
     //console.log("DEVICES username=" + User.get_username());
     //console.log("DEVICES token=" + User.get_token());
@@ -861,9 +864,6 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
     
     $scope.submit = function() {
         
-        var spinner = document.getElementsByClassName("spinner");
-        spinner[0].style.visibility = "visible";
-
         //console.log("username=" + $scope.data.username);
         //console.log("password=" + $scope.data.password);
 
@@ -876,6 +876,12 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
             $ionicPopup.alert({title: 'Login Error', template: 'Password is empty!'});
             return;
         }
+
+
+        // Display spinner
+        var spinner = document.getElementsByClassName("spinner");
+        spinner[0].style.visibility = "visible";
+
  
         console.log("login: " + new Date().getTime());
         
@@ -977,6 +983,11 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server) {
         }
         
         
+       // Display spinner
+        var spinner = document.getElementsByClassName("spinner3");
+        spinner[0].style.visibility = "visible";
+ 
+         
          // Send HTTP request to REST API
         $http({
             method: 'POST',
@@ -985,6 +996,8 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server) {
             data: $scope.data
         })
         .then(function (result) {
+            spinner[0].style.visibility = "hidden";
+            
             // Handle successful login
             console.log(result.data);
         
@@ -994,6 +1007,8 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server) {
             $state.go('confirmRegistration', $scope.data);
         })
         .catch(function (error) {
+            spinner[0].style.visibility = "hidden";
+            
             // Handle failed
             if (error.data !== null) {
                 console.log(error.status + " " + error.statusText);
@@ -1031,6 +1046,12 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server) {
             return;
         }
 
+
+        // Display spinner
+        var spinner = document.getElementsByClassName("spinner5");
+        spinner[0].style.visibility = "visible";
+        
+
          // Send HTTP request to REST API
         $http({
             method: 'POST',
@@ -1039,6 +1060,8 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server) {
             data: $scope.data
         })
         .then(function (result) {
+            spinner[0].style.visibility = "hidden";
+            
             // Handle successful login
             console.log(result.data);
             
@@ -1048,6 +1071,8 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server) {
             $state.go('resetPassword', $scope.data);            
         })
         .catch(function (error) {
+            spinner[0].style.visibility = "hidden";
+            
             // Handle failed login
             console.log(error);
             if (error.data !== null) {
@@ -1119,6 +1144,12 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server) {
             return;
         } 
 
+
+        // Display spinner
+        var spinner = document.getElementsByClassName("spinner6");
+        spinner[0].style.visibility = "visible";
+        
+        
          // Send HTTP request to REST API
         $http({
             method: 'POST',
@@ -1127,12 +1158,16 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server) {
             data: $scope.data
         })
         .then(function (result) {
+            spinner[0].style.visibility = "hidden";
+            
             // Handle successful
             console.log(result.data);
             $ionicPopup.alert({title: 'Recovery', template: 'Recovery completed!'});
             $state.go('login');            
         })
         .catch(function (error) {
+            spinner[0].style.visibility = "hidden";
+            
             // Handle failed
             console.log(error);
             if (error.data !== null) {
@@ -1178,6 +1213,12 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server) {
             return;
         }
 
+
+        // Display spinner
+        var spinner = document.getElementsByClassName("spinner4");
+        spinner[0].style.visibility = "visible";
+        
+        
          // Send HTTP request to REST API
         $http({
             method: 'POST',
@@ -1186,12 +1227,16 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server) {
             data: $scope.data
         })
         .then(function (result) {
+            spinner[0].style.visibility = "hidden";
+            
             // Handle successful
             console.log(result.data);
             $ionicPopup.alert({title: 'Signup', template: 'Registration completed!'});
             $state.go('login');
         })
         .catch(function (error) {
+            spinner[0].style.visibility = "hidden";
+            
             // Handle failed
             console.log(error);
             if (error.data !== null) {
@@ -1563,6 +1608,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User) {
     }     
 
     query_device = function(param) {
+        
         // Send HTTP request to REST API
         $http({
             method: 'POST',
@@ -2450,9 +2496,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Device
         'token': User.get_token()        //$stateParams.token
     }
     
-   
-    
-    $scope.items = [];
+    $scope.items_master = []; // items retrieved from database
+    $scope.items = []; // items to be shown
 /*    
         {
             "direction": "To",
@@ -2462,50 +2507,56 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Device
             "payload": { "number": "10"},
             "datetime": "datetime"
         },
-        {
-            "direction": "To",
-            "deviceid" : "1234567891",
-            "devicename": "ft900device2",
-            "topic": "set_uart",
-            "payload": "Hello World!",
-            "datetime": "datetime"
-        },
-        {
-            "direction": "To",
-            "deviceid" : "1234567892",
-            "devicename": "ft900device3",
-            "topic": "trigger_notification",
-            "payload": "Open sesame",
-            "datetime": "datetime"
-        },
-        
     ];
 */    
+    
+    $scope.devices = [ "All devices" ];
+    $scope.deviceidx = 0;
+    
+    $scope.updateSelection = function(idx) {
+        $scope.items = [];
+        $scope.deviceidx = idx;
+        
+        console.log($scope.devices[$scope.deviceidx]);
+        var i;
+        
+        if ($scope.deviceidx !== 0) {
+            for (i=0; i<$scope.items_master.length; i++) {
+                if ($scope.devices[$scope.deviceidx] === $scope.items_master[i].devicename) {
+                    $scope.items.push($scope.items_master[i]);
+                }
+            }
+        }
+        else {
+            $scope.items = $scope.items_master;        
+        }
+    };
+    
     
     $scope.submitRefresh = function() {
     
         var user_data = {
             'username': User.get_username(), //$stateParams.username,
             'token': User.get_token()        //$stateParams.token
-        }
+        };
     
         Histories.fetch(user_data).then(function(res) {
-            //res.sort(function(a, b){return a['timestamp']-b['timestamp']});
-            //res.reverse();
-            $scope.items = res;
-            
-            console.log(res);
-            
+            $scope.items_master = res;
             $scope.data.token = User.get_token();
 
-            //if ($scope.items.length === 0) {        
-                //$ionicPopup.alert({
-                //    title: 'Query Devices',
-                //    template: 'No devices registered!',
-                //});
-            //}
+            console.log(res);
+            var i;
+            for (i=0; i<res.length; i++) {
+                var result = $scope.devices.includes(res[i].devicename);
+                if (result === false) {
+                    $scope.devices.push(res[i].devicename);
+                }
+            }
+            console.log($scope.devices);
+            
+            $scope.updateSelection($scope.deviceidx);
         }); 
-    }
+    };
     
     $scope.$on('$ionicView.enter', function(e) {
         console.log("DEVICES enter ionicView REFRESH LIST");

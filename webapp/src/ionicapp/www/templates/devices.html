@@ -3,6 +3,7 @@
     <button class="button button-icon icon ion-android-add" ng-click="submitAdd()"></button>
   </ion-nav-buttons>
   <ion-content padding="true" class="has-header">
+    <div class="spacer" style="width: 300px; height: 12px;"></div>
     <ion-list id="devices-list9">
       <ion-item class="item-icon-left dark" id="devices-list-item20" ng-repeat="device in devices" ng-click="submitTest(device.devicename)">
         <i class="icon ion-ionic"></i>{{ device.devicename }}
@@ -11,10 +12,21 @@
       </ion-item>
     </ion-list>
     <button id="devices-button24" ng-click="submitRefresh()" class="button button-dark button-block">Refresh</button>
-    <div id="devices-markdown48" style="text-align:center;" class="show-list-numbers-and-dots">
-      <p style="color:#444444;">Swipe device to
-        <strong>view</strong> device information or
-        <strong>delete</strong> device.</p>
+    <form id="devices-form24" class="list">
+      <ion-toggle toggle-class="toggle-dark" id="devices-toggle10" ng-model="showHelp">Help</ion-toggle>
+    </form>
+    <div id="devices-markdown30" ng-show="showHelp" style="text-align:center;" class="show-list-numbers-and-dots">
+      <p style="color:#444444;">To
+        <strong>add device</strong>, click on the + button at the top right corner.</p>
+    </div>
+    <div id="devices-markdown59" ng-show="showHelp" style="text-align:center;" class="show-list-numbers-and-dots">
+      <p style="color:#444444;">To
+        <strong>control device</strong>, click on the device.</p>
+    </div>
+    <div id="devices-markdown48" ng-show="showHelp" style="text-align:center;" class="show-list-numbers-and-dots">
+      <p style="color:#444444;">To
+        <strong>view device</strong> information or
+        <strong>delete device</strong>, swipe the device.</p>
     </div>
   </ion-content>
 </ion-view>
