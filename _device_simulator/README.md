@@ -130,12 +130,12 @@
     
     <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/tutorial_buycredits_2.png" width="600"/>
     
-    Select package. Click on "Pay via Paypal" button.
+    Select package. Click on "Pay via Paypal" button. This will open up a Paypal window.
     
     
     <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/tutorial_buycredits_3.png" width="600"/>
 
-    A Paypal window appears. Login using the following test account: username-iotportal@bridgetek.com password-BrtIoTPortal
+    A Paypal window appears. Login using the following test account - username: <b>iotportal@bridgetek.com</b> password: <b>BrtIoTPortal</b>
     
 
     <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/tutorial_buycredits_4.png" width="600"/>
