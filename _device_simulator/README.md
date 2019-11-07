@@ -1,22 +1,26 @@
-# Step-by-step User Guide:
+# User Guide:
 
 This page contains a step-by-step tutorial on how to use the IoT Portal including how to use the device simulators or FT900 device module. If you have questions, comments and suggestions, please contact me at Skype. My ID is <b>ftdi.richmond.umagat</b>. 
 
-Summary:
+### Summary
 
-    0. Access the IoT portal.
-    1. Create an account and login.
-    2. Register a device (Registering a device will return a unique DEVICE_ID).
-    3. Set the DEVICE_ID on the device.
-    4. Run the device.
-    5. Access and control the device via the IoT portal. (GPIO, RTC, UART, IP/MAC, etc)
-    6. Check device history.
-    7. Test buying credits using Paypal.
-    8. Test username and password recovery.
-    9. Test deleting a device.
+    A. Detailed step-by-step guide with screenshots
+        0. Access the IoT portal.
+        1. Create an account and login.
+        2. Register a device (Registering a device will return a unique DEVICE_ID).
+        3. Set the DEVICE_ID on the device.
+        4. Run the device.
+        5. Access and control the device via the IoT portal. (GPIO, RTC, UART, IP/MAC, etc)
+        6. Check device history.
+        7. Test buying credits using Paypal.
+        8. Test username and password recovery.
+        9. Test deleting a device.
+    B. Device simulator (Python)
+    C. Device simulator (NodeJS)
+    D. FT900 device (FT900RevC or IoTModule)
 
 
-Detailed Guide:
+# Detailed step-by-step guide with screenshots:
 
 0. Access the IoT portal.
     
