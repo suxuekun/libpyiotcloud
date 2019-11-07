@@ -51,7 +51,12 @@
     - Device simulator (NodeJS) - <b>device_simulator.js.bat</b>
     - FT900 device (FT900RevC or IoTModule) - <b>iot_config.h</b>
 
+    <b>Refer to corresponding sections below for more details with screenshots.</b>
+
 4. Run the device.
+
+    <b>Refer to corresponding sections below for more details with screenshots.<b>
+
 
 5. Access and control the device via the IoT portal. (GPIO, RTC, UART, IP/MAC, etc)
 
