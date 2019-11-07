@@ -15,7 +15,7 @@
 
     <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/tutorial_signuplogin_2.png" width="600"/>
     
-    Input the details. Username can be same as email.
+    Input the details. Username can be same as email. Note that a confirmation code will be sent to your email.
 
     <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/tutorial_signuplogin_3.png" width="600"/>
     
@@ -47,11 +47,25 @@
 
 3. Set the DEVICE_ID on the device.
 
+    <b>Refer to corresponding sections below for setup instructions for the device simulators and FT900 device.</b>
+    
     - Device simulator (Python) - <b>device_simulator.py.bat</b>
+    
+        <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/device_simulator_deviceid_py.png" width="600"/>
+    
     - Device simulator (NodeJS) - <b>device_simulator.js.bat</b>
+    
+        <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/device_simulator_deviceid_js.png" width="600"/>
+        
     - FT900 device (FT900RevC or IoTModule) - <b>iot_config.h</b>
 
+        <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/code_ft90Xiotbrtcloud.png" width="600"/>
+
+
 4. Run the device.
+
+    <b>Refer to corresponding sections below for more details with screenshots.</b>
+
 
 5. Access and control the device via the IoT portal. (GPIO, RTC, UART, IP/MAC, etc)
 
@@ -127,6 +141,28 @@
 
     You'll be redirected back to the original window with a popup indicating the new credit balance.
 
+
+8. Test username and password recovery.
+
+    <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/tutorial_forgotpassword.png" width="600"/>
+    
+    Click on "Forgot username or password?" link.
+    
+    
+    <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/tutorial_forgotpassword_2.png" width="600"/>
+    
+    Input your email address then click on "Submit" button. Note that a confirmation code will be sent to your email.
+    
+    
+    <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/tutorial_forgotpassword_3.png" width="600"/>
+    
+    Input the confirmation code including your new password. Then click on "Submit" button.
+    
+
+    <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/tutorial_forgotpassword_4.png" width="600"/>
+
+    You can now login with your username and new password.
+    
 
 
 # Device simulator (Python):
