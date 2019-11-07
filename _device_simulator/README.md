@@ -47,11 +47,20 @@
 
 3. Set the DEVICE_ID on the device.
 
+    <b>Refer to corresponding sections below for setup instructions for the device simulators and FT900 device.</b>
+    
     - Device simulator (Python) - <b>device_simulator.py.bat</b>
+    
+        <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/device_simulator_deviceid_py.png" width="600"/>
+    
     - Device simulator (NodeJS) - <b>device_simulator.js.bat</b>
+    
+        <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/device_simulator_deviceid_js.png" width="600"/>
+        
     - FT900 device (FT900RevC or IoTModule) - <b>iot_config.h</b>
 
-    <b>Refer to corresponding sections below for more details with screenshots.</b>
+        <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/code_ft90Xiotbrtcloud.png" width="600"/>
+
 
 4. Run the device.
 
