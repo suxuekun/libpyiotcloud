@@ -4,7 +4,7 @@
     
     - Via <b>webapp</b> https://richmondu.com
     - Via <b>iOS/Android app simulators</b> https://creator.ionic.io/share/8f86e2005ba5
-    - Via <b>Ionic Creator mobile app</b> from Apple App Store or Google Play - Use code: B26EB3
+    - Via <b>Ionic Creator mobile app</b> from Apple App Store or Google Play - Use code: <b>B26EB3</b>
 
 
 1. Create an account and login.
