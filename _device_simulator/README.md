@@ -141,7 +141,7 @@ This page contains a step-by-step tutorial on how to use the IoT Portal includin
 
     Select <b>Notifications</b>. Select Email. Type your email address and the message then click "Submit" button. You should receive the email. 
     
-    Note that your email must first be registered in AWS Notifications. Contact me to registered your email address. This a limitation of AWS Pinpoint in Sandbox mode.
+    Note that your email must first be registered in AWS Pinpoint. Contact me to registered your email address. This a limitation of AWS Pinpoint in Sandbox mode.
     
 
     <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/tutorial_testdevice_6.png" width="600"/>
