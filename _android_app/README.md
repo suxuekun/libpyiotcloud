@@ -1,5 +1,13 @@
 # Android app
 
+### Installing APK binary:
+
+Compiled binaries are available. 
+Make sure to use the latest compilation.
+
+
+### Compiling APK binary:
+
 To build Android mobile app using the Ionic web app requires the following:
 
 - Installation of [Java SE Development Kit 8](https://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html)
