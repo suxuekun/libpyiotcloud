@@ -175,3 +175,9 @@ Major differences between Minikube and Amazon EKS:
          kubectl delete deployment DEPLOYMENTNAME
          kubectl delete service SERVICENAME
          kubectl delete persistentvolumeclaim PERSISTENTVOLUMENAME
+
+
+### Action Items:
+
+         1. Force the 7 pods to be contained in 1-2 nodes only.
+            Currently, 5 of the pods that have services are located in separate nodes by default.
