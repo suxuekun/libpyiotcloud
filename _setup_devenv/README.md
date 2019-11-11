@@ -125,7 +125,8 @@ Below contains a step-by-step instructions on installing and setting up the fron
     
     E. Browse https://docker-machine_ip // Refer to value of "docker-machine ip"
 
-    Note to stop the docker containers, do the following:
+
+    // Note to stop the docker containers, do the following:
 	
     F. Type "Ctrl+C"
 	
