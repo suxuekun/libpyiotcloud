@@ -1,6 +1,8 @@
 # IoT Portal on Kubernetes
 
-Kubernetes support for IoT portal is now available. It has been tested on both Minikube and Amazon EKS.
+Kubernetes support for IoT portal is now available. It has been tested on Amazon EKS and Minikube.
+
+Running on Kubernetes on Amazon EKS is expensive costing 0.20 USD/hour. To development purpose, use Minikube.
 
 
 ### Amazon EKS
