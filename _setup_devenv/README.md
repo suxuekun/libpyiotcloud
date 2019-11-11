@@ -1,8 +1,9 @@
 # Developer Guide
 
+Below contains a step-by-step instructions on installing and setting up the frontend and backend web infrastructure of IoT Portal on local machine.
 
 
-### Backend Development Tools
+### Development Tools
 
 1. Github Desktop
 
@@ -46,7 +47,7 @@
     To be used for non-Docker version.
 
 
-### Backend Development Setup
+### Development Setup
 
 1. Download the code from the repository.
  
