@@ -10,7 +10,7 @@ Jenkins support for automated integration/deployment for IoT portal is now avail
 
 
 ### Jenkins pipeline
-A Jenkins pipeline is created for IoT Portal via [Jenkinsfile](https://github.com/richmondu/libpyiotcloud/blob/master/Jenkinsfile) which allows automated deployment to AWS EC2.
+A Jenkins pipeline is created for IoT Portal via [Jenkinsfile](https://github.com/richmondu/libpyiotcloud/blob/master/Jenkinsfile) which allows fully-automated deployment to AWS EC2.
 
 
 ### Continuous Deployment/Delivery
