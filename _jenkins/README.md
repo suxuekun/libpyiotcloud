@@ -36,4 +36,4 @@ New method (fully automated - using Jenkins):
 
 ### Continuous Integration
 
-TODO
+TODO: Add automated testing for all container services from the webapp to the restapi.
