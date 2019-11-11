@@ -235,11 +235,18 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
 
         'fullname': 'Unknown',
         'email': 'Unknown',
+        'mobile': 'Unknown',
 
         'subscription_type': 'Unknown',
         'subscription_credits': 'Unknown',
+        
+        'activeSection': 1,
     };
 
+    $scope.changeSection = function(s) {
+        $scope.data.activeSection = s;
+    };
+    
     update_token = function(result) {
         if (result !== null) {
             if (result.data.new_token !== undefined) {
@@ -1609,6 +1616,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User) {
 
     query_device = function(param) {
         
+        $scope.data.devicestatus = 'Detecting...';
+        
         // Send HTTP request to REST API
         $http({
             method: 'POST',
@@ -1619,6 +1628,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User) {
         .then(function (result) {
             console.log(result.data);
             update_token(result);
+            
             $scope.data.devicestatus = 'RUNNING';
         })
         .catch(function (error) {
