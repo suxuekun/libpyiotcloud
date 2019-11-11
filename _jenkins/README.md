@@ -19,7 +19,7 @@ The pipeline basically stops the currently running docker containers and then bu
 
 ### Continuous Deployment/Delivery
 
-Previous method (manual):
+<b>Previous method</b> (manual):
 1. Connect to AWS EC2 using WinSCP and transfer the latest code.
 2. Connect to AWS EC2 using Putty and set all the environment variables for IoT Portal.
 3. Stop docker images using the following commands:
@@ -31,7 +31,7 @@ Previous method (manual):
 5. Run docker images using 
    - docker-compose up -d
 
-New method (fully automated - using Jenkins):
+<b>New method</b> (fully automated - using Jenkins):
 1. make sure Github webhook is Active for the Jenkins URL 
    - http://ec2-3-86-65-191.compute-1.amazonaws.com:8080/github-webhook/
 2. commit new code to repository
