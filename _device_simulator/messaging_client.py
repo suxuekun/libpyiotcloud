@@ -293,7 +293,7 @@ class messaging_client:
                     client.unsubscribe(topic)
                 except:
                     return False
-        print("\nDevice is now ready! Control this device from IoT Portal https://richmondu.com")
+        print("\nDevice is now ready! Control this device from IoT Portal https://{}".format(self.host))
         return True
 
     def on_mqtt_connect(self, client, userdata, flags, rc):
