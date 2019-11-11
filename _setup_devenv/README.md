@@ -109,6 +109,7 @@ Below contains a step-by-step instructions on installing and setting up the fron
 
     Please request for the values of the environment variables from me.
 	
+
     In Linux/MacOS, use export ENVIRONMENT_SYSTEM_VARIABLE="ENVIRONMENT_SYSTEM_VALUE"
     In Windows, restart the Docker Toolbox/Desktop after updating the environment variable.
 	
@@ -141,7 +142,9 @@ Below contains a step-by-step instructions on installing and setting up the fron
 
     A. Type "cd libpyiotcloud"
 
+
     // Python device simulator
+    
     B. Type "pip install -r requirements.py.txt"
 	
     C. In Windows, update HOST variable in device_simulator.py.bat to the docker-machine ip
@@ -152,7 +155,9 @@ Below contains a step-by-step instructions on installing and setting up the fron
 	
     E. You should see "Device is now ready! ..."
 	
-    // NodeJS device simulator
+
+    // NodeJS device simulator 
+    
     F. Type "npm install -g mqtt" 
 	
     G. Type "npm install -g argparse" 
