@@ -38,6 +38,7 @@ The pipeline basically stops the currently running docker containers and then bu
    - http://ec2-3-86-65-191.compute-1.amazonaws.com:8080/github-webhook/
 2. commit new code to repository
    - this triggers the Jenkins pipeline to stop, build and run the new code.
+   - email will be sent to a list of email addresses about the result of the new deployment.
 
 
 ### Continuous Integration
