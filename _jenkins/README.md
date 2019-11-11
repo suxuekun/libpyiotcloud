@@ -34,8 +34,7 @@ The pipeline basically stops the currently running docker containers and then bu
    - docker-compose up -d
 
 <b>New method</b> (fully automated - using Jenkins):
-1. make sure the Github webhook for the repository is Active for the Jenkins URL 
-   - http://ec2-3-86-65-191.compute-1.amazonaws.com:8080/github-webhook/
+1. make sure the Github webhook for the repository is Active for the Jenkins URL (JenkinsURL/github-webhook/)
 2. commit new code to repository
    - this triggers the Jenkins pipeline to stop, build and run the new code.
    - email will be sent to a list of email addresses about the result of the new deployment.
