@@ -1356,7 +1356,8 @@ In Linux, the total round trip time is only 1 second.
 9.  [Low] Add file logging of microservices for easier debugging/troubleshooting
 10. [Low] Add manager/admin page in Web client (see all users and devices registered by each user)
 11. [Low] Support an online device emulator. (Each user can run 1 online device emulator.)
-12. [Low] Support Kubernetes orchestration.
+12. [Low] Optimize Kubernetes support on AWS EKS. (currently using 5 EC2 instances as worker nodes.)
+13. [Low] Move Jenkins server to another AWS EC2 instance (Currently, running on same EC2 instance.)
 
 
 # Reminders
