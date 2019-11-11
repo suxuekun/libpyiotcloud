@@ -82,9 +82,10 @@ An alternative solution is using an AWS serverless solution wherein:
 
 <b>Front-end</b>
 
-1. <b>Mobile</b>: Ionic mobile app -> Nginx -> Backend
-2. <b>Web</b>: browser -> Nginx -> Ionic web app -> Backend
-3. <b>Programming Languages:</b> Javascript and AngularJS
+1. <b>Android Mobile</b>: Ionic mobile app -> Backend
+2. <b>IOS Mobile</b>: Ionic mobile app -> Backend
+3. <b>Web</b>: browser -> Ionic web app -> Backend
+4. <b>Programming Languages:</b> Javascript and AngularJS
 
 
 
@@ -92,11 +93,12 @@ An alternative solution is using an AWS serverless solution wherein:
 
 <b>Back-end</b>
 
-1. <b>RestAPI</b> (Flask) -> Cognito, MongoDB, Paypal, RabbitMQ
-2. <b>RabbitMQ</b>: accessed by restapi, device, notification service and history service
-3. <b>History service</b> -> RabbitMQ, MongoDB
-4. <b>Notification service</b> -> RabbitMQ, Pinpoint, Twilio, Nexmo
-5. <b>Programming Languages:</b> Python
+1. <b>Nginx</b> -> called by frontend, will call RestAPI or Webapp
+2. <b>RestAPI</b> (Flask) -> Cognito, MongoDB, Paypal, RabbitMQ
+3. <b>RabbitMQ</b>: accessed by restapi, device, notification service and history service
+4. <b>History service</b> -> RabbitMQ, MongoDB
+5. <b>Notification service</b> -> RabbitMQ, Pinpoint, Twilio, Nexmo
+6. <b>Programming Languages:</b> Python
 
 
 
