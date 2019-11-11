@@ -111,6 +111,7 @@ Below contains a step-by-step instructions on installing and setting up the fron
 	
 
     In Linux/MacOS, use export ENVIRONMENT_SYSTEM_VARIABLE="ENVIRONMENT_SYSTEM_VALUE"
+   
     In Windows, restart the Docker Toolbox/Desktop after updating the environment variable.
 	
 	
@@ -148,9 +149,11 @@ Below contains a step-by-step instructions on installing and setting up the fron
     B. Type "pip install -r requirements.py.txt"
 	
     C. In Windows, update HOST variable in device_simulator.py.bat to the docker-machine ip
+      
        In Mac OS,  update HOST variable in device_simulator.py.sh to the docker-machine ip
 	
     D. In Windows, run device_simulator.py.bat
+       
        In Mac OS,  run device_simulator.py.sh
 	
     E. You should see "Device is now ready! ..."
@@ -169,9 +172,11 @@ Below contains a step-by-step instructions on installing and setting up the fron
     J. Type "npm install -g fs"
 
     K. In Windows, update HOST variable in device_simulator.js.bat to the docker-machine ip
+       
        In Mac OS,  update HOST variable in device_simulator.js.sh to the docker-machine ip
 	
     L. In Windows, run device_simulator.js.bat
+       
        In Mac OS,  run device_simulator.js.sh	
 	
     M. You should see "Device is now ready! ..."
