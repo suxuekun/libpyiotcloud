@@ -1,4 +1,4 @@
-# IoT Portal on automated CI/CD using Jenkins
+# IoT Portal with Jenkins CI/CD automation
 
 Jenkins support for automated integration/deployment for IoT portal is now available [here](http://ec2-3-86-65-191.compute-1.amazonaws.com:8080/).
 
