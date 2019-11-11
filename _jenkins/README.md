@@ -8,6 +8,11 @@ Jenkins support for automated integration/deployment for IoT portal is now avail
 
 <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/jenkins_3.png" width="800"/>
 
+<img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/jenkins_4.png" width="800"/>
+
+<img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/jenkins_5.png" width="800"/>
+
+
 
 ### Jenkins pipeline
 A Jenkins pipeline is created for IoT Portal via [Jenkinsfile](https://github.com/richmondu/libpyiotcloud/blob/master/Jenkinsfile) which allows fully-automated deployment to AWS EC2.
@@ -15,6 +20,7 @@ A Jenkins pipeline is created for IoT Portal via [Jenkinsfile](https://github.co
 <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/jenkins_jenkinsfile.png" width="800"/>
 
 The pipeline basically stops the currently running docker containers and then build and run the updated code from the specified repository.
+
 
 
 ### Continuous Deployment/Delivery
@@ -39,6 +45,7 @@ The pipeline basically stops the currently running docker containers and then bu
 2. commit new code to repository
    - this triggers the Jenkins pipeline to stop, build and run the new code.
    - email will be sent to a list of email addresses about the result of the new deployment.
+
 
 
 ### Continuous Integration
