@@ -39,16 +39,13 @@ Below contains a step-by-step instructions on installing and setting up the fron
     B. [Mac OS](https://nodejs.org/dist/v12.13.0/node-v12.13.0.pkg)
 
 
-5. [Google Chrome](https://www.google.com/chrome/)
-
-
-6. (Optional) [RabbitMQ](https://www.rabbitmq.com/download.html) 
+5. (Optional) [RabbitMQ](https://www.rabbitmq.com/download.html) 
 
     To be used for non-Docker version.
 	Note that the configuration file needs to be updated.
 
 
-7. (Optional) [MongoDB](https://www.mongodb.com/download-center/community)
+6. (Optional) [MongoDB](https://www.mongodb.com/download-center/community)
 
     To be used for non-Docker version.
 
