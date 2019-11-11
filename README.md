@@ -84,7 +84,7 @@ An alternative solution is using an AWS serverless solution wherein:
 
 1. <b>Mobile</b>: Ionic mobile app -> Nginx -> Backend
 2. <b>Web</b>: browser -> Nginx -> Ionic web app -> Backend
-3. Programming Languages: Javascript and AngularJS
+3. <b>Programming Languages:</b> Javascript and AngularJS
 
 
 
@@ -96,7 +96,7 @@ An alternative solution is using an AWS serverless solution wherein:
 2. <b>RabbitMQ</b>: accessed by restapi, device, notification service and history service
 3. <b>History service</b> -> RabbitMQ, MongoDB
 4. <b>Notification service</b> -> RabbitMQ, Pinpoint, Twilio, Nexmo
-5. Programming Languages: Python
+5. <b>Programming Languages:</b> Python
 
 
 
@@ -105,7 +105,8 @@ An alternative solution is using an AWS serverless solution wherein:
 <b>Device</b>
 
 1. <b>Device</b> -> RabbitMQ
-2. Programming Languages: C
+2. <b>Device Simulator</b> -> RabbitMQ
+3. <b>Programming Languages:</b> C (for FT900), Python and NodeJS (for device simulators)
 
 
 
