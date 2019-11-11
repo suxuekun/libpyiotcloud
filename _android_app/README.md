@@ -22,7 +22,10 @@ To build Android mobile app using the Ionic web app requires the following:
   - <b> ionic cordova build android </b>
     (This generates an APK file in the following path platforms\android\app\build\outputs\apk\debug\app-debug.apk . A copy of this APK has is made available. Refer to iot-portal-app-debug.apk)
   
-- Run on an <b>Android emulator</b> from <b>Android Studio </b> 
+  
+### Running APK binary on Android emulator:
+
+To run on an <b>Android emulator</b> from <b>Android Studio </b> 
 
   - <b> ionic cordova emulate android --target=Nexus_5X_API_29_x86 </b> (This generates and runs the APK file on an emulated Android device.)
   - FYI: %LOCALAPPDATA%\Android\sdk\tools\bin\avdmanager list avd
