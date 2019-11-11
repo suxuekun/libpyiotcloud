@@ -15,7 +15,8 @@ _kubernetes/environment_private_prod.yaml
 _kubernetes/notes.txt
 _requirements
 _presentation
-
+start.sh
+stop.sh
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
