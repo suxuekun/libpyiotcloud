@@ -20,15 +20,17 @@ The pipeline basically stops the currently running docker containers and then bu
 ### Continuous Deployment/Delivery
 
 <b>Previous method</b> (manual):
-1. Connect to AWS EC2 using WinSCP and transfer the latest code.
-2. Connect to AWS EC2 using Putty and set all the environment variables for IoT Portal.
+1. Connect to AWS EC2 using <b>WinSCP</b> and transfer the latest code.
+2. Connect to AWS EC2 using <b>Putty</b> and set all the environment variables for IoT Portal.
 3. Stop docker images using the following commands:
    - docker-compose down
    - docker-compose remove 
    - docker network prune -f
-4. Build new docker images using the following command:
+4. Check if docker-compose configuration is correct:
+   - docker-compose -f docker-compose.yml config
+5. Build the new docker images using the following command:
    - docker-compose build --no-cache
-5. Run docker images using 
+6. Run the new docker images using the following command:
    - docker-compose up -d
 
 <b>New method</b> (fully automated - using Jenkins):
