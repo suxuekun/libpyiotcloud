@@ -143,7 +143,7 @@ Below contains a step-by-step instructions on installing and setting up the fron
     A. Type "cd libpyiotcloud"
 
 
-    // Python device simulator
+    // PYTHON device simulator
     
     B. Type "pip install -r requirements.py.txt"
 	
@@ -156,7 +156,7 @@ Below contains a step-by-step instructions on installing and setting up the fron
     E. You should see "Device is now ready! ..."
 	
 
-    // NodeJS device simulator 
+    // NODEJS device simulator 
     
     F. Type "npm install -g mqtt" 
 	
