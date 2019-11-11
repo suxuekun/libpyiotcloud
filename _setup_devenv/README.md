@@ -112,7 +112,7 @@ Below contains a step-by-step instructions on installing and setting up the fron
 
     In Linux/MacOS, use export ENVIRONMENT_SYSTEM_VARIABLE="ENVIRONMENT_SYSTEM_VALUE"
    
-    In Windows, restart the Docker Toolbox/Desktop after updating the environment variable.
+    In Windows, always restart the Docker Toolbox/Desktop after adding or updating an environment system variable.
 	
 	
 3. Run the Docker images using the following commands.
