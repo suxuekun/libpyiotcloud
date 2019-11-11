@@ -1,6 +1,6 @@
 # libpyiotcloud
 
-libpyiotcloud is a dockerized IoT platform for secure remote access, control and management of microcontroller-based smart devices via Android/iOS hybrid mobile apps and web browser with backend RESTful APIs accessing 3rd party APIs (Cognito, Twilio, Pinpoint, Paypal), integrated to containerized microservices (RabbitMQ message broker, Nginx web server, MongoDB database) and deployed to Amazon AWS EC2 utilizing Kubernetes orchestration, Docker containerization and Jenkins CI/CD automation.
+libpyiotcloud is a dockerized IoT platform for secure remote access, control and management of microcontroller-based smart devices via Android/iOS hybrid mobile apps and web app with backend RESTful APIs accessing 3rd party APIs (Cognito, Twilio, Pinpoint, Paypal), integrated to containerized microservices (RabbitMQ message broker, Nginx web server, MongoDB database) and deployed to Amazon AWS EC2 utilizing Kubernetes orchestration, Docker containerization and Jenkins CI/CD automation.
 
 
 # Background
