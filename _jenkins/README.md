@@ -32,6 +32,7 @@ The pipeline basically stops the currently running docker containers and then bu
    - docker-compose build --no-cache
 6. Run the new docker images using the following command:
    - docker-compose up -d
+7. Manually send an email regarding the new release/deployment.
 
 <b>New method</b> (fully automated - using Jenkins):
 1. make sure the Github webhook for the repository is Active for the Jenkins URL (JenkinsURL/github-webhook/)
