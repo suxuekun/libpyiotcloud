@@ -1,6 +1,6 @@
 # libpyiotcloud
 
-libpyiotcloud is a dockerized IoT platform for secure remote access/control of MCU-based smart devices from Android/iOS mobile apps and web browser via REST APIs and RabbitMQ message broker and leveraging Docker, Jenkins and Kubernetes.
+libpyiotcloud is a dockerized IoT platform for secure remote access, control and management of microcontroller-based smart devices via Android/iOS hybrid mobile apps and web app with backend RESTful APIs accessing 3rd party APIs (Cognito user signup/login, Twilio SMS messaging, Nexmo SMS messaging, Pinpoint email/SMS messaging, Paypal payment gateway), integrated to containerized microservices (RabbitMQ message broker, Nginx web server, MongoDB database) and deployed to Amazon AWS EC2 utilizing Kubernetes orchestration, Docker containerization and Jenkins CI/CD automation.
 
 
 # Background
