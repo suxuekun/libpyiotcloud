@@ -116,7 +116,7 @@ client.on("connect", function()
             result = client.subscribe(topic, {qos:1} );
             //console.log(result);
             subscribed = true;
-            console.log("\nDevice is now ready! Control this device from IoT Portal https://richmondu.com");
+            console.log("\nDevice is now ready! Control this device from IoT Portal https://" + CONFIG_HOST);
         }
     }
     else {
