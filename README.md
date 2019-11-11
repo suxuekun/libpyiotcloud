@@ -77,12 +77,15 @@ An alternative solution is using an AWS serverless solution wherein:
 7. <b>Historian</b> (handles saving of device requests and responses for each devices of all users)
 
 
+
 <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/architecture_frontend.png" width="1000"/>
 
 <b>Front-end</b>
 
 1. <b>Mobile</b>: Ionic mobile app -> Nginx -> Backend
 2. <b>Web</b>: browser -> Nginx -> Ionic web app -> Backend
+3. Programming Languages: Javascript and AngularJS
+
 
 
 <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/architecture_backend.png" width="1000"/>
@@ -93,6 +96,8 @@ An alternative solution is using an AWS serverless solution wherein:
 2. <b>RabbitMQ</b>: accessed by restapi, device, notification service and history service
 3. <b>History service</b> -> RabbitMQ, MongoDB
 4. <b>Notification service</b> -> RabbitMQ, Pinpoint, Twilio, Nexmo
+5. Programming Languages: Python
+
 
 
 <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/architecture_device.png" width="1000"/>
@@ -100,6 +105,7 @@ An alternative solution is using an AWS serverless solution wherein:
 <b>Device</b>
 
 1. <b>Device</b> -> RabbitMQ
+2. Programming Languages: C
 
 
 
