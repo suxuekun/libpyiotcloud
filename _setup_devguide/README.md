@@ -200,7 +200,7 @@ Please follow the steps below to get the IoT Portal running on your local machin
 
     -  Request:
 
-       POST /user/signup
+       POST <b>/user/signup</b>
 
        { 'username': string, 'password': string, 'email': string, 'givenname': string, 'familyname': string }
 
@@ -215,7 +215,7 @@ Please follow the steps below to get the IoT Portal running on your local machin
 
     -  Request:
 
-       POST /user/confirm_signup
+       POST <b>/user/confirm_signup</b>
 
        { 'username': string, 'confirmationcode': string }
 
@@ -230,7 +230,7 @@ Please follow the steps below to get the IoT Portal running on your local machin
 
     -  Request:
 
-       POST /user/resend_confirmation_code
+       POST <b>/user/resend_confirmation_code</b>
 
        { 'username': string }
 
@@ -245,7 +245,7 @@ Please follow the steps below to get the IoT Portal running on your local machin
 
     -  Request:
 
-       POST /user/forgot_password
+       POST <b>/user/forgot_password</b>
 
        { 'email': string }
 
@@ -260,7 +260,7 @@ Please follow the steps below to get the IoT Portal running on your local machin
 
     -  Request:
 
-       POST /user/confirm_forgot_password
+       POST <b>/user/confirm_forgot_password</b>
 
        { 'username': string, 'confirmationcode': string, 'password': string }
 
@@ -275,7 +275,7 @@ Please follow the steps below to get the IoT Portal running on your local machin
 
     -  Request:
 
-       POST /user/login
+       POST <b>/user/login</b>
 
        { 'username': string, 'password': string }
 
@@ -290,7 +290,7 @@ Please follow the steps below to get the IoT Portal running on your local machin
 
     -  Request:
 
-       POST /user/logout
+       POST <b>/user/logout</b>
 
        { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string} }
 
@@ -305,7 +305,7 @@ Please follow the steps below to get the IoT Portal running on your local machin
 
     -  Request:
 
-       POST /user
+       POST <b>/user</b>
 
        { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string} }
 
@@ -323,7 +323,7 @@ Please follow the steps below to get the IoT Portal running on your local machin
 
     -  Request:
     
-       PUT /user/subscription
+       POST <b>/user/subscription</b>
       
        { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string} }
 
@@ -338,7 +338,7 @@ Please follow the steps below to get the IoT Portal running on your local machin
 
     -  Request:
     
-       PUT /user/subscription
+       PUT <b>/user/subscription</b>
       
        { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string}, 'credits': string }
 
@@ -353,7 +353,7 @@ Please follow the steps below to get the IoT Portal running on your local machin
 
     -  Request:
 
-       POST /user/payment/paypalsetup
+       POST <b>/user/payment/paypalsetup</b>
       
        { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string},
          'payment': {'return_url': string, 'cancel_url', string, 'item_sku': string, 'item_credits': string, 'item_price': string} }
@@ -369,7 +369,7 @@ Please follow the steps below to get the IoT Portal running on your local machin
 
     -  Request:
     
-       POST /user/payment/paypalexecute
+       POST <b>/user/payment/paypalexecute</b>
       
        { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string},
          'payment': {'paymentId': string, 'payerId': string, 'token': string} }
@@ -385,7 +385,7 @@ Please follow the steps below to get the IoT Portal running on your local machin
 
     -  Request:
     
-       POST /user/payment/paypalverify
+       POST <b>/user/payment/paypalverify</b>
       
        { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string},
          'payment': {'paymentId': string} }
