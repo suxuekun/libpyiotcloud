@@ -189,10 +189,12 @@ It also contains the documentation of <b>REST APIs</b> useful for native Android
 
     -  Request:
        POST /user/signup
+
        { 'username': string, 'password': string, 'email': string, 'givenname': string, 'familyname': string }
 
     -  Response:
        {'status': 'OK', 'message': string}
+
        {'status': 'NG', 'message': string}
 
 
