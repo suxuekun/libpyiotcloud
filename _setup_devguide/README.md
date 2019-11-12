@@ -7,6 +7,8 @@ It also contains the documentation of <b>REST APIs</b> useful for native Android
 
 ### Development Tools
 
+Please install the following tools to get the IoT Portal running on your local machine.
+
 1. Git
 
     A. [Windows](https://git-scm.com/download/win)
@@ -60,6 +62,8 @@ It also contains the documentation of <b>REST APIs</b> useful for native Android
 
 
 ### Development Setup
+
+Please follow the steps below to get the IoT Portal running on your local machine.
 
 1. Download the code from the repository.
  
