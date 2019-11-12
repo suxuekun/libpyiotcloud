@@ -1,6 +1,6 @@
 # Developer Guide
 
-Below contains a step-by-step instructions on installing and setting up the frontend and backend web infrastructure of IoT Portal on local machine.
+Below contains a step-by-step instructions on installing and setting up the frontend and backend web infrastructure of <b>IoT Portal on local machine</b>.
 
 
 ### Development Tools
