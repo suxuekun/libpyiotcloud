@@ -305,7 +305,7 @@ Please follow the steps below to get the IoT Portal running on your local machin
 
     -  Request:
 
-       GET <b>/user/<username>/<access></b>
+       GET <b>/user/USERNAME/ACCESS</b>
 
     -  Response:
 
@@ -321,7 +321,7 @@ Please follow the steps below to get the IoT Portal running on your local machin
 
     -  Request:
     
-       GET /user/<username>/<access>/subscription
+       GET /user/USERNAME/ACCESS/subscription
 
     -  Response:
     
@@ -400,7 +400,7 @@ Please follow the steps below to get the IoT Portal running on your local machin
 
     -  Request:
     
-       GET <b>/user/<username>/<access>/devices</b>
+       GET <b>/user/USERNAME/ACCESS/devices</b>
 
     -  Response:
        { 'status': 'OK', 'message': string, 
@@ -443,7 +443,7 @@ Please follow the steps below to get the IoT Portal running on your local machin
 
     -  Request:
     
-       GET <b>/user/<username>/<access>/devices/device/<devicename></b>
+       GET <b>/user/USERNAME/ACCESS/devices/device/DEVICENAME</b>
 
     -  Response:
     
@@ -459,7 +459,7 @@ Please follow the steps below to get the IoT Portal running on your local machin
 
     -  Request:
     
-       GET <b>/user/<username>/<access>/devices/histories</b>
+       GET <b>/user/USERNAME/ACCESS/devices/histories</b>
        
        { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string} }
 
@@ -476,7 +476,7 @@ Please follow the steps below to get the IoT Portal running on your local machin
 
     - Request:
 
-      GET <b>/user/<username>/<access>/devices/device/<devicename>/status</b>
+      GET <b>/user/USERNAME/ACCESS/devices/device/DEVICENAME/status</b>
 
     - Response:
 
@@ -504,7 +504,7 @@ Please follow the steps below to get the IoT Portal running on your local machin
 
     - Request:
 
-      GET <b>/user/<username>/<access>/devices/device/<devicename>/ip</b>
+      GET <b>/user/USERNAME/ACCESS/devices/device/DEVICENAME/ip</b>
 
     - Response:
 
@@ -517,7 +517,7 @@ Please follow the steps below to get the IoT Portal running on your local machin
 
     - Request:
 
-      GET <b>/user/<username>/<access>/devices/device/<devicename>/subnet</b>
+      GET <b>/user/USERNAME/ACCESS/devices/device/DEVICENAME/subnet</b>
 
     - Response:
 
@@ -530,7 +530,7 @@ Please follow the steps below to get the IoT Portal running on your local machin
 
     - Request:
 
-      GET <b>/user/<username>/<access>/devices/device/<devicename>/gateway</b>
+      GET <b>/user/USERNAME/ACCESS/devices/device/DEVICENAME/gateway</b>
 
       { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string}, 'devicename': string }
 
@@ -545,7 +545,7 @@ Please follow the steps below to get the IoT Portal running on your local machin
 
     - Request:
 
-      GET <b>/user/<username>/<access>/devices/device/<devicename>/mac</b>
+      GET <b>/user/USERNAME/ACCESS/devices/device/DEVICENAME/mac</b>
 
     - Response:
 
@@ -558,7 +558,7 @@ Please follow the steps below to get the IoT Portal running on your local machin
 
     - Request:
 
-      GET <b>/user/<username>/<access>/devices/device/<devicename>/gpio/<number></b>
+      GET <b>/user/USERNAME/ACCESS/devices/device/DEVICENAME/gpio/<number></b>
 
     - Response:
 
@@ -586,7 +586,7 @@ Please follow the steps below to get the IoT Portal running on your local machin
 
     - Request:
 
-      GET <b>/user/<username>/<access>/devices/device/<devicename>/rtc</b>
+      GET <b>/user/USERNAME/ACCESS/devices/device/DEVICENAME/rtc</b>
 
     - Response:
 

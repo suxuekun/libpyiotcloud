@@ -565,12 +565,20 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
     };
 
     getSubscription = function(param) {
-        // Send HTTP request to REST API
+        //
+        // GET SUBSCRIPTION
+        //
+        // - Request:
+        //   GET /user/<username>/<access>/subscription
+        //
+        // - Response:
+        //   {'status': 'OK', 'message': string, 'subscription': {'credits': string, 'type': paid} }
+        //   {'status': 'NG', 'message': string}
+        //  
         $http({
-            method: 'POST',
-            url: server + '/user/subscription',
-            headers: {'Content-Type': 'application/json'},
-            data: param
+            method: 'GET',
+            url: server + '/user/' + param.username + '/' + param.token.access + '/' + 'subscription',
+            headers: {'Content-Type': 'application/json'}
         })
         .then(function (result) {
             console.log("get_subscription");
