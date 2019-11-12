@@ -891,12 +891,20 @@ def get_user_histories():
 
 
 ########################################################################################################
-# POST/GET/PUT /devices/device/get_ip
-# { 'username': string, 'token': string, 'devicename': string }
-# Response:
-# {'status': 'OK', 'message': string, 'value': value}
-# {'status': 'NG', 'message': string}
+# POST/GET /devices/device/get_xxx
+# PUT /devices/device/set_xxx
 ########################################################################################################
+#
+# GET IP
+#
+# - Request:
+#   POST /devices/device/ip
+#   { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string}, 'devicename': string }
+#
+# - Response:
+#   { 'status': 'OK', 'message': string, 'value': string }
+#   { 'status': 'NG', 'message': string}
+#
 @app.route('/devices/device/ip', methods=['POST', 'GET', 'PUT'])
 def get_ip():
     if flask.request.method == 'POST' or flask.request.method == 'GET':
@@ -905,6 +913,17 @@ def get_ip():
     elif flask.request.method == 'PUT':
         return None # TODO
 
+#
+# GET SUBNET
+#
+# - Request:
+#   POST /devices/device/subnet
+#   { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string}, 'devicename': string }
+#
+# - Response:
+#   { 'status': 'OK', 'message': string, 'value': string }
+#   { 'status': 'NG', 'message': string}
+#
 @app.route('/devices/device/subnet', methods=['POST', 'GET', 'PUT'])
 def get_subnet():
     if flask.request.method == 'POST' or flask.request.method == 'GET':
@@ -913,6 +932,17 @@ def get_subnet():
     elif flask.request.method == 'PUT':
         return None # TODO
 
+#
+# GET GATEWAY
+#
+# - Request:
+#   POST /devices/device/gateway
+#   { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string}, 'devicename': string }
+#
+# - Response:
+#   { 'status': 'OK', 'message': string, 'value': string }
+#   { 'status': 'NG', 'message': string}
+#
 @app.route('/devices/device/gateway', methods=['POST', 'GET', 'PUT'])
 def get_gateway():
     if flask.request.method == 'POST' or flask.request.method == 'GET':
@@ -921,6 +951,17 @@ def get_gateway():
     elif flask.request.method == 'PUT':
         return None # TODO
 
+#
+# GET MAC
+#
+# - Request:
+#   POST /devices/device/mac
+#   { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string}, 'devicename': string }
+#
+# - Response:
+#   { 'status': 'OK', 'message': string, 'value': string }
+#   { 'status': 'NG', 'message': string}
+#
 @app.route('/devices/device/mac', methods=['POST', 'GET', 'PUT'])
 def get_mac():
     if flask.request.method == 'POST' or flask.request.method == 'GET':
@@ -930,8 +971,27 @@ def get_mac():
         api = 'set_mac'
         return process_request(api)
 
-
-
+# 
+# GET GPIO
+# 
+# - Request:
+#   POST /devices/device/gpio
+#   { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string}, 'devicename': string, 'number': string }
+# 
+# - Response:
+#   { 'status': 'OK', 'message': string, 'value': string }
+#   { 'status': 'NG', 'message': string}
+# 
+# SET GPIO
+# 
+# - Request:
+#   PUT /devices/device/gpio
+#   { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string}, 'devicename': string, 'number': string, 'value': string }
+# 
+# - Response:
+#   { 'status': 'OK', 'message': string, 'value': string }
+#   { 'status': 'NG', 'message': string}
+# 
 @app.route('/devices/device/gpio', methods=['POST', 'GET', 'PUT'])
 def get_gpio():
     if flask.request.method == 'POST' or flask.request.method == 'GET':
@@ -941,6 +1001,17 @@ def get_gpio():
         api = 'set_gpio'
         return process_request(api)
 
+#
+# GET RTC
+#
+# - Request:
+#   POST /devices/device/rtc
+#   { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string}, 'devicename': string }
+#
+# - Response:
+#   { 'status': 'OK', 'message': string, 'value': string }
+#   { 'status': 'NG', 'message': string}
+#
 @app.route('/devices/device/rtc', methods=['POST', 'GET', 'PUT'])
 def get_rtc():
     if flask.request.method == 'POST' or flask.request.method == 'GET':
@@ -950,8 +1021,17 @@ def get_rtc():
         api = 'set_rtc'
         return process_request(api)
 
-
-
+#
+# SET UART
+#
+# - Request:
+#   PUT /devices/device/uart
+#   { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string}, 'devicename': string, 'value': string }
+#
+# - Response:
+#   { 'status': 'OK', 'message': string, 'value': string }
+#   { 'status': 'NG', 'message': string}
+#
 @app.route('/devices/device/uart', methods=['POST', 'GET', 'PUT'])
 def write_uart():
     if flask.request.method == 'POST' or flask.request.method == 'GET':
@@ -961,7 +1041,17 @@ def write_uart():
         api = 'write_uart'
         return process_request(api)
 
-
+#
+# SET NOTIFICATIONS
+#
+# - Request:
+#   PUT /devices/device/notification
+#   { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string}, 'devicename': string, 'value': string }
+#
+# - Response:
+#   { 'status': 'OK', 'message': string, 'value': string }
+#   { 'status': 'NG', 'message': string}
+#
 @app.route('/devices/device/notification', methods=['POST', 'GET', 'PUT'])
 def trigger_notification():
     if flask.request.method == 'POST' or flask.request.method == 'GET':
@@ -970,7 +1060,26 @@ def trigger_notification():
         api = 'trigger_notification'
         return process_request(api)
 
-
+#
+# GET STATUS
+# - Request:
+#   POST /devices/device/status
+#   { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string}, 'devicename': string }
+#
+# - Response:
+#   { 'status': 'OK', 'message': string, 'value': string }
+#   { 'status': 'NG', 'message': string}
+#
+#
+# SET STATUS
+# - Request:
+#   PUT /devices/device/status
+#   { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string}, 'devicename': string, 'value': string }
+#
+# - Response:
+#   { 'status': 'OK', 'message': string, 'value': string}
+#   { 'status': 'NG', 'message': string}
+#
 @app.route('/devices/device/status', methods=['POST', 'GET', 'PUT'])
 def get_status():
     if flask.request.method == 'POST' or flask.request.method == 'GET':
