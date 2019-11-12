@@ -386,7 +386,7 @@ def get_user_info():
     data = flask.request.get_json()
     username = data['username']
     token = data['token']
-    print('get_user_info username={} token={}'.format(username, token))
+    print('get_user_info username={}'.format(username))
 
     # check if a parameter is empty
     if len(username) == 0 or len(token) == 0:
