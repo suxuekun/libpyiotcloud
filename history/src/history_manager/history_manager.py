@@ -10,6 +10,7 @@ currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentfram
 parentdir = os.path.dirname(currentdir)
 sys.path.insert(0,parentdir)
 from messaging_client import messaging_client
+from history_config import config
 
 
 
@@ -19,6 +20,7 @@ CONFIG_USE_ECC = True if int(os.environ["CONFIG_USE_ECC"]) == 1 else False
 # Enable to use AMQP for webserver-to-messagebroker communication
 # Disable to use MQTT for webserver-to-messagebroker communication
 CONFIG_USE_AMQP = False
+CONFIG_DBHOST = config.CONFIG_MONGODB_HOST
 ###################################################################################
 
 
@@ -127,6 +129,7 @@ def parse_arguments(argv):
     parser.add_argument('--USE_DEVICE_CERT', required=False, default=CONFIG_TLS_CERT, help='Device certificate to use')
     parser.add_argument('--USE_DEVICE_PKEY', required=False, default=CONFIG_TLS_PKEY, help='Device private key to use')
     parser.add_argument('--USE_HOST',        required=False, default=CONFIG_HOST,     help='Host server to connect to')
+    parser.add_argument('--USE_DBHOST',      required=False, default=CONFIG_DBHOST,   help='Host DB server to connect to')
     parser.add_argument('--USE_USERNAME',    required=False, default=CONFIG_USERNAME, help='Username to use in connection')
     parser.add_argument('--USE_PASSWORD',    required=False, default=CONFIG_PASSWORD, help='Password to use in connection')
     return parser.parse_args(argv)
@@ -142,6 +145,7 @@ if __name__ == '__main__':
     CONFIG_TLS_CERT    = args.USE_DEVICE_CERT
     CONFIG_TLS_PKEY    = args.USE_DEVICE_PKEY
     CONFIG_HOST        = args.USE_HOST
+    CONFIG_DBHOST      = args.USE_DBHOST
     CONFIG_USERNAME    = args.USE_USERNAME
     CONFIG_PASSWORD    = args.USE_PASSWORD
     print("")
@@ -151,13 +155,14 @@ if __name__ == '__main__':
     print("USE_DEVICE_CERT={}".format(args.USE_DEVICE_CERT))
     print("USE_DEVICE_PKEY={}".format(args.USE_DEVICE_PKEY))
     print("USE_HOST={}".format(args.USE_HOST))
+    print("USE_DBHOST={}".format(args.USE_DBHOST))
     print("USE_USERNAME={}".format(args.USE_USERNAME))
     print("USE_PASSWORD={}".format(args.USE_PASSWORD))
     print("")
 
 
     # Initialize MongoDB
-    g_history_client = database_client()
+    g_history_client = database_client(host=CONFIG_DBHOST)
     g_history_client.initialize()
 
 

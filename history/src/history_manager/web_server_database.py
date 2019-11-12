@@ -23,7 +23,7 @@ class database_models:
 ##########################################################
 class database_client:
 
-    def __init__(self, model_users=database_models.MONGODB, model_devices=database_models.MONGODB):
+    def __init__(self, model_users=database_models.MONGODB, model_devices=database_models.MONGODB, host=config.CONFIG_MONGODB_HOST, port=config.CONFIG_MONGODB_PORT):
         self.use_cognito = True if model_users==database_models.AWSCOGNITO else False
 
         # user database
@@ -36,7 +36,7 @@ class database_client:
 
         # device database
         if model_devices == database_models.MONGODB:
-            self._devices = database_client_mongodb()
+            self._devices = database_client_mongodb(host, port)
         elif model_devices == database_models.POSTGRESQL:
             self._devices = database_client_postgresql()
 
@@ -306,11 +306,13 @@ class database_client_cognito:
 
 class database_client_mongodb:
 
-    def __init__(self):
+    def __init__(self, host, port):
         self.client = None
+        self.host = host
+        self.port = port
 
     def initialize(self):
-        mongo_client = MongoClient(config.CONFIG_MONGODB_HOST, config.CONFIG_MONGODB_PORT)
+        mongo_client = MongoClient(self.host, self.port)
         self.client = mongo_client[config.CONFIG_MONGODB_DB]
 
 
