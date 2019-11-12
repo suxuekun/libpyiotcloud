@@ -398,6 +398,91 @@ Please follow the steps below to get the IoT Portal running on your local machin
 
 
 
+3. <b>Device registration and device transactions</b>
+
+    A. GET DEVICES
+
+    -  Request:
+    
+       POST <b>/devices</b>
+       
+       { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string} }
+
+    -  Response:
+       { 'status': 'OK', 'message': string, 
+         'devices': array[{'devicename': string, 'deviceid': string, 'cert': cert, 'pkey': pkey, 'ca': ca}, ...]}
+         
+       { 'status': 'NG', 'message': string}
+
+
+    B. ADD DEVICE
+
+    -  Request:
+    
+       POST <b>/devices/device</b>
+       
+       { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string}, 'devicename': string }
+
+    -  Response:
+    
+       { 'status': 'OK', 'message': string, 'device': {'devicename': string, 'deviceid': string, 'cert': cert, 'pkey': pkey, 'ca': ca}}
+       
+       { 'status': 'NG', 'message': string}
+
+
+    C. DELETE DEVICE
+
+    -  Request:
+    
+       DELETE <b>/devices/device</b>
+       
+       { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string}, 'devicename': string }
+
+    -  Response:
+    
+       { 'status': 'OK', 'message': string}
+       
+       { 'status': 'NG', 'message': string}
+
+
+    D. GET DEVICE
+
+    -  Request:
+    
+       PATCH <b>/devices/device</b>
+       
+       { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string}, 'devicename': string }
+
+    -  Response:
+    
+       { 'status': 'OK', 'message': string, 'device': {'devicename': string, 'deviceid': string, 'cert': cert, 'pkey': pkey}}
+       
+       { 'status': 'NG', 'message': string}
+
+
+    E. GET DEVICE TRANSACTION HISTORIES
+
+    -  Request:
+    
+       POST <b>/user/histories</b>
+       
+       { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string} }
+
+    -  Response:
+    
+       { 'status': 'OK', 'message': string, 
+         'histories': array[
+           {'devicename': string, 'deviceid': string, 'direction': string, 'topic': string, 'payload': string, 'timestamp': string}, ...]}
+           
+       { 'status': 'NG', 'message': string}
+
+
+4. <b>Device access and control</b>
+
+TODO
+
+
+
 
 ### Database Documentation
 
