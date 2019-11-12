@@ -1095,12 +1095,6 @@ Note: Using Kubernetes will also change the infrastracture.
         - Developer account needs to be upgraded from personal account to business account.
         - Similar as above but replace Sandbox to Live
 
-  
-   <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/paypal_buycredits.png" width="400"/>
-   <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/paypal_selectorder.png" width="400"/>
-   <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/paypal_approval.png" width="400"/>
-   <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/paypal_paymentconfirmation.png" width="400"/>
-
 
 ### Install Jenkins (on local and on AWS EC2)
     
