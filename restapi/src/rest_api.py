@@ -672,11 +672,17 @@ def set_payment_paypal_verify():
 
 ########################################################################################################
 # NOTE: GET is not working so use POST instead
-# POST /devices
-# { 'username': string, 'token': string }
-# Response:
-# {'status': 'OK', 'message': string, 'devices': array[{'devicename': string, ...}, {'devicename': string, ...}]}
-# {'status': 'NG', 'message': string}
+# 
+# GET DEVICES
+#
+# - Request:
+#   POST /devices
+#   { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string} }
+#
+# - Response:
+#   {'status': 'OK', 'message': string, 'devices': array[{'devicename': string, 'deviceid': string, 'cert': cert, 'pkey': pkey, 'ca': ca}, ...]}
+#   {'status': 'NG', 'message': string}
+#
 ########################################################################################################
 @app.route('/devices', methods=['POST', 'GET'])
 def get_device_list():
@@ -710,11 +716,39 @@ def get_device_list():
     return response
 
 ########################################################################################################
-# POST/DELETE/GET /devices/device
-# { 'username': string, 'token': string, 'devicename': string }
-# Response:
-# {'status': 'OK', 'message': string, 'device': {'devicename': string, ...}, {'devicename': string, ...}}
-# {'status': 'NG', 'message': string}
+#
+# ADD DEVICE
+#
+# - Request:
+#   POST /devices/device
+#   { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string}, 'devicename': string }
+#
+# - Response:
+#   {'status': 'OK', 'message': string, 'device': {'devicename': string, 'deviceid': string, 'cert': cert, 'pkey': pkey, 'ca': ca}}
+#   {'status': 'NG', 'message': string}
+#
+#
+# DELETE DEVICE
+#
+# - Request:
+#   DELETE /devices/device
+#   { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string}, 'devicename': string }
+#
+# - Response:
+#   {'status': 'OK', 'message': string}
+#   {'status': 'NG', 'message': string}
+#
+#
+# GET DEVICE
+#
+# - Request:
+#   PATCH /devices/device
+#   { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string}, 'devicename': string }
+#
+# - Response:
+#   {'status': 'OK', 'message': string, 'device': {'devicename': string, 'deviceid': string, 'cert': cert, 'pkey': pkey}}
+#   {'status': 'NG', 'message': string}
+#
 ########################################################################################################
 @app.route('/devices/device', methods=['POST', 'DELETE', 'PATCH'])
 def register_device():
@@ -808,11 +842,19 @@ def register_device():
 
 ########################################################################################################
 # NOTE: GET is not working so use POST instead
-# POST /user/histories
-# { 'username': string, 'token': string }
-# Response:
-# {'status': 'OK', 'message': string, 'histories': array[{'devicename': string, ...}, {'devicename': string, ...}]}
-# {'status': 'NG', 'message': string}
+#
+# GET DEVICE TRANSACTION HISTORIES
+#
+# - Request:
+#   POST /user/histories
+#   { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string} }
+#
+# - Response:
+#   { 'status': 'OK', 'message': string, 
+#     'histories': array[
+#       {'devicename': string, 'deviceid': string, 'direction': string, 'topic': string, 'payload': string, 'timestamp': string}, ...]}
+#   { 'status': 'NG', 'message': string}
+#
 ########################################################################################################
 @app.route('/user/histories', methods=['POST', 'GET'])
 def get_user_histories():
