@@ -38,7 +38,7 @@ pipeline {
             }
         }
 
-        stage("Docker-compose build --no-cache") {
+        stage("Docker-compose build") {
             steps {
                 echo "BUILDING docker images"
                 sh "ls -l nginx/src_prod/cert"
