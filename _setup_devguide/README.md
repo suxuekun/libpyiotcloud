@@ -479,7 +479,7 @@ Please follow the steps below to get the IoT Portal running on your local machin
 
 4. <b>Device access and control</b>
 
-TODO
+    A. TODO
 
 
 
