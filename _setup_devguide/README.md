@@ -42,7 +42,7 @@ Below contains a step-by-step instructions on installing and setting up the fron
 5. (Optional) [RabbitMQ](https://www.rabbitmq.com/download.html) 
 
     To be used for non-Docker version.
-    Note that the configuration file needs to be updated. Refer to rabbitmq.config and cert_ecc folder in libpyiotcloud/rabbitmq/src
+    Note that the configuration file needs to be updated. Refer to <b>rabbitmq.config</b> and <b>cert_ecc</b> folder in libpyiotcloud/rabbitmq/src
 
 
 6. (Optional) [MongoDB](https://www.mongodb.com/download-center/community)
@@ -122,7 +122,7 @@ Below contains a step-by-step instructions on installing and setting up the fron
 	
     D. Type "docker-compose up" <b>// To run asynchronously, add "-d"</b>
     
-    E. Browse https://docker-machine_ip <b>// Refer to value of "docker-machine ip"</b>
+    E. Open a browser and browse https://docker-machine_ip <b>// Refer to value of "docker-machine ip"</b>
 
 
     <b>// Note to stop the docker containers, do the following:</b>
