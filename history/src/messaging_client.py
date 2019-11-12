@@ -168,7 +168,8 @@ class messaging_client:
         try:
             client.connect(self.host, self.port)
             client.loop_start()
-        except:
+        except Exception as e:
+            print(e)
             client = None
 
         trial = 0
