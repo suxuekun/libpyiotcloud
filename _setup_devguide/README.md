@@ -300,7 +300,7 @@ It also contains the documentation of <b>REST APIs</b> useful for native Android
 
     -  Response:
 
-       {'status': 'OK', 'message': string, 'info': {} }
+       {'status': 'OK', 'message': string, 'info': {'email': string, 'family_name': string, 'given_name': string} }
 
        {'status': 'NG', 'message': string}
 
