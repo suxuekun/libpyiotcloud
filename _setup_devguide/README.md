@@ -58,7 +58,7 @@ Below contains a step-by-step instructions on installing and setting up the fron
     
     B. Type "git clone https://github.com/richmondu/libpyiotcloud"
     
-    C. Type "docker-machine ip"
+    C. Type <b>"docker-machine ip"</b>
        Take note of the value as this will be used in the next steps.
 	   
 
@@ -102,14 +102,14 @@ Below contains a step-by-step instructions on installing and setting up the fron
 	
     S. CONFIG_USE_CERTS
 	
-    T. CONFIG_USE_APIURL // Refer to value of "docker-machine ip"
+    T. CONFIG_USE_APIURL <b>// Refer to value of "docker-machine ip"</b>
 
     Please request for the values of the environment variables from me.
 	
 
-    In Linux/MacOS, use export ENVIRONMENT_SYSTEM_VARIABLE="ENVIRONMENT_SYSTEM_VALUE"
+    In Linux/MacOS, use <b>export ENVIRONMENT_SYSTEM_VARIABLE="ENVIRONMENT_SYSTEM_VALUE"</b>
    
-    In Windows, always restart the Docker Toolbox/Desktop after adding or updating an environment system variable.
+    In Windows, always <b>restart the Docker Toolbox/Desktop</b> after adding or updating an environment system variable.
 	
 	
 3. Run the Docker images using the following commands.
@@ -118,14 +118,14 @@ Below contains a step-by-step instructions on installing and setting up the fron
 
     B. Type "docker-compose -f docker-compose.yml config"
     
-    C. Type "docker-compose build"
+    C. Type "docker-compose build" <b>// To rebuild from scratch, add "--no-cache"</b>
 	
-    D. Type "docker-compose up"
+    D. Type "docker-compose up" <b>// To run asynchronously, add "-d"</b>
     
-    E. Browse https://docker-machine_ip // Refer to value of "docker-machine ip"
+    E. Browse https://docker-machine_ip <b>// Refer to value of "docker-machine ip"</b>
 
 
-    // Note to stop the docker containers, do the following:
+    <b>// Note to stop the docker containers, do the following:</b>
 	
     F. Type "Ctrl+C"
 	
@@ -141,22 +141,22 @@ Below contains a step-by-step instructions on installing and setting up the fron
     A. Type "cd libpyiotcloud"
 
 
-    // PYTHON device simulator
+    <b>// PYTHON device simulator</b>
     
     B. Type "pip install -r requirements.py.txt"
 	
-    C. In Windows, update HOST variable in device_simulator.py.bat to the docker-machine ip
+    C. In Windows, update HOST variable in <b>device_simulator.py.bat</b> to the docker-machine ip
       
        In Mac OS,  update HOST variable in device_simulator.py.sh to the docker-machine ip
 	
-    D. In Windows, run device_simulator.py.bat
+    D. In Windows, run <b>device_simulator.py.bat</b>
        
        In Mac OS,  run device_simulator.py.sh
 	
     E. You should see "Device is now ready! ..."
 	
 
-    // NODEJS device simulator 
+    <b>// NODEJS device simulator</b>
     
     F. Type "npm install -g mqtt" 
 	
@@ -168,11 +168,11 @@ Below contains a step-by-step instructions on installing and setting up the fron
 	
     J. Type "npm install -g fs"
 
-    K. In Windows, update HOST variable in device_simulator.js.bat to the docker-machine ip
+    K. In Windows, update HOST variable in <b>device_simulator.js.bat</b> to the docker-machine ip
        
        In Mac OS,  update HOST variable in device_simulator.js.sh to the docker-machine ip
 	
-    L. In Windows, run device_simulator.js.bat
+    L. In Windows, run <b>device_simulator.js.bat</b>
        
        In Mac OS,  run device_simulator.js.sh	
 	
