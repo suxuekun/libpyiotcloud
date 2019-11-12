@@ -1041,14 +1041,8 @@ Note: Using Kubernetes will also change the infrastracture.
         - xcode
         - TODO
 
-<img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/ui_androidemulator.png" width="1000"/>
-
 
 ### Setup Twilio and Nexmo
-
-<img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/sms_messaging_screenshot.png" width="1000"/>
-
-<img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/sms_messaging.png" width="400"/>
 
 #### Twilio
 
