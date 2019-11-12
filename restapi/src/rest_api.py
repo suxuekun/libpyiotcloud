@@ -373,19 +373,17 @@ def logout():
 # GET USER INFO
 #
 # - Request:
-#   POST /user
-#   { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string} }
+#   GET /user/<username>/<access>
 #
 # - Response:
 #   {'status': 'OK', 'message': string, 'info': {'email': string, 'family_name': string, 'given_name': string} }
 #   {'status': 'NG', 'message': string}
 #
 ########################################################################################################
-@app.route('/user', methods=['POST', 'GET'])
-def get_user_info():
+@app.route('/user/<username>/<access>', methods=['GET'])
+def get_user_info(username, access):
     data = flask.request.get_json()
-    username = data['username']
-    token = data['token']
+    token = {'access': access}
     print('get_user_info username={}'.format(username))
 
     # check if a parameter is empty
@@ -398,11 +396,13 @@ def get_user_info():
 
     # check if username and token is valid
     verify_ret, new_token = g_database_client.verify_token(username, token)
-    if verify_ret != 0:
+    if verify_ret == 2: # token expired
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Userinfo: Token expired [{}]\r\n'.format(username))
+        return response
+    elif verify_ret != 0:
         response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
         print('\r\nERROR Userinfo: Token is invalid [{}]\r\n'.format(username))
-        # NOTE:
-        # No need to return error code status.HTTP_401_UNAUTHORIZED since this is a logout
         return response
 
     if new_token:
@@ -428,18 +428,56 @@ def get_user_info():
 # GET SUBSCRIPTION
 #
 # - Request:
-#   PUT /user/subscription
-#   { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string} }
+#   GET /user/<username>/<access>/subscription
 #
 # - Response:
 #  {'status': 'OK', 'message': string, 'subscription': {'credits': string, 'type': paid} }
 #  {'status': 'NG', 'message': string}
 #
+########################################################################################################
+@app.route('/user/<username>/<access>/subscription', methods=['GET'])
+def get_subscription(username, access):
+    data = flask.request.get_json()
+    token = {'access': access}
+    print('get_subscription username={}'.format(username))
+
+    # check if a parameter is empty
+    if len(username) == 0 or len(token) == 0:
+        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+        print('\r\nERROR Userinfo: Empty parameter found\r\n')
+        # NOTE:
+        # No need to return error code status.HTTP_401_UNAUTHORIZED since this is a logout
+        return response
+
+    # check if username and token is valid
+    verify_ret, new_token = g_database_client.verify_token(username, token)
+    if verify_ret == 2:
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Userinfo: Token expired [{}]\r\n'.format(username))
+        return response
+    elif verify_ret != 0:
+        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
+        print('\r\nERROR Userinfo: Token is invalid [{}]\r\n'.format(username))
+        return response
+
+    subscription = g_database_client.get_subscription(username)
+    print(subscription)
+    msg = {'status': 'OK', 'message': 'User subscription queried successfully.', 'subscription': subscription}
+
+
+    if new_token:
+        msg['new_token'] = new_token
+    response = json.dumps(msg)
+    print('\r\n{}: {}\r\n{}\r\n'.format(msg['message'], username, response))
+    return response
+
+
+########################################################################################################
 #
 # SET SUBSCRIPTION
 #
 # - Request:
-#   PUT /user/subscription
+#   POST /user/subscription
 #   { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string}, 'credits': string }
 #
 # - Response:
@@ -447,12 +485,12 @@ def get_user_info():
 #  {'status': 'NG', 'message': string}
 #
 ########################################################################################################
-@app.route('/user/subscription', methods=['POST', 'PUT'])
-def get_subscription():
+@app.route('/user/subscription', methods=['POST'])
+def set_subscription():
     data = flask.request.get_json()
     username = data['username']
     token = data['token']
-    print('get_subscription username={}'.format(username))
+    print('set_subscription username={}'.format(username))
 
     # check if a parameter is empty
     if len(username) == 0 or len(token) == 0:
@@ -471,23 +509,10 @@ def get_subscription():
         # No need to return error code status.HTTP_401_UNAUTHORIZED since this is a logout
         return response
 
-    if flask.request.method == 'POST':
-        subscription = g_database_client.get_subscription(username)
-        print(subscription)
-        msg = {'status': 'OK', 'message': 'User subscription queried successfully.', 'subscription': subscription}
-
-    elif flask.request.method == 'PUT':
-        credits = data['credits']
-        subscription = g_database_client.set_subscription(username, credits)
-        print(subscription)
-        msg = {'status': 'OK', 'message': 'User subscription set successfully.', 'subscription': subscription}
-
-    else:
-        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
-        print('\r\nERROR Userinfo: Token is invalid [{}]\r\n'.format(username))
-        # NOTE:
-        # No need to return error code status.HTTP_401_UNAUTHORIZED since this is a logout
-        return response
+    credits = data['credits']
+    subscription = g_database_client.set_subscription(username, credits)
+    print(subscription)
+    msg = {'status': 'OK', 'message': 'User subscription set successfully.', 'subscription': subscription}
 
 
     if new_token:
@@ -495,8 +520,6 @@ def get_subscription():
     response = json.dumps(msg)
     print('\r\n{}: {}\r\n{}\r\n'.format(msg['message'], username, response))
     return response
-
-
 
 #########################
 
@@ -676,20 +699,18 @@ def set_payment_paypal_verify():
 # GET DEVICES
 #
 # - Request:
-#   POST /devices
-#   { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string} }
+#   GET /user/<username>/<access>/devices
 #
 # - Response:
 #   {'status': 'OK', 'message': string, 'devices': array[{'devicename': string, 'deviceid': string, 'cert': cert, 'pkey': pkey, 'ca': ca}, ...]}
 #   {'status': 'NG', 'message': string}
 #
 ########################################################################################################
-@app.route('/devices', methods=['POST', 'GET'])
-def get_device_list():
+@app.route('/user/<username>/<access>/devices', methods=['GET'])
+def get_device_list(username, access):
     data = flask.request.get_json()
-    username = data['username']
-    token = data['token']
-    #print('get_device_list username={} token={}'.format(username, token))
+    token = {'access': access}
+    print('get_device_list username={}'.format(username))
 
     # check if a parameter is empty
     if len(username) == 0 or len(token) == 0:
@@ -699,7 +720,11 @@ def get_device_list():
 
     # check if username and token is valid
     verify_ret, new_token = g_database_client.verify_token(username, token)
-    if verify_ret != 0:
+    if verify_ret == 2:
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Devices: Token expired [{}]\r\n'.format(username))
+        return response, status.HTTP_401_UNAUTHORIZED
+    elif verify_ret != 0:
         response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
         print('\r\nERROR Devices: Token is invalid [{}]\r\n'.format(username))
         return response, status.HTTP_401_UNAUTHORIZED
@@ -738,19 +763,8 @@ def get_device_list():
 #   {'status': 'OK', 'message': string}
 #   {'status': 'NG', 'message': string}
 #
-#
-# GET DEVICE
-#
-# - Request:
-#   PATCH /devices/device
-#   { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string}, 'devicename': string }
-#
-# - Response:
-#   {'status': 'OK', 'message': string, 'device': {'devicename': string, 'deviceid': string, 'cert': cert, 'pkey': pkey}}
-#   {'status': 'NG', 'message': string}
-#
 ########################################################################################################
-@app.route('/devices/device', methods=['POST', 'DELETE', 'PATCH'])
+@app.route('/devices/device', methods=['POST', 'DELETE'])
 def register_device():
     data = flask.request.get_json()
     username = data['username']
@@ -819,22 +833,56 @@ def register_device():
         print('\r\nDevice unregistered successful: {}\r\n{}\r\n'.format(username, response))
         return response
 
-    elif flask.request.method == 'PATCH': # todo: replace PATCH with GET, investigate why GET is not working
 
-        # check if device is registered
-        device = g_database_client.find_device(username, devicename)
-        if not device:
-            response = json.dumps({'status': 'NG', 'message': 'Device is not registered'})
-            print('\r\nERROR Devices: Device is not registered [{},{}]\r\n'.format(username, devicename))
-            return response, status.HTTP_400_BAD_REQUEST
+########################################################################################################
+#
+# GET DEVICE
+#
+# - Request:
+#   GET /user/<username>/<access>/devices/device/<devicename>
+#
+# - Response:
+#   {'status': 'OK', 'message': string, 'device': {'devicename': string, 'deviceid': string, 'cert': cert, 'pkey': pkey}}
+#   {'status': 'NG', 'message': string}
+#
+########################################################################################################
+@app.route('/user/<username>/<access>/devices/device/<devicename>', methods=['GET'])
+def get_device(username, access, devicename):
+    data = flask.request.get_json()
+    token = {'access': access}
+    print('get_device username={} devicename={}'.format(username, devicename))
 
-        msg = {'status': 'OK', 'message': 'Devices queried successfully.', 'device': device}
-        if new_token:
-            msg['new_token'] = new_token
-        response = json.dumps(msg)
-        print('\r\nDevice queried successful: {}\r\n{}\r\n'.format(username, response))
-        return response
+    # check if a parameter is empty
+    if len(username) == 0 or len(token) == 0 or len(devicename) == 0:
+        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+        print('\r\nERROR Devices: Empty parameter found\r\n')
+        return response, status.HTTP_400_BAD_REQUEST
 
+    # check if username and token is valid
+    verify_ret, new_token = g_database_client.verify_token(username, token)
+    if verify_ret == 2:
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Devices: Token expired [{}]\r\n'.format(username))
+        return response, status.HTTP_401_UNAUTHORIZED
+    elif verify_ret != 0:
+        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
+        print('\r\nERROR Devices: Token is invalid [{}]\r\n'.format(username))
+        return response, status.HTTP_401_UNAUTHORIZED
+
+    # check if device is registered
+    device = g_database_client.find_device(username, devicename)
+    if not device:
+        response = json.dumps({'status': 'NG', 'message': 'Device is not registered'})
+        print('\r\nERROR Devices: Device is not registered [{},{}]\r\n'.format(username, devicename))
+        return response, status.HTTP_400_BAD_REQUEST
+
+
+    msg = {'status': 'OK', 'message': 'Devices queried successfully.', 'device': device}
+    if new_token:
+        msg['new_token'] = new_token
+    response = json.dumps(msg)
+    print('\r\nDevice queried successful: {}\r\n{}\r\n'.format(username, response))
+    return response
 
 
 #########################
@@ -846,8 +894,7 @@ def register_device():
 # GET DEVICE TRANSACTION HISTORIES
 #
 # - Request:
-#   POST /user/histories
-#   { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string} }
+#   GET /user/<username>/<access>/devices/histories
 #
 # - Response:
 #   { 'status': 'OK', 'message': string, 
@@ -856,12 +903,11 @@ def register_device():
 #   { 'status': 'NG', 'message': string}
 #
 ########################################################################################################
-@app.route('/user/histories', methods=['POST', 'GET'])
-def get_user_histories():
+@app.route('/user/<username>/<access>/devices/histories', methods=['GET'])
+def get_user_histories(username, access):
     data = flask.request.get_json()
-    username = data['username']
-    token = data['token']
-    #print('get_user_histories username={} token={}'.format(username, token))
+    token = {'access': access}
+    print('get_user_histories username={}'.format(username))
 
     # check if a parameter is empty
     if len(username) == 0 or len(token) == 0:
@@ -871,7 +917,11 @@ def get_user_histories():
 
     # check if username and token is valid
     verify_ret, new_token = g_database_client.verify_token(username, token)
-    if verify_ret != 0:
+    if verify_ret == 2: # token expired
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Histories: Token expired [{}]\r\n'.format(username))
+        return response, status.HTTP_401_UNAUTHORIZED
+    elif verify_ret != 0:
         response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
         print('\r\nERROR Histories: Token is invalid [{}]\r\n'.format(username))
         return response, status.HTTP_401_UNAUTHORIZED
@@ -891,203 +941,205 @@ def get_user_histories():
 
 
 ########################################################################################################
-# POST/GET /devices/device/get_xxx
-# PUT /devices/device/set_xxx
+# GET /user/<username>/<access>/devices/device/<devicename>/xxx
+# POST /devices/device/xxx
 ########################################################################################################
-#
-# GET IP
-#
-# - Request:
-#   POST /devices/device/ip
-#   { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string}, 'devicename': string }
-#
-# - Response:
-#   { 'status': 'OK', 'message': string, 'value': string }
-#   { 'status': 'NG', 'message': string}
-#
-@app.route('/devices/device/ip', methods=['POST', 'GET', 'PUT'])
-def get_ip():
-    if flask.request.method == 'POST' or flask.request.method == 'GET':
-        api = 'get_ip'
-        return process_request(api)
-    elif flask.request.method == 'PUT':
-        return None # TODO
-
-#
-# GET SUBNET
-#
-# - Request:
-#   POST /devices/device/subnet
-#   { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string}, 'devicename': string }
-#
-# - Response:
-#   { 'status': 'OK', 'message': string, 'value': string }
-#   { 'status': 'NG', 'message': string}
-#
-@app.route('/devices/device/subnet', methods=['POST', 'GET', 'PUT'])
-def get_subnet():
-    if flask.request.method == 'POST' or flask.request.method == 'GET':
-        api = 'get_subnet'
-        return process_request(api)
-    elif flask.request.method == 'PUT':
-        return None # TODO
-
-#
-# GET GATEWAY
-#
-# - Request:
-#   POST /devices/device/gateway
-#   { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string}, 'devicename': string }
-#
-# - Response:
-#   { 'status': 'OK', 'message': string, 'value': string }
-#   { 'status': 'NG', 'message': string}
-#
-@app.route('/devices/device/gateway', methods=['POST', 'GET', 'PUT'])
-def get_gateway():
-    if flask.request.method == 'POST' or flask.request.method == 'GET':
-        api = 'get_gateway'
-        return process_request(api)
-    elif flask.request.method == 'PUT':
-        return None # TODO
-
-#
-# GET MAC
-#
-# - Request:
-#   POST /devices/device/mac
-#   { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string}, 'devicename': string }
-#
-# - Response:
-#   { 'status': 'OK', 'message': string, 'value': string }
-#   { 'status': 'NG', 'message': string}
-#
-@app.route('/devices/device/mac', methods=['POST', 'GET', 'PUT'])
-def get_mac():
-    if flask.request.method == 'POST' or flask.request.method == 'GET':
-        api = 'get_mac'
-        return process_request(api)
-    elif flask.request.method == 'PUT':
-        api = 'set_mac'
-        return process_request(api)
-
-# 
-# GET GPIO
-# 
-# - Request:
-#   POST /devices/device/gpio
-#   { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string}, 'devicename': string, 'number': string }
-# 
-# - Response:
-#   { 'status': 'OK', 'message': string, 'value': string }
-#   { 'status': 'NG', 'message': string}
-# 
-# SET GPIO
-# 
-# - Request:
-#   PUT /devices/device/gpio
-#   { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string}, 'devicename': string, 'number': string, 'value': string }
-# 
-# - Response:
-#   { 'status': 'OK', 'message': string, 'value': string }
-#   { 'status': 'NG', 'message': string}
-# 
-@app.route('/devices/device/gpio', methods=['POST', 'GET', 'PUT'])
-def get_gpio():
-    if flask.request.method == 'POST' or flask.request.method == 'GET':
-        api = 'get_gpio'
-        return process_request(api)
-    elif flask.request.method == 'PUT':
-        api = 'set_gpio'
-        return process_request(api)
-
-#
-# GET RTC
-#
-# - Request:
-#   POST /devices/device/rtc
-#   { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string}, 'devicename': string }
-#
-# - Response:
-#   { 'status': 'OK', 'message': string, 'value': string }
-#   { 'status': 'NG', 'message': string}
-#
-@app.route('/devices/device/rtc', methods=['POST', 'GET', 'PUT'])
-def get_rtc():
-    if flask.request.method == 'POST' or flask.request.method == 'GET':
-        api = 'get_rtc'
-        return process_request(api)
-    elif flask.request.method == 'PUT':
-        api = 'set_rtc'
-        return process_request(api)
-
-#
-# SET UART
-#
-# - Request:
-#   PUT /devices/device/uart
-#   { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string}, 'devicename': string, 'value': string }
-#
-# - Response:
-#   { 'status': 'OK', 'message': string, 'value': string }
-#   { 'status': 'NG', 'message': string}
-#
-@app.route('/devices/device/uart', methods=['POST', 'GET', 'PUT'])
-def write_uart():
-    if flask.request.method == 'POST' or flask.request.method == 'GET':
-        api = 'read_uart'
-        return None
-    elif flask.request.method == 'PUT':
-        api = 'write_uart'
-        return process_request(api)
-
-#
-# SET NOTIFICATIONS
-#
-# - Request:
-#   PUT /devices/device/notification
-#   { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string}, 'devicename': string, 'value': string }
-#
-# - Response:
-#   { 'status': 'OK', 'message': string, 'value': string }
-#   { 'status': 'NG', 'message': string}
-#
-@app.route('/devices/device/notification', methods=['POST', 'GET', 'PUT'])
-def trigger_notification():
-    if flask.request.method == 'POST' or flask.request.method == 'GET':
-        return None
-    elif flask.request.method == 'PUT':
-        api = 'trigger_notification'
-        return process_request(api)
-
 #
 # GET STATUS
 # - Request:
-#   POST /devices/device/status
-#   { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string}, 'devicename': string }
+#   GET /user/<username>/<access>/devices/device/<devicename>/status
 #
 # - Response:
 #   { 'status': 'OK', 'message': string, 'value': string }
 #   { 'status': 'NG', 'message': string}
 #
+@app.route('/user/<username>/<access>/devices/device/<devicename>/status', methods=['GET'])
+def get_status(username, access, devicename):
+    api = 'get_status'
+    data = {}
+    data['username'] = username
+    data['token'] = {'access': access}
+    data['devicename'] = devicename
+    return process_request_get(api, data)
+
 #
 # SET STATUS
 # - Request:
-#   PUT /devices/device/status
+#   POST /devices/device/status
 #   { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string}, 'devicename': string, 'value': string }
 #
 # - Response:
 #   { 'status': 'OK', 'message': string, 'value': string}
 #   { 'status': 'NG', 'message': string}
 #
-@app.route('/devices/device/status', methods=['POST', 'GET', 'PUT'])
-def get_status():
-    if flask.request.method == 'POST' or flask.request.method == 'GET':
-        api = 'get_status'
-        return process_request(api)
-    elif flask.request.method == 'PUT':
-        api = 'set_status'
-        return process_request(api)
+@app.route('/devices/device/status', methods=['POST'])
+def set_status():
+    api = 'set_status'
+    return process_request(api)
+
+#
+# GET IP
+#
+# - Request:
+#   GET /user/<username>/<access>/devices/device/<devicename>/ip
+#
+# - Response:
+#   { 'status': 'OK', 'message': string, 'value': string }
+#   { 'status': 'NG', 'message': string}
+#
+@app.route('/user/<username>/<access>/devices/device/<devicename>/ip', methods=['GET'])
+def get_ip(username, access, devicename):
+    api = 'get_ip'
+    data = {}
+    data['username'] = username
+    data['token'] = {'access': access}
+    data['devicename'] = devicename
+    return process_request_get(api, data)
+
+#
+# GET SUBNET
+#
+# - Request:
+#   GET /user/<username>/<access>/devices/device/<devicename>/subnet
+#
+# - Response:
+#   { 'status': 'OK', 'message': string, 'value': string }
+#   { 'status': 'NG', 'message': string}
+#
+@app.route('/user/<username>/<access>/devices/device/<devicename>/subnet', methods=['GET'])
+def get_subnet(username, access, devicename):
+    api = 'get_subnet'
+    data = {}
+    data['username'] = username
+    data['token'] = {'access': access}
+    data['devicename'] = devicename
+    return process_request_get(api, data)
+
+#
+# GET GATEWAY
+#
+# - Request:
+#   GET /user/<username>/<access>/devices/device/<devicename>/gateway
+#
+# - Response:
+#   { 'status': 'OK', 'message': string, 'value': string }
+#   { 'status': 'NG', 'message': string}
+#
+@app.route('/user/<username>/<access>/devices/device/<devicename>/gateway', methods=['GET'])
+def get_gateway(username, access, devicename):
+    api = 'get_gateway'
+    data = {}
+    data['username'] = username
+    data['token'] = {'access': access}
+    data['devicename'] = devicename
+    return process_request_get(api, data)
+
+#
+# GET MAC
+#
+# - Request:
+#   GET /user/<username>/<access>/devices/device/<devicename>/mac
+#
+# - Response:
+#   { 'status': 'OK', 'message': string, 'value': string }
+#   { 'status': 'NG', 'message': string}
+#
+@app.route('/user/<username>/<access>/devices/device/<devicename>/mac', methods=['GET'])
+def get_mac(username, access, devicename):
+    api = 'get_mac'
+    data = {}
+    data['username'] = username
+    data['token'] = {'access': access}
+    data['devicename'] = devicename
+    return process_request_get(api, data)
+
+# 
+# GET GPIO
+# 
+# - Request:
+#   GET /user/<username>/<access>/devices/device/<devicename>/gpio/<number>
+# 
+# - Response:
+#   { 'status': 'OK', 'message': string, 'value': string }
+#   { 'status': 'NG', 'message': string}
+# 
+@app.route('/user/<username>/<access>/devices/device/<devicename>/gpio/<number>', methods=['GET'])
+def get_gpio(username, access, devicename, number):
+    api = 'get_gpio'
+    data = {}
+    data['username'] = username
+    data['token'] = {'access': access}
+    data['devicename'] = devicename
+    data['number'] = number
+    return process_request_get(api, data)
+
+# 
+# SET GPIO
+# 
+# - Request:
+#   POST /devices/device/gpio
+#   { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string}, 'devicename': string, 'number': string, 'value': string }
+# 
+# - Response:
+#   { 'status': 'OK', 'message': string, 'value': string }
+#   { 'status': 'NG', 'message': string}
+# 
+@app.route('/devices/device/gpio', methods=['POST'])
+def set_gpio():
+    api = 'set_gpio'
+    return process_request(api)
+
+#
+# GET RTC
+#
+# - Request:
+#   GET /user/<username>/<access>/devices/device/<devicename>/rtc
+#
+# - Response:
+#   { 'status': 'OK', 'message': string, 'value': string }
+#   { 'status': 'NG', 'message': string}
+#
+@app.route('/user/<username>/<access>/devices/device/<devicename>/rtc', methods=['GET'])
+def get_rtc(username, access, devicename):
+    api = 'get_rtc'
+    data = {}
+    data['username'] = username
+    data['token'] = {'access': access}
+    data['devicename'] = devicename
+    return process_request_get(api, data)
+
+#
+# SET UART
+#
+# - Request:
+#   POST /devices/device/uart
+#   { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string}, 'devicename': string, 'value': string }
+#
+# - Response:
+#   { 'status': 'OK', 'message': string, 'value': string }
+#   { 'status': 'NG', 'message': string}
+#
+@app.route('/devices/device/uart', methods=['POST'])
+def write_uart():
+    api = 'write_uart'
+    return process_request(api)
+
+#
+# SET NOTIFICATIONS
+#
+# - Request:
+#   POST /devices/device/notification
+#   { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string}, 'devicename': string, 'value': string }
+#
+# - Response:
+#   { 'status': 'OK', 'message': string, 'value': string }
+#   { 'status': 'NG', 'message': string}
+#
+@app.route('/devices/device/notification', methods=['POST'])
+def trigger_notification():
+    api = 'trigger_notification'
+    return process_request(api)
+
 
 
 
@@ -1112,6 +1164,86 @@ def generate_publish_payload(data):
 def generate_subscribe_topic(topic, separator):
     topic = CONFIG_PREPEND_REPLY_TOPIC + separator + topic
     return topic
+
+
+def process_request_get(api, data):
+
+    print("\r\nAPI: {} username={} devicename={}".format(api, data['username'], data['devicename']))
+
+    username = data['username']
+    token = data['token']
+    devicename = data['devicename']
+
+    # check if username and token is valid
+    verify_ret, new_token = g_database_client.verify_token(username, token)
+    if verify_ret == 2:
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Token expired [{}]\r\n'.format(username))
+        return response, status.HTTP_401_UNAUTHORIZED
+    elif verify_ret != 0:
+        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
+        print('\r\nERROR Token is invalid [{}]\r\n'.format(username))
+        return response, status.HTTP_401_UNAUTHORIZED
+
+    # check if device is registered
+    if not g_database_client.find_device(username, devicename):
+        response = json.dumps({'status': 'NG', 'message': 'Device is not registered'})
+        print('\r\nERROR Device is not registered [{}]\r\n'.format(username))
+        return response, status.HTTP_401_UNAUTHORIZED
+
+    # get deviceid for subscribe purpose (AMQP)
+    deviceid = g_database_client.get_deviceid(username, devicename)
+
+    # construct publish/subscribe topics and payloads
+    pubtopic = generate_publish_topic(data, deviceid, api, CONFIG_SEPARATOR)
+    payload = generate_publish_payload(data)
+    subtopic = generate_subscribe_topic(pubtopic, CONFIG_SEPARATOR)
+
+    try:
+        # subscribe for response
+        ret = g_messaging_client.subscribe(subtopic, subscribe=True, deviceid=deviceid)
+        if ret:
+            # publish request
+            g_messaging_client.publish(pubtopic, payload)
+
+            # receive response
+            response = receive_message(subtopic)
+            g_messaging_client.subscribe(subtopic, subscribe=False)
+        else:
+            msg = {'status': 'NG', 'message': 'Could not communicate with device'}
+            if new_token:
+                msg['new_token'] = new_token
+            response = json.dumps(msg)
+            print('\r\nERROR Could not communicate with device [{}, {}]\r\n'.format(username, devicename))
+            return response, status.HTTP_401_UNAUTHORIZED
+    except:
+        msg = {'status': 'NG', 'message': 'Could not communicate with device'}
+        if new_token:
+            msg['new_token'] = new_token
+        response = json.dumps(msg)
+        print('\r\nERROR Could not communicate with device [{}, {}]\r\n'.format(username, devicename))
+        return response, status.HTTP_401_UNAUTHORIZED
+
+    # return HTTP response
+    if response is None:
+        msg = {'status': 'NG', 'message': 'Could not communicate with device'}
+        if new_token:
+            msg['new_token'] = new_token
+        response = json.dumps(msg)
+        print('\r\nERROR Could not communicate with device [{}, {}]\r\n'.format(username, devicename))
+        return response, status.HTTP_401_UNAUTHORIZED
+
+    print(response)
+    msg = {'status': 'OK', 'message': 'Device accessed successfully.'}
+    if new_token:
+        msg['new_token'] = new_token
+    try:
+        msg['value'] = (json.loads(response))["value"]
+        response = json.dumps(msg)
+    except:
+        response = json.dumps(msg)
+    return response
+
 
 def process_request(api):
 

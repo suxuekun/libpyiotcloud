@@ -9,22 +9,20 @@ angular.module('devices', [])
     var ret = {
 
         fetch: function(userdata) {
-            // 
+            //
             // GET DEVICES
             //
             // - Request:
-            //   POST /devices
-            //   { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string} }
+            //   GET /user/<username>/<access>/devices
             //
             // - Response:
             //   {'status': 'OK', 'message': string, 'devices': array[{'devicename': string, 'deviceid': string, ...}, ...]}
             //   {'status': 'NG', 'message': string}
-            //            
+            //
             return $http({
-                method: 'POST',
-                url: server + '/devices',
-                headers: {'Content-Type': 'application/json'},
-                data: userdata //$scope.data
+                method: 'GET',
+                url: server + '/user/' + userdata.username + '/' + userdata.token.access + '/devices',
+                headers: {'Content-Type': 'application/json'}
             })
             .then(function (result) {
                 // Handle successful login
