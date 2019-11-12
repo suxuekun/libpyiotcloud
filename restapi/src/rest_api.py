@@ -377,7 +377,7 @@ def logout():
 #   { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string} }
 #
 # - Response:
-#   {'status': 'OK', 'message': string, 'info': {} }
+#   {'status': 'OK', 'message': string, 'info': {'email': string, 'family_name': string, 'given_name': string} }
 #   {'status': 'NG', 'message': string}
 #
 ########################################################################################################
