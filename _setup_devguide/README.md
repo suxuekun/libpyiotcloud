@@ -317,7 +317,7 @@ Please follow the steps below to get the IoT Portal running on your local machin
 
 
 
-2. <b>Subscription and payment</b>
+2. <b>User subscription and payment</b>
 
     A. GET SUBSCRIPTION
 
