@@ -398,7 +398,7 @@ Please follow the steps below to get the IoT Portal running on your local machin
 
 
 
-3. <b>Device registration and device transactions</b>
+3. <b>Device registration</b>
 
     A. GET DEVICES
 
@@ -460,7 +460,10 @@ Please follow the steps below to get the IoT Portal running on your local machin
        { 'status': 'NG', 'message': string}
 
 
-    E. GET DEVICE TRANSACTION HISTORIES
+
+4. <b>Device access and control</b>
+
+    A. GET DEVICE TRANSACTION HISTORIES
 
     -  Request:
     
@@ -475,11 +478,6 @@ Please follow the steps below to get the IoT Portal running on your local machin
            {'devicename': string, 'deviceid': string, 'direction': string, 'topic': string, 'payload': string, 'timestamp': string}, ...]}
            
        { 'status': 'NG', 'message': string}
-
-
-4. <b>Device access and control</b>
-
-    A. TODO
 
 
 
