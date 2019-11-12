@@ -194,6 +194,8 @@ Please follow the steps below to get the IoT Portal running on your local machin
 
 ### REST API Documentation
 
+Note that HTTP GET method requires no payload so username and token must be included in the URL path. 
+
 1. <b>User sign-up/sign-in</b>
 
     A. SIGN-UP
