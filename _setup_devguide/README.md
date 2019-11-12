@@ -7,14 +7,21 @@ It also contains the documentation of <b>REST APIs</b> useful for native Android
 
 ### Development Tools
 
-1. Github Desktop
+1. Git
+
+    A. [Windows](https://git-scm.com/download/win)
+    
+    B. [Mac OS](https://git-scm.com/download/mac)
+
+
+2. (Optional) Github Desktop
 
     A. [Windows](https://central.github.com/deployments/desktop/desktop/latest/win32)
     
     B. [Mac OS](https://central.github.com/deployments/desktop/desktop/latest/darwin)
 
-   
-2. Docker Toolbox or Docker Desktop
+
+3. Docker Toolbox or Docker Desktop
 
     A. Windows 7 - [Docker Toolbox](https://docs.docker.com/toolbox/toolbox_install_windows/)
     
@@ -27,27 +34,27 @@ It also contains the documentation of <b>REST APIs</b> useful for native Android
     Note that I'm using both A and B on my PC and laptop, respectively.
 
 
-3. Python 3.X.X
+4. Python 3.X.X
 
     A. [Windows](https://www.python.org/downloads/windows/)
     
     B. [Mac OS](https://www.python.org/downloads/mac-osx/)   
 
 
-4. NodeJS 12.X.X
+5. NodeJS 12.X.X
 
     A. [Windows](https://nodejs.org/dist/v12.13.0/node-v12.13.0-x64.msi)
     
     B. [Mac OS](https://nodejs.org/dist/v12.13.0/node-v12.13.0.pkg)
 
 
-5. (Optional) [RabbitMQ](https://www.rabbitmq.com/download.html) 
+6. (Optional) [RabbitMQ](https://www.rabbitmq.com/download.html) 
 
     To be used for non-Docker version.
     Note that the configuration file needs to be updated. Refer to <b>rabbitmq.config</b> and <b>cert_ecc</b> folder in libpyiotcloud/rabbitmq/src
 
 
-6. (Optional) [MongoDB](https://www.mongodb.com/download-center/community)
+7. (Optional) [MongoDB](https://www.mongodb.com/download-center/community)
 
     To be used for non-Docker version.
 
