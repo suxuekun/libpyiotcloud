@@ -1,6 +1,6 @@
 # User Guide:
 
-This page contains a step-by-step tutorial on how to use the IoT Portal including how to use the device simulators or FT900 device module. If you have questions, comments and suggestions, please contact me at Skype. My ID is <b>ftdi.richmond.umagat</b>. 
+This page contains a step-by-step tutorial on <b>how to use the IoT Portal</b> including <b>how to use the device simulators</b> or FT900 device module. If you have questions, comments and suggestions, please contact me at Skype. My ID is <b>ftdi.richmond.umagat</b>. 
 
 ### Summary
 
