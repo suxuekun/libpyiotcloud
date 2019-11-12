@@ -194,7 +194,7 @@ Please follow the steps below to get the IoT Portal running on your local machin
 
 ### REST API Documentation
 
-1. User sign-up/sign-in
+1. <b>User sign-up/sign-in</b>
 
     A. SIGN-UP
 
@@ -317,7 +317,7 @@ Please follow the steps below to get the IoT Portal running on your local machin
 
 
 
-2. Subscription and payment
+2. <b>Subscription and payment</b>
 
     A. GET SUBSCRIPTION
 
