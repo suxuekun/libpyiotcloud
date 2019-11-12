@@ -399,4 +399,7 @@ Please follow the steps below to get the IoT Portal running on your local machin
 
 
 
+### Database Documentation
+
+TODO
 
