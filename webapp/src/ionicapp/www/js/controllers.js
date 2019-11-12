@@ -275,7 +275,17 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
     };
 
     get_subscription = function(param) {
-        // Send HTTP request to REST API
+        //
+        // GET SUBSCRIPTION
+        //
+        // - Request:
+        //   PUT /user/subscription
+        //   { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string} }
+        //
+        // - Response:
+        //   {'status': 'OK', 'message': string, 'subscription': {'credits': string, 'type': paid} }
+        //   {'status': 'NG', 'message': string}
+        //  
         $http({
             method: 'POST',
             url: server + '/user/subscription',
@@ -296,7 +306,17 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
     };
 
     get_profile = function(param) {
-        // Send HTTP request to REST API
+        //        
+        // GET USER INFO
+        //
+        // - Request:
+        //   POST /user
+        //   { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string} }
+        //
+        // - Response:
+        //   {'status': 'OK', 'message': string, 'info': {'email': string, 'family_name': string, 'given_name': string} }
+        //   {'status': 'NG', 'message': string}
+        //         
         $http({
             method: 'POST',
             url: server + '/user',
@@ -459,8 +479,10 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
         console.log("process_payment_paypal");
 
         var host_url = server; //"http://localhost:8100";
-        var return_url = host_url + '/#/page_payment_confirmation?' + 'username=' + $scope.data.username + '&access=' + $scope.data.token.access + '&credits=' + $scope.data.points;
-        var cancel_url = host_url + '/#/page_payment_confirmation?' + 'username=' + $scope.data.username + '&access=' + $scope.data.token.access;
+        var return_url = host_url + '/#/page_payment_confirmation?' + 'username=' + 
+            $scope.data.username + '&access=' + $scope.data.token.access + '&credits=' + $scope.data.points;
+        var cancel_url = host_url + '/#/page_payment_confirmation?' + 'username=' + 
+            $scope.data.username + '&access=' + $scope.data.token.access;
 
         console.log(return_url);
         console.log(cancel_url);
@@ -476,8 +498,20 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
                 'item_price': $scope.data.price,
             }
         };
-       
-        // Send HTTP request to REST API
+
+
+        //       
+        // PAYPAL SETUP
+        //
+        // - Request:
+        //   POST /user/payment/paypalsetup
+        //   { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string},
+        //     'payment': {'return_url': string, 'cancel_url', string, 'item_sku': string, 'item_credits': string, 'item_price': string} }
+        //
+        // - Response:
+        //   {'status': 'OK', 'message': string, 'approval_url': string, 'paymentId': string, 'token': string}
+        //   {'status': 'NG', 'message': string}    
+        //
         $http({
             method: 'POST',
             url: server + '/user/payment/paypalsetup',
@@ -559,7 +593,18 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
     };
 
     verifyPayment = function(paypal_param) {
-        // Send HTTP request to REST API
+        //
+        // PAYPAL VERIFY
+        //
+        // - Request:
+        //   POST /user/payment/paypalverify
+        //   { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string},
+        //     'payment': {'paymentId': string} }
+        //
+        // - Response:
+        //   {'status': 'OK', 'message': string}
+        //   {'status': 'NG', 'message': string}
+        //        
         $http({
             method: 'POST',
             url: server + '/user/payment/paypalverify',
@@ -666,7 +711,19 @@ function ($scope, $stateParams, $ionicPopup, $http, Server) {
     }
 
     function setSubscription(param) {
-        // Send HTTP request to REST API
+        //
+        // SET SUBSCRIPTION
+        //
+        // - Request:
+        //   PUT /user/subscription
+        //   { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string}, 'credits': string }
+        //
+        // - Response:
+        //   {'status': 'OK', 'message': string, 'subscription': {'credits': string, 'type': paid}}
+        //   {'status': 'NG', 'message': string}        
+        //  
+        console.log("set_subscription");
+        console.log(param);
         $http({
             method: 'PUT',
             url: server + '/user/subscription',
@@ -674,7 +731,6 @@ function ($scope, $stateParams, $ionicPopup, $http, Server) {
             data: param
         })
         .then(function (result) {
-            console.log("get_subscription");
             console.log(result.data);
             if (result.data.status === "OK") {
                 spinner[0].style.visibility = "hidden";
@@ -713,7 +769,20 @@ function ($scope, $stateParams, $ionicPopup, $http, Server) {
     }
 
     function verifyPayment(paypal_param) {
-        // Send HTTP request to REST API
+        //
+        // PAYPAL VERIFY
+        //
+        // - Request:
+        //   POST /user/payment/paypalverify
+        //   { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string},
+        //     'payment': {'paymentId': string} }
+        //
+        // - Response:
+        //   {'status': 'OK', 'message': string}
+        //   {'status': 'NG', 'message': string}
+        //        
+        console.log("paypalverify");
+        console.log(paypal_param);
         $http({
             method: 'POST',
             url: server + '/user/payment/paypalverify',
@@ -747,7 +816,20 @@ function ($scope, $stateParams, $ionicPopup, $http, Server) {
     }
 
     function executePayment(paypal_param) {
-        // Send HTTP request to REST API
+        //
+        // PAYPAL EXECUTE
+        //
+        // - Request:
+        //   POST /user/payment/paypalexecute
+        //   { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string},
+        //     'payment': {'paymentId': string, 'payerId': string, 'token': string} }
+        //
+        // - Response:
+        //   {'status': 'OK', 'message': string}
+        //   {'status': 'NG', 'message': string}
+        //  
+        console.log("paypalexecute");
+        console.log(paypal_param);
         $http({
             method: 'POST',
             url: server + '/user/payment/paypalexecute',
@@ -891,8 +973,19 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
 
  
         console.log("login: " + new Date().getTime());
-        
-        // Send HTTP request to REST API
+
+
+        // 
+        // LOGIN
+        // 
+        // - Request:
+        //   POST /user/login
+        //   { 'username': string, 'password': string }
+        // 
+        // - Response:
+        //   {'status': 'OK', 'token': {'access': string, 'id': string, 'refresh': string} }
+        //   {'status': 'NG', 'message': string}
+        //         
         $http({
             method: 'POST',
             url: server + '/user/login',
@@ -990,12 +1083,22 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server) {
         }
         
         
-       // Display spinner
+        // Display spinner
         var spinner = document.getElementsByClassName("spinner3");
         spinner[0].style.visibility = "visible";
  
-         
-         // Send HTTP request to REST API
+ 
+        // 
+        // SIGN-UP
+        // 
+        // - Request:
+        //   POST /user/signup
+        //   { 'username': string, 'password': string, 'email': string, 'givenname': string, 'familyname': string }
+        // 
+        // - Response:
+        //   {'status': 'OK', 'message': string}
+        //   {'status': 'NG', 'message': string}
+        //  
         $http({
             method: 'POST',
             url: server + '/user/signup',
@@ -1059,7 +1162,17 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server) {
         spinner[0].style.visibility = "visible";
         
 
-         // Send HTTP request to REST API
+        //
+        // FORGOT PASSWORD
+        //
+        // - Request:
+        //   POST /user/forgot_password
+        //   { 'email': string }
+        //
+        // - Response:
+        //   {'status': 'OK', 'message': string, 'username': string}
+        //   {'status': 'NG', 'message': string}         
+        //         
         $http({
             method: 'POST',
             url: server + '/user/forgot_password',
@@ -1156,8 +1269,18 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server) {
         var spinner = document.getElementsByClassName("spinner6");
         spinner[0].style.visibility = "visible";
         
-        
-         // Send HTTP request to REST API
+
+        //
+        // CONFIRM FORGOT PASSWORD
+        //
+        // - Request:
+        //   POST /user/confirm_forgot_password
+        //   { 'username': string, 'confirmationcode': string, 'password': string }
+        //
+        // - Response:
+        //   {'status': 'OK', 'message': string}
+        //   {'status': 'NG', 'message': string}
+        //
         $http({
             method: 'POST',
             url: server + '/user/confirm_forgot_password',
@@ -1224,9 +1347,19 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server) {
         // Display spinner
         var spinner = document.getElementsByClassName("spinner4");
         spinner[0].style.visibility = "visible";
-        
-        
-         // Send HTTP request to REST API
+
+
+        // 
+        // CONFIRM SIGN-UP
+        // 
+        // - Request:
+        //   POST /user/confirm_signup
+        //   { 'username': string, 'confirmationcode': string }
+        // 
+        // - Response:
+        //   {'status': 'OK', 'message': string}
+        //   {'status': 'NG', 'message': string}
+        //   
         $http({
             method: 'POST',
             url: server + '/user/confirm_signup',
@@ -1273,8 +1406,19 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server) {
         var param = {
             'username': $scope.data.username
         }
-        
-         // Send HTTP request to REST API
+
+
+        // 
+        // RESEND CONFIRMATION CODE
+        // 
+        // - Request:
+        //   POST /user/resend_confirmation_code
+        //   { 'username': string }
+        // 
+        // - Response:
+        //   {'status': 'OK', 'message': string}
+        //   {'status': 'NG', 'message': string}        
+        // 
         $http({
             method: 'POST',
             url: server + '/user/resend_confirmation_code',
@@ -1372,7 +1516,18 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, Devices, Use
             return;
         }
         
-        // Send HTTP request to REST API
+        
+        //        
+        // ADD DEVICE
+        // 
+        // - Request:
+        //   POST /devices/device
+        //   { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string}, 'devicename': string }
+        //
+        // - Response:
+        //   {'status': 'OK', 'message': string, 'device': {'devicename': string, 'deviceid': string, 'cert': cert, 'pkey': pkey, 'ca': ca}}
+        //   {'status': 'NG', 'message': string}
+        //
         $http({
             method: 'POST',
             url: server + '/devices/device',
@@ -1486,8 +1641,19 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User) {
             'token': $scope.data.token,
             'devicename': $scope.data.devicename
         }
-       
-        // Send HTTP request to REST API
+
+
+        //
+        // DELETE DEVICE
+        //
+        // - Request:
+        //   DELETE /devices/device
+        //   { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string}, 'devicename': string }
+        //
+        // - Response:
+        //   {'status': 'OK', 'message': string}
+        //   {'status': 'NG', 'message': string}
+        //  
         $http({
             method: 'DELETE',
             url: server + '/devices/device',
@@ -1615,10 +1781,17 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User) {
     }     
 
     query_device = function(param) {
-        
         $scope.data.devicestatus = 'Detecting...';
-        
-        // Send HTTP request to REST API
+        //
+        // GET STATUS
+        // - Request:
+        //   POST /devices/device/status
+        //   { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string}, 'devicename': string }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string, 'value': string}
+        //   { 'status': 'NG', 'message': string}
+        //        
         $http({
             method: 'POST',
             url: server + '/devices/device/status',
@@ -1638,7 +1811,16 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User) {
     }    
 
     restart_device = function(param) {
-        // Send HTTP request to REST API
+        //
+        // SET STATUS
+        // - Request:
+        //   PUT /devices/device/status
+        //   { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string}, 'devicename': string, 'value': string }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string, 'value': string}
+        //   { 'status': 'NG', 'message': string}
+        //        
         $http({
             method: 'PUT',
             url: server + '/devices/device/status',
@@ -1712,8 +1894,19 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User) {
             alert("ERROR: View Device devicename is empty!");
             return;
         }
-        
-        // Send HTTP request to REST API
+
+
+        //
+        // GET DEVICE
+        //
+        // - Request:
+        //   PATCH /devices/device
+        //   { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string}, 'devicename': string }
+        //
+        // - Response:
+        //   {'status': 'OK', 'message': string, 'device': {'devicename': string, 'deviceid': string, 'cert': cert, 'pkey': pkey}}
+        //   {'status': 'NG', 'message': string}
+        //   
         $http({
             method: 'PATCH',
             url: server + '/devices/device',
@@ -1810,7 +2003,17 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User) {
     }
     
     get_ip = function(param) {
-        // Send HTTP request to REST API
+        //
+        // GET IP
+        //
+        // - Request:
+        //   POST /devices/device/ip
+        //   { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string}, 'devicename': string }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string, 'value': string }
+        //   { 'status': 'NG', 'message': string}
+        //        
         $http({
             method: 'POST', // Should be GET but GET is not working
             url: server + '/devices/device/ip',
@@ -1829,7 +2032,17 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User) {
     }
     
     get_subnet = function(param) {
-        // Send HTTP request to REST API
+        //
+        // GET SUBNET
+        //
+        // - Request:
+        //   POST /devices/device/subnet
+        //   { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string}, 'devicename': string }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string, 'value': string }
+        //   { 'status': 'NG', 'message': string}
+        //        
         $http({
             method: 'POST', // Should be GET but GET is not working
             url: server + '/devices/device/subnet',
@@ -1848,7 +2061,17 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User) {
     }
 
     get_gateway = function(param) {
-        // Send HTTP request to REST API
+        //
+        // GET GATEWAY
+        //
+        // - Request:
+        //   POST /devices/device/gateway
+        //   { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string}, 'devicename': string }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string, 'value': string }
+        //   { 'status': 'NG', 'message': string}
+        //        
         $http({
             method: 'POST', // Should be GET but GET is not working
             url: server + '/devices/device/gateway',
@@ -1867,7 +2090,17 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User) {
     }
 
     get_mac = function(param) {
-        // Send HTTP request to REST API
+        //
+        // GET MAC
+        //
+        // - Request:
+        //   POST /devices/device/mac
+        //   { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string}, 'devicename': string }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string, 'value': string }
+        //   { 'status': 'NG', 'message': string}
+        //        
         $http({
             method: 'POST', // Should be GET but GET is not working
             url: server + '/devices/device/mac',
@@ -1969,7 +2202,17 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User) {
     }
     
     get_gpio = function(param) {
-        // Send HTTP request to REST API
+        // 
+        // GET GPIO
+        // 
+        // - Request:
+        //   POST /devices/device/gpio
+        //   { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string}, 'devicename': string, 'number': string }
+        // 
+        // - Response:
+        //   { 'status': 'OK', 'message': string, 'value': string }
+        //   { 'status': 'NG', 'message': string}        
+        //
         $http({
             method: 'POST', // Should be GET but GET is not working
             url: server + '/devices/device/gpio',
@@ -2000,7 +2243,17 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User) {
     }
 
     set_gpio = function(param) {
-        // Send HTTP request to REST API
+        //        
+        // SET GPIO
+        //
+        // - Request:
+        //   PUT /devices/device/gpio
+        //   { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string}, 'devicename': string, 'number': string, 'value': string }
+        //
+        // - Response:
+        //  { 'status': 'OK', 'message': string, 'value': string }
+        //  { 'status': 'NG', 'message': string}
+        //
         $http({
             method: 'PUT',
             url: server + '/devices/device/gpio',
@@ -2137,7 +2390,17 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User) {
     }    
  
     set_uart = function(param) {
-        // Send HTTP request to REST API
+        //
+        // SET UART
+        //
+        // - Request:
+        //   PUT /devices/device/uart
+        //   { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string}, 'devicename': string, 'value': string }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string, 'value': string }
+        //   { 'status': 'NG', 'message': string}        
+        //
         $http({
             method: 'PUT',
             url: server + '/devices/device/uart',
@@ -2235,7 +2498,17 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User) {
     }
     
     get_rtc = function(param) {
-        // Send HTTP request to REST API
+        //
+        // GET RTC
+        //
+        // - Request:
+        //   POST /devices/device/rtc
+        //   { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string}, 'devicename': string }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string, 'value': string }
+        //   { 'status': 'NG', 'message': string}        
+        //
         $http({
             method: 'POST', // Should be GET but GET is not working
             url: server + '/devices/device/rtc',
@@ -2412,7 +2685,18 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User) {
     };    
 
     set_notifications = function(param) {
-        // Send HTTP request to REST API
+        //
+        // SET NOTIFICATION
+        //
+        // - Request:
+        //   PUT /devices/device/notification
+        //   { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string}, 'devicename': string, 
+        //     'recipient': string, 'message': string, 'options': string }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string}
+        //   { 'status': 'NG', 'message': string}        
+        //
         $http({
             method: 'PUT',
             url: server + '/devices/device/notification',
