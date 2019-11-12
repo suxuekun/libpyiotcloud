@@ -9,7 +9,19 @@ angular.module('histories', [])
     var ret = {
 
         fetch: function(userdata) {        
-            // Send HTTP request to REST API
+            //
+            // GET DEVICE TRANSACTION HISTORIES
+            //
+            // - Request:
+            //   POST /user/histories
+            //   { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string} }
+            //
+            // - Response:
+            //   { 'status': 'OK', 'message': string, 
+            //     'histories': array[
+            //       {'devicename': string, 'deviceid': string, 'direction': string, 'topic': string, 'payload': string, 'timestamp': string}, ...]}
+            //   { 'status': 'NG', 'message': string}
+            //            
             return $http({
                 method: 'POST',
                 url: server + '/user/histories',
