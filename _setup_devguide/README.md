@@ -2,7 +2,7 @@
 
 Below contains a step-by-step instructions on installing and setting up the frontend and backend web infrastructure of <b>IoT Portal on local machine</b>.
 
-It also contains the documentation of <b>REST APIs<b> useful for native Android/IOS mobile app development.
+It also contains the documentation of <b>REST APIs</b> useful for native Android/IOS mobile app development.
 
 
 ### Development Tools
