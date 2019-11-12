@@ -424,11 +424,28 @@ def get_user_info():
 
 
 ########################################################################################################
-# POST /user/subscription
-# { 'username': string, 'token': string }
-# Response:
-# {'status': 'OK', 'message': string, 'info': string}
-# {'status': 'NG', 'message': string}
+#
+# GET SUBSCRIPTION
+#
+# - Request:
+#   PUT /user/subscription
+#   { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string} }
+#
+# - Response:
+#  {'status': 'OK', 'message': string, 'subscription': {'credits': string, 'type': paid} }
+#  {'status': 'NG', 'message': string}
+#
+#
+# SET SUBSCRIPTION
+#
+# - Request:
+#   PUT /user/subscription
+#   { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string}, 'credits': string }
+#
+# - Response:
+#  {'status': 'OK', 'message': string, 'subscription': {'credits': string, 'type': paid} }
+#  {'status': 'NG', 'message': string}
+#
 ########################################################################################################
 @app.route('/user/subscription', methods=['POST', 'PUT'])
 def get_subscription():
@@ -485,11 +502,18 @@ def get_subscription():
 
 
 ########################################################################################################
-# POST /user/payment/paypalsetup
-# { 'username': string, 'token': string }
-# Response:
-# {'status': 'OK', 'message': string, 'info': string}
-# {'status': 'NG', 'message': string}
+#
+# PAYPAL SETUP
+#
+# - Request:
+#   POST /user/payment/paypalsetup
+#   { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string},
+#     'payment': {'return_url': string, 'cancel_url', string, 'item_sku': string, 'item_credits': string, 'item_price': string} }
+#
+# - Response:
+#   {'status': 'OK', 'message': string, 'approval_url': string, 'paymentId': string, 'token': string}
+#   {'status': 'NG', 'message': string}
+#
 ########################################################################################################
 @app.route('/user/payment/paypalsetup', methods=['POST'])
 def set_payment_paypal_setup():
@@ -529,11 +553,18 @@ def set_payment_paypal_setup():
 
 
 ########################################################################################################
-# POST /user/payment/paypalexecute
-# { 'username': string, 'token': string }
-# Response:
-# {'status': 'OK', 'message': string, 'info': string}
-# {'status': 'NG', 'message': string}
+#
+# PAYPAL EXECUTE
+#
+# - Request:
+#   POST /user/payment/paypalexecute
+#   { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string},
+#     'payment': {'paymentId': string, 'payerId': string, 'token': string} }
+#
+# - Response:
+#   {'status': 'OK', 'message': string}
+#   {'status': 'NG', 'message': string}
+#
 ########################################################################################################
 @app.route('/user/payment/paypalexecute', methods=['POST'])
 def set_payment_paypal_execute():
@@ -577,11 +608,18 @@ def set_payment_paypal_execute():
 
 
 ########################################################################################################
-# POST /user/payment/paypalverify
-# { 'username': string, 'token': string }
-# Response:
-# {'status': 'OK', 'message': string, 'info': string}
-# {'status': 'NG', 'message': string}
+#
+# PAYPAL VERIFY
+#
+# - Request:
+#   POST /user/payment/paypalverify
+#   { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string},
+#     'payment': {'paymentId': string} }
+#
+# - Response:
+#   {'status': 'OK', 'message': string}
+#   {'status': 'NG', 'message': string}
+#
 ########################################################################################################
 @app.route('/user/payment/paypalverify', methods=['POST'])
 def set_payment_paypal_verify():

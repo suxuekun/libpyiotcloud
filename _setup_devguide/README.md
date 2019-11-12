@@ -317,8 +317,84 @@ Please follow the steps below to get the IoT Portal running on your local machin
 
 
 
+2. Subscription and payment
+
+    A. GET SUBSCRIPTION
+
+    -  Request:
+    
+       PUT /user/subscription
+      
+       { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string} }
+
+    -  Response:
+    
+       {'status': 'OK', 'message': string, 'subscription': {'credits': string, 'type': paid} }
+      
+       {'status': 'NG', 'message': string}
 
 
+    B. SET SUBSCRIPTION
+
+    -  Request:
+    
+       PUT /user/subscription
+      
+       { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string}, 'credits': string }
+
+    -  Response:
+    
+       {'status': 'OK', 'message': string, 'subscription': {'credits': string, 'type': paid} }
+      
+       {'status': 'NG', 'message': string}
+
+
+    C. PAYPAL SETUP
+
+    -  Request:
+
+       POST /user/payment/paypalsetup
+      
+       { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string},
+         'payment': {'return_url': string, 'cancel_url', string, 'item_sku': string, 'item_credits': string, 'item_price': string} }
+
+    -  Response:
+    
+       {'status': 'OK', 'message': string, , 'approval_url': string, 'paymentId': string, 'token': string}
+      
+       {'status': 'NG', 'message': string}
+
+
+    D. PAYPAL EXECUTE
+
+    -  Request:
+    
+       POST /user/payment/paypalexecute
+      
+       { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string},
+         'payment': {'paymentId': string, 'payerId': string, 'token': string} }
+
+    -  Response:
+    
+       {'status': 'OK', 'message': string}
+      
+       {'status': 'NG', 'message': string}
+
+
+    E. PAYPAL VERIFY
+
+    -  Request:
+    
+       POST /user/payment/paypalverify
+      
+       { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string},
+         'payment': {'paymentId': string} }
+
+    -  Response:
+    
+       {'status': 'OK', 'message': string}
+      
+       {'status': 'NG', 'message': string}
 
 
 
