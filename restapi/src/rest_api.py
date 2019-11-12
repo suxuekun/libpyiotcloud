@@ -45,11 +45,17 @@ def index():
     return "", status.HTTP_401_UNAUTHORIZED
 
 ########################################################################################################
-# POST /user/login
-# { 'username': string, 'password': string }
-# Response:
-# {'status': 'OK', 'token': string}
-# {'status': 'NG', 'message': string}
+#
+# LOGIN
+#
+# - Request:
+#   POST /user/login
+#   { 'username': string, 'password': string }
+#
+# - Response:
+#   {'status': 'OK', 'token': {'access': string, 'id': string, 'refresh': string} }
+#   {'status': 'NG', 'message': string}
+#
 ########################################################################################################
 @app.route('/user/login', methods=['POST'])
 def login():
@@ -92,11 +98,17 @@ def login():
     return response
 
 ########################################################################################################
-# POST /user/signup
-# { 'username': string, 'password': string, 'email': string, 'givenname': string, 'familyname': string }
-# Response:
-# {'status': 'OK', 'message': string}
-# {'status': 'NG', 'message': string}
+#
+# SIGN-UP
+#
+# - Request:
+#   POST /user/signup
+#   { 'username': string, 'password': string, 'email': string, 'givenname': string, 'familyname': string }
+#
+# - Response:
+#   {'status': 'OK', 'message': string}
+#   {'status': 'NG', 'message': string}
+#
 ########################################################################################################
 @app.route('/user/signup', methods=['POST'])
 def signup():
@@ -144,11 +156,17 @@ def signup():
     return response
 
 ########################################################################################################
-# POST /user/confirm_signup
-# { 'username': string, 'confirmationcode': string }
-# Response:
-# {'status': 'OK', 'message': string}
-# {'status': 'NG', 'message': string}
+#
+# CONFIRM SIGN-UP
+#
+# - Request:
+#   POST /user/confirm_signup
+#   { 'username': string, 'confirmationcode': string }
+#
+# - Response:
+#   {'status': 'OK', 'message': string}
+#   {'status': 'NG', 'message': string}
+#
 ########################################################################################################
 @app.route('/user/confirm_signup', methods=['POST'])
 def confirm_signup():
@@ -175,11 +193,17 @@ def confirm_signup():
     return response
 
 ########################################################################################################
-# POST /user/resend_confirmation_code
-# { 'username': string }
-# Response:
-# {'status': 'OK', 'message': string}
-# {'status': 'NG', 'message': string}
+#
+# RESEND CONFIRMATION CODE
+#
+# - Request:
+#   POST /user/resend_confirmation_code
+#   { 'username': string }
+#
+# - Response:
+#   {'status': 'OK', 'message': string}
+#   {'status': 'NG', 'message': string}
+#
 ########################################################################################################
 @app.route('/user/resend_confirmation_code', methods=['POST'])
 def resend_confirmation_code():
@@ -205,11 +229,17 @@ def resend_confirmation_code():
     return response
 
 ########################################################################################################
-# POST /user/forgot_password
-# { 'username': string, 'confirmationcode': string }
-# Response:
-# {'status': 'OK', 'message': string, 'username': string}
-# {'status': 'NG', 'message': string}
+#
+# FORGOT PASSWORD
+#
+# - Request:
+#   POST /user/forgot_password
+#   { 'email': string }
+#
+# - Response:
+#   {'status': 'OK', 'message': string, 'username': string}
+#   {'status': 'NG', 'message': string}
+#
 ########################################################################################################
 @app.route('/user/forgot_password', methods=['POST'])
 def forgot_password():
@@ -242,11 +272,17 @@ def forgot_password():
     return response
 
 ########################################################################################################
-# POST /user/confirm_forgot_password
-# { 'username': string, 'confirmationcode': string, 'password': string }
-# Response:
-# {'status': 'OK', 'message': string}
-# {'status': 'NG', 'message': string}
+#
+# CONFIRM FORGOT PASSWORD
+#
+# - Request:
+#   POST /user/confirm_forgot_password
+#   { 'username': string, 'confirmationcode': string, 'password': string }
+#
+# - Response:
+#   {'status': 'OK', 'message': string}
+#   {'status': 'NG', 'message': string}
+#
 ########################################################################################################
 @app.route('/user/confirm_forgot_password', methods=['POST'])
 def confirm_forgot_password():
@@ -275,11 +311,17 @@ def confirm_forgot_password():
 
 
 ########################################################################################################
-# POST /user/logout
-# { 'username': string, 'token': string }
-# Response:
-# {'status': 'OK', 'message': string}
-# {'status': 'NG', 'message': string}
+#
+# LOGOUT
+#
+# - Request:
+#   POST /user/logout
+#   { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string} }
+#
+# - Response:
+#   {'status': 'OK', 'message': string}
+#   {'status': 'NG', 'message': string}
+#
 ########################################################################################################
 @app.route('/user/logout', methods=['POST'])
 def logout():
@@ -327,11 +369,17 @@ def logout():
 
 
 ########################################################################################################
-# POST /user
-# { 'username': string, 'token': string }
-# Response:
-# {'status': 'OK', 'message': string, 'info': string}
-# {'status': 'NG', 'message': string}
+#
+# GET USER INFO
+#
+# - Request:
+#   POST /user/logout
+#   { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string} }
+#
+# - Response:
+#   {'status': 'OK', 'message': string, 'info': {} }
+#   {'status': 'NG', 'message': string}
+#
 ########################################################################################################
 @app.route('/user', methods=['POST', 'GET'])
 def get_user_info():
