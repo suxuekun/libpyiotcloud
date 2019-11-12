@@ -42,7 +42,7 @@ Below contains a step-by-step instructions on installing and setting up the fron
 5. (Optional) [RabbitMQ](https://www.rabbitmq.com/download.html) 
 
     To be used for non-Docker version.
-	Note that the configuration file needs to be updated.
+    Note that the configuration file needs to be updated. Refer to rabbitmq.config and cert_ecc folder in libpyiotcloud/rabbitmq/src
 
 
 6. (Optional) [MongoDB](https://www.mongodb.com/download-center/community)
