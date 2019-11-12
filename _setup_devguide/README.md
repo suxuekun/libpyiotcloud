@@ -188,11 +188,13 @@ It also contains the documentation of <b>REST APIs</b> useful for native Android
     A. SIGN-UP
 
     -  Request:
+
        POST /user/signup
 
        { 'username': string, 'password': string, 'email': string, 'givenname': string, 'familyname': string }
 
     -  Response:
+
        {'status': 'OK', 'message': string}
 
        {'status': 'NG', 'message': string}
@@ -201,66 +203,90 @@ It also contains the documentation of <b>REST APIs</b> useful for native Android
     B. CONFIRM SIGN-UP
 
     -  Request:
+
        POST /user/confirm_signup
+
        { 'username': string, 'confirmationcode': string }
 
     -  Response:
+
        {'status': 'OK', 'message': string}
+
        {'status': 'NG', 'message': string}
 
 
     C. RESEND CONFIRMATION CODE
 
     -  Request:
+
        POST /user/resend_confirmation_code
+
        { 'username': string }
 
     -  Response:
+
        {'status': 'OK', 'message': string}
+
        {'status': 'NG', 'message': string}
 
 
     D. FORGOT PASSWORD
 
     -  Request:
+
        POST /user/forgot_password
+
        { 'email': string }
 
     -  Response:
+
        {'status': 'OK', 'message': string, 'username': string}
+
        {'status': 'NG', 'message': string}
 
 
     E. CONFIRM FORGOT PASSWORD
 
     -  Request:
+
        POST /user/confirm_forgot_password
+
        { 'username': string, 'confirmationcode': string, 'password': string }
 
     -  Response:
+
        {'status': 'OK', 'message': string}
+
        {'status': 'NG', 'message': string}
 
 
     F. LOGOUT
 
     -  Request:
+
        POST /user/logout
+
        { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string} }
 
     -  Response:
+
        {'status': 'OK', 'message': string}
+
        {'status': 'NG', 'message': string}
 
 
     G. GET USER INFO
 
     -  Request:
+
        POST /user/logout
+
        { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string} }
 
     -  Response:
+
        {'status': 'OK', 'message': string, 'info': {} }
+
        {'status': 'NG', 'message': string}
 
 
