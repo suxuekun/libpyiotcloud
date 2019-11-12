@@ -480,9 +480,176 @@ Please follow the steps below to get the IoT Portal running on your local machin
        { 'status': 'NG', 'message': string}
 
 
+    B. GET STATUS
+
+    - Request:
+
+      POST <b>/devices/device/status</b>
+
+      { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string}, 'devicename': string }
+
+    - Response:
+
+      { 'status': 'OK', 'message': string, 'value': string }
+
+      { 'status': 'NG', 'message': string}
+
+
+    C. SET STATUS
+
+    - Request:
+
+      PUT <b>/devices/device/status</b>
+
+      { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string}, 'devicename': string, 'value': string }
+
+    - Response:
+
+      { 'status': 'OK', 'message': string, 'value': string}
+
+      { 'status': 'NG', 'message': string}
+
+
+    D. GET IP
+
+    - Request:
+
+      POST <b>/devices/device/ip</b>
+
+      { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string}, 'devicename': string }
+
+    - Response:
+
+      { 'status': 'OK', 'message': string, 'value': string }
+
+      { 'status': 'NG', 'message': string}
+
+
+    E. GET SUBNET
+
+    - Request:
+
+      POST <b>/devices/device/subnet</b>
+
+      { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string}, 'devicename': string }
+
+    - Response:
+
+      { 'status': 'OK', 'message': string, 'value': string }
+
+      { 'status': 'NG', 'message': string}
+
+
+    F. GET GATEWAY
+
+    - Request:
+
+      POST <b>/devices/device/gateway</b>
+
+      { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string}, 'devicename': string }
+
+    - Response:
+
+      { 'status': 'OK', 'message': string, 'value': string }
+
+      { 'status': 'NG', 'message': string}
+
+
+    G. GET MAC
+
+    - Request:
+
+      POST <b>/devices/device/mac</b>
+
+      { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string}, 'devicename': string }
+
+    - Response:
+
+      { 'status': 'OK', 'message': string, 'value': string }
+
+      { 'status': 'NG', 'message': string}
+
+
+    H. GET GPIO
+
+    - Request:
+
+      POST <b>/devices/device/gpio</b>
+
+      { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string}, 'devicename': string, 'number': string }
+
+    - Response:
+
+      { 'status': 'OK', 'message': string, 'value': string }
+
+      { 'status': 'NG', 'message': string}
+
+
+    I. SET GPIO
+
+    - Request:
+
+      PUT <b>/devices/device/gpio</b>
+
+      { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string}, 'devicename': string, 'number': string, 'value': string }
+
+    - Response:
+
+      { 'status': 'OK', 'message': string, 'value': string }
+
+      { 'status': 'NG', 'message': string}
+
+
+    J. GET RTC
+
+    - Request:
+
+      POST <b>/devices/device/rtc</b>
+
+      { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string}, 'devicename': string }
+
+    - Response:
+
+      { 'status': 'OK', 'message': string, 'value': string }
+
+      { 'status': 'NG', 'message': string}
+
+
+    K. SET UART
+
+    - Request:
+
+      PUT <b>/devices/device/uart</b>
+
+      { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string}, 'devicename': string, 'value': string }
+
+    - Response:
+
+      { 'status': 'OK', 'message': string, 'value': string }
+
+      { 'status': 'NG', 'message': string}
+
+
+    L. SET NOTIFICATION
+
+    - Request:
+
+      PUT <b>/devices/device/notification</b>
+
+      { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string}, 'devicename': string, 
+        'recipient': string, 'message': string }
+
+    - Response:
+
+      { 'status': 'OK', 'message': string}
+
+      { 'status': 'NG', 'message': string}
+
+
+
 
 
 ### Database Documentation
 
-TODO
+1. TODO
 
