@@ -138,7 +138,7 @@ Below contains a step-by-step instructions on installing and setting up the fron
 
 4. Run a device simulator.
 
-    A. Type "cd libpyiotcloud"
+    A. Type "cd _device_simulator"
 
 
     <b>// PYTHON device simulator</b>
