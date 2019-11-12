@@ -260,7 +260,22 @@ It also contains the documentation of <b>REST APIs</b> useful for native Android
        {'status': 'NG', 'message': string}
 
 
-    F. LOGOUT
+    F. LOGIN
+
+    -  Request:
+
+       POST /user/login
+
+       { 'username': string, 'password': string }
+
+    -  Response:
+
+       {'status': 'OK', 'token': {'access': string, 'id': string, 'refresh': string} }
+
+       {'status': 'NG', 'message': string}
+
+
+    G. LOGOUT
 
     -  Request:
 
@@ -275,7 +290,7 @@ It also contains the documentation of <b>REST APIs</b> useful for native Android
        {'status': 'NG', 'message': string}
 
 
-    G. GET USER INFO
+    H. GET USER INFO
 
     -  Request:
 
