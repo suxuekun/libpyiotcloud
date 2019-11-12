@@ -111,12 +111,20 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Device
             'devicename': device.devicename
         };     
         
-        // Send HTTP request to REST API
+        //
+        // GET DEVICE
+        //
+        // - Request:
+        //   GET /user/<username>/<access>/devices/device/<devicename>
+        //
+        // - Response:
+        //   {'status': 'OK', 'message': string, 'device': {'devicename': string, 'deviceid': string, 'cert': cert, 'pkey': pkey}}
+        //   {'status': 'NG', 'message': string}
+        //   
         $http({
-            method: 'PATCH', // Should be GET but GET is not working
-            url: server + '/devices/device',
-            headers: {'Content-Type': 'application/json'},
-            data: device_param
+            method: 'GET',
+            url: server + '/user/' + device_param.username + '/' + device_param.token.access + '/devices/device/' + device_param.devicename,
+            headers: {'Content-Type': 'application/json'}
         })
         .then(function (result) {
             // Handle successful login
@@ -279,18 +287,16 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
         // GET SUBSCRIPTION
         //
         // - Request:
-        //   PUT /user/subscription
-        //   { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string} }
+        //   GET /user/<username>/<access>/subscription
         //
         // - Response:
         //   {'status': 'OK', 'message': string, 'subscription': {'credits': string, 'type': paid} }
         //   {'status': 'NG', 'message': string}
         //  
         $http({
-            method: 'POST',
-            url: server + '/user/subscription',
-            headers: {'Content-Type': 'application/json'},
-            data: param
+            method: 'GET',
+            url: server + '/user/' + param.username + '/' + param.token.access + '/' + 'subscription',
+            headers: {'Content-Type': 'application/json'}
         })
         .then(function (result) {
             console.log("get_subscription");
@@ -310,18 +316,16 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
         // GET USER INFO
         //
         // - Request:
-        //   POST /user
-        //   { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string} }
+        //   GET /user/<username>/<access>
         //
         // - Response:
         //   {'status': 'OK', 'message': string, 'info': {'email': string, 'family_name': string, 'given_name': string} }
         //   {'status': 'NG', 'message': string}
         //         
         $http({
-            method: 'POST',
-            url: server + '/user',
-            headers: {'Content-Type': 'application/json'},
-            data: param
+            method: 'GET',
+            url: server + '/user/' + param.username + "/" + param.token.access,
+            headers: {'Content-Type': 'application/json'}
         })
         .then(function (result) {
             console.log("ACCOUNT OK");
@@ -715,7 +719,7 @@ function ($scope, $stateParams, $ionicPopup, $http, Server) {
         // SET SUBSCRIPTION
         //
         // - Request:
-        //   PUT /user/subscription
+        //   POST /user/subscription
         //   { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string}, 'credits': string }
         //
         // - Response:
@@ -725,7 +729,7 @@ function ($scope, $stateParams, $ionicPopup, $http, Server) {
         console.log("set_subscription");
         console.log(param);
         $http({
-            method: 'PUT',
+            method: 'POST',
             url: server + '/user/subscription',
             headers: {'Content-Type': 'application/json'},
             data: param
@@ -1785,18 +1789,16 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User) {
         //
         // GET STATUS
         // - Request:
-        //   POST /devices/device/status
-        //   { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string}, 'devicename': string }
+        //   GET /user/<username>/<access>/devices/device/<devicename>/status
         //
         // - Response:
         //   { 'status': 'OK', 'message': string, 'value': string}
         //   { 'status': 'NG', 'message': string}
         //        
         $http({
-            method: 'POST',
-            url: server + '/devices/device/status',
-            headers: {'Content-Type': 'application/json'},
-            data: param
+            method: 'GET',
+            url: server + '/user/' + param.username + '/' + param.token.access + '/devices/device/' + param.devicename + '/status',
+            headers: {'Content-Type': 'application/json'}
         })
         .then(function (result) {
             console.log(result.data);
@@ -1814,7 +1816,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User) {
         //
         // SET STATUS
         // - Request:
-        //   PUT /devices/device/status
+        //   POST /devices/device/status
         //   { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string}, 'devicename': string, 'value': string }
         //
         // - Response:
@@ -1822,7 +1824,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User) {
         //   { 'status': 'NG', 'message': string}
         //        
         $http({
-            method: 'PUT',
+            method: 'POST',
             url: server + '/devices/device/status',
             headers: {'Content-Type': 'application/json'},
             data: param
@@ -1900,18 +1902,16 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User) {
         // GET DEVICE
         //
         // - Request:
-        //   PATCH /devices/device
-        //   { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string}, 'devicename': string }
+        //   GET /user/<username>/<access>/devices/device/<devicename>
         //
         // - Response:
         //   {'status': 'OK', 'message': string, 'device': {'devicename': string, 'deviceid': string, 'cert': cert, 'pkey': pkey}}
         //   {'status': 'NG', 'message': string}
         //   
         $http({
-            method: 'PATCH',
-            url: server + '/devices/device',
-            headers: {'Content-Type': 'application/json'},
-            data: $scope.data
+            method: 'GET',
+            url: server + '/user/' + $scope.data.username + '/' + $scope.data.token.access + '/devices/device/' + $scope.data.devicename,
+            headers: {'Content-Type': 'application/json'}
         })
         .then(function (result) {
             // Handle successful login
@@ -2007,18 +2007,16 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User) {
         // GET IP
         //
         // - Request:
-        //   POST /devices/device/ip
-        //   { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string}, 'devicename': string }
+        //   GET /user/<username>/<access>/devices/device/<devicename>/ip
         //
         // - Response:
         //   { 'status': 'OK', 'message': string, 'value': string }
         //   { 'status': 'NG', 'message': string}
         //        
         $http({
-            method: 'POST', // Should be GET but GET is not working
-            url: server + '/devices/device/ip',
-            headers: {'Content-Type': 'application/json'},
-            data: param
+            method: 'GET',
+            url: server + '/user/' + param.username + '/' + param.token.access + '/devices/device/' + param.devicename + '/' + 'ip',
+            headers: {'Content-Type': 'application/json'}
         })
         .then(function (result) {
             console.log(result.data);
@@ -2036,18 +2034,16 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User) {
         // GET SUBNET
         //
         // - Request:
-        //   POST /devices/device/subnet
-        //   { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string}, 'devicename': string }
+        //   GET /user/<username>/<access>/devices/device/<devicename>/subnet
         //
         // - Response:
         //   { 'status': 'OK', 'message': string, 'value': string }
         //   { 'status': 'NG', 'message': string}
         //        
         $http({
-            method: 'POST', // Should be GET but GET is not working
-            url: server + '/devices/device/subnet',
-            headers: {'Content-Type': 'application/json'},
-            data: param
+            method: 'GET',
+            url: server + '/user/' + param.username + '/' + param.token.access + '/devices/device/' + param.devicename + '/' + 'subnet',
+            headers: {'Content-Type': 'application/json'}
         })
         .then(function (result) {
             console.log(result.data);
@@ -2065,18 +2061,16 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User) {
         // GET GATEWAY
         //
         // - Request:
-        //   POST /devices/device/gateway
-        //   { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string}, 'devicename': string }
+        //   GET /user/<username>/<access>/devices/device/<devicename>/gateway
         //
         // - Response:
         //   { 'status': 'OK', 'message': string, 'value': string }
         //   { 'status': 'NG', 'message': string}
         //        
         $http({
-            method: 'POST', // Should be GET but GET is not working
-            url: server + '/devices/device/gateway',
-            headers: {'Content-Type': 'application/json'},
-            data: param
+            method: 'GET',
+            url: server + '/user/' + param.username + '/' + param.token.access + '/devices/device/' + param.devicename + '/' + 'gateway',
+            headers: {'Content-Type': 'application/json'}
         })
         .then(function (result) {
             console.log(result.data);
@@ -2094,18 +2088,16 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User) {
         // GET MAC
         //
         // - Request:
-        //   POST /devices/device/mac
-        //   { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string}, 'devicename': string }
+        //   GET /user/<username>/<access>/devices/device/<devicename>/mac
         //
         // - Response:
         //   { 'status': 'OK', 'message': string, 'value': string }
         //   { 'status': 'NG', 'message': string}
         //        
         $http({
-            method: 'POST', // Should be GET but GET is not working
-            url: server + '/devices/device/mac',
-            headers: {'Content-Type': 'application/json'},
-            data: param
+            method: 'GET',
+            url: server + '/user/' + param.username + '/' + param.token.access + '/devices/device/' + param.devicename + '/' + 'mac',
+            headers: {'Content-Type': 'application/json'}
         })
         .then(function (result) {
             console.log(result.data);
@@ -2206,18 +2198,16 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User) {
         // GET GPIO
         // 
         // - Request:
-        //   POST /devices/device/gpio
-        //   { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string}, 'devicename': string, 'number': string }
+        //   GET /user/<username>/<access>/devices/device/<devicename>/gpio/<number>
         // 
         // - Response:
         //   { 'status': 'OK', 'message': string, 'value': string }
         //   { 'status': 'NG', 'message': string}        
         //
         $http({
-            method: 'POST', // Should be GET but GET is not working
-            url: server + '/devices/device/gpio',
-            headers: {'Content-Type': 'application/json'},
-            data: param
+            method: 'GET',
+            url: server + '/user/' + param.username + '/' + param.token.access + '/devices/device/' + param.devicename + '/gpio/' + param.number,
+            headers: {'Content-Type': 'application/json'}
         })
         .then(function (result) {
             console.log(result.data);
@@ -2247,7 +2237,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User) {
         // SET GPIO
         //
         // - Request:
-        //   PUT /devices/device/gpio
+        //   POST /devices/device/gpio
         //   { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string}, 'devicename': string, 'number': string, 'value': string }
         //
         // - Response:
@@ -2255,7 +2245,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User) {
         //  { 'status': 'NG', 'message': string}
         //
         $http({
-            method: 'PUT',
+            method: 'POST',
             url: server + '/devices/device/gpio',
             headers: {'Content-Type': 'application/json'},
             data: param
@@ -2266,8 +2256,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User) {
             $ionicPopup.alert({
                 title: 'Device GPIO',
                 template: 'GPIO was set successfully!',
-            });            
-            
+            });
         })
         .catch(function (error) {
             handle_error(error);
@@ -2394,7 +2383,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User) {
         // SET UART
         //
         // - Request:
-        //   PUT /devices/device/uart
+        //   POST /devices/device/uart
         //   { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string}, 'devicename': string, 'value': string }
         //
         // - Response:
@@ -2402,7 +2391,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User) {
         //   { 'status': 'NG', 'message': string}        
         //
         $http({
-            method: 'PUT',
+            method: 'POST',
             url: server + '/devices/device/uart',
             headers: {'Content-Type': 'application/json'},
             data: param
@@ -2502,18 +2491,16 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User) {
         // GET RTC
         //
         // - Request:
-        //   POST /devices/device/rtc
-        //   { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string}, 'devicename': string }
+        //   GET /user/<username>/<access>/devices/device/<devicename>/rtc
         //
         // - Response:
         //   { 'status': 'OK', 'message': string, 'value': string }
         //   { 'status': 'NG', 'message': string}        
         //
         $http({
-            method: 'POST', // Should be GET but GET is not working
-            url: server + '/devices/device/rtc',
-            headers: {'Content-Type': 'application/json'},
-            data: param
+            method: 'GET',
+            url: server + '/user/' + param.username + '/' + param.token.access + '/devices/device/' + param.devicename + '/rtc',
+            headers: {'Content-Type': 'application/json'}
         })
         .then(function (result) {
             console.log(result.data);
@@ -2538,7 +2525,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User) {
     set_rtc = function(param) {
         // Send HTTP request to REST API
         $http({
-            method: 'PUT',
+            method: 'POST',
             url: server + '/devices/device/rtc',
             headers: {'Content-Type': 'application/json'},
             data: param
@@ -2689,7 +2676,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User) {
         // SET NOTIFICATION
         //
         // - Request:
-        //   PUT /devices/device/notification
+        //   POST /devices/device/notification
         //   { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string}, 'devicename': string, 
         //     'recipient': string, 'message': string, 'options': string }
         //
@@ -2698,7 +2685,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User) {
         //   { 'status': 'NG', 'message': string}        
         //
         $http({
-            method: 'PUT',
+            method: 'POST',
             url: server + '/devices/device/notification',
             headers: {'Content-Type': 'application/json'},
             data: param

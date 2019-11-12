@@ -13,8 +13,7 @@ angular.module('histories', [])
             // GET DEVICE TRANSACTION HISTORIES
             //
             // - Request:
-            //   POST /user/histories
-            //   { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string} }
+            //   GET /user/<username>/<access>/devices/histories
             //
             // - Response:
             //   { 'status': 'OK', 'message': string, 
@@ -23,10 +22,9 @@ angular.module('histories', [])
             //   { 'status': 'NG', 'message': string}
             //            
             return $http({
-                method: 'POST',
-                url: server + '/user/histories',
-                headers: {'Content-Type': 'application/json'},
-                data: userdata //$scope.data
+                method: 'GET',
+                url: server + '/user/' + userdata.username + '/' + userdata.token.access + '/devices/histories',
+                headers: {'Content-Type': 'application/json'}
             })
             .then(function (result) {
                 // Handle successful login
