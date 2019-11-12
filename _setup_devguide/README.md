@@ -183,7 +183,7 @@ It also contains the documentation of <b>REST APIs</b> useful for native Android
 
 ### REST API Documentation
 
-<b>// User sign-up/sign-in</b>
+<b>1. User sign-up/sign-in</b>
 
     A. SIGN-UP
 
