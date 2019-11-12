@@ -280,7 +280,7 @@ class database_client_cognito:
 
     def verify_token(self, username, token):
         result = self.client.verify_token(token['access'], username)
-        if result == 2: # token expired
+        if result == 2 and token.get("refresh"): # token expired
             print("Token expired!")
             (result2, response) = self.client.refresh_token(token['refresh'])
             if result2:
