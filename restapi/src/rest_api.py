@@ -373,7 +373,7 @@ def logout():
 # GET USER INFO
 #
 # - Request:
-#   POST /user/logout
+#   POST /user
 #   { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string} }
 #
 # - Response:
