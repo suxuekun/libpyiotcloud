@@ -398,7 +398,7 @@ Please follow the steps below to get the IoT Portal running on your local machin
 
 
 
-3. <b>Device registration</b>
+3. <b>Device registration and management</b>
 
     A. GET DEVICES
 
