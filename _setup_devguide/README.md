@@ -305,7 +305,7 @@ Please follow the steps below to get the IoT Portal running on your local machin
 
     -  Request:
 
-       POST /user/logout
+       POST /user
 
        { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string} }
 
