@@ -126,7 +126,7 @@ Please follow the steps below to get the IoT Portal running on your local machin
 		E. Open a browser and browse https://docker-machine_ip <b>// Refer to value of "docker-machine ip"</b>
 
 
-    <b>// Note to stop the docker containers, do the following:</b>
+    <b>Note to stop the docker containers, do the following:</b>
 
 		F. Type "Ctrl+C"
 
@@ -140,7 +140,7 @@ Please follow the steps below to get the IoT Portal running on your local machin
 		A. Type "cd _device_simulator"
 
 
-    <b>// PYTHON device simulator</b>
+    <b>PYTHON device simulator</b>
 
 		B. Type "pip install -r requirements.py.txt"
 		
@@ -153,7 +153,7 @@ Please follow the steps below to get the IoT Portal running on your local machin
 		E. You should see "Device is now ready! ..."
 
 
-    <b>// NODEJS device simulator</b>
+    <b>NODEJS device simulator</b>
 
 		F. Type "npm install -g mqtt" 
 		G. Type "npm install -g argparse" 
