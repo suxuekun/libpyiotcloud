@@ -12,25 +12,25 @@ Please install the following tools to get the IoT Portal running on your local m
 1. Git
 
     A. [Windows](https://git-scm.com/download/win)
-    
+
     B. [Mac OS](https://git-scm.com/download/mac)
 
 
 2. (Optional) Github Desktop
 
     A. [Windows](https://central.github.com/deployments/desktop/desktop/latest/win32)
-    
+
     B. [Mac OS](https://central.github.com/deployments/desktop/desktop/latest/darwin)
 
 
 3. Docker Toolbox or Docker Desktop
 
     A. Windows 7 - [Docker Toolbox](https://docs.docker.com/toolbox/toolbox_install_windows/)
-    
+
     B. Windows 10 Home - [Docker Toolbox](https://docs.docker.com/toolbox/toolbox_install_windows/)
-    
+
     C. Windows 10 Pro - [Docker Desktop](https://docs.docker.com/docker-for-windows/) 
-    
+
     D. Mac OS - [Docker Desktop](https://docs.docker.com/docker-for-mac/)
 
     Note that I'm using both A and B on my PC and laptop, respectively.
@@ -39,14 +39,14 @@ Please install the following tools to get the IoT Portal running on your local m
 4. Python 3.X.X
 
     A. [Windows](https://www.python.org/downloads/windows/)
-    
+
     B. [Mac OS](https://www.python.org/downloads/mac-osx/)   
 
 
 5. NodeJS 12.X.X
 
     A. [Windows](https://nodejs.org/dist/v12.13.0/node-v12.13.0-x64.msi)
-    
+
     B. [Mac OS](https://nodejs.org/dist/v12.13.0/node-v12.13.0.pkg)
 
 
@@ -66,19 +66,19 @@ Please install the following tools to get the IoT Portal running on your local m
 Please follow the steps below to get the IoT Portal running on your local machine.
 
 1. Download the code from the repository.
- 
+
     A. Run Docker Toolbox/Desktop as administrator.
-    
+
     B. Type "git clone https://github.com/richmondu/libpyiotcloud"
-    
+
     C. Type <b>"docker-machine ip"</b>
        Take note of the value as this will be used in the next steps.
-       
+
 
 2. Set the following environment system variables.
 
     A. AWS_ACCESS_KEY_ID
-    
+
     B. AWS_SECRET_ACCESS_KEY
 
     C. AWS_COGNITO_CLIENT_ID
@@ -294,7 +294,9 @@ Note that HTTP GET method requires no payload so username and token must be incl
 
        POST <b>/user/logout</b>
 
-       { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string} }
+       headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+
+       { 'username': string }
 
     -  Response:
 
@@ -307,7 +309,9 @@ Note that HTTP GET method requires no payload so username and token must be incl
 
     -  Request:
 
-       GET <b>/user/USERNAME/ACCESS</b>
+       GET <b>/user/USERNAME</b>
+
+       headers: {'Authorization': 'Bearer ' + token.access}
 
     -  Response:
 
@@ -322,28 +326,32 @@ Note that HTTP GET method requires no payload so username and token must be incl
     A. GET SUBSCRIPTION
 
     -  Request:
-    
-       GET /user/USERNAME/ACCESS/subscription
+
+       GET /user/USERNAME/subscription
+
+       headers: {'Authorization': 'Bearer ' + token.access}
 
     -  Response:
-    
+
        {'status': 'OK', 'message': string, 'subscription': {'credits': string, 'type': paid} }
-      
+
        {'status': 'NG', 'message': string}
 
 
     B. SET SUBSCRIPTION
 
     -  Request:
-    
+
        POST <b>/user/subscription</b>
-      
+
+       headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+
        { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string}, 'credits': string }
 
     -  Response:
-    
+
        {'status': 'OK', 'message': string, 'subscription': {'credits': string, 'type': paid} }
-      
+
        {'status': 'NG', 'message': string}
 
 
@@ -352,46 +360,49 @@ Note that HTTP GET method requires no payload so username and token must be incl
     -  Request:
 
        POST <b>/user/payment/paypalsetup</b>
-      
-       { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string},
-         'payment': {'return_url': string, 'cancel_url', string, 'item_sku': string, 'item_credits': string, 'item_price': string} }
+
+       headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+
+       { 'username': string, 'payment': {'return_url': string, 'cancel_url', string, 'item_sku': string, 'item_credits': string, 'item_price': string} }
 
     -  Response:
-    
+
        {'status': 'OK', 'message': string, , 'approval_url': string, 'paymentId': string, 'token': string}
-      
+
        {'status': 'NG', 'message': string}
 
 
     D. PAYPAL EXECUTE
 
     -  Request:
-    
+
        POST <b>/user/payment/paypalexecute</b>
-      
-       { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string},
-         'payment': {'paymentId': string, 'payerId': string, 'token': string} }
+
+       headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+
+       { 'username': string, 'payment': {'paymentId': string, 'payerId': string, 'token': string} }
 
     -  Response:
-    
+
        {'status': 'OK', 'message': string}
-      
+
        {'status': 'NG', 'message': string}
 
 
     E. PAYPAL VERIFY
 
     -  Request:
-    
+
        POST <b>/user/payment/paypalverify</b>
-      
-       { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string},
-         'payment': {'paymentId': string} }
+
+       headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+
+       { 'username': string, 'payment': {'paymentId': string} }
 
     -  Response:
-    
+
        {'status': 'OK', 'message': string}
-      
+
        {'status': 'NG', 'message': string}
 
 
@@ -401,38 +412,44 @@ Note that HTTP GET method requires no payload so username and token must be incl
     A. GET DEVICES
 
     -  Request:
-    
+
        GET <b>/user/USERNAME/ACCESS/devices</b>
+
+       headers: {'Authorization': 'Bearer ' + token.access}
 
     -  Response:
        { 'status': 'OK', 'message': string, 
          'devices': array[{'devicename': string, 'deviceid': string, 'cert': cert, 'pkey': pkey, 'ca': ca}, ...]}
-         
+
        { 'status': 'NG', 'message': string}
 
 
     B. ADD DEVICE
 
     -  Request:
-    
+
        POST <b>/devices/device</b>
-       
-       { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string}, 'devicename': string }
+
+       headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+
+       { 'username': string, 'devicename': string }
 
     -  Response:
-    
+
        { 'status': 'OK', 'message': string, 'device': {'devicename': string, 'deviceid': string, 'cert': cert, 'pkey': pkey, 'ca': ca}}
-       
+
        { 'status': 'NG', 'message': string}
 
 
     C. DELETE DEVICE
 
     -  Request:
-    
+
        DELETE <b>/devices/device</b>
-       
-       { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string}, 'devicename': string }
+
+       headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+
+       { 'username': string, 'devicename': string }
 
     -  Response:
     
@@ -446,6 +463,8 @@ Note that HTTP GET method requires no payload so username and token must be incl
     -  Request:
     
        GET <b>/user/USERNAME/ACCESS/devices/device/DEVICENAME</b>
+
+       headers: {'Authorization': 'Bearer ' + token.access}
 
     -  Response:
     
@@ -461,9 +480,11 @@ Note that HTTP GET method requires no payload so username and token must be incl
 
     -  Request:
     
-       GET <b>/user/USERNAME/ACCESS/devices/histories</b>
-       
-       { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string} }
+       GET <b>/user/USERNAME/devices/histories</b>
+
+       headers: {'Authorization': 'Bearer ' + token.access}
+
+       { 'username': string }
 
     -  Response:
     
@@ -478,7 +499,9 @@ Note that HTTP GET method requires no payload so username and token must be incl
 
     - Request:
 
-      GET <b>/user/USERNAME/ACCESS/devices/device/DEVICENAME/status</b>
+      GET <b>/user/USERNAME/devices/device/DEVICENAME/status</b>
+
+      headers: {'Authorization': 'Bearer ' + token.access}
 
     - Response:
 
@@ -493,7 +516,9 @@ Note that HTTP GET method requires no payload so username and token must be incl
 
       POST <b>/devices/device/status</b>
 
-      { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string}, 'devicename': string, 'value': string }
+      headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+
+      { 'username': string, 'devicename': string, 'value': string }
 
     - Response:
 
@@ -506,7 +531,9 @@ Note that HTTP GET method requires no payload so username and token must be incl
 
     - Request:
 
-      GET <b>/user/USERNAME/ACCESS/devices/device/DEVICENAME/ip</b>
+      GET <b>/user/USERNAME/devices/device/DEVICENAME/ip</b>
+
+      headers: {'Authorization': 'Bearer ' + token.access}
 
     - Response:
 
@@ -519,7 +546,9 @@ Note that HTTP GET method requires no payload so username and token must be incl
 
     - Request:
 
-      GET <b>/user/USERNAME/ACCESS/devices/device/DEVICENAME/subnet</b>
+      GET <b>/user/USERNAME/devices/device/DEVICENAME/subnet</b>
+
+      headers: {'Authorization': 'Bearer ' + token.access}
 
     - Response:
 
@@ -532,9 +561,9 @@ Note that HTTP GET method requires no payload so username and token must be incl
 
     - Request:
 
-      GET <b>/user/USERNAME/ACCESS/devices/device/DEVICENAME/gateway</b>
+      GET <b>/user/USERNAME/devices/device/DEVICENAME/gateway</b>
 
-      { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string}, 'devicename': string }
+      headers: {'Authorization': 'Bearer ' + token.access}
 
     - Response:
 
@@ -547,7 +576,9 @@ Note that HTTP GET method requires no payload so username and token must be incl
 
     - Request:
 
-      GET <b>/user/USERNAME/ACCESS/devices/device/DEVICENAME/mac</b>
+      GET <b>/user/USERNAME/devices/device/DEVICENAME/mac</b>
+
+      headers: {'Authorization': 'Bearer ' + token.access}
 
     - Response:
 
@@ -560,7 +591,9 @@ Note that HTTP GET method requires no payload so username and token must be incl
 
     - Request:
 
-      GET <b>/user/USERNAME/ACCESS/devices/device/DEVICENAME/gpio/<number></b>
+      GET <b>/user/USERNAME/devices/device/DEVICENAME/gpio/<number></b>
+
+      headers: {'Authorization': 'Bearer ' + token.access}
 
     - Response:
 
@@ -575,7 +608,9 @@ Note that HTTP GET method requires no payload so username and token must be incl
 
       POST <b>/devices/device/gpio</b>
 
-      { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string}, 'devicename': string, 'number': string, 'value': string }
+      headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+
+      { 'username': string, 'devicename': string, 'number': string, 'value': string }
 
     - Response:
 
@@ -588,7 +623,9 @@ Note that HTTP GET method requires no payload so username and token must be incl
 
     - Request:
 
-      GET <b>/user/USERNAME/ACCESS/devices/device/DEVICENAME/rtc</b>
+      GET <b>/user/USERNAME/devices/device/DEVICENAME/rtc</b>
+
+      headers: {'Authorization': 'Bearer ' + token.access}
 
     - Response:
 
@@ -603,7 +640,9 @@ Note that HTTP GET method requires no payload so username and token must be incl
 
       POST <b>/devices/device/uart</b>
 
-      { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string}, 'devicename': string, 'value': string }
+      headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+
+      { 'username': string, 'devicename': string, 'value': string }
 
     - Response:
 
@@ -618,8 +657,9 @@ Note that HTTP GET method requires no payload so username and token must be incl
 
       POST <b>/devices/device/notification</b>
 
-      { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string}, 'devicename': string, 
-        'recipient': string, 'message': string }
+      headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+
+      { 'username': string, 'devicename': string, 'recipient': string, 'message': string }
 
     - Response:
 

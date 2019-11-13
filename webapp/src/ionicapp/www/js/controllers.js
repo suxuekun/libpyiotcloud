@@ -66,36 +66,6 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Device
             }
             $scope.data.token = User.get_token();
         });
-
-/*
-        // Send HTTP request to REST API
-        $http({
-            method: 'POST',
-            url: server + '/devices',
-            headers: {'Content-Type': 'application/json'},
-            data: $scope.data
-        })
-        .then(function (result) {
-            // Handle successful login
-            console.log(result.data);
-            $scope.devices = Devices.devices;//result.data.devices;
-        })
-        .catch(function (error) {
-            // Handle failed login
-            if (error.data !== null) {
-                console.log("ERROR: Login failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
-                // TODO: replace alert with ionic alert
-                alert("ERROR: Login failed with " + error.status + " " + error.statusText +"! " + error.data.message); 
-            }
-            else {
-                console.log("ERROR: Server is down!"); 
-                // TODO: replace alert with ionic alert
-                alert("ERROR: Server is down!");
-            }
-            
-            $scope.devices = [];
-        });
-*/
     };
     
     $scope.submitView = function(device) {
@@ -115,7 +85,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Device
         // GET DEVICE
         //
         // - Request:
-        //   GET /user/<username>/<access>/devices/device/<devicename>
+        //   GET /user/<username>/devices/device/<devicename>
+        //   headers: {'Authorization': 'Bearer ' + token.access}
         //
         // - Response:
         //   {'status': 'OK', 'message': string, 'device': {'devicename': string, 'deviceid': string, 'cert': cert, 'pkey': pkey}}
@@ -123,8 +94,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Device
         //   
         $http({
             method: 'GET',
-            url: server + '/user/' + device_param.username + '/' + device_param.token.access + '/devices/device/' + device_param.devicename,
-            headers: {'Content-Type': 'application/json'}
+            url: server + '/user/' + device_param.username + '/devices/device/' + device_param.devicename,
+            headers: {'Authorization': 'Bearer ' + device_param.token.access}
         })
         .then(function (result) {
             // Handle successful login
@@ -184,15 +155,25 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Device
 
         var device_param = {
             'username': $scope.data.username,
-            'token': $scope.data.token,
             'devicename': device.devicename
         };       
         
-        // Send HTTP request to REST API
+        //
+        // DELETE DEVICE
+        //
+        // - Request:
+        //   DELETE /devices/device
+        //   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+        //   { 'username': string, 'devicename': string }
+        //
+        // - Response:
+        //   {'status': 'OK', 'message': string}
+        //   {'status': 'NG', 'message': string}
+        //  
         $http({
             method: 'DELETE',
             url: server + '/devices/device',
-            headers: {'Content-Type': 'application/json'},
+            headers: {'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json'},
             data: device_param
         })
         .then(function (result) {
@@ -287,7 +268,8 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
         // GET SUBSCRIPTION
         //
         // - Request:
-        //   GET /user/<username>/<access>/subscription
+        //   GET /user/<username>/subscription
+        //   headers: {'Authorization': 'Bearer ' + token.access}
         //
         // - Response:
         //   {'status': 'OK', 'message': string, 'subscription': {'credits': string, 'type': paid} }
@@ -295,8 +277,8 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
         //  
         $http({
             method: 'GET',
-            url: server + '/user/' + param.username + '/' + param.token.access + '/' + 'subscription',
-            headers: {'Content-Type': 'application/json'}
+            url: server + '/user/' + param.username + '/' + 'subscription',
+            headers: {'Authorization': 'Bearer ' + param.token.access}
         })
         .then(function (result) {
             console.log("get_subscription");
@@ -316,7 +298,8 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
         // GET USER INFO
         //
         // - Request:
-        //   GET /user/<username>/<access>
+        //   GET /user/<username>
+        //   headers: {'Authorization': 'Bearer ' + token.access}
         //
         // - Response:
         //   {'status': 'OK', 'message': string, 'info': {'email': string, 'family_name': string, 'given_name': string} }
@@ -324,8 +307,8 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
         //         
         $http({
             method: 'GET',
-            url: server + '/user/' + param.username + "/" + param.token.access,
-            headers: {'Content-Type': 'application/json'}
+            url: server + '/user/' + param.username,
+            headers: {'Authorization': 'Bearer ' + param.token.access}
         })
         .then(function (result) {
             console.log("ACCOUNT OK");
@@ -493,7 +476,6 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
 
         var paypal_param = {
             'username': $scope.data.username,
-            'token': $scope.data.token,
             'payment': {
                 'return_url': return_url,
                 'cancel_url': cancel_url,
@@ -509,8 +491,8 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
         //
         // - Request:
         //   POST /user/payment/paypalsetup
-        //   { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string},
-        //     'payment': {'return_url': string, 'cancel_url', string, 'item_sku': string, 'item_credits': string, 'item_price': string} }
+        //   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+        //   { 'username': string, 'payment': {'return_url': string, 'cancel_url', string, 'item_sku': string, 'item_credits': string, 'item_price': string} }
         //
         // - Response:
         //   {'status': 'OK', 'message': string, 'approval_url': string, 'paymentId': string, 'token': string}
@@ -519,7 +501,7 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
         $http({
             method: 'POST',
             url: server + '/user/payment/paypalsetup',
-            headers: {'Content-Type': 'application/json'},
+            headers: {'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json'},
             data: paypal_param
         })
         .then(function (result) {
@@ -530,14 +512,13 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
             console.log(result.data.token);
 
             var win = window.open(result.data.approval_url,"_blank",
-                'height=500,width=400,left=100,top=100,resizable=yes,scrollbars=yes,toolbar=no,menubar=no,location=no,directories=no,status=no',replace=false);
+                'height=600,width=800,left=100,top=100,resizable=yes,scrollbars=yes,toolbar=no,menubar=no,location=no,directories=no,status=no',replace=false);
 
             var timer = setInterval(function() {
                 if (win.closed) {
                     clearInterval(timer);
                     verifyPayment({ 
 						"username": $scope.data.username,
-						"token": $scope.data.token,
 						"payment": {
 							"paymentId": result.data.paymentId
 						} 
@@ -610,8 +591,8 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
         //
         // - Request:
         //   POST /user/payment/paypalverify
-        //   { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string},
-        //     'payment': {'paymentId': string} }
+        //   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+        //   { 'username': string, 'payment': {'paymentId': string} }
         //
         // - Response:
         //   {'status': 'OK', 'message': string}
@@ -620,7 +601,7 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
         $http({
             method: 'POST',
             url: server + '/user/payment/paypalverify',
-            headers: {'Content-Type': 'application/json'},
+            headers: {'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json'},
             data: paypal_param
         })
         .then(function (result) {
@@ -671,7 +652,11 @@ function ($scope, $stateParams, $ionicPopup, $http, Server) {
 
     var server = Server.rest_api;
     var spinner = document.getElementsByClassName("spinner2");
-        
+    
+    $scope.data = {
+        'token': {'access': ''},
+        'credits': ''
+    }    
         
     function GetURLParameter(sParam) {
         var sPageURL = window.location.href.substring(1);
@@ -703,19 +688,22 @@ function ($scope, $stateParams, $ionicPopup, $http, Server) {
         var payment_PayerID = GetURLParameter('PayerID');
 
         if (username !== null && access !== null) {
+            $scope.data.token.access = access;
+            if (credits !== null) {
+                $scope.data.credits = credits;
+            }
+
             params = { 
-                "username": username, 
-                "token": { "access": access },
+                "username": username
             };
             if (payment_token !== null) {
                 params.payment = {
                     "token": payment_token
                 };
             }
-            if (payment_paymentId !== null && payment_PayerID !== null && credits !== null) {
+            if (payment_paymentId !== null && payment_PayerID !== null) {
                 params.payment.paymentId = payment_paymentId;
                 params.payment.PayerID = payment_PayerID;
-                params.credits = credits;
             }
             return params;
         }
@@ -728,7 +716,8 @@ function ($scope, $stateParams, $ionicPopup, $http, Server) {
         //
         // - Request:
         //   POST /user/subscription
-        //   { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string}, 'credits': string }
+        //   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+        //   { 'username': string, 'credits': string }
         //
         // - Response:
         //   {'status': 'OK', 'message': string, 'subscription': {'credits': string, 'type': paid}}
@@ -739,7 +728,7 @@ function ($scope, $stateParams, $ionicPopup, $http, Server) {
         $http({
             method: 'POST',
             url: server + '/user/subscription',
-            headers: {'Content-Type': 'application/json'},
+            headers: {'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json'},
             data: param
         })
         .then(function (result) {
@@ -786,8 +775,8 @@ function ($scope, $stateParams, $ionicPopup, $http, Server) {
         //
         // - Request:
         //   POST /user/payment/paypalverify
-        //   { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string},
-        //     'payment': {'paymentId': string} }
+        //   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+        //   { 'username': string, 'payment': {'paymentId': string} }
         //
         // - Response:
         //   {'status': 'OK', 'message': string}
@@ -798,7 +787,7 @@ function ($scope, $stateParams, $ionicPopup, $http, Server) {
         $http({
             method: 'POST',
             url: server + '/user/payment/paypalverify',
-            headers: {'Content-Type': 'application/json'},
+            headers: {'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json'},
             data: paypal_param
         })
         .then(function (result) {
@@ -806,8 +795,7 @@ function ($scope, $stateParams, $ionicPopup, $http, Server) {
             if (result.data.status === "OK") {
                 setSubscription({
                     'username': paypal_param.username,
-                    'token': paypal_param.token,
-                    'credits': paypal_param.credits
+                    'credits': $scope.data.credits
                 });
             }
         })
@@ -833,8 +821,8 @@ function ($scope, $stateParams, $ionicPopup, $http, Server) {
         //
         // - Request:
         //   POST /user/payment/paypalexecute
-        //   { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string},
-        //     'payment': {'paymentId': string, 'payerId': string, 'token': string} }
+        //   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+        //   { 'username': string, 'payment': {'paymentId': string, 'payerId': string, 'token': string} }
         //
         // - Response:
         //   {'status': 'OK', 'message': string}
@@ -845,7 +833,7 @@ function ($scope, $stateParams, $ionicPopup, $http, Server) {
         $http({
             method: 'POST',
             url: server + '/user/payment/paypalexecute',
-            headers: {'Content-Type': 'application/json'},
+            headers: {'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json'},
             data: paypal_param
         })
         .then(function (result) {
@@ -1528,13 +1516,18 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, Devices, Use
             return;
         }
         
+        device_param = {
+            'username': $scope.data.username,
+            'devicename': $scope.data.devicename
+        };
         
         //        
         // ADD DEVICE
         // 
         // - Request:
         //   POST /devices/device
-        //   { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string}, 'devicename': string }
+        //   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+        //   { 'username': string, 'devicename': string }
         //
         // - Response:
         //   {'status': 'OK', 'message': string, 'device': {'devicename': string, 'deviceid': string, 'cert': cert, 'pkey': pkey, 'ca': ca}}
@@ -1543,8 +1536,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, Devices, Use
         $http({
             method: 'POST',
             url: server + '/devices/device',
-            headers: {'Content-Type': 'application/json'},
-            data: $scope.data
+            headers: {'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json'},
+            data: device_param
         })
         .then(function (result) {
             // Handle successful login
@@ -1650,7 +1643,6 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User) {
         
         var device_param = {
             'username': $scope.data.username,
-            'token': $scope.data.token,
             'devicename': $scope.data.devicename
         }
 
@@ -1660,7 +1652,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User) {
         //
         // - Request:
         //   DELETE /devices/device
-        //   { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string}, 'devicename': string }
+        //   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+        //   { 'username': string, 'devicename': string }
         //
         // - Response:
         //   {'status': 'OK', 'message': string}
@@ -1669,7 +1662,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User) {
         $http({
             method: 'DELETE',
             url: server + '/devices/device',
-            headers: {'Content-Type': 'application/json'},
+            headers: {'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json'},
             data: device_param
         })
         .then(function (result) {
@@ -1797,7 +1790,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User) {
         //
         // GET STATUS
         // - Request:
-        //   GET /user/<username>/<access>/devices/device/<devicename>/status
+        //   GET /user/<username>/devices/device/<devicename>/status
+        //   headers: {'Authorization': 'Bearer ' + token.access}
         //
         // - Response:
         //   { 'status': 'OK', 'message': string, 'value': string}
@@ -1805,8 +1799,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User) {
         //        
         $http({
             method: 'GET',
-            url: server + '/user/' + param.username + '/' + param.token.access + '/devices/device/' + param.devicename + '/status',
-            headers: {'Content-Type': 'application/json'}
+            url: server + '/user/' + param.username + '/devices/device/' + param.devicename + '/status',
+            headers: {'Authorization': 'Bearer ' + param.token.access}
         })
         .then(function (result) {
             console.log(result.data);
@@ -1825,7 +1819,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User) {
         // SET STATUS
         // - Request:
         //   POST /devices/device/status
-        //   { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string}, 'devicename': string, 'value': string }
+        //   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+        //   { 'username': string, 'devicename': string, 'value': string }
         //
         // - Response:
         //   { 'status': 'OK', 'message': string, 'value': string}
@@ -1834,7 +1829,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User) {
         $http({
             method: 'POST',
             url: server + '/devices/device/status',
-            headers: {'Content-Type': 'application/json'},
+            headers: {'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json'},
             data: param
         })
         .then(function (result) {
@@ -1860,7 +1855,6 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User) {
 
         var param = {
             'username': $scope.data.username,
-            'token': $scope.data.token,
             'devicename': $scope.data.devicename,
             'value': 'restart'
         }
@@ -1910,7 +1904,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User) {
         // GET DEVICE
         //
         // - Request:
-        //   GET /user/<username>/<access>/devices/device/<devicename>
+        //   GET /user/<username>/devices/device/<devicename>
+        //   headers: {'Authorization': 'Bearer ' + token.access}
         //
         // - Response:
         //   {'status': 'OK', 'message': string, 'device': {'devicename': string, 'deviceid': string, 'cert': cert, 'pkey': pkey}}
@@ -1918,8 +1913,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User) {
         //   
         $http({
             method: 'GET',
-            url: server + '/user/' + $scope.data.username + '/' + $scope.data.token.access + '/devices/device/' + $scope.data.devicename,
-            headers: {'Content-Type': 'application/json'}
+            url: server + '/user/' + $scope.data.username + '/devices/device/' + $scope.data.devicename,
+            headers: {'Authorization': 'Bearer ' + $scope.data.token.access}
         })
         .then(function (result) {
             // Handle successful login
@@ -2015,7 +2010,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User) {
         // GET IP
         //
         // - Request:
-        //   GET /user/<username>/<access>/devices/device/<devicename>/ip
+        //   GET /user/<username>/devices/device/<devicename>/ip
+        //   headers: {'Authorization': 'Bearer ' + token.access}
         //
         // - Response:
         //   { 'status': 'OK', 'message': string, 'value': string }
@@ -2023,8 +2019,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User) {
         //        
         $http({
             method: 'GET',
-            url: server + '/user/' + param.username + '/' + param.token.access + '/devices/device/' + param.devicename + '/' + 'ip',
-            headers: {'Content-Type': 'application/json'}
+            url: server + '/user/' + param.username + '/devices/device/' + param.devicename + '/' + 'ip',
+            headers: {'Authorization': 'Bearer ' + $scope.data.token.access}
         })
         .then(function (result) {
             console.log(result.data);
@@ -2042,7 +2038,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User) {
         // GET SUBNET
         //
         // - Request:
-        //   GET /user/<username>/<access>/devices/device/<devicename>/subnet
+        //   GET /user/<username>/devices/device/<devicename>/subnet
+        //   headers: {'Authorization': 'Bearer ' + token.access}
         //
         // - Response:
         //   { 'status': 'OK', 'message': string, 'value': string }
@@ -2050,8 +2047,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User) {
         //        
         $http({
             method: 'GET',
-            url: server + '/user/' + param.username + '/' + param.token.access + '/devices/device/' + param.devicename + '/' + 'subnet',
-            headers: {'Content-Type': 'application/json'}
+            url: server + '/user/' + param.username + '/devices/device/' + param.devicename + '/' + 'subnet',
+            headers: {'Authorization': 'Bearer ' + $scope.data.token.access}
         })
         .then(function (result) {
             console.log(result.data);
@@ -2069,7 +2066,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User) {
         // GET GATEWAY
         //
         // - Request:
-        //   GET /user/<username>/<access>/devices/device/<devicename>/gateway
+        //   GET /user/<username>/devices/device/<devicename>/gateway
+        //   headers: {'Authorization': 'Bearer ' + token.access}
         //
         // - Response:
         //   { 'status': 'OK', 'message': string, 'value': string }
@@ -2077,8 +2075,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User) {
         //        
         $http({
             method: 'GET',
-            url: server + '/user/' + param.username + '/' + param.token.access + '/devices/device/' + param.devicename + '/' + 'gateway',
-            headers: {'Content-Type': 'application/json'}
+            url: server + '/user/' + param.username + '/devices/device/' + param.devicename + '/' + 'gateway',
+            headers: {'Authorization': 'Bearer ' + $scope.data.token.access}
         })
         .then(function (result) {
             console.log(result.data);
@@ -2096,7 +2094,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User) {
         // GET MAC
         //
         // - Request:
-        //   GET /user/<username>/<access>/devices/device/<devicename>/mac
+        //   GET /user/<username>/devices/device/<devicename>/mac
+        //   headers: {'Authorization': 'Bearer ' + token.access}
         //
         // - Response:
         //   { 'status': 'OK', 'message': string, 'value': string }
@@ -2104,8 +2103,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User) {
         //        
         $http({
             method: 'GET',
-            url: server + '/user/' + param.username + '/' + param.token.access + '/devices/device/' + param.devicename + '/' + 'mac',
-            headers: {'Content-Type': 'application/json'}
+            url: server + '/user/' + param.username + '/devices/device/' + param.devicename + '/' + 'mac',
+            headers: {'Authorization': 'Bearer ' + $scope.data.token.access}
         })
         .then(function (result) {
             console.log(result.data);
@@ -2133,7 +2132,6 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User) {
 
         var param = {
             'username': $scope.data.username,
-            'token': $scope.data.token,
             'devicename': $scope.data.devicename,
         }
         
@@ -2206,7 +2204,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User) {
         // GET GPIO
         // 
         // - Request:
-        //   GET /user/<username>/<access>/devices/device/<devicename>/gpio/<number>
+        //   GET /user/<username>/devices/device/<devicename>/gpio/<number>
+        //   headers: {'Authorization': 'Bearer ' + token.access}
         // 
         // - Response:
         //   { 'status': 'OK', 'message': string, 'value': string }
@@ -2214,8 +2213,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User) {
         //
         $http({
             method: 'GET',
-            url: server + '/user/' + param.username + '/' + param.token.access + '/devices/device/' + param.devicename + '/gpio/' + param.number,
-            headers: {'Content-Type': 'application/json'}
+            url: server + '/user/' + param.username + '/devices/device/' + param.devicename + '/gpio/' + param.number,
+            headers: {'Authorization': 'Bearer ' + $scope.data.token.access}
         })
         .then(function (result) {
             console.log(result.data);
@@ -2246,7 +2245,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User) {
         //
         // - Request:
         //   POST /devices/device/gpio
-        //   { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string}, 'devicename': string, 'number': string, 'value': string }
+        //   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+        //   { 'username': string, 'devicename': string, 'number': string, 'value': string }
         //
         // - Response:
         //  { 'status': 'OK', 'message': string, 'value': string }
@@ -2255,7 +2255,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User) {
         $http({
             method: 'POST',
             url: server + '/devices/device/gpio',
-            headers: {'Content-Type': 'application/json'},
+            headers: {'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json'},
             data: param
         })
         .then(function (result) {
@@ -2290,7 +2290,6 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User) {
 
         var param = {
             'username': $scope.data.username,
-            'token': $scope.data.token,
             'devicename': $scope.data.devicename,
             'number': $scope.data.gpionumber.toString()
         }
@@ -2322,7 +2321,6 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User) {
         }
         var param = {
             'username': $scope.data.username,
-            'token': $scope.data.token,
             'devicename': $scope.data.devicename,
             'number': $scope.data.gpionumber.toString(),
             'value': gpiovalueset.toString()
@@ -2330,6 +2328,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User) {
 
         set_gpio(param);
     }
+  
   
     $scope.submitDeviceList = function() {
         console.log("hello");
@@ -2392,7 +2391,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User) {
         //
         // - Request:
         //   POST /devices/device/uart
-        //   { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string}, 'devicename': string, 'value': string }
+        //   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+        //   { 'username': string, 'devicename': string, 'value': string }
         //
         // - Response:
         //   { 'status': 'OK', 'message': string, 'value': string }
@@ -2401,7 +2401,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User) {
         $http({
             method: 'POST',
             url: server + '/devices/device/uart',
-            headers: {'Content-Type': 'application/json'},
+            headers: {'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json'},
             data: param
         })
         .then(function (result) {
@@ -2428,7 +2428,6 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User) {
 
         var param = {
             'username': $scope.data.username,
-            'token': $scope.data.token,
             'devicename': $scope.data.devicename,
             'value': $scope.data.message
         }
@@ -2499,7 +2498,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User) {
         // GET RTC
         //
         // - Request:
-        //   GET /user/<username>/<access>/devices/device/<devicename>/rtc
+        //   GET /user/<username>/devices/device/<devicename>/rtc
+        //   headers: {'Authorization': 'Bearer ' + token.access}
         //
         // - Response:
         //   { 'status': 'OK', 'message': string, 'value': string }
@@ -2507,8 +2507,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User) {
         //
         $http({
             method: 'GET',
-            url: server + '/user/' + param.username + '/' + param.token.access + '/devices/device/' + param.devicename + '/rtc',
-            headers: {'Content-Type': 'application/json'}
+            url: server + '/user/' + param.username + '/devices/device/' + param.devicename + '/rtc',
+            headers: {'Authorization': 'Bearer ' + $scope.data.token.access}
         })
         .then(function (result) {
             console.log(result.data);
@@ -2535,7 +2535,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User) {
         $http({
             method: 'POST',
             url: server + '/devices/device/rtc',
-            headers: {'Content-Type': 'application/json'},
+            headers: {'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json'},
             data: param
         })
         .then(function (result) {
@@ -2563,7 +2563,6 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User) {
         
         var param = {
             'username': $scope.data.username,
-            'token': $scope.data.token,
             'devicename': $scope.data.devicename
         }
 
@@ -2584,7 +2583,6 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User) {
         
         var param = {
             'username': $scope.data.username,
-            'token': $scope.data.token,
             'devicename': $scope.data.devicename,
             'value': seconds
         }
@@ -2685,7 +2683,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User) {
         //
         // - Request:
         //   POST /devices/device/notification
-        //   { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string}, 'devicename': string, 
+        //   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+        //   { 'username': string, 'devicename': string, 
         //     'recipient': string, 'message': string, 'options': string }
         //
         // - Response:
@@ -2695,7 +2694,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User) {
         $http({
             method: 'POST',
             url: server + '/devices/device/notification',
-            headers: {'Content-Type': 'application/json'},
+            headers: {'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json'},
             data: param
         })
         .then(function (result) {
@@ -2740,7 +2739,6 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User) {
             // email
             var param = {
                 'username': $scope.data.username,
-                'token': $scope.data.token,
                 'devicename': $scope.data.devicename,
                 'recipient': $scope.data.recipient,
                 'message': $scope.data.message
@@ -2751,7 +2749,6 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User) {
             // sms
             var param = {
                 'username': $scope.data.username,
-                'token': $scope.data.token,
                 'devicename': $scope.data.devicename,
                 'recipient': $scope.data.recipient,
                 'message': $scope.data.message,
