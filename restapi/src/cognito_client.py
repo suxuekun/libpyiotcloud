@@ -3,6 +3,8 @@ from warrant.aws_srp import AWSSRP
 from cognito_config import config
 import time
 import ast
+from jose import jwk, jwt
+from jose.utils import base64url_decode
 
 
 
@@ -218,10 +220,31 @@ class cognito_client:
 			return (False, None)
 		return (self.__get_result(response), response)
 
-	def verify_token(self, token, username):
-		from jose import jwk, jwt
-		from jose.utils import base64url_decode
+	def get_username_from_token(self, token):
+		try:
+			headers = jwt.get_unverified_header(token)
+		except:
+			return None
+		kid = headers['kid']
 
+		key_index = -1
+		for i in range(len(self.keys)):
+			if kid == self.keys[i]['kid']:
+				key_index = i
+				break
+		if key_index == -1:
+			return None
+
+		public_key = jwk.construct(self.keys[key_index])
+		message, encoded_signature = str(token).rsplit('.', 1)
+		decoded_signature = base64url_decode(encoded_signature.encode('utf-8'))
+		if not public_key.verify(message.encode("utf8"), decoded_signature):
+			return None
+
+		claims = jwt.get_unverified_claims(token)
+		return claims["username"]
+
+	def verify_token(self, token, username):
 		# get the kid from the headers prior to verification
 		try:
 			headers = jwt.get_unverified_header(token)

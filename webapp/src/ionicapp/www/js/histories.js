@@ -13,7 +13,7 @@ angular.module('histories', [])
             // GET DEVICE TRANSACTION HISTORIES
             //
             // - Request:
-            //   GET /user/<username>/devices/histories
+            //   GET /devices/histories
             //   headers: {'Authorization': 'Bearer ' + token.access}
             //
             // - Response:
@@ -24,7 +24,7 @@ angular.module('histories', [])
             //            
             return $http({
                 method: 'GET',
-                url: server + '/user/' + userdata.username + '/devices/histories',
+                url: server + '/devices/histories',
                 headers: {'Authorization': 'Bearer ' + userdata.token.access}
             })
             .then(function (result) {
@@ -33,7 +33,7 @@ angular.module('histories', [])
                 
                 if (result !== null) {
                     if (result.data.new_token !== undefined) {
-                        console.log("New Token exists!")
+                        console.log("New Token exists!");
                         User.set({
                             'username': userdata.username,
                             'token': result.data.new_token
@@ -58,7 +58,7 @@ angular.module('histories', [])
                 return [];
             });
         }
-    }
+    };
     
     return ret;
 }]);
