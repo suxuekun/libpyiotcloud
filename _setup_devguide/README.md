@@ -144,10 +144,10 @@ Please follow the steps below to get the IoT Portal running on your local machin
 
 		B. Type "pip install -r requirements.py.txt"
 		
-		C. In Windows, update HOST variable in <b>device_simulator.py.bat</b> to the docker-machine ip
+		C. In Windows, update HOST variable in device_simulator.py.bat to the docker-machine ip
 		   In Mac OS,  update HOST variable in device_simulator.py.sh to the docker-machine ip
 		
-		D. In Windows, run <b>device_simulator.py.bat</b>
+		D. In Windows, run device_simulator.py.bat
 		   In Mac OS,  run device_simulator.py.sh
 		
 		E. You should see "Device is now ready! ..."
@@ -161,10 +161,10 @@ Please follow the steps below to get the IoT Portal running on your local machin
 		I. Type "npm install -g os" 
 		J. Type "npm install -g fs"
 
-		K. In Windows, update HOST variable in <b>device_simulator.js.bat</b> to the docker-machine ip
+		K. In Windows, update HOST variable in device_simulator.js.bat to the docker-machine ip
 		   In Mac OS,  update HOST variable in device_simulator.js.sh to the docker-machine ip
 		
-		L. In Windows, run <b>device_simulator.js.bat</b>
+		L. In Windows, run device_simulator.js.bat
 		   In Mac OS,  run device_simulator.js.sh    
 		
 		M. You should see "Device is now ready! ..."
