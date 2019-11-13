@@ -196,471 +196,518 @@ Please follow the steps below to get the IoT Portal running on your local machin
 
 Note that HTTP GET method requires no payload so username and token must be included in the URL path. 
 
-1. <b>User sign-up/sign-in</b>
 
-    A. SIGN-UP
+SUMMARY
 
-    -  Request:
+	1. User sign-up/sign-in
 
-       POST <b>/user/signup</b>
+		A. SIGN-UP                  - POST <b>/user/signup</b>
+		B. CONFIRM SIGN-UP          - POST <b>/user/confirm_signup</b>
+		C. RESEND CONFIRMATION CODE - POST <b>/user/resend_confirmation_code</b>
+		D. FORGOT PASSWORD          - POST <b>/user/forgot_password</b>
+		E. CONFIRM FORGOT PASSWORD  - POST <b>/user/confirm_forgot_password</b>
+		F. LOGIN                    - POST <b>/user/login</b>
+		G. LOGOUT                   - POST <b>/user/logout</b>
+		H. GET USER INFO            - GET  <b>/user</b>
 
-       data: { 'username': string, 'password': string, 'email': string, 'givenname': string, 'familyname': string }
+	2. Account subscription and payment
 
-    -  Response:
+		A. GET SUBSCRIPTION     - GET  <b>/user/subscription</b>
+		B. SET SUBSCRIPTION     - POST <b>/user/subscription</b>
+		C. PAYPAL SETUP         - POST <b>/user/payment/paypalsetup</b>
+		D. PAYPAL EXECUTE       - POST <b>/user/payment/paypalexecute</b>
+		E. PAYPAL VERIFY        - POST <b>/user/payment/paypalverify</b>
 
-       {'status': 'OK', 'message': string}
+	3. Device registration and management
 
-       {'status': 'NG', 'message': string}
+		A. GET DEVICES          - GET    <b>/devices</b>
+		B. ADD DEVICE           - POST   <b>/devices/device</b>
+		C. DELETE DEVICE        - DELETE <b>/devices/device</b>
+		D. GET DEVICE           - GET    <b>/devices/device/DEVICENAME</b>
 
+	4. Device access and control
+		A. GET DEVICE HISTORIES - GET  <b>/devices/histories</b>
+		B. GET STATUS           - GET  <b>/devices/device/DEVICENAME/status</b>
+		C. SET STATUS           - POST <b>/devices/device/status</b>
+		D. GET IP               - GET  <b>/devices/device/DEVICENAME/ip</b>
+		E. GET SUBNET           - GET  <b>/devices/device/DEVICENAME/subnet</b>
+		F. GET GATEWAY          - GET  <b>/devices/device/DEVICENAME/gateway</b>
+		G. GET MAC              - GET  <b>/devices/device/DEVICENAME/mac</b>
+		H. GET GPIO             - GET  <b>/devices/device/DEVICENAME/gpio/NUMBER</b>
+		I. SET GPIO             - POST <b>/devices/device/gpio</b>
+		J. GET RTC              - GET  <b>/devices/device/DEVICENAME/rtc</b>
+		K. SET UART             - POST <b>/devices/device/uart</b>
+		L. SET NOTIFICATION     - POST <b>/devices/device/notification</b>
 
-    B. CONFIRM SIGN-UP
 
-    -  Request:
 
-       POST <b>/user/confirm_signup</b>
+DETAILED:
 
-       data: { 'username': string, 'confirmationcode': string }
+	1. <b>User sign-up/sign-in</b>
 
-    -  Response:
+		A. SIGN-UP
 
-       {'status': 'OK', 'message': string}
+		-  Request:
 
-       {'status': 'NG', 'message': string}
+		   POST <b>/user/signup</b>
 
+		   data: { 'username': string, 'password': string, 'email': string, 'givenname': string, 'familyname': string }
 
-    C. RESEND CONFIRMATION CODE
+		-  Response:
 
-    -  Request:
+		   {'status': 'OK', 'message': string}
 
-       POST <b>/user/resend_confirmation_code</b>
+		   {'status': 'NG', 'message': string}
 
-       data: { 'username': string }
 
-    -  Response:
+		B. CONFIRM SIGN-UP
 
-       {'status': 'OK', 'message': string}
+		-  Request:
 
-       {'status': 'NG', 'message': string}
+		   POST <b>/user/confirm_signup</b>
 
+		   data: { 'username': string, 'confirmationcode': string }
 
-    D. FORGOT PASSWORD
+		-  Response:
 
-    -  Request:
+		   {'status': 'OK', 'message': string}
 
-       POST <b>/user/forgot_password</b>
+		   {'status': 'NG', 'message': string}
 
-       data: { 'email': string }
 
-    -  Response:
+		C. RESEND CONFIRMATION CODE
 
-       {'status': 'OK', 'message': string, 'username': string}
+		-  Request:
 
-       {'status': 'NG', 'message': string}
+		   POST <b>/user/resend_confirmation_code</b>
 
+		   data: { 'username': string }
 
-    E. CONFIRM FORGOT PASSWORD
+		-  Response:
 
-    -  Request:
+		   {'status': 'OK', 'message': string}
 
-       POST <b>/user/confirm_forgot_password</b>
+		   {'status': 'NG', 'message': string}
 
-       data: { 'username': string, 'confirmationcode': string, 'password': string }
 
-    -  Response:
+		D. FORGOT PASSWORD
 
-       {'status': 'OK', 'message': string}
+		-  Request:
 
-       {'status': 'NG', 'message': string}
+		   POST <b>/user/forgot_password</b>
 
+		   data: { 'email': string }
 
-    F. LOGIN
+		-  Response:
 
-    -  Request:
+		   {'status': 'OK', 'message': string, 'username': string}
 
-       POST <b>/user/login</b>
+		   {'status': 'NG', 'message': string}
 
-       data: { 'username': string, 'password': string }
 
-    -  Response:
+		E. CONFIRM FORGOT PASSWORD
 
-       {'status': 'OK', 'token': {'access': string, 'id': string, 'refresh': string} }
+		-  Request:
 
-       {'status': 'NG', 'message': string}
+		   POST <b>/user/confirm_forgot_password</b>
 
+		   data: { 'username': string, 'confirmationcode': string, 'password': string }
 
-    G. LOGOUT
+		-  Response:
 
-    -  Request:
+		   {'status': 'OK', 'message': string}
 
-       POST <b>/user/logout</b>
+		   {'status': 'NG', 'message': string}
 
-       headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
 
-    -  Response:
+		F. LOGIN
 
-       {'status': 'OK', 'message': string}
+		-  Request:
 
-       {'status': 'NG', 'message': string}
+		   POST <b>/user/login</b>
 
+		   data: { 'username': string, 'password': string }
 
-    H. GET USER INFO
+		-  Response:
 
-    -  Request:
+		   {'status': 'OK', 'token': {'access': string, 'id': string, 'refresh': string} }
 
-       GET <b>/user</b>
+		   {'status': 'NG', 'message': string}
 
-       headers: {'Authorization': 'Bearer ' + token.access}
 
-    -  Response:
+		G. LOGOUT
 
-       {'status': 'OK', 'message': string, 'info': {'email': string, 'family_name': string, 'given_name': string} }
+		-  Request:
 
-       {'status': 'NG', 'message': string}
+		   POST <b>/user/logout</b>
 
+		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
 
+		-  Response:
 
-2. <b>Account subscription and payment</b>
+		   {'status': 'OK', 'message': string}
 
-    A. GET SUBSCRIPTION
+		   {'status': 'NG', 'message': string}
 
-    -  Request:
 
-       GET <b>/user/subscription</b>
+		H. GET USER INFO
 
-       headers: {'Authorization': 'Bearer ' + token.access}
+		-  Request:
 
-    -  Response:
+		   GET <b>/user</b>
 
-       {'status': 'OK', 'message': string, 'subscription': {'credits': string, 'type': string} }
+		   headers: {'Authorization': 'Bearer ' + token.access}
 
-       {'status': 'NG', 'message': string}
+		-  Response:
 
+		   {'status': 'OK', 'message': string, 'info': {'email': string, 'family_name': string, 'given_name': string} }
 
-    B. SET SUBSCRIPTION
+		   {'status': 'NG', 'message': string}
 
-    -  Request:
 
-       POST <b>/user/subscription</b>
 
-       headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+	2. <b>Account subscription and payment</b>
 
-       data: { 'credits': string }
+		A. GET SUBSCRIPTION
 
-    -  Response:
+		-  Request:
 
-       {'status': 'OK', 'message': string, 'subscription': {'credits': string, 'type': paid} }
+		   GET <b>/user/subscription</b>
 
-       {'status': 'NG', 'message': string}
+		   headers: {'Authorization': 'Bearer ' + token.access}
 
+		-  Response:
 
-    C. PAYPAL SETUP
+		   {'status': 'OK', 'message': string, 'subscription': {'credits': string, 'type': string} }
 
-    -  Request:
+		   {'status': 'NG', 'message': string}
 
-       POST <b>/user/payment/paypalsetup</b>
 
-       headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+		B. SET SUBSCRIPTION
 
-       data: { 'payment': {'return_url': string, 'cancel_url', string, 'item_sku': string, 'item_credits': string, 'item_price': string} }
+		-  Request:
 
-    -  Response:
+		   POST <b>/user/subscription</b>
 
-       {'status': 'OK', 'message': string, , 'approval_url': string, 'paymentId': string, 'token': string}
+		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
 
-       {'status': 'NG', 'message': string}
+		   data: { 'credits': string }
 
+		-  Response:
 
-    D. PAYPAL EXECUTE
+		   {'status': 'OK', 'message': string, 'subscription': {'credits': string, 'type': paid} }
 
-    -  Request:
+		   {'status': 'NG', 'message': string}
 
-       POST <b>/user/payment/paypalexecute</b>
 
-       headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+		C. PAYPAL SETUP
 
-       data: { 'payment': {'paymentId': string, 'payerId': string, 'token': string} }
+		-  Request:
 
-    -  Response:
+		   POST <b>/user/payment/paypalsetup</b>
 
-       {'status': 'OK', 'message': string}
+		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
 
-       {'status': 'NG', 'message': string}
+		   data: { 'payment': {'return_url': string, 'cancel_url', string, 'item_sku': string, 'item_credits': string, 'item_price': string} }
 
+		-  Response:
 
-    E. PAYPAL VERIFY
+		   {'status': 'OK', 'message': string, , 'approval_url': string, 'paymentId': string, 'token': string}
 
-    -  Request:
+		   {'status': 'NG', 'message': string}
 
-       POST <b>/user/payment/paypalverify</b>
 
-       headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+		D. PAYPAL EXECUTE
 
-       data: { 'payment': {'paymentId': string} }
+		-  Request:
 
-    -  Response:
+		   POST <b>/user/payment/paypalexecute</b>
 
-       {'status': 'OK', 'message': string}
+		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
 
-       {'status': 'NG', 'message': string}
+		   data: { 'payment': {'paymentId': string, 'payerId': string, 'token': string} }
 
+		-  Response:
 
+		   {'status': 'OK', 'message': string}
 
-3. <b>Device registration and management</b>
+		   {'status': 'NG', 'message': string}
 
-    A. GET DEVICES
 
-    -  Request:
+		E. PAYPAL VERIFY
 
-       GET <b>/devices</b>
+		-  Request:
 
-       headers: {'Authorization': 'Bearer ' + token.access}
+		   POST <b>/user/payment/paypalverify</b>
 
-    -  Response:
-       { 'status': 'OK', 'message': string, 
-         'devices': array[{'devicename': string, 'deviceid': string, 'cert': cert, 'pkey': pkey, 'ca': ca}, ...]}
+		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
 
-       { 'status': 'NG', 'message': string}
+		   data: { 'payment': {'paymentId': string} }
 
+		-  Response:
 
-    B. ADD DEVICE
+		   {'status': 'OK', 'message': string}
 
-    -  Request:
+		   {'status': 'NG', 'message': string}
 
-       POST <b>/devices/device</b>
 
-       headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
 
-       data: { 'devicename': string }
+	3. <b>Device registration and management</b>
 
-    -  Response:
+		A. GET DEVICES
 
-       { 'status': 'OK', 'message': string, 'device': {'devicename': string, 'deviceid': string, 'cert': cert, 'pkey': pkey, 'ca': ca}}
+		-  Request:
 
-       { 'status': 'NG', 'message': string}
+		   GET <b>/devices</b>
 
+		   headers: {'Authorization': 'Bearer ' + token.access}
 
-    C. DELETE DEVICE
+		-  Response:
+		   { 'status': 'OK', 'message': string, 
+			 'devices': array[{'devicename': string, 'deviceid': string, 'cert': cert, 'pkey': pkey, 'ca': ca}, ...]}
 
-    -  Request:
+		   { 'status': 'NG', 'message': string}
 
-       DELETE <b>/devices/device</b>
 
-       headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+		B. ADD DEVICE
 
-       data: { 'devicename': string }
+		-  Request:
 
-    -  Response:
-    
-       { 'status': 'OK', 'message': string}
-       
-       { 'status': 'NG', 'message': string}
+		   POST <b>/devices/device</b>
 
+		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
 
-    D. GET DEVICE
+		   data: { 'devicename': string }
 
-    -  Request:
-    
-       GET <b>/devices/device/DEVICENAME</b>
+		-  Response:
 
-       headers: {'Authorization': 'Bearer ' + token.access}
+		   { 'status': 'OK', 'message': string, 'device': {'devicename': string, 'deviceid': string, 'cert': cert, 'pkey': pkey, 'ca': ca}}
 
-    -  Response:
-    
-       { 'status': 'OK', 'message': string, 'device': {'devicename': string, 'deviceid': string, 'cert': cert, 'pkey': pkey}}
-       
-       { 'status': 'NG', 'message': string}
+		   { 'status': 'NG', 'message': string}
 
 
+		C. DELETE DEVICE
 
-4. <b>Device access and control</b>
+		-  Request:
 
-    A. GET DEVICE TRANSACTION HISTORIES
+		   DELETE <b>/devices/device</b>
 
-    -  Request:
+		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
 
-       GET <b>/devices/histories</b>
+		   data: { 'devicename': string }
 
-       headers: {'Authorization': 'Bearer ' + token.access}
+		-  Response:
+		
+		   { 'status': 'OK', 'message': string}
+		   
+		   { 'status': 'NG', 'message': string}
 
-    -  Response:
 
-       { 'status': 'OK', 'message': string, 
-         'histories': array[{'devicename': string, 'deviceid': string, 'direction': string, 'topic': string, 'payload': string, 'timestamp': string}, ...]}
+		D. GET DEVICE
 
-       { 'status': 'NG', 'message': string}
+		-  Request:
+		
+		   GET <b>/devices/device/DEVICENAME</b>
 
+		   headers: {'Authorization': 'Bearer ' + token.access}
 
-    B. GET STATUS
+		-  Response:
+		
+		   { 'status': 'OK', 'message': string, 'device': {'devicename': string, 'deviceid': string, 'cert': cert, 'pkey': pkey}}
+		   
+		   { 'status': 'NG', 'message': string}
 
-    -  Request:
 
-       GET <b>/devices/device/DEVICENAME/status</b>
 
-       headers: {'Authorization': 'Bearer ' + token.access}
+	4. <b>Device access and control</b>
 
-    -  Response:
+		A. GET DEVICE TRANSACTION HISTORIES
 
-       { 'status': 'OK', 'message': string, 'value': string }
+		-  Request:
 
-       { 'status': 'NG', 'message': string}
+		   GET <b>/devices/histories</b>
 
+		   headers: {'Authorization': 'Bearer ' + token.access}
 
-    C. SET STATUS
+		-  Response:
 
-    -  Request:
+		   { 'status': 'OK', 'message': string, 
+			 'histories': array[{'devicename': string, 'deviceid': string, 'direction': string, 'topic': string, 'payload': string, 'timestamp': string}, ...]}
 
-       POST <b>/devices/device/status</b>
+		   { 'status': 'NG', 'message': string}
 
-       headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
 
-       data: { 'devicename': string, 'value': string }
+		B. GET STATUS
 
-    -  Response:
+		-  Request:
 
-       { 'status': 'OK', 'message': string, 'value': string}
+		   GET <b>/devices/device/DEVICENAME/status</b>
 
-       { 'status': 'NG', 'message': string}
+		   headers: {'Authorization': 'Bearer ' + token.access}
 
+		-  Response:
 
-    D. GET IP
+		   { 'status': 'OK', 'message': string, 'value': string }
 
-    -  Request:
+		   { 'status': 'NG', 'message': string}
 
-       GET <b>/devices/device/DEVICENAME/ip</b>
 
-       headers: {'Authorization': 'Bearer ' + token.access}
+		C. SET STATUS
 
-    -  Response:
+		-  Request:
 
-       { 'status': 'OK', 'message': string, 'value': string }
+		   POST <b>/devices/device/status</b>
 
-       { 'status': 'NG', 'message': string}
+		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
 
+		   data: { 'devicename': string, 'value': string }
 
-    E. GET SUBNET
+		-  Response:
 
-    -  Request:
+		   { 'status': 'OK', 'message': string, 'value': string}
 
-       GET <b>/devices/device/DEVICENAME/subnet</b>
+		   { 'status': 'NG', 'message': string}
 
-       headers: {'Authorization': 'Bearer ' + token.access}
 
-    -  Response:
+		D. GET IP
 
-       { 'status': 'OK', 'message': string, 'value': string }
+		-  Request:
 
-       { 'status': 'NG', 'message': string}
+		   GET <b>/devices/device/DEVICENAME/ip</b>
 
+		   headers: {'Authorization': 'Bearer ' + token.access}
 
-    F. GET GATEWAY
+		-  Response:
 
-    -  Request:
+		   { 'status': 'OK', 'message': string, 'value': string }
 
-       GET <b>/devices/device/DEVICENAME/gateway</b>
+		   { 'status': 'NG', 'message': string}
 
-       headers: {'Authorization': 'Bearer ' + token.access}
 
-    -  Response:
+		E. GET SUBNET
 
-       { 'status': 'OK', 'message': string, 'value': string }
+		-  Request:
 
-       { 'status': 'NG', 'message': string}
+		   GET <b>/devices/device/DEVICENAME/subnet</b>
 
+		   headers: {'Authorization': 'Bearer ' + token.access}
 
-    G. GET MAC
+		-  Response:
 
-    -  Request:
+		   { 'status': 'OK', 'message': string, 'value': string }
 
-       GET <b>/devices/device/DEVICENAME/mac</b>
+		   { 'status': 'NG', 'message': string}
 
-       headers: {'Authorization': 'Bearer ' + token.access}
 
-    -  Response:
+		F. GET GATEWAY
 
-       { 'status': 'OK', 'message': string, 'value': string }
+		-  Request:
 
-       { 'status': 'NG', 'message': string}
+		   GET <b>/devices/device/DEVICENAME/gateway</b>
 
+		   headers: {'Authorization': 'Bearer ' + token.access}
 
-    H. GET GPIO
+		-  Response:
 
-    -  Request:
+		   { 'status': 'OK', 'message': string, 'value': string }
 
-       GET <b>/devices/device/DEVICENAME/gpio/NUMBER</b>
+		   { 'status': 'NG', 'message': string}
 
-       headers: {'Authorization': 'Bearer ' + token.access}
 
-    -  Response:
+		G. GET MAC
 
-       { 'status': 'OK', 'message': string, 'value': string }
+		-  Request:
 
-       { 'status': 'NG', 'message': string}
+		   GET <b>/devices/device/DEVICENAME/mac</b>
 
+		   headers: {'Authorization': 'Bearer ' + token.access}
 
-    I. SET GPIO
+		-  Response:
 
-    -  Request:
+		   { 'status': 'OK', 'message': string, 'value': string }
 
-       POST <b>/devices/device/gpio</b>
+		   { 'status': 'NG', 'message': string}
 
-       headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
 
-       data: { 'devicename': string, 'number': string, 'value': string }
+		H. GET GPIO
 
-    -  Response:
+		-  Request:
 
-       { 'status': 'OK', 'message': string, 'value': string }
+		   GET <b>/devices/device/DEVICENAME/gpio/NUMBER</b>
 
-       { 'status': 'NG', 'message': string}
+		   headers: {'Authorization': 'Bearer ' + token.access}
 
+		-  Response:
 
-    J. GET RTC
+		   { 'status': 'OK', 'message': string, 'value': string }
 
-    -  Request:
+		   { 'status': 'NG', 'message': string}
 
-       GET <b>/devices/device/DEVICENAME/rtc</b>
 
-       headers: {'Authorization': 'Bearer ' + token.access}
+		I. SET GPIO
 
-    -  Response:
- 
-       { 'status': 'OK', 'message': string, 'value': string }
+		-  Request:
 
-       { 'status': 'NG', 'message': string}
+		   POST <b>/devices/device/gpio</b>
 
+		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
 
-    K. SET UART
+		   data: { 'devicename': string, 'number': string, 'value': string }
 
-    -  Request:
+		-  Response:
 
-       POST <b>/devices/device/uart</b>
+		   { 'status': 'OK', 'message': string, 'value': string }
 
-       headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+		   { 'status': 'NG', 'message': string}
 
-       data: { 'devicename': string, 'value': string }
 
-    -  Response:
+		J. GET RTC
 
-       { 'status': 'OK', 'message': string, 'value': string }
+		-  Request:
 
-       { 'status': 'NG', 'message': string}
+		   GET <b>/devices/device/DEVICENAME/rtc</b>
 
+		   headers: {'Authorization': 'Bearer ' + token.access}
 
-    L. SET NOTIFICATION
+		-  Response:
+	 
+		   { 'status': 'OK', 'message': string, 'value': string }
 
-    -  Request:
+		   { 'status': 'NG', 'message': string}
 
-       POST <b>/devices/device/notification</b>
 
-       headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+		K. SET UART
 
-       data: { 'devicename': string, 'recipient': string, 'message': string }
+		-  Request:
 
-    -  Response:
+		   POST <b>/devices/device/uart</b>
 
-       { 'status': 'OK', 'message': string}
+		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
 
-       { 'status': 'NG', 'message': string}
+		   data: { 'devicename': string, 'value': string }
+
+		-  Response:
+
+		   { 'status': 'OK', 'message': string, 'value': string }
+
+		   { 'status': 'NG', 'message': string}
+
+
+		L. SET NOTIFICATION
+
+		-  Request:
+
+		   POST <b>/devices/device/notification</b>
+
+		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+
+		   data: { 'devicename': string, 'recipient': string, 'message': string }
+
+		-  Response:
+
+		   { 'status': 'OK', 'message': string}
+
+		   { 'status': 'NG', 'message': string}
 
 
 
