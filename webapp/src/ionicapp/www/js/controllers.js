@@ -560,7 +560,7 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
         $http({
             method: 'GET',
             url: server + '/user/' + param.username + '/subscription',
-            headers: {'Authorization': 'Bearer ' + token.access}
+            headers: {'Authorization': 'Bearer ' + $scope.data.token.access}
         })
         .then(function (result) {
             console.log("get_subscription");
