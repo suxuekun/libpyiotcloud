@@ -78,43 +78,32 @@ Please follow the steps below to get the IoT Portal running on your local machin
 2. Set the following environment system variables.
 
 		A. AWS_ACCESS_KEY_ID
-
 		B. AWS_SECRET_ACCESS_KEY
 
 		C. AWS_COGNITO_CLIENT_ID
-
 		D. AWS_COGNITO_USERPOOL_ID
-
 		E. AWS_COGNITO_USERPOOL_REGION
 
 		F. AWS_PINPOINT_ID
-		
 		G. AWS_PINPOINT_REGION
-		
 		H. AWS_PINPOINT_EMAIL
-		
+
 		I. CONFIG_USE_ECC
-		
+
 		J. PAYPAL_CLIENT_ID
-		
 		K. PAYPAL_CLIENT_SECRET
-		
+
 		L. TWILIO_ACCOUNT_SID
-		
 		M. TWILIO_AUTH_TOKEN
-		
 		N. TWILIO_NUMBER_FROM
-		
+
 		O. NEXMO_KEY
-		
 		P. NEXMO_SECRET
-		
+
 		Q. CONFIG_USE_EMAIL_MODEL
-		
 		R. CONFIG_USE_SMS_MODEL
-		
+
 		S. CONFIG_USE_CERTS
-		
 		T. CONFIG_USE_APIURL <b>// Refer to value of "docker-machine ip"</b>
 
     Please request for the values of the environment variables from me.
