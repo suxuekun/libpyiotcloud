@@ -151,7 +151,7 @@ Please follow the steps below to get the IoT Portal running on your local machin
 		   In Mac OS,  run device_simulator.py.sh
 		
 		E. You should see "Device is now ready! ..."
-
+                   This means the device simulator is now connected to the dockerized backend on local machine.
 
     <b>NODEJS device simulator</b>
 
@@ -168,6 +168,8 @@ Please follow the steps below to get the IoT Portal running on your local machin
 		   In Mac OS,  run device_simulator.js.sh    
 		
 		M. You should see "Device is now ready! ..."
+                   This means the device simulator is now connected to the dockerized backend on local machine.
+
 
 
 Refer to the usage guide in https://github.com/richmondu/libpyiotcloud/tree/master/_device_simulator
