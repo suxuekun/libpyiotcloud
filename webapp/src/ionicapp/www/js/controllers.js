@@ -551,6 +551,7 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
         //
         // - Request:
         //   GET /user/<username>/<access>/subscription
+        //   headers: {'Authorization': 'Bearer ' + token.access}
         //
         // - Response:
         //   {'status': 'OK', 'message': string, 'subscription': {'credits': string, 'type': paid} }
@@ -558,8 +559,8 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
         //  
         $http({
             method: 'GET',
-            url: server + '/user/' + param.username + '/' + param.token.access + '/' + 'subscription',
-            headers: {'Content-Type': 'application/json'}
+            url: server + '/user/' + param.username + '/subscription',
+            headers: {'Authorization': 'Bearer ' + token.access}
         })
         .then(function (result) {
             console.log("get_subscription");
@@ -609,8 +610,7 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
             update_token(result);
             if (result.data.status === "OK") {
                 getSubscription({    
-					"username": $scope.data.username,
-					"token": $scope.data.token,
+					"username": $scope.data.username
                 });
             }
             else {
