@@ -327,7 +327,7 @@ Note that HTTP GET method requires no payload so username and token must be incl
 
     -  Request:
 
-       GET /user/USERNAME/subscription
+       GET <b>/user/USERNAME/subscription</b>
 
        headers: {'Authorization': 'Bearer ' + token.access}
 
@@ -484,8 +484,6 @@ Note that HTTP GET method requires no payload so username and token must be incl
 
        headers: {'Authorization': 'Bearer ' + token.access}
 
-       { 'username': string }
-
     -  Response:
     
        { 'status': 'OK', 'message': string, 
@@ -497,175 +495,175 @@ Note that HTTP GET method requires no payload so username and token must be incl
 
     B. GET STATUS
 
-    - Request:
+    -  Request:
 
-      GET <b>/user/USERNAME/devices/device/DEVICENAME/status</b>
+       GET <b>/user/USERNAME/devices/device/DEVICENAME/status</b>
 
-      headers: {'Authorization': 'Bearer ' + token.access}
+       headers: {'Authorization': 'Bearer ' + token.access}
 
-    - Response:
+    -  Response:
 
-      { 'status': 'OK', 'message': string, 'value': string }
+       { 'status': 'OK', 'message': string, 'value': string }
 
-      { 'status': 'NG', 'message': string}
+       { 'status': 'NG', 'message': string}
 
 
     C. SET STATUS
 
-    - Request:
+    -  Request:
 
-      POST <b>/devices/device/status</b>
+       POST <b>/devices/device/status</b>
 
-      headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+       headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
 
-      { 'username': string, 'devicename': string, 'value': string }
+       data: { 'username': string, 'devicename': string, 'value': string }
 
-    - Response:
+    -  Response:
 
-      { 'status': 'OK', 'message': string, 'value': string}
+       { 'status': 'OK', 'message': string, 'value': string}
 
-      { 'status': 'NG', 'message': string}
+       { 'status': 'NG', 'message': string}
 
 
     D. GET IP
 
-    - Request:
+    -  Request:
 
-      GET <b>/user/USERNAME/devices/device/DEVICENAME/ip</b>
+       GET <b>/user/USERNAME/devices/device/DEVICENAME/ip</b>
 
-      headers: {'Authorization': 'Bearer ' + token.access}
+       headers: {'Authorization': 'Bearer ' + token.access}
 
-    - Response:
+    -  Response:
 
-      { 'status': 'OK', 'message': string, 'value': string }
+       { 'status': 'OK', 'message': string, 'value': string }
 
-      { 'status': 'NG', 'message': string}
+       { 'status': 'NG', 'message': string}
 
 
     E. GET SUBNET
 
-    - Request:
+    -  Request:
 
-      GET <b>/user/USERNAME/devices/device/DEVICENAME/subnet</b>
+       GET <b>/user/USERNAME/devices/device/DEVICENAME/subnet</b>
 
-      headers: {'Authorization': 'Bearer ' + token.access}
+       headers: {'Authorization': 'Bearer ' + token.access}
 
-    - Response:
+    -  Response:
 
-      { 'status': 'OK', 'message': string, 'value': string }
+       { 'status': 'OK', 'message': string, 'value': string }
 
-      { 'status': 'NG', 'message': string}
+       { 'status': 'NG', 'message': string}
 
 
     F. GET GATEWAY
 
-    - Request:
+    -  Request:
 
-      GET <b>/user/USERNAME/devices/device/DEVICENAME/gateway</b>
+       GET <b>/user/USERNAME/devices/device/DEVICENAME/gateway</b>
 
-      headers: {'Authorization': 'Bearer ' + token.access}
+       headers: {'Authorization': 'Bearer ' + token.access}
 
-    - Response:
+    -  Response:
 
-      { 'status': 'OK', 'message': string, 'value': string }
+       { 'status': 'OK', 'message': string, 'value': string }
 
-      { 'status': 'NG', 'message': string}
+       { 'status': 'NG', 'message': string}
 
 
     G. GET MAC
 
-    - Request:
+    -  Request:
 
-      GET <b>/user/USERNAME/devices/device/DEVICENAME/mac</b>
+       GET <b>/user/USERNAME/devices/device/DEVICENAME/mac</b>
 
-      headers: {'Authorization': 'Bearer ' + token.access}
+       headers: {'Authorization': 'Bearer ' + token.access}
 
-    - Response:
+    -  Response:
 
-      { 'status': 'OK', 'message': string, 'value': string }
+       { 'status': 'OK', 'message': string, 'value': string }
 
-      { 'status': 'NG', 'message': string}
+       { 'status': 'NG', 'message': string}
 
 
     H. GET GPIO
 
-    - Request:
+    -  Request:
 
-      GET <b>/user/USERNAME/devices/device/DEVICENAME/gpio/<number></b>
+       GET <b>/user/USERNAME/devices/device/DEVICENAME/gpio/<number></b>
 
-      headers: {'Authorization': 'Bearer ' + token.access}
+       headers: {'Authorization': 'Bearer ' + token.access}
 
-    - Response:
+    -  Response:
 
-      { 'status': 'OK', 'message': string, 'value': string }
+       { 'status': 'OK', 'message': string, 'value': string }
 
-      { 'status': 'NG', 'message': string}
+       { 'status': 'NG', 'message': string}
 
 
     I. SET GPIO
 
-    - Request:
+    -  Request:
 
-      POST <b>/devices/device/gpio</b>
+       POST <b>/devices/device/gpio</b>
 
-      headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+       headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
 
-      { 'username': string, 'devicename': string, 'number': string, 'value': string }
+       data: { 'username': string, 'devicename': string, 'number': string, 'value': string }
 
-    - Response:
+    -  Response:
 
-      { 'status': 'OK', 'message': string, 'value': string }
+       { 'status': 'OK', 'message': string, 'value': string }
 
-      { 'status': 'NG', 'message': string}
+       { 'status': 'NG', 'message': string}
 
 
     J. GET RTC
 
-    - Request:
+    -  Request:
 
-      GET <b>/user/USERNAME/devices/device/DEVICENAME/rtc</b>
+       GET <b>/user/USERNAME/devices/device/DEVICENAME/rtc</b>
 
-      headers: {'Authorization': 'Bearer ' + token.access}
+       headers: {'Authorization': 'Bearer ' + token.access}
 
-    - Response:
+    -  Response:
+ 
+       { 'status': 'OK', 'message': string, 'value': string }
 
-      { 'status': 'OK', 'message': string, 'value': string }
-
-      { 'status': 'NG', 'message': string}
+       { 'status': 'NG', 'message': string}
 
 
     K. SET UART
 
-    - Request:
+    -  Request:
 
-      POST <b>/devices/device/uart</b>
+       POST <b>/devices/device/uart</b>
 
-      headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+       headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
 
-      { 'username': string, 'devicename': string, 'value': string }
+       data: { 'username': string, 'devicename': string, 'value': string }
 
-    - Response:
+    -  Response:
 
-      { 'status': 'OK', 'message': string, 'value': string }
+       { 'status': 'OK', 'message': string, 'value': string }
 
-      { 'status': 'NG', 'message': string}
+       { 'status': 'NG', 'message': string}
 
 
     L. SET NOTIFICATION
 
-    - Request:
+    -  Request:
 
-      POST <b>/devices/device/notification</b>
+       POST <b>/devices/device/notification</b>
 
-      headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+       headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
 
-      { 'username': string, 'devicename': string, 'recipient': string, 'message': string }
+       data: { 'username': string, 'devicename': string, 'recipient': string, 'message': string }
 
-    - Response:
+    -  Response:
 
-      { 'status': 'OK', 'message': string}
+       { 'status': 'OK', 'message': string}
 
-      { 'status': 'NG', 'message': string}
+       { 'status': 'NG', 'message': string}
 
 
 
