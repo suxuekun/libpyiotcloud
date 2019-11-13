@@ -65,6 +65,11 @@ Please install the following tools to get the IoT Portal running on your local m
 
 Please follow the steps below to get the IoT Portal running on your local machine.
 
+Having the backend running on your local machine will enable you 
+to eventually do code modifications as needed while developing the mobile applications.
+This means you'll be able to update or add new APIs as the mobile app requires.
+
+
 1. Download the code from the repository.
 
 		A. Run Docker Toolbox/Desktop as administrator.
