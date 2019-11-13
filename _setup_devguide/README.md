@@ -506,3 +506,8 @@ DETAILED:
 
 1. TODO
 
+### Message Queuing Documentation
+
+1. TODO ToDevice
+2. TODO FromDevice
+
