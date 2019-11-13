@@ -120,10 +120,10 @@ Please follow the steps below to get the IoT Portal running on your local machin
 		A. Type "cd libpyiotcloud"
 
 		B. Type "docker-compose -f docker-compose.yml config"
-		C. Type "docker-compose build" <b>// To rebuild from scratch, add "--no-cache"</b>
-		D. Type "docker-compose up" <b>// To run asynchronously, add "-d"</b>
+		C. Type "docker-compose build" // To rebuild from scratch, add "--no-cache"
+		D. Type "docker-compose up" // To run asynchronously, add "-d"
 
-		E. Open a browser and browse https://docker-machine_ip <b>// Refer to value of "docker-machine ip"</b>
+		E. Open a browser and browse https://docker-machine_ip // Refer to value of "docker-machine ip"
 
 
     <b>Note to stop the docker containers, do the following:</b>
