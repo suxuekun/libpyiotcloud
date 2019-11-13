@@ -70,6 +70,7 @@ Please follow the steps below to get the IoT Portal running on your local machin
 		A. Run Docker Toolbox/Desktop as administrator.
 
 		B. Type "git clone https://github.com/richmondu/libpyiotcloud"
+		   In Mac OS, make sure the folder has permission. Refer to [this](https://stackoverflow.com/questions/16376035/fatal-could-not-create-work-tree-dir-kivy).
 
 		C. Type "docker-machine ip"
 		   Take note of the value as this will be used in the next steps.
@@ -107,13 +108,13 @@ Please follow the steps below to get the IoT Portal running on your local machin
 		T. CONFIG_USE_APIURL <b>// Refer to value of "docker-machine ip"</b>
 
     Please request for the values of the environment variables from me.
-    
+
 
     In Linux/MacOS, use <b>export ENVIRONMENT_SYSTEM_VARIABLE="ENVIRONMENT_SYSTEM_VALUE"</b>
-   
+
     In Windows, always <b>restart the Docker Toolbox/Desktop</b> after adding or updating an environment system variable.
-    
-    
+
+
 3. Run the Docker images using the following commands.
 
 		A. Type "cd libpyiotcloud"
