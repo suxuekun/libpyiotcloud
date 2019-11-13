@@ -558,6 +558,10 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
                         text: 'OK',
                         type: 'button-positive',
                         onTap: function(e) {
+                            param = {
+                                'username': $scope.data.username,
+                                'token': $scope.data.token
+                            };
                             $state.go('menu.account', param, {reload: true});   
                         }
                     }

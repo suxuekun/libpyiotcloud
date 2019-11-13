@@ -204,7 +204,7 @@ Note that HTTP GET method requires no payload so username and token must be incl
 
        POST <b>/user/signup</b>
 
-       { 'username': string, 'password': string, 'email': string, 'givenname': string, 'familyname': string }
+       data: { 'username': string, 'password': string, 'email': string, 'givenname': string, 'familyname': string }
 
     -  Response:
 
@@ -219,7 +219,7 @@ Note that HTTP GET method requires no payload so username and token must be incl
 
        POST <b>/user/confirm_signup</b>
 
-       { 'username': string, 'confirmationcode': string }
+       data: { 'username': string, 'confirmationcode': string }
 
     -  Response:
 
@@ -234,7 +234,7 @@ Note that HTTP GET method requires no payload so username and token must be incl
 
        POST <b>/user/resend_confirmation_code</b>
 
-       { 'username': string }
+       data: { 'username': string }
 
     -  Response:
 
@@ -249,7 +249,7 @@ Note that HTTP GET method requires no payload so username and token must be incl
 
        POST <b>/user/forgot_password</b>
 
-       { 'email': string }
+       data: { 'email': string }
 
     -  Response:
 
@@ -264,7 +264,7 @@ Note that HTTP GET method requires no payload so username and token must be incl
 
        POST <b>/user/confirm_forgot_password</b>
 
-       { 'username': string, 'confirmationcode': string, 'password': string }
+       data: { 'username': string, 'confirmationcode': string, 'password': string }
 
     -  Response:
 
@@ -279,7 +279,7 @@ Note that HTTP GET method requires no payload so username and token must be incl
 
        POST <b>/user/login</b>
 
-       { 'username': string, 'password': string }
+       data: { 'username': string, 'password': string }
 
     -  Response:
 
@@ -344,7 +344,7 @@ Note that HTTP GET method requires no payload so username and token must be incl
 
        headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
 
-       { 'credits': string }
+       data: { 'credits': string }
 
     -  Response:
 
@@ -361,7 +361,7 @@ Note that HTTP GET method requires no payload so username and token must be incl
 
        headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
 
-       { 'payment': {'return_url': string, 'cancel_url', string, 'item_sku': string, 'item_credits': string, 'item_price': string} }
+       data: { 'payment': {'return_url': string, 'cancel_url', string, 'item_sku': string, 'item_credits': string, 'item_price': string} }
 
     -  Response:
 
@@ -378,7 +378,7 @@ Note that HTTP GET method requires no payload so username and token must be incl
 
        headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
 
-       { 'payment': {'paymentId': string, 'payerId': string, 'token': string} }
+       data: { 'payment': {'paymentId': string, 'payerId': string, 'token': string} }
 
     -  Response:
 
@@ -395,7 +395,7 @@ Note that HTTP GET method requires no payload so username and token must be incl
 
        headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
 
-       { 'payment': {'paymentId': string} }
+       data: { 'payment': {'paymentId': string} }
 
     -  Response:
 
@@ -430,7 +430,7 @@ Note that HTTP GET method requires no payload so username and token must be incl
 
        headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
 
-       { 'devicename': string }
+       data: { 'devicename': string }
 
     -  Response:
 
@@ -447,7 +447,7 @@ Note that HTTP GET method requires no payload so username and token must be incl
 
        headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
 
-       { 'devicename': string }
+       data: { 'devicename': string }
 
     -  Response:
     
