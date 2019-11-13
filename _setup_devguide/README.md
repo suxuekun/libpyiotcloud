@@ -178,6 +178,9 @@ There are 3 ways to access the REST APIs.
 2. Setup the docker containers of the backend on local machine and access via https://192.168.99.100 or https://ipofdocker
 3. Setup the non-Docker version of the backend on local machine and access via https://localhost
 
+Below contains a summary and a detailed description of all the current REST APIs.
+More APIs will be added to support the new requirements.
+
 
 SUMMARY:
 
