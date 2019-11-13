@@ -71,7 +71,7 @@ Please follow the steps below to get the IoT Portal running on your local machin
 
 		B. Type "git clone https://github.com/richmondu/libpyiotcloud"
 
-		C. Type <b>"docker-machine ip"</b>
+		C. Type "docker-machine ip"
 		   Take note of the value as this will be used in the next steps.
 
 
@@ -155,41 +155,41 @@ Please follow the steps below to get the IoT Portal running on your local machin
 
 
     <b>// PYTHON device simulator</b>
-    
-    B. Type "pip install -r requirements.py.txt"
-    
-    C. In Windows, update HOST variable in <b>device_simulator.py.bat</b> to the docker-machine ip
-      
-       In Mac OS,  update HOST variable in device_simulator.py.sh to the docker-machine ip
-    
-    D. In Windows, run <b>device_simulator.py.bat</b>
-       
-       In Mac OS,  run device_simulator.py.sh
-    
-    E. You should see "Device is now ready! ..."
-    
+
+		B. Type "pip install -r requirements.py.txt"
+		
+		C. In Windows, update HOST variable in <b>device_simulator.py.bat</b> to the docker-machine ip
+		  
+		   In Mac OS,  update HOST variable in device_simulator.py.sh to the docker-machine ip
+		
+		D. In Windows, run <b>device_simulator.py.bat</b>
+		   
+		   In Mac OS,  run device_simulator.py.sh
+		
+		E. You should see "Device is now ready! ..."
+
 
     <b>// NODEJS device simulator</b>
-    
-    F. Type "npm install -g mqtt" 
-    
-    G. Type "npm install -g argparse" 
-    
-    H. Type "npm install -g system-sleep" 
-    
-    I. Type "npm install -g os" 
-    
-    J. Type "npm install -g fs"
 
-    K. In Windows, update HOST variable in <b>device_simulator.js.bat</b> to the docker-machine ip
-       
-       In Mac OS,  update HOST variable in device_simulator.js.sh to the docker-machine ip
-    
-    L. In Windows, run <b>device_simulator.js.bat</b>
-       
-       In Mac OS,  run device_simulator.js.sh    
-    
-    M. You should see "Device is now ready! ..."
+		F. Type "npm install -g mqtt" 
+		
+		G. Type "npm install -g argparse" 
+		
+		H. Type "npm install -g system-sleep" 
+		
+		I. Type "npm install -g os" 
+		
+		J. Type "npm install -g fs"
+
+		K. In Windows, update HOST variable in <b>device_simulator.js.bat</b> to the docker-machine ip
+		   
+		   In Mac OS,  update HOST variable in device_simulator.js.sh to the docker-machine ip
+		
+		L. In Windows, run <b>device_simulator.js.bat</b>
+		   
+		   In Mac OS,  run device_simulator.js.sh    
+		
+		M. You should see "Device is now ready! ..."
 
 
 ### REST API Documentation
