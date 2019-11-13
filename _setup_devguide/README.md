@@ -232,6 +232,10 @@ SUMMARY:
 		K. SET UART             - POST /devices/device/uart
 		L. SET NOTIFICATION     - POST /devices/device/notification
 
+Note that HTTP GET command requires that no data/payload is attached to it. 
+As such the required parameters must be part of the URL.
+This explains the inconsistency between the GET and POST/DELETE APIs.
+
 
 
 DETAILED:
