@@ -199,43 +199,43 @@ SUMMARY
 
 	1. User sign-up/sign-in
 
-		A. SIGN-UP                  - POST <b>/user/signup</b>
-		B. CONFIRM SIGN-UP          - POST <b>/user/confirm_signup</b>
-		C. RESEND CONFIRMATION CODE - POST <b>/user/resend_confirmation_code</b>
-		D. FORGOT PASSWORD          - POST <b>/user/forgot_password</b>
-		E. CONFIRM FORGOT PASSWORD  - POST <b>/user/confirm_forgot_password</b>
-		F. LOGIN                    - POST <b>/user/login</b>
-		G. LOGOUT                   - POST <b>/user/logout</b>
-		H. GET USER INFO            - GET  <b>/user</b>
+		A. SIGN-UP                  - POST /user/signup
+		B. CONFIRM SIGN-UP          - POST /user/confirm_signup
+		C. RESEND CONFIRMATION CODE - POST /user/resend_confirmation_code
+		D. FORGOT PASSWORD          - POST /user/forgot_password
+		E. CONFIRM FORGOT PASSWORD  - POST /user/confirm_forgot_password
+		F. LOGIN                    - POST /user/login
+		G. LOGOUT                   - POST /user/logout
+		H. GET USER INFO            - GET  /user
 
 	2. Account subscription and payment
 
-		A. GET SUBSCRIPTION     - GET  <b>/user/subscription</b>
-		B. SET SUBSCRIPTION     - POST <b>/user/subscription</b>
-		C. PAYPAL SETUP         - POST <b>/user/payment/paypalsetup</b>
-		D. PAYPAL EXECUTE       - POST <b>/user/payment/paypalexecute</b>
-		E. PAYPAL VERIFY        - POST <b>/user/payment/paypalverify</b>
+		A. GET SUBSCRIPTION     - GET  /user/subscription
+		B. SET SUBSCRIPTION     - POST /user/subscription
+		C. PAYPAL SETUP         - POST /user/payment/paypalsetup
+		D. PAYPAL EXECUTE       - POST /user/payment/paypalexecute
+		E. PAYPAL VERIFY        - POST /user/payment/paypalverify
 
 	3. Device registration and management
 
-		A. GET DEVICES          - GET    <b>/devices</b>
-		B. ADD DEVICE           - POST   <b>/devices/device</b>
-		C. DELETE DEVICE        - DELETE <b>/devices/device</b>
-		D. GET DEVICE           - GET    <b>/devices/device/DEVICENAME</b>
+		A. GET DEVICES          - GET    /devices
+		B. ADD DEVICE           - POST   /devices/device
+		C. DELETE DEVICE        - DELETE /devices/device
+		D. GET DEVICE           - GET    /devices/device/DEVICENAME
 
 	4. Device access and control
-		A. GET DEVICE HISTORIES - GET  <b>/devices/histories</b>
-		B. GET STATUS           - GET  <b>/devices/device/DEVICENAME/status</b>
-		C. SET STATUS           - POST <b>/devices/device/status</b>
-		D. GET IP               - GET  <b>/devices/device/DEVICENAME/ip</b>
-		E. GET SUBNET           - GET  <b>/devices/device/DEVICENAME/subnet</b>
-		F. GET GATEWAY          - GET  <b>/devices/device/DEVICENAME/gateway</b>
-		G. GET MAC              - GET  <b>/devices/device/DEVICENAME/mac</b>
-		H. GET GPIO             - GET  <b>/devices/device/DEVICENAME/gpio/NUMBER</b>
-		I. SET GPIO             - POST <b>/devices/device/gpio</b>
-		J. GET RTC              - GET  <b>/devices/device/DEVICENAME/rtc</b>
-		K. SET UART             - POST <b>/devices/device/uart</b>
-		L. SET NOTIFICATION     - POST <b>/devices/device/notification</b>
+		A. GET DEVICE HISTORIES - GET  /devices/histories
+		B. GET STATUS           - GET  /devices/device/DEVICENAME/status
+		C. SET STATUS           - POST /devices/device/status
+		D. GET IP               - GET  /devices/device/DEVICENAME/ip
+		E. GET SUBNET           - GET  /devices/device/DEVICENAME/subnet
+		F. GET GATEWAY          - GET  /devices/device/DEVICENAME/gateway
+		G. GET MAC              - GET  /devices/device/DEVICENAME/mac
+		H. GET GPIO             - GET  /devices/device/DEVICENAME/gpio/NUMBER
+		I. SET GPIO             - POST /devices/device/gpio
+		J. GET RTC              - GET  /devices/device/DEVICENAME/rtc
+		K. SET UART             - POST /devices/device/uart
+		L. SET NOTIFICATION     - POST /devices/device/notification
 
 
 
@@ -247,7 +247,7 @@ DETAILED:
 
 		-  Request:
 
-		   POST <b>/user/signup</b>
+		   POST /user/signup
 
 		   data: { 'username': string, 'password': string, 'email': string, 'givenname': string, 'familyname': string }
 
@@ -262,7 +262,7 @@ DETAILED:
 
 		-  Request:
 
-		   POST <b>/user/confirm_signup</b>
+		   POST /user/confirm_signup
 
 		   data: { 'username': string, 'confirmationcode': string }
 
@@ -277,7 +277,7 @@ DETAILED:
 
 		-  Request:
 
-		   POST <b>/user/resend_confirmation_code</b>
+		   POST /user/resend_confirmation_code
 
 		   data: { 'username': string }
 
@@ -292,7 +292,7 @@ DETAILED:
 
 		-  Request:
 
-		   POST <b>/user/forgot_password</b>
+		   POST /user/forgot_password
 
 		   data: { 'email': string }
 
@@ -307,7 +307,7 @@ DETAILED:
 
 		-  Request:
 
-		   POST <b>/user/confirm_forgot_password</b>
+		   POST /user/confirm_forgot_password
 
 		   data: { 'username': string, 'confirmationcode': string, 'password': string }
 
@@ -322,7 +322,7 @@ DETAILED:
 
 		-  Request:
 
-		   POST <b>/user/login</b>
+		   POST /user/login
 
 		   data: { 'username': string, 'password': string }
 
@@ -337,7 +337,7 @@ DETAILED:
 
 		-  Request:
 
-		   POST <b>/user/logout</b>
+		   POST /user/logout
 
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
 
@@ -352,7 +352,7 @@ DETAILED:
 
 		-  Request:
 
-		   GET <b>/user</b>
+		   GET /user
 
 		   headers: {'Authorization': 'Bearer ' + token.access}
 
@@ -370,7 +370,7 @@ DETAILED:
 
 		-  Request:
 
-		   GET <b>/user/subscription</b>
+		   GET /user/subscription
 
 		   headers: {'Authorization': 'Bearer ' + token.access}
 
@@ -385,7 +385,7 @@ DETAILED:
 
 		-  Request:
 
-		   POST <b>/user/subscription</b>
+		   POST /user/subscription
 
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
 
@@ -402,7 +402,7 @@ DETAILED:
 
 		-  Request:
 
-		   POST <b>/user/payment/paypalsetup</b>
+		   POST /user/payment/paypalsetup
 
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
 
@@ -419,7 +419,7 @@ DETAILED:
 
 		-  Request:
 
-		   POST <b>/user/payment/paypalexecute</b>
+		   POST /user/payment/paypalexecute
 
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
 
@@ -436,7 +436,7 @@ DETAILED:
 
 		-  Request:
 
-		   POST <b>/user/payment/paypalverify</b>
+		   POST /user/payment/paypalverify
 
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
 
@@ -456,7 +456,7 @@ DETAILED:
 
 		-  Request:
 
-		   GET <b>/devices</b>
+		   GET /devices
 
 		   headers: {'Authorization': 'Bearer ' + token.access}
 
@@ -471,7 +471,7 @@ DETAILED:
 
 		-  Request:
 
-		   POST <b>/devices/device</b>
+		   POST /devices/device
 
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
 
@@ -488,7 +488,7 @@ DETAILED:
 
 		-  Request:
 
-		   DELETE <b>/devices/device</b>
+		   DELETE /devices/device
 
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
 
@@ -505,7 +505,7 @@ DETAILED:
 
 		-  Request:
 		
-		   GET <b>/devices/device/DEVICENAME</b>
+		   GET /devices/device/DEVICENAME
 
 		   headers: {'Authorization': 'Bearer ' + token.access}
 
@@ -523,7 +523,7 @@ DETAILED:
 
 		-  Request:
 
-		   GET <b>/devices/histories</b>
+		   GET /devices/histories
 
 		   headers: {'Authorization': 'Bearer ' + token.access}
 
@@ -539,7 +539,7 @@ DETAILED:
 
 		-  Request:
 
-		   GET <b>/devices/device/DEVICENAME/status</b>
+		   GET /devices/device/DEVICENAME/status
 
 		   headers: {'Authorization': 'Bearer ' + token.access}
 
@@ -554,7 +554,7 @@ DETAILED:
 
 		-  Request:
 
-		   POST <b>/devices/device/status</b>
+		   POST /devices/device/status
 
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
 
@@ -571,7 +571,7 @@ DETAILED:
 
 		-  Request:
 
-		   GET <b>/devices/device/DEVICENAME/ip</b>
+		   GET /devices/device/DEVICENAME/ip
 
 		   headers: {'Authorization': 'Bearer ' + token.access}
 
@@ -586,7 +586,7 @@ DETAILED:
 
 		-  Request:
 
-		   GET <b>/devices/device/DEVICENAME/subnet</b>
+		   GET /devices/device/DEVICENAME/subnet
 
 		   headers: {'Authorization': 'Bearer ' + token.access}
 
@@ -601,7 +601,7 @@ DETAILED:
 
 		-  Request:
 
-		   GET <b>/devices/device/DEVICENAME/gateway</b>
+		   GET /devices/device/DEVICENAME/gateway
 
 		   headers: {'Authorization': 'Bearer ' + token.access}
 
@@ -616,7 +616,7 @@ DETAILED:
 
 		-  Request:
 
-		   GET <b>/devices/device/DEVICENAME/mac</b>
+		   GET /devices/device/DEVICENAME/mac
 
 		   headers: {'Authorization': 'Bearer ' + token.access}
 
@@ -631,7 +631,7 @@ DETAILED:
 
 		-  Request:
 
-		   GET <b>/devices/device/DEVICENAME/gpio/NUMBER</b>
+		   GET /devices/device/DEVICENAME/gpio/NUMBER
 
 		   headers: {'Authorization': 'Bearer ' + token.access}
 
@@ -646,7 +646,7 @@ DETAILED:
 
 		-  Request:
 
-		   POST <b>/devices/device/gpio</b>
+		   POST /devices/device/gpio
 
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
 
@@ -663,7 +663,7 @@ DETAILED:
 
 		-  Request:
 
-		   GET <b>/devices/device/DEVICENAME/rtc</b>
+		   GET /devices/device/DEVICENAME/rtc
 
 		   headers: {'Authorization': 'Bearer ' + token.access}
 
@@ -678,7 +678,7 @@ DETAILED:
 
 		-  Request:
 
-		   POST <b>/devices/device/uart</b>
+		   POST /devices/device/uart
 
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
 
@@ -695,7 +695,7 @@ DETAILED:
 
 		-  Request:
 
-		   POST <b>/devices/device/notification</b>
+		   POST /devices/device/notification
 
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
 
