@@ -262,7 +262,7 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
         // GET SUBSCRIPTION
         //
         // - Request:
-        //   GET /user/subscription
+        //   GET /account/subscription
         //   headers: {'Authorization': 'Bearer ' + token.access}
         //
         // - Response:
@@ -271,7 +271,7 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
         //  
         $http({
             method: 'GET',
-            url: server + '/user/subscription',
+            url: server + '/account/subscription',
             headers: {'Authorization': 'Bearer ' + $scope.data.token.access}
         })
         .then(function (result) {
@@ -474,7 +474,7 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
         // PAYPAL SETUP
         //
         // - Request:
-        //   POST /user/payment/paypalsetup
+        //   POST /account/payment/paypalsetup
         //   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
         //   data: { 'payment': {'return_url': string, 'cancel_url', string, 'item_sku': string, 'item_credits': string, 'item_price': string} }
         //
@@ -484,7 +484,7 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
         //
         $http({
             method: 'POST',
-            url: server + '/user/payment/paypalsetup',
+            url: server + '/account/payment/paypalsetup',
             headers: {'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json'},
             data: paypal_param
         })
@@ -533,7 +533,7 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
         // GET SUBSCRIPTION
         //
         // - Request:
-        //   GET /user/subscription
+        //   GET /account/subscription
         //   headers: {'Authorization': 'Bearer ' + token.access}
         //
         // - Response:
@@ -542,7 +542,7 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
         //  
         $http({
             method: 'GET',
-            url: server + '/user/subscription',
+            url: server + '/account/subscription',
             headers: {'Authorization': 'Bearer ' + $scope.data.token.access}
         })
         .then(function (result) {
@@ -578,7 +578,7 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
         // PAYPAL VERIFY
         //
         // - Request:
-        //   POST /user/payment/paypalverify
+        //   POST /account/payment/paypalverify
         //   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
         //   data: { 'payment': {'paymentId': string} }
         //
@@ -588,7 +588,7 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
         //        
         $http({
             method: 'POST',
-            url: server + '/user/payment/paypalverify',
+            url: server + '/account/payment/paypalverify',
             headers: {'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json'},
             data: paypal_param
         })
@@ -700,7 +700,7 @@ function ($scope, $stateParams, $ionicPopup, $http, Server) {
         // SET SUBSCRIPTION
         //
         // - Request:
-        //   POST /user/subscription
+        //   POST /account/subscription
         //   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
         //   data: { 'credits': string }
         //
@@ -712,7 +712,7 @@ function ($scope, $stateParams, $ionicPopup, $http, Server) {
         console.log(param);
         $http({
             method: 'POST',
-            url: server + '/user/subscription',
+            url: server + '/account/subscription',
             headers: {'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json'},
             data: param
         })
@@ -759,7 +759,7 @@ function ($scope, $stateParams, $ionicPopup, $http, Server) {
         // PAYPAL VERIFY
         //
         // - Request:
-        //   POST /user/payment/paypalverify
+        //   POST /account/payment/paypalverify
         //   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
         //   data: { 'payment': {'paymentId': string} }
         //
@@ -771,7 +771,7 @@ function ($scope, $stateParams, $ionicPopup, $http, Server) {
         console.log(paypal_param);
         $http({
             method: 'POST',
-            url: server + '/user/payment/paypalverify',
+            url: server + '/account/payment/paypalverify',
             headers: {'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json'},
             data: paypal_param
         })
@@ -802,7 +802,7 @@ function ($scope, $stateParams, $ionicPopup, $http, Server) {
         // PAYPAL EXECUTE
         //
         // - Request:
-        //   POST /user/payment/paypalexecute
+        //   POST /account/payment/paypalexecute
         //   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
         //   data: { 'payment': {'paymentId': string, 'payerId': string, 'token': string} }
         //
@@ -814,7 +814,7 @@ function ($scope, $stateParams, $ionicPopup, $http, Server) {
         console.log(paypal_param);
         $http({
             method: 'POST',
-            url: server + '/user/payment/paypalexecute',
+            url: server + '/account/payment/paypalexecute',
             headers: {'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json'},
             data: paypal_param
         })
