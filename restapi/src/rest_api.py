@@ -316,7 +316,8 @@ def confirm_forgot_password():
 #
 # - Request:
 #   POST /user/logout
-#   { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string} }
+#   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+#   { 'username': string }
 #
 # - Response:
 #   {'status': 'OK', 'message': string}
@@ -328,7 +329,15 @@ def logout():
     data = flask.request.get_json()
     try:
         username = data['username']
-        token = data['token']
+
+        # get token from Authorization header
+        auth_header_token = get_auth_header_token()
+        if auth_header_token is None:
+            response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
+            print('\r\nERROR Invalid authorization header [{}]\r\n'.format(username))
+            return response, status.HTTP_401_UNAUTHORIZED
+        token = {'access': auth_header_token}
+
     except:
         response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
         print('\r\nERROR Logout: Empty parameter found\r\n')
@@ -373,18 +382,26 @@ def logout():
 # GET USER INFO
 #
 # - Request:
-#   GET /user/<username>/<access>
+#   GET /user/<username>
+#   headers: {'Authorization': 'Bearer ' + token.access}
 #
 # - Response:
 #   {'status': 'OK', 'message': string, 'info': {'email': string, 'family_name': string, 'given_name': string} }
 #   {'status': 'NG', 'message': string}
 #
 ########################################################################################################
-@app.route('/user/<username>/<access>', methods=['GET'])
-def get_user_info(username, access):
+@app.route('/user/<username>', methods=['GET'])
+def get_user_info(username):
     data = flask.request.get_json()
-    token = {'access': access}
     print('get_user_info username={}'.format(username))
+
+    # get token from Authorization header
+    auth_header_token = get_auth_header_token()
+    if auth_header_token is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
+        print('\r\nERROR Invalid authorization header [{}]\r\n'.format(username))
+        return response, status.HTTP_401_UNAUTHORIZED
+    token = {'access': auth_header_token}
 
     # check if a parameter is empty
     if len(username) == 0 or len(token) == 0:
@@ -428,18 +445,26 @@ def get_user_info(username, access):
 # GET SUBSCRIPTION
 #
 # - Request:
-#   GET /user/<username>/<access>/subscription
+#   GET /user/<username>/subscription
+#   headers: {'Authorization': 'Bearer ' + token.access}
 #
 # - Response:
 #  {'status': 'OK', 'message': string, 'subscription': {'credits': string, 'type': paid} }
 #  {'status': 'NG', 'message': string}
 #
 ########################################################################################################
-@app.route('/user/<username>/<access>/subscription', methods=['GET'])
-def get_subscription(username, access):
+@app.route('/user/<username>/subscription', methods=['GET'])
+def get_subscription(username):
     data = flask.request.get_json()
-    token = {'access': access}
     print('get_subscription username={}'.format(username))
+
+    # get token from Authorization header
+    auth_header_token = get_auth_header_token()
+    if auth_header_token is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
+        print('\r\nERROR Invalid authorization header [{}]\r\n'.format(username))
+        return response, status.HTTP_401_UNAUTHORIZED
+    token = {'access': auth_header_token}
 
     # check if a parameter is empty
     if len(username) == 0 or len(token) == 0:
@@ -478,7 +503,8 @@ def get_subscription(username, access):
 #
 # - Request:
 #   POST /user/subscription
-#   { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string}, 'credits': string }
+#   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+#   { 'username': string, 'credits': string }
 #
 # - Response:
 #  {'status': 'OK', 'message': string, 'subscription': {'credits': string, 'type': paid} }
@@ -489,8 +515,15 @@ def get_subscription(username, access):
 def set_subscription():
     data = flask.request.get_json()
     username = data['username']
-    token = data['token']
     print('set_subscription username={}'.format(username))
+
+    # get token from Authorization header
+    auth_header_token = get_auth_header_token()
+    if auth_header_token is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
+        print('\r\nERROR Invalid authorization header [{}]\r\n'.format(username))
+        return response, status.HTTP_401_UNAUTHORIZED
+    token = {'access': auth_header_token}
 
     # check if a parameter is empty
     if len(username) == 0 or len(token) == 0:
@@ -530,8 +563,8 @@ def set_subscription():
 #
 # - Request:
 #   POST /user/payment/paypalsetup
-#   { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string},
-#     'payment': {'return_url': string, 'cancel_url', string, 'item_sku': string, 'item_credits': string, 'item_price': string} }
+#   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+#   { 'username': string, 'payment': {'return_url': string, 'cancel_url', string, 'item_sku': string, 'item_credits': string, 'item_price': string} }
 #
 # - Response:
 #   {'status': 'OK', 'message': string, 'approval_url': string, 'paymentId': string, 'token': string}
@@ -542,9 +575,16 @@ def set_subscription():
 def set_payment_paypal_setup():
     data = flask.request.get_json()
     username = data['username']
-    token = data['token']
     payment = data['payment']
     print('set_payment_paypal_setup username={}'.format(username))
+
+    # get token from Authorization header
+    auth_header_token = get_auth_header_token()
+    if auth_header_token is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
+        print('\r\nERROR Invalid authorization header [{}]\r\n'.format(username))
+        return response, status.HTTP_401_UNAUTHORIZED
+    token = {'access': auth_header_token}
 
     # check if a parameter is empty
     if len(username) == 0 or len(token) == 0:
@@ -581,8 +621,8 @@ def set_payment_paypal_setup():
 #
 # - Request:
 #   POST /user/payment/paypalexecute
-#   { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string},
-#     'payment': {'paymentId': string, 'payerId': string, 'token': string} }
+#   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+#   { 'username': string, 'payment': {'paymentId': string, 'payerId': string, 'token': string} }
 #
 # - Response:
 #   {'status': 'OK', 'message': string}
@@ -591,11 +631,19 @@ def set_payment_paypal_setup():
 ########################################################################################################
 @app.route('/user/payment/paypalexecute', methods=['POST'])
 def set_payment_paypal_execute():
+    print('set_payment_paypal_execute')
     data = flask.request.get_json()
     username = data['username']
-    token = data['token']
     payment = data['payment']
     print('set_payment_paypal_execute username={}'.format(username))
+
+    # get token from Authorization header
+    auth_header_token = get_auth_header_token()
+    if auth_header_token is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
+        print('\r\nERROR Invalid authorization header [{}]\r\n'.format(username))
+        return response, status.HTTP_401_UNAUTHORIZED
+    token = {'access': auth_header_token}
 
     # check if a parameter is empty
     if len(username) == 0 or len(token) == 0:
@@ -636,8 +684,8 @@ def set_payment_paypal_execute():
 #
 # - Request:
 #   POST /user/payment/paypalverify
-#   { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string},
-#     'payment': {'paymentId': string} }
+#   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+#   { 'username': string, 'payment': {'paymentId': string} }
 #
 # - Response:
 #   {'status': 'OK', 'message': string}
@@ -648,9 +696,16 @@ def set_payment_paypal_execute():
 def set_payment_paypal_verify():
     data = flask.request.get_json()
     username = data['username']
-    token = data['token']
     payment = data['payment']
-    print('set_payment_paypal_execute username={}'.format(username))
+    print('set_payment_paypal_verify username={}'.format(username))
+
+    # get token from Authorization header
+    auth_header_token = get_auth_header_token()
+    if auth_header_token is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
+        print('\r\nERROR Invalid authorization header [{}]\r\n'.format(username))
+        return response, status.HTTP_401_UNAUTHORIZED
+    token = {'access': auth_header_token}
 
     # check if a parameter is empty
     if len(username) == 0 or len(token) == 0:
@@ -693,24 +748,33 @@ def set_payment_paypal_verify():
 #########################
 
 
+
+
 ########################################################################################################
-# NOTE: GET is not working so use POST instead
 # 
 # GET DEVICES
 #
 # - Request:
-#   GET /user/<username>/<access>/devices
+#   GET /user/<username>/devices
+#   headers: {'Authorization': 'Bearer ' + token.access}
 #
 # - Response:
 #   {'status': 'OK', 'message': string, 'devices': array[{'devicename': string, 'deviceid': string, 'cert': cert, 'pkey': pkey, 'ca': ca}, ...]}
 #   {'status': 'NG', 'message': string}
 #
 ########################################################################################################
-@app.route('/user/<username>/<access>/devices', methods=['GET'])
-def get_device_list(username, access):
+@app.route('/user/<username>/devices', methods=['GET'])
+def get_device_list(username):
     data = flask.request.get_json()
-    token = {'access': access}
     print('get_device_list username={}'.format(username))
+
+    # get token from Authorization header
+    auth_header_token = get_auth_header_token()
+    if auth_header_token is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
+        print('\r\nERROR Invalid authorization header [{}]\r\n'.format(username))
+        return response, status.HTTP_401_UNAUTHORIZED
+    token = {'access': auth_header_token}
 
     # check if a parameter is empty
     if len(username) == 0 or len(token) == 0:
@@ -746,7 +810,8 @@ def get_device_list(username, access):
 #
 # - Request:
 #   POST /devices/device
-#   { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string}, 'devicename': string }
+#   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+#   { 'username': string, 'devicename': string }
 #
 # - Response:
 #   {'status': 'OK', 'message': string, 'device': {'devicename': string, 'deviceid': string, 'cert': cert, 'pkey': pkey, 'ca': ca}}
@@ -757,7 +822,8 @@ def get_device_list(username, access):
 #
 # - Request:
 #   DELETE /devices/device
-#   { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string}, 'devicename': string }
+#   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+#   { 'username': string, 'devicename': string }
 #
 # - Response:
 #   {'status': 'OK', 'message': string}
@@ -768,9 +834,16 @@ def get_device_list(username, access):
 def register_device():
     data = flask.request.get_json()
     username = data['username']
-    token = data['token']
     devicename = data['devicename']
-    #print('username={} token={} devicename={}'.format(username, token, devicename))
+    print('register_device username={} devicename={}'.format(username, devicename))
+
+    # get token from Authorization header
+    auth_header_token = get_auth_header_token()
+    if auth_header_token is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
+        print('\r\nERROR Invalid authorization header [{}]\r\n'.format(username))
+        return response, status.HTTP_401_UNAUTHORIZED
+    token = {'access': auth_header_token}
 
     # check if a parameter is empty
     if len(username) == 0 or len(token) == 0 or len(devicename) == 0:
@@ -839,18 +912,26 @@ def register_device():
 # GET DEVICE
 #
 # - Request:
-#   GET /user/<username>/<access>/devices/device/<devicename>
+#   GET /user/<username>/devices/device/<devicename>
+#   headers: {'Authorization': 'Bearer ' + token.access}
 #
 # - Response:
 #   {'status': 'OK', 'message': string, 'device': {'devicename': string, 'deviceid': string, 'cert': cert, 'pkey': pkey}}
 #   {'status': 'NG', 'message': string}
 #
 ########################################################################################################
-@app.route('/user/<username>/<access>/devices/device/<devicename>', methods=['GET'])
-def get_device(username, access, devicename):
+@app.route('/user/<username>/devices/device/<devicename>', methods=['GET'])
+def get_device(username, devicename):
     data = flask.request.get_json()
-    token = {'access': access}
     print('get_device username={} devicename={}'.format(username, devicename))
+
+    # get token from Authorization header
+    auth_header_token = get_auth_header_token()
+    if auth_header_token is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
+        print('\r\nERROR Invalid authorization header [{}]\r\n'.format(username))
+        return response, status.HTTP_401_UNAUTHORIZED
+    token = {'access': auth_header_token}
 
     # check if a parameter is empty
     if len(username) == 0 or len(token) == 0 or len(devicename) == 0:
@@ -889,12 +970,12 @@ def get_device(username, access, devicename):
 
 
 ########################################################################################################
-# NOTE: GET is not working so use POST instead
 #
 # GET DEVICE TRANSACTION HISTORIES
 #
 # - Request:
-#   GET /user/<username>/<access>/devices/histories
+#   GET /user/<username>/devices/histories
+#   headers: {'Authorization': 'Bearer ' + token.access}
 #
 # - Response:
 #   { 'status': 'OK', 'message': string, 
@@ -903,11 +984,18 @@ def get_device(username, access, devicename):
 #   { 'status': 'NG', 'message': string}
 #
 ########################################################################################################
-@app.route('/user/<username>/<access>/devices/histories', methods=['GET'])
-def get_user_histories(username, access):
+@app.route('/user/<username>/devices/histories', methods=['GET'])
+def get_user_histories(username):
     data = flask.request.get_json()
-    token = {'access': access}
     print('get_user_histories username={}'.format(username))
+
+    # get token from Authorization header
+    auth_header_token = get_auth_header_token()
+    if auth_header_token is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
+        print('\r\nERROR Invalid authorization header [{}]\r\n'.format(username))
+        return response, status.HTTP_401_UNAUTHORIZED
+    token = {'access': auth_header_token}
 
     # check if a parameter is empty
     if len(username) == 0 or len(token) == 0:
@@ -947,18 +1035,27 @@ def get_user_histories(username, access):
 #
 # GET STATUS
 # - Request:
-#   GET /user/<username>/<access>/devices/device/<devicename>/status
+#   GET /user/<username>/devices/device/<devicename>/status
+#   headers: {'Authorization': 'Bearer ' + token.access}
 #
 # - Response:
 #   { 'status': 'OK', 'message': string, 'value': string }
 #   { 'status': 'NG', 'message': string}
 #
-@app.route('/user/<username>/<access>/devices/device/<devicename>/status', methods=['GET'])
-def get_status(username, access, devicename):
+@app.route('/user/<username>/devices/device/<devicename>/status', methods=['GET'])
+def get_status(username, devicename):
     api = 'get_status'
+
+    # get token from Authorization header
+    auth_header_token = get_auth_header_token()
+    if auth_header_token is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
+        print('\r\nERROR Invalid authorization header [{}]\r\n'.format(username))
+        return response, status.HTTP_401_UNAUTHORIZED
+
     data = {}
     data['username'] = username
-    data['token'] = {'access': access}
+    data['token'] = {'access': auth_header_token}
     data['devicename'] = devicename
     return process_request_get(api, data)
 
@@ -966,7 +1063,8 @@ def get_status(username, access, devicename):
 # SET STATUS
 # - Request:
 #   POST /devices/device/status
-#   { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string}, 'devicename': string, 'value': string }
+#   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+#   { 'username': string, 'devicename': string, 'value': string }
 #
 # - Response:
 #   { 'status': 'OK', 'message': string, 'value': string}
@@ -975,24 +1073,43 @@ def get_status(username, access, devicename):
 @app.route('/devices/device/status', methods=['POST'])
 def set_status():
     api = 'set_status'
-    return process_request(api)
+
+    # get token from Authorization header
+    auth_header_token = get_auth_header_token()
+    if auth_header_token is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
+        print('\r\nERROR Invalid authorization header [{}]\r\n'.format(username))
+        return response, status.HTTP_401_UNAUTHORIZED
+
+    data = flask.request.get_json()
+    data['token'] = {'access': auth_header_token}
+    return process_request(api, data)
 
 #
 # GET IP
 #
 # - Request:
-#   GET /user/<username>/<access>/devices/device/<devicename>/ip
+#   GET /user/<username>/devices/device/<devicename>/ip
+#   headers: {'Authorization': 'Bearer ' + token.access}
 #
 # - Response:
 #   { 'status': 'OK', 'message': string, 'value': string }
 #   { 'status': 'NG', 'message': string}
 #
-@app.route('/user/<username>/<access>/devices/device/<devicename>/ip', methods=['GET'])
-def get_ip(username, access, devicename):
+@app.route('/user/<username>/devices/device/<devicename>/ip', methods=['GET'])
+def get_ip(username, devicename):
     api = 'get_ip'
+
+    # get token from Authorization header
+    auth_header_token = get_auth_header_token()
+    if auth_header_token is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
+        print('\r\nERROR Invalid authorization header [{}]\r\n'.format(username))
+        return response, status.HTTP_401_UNAUTHORIZED
+
     data = {}
     data['username'] = username
-    data['token'] = {'access': access}
+    data['token'] = {'access': auth_header_token}
     data['devicename'] = devicename
     return process_request_get(api, data)
 
@@ -1000,18 +1117,27 @@ def get_ip(username, access, devicename):
 # GET SUBNET
 #
 # - Request:
-#   GET /user/<username>/<access>/devices/device/<devicename>/subnet
+#   GET /user/<username>/devices/device/<devicename>/subnet
+#   headers: {'Authorization': 'Bearer ' + token.access}
 #
 # - Response:
 #   { 'status': 'OK', 'message': string, 'value': string }
 #   { 'status': 'NG', 'message': string}
 #
-@app.route('/user/<username>/<access>/devices/device/<devicename>/subnet', methods=['GET'])
-def get_subnet(username, access, devicename):
+@app.route('/user/<username>/devices/device/<devicename>/subnet', methods=['GET'])
+def get_subnet(username, devicename):
     api = 'get_subnet'
+
+    # get token from Authorization header
+    auth_header_token = get_auth_header_token()
+    if auth_header_token is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
+        print('\r\nERROR Invalid authorization header [{}]\r\n'.format(username))
+        return response, status.HTTP_401_UNAUTHORIZED
+
     data = {}
     data['username'] = username
-    data['token'] = {'access': access}
+    data['token'] = {'access': auth_header_token}
     data['devicename'] = devicename
     return process_request_get(api, data)
 
@@ -1019,18 +1145,27 @@ def get_subnet(username, access, devicename):
 # GET GATEWAY
 #
 # - Request:
-#   GET /user/<username>/<access>/devices/device/<devicename>/gateway
+#   GET /user/<username>/devices/device/<devicename>/gateway
+#   headers: {'Authorization': 'Bearer ' + token.access}
 #
 # - Response:
 #   { 'status': 'OK', 'message': string, 'value': string }
 #   { 'status': 'NG', 'message': string}
 #
-@app.route('/user/<username>/<access>/devices/device/<devicename>/gateway', methods=['GET'])
-def get_gateway(username, access, devicename):
+@app.route('/user/<username>/devices/device/<devicename>/gateway', methods=['GET'])
+def get_gateway(username, devicename):
     api = 'get_gateway'
+
+    # get token from Authorization header
+    auth_header_token = get_auth_header_token()
+    if auth_header_token is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
+        print('\r\nERROR Invalid authorization header [{}]\r\n'.format(username))
+        return response, status.HTTP_401_UNAUTHORIZED
+
     data = {}
     data['username'] = username
-    data['token'] = {'access': access}
+    data['token'] = {'access': auth_header_token}
     data['devicename'] = devicename
     return process_request_get(api, data)
 
@@ -1038,18 +1173,27 @@ def get_gateway(username, access, devicename):
 # GET MAC
 #
 # - Request:
-#   GET /user/<username>/<access>/devices/device/<devicename>/mac
+#   GET /user/<username>/devices/device/<devicename>/mac
+#   headers: {'Authorization': 'Bearer ' + token.access}
 #
 # - Response:
 #   { 'status': 'OK', 'message': string, 'value': string }
 #   { 'status': 'NG', 'message': string}
 #
-@app.route('/user/<username>/<access>/devices/device/<devicename>/mac', methods=['GET'])
-def get_mac(username, access, devicename):
+@app.route('/user/<username>/devices/device/<devicename>/mac', methods=['GET'])
+def get_mac(username, devicename):
     api = 'get_mac'
+
+    # get token from Authorization header
+    auth_header_token = get_auth_header_token()
+    if auth_header_token is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
+        print('\r\nERROR Invalid authorization header [{}]\r\n'.format(username))
+        return response, status.HTTP_401_UNAUTHORIZED
+
     data = {}
     data['username'] = username
-    data['token'] = {'access': access}
+    data['token'] = {'access': auth_header_token}
     data['devicename'] = devicename
     return process_request_get(api, data)
 
@@ -1057,18 +1201,27 @@ def get_mac(username, access, devicename):
 # GET GPIO
 # 
 # - Request:
-#   GET /user/<username>/<access>/devices/device/<devicename>/gpio/<number>
+#   GET /user/<username>/devices/device/<devicename>/gpio/<number>
+#   headers: {'Authorization': 'Bearer ' + token.access}
 # 
 # - Response:
 #   { 'status': 'OK', 'message': string, 'value': string }
 #   { 'status': 'NG', 'message': string}
 # 
-@app.route('/user/<username>/<access>/devices/device/<devicename>/gpio/<number>', methods=['GET'])
-def get_gpio(username, access, devicename, number):
+@app.route('/user/<username>/devices/device/<devicename>/gpio/<number>', methods=['GET'])
+def get_gpio(username, devicename, number):
     api = 'get_gpio'
+
+    # get token from Authorization header
+    auth_header_token = get_auth_header_token()
+    if auth_header_token is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
+        print('\r\nERROR Invalid authorization header [{}]\r\n'.format(username))
+        return response, status.HTTP_401_UNAUTHORIZED
+
     data = {}
     data['username'] = username
-    data['token'] = {'access': access}
+    data['token'] = {'access': auth_header_token}
     data['devicename'] = devicename
     data['number'] = number
     return process_request_get(api, data)
@@ -1078,7 +1231,8 @@ def get_gpio(username, access, devicename, number):
 # 
 # - Request:
 #   POST /devices/device/gpio
-#   { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string}, 'devicename': string, 'number': string, 'value': string }
+#   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+#   { 'username': string, 'devicename': string, 'number': string, 'value': string }
 # 
 # - Response:
 #   { 'status': 'OK', 'message': string, 'value': string }
@@ -1087,24 +1241,43 @@ def get_gpio(username, access, devicename, number):
 @app.route('/devices/device/gpio', methods=['POST'])
 def set_gpio():
     api = 'set_gpio'
-    return process_request(api)
+
+    # get token from Authorization header
+    auth_header_token = get_auth_header_token()
+    if auth_header_token is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
+        print('\r\nERROR Invalid authorization header [{}]\r\n'.format(username))
+        return response, status.HTTP_401_UNAUTHORIZED
+
+    data = flask.request.get_json()
+    data['token'] = {'access': auth_header_token}
+    return process_request(api, data)
 
 #
 # GET RTC
 #
 # - Request:
-#   GET /user/<username>/<access>/devices/device/<devicename>/rtc
+#   GET /user/<username>/devices/device/<devicename>/rtc
+#   headers: {'Authorization': 'Bearer ' + token.access}
 #
 # - Response:
 #   { 'status': 'OK', 'message': string, 'value': string }
 #   { 'status': 'NG', 'message': string}
 #
-@app.route('/user/<username>/<access>/devices/device/<devicename>/rtc', methods=['GET'])
-def get_rtc(username, access, devicename):
+@app.route('/user/<username>/devices/device/<devicename>/rtc', methods=['GET'])
+def get_rtc(username, devicename):
     api = 'get_rtc'
+
+    # get token from Authorization header
+    auth_header_token = get_auth_header_token()
+    if auth_header_token is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
+        print('\r\nERROR Invalid authorization header [{}]\r\n'.format(username))
+        return response, status.HTTP_401_UNAUTHORIZED
+
     data = {}
     data['username'] = username
-    data['token'] = {'access': access}
+    data['token'] = {'access': auth_header_token}
     data['devicename'] = devicename
     return process_request_get(api, data)
 
@@ -1113,7 +1286,8 @@ def get_rtc(username, access, devicename):
 #
 # - Request:
 #   POST /devices/device/uart
-#   { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string}, 'devicename': string, 'value': string }
+#   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+#   { 'username': string, 'devicename': string, 'value': string }
 #
 # - Response:
 #   { 'status': 'OK', 'message': string, 'value': string }
@@ -1122,14 +1296,25 @@ def get_rtc(username, access, devicename):
 @app.route('/devices/device/uart', methods=['POST'])
 def write_uart():
     api = 'write_uart'
-    return process_request(api)
+
+    # get token from Authorization header
+    auth_header_token = get_auth_header_token()
+    if auth_header_token is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
+        print('\r\nERROR Invalid authorization header [{}]\r\n'.format(username))
+        return response, status.HTTP_401_UNAUTHORIZED
+
+    data = flask.request.get_json()
+    data['token'] = {'access': auth_header_token}
+    return process_request(api, data)
 
 #
 # SET NOTIFICATIONS
 #
 # - Request:
 #   POST /devices/device/notification
-#   { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string}, 'devicename': string, 'value': string }
+#   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+#   { 'username': string, 'devicename': string, 'value': string }
 #
 # - Response:
 #   { 'status': 'OK', 'message': string, 'value': string }
@@ -1138,7 +1323,17 @@ def write_uart():
 @app.route('/devices/device/notification', methods=['POST'])
 def trigger_notification():
     api = 'trigger_notification'
-    return process_request(api)
+
+    # get token from Authorization header
+    auth_header_token = get_auth_header_token()
+    if auth_header_token is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
+        print('\r\nERROR Invalid authorization header [{}]\r\n'.format(username))
+        return response, status.HTTP_401_UNAUTHORIZED
+
+    data = flask.request.get_json()
+    data['token'] = {'access': auth_header_token}
+    return process_request(api, data)
 
 
 
@@ -1245,10 +1440,8 @@ def process_request_get(api, data):
     return response
 
 
-def process_request(api):
+def process_request(api, data):
 
-    # parse HTTP request
-    data = flask.request.get_json()
     #print("\r\nAPI: {} request={}".format(api, data))
     print("\r\nAPI: {} username={}".format(api, data['username']))
 
@@ -1321,6 +1514,23 @@ def process_request(api):
     except:
         response = json.dumps(msg)
     return response
+
+
+# Authorization header for the access token
+def get_auth_header_token():
+    auth_header = flask.request.headers.get('Authorization')
+    if auth_header is None:
+        print("No Authorization header")
+        return None
+    token = auth_header.split(" ")
+    if len(token) != 2:
+        print("No Authorization Bearer header")
+        return None
+    if token[0] != "Bearer":
+        print("No Bearer header")
+        return None
+    #print("auth header: {}".format(token[1]))
+    return token[1]
 
 
 

@@ -13,7 +13,8 @@ angular.module('devices', [])
             // GET DEVICES
             //
             // - Request:
-            //   GET /user/<username>/<access>/devices
+            //   GET /user/<username>/devices
+            //   headers: {'Authorization': 'Bearer ' + token.access}
             //
             // - Response:
             //   {'status': 'OK', 'message': string, 'devices': array[{'devicename': string, 'deviceid': string, ...}, ...]}
@@ -21,8 +22,8 @@ angular.module('devices', [])
             //
             return $http({
                 method: 'GET',
-                url: server + '/user/' + userdata.username + '/' + userdata.token.access + '/devices',
-                headers: {'Content-Type': 'application/json'}
+                url: server + '/user/' + userdata.username + '/devices',
+                headers: {'Authorization': 'Bearer ' + userdata.token.access}
             })
             .then(function (result) {
                 // Handle successful login

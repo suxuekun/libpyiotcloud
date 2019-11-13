@@ -13,7 +13,8 @@ angular.module('histories', [])
             // GET DEVICE TRANSACTION HISTORIES
             //
             // - Request:
-            //   GET /user/<username>/<access>/devices/histories
+            //   GET /user/<username>/devices/histories
+            //   headers: {'Authorization': 'Bearer ' + token.access}
             //
             // - Response:
             //   { 'status': 'OK', 'message': string, 
@@ -23,8 +24,8 @@ angular.module('histories', [])
             //            
             return $http({
                 method: 'GET',
-                url: server + '/user/' + userdata.username + '/' + userdata.token.access + '/devices/histories',
-                headers: {'Content-Type': 'application/json'}
+                url: server + '/user/' + userdata.username + '/devices/histories',
+                headers: {'Authorization': 'Bearer ' + userdata.token.access}
             })
             .then(function (result) {
                 // Handle successful login
