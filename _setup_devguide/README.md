@@ -170,6 +170,11 @@ Please follow the steps below to get the IoT Portal running on your local machin
 		M. You should see "Device is now ready! ..."
 
 
+Refer to the usage guide in https://github.com/richmondu/libpyiotcloud/tree/master/_device_simulator
+for details on actual testing with the device simulator or FT900.
+
+
+
 ### REST API Documentation
 
 There are 3 ways to access the REST APIs.
