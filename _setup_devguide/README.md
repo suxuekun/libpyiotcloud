@@ -67,12 +67,12 @@ Please follow the steps below to get the IoT Portal running on your local machin
 
 1. Download the code from the repository.
 
-    A. Run Docker Toolbox/Desktop as administrator.
+		A. Run Docker Toolbox/Desktop as administrator.
 
-    B. Type "git clone https://github.com/richmondu/libpyiotcloud"
+		B. Type "git clone https://github.com/richmondu/libpyiotcloud"
 
-    C. Type <b>"docker-machine ip"</b>
-       Take note of the value as this will be used in the next steps.
+		C. Type <b>"docker-machine ip"</b>
+		   Take note of the value as this will be used in the next steps.
 
 
 2. Set the following environment system variables.
@@ -126,28 +126,28 @@ Please follow the steps below to get the IoT Portal running on your local machin
     
     
 3. Run the Docker images using the following commands.
-    
-    A. Type "cd libpyiotcloud"
 
-    B. Type "docker-compose -f docker-compose.yml config"
-    
-    C. Type "docker-compose build" <b>// To rebuild from scratch, add "--no-cache"</b>
-    
-    D. Type "docker-compose up" <b>// To run asynchronously, add "-d"</b>
-    
-    E. Open a browser and browse https://docker-machine_ip <b>// Refer to value of "docker-machine ip"</b>
+		A. Type "cd libpyiotcloud"
+
+		B. Type "docker-compose -f docker-compose.yml config"
+		
+		C. Type "docker-compose build" <b>// To rebuild from scratch, add "--no-cache"</b>
+		
+		D. Type "docker-compose up" <b>// To run asynchronously, add "-d"</b>
+		
+		E. Open a browser and browse https://docker-machine_ip <b>// Refer to value of "docker-machine ip"</b>
 
 
     <b>// Note to stop the docker containers, do the following:</b>
-    
-    F. Type "Ctrl+C"
-    
-    G. Type "docker-compose down"
-    
-    H. Type "docker-compose rm"
-    
-    I. Type "docker network prune -f"
-    
+
+		F. Type "Ctrl+C"
+		
+		G. Type "docker-compose down"
+		
+		H. Type "docker-compose rm"
+		
+		I. Type "docker network prune -f"
+
 
 4. Run a device simulator.
 
