@@ -176,7 +176,7 @@ There are 3 ways to access the REST APIs.
 
 1. Access directly from the live backend https://richmondu.com
 2. Setup the docker containers of the backend on local machine and access via https://192.168.99.100 or https://ipofdocker
-3. Setup the non-Docker version of the backend on local machine and access via http://localhost
+3. Setup the non-Docker version of the backend on local machine and access via https://localhost
 
 
 SUMMARY:
