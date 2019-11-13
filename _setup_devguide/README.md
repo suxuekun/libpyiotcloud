@@ -194,8 +194,6 @@ Please follow the steps below to get the IoT Portal running on your local machin
 
 ### REST API Documentation
 
-Note that HTTP GET method requires no payload so username and token must be included in the URL path. 
-
 
 SUMMARY
 
@@ -243,7 +241,7 @@ SUMMARY
 
 DETAILED:
 
-	1. <b>User sign-up/sign-in</b>
+	1. User sign-up/sign-in
 
 		A. SIGN-UP
 
@@ -366,7 +364,7 @@ DETAILED:
 
 
 
-	2. <b>Account subscription and payment</b>
+	2. Account subscription and payment
 
 		A. GET SUBSCRIPTION
 
@@ -452,7 +450,7 @@ DETAILED:
 
 
 
-	3. <b>Device registration and management</b>
+	3. Device registration and management
 
 		A. GET DEVICES
 
@@ -519,7 +517,7 @@ DETAILED:
 
 
 
-	4. <b>Device access and control</b>
+	4. Device access and control
 
 		A. GET DEVICE TRANSACTION HISTORIES
 
