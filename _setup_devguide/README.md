@@ -210,11 +210,11 @@ SUMMARY:
 
 	2. Account subscription and payment
 
-		A. GET SUBSCRIPTION     - GET  /user/subscription
-		B. SET SUBSCRIPTION     - POST /user/subscription
-		C. PAYPAL SETUP         - POST /user/payment/paypalsetup
-		D. PAYPAL EXECUTE       - POST /user/payment/paypalexecute
-		E. PAYPAL VERIFY        - POST /user/payment/paypalverify
+		A. GET SUBSCRIPTION     - GET  /account/subscription
+		B. SET SUBSCRIPTION     - POST /account/subscription
+		C. PAYPAL SETUP         - POST /account/payment/paypalsetup
+		D. PAYPAL EXECUTE       - POST /account/payment/paypalexecute
+		E. PAYPAL VERIFY        - POST /account/payment/paypalverify
 
 	3. Device registration and management
 
@@ -337,7 +337,7 @@ DETAILED:
 		A. GET SUBSCRIPTION
 
 		-  Request:
-		   GET /user/subscription
+		   GET /account/subscription
 		   headers: {'Authorization': 'Bearer ' + token.access}
 
 		-  Response:
@@ -348,7 +348,7 @@ DETAILED:
 		B. SET SUBSCRIPTION
 
 		-  Request:
-		   POST /user/subscription
+		   POST /account/subscription
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
 		   data: { 'credits': string }
 
@@ -360,7 +360,7 @@ DETAILED:
 		C. PAYPAL SETUP
 
 		-  Request:
-		   POST /user/payment/paypalsetup
+		   POST /account/payment/paypalsetup
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
 		   data: { 'payment': {'return_url': string, 'cancel_url', string, 'item_sku': string, 'item_credits': string, 'item_price': string} }
 
@@ -372,7 +372,7 @@ DETAILED:
 		D. PAYPAL EXECUTE
 
 		-  Request:
-		   POST /user/payment/paypalexecute
+		   POST /account/payment/paypalexecute
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
 		   data: { 'payment': {'paymentId': string, 'payerId': string, 'token': string} }
 
@@ -384,7 +384,7 @@ DETAILED:
 		E. PAYPAL VERIFY
 
 		-  Request:
-		   POST /user/payment/paypalverify
+		   POST /account/payment/paypalverify
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
 		   data: { 'payment': {'paymentId': string} }
 

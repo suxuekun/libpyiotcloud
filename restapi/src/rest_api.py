@@ -447,7 +447,7 @@ def get_user_info():
 # GET SUBSCRIPTION
 #
 # - Request:
-#   GET /user/subscription
+#   GET /account/subscription
 #   headers: {'Authorization': 'Bearer ' + token.access}
 #
 # - Response:
@@ -455,7 +455,7 @@ def get_user_info():
 #  {'status': 'NG', 'message': string}
 #
 ########################################################################################################
-@app.route('/user/subscription', methods=['GET'])
+@app.route('/account/subscription', methods=['GET'])
 def get_subscription():
     # get token from Authorization header
     auth_header_token = get_auth_header_token()
@@ -505,7 +505,7 @@ def get_subscription():
 # SET SUBSCRIPTION
 #
 # - Request:
-#   POST /user/subscription
+#   POST /account/subscription
 #   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
 #   data: { 'credits': string }
 #
@@ -514,7 +514,7 @@ def get_subscription():
 #  {'status': 'NG', 'message': string}
 #
 ########################################################################################################
-@app.route('/user/subscription', methods=['POST'])
+@app.route('/account/subscription', methods=['POST'])
 def set_subscription():
     data = flask.request.get_json()
     credits = data['credits']
@@ -567,7 +567,7 @@ def set_subscription():
 # PAYPAL SETUP
 #
 # - Request:
-#   POST /user/payment/paypalsetup
+#   POST /account/payment/paypalsetup
 #   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
 #   data: { 'payment': {'return_url': string, 'cancel_url', string, 'item_sku': string, 'item_credits': string, 'item_price': string} }
 #
@@ -576,7 +576,7 @@ def set_subscription():
 #   {'status': 'NG', 'message': string}
 #
 ########################################################################################################
-@app.route('/user/payment/paypalsetup', methods=['POST'])
+@app.route('/account/payment/paypalsetup', methods=['POST'])
 def set_payment_paypal_setup():
     data = flask.request.get_json()
     payment = data['payment']
@@ -627,7 +627,7 @@ def set_payment_paypal_setup():
 # PAYPAL EXECUTE
 #
 # - Request:
-#   POST /user/payment/paypalexecute
+#   POST /account/payment/paypalexecute
 #   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
 #   data: { 'payment': {'paymentId': string, 'payerId': string, 'token': string} }
 #
@@ -636,7 +636,7 @@ def set_payment_paypal_setup():
 #   {'status': 'NG', 'message': string}
 #
 ########################################################################################################
-@app.route('/user/payment/paypalexecute', methods=['POST'])
+@app.route('/account/payment/paypalexecute', methods=['POST'])
 def set_payment_paypal_execute():
     data = flask.request.get_json()
     payment = data['payment']
@@ -691,7 +691,7 @@ def set_payment_paypal_execute():
 # PAYPAL VERIFY
 #
 # - Request:
-#   POST /user/payment/paypalverify
+#   POST /account/payment/paypalverify
 #   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
 #   data: { 'payment': {'paymentId': string} }
 #
@@ -700,7 +700,7 @@ def set_payment_paypal_execute():
 #   {'status': 'NG', 'message': string}
 #
 ########################################################################################################
-@app.route('/user/payment/paypalverify', methods=['POST'])
+@app.route('/account/payment/paypalverify', methods=['POST'])
 def set_payment_paypal_verify():
     data = flask.request.get_json()
     payment = data['payment']
