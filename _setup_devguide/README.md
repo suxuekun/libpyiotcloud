@@ -296,8 +296,6 @@ Note that HTTP GET method requires no payload so username and token must be incl
 
        headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
 
-       { 'username': string }
-
     -  Response:
 
        {'status': 'OK', 'message': string}
@@ -309,7 +307,7 @@ Note that HTTP GET method requires no payload so username and token must be incl
 
     -  Request:
 
-       GET <b>/user/USERNAME</b>
+       GET <b>/user</b>
 
        headers: {'Authorization': 'Bearer ' + token.access}
 
@@ -327,13 +325,13 @@ Note that HTTP GET method requires no payload so username and token must be incl
 
     -  Request:
 
-       GET <b>/user/USERNAME/subscription</b>
+       GET <b>/user/subscription</b>
 
        headers: {'Authorization': 'Bearer ' + token.access}
 
     -  Response:
 
-       {'status': 'OK', 'message': string, 'subscription': {'credits': string, 'type': paid} }
+       {'status': 'OK', 'message': string, 'subscription': {'credits': string, 'type': string} }
 
        {'status': 'NG', 'message': string}
 
@@ -346,7 +344,7 @@ Note that HTTP GET method requires no payload so username and token must be incl
 
        headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
 
-       { 'username': string, 'token': {'access': string, 'id': string, 'refresh': string}, 'credits': string }
+       { 'credits': string }
 
     -  Response:
 
@@ -363,7 +361,7 @@ Note that HTTP GET method requires no payload so username and token must be incl
 
        headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
 
-       { 'username': string, 'payment': {'return_url': string, 'cancel_url', string, 'item_sku': string, 'item_credits': string, 'item_price': string} }
+       { 'payment': {'return_url': string, 'cancel_url', string, 'item_sku': string, 'item_credits': string, 'item_price': string} }
 
     -  Response:
 
@@ -380,7 +378,7 @@ Note that HTTP GET method requires no payload so username and token must be incl
 
        headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
 
-       { 'username': string, 'payment': {'paymentId': string, 'payerId': string, 'token': string} }
+       { 'payment': {'paymentId': string, 'payerId': string, 'token': string} }
 
     -  Response:
 
@@ -397,7 +395,7 @@ Note that HTTP GET method requires no payload so username and token must be incl
 
        headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
 
-       { 'username': string, 'payment': {'paymentId': string} }
+       { 'payment': {'paymentId': string} }
 
     -  Response:
 
@@ -413,7 +411,7 @@ Note that HTTP GET method requires no payload so username and token must be incl
 
     -  Request:
 
-       GET <b>/user/USERNAME/ACCESS/devices</b>
+       GET <b>/devices</b>
 
        headers: {'Authorization': 'Bearer ' + token.access}
 
@@ -432,7 +430,7 @@ Note that HTTP GET method requires no payload so username and token must be incl
 
        headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
 
-       { 'username': string, 'devicename': string }
+       { 'devicename': string }
 
     -  Response:
 
@@ -449,7 +447,7 @@ Note that HTTP GET method requires no payload so username and token must be incl
 
        headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
 
-       { 'username': string, 'devicename': string }
+       { 'devicename': string }
 
     -  Response:
     
@@ -462,7 +460,7 @@ Note that HTTP GET method requires no payload so username and token must be incl
 
     -  Request:
     
-       GET <b>/user/USERNAME/ACCESS/devices/device/DEVICENAME</b>
+       GET <b>/devices/device/DEVICENAME</b>
 
        headers: {'Authorization': 'Bearer ' + token.access}
 
@@ -479,17 +477,16 @@ Note that HTTP GET method requires no payload so username and token must be incl
     A. GET DEVICE TRANSACTION HISTORIES
 
     -  Request:
-    
-       GET <b>/user/USERNAME/devices/histories</b>
+
+       GET <b>/devices/histories</b>
 
        headers: {'Authorization': 'Bearer ' + token.access}
 
     -  Response:
-    
+
        { 'status': 'OK', 'message': string, 
-         'histories': array[
-           {'devicename': string, 'deviceid': string, 'direction': string, 'topic': string, 'payload': string, 'timestamp': string}, ...]}
-           
+         'histories': array[{'devicename': string, 'deviceid': string, 'direction': string, 'topic': string, 'payload': string, 'timestamp': string}, ...]}
+
        { 'status': 'NG', 'message': string}
 
 
@@ -497,7 +494,7 @@ Note that HTTP GET method requires no payload so username and token must be incl
 
     -  Request:
 
-       GET <b>/user/USERNAME/devices/device/DEVICENAME/status</b>
+       GET <b>/devices/device/DEVICENAME/status</b>
 
        headers: {'Authorization': 'Bearer ' + token.access}
 
@@ -516,7 +513,7 @@ Note that HTTP GET method requires no payload so username and token must be incl
 
        headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
 
-       data: { 'username': string, 'devicename': string, 'value': string }
+       data: { 'devicename': string, 'value': string }
 
     -  Response:
 
@@ -529,7 +526,7 @@ Note that HTTP GET method requires no payload so username and token must be incl
 
     -  Request:
 
-       GET <b>/user/USERNAME/devices/device/DEVICENAME/ip</b>
+       GET <b>/devices/device/DEVICENAME/ip</b>
 
        headers: {'Authorization': 'Bearer ' + token.access}
 
@@ -544,7 +541,7 @@ Note that HTTP GET method requires no payload so username and token must be incl
 
     -  Request:
 
-       GET <b>/user/USERNAME/devices/device/DEVICENAME/subnet</b>
+       GET <b>/devices/device/DEVICENAME/subnet</b>
 
        headers: {'Authorization': 'Bearer ' + token.access}
 
@@ -559,7 +556,7 @@ Note that HTTP GET method requires no payload so username and token must be incl
 
     -  Request:
 
-       GET <b>/user/USERNAME/devices/device/DEVICENAME/gateway</b>
+       GET <b>/devices/device/DEVICENAME/gateway</b>
 
        headers: {'Authorization': 'Bearer ' + token.access}
 
@@ -574,7 +571,7 @@ Note that HTTP GET method requires no payload so username and token must be incl
 
     -  Request:
 
-       GET <b>/user/USERNAME/devices/device/DEVICENAME/mac</b>
+       GET <b>/devices/device/DEVICENAME/mac</b>
 
        headers: {'Authorization': 'Bearer ' + token.access}
 
@@ -589,7 +586,7 @@ Note that HTTP GET method requires no payload so username and token must be incl
 
     -  Request:
 
-       GET <b>/user/USERNAME/devices/device/DEVICENAME/gpio/<number></b>
+       GET <b>/devices/device/DEVICENAME/gpio/NUMBER</b>
 
        headers: {'Authorization': 'Bearer ' + token.access}
 
@@ -608,7 +605,7 @@ Note that HTTP GET method requires no payload so username and token must be incl
 
        headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
 
-       data: { 'username': string, 'devicename': string, 'number': string, 'value': string }
+       data: { 'devicename': string, 'number': string, 'value': string }
 
     -  Response:
 
@@ -621,7 +618,7 @@ Note that HTTP GET method requires no payload so username and token must be incl
 
     -  Request:
 
-       GET <b>/user/USERNAME/devices/device/DEVICENAME/rtc</b>
+       GET <b>/devices/device/DEVICENAME/rtc</b>
 
        headers: {'Authorization': 'Bearer ' + token.access}
 
@@ -640,7 +637,7 @@ Note that HTTP GET method requires no payload so username and token must be incl
 
        headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
 
-       data: { 'username': string, 'devicename': string, 'value': string }
+       data: { 'devicename': string, 'value': string }
 
     -  Response:
 
@@ -657,7 +654,7 @@ Note that HTTP GET method requires no payload so username and token must be incl
 
        headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
 
-       data: { 'username': string, 'devicename': string, 'recipient': string, 'message': string }
+       data: { 'devicename': string, 'recipient': string, 'message': string }
 
     -  Response:
 

@@ -13,7 +13,7 @@ angular.module('devices', [])
             // GET DEVICES
             //
             // - Request:
-            //   GET /user/<username>/devices
+            //   GET /devices
             //   headers: {'Authorization': 'Bearer ' + token.access}
             //
             // - Response:
@@ -22,7 +22,7 @@ angular.module('devices', [])
             //
             return $http({
                 method: 'GET',
-                url: server + '/user/' + userdata.username + '/devices',
+                url: server + '/devices',
                 headers: {'Authorization': 'Bearer ' + userdata.token.access}
             })
             .then(function (result) {

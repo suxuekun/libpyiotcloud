@@ -108,6 +108,9 @@ class database_client:
     def verify_token(self, username, token):
         return self._users.verify_token(username, token)
 
+    def get_username_from_token(self, token):
+        return self._users.get_username_from_token(token)
+
     def delete_user(self, username):
         self._users.delete_user(username)
 
@@ -294,6 +297,10 @@ class database_client_cognito:
             print("Unexpected error! {}".format(result))
             return result, None
         return result, None
+
+    def get_username_from_token(self, token):
+        username = self.client.get_username_from_token(token['access'])
+        return username
 
     def get_confirmationcode(self, username):
         return None

@@ -317,7 +317,6 @@ def confirm_forgot_password():
 # - Request:
 #   POST /user/logout
 #   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-#   { 'username': string }
 #
 # - Response:
 #   {'status': 'OK', 'message': string}
@@ -328,15 +327,17 @@ def confirm_forgot_password():
 def logout():
     data = flask.request.get_json()
     try:
-        username = data['username']
-
         # get token from Authorization header
         auth_header_token = get_auth_header_token()
         if auth_header_token is None:
             response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-            print('\r\nERROR Invalid authorization header [{}]\r\n'.format(username))
+            print('\r\nERROR Invalid authorization header\r\n')
             return response, status.HTTP_401_UNAUTHORIZED
         token = {'access': auth_header_token}
+
+        # get username from token
+        username = g_database_client.get_username_from_token(token)
+        print('logout username={}'.format(username))
 
     except:
         response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
@@ -382,7 +383,7 @@ def logout():
 # GET USER INFO
 #
 # - Request:
-#   GET /user/<username>
+#   GET /user
 #   headers: {'Authorization': 'Bearer ' + token.access}
 #
 # - Response:
@@ -390,11 +391,8 @@ def logout():
 #   {'status': 'NG', 'message': string}
 #
 ########################################################################################################
-@app.route('/user/<username>', methods=['GET'])
-def get_user_info(username):
-    data = flask.request.get_json()
-    print('get_user_info username={}'.format(username))
-
+@app.route('/user', methods=['GET'])
+def get_user_info():
     # get token from Authorization header
     auth_header_token = get_auth_header_token()
     if auth_header_token is None:
@@ -402,6 +400,10 @@ def get_user_info(username):
         print('\r\nERROR Invalid authorization header [{}]\r\n'.format(username))
         return response, status.HTTP_401_UNAUTHORIZED
     token = {'access': auth_header_token}
+
+    # get username from token
+    username = g_database_client.get_username_from_token(token)
+    print('get_user_info username={}'.format(username))
 
     # check if a parameter is empty
     if len(username) == 0 or len(token) == 0:
@@ -445,7 +447,7 @@ def get_user_info(username):
 # GET SUBSCRIPTION
 #
 # - Request:
-#   GET /user/<username>/subscription
+#   GET /user/subscription
 #   headers: {'Authorization': 'Bearer ' + token.access}
 #
 # - Response:
@@ -453,18 +455,19 @@ def get_user_info(username):
 #  {'status': 'NG', 'message': string}
 #
 ########################################################################################################
-@app.route('/user/<username>/subscription', methods=['GET'])
-def get_subscription(username):
-    data = flask.request.get_json()
-    print('get_subscription username={}'.format(username))
-
+@app.route('/user/subscription', methods=['GET'])
+def get_subscription():
     # get token from Authorization header
     auth_header_token = get_auth_header_token()
     if auth_header_token is None:
         response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Invalid authorization header [{}]\r\n'.format(username))
+        print('\r\nERROR Invalid authorization header\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
     token = {'access': auth_header_token}
+
+    # get username from token
+    username = g_database_client.get_username_from_token(token)
+    print('get_subscription username={}'.format(username))
 
     # check if a parameter is empty
     if len(username) == 0 or len(token) == 0:
@@ -504,7 +507,7 @@ def get_subscription(username):
 # - Request:
 #   POST /user/subscription
 #   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-#   { 'username': string, 'credits': string }
+#   data: { 'credits': string }
 #
 # - Response:
 #  {'status': 'OK', 'message': string, 'subscription': {'credits': string, 'type': paid} }
@@ -514,16 +517,19 @@ def get_subscription(username):
 @app.route('/user/subscription', methods=['POST'])
 def set_subscription():
     data = flask.request.get_json()
-    username = data['username']
-    print('set_subscription username={}'.format(username))
+    credits = data['credits']
 
     # get token from Authorization header
     auth_header_token = get_auth_header_token()
     if auth_header_token is None:
         response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Invalid authorization header [{}]\r\n'.format(username))
+        print('\r\nERROR Invalid authorization header\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
     token = {'access': auth_header_token}
+
+    # get username from token
+    username = g_database_client.get_username_from_token(token)
+    print('set_subscription username={}'.format(username))
 
     # check if a parameter is empty
     if len(username) == 0 or len(token) == 0:
@@ -542,7 +548,6 @@ def set_subscription():
         # No need to return error code status.HTTP_401_UNAUTHORIZED since this is a logout
         return response
 
-    credits = data['credits']
     subscription = g_database_client.set_subscription(username, credits)
     print(subscription)
     msg = {'status': 'OK', 'message': 'User subscription set successfully.', 'subscription': subscription}
@@ -564,7 +569,7 @@ def set_subscription():
 # - Request:
 #   POST /user/payment/paypalsetup
 #   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-#   { 'username': string, 'payment': {'return_url': string, 'cancel_url', string, 'item_sku': string, 'item_credits': string, 'item_price': string} }
+#   data: { 'payment': {'return_url': string, 'cancel_url', string, 'item_sku': string, 'item_credits': string, 'item_price': string} }
 #
 # - Response:
 #   {'status': 'OK', 'message': string, 'approval_url': string, 'paymentId': string, 'token': string}
@@ -574,17 +579,19 @@ def set_subscription():
 @app.route('/user/payment/paypalsetup', methods=['POST'])
 def set_payment_paypal_setup():
     data = flask.request.get_json()
-    username = data['username']
     payment = data['payment']
-    print('set_payment_paypal_setup username={}'.format(username))
 
     # get token from Authorization header
     auth_header_token = get_auth_header_token()
     if auth_header_token is None:
         response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Invalid authorization header [{}]\r\n'.format(username))
+        print('\r\nERROR Invalid authorization header\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
     token = {'access': auth_header_token}
+
+    # get username from token
+    username = g_database_client.get_username_from_token(token)
+    print('set_payment_paypal_setup username={}'.format(username))
 
     # check if a parameter is empty
     if len(username) == 0 or len(token) == 0:
@@ -622,7 +629,7 @@ def set_payment_paypal_setup():
 # - Request:
 #   POST /user/payment/paypalexecute
 #   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-#   { 'username': string, 'payment': {'paymentId': string, 'payerId': string, 'token': string} }
+#   data: { 'payment': {'paymentId': string, 'payerId': string, 'token': string} }
 #
 # - Response:
 #   {'status': 'OK', 'message': string}
@@ -631,19 +638,20 @@ def set_payment_paypal_setup():
 ########################################################################################################
 @app.route('/user/payment/paypalexecute', methods=['POST'])
 def set_payment_paypal_execute():
-    print('set_payment_paypal_execute')
     data = flask.request.get_json()
-    username = data['username']
     payment = data['payment']
-    print('set_payment_paypal_execute username={}'.format(username))
 
     # get token from Authorization header
     auth_header_token = get_auth_header_token()
     if auth_header_token is None:
         response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Invalid authorization header [{}]\r\n'.format(username))
+        print('\r\nERROR Invalid authorization header\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
     token = {'access': auth_header_token}
+
+    # get username from token
+    username = g_database_client.get_username_from_token(token)
+    print('set_payment_paypal_execute username={}'.format(username))
 
     # check if a parameter is empty
     if len(username) == 0 or len(token) == 0:
@@ -685,7 +693,7 @@ def set_payment_paypal_execute():
 # - Request:
 #   POST /user/payment/paypalverify
 #   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-#   { 'username': string, 'payment': {'paymentId': string} }
+#   data: { 'payment': {'paymentId': string} }
 #
 # - Response:
 #   {'status': 'OK', 'message': string}
@@ -695,17 +703,19 @@ def set_payment_paypal_execute():
 @app.route('/user/payment/paypalverify', methods=['POST'])
 def set_payment_paypal_verify():
     data = flask.request.get_json()
-    username = data['username']
     payment = data['payment']
-    print('set_payment_paypal_verify username={}'.format(username))
 
     # get token from Authorization header
     auth_header_token = get_auth_header_token()
     if auth_header_token is None:
         response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Invalid authorization header [{}]\r\n'.format(username))
+        print('\r\nERROR Invalid authorization header\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
     token = {'access': auth_header_token}
+
+    # get username from token
+    username = g_database_client.get_username_from_token(token)
+    print('set_payment_paypal_verify username={}'.format(username))
 
     # check if a parameter is empty
     if len(username) == 0 or len(token) == 0:
@@ -755,7 +765,7 @@ def set_payment_paypal_verify():
 # GET DEVICES
 #
 # - Request:
-#   GET /user/<username>/devices
+#   GET /devices
 #   headers: {'Authorization': 'Bearer ' + token.access}
 #
 # - Response:
@@ -763,11 +773,8 @@ def set_payment_paypal_verify():
 #   {'status': 'NG', 'message': string}
 #
 ########################################################################################################
-@app.route('/user/<username>/devices', methods=['GET'])
-def get_device_list(username):
-    data = flask.request.get_json()
-    print('get_device_list username={}'.format(username))
-
+@app.route('/devices', methods=['GET'])
+def get_device_list():
     # get token from Authorization header
     auth_header_token = get_auth_header_token()
     if auth_header_token is None:
@@ -775,6 +782,10 @@ def get_device_list(username):
         print('\r\nERROR Invalid authorization header [{}]\r\n'.format(username))
         return response, status.HTTP_401_UNAUTHORIZED
     token = {'access': auth_header_token}
+
+    # get username from token
+    username = g_database_client.get_username_from_token(token)
+    print('get_device_list username={}'.format(username))
 
     # check if a parameter is empty
     if len(username) == 0 or len(token) == 0:
@@ -811,7 +822,7 @@ def get_device_list(username):
 # - Request:
 #   POST /devices/device
 #   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-#   { 'username': string, 'devicename': string }
+#   { 'devicename': string }
 #
 # - Response:
 #   {'status': 'OK', 'message': string, 'device': {'devicename': string, 'deviceid': string, 'cert': cert, 'pkey': pkey, 'ca': ca}}
@@ -823,7 +834,7 @@ def get_device_list(username):
 # - Request:
 #   DELETE /devices/device
 #   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-#   { 'username': string, 'devicename': string }
+#   data: { 'devicename': string }
 #
 # - Response:
 #   {'status': 'OK', 'message': string}
@@ -833,17 +844,19 @@ def get_device_list(username):
 @app.route('/devices/device', methods=['POST', 'DELETE'])
 def register_device():
     data = flask.request.get_json()
-    username = data['username']
     devicename = data['devicename']
-    print('register_device username={} devicename={}'.format(username, devicename))
 
     # get token from Authorization header
     auth_header_token = get_auth_header_token()
     if auth_header_token is None:
         response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Invalid authorization header [{}]\r\n'.format(username))
+        print('\r\nERROR Invalid authorization header\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
     token = {'access': auth_header_token}
+
+    # get username from token
+    username = g_database_client.get_username_from_token(token)
+    print('register_device username={} devicename={}'.format(username, devicename))
 
     # check if a parameter is empty
     if len(username) == 0 or len(token) == 0 or len(devicename) == 0:
@@ -912,7 +925,7 @@ def register_device():
 # GET DEVICE
 #
 # - Request:
-#   GET /user/<username>/devices/device/<devicename>
+#   GET /devices/device/<devicename>
 #   headers: {'Authorization': 'Bearer ' + token.access}
 #
 # - Response:
@@ -920,18 +933,19 @@ def register_device():
 #   {'status': 'NG', 'message': string}
 #
 ########################################################################################################
-@app.route('/user/<username>/devices/device/<devicename>', methods=['GET'])
-def get_device(username, devicename):
-    data = flask.request.get_json()
-    print('get_device username={} devicename={}'.format(username, devicename))
-
+@app.route('/devices/device/<devicename>', methods=['GET'])
+def get_device(devicename):
     # get token from Authorization header
     auth_header_token = get_auth_header_token()
     if auth_header_token is None:
         response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Invalid authorization header [{}]\r\n'.format(username))
+        print('\r\nERROR Invalid authorization header\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
     token = {'access': auth_header_token}
+
+    # get username from token
+    username = g_database_client.get_username_from_token(token)
+    print('get_device username={} devicename={}'.format(username, devicename))
 
     # check if a parameter is empty
     if len(username) == 0 or len(token) == 0 or len(devicename) == 0:
@@ -974,7 +988,7 @@ def get_device(username, devicename):
 # GET DEVICE TRANSACTION HISTORIES
 #
 # - Request:
-#   GET /user/<username>/devices/histories
+#   GET /devices/histories
 #   headers: {'Authorization': 'Bearer ' + token.access}
 #
 # - Response:
@@ -984,18 +998,19 @@ def get_device(username, devicename):
 #   { 'status': 'NG', 'message': string}
 #
 ########################################################################################################
-@app.route('/user/<username>/devices/histories', methods=['GET'])
-def get_user_histories(username):
-    data = flask.request.get_json()
-    print('get_user_histories username={}'.format(username))
-
+@app.route('/devices/histories', methods=['GET'])
+def get_user_histories():
     # get token from Authorization header
     auth_header_token = get_auth_header_token()
     if auth_header_token is None:
         response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Invalid authorization header [{}]\r\n'.format(username))
+        print('\r\nERROR Invalid authorization header\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
     token = {'access': auth_header_token}
+
+    # get username from token
+    username = g_database_client.get_username_from_token(token)
+    print('get_user_histories username={}'.format(username))
 
     # check if a parameter is empty
     if len(username) == 0 or len(token) == 0:
@@ -1029,34 +1044,37 @@ def get_user_histories(username):
 
 
 ########################################################################################################
-# GET /user/<username>/<access>/devices/device/<devicename>/xxx
+# GET  /devices/device/<devicename>/xxx
 # POST /devices/device/xxx
 ########################################################################################################
 #
 # GET STATUS
 # - Request:
-#   GET /user/<username>/devices/device/<devicename>/status
+#   GET /devices/device/<devicename>/status
 #   headers: {'Authorization': 'Bearer ' + token.access}
 #
 # - Response:
 #   { 'status': 'OK', 'message': string, 'value': string }
 #   { 'status': 'NG', 'message': string}
 #
-@app.route('/user/<username>/devices/device/<devicename>/status', methods=['GET'])
-def get_status(username, devicename):
+@app.route('/devices/device/<devicename>/status', methods=['GET'])
+def get_status(devicename):
     api = 'get_status'
 
     # get token from Authorization header
     auth_header_token = get_auth_header_token()
     if auth_header_token is None:
         response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Invalid authorization header [{}]\r\n'.format(username))
+        print('\r\nERROR Invalid authorization header\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
 
+    # get username from token
     data = {}
-    data['username'] = username
     data['token'] = {'access': auth_header_token}
     data['devicename'] = devicename
+    data['username'] = g_database_client.get_username_from_token(data['token'])
+    print('get_status username={}'.format(data['username']))
+
     return process_request_get(api, data)
 
 #
@@ -1064,7 +1082,7 @@ def get_status(username, devicename):
 # - Request:
 #   POST /devices/device/status
 #   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-#   { 'username': string, 'devicename': string, 'value': string }
+#   data: { 'devicename': string, 'value': string }
 #
 # - Response:
 #   { 'status': 'OK', 'message': string, 'value': string}
@@ -1078,26 +1096,30 @@ def set_status():
     auth_header_token = get_auth_header_token()
     if auth_header_token is None:
         response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Invalid authorization header [{}]\r\n'.format(username))
+        print('\r\nERROR Invalid authorization header\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
 
+    # get username from token
     data = flask.request.get_json()
     data['token'] = {'access': auth_header_token}
+    data['username'] = g_database_client.get_username_from_token(data['token'])
+    print('set_status username={}'.format(data['username']))
+
     return process_request(api, data)
 
 #
 # GET IP
 #
 # - Request:
-#   GET /user/<username>/devices/device/<devicename>/ip
+#   GET /devices/device/<devicename>/ip
 #   headers: {'Authorization': 'Bearer ' + token.access}
 #
 # - Response:
 #   { 'status': 'OK', 'message': string, 'value': string }
 #   { 'status': 'NG', 'message': string}
 #
-@app.route('/user/<username>/devices/device/<devicename>/ip', methods=['GET'])
-def get_ip(username, devicename):
+@app.route('/devices/device/<devicename>/ip', methods=['GET'])
+def get_ip(devicename):
     api = 'get_ip'
 
     # get token from Authorization header
@@ -1107,25 +1129,28 @@ def get_ip(username, devicename):
         print('\r\nERROR Invalid authorization header [{}]\r\n'.format(username))
         return response, status.HTTP_401_UNAUTHORIZED
 
+    # get username from token
     data = {}
-    data['username'] = username
     data['token'] = {'access': auth_header_token}
     data['devicename'] = devicename
+    data['username'] = g_database_client.get_username_from_token(data['token'])
+    print('get_ip username={}'.format(data['username']))
+
     return process_request_get(api, data)
 
 #
 # GET SUBNET
 #
 # - Request:
-#   GET /user/<username>/devices/device/<devicename>/subnet
+#   GET /devices/device/<devicename>/subnet
 #   headers: {'Authorization': 'Bearer ' + token.access}
 #
 # - Response:
 #   { 'status': 'OK', 'message': string, 'value': string }
 #   { 'status': 'NG', 'message': string}
 #
-@app.route('/user/<username>/devices/device/<devicename>/subnet', methods=['GET'])
-def get_subnet(username, devicename):
+@app.route('/devices/device/<devicename>/subnet', methods=['GET'])
+def get_subnet(devicename):
     api = 'get_subnet'
 
     # get token from Authorization header
@@ -1135,25 +1160,28 @@ def get_subnet(username, devicename):
         print('\r\nERROR Invalid authorization header [{}]\r\n'.format(username))
         return response, status.HTTP_401_UNAUTHORIZED
 
+    # get username from token
     data = {}
-    data['username'] = username
     data['token'] = {'access': auth_header_token}
     data['devicename'] = devicename
+    data['username'] = g_database_client.get_username_from_token(data['token'])
+    print('get_subnet username={}'.format(data['username']))
+
     return process_request_get(api, data)
 
 #
 # GET GATEWAY
 #
 # - Request:
-#   GET /user/<username>/devices/device/<devicename>/gateway
+#   GET /devices/device/<devicename>/gateway
 #   headers: {'Authorization': 'Bearer ' + token.access}
 #
 # - Response:
 #   { 'status': 'OK', 'message': string, 'value': string }
 #   { 'status': 'NG', 'message': string}
 #
-@app.route('/user/<username>/devices/device/<devicename>/gateway', methods=['GET'])
-def get_gateway(username, devicename):
+@app.route('/devices/device/<devicename>/gateway', methods=['GET'])
+def get_gateway(devicename):
     api = 'get_gateway'
 
     # get token from Authorization header
@@ -1163,67 +1191,76 @@ def get_gateway(username, devicename):
         print('\r\nERROR Invalid authorization header [{}]\r\n'.format(username))
         return response, status.HTTP_401_UNAUTHORIZED
 
+    # get username from token
     data = {}
-    data['username'] = username
     data['token'] = {'access': auth_header_token}
     data['devicename'] = devicename
+    data['username'] = g_database_client.get_username_from_token(data['token'])
+    print('get_gateway username={}'.format(data['username']))
+
     return process_request_get(api, data)
 
 #
 # GET MAC
 #
 # - Request:
-#   GET /user/<username>/devices/device/<devicename>/mac
+#   GET /devices/device/<devicename>/mac
 #   headers: {'Authorization': 'Bearer ' + token.access}
 #
 # - Response:
 #   { 'status': 'OK', 'message': string, 'value': string }
 #   { 'status': 'NG', 'message': string}
 #
-@app.route('/user/<username>/devices/device/<devicename>/mac', methods=['GET'])
-def get_mac(username, devicename):
+@app.route('/devices/device/<devicename>/mac', methods=['GET'])
+def get_mac(devicename):
     api = 'get_mac'
 
     # get token from Authorization header
     auth_header_token = get_auth_header_token()
     if auth_header_token is None:
         response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Invalid authorization header [{}]\r\n'.format(username))
+        print('\r\nERROR Invalid authorization header\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
 
+    # get username from token
     data = {}
-    data['username'] = username
     data['token'] = {'access': auth_header_token}
     data['devicename'] = devicename
+    data['username'] = g_database_client.get_username_from_token(data['token'])
+    print('get_mac username={}'.format(data['username']))
+
     return process_request_get(api, data)
 
 # 
 # GET GPIO
 # 
 # - Request:
-#   GET /user/<username>/devices/device/<devicename>/gpio/<number>
+#   GET /devices/device/<devicename>/gpio/<number>
 #   headers: {'Authorization': 'Bearer ' + token.access}
 # 
 # - Response:
 #   { 'status': 'OK', 'message': string, 'value': string }
 #   { 'status': 'NG', 'message': string}
 # 
-@app.route('/user/<username>/devices/device/<devicename>/gpio/<number>', methods=['GET'])
-def get_gpio(username, devicename, number):
+@app.route('/devices/device/<devicename>/gpio/<number>', methods=['GET'])
+def get_gpio(devicename, number):
     api = 'get_gpio'
 
     # get token from Authorization header
     auth_header_token = get_auth_header_token()
     if auth_header_token is None:
         response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Invalid authorization header [{}]\r\n'.format(username))
+        print('\r\nERROR Invalid authorization header\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
 
+    # get username from token
     data = {}
-    data['username'] = username
     data['token'] = {'access': auth_header_token}
     data['devicename'] = devicename
     data['number'] = number
+    data['username'] = g_database_client.get_username_from_token(data['token'])
+    print('get_gpio username={}'.format(data['username']))
+
     return process_request_get(api, data)
 
 # 
@@ -1232,7 +1269,7 @@ def get_gpio(username, devicename, number):
 # - Request:
 #   POST /devices/device/gpio
 #   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-#   { 'username': string, 'devicename': string, 'number': string, 'value': string }
+#   data: { 'devicename': string, 'number': string, 'value': string }
 # 
 # - Response:
 #   { 'status': 'OK', 'message': string, 'value': string }
@@ -1246,39 +1283,46 @@ def set_gpio():
     auth_header_token = get_auth_header_token()
     if auth_header_token is None:
         response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Invalid authorization header [{}]\r\n'.format(username))
+        print('\r\nERROR Invalid authorization header\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
 
+    # get username from token
     data = flask.request.get_json()
     data['token'] = {'access': auth_header_token}
+    data['username'] = g_database_client.get_username_from_token(data['token'])
+    print('set_gpio username={}'.format(data['username']))
+
     return process_request(api, data)
 
 #
 # GET RTC
 #
 # - Request:
-#   GET /user/<username>/devices/device/<devicename>/rtc
+#   GET devices/device/<devicename>/rtc
 #   headers: {'Authorization': 'Bearer ' + token.access}
 #
 # - Response:
 #   { 'status': 'OK', 'message': string, 'value': string }
 #   { 'status': 'NG', 'message': string}
 #
-@app.route('/user/<username>/devices/device/<devicename>/rtc', methods=['GET'])
-def get_rtc(username, devicename):
+@app.route('/devices/device/<devicename>/rtc', methods=['GET'])
+def get_rtc(devicename):
     api = 'get_rtc'
 
     # get token from Authorization header
     auth_header_token = get_auth_header_token()
     if auth_header_token is None:
         response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Invalid authorization header [{}]\r\n'.format(username))
+        print('\r\nERROR Invalid authorization header\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
 
+    # get username from token
     data = {}
-    data['username'] = username
     data['token'] = {'access': auth_header_token}
     data['devicename'] = devicename
+    data['username'] = g_database_client.get_username_from_token(data['token'])
+    print('get_rtc username={}'.format(data['username']))
+
     return process_request_get(api, data)
 
 #
@@ -1287,7 +1331,7 @@ def get_rtc(username, devicename):
 # - Request:
 #   POST /devices/device/uart
 #   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-#   { 'username': string, 'devicename': string, 'value': string }
+#   data: { 'devicename': string, 'value': string }
 #
 # - Response:
 #   { 'status': 'OK', 'message': string, 'value': string }
@@ -1301,11 +1345,15 @@ def write_uart():
     auth_header_token = get_auth_header_token()
     if auth_header_token is None:
         response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Invalid authorization header [{}]\r\n'.format(username))
+        print('\r\nERROR Invalid authorization header\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
 
+    # get username from token
     data = flask.request.get_json()
     data['token'] = {'access': auth_header_token}
+    data['username'] = g_database_client.get_username_from_token(data['token'])
+    print('write_uart username={}'.format(data['username']))
+
     return process_request(api, data)
 
 #
@@ -1314,7 +1362,7 @@ def write_uart():
 # - Request:
 #   POST /devices/device/notification
 #   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-#   { 'username': string, 'devicename': string, 'value': string }
+#   data: { 'devicename': string, 'recipient': string, 'message': string, 'options': string }
 #
 # - Response:
 #   { 'status': 'OK', 'message': string, 'value': string }
@@ -1328,11 +1376,15 @@ def trigger_notification():
     auth_header_token = get_auth_header_token()
     if auth_header_token is None:
         response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Invalid authorization header [{}]\r\n'.format(username))
+        print('\r\nERROR Invalid authorization header\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
 
+    # get username from token
     data = flask.request.get_json()
     data['token'] = {'access': auth_header_token}
+    data['username'] = g_database_client.get_username_from_token(data['token'])
+    print('trigger_notification username={}'.format(data['username']))
+
     return process_request(api, data)
 
 
