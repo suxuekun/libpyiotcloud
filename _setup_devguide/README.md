@@ -236,7 +236,7 @@ SUMMARY:
 		J. SET UART             - POST /devices/device/uart
 		K. SET NOTIFICATION     - POST /devices/device/notification
 
-	4. Device transactions (to and from device)
+	4. Device transaction recording (to and from device)
 
 		A. GET DEVICE HISTORIES - GET  /devices/histories
 
@@ -457,7 +457,7 @@ DETAILED:
 		   { 'status': 'NG', 'message': string}
 
 
-	4. Device transactions (to and from device)
+	4. Device transaction recording (to and from device)
 
 		A. GET DEVICE TRANSACTION HISTORIES
 		-  Request:
