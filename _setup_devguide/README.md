@@ -151,7 +151,8 @@ Or at the least be able to experiment before proposing new or modified APIs.
 		
 		C. In Windows, update HOST variable in device_simulator.py.bat to the docker-machine ip
 		   In Mac OS,  update HOST variable in device_simulator.py.sh to the docker-machine ip
-		
+		   // Refer to value of "docker-machine ip"
+		   
 		D. In Windows, run device_simulator.py.bat
 		   In Mac OS,  run device_simulator.py.sh
 		
@@ -168,7 +169,8 @@ Or at the least be able to experiment before proposing new or modified APIs.
 
 		K. In Windows, update HOST variable in device_simulator.js.bat to the docker-machine ip
 		   In Mac OS,  update HOST variable in device_simulator.js.sh to the docker-machine ip
-		
+		   // Refer to value of "docker-machine ip"
+		   
 		L. In Windows, run device_simulator.js.bat
 		   In Mac OS,  run device_simulator.js.sh    
 		
