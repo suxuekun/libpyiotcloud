@@ -75,7 +75,7 @@ Or at the least be able to experiment before proposing new or modified APIs.
 		A. Run Docker Toolbox/Desktop as administrator.
 
 		B. Type "git clone https://github.com/richmondu/libpyiotcloud"
-		   In Mac OS, make sure the folder has permission. Refer to [this](https://stackoverflow.com/questions/16376035/fatal-could-not-create-work-tree-dir-kivy).
+		   In Mac OS, make sure the folder has permission. Refer to https://stackoverflow.com/questions/16376035/fatal-could-not-create-work-tree-dir-kivy.
 
 		C. Type "docker-machine ip"
 		   Take note of the value as this will be used in the next steps.
@@ -110,7 +110,7 @@ Or at the least be able to experiment before proposing new or modified APIs.
 		R. CONFIG_USE_SMS_MODEL
 
 		S. CONFIG_USE_CERTS
-		T. CONFIG_USE_APIURL <b>// Refer to value of "docker-machine ip"</b>
+		T. CONFIG_USE_APIURL // Refer to value of "docker-machine ip"
 
     Please request for the values of the environment variables from me.
 
