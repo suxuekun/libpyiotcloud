@@ -156,7 +156,8 @@ This page contains a step-by-step tutorial on <b>how to use the IoT Portal</b> i
     <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/tutorial_checkhistory.png" width="600"/>
 
     Go to History Page. This will display the transaction received and sent by each of the devices in descending order.
-
+    
+    Note that the number of transactions saved is currently capped at 20 transactions per device. This is to control the size of the database. We can increase late if this is not enough.
 
     <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/tutorial_checkhistory_2.png" width="600"/>
 
