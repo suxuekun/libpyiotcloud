@@ -184,7 +184,7 @@ for details on actual testing with the device simulator or FT900.
 
 ### REST API Documentation
 
-The REST APIs are the gateway of the frontend (mobile apps, web app) to the backend (3rd party APIs and services). Note that the frontend will not directly access any 3rd party APIs and services for security reasons. The frontend will only communicate with the REST APIs.
+The REST APIs are the gateway of the frontend (mobile apps, web app) to the backend (3rd party APIs and services). <b>The frontend will not directly access any 3rd party APIs and services for security reasons.</b> The frontend will only communicate with the REST APIs.
 
   <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/architecture_frontend.png" width="1000"/>
 
