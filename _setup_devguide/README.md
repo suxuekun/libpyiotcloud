@@ -407,16 +407,7 @@ DETAILED:
 
 	4. Device access and control
 
-		A. GET DEVICE TRANSACTION HISTORIES
-		-  Request:
-		   GET /devices/histories
-		   headers: {'Authorization': 'Bearer ' + token.access}
-		-  Response:
-		   { 'status': 'OK', 'message': string, 
-			 'histories': array[{'devicename': string, 'deviceid': string, 'direction': string, 'topic': string, 'payload': string, 'timestamp': string}, ...]}
-		   { 'status': 'NG', 'message': string}
-
-		B. GET STATUS
+		A. GET STATUS
 		-  Request:
 		   GET /devices/device/DEVICENAME/status
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -424,7 +415,7 @@ DETAILED:
 		   { 'status': 'OK', 'message': string, 'value': string }
 		   { 'status': 'NG', 'message': string}
 
-		C. SET STATUS
+		B. SET STATUS
 		-  Request:
 		   POST /devices/device/status
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
@@ -433,7 +424,7 @@ DETAILED:
 		   { 'status': 'OK', 'message': string, 'value': string}
 		   { 'status': 'NG', 'message': string}
 
-		D. GET IP
+		C. GET IP
 		-  Request:
 		   GET /devices/device/DEVICENAME/ip
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -441,7 +432,7 @@ DETAILED:
 		   { 'status': 'OK', 'message': string, 'value': string }
 		   { 'status': 'NG', 'message': string}
 
-		E. GET SUBNET
+		D. GET SUBNET
 		-  Request:
 		   GET /devices/device/DEVICENAME/subnet
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -449,7 +440,7 @@ DETAILED:
 		   { 'status': 'OK', 'message': string, 'value': string }
 		   { 'status': 'NG', 'message': string}
 
-		F. GET GATEWAY
+		E. GET GATEWAY
 		-  Request:
 		   GET /devices/device/DEVICENAME/gateway
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -457,7 +448,7 @@ DETAILED:
 		   { 'status': 'OK', 'message': string, 'value': string }
 		   { 'status': 'NG', 'message': string}
 
-		G. GET MAC
+		F. GET MAC
 		-  Request:
 		   GET /devices/device/DEVICENAME/mac
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -465,7 +456,7 @@ DETAILED:
 		   { 'status': 'OK', 'message': string, 'value': string }
 		   { 'status': 'NG', 'message': string}
 
-		H. GET GPIO
+		G. GET GPIO
 		-  Request:
 		   GET /devices/device/DEVICENAME/gpio/NUMBER
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -473,7 +464,7 @@ DETAILED:
 		   { 'status': 'OK', 'message': string, 'value': string }
 		   { 'status': 'NG', 'message': string}
 
-		I. SET GPIO
+		H. SET GPIO
 		-  Request:
 		   POST /devices/device/gpio
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
@@ -482,7 +473,7 @@ DETAILED:
 		   { 'status': 'OK', 'message': string, 'value': string }
 		   { 'status': 'NG', 'message': string}
 
-		J. GET RTC
+		I. GET RTC
 		-  Request:
 		   GET /devices/device/DEVICENAME/rtc
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -490,7 +481,7 @@ DETAILED:
 		   { 'status': 'OK', 'message': string, 'value': string }
 		   { 'status': 'NG', 'message': string}
 
-		K. SET UART
+		J. SET UART
 		-  Request:
 		   POST /devices/device/uart
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
@@ -499,13 +490,25 @@ DETAILED:
 		   { 'status': 'OK', 'message': string, 'value': string }
 		   { 'status': 'NG', 'message': string}
 
-		L. SET NOTIFICATION
+		K. SET NOTIFICATION
 		-  Request:
 		   POST /devices/device/notification
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
 		   data: { 'devicename': string, 'recipient': string, 'message': string }
 		-  Response:
 		   { 'status': 'OK', 'message': string}
+		   { 'status': 'NG', 'message': string}
+
+
+	5. Device transactions (to and from device)
+
+		A. GET DEVICE TRANSACTION HISTORIES
+		-  Request:
+		   GET /devices/histories
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		-  Response:
+		   { 'status': 'OK', 'message': string, 
+			 'histories': array[{'devicename': string, 'deviceid': string, 'direction': string, 'topic': string, 'payload': string, 'timestamp': string}, ...]}
 		   { 'status': 'NG', 'message': string}
 
 
