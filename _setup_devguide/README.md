@@ -179,8 +179,7 @@ Or at the least be able to experiment before proposing new or modified APIs.
 
 
 
-Refer to the usage guide in https://github.com/richmondu/libpyiotcloud/tree/master/_device_simulator
-for details on actual testing with the device simulator or FT900.
+To run tests with the device simulator, please refer to the usage guide in https://github.com/richmondu/libpyiotcloud/tree/master/_device_simulator.
 
 
 
