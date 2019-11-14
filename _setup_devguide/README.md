@@ -2,7 +2,7 @@
 
 Below contains a step-by-step instructions on installing and setting up the frontend and backend web infrastructure of <b>IoT Portal on local machine</b>.
 
-It also contains the documentation of <b>REST APIs</b> to be used by Android/IOS mobile apps to communicate with the backend. The REST APIs are the gateway of the frontend (mobile apps, web app) to the backend.
+It also contains the documentation of <b>REST APIs</b> to be used by Android/IOS mobile apps to communicate with the backend. 
 
 
 ### Development Tools
@@ -183,6 +183,13 @@ for details on actual testing with the device simulator or FT900.
 
 
 ### REST API Documentation
+
+The REST APIs are the gateway of the frontend (mobile apps, web app) to the backend (3rd party APIs and services). Note that the frontend will not directly access any 3rd party APIs and services for security reasons. The frontend will only communicate with the REST APIs.
+
+  <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/architecture_frontend.png" width="1000"/>
+
+  <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/architecture_backend.png" width="1000"/>
+
 
 There are 3 ways to access the REST APIs.
 
