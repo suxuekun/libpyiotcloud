@@ -156,7 +156,7 @@ Or at the least be able to experiment before proposing new or modified APIs.
 		   In Mac OS,  run device_simulator.py.sh
 		
 		E. You should see "Device is now ready! ..."
-                   This means the device simulator is now connected to the dockerized backend on local machine.
+		   This means the device simulator is now connected to the dockerized backend on local machine.
 
     <b>NODEJS device simulator</b>
 
@@ -173,7 +173,7 @@ Or at the least be able to experiment before proposing new or modified APIs.
 		   In Mac OS,  run device_simulator.js.sh    
 		
 		M. You should see "Device is now ready! ..."
-                   This means the device simulator is now connected to the dockerized backend on local machine.
+		   This means the device simulator is now connected to the dockerized backend on local machine.
 
 
 
