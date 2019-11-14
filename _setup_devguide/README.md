@@ -215,7 +215,32 @@ SUMMARY:
 		G. LOGOUT                   - POST /user/logout
 		H. GET USER INFO            - GET  /user
 
-	2. Account subscription and payment
+	2. Device registration and management
+
+		A. GET DEVICES          - GET    /devices
+		B. ADD DEVICE           - POST   /devices/device
+		C. DELETE DEVICE        - DELETE /devices/device
+		D. GET DEVICE           - GET    /devices/device/DEVICENAME
+
+	3. Device access and control
+
+		A. GET STATUS           - GET  /devices/device/DEVICENAME/status
+		B. SET STATUS           - POST /devices/device/status
+		C. GET IP               - GET  /devices/device/DEVICENAME/ip
+		D. GET SUBNET           - GET  /devices/device/DEVICENAME/subnet
+		E. GET GATEWAY          - GET  /devices/device/DEVICENAME/gateway
+		F. GET MAC              - GET  /devices/device/DEVICENAME/mac
+		G. GET GPIO             - GET  /devices/device/DEVICENAME/gpio/NUMBER
+		H. SET GPIO             - POST /devices/device/gpio
+		I. GET RTC              - GET  /devices/device/DEVICENAME/rtc
+		J. SET UART             - POST /devices/device/uart
+		K. SET NOTIFICATION     - POST /devices/device/notification
+
+	4. Device transactions (to and from device)
+
+		A. GET DEVICE HISTORIES - GET  /devices/histories
+
+	5. Account subscription and payment
 
 		A. GET SUBSCRIPTION     - GET  /account/subscription
 		B. SET SUBSCRIPTION     - POST /account/subscription
@@ -223,27 +248,6 @@ SUMMARY:
 		D. PAYPAL EXECUTE       - POST /account/payment/paypalexecute
 		E. PAYPAL VERIFY        - POST /account/payment/paypalverify
 
-	3. Device registration and management
-
-		A. GET DEVICES          - GET    /devices
-		B. ADD DEVICE           - POST   /devices/device
-		C. DELETE DEVICE        - DELETE /devices/device
-		D. GET DEVICE           - GET    /devices/device/DEVICENAME
-
-	4. Device access and control
-
-		A. GET DEVICE HISTORIES - GET  /devices/histories
-		B. GET STATUS           - GET  /devices/device/DEVICENAME/status
-		C. SET STATUS           - POST /devices/device/status
-		D. GET IP               - GET  /devices/device/DEVICENAME/ip
-		E. GET SUBNET           - GET  /devices/device/DEVICENAME/subnet
-		F. GET GATEWAY          - GET  /devices/device/DEVICENAME/gateway
-		G. GET MAC              - GET  /devices/device/DEVICENAME/mac
-		H. GET GPIO             - GET  /devices/device/DEVICENAME/gpio/NUMBER
-		I. SET GPIO             - POST /devices/device/gpio
-		J. GET RTC              - GET  /devices/device/DEVICENAME/rtc
-		K. SET UART             - POST /devices/device/uart
-		L. SET NOTIFICATION     - POST /devices/device/notification
 
 Note that HTTP GET command requires that no data/payload is attached to it. 
 As such the required parameters must be part of the URL.
@@ -320,54 +324,7 @@ DETAILED:
 		   {'status': 'NG', 'message': string}
 
 
-	2. Account subscription and payment
-
-		A. GET SUBSCRIPTION
-		-  Request:
-		   GET /account/subscription
-		   headers: {'Authorization': 'Bearer ' + token.access}
-		-  Response:
-		   {'status': 'OK', 'message': string, 'subscription': {'credits': string, 'type': string} }
-		   {'status': 'NG', 'message': string}
-
-		B. SET SUBSCRIPTION
-		-  Request:
-		   POST /account/subscription
-		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-		   data: { 'credits': string }
-		-  Response:
-		   {'status': 'OK', 'message': string, 'subscription': {'credits': string, 'type': paid} }
-		   {'status': 'NG', 'message': string}
-
-		C. PAYPAL SETUP
-		-  Request:
-		   POST /account/payment/paypalsetup
-		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-		   data: { 'payment': {'return_url': string, 'cancel_url', string, 'item_sku': string, 'item_credits': string, 'item_price': string} }
-		-  Response:
-		   {'status': 'OK', 'message': string, , 'approval_url': string, 'paymentId': string, 'token': string}
-		   {'status': 'NG', 'message': string}
-
-		D. PAYPAL EXECUTE
-		-  Request:
-		   POST /account/payment/paypalexecute
-		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-		   data: { 'payment': {'paymentId': string, 'payerId': string, 'token': string} }
-		-  Response:
-		   {'status': 'OK', 'message': string}
-		   {'status': 'NG', 'message': string}
-
-		E. PAYPAL VERIFY
-		-  Request:
-		   POST /account/payment/paypalverify
-		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-		   data: { 'payment': {'paymentId': string} }
-		-  Response:
-		   {'status': 'OK', 'message': string}
-		   {'status': 'NG', 'message': string}
-
-
-	3. Device registration and management
+	2. Device registration and management
 
 		A. GET DEVICES
 		-  Request:
@@ -405,7 +362,7 @@ DETAILED:
 		   { 'status': 'NG', 'message': string}
 
 
-	4. Device access and control
+	3. Device access and control
 
 		A. GET STATUS
 		-  Request:
@@ -500,7 +457,7 @@ DETAILED:
 		   { 'status': 'NG', 'message': string}
 
 
-	5. Device transactions (to and from device)
+	4. Device transactions (to and from device)
 
 		A. GET DEVICE TRANSACTION HISTORIES
 		-  Request:
@@ -511,6 +468,52 @@ DETAILED:
 			 'histories': array[{'devicename': string, 'deviceid': string, 'direction': string, 'topic': string, 'payload': string, 'timestamp': string}, ...]}
 		   { 'status': 'NG', 'message': string}
 
+
+	5. Account subscription and payment
+
+		A. GET SUBSCRIPTION
+		-  Request:
+		   GET /account/subscription
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		-  Response:
+		   {'status': 'OK', 'message': string, 'subscription': {'credits': string, 'type': string} }
+		   {'status': 'NG', 'message': string}
+
+		B. SET SUBSCRIPTION
+		-  Request:
+		   POST /account/subscription
+		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+		   data: { 'credits': string }
+		-  Response:
+		   {'status': 'OK', 'message': string, 'subscription': {'credits': string, 'type': paid} }
+		   {'status': 'NG', 'message': string}
+
+		C. PAYPAL SETUP
+		-  Request:
+		   POST /account/payment/paypalsetup
+		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+		   data: { 'payment': {'return_url': string, 'cancel_url', string, 'item_sku': string, 'item_credits': string, 'item_price': string} }
+		-  Response:
+		   {'status': 'OK', 'message': string, , 'approval_url': string, 'paymentId': string, 'token': string}
+		   {'status': 'NG', 'message': string}
+
+		D. PAYPAL EXECUTE
+		-  Request:
+		   POST /account/payment/paypalexecute
+		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+		   data: { 'payment': {'paymentId': string, 'payerId': string, 'token': string} }
+		-  Response:
+		   {'status': 'OK', 'message': string}
+		   {'status': 'NG', 'message': string}
+
+		E. PAYPAL VERIFY
+		-  Request:
+		   POST /account/payment/paypalverify
+		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+		   data: { 'payment': {'paymentId': string} }
+		-  Response:
+		   {'status': 'OK', 'message': string}
+		   {'status': 'NG', 'message': string}
 
 
 ### Database Documentation
