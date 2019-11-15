@@ -6,12 +6,12 @@ DEVICE_CERT="cert_ecc/ft900device1_cert.pem"
 DEVICE_PKEY="cert_ecc/ft900device1_pkey.pem"
 
 
-HOST="richmondu.com"     #For production testing
-#HOST="localhost"        #For development testing with local non-Docker setup
-#HOST="192.168.99.100"   #For development testing with local Docker setup 
+HOST="richmondu.com"
+#HOST="localhost"
+#HOST="192.168.99.100"
 
 PORT="8883"
-#PORT="30883"            #For development testing with Minikube Kubernetes
+#PORT="30883"
 
 USER=""
 PASS=""
