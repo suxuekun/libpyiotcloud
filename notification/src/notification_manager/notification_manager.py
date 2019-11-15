@@ -72,7 +72,7 @@ print("MODEL_SMS {}".format(CONFIG_MODEL_SMS))
 ###################################################################################
 
 
-def notification_thread(messaging_client, recipient, message, subject, type, options):
+def notification_thread(messaging_client, deviceid, recipient, message, subject, type, options):
 
     if type == type == notification_types.DEVICE:
         # Send to another device
@@ -110,19 +110,29 @@ def notification_thread(messaging_client, recipient, message, subject, type, opt
                 return
 
         # Display result
-        try:
-            print("\r\nSending message='{}' to recipient='{}' done. {} {}\r\n\r\n".format(
-                message, recipient,
-                response["ResponseMetadata"]["HTTPStatusCode"]==200, 
-                response["MessageResponse"]["Result"][recipient]["StatusCode"]==200))
-        except:
+        if notification_config.CONFIG_DEBUG_NOTIFICATION:
             try:
-                print("\r\nSending message='{}' to recipient='{}' done. {}\r\n\r\n".format(
+                print("\r\nSending message='{}' to recipient='{}' done. {} {}\r\n\r\n".format(
                     message, recipient,
-                    response["ResponseMetadata"]["HTTPStatusCode"]==200))
+                    response["ResponseMetadata"]["HTTPStatusCode"]==200, 
+                    response["MessageResponse"]["Result"][recipient]["StatusCode"]==200))
             except:
-                print("\r\nSending message='{}' to recipient='{}' done.\r\n\r\n".format(
-                    message, recipient))
+                try:
+                    print("\r\nSending message='{}' to recipient='{}' done. {}\r\n\r\n".format(
+                        message, recipient,
+                        response["ResponseMetadata"]["HTTPStatusCode"]==200))
+                except:
+                    print("\r\nSending message='{}' to recipient='{}' done.\r\n\r\n".format(
+                        message, recipient))
+        else:
+            typeStr = "SMS  " if type == notification_types.SMS else "Email"
+            try:
+                print("{}: {} options={} [{} {}] {}".format(deviceid, typeStr, options, len(recipient), len(message), response["ResponseMetadata"]["HTTPStatusCode"]==200 and response["MessageResponse"]["Result"][recipient]["StatusCode"]==200))
+            except:
+                try:
+                    print("{}: {} options={} [{} {}] {}".format(deviceid, typeStr, options, len(recipient), len(message), response["ResponseMetadata"]["HTTPStatusCode"]==200))
+                except:
+                    print("{}: {} options={} [{} {}] True".format(deviceid, typeStr, options, len(recipient), len(message) ))
 
 
 def on_message(subtopic, subpayload):
@@ -132,6 +142,11 @@ def on_message(subtopic, subpayload):
         recipient = payload["recipient"]
         message = payload["message"]
 
+        # get device id
+        topicarr = subtopic.split("/")
+        deviceid = topicarr[1]
+
+        # get options value
         options = -1
         if payload.get("options") is not None:
             options = int(payload["options"])
@@ -147,7 +162,7 @@ def on_message(subtopic, subpayload):
         else:
             type = notification_types.DEVICE
 
-        thr = threading.Thread(target = notification_thread, args = (g_messaging_client, recipient, message, subject, type, options, ))
+        thr = threading.Thread(target = notification_thread, args = (g_messaging_client, deviceid, recipient, message, subject, type, options, ))
         thr.start()
     except:
         return
@@ -156,7 +171,8 @@ def on_message(subtopic, subpayload):
 def on_mqtt_message(client, userdata, msg):
 
     try:
-        print("RCV: MQTT {} {}".format(msg.topic, msg.payload))
+        if notification_config.CONFIG_DEBUG_NOTIFICATION:
+            print("RCV: MQTT {} {}".format(msg.topic, msg.payload))
         on_message(msg.topic, msg.payload)
     except:
         return
@@ -164,7 +180,8 @@ def on_mqtt_message(client, userdata, msg):
 def on_amqp_message(ch, method, properties, body):
 
     try:
-        print("RCV: AMQP {} {}".format(method.routing_key, body))
+        if notification_config.CONFIG_DEBUG_NOTIFICATION:
+            print("RCV: AMQP {} {}".format(method.routing_key, body))
         on_message(method.routing_key, body)
     except:
         return

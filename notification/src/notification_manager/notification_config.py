@@ -11,3 +11,5 @@ class config:
     # NEXMO    = 3
     CONFIG_USE_EMAIL_MODEL        = os.environ["CONFIG_USE_EMAIL_MODEL"]
     CONFIG_USE_SMS_MODEL          = os.environ["CONFIG_USE_SMS_MODEL"]
+
+    CONFIG_DEBUG_NOTIFICATION     = False
