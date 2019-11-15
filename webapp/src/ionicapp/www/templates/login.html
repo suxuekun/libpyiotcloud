@@ -1,7 +1,7 @@
 <ion-view title="Login" hide-nav-bar="true" hide-back-button="true" nav-transition="none" id="page5" class="page_width">
   <ion-content padding="true" class="manual-ios-statusbar-padding">
     <div class="spacer" style="height: 20px;"></div>
-    <h3 id="login-heading5" style="color:#444444;text-align:center;">Login to your account</h3>
+    <h3 id="login-heading5" style="color:#444444;">Sign In</h3>
     <div class="spacer" style="height: 10px;"></div>
     <form id="login-form8" class="list">
       <ion-list id="login-list3">
@@ -14,12 +14,17 @@
           <input type="password" placeholder="" ng-model="data.password">
         </label>
       </ion-list>
-      <div class="spacer" style="height: 10px;"></div>
-      <button id="login-button5" ng-click="submit()" class="button button-dark button-block">Log in</button>
-      <div class="spacer" style="width: 300px; height: 10px;"></div>
-      <a ui-sref="signup()" id="login-button6" class="button button-positive button-small button-block button-clear">No account yet? Get started for free</a>
-      <a ui-sref="recover()" id="login-button8" class="button button-positive button-small button-block button-clear">Forgot username or password?</a>
+      <button id="login-button5" ng-click="submit()" class="button button-dark button-block">LOGIN</button>
+      <a ui-sref="recover()" id="login-button8" class="button button-dark button-block button-clear">Forgot your password?</a>
+      <div class="spacer" style="width: 300px; height: 20px;"></div>
+      <div id="login-markdown28" style="text-align:center;" class="show-list-numbers-and-dots">
+        <p style="color:#BBBBBB;font-size:12px;">By logging into an account, you are agreeing with our
+          <strong>Terms and Conditions</strong> and
+          <strong>Privacy Policy</strong>
+        </p>
+      </div>
     </form>
     <div id="login-container2" class="spinner creator-container"></div>
+    <a ui-sref="signup()" id="login-button6" class="button button-dark button-block button-clear">Don't have an account? Sign Up</a>
   </ion-content>
 </ion-view>

@@ -218,23 +218,23 @@ SUMMARY:
 	2. Device registration and management
 
 		A. GET DEVICES          - GET    /devices
-		B. ADD DEVICE           - POST   /devices/device
-		C. DELETE DEVICE        - DELETE /devices/device
+		B. ADD DEVICE           - POST   /devices/device/DEVICENAME
+		C. DELETE DEVICE        - DELETE /devices/device/DEVICENAME
 		D. GET DEVICE           - GET    /devices/device/DEVICENAME
 
 	3. Device access and control
 
 		A. GET STATUS           - GET  /devices/device/DEVICENAME/status
-		B. SET STATUS           - POST /devices/device/status
+		B. SET STATUS           - POST /devices/device/DEVICENAME/status
 		C. GET IP               - GET  /devices/device/DEVICENAME/ip
 		D. GET SUBNET           - GET  /devices/device/DEVICENAME/subnet
 		E. GET GATEWAY          - GET  /devices/device/DEVICENAME/gateway
 		F. GET MAC              - GET  /devices/device/DEVICENAME/mac
 		G. GET GPIO             - GET  /devices/device/DEVICENAME/gpio/NUMBER
-		H. SET GPIO             - POST /devices/device/gpio
+		H. SET GPIO             - POST /devices/device/DEVICENAME/gpio/NUMBER
 		I. GET RTC              - GET  /devices/device/DEVICENAME/rtc
-		J. SET UART             - POST /devices/device/uart
-		K. SET NOTIFICATION     - POST /devices/device/notification
+		J. SET UART             - POST /devices/device/DEVICENAME/uart
+		K. SET NOTIFICATION     - POST /devices/device/DEVICENAME/notification
 
 	4. Device transaction recording (to and from device)
 
@@ -262,7 +262,8 @@ DETAILED:
 		A. SIGN-UP
 		-  Request:
 		   POST /user/signup
-		   data: { 'username': string, 'password': string, 'email': string, 'givenname': string, 'familyname': string }
+		   headers: {'Authorization': 'Basic ' + base64encode(username:password)}
+		   data: { 'email': string, 'givenname': string, 'familyname': string }
 		-  Response:
 		   {'status': 'OK', 'message': string}
 		   {'status': 'NG', 'message': string}
@@ -294,7 +295,8 @@ DETAILED:
 		E. CONFIRM FORGOT PASSWORD
 		-  Request:
 		   POST /user/confirm_forgot_password
-		   data: { 'username': string, 'confirmationcode': string, 'password': string }
+		   headers: {'Authorization': 'Basic ' + base64encode(username:password)}
+		   data: { 'confirmationcode': string }
 		-  Response:
 		   {'status': 'OK', 'message': string}
 		   {'status': 'NG', 'message': string}
@@ -302,7 +304,7 @@ DETAILED:
 		F. LOGIN
 		-  Request:
 		   POST /user/login
-		   data: { 'username': string, 'password': string }
+		   headers: {'Authorization': 'Basic ' + base64encode(username:password)}
 		-  Response:
 		   {'status': 'OK', 'token': {'access': string, 'id': string, 'refresh': string} }
 		   {'status': 'NG', 'message': string}
@@ -337,18 +339,16 @@ DETAILED:
 
 		B. ADD DEVICE
 		-  Request:
-		   POST /devices/device
+		   POST /devices/device/DEVICENAME
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-		   data: { 'devicename': string }
 		-  Response:
 		   { 'status': 'OK', 'message': string, 'device': {'devicename': string, 'deviceid': string, 'cert': cert, 'pkey': pkey, 'ca': ca}}
 		   { 'status': 'NG', 'message': string}
 
 		C. DELETE DEVICE
 		-  Request:
-		   DELETE /devices/device
+		   DELETE /devices/device/DEVICENAME
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-		   data: { 'devicename': string }
 		-  Response:
 		   { 'status': 'OK', 'message': string}
 		   { 'status': 'NG', 'message': string}
@@ -374,9 +374,9 @@ DETAILED:
 
 		B. SET STATUS
 		-  Request:
-		   POST /devices/device/status
+		   POST /devices/device/DEVICENAME/status
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-		   data: { 'devicename': string, 'value': string }
+		   data: { 'value': string }
 		-  Response:
 		   { 'status': 'OK', 'message': string, 'value': string}
 		   { 'status': 'NG', 'message': string}
@@ -423,9 +423,9 @@ DETAILED:
 
 		H. SET GPIO
 		-  Request:
-		   POST /devices/device/gpio
+		   POST /devices/device/DEVICENAME/gpio/NUMBER
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-		   data: { 'devicename': string, 'number': string, 'value': string }
+		   data: { 'value': string }
 		-  Response:
 		   { 'status': 'OK', 'message': string, 'value': string }
 		   { 'status': 'NG', 'message': string}
@@ -440,18 +440,18 @@ DETAILED:
 
 		J. SET UART
 		-  Request:
-		   POST /devices/device/uart
+		   POST /devices/device/DEVICENAME/uart
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-		   data: { 'devicename': string, 'value': string }
+		   data: { 'value': string }
 		-  Response:
 		   { 'status': 'OK', 'message': string, 'value': string }
 		   { 'status': 'NG', 'message': string}
 
 		K. SET NOTIFICATION
 		-  Request:
-		   POST /devices/device/notification
+		   POST /devices/device/DEVICENAME/notification
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-		   data: { 'devicename': string, 'recipient': string, 'message': string }
+		   data: { 'recipient': string, 'message': string }
 		-  Response:
 		   { 'status': 'OK', 'message': string}
 		   { 'status': 'NG', 'message': string}
