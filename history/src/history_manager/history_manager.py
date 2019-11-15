@@ -72,20 +72,18 @@ def add_history(deviceid, topic, payload, direction):
     g_history_client.add_device_history(deviceid, topic, payload, direction)
 
     # Display database
-    if True:
+    if config.CONFIG_DEBUG_HISTORY:
         histories = g_history_client.get_device_history(deviceid)
+        print("{}".format(len(histories) ))
         for history in histories:
-            #print(history)
-            #print(history["deviceid"])
-            print(history["topic"])
-            print(history["payload"])
-            print(history["direction"])
-            print(history["timestamp"])
-            print("")
-        print(len(histories))
+            if history["direction"]=="From":
+                print("{}: {} {} {} [{}]".format(history["timestamp"], history["direction"], history["devicename"], history["topic"], len(history["payload"]) ))
+            else:
+                print("{}: {}   {} {} [{}]".format(history["timestamp"], history["direction"], history["devicename"], history["topic"], len(history["payload"]) ))
+        print("")
     else:
         histories = g_history_client.get_device_history(deviceid)
-        print(len(histories))
+        print("{}: {}".format(deviceid, len(histories)))
 
 
 def on_message(subtopic, subpayload):
