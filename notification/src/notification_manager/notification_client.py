@@ -53,13 +53,14 @@ class notification_client:
 
     def send_message(self, recipient, message, subject=None, type=notification_types.UNKNOWN):
         if type == notification_types.SMS:
-            print('SMS')
+            #print('SMS')
             return self._base_sms.send_message(recipient, message, subject, type)
         elif type == notification_types.EMAIL:
-            print('EMAIL')
+            #print('EMAIL')
             return self._base_email.send_message(recipient, message, subject, type)
         else:
-            print('UNKNOWN')
+            #print('UNKNOWN')
+            pass
 
 
 ##################################################################################################
@@ -82,7 +83,7 @@ class notification_client_pinpoint:
         self.messaging_client = None
 
     def send_message(self, recipient, message, subject, type):
-        print("PINPOINT")
+        #print("PINPOINT")
         if type == notification_types.SMS:
             response = self.send_sms(recipient, message)
         elif type == notification_types.EMAIL:
@@ -170,7 +171,7 @@ class notification_client_twilio:
         self.client = twilio_client(self.account_sid, self.auth_token)
 
     def send_message(self, recipient, message, subject, type):
-        print("TWILIO")
+        #print("TWILIO")
         return self.send_sms(recipient, message)
 
     def send_sms(self, sms_recipient, sms_message):
@@ -191,7 +192,7 @@ class notification_client_nexmo:
         self.client = nexmo_client(key=self.key, secret=self.secret)
 
     def send_message(self, recipient, message, subject, type):
-        print("NEXMO")
+        #print("NEXMO")
         return self.send_sms(recipient, message)
 
     def send_sms(self, sms_recipient, sms_message):
