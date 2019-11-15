@@ -1,15 +1,15 @@
-set DEVICE_ID="efa4c8663739c4b380e25164e58ff89bfbd27976"
+set DEVICE_ID="3c1df9cde689610e2a91c7c191a245471abb129c"
 set DEVICE_CA="cert_ecc/rootca.pem"
 set DEVICE_CERT="cert_ecc/ft900device1_cert.pem"
 set DEVICE_PKEY="cert_ecc/ft900device1_pkey.pem"
 
 
-set HOST="richmondu.com"     ::For production testing
-::set HOST="localhost"       ::For development testing with local non-Docker setup
-::set HOST="192.168.99.100"  ::For development testing with local Docker setup 
+set HOST="richmondu.com"
+::set HOST="localhost"
+::set HOST="192.168.99.100"
 
 set PORT="8883"
-::set PORT="30883"           ::For development testing with Minikube Kubernetes
+::set PORT="30883"
 
 set USER=""
 set PASS=""
