@@ -61,10 +61,10 @@ if (args.USE_HOST != null) {
 if (args.USE_PORT != null) {
     CONFIG_MQTT_TLS_PORT = parseInt(args.USE_PORT);
 }
-if (args.USE_USERNAME != null) {
+if (args.USE_USERNAME != null && args.USE_USERNAME.length > 0) {
     CONFIG_USERNAME = args.USE_USERNAME;
 }
-if (args.USE_PASSWORD != null) {
+if (args.USE_PASSWORD != null && args.USE_PASSWORD.length > 0) {
     CONFIG_PASSWORD = args.USE_PASSWORD;
 }
 
