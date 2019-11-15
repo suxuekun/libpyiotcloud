@@ -10,3 +10,9 @@ class config:
     CONFIG_MONGODB_TB_PROFILES  = "profiles"
     CONFIG_MONGODB_TB_DEVICES   = "devices"
     CONFIG_MONGODB_TB_HISTORY   = "history"
+
+    # History records
+    CONFIG_DEBUG_HISTORY          = False
+    CONFIG_ENABLE_MAX_HISTORY     = False
+    CONFIG_MAX_HISTORY_PER_DEVICE = 20
+

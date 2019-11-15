@@ -116,17 +116,18 @@ class database_client:
                     self._devices.add_device_history(device['devicename'], deviceid, topic, payload, direction)
                     break
 
-            # limit device history to 20 for each devices
-            devices_list = self._devices.get_device_history(deviceid, removeID=False)
-            if devices_list:
-                devices_list.sort(key=self.sort_user_history, reverse=True)
-                try:
-                    while len(devices_list) > 20:
-                        self._devices.delete_device_history(devices_list[-1]['deviceid'], devices_list[-1]['timestamp'], devices_list[-1]['_id'])
-                        devices_list.remove(devices_list[-1])
-                except:
-                    print("add_device_history Exception occurred")
-                    pass
+            # limit device history to CONFIG_MAX_HISTORY_PER_DEVICE for each devices
+            if config.CONFIG_ENABLE_MAX_HISTORY:
+                devices_list = self._devices.get_device_history(deviceid, removeID=False)
+                if devices_list:
+                    devices_list.sort(key=self.sort_user_history, reverse=True)
+                    try:
+                        while len(devices_list) > config.CONFIG_MAX_HISTORY_PER_DEVICE:
+                            self._devices.delete_device_history(devices_list[-1]['deviceid'], devices_list[-1]['timestamp'], devices_list[-1]['_id'])
+                            devices_list.remove(devices_list[-1])
+                    except:
+                        print("add_device_history Exception occurred")
+                        pass
 
     def get_device_history(self, deviceid):
         return self._devices.get_device_history(deviceid)
