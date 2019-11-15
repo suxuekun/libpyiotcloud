@@ -1,25 +1,17 @@
 <ion-view title="Signup" hide-nav-bar="true" hide-back-button="true" cache-view="false" nav-transition="none" id="page6" class="page_width">
   <ion-content padding="true" class="manual-ios-statusbar-padding">
-    <div class="spacer" style="height: 20px;"></div>
-    <h3 id="signup-heading6" style="color:#444444;text-align:center;">Create your account</h3>
+    <div class="spacer" style="width: 300px; height: 20px;"></div>
+    <h3 id="signup-heading6" style="color:#444444;">Sign Up</h3>
     <div class="spacer" style="height: 10px;"></div>
     <form id="signup-form9" class="list">
       <ion-list id="signup-list4">
-        <label class="item item-input" id="signup-input18" name="input-givenname">
-          <span class="input-label">First name</span>
-          <input type="text" placeholder="" ng-model="data.givenname">
-        </label>
-        <label class="item item-input" id="signup-input19" name="input-familyname">
-          <span class="input-label">Last name</span>
-          <input type="text" placeholder="" ng-model="data.familyname">
+        <label class="item item-input" id="signup-input18" name="input-name">
+          <span class="input-label">Name</span>
+          <input type="text" placeholder="" ng-model="data.name">
         </label>
         <label class="item item-input" id="signup-input17" name="input-email">
           <span class="input-label">Email</span>
           <input type="email" placeholder="" ng-model="data.email">
-        </label>
-        <label class="item item-input" id="signup-input15" name="input-username">
-          <span class="input-label">Username</span>
-          <input type="text" placeholder="" ng-model="data.username">
         </label>
         <label class="item item-input" id="signup-input16" name="input-password">
           <span class="input-label">Password</span>
@@ -30,9 +22,16 @@
           <input type="password" placeholder="" ng-model="data.password2">
         </label>
       </ion-list>
-      <div class="spacer" style="height: 10px;"></div>
-      <button id="signup-button7" ng-click="submit()" class="button button-dark button-block">Sign up</button>
-      <a ui-sref="login()" id="signup-button9" class="button button-positive button-small button-block button-clear">Already have an account? Login</a>
+      <button id="signup-button7" ng-click="submit()" class="button button-dark button-block">SIGN UP</button>
+      <div class="spacer" style="width: 300px; height: 30px;"></div>
+      <div id="signup-markdown31" style="text-align:center;" class="show-list-numbers-and-dots">
+        <p style="color:#BBBBBB;font-size:12px;">By signing up for an account, you are agreeing with our
+          <strong>Terms and Conditions</strong> and
+          <strong>Privacy Policy</strong>
+        </p>
+      </div>
+      <div class="spacer" style="width: 300px; height: 53px;"></div>
+      <a ui-sref="login()" id="signup-button9" class="button button-dark button-block button-clear">Already have an account? Sign In</a>
       <div id="signup-container4" class="spinner3 creator-container"></div>
     </form>
   </ion-content>
