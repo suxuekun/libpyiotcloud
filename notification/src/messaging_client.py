@@ -258,7 +258,7 @@ class messaging_client:
             self.amqp_connected = False
 
     def subscribe_mqtt(self, client, topic, subscribe=True):
-        print("SUB: topic={}".format(topic))
+        print("SUB: topic={}\n\n".format(topic))
         if client:
             if subscribe:
                 try:
