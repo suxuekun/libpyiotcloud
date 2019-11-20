@@ -262,7 +262,7 @@ DETAILED:
 		A. SIGN-UP
 		-  Request:
 		   POST /user/signup
-		   headers: {'Authorization': 'Basic ' + base64encode(username:password)}
+		   headers: {'Authorization': 'Basic ' + base64encode(username:password), 'Content-Type': 'application/json'}
 		   data: { 'email': string, 'givenname': string, 'familyname': string }
 		-  Response:
 		   {'status': 'OK', 'message': string}
@@ -295,7 +295,7 @@ DETAILED:
 		E. CONFIRM FORGOT PASSWORD
 		-  Request:
 		   POST /user/confirm_forgot_password
-		   headers: {'Authorization': 'Basic ' + base64encode(username:password)}
+		   headers: {'Authorization': 'Basic ' + base64encode(username:password), 'Content-Type': 'application/json'}
 		   data: { 'confirmationcode': string }
 		-  Response:
 		   {'status': 'OK', 'message': string}
