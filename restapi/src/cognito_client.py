@@ -156,14 +156,35 @@ class cognito_client:
 			'AccessToken': access_token
 		}
 		try:
-			print("get_user")
 			response = self.__get_client().get_user(**params)
 			user_attributes = self.__cognito_to_dict(response["UserAttributes"])
-			user_attributes.pop("sub")
-			user_attributes.pop("email_verified")
+			if 'sub' in user_attributes:
+				user_attributes.pop("sub")
+			if 'email_verified' in user_attributes:
+				user_attributes.pop("email_verified")
+			if 'phone_number_verified' in user_attributes:
+				user_attributes.pop("phone_number_verified")
+			if 'given_name' in user_attributes and 'family_name' in user_attributes:
+				user_attributes['name'] = user_attributes['given_name'] + " " + user_attributes['family_name']
+				user_attributes.pop("given_name")
+				user_attributes.pop("family_name")
 		except:
 			return (False, None)
 		return (self.__get_result(response), user_attributes)
+
+	def delete_user(self, username, access_token):
+		params = {
+			'UserPoolId' : self.pool_id,
+			'Username'   : username,
+			#'AccessToken': access_token
+		}
+		try:
+			response = self.__get_client().admin_delete_user(**params)
+			#response = self.__get_client().delete_user(**params)
+			print(response)
+		except:
+			return (False, None)
+		return (self.__get_result(response), response)
 
 	def update_user(self, access_token, **attributes):
 		params = {

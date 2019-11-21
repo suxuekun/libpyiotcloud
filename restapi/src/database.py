@@ -99,6 +99,9 @@ class database_client:
     def get_user_info(self, access_token):
         return self._users.get_user_info(access_token)
 
+    def delete_user(self, username, access_token):
+        return self._users.delete_user(username, access_token)
+
     def login(self, username, password):
         return self._users.login(username, password)
 
@@ -108,14 +111,14 @@ class database_client:
     def verify_token(self, username, token):
         return self._users.verify_token(username, token)
 
+    def refresh_token(self, username, token):
+        return self._users.refresh_token(username, token)
+
     def get_username_from_token(self, token):
         return self._users.get_username_from_token(token)
 
-    def delete_user(self, username):
-        self._users.delete_user(username)
-
-    def add_user(self, username, password, email, givenname, familyname):
-        return self._users.add_user(username, password, email, givenname, familyname)
+    def add_user(self, username, password, email, phonenumber, givenname, familyname):
+        return self._users.add_user(username, password, email, phonenumber, givenname, familyname)
 
     def confirm_user(self, username, confirmationcode):
         return self._users.confirm_user(username, confirmationcode)
@@ -268,6 +271,10 @@ class database_client_cognito:
             return None
         return users
 
+    def delete_user(self, username, access_token):
+        (result, response) = self.client.delete_user(username, access_token)
+        return result
+
     def login(self, username, password):
         (result, response) = self.client.login(username, password)
         if not result:
@@ -280,6 +287,17 @@ class database_client_cognito:
     def logout(self, token):
         (result, response) = self.client.logout(token)
         print("cognito logout = {}".format(result))
+
+    def refresh_token(self, username, token):
+        (result, response) = self.client.refresh_token(token['refresh'])
+        if result:
+            new_token = {}
+            new_token['access'] = response['AuthenticationResult']['AccessToken']
+            new_token['refresh'] = token['refresh']
+            new_token['id'] = response['AuthenticationResult']['IdToken']
+            print("Token refreshed! {} {}".format(result, response))
+            return new_token
+        return None
 
     def verify_token(self, username, token):
         result = self.client.verify_token(token['access'], username)
@@ -309,11 +327,8 @@ class database_client_cognito:
         (result, response) = self.client.resend_confirmation_code(username)
         return result
 
-    def delete_user(self, username):
-        pass
-
-    def add_user(self, username, password, email, givenname, familyname):
-        (result, response) = self.client.sign_up(username, password, email=email, given_name=givenname, family_name=familyname)
+    def add_user(self, username, password, email, phonenumber, givenname, familyname):
+        (result, response) = self.client.sign_up(username, password, email=email, phone_number=phonenumber, given_name=givenname, family_name=familyname)
         return result
 
     def confirm_user(self, username, confirmationcode):

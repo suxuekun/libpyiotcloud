@@ -123,3 +123,18 @@ $ionicons-font-path: "../lib/ionic/fonts" !default;
 	}
 	
 }
+.item-online {
+	color: green;
+	background-color: green;
+}
+
+.item-offline {
+	color: red;
+	background-color: red;
+}
+
+.item-detecting {
+	color: black;
+	background-color: yellow;
+}
+
