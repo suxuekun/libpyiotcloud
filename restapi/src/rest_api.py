@@ -6,6 +6,7 @@ import hmac
 import hashlib
 import flask
 import base64
+import time
 from flask_json import FlaskJSON, JsonError, json_response, as_json
 from certificate_generator import certificate_generator
 from messaging_client import messaging_client
@@ -13,6 +14,8 @@ from rest_api_config import config
 from database import database_client
 from flask_cors import CORS
 from flask_api import status
+from jose import jwk, jwt
+
 
 
 ###################################################################################
@@ -51,10 +54,10 @@ def index():
 #
 # - Request:
 #   POST /user/login
-#   headers: {'Authorization': 'Basic ' + base64encode(username:password)}
+#   headers: {'Authorization': 'Basic ' + jwtEncode(username, password)}
 #
 # - Response:
-#   {'status': 'OK', 'token': {'access': string, 'id': string, 'refresh': string} }
+#   {'status': 'OK', 'message': string, 'token': {'access': string, 'id': string, 'refresh': string} }
 #   {'status': 'NG', 'message': string}
 #
 ########################################################################################################
@@ -62,6 +65,10 @@ def index():
 def login():
     # get username and password from Authorization header
     username, password = get_auth_header_user_pass()
+    if username is None or password is None:
+        response = json.dumps({'status': 'NG', 'message': 'Username password format invalid'})
+        print('\r\nERROR Login: Username password format invalid\r\n')
+        return response, status.HTTP_400_BAD_REQUEST
     print('login username={}'.format(username))
 
     # check if a parameter is empty
@@ -91,7 +98,7 @@ def login():
         print('\r\nERROR Login: Password is incorrect [{}]\r\n'.format(username))
         return response, status.HTTP_401_UNAUTHORIZED
 
-    response = json.dumps({'status': 'OK', 'token': {'access': access, 'refresh': refresh, 'id': id} })
+    response = json.dumps({'status': 'OK', 'message': "Login successful", 'token': {'access': access, 'refresh': refresh, 'id': id} })
     print('\r\nLogin successful: {}\r\n'.format(username))
     #print('\r\nLogin successful: {}\r\n{}\r\n'.format(username, response))
     return response
@@ -102,8 +109,8 @@ def login():
 #
 # - Request:
 #   POST /user/signup
-#   headers: {'Authorization': 'Basic ' + base64encode(username:password)}
-#   data: { 'email': string, 'givenname': string, 'familyname': string }
+#   headers: {'Authorization': 'Bearer ' + jwtEncode(email, password), 'Content-Type': 'application/json'}
+#   data: { 'email': string, 'phone_number': string, 'name': string }
 #
 # - Response:
 #   {'status': 'OK', 'message': string}
@@ -114,18 +121,36 @@ def login():
 def signup():
     # get username and password from Authorization header
     username, password = get_auth_header_user_pass()
-    print('signup username={}'.format(username))
+    if username is None or password is None:
+        response = json.dumps({'status': 'NG', 'message': 'Username password format invalid'})
+        print('\r\nERROR Signup: Username password format invalid\r\n')
+        return response, status.HTTP_400_BAD_REQUEST
+    #print('signup username={}'.format(username))
 
     data = flask.request.get_json()
     email = data['email']
-    givenname = data['givenname']
-    familyname = data['familyname']
-    #print('signup username={} password={} email={} givenname={} familyname={}'.format(username, password, email, givenname, familyname))
+    phonenumber = data['phone_number']
+    name = data['name']
+    names = name.split(" ")
+    if (len(names) > 1):
+        givenname = " ".join(names[:-1])
+        familyname = names[-1]
+    else:
+        givenname = names[0]
+        familyname = names[0]
+
+    print('signup username={} password={} email={} phonenumber={} givenname={} familyname={}'.format(username, password, email, phonenumber, givenname, familyname))
 
     # check if a parameter is empty
-    if len(username) == 0 or len(password) == 0 or len(email) == 0 or len(givenname) == 0 or len(familyname) == 0:
+    if len(username) == 0 or len(password) == 0 or len(email) == 0 or len(givenname) == 0 or len(familyname) == 0 or len(phonenumber) == 0:
         response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
         print('\r\nERROR Signup: Empty parameter found [{}]\r\n'.format(username))
+        return response, status.HTTP_400_BAD_REQUEST
+
+    # check format of phonenumber
+    if phonenumber[0] != "+":
+        response = json.dumps({'status': 'NG', 'message': 'Phone number format is invalid'})
+        print('\r\nERROR Signup: Phone number format is invalid [{}]\r\n'.format(phonenumber))
         return response, status.HTTP_400_BAD_REQUEST
 
     # check length of password
@@ -147,7 +172,7 @@ def signup():
         return response, status.HTTP_409_CONFLICT
 
     # add entry in database
-    result = g_database_client.add_user(username, password, email, givenname, familyname)
+    result = g_database_client.add_user(username, password, email, phonenumber, givenname, familyname)
     if not result:
         response = json.dumps({'status': 'NG', 'message': 'Internal server error'})
         print('\r\nERROR Signup: Internal server error [{},{},{},{},{}]\r\n'.format(username, password, email, givenname, familyname))
@@ -163,6 +188,7 @@ def signup():
 #
 # - Request:
 #   POST /user/confirm_signup
+#   headers: {'Content-Type': 'application/json'}
 #   data: { 'username': string, 'confirmationcode': string }
 #
 # - Response:
@@ -200,6 +226,7 @@ def confirm_signup():
 #
 # - Request:
 #   POST /user/resend_confirmation_code
+#   headers: {'Content-Type': 'application/json'}
 #   data: { 'username': string }
 #
 # - Response:
@@ -236,6 +263,7 @@ def resend_confirmation_code():
 #
 # - Request:
 #   POST /user/forgot_password
+#   headers: {'Content-Type': 'application/json'}
 #   data: { 'email': string }
 #
 # - Response:
@@ -279,7 +307,7 @@ def forgot_password():
 #
 # - Request:
 #   POST /user/confirm_forgot_password
-#   headers: {'Authorization': 'Basic ' + base64encode(username:password)}
+#   headers: {'Authorization': 'Bearer ' + jwtEncode(username, password), 'Content-Type': 'application/json'}
 #   data: { 'confirmationcode': string }
 #
 # - Response:
@@ -291,6 +319,10 @@ def forgot_password():
 def confirm_forgot_password():
     # get username and password from Authorization header
     username, password = get_auth_header_user_pass()
+    if username is None or password is None:
+        response = json.dumps({'status': 'NG', 'message': 'Username password format invalid'})
+        print('\r\nERROR Reset Password: Username password format invalid\r\n')
+        return response, status.HTTP_400_BAD_REQUEST
     print('confirm_forgot_password username={}'.format(username))
 
     data = flask.request.get_json()
@@ -321,7 +353,7 @@ def confirm_forgot_password():
 #
 # - Request:
 #   POST /user/logout
-#   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+#   headers: {'Authorization': 'Bearer ' + token.access}
 #
 # - Response:
 #   {'status': 'OK', 'message': string}
@@ -394,7 +426,7 @@ def logout():
 #   headers: {'Authorization': 'Bearer ' + token.access}
 #
 # - Response:
-#   {'status': 'OK', 'message': string, 'info': {'email': string, 'family_name': string, 'given_name': string} }
+#   {'status': 'OK', 'message': string, 'info': {'email': string, 'phone_number': string, 'name': string} }
 #   {'status': 'NG', 'message': string}
 #
 ########################################################################################################
@@ -445,6 +477,125 @@ def get_user_info():
     return response
 
 
+########################################################################################################
+#
+# DELETE USER
+#
+# - Request:
+#   DELETE /user
+#   headers: {'Authorization': 'Bearer ' + token.access}
+#
+# - Response:
+#   {'status': 'OK', 'message': string }
+#   {'status': 'NG', 'message': string}
+#
+########################################################################################################
+@app.route('/user', methods=['DELETE'])
+def delete_user():
+    # get token from Authorization header
+    auth_header_token = get_auth_header_token()
+    if auth_header_token is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
+        print('\r\nERROR Delete user: Invalid authorization header [{}]\r\n'.format(username))
+        return response, status.HTTP_401_UNAUTHORIZED
+    token = {'access': auth_header_token}
+
+    # get username from token
+    username = g_database_client.get_username_from_token(token)
+    print('delete_user username={}'.format(username))
+
+    # check if a parameter is empty
+    if len(username) == 0 or len(token) == 0:
+        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+        print('\r\nERROR Delete user: Empty parameter found\r\n')
+        # NOTE:
+        # No need to return error code status.HTTP_401_UNAUTHORIZED since this is a logout
+        return response
+
+    # check if username and token is valid
+    verify_ret, new_token = g_database_client.verify_token(username, token)
+    if verify_ret == 2: # token expired
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Delete user: Token expired [{}]\r\n'.format(username))
+        return response
+    elif verify_ret != 0:
+        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
+        print('\r\nERROR Delete user: Token is invalid [{}]\r\n'.format(username))
+        return response
+
+    # delete the user in cognito
+    if new_token:
+        result = g_database_client.delete_user(username, new_token['access'])
+    else:
+        result = g_database_client.delete_user(username, token['access'])
+    if result == False:
+        response = json.dumps({'status': 'NG', 'message': 'Delete user failed internal error'})
+        print('\r\nERROR Delete user: Internal error [{}]\r\n'.format(username))
+        return response
+
+    # TODO: delete user devices
+
+    msg = {'status': 'OK', 'message': 'Delete user successful.'}
+    if new_token:
+        msg['new_token'] = new_token
+    response = json.dumps(msg)
+    print('\r\nDelete user successful: {}\r\n{}\r\n'.format(username, response))
+    return response
+
+
+########################################################################################################
+#
+# REFRESH USER TOKEN
+#
+# - Request:
+#   POST /user/token
+#   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+#   data: { 'token': {'refresh': string, 'id: string'} }
+#
+# - Response:
+#   {'status': 'OK', 'message': string, 'token' : {'access': string, 'refresh': string, 'id': string} }
+#   {'status': 'NG', 'message': string}
+#
+########################################################################################################
+@app.route('/user/token', methods=['POST'])
+def refresh_user_token():
+    # get token from Authorization header
+    auth_header_token = get_auth_header_token()
+    if auth_header_token is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
+        print('\r\nERROR Refresh token: Invalid authorization header [{}]\r\n'.format(username))
+        return response, status.HTTP_401_UNAUTHORIZED
+    token = {'access': auth_header_token}
+
+    # get username from token
+    username = g_database_client.get_username_from_token(token)
+    print('refresh_user_token username={}'.format(username))
+
+    # check if a parameter is empty
+    if len(username) == 0 or len(token) == 0:
+        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+        print('\r\nERROR Refresh token: Empty parameter found\r\n')
+        # NOTE:
+        # No need to return error code status.HTTP_401_UNAUTHORIZED since this is a logout
+        return response
+
+    # get refresh and id token
+    data = flask.request.get_json()
+    token['refresh'] = data['token']['refresh']
+    token['id'] = data['token']['id']
+
+    # refresh the access token
+    new_token = g_database_client.refresh_token(username, token)
+    if new_token is None:
+        response = json.dumps({'status': 'NG', 'message': 'Refresh token invalid'})
+        print('\r\nERROR Refresh token: Token expired [{}]\r\n'.format(username))
+        return response
+
+    msg = {'status': 'OK', 'message': 'Refresh token successful.', 'new_token': new_token}
+    response = json.dumps(msg)
+    print('\r\nRefresh token successful: {}\r\n{}\r\n'.format(username, response))
+    return response
+
 
 #########################
 
@@ -458,7 +609,7 @@ def get_user_info():
 #   headers: {'Authorization': 'Bearer ' + token.access}
 #
 # - Response:
-#  {'status': 'OK', 'message': string, 'subscription': {'credits': string, 'type': paid} }
+#  {'status': 'OK', 'message': string, 'subscription': {'credits': string, 'type': string} }
 #  {'status': 'NG', 'message': string}
 #
 ########################################################################################################
@@ -1083,6 +1234,7 @@ def get_user_histories():
 def get_status(devicename):
     api = 'get_status'
 
+    print(devicename)
     # get token from Authorization header
     auth_header_token = get_auth_header_token()
     if auth_header_token is None:
@@ -1600,14 +1752,44 @@ def get_auth_header_user_pass():
     auth_header = flask.request.headers.get('Authorization')
     if auth_header is None:
         print("No Authorization header")
-        return None
+        return None, None
+    return get_jwtencode_user_pass(auth_header)
+    #return get_base64encode_user_pass(auth_header)
+
+
+# Authorization header: Bearer JWT
+def get_jwtencode_user_pass(auth_header):
+    token = auth_header.split(" ")
+    if len(token) != 2:
+        print("No Authorization Bearer header")
+        return None, None
+    if token[0] != "Bearer":
+        print("No Bearer header")
+        return None, None
+    payload = jwt.decode(token[1], "iotmodem", algorithms=['HS256'])
+    if payload is None:
+        print("JWT decode failed")
+        return None, None
+    currepoch = int(time.time())
+    if currepoch < payload["iat"] or currepoch > payload["exp"]:
+        print("username: {}".format(payload["username"]))
+        print("password: {}".format(payload["password"]))
+        print("cur: {}".format(int(time.time())))
+        print("iat: {}".format(payload["iat"]))
+        print("exp: {}".format(payload["exp"]))
+        return None, None
+    return payload["username"], payload["password"]
+
+
+# Authorization header: Basic Base64
+def get_base64encode_user_pass(auth_header):
     token = auth_header.split(" ")
     if len(token) != 2:
         print("No Authorization Basic header")
-        return None
+        return None, None
     if token[0] != "Basic":
         print("No Basic header")
-        return None
+        return None, None
     decoded = base64.b64decode(token[1])
     user_pass = decoded.decode("utf-8").split(":")
     return user_pass[0], user_pass[1]
@@ -1663,7 +1845,7 @@ def receive_message(topic):
             #print("x")
             time.sleep(1)
             i += 1
-        if i >= 5:
+        if i >= 3:
             print("receive_message timed_out")
             break
     return None

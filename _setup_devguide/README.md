@@ -204,25 +204,27 @@ More APIs will be added to support the new requirements.
 
 SUMMARY:
 
-	1. User sign-up/sign-in
+	1. User sign-up/sign-in APIs
 
-		A. SIGN-UP                  - POST /user/signup
-		B. CONFIRM SIGN-UP          - POST /user/confirm_signup
-		C. RESEND CONFIRMATION CODE - POST /user/resend_confirmation_code
-		D. FORGOT PASSWORD          - POST /user/forgot_password
-		E. CONFIRM FORGOT PASSWORD  - POST /user/confirm_forgot_password
-		F. LOGIN                    - POST /user/login
-		G. LOGOUT                   - POST /user/logout
-		H. GET USER INFO            - GET  /user
+		A. SIGN-UP                  - POST   /user/signup
+		B. CONFIRM SIGN-UP          - POST   /user/confirm_signup
+		C. RESEND CONFIRMATION CODE - POST   /user/resend_confirmation_code
+		D. FORGOT PASSWORD          - POST   /user/forgot_password
+		E. CONFIRM FORGOT PASSWORD  - POST   /user/confirm_forgot_password
+		F. LOGIN                    - POST   /user/login
+		G. LOGOUT                   - POST   /user/logout
+		H. GET USER INFO            - GET    /user
+		I. DELETE USER              - DELETE /user
+		J. REFRESH USER TOKEN       - POST   /user/token
 
-	2. Device registration and management
+	2. Device registration and management APIs
 
 		A. GET DEVICES          - GET    /devices
 		B. ADD DEVICE           - POST   /devices/device/DEVICENAME
 		C. DELETE DEVICE        - DELETE /devices/device/DEVICENAME
 		D. GET DEVICE           - GET    /devices/device/DEVICENAME
 
-	3. Device access and control
+	3. Device access and control APIs
 
 		A. GET STATUS           - GET  /devices/device/DEVICENAME/status
 		B. SET STATUS           - POST /devices/device/DEVICENAME/status
@@ -236,11 +238,11 @@ SUMMARY:
 		J. SET UART             - POST /devices/device/DEVICENAME/uart
 		K. SET NOTIFICATION     - POST /devices/device/DEVICENAME/notification
 
-	4. Device transaction recording (to and from device)
+	4. Device transaction recording APIs
 
 		A. GET DEVICE HISTORIES - GET  /devices/histories
 
-	5. Account subscription and payment
+	5. Account subscription and payment APIs
 
 		A. GET SUBSCRIPTION     - GET  /account/subscription
 		B. SET SUBSCRIPTION     - POST /account/subscription
@@ -257,20 +259,41 @@ This explains the inconsistency between the GET and POST/DELETE APIs.
 
 DETAILED:
 
-	1. User sign-up/sign-in
+	1. User sign-up/sign-in APIs
 
 		A. SIGN-UP
 		-  Request:
 		   POST /user/signup
-		   headers: {'Authorization': 'Basic ' + base64encode(username:password), 'Content-Type': 'application/json'}
-		   data: { 'email': string, 'givenname': string, 'familyname': string }
+		   headers: {'Authorization': 'Bearer ' + jwtEncode(email, password), 'Content-Type': 'application/json'}
+		   data: { 'email': string, 'phone_number': string, 'name': string }
+		   // phone number should begin with "+" followed by country code then the number (ex. SG number +6512341234)
+		   // password length is 6 characters minimum as set in Cognito
 		-  Response:
 		   {'status': 'OK', 'message': string}
 		   {'status': 'NG', 'message': string}
+		-  Details:
+		   How to compute the JWT token using Javascript
+		   base64UrlEncodedHeader = urlEncode(base64Encode(JSON.stringify({
+		     "alg": "HS256",
+		     "typ": "JWT"
+		   })));
+		   base64UrlEncodedPayload = urlEncode(base64Encode(JSON.stringify({
+		     "username": email,
+		     "password": password,
+		     "iat": Math.floor(Date.now() / 1000), // epoch time in seconds
+		     "exp": iat + 10,                      // expiry in seconds
+		   })));
+		   base64UrlEncodedSignature = urlEncode(CryptoJS.enc.Base64.stringify(CryptoJS.HmacSHA256(
+		     base64UrlEncode(header) + "." + base64UrlEncode(payload),
+		     SECRET_KEY                            // message me for the value of the secret key
+		     )));
+		   JWT = base64UrlEncodedHeader + "." base64UrlEncodedPayload + "." + base64UrlEncodedSignature
+		   Double check your results here: https://jwt.io/
 
 		B. CONFIRM SIGN-UP
 		-  Request:
 		   POST /user/confirm_signup
+		   headers: {'Content-Type': 'application/json'}
 		   data: { 'username': string, 'confirmationcode': string }
 		-  Response:
 		   {'status': 'OK', 'message': string}
@@ -279,6 +302,7 @@ DETAILED:
 		C. RESEND CONFIRMATION CODE
 		-  Request:
 		   POST /user/resend_confirmation_code
+		   headers: {'Content-Type': 'application/json'}
 		   data: { 'username': string }
 		-  Response:
 		   {'status': 'OK', 'message': string}
@@ -287,6 +311,7 @@ DETAILED:
 		D. FORGOT PASSWORD
 		-  Request:
 		   POST /user/forgot_password
+		   headers: {'Content-Type': 'application/json'}
 		   data: { 'email': string }
 		-  Response:
 		   {'status': 'OK', 'message': string, 'username': string}
@@ -295,24 +320,60 @@ DETAILED:
 		E. CONFIRM FORGOT PASSWORD
 		-  Request:
 		   POST /user/confirm_forgot_password
-		   headers: {'Authorization': 'Basic ' + base64encode(username:password), 'Content-Type': 'application/json'}
+		   headers: {'Authorization': 'Bearer ' + jwtEncode(username, password), 'Content-Type': 'application/json'}
 		   data: { 'confirmationcode': string }
 		-  Response:
 		   {'status': 'OK', 'message': string}
 		   {'status': 'NG', 'message': string}
+		-  Details:
+		   How to compute the JWT token using Javascript
+		   base64UrlEncodedHeader = urlEncode(base64Encode(JSON.stringify({
+		     "alg": "HS256",
+		     "typ": "JWT"
+		   })));
+		   base64UrlEncodedPayload = urlEncode(base64Encode(JSON.stringify({
+		     "username": username,
+		     "password": password,
+		     "iat": Math.floor(Date.now() / 1000), // epoch time in seconds
+		     "exp": iat + 10,                      // expiry in seconds
+		   })));
+		   base64UrlEncodedSignature = urlEncode(CryptoJS.enc.Base64.stringify(CryptoJS.HmacSHA256(
+		     base64UrlEncode(header) + "." + base64UrlEncode(payload),
+		     SECRET_KEY                            // message me for the value of the secret key
+		     )));
+		   JWT = base64UrlEncodedHeader + "." base64UrlEncodedPayload + "." + base64UrlEncodedSignature
+		   Double check your results here: https://jwt.io/
 
 		F. LOGIN
 		-  Request:
 		   POST /user/login
-		   headers: {'Authorization': 'Basic ' + base64encode(username:password)}
+		   headers: {'Authorization': 'Bearer ' + jwtEncode(username, password)}
 		-  Response:
-		   {'status': 'OK', 'token': {'access': string, 'id': string, 'refresh': string} }
+		   {'status': 'OK', 'message': string, 'token': {'access': string, 'id': string, 'refresh': string} }
 		   {'status': 'NG', 'message': string}
+		-  Details:
+		   How to compute the JWT token using Javascript
+		   base64UrlEncodedHeader = urlEncode(base64Encode(JSON.stringify({
+		     "alg": "HS256",
+		     "typ": "JWT"
+		   })));
+		   base64UrlEncodedPayload = urlEncode(base64Encode(JSON.stringify({
+		     "username": username,
+		     "password": password,
+		     "iat": Math.floor(Date.now() / 1000), // epoch time in seconds
+		     "exp": iat + 10,                      // expiry in seconds
+		   })));
+		   base64UrlEncodedSignature = urlEncode(CryptoJS.enc.Base64.stringify(CryptoJS.HmacSHA256(
+		     base64UrlEncode(header) + "." + base64UrlEncode(payload),
+		     SECRET_KEY                            // message me for the value of the secret key
+		     )));
+		   JWT = base64UrlEncodedHeader + "." base64UrlEncodedPayload + "." + base64UrlEncodedSignature
+		   Double check your results here: https://jwt.io/
 
 		G. LOGOUT
 		-  Request:
 		   POST /user/logout
-		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
 		   {'status': 'OK', 'message': string}
 		   {'status': 'NG', 'message': string}
@@ -322,11 +383,28 @@ DETAILED:
 		   GET /user
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
-		   {'status': 'OK', 'message': string, 'info': {'email': string, 'family_name': string, 'given_name': string} }
+		   {'status': 'OK', 'message': string, 'info': {'email': string, 'phone_number': string, 'name': string} }
+		   {'status': 'NG', 'message': string}
+
+		I. DELETE USER
+		-  Request:
+		   DELETE /user
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		-  Response:
+		   {'status': 'OK', 'message': string}
+		   {'status': 'NG', 'message': string}
+
+		J. REFRESH USER TOKEN
+		-  Request:
+		   POST /user/token
+		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+		   data: { 'token': {'refresh': string, 'id: string'} }
+		-  Response:
+		   {'status': 'OK', 'message': string, 'token' : {'access': string, 'refresh': string, 'id': string}}
 		   {'status': 'NG', 'message': string}
 
 
-	2. Device registration and management
+	2. Device registration and management APIs
 
 		A. GET DEVICES
 		-  Request:
@@ -362,7 +440,7 @@ DETAILED:
 		   { 'status': 'NG', 'message': string}
 
 
-	3. Device access and control
+	3. Device access and control APIs
 
 		A. GET STATUS
 		-  Request:
@@ -457,7 +535,7 @@ DETAILED:
 		   { 'status': 'NG', 'message': string}
 
 
-	4. Device transaction recording (to and from device)
+	4. Device transaction recording APIs
 
 		A. GET DEVICE TRANSACTION HISTORIES
 		-  Request:
@@ -469,7 +547,7 @@ DETAILED:
 		   { 'status': 'NG', 'message': string}
 
 
-	5. Account subscription and payment
+	5. Account subscription and payment APIs
 
 		A. GET SUBSCRIPTION
 		-  Request:

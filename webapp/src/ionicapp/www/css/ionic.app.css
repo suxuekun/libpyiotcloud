@@ -9895,3 +9895,15 @@ a.button {
     transform: rotate(0deg); }
   100% {
     transform: rotate(360deg); } }
+
+.item-online {
+  color: green;
+  background-color: green; }
+
+.item-offline {
+  color: red;
+  background-color: red; }
+
+.item-detecting {
+  color: black;
+  background-color: yellow; }

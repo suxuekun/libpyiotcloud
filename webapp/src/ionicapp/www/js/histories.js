@@ -2,7 +2,7 @@
 
 angular.module('histories', [])
 
-.service('Histories', ['$http', 'Server', 'User', function($http, Server, User){
+.service('Histories', ['$http', 'Server', 'User', 'Token', function($http, Server, User, Token){
     
     var server = Server.rest_api;
 
@@ -30,30 +30,19 @@ angular.module('histories', [])
             .then(function (result) {
                 // Handle successful login
                 console.log(result.data);
-                
-                if (result !== null) {
-                    if (result.data.new_token !== undefined) {
-                        console.log("New Token exists!");
-                        User.set({
-                            'username': userdata.username,
-                            'token': result.data.new_token
-                        });
-                    }
-                }    
-
                 return result.data.histories;
             })
             .catch(function (error) {
                 // Handle failed login
                 if (error.data !== null) {
                     console.log("ERROR: Login failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
-                    // TODO: replace alert with ionic alert
-                    //alert("ERROR: Login failed with " + error.status + " " + error.statusText +"! " + error.data.message); 
+                    
+                    if (error.data.message === "Token expired") {
+                        Token.refresh(userdata);
+                    }
                 }
                 else {
                     console.log("ERROR: Server is down!"); 
-                    // TODO: replace alert with ionic alert
-                    //alert("ERROR: Server is down!");
                 }
                 return [];
             });
