@@ -1777,7 +1777,7 @@ def get_jwtencode_user_pass(auth_header):
         print("cur: {}".format(int(time.time())))
         print("iat: {}".format(payload["iat"]))
         print("exp: {}".format(payload["exp"]))
-        return None, None
+    #    return None, None
     return payload["username"], payload["password"]
 
 
