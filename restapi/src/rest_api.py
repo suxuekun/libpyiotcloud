@@ -1781,7 +1781,7 @@ def get_jwtencode_user_pass(auth_header):
         print("cur: {}".format(currepoch))
         print("iat: {}".format(payload["iat"]))
         print("exp: {}".format(payload["exp"]))
-        reason = "currepoch({}) < payload[iat]({})".format(currepoch, payload[iat])
+        #reason = "currepoch({}) < payload[iat]({})".format(currepoch, payload[iat])
         #return None, None, reason
     elif currepoch > payload["exp"]:
         print("username: {}".format(payload["username"]))
@@ -1789,7 +1789,7 @@ def get_jwtencode_user_pass(auth_header):
         print("cur: {}".format(currepoch))
         print("iat: {}".format(payload["iat"]))
         print("exp: {}".format(payload["exp"]))
-        reason = "currepoch({}) > payload[exp]({})".format(currepoch, payload[exp])
+        #reason = "currepoch({}) > payload[exp]({})".format(currepoch, payload[exp])
         #return None, None, reason
     return payload["username"], payload["password"], ""
 
