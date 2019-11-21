@@ -66,7 +66,7 @@ def login():
     # get username and password from Authorization header
     username, password reason = get_auth_header_user_pass()
     if username is None or password is None:
-        response = json.dumps({'status': 'NG', 'message': 'Username password format invalid ({})'.format(reason)})
+        response = json.dumps({'status': 'NG', 'message': reason})
         print('\r\nERROR Login: Username password format invalid\r\n')
         return response, status.HTTP_400_BAD_REQUEST
     print('login username={}'.format(username))
@@ -122,7 +122,7 @@ def signup():
     # get username and password from Authorization header
     username, password, reason = get_auth_header_user_pass()
     if username is None or password is None:
-        response = json.dumps({'status': 'NG', 'message': 'Username password format invalid ({})'.format(reason)})
+        response = json.dumps({'status': 'NG', 'message': reason})
         print('\r\nERROR Signup: Username password format invalid\r\n')
         return response, status.HTTP_400_BAD_REQUEST
     #print('signup username={}'.format(username))
@@ -320,7 +320,7 @@ def confirm_forgot_password():
     # get username and password from Authorization header
     username, password, reason = get_auth_header_user_pass()
     if username is None or password is None:
-        response = json.dumps({'status': 'NG', 'message': 'Username password format invalid ({})'.format(reason)})
+        response = json.dumps({'status': 'NG', 'message': reason})
         print('\r\nERROR Reset Password: Username password format invalid\r\n')
         return response, status.HTTP_400_BAD_REQUEST
     print('confirm_forgot_password username={}'.format(username))
@@ -1782,7 +1782,7 @@ def get_jwtencode_user_pass(auth_header):
         print("iat: {}".format(payload["iat"]))
         print("exp: {}".format(payload["exp"]))
         reason = "currepoch({}) < payload[iat]({})".format(currepoch, payload[iat])
-        return None, None, reason
+        #return None, None, reason
     elif currepoch > payload["exp"]:
         print("username: {}".format(payload["username"]))
         print("password: {}".format(payload["password"]))
@@ -1790,7 +1790,7 @@ def get_jwtencode_user_pass(auth_header):
         print("iat: {}".format(payload["iat"]))
         print("exp: {}".format(payload["exp"]))
         reason = "currepoch({}) > payload[exp]({})".format(currepoch, payload[exp])
-        return None, None, reason
+        #return None, None, reason
     return payload["username"], payload["password"], ""
 
 
