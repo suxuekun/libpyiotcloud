@@ -64,9 +64,9 @@ def index():
 @app.route('/user/login', methods=['POST'])
 def login():
     # get username and password from Authorization header
-    username, password = get_auth_header_user_pass()
+    username, password reason = get_auth_header_user_pass()
     if username is None or password is None:
-        response = json.dumps({'status': 'NG', 'message': 'Username password format invalid'})
+        response = json.dumps({'status': 'NG', 'message': 'Username password format invalid ({})'.format(reason)})
         print('\r\nERROR Login: Username password format invalid\r\n')
         return response, status.HTTP_400_BAD_REQUEST
     print('login username={}'.format(username))
@@ -120,9 +120,9 @@ def login():
 @app.route('/user/signup', methods=['POST'])
 def signup():
     # get username and password from Authorization header
-    username, password = get_auth_header_user_pass()
+    username, password, reason = get_auth_header_user_pass()
     if username is None or password is None:
-        response = json.dumps({'status': 'NG', 'message': 'Username password format invalid'})
+        response = json.dumps({'status': 'NG', 'message': 'Username password format invalid ({})'.format(reason)})
         print('\r\nERROR Signup: Username password format invalid\r\n')
         return response, status.HTTP_400_BAD_REQUEST
     #print('signup username={}'.format(username))
@@ -318,9 +318,9 @@ def forgot_password():
 @app.route('/user/confirm_forgot_password', methods=['POST'])
 def confirm_forgot_password():
     # get username and password from Authorization header
-    username, password = get_auth_header_user_pass()
+    username, password, reason = get_auth_header_user_pass()
     if username is None or password is None:
-        response = json.dumps({'status': 'NG', 'message': 'Username password format invalid'})
+        response = json.dumps({'status': 'NG', 'message': 'Username password format invalid ({})'.format(reason)})
         print('\r\nERROR Reset Password: Username password format invalid\r\n')
         return response, status.HTTP_400_BAD_REQUEST
     print('confirm_forgot_password username={}'.format(username))
@@ -1751,8 +1751,9 @@ def process_request(api, data):
 def get_auth_header_user_pass():
     auth_header = flask.request.headers.get('Authorization')
     if auth_header is None:
-        print("No Authorization header")
-        return None, None
+        reason = "No Authorization header"
+        print(reason)
+        return None, None, reason
     return get_jwtencode_user_pass(auth_header)
     #return get_base64encode_user_pass(auth_header)
 
@@ -1761,38 +1762,52 @@ def get_auth_header_user_pass():
 def get_jwtencode_user_pass(auth_header):
     token = auth_header.split(" ")
     if len(token) != 2:
-        print("No Authorization Bearer header")
-        return None, None
+        reason = "No Authorization Bearer header"
+        print(reason)
+        return None, None, reason
     if token[0] != "Bearer":
-        print("No Bearer header")
-        return None, None
+        reason = "No Bearer header"
+        print(reason)
+        return None, None, reason
     payload = jwt.decode(token[1], "iotmodem", algorithms=['HS256'])
     if payload is None:
-        print("JWT decode failed")
-        return None, None
+        reason = "JWT decode failed"
+        print(reason)
+        return None, None, reason
     currepoch = int(time.time())
-    if currepoch < payload["iat"] or currepoch > payload["exp"]:
+    if currepoch < payload["iat"]:
         print("username: {}".format(payload["username"]))
         print("password: {}".format(payload["password"]))
-        print("cur: {}".format(int(time.time())))
+        print("cur: {}".format(currepoch))
         print("iat: {}".format(payload["iat"]))
         print("exp: {}".format(payload["exp"]))
-    #    return None, None
-    return payload["username"], payload["password"]
+        reason = "currepoch({}) < payload[iat]({})".format(currepoch, payload[iat])
+        return None, None, reason
+    elif currepoch > payload["exp"]:
+        print("username: {}".format(payload["username"]))
+        print("password: {}".format(payload["password"]))
+        print("cur: {}".format(currepoch))
+        print("iat: {}".format(payload["iat"]))
+        print("exp: {}".format(payload["exp"]))
+        reason = "currepoch({}) > payload[exp]({})".format(currepoch, payload[exp])
+        return None, None, reason
+    return payload["username"], payload["password"], ""
 
 
 # Authorization header: Basic Base64
 def get_base64encode_user_pass(auth_header):
     token = auth_header.split(" ")
     if len(token) != 2:
-        print("No Authorization Basic header")
-        return None, None
+        reason = "No Authorization Basic header"
+        print(reason)
+        return None, None, reason
     if token[0] != "Basic":
-        print("No Basic header")
-        return None, None
+        reason = "No Basic header"
+        print(reason)
+        return None, None, reason
     decoded = base64.b64decode(token[1])
     user_pass = decoded.decode("utf-8").split(":")
-    return user_pass[0], user_pass[1]
+    return user_pass[0], user_pass[1], ""
 
 
 # Authorization header for the access token
