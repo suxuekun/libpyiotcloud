@@ -64,7 +64,7 @@ def index():
 @app.route('/user/login', methods=['POST'])
 def login():
     # get username and password from Authorization header
-    username, password reason = get_auth_header_user_pass()
+    username, password, reason = get_auth_header_user_pass()
     if username is None or password is None:
         response = json.dumps({'status': 'NG', 'message': reason})
         print('\r\nERROR Login: Username password format invalid\r\n')
