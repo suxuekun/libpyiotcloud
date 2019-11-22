@@ -1,4 +1,4 @@
-set DEVICE_ID="3c1df9cde689610e2a91c7c191a245471abb129c"
+set DEVICE_ID="PH80XXRR112219EF"
 set DEVICE_CA="cert_ecc/rootca.pem"
 set DEVICE_CERT="cert_ecc/ft900device1_cert.pem"
 set DEVICE_PKEY="cert_ecc/ft900device1_pkey.pem"
