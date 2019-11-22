@@ -22,6 +22,7 @@
         <span class="input-label">Mobile Number</span>
         <input type="text" placeholder="" readonly="" ng-model="data.phonenumber">
       </label>
+      <button id="account-button19" ng-click="submitVerifynumber()" ng-show="data.phonenumber.includes(&quot;Unverified&quot;)" class="button button-dark button-block">Verify mobile number</button>
       <button id="account-button33" ng-click="submitDeleteaccount()" class="button button-assertive button-block">Delete account</button>
     </form>
     <form id="account-form19" class="list" ng-show="data.activeSection==2">

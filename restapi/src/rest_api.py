@@ -426,7 +426,8 @@ def logout():
 #   headers: {'Authorization': 'Bearer ' + token.access}
 #
 # - Response:
-#   {'status': 'OK', 'message': string, 'info': {'email': string, 'phone_number': string, 'name': string} }
+#   {'status': 'OK', 'message': string, 
+#    'info': {'name': string, 'email': string, 'phone_number': string, 'email_verified': boolean, 'phone_number_verified': boolean} }
 #   {'status': 'NG', 'message': string}
 #
 ########################################################################################################
@@ -596,6 +597,120 @@ def refresh_user_token():
     print('\r\nRefresh token successful: {}\r\n{}\r\n'.format(username, response))
     return response
 
+
+########################################################################################################
+#
+# VERIFY PHONE NUMBER
+#
+# - Request:
+#   POST /user/verify_phone_number
+#   headers: {'Authorization': 'Bearer ' + token.access}
+#
+# - Response:
+#   {'status': 'OK', 'message': string}
+#   {'status': 'NG', 'message': string}
+#
+########################################################################################################
+@app.route('/user/verify_phone_number', methods=['POST'])
+def verify_phone_number():
+    # get token from Authorization header
+    auth_header_token = get_auth_header_token()
+    if auth_header_token is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
+        print('\r\nERROR Verify phone: Invalid authorization header [{}]\r\n'.format(username))
+        return response, status.HTTP_401_UNAUTHORIZED
+    token = {'access': auth_header_token}
+
+    # get username from token
+    username = g_database_client.get_username_from_token(token)
+    print('refresh_user_token username={}'.format(username))
+
+    # check if a parameter is empty
+    if len(username) == 0 or len(token) == 0:
+        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+        print('\r\nERROR Verify phone: Empty parameter found\r\n')
+        return response
+
+    # check if username and token is valid
+    verify_ret, new_token = g_database_client.verify_token(username, token)
+    if verify_ret == 2: # token expired
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Verify phone: Token expired [{}]\r\n'.format(username))
+        return response
+    elif verify_ret != 0:
+        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
+        print('\r\nERROR Verify phone: Token is invalid [{}]\r\n'.format(username))
+        return response
+
+    # verify phone number
+    result = g_database_client.request_verify_phone_number(token["access"])
+    if not result:
+        response = json.dumps({'status': 'NG', 'message': 'Request failed'})
+        print('\r\nERROR Verify phone: Request failed [{}]\r\n'.format(username))
+        return response, status.HTTP_400_BAD_REQUEST
+
+    response = json.dumps({'status': 'OK', 'message': 'Verify phone successful'})
+    print('\r\nVerify phone successful: {}\r\n{}\r\n'.format(username, response))
+    return response
+
+
+########################################################################################################
+#
+# CONFIRM VERIFY PHONE NUMBER
+#
+# - Request:
+#   POST /user/confirm_verify_phone_number
+#   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+#   data: {'confirmationcode': string}
+#
+# - Response:
+#   {'status': 'OK', 'message': string}
+#   {'status': 'NG', 'message': string}
+#
+########################################################################################################
+@app.route('/user/confirm_verify_phone_number', methods=['POST'])
+def confirm_verify_phone_number():
+    # get token from Authorization header
+    auth_header_token = get_auth_header_token()
+    if auth_header_token is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
+        print('\r\nERROR Confirm verify phone: Invalid authorization header [{}]\r\n'.format(username))
+        return response, status.HTTP_401_UNAUTHORIZED
+    token = {'access': auth_header_token}
+
+    # get username from token
+    username = g_database_client.get_username_from_token(token)
+    print('refresh_user_token username={}'.format(username))
+
+    # check if a parameter is empty
+    if len(username) == 0 or len(token) == 0:
+        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+        print('\r\nERROR Confirm verify phone: Empty parameter found\r\n')
+        return response
+
+    # check if username and token is valid
+    verify_ret, new_token = g_database_client.verify_token(username, token)
+    if verify_ret == 2: # token expired
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Confirm verify phone: Token expired [{}]\r\n'.format(username))
+        return response
+    elif verify_ret != 0:
+        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
+        print('\r\nERROR Confirm verify phone: Token is invalid [{}]\r\n'.format(username))
+        return response
+
+    data = flask.request.get_json()
+
+    # confirm verify phone number
+    result = g_database_client.confirm_verify_phone_number(token["access"], data["confirmationcode"])
+    if not result:
+        response = json.dumps({'status': 'NG', 'message': 'Request failed'})
+        print('\r\nERROR Confirm verify phone: Request failed [{}]\r\n'.format(username))
+        return response, status.HTTP_400_BAD_REQUEST
+
+    response = json.dumps({'status': 'OK', 'message': 'Confirm verify phone successful'})
+    print('\r\nConfirm verify phone successful: {}\r\n{}\r\n'.format(username, response))
+    return response
 
 #########################
 
@@ -943,7 +1058,7 @@ def set_payment_paypal_verify():
 #   headers: {'Authorization': 'Bearer ' + token.access}
 #
 # - Response:
-#   {'status': 'OK', 'message': string, 'devices': array[{'devicename': string, 'deviceid': string, 'cert': cert, 'pkey': pkey, 'ca': ca}, ...]}
+#   {'status': 'OK', 'message': string, 'devices': array[{'devicename': string, 'deviceid': string, 'serialnumber': string, 'timestamp': string}, ...]}
 #   {'status': 'NG', 'message': string}
 #
 ########################################################################################################
@@ -996,9 +1111,10 @@ def get_device_list():
 # - Request:
 #   POST /devices/device/<devicename>
 #   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+#   data: {'deviceid': string, 'serialnumber': string}
 #
 # - Response:
-#   {'status': 'OK', 'message': string, 'device': {'devicename': string, 'deviceid': string, 'cert': cert, 'pkey': pkey, 'ca': ca}}
+#   {'status': 'OK', 'message': string}
 #   {'status': 'NG', 'message': string}
 #
 #
@@ -1006,7 +1122,7 @@ def get_device_list():
 #
 # - Request:
 #   DELETE /devices/device/<devicename>
-#   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+#   headers: {'Authorization': 'Bearer ' + token.access}
 #
 # - Response:
 #   {'status': 'OK', 'message': string}
@@ -1051,23 +1167,17 @@ def register_device(devicename):
             print('\r\nERROR Add/Delete Device: Device is already registered [{},{}]\r\n'.format(username, devicename))
             return response, status.HTTP_409_CONFLICT
 
-        cg = certificate_generator()
-        cert, pkey = cg.generate(devicename, ecc=CONFIG_USE_ECC)
-        ca = cg.getca()
-        cert = open(cert).read()
-        pkey = open(pkey).read()
-        ca = open(ca).read()
-        print(cert)
-        print(pkey)
-        print(ca)
+        data = flask.request.get_json()
+        print(data)
+        print(data["deviceid"])
+        print(data["serialnumber"])
 
         # add device to database
-        deviceid = g_database_client.add_device(username, devicename, cert, pkey)
-        print(deviceid)
+        result = g_database_client.add_device(username, devicename, data["deviceid"], data["serialnumber"])
+        #result = g_database_client.add_device(username, devicename, cert, pkey)
+        print(result)
 
-        device = {"devicename": devicename, "deviceid": deviceid, "cert": cert, "pkey": pkey, "ca": ca}
-
-        msg = {'status': 'OK', 'message': 'Devices registered successfully.', 'device': device}
+        msg = {'status': 'OK', 'message': 'Devices registered successfully.'}
         if new_token:
             msg['new_token'] = new_token
         response = json.dumps(msg)
@@ -1102,7 +1212,7 @@ def register_device(devicename):
 #   headers: {'Authorization': 'Bearer ' + token.access}
 #
 # - Response:
-#   {'status': 'OK', 'message': string, 'device': {'devicename': string, 'deviceid': string, 'cert': cert, 'pkey': pkey}}
+#   {'status': 'OK', 'message': string, 'device': {'devicename': string, 'deviceid': string, 'serialnumber': string, 'timestamp': string}}
 #   {'status': 'NG', 'message': string}
 #
 ########################################################################################################
@@ -1769,28 +1879,55 @@ def get_jwtencode_user_pass(auth_header):
         reason = "No Bearer header"
         print(reason)
         return None, None, reason
-    payload = jwt.decode(token[1], "iotmodem", algorithms=['HS256'])
+    payload = jwt.decode(token[1], "iotmodembrtchip0iotmodembrtchip0", algorithms=['HS256'])
     if payload is None:
         reason = "JWT decode failed"
         print(reason)
         return None, None, reason
+    if not payload.get("username"):
+        reason = "No username field"
+        print(reason)
+        return None, None, reason
+    if not payload.get("password"):
+        reason = "No password field"
+        print(reason)
+        return None, None, reason
+    if not payload.get("iat"):
+        reason = "No iat field"
+        print(reason)
+        return None, None, reason
+    if not payload.get("exp"):
+        reason = "No exp field"
+        print(reason)
+        return None, None, reason
+
     currepoch = int(time.time())
+    print("username: {}".format(payload["username"]))
+    print("password: {}".format(payload["password"]))
+    print("cur: {}".format(currepoch))
+    print("iat: {}".format(payload["iat"]))
+    print("exp: {}".format(payload["exp"]))
+
+    if payload["exp"] - payload["iat"] != 10:
+        reason = "JWT expiration date is incorrect"
+        print(reason)
+        return None, None, reason
     if currepoch < payload["iat"]:
         print("username: {}".format(payload["username"]))
         print("password: {}".format(payload["password"]))
         print("cur: {}".format(currepoch))
         print("iat: {}".format(payload["iat"]))
         print("exp: {}".format(payload["exp"]))
-        #reason = "currepoch({}) < payload[iat]({})".format(currepoch, payload[iat])
-        #return None, None, reason
+        reason = "currepoch({}) < payload[iat]({})".format(currepoch, payload["iat"])
+        return None, None, reason
     elif currepoch > payload["exp"]:
         print("username: {}".format(payload["username"]))
         print("password: {}".format(payload["password"]))
         print("cur: {}".format(currepoch))
         print("iat: {}".format(payload["iat"]))
         print("exp: {}".format(payload["exp"]))
-        #reason = "currepoch({}) > payload[exp]({})".format(currepoch, payload[exp])
-        #return None, None, reason
+        reason = "currepoch({}) > payload[exp]({})".format(currepoch, payload["exp"])
+        return None, None, reason
     return payload["username"], payload["password"], ""
 
 

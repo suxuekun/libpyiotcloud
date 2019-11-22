@@ -1,0 +1,26 @@
+<ion-view title="Add Device" hide-back-button="true" nav-transition="none" id="page12" style="background-color:#FFFFFF;" class="page_width">
+  <ion-nav-buttons side="left" class="has-header">
+    <button class="button button-icon icon ion-android-close" ng-click="submitDeviceList()"></button>
+  </ion-nav-buttons>
+  <ion-content padding="true" class="has-header">
+    <form id="addDevice-form13" class="list">
+      <div class="spacer" style="width: 300px; height: 20px;"></div>
+      <label class="item item-input item-stacked-label" id="addDevice-input56" name="input-name">
+        <span class="input-label">Enter UUID</span>
+        <input type="text" placeholder="PH80XXRRMMDDYYSS" ng-model="data.uuid">
+      </label>
+      <label class="item item-input item-stacked-label" id="addDevice-input57" name="input-name">
+        <span class="input-label">Enter Serial Number</span>
+        <input type="text" placeholder="SSSSS" ng-model="data.serialnumber">
+      </label>
+      <button id="addDevice-button31" ng-click="generate()" class="button button-positive button-block">Generate</button>
+    </form>
+    <form id="addDevice-form21" class="list">
+      <label class="item item-input item-stacked-label" id="addDevice-input28" name="input-name">
+        <span class="input-label">Enter a name for this device</span>
+        <input type="text" placeholder="My IoT Device" ng-model="data.devicename">
+      </label>
+    </form>
+    <button id="addDevice-button55" ng-click="submit()" class="button button-dark button-block">SAVE</button>
+  </ion-content>
+</ion-view>

@@ -206,16 +206,18 @@ SUMMARY:
 
 	1. User sign-up/sign-in APIs
 
-		A. SIGN-UP                  - POST   /user/signup
-		B. CONFIRM SIGN-UP          - POST   /user/confirm_signup
-		C. RESEND CONFIRMATION CODE - POST   /user/resend_confirmation_code
-		D. FORGOT PASSWORD          - POST   /user/forgot_password
-		E. CONFIRM FORGOT PASSWORD  - POST   /user/confirm_forgot_password
-		F. LOGIN                    - POST   /user/login
-		G. LOGOUT                   - POST   /user/logout
-		H. GET USER INFO            - GET    /user
-		I. DELETE USER              - DELETE /user
-		J. REFRESH USER TOKEN       - POST   /user/token
+		A. SIGN-UP                     - POST   /user/signup
+		B. CONFIRM SIGN-UP             - POST   /user/confirm_signup
+		C. RESEND CONFIRMATION CODE    - POST   /user/resend_confirmation_code
+		D. FORGOT PASSWORD             - POST   /user/forgot_password
+		E. CONFIRM FORGOT PASSWORD     - POST   /user/confirm_forgot_password
+		F. LOGIN                       - POST   /user/login
+		G. LOGOUT                      - POST   /user/logout
+		H. GET USER INFO               - GET    /user
+		I. DELETE USER                 - DELETE /user
+		J. REFRESH USER TOKEN          - POST   /user/token
+		K. VERIFY PHONE NUMBER         - POST   /user/verify_phone_number
+		L. CONFIRM VERIFY PHONE NUMBER - POST   /user/confirm_verify_phone_number
 
 	2. Device registration and management APIs
 
@@ -383,7 +385,8 @@ DETAILED:
 		   GET /user
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
-		   {'status': 'OK', 'message': string, 'info': {'email': string, 'phone_number': string, 'name': string} }
+		   {'status': 'OK', 'message': string, 
+		    'info': {'name': string, 'email': string, 'phone_number': string, 'email_verified': boolean, 'phone_number_verified': boolean} }
 		   {'status': 'NG', 'message': string}
 
 		I. DELETE USER
@@ -403,6 +406,23 @@ DETAILED:
 		   {'status': 'OK', 'message': string, 'token' : {'access': string, 'refresh': string, 'id': string}}
 		   {'status': 'NG', 'message': string}
 
+		K. VERIFY PHONE NUMBER
+		-  Request:
+		   POST /user/verify_phone_number
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		-  Response:
+		   {'status': 'OK', 'message': string}
+		   {'status': 'NG', 'message': string}
+
+		L. CONFIRM VERIFY PHONE NUMBER
+		-  Request:
+		   POST /user/confirm_verify_phone_number
+		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+		   data: {'confirmationcode': string}
+		-  Response:
+		   {'status': 'OK', 'message': string}
+		   {'status': 'NG', 'message': string}
+
 
 	2. Device registration and management APIs
 
@@ -412,21 +432,22 @@ DETAILED:
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
 		   { 'status': 'OK', 'message': string, 
-			 'devices': array[{'devicename': string, 'deviceid': string, 'cert': cert, 'pkey': pkey, 'ca': ca}, ...]}
+		     'devices': array[{'devicename': string, 'deviceid': string, 'serialnumber': string, 'timestamp': string}, ...]}
 		   { 'status': 'NG', 'message': string}
 
 		B. ADD DEVICE
 		-  Request:
 		   POST /devices/device/DEVICENAME
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+		   data: {'device': {'deviceid': string, 'serialnumber': string}}
 		-  Response:
-		   { 'status': 'OK', 'message': string, 'device': {'devicename': string, 'deviceid': string, 'cert': cert, 'pkey': pkey, 'ca': ca}}
+		   { 'status': 'OK', 'message': string}
 		   { 'status': 'NG', 'message': string}
 
 		C. DELETE DEVICE
 		-  Request:
 		   DELETE /devices/device/DEVICENAME
-		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
 		   { 'status': 'OK', 'message': string}
 		   { 'status': 'NG', 'message': string}
@@ -436,7 +457,7 @@ DETAILED:
 		   GET /devices/device/DEVICENAME
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
-		   { 'status': 'OK', 'message': string, 'device': {'devicename': string, 'deviceid': string, 'cert': cert, 'pkey': pkey}}
+		   { 'status': 'OK', 'message': string, 'device': {'devicename': string, 'deviceid': string, 'serialnumber': string, 'timestamp': string}}
 		   { 'status': 'NG', 'message': string}
 
 
@@ -543,7 +564,7 @@ DETAILED:
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
 		   { 'status': 'OK', 'message': string, 
-			 'histories': array[{'devicename': string, 'deviceid': string, 'direction': string, 'topic': string, 'payload': string, 'timestamp': string}, ...]}
+		     'histories': array[{'devicename': string, 'deviceid': string, 'direction': string, 'topic': string, 'payload': string, 'timestamp': string}, ...]}
 		   { 'status': 'NG', 'message': string}
 
 
