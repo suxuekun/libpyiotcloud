@@ -1,0 +1,23 @@
+<ion-view title="Confirm Phone Number" hide-nav-bar="true" hide-back-button="true" cache-view="false" nav-transition="none" id="page23" class="page_width">
+  <ion-content padding="true" class="manual-ios-statusbar-padding">
+    <div class="spacer" style="height: 20px;"></div>
+    <h3 id="confirmPhoneNumber-heading10" style="color:#444444;text-align:center;">Confirm Phone Number</h3>
+    <div class="spacer" style="height: 10px;"></div>
+    <form id="confirmPhoneNumber-form20" class="list">
+      <div id="confirmPhoneNumber-markdown15" style="text-align:center;" class="show-list-numbers-and-dots">
+        <p style="color:#000000;">Please enter the OTP code sent to your SMS.</p>
+      </div>
+      <ion-list id="confirmPhoneNumber-list8">
+        <label class="item item-input" id="confirmPhoneNumber-input60" name="input-confirmationcode">
+          <span class="input-label">Code</span>
+          <input type="text" placeholder="" ng-model="data.confirmationcode">
+        </label>
+      </ion-list>
+      <div class="spacer" style="height: 10px;"></div>
+      <button id="confirmPhoneNumber-button34" ng-click="submit()" class="button button-dark button-block">Submit</button>
+      <button id="confirmPhoneNumber-button35" ng-click="submitResend()" class="button button-positive button-small button-block button-clear">Didn't get code? Resend OTP</button>
+      <button id="confirmPhoneNumber-button37" ng-click="submitCancel()" class="button button-positive button-small button-block button-clear">Cancel</button>
+    </form>
+    <div id="confirmPhoneNumber-container8" class="spinner4 creator-container"></div>
+  </ion-content>
+</ion-view>

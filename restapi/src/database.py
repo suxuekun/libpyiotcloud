@@ -144,6 +144,12 @@ class database_client:
     def remove_user_from_group(self, username):
         return self._users.remove_user_from_group(username)
 
+    def request_verify_phone_number(self, access_token):
+        return self._users.request_verify_phone_number(access_token)
+
+    def confirm_verify_phone_number(self, access_token, confirmation_code):
+        return self._users.confirm_verify_phone_number(access_token, confirmation_code)
+
 
     ##########################################################
     # history
@@ -172,12 +178,11 @@ class database_client:
                     devices = self._devices.get_registered_devices()
                     if devices and devices.count():
                         for device in devices.find({'username': user["username"]}):
-                            if device['username'] == user["username"]:
-                                histories = self._devices.get_device_history(device["deviceid"])
-                                for history in histories:
-                                    history['timestamp'] = datetime.datetime.fromtimestamp(int(history['timestamp'])).strftime('%Y-%m-%d %H:%M:%S')
-                                if histories and len(histories) > 0:
-                                    user_histories += histories
+                            histories = self._devices.get_device_history(device["deviceid"])
+                            for history in histories:
+                                history['timestamp'] = datetime.datetime.fromtimestamp(int(history['timestamp'])).strftime('%Y-%m-%d %H:%M:%S')
+                            if histories and len(histories) > 0:
+                                user_histories += histories
         user_histories.sort(key=self.sort_user_history, reverse=True)
         return user_histories
 
@@ -195,8 +200,8 @@ class database_client:
     def get_devices(self, username):
         return self._devices.get_devices(username)
 
-    def add_device(self, username, devicename, cert, pkey):
-        return self._devices.add_device(username, devicename, cert, pkey)
+    def add_device(self, username, devicename, uuid, serialnumber):
+        return self._devices.add_device(username, devicename, uuid, serialnumber)
 
     def delete_device(self, username, devicename):
         self._devices.delete_device(username, devicename)
@@ -362,6 +367,14 @@ class database_client_cognito:
         print(val[1])
         return val[1]
 
+    def request_verify_phone_number(self, access_token):
+        (result, response) = self.client.request_verify_phone_number(access_token)
+        return result
+
+    def confirm_verify_phone_number(self, access_token, confirmation_code):
+        (result, response) = self.client.confirm_verify_phone_number(access_token, confirmation_code)
+        return result
+
 
 class database_client_mongodb:
 
@@ -461,12 +474,11 @@ class database_client_mongodb:
         subscriptions = self.get_subscription_db()
         if subscriptions:
             if True: # For easy reset of default type and credits
-                for subscription in subscriptions.find({},{'username': 1, 'type': 1, 'credits': 1}):
-                    if subscription['username'] == username:
-                        found = True
-                        subscription.pop('_id')
-                        subscription.pop('username')
-                        return subscription 
+                for subscription in subscriptions.find({'username':username},{'username': 1, 'type': 1, 'credits': 1}):
+                    found = True
+                    subscription.pop('_id')
+                    subscription.pop('username')
+                    return subscription 
 
         if not found:
             subscription = {}
@@ -483,17 +495,16 @@ class database_client_mongodb:
         subscriptions = self.get_subscription_db()
         if subscriptions:
             if True: # For easy reset of default type and credits
-                for subscription in subscriptions.find({},{'username': 1, 'type': 1, 'credits': 1}):
-                    if subscription['username'] == username:
-                        current_amount = int(subscription['credits'])
-                        new_amount = int(subscription['credits']) + int(credits)
-                        print("current_amount={} new_amount={}".format(current_amount, new_amount))
-                        subscription['type'] = config.CONFIG_SUBSCRIPTION_PAID_TYPE
-                        subscription['credits'] = str(new_amount)
-                        self.client.subscriptions.replace_one({'username': username}, subscription)
-                        subscription.pop('_id')
-                        subscription.pop('username')
-                        return subscription 
+                for subscription in subscriptions.find({'username': username},{'username': 1, 'type': 1, 'credits': 1}):
+                    current_amount = int(subscription['credits'])
+                    new_amount = int(subscription['credits']) + int(credits)
+                    print("current_amount={} new_amount={}".format(current_amount, new_amount))
+                    subscription['type'] = config.CONFIG_SUBSCRIPTION_PAID_TYPE
+                    subscription['credits'] = str(new_amount)
+                    self.client.subscriptions.replace_one({'username': username}, subscription)
+                    subscription.pop('_id')
+                    subscription.pop('username')
+                    return subscription 
         return None
 
 
@@ -513,19 +524,15 @@ class database_client_mongodb:
     def find_user(self, username):
         users = self.get_registered_users()
         if users:
-            for user in users.find({},{'username': 1}):
-                #print(user)
-                if user['username'] == username:
-                    return True
+            for user in users.find({'username': username},{'username': 1}):
+                return True
         return False
 
     def find_email(self, email):
         users = self.get_registered_users()
         if users:
-            for user in users.find({},{'email': 1}):
-                #print(user)
-                if user['email'] == email:
-                    return user['username']
+            for user in users.find({'email': email},{'email': 1, 'username':1}):
+                return user['username']
         return None
 
     def get_user_info(self, access_token):
@@ -534,9 +541,8 @@ class database_client_mongodb:
     def login(self, username, password):
         users = self.get_registered_users()
         if users:
-            for user in users.find({},{'username': 1, 'password':1, 'token':1}):
-                if user['username'] == username and user['password'] == password:
-                    return user['token']
+            for user in users.find({'username': username, 'password': password},{'username': 1, 'password':1, 'token':1}):
+                return user['token']
         return None
 
     def logout(self, token):
@@ -545,19 +551,15 @@ class database_client_mongodb:
     def verify_token(self, username, token):
         users = self.get_registered_users()
         if users:
-            for user in users.find({},{'username': 1, 'token':1}):
-                #print(user)
-                if user['username'] == username and user['token'] == token:
-                    return 0
+            for user in users.find({'username': username, 'token': token},{'username': 1, 'token':1}):
+                return 0
         return 1
 
     def get_confirmationcode(self, username):
         users = self.get_registered_users()
         if users:
-            for user in users.find({},{'username': 1, 'confirmationcode': 1}):
-                #print(user)
-                if user['username'] == username:
-                    return user['confirmationcode']
+            for user in users.find({'username': username},{'username': 1, 'confirmationcode': 1}):
+                return user['confirmationcode']
         return None
 
     def resend_confirmationcode(self, username):
@@ -590,16 +592,15 @@ class database_client_mongodb:
     def confirm_user(self, username, confirmationcode):
         users = self.get_registered_users()
         if users:
-            for user in users.find({},{'username': 1, 'password': 1, 'email': 1, 'givenname': 1, 'familyname': 1, 'timestamp': 1, 'token': 1, 'status': 1, 'confirmationcode': 1 }):
-                if user['username'] == username:
-                    print(user)
-                    if user['status'] == "UNCONFIRMED":
-                        if user['confirmationcode'] == confirmationcode:
-                            user['status'] = "CONFIRMED"
-                            users.replace_one({'username': username}, user)
-                            return True
-                    elif user['status'] == "CONFIRMED":
+            for user in users.find({'username': username},{'username': 1, 'password': 1, 'email': 1, 'givenname': 1, 'familyname': 1, 'timestamp': 1, 'token': 1, 'status': 1, 'confirmationcode': 1 }):
+                print(user)
+                if user['status'] == "UNCONFIRMED":
+                    if user['confirmationcode'] == confirmationcode:
+                        user['status'] = "CONFIRMED"
+                        users.replace_one({'username': username}, user)
                         return True
+                elif user['status'] == "CONFIRMED":
+                    return True
         return False
 
     def forgot_password(self, username):
@@ -633,9 +634,8 @@ class database_client_mongodb:
         histories = self.get_history_document();
         if histories:
             for history in histories.find({'deviceid': deviceid}):
-                if history['deviceid'] == deviceid:
-                    history.pop('_id')
-                    history_list.append(history)
+                history.pop('_id')
+                history_list.append(history)
         return history_list
 
 
@@ -649,61 +649,47 @@ class database_client_mongodb:
     def display_devices(self, username):
         devices = self.get_registered_devices()
         if devices:
-            for device in devices.find({},{'username': 1, 'devicename':1, 'deviceid': 1, 'timestamp':1, 'cert':1, 'pkey':1}):
-                if device['username'] == username:
-                    print(device)
+            for device in devices.find({'username': username},{'username': 1, 'devicename':1, 'deviceid': 1, 'serialnumber':1, 'timestamp':1}):
+                print(device)
 
     def get_devices(self, username):
         device_list = []
         devices = self.get_registered_devices()
         if devices and devices.count():
-            for device in devices.find({'username': username},{'username': 1, 'devicename':1, 'deviceid': 1, 'timestamp':1, 'cert':1, 'pkey':1}):
-                if device['username'] == username:
-                    device.pop('username')
-                    device.pop('timestamp')
-                    device.pop('_id')
-                    device_list.append(device)
-                    #device_list.append(str(device))
+            for device in devices.find({'username': username},{'devicename':1, 'deviceid': 1, 'serialnumber':1, 'timestamp':1}):
+                device.pop('_id')
+                device_list.append(device)
         return device_list
 
-    def add_device(self, username, devicename, cert, pkey):
+    def add_device(self, username, devicename, deviceid, serialnumber):
         timestamp = str(int(time.time()))
-        deviceid = database_utils().compute_deviceid(timestamp, username, devicename)
         device = {}
-        device['username']   = username
-        device['devicename'] = devicename
-        device['deviceid']   = deviceid
-        device['timestamp']  = timestamp
-        device['cert']       = cert
-        device['pkey']       = pkey
-        #print('post={}'.format(device))
+        device['username']     = username
+        device['devicename']   = devicename
+        device['deviceid']     = deviceid
+        device['serialnumber'] = serialnumber
+        device['timestamp']    = timestamp
         self.client.devices.insert_one(device)
-        return deviceid
+        return True
 
     def delete_device(self, username, devicename):
         devices = self.get_registered_devices()
         if devices:
-            myquery = { 'username': username, 'devicename': devicename }
-            devices.delete_one(myquery)
+            devices.delete_one({ 'username': username, 'devicename': devicename })
 
     def find_device(self, username, devicename):
         devices = self.get_registered_devices()
         if devices:
-            for device in devices.find({},{'username': 1, 'devicename': 1, 'deviceid': 1, 'cert':1, 'pkey':1}):
-                #print(user)
-                if device['username'] == username and device['devicename'] == devicename:
-                    device.pop('username')
-                    device.pop('_id')
-                    return device
+            for device in devices.find({'username': username, 'devicename': devicename},{'devicename':1, 'deviceid': 1, 'serialnumber':1, 'timestamp':1}):
+                device.pop('_id')
+                return device
         return None
 
     def get_deviceid(self, username, devicename):
         devices = self.get_registered_devices()
         if devices:
-            for device in devices.find({},{'username': 1, 'devicename': 1, 'deviceid': 1}):
-                #print(user)
-                if device['username'] == username and device['devicename'] == devicename:
-                    return device['deviceid']
+            for device in devices.find({'username': username, 'devicename': devicename},{'deviceid': 1}):
+                return device['deviceid']
         return None
 
 
@@ -746,14 +732,10 @@ class database_viewer:
                         for device in devices.find():
                             if device['username'] == user["username"]:
                                 print("\r\n    DEVICENAME    : {}".format(device["devicename"]))
-                                print("        deviceid  : {}".format(device["deviceid"]))
+                                print("        deviceid      : {}".format(device["deviceid"]))
+                                if device.get("serialnumber"):
+                                    print("        serialnumber  : {}".format(device["serialnumber"]))
                                 print("        timestamp : {}".format(self.epoch_to_datetime(device["timestamp"])))
-                                if False:
-                                    print("        cert      : {}...".format(device["cert"][28:68]))
-                                    print("        pkey      : {}...".format(device["pkey"][28:68]))
-                                else:
-                                    print("        cert      : \r\n{}".format(device["cert"]))
-                                    print("        pkey      : \r\n{}".format(device["pkey"]))
                     print("")
             else:
                 for user in users:
@@ -772,13 +754,9 @@ class database_viewer:
                             if device['username'] == user["username"]:
                                 print("\r\n    DEVICENAME    : {}".format(device["devicename"]))
                                 print("        deviceid  : {}".format(device["deviceid"]))
+                                if device.get("serialnumber"):
+                                    print("        serialnumber  : {}".format(device["serialnumber"]))
                                 print("        timestamp : {}".format(self.epoch_to_datetime(device["timestamp"])))
-                                if False:
-                                    print("        cert      : {}...".format(device["cert"][28:68]))
-                                    print("        pkey      : {}...".format(device["pkey"][28:68]))
-                                else:
-                                    print("        cert      : \r\n{}".format(device["cert"]))
-                                    print("        pkey      : \r\n{}".format(device["pkey"]))
                                 print("histories")
                                 histories = self.client.get_device_history(device["deviceid"])
                                 for history in histories:
@@ -801,7 +779,7 @@ class database_viewer:
                     if device['username'] == user["username"]:
                         self.client.delete_device(device['username'], device["devicename"])
                         print("Deleted device {}".format(device["devicename"]))
-            self.client.delete_user(user["username"])
-            print("Deleted user {}".format(user["username"]))
+            #self.client.delete_user(user["username"])
+            #print("Deleted user {}".format(user["username"]))
 
 

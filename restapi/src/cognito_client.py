@@ -160,10 +160,10 @@ class cognito_client:
 			user_attributes = self.__cognito_to_dict(response["UserAttributes"])
 			if 'sub' in user_attributes:
 				user_attributes.pop("sub")
-			if 'email_verified' in user_attributes:
-				user_attributes.pop("email_verified")
-			if 'phone_number_verified' in user_attributes:
-				user_attributes.pop("phone_number_verified")
+			#if 'email_verified' in user_attributes:
+			#	user_attributes.pop("email_verified")
+			#if 'phone_number_verified' in user_attributes:
+			#	user_attributes.pop("phone_number_verified")
 			if 'given_name' in user_attributes and 'family_name' in user_attributes:
 				user_attributes['name'] = user_attributes['given_name'] + " " + user_attributes['family_name']
 				user_attributes.pop("given_name")
@@ -205,6 +205,32 @@ class cognito_client:
 		}
 		try:
 			response = self.__get_client().change_password(**params)
+		except:
+			return (False, None)
+		return (self.__get_result(response), response)
+
+	def request_verify_phone_number(self, access_token):
+		params = {
+			'AccessToken': access_token,
+			'AttributeName': 'phone_number'
+		}
+		try:
+			print("get_user_attribute_verification_code")
+			response = self.__get_client().get_user_attribute_verification_code(**params)
+			print(response)
+		except Exception as e:
+			print(e)
+			return (False, None)
+		return (self.__get_result(response), response)
+
+	def confirm_verify_phone_number(self, access_token, confirmation_code):
+		params = {
+			'AccessToken': access_token,
+			'AttributeName': 'phone_number',
+			'Code': confirmation_code
+		}
+		try:
+			response = self.__get_client().verify_user_attribute(**params)
 		except:
 			return (False, None)
 		return (self.__get_result(response), response)

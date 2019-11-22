@@ -22,24 +22,23 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Device
         'token': User.get_token()        //$stateParams.token
     };
 
-    $scope.refreshing = false;
+    $scope.submitTest = function(device) {
 
-
-    $scope.submitTest = function(devicename) {
-
-        console.log("devicename=" + devicename);
+        console.log("devicename=" + device.devicename);
         var device_param = {
             'username': $scope.data.username,
             'token': $scope.data.token,
-            'devicename': devicename,
+            'devicename': device.devicename,
+            'deviceid': device.deviceid,
+            'serialnumber': device.serialnumber
         };
        
-        $state.go('controlDevice', device_param );
+        $state.go('configureDevice', device_param );
     };
     
     $scope.submitAdd = function() {
 
-        $state.go('registerDevice', $scope.data);
+        $state.go('addDevice', $scope.data);
     };
     
     $scope.submitRefresh = function() {
@@ -163,7 +162,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Device
     
     
     $scope.getStyle = function(devicestatus) {
-        console.log("getStyle " + devicestatus);
+        //console.log("getStyle " + devicestatus);
         if (devicestatus === "Online") {
             return 'item-online';
         }
@@ -183,8 +182,8 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token)
     var server = Server.rest_api;
 
     $scope.data = {
-        'username': User.get_username(),
-        'token': User.get_token(),
+        'username': "", //User.get_username(),
+        'token': "",//User.get_token(),
 
         'fullname': 'Unknown',
         'email': 'Unknown',
@@ -273,6 +272,14 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token)
             if (result.data.info.phone_number !== undefined) {
                 $scope.data.phonenumber = result.data.info.phone_number;
             }
+            else {
+                $scope.data.phonenumber = "Unknown";
+            }
+            if (result.data.info.phone_number_verified !== undefined) {
+                if (result.data.info.phone_number_verified === false) {
+                    $scope.data.phonenumber +=  " (Unverified)";
+                }
+            }
         })
         .catch(function (error) {
             handle_error(error);
@@ -310,6 +317,17 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token)
 
     $scope.$on('$ionicView.enter', function(e) {
 
+        $scope.data.username = User.get_username();
+        $scope.data.token = User.get_token();
+
+        console.log("ACCOUNT ionicView get_profile");
+        get_profile({
+            'username': $scope.data.username,
+            'token': $scope.data.token
+        });
+
+/*
+
         if (($scope.data.username !== User.get_username()) && 
             ($scope.data.token !== User.get_token())) {
 
@@ -322,18 +340,18 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token)
                 'token': $scope.data.token
             });
         }
-
+*/
         console.log("ACCOUNT ionicView get_subscription");
         get_subscription();
 
     });
 
 
-    console.log("ACCOUNT get_profile");
-    get_profile();
+//    console.log("ACCOUNT get_profile");
+//    get_profile();
 
-    console.log("ACCOUNT get_subscription");
-    get_subscription();
+//    console.log("ACCOUNT get_subscription");
+//    get_subscription();
 
 
     $scope.submitBuycredits = function() {
@@ -372,6 +390,43 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token)
         console.log("token=" + $scope.data.token);
         
         delete_account(); 
+    };
+ 
+    $scope.submitVerifynumber = function() {
+        console.log("submitVerifynumber");
+        
+        
+        // 
+        // VERIFY PHONE NUMBER
+        // 
+        // - Request:
+        //   POST /user/verify_phone_number
+        //   headers: {'Authorization': 'Bearer ' + token.access}
+        // 
+        // - Response:
+        //   {'status': 'OK', 'message': string}
+        //   {'status': 'NG', 'message': string}
+        //   
+        $http({
+            method: 'POST',
+            url: server + '/user/verify_phone_number',
+            headers: {'Authorization': 'Bearer ' + $scope.data.token.access}
+        })
+        .then(function (result) {
+            console.log(result.data);
+            $state.go('confirmPhoneNumber', {'username': $scope.data.username, 'token': $scope.data.token});
+        })
+        .catch(function (error) {
+            console.log(error);
+            if (error.data !== null) {
+                console.log(error.status + " " + error.statusText);
+                $ionicPopup.alert({title: 'Verify phone number', template: error.data.message});
+            }
+            else {
+                $ionicPopup.alert({title: 'Verify phone number', template: 'Server is down!'});
+            }
+            return;
+        });
     };
     
 }
@@ -1005,7 +1060,7 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
 
         // get JWT = header.payload.signature
         // https://jwt.io/
-        secret = "iotmodem";
+        secret = "iotmodembrtchip0iotmodembrtchip0";
         header = urlEncode(base64Encode(headerData));
         payload = urlEncode(base64Encode(payloadData));
         signature = urlEncode(CryptoJS.enc.Base64.stringify(CryptoJS.HmacSHA256(header + "." + payload, secret)));
@@ -1133,7 +1188,7 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server) {
 
         // get JWT = header.payload.signature
         // https://jwt.io/
-        secret = "iotmodem";
+        secret = "iotmodembrtchip0iotmodembrtchip0";
         header = urlEncode(base64Encode(headerData));
         payload = urlEncode(base64Encode(payloadData));
         signature = urlEncode(CryptoJS.enc.Base64.stringify(CryptoJS.HmacSHA256(header + "." + payload, secret)));
@@ -1371,7 +1426,7 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server) {
 
         // get JWT = header.payload.signature
         // https://jwt.io/
-        secret = "iotmodem";
+        secret = "iotmodembrtchip0iotmodembrtchip0";
         header = urlEncode(base64Encode(headerData));
         payload = urlEncode(base64Encode(payloadData));
         signature = urlEncode(CryptoJS.enc.Base64.stringify(CryptoJS.HmacSHA256(header + "." + payload, secret)));
@@ -1512,17 +1567,17 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server) {
         spinner[0].style.visibility = "visible";
 
 
-        // 
+        //
         // CONFIRM SIGN-UP
-        // 
+        //
         // - Request:
         //   POST /user/confirm_signup
         //   { 'username': string, 'confirmationcode': string }
-        // 
+        //
         // - Response:
         //   {'status': 'OK', 'message': string}
         //   {'status': 'NG', 'message': string}
-        //   
+        //
         $http({
             method: 'POST',
             url: server + '/user/confirm_signup',
@@ -1572,11 +1627,10 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server) {
 
 
         // 
-        // RESEND CONFIRMATION CODE
+        // CONFIRM REGISTRATION
         // 
         // - Request:
-        //   POST /user/resend_confirmation_code
-        //   { 'username': string }
+        //   POST /user/confirm_signup
         // 
         // - Response:
         //   {'status': 'OK', 'message': string}
@@ -1584,23 +1638,23 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server) {
         // 
         $http({
             method: 'POST',
-            url: server + '/user/resend_confirmation_code',
+            url: server + '/user/confirm_signup',
             headers: {'Content-Type': 'application/json'},
             data: param
         })
         .then(function (result) {
             // Handle successful
             console.log(result.data);
-            $ionicPopup.alert({title: 'Signup', template: 'Confirmation code resent successfully! Please chek your email!'});
+            $ionicPopup.alert({title: 'Confirm signup', template: 'Confirmation code resent successfully! Please chek your email!'});
         })
         .catch(function (error) {
             // Handle failed
             if (error.data !== null) {
                 console.log(error.status + " " + error.statusText);
-                $ionicPopup.alert({title: 'Signup Error', template: error.data.message});
+                $ionicPopup.alert({title: 'Confirm signup Error', template: error.data.message});
             }
             else {
-                $ionicPopup.alert({title: 'Signup Error', template: 'Server is down!'});
+                $ionicPopup.alert({title: 'Confirm signup Error', template: 'Server is down!'});
             }
             return;
         });       
@@ -1610,6 +1664,113 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server) {
         $state.go('signup');
     };
     
+}])
+   
+.controller('confirmPhoneNumberCtrl', ['$scope', '$stateParams', '$state', '$ionicPopup', '$http', 'Server', 'User', 'Token', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+// You can include any angular dependencies as parameters for this function
+// TIP: Access Route Parameters for your page via $stateParams.parameterName
+function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token) {
+
+    var server = Server.rest_api;
+
+    $scope.data = {
+        'username': User.get_username(),
+        'token': User.get_token(),
+        
+        'confirmationcode': ''
+    };
+
+
+    $scope.submit = function() {
+        console.log("username=" + $scope.data.username);
+        console.log("confirmationcode=" + $scope.data.confirmationcode);
+        
+        if ($scope.data.confirmationcode === undefined) {
+            $ionicPopup.alert({title: 'Verify Phone Number Error', template: 'Code is empty!'});
+            return;
+        }
+        else if ($scope.data.confirmationcode.length === 0) {
+            $ionicPopup.alert({title: 'Verify Phone Number Error', template: 'Code is empty!'});
+            return;
+        }
+
+
+        //
+        // CONFIRM VERIFY PHONE NUMBER
+        //
+        // - Request:
+        //   POST /user/confirm_verify_phone_number
+        //   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+        //   data: {'confirmationcode': string}
+        //
+        // - Response:
+        //   {'status': 'OK', 'message': string}
+        //   {'status': 'NG', 'message': string}
+        //
+        $http({
+            method: 'POST',
+            url: server + '/user/confirm_verify_phone_number',
+            headers: {'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json'},
+            data: { 'confirmationcode': $scope.data.confirmationcode }
+        })
+        .then(function (result) {
+            console.log(result.data);
+            $ionicPopup.alert({title: 'Verify phone number', template: 'Your phone number has been verified successfully!'});
+            $state.go('menu.account', {'username': $scope.data.username, 'token': $scope.data.token} );
+        })
+        .catch(function (error) {
+            console.log(error);
+            if (error.data !== null) {
+                console.log(error.status + " " + error.statusText);
+                $ionicPopup.alert({title: 'Verify phone number', template: error.data.message});
+            }
+            else {
+                $ionicPopup.alert({title: 'Verify phone number', template: 'Server is down!'});
+            }
+            return;
+        });       
+    };
+    
+    $scope.submitResend = function() {
+        console.log("submitVerifynumber");
+        
+        
+        // 
+        // VERIFY PHONE NUMBER
+        // 
+        // - Request:
+        //   POST /user/verify_phone_number
+        //   headers: {'Authorization': 'Bearer ' + token.access}
+        // 
+        // - Response:
+        //   {'status': 'OK', 'message': string}
+        //   {'status': 'NG', 'message': string}
+        //   
+        $http({
+            method: 'POST',
+            url: server + '/user/verify_phone_number',
+            headers: {'Authorization': 'Bearer ' + $scope.data.token.access}
+        })
+        .then(function (result) {
+            console.log(result.data);
+            $state.go('confirmPhoneNumber', {'username': $scope.data.username, 'token': $scope.data.token});
+        })
+        .catch(function (error) {
+            console.log(error);
+            if (error.data !== null) {
+                console.log(error.status + " " + error.statusText);
+                $ionicPopup.alert({title: 'Verify phone number', template: error.data.message});
+            }
+            else {
+                $ionicPopup.alert({title: 'Verify phone number', template: 'Server is down!'});
+            }
+            return;
+        });      
+    };    
+    
+    $scope.submitCancel = function() {
+        $state.go('menu.account', {'username': $scope.data.username, 'token': $scope.data.token} );
+    };
 }])
    
 .controller('settingsCtrl', ['$scope', '$stateParams', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
@@ -1628,7 +1789,7 @@ function ($scope, $stateParams) {
 
 }])
    
-.controller('registerDeviceCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'Devices', 'User', 'Token', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+.controller('addDeviceCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'Devices', 'User', 'Token', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
 // You can include any angular dependencies as parameters for this function
 // TIP: Access Route Parameters for your page via $stateParams.parameterName
 function ($scope, $stateParams, $state, $http, $ionicPopup, Server, Devices, User, Token) {
@@ -1637,10 +1798,45 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, Devices, Use
 
     $scope.data = {
         'username': $stateParams.username,
-        'token': User.get_token(),        
-        'devicename': $scope.devicename
+        'token': User.get_token(),
+
+        'devicename': "",
+        'uuid': "",
+        'serialnumber': "",
     };
-    
+
+    $scope.generate = function() {
+        uuid = "PH80XXRRMMDDYYSS";
+        serialnumber = "SSSSS";
+        
+        var today = new Date();
+        month = today.getMonth() + 1;
+        day = today.getDate();
+        year = today.getFullYear() - 2000;
+        month = ("0" + month).slice(-2);
+        day = ("0" + day).slice(-2);
+        year = ("0" + year).slice(-2);
+        
+        random = Math.floor(Math.random() * 256); // 0-255
+        serialnumber = random.toString();
+        serialnumber = ("0000" + serialnumber).slice(-5);
+        
+        random = random.toString(16);
+        random = ("0" + random).slice(-2);
+        
+        uuid = uuid.replace("MM", month.toString());
+        uuid = uuid.replace("DD", day.toString());
+        uuid = uuid.replace("YY", year.toString());
+        uuid = uuid.replace("SS", random.toString());
+        uuid = uuid.toUpperCase();
+        
+        $scope.data.uuid = uuid;
+        $scope.data.serialnumber = serialnumber;
+        
+        console.log(uuid);
+        console.log(serialnumber);
+    };       
+
     $scope.submit = function() {
         console.log("username=" + $scope.data.username);
         console.log("token=" + $scope.data.token);
@@ -1659,6 +1855,36 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, Devices, Use
             alert("ERROR: Register Device token is empty!");
             return;
         }
+        else if ($scope.data.uuid === undefined) {
+            console.log("ERROR: Register Device UUID is undefined!");
+            // TODO: replace alert with ionic alert
+            alert("ERROR: Register Device UUID is undefined!");
+            return;
+        }
+        else if ($scope.data.uuid.trim().length === 0) {
+            console.log("ERROR: Register Device UUID is empty!");
+            // TODO: replace alert with ionic alert
+            alert("ERROR: Register Device UUID is empty!");
+            return;
+        }
+        else if ($scope.data.serialnumber === undefined) {
+            console.log("ERROR: Register Device serial number is undefined!");
+            // TODO: replace alert with ionic alert
+            alert("ERROR: Register Device serial number is undefined!");
+            return;
+        }
+        else if ($scope.data.serialnumber.trim().length === 0) {
+            console.log("ERROR: Register Device serial number is empty!");
+            // TODO: replace alert with ionic alert
+            alert("ERROR: Register Device serial number is empty!");
+            return;
+        }
+        else if ($scope.data.devicename === undefined) {
+            console.log("ERROR: Register Device devicename is undefined!");
+            // TODO: replace alert with ionic alert
+            alert("ERROR: Register Device devicename is undefined!");
+            return;
+        }
         else if ($scope.data.devicename.trim().length === 0) {
             console.log("ERROR: Register Device devicename is empty!");
             // TODO: replace alert with ionic alert
@@ -1666,46 +1892,48 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, Devices, Use
             return;
         }
         
-        //        
+       
+        param = {
+            'deviceid': $scope.data.uuid,
+            'serialnumber': $scope.data.serialnumber,
+        };
+
+        //
         // ADD DEVICE
         // 
         // - Request:
         //   POST /devices/device/<devicename>
         //   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+        //   data: {'device': {'deviceid': string, 'serialnumber': string}}
         //
         // - Response:
-        //   {'status': 'OK', 'message': string, 'device': {'devicename': string, 'deviceid': string, 'cert': cert, 'pkey': pkey, 'ca': ca}}
+        //   {'status': 'OK', 'message': string}
         //   {'status': 'NG', 'message': string}
         //
         $http({
             method: 'POST',
             url: server + '/devices/device/' + $scope.data.devicename,
-            headers: {'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json'}
+            headers: {'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json'},
+            data: param
         })
         .then(function (result) {
-            // Handle successful login
             console.log(result.data);
 
-            var device_param = {
-                'username': $scope.data.username,
-                'token': $scope.data.token,
-                'devicename': result.data.device.devicename,
-                'deviceid': result.data.device.deviceid,
-                'devicecert': result.data.device.cert,
-                'devicepkey': result.data.device.pkey,
-                'deviceca': result.data.device.ca
-            };
-            
             $ionicPopup.alert({
-                title: 'Register Device',
-                template: 'Device registered successfully!'
-            });            
-//            alert("Device registered successfully!");
-
-            $state.go('viewDevice', device_param);
+                title: 'Success',
+                template: 'Device added successfully!',
+                buttons: [
+                    {
+                        text: 'OK',
+                        type: 'button-positive',
+                        onTap: function(e) {
+                            $state.go('menu.devices', {'username': $scope.data.username, 'token': $scope.data.token});
+                        }
+                    }
+                ]
+            });
         })
         .catch(function (error) {
-            // Handle failed login
             if (error.data !== null) {
                 console.log("ERROR: Register Device failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
                 // TODO: replace alert with ionic alert
@@ -1731,6 +1959,14 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, Devices, Use
         };
         $state.go('menu.devices', device_param, {reload: true});
     };
+    
+    $scope.$on('$ionicView.enter', function(e) {
+        console.log("enter");
+        $scope.data.uuid = "";
+        $scope.data.serialnumber = "";
+        $scope.data.devicename = "";
+    });    
+    
 }])
    
 .controller('viewDeviceCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
@@ -1743,25 +1979,26 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
     var server = Server.rest_api;
 
     $scope.data = {
-        'username': $stateParams.username,
-        'token': User.get_token(),
-        'devicename': $stateParams.devicename,
-        'deviceid': $stateParams.deviceid,
-        'devicecert': $stateParams.devicecert,
-        'devicepkey': $stateParams.devicepkey,
-        'deviceca': $stateParams.deviceca
+        'username'    : $stateParams.username,
+        'token'       : User.get_token(),
+        'devicename'  : $stateParams.devicename,
+        'deviceid'    : $stateParams.deviceid,
+        'serialnumber': $stateParams.serialnumber,
+        'timestamp'   : $stateParams.timestamp,
     };
     
     $scope.submitTest = function() {
         console.log("submitTest= " + $scope.data.devicename);
         
         var device_param = {
-            'username': $scope.data.username,
-            'token': $scope.data.token,
-            'devicename': $scope.data.devicename
+            'username'     : $scope.data.username,
+            'token'        : $scope.data.token,
+            'devicename'   : $scope.data.devicename,
+            'deviceid'     : $scope.data.deviceid,
+            'serialnumber' : $scope.data.serialnumber
         };
        
-        $state.go('controlDevice', device_param);    
+        $state.go('configureDevice', device_param);    
     };
 
 
@@ -1788,18 +2025,12 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
     $scope.submitDeleteAction = function() {
         console.log("submitDelete= " + $scope.data.devicename);
         
-        var device_param = {
-            'username': $scope.data.username,
-            'devicename': $scope.data.devicename
-        };
-
-
         //
         // DELETE DEVICE
         //
         // - Request:
         //   DELETE /devices/device/<devicename>
-        //   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+        //   headers: {'Authorization': 'Bearer ' + token.access}
         //
         // - Response:
         //   {'status': 'OK', 'message': string}
@@ -1808,16 +2039,13 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         $http({
             method: 'DELETE',
             url: server + '/devices/device/' + $scope.data.devicename,
-            headers: {'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json'}
+            headers: {'Authorization': 'Bearer ' + $scope.data.token.access}
         })
         .then(function (result) {
-            // Handle successful login
             console.log(result.data);
-            update_token(result);
-            $state.go('menu.devices', device_param);                
+            $state.go('menu.devices', {'username': $scope.data.username, 'token': $scope.data.token});
         })
         .catch(function (error) {
-            // Handle failed login
             if (error.data !== null) {
                 console.log("ERROR: Delete Device failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
                 // TODO: replace alert with ionic alert
@@ -1839,13 +2067,13 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
     $scope.submitDeviceList = function() {
         var device_param = {
             'username': $scope.data.username,
-            'token': $scope.data.token
+            'token'   : $scope.data.token
         };
         $state.go('menu.devices', device_param, {reload: true});
     };
 }])
    
-.controller('controlDeviceCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+.controller('configureDeviceCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
 // You can include any angular dependencies as parameters for this function
 // TIP: Access Route Parameters for your page via $stateParams.parameterName
 function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token) {
@@ -1856,6 +2084,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         'username': $stateParams.username,
         'token': User.get_token(),
         'devicename': $stateParams.devicename,
+        'deviceid': $stateParams.deviceid,
+        'serialnumber': $stateParams.serialnumber,
         'devicestatus': 'UNKNOWN'
     };
 
@@ -1944,11 +2174,11 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         })
         .then(function (result) {
             console.log(result.data);
-            $scope.data.devicestatus = 'RUNNING';
+            $scope.data.devicestatus = 'Online';
         })
         .catch(function (error) {
             handle_error(error);
-            $scope.data.devicestatus = 'NOT RUNNING';
+            $scope.data.devicestatus = 'Offline';
         }); 
     };   
 
@@ -2002,14 +2232,14 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         .then(function (result) {
             console.log(result.data);
 
+            var timestamp = new Date(result.data.device.timestamp* 1000);
             var device_param = {
                 'username': $scope.data.username,
                 'token': $scope.data.token,
                 'devicename': result.data.device.devicename,
                 'deviceid': result.data.device.deviceid,
-                'devicecert': result.data.device.cert,
-                'devicepkey': result.data.device.pkey,
-                'deviceca': result.data.device.ca
+                'serialnumber': result.data.device.serialnumber,
+                'timestamp': timestamp,
             };
             
             $state.go('viewDevice', device_param);
@@ -2022,8 +2252,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
     $scope.submitRestart = function() {
         console.log("devicename=" + $scope.data.devicename);
 
-        if ($scope.data.devicestatus !== 'RUNNING') {
-            $ionicPopup.alert({title: 'Device Error', template: 'Device is NOT RUNNING!'});
+        if ($scope.data.devicestatus !== 'Online') {
+            $ionicPopup.alert({title: 'Device Error', template: 'Device is offline!'});
             return;
         }
 
@@ -2233,8 +2463,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         console.log("gateway=" + $scope.data.gateway);
         console.log("macaddr=" + $scope.data.macaddr);
 
-        if ($scope.data.devicestatus !== 'RUNNING') {
-            $ionicPopup.alert({title: 'Device Error', template: 'Device is NOT RUNNING!'});
+        if ($scope.data.devicestatus !== 'Online') {
+            $ionicPopup.alert({title: 'Device Error', template: 'Device is offline!'});
             return;
         }
 
@@ -2256,7 +2486,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             'token': $scope.data.token,
             'devicename': $scope.data.devicename
         };
-        $state.go('controlDevice', device_param);
+        $state.go('configureDevice', device_param);
     };
     
 }])
@@ -2372,8 +2602,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         console.log("devicename=" + $scope.data.devicename);
         console.log("gpionumber=" + $scope.data.gpionumber);
 
-        if ($scope.data.devicestatus !== 'RUNNING') {
-            $ionicPopup.alert({title: 'Device Error', template: 'Device is NOT RUNNING!'});
+        if ($scope.data.devicestatus !== 'Online') {
+            $ionicPopup.alert({title: 'Device Error', template: 'Device is offline!'});
             return;
         }
 
@@ -2393,8 +2623,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         console.log("gpionumber=" + $scope.data.gpionumber);
         console.log("gpiovalueset=" + $scope.data.gpiovalueset);
 
-        if ($scope.data.devicestatus !== 'RUNNING') {
-            $ionicPopup.alert({title: 'Device Error', template: 'Device is NOT RUNNING!'});
+        if ($scope.data.devicestatus !== 'Online') {
+            $ionicPopup.alert({title: 'Device Error', template: 'Device is offline!'});
             return;
         }
 
@@ -2424,7 +2654,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             'token': $scope.data.token,
             'devicename': $scope.data.devicename
         };
-        $state.go('controlDevice', device_param);
+        $state.go('configureDevice', device_param);
     };
   
 }])
@@ -2499,8 +2729,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         console.log("devicename=" + $scope.data.devicename);
         console.log("message=" + $scope.data.message);
 
-        if ($scope.data.devicestatus !== 'RUNNING') {
-            $ionicPopup.alert({title: 'Device Error', template: 'Device is NOT RUNNING!'});
+        if ($scope.data.devicestatus !== 'Online') {
+            $ionicPopup.alert({title: 'Device Error', template: 'Device is offline!'});
             return;
         }
 
@@ -2517,7 +2747,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             'token': $scope.data.token,
             'devicename': $scope.data.devicename
         };
-        $state.go('controlDevice', device_param);
+        $state.go('configureDevice', device_param);
     };
 
 }])
@@ -2621,8 +2851,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         console.log("datetime=" + $scope.data.datetime);
         console.log("epoch=" + $scope.data.epoch);
 
-        if ($scope.data.devicestatus !== 'RUNNING') {
-            $ionicPopup.alert({title: 'Device Error', template: 'Device is NOT RUNNING!'});
+        if ($scope.data.devicestatus !== 'Online') {
+            $ionicPopup.alert({title: 'Device Error', template: 'Device is offline!'});
             return;
         }
         
@@ -2637,8 +2867,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         console.log("devicename=" + $scope.data.devicename);
         console.log("datetimeset=" + $scope.data.datetimeset);
 
-        if ($scope.data.devicestatus !== 'RUNNING') {
-            $ionicPopup.alert({title: 'Device Error', template: 'Device is NOT RUNNING!'});
+        if ($scope.data.devicestatus !== 'Online') {
+            $ionicPopup.alert({title: 'Device Error', template: 'Device is offline!'});
             return;
         }
 
@@ -2661,7 +2891,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             'token': $scope.data.token,
             'devicename': $scope.data.devicename
         };
-        $state.go('controlDevice', device_param);
+        $state.go('configureDevice', device_param);
     };
     
 }])
@@ -2770,8 +3000,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         console.log("message=" + $scope.data.message);
  
 
-        if ($scope.data.devicestatus !== 'RUNNING') {
-            $ionicPopup.alert({title: 'Device Error', template: 'Device is NOT RUNNING!'});
+        if ($scope.data.devicestatus !== 'Online') {
+            $ionicPopup.alert({title: 'Device Error', template: 'Device is offline!'});
             return;
         }
 
@@ -2816,7 +3046,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             'token': $scope.data.token,
             'devicename': $scope.data.devicename
         };
-        $state.go('controlDevice', device_param);
+        $state.go('configureDevice', device_param);
     };
     
 }])

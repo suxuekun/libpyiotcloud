@@ -101,6 +101,16 @@ angular.module('app.routes', [])
     controller: 'confirmRegistrationCtrl'
   })
 
+  .state('confirmPhoneNumber', {
+    url: '/page_confirm_phone_number',
+	params: {
+		username: "",
+		token: ""		
+},
+    templateUrl: 'templates/confirmPhoneNumber.html',
+    controller: 'confirmPhoneNumberCtrl'
+  })
+
   .state('menu.settings', {
     url: '/page_settings',
     views: {
@@ -121,14 +131,14 @@ angular.module('app.routes', [])
     }
   })
 
-  .state('registerDevice', {
+  .state('addDevice', {
     url: '/page_register_device',
 	params: {
 		username: "",
 		token: ""		
 },
-    templateUrl: 'templates/registerDevice.html',
-    controller: 'registerDeviceCtrl'
+    templateUrl: 'templates/addDevice.html',
+    controller: 'addDeviceCtrl'
   })
 
   .state('viewDevice', {
@@ -138,23 +148,24 @@ angular.module('app.routes', [])
 		token: "",
 		devicename: "",
 		deviceid: "",
-		devicecert: "",
-		devicepkey: "",
-		deviceca: ""		
+		serialnumber: "",
+		timestamp: ""		
 },
     templateUrl: 'templates/viewDevice.html',
     controller: 'viewDeviceCtrl'
   })
 
-  .state('controlDevice', {
+  .state('configureDevice', {
     url: '/page_control_device',
 	params: {
 		devicename: "",
 		username: "",
-		token: ""		
+		token: "",
+		deviceid: "",
+		serialnumber: ""		
 },
-    templateUrl: 'templates/controlDevice.html',
-    controller: 'controlDeviceCtrl'
+    templateUrl: 'templates/configureDevice.html',
+    controller: 'configureDeviceCtrl'
   })
 
   .state('deviceEthernet', {

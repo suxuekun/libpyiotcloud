@@ -14,20 +14,34 @@
     <div class="spacer" style="height: 10px;"></div>
     <div id="viewDevice-markdown17" class="show-list-numbers-and-dots">
       <p style="color:#444444;font-size:18px;">
-        <strong>Device ID:</strong>
+        <strong>UUID:</strong>
       </p>
     </div>
-    <form id="viewDevice-form20" class="list">
+    <form id="viewDevice-form24" class="list">
       <label class="item item-input" id="viewDevice-input35" name="input-deviceid">
         <input type="text" placeholder="" ng-model="data.deviceid" readonly="">
       </label>
     </form>
+    <div id="viewDevice-markdown67" class="show-list-numbers-and-dots">
+      <p style="color:#444444;font-size:18px;">
+        <strong>Serial Number:</strong>
+      </p>
+    </div>
+    <form id="viewDevice-form27" class="list">
+      <label class="item item-input" id="viewDevice-input58" name="input-serialnumber">
+        <input type="text" placeholder="" ng-model="data.serialnumber" readonly="">
+      </label>
+    </form>
+    <div id="viewDevice-markdown68" class="show-list-numbers-and-dots">
+      <p style="color:#444444;font-size:18px;">
+        <strong>Creation Date:</strong>
+      </p>
+    </div>
+    <form id="viewDevice-form31" class="list">
+      <label class="item item-input" id="viewDevice-input59" name="input-timestamp">
+        <input type="text" placeholder="" ng-model="data.timestamp" readonly="">
+      </label>
+    </form>
     <button id="viewDevice-button46" ng-click="submitTest()" class="button button-dark button-block">Control Device</button>
-    <div id="viewDevice-markdown15" class="show-list-numbers-and-dots">
-      <p style="color:#444444;font-size:7px;">Certificate: {{ data.devicecert }}</p>
-    </div>
-    <div id="viewDevice-markdown16" class="show-list-numbers-and-dots">
-      <p style="color:#444444;font-size:7px;">Private Key: {{ data.devicepkey }}</p>
-    </div>
   </ion-content>
 </ion-view>

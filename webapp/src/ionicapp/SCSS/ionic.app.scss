@@ -126,15 +126,18 @@ $ionicons-font-path: "../lib/ionic/fonts" !default;
 .item-online {
 	color: green;
 	background-color: green;
+	width: 60px;
 }
 
 .item-offline {
 	color: red;
 	background-color: red;
+	width: 60px;
 }
 
 .item-detecting {
 	color: black;
 	background-color: yellow;
+	width: 60px;
 }
 

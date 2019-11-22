@@ -9898,12 +9898,15 @@ a.button {
 
 .item-online {
   color: green;
-  background-color: green; }
+  background-color: green;
+  width: 60px; }
 
 .item-offline {
   color: red;
-  background-color: red; }
+  background-color: red;
+  width: 60px; }
 
 .item-detecting {
   color: black;
-  background-color: yellow; }
+  background-color: yellow;
+  width: 60px; }
