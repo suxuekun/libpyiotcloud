@@ -1901,7 +1901,7 @@ def get_jwtencode_user_pass(auth_header):
         print(reason)
         return None, None, reason
 
-    currepoch = int(time.time())
+    currepoch = int(time.time())+2
     print("username: {}".format(payload["username"]))
     print("password: {}".format(payload["password"]))
     print("cur: {}".format(currepoch))
