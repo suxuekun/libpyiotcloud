@@ -303,7 +303,7 @@ if __name__ == '__main__':
     else:
         g_messaging_client = messaging_client(CONFIG_USE_AMQP, on_mqtt_message, device_id=CONFIG_DEVICE_ID, use_ecc=CONFIG_USE_ECC)
         g_messaging_client.set_server(CONFIG_HOST, CONFIG_MQTT_TLS_PORT)
-    if CONFIG_USERNAME and CONFIG_PASSWORD:
+    if CONFIG_USERNAME or CONFIG_PASSWORD:
         g_messaging_client.set_user_pass(CONFIG_USERNAME, CONFIG_PASSWORD)
     g_messaging_client.set_tls(CONFIG_TLS_CA, CONFIG_TLS_CERT, CONFIG_TLS_PKEY)
 

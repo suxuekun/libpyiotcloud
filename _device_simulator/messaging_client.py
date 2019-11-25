@@ -92,7 +92,7 @@ class messaging_client:
         code = 0
         use_tls = True
         # Set TLS certificates and access credentials
-        if self.username and self.password:
+        if self.username or self.password:
             credentials = amqp.PlainCredentials(self.username, self.password)
         else:
             credentials = None
@@ -156,7 +156,7 @@ class messaging_client:
         client.on_disconnect = self.on_mqtt_disconnect
         client.on_message = self.on_mqtt_message
         # Set MQTT credentials
-        if self.username and self.password:
+        if self.username or self.password:
             client.username_pw_set(self.username, self.password)
         # Set TLS certificates
         if True:
