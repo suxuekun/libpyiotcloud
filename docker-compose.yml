@@ -7,13 +7,13 @@ services:
       - mydockernet
     ports:
       - "8883:8883"
-      - "5671:5671"
       - "15672:15672"
     expose:
       - "8883"
-      - "5671"
     environment:
       - CONFIG_USE_ECC
+    volumes:
+      - "rabbitmq-data:/var/lib/rabbitmq"
   mongodb:
     build: ./mongodb
     restart: always
@@ -22,7 +22,7 @@ services:
     ports:
       - "27017:27017"
     volumes:
-      - "mydockervol:/data/db"
+      - "mongodb-data:/data/db"
   restapi:
     build: ./restapi
     restart: always
