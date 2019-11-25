@@ -42,8 +42,8 @@ g_gpio_values = {}
 
 CONFIG_DEVICE_ID            = "notification_manager"
 
-CONFIG_USERNAME             = "guest"
-CONFIG_PASSWORD             = "guest"
+CONFIG_USERNAME             = notification_config.CONFIG_MQTT_DEFAULT_USER
+CONFIG_PASSWORD             = notification_config.CONFIG_MQTT_DEFAULT_PASS
 
 if CONFIG_USE_ECC:
     CONFIG_TLS_CA           = "../cert_ecc/rootca.pem"

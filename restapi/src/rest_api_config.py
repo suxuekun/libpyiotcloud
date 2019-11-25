@@ -22,8 +22,8 @@ class config:
         CONFIG_HTTP_TLS_PKEY    = "cert/server_pkey.pem"
 
     # Message broker credentials
-    CONFIG_USERNAME             = "guest"
-    CONFIG_PASSWORD             = "guest"
+    CONFIG_USERNAME             = os.environ["CONFIG_USE_MQTT_DEFAULT_USER"]
+    CONFIG_PASSWORD             = os.environ["CONFIG_USE_MQTT_DEFAULT_PASS"]
     if int(os.environ["CONFIG_USE_ECC"])==1:
         CONFIG_TLS_CA           = "cert_ecc/rootca.pem"
         CONFIG_TLS_CERT         = "cert_ecc/server_cert.pem"
@@ -43,7 +43,7 @@ class config:
     CONFIG_AMQP_TLS_PORT        = 5671
     CONFIG_MGMT_TLS_PORT        = 15671
     CONFIG_MGMT_PORT            = 15672
-    CONFIG_MGMT_ACCOUNT         = "guest:guest"
+    CONFIG_MGMT_ACCOUNT         = "{}:{}".format(os.environ["CONFIG_USE_MQTT_DEFAULT_USER"], os.environ["CONFIG_USE_MQTT_DEFAULT_PASS"])
     CONFIG_ENABLE_MQ_SECURITY   = True
 
     # Database settings

@@ -13,3 +13,7 @@ class config:
     CONFIG_USE_SMS_MODEL          = os.environ["CONFIG_USE_SMS_MODEL"]
 
     CONFIG_DEBUG_NOTIFICATION     = False
+
+    # RabbitMQ settings
+    CONFIG_MQTT_DEFAULT_USER      = os.environ["CONFIG_USE_MQTT_DEFAULT_USER"]
+    CONFIG_MQTT_DEFAULT_PASS      = os.environ["CONFIG_USE_MQTT_DEFAULT_PASS"]
