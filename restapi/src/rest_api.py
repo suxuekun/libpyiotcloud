@@ -2142,7 +2142,7 @@ def get_auth_header_user_pass():
 
 # Authorization header: Bearer JWT
 def get_jwtencode_user_pass(token):
-    payload = jwt.decode(token, "iotmodembrtchip0iotmodembrtchip0", algorithms=['HS256'])
+    payload = jwt.decode(token, config.CONFIG_JWT_SECRET_KEY, algorithms=['HS256'])
     if payload is None:
         reason = "JWT decode failed"
         print(reason)
@@ -2164,14 +2164,14 @@ def get_jwtencode_user_pass(token):
         print(reason)
         return None, None, reason
 
-    currepoch = int(time.time())+2
+    currepoch = int(time.time()) + config.CONFIG_JWT_ADJUSTMENT
     print("username: {}".format(payload["username"]))
     print("password: {}".format(payload["password"]))
     print("cur: {}".format(currepoch))
     print("iat: {}".format(payload["iat"]))
     print("exp: {}".format(payload["exp"]))
 
-    if payload["exp"] - payload["iat"] != 10:
+    if payload["exp"] - payload["iat"] != config.CONFIG_JWT_EXPIRATION:
         reason = "JWT expiration date is incorrect"
         print(reason)
         return None, None, reason

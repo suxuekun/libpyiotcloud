@@ -1162,7 +1162,7 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
 
         // get JWT = header.payload.signature
         // https://jwt.io/
-        secret = "iotmodembrtchip0iotmodembrtchip0";
+        secret = window.__env.jwtKey;
         header = urlEncode(base64Encode(headerData));
         payload = urlEncode(base64Encode(payloadData));
         signature = urlEncode(CryptoJS.enc.Base64.stringify(CryptoJS.HmacSHA256(header + "." + payload, secret)));
@@ -1290,7 +1290,7 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server) {
 
         // get JWT = header.payload.signature
         // https://jwt.io/
-        secret = "iotmodembrtchip0iotmodembrtchip0";
+        secret = window.__env.jwtKey;
         header = urlEncode(base64Encode(headerData));
         payload = urlEncode(base64Encode(payloadData));
         signature = urlEncode(CryptoJS.enc.Base64.stringify(CryptoJS.HmacSHA256(header + "." + payload, secret)));
@@ -1530,7 +1530,7 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server) {
 
         // get JWT = header.payload.signature
         // https://jwt.io/
-        secret = "iotmodembrtchip0iotmodembrtchip0";
+        secret = window.__env.jwtKey;
         header = urlEncode(base64Encode(headerData));
         payload = urlEncode(base64Encode(payloadData));
         signature = urlEncode(CryptoJS.enc.Base64.stringify(CryptoJS.HmacSHA256(header + "." + payload, secret)));
@@ -1689,7 +1689,7 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token)
 
         // get JWT = header.payload.signature
         // https://jwt.io/
-        secret = "iotmodembrtchip0iotmodembrtchip0";
+        secret = window.__env.jwtKey;
         header = urlEncode(base64Encode(headerData));
         payload = urlEncode(base64Encode(payloadData));
         signature = urlEncode(CryptoJS.enc.Base64.stringify(CryptoJS.HmacSHA256(header + "." + payload, secret)));
