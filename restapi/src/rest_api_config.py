@@ -67,3 +67,8 @@ class config:
     CONFIG_TRANSACTION_CURRENCY    = "USD"
     CONFIG_TRANSACTION_NAME        = "Bridgetek IoT Portal credits"
     CONFIG_TRANSACTION_DESCRIPTION = "Consumable credits for IoT Portal"
+
+    # JWT Token
+    CONFIG_JWT_SECRET_KEY          = os.environ["CONFIG_USE_JWT_SECRET_KEY"]
+    CONFIG_JWT_EXPIRATION          = 10
+    CONFIG_JWT_ADJUSTMENT          = 2
