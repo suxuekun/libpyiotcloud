@@ -15,9 +15,9 @@ spec:
         app: iotmongodb
     spec:
       volumes:
-        - name: mydockervol
+        - name: mongodb-data
           persistentVolumeClaim:
-            claimName: mydockervol
+            claimName: mongodb-data
       containers:
         - name: iotmongodb
           image: richmondu/iotmongodb
@@ -25,4 +25,4 @@ spec:
           - containerPort: 27017
           volumeMounts:
           - mountPath: /data/db
-            name: mydockervol
+            name: mongodb-data

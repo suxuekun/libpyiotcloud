@@ -12,8 +12,8 @@ spec:
     targetPort: 8883
     nodePort: 30883
     protocol: TCP
-  - name: amqp
-    port: 5671
-    targetPort: 5671
-    nodePort: 30671
+  - name: mgmt
+    port: 15672
+    targetPort: 15672
+    nodePort: 30672
     protocol: TCP
