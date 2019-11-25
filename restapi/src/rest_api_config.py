@@ -43,8 +43,8 @@ class config:
     CONFIG_AMQP_TLS_PORT        = 5671
     CONFIG_MGMT_TLS_PORT        = 15671
     CONFIG_MGMT_PORT            = 15672
-    CONFIG_MGMT_ACCOUNT         = "admin:admin"
-    CONFIG_ENABLE_MQ_SECURITY   = False
+    CONFIG_MGMT_ACCOUNT         = "guest:guest"
+    CONFIG_ENABLE_MQ_SECURITY   = True
 
     # Database settings
     if os.name == 'nt':
