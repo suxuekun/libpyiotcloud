@@ -326,10 +326,8 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token)
             'token': $scope.data.token
         });
 
-/*
 
-        if (($scope.data.username !== User.get_username()) && 
-            ($scope.data.token !== User.get_token())) {
+        if (($scope.data.username === "") || ($scope.data.username === undefined)) {
 
             $scope.data.username = User.get_username();
             $scope.data.token = User.get_token();
@@ -340,7 +338,7 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token)
                 'token': $scope.data.token
             });
         }
-*/
+
         console.log("ACCOUNT ionicView get_subscription");
         get_subscription();
 
@@ -385,16 +383,20 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token)
         });            
     };    
     
-    $scope.submitDeleteaccountAction = function() {
-        console.log("username=" + $scope.data.username);
-        console.log("token=" + $scope.data.token);
-        
-        delete_account(); 
-    };
- 
+
     $scope.submitVerifynumber = function() {
         console.log("submitVerifynumber");
-        
+
+        // Handle invalid input        
+        if ($scope.data.username === undefined) {
+            $ionicPopup.alert({title: 'Verify Number Error', template: 'Username is empty!'});
+            return;
+        }
+        else if ($scope.data.username.length === 0) {
+            $ionicPopup.alert({title: 'Verify Number Error', template: 'Username is empty!'});
+            return;
+        }
+
         
         // 
         // VERIFY PHONE NUMBER
@@ -429,6 +431,106 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token)
         });
     };
     
+    $scope.submitSavechanges = function() {
+        console.log("submitSavechanges");
+        
+        // Handle invalid input
+        if ($scope.data.username === undefined) {
+            $ionicPopup.alert({title: 'Save Changes Error', template: 'Username is empty!'});
+            return;
+        }
+        else if ($scope.data.username.length === 0) {
+            $ionicPopup.alert({title: 'Save Changes Error', template: 'Username is empty!'});
+            return;
+        }
+        else if ($scope.data.fullname === undefined) {
+            $ionicPopup.alert({title: 'Save Changes Error', template: 'Name is empty!'});
+            return;
+        }
+        else if ($scope.data.fullname.length === 0) {
+            $ionicPopup.alert({title: 'Save Changes Error', template: 'Name is empty!'});
+            return;
+        }
+        else if ($scope.data.phonenumber === undefined) {
+            $ionicPopup.alert({title: 'Save Changes Error', template: 'Phone Number is empty!'});
+            return;
+        }
+        else if ($scope.data.phonenumber.length === 0) {
+            $ionicPopup.alert({title: 'Save Changes Error', template: 'Phone Number is empty!'});
+            return;
+        }
+        else if ($scope.data.phonenumber === "Unknown") {
+            $scope.data.phonenumber = "";
+        }
+        
+        
+        var param = { 'name': $scope.data.fullname };
+        if ($scope.data.phonenumber.length > 0) {
+            param.phone_number = $scope.data.phonenumber.split(" ")[0];   
+        }
+        
+        // 
+        // UPDATE USER INFO
+        // 
+        // - Request:
+        //   POST /user
+        //   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+        //   data: {'name': string, 'phone_number': string}
+        // 
+        // - Response:
+        //   {'status': 'OK', 'message': string}
+        //   {'status': 'NG', 'message': string}
+        //   
+        $http({
+            method: 'POST',
+            url: server + '/user',
+            headers: {'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json'},
+            data: param
+        })
+        .then(function (result) {
+            console.log(result.data);
+
+            $ionicPopup.alert({
+                title: 'Success',
+                template: 'User profile changed successfully!',
+                buttons: [
+                    {
+                        text: 'OK',
+                        type: 'button-positive',
+                        onTap: function(e) {
+                            get_profile({
+                                'username': $scope.data.username,
+                                'token': $scope.data.token
+                            });
+                        }
+                    }
+                ]
+            });
+        })
+        .catch(function (error) {
+            console.log(error);
+            if (error.data !== null) {
+                console.log(error.status + " " + error.statusText);
+                $ionicPopup.alert({title: 'Verify phone number', template: error.data.message});
+            }
+            else {
+                $ionicPopup.alert({title: 'Verify phone number', template: 'Server is down!'});
+            }
+            return;
+        });        
+    };
+
+    $scope.submitChangepassword = function() {
+        console.log("submitChangepassword");
+        $state.go('changePassword', {'username': $scope.data.username, 'token': $scope.data.token});
+    };
+
+    $scope.submitDeleteaccountAction = function() {
+        console.log("username=" + $scope.data.username);
+        console.log("token=" + $scope.data.token);
+        
+        delete_account(); 
+    };
 }
 ])
    
@@ -534,13 +636,11 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token)
         console.log(cancel_url);
 
         var paypal_param = {
-            'payment': {
-                'return_url': return_url,
-                'cancel_url': cancel_url,
-                'item_sku': $scope.data.id,
-                'item_credits': $scope.data.points,
-                'item_price': $scope.data.price,
-            }
+            'return_url': return_url,
+            'cancel_url': cancel_url,
+            'item_sku': $scope.data.id,
+            'item_credits': $scope.data.points,
+            'item_price': $scope.data.price,
         };
 
 
@@ -550,7 +650,7 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token)
         // - Request:
         //   POST /account/payment/paypalsetup
         //   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-        //   data: { 'payment': {'return_url': string, 'cancel_url', string, 'item_sku': string, 'item_credits': string, 'item_price': string} }
+        //   data: { 'return_url': string, 'cancel_url', string, 'item_sku': string, 'item_credits': string, 'item_price': string }
         //
         // - Response:
         //   {'status': 'OK', 'message': string, 'approval_url': string, 'paymentId': string, 'token': string}
@@ -670,17 +770,19 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token)
         // - Request:
         //   POST /account/payment/paypalverify
         //   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-        //   data: { 'payment': {'paymentId': string} }
+        //   data: { 'paymentId': string }
         //
         // - Response:
         //   {'status': 'OK', 'message': string}
         //   {'status': 'NG', 'message': string}
-        //        
+        //
+        console.log("paypalverify");
+        console.log(paypal_param.payment);
         $http({
             method: 'POST',
             url: server + '/account/payment/paypalverify',
             headers: {'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json'},
-            data: paypal_param
+            data: paypal_param.payment
         })
         .then(function (result) {
             console.log(result.data);
@@ -855,19 +957,19 @@ function ($scope, $stateParams, $ionicPopup, $http, Server) {
         // - Request:
         //   POST /account/payment/paypalverify
         //   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-        //   data: { 'payment': {'paymentId': string} }
+        //   data: { 'paymentId': string }
         //
         // - Response:
         //   {'status': 'OK', 'message': string}
         //   {'status': 'NG', 'message': string}
         //        
         console.log("paypalverify");
-        console.log(paypal_param);
+        console.log(paypal_param.payment);
         $http({
             method: 'POST',
             url: server + '/account/payment/paypalverify',
             headers: {'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json'},
-            data: paypal_param
+            data: paypal_param.payment
         })
         .then(function (result) {
             console.log(result.data);
@@ -898,7 +1000,7 @@ function ($scope, $stateParams, $ionicPopup, $http, Server) {
         // - Request:
         //   POST /account/payment/paypalexecute
         //   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-        //   data: { 'payment': {'paymentId': string, 'payerId': string, 'token': string} }
+        //   data: { 'paymentId': string, 'payerId': string, 'token': string }
         //
         // - Response:
         //   {'status': 'OK', 'message': string}
@@ -910,7 +1012,7 @@ function ($scope, $stateParams, $ionicPopup, $http, Server) {
             method: 'POST',
             url: server + '/account/payment/paypalexecute',
             headers: {'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json'},
-            data: paypal_param
+            data: paypal_param.payment
         })
         .then(function (result) {
             console.log(result.data);
@@ -1227,15 +1329,7 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server) {
         else if ($scope.data.name.length === 0) {
             $ionicPopup.alert({title: 'Signup Error', template: 'Name is empty!'});
             return;
-        }        
-        else if ($scope.data.phonenumber === undefined) {
-            $ionicPopup.alert({title: 'Signup Error', template: 'Mobilenumber is invalid!'});
-            return;
         }
-        else if ($scope.data.phonenumber.length === 0) {
-            $ionicPopup.alert({title: 'Signup Error', template: 'Mobilenumber is empty!'});
-            return;
-        }        
 
         
         // Display spinner
@@ -1248,8 +1342,15 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server) {
         param = {
             'name': $scope.data.name,
             'email': $scope.data.email,
-            'phone_number': $scope.data.phonenumber,
         };
+        
+        if ($scope.data.phonenumber !== undefined) {
+            if ($scope.data.phonenumber.length !== 0) {
+                param.phone_number = $scope.data.phonenumber;
+                return;
+            }
+        }        
+        
         $scope.data.username = $scope.data.email;
         
         
@@ -1261,7 +1362,10 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server) {
         // - Request:
         //   POST /user/signup
         //   headers: {'Authorization': 'Bearer ' + jwtEncode(email, password), 'Content-Type': 'application/json'}
-        //   data: { 'email': string, 'phonenumber': string, 'name': string }
+        //   data: { 'email': string, 'phone_number': string, 'name': string }
+        //   // password should at least be 6 characters
+        //   // phone_number is optional
+        //   // phone_number should start with + followed by country code then number
         // 
         // - Response:
         //   {'status': 'OK', 'message': string}
@@ -1533,6 +1637,159 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server) {
         $state.go('recover');
     };   
     
+}])
+   
+.controller('changePasswordCtrl', ['$scope', '$stateParams', '$state', '$ionicPopup', '$http', 'Server', 'User', 'Token', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+// You can include any angular dependencies as parameters for this function
+// TIP: Access Route Parameters for your page via $stateParams.parameterName
+function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token) {
+
+    var server = Server.rest_api;
+
+    $scope.data = {
+        'username': User.get_username(),
+        'token': User.get_token(),
+        
+        'password': "",
+        'newpassword': "",
+        'newpassword2': ""
+    };
+    
+    
+    base64Encode = function(str) {
+        return window.btoa(str);
+    };
+    
+    urlEncode = function(str) {
+        return str.replace(/\+/g, '-').replace(/\//g, '_').replace(/\=+$/, '');
+    };
+
+    jwtEncode = function(password, newpassword) {
+
+        // get time
+        // https://www.epochconverter.com/
+        iat = Math.floor(Date.now() / 1000); // epoch time in seconds
+        exp = iat + 10; // plus 10 seconds
+        console.log(iat);
+        console.log(exp);
+
+        // get JWT header
+        headerData = JSON.stringify({ 
+            "alg": "HS256", 
+            "typ": "JWT"
+        });
+
+        // get JWT payload
+        payloadData = JSON.stringify({
+            "username": password,
+            "password": newpassword,
+            "iat": iat,
+            "exp": exp
+        });
+
+        // get JWT = header.payload.signature
+        // https://jwt.io/
+        secret = "iotmodembrtchip0iotmodembrtchip0";
+        header = urlEncode(base64Encode(headerData));
+        payload = urlEncode(base64Encode(payloadData));
+        signature = urlEncode(CryptoJS.enc.Base64.stringify(CryptoJS.HmacSHA256(header + "." + payload, secret)));
+
+        jwt = header + "." + payload + "." + signature;
+        return jwt;
+    };    
+    
+    $scope.submit = function() {
+        
+        if ($scope.data.username.length === 0) {
+            $ionicPopup.alert({title: 'Change Password Error', template: 'Username is empty!'});
+            return;
+        }
+        else if ($scope.data.password === undefined) {
+            $ionicPopup.alert({title: 'Change Password Error', template: 'Password is empty!'});
+            return;
+        }
+        else if ($scope.data.password.length === 0) {
+            $ionicPopup.alert({title: 'Change Password Error', template: 'Password is empty!'});
+            return;
+        }
+        else if ($scope.data.newpassword === undefined) {
+            $ionicPopup.alert({title: 'Change Password Error', template: 'New Password is empty!'});
+            return;
+        }
+        else if ($scope.data.newpassword.length === 0) {
+            $ionicPopup.alert({title: 'Change Password Error', template: 'New Password is empty!'});
+            return;
+        }
+        else if ($scope.data.newpassword.length < 6) {
+            $ionicPopup.alert({title: 'Change Password Error', template: 'Password should at least be 6 characters!'});
+            return;
+        }
+        else if ($scope.data.newpassword2 === undefined) {
+            $ionicPopup.alert({title: 'Change Password Error', template: 'Confirm New Password is empty!'});
+            return;
+        }
+        else if ($scope.data.newpassword2.length === 0) {
+            $ionicPopup.alert({title: 'Change Password Error', template: 'Confirm New Password is empty!'});
+            return;
+        }
+        else if ($scope.data.newpassword !== $scope.data.newpassword2) {
+            $ionicPopup.alert({title: 'Change Password Error', template: 'Passwords do not match!'});
+            return;
+        }
+
+        console.log("change password: " + $scope.data.username);
+
+
+        // 
+        // CHANGE PASSWORD
+        // 
+        // - Request:
+        //   POST /user/change_password
+        //   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+        //   data: {'token': jwtEncode(password, newpassword)}
+        // 
+        // - Response:
+        //   {'status': 'OK', 'message': string}
+        //   {'status': 'NG', 'message': string}
+        //
+        $http({
+            method: 'POST',
+            url: server + '/user/change_password',
+            headers: {'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json'},
+            data: { 'token': jwtEncode($scope.data.password, $scope.data.newpassword) }
+        })
+        .then(function (result) {
+            console.log(result.data);
+
+            $ionicPopup.alert({
+                title: 'Success',
+                template: 'Password changed successfully!',
+                buttons: [
+                    {
+                        text: 'OK',
+                        type: 'button-positive',
+                        onTap: function(e) {
+                            User.clear();
+                            $state.go('login');
+                        }
+                    }
+                ]
+            });
+        })
+        .catch(function (error) {
+            if (error.data !== null) {
+                console.log(error.status + " " + error.statusText);
+                $ionicPopup.alert({title: 'Change Password Error', template: error.data.message});
+            }
+            else {
+                $ionicPopup.alert({title: 'Change Password Error', template: 'Server is down!'});
+            }
+        });
+    };
+    
+    $scope.submitCancel = function() {
+        $state.go('menu.account', {'username': $scope.data.username, 'token': $scope.data.token} );
+    };
 }])
    
 .controller('confirmRegistrationCtrl', ['$scope', '$stateParams', '$state', '$ionicPopup', '$http', 'Server', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
@@ -1904,7 +2161,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, Devices, Use
         // - Request:
         //   POST /devices/device/<devicename>
         //   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-        //   data: {'device': {'deviceid': string, 'serialnumber': string}}
+        //   data: {'deviceid': string, 'serialnumber': string}
         //
         // - Response:
         //   {'status': 'OK', 'message': string}
@@ -2321,6 +2578,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         'token': User.get_token(),
         'devicename': $stateParams.devicename,
         'devicestatus': $stateParams.devicestatus,
+        'deviceid': $stateParams.deviceid,
+        'serialnumber': $stateParams.serialnumber,
 
         'ipaddr': $scope.ipaddr,
         'subnet': $scope.subnet,
@@ -2484,7 +2743,10 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         var device_param = {
             'username': $scope.data.username,
             'token': $scope.data.token,
-            'devicename': $scope.data.devicename
+            'devicename': $scope.data.devicename,
+            'devicestatus': $scope.data.devicestatus,
+            'deviceid': $scope.data.deviceid,
+            'serialnumber': $scope.data.serialnumber,
         };
         $state.go('configureDevice', device_param);
     };
@@ -2503,7 +2765,9 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         'token': User.get_token(),
         'devicename': $stateParams.devicename,
         'devicestatus': $stateParams.devicestatus,
-        
+        'deviceid': $stateParams.deviceid,
+        'serialnumber': $stateParams.serialnumber,
+       
         'gpionumber': $scope.gpionumber,
         'gpiovalue': $scope.gpiovalue,
         'gpiovalueset': $scope.gpiovalueset
@@ -2652,7 +2916,10 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         var device_param = {
             'username': $scope.data.username,
             'token': $scope.data.token,
-            'devicename': $scope.data.devicename
+            'devicename': $scope.data.devicename,
+            'devicestatus': $scope.data.devicestatus,
+            'deviceid': $scope.data.deviceid,
+            'serialnumber': $scope.data.serialnumber,
         };
         $state.go('configureDevice', device_param);
     };
@@ -2671,6 +2938,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         'token': User.get_token(),
         'devicename': $stateParams.devicename,
         'devicestatus': $stateParams.devicestatus,
+        'deviceid': $stateParams.deviceid,
+        'serialnumber': $stateParams.serialnumber,
         
         'message': $scope.message
     };
@@ -2745,7 +3014,10 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         var device_param = {
             'username': $scope.data.username,
             'token': $scope.data.token,
-            'devicename': $scope.data.devicename
+            'devicename': $scope.data.devicename,
+            'devicestatus': $scope.data.devicestatus,
+            'deviceid': $scope.data.deviceid,
+            'serialnumber': $scope.data.serialnumber,
         };
         $state.go('configureDevice', device_param);
     };
@@ -2764,6 +3036,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         'token': User.get_token(),
         'devicename': $stateParams.devicename,
         'devicestatus': $stateParams.devicestatus,
+        'deviceid': $stateParams.deviceid,
+        'serialnumber': $stateParams.serialnumber,
         
         'epoch': $scope.epoch,
         'datetime' : $scope.datetime,
@@ -2889,7 +3163,10 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         var device_param = {
             'username': $scope.data.username,
             'token': $scope.data.token,
-            'devicename': $scope.data.devicename
+            'devicename': $scope.data.devicename,
+            'devicestatus': $scope.data.devicestatus,
+            'deviceid': $scope.data.deviceid,
+            'serialnumber': $scope.data.serialnumber,
         };
         $state.go('configureDevice', device_param);
     };
@@ -2927,6 +3204,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         'token': User.get_token(),
         'devicename': $stateParams.devicename,
         'devicestatus': $stateParams.devicestatus,
+        'deviceid': $stateParams.deviceid,
+        'serialnumber': $stateParams.serialnumber,
         
         'recipient': "",
         'message': $scope.message,
@@ -3044,7 +3323,10 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         var device_param = {
             'username': $scope.data.username,
             'token': $scope.data.token,
-            'devicename': $scope.data.devicename
+            'devicename': $scope.data.devicename,
+            'devicestatus': $scope.data.devicestatus,
+            'deviceid': $scope.data.deviceid,
+            'serialnumber': $scope.data.serialnumber,
         };
         $state.go('configureDevice', device_param);
     };
@@ -3063,7 +3345,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Device
         'token': User.get_token()        //$stateParams.token
     };
     
-    $scope.items_master = []; // items retrieved from database
+//    $scope.items_master = []; // items retrieved from database
     $scope.items = []; // items to be shown
 /*    
         {
@@ -3077,36 +3359,86 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Device
     ];
 */    
     
+    // Filter by devices
     $scope.devices = [ "All devices" ];
     $scope.deviceidx = 0;
     
-    $scope.updateSelection = function(idx) {
-        $scope.items = [];
-        $scope.deviceidx = idx;
+    // Filter by directions
+    $scope.directions = [ "Both directions", "To", "From" ];
+    $scope.directionidx = 0;
+    
+    // Filter by topics
+    $scope.topics = [ "All topics", 
+        "get_status", 
+        "set_status",
+        "get_ip",
+        "get_subnet",
+        "get_gateway",
+        "get_mac",
+        "get_gpio",
+        "set_gpio",
+        "get_rtc",
+        "write_uart",
+        "trigger_notifications"
+    ];
+    $scope.topicidx = 0;
+
+    // Filter by date    
+    $scope.date = {
+        'begin': "",
+        'end': ""
+    };
+    
+    
+    
+    $scope.applyFilter = function(deviceidx, directionidx, topicidx) {
+
+        var devicename = null;
+        var deviceid = null;
+        var direction = null;
+        var topic = null;
+        var datebegin = 0;
+        var dateend = 0;
         
-        console.log($scope.devices[$scope.deviceidx]);
-        var i;
+        if (deviceidx) {
+            devicename = $scope.devices[deviceidx];
+        }
+        if (directionidx) {
+            direction = $scope.directions[directionidx];
+        }
+        if (topicidx) {
+            topic = $scope.topics[topicidx];
+        }
         
-        if ($scope.deviceidx !== 0) {
-            for (i=0; i<$scope.items_master.length; i++) {
-                if ($scope.devices[$scope.deviceidx] === $scope.items_master[i].devicename) {
-                    $scope.items.push($scope.items_master[i]);
+        if ($scope.date.begin !== undefined && $scope.date.begin !== "") {
+            console.log($scope.date.begin);
+            datebegin = new Date($scope.date.begin).valueOf() / 1000;
+            if (isNaN(datebegin)) {
+                datebegin = 0;
+            }
+            console.log(datebegin);
+             
+            
+            if ($scope.date.end !== undefined && $scope.date.end !== "") {
+                console.log($scope.date.end);
+                dateend = new Date($scope.date.end).valueOf() / 1000;
+                if (isNaN(dateend)) {
+                    dateend = 0;
                 }
+                console.log(dateend);
             }
         }
-        else {
-            $scope.items = $scope.items_master;        
-        }
+
+        Histories.fetch_filtered($scope.data, devicename, direction, topic, datebegin, dateend).then(function(res) {
+            $scope.items = res;
+            $scope.data.token = User.get_token();
+        }); 
     };
     
     
     $scope.submitRefresh = function() {
     
-        Histories.fetch($scope.data).then(function(res) {
-            $scope.items_master = res;
-            $scope.data.token = User.get_token();
-
-            console.log(res);
+        Devices.fetch($scope.data).then(function(res) {
             var i;
             for (i=0; i<res.length; i++) {
                 var result = $scope.devices.includes(res[i].devicename);
@@ -3114,9 +3446,12 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Device
                     $scope.devices.push(res[i].devicename);
                 }
             }
-            console.log($scope.devices);
-            
-            $scope.updateSelection($scope.deviceidx);
+            $scope.data.token = User.get_token();
+        });
+    
+        Histories.fetch($scope.data).then(function(res) {
+            $scope.items = res;
+            $scope.data.token = User.get_token();
         }); 
     };
     

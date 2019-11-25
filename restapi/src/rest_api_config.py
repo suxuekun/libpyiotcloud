@@ -41,6 +41,10 @@ class config:
         CONFIG_HOST             = "rabbitmq"
     CONFIG_MQTT_TLS_PORT        = 8883
     CONFIG_AMQP_TLS_PORT        = 5671
+    CONFIG_MGMT_TLS_PORT        = 15671
+    CONFIG_MGMT_PORT            = 15672
+    CONFIG_MGMT_ACCOUNT         = "admin:admin"
+    CONFIG_ENABLE_MQ_SECURITY   = False
 
     # Database settings
     if os.name == 'nt':

@@ -9,11 +9,11 @@ angular.module('token', [])
     var ret = {
         update: function(userdata, result) {
             if (result !== null) {
-                if (result.data.new_token !== undefined) {
+                if (result.data.token !== undefined) {
                     console.log("New Token exists!");
                     User.set({
                         'username': userdata.username,
-                        'token': result.data.new_token
+                        'token': result.data.token
                     });
                 }
             }
@@ -27,7 +27,7 @@ angular.module('token', [])
             // - Request:
             //   POST /user/token
             //   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-            //   data: { 'token': {'refresh': string, 'id: string'} }
+            //   data: { 'refresh': string, 'id: string' }
             //
             // - Response:
             //   {'status': 'OK', 'message': string, 'token' : {'access': string, 'refresh': string, 'id: string'} }
@@ -37,7 +37,7 @@ angular.module('token', [])
                 method: 'POST',
                 url: server + '/user/token',
                 headers: {'Authorization': 'Bearer ' + userdata.token.access, 'Content-Type': 'application/json'},
-                data: {'token': {'refresh': userdata.token.refresh, 'id': userdata.token.id} }
+                data: { 'refresh': userdata.token.refresh, 'id': userdata.token.id }
             })
             .then(function (result) {
                 // Handle successful login

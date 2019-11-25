@@ -92,6 +92,16 @@ angular.module('app.routes', [])
     controller: 'resetPasswordCtrl'
   })
 
+  .state('changePassword', {
+    url: '/page_change_password',
+	params: {
+		username: "",
+		token: ""		
+},
+    templateUrl: 'templates/changePassword.html',
+    controller: 'changePasswordCtrl'
+  })
+
   .state('confirmRegistration', {
     url: '/page_confirm_registration',
 	params: {
@@ -174,7 +184,9 @@ angular.module('app.routes', [])
 		devicename: "",
 		username: "",
 		token: "",
-		devicestatus: ""		
+		devicestatus: "",
+		deviceid: "",
+		serialnumber: ""		
 },
     templateUrl: 'templates/deviceEthernet.html',
     controller: 'deviceEthernetCtrl'
@@ -186,7 +198,9 @@ angular.module('app.routes', [])
 		devicename: "",
 		username: "",
 		token: "",
-		devicestatus: ""		
+		devicestatus: "",
+		deviceid: "",
+		serialnumber: ""		
 },
     templateUrl: 'templates/deviceGPIO.html',
     controller: 'deviceGPIOCtrl'
@@ -198,7 +212,9 @@ angular.module('app.routes', [])
 		devicename: "",
 		username: "",
 		token: "",
-		devicestatus: ""		
+		devicestatus: "",
+		deviceid: "",
+		serialnumber: ""		
 },
     templateUrl: 'templates/deviceUART.html',
     controller: 'deviceUARTCtrl'
@@ -210,7 +226,9 @@ angular.module('app.routes', [])
 		devicename: "",
 		username: "",
 		token: "",
-		devicestatus: ""		
+		devicestatus: "",
+		deviceid: "",
+		serialnumber: ""		
 },
     templateUrl: 'templates/deviceRTC.html',
     controller: 'deviceRTCCtrl'
@@ -222,7 +240,9 @@ angular.module('app.routes', [])
 		devicename: "",
 		username: "",
 		token: "",
-		devicestatus: ""		
+		devicestatus: "",
+		deviceid: "",
+		serialnumber: ""		
 },
     templateUrl: 'templates/deviceNotifications.html',
     controller: 'deviceNotificationsCtrl'
@@ -230,6 +250,10 @@ angular.module('app.routes', [])
 
   .state('menu.history', {
     url: '/page_history',
+	params: {
+		username: "",
+		token: ""		
+},
     views: {
       'side-menu21': {
         templateUrl: 'templates/history.html',

@@ -164,10 +164,6 @@ class cognito_client:
 			#	user_attributes.pop("email_verified")
 			#if 'phone_number_verified' in user_attributes:
 			#	user_attributes.pop("phone_number_verified")
-			if 'given_name' in user_attributes and 'family_name' in user_attributes:
-				user_attributes['name'] = user_attributes['given_name'] + " " + user_attributes['family_name']
-				user_attributes.pop("given_name")
-				user_attributes.pop("family_name")
 		except:
 			return (False, None)
 		return (self.__get_result(response), user_attributes)

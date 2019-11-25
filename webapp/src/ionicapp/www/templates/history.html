@@ -1,14 +1,34 @@
 <ion-view title="History" hide-back-button="true" nav-transition="none" id="page14" class="page_width">
   <ion-content padding="true" class="has-header">
     <div class="spacer" style="width: 300px; height: 15px;"></div>
+    <form id="history-form34" class="list">
+      <label class="item item-select" id="history-select6">
+        <span class="input-label">Filter by Device</span>
+        <select ng-options="devices.indexOf(deviceidx) as deviceidx for deviceidx in devices" ng-model="deviceidx"></select>
+      </label>
+      <label class="item item-select" id="history-select7">
+        <span class="input-label">Filter by Direction</span>
+        <select ng-options="directions.indexOf(directionidx) as directionidx for directionidx in directions" ng-model="directionidx"></select>
+      </label>
+      <label class="item item-select" id="history-select8">
+        <span class="input-label">Filter by Topic</span>
+        <select ng-options="topics.indexOf(topicidx) as topicidx for topicidx in topics" ng-model="topicidx"></select>
+      </label>
+      <ion-item class="item-divider" id="history-list-item-divider7"> Filter by Date</ion-item>
+      <label class="item item-input item-stacked-label" id="history-input64">
+        <span class="input-label">Begin</span>
+        <input type="text" placeholder="YYYY-MM-DD HH:MM:SS" ng-model="date.begin">
+      </label>
+      <label class="item item-input item-stacked-label" id="history-input65">
+        <span class="input-label">End</span>
+        <input type="text" placeholder="YYYY-MM-DD HH:MM:SS" ng-model="date.end">
+      </label>
+      <button id="history-button33" ng-click="applyFilter(deviceidx, directionidx, topicidx)" class="button button-dark button-block">Apply</button>
+    </form>
     <div id="history-markdown61" class="show-list-numbers-and-dots">
       <p style="color:#000000;font-size:16px;">Result: {{ items.length }} transactions</p>
     </div>
     <ion-list id="history-list14">
-      <label class="item item-select" id="history-select6">
-        <span class="input-label">Select</span>
-        <select ng-options="devices.indexOf(deviceidx) as deviceidx for deviceidx in devices" ng-model="deviceidx" ng-change="updateSelection(deviceidx)"></select>
-      </label>
       <div class="item item-body" id="history-list-item-container3" ng-repeat="item in items">
         <div id="history-markdown49" class="show-list-numbers-and-dots">
           <p style="margin-top:0px;color:#444444;font-size:16px;">{{ item.direction }}
@@ -25,7 +45,7 @@
           <p style="margin-top:0px;color:#444444;font-size:12px;">Message: {{ item.payload }}</p>
         </div>
         <div id="history-markdown55" class="show-list-numbers-and-dots">
-          <p style="margin-top:0px;color:#444444;font-size:12px;">Datetime: {{ item.timestamp }}</p>
+          <p style="margin-top:0px;color:#444444;font-size:12px;">Timestamp: {{ item.timestamp }}</p>
         </div>
       </div>
     </ion-list>
