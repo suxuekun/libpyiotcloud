@@ -40,8 +40,8 @@ g_gpio_values = {}
 
 CONFIG_DEVICE_ID            = "history_manager"
 
-CONFIG_USERNAME             = None
-CONFIG_PASSWORD             = None
+CONFIG_USERNAME             = "guest"
+CONFIG_PASSWORD             = "guest"
 
 if CONFIG_USE_ECC:
     CONFIG_TLS_CA           = "../cert_ecc/rootca.pem"
