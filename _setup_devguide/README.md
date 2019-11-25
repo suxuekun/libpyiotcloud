@@ -246,6 +246,7 @@ SUMMARY:
 
 		A. GET HISTORIES               - GET    /devices/histories
 		B. GET HISTORIES FILTERED      - POST   /devices/histories
+		   (filter by device name, direction, topic, date start, date end)
 
 	5. Account subscription and payment APIs
 
