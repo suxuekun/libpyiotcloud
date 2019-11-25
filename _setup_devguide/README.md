@@ -214,43 +214,46 @@ SUMMARY:
 		F. LOGIN                       - POST   /user/login
 		G. LOGOUT                      - POST   /user/logout
 		H. GET USER INFO               - GET    /user
-		I. DELETE USER                 - DELETE /user
-		J. REFRESH USER TOKEN          - POST   /user/token
-		K. VERIFY PHONE NUMBER         - POST   /user/verify_phone_number
-		L. CONFIRM VERIFY PHONE NUMBER - POST   /user/confirm_verify_phone_number
+		I. UPDATE USER INFO            - POST   /user
+		J. DELETE USER                 - DELETE /user
+		K. REFRESH USER TOKEN          - POST   /user/token
+		L. VERIFY PHONE NUMBER         - POST   /user/verify_phone_number
+		M. CONFIRM VERIFY PHONE NUMBER - POST   /user/confirm_verify_phone_number
+		N. CHANGE PASSWORD             - POST   /user/change_password
 
 	2. Device registration and management APIs
 
-		A. GET DEVICES          - GET    /devices
-		B. ADD DEVICE           - POST   /devices/device/DEVICENAME
-		C. DELETE DEVICE        - DELETE /devices/device/DEVICENAME
-		D. GET DEVICE           - GET    /devices/device/DEVICENAME
+		A. GET DEVICES                 - GET    /devices
+		B. ADD DEVICE                  - POST   /devices/device/DEVICENAME
+		C. DELETE DEVICE               - DELETE /devices/device/DEVICENAME
+		D. GET DEVICE                  - GET    /devices/device/DEVICENAME
 
 	3. Device access and control APIs
 
-		A. GET STATUS           - GET  /devices/device/DEVICENAME/status
-		B. SET STATUS           - POST /devices/device/DEVICENAME/status
-		C. GET IP               - GET  /devices/device/DEVICENAME/ip
-		D. GET SUBNET           - GET  /devices/device/DEVICENAME/subnet
-		E. GET GATEWAY          - GET  /devices/device/DEVICENAME/gateway
-		F. GET MAC              - GET  /devices/device/DEVICENAME/mac
-		G. GET GPIO             - GET  /devices/device/DEVICENAME/gpio/NUMBER
-		H. SET GPIO             - POST /devices/device/DEVICENAME/gpio/NUMBER
-		I. GET RTC              - GET  /devices/device/DEVICENAME/rtc
-		J. SET UART             - POST /devices/device/DEVICENAME/uart
-		K. SET NOTIFICATION     - POST /devices/device/DEVICENAME/notification
+		A. GET STATUS                  - GET    /devices/device/DEVICENAME/status
+		B. SET STATUS                  - POST   /devices/device/DEVICENAME/status
+		C. GET IP                      - GET    /devices/device/DEVICENAME/ip
+		D. GET SUBNET                  - GET    /devices/device/DEVICENAME/subnet
+		E. GET GATEWAY                 - GET    /devices/device/DEVICENAME/gateway
+		F. GET MAC                     - GET    /devices/device/DEVICENAME/mac
+		G. GET GPIO                    - GET    /devices/device/DEVICENAME/gpio/NUMBER
+		H. SET GPIO                    - POST   /devices/device/DEVICENAME/gpio/NUMBER
+		I. GET RTC                     - GET    /devices/device/DEVICENAME/rtc
+		J. SET UART                    - POST   /devices/device/DEVICENAME/uart
+		K. SET NOTIFICATION            - POST   /devices/device/DEVICENAME/notification
 
 	4. Device transaction recording APIs
 
-		A. GET DEVICE HISTORIES - GET  /devices/histories
+		A. GET HISTORIES               - GET    /devices/histories
+		B. GET HISTORIES FILTERED      - POST   /devices/histories
 
 	5. Account subscription and payment APIs
 
-		A. GET SUBSCRIPTION     - GET  /account/subscription
-		B. SET SUBSCRIPTION     - POST /account/subscription
-		C. PAYPAL SETUP         - POST /account/payment/paypalsetup
-		D. PAYPAL EXECUTE       - POST /account/payment/paypalexecute
-		E. PAYPAL VERIFY        - POST /account/payment/paypalverify
+		A. GET SUBSCRIPTION            - GET    /account/subscription
+		B. SET SUBSCRIPTION            - POST   /account/subscription
+		C. PAYPAL SETUP                - POST   /account/payment/paypalsetup
+		D. PAYPAL EXECUTE              - POST   /account/payment/paypalexecute
+		E. PAYPAL VERIFY               - POST   /account/payment/paypalverify
 
 
 Note that HTTP GET command requires that no data/payload is attached to it. 
@@ -268,6 +271,8 @@ DETAILED:
 		   POST /user/signup
 		   headers: {'Authorization': 'Bearer ' + jwtEncode(email, password), 'Content-Type': 'application/json'}
 		   data: { 'email': string, 'phone_number': string, 'name': string }
+		   // name can be 1 or multiple words
+		   // phone_number is optional
 		   // phone number should begin with "+" followed by country code then the number (ex. SG number +6512341234)
 		   // password length is 6 characters minimum as set in Cognito
 		-  Response:
@@ -387,9 +392,21 @@ DETAILED:
 		-  Response:
 		   {'status': 'OK', 'message': string, 
 		    'info': {'name': string, 'email': string, 'phone_number': string, 'email_verified': boolean, 'phone_number_verified': boolean} }
+		   // phone_number and phone_number_verified are not included if no phone_number has been added yet
 		   {'status': 'NG', 'message': string}
 
-		I. DELETE USER
+		I. UPDATE USER INFO
+		-  Request:
+		   POST /user
+		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+		   data: {'name': string, 'phone_number': string}
+		   // phone_number is optional
+		   // phone number should begin with "+" followed by country code then the number (ex. SG number +6512341234)
+		-  Response:
+		   {'status': 'OK', 'message': string}
+		   {'status': 'NG', 'message': string}
+
+		J. DELETE USER
 		-  Request:
 		   DELETE /user
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -397,16 +414,16 @@ DETAILED:
 		   {'status': 'OK', 'message': string}
 		   {'status': 'NG', 'message': string}
 
-		J. REFRESH USER TOKEN
+		K. REFRESH USER TOKEN
 		-  Request:
 		   POST /user/token
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-		   data: { 'token': {'refresh': string, 'id: string'} }
+		   data: { 'refresh': string, 'id: string' }
 		-  Response:
 		   {'status': 'OK', 'message': string, 'token' : {'access': string, 'refresh': string, 'id': string}}
 		   {'status': 'NG', 'message': string}
 
-		K. VERIFY PHONE NUMBER
+		L. VERIFY PHONE NUMBER
 		-  Request:
 		   POST /user/verify_phone_number
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -414,7 +431,7 @@ DETAILED:
 		   {'status': 'OK', 'message': string}
 		   {'status': 'NG', 'message': string}
 
-		L. CONFIRM VERIFY PHONE NUMBER
+		M. CONFIRM VERIFY PHONE NUMBER
 		-  Request:
 		   POST /user/confirm_verify_phone_number
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
@@ -422,6 +439,33 @@ DETAILED:
 		-  Response:
 		   {'status': 'OK', 'message': string}
 		   {'status': 'NG', 'message': string}
+
+		N. CHANGE PASSWORD
+		-  Request:
+		   POST /user/change_password
+		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+		   data: {'token': jwtEncode(password, newpassword)}
+		-  Response:
+		   {'status': 'OK', 'message': string}
+		   {'status': 'NG', 'message': string}
+		-  Details:
+		   How to compute the JWT token using Javascript
+		   base64UrlEncodedHeader = urlEncode(base64Encode(JSON.stringify({
+		     "alg": "HS256",
+		     "typ": "JWT"
+		   })));
+		   base64UrlEncodedPayload = urlEncode(base64Encode(JSON.stringify({
+		     "username": password,
+		     "password": newpassword,
+		     "iat": Math.floor(Date.now() / 1000), // epoch time in seconds
+		     "exp": iat + 10,                      // expiry in seconds
+		   })));
+		   base64UrlEncodedSignature = urlEncode(CryptoJS.enc.Base64.stringify(CryptoJS.HmacSHA256(
+		     base64UrlEncode(header) + "." + base64UrlEncode(payload),
+		     SECRET_KEY                            // message me for the value of the secret key
+		     )));
+		   JWT = base64UrlEncodedHeader + "." base64UrlEncodedPayload + "." + base64UrlEncodedSignature
+		   Double check your results here: https://jwt.io/
 
 
 	2. Device registration and management APIs
@@ -439,7 +483,7 @@ DETAILED:
 		-  Request:
 		   POST /devices/device/DEVICENAME
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-		   data: {'device': {'deviceid': string, 'serialnumber': string}}
+		   data: {'deviceid': string, 'serialnumber': string}
 		-  Response:
 		   { 'status': 'OK', 'message': string}
 		   { 'status': 'NG', 'message': string}
@@ -558,10 +602,28 @@ DETAILED:
 
 	4. Device transaction recording APIs
 
-		A. GET DEVICE TRANSACTION HISTORIES
+		A. GET HISTORIES
 		-  Request:
 		   GET /devices/histories
 		   headers: {'Authorization': 'Bearer ' + token.access}
+		-  Response:
+		   { 'status': 'OK', 'message': string, 
+		     'histories': array[{'devicename': string, 'deviceid': string, 'direction': string, 'topic': string, 'payload': string, 'timestamp': string}, ...]}
+		   { 'status': 'NG', 'message': string}
+
+		B. GET HISTORIES FILTERED
+		-  Request:
+		   POST /devices/histories
+		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+		   data: { 'devicename': string, 'direction': string, 'topic': string, 'datebegin': int, 'dateend': int }
+		   // all data items are optional (when data is empty, that is no filters are set, it is actually equivalent to as GET HISTORIES)
+		   // to filter by device name, include devicename
+		   // to filter by direction, include direction
+		   // to filter by topic, include topic
+		   // to filter by date, include datebegin or both datebegin, dateend
+		   // datebegin and dateend are both epoch computed values
+		   // List of topics: "get_status", "set_status", "get_ip", "get_subnet", "get_gateway", "get_mac", "get_gpio", "set_gpio", "get_rtc", "write_uart", "trigger_notifications"
+		   // List of directions: "To", "From"
 		-  Response:
 		   { 'status': 'OK', 'message': string, 
 		     'histories': array[{'devicename': string, 'deviceid': string, 'direction': string, 'topic': string, 'payload': string, 'timestamp': string}, ...]}
@@ -591,7 +653,7 @@ DETAILED:
 		-  Request:
 		   POST /account/payment/paypalsetup
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-		   data: { 'payment': {'return_url': string, 'cancel_url', string, 'item_sku': string, 'item_credits': string, 'item_price': string} }
+		   data: { 'return_url': string, 'cancel_url', string, 'item_sku': string, 'item_credits': string, 'item_price': string }
 		-  Response:
 		   {'status': 'OK', 'message': string, , 'approval_url': string, 'paymentId': string, 'token': string}
 		   {'status': 'NG', 'message': string}
@@ -600,7 +662,7 @@ DETAILED:
 		-  Request:
 		   POST /account/payment/paypalexecute
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-		   data: { 'payment': {'paymentId': string, 'payerId': string, 'token': string} }
+		   data: { 'paymentId': string, 'payerId': string, 'token': string }
 		-  Response:
 		   {'status': 'OK', 'message': string}
 		   {'status': 'NG', 'message': string}
@@ -609,7 +671,7 @@ DETAILED:
 		-  Request:
 		   POST /account/payment/paypalverify
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-		   data: { 'payment': {'paymentId': string} }
+		   data: { 'paymentId': string }
 		-  Response:
 		   {'status': 'OK', 'message': string}
 		   {'status': 'NG', 'message': string}

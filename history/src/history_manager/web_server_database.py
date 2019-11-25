@@ -112,9 +112,8 @@ class database_client:
         devices = self.get_registered_devices()
         if devices:
             for device in devices.find({'deviceid': deviceid},{'devicename':1, 'deviceid': 1}):
-                if device['deviceid'] == deviceid:
-                    self._devices.add_device_history(device['devicename'], deviceid, topic, payload, direction)
-                    break
+                self._devices.add_device_history(device['devicename'], deviceid, topic, payload, direction)
+                break
 
             # limit device history to CONFIG_MAX_HISTORY_PER_DEVICE for each devices
             if config.CONFIG_ENABLE_MAX_HISTORY:
@@ -138,18 +137,14 @@ class database_client:
     def get_user_history(self, username):
         user_histories = []
         users = self._users.get_registered_users()
-        if users:
-            for user in users:
-                if user["username"] == username:
-                    devices = self._devices.get_registered_devices()
-                    if devices and devices.count():
-                        for device in devices.find({'username': user["username"]}):
-                            if device['username'] == user["username"]:
-                                histories = self._devices.get_device_history(device["deviceid"])
-                                for history in histories:
-                                    history['timestamp'] = datetime.datetime.fromtimestamp(int(history['timestamp'])).strftime('%Y-%m-%d %H:%M:%S')
-                                if histories and len(histories) > 0:
-                                    user_histories += histories
+        devices = self._devices.get_registered_devices()
+        if devices and devices.count():
+            for device in devices.find({'username': username}):
+                histories = self._devices.get_device_history(device["deviceid"])
+                for history in histories:
+                    history['timestamp'] = datetime.datetime.fromtimestamp(int(history['timestamp'])).strftime('%Y-%m-%d %H:%M:%S')
+                if histories and len(histories) > 0:
+                    user_histories += histories
         user_histories.sort(key=self.sort_user_history, reverse=True)
         return user_histories
 
@@ -438,7 +433,7 @@ class database_client_mongodb:
 
     def add_device_history(self, devicename, deviceid, topic, payload, direction):
         history = self.get_history_document();
-        timestamp = str(int(time.time()))
+        timestamp = int(time.time())
         item = {}
         item['timestamp'] = timestamp
         item['direction'] = direction
@@ -453,10 +448,9 @@ class database_client_mongodb:
         histories = self.get_history_document();
         if histories:
             for history in histories.find({'deviceid': deviceid}):
-                if history['deviceid'] == deviceid:
-                    if removeID==True:
-                        history.pop('_id')
-                    history_list.append(history)
+                if removeID==True:
+                    history.pop('_id')
+                history_list.append(history)
         return history_list
 
     def delete_device_history(self, deviceid, timestamp, id):

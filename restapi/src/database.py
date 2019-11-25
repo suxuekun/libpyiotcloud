@@ -120,6 +120,9 @@ class database_client:
     def add_user(self, username, password, email, phonenumber, givenname, familyname):
         return self._users.add_user(username, password, email, phonenumber, givenname, familyname)
 
+    def update_user(self, access_token, phonenumber, givenname, familyname):
+        return self._users.update_user(access_token, phonenumber, givenname, familyname)
+
     def confirm_user(self, username, confirmationcode):
         return self._users.confirm_user(username, confirmationcode)
 
@@ -150,6 +153,9 @@ class database_client:
     def confirm_verify_phone_number(self, access_token, confirmation_code):
         return self._users.confirm_verify_phone_number(access_token, confirmation_code)
 
+    def change_password(self, access_token, password, new_password):
+        return self._users.change_password(access_token, password, new_password)
+
 
     ##########################################################
     # history
@@ -159,30 +165,64 @@ class database_client:
         devices = self.get_registered_devices()
         if devices:
             for device in devices.find({'deviceid': deviceid},{'devicename':1, 'deviceid': 1}):
-                if device['deviceid'] == deviceid:
-                    self._devices.add_device_history(device['devicename'], deviceid, topic, payload, direction)
-                    return
+                self._devices.add_device_history(device['devicename'], deviceid, topic, payload, direction)
+                return
 
     def get_device_history(self, deviceid):
         return self._devices.get_device_history(deviceid)
+
+    def delete_device_history(self, deviceid):
+        return self._devices.delete_device_history(deviceid)
 
     def sort_user_history(self, elem):
         return elem['timestamp']
 
     def get_user_history(self, username):
         user_histories = []
-        users = self._users.get_registered_users()
-        if users:
-            for user in users:
-                if user["username"] == username:
-                    devices = self._devices.get_registered_devices()
-                    if devices and devices.count():
-                        for device in devices.find({'username': user["username"]}):
-                            histories = self._devices.get_device_history(device["deviceid"])
-                            for history in histories:
-                                history['timestamp'] = datetime.datetime.fromtimestamp(int(history['timestamp'])).strftime('%Y-%m-%d %H:%M:%S')
-                            if histories and len(histories) > 0:
-                                user_histories += histories
+        devices = self._devices.get_registered_devices()
+        if devices and devices.count():
+            for device in devices.find({'username': username}):
+                histories = self._devices.get_device_history(device["deviceid"])
+                #print(histories)
+                for history in histories:
+                    history['timestamp'] = datetime.datetime.fromtimestamp(int(history['timestamp'])).strftime('%Y-%m-%d %H:%M:%S')
+                if histories and len(histories) > 0:
+                    user_histories += histories
+        user_histories.sort(key=self.sort_user_history, reverse=True)
+        return user_histories
+
+    def get_user_history_filtered(self, username, devicename, direction, topic, datebegin, dateend):
+        filter_devices = {'username': username}
+        if devicename is not None:
+            filter_devices['devicename'] = devicename
+
+        filter = {}
+        if topic is not None:
+            filter['topic'] = topic
+        if direction is not None:
+            filter['direction'] = direction
+        if datebegin != 0 and dateend != 0:
+            filter['timestamp'] = {'$gte': datebegin, '$lte': dateend}
+        elif datebegin != 0:
+            filter['timestamp'] = {"$gte": datebegin}
+        #print(filter)
+
+        if len(filter) == 0:
+            return self.get_user_history(username)
+
+        user_histories = []
+        devices = self._devices.get_registered_devices()
+        if devices and devices.count():
+            for device in devices.find(filter_devices):
+                filter['deviceid'] = device['deviceid']
+                histories = self._devices.get_device_history_filter(filter)
+                for history in histories:
+                    #print(history['timestamp'])
+                    history['timestamp'] = datetime.datetime.fromtimestamp(int(history['timestamp'])).strftime('%Y-%m-%d %H:%M:%S')
+                    user_histories.append(history)
+                #print(len(histories))
+        #print(len(user_histories))
+
         user_histories.sort(key=self.sort_user_history, reverse=True)
         return user_histories
 
@@ -201,6 +241,7 @@ class database_client:
         return self._devices.get_devices(username)
 
     def add_device(self, username, devicename, uuid, serialnumber):
+        # todo: verify uuid and serialnumber matches
         return self._devices.add_device(username, devicename, uuid, serialnumber)
 
     def delete_device(self, username, devicename):
@@ -333,7 +374,17 @@ class database_client_cognito:
         return result
 
     def add_user(self, username, password, email, phonenumber, givenname, familyname):
-        (result, response) = self.client.sign_up(username, password, email=email, phone_number=phonenumber, given_name=givenname, family_name=familyname)
+        if phonenumber is None:
+            (result, response) = self.client.sign_up(username, password, email=email, given_name=givenname, family_name=familyname)
+        else:
+            (result, response) = self.client.sign_up(username, password, email=email, phone_number=phonenumber, given_name=givenname, family_name=familyname)
+        return result
+
+    def update_user(self, access_token, phonenumber, givenname, familyname):
+        if phonenumber is None:
+            (result, response) = self.client.update_user(access_token, given_name=givenname, family_name=familyname)
+        else:
+            (result, response) = self.client.update_user(access_token, phone_number=phonenumber, given_name=givenname, family_name=familyname)
         return result
 
     def confirm_user(self, username, confirmationcode):
@@ -373,6 +424,10 @@ class database_client_cognito:
 
     def confirm_verify_phone_number(self, access_token, confirmation_code):
         (result, response) = self.client.confirm_verify_phone_number(access_token, confirmation_code)
+        return result
+
+    def change_password(self, access_token, password, new_password):
+        (result, response) = self.client.change_password(access_token, password, new_password)
         return result
 
 
@@ -619,7 +674,7 @@ class database_client_mongodb:
 
     def add_device_history(self, devicename, deviceid, topic, payload, direction):
         history = self.get_history_document();
-        timestamp = str(int(time.time()))
+        timestamp = int(time.time())
         item = {}
         item['timestamp'] = timestamp
         item['direction'] = direction
@@ -634,9 +689,31 @@ class database_client_mongodb:
         histories = self.get_history_document();
         if histories:
             for history in histories.find({'deviceid': deviceid}):
+                #print(history["timestamp"])
                 history.pop('_id')
                 history_list.append(history)
         return history_list
+
+    def get_device_history_filter(self, filter):
+        history_list = []
+        histories = self.get_history_document();
+        if histories:
+            #if filter.get("timestamp"):
+            #    print("timestampXX {}".format(filter["timestamp"]))
+            for history in histories.find(filter):
+                #print(history["timestamp"])
+                history.pop('_id')
+                history_list.append(history)
+        return history_list
+
+    def delete_device_history(self, deviceid):
+        history = self.get_history_document();
+        try:
+            history.delete_many({'deviceid': deviceid})
+            #history.delete_one({'deviceid': deviceid, 'timestamp': timestamp })
+        except:
+            print("delete_device_history: Exception occurred")
+            pass
 
 
     ##########################################################
@@ -751,22 +828,21 @@ class database_viewer:
                     devices = self.client.get_registered_devices()
                     if devices and devices.count():
                         for device in devices.find({'username': user["username"]}):
-                            if device['username'] == user["username"]:
-                                print("\r\n    DEVICENAME    : {}".format(device["devicename"]))
-                                print("        deviceid  : {}".format(device["deviceid"]))
-                                if device.get("serialnumber"):
-                                    print("        serialnumber  : {}".format(device["serialnumber"]))
-                                print("        timestamp : {}".format(self.epoch_to_datetime(device["timestamp"])))
-                                print("histories")
-                                histories = self.client.get_device_history(device["deviceid"])
-                                for history in histories:
-                                    #print(history)
-                                    #print(history["deviceid"])
-                                    print("        {}".format(history["topic"]))
-                                    print("        {}".format(history["payload"]))
-                                    print("        {}".format(history["direction"]))
-                                    print("        {}".format(history["timestamp"]))
-                                    print("")
+                            print("\r\n    DEVICENAME    : {}".format(device["devicename"]))
+                            print("        deviceid  : {}".format(device["deviceid"]))
+                            if device.get("serialnumber"):
+                                print("        serialnumber  : {}".format(device["serialnumber"]))
+                            print("        timestamp : {}".format(self.epoch_to_datetime(device["timestamp"])))
+                            print("histories")
+                            histories = self.client.get_device_history(device["deviceid"])
+                            for history in histories:
+                                #print(history)
+                                #print(history["deviceid"])
+                                print("        {}".format(history["topic"]))
+                                print("        {}".format(history["payload"]))
+                                print("        {}".format(history["direction"]))
+                                print("        {}".format(history["timestamp"]))
+                                print("")
                     print("")
 
 
@@ -775,10 +851,12 @@ class database_viewer:
         for user in users:
             devices = self.client.get_registered_devices()
             if devices:
-                for device in devices.find({},{'username': 1, 'devicename':1}):
-                    if device['username'] == user["username"]:
-                        self.client.delete_device(device['username'], device["devicename"])
-                        print("Deleted device {}".format(device["devicename"]))
+                for device in devices.find({'username': user["username"]},{'username': 1, 'devicename':1, 'deviceid': 1}):
+                    histories = self.client.get_device_history(device["deviceid"])
+                    for history in histories:
+                        self.client.delete_device_history(device['deviceid'])
+                    self.client.delete_device(device['username'], device["devicename"])
+                    print("Deleted device {}".format(device["devicename"]))
             #self.client.delete_user(user["username"])
             #print("Deleted user {}".format(user["username"]))
 
