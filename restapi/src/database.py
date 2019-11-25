@@ -207,9 +207,6 @@ class database_client:
             filter['timestamp'] = {"$gte": datebegin}
         #print(filter)
 
-        if len(filter) == 0:
-            return self.get_user_history(username)
-
         user_histories = []
         devices = self._devices.get_registered_devices()
         if devices and devices.count():

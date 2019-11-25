@@ -44,7 +44,7 @@ class config:
     CONFIG_MGMT_TLS_PORT        = 15671
     CONFIG_MGMT_PORT            = 15672
     CONFIG_MGMT_ACCOUNT         = "admin:admin"
-    CONFIG_ENABLE_MQ_SECURITY   = True
+    CONFIG_ENABLE_MQ_SECURITY   = False
 
     # Database settings
     if os.name == 'nt':
