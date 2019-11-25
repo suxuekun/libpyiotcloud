@@ -114,5 +114,7 @@ networks:
   mydockernet:
     driver: bridge
 volumes:
-  mydockervol:
+  rabbitmq-data:
+    driver: local
+  mongodb-data:
     driver: local
