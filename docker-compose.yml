@@ -49,8 +49,8 @@ services:
     build: 
       context: ./webapp
       args:
-        config_use_apiurl: ${CONFIG_USE_APIURL}
-        config_use_jwtkey: ${CONFIG_JWT_SECRET_KEY}
+        - config_use_apiurl: ${CONFIG_USE_APIURL}
+        - config_use_jwtkey: ${CONFIG_JWT_SECRET_KEY}
     restart: always
     networks:
       - mydockernet
