@@ -25,3 +25,8 @@ spec:
               secretKeyRef:
                 name: environment
                 key: CONFIG_USE_APIURL
+          - name: CONFIG_USE_JWT_SECRET_KEY
+            valueFrom:
+              secretKeyRef:
+                name: environment
+                key: CONFIG_USE_JWT_SECRET_KEY
