@@ -5,5 +5,4 @@ RUN rabbitmq-plugins enable --offline rabbitmq_management && rabbitmq-plugins en
 COPY src/ /etc/rabbitmq/
 
 EXPOSE 15672
-EXPOSE 5671
 EXPOSE 8883
