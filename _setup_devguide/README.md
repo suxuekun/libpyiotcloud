@@ -499,8 +499,8 @@ DETAILED:
 		   // format of UUID and Serial Number has not yet been finalized by Sree
 		   // currently no checking is performed on the UUID and Serial Number format
 		   // web prototype temporarily uses the format from PanL
-		   //   UUID: PH80XXRRMMDDYYzz
-		   //   SerialNumber: SSSSS
+		   //   UUID: PH80XXRRMMDDYYzz (16 characters)
+		   //   SerialNumber: SSSSS (5 digits)
 		   //   where ZZ hexadecimal is equivalent to SSSSS in decimal
 		-  Response:
 		   { 'status': 'OK', 'message': string}
