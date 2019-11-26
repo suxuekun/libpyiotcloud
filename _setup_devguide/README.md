@@ -495,6 +495,12 @@ DETAILED:
 		   POST /devices/device/DEVICENAME
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
 		   data: {'deviceid': string, 'serialnumber': string}
+		   // deviceid refers to UUID
+		   // format of UUID and Serial Number has not yet been finalized by Sree
+		   // current demo implementation uses the format from PanL
+		   // UUID: PH80XXRRMMDDYYzz
+		   // SerialNumber: SSSSS
+		   // where ZZ hexadecimal is equivalent to SSSSS in decimal
 		-  Response:
 		   { 'status': 'OK', 'message': string}
 		   { 'status': 'NG', 'message': string}
