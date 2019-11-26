@@ -272,9 +272,11 @@ DETAILED:
 		   POST /user/signup
 		   headers: {'Authorization': 'Bearer ' + jwtEncode(email, password), 'Content-Type': 'application/json'}
 		   data: { 'email': string, 'phone_number': string, 'name': string }
-		   // name can be 1 or multiple words
+		   // email must be unique for all users (Cognito will fail already used email)
+		   // email is treated as username in all succeeding APIs
 		   // phone_number is optional
 		   // phone number should begin with "+" followed by country code then the number (ex. SG number +6512341234)
+		   // name can be 1 or multiple words
 		   // password length is 6 characters minimum as set in Cognito
 		   // OTP will be sent in the registered email
 		-  Response:
