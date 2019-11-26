@@ -397,6 +397,7 @@ DETAILED:
 		    'info': {'name': string, 'email': string, 'phone_number': string, 'email_verified': boolean, 'phone_number_verified': boolean} }
 		   // phone_number and phone_number_verified are not included if no phone_number has been added yet
 		   // phone_number can be added using SIGN UP or UPDATE USER INFO
+		   // phone_number_verified will return true once it has been verified using VERIFY PHONE NUMBER and CONFIRM VERIFY PHONE NUMBER
 		   {'status': 'NG', 'message': string}
 
 		I. UPDATE USER INFO
@@ -406,7 +407,6 @@ DETAILED:
 		   data: {'name': string, 'phone_number': string}
 		   // phone_number is optional
 		   // phone_number should begin with "+" followed by country code then the number (ex. SG number +6512341234)
-		   // When user changes or adds phone_number, phone_number_verified returned by GET USER INFO will always return false
 		   // When user changes or adds phone_number, phone_number_verified returned by GET USER INFO will always return false
 		-  Response:
 		   {'status': 'OK', 'message': string}
