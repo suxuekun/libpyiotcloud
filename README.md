@@ -1350,7 +1350,7 @@ Security has been the most challenging and controversial issues of IoT devices a
 Current security implementation for device connectivity:
 
     1. MQTT connectivity over secured TLS connection
-    2. Elliptic Curve Cryptography (ECC) X.509 SSL certificates 
+    2. ECC-based (Elliptic Curve Cryptography ECC) PKI and X.509 certificates
     3. Enforcement of mutual authentication on both MQTT broker and MQTT client configurations
     4. Unique MQTT credentials (username and password) per device
     5. Strict restrictions for MQTT topic permission (subscribe and publish) per device
