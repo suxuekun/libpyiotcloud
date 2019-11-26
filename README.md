@@ -1340,6 +1340,28 @@ The client call to HTTP getresponse() is causing the additional 1 second delay. 
 In Linux, the total round trip time is only 1 second.
 
 
+
+# Security
+
+Security has been the most challenging and controversial issues of IoT devices and smart devices.
+
+### Device Connectivity
+
+Current security implementation for device connectivity:
+
+    1. MQTT connectivity over secured TLS connection
+    2. Elliptic Curve Cryptography (ECC) X.509 SSL certificates 
+    3. Enforcement of mutual authentication on both MQTT broker and MQTT client configurations
+    4. Unique MQTT credentials (username and password) per device
+    5. Strict restrictions for MQTT topic permission (subscribe and publish) per device
+    6. [TODO] ECC certificates stored in ATECC hardware chip 
+
+### Front-end (Web/Mobile App) Connectivity
+
+    1. TODO
+
+
+
 # Action Items
 
 1.  Fix browser reload issue.
