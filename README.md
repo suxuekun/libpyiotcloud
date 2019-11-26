@@ -1354,7 +1354,7 @@ Current security implementation for device connectivity:
     3. Enforcement of mutual authentication on both MQTT broker and MQTT client configurations
     4. Unique MQTT credentials (username and password) per device
     5. Strict restrictions for MQTT topic permission (subscribe and publish) per device
-    6. [TODO] ECC certificates stored in ATECC hardware chip 
+    6. [TODO] ECC certificates stored in 3rd-party ATECC hardware chip 
 
 ### Front-end (Web/Mobile App) Connectivity
 
