@@ -276,6 +276,7 @@ DETAILED:
 		   // phone_number is optional
 		   // phone number should begin with "+" followed by country code then the number (ex. SG number +6512341234)
 		   // password length is 6 characters minimum as set in Cognito
+		   // OTP will be sent in the registered email
 		-  Response:
 		   {'status': 'OK', 'message': string}
 		   {'status': 'NG', 'message': string}
@@ -303,6 +304,7 @@ DETAILED:
 		   POST /user/confirm_signup
 		   headers: {'Content-Type': 'application/json'}
 		   data: { 'username': string, 'confirmationcode': string }
+		   // confirmationcode refers to the OTP code sent via email triggered by SIGN-UP
 		-  Response:
 		   {'status': 'OK', 'message': string}
 		   {'status': 'NG', 'message': string}
@@ -394,6 +396,7 @@ DETAILED:
 		   {'status': 'OK', 'message': string, 
 		    'info': {'name': string, 'email': string, 'phone_number': string, 'email_verified': boolean, 'phone_number_verified': boolean} }
 		   // phone_number and phone_number_verified are not included if no phone_number has been added yet
+		   // phone_number can be added using SIGN UP or UPDATE USER INFO
 		   {'status': 'NG', 'message': string}
 
 		I. UPDATE USER INFO
@@ -402,7 +405,9 @@ DETAILED:
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
 		   data: {'name': string, 'phone_number': string}
 		   // phone_number is optional
-		   // phone number should begin with "+" followed by country code then the number (ex. SG number +6512341234)
+		   // phone_number should begin with "+" followed by country code then the number (ex. SG number +6512341234)
+		   // When user changes or adds phone_number, phone_number_verified returned by GET USER INFO will always return false
+		   // When user changes or adds phone_number, phone_number_verified returned by GET USER INFO will always return false
 		-  Response:
 		   {'status': 'OK', 'message': string}
 		   {'status': 'NG', 'message': string}
@@ -428,6 +433,7 @@ DETAILED:
 		-  Request:
 		   POST /user/verify_phone_number
 		   headers: {'Authorization': 'Bearer ' + token.access}
+		   // OTP will be sent via SMS in the registered phone_number
 		-  Response:
 		   {'status': 'OK', 'message': string}
 		   {'status': 'NG', 'message': string}
@@ -437,6 +443,8 @@ DETAILED:
 		   POST /user/confirm_verify_phone_number
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
 		   data: {'confirmationcode': string}
+		   // confirmationcode refers to the OTP code sent via SMS triggered by VERIFY PHONE NUMBER
+		   // after this step, GET USER INFO will return phone_number_verified as true 
 		-  Response:
 		   {'status': 'OK', 'message': string}
 		   {'status': 'NG', 'message': string}
