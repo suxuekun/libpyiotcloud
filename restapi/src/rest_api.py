@@ -79,7 +79,6 @@ def login():
         return response, status.HTTP_400_BAD_REQUEST
 
     # check if username does not exist
-    print('find_user')
     if not g_database_client.find_user(username):
         # NOTE:
         # its not good to provide a specific error message for LOGIN
@@ -89,7 +88,6 @@ def login():
         return response, status.HTTP_401_UNAUTHORIZED
 
     # check if password is valid
-    print('login')
     access, refresh, id = g_database_client.login(username, password)
     if not access:
         # NOTE:
@@ -1695,7 +1693,7 @@ def get_status(devicename):
         response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
         print('\r\nERROR Invalid token\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
-    print('get_status username={}'.format(data['username']))
+    print('get_status username={} devicename={}'.format(data['username'], data['devicename']))
 
     return process_request_get(api, data)
 
@@ -1730,7 +1728,7 @@ def set_status(devicename):
         response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
         print('\r\nERROR Invalid token\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
-    print('set_status username={}'.format(data['username']))
+    print('set_status username={} devicename={}'.format(data['username'], data['devicename']))
 
     return process_request(api, data)
 
@@ -2056,6 +2054,86 @@ def trigger_notification(devicename):
 
 
 
+#########################
+
+#
+# GET UART PROPERTIES
+#
+# - Request:
+#   GET /devices/device/<devicename>/uart/<number>/properties
+#   headers: { 'Authorization': 'Bearer ' + token.access }
+#
+# - Response:
+#   { 'status': 'OK', 'message': string, 'value': { 'baudrate': int, 'parity': int } }
+#   { 'status': 'NG', 'message': string }
+#
+@app.route('/devices/device/<devicename>/uart/<number>/properties', methods=['GET'])
+def get_uart_properties(devicename, number):
+    api = 'get_uart_properties'
+
+    # get token from Authorization header
+    auth_header_token = get_auth_header_token()
+    if auth_header_token is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
+        print('\r\nERROR Invalid authorization header\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
+
+    # get username from token
+    data = {}
+    data['token'] = {'access': auth_header_token}
+    data['devicename'] = devicename
+    data['username'] = g_database_client.get_username_from_token(data['token'])
+    if data['username'] is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
+        print('\r\nERROR Invalid token\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
+    data['number'] = number
+    print('get_uart_properties username={} devicename={}'.format(data['username'], data['devicename']))
+
+    return process_request(api, data)
+
+#
+# SET UART PROPERTIES
+#
+# - Request:
+#   POST /devices/device/<devicename>/uart/<number>/properties
+#   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
+#   data: { 'baudrate': int, 'parity': int }
+#
+# - Response:
+#   { 'status': 'OK', 'message': string }
+#   { 'status': 'NG', 'message': string }
+#
+@app.route('/devices/device/<devicename>/uart/<number>/properties', methods=['POST'])
+def set_uart_properties(devicename, number):
+    api = 'set_uart_properties'
+
+    # get token from Authorization header
+    auth_header_token = get_auth_header_token()
+    if auth_header_token is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
+        print('\r\nERROR Invalid authorization header\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
+
+    # get username from token
+    data = flask.request.get_json()
+    print(api)
+    print(data)
+    data['token'] = {'access': auth_header_token}
+    data['devicename'] = devicename
+    data['username'] = g_database_client.get_username_from_token(data['token'])
+    if data['username'] is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
+        print('\r\nERROR Invalid token\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
+    data['number'] = number
+    print('set_uart_properties username={} devicename={}'.format(data['username'], data['devicename']))
+
+    return process_request(api, data)
+
+
+
+
 
 #########################
 
@@ -2268,11 +2346,12 @@ def get_jwtencode_user_pass(token):
         return None, None, reason
 
     currepoch = int(time.time())
-    print("username: {}".format(payload["username"]))
-    print("password: {}".format(payload["password"]))
-    print("cur: {}".format(currepoch))
-    print("iat: {}".format(payload["iat"]))
-    print("exp: {}".format(payload["exp"]))
+    if False:
+        print("username: {}".format(payload["username"]))
+        print("password: {}".format(payload["password"]))
+        print("cur: {}".format(currepoch))
+        print("iat: {}".format(payload["iat"]))
+        print("exp: {}".format(payload["exp"]))
 
     if payload["exp"] - payload["iat"] != config.CONFIG_JWT_EXPIRATION:
         reason = "JWT expiration date is incorrect"
