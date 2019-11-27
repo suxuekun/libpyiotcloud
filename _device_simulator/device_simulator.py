@@ -26,6 +26,8 @@ CONFIG_NOTIFICATION_MESSAGE = "Hi, How are you today?"
 
 g_messaging_client = None
 g_gpio_values = {}
+g_uart_properties = {'1': { 'baudrate': 6, 'parity': 1 }, '2': { 'baudrate': 7, 'parity': 2 }}
+
 
 
 ###################################################################################
@@ -67,6 +69,41 @@ def handle_api(api, subtopic, subpayload):
         payload = {}
         payload["value"] = "running"
         publish(topic, payload)
+
+    elif api == "set_status":
+        topic = generate_pubtopic(subtopic)
+        subpayload = json.loads(subpayload)
+
+        status = "restarting"
+
+        payload = {}
+        payload["value"] = status
+        publish(topic, payload)
+
+
+    elif api == "get_uart_properties":
+        topic = generate_pubtopic(subtopic)
+        subpayload = json.loads(subpayload)
+
+        value = g_uart_properties[str(subpayload["number"])]
+
+        payload = {}
+        payload["value"] = value
+        publish(topic, payload)
+
+    elif api == "set_uart_properties":
+        topic = generate_pubtopic(subtopic)
+        subpayload = json.loads(subpayload)
+        print(subpayload)
+
+        g_uart_properties[str(subpayload["number"])] = { 'baudrate': subpayload["baudrate"], 'parity': subpayload["parity"] } 
+        value = g_uart_properties[str(subpayload["number"])]
+
+        payload = {}
+        payload["value"] = value
+        publish(topic, payload)
+
+
 
     elif api == "write_uart":
         topic = generate_pubtopic(subtopic)
@@ -186,18 +223,6 @@ def handle_api(api, subtopic, subpayload):
         payload = {}
         payload["value"] = value
         publish(topic, payload)
-
-
-    elif api == "set_status":
-        topic = generate_pubtopic(subtopic)
-        subpayload = json.loads(subpayload)
-
-        status = "restarting"
-
-        payload = {}
-        payload["value"] = status
-        publish(topic, payload)
-
 
     elif api == "trigger_notification":
         topic = generate_pubtopic(subtopic)
