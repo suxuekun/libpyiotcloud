@@ -6,6 +6,8 @@ var ArgumentParser = require('argparse');
 
 
 
+var g_uart_properties = {'1': { 'baudrate': 6, 'parity': 1 }, '2': { 'baudrate': 7, 'parity': 2 }}
+
 // UART notification configuration
 var CONFIG_NOTIFICATION_UART_KEYWORD = "Hello World"
 var CONFIG_NOTIFICATION_RECIPIENT   = "richmond.umagat@brtchip.com"
@@ -126,18 +128,65 @@ client.on("connect", function()
 
 // handle API call
 function handle_api(api, topic, payload) {
-	console.log("\r\n" + topic);
+    console.log("\r\n" + topic);
 
-    if (api == "get_status") {		
+    if (api == "get_status") {
         pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
         var obj = {
             "value": "running"
         };
         client.publish(pubtopic, JSON.stringify(obj));
 
-		console.log(pubtopic);
-		console.log(JSON.stringify(obj));
+        console.log(pubtopic);
+        console.log(JSON.stringify(obj));
     }
+    else if (api == "set_status") {
+        pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
+        var obj = JSON.parse(payload);
+        var value = obj.value;
+        console.log(value);
+        var obj = {
+            "value": "restarting"
+        };
+        client.publish(pubtopic, JSON.stringify(obj));
+        
+        console.log(pubtopic);
+        console.log(JSON.stringify(obj));
+    }
+
+    else if (api == "get_uart_properties") {
+        pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
+        var obj = JSON.parse(payload);
+        var number = obj.number;
+
+        console.log(number);
+        var response = { "value": g_uart_properties[number] };
+        client.publish(pubtopic, JSON.stringify(response));
+
+        console.log(pubtopic);
+        console.log(JSON.stringify(response));
+    }
+    else if (api == "set_uart_properties") {
+        pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
+        var obj = JSON.parse(payload);
+        var number = obj.number;
+        var baudrate = Number(obj.baudrate);
+        var parity = Number(obj.parity);
+
+        console.log(number);
+        console.log(baudrate);
+        console.log(parity);
+        g_uart_properties[number] = {
+            "baudrate": baudrate, 
+            "parity": parity
+        };
+        var response = { "value": g_uart_properties[number] };
+        client.publish(pubtopic, JSON.stringify(response));
+
+        console.log(pubtopic);
+        console.log(JSON.stringify(response));
+    }
+
     else if (api == "write_uart") {
         pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
         var obj = JSON.parse(payload);
@@ -171,9 +220,9 @@ function handle_api(api, topic, payload) {
             "value": Number(0)
         };
         client.publish(pubtopic, JSON.stringify(obj));
-		
-		console.log(pubtopic);
-		console.log(JSON.stringify(obj));		
+        
+        console.log(pubtopic);
+        console.log(JSON.stringify(obj));        
     }
     else if (api == "set_gpio") {
         pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
@@ -185,9 +234,9 @@ function handle_api(api, topic, payload) {
             "value": value
         };
         client.publish(pubtopic, JSON.stringify(obj));
-		
-		console.log(pubtopic);
-		console.log(JSON.stringify(obj));				
+        
+        console.log(pubtopic);
+        console.log(JSON.stringify(obj));                
     }
     else if (api == "get_rtc") {
         pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
@@ -197,9 +246,9 @@ function handle_api(api, topic, payload) {
             "value": epoch
         };
         client.publish(pubtopic, JSON.stringify(obj));
-		
-		console.log(pubtopic);
-		console.log(JSON.stringify(obj));						
+        
+        console.log(pubtopic);
+        console.log(JSON.stringify(obj));                        
     }
     else if (api == "set_rtc") {
         pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
@@ -210,9 +259,9 @@ function handle_api(api, topic, payload) {
             "value": value
         };
         client.publish(pubtopic, JSON.stringify(obj));
-		
-		console.log(pubtopic);
-		console.log(JSON.stringify(obj));						
+        
+        console.log(pubtopic);
+        console.log(JSON.stringify(obj));                        
     }
     else if (api == "get_mac") {
         pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
@@ -221,15 +270,15 @@ function handle_api(api, topic, payload) {
         interfaces = os.networkInterfaces()
         var found = false
         for (var devName in interfaces) {
-			if (devName.includes("Loopback") == true) {
-				continue;
-			}
-			else if (devName.includes("VirtualBox") == true) {
-				continue;
-			}
-			else if (devName.includes("VMWare") == true || devName.includes("VMware") == true) {
-				continue;
-			}
+            if (devName.includes("Loopback") == true) {
+                continue;
+            }
+            else if (devName.includes("VirtualBox") == true) {
+                continue;
+            }
+            else if (devName.includes("VMWare") == true || devName.includes("VMware") == true) {
+                continue;
+            }
             var iface = interfaces[devName];
             for (var i = 0; i < iface.length; i++) {
                 var alias = iface[i];
@@ -237,7 +286,7 @@ function handle_api(api, topic, payload) {
                     value = alias.mac
                     found = true;
                     break;
-				}
+                }
             }
             if (found == true) {
                 break;
@@ -249,9 +298,9 @@ function handle_api(api, topic, payload) {
         };
 
         client.publish(pubtopic, JSON.stringify(obj));
-		
-		console.log(pubtopic);
-		console.log(JSON.stringify(obj));
+        
+        console.log(pubtopic);
+        console.log(JSON.stringify(obj));
     }
     else if (api == "get_ip") {
         pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
@@ -260,15 +309,15 @@ function handle_api(api, topic, payload) {
         interfaces = os.networkInterfaces()
         var found = false
         for (var devName in interfaces) {
-			if (devName.includes("Loopback") == true) {
-				continue;
-			}
-			else if (devName.includes("VirtualBox") == true) {
-				continue;
-			}
-			else if (devName.includes("VMWare") == true || devName.includes("VMware") == true) {
-				continue;
-			}
+            if (devName.includes("Loopback") == true) {
+                continue;
+            }
+            else if (devName.includes("VirtualBox") == true) {
+                continue;
+            }
+            else if (devName.includes("VMWare") == true || devName.includes("VMware") == true) {
+                continue;
+            }
             var iface = interfaces[devName];
             for (var i = 0; i < iface.length; i++) {
                 var alias = iface[i];
@@ -276,7 +325,7 @@ function handle_api(api, topic, payload) {
                     value = alias.address
                     found = true;
                     break;
-				}
+                }
             }
             if (found == true) {
                 break;
@@ -288,9 +337,9 @@ function handle_api(api, topic, payload) {
         };
 
         client.publish(pubtopic, JSON.stringify(obj));
-		
-		console.log(pubtopic);
-		console.log(JSON.stringify(obj));		
+        
+        console.log(pubtopic);
+        console.log(JSON.stringify(obj));        
     }
     else if (api == "get_subnet") {
         pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
@@ -299,15 +348,15 @@ function handle_api(api, topic, payload) {
         interfaces = os.networkInterfaces()
         var found = false
         for (var devName in interfaces) {
-			if (devName.includes("Loopback") == true) {
-				continue;
-			}
-			else if (devName.includes("VirtualBox") == true) {
-				continue;
-			}
-			else if (devName.includes("VMWare") == true || devName.includes("VMware") == true) {
-				continue;
-			}
+            if (devName.includes("Loopback") == true) {
+                continue;
+            }
+            else if (devName.includes("VirtualBox") == true) {
+                continue;
+            }
+            else if (devName.includes("VMWare") == true || devName.includes("VMware") == true) {
+                continue;
+            }
             var iface = interfaces[devName];
             for (var i = 0; i < iface.length; i++) {
                 var alias = iface[i];
@@ -315,7 +364,7 @@ function handle_api(api, topic, payload) {
                     value = alias.netmask
                     found = true;
                     break;
-				}
+                }
             }
             if (found == true) {
                 break;
@@ -327,9 +376,9 @@ function handle_api(api, topic, payload) {
         };
 
         client.publish(pubtopic, JSON.stringify(obj));
-		
-		console.log(pubtopic);
-		console.log(JSON.stringify(obj));		
+        
+        console.log(pubtopic);
+        console.log(JSON.stringify(obj));        
     }
     else if (api == "get_gateway") {
         pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
@@ -338,15 +387,15 @@ function handle_api(api, topic, payload) {
         interfaces = os.networkInterfaces()
         var found = false
         for (var devName in interfaces) {
-			if (devName.includes("Loopback") == true) {
-				continue;
-			}
-			else if (devName.includes("VirtualBox") == true) {
-				continue;
-			}
-			else if (devName.includes("VMWare") == true || devName.includes("VMware") == true) {
-				continue;
-			}
+            if (devName.includes("Loopback") == true) {
+                continue;
+            }
+            else if (devName.includes("VirtualBox") == true) {
+                continue;
+            }
+            else if (devName.includes("VMWare") == true || devName.includes("VMware") == true) {
+                continue;
+            }
             var iface = interfaces[devName];
             for (var i = 0; i < iface.length; i++) {
                 var alias = iface[i];
@@ -355,7 +404,7 @@ function handle_api(api, topic, payload) {
                     value = alias.cidr.substring(0, index)
                     found = true;
                     break;
-				}
+                }
             }
             if (found == true) {
                 break;
@@ -367,22 +416,9 @@ function handle_api(api, topic, payload) {
         };
 
         client.publish(pubtopic, JSON.stringify(obj));
-		
-		console.log(pubtopic);
-		console.log(JSON.stringify(obj));		
-    }
-    else if (api == "set_status") {
-        pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
-        var obj = JSON.parse(payload);
-        var value = obj.value;
-        console.log(value);
-        var obj = {
-            "value": "restarting"
-        };
-        client.publish(pubtopic, JSON.stringify(obj));
-		
-		console.log(pubtopic);
-		console.log(JSON.stringify(obj));		
+        
+        console.log(pubtopic);
+        console.log(JSON.stringify(obj));        
     }
     else {
     }
