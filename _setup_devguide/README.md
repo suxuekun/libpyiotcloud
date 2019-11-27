@@ -185,6 +185,8 @@ To run tests with the device simulator, please refer to the usage guide in https
 
 ### REST API Documentation
 
+This is for the front-end developers.
+
 The REST APIs are the gateway of the frontend (mobile apps, web app) to the backend (3rd party APIs and services). <b>The frontend will not directly access any 3rd party APIs and services for security reasons.</b> The frontend will only communicate with the REST APIs.
 
   <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/architecture_frontend.png" width="1000"/>
@@ -230,6 +232,13 @@ SUMMARY:
 
 	3. Device access and control APIs
 
+		New requirements:
+		A. GET STATUS                  - GET    /devices/device/DEVICENAME/status
+		B. SET STATUS                  - POST   /devices/device/DEVICENAME/status
+		C. GET UART PROPERTIES         - GET    /devices/device/DEVICENAME/uart/UARTNUMBER/properties
+		D. SET UART PROPERTIES         - POST   /devices/device/DEVICENAME/uart/UARTNUMBER/properties
+
+		Old requirements:
 		A. GET STATUS                  - GET    /devices/device/DEVICENAME/status
 		B. SET STATUS                  - POST   /devices/device/DEVICENAME/status
 		C. GET IP                      - GET    /devices/device/DEVICENAME/ip
@@ -255,11 +264,6 @@ SUMMARY:
 		C. PAYPAL SETUP                - POST   /account/payment/paypalsetup
 		D. PAYPAL EXECUTE              - POST   /account/payment/paypalexecute
 		E. PAYPAL VERIFY               - POST   /account/payment/paypalverify
-
-
-Note that HTTP GET command requires that no data/payload is attached to it. 
-As such the required parameters must be part of the URL.
-This explains the inconsistency between the GET and POST/DELETE APIs.
 
 
 
@@ -525,6 +529,50 @@ DETAILED:
 
 	3. Device access and control APIs
 
+		New requirements:
+
+		A. GET STATUS
+		-  Request:
+		   GET /devices/device/DEVICENAME/status
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		-  Response:
+		   { 'status': 'OK', 'message': string, 'value': string }
+		   { 'status': 'NG', 'message': string }
+
+		B. SET STATUS
+		-  Request:
+		   POST /devices/device/DEVICENAME/status
+		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+		   data: { 'value': string }
+		-  Response:
+		   { 'status': 'OK', 'message': string, 'value': string}
+		   { 'status': 'NG', 'message': string }
+
+		C. GET UART PROPERTIES
+		-  Request:
+		   GET /devices/device/DEVICENAME/uart/NUMBER/properties
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		-  Response:
+		   { 'status': 'OK', 'message': string, 'value': { 'baudrate': int, 'parity': int } }
+		   { 'status': 'NG', 'message': string }
+		   // baudrate is an index of the value in the array of baudrates
+		   // parity is an index of the value in the array of parities
+		   // sending only the index saves memory on the device and computation on frontend
+
+		D. SET UART PROPERTIES
+		-  Request:
+		   POST /devices/device/DEVICENAME/uart/NUMBER/properties
+		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+		   data: { 'baudrate': int, 'parity': int }
+		   // baudrate is an index of the value in the array of baudrates
+		   // parity is an index of the value in the array of parities
+		-  Response:
+		   { 'status': 'OK', 'message': string }
+		   { 'status': 'NG', 'message': string }
+
+
+		Old requirements:
+
 		A. GET STATUS
 		-  Request:
 		   GET /devices/device/DEVICENAME/status
@@ -695,33 +743,108 @@ DETAILED:
 		   {'status': 'NG', 'message': string}
 
 
-### Device API Documentation
 
-	1. UART
-		A. API_UART_SET_BAUDRATE
-		B. API_UART_GET_BAUDRATE
-		C. API_UART_SET_PARITY
-		D. API_UART_GET_PARITY
-		E. API_UART_WRITE_MESSAGE
-	
-	2. GPIO
-		A. API_GPIO_SET_VOLTAGE
-		B. API_GPIO_GET_VOLTAGE
-		C. API_GPIO_SET_DIRECTION
-		D. API_GPIO_GET_DIRECTION
-		E. API_GPIO_SET_MODE
-		F. API_GPIO_GET_MODE
-		G. API_GPIO_SET_ALERT
-		H. API_GPIO_GET_ALERT
-		
-	3. I2C
-		A. TODO
+### Device Firmware Messaging API Documentation
+
+This is for the firmware developers.
+
+Each device subscribes to its own assigned MQTT topic using its device identification (DEVICEID/#).
+So it will only receive subtopics under DEVICEID topic.
+Each device publishes to its own assigned MQTT topic using its device identification and server (server/DEVICEID/#)
+
+Subscribing or publishing to other MQTT topics will fail as the message broker restricts the permissions of topic for each device.
 
 
-### Message Queuing Documentation
+SUMMARY:
 
-1. TODO ToDevice
-2. TODO FromDevice
+	1. STATUS
+		A. get_status				receive: DEVICEID/get_status, publish: server/DEVICEID/get_status
+		B. set_status				receive: DEVICEID/set_status, publish: server/DEVICEID/set_status
+
+	2. UART
+		A. get_uart_properties		receive: DEVICEID/get_uart_properties, publish: server/DEVICEID/get_uart_properties
+		B. set_uart_properties		receive: DEVICEID/set_uart_properties, publish: server/DEVICEID/set_uart_properties
+
+	3. GPIO
+		A. get_gpio_properties		receive: DEVICEID/get_gpio_properties, publish: server/DEVICEID/get_gpio_properties
+		B. set_gpio_properties		receive: DEVICEID/set_gpio_properties, publish: server/DEVICEID/set_gpio_properties
+
+	4. I2C
+		A. get_i2c_properties		receive: DEVICEID/get_i2c_properties, publish: server/DEVICEID/get_i2c_properties
+		B. set_i2c_properties		receive: DEVICEID/set_i2c_properties, publish: server/DEVICEID/set_i2c_properties
+
+
+DETAILED:
+
+	1. STATUS
+
+		A. get_status
+		-  Receive:
+		   topic: DEVICEID/get_status
+		-  Publish:
+		   topic: server/DEVICEID/get_status
+		   payload: { 'value': string }
+
+		B. set_status
+		-  Receive:
+		   topic: DEVICEID/set_status
+		   payload: { 'value': string }
+		-  Publish:
+		   topic: server/DEVICEID/set_status
+		   payload: { 'value': string }
+
+
+	2. UART
+
+		A. get_uart_properties
+		-  Receive:
+		   topic: DEVICEID/get_uart_properties
+		   payload: { 'number': int }
+		-  Publish:
+		   topic: server/DEVICEID/get_uart_properties
+		   payload: { 'value': { 'baudrate': int, 'parity': int } }
+
+		B. set_uart_properties
+		-  Receive:
+		   topic: DEVICEID/set_uart_properties
+		   payload: { 'number': int, 'baudrate': int, 'parity': int }
+		-  Publish:
+		   topic: server/DEVICEID/set_uart_properties
+		   payload: { 'value': { 'baudrate': int, 'parity': int } }
+
+
+	3. GPIO
+		A. get_gpio_properties
+		-  Receive:
+		   topic:
+		   payload:
+		-  Publish:
+		   topic:
+		   payload:
+		B. set_gpio_properties
+		-  Receive:
+		   topic:
+		   payload:
+		-  Publish:
+		   topic:
+		   payload:
+
+
+	4. I2C
+		A. get_i2c_properties
+		-  Subscribe:
+		   topic:
+		   payload:
+		-  Publish:
+		   topic:
+		   payload:
+		B. set_i2c_properties
+		-  Subscribe:
+		   topic:
+		   payload:
+		-  Publish:
+		   topic:
+		   payload:
 
 
 ### Database Documentation
