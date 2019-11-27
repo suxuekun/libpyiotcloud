@@ -71,4 +71,4 @@ class config:
     # JWT Token
     CONFIG_JWT_SECRET_KEY          = os.environ["CONFIG_USE_JWT_SECRET_KEY"]
     CONFIG_JWT_EXPIRATION          = 10
-    CONFIG_JWT_ADJUSTMENT          = 2
+    CONFIG_JWT_ADJUSTMENT          = 60

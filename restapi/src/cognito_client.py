@@ -268,6 +268,8 @@ class cognito_client:
 			headers = jwt.get_unverified_header(token)
 		except:
 			return None
+		if not headers.get('kid'):
+			return None
 		kid = headers['kid']
 
 		key_index = -1
@@ -293,6 +295,8 @@ class cognito_client:
 			headers = jwt.get_unverified_header(token)
 		except:
 			return 6
+		if not headers.get('kid'):
+			return 7
 		kid = headers['kid']
 
 		# search for the kid in the downloaded public keys
@@ -303,7 +307,7 @@ class cognito_client:
 				break
 		if key_index == -1:
 			print('Public key not found in jwks.json')
-			return 7
+			return 8
 
 		# construct the public key
 		public_key = jwk.construct(self.keys[key_index])
@@ -318,7 +322,7 @@ class cognito_client:
 		# verify the signature
 		if not public_key.verify(message.encode("utf8"), decoded_signature):
 			print('Signature verification failed')
-			return 8
+			return 9
 
 		# since we passed the verification, we can now safely
 		# use the unverified claims

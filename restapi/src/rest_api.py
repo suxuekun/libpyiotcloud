@@ -383,6 +383,10 @@ def logout():
 
         # get username from token
         username = g_database_client.get_username_from_token(token)
+        if username is None:
+            response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
+            print('\r\nERROR Invalid token\r\n')
+            return response, status.HTTP_401_UNAUTHORIZED
         print('logout username={}'.format(username))
 
     except:
@@ -453,14 +457,17 @@ def get_user_info():
 
     # get username from token
     username = g_database_client.get_username_from_token(token)
+    if username is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
+        print('\r\nERROR Userinfo: Invalid token\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
+
     print('get_user_info username={}'.format(username))
 
     # check if a parameter is empty
     if len(username) == 0 or len(token) == 0:
         response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
         print('\r\nERROR Userinfo: Empty parameter found\r\n')
-        # NOTE:
-        # No need to return error code status.HTTP_401_UNAUTHORIZED since this is a logout
         return response
 
     # check if username and token is valid
@@ -522,6 +529,10 @@ def delete_user():
 
     # get username from token
     username = g_database_client.get_username_from_token(token)
+    if username is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
+        print('\r\nERROR Delete user: Invalid token\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
     print('delete_user username={}'.format(username))
 
     # check if a parameter is empty
@@ -589,6 +600,10 @@ def refresh_user_token():
 
     # get username from token
     username = g_database_client.get_username_from_token(token)
+    if username is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
+        print('\r\nERROR Refresh token: Invalid token\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
     print('refresh_user_token username={}'.format(username))
 
     # check if a parameter is empty
@@ -646,6 +661,10 @@ def verify_phone_number():
 
     # get username from token
     username = g_database_client.get_username_from_token(token)
+    if username is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
+        print('\r\nERROR Verify phone: Invalid token\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
     print('refresh_user_token username={}'.format(username))
 
     # check if a parameter is empty
@@ -703,6 +722,10 @@ def confirm_verify_phone_number():
 
     # get username from token
     username = g_database_client.get_username_from_token(token)
+    if username is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
+        print('\r\nERROR Confirm verify phone: Invalid token\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
     print('refresh_user_token username={}'.format(username))
 
     # check if a parameter is empty
@@ -762,6 +785,10 @@ def change_password():
 
     # get username from token
     username = g_database_client.get_username_from_token(token)
+    if username is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
+        print('\r\nERROR Change password: Invalid token\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
     print('refresh_user_token username={}'.format(username))
 
     # check if a parameter is empty
@@ -827,6 +854,10 @@ def update_user_info():
 
     # get username from token
     username = g_database_client.get_username_from_token(token)
+    if username is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
+        print('\r\nERROR Update user: Invalid token\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
     print('refresh_user_token username={}'.format(username))
 
     # check if a parameter is empty
@@ -903,6 +934,10 @@ def get_subscription():
 
     # get username from token
     username = g_database_client.get_username_from_token(token)
+    if username is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
+        print('\r\nERROR Get Subscription: Invalid token\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
     print('get_subscription username={}'.format(username))
 
     # check if a parameter is empty
@@ -965,6 +1000,10 @@ def set_subscription():
 
     # get username from token
     username = g_database_client.get_username_from_token(token)
+    if username is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
+        print('\r\nERROR Set Subscription: Invalid token\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
     print('set_subscription username={}'.format(username))
 
     # check if a parameter is empty
@@ -1031,6 +1070,10 @@ def set_payment_paypal_setup():
 
     # get username from token
     username = g_database_client.get_username_from_token(token)
+    if username is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
+        print('\r\nERROR Paypal Setup: Invalid token\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
     print('set_payment_paypal_setup username={}'.format(username))
 
     # check if a parameter is empty
@@ -1095,6 +1138,10 @@ def set_payment_paypal_execute():
 
     # get username from token
     username = g_database_client.get_username_from_token(token)
+    if username is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
+        print('\r\nERROR Paypal Execute: Invalid token\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
     print('set_payment_paypal_execute username={}'.format(username))
 
     # check if a parameter is empty
@@ -1163,6 +1210,10 @@ def set_payment_paypal_verify():
 
     # get username from token
     username = g_database_client.get_username_from_token(token)
+    if username is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
+        print('\r\nERROR Paypal Verify: Invalid token\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
     print('set_payment_paypal_verify username={}'.format(username))
 
     # check if a parameter is empty
@@ -1237,6 +1288,10 @@ def get_device_list():
 
     # get username from token
     username = g_database_client.get_username_from_token(token)
+    if username is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
+        print('\r\nERROR Get Devices: Invalid token\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
     print('get_device_list username={}'.format(username))
 
     # check if a parameter is empty
@@ -1304,6 +1359,10 @@ def register_device(devicename):
 
     # get username from token
     username = g_database_client.get_username_from_token(token)
+    if username is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
+        print('\r\nERROR Add/Delete Device: Invalid token\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
     print('register_device username={} devicename={}'.format(username, devicename))
 
     # check if a parameter is empty
@@ -1415,6 +1474,10 @@ def get_device(devicename):
 
     # get username from token
     username = g_database_client.get_username_from_token(token)
+    if username is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
+        print('\r\nERROR Get Device: Invalid token\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
     print('get_device username={} devicename={}'.format(username, devicename))
 
     # check if a parameter is empty
@@ -1481,6 +1544,10 @@ def get_device_histories():
 
     # get username from token
     username = g_database_client.get_username_from_token(token)
+    if username is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
+        print('\r\nERROR Get Histories: Invalid token\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
     print('get_user_histories username={}'.format(username))
 
     # check if a parameter is empty
@@ -1539,6 +1606,10 @@ def get_device_histories_filtered():
 
     # get username from token
     username = g_database_client.get_username_from_token(token)
+    if username is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
+        print('\r\nERROR Get Histories: Invalid token\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
     print('get_user_histories username={}'.format(username))
 
     # check if a parameter is empty
@@ -1620,6 +1691,10 @@ def get_status(devicename):
     data['token'] = {'access': auth_header_token}
     data['devicename'] = devicename
     data['username'] = g_database_client.get_username_from_token(data['token'])
+    if data['username'] is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
+        print('\r\nERROR Invalid token\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
     print('get_status username={}'.format(data['username']))
 
     return process_request_get(api, data)
@@ -1651,6 +1726,10 @@ def set_status(devicename):
     data['token'] = {'access': auth_header_token}
     data['devicename'] = devicename
     data['username'] = g_database_client.get_username_from_token(data['token'])
+    if data['username'] is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
+        print('\r\nERROR Invalid token\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
     print('set_status username={}'.format(data['username']))
 
     return process_request(api, data)
@@ -1682,6 +1761,10 @@ def get_ip(devicename):
     data['token'] = {'access': auth_header_token}
     data['devicename'] = devicename
     data['username'] = g_database_client.get_username_from_token(data['token'])
+    if data['username'] is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
+        print('\r\nERROR Invalid token\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
     print('get_ip username={}'.format(data['username']))
 
     return process_request_get(api, data)
@@ -1713,6 +1796,10 @@ def get_subnet(devicename):
     data['token'] = {'access': auth_header_token}
     data['devicename'] = devicename
     data['username'] = g_database_client.get_username_from_token(data['token'])
+    if data['username'] is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
+        print('\r\nERROR Invalid token\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
     print('get_subnet username={}'.format(data['username']))
 
     return process_request_get(api, data)
@@ -1744,6 +1831,10 @@ def get_gateway(devicename):
     data['token'] = {'access': auth_header_token}
     data['devicename'] = devicename
     data['username'] = g_database_client.get_username_from_token(data['token'])
+    if data['username'] is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
+        print('\r\nERROR Invalid token\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
     print('get_gateway username={}'.format(data['username']))
 
     return process_request_get(api, data)
@@ -1775,6 +1866,10 @@ def get_mac(devicename):
     data['token'] = {'access': auth_header_token}
     data['devicename'] = devicename
     data['username'] = g_database_client.get_username_from_token(data['token'])
+    if data['username'] is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
+        print('\r\nERROR Invalid token\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
     print('get_mac username={}'.format(data['username']))
 
     return process_request_get(api, data)
@@ -1807,6 +1902,10 @@ def get_gpio(devicename, number):
     data['devicename'] = devicename
     data['number'] = number
     data['username'] = g_database_client.get_username_from_token(data['token'])
+    if data['username'] is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
+        print('\r\nERROR Invalid token\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
     print('get_gpio username={}'.format(data['username']))
 
     return process_request_get(api, data)
@@ -1840,6 +1939,10 @@ def set_gpio(devicename, number):
     data['devicename'] = devicename
     data['number'] = number
     data['username'] = g_database_client.get_username_from_token(data['token'])
+    if data['username'] is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
+        print('\r\nERROR Invalid token\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
     print('set_gpio username={}'.format(data['username']))
 
     return process_request(api, data)
@@ -1871,6 +1974,10 @@ def get_rtc(devicename):
     data['token'] = {'access': auth_header_token}
     data['devicename'] = devicename
     data['username'] = g_database_client.get_username_from_token(data['token'])
+    if data['username'] is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
+        print('\r\nERROR Invalid token\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
     print('get_rtc username={}'.format(data['username']))
 
     return process_request_get(api, data)
@@ -1903,6 +2010,10 @@ def write_uart(devicename):
     data['token'] = {'access': auth_header_token}
     data['devicename'] = devicename
     data['username'] = g_database_client.get_username_from_token(data['token'])
+    if data['username'] is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
+        print('\r\nERROR Invalid token\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
     print('write_uart username={}'.format(data['username']))
 
     return process_request(api, data)
@@ -1935,6 +2046,10 @@ def trigger_notification(devicename):
     data['token'] = {'access': auth_header_token}
     data['devicename'] = devicename
     data['username'] = g_database_client.get_username_from_token(data['token'])
+    if data['username'] is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
+        print('\r\nERROR Invalid token\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
     print('trigger_notification username={}'.format(data['username']))
 
     return process_request(api, data)
@@ -2147,24 +2262,12 @@ def get_jwtencode_user_pass(token):
         reason = "JWT decode failed"
         print(reason)
         return None, None, reason
-    if not payload.get("username"):
-        reason = "No username field"
-        print(reason)
-        return None, None, reason
-    if not payload.get("password"):
-        reason = "No password field"
-        print(reason)
-        return None, None, reason
-    if not payload.get("iat"):
-        reason = "No iat field"
-        print(reason)
-        return None, None, reason
-    if not payload.get("exp"):
-        reason = "No exp field"
+    if not payload.get("username") or not payload.get("password") or not payload.get("iat") or not payload.get("exp"):
+        reason = "JWT has missing fields"
         print(reason)
         return None, None, reason
 
-    currepoch = int(time.time()) + config.CONFIG_JWT_ADJUSTMENT
+    currepoch = int(time.time())
     print("username: {}".format(payload["username"]))
     print("password: {}".format(payload["password"]))
     print("cur: {}".format(currepoch))
@@ -2175,7 +2278,11 @@ def get_jwtencode_user_pass(token):
         reason = "JWT expiration date is incorrect"
         print(reason)
         return None, None, reason
-    if currepoch < payload["iat"]:
+    # add lee way for both time start and time end
+    # so that minor differences in time will not fail
+    # example if pc is NOT set to automatically synchronize with SNTP
+    # allow difference of +/- 60 seconds
+    if currepoch < payload["iat"] - config.CONFIG_JWT_ADJUSTMENT:
         print("username: {}".format(payload["username"]))
         print("password: {}".format(payload["password"]))
         print("cur: {}".format(currepoch))
@@ -2183,7 +2290,7 @@ def get_jwtencode_user_pass(token):
         print("exp: {}".format(payload["exp"]))
         reason = "currepoch({}) < payload[iat]({})".format(currepoch, payload["iat"])
         return None, None, reason
-    elif currepoch > payload["exp"]:
+    elif currepoch > payload["exp"] + config.CONFIG_JWT_ADJUSTMENT:
         print("username: {}".format(payload["username"]))
         print("password: {}".format(payload["password"]))
         print("cur: {}".format(currepoch))
