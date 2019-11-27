@@ -2,21 +2,53 @@
   <ion-nav-buttons side="left" class="has-header">
     <button class="button button-icon icon ion-android-close" ng-click="submitDeviceList()"></button>
   </ion-nav-buttons>
+  <ion-nav-buttons side="right" class="has-header">
+    <button class="button button-icon icon ion-refresh" ng-click="submitQuery()"></button>
+  </ion-nav-buttons>
   <ion-content padding="true" class="has-header">
-    <div id="deviceUART-markdown22" style="text-align:center;" class="show-list-numbers-and-dots">
-      <p style="color:#444444;font-size:18px;">
-        <strong> {{ data.devicename }} </strong>
-      </p>
-    </div>
-    <form id="deviceUART-form17" class="list">
-      <div id="deviceUART-markdown25" style="text-align:center;" class="show-list-numbers-and-dots">
-        <p style="color:#444444;font-size:15px;">Status:
-          <strong>{{ data.devicestatus }}</strong>
-        </p>
+    <form id="deviceUART-form35" class="list">
+      <div id="deviceUART-button-bar3" class="button-bar">
+        <button id="deviceUART-button58" ng-class="{'active': data.activeSection==1}" ng-click="changeSection(1)" class="button button-dark button-block">UART 1</button>
+        <button id="deviceUART-button59" ng-class="{'active': data.activeSection==2}" ng-click="changeSection(2)" class="button button-dark button-block">UART 2</button>
       </div>
-      <label class="item item-input message_textarea" id="deviceUART-textarea2" name="textarea-message">
-        <span class="input-label"></span><textarea placeholder="Message" ng-model="data.message"></textarea></label>
+      <label class="item item-select" id="deviceUART-select9">
+        <span class="input-label">Baud Rate</span>
+        <select ng-model="data.baudrateidx" ng-options="baudrate.id as baudrate.label for baudrate in baudrates"></select>
+      </label>
     </form>
-    <button id="deviceUART-button28" ng-click="submit()" class="button button-dark button-block">Submit</button>
+    <form id="deviceUART-form37" class="list">
+      <label class="item item-select" id="deviceUART-select10">
+        <span class="input-label">Parity</span>
+        <select ng-model="data.parityidx" ng-options="parity.id as parity.label for parity in parities"></select>
+      </label>
+    </form>
+    <div id="deviceUART-markdown11" class="show-list-numbers-and-dots">
+      <hr>
+    </div>
+    <h5 id="deviceUART-heading12" style="color:#444444;">Message</h5>
+    <form id="deviceUART-form39" class="list">
+      <label class="item item-input" id="deviceUART-textarea4">
+        <span class="input-label"></span><textarea placeholder="">Hello World!</textarea></label>
+    </form>
+    <h5 id="deviceUART-heading13" style="color:#444444;">Recipients</h5>
+    <form id="deviceUART-form40" class="list">
+      <ion-checkbox id="deviceUART-checkbox1" ng-checked="data.sendemail == 1">Send email to </ion-checkbox>
+      <label class="item item-input" id="deviceUART-input66">
+        <input type="email" placeholder="Email Address" ng-model="data.email">
+      </label>
+      <ion-checkbox id="deviceUART-checkbox2" ng-checked="data.sendsms == 1">Send SMS to </ion-checkbox>
+      <label class="item item-input" id="deviceUART-input67">
+        <input type="tel" placeholder="Phone Number" ng-model="data.phonenumber">
+      </label>
+      <ion-checkbox id="deviceUART-checkbox3" ng-checked="data.sendnotification == 1">Send notification to </ion-checkbox>
+      <label class="item item-input" id="deviceUART-input68">
+        <input type="tel" placeholder="Phone Number" ng-model="data.phonenumber">
+      </label>
+      <ion-checkbox id="deviceUART-checkbox4" ng-checked="data.senddevice == 1">Send to IoT Modem </ion-checkbox>
+      <label class="item item-input" id="deviceUART-input69">
+        <input type="text" placeholder="Device">
+      </label>
+    </form>
+    <button id="deviceUART-button28" ng-click="submit()" class="button button-dark button-block">SAVE</button>
   </ion-content>
 </ion-view>

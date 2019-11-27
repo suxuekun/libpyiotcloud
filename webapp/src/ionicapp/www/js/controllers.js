@@ -2933,6 +2933,31 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
 
     var server = Server.rest_api;
 
+    $scope.baudrates = [
+        { "id":0,  "label": "110"     },
+        { "id":1,  "label": "150"     },
+        { "id":2,  "label": "300"     },
+        { "id":3,  "label": "1200"    },
+        { "id":4,  "label": "2400"    },
+        { "id":5,  "label": "4800"    },
+        { "id":6,  "label": "9600"    },
+        { "id":7,  "label": "19200"   },
+        { "id":8,  "label": "31250"   },
+        { "id":9,  "label": "38400"   },
+        { "id":10, "label": "57600"   },
+        { "id":11, "label": "115200"  },
+        { "id":12, "label": "230400"  },
+        { "id":13, "label": "460800"  },
+        { "id":14, "label": "921600"  },
+        { "id":15, "label": "1000000" }
+    ];
+
+    $scope.parities = [
+        { "id":0, "label": "None" },
+        { "id":1, "label": "Odd"  },
+        { "id":2, "label": "Even" }
+    ];     
+
     $scope.data = {
         'username': $stateParams.username,
         'token': User.get_token(),
@@ -2941,8 +2966,26 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         'deviceid': $stateParams.deviceid,
         'serialnumber': $stateParams.serialnumber,
         
-        'message': $scope.message
+        'activeSection': 1,
+        'baudrateidx': $scope.baudrates[0].id,
+        'parityidx': $scope.parities[0].id,
+        
+        'message': "Hello World!",
+        'email': "",
+        'phonenumber': "",
+        'sendemail': 0,
+        'sendsms': 0,
+        'sendnotification': 0,
+        'senddevice': 0
     };
+
+    $scope.changeSection = function(s) {
+        $scope.data.activeSection = s;
+        $scope.submitQuery();
+    };
+    
+
+
     
     handle_error = function(error) {
         // Handle failed login
@@ -2963,6 +3006,125 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         }
     };
  
+ 
+    get_uart_properties = function() {
+        //
+        // GET UART PROPERTIES
+        //
+        // - Request:
+        //   GET /devices/device/<devicename>/uart/<number>/properties
+        //   headers: { 'Authorization': 'Bearer ' + token.access }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string, 'value': { 'baudrate': int, 'parity': int } }
+        //   { 'status': 'NG', 'message': string }
+        //
+        $http({
+            method: 'GET',
+            url: server + '/devices/device/' + $scope.data.devicename + '/uart/' + $scope.data.activeSection.toString() + '/properties',
+            headers: {'Authorization': 'Bearer ' + $scope.data.token.access},
+        })
+        .then(function (result) {
+            console.log(result.data);
+            $scope.data.baudrateidx = result.data.value.baudrate;
+            $scope.data.parityidx   = result.data.value.parity;
+        })
+        .catch(function (error) {
+            handle_error(error);
+        }); 
+    };
+
+
+    set_uart_properties = function() {
+        //
+        // SET UART PROPERTIES
+        //
+        // - Request:
+        //   POST /devices/device/<devicename>/uart/<number>/properties
+        //   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
+        //   data: { 'baudrate': int, 'parity': int }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string }
+        //   { 'status': 'NG', 'message': string }        
+        //
+        $http({
+            method: 'POST',
+            url: server + '/devices/device/' + $scope.data.devicename + '/uart/' + $scope.data.activeSection.toString() + '/properties',
+            headers: { 'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json' },
+            data: { 'baudrate': $scope.data.baudrateidx, 'parity': $scope.data.parityidx }
+        })
+        .then(function (result) {
+            console.log(result.data);
+            $ionicPopup.alert({
+                title: 'Device UART',
+                template: 'UART ' + $scope.data.activeSection.toString() + ' was configured successfully!',
+            });            
+        })
+        .catch(function (error) {
+            handle_error(error);
+        }); 
+    };
+
+
+    get_profile = function() {
+        //        
+        // GET USER INFO
+        //
+        // - Request:
+        //   GET /user
+        //   headers: {'Authorization': 'Bearer ' + token.access}
+        //
+        // - Response:
+        //   {'status': 'OK', 'message': string, 'info': {'email': string, 'phone_number': string, 'name': string} }
+        //   {'status': 'NG', 'message': string}
+        //         
+        $http({
+            method: 'GET',
+            url: server + '/user',
+            headers: {'Authorization': 'Bearer ' + $scope.data.token.access}
+        })
+        .then(function (result) {
+            console.log("ACCOUNT OK");
+            console.log(result.data);
+            
+            if ($scope.data.email !== undefined) {
+                $scope.data.email = result.data.info.email;
+                if (result.data.info.email_verified) {
+                    $scope.data.sendemail = 1;
+                }
+                else {
+                    $scope.data.sendemail = 0;
+                }
+            }
+            else {
+                $scope.data.email = "";
+                $scope.data.sendemail = 0;
+            }
+            
+            if (result.data.info.phone_number !== undefined) {
+                $scope.data.phonenumber = result.data.info.phone_number;
+                if (result.data.info.phone_number_verified) {
+                    $scope.data.sendsms = 1;
+                    $scope.data.sendnotification = 0;
+                }
+                else {
+                    $scope.data.sendsms = 0;
+                    $scope.data.sendnotification = 0;
+                }
+            }
+            else {
+                $scope.data.phonenumber = "";
+                $scope.data.sendsms = 0;
+                $scope.data.sendnotification = 0;
+            }
+        })
+        .catch(function (error) {
+            handle_error(error);
+        }); 
+    };
+
+ /*
     set_uart = function(param) {
         //
         // SET UART
@@ -2993,20 +3155,15 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             handle_error(error);
         }); 
     };
+*/
 
     $scope.submit = function() {
-        console.log("devicename=" + $scope.data.devicename);
-        console.log("message=" + $scope.data.message);
-
-        if ($scope.data.devicestatus !== 'Online') {
-            $ionicPopup.alert({title: 'Device Error', template: 'Device is offline!'});
-            return;
-        }
-
-        set_uart({
-            'value': $scope.data.message
-        });
+        set_uart_properties();
     };
+    
+    $scope.submitQuery = function() {
+        get_uart_properties();
+    }
 
     $scope.submitDeviceList = function() {
         console.log("hello");
@@ -3022,6 +3179,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         $state.go('configureDevice', device_param);
     };
 
+    $scope.submitQuery();
+    get_profile();
 }])
    
 .controller('deviceRTCCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller

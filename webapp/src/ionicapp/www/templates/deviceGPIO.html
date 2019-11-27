@@ -3,26 +3,46 @@
     <button class="button button-icon icon ion-android-close" ng-click="submitDeviceList()"></button>
   </ion-nav-buttons>
   <ion-content padding="true" class="has-header">
-    <div id="deviceGPIO-markdown21" style="text-align:center;" class="show-list-numbers-and-dots">
-      <p style="color:#444444;font-size:18px;">
-        <strong> {{ data.devicename }} </strong>
-      </p>
-    </div>
     <form id="deviceGPIO-form18" class="list">
-      <div id="deviceGPIO-markdown11" style="text-align:center;" class="show-list-numbers-and-dots">
-        <p style="color:#444444;font-size:15px;">Status:
-          <strong>{{ data.devicestatus }}</strong>
-        </p>
-      </div>
       <label class="item item-input" id="deviceGPIO-input32" name="input-gpionumber">
-        <span class="input-label">GPIO Number</span>
+        <span class="input-label">Voltage</span>
         <input type="number" placeholder="" ng-model="data.gpionumber">
       </label>
     </form>
-    <form id="deviceGPIO-form22" class="list">
-      <ion-toggle toggle-class="toggle-positive" id="deviceGPIO-toggle5" ng-model="data.gpiovalueset">GPIO Value</ion-toggle>
-    </form>
-    <button id="deviceGPIO-button29" ng-click="submitGet()" class="button button-dark widget_button">Get</button>
-    <button id="deviceGPIO-button30" ng-click="submitSet()" class="button button-dark widget_button">Set</button>
+    <ion-list id="deviceGPIO-list11">
+      <div class="item item-body" id="deviceGPIO-list-item-container5">
+        <div id="deviceGPIO-markdown70" class="show-list-numbers-and-dots">
+          <p style="margin-top:0px;color:#444444;">GPIO 1</p>
+        </div>
+        <div id="deviceGPIO-markdown74" class="show-list-numbers-and-dots">
+          <p style="margin-top:0px;color:#AAAAAA;">{{ data.direction }}</p>
+        </div>
+      </div>
+      <div class="item item-body" id="deviceGPIO-list-item-container6">
+        <div id="deviceGPIO-markdown71" class="show-list-numbers-and-dots">
+          <p style="margin-top:0px;color:#444444;">GPIO 2</p>
+        </div>
+        <div id="deviceGPIO-markdown75" class="show-list-numbers-and-dots">
+          <p style="margin-top:0px;color:#AAAAAA;">{{ data.direction }}</p>
+        </div>
+      </div>
+      <div class="item item-body" id="deviceGPIO-list-item-container7">
+        <div id="deviceGPIO-markdown72" class="show-list-numbers-and-dots">
+          <p style="margin-top:0px;color:#444444;">GPIO 3</p>
+        </div>
+        <div id="deviceGPIO-markdown76" class="show-list-numbers-and-dots">
+          <p style="margin-top:0px;color:#AAAAAA;">{{ data.direction }}</p>
+        </div>
+      </div>
+      <div class="item item-body" id="deviceGPIO-list-item-container8">
+        <div id="deviceGPIO-markdown73" class="show-list-numbers-and-dots">
+          <p style="margin-top:0px;color:#444444;">GPIO 4</p>
+        </div>
+        <div id="deviceGPIO-markdown77" class="show-list-numbers-and-dots">
+          <p style="margin-top:0px;color:#AAAAAA;">{{ data.direction }}</p>
+        </div>
+      </div>
+    </ion-list>
+    <button id="deviceGPIO-button29" ng-click="submitGet()" class="button button-dark button-block">SAVE</button>
   </ion-content>
 </ion-view>
