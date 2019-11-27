@@ -695,12 +695,38 @@ DETAILED:
 		   {'status': 'NG', 'message': string}
 
 
-### Database Documentation
+### Device API Documentation
 
-1. TODO
+	1. UART
+		A. API_UART_SET_BAUDRATE
+		B. API_UART_GET_BAUDRATE
+		C. API_UART_SET_PARITY
+		D. API_UART_GET_PARITY
+		E. API_UART_WRITE_MESSAGE
+	
+	2. GPIO
+		A. API_GPIO_SET_VOLTAGE
+		B. API_GPIO_GET_VOLTAGE
+		C. API_GPIO_SET_DIRECTION
+		D. API_GPIO_GET_DIRECTION
+		E. API_GPIO_SET_MODE
+		F. API_GPIO_GET_MODE
+		G. API_GPIO_SET_ALERT
+		H. API_GPIO_GET_ALERT
+		
+	3. I2C
+		A. TODO
+
 
 ### Message Queuing Documentation
 
 1. TODO ToDevice
 2. TODO FromDevice
+
+
+### Database Documentation
+
+1. TODO
+
+
 
