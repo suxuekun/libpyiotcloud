@@ -827,34 +827,36 @@ Below is a summary and a detailed list of the topics the device will receive and
 SUMMARY:
 
 	1. STATUS
-		A. get_status           receive: DEVICEID/get_status, publish: server/DEVICEID/get_status
-		B. set_status           receive: DEVICEID/set_status, publish: server/DEVICEID/set_status
+		A. GET STATUS           receive: DEVICEID/get_status,          publish: server/DEVICEID/get_status
+		B. SET STATUS           receive: DEVICEID/set_status,          publish: server/DEVICEID/set_status
 
 	2. UART
-		A. get_uart_properties  receive: DEVICEID/get_uart_properties, publish: server/DEVICEID/get_uart_properties
-		B. set_uart_properties  receive: DEVICEID/set_uart_properties, publish: server/DEVICEID/set_uart_properties
+		A. GET UART PROPERTIES  receive: DEVICEID/get_uart_properties, publish: server/DEVICEID/get_uart_properties
+		B. SET UART PROPERTIES  receive: DEVICEID/set_uart_properties, publish: server/DEVICEID/set_uart_properties
 
 	3. GPIO
-		A. get_gpio_properties  receive: DEVICEID/get_gpio_properties, publish: server/DEVICEID/get_gpio_properties
-		B. set_gpio_properties  receive: DEVICEID/set_gpio_properties, publish: server/DEVICEID/set_gpio_properties
+		A. GET GPIO VOLTAGE     receive: DEVICEID/get_gpio_voltage,    publish: server/DEVICEID/get_gpio_voltage
+		B. SET GPIO VOLTAGE     receive: DEVICEID/set_gpio_voltage,    publish: server/DEVICEID/set_gpio_voltage
+		C. GET GPIO PROPERTIES  receive: DEVICEID/get_gpio_properties, publish: server/DEVICEID/get_gpio_properties
+		D. SET GPIO PROPERTIES  receive: DEVICEID/set_gpio_properties, publish: server/DEVICEID/set_gpio_properties
 
 	4. I2C
-		A. get_i2c_properties   receive: DEVICEID/get_i2c_properties, publish: server/DEVICEID/get_i2c_properties
-		B. set_i2c_properties   receive: DEVICEID/set_i2c_properties, publish: server/DEVICEID/set_i2c_properties
+		A. get_i2c_properties   receive: DEVICEID/get_i2c_properties,  publish: server/DEVICEID/get_i2c_properties
+		B. set_i2c_properties   receive: DEVICEID/set_i2c_properties,  publish: server/DEVICEID/set_i2c_properties
 
 
 DETAILED:
 
 	1. STATUS
 
-		A. get_status
+		A. GET STATUS
 		-  Receive:
 		   topic: DEVICEID/get_status
 		-  Publish:
 		   topic: server/DEVICEID/get_status
 		   payload: { 'value': string }
 
-		B. set_status
+		B. SET STATUS
 		-  Receive:
 		   topic: DEVICEID/set_status
 		   payload: { 'value': string }
@@ -862,10 +864,9 @@ DETAILED:
 		   topic: server/DEVICEID/set_status
 		   payload: { 'value': string }
 
-
 	2. UART
 
-		A. get_uart_properties
+		A. GET UART PROPERTIES
 		-  Receive:
 		   topic: DEVICEID/get_uart_properties
 		   payload: { 'number': int }
@@ -873,7 +874,7 @@ DETAILED:
 		   topic: server/DEVICEID/get_uart_properties
 		   payload: { 'value': { 'baudrate': int, 'parity': int } }
 
-		B. set_uart_properties
+		B. SET UART PROPERTIES
 		-  Receive:
 		   topic: DEVICEID/set_uart_properties
 		   payload: { 'number': int, 'baudrate': int, 'parity': int }
@@ -881,23 +882,37 @@ DETAILED:
 		   topic: server/DEVICEID/set_uart_properties
 		   payload: { 'value': { 'baudrate': int, 'parity': int } }
 
-
 	3. GPIO
-		A. get_gpio_properties
+		A. GET GPIO VOLTAGE
 		-  Receive:
-		   topic:
-		   payload:
+		   topic: DEVICEID/get_gpio_voltage
 		-  Publish:
-		   topic:
-		   payload:
-		B. set_gpio_properties
-		-  Receive:
-		   topic:
-		   payload:
-		-  Publish:
-		   topic:
-		   payload:
+		   topic: server/DEVICEID/get_gpio_voltage
+		   payload: { 'value': int }
 
+		B. SET GPIO VOLTAGE
+		-  Receive:
+		   topic: DEVICEID/set_gpio_voltage
+		   payload: { 'voltage': int }
+		-  Publish:
+		   topic: server/DEVICEID/set_gpio_voltage
+		   payload: { 'value': int }
+
+		C. GET GPIO PROPERTIES
+		-  Receive:
+		   topic: DEVICEID/get_gpio_properties
+		   payload: { 'number': int }
+		-  Publish:
+		   topic: server/DEVICEID/get_gpio_properties
+		   payload: { 'value': { 'direction': int, 'mode': int, 'alert': int, 'alertperiod': int } }
+
+		D. SET GPIO PROPERTIES
+		-  Receive:
+		   topic: DEVICEID/set_gpio_properties
+		   payload: { 'number': int, 'direction': int, 'mode': int, 'alert': int, 'alertperiod': int }
+		-  Publish:
+		   topic: server/DEVICEID/set_gpio_properties
+		   payload: { 'value': { 'direction': int, 'mode': int, 'alert': int, 'alertperiod': int } }
 
 	4. I2C
 		A. get_i2c_properties
