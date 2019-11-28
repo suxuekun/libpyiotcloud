@@ -2412,7 +2412,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         }
     };    
 
-    query_device = function() {
+    get_status = function() {
         $scope.data.devicestatus = 'Detecting...';
         //
         // GET STATUS
@@ -2439,7 +2439,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         }); 
     };   
 
-    restart_device = function(param) {
+    set_status = function(param) {
         //
         // SET STATUS
         // - Request:
@@ -2461,7 +2461,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             console.log(result.data);
             $ionicPopup.alert({
                 title: 'Device Status',
-                template: 'Device was restarted successfully!',
+                template: 'Device is now ' + result.data.value  + '!',
             });            
         })
         .catch(function (error) {
@@ -2506,7 +2506,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         });         
     };
     
-    $scope.submitRestart = function() {
+    $scope.submitSetStatus = function(status) {
         console.log("devicename=" + $scope.data.devicename);
 
         if ($scope.data.devicestatus !== 'Online') {
@@ -2514,17 +2514,13 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             return;
         }
 
-        var param = {
-            'value': 'restart'
-        };
-
-        restart_device(param); 
+        set_status({ 'value': status }); 
     };
-    
-    $scope.submitStatus = function() {
+
+    $scope.submitGetStatus = function() {
         console.log("devicename=" + $scope.data.devicename);
 
-        query_device(); 
+        get_status(); 
     };
     
     $scope.submitView = function() {
@@ -2563,7 +2559,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         $state.go('menu.devices', device_param, {reload: true});
     };
    
-    $scope.submitStatus();
+    $scope.submitGetStatus();
 }])
    
 .controller('deviceEthernetCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
@@ -3131,7 +3127,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         //
         // - Request:
         //   POST /devices/device/<devicename>/uart
-        //   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+        //   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
         //   data: { 'value': string }
         //
         // - Response:
@@ -3141,7 +3137,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         $http({
             method: 'POST',
             url: server + '/devices/device/' + $scope.data.devicename + '/uart',
-            headers: {'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json'},
+            headers: { 'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json' },
             data: param
         })
         .then(function (result) {

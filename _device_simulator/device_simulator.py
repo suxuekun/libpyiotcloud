@@ -3,6 +3,8 @@ import time
 import netifaces
 import argparse
 import sys
+import os
+import psutil
 from messaging_client import messaging_client # common module from parent directory
 
 
@@ -11,7 +13,7 @@ from messaging_client import messaging_client # common module from parent direct
 CONFIG_USE_ECC = True
 # Enable to use AMQP for webserver-to-messagebroker communication
 # Disable to use MQTT for webserver-to-messagebroker communication
-CONFIG_USE_AMQP = True
+CONFIG_USE_AMQP = False
 ###################################################################################
 
 ###################################################################################
@@ -27,6 +29,7 @@ CONFIG_NOTIFICATION_MESSAGE = "Hi, How are you today?"
 g_messaging_client = None
 g_gpio_values = {}
 g_uart_properties = {'1': { 'baudrate': 6, 'parity': 1 }, '2': { 'baudrate': 7, 'parity': 2 }}
+g_device_status = "running"
 
 
 
@@ -63,21 +66,27 @@ def generate_pubtopic(subtopic):
     return CONFIG_PREPEND_REPLY_TOPIC + CONFIG_SEPARATOR + subtopic
 
 def handle_api(api, subtopic, subpayload):
+    global g_gpio_values, g_uart_properties, g_device_status
 
     if api == "get_status":
         topic = generate_pubtopic(subtopic)
         payload = {}
-        payload["value"] = "running"
+        payload["value"] = g_device_status
         publish(topic, payload)
 
     elif api == "set_status":
         topic = generate_pubtopic(subtopic)
         subpayload = json.loads(subpayload)
 
-        status = "restarting"
+        if subpayload["value"] == "restart":
+            g_device_status = "restarting"
+        elif subpayload["value"] == "stop":
+            g_device_status = "stopping"
+        elif subpayload["value"] == "start":
+            g_device_status = "starting"
 
         payload = {}
-        payload["value"] = status
+        payload["value"] = g_device_status
         publish(topic, payload)
 
 
@@ -267,6 +276,58 @@ def on_amqp_message(ch, method, properties, body):
 
 
 ###################################################################################
+# Restart/stop/start application
+###################################################################################
+
+def restart():
+    try:
+        p = psutil.Process(os.getpid())
+        for handler in p.get_open_files() + p.connections():
+            os.close(handler.fd)
+    except Exception as e:
+        pass
+
+    python = sys.executable
+    command = ""
+    for arg in sys.argv:
+        command += "{} ".format(arg)
+    os.execl(python, python, command)
+
+def process_restart():
+    global g_device_status
+    if g_device_status == "restarting":
+        print("\nDevice will be restarting in 3 seconds")
+        for x in range(3):
+            time.sleep(1)
+            print(".")
+        time.sleep(1)
+        restart()
+
+def process_stop():
+    global g_device_status
+    if g_device_status == "stopping":
+        print("\nDevice will be stopped in 3 seconds")
+        for x in range(3):
+            time.sleep(1)
+            print(".")
+        time.sleep(1)
+        g_device_status = "stopped"
+        print("Device stopped successfully!\n")
+
+def process_start():
+    global g_device_status
+    if g_device_status == "starting":
+        print("\nDevice will be started in 3 seconds")
+        for x in range(3):
+            time.sleep(1)
+            print(".")
+        time.sleep(1)
+        g_device_status = "running"
+        print("Device started successfully!\n")
+
+
+
+###################################################################################
 # Main entry point
 ###################################################################################
 
@@ -275,14 +336,14 @@ def parse_arguments(argv):
     parser = argparse.ArgumentParser()
     parser.add_argument('--USE_ECC',         required=False, default=1 if CONFIG_USE_ECC else 0, help='Use ECC instead of RSA')
     parser.add_argument('--USE_AMQP',        required=False, default=1 if CONFIG_USE_AMQP else 0, help='Use AMQP instead of MQTT')
-    parser.add_argument('--USE_DEVICE_ID',   required=False, default=CONFIG_DEVICE_ID, help='Device ID to use')
-    parser.add_argument('--USE_DEVICE_CA',   required=False, default=CONFIG_TLS_CA,    help='Device CA certificate to use')
-    parser.add_argument('--USE_DEVICE_CERT', required=False, default=CONFIG_TLS_CERT,  help='Device certificate to use')
-    parser.add_argument('--USE_DEVICE_PKEY', required=False, default=CONFIG_TLS_PKEY,  help='Device private key to use')
-    parser.add_argument('--USE_HOST',        required=False, default=CONFIG_HOST,      help='Host server to connect to')
-    parser.add_argument('--USE_PORT',        required=False, default=0,                help='Host port to connect to')
-    parser.add_argument('--USE_USERNAME',    required=False, default=CONFIG_USERNAME,  help='Username to use in connection')
-    parser.add_argument('--USE_PASSWORD',    required=False, default=CONFIG_PASSWORD,  help='Password to use in connection')
+    parser.add_argument('--USE_DEVICE_ID',   required=False, default=CONFIG_DEVICE_ID,     help='Device ID to use')
+    parser.add_argument('--USE_DEVICE_CA',   required=False, default=CONFIG_TLS_CA,        help='Device CA certificate to use')
+    parser.add_argument('--USE_DEVICE_CERT', required=False, default=CONFIG_TLS_CERT,      help='Device certificate to use')
+    parser.add_argument('--USE_DEVICE_PKEY', required=False, default=CONFIG_TLS_PKEY,      help='Device private key to use')
+    parser.add_argument('--USE_HOST',        required=False, default=CONFIG_HOST,          help='Host server to connect to')
+    parser.add_argument('--USE_PORT',        required=False, default=CONFIG_MQTT_TLS_PORT, help='Host port to connect to')
+    parser.add_argument('--USE_USERNAME',    required=False, default=CONFIG_USERNAME,      help='Username to use in connection')
+    parser.add_argument('--USE_PASSWORD',    required=False, default=CONFIG_PASSWORD,      help='Password to use in connection')
     return parser.parse_args(argv)
 
 
@@ -347,6 +408,7 @@ if __name__ == '__main__':
                     break
             except:
                 print("Could not connect to message broker! exception!")
+                time.sleep(1)
 
         # Subscribe to messages sent for this device
         time.sleep(1)
@@ -355,8 +417,16 @@ if __name__ == '__main__':
 
         # Exit when disconnection happens
         while g_messaging_client.is_connected():
-            pass
-        g_messaging_client.release()
+            time.sleep(1)
 
+            # process restart
+            if g_device_status == "restarting":
+               process_restart()
+            elif g_device_status == "stopping":
+               process_stop()
+            elif g_device_status == "starting":
+               process_start()
+
+        g_messaging_client.release()
 
     print("application exits!")
