@@ -842,22 +842,22 @@ Below is a summary and a detailed list of the topics the device will receive and
 SUMMARY:
 
 	1. STATUS
-		A. GET STATUS           receive: DEVICEID/get_status,          publish: server/DEVICEID/get_status
-		B. SET STATUS           receive: DEVICEID/set_status,          publish: server/DEVICEID/set_status
+		A. GET STATUS           rcv: DEVICEID/get_status,          pub: server/DEVICEID/get_status
+		B. SET STATUS           rcv: DEVICEID/set_status,          pub: server/DEVICEID/set_status
 
 	2. UART
-		A. GET UART PROPERTIES  receive: DEVICEID/get_uart_properties, publish: server/DEVICEID/get_uart_properties
-		B. SET UART PROPERTIES  receive: DEVICEID/set_uart_properties, publish: server/DEVICEID/set_uart_properties
+		A. GET UART PROPERTIES  rcv: DEVICEID/get_uart_properties, pub: server/DEVICEID/get_uart_properties
+		B. SET UART PROPERTIES  rcv: DEVICEID/set_uart_properties, pub: server/DEVICEID/set_uart_properties
 
 	3. GPIO
-		A. GET GPIO VOLTAGE     receive: DEVICEID/get_gpio_voltage,    publish: server/DEVICEID/get_gpio_voltage
-		B. SET GPIO VOLTAGE     receive: DEVICEID/set_gpio_voltage,    publish: server/DEVICEID/set_gpio_voltage
-		C. GET GPIO PROPERTIES  receive: DEVICEID/get_gpio_properties, publish: server/DEVICEID/get_gpio_properties
-		D. SET GPIO PROPERTIES  receive: DEVICEID/set_gpio_properties, publish: server/DEVICEID/set_gpio_properties
+		A. GET GPIO VOLTAGE     rcv: DEVICEID/get_gpio_voltage,    pub: server/DEVICEID/get_gpio_voltage
+		B. SET GPIO VOLTAGE     rcv: DEVICEID/set_gpio_voltage,    pub: server/DEVICEID/set_gpio_voltage
+		C. GET GPIO PROPERTIES  rcv: DEVICEID/get_gpio_properties, pub: server/DEVICEID/get_gpio_properties
+		D. SET GPIO PROPERTIES  rcv: DEVICEID/set_gpio_properties, pub: server/DEVICEID/set_gpio_properties
 
 	4. I2C
-		A. get_i2c_properties   receive: DEVICEID/get_i2c_properties,  publish: server/DEVICEID/get_i2c_properties
-		B. set_i2c_properties   receive: DEVICEID/set_i2c_properties,  publish: server/DEVICEID/set_i2c_properties
+		A. get_i2c_properties   rcv: DEVICEID/get_i2c_properties,  pub: server/DEVICEID/get_i2c_properties
+		B. set_i2c_properties   rcv: DEVICEID/set_i2c_properties,  pub: server/DEVICEID/set_i2c_properties
 
 
 DETAILED:
