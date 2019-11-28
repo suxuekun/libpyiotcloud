@@ -235,8 +235,12 @@ SUMMARY:
 		New requirements:
 		A. GET STATUS                  - GET    /devices/device/DEVICENAME/status
 		B. SET STATUS                  - POST   /devices/device/DEVICENAME/status
-		C. GET UART PROPERTIES         - GET    /devices/device/DEVICENAME/uart/UARTNUMBER/properties
-		D. SET UART PROPERTIES         - POST   /devices/device/DEVICENAME/uart/UARTNUMBER/properties
+		C. GET UART PROPERTIES         - GET    /devices/device/DEVICENAME/uart/NUMBER/properties
+		D. SET UART PROPERTIES         - POST   /devices/device/DEVICENAME/uart/NUMBER/properties
+		E. GET GPIO VOLTAGE            - GET    /devices/device/DEVICENAME/gpio/voltage
+		F. SET GPIO VOLTAGE            - POST   /devices/device/DEVICENAME/gpio/voltage
+		G. GET GPIO PROPERTIES         - GET    /devices/device/DEVICENAME/gpio/NUMBER/properties
+		H. SET GPIO PROPERTIES         - POST   /devices/device/DEVICENAME/gpio/NUMBER/properties
 
 		Old requirements:
 		A. GET STATUS                  - GET    /devices/device/DEVICENAME/status
@@ -365,8 +369,9 @@ DETAILED:
 		   POST /user/login
 		   headers: {'Authorization': 'Bearer ' + jwtEncode(username, password)}
 		-  Response:
-		   {'status': 'OK', 'message': string, 'token': {'access': string, 'id': string, 'refresh': string} }
+		   {'status': 'OK', 'message': string, 'token': {'access': string, 'id': string, 'refresh': string}, 'name': string }
 		   {'status': 'NG', 'message': string}
+		   // name is being return together with the tokens as per special UX requirement
 		-  Details:
 		   How to compute the JWT token using Javascript
 		   base64UrlEncodedHeader = urlEncode(base64Encode(JSON.stringify({
@@ -493,6 +498,8 @@ DETAILED:
 		   { 'status': 'OK', 'message': string, 
 		     'devices': array[{'devicename': string, 'deviceid': string, 'serialnumber': string, 'timestamp': string}, ...]}
 		   { 'status': 'NG', 'message': string}
+		   // deviceid refers to UUID
+		   // timestamp refers to the epoch time the device was registered/added
 
 		B. ADD DEVICE
 		-  Request:
@@ -525,9 +532,20 @@ DETAILED:
 		-  Response:
 		   { 'status': 'OK', 'message': string, 'device': {'devicename': string, 'deviceid': string, 'serialnumber': string, 'timestamp': string}}
 		   { 'status': 'NG', 'message': string}
+		   // deviceid refers to UUID
+		   // timestamp refers to the epoch time the device was registered/added
 
 
 	3. Device access and control APIs
+
+		For device APIs, note that DEVICENAME is used instead of DEVICEID.
+		This strategy is more secure as the unique DEVICEID is not easily exposed in the HTTP packets.
+		The APIs perform the DEVICENAME and DEVICEID mapping appropriately.
+
+		DEVICEID is unique for all devices.
+		DEVICENAME is unique for all devices of a user.
+		Two users can have the same DEVICENAME. 
+		But this will not cause conflict because each API call provides a token which contains user's USERNAME.
 
 		New requirements:
 
@@ -557,8 +575,8 @@ DETAILED:
 		-  Response:
 		   { 'status': 'OK', 'message': string, 'value': { 'baudrate': int, 'parity': int } }
 		   { 'status': 'NG', 'message': string }
-		   // baudrate is an index of the value in the array of baudrates
-		   // parity is an index of the value in the array of parities
+		   // baudrate is an index of the value in the list of baudrates
+		   // parity is an index of the value in the list of parities
 		   // sending only the index saves memory on the device and computation on frontend
 
 		D. SET UART PROPERTIES
@@ -566,8 +584,55 @@ DETAILED:
 		   POST /devices/device/DEVICENAME/uart/NUMBER/properties
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
 		   data: { 'baudrate': int, 'parity': int }
-		   // baudrate is an index of the value in the array of baudrates
-		   // parity is an index of the value in the array of parities
+		   // baudrate is an index of the value in the list of baudrates
+		   // parity is an index of the value in the list of parities
+		-  Response:
+		   { 'status': 'OK', 'message': string }
+		   { 'status': 'NG', 'message': string }
+
+		E. GET GPIO VOLTAGE
+		-  Request:
+		   GET /devices/device/DEVICENAME/gpio/voltage
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		   // note that no gpio NUMBER is included because this applies to all 4 gpios
+		-  Response:
+		   { 'status': 'OK', 'message': string, 'value': { 'voltage': int } }
+		   { 'status': 'NG', 'message': string }
+		   // voltage is an index of the value in the list of voltages
+
+		F. SET GPIO VOLTAGE
+		-  Request:
+		   POST /devices/device/DEVICENAME/gpio/voltage
+		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+		   data: { 'voltage': int }
+		   // note that no gpio NUMBER is included because this applies to all 4 gpios
+		   // voltage is an index of the value in the list of voltages
+		-  Response:
+		   { 'status': 'OK', 'message': string }
+		   { 'status': 'NG', 'message': string }
+
+		G. GET GPIO PROPERTIES
+		-  Request:
+		   GET /devices/device/DEVICENAME/gpio/NUMBER/properties
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		-  Response:
+		   { 'status': 'OK', 'message': string, 'value': { 'direction': int, 'mode': int, 'alert': int, 'alertperiod': int } }
+		   { 'status': 'NG', 'message': string }
+		   // direction is an index of the value in the list of directions
+		   // mode is an index of the value in the list of modes
+		   // alert is an index of the value in the list of alerts
+		   // alertperiod is the number of seconds to alert when alert is set to continuously
+		   // sending only the index saves memory on the device and computation on frontend
+
+		H. SET GPIO PROPERTIES
+		-  Request:
+		   POST /devices/device/DEVICENAME/gpio/NUMBER/properties
+		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+		   data: { 'direction': int, 'mode': int, 'alert': int, 'alertperiod': int }
+		   // direction is an index of the value in the list of directions
+		   // mode is an index of the value in the list of modes
+		   // alert is an index of the value in the list of alerts
+		   // alertperiod is the number of seconds to alert when alert is set to continuously
 		-  Response:
 		   { 'status': 'OK', 'message': string }
 		   { 'status': 'NG', 'message': string }
@@ -750,11 +815,13 @@ DETAILED:
 
 This is for the firmware developers.
 
+A device will connect to the portal using its UUID and SerialNumber as MQTT username and password respectively.
 Each device subscribes to its own assigned MQTT topic using its device identification (DEVICEID/#).
-So it will only receive subtopics under DEVICEID topic.
+So it will only be receiving subtopics under DEVICEID topic.
 Each device publishes to its own assigned MQTT topic using its device identification and server (server/DEVICEID/#)
-
 Subscribing or publishing to other MQTT topics will fail as the message broker restricts the permissions of topic for each device.
+
+Below is a summary and a detailed list of the topics the device will receive and publish.
 
 
 SUMMARY:
