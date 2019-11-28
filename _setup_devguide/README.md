@@ -838,16 +838,18 @@ Subscribing or publishing to other MQTT topics will fail as the message broker r
 
 	MQTT device connection details:
 
-	1. MQTT host: richmondu.com
-	2. MQTT port: 8883
-	3. MQTT clientid: DEVICEID
-	4. MQTT username: UUID
-	5. MQTT password: SERIALNUMBER
-	6. TLS CA certificate
-	7. TLS client certificates
-	8. TLS client private key
+	1.  MQTT host: richmondu.com
+	2.  MQTT port: 8883
+	3.  MQTT clientid: DEVICEID
+	4.  MQTT username: UUID
+	5.  MQTT password: SERIALNUMBER
+	6.  TLS CA certificate
+	7.  TLS client certificates
+	8.  TLS client private key
+	9.  MQTT subscribe topic: DEVICEID/#
+	10. MQTT publish topic: server/DEVICEID/#
 
-Below is a summary and a detailed list of the topics the device will receive and publish.
+Below is a summary and a detailed list of the subtopics the device will receive and publish.
 
 
 SUMMARY:
