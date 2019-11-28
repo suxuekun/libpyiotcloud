@@ -11,6 +11,8 @@ _device_simulator/obsoleted_rsa
 _device_simulator/device_simulator.py_amqp.bat
 _device_simulator/device_simulator.js_guest.bat
 _device_simulator/device_simulator.py_guest.bat
+_device_simulator/device_simulator.js_localhost.bat
+_device_simulator/device_simulator.py_localhost.bat
 _kubernetes/environment_private.yaml
 _kubernetes/environment_private_prod.yaml
 _kubernetes/notes.txt
