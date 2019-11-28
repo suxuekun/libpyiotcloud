@@ -15,35 +15,42 @@
         <span class="input-label">Baud Rate</span>
         <select ng-model="data.baudrateidx" ng-options="baudrate.id as baudrate.label for baudrate in baudrates"></select>
       </label>
-    </form>
-    <form id="deviceUART-form37" class="list">
       <label class="item item-select" id="deviceUART-select10">
         <span class="input-label">Parity</span>
         <select ng-model="data.parityidx" ng-options="parity.id as parity.label for parity in parities"></select>
       </label>
     </form>
-    <div id="deviceUART-markdown11" class="show-list-numbers-and-dots">
-      <hr>
-    </div>
-    <h5 id="deviceUART-heading12" style="color:#444444;">Message</h5>
-    <form id="deviceUART-form39" class="list">
-      <label class="item item-input" id="deviceUART-textarea4">
-        <span class="input-label"></span><textarea placeholder="">Hello World!</textarea></label>
+    <form id="deviceUART-form22" class="list">
+      <div id="deviceUART-markdown11" class="show-list-numbers-and-dots">
+        <hr>
+      </div>
+      <ion-toggle toggle-class="toggle-positive" id="deviceUART-toggle2" ng-change="changeNotification(data.showNotification)" ng-model="data.showNotification">Show Notification Settings</ion-toggle>
     </form>
-    <h5 id="deviceUART-heading13" style="color:#444444;">Recipients</h5>
-    <form id="deviceUART-form40" class="list">
+    <form id="deviceUART-form43" class="list" ng-show="data.showNotification==1">
+      <h5 id="deviceUART-heading12" style="color:#444444;">Message</h5>
+      <label class="item item-input" id="deviceUART-textarea4">
+        <span class="input-label"></span><textarea placeholder="" ng-model="data.message">Hello World!</textarea></label>
+    </form>
+    <form id="deviceUART-form40" class="list" ng-show="data.showNotification==1">
+      <h5 id="deviceUART-heading13" style="color:#444444;">Recipients</h5>
       <ion-checkbox id="deviceUART-checkbox1" ng-checked="data.sendemail == 1">Send email to </ion-checkbox>
       <label class="item item-input" id="deviceUART-input66">
         <input type="email" placeholder="Email Address" ng-model="data.email">
       </label>
+    </form>
+    <form id="deviceUART-form38" class="list" ng-show="data.showNotification==1">
       <ion-checkbox id="deviceUART-checkbox2" ng-checked="data.sendsms == 1">Send SMS to </ion-checkbox>
-      <label class="item item-input" id="deviceUART-input67">
-        <input type="tel" placeholder="Phone Number" ng-model="data.phonenumber">
-      </label>
-      <ion-checkbox id="deviceUART-checkbox3" ng-checked="data.sendnotification == 1">Send notification to </ion-checkbox>
       <label class="item item-input" id="deviceUART-input68">
         <input type="tel" placeholder="Phone Number" ng-model="data.phonenumber">
       </label>
+    </form>
+    <form id="deviceUART-form41" class="list" ng-show="data.showNotification==1">
+      <ion-checkbox id="deviceUART-checkbox3" ng-checked="data.sendnotification == 1">Send notification to </ion-checkbox>
+      <label class="item item-input" id="deviceUART-input67">
+        <input type="tel" placeholder="Phone Number" ng-model="data.phonenumber">
+      </label>
+    </form>
+    <form id="deviceUART-form42" class="list" ng-show="data.showNotification==1">
       <ion-checkbox id="deviceUART-checkbox4" ng-checked="data.senddevice == 1">Send to IoT Modem </ion-checkbox>
       <label class="item item-input" id="deviceUART-input69">
         <input type="text" placeholder="Device">
