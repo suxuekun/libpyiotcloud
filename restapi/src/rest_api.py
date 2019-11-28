@@ -58,7 +58,7 @@ def index():
 #   headers: {'Authorization': 'Basic ' + jwtEncode(username, password)}
 #
 # - Response:
-#   {'status': 'OK', 'message': string, 'token': {'access': string, 'id': string, 'refresh': string} }
+#   {'status': 'OK', 'message': string, 'token': {'access': string, 'id': string, 'refresh': string}, 'name': string }
 #   {'status': 'NG', 'message': string}
 #
 ########################################################################################################
@@ -97,7 +97,21 @@ def login():
         print('\r\nERROR Login: Password is incorrect [{}]\r\n'.format(username))
         return response, status.HTTP_401_UNAUTHORIZED
 
-    response = json.dumps({'status': 'OK', 'message': "Login successful", 'token': {'access': access, 'refresh': refresh, 'id': id} })
+    # return name during login as per special request
+    name = None
+    info = g_database_client.get_user_info(access)
+    if info:
+        # handle no family name
+        if 'given_name' in info:
+            name = info['given_name']
+        if 'family_name' in info:
+            if info['family_name'] != "NONE":
+                name += " " + info['family_name']
+
+    msg = {'status': 'OK', 'message': "Login successful", 'token': {'access': access, 'refresh': refresh, 'id': id} }
+    if name is not None:
+        msg['name'] = name
+    response = json.dumps(msg)
     print('\r\nLogin successful: {}\r\n'.format(username))
     #print('\r\nLogin successful: {}\r\n{}\r\n'.format(username, response))
     return response
@@ -2132,6 +2146,156 @@ def set_uart_properties(devicename, number):
     return process_request(api, data)
 
 
+
+#
+# GET GPIO PROPERTIES
+#
+# - Request:
+#   GET /devices/device/<devicename>/gpio/<number>/properties
+#   headers: { 'Authorization': 'Bearer ' + token.access }
+#
+# - Response:
+#   { 'status': 'OK', 'message': string, 'value': { 'direction': int, 'mode': int, 'alert': int, 'alertperiod': int } }
+#   { 'status': 'NG', 'message': string }
+#
+@app.route('/devices/device/<devicename>/gpio/<number>/properties', methods=['GET'])
+def get_gpio_properties(devicename, number):
+    api = 'get_gpio_properties'
+
+    # get token from Authorization header
+    auth_header_token = get_auth_header_token()
+    if auth_header_token is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
+        print('\r\nERROR Invalid authorization header\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
+
+    # get username from token
+    data = {}
+    data['token'] = {'access': auth_header_token}
+    data['devicename'] = devicename
+    data['username'] = g_database_client.get_username_from_token(data['token'])
+    if data['username'] is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
+        print('\r\nERROR Invalid token\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
+    data['number'] = number
+    print('get_gpio_properties username={} devicename={}'.format(data['username'], data['devicename']))
+
+    return process_request(api, data)
+
+#
+# SET GPIO PROPERTIES
+#
+# - Request:
+#   POST /devices/device/<devicename>/gpio/<number>/properties
+#   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
+#   data: { 'direction': int, 'mode': int, 'alert': int, 'alertperiod': int }
+#
+# - Response:
+#   { 'status': 'OK', 'message': string }
+#   { 'status': 'NG', 'message': string }
+#
+@app.route('/devices/device/<devicename>/gpio/<number>/properties', methods=['POST'])
+def set_gpio_properties(devicename, number):
+    api = 'set_gpio_properties'
+
+    # get token from Authorization header
+    auth_header_token = get_auth_header_token()
+    if auth_header_token is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
+        print('\r\nERROR Invalid authorization header\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
+
+    # get username from token
+    data = flask.request.get_json()
+    print(api)
+    print(data)
+    data['token'] = {'access': auth_header_token}
+    data['devicename'] = devicename
+    data['username'] = g_database_client.get_username_from_token(data['token'])
+    if data['username'] is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
+        print('\r\nERROR Invalid token\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
+    data['number'] = number
+    print('set_gpio_properties username={} devicename={}'.format(data['username'], data['devicename']))
+
+    return process_request(api, data)
+
+
+
+#
+# GET GPIO VOLTAGE
+#
+# - Request:
+#   GET /devices/device/<devicename>/gpio/voltage
+#   headers: { 'Authorization': 'Bearer ' + token.access }
+#
+# - Response:
+#   { 'status': 'OK', 'message': string, 'value': { 'voltage': int } }
+#   { 'status': 'NG', 'message': string }
+#
+@app.route('/devices/device/<devicename>/gpio/voltage', methods=['GET'])
+def get_gpio_voltage(devicename):
+    api = 'get_gpio_voltage'
+
+    # get token from Authorization header
+    auth_header_token = get_auth_header_token()
+    if auth_header_token is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
+        print('\r\nERROR Invalid authorization header\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
+
+    # get username from token
+    data = {}
+    data['token'] = {'access': auth_header_token}
+    data['devicename'] = devicename
+    data['username'] = g_database_client.get_username_from_token(data['token'])
+    if data['username'] is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
+        print('\r\nERROR Invalid token\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
+    print('get_gpio_voltage username={} devicename={}'.format(data['username'], data['devicename']))
+
+    return process_request(api, data)
+
+#
+# SET GPIO VOLTAGE
+#
+# - Request:
+#   POST /devices/device/<devicename>/gpio/voltage
+#   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
+#   data: { 'voltage': int }
+#
+# - Response:
+#   { 'status': 'OK', 'message': string }
+#   { 'status': 'NG', 'message': string }
+#
+@app.route('/devices/device/<devicename>/gpio/voltage', methods=['POST'])
+def set_gpio_voltage(devicename):
+    api = 'set_gpio_voltage'
+
+    # get token from Authorization header
+    auth_header_token = get_auth_header_token()
+    if auth_header_token is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
+        print('\r\nERROR Invalid authorization header\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
+
+    # get username from token
+    data = flask.request.get_json()
+    print(api)
+    print(data)
+    data['token'] = {'access': auth_header_token}
+    data['devicename'] = devicename
+    data['username'] = g_database_client.get_username_from_token(data['token'])
+    if data['username'] is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
+        print('\r\nERROR Invalid token\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
+    print('set_gpio_voltage username={} devicename={}'.format(data['username'], data['devicename']))
+
+    return process_request(api, data)
 
 
 
