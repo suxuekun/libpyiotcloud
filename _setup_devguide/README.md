@@ -538,12 +538,14 @@ DETAILED:
 		-  Response:
 		   { 'status': 'OK', 'message': string, 'value': string }
 		   { 'status': 'NG', 'message': string }
+		   // value can be any of the following: restarting, stopping, stopped, starting, running
 
 		B. SET STATUS
 		-  Request:
 		   POST /devices/device/DEVICENAME/status
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
 		   data: { 'value': string }
+		   // value can be any of the following: restart, stop, start
 		-  Response:
 		   { 'status': 'OK', 'message': string, 'value': string}
 		   { 'status': 'NG', 'message': string }
@@ -758,20 +760,20 @@ Subscribing or publishing to other MQTT topics will fail as the message broker r
 SUMMARY:
 
 	1. STATUS
-		A. get_status				receive: DEVICEID/get_status, publish: server/DEVICEID/get_status
-		B. set_status				receive: DEVICEID/set_status, publish: server/DEVICEID/set_status
+		A. get_status           receive: DEVICEID/get_status, publish: server/DEVICEID/get_status
+		B. set_status           receive: DEVICEID/set_status, publish: server/DEVICEID/set_status
 
 	2. UART
-		A. get_uart_properties		receive: DEVICEID/get_uart_properties, publish: server/DEVICEID/get_uart_properties
-		B. set_uart_properties		receive: DEVICEID/set_uart_properties, publish: server/DEVICEID/set_uart_properties
+		A. get_uart_properties  receive: DEVICEID/get_uart_properties, publish: server/DEVICEID/get_uart_properties
+		B. set_uart_properties  receive: DEVICEID/set_uart_properties, publish: server/DEVICEID/set_uart_properties
 
 	3. GPIO
-		A. get_gpio_properties		receive: DEVICEID/get_gpio_properties, publish: server/DEVICEID/get_gpio_properties
-		B. set_gpio_properties		receive: DEVICEID/set_gpio_properties, publish: server/DEVICEID/set_gpio_properties
+		A. get_gpio_properties  receive: DEVICEID/get_gpio_properties, publish: server/DEVICEID/get_gpio_properties
+		B. set_gpio_properties  receive: DEVICEID/set_gpio_properties, publish: server/DEVICEID/set_gpio_properties
 
 	4. I2C
-		A. get_i2c_properties		receive: DEVICEID/get_i2c_properties, publish: server/DEVICEID/get_i2c_properties
-		B. set_i2c_properties		receive: DEVICEID/set_i2c_properties, publish: server/DEVICEID/set_i2c_properties
+		A. get_i2c_properties   receive: DEVICEID/get_i2c_properties, publish: server/DEVICEID/get_i2c_properties
+		B. set_i2c_properties   receive: DEVICEID/set_i2c_properties, publish: server/DEVICEID/set_i2c_properties
 
 
 DETAILED:

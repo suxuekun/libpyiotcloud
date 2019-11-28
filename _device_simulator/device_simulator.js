@@ -6,23 +6,26 @@ var ArgumentParser = require('argparse');
 
 
 
-var g_uart_properties = {'1': { 'baudrate': 6, 'parity': 1 }, '2': { 'baudrate': 7, 'parity': 2 }}
+var g_uart_properties = {'1': { 'baudrate': 6, 'parity': 1 }, '2': { 'baudrate': 7, 'parity': 2 }};
+var g_device_status = "running";
+
+
 
 // UART notification configuration
-var CONFIG_NOTIFICATION_UART_KEYWORD = "Hello World"
-var CONFIG_NOTIFICATION_RECIPIENT   = "richmond.umagat@brtchip.com"
-var CONFIG_NOTIFICATION_MESSAGE    = "Hi, How are you today?"
+var CONFIG_NOTIFICATION_UART_KEYWORD = "Hello World";
+var CONFIG_NOTIFICATION_RECIPIENT   = "richmond.umagat@brtchip.com";
+var CONFIG_NOTIFICATION_MESSAGE    = "Hi, How are you today?";
 
 // default configurations
-var CONFIG_DEVICE_ID     = ""
-var CONFIG_USERNAME      = null
-var CONFIG_PASSWORD      = null
-var CONFIG_TLS_CA        = "../cert/rootca.pem"
-var CONFIG_TLS_CERT      = "../cert/ft900device1_cert.pem"
-var CONFIG_TLS_PKEY      = "../cert/ft900device1_pkey.pem"
-var CONFIG_HOST          = "localhost"
-var CONFIG_MQTT_TLS_PORT = 8883
-var CONFIG_PREPEND_REPLY_TOPIC  = "server/"
+var CONFIG_DEVICE_ID     = "";
+var CONFIG_USERNAME      = null;
+var CONFIG_PASSWORD      = null;
+var CONFIG_TLS_CA        = "../cert/rootca.pem";
+var CONFIG_TLS_CERT      = "../cert/ft900device1_cert.pem";
+var CONFIG_TLS_PKEY      = "../cert/ft900device1_pkey.pem";
+var CONFIG_HOST          = "localhost";
+var CONFIG_MQTT_TLS_PORT = 8883;
+var CONFIG_PREPEND_REPLY_TOPIC  = "server/";
 
 
 
@@ -128,30 +131,40 @@ client.on("connect", function()
 
 // handle API call
 function handle_api(api, topic, payload) {
-    console.log("\r\n" + topic);
+    console.log("\r\n" + topic + "\r\n" + payload);
 
     if (api == "get_status") {
         pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
         var obj = {
-            "value": "running"
+            "value": g_device_status
         };
         client.publish(pubtopic, JSON.stringify(obj));
 
-        console.log(pubtopic);
-        console.log(JSON.stringify(obj));
+        //console.log(pubtopic);
+        //console.log(JSON.stringify(obj));
     }
     else if (api == "set_status") {
         pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
         var obj = JSON.parse(payload);
+
         var value = obj.value;
-        console.log(value);
+        if (value == "restart") {
+            g_device_status = "restarting";
+        }
+        else if (value == "stop") {
+            g_device_status = "stopping";
+        }
+        else if (value == "start") {
+            g_device_status = "starting";
+        }
+
         var obj = {
-            "value": "restarting"
+            "value": g_device_status
         };
         client.publish(pubtopic, JSON.stringify(obj));
-        
-        console.log(pubtopic);
-        console.log(JSON.stringify(obj));
+
+        //console.log(pubtopic);
+        //console.log(JSON.stringify(obj));
     }
 
     else if (api == "get_uart_properties") {
@@ -222,7 +235,7 @@ function handle_api(api, topic, payload) {
         client.publish(pubtopic, JSON.stringify(obj));
         
         console.log(pubtopic);
-        console.log(JSON.stringify(obj));        
+        console.log(JSON.stringify(obj));
     }
     else if (api == "set_gpio") {
         pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
@@ -236,7 +249,7 @@ function handle_api(api, topic, payload) {
         client.publish(pubtopic, JSON.stringify(obj));
         
         console.log(pubtopic);
-        console.log(JSON.stringify(obj));                
+        console.log(JSON.stringify(obj));
     }
     else if (api == "get_rtc") {
         pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
@@ -248,7 +261,7 @@ function handle_api(api, topic, payload) {
         client.publish(pubtopic, JSON.stringify(obj));
         
         console.log(pubtopic);
-        console.log(JSON.stringify(obj));                        
+        console.log(JSON.stringify(obj));
     }
     else if (api == "set_rtc") {
         pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
@@ -261,7 +274,7 @@ function handle_api(api, topic, payload) {
         client.publish(pubtopic, JSON.stringify(obj));
         
         console.log(pubtopic);
-        console.log(JSON.stringify(obj));                        
+        console.log(JSON.stringify(obj));
     }
     else if (api == "get_mac") {
         pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
@@ -339,7 +352,7 @@ function handle_api(api, topic, payload) {
         client.publish(pubtopic, JSON.stringify(obj));
         
         console.log(pubtopic);
-        console.log(JSON.stringify(obj));        
+        console.log(JSON.stringify(obj));
     }
     else if (api == "get_subnet") {
         pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
@@ -378,7 +391,7 @@ function handle_api(api, topic, payload) {
         client.publish(pubtopic, JSON.stringify(obj));
         
         console.log(pubtopic);
-        console.log(JSON.stringify(obj));        
+        console.log(JSON.stringify(obj));
     }
     else if (api == "get_gateway") {
         pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
@@ -418,7 +431,7 @@ function handle_api(api, topic, payload) {
         client.publish(pubtopic, JSON.stringify(obj));
         
         console.log(pubtopic);
-        console.log(JSON.stringify(obj));        
+        console.log(JSON.stringify(obj));
     }
     else {
     }
@@ -444,9 +457,57 @@ client.on("error", function(error)
     process.exit(1)
 });
 
+function process_restart() {
+    if (g_device_status === "restarting") {
+        console.log("\nDevice will be stopped in 3 seconds");
+        for (var i = 0; i < 3; i++) {
+            sleep(1000);
+            console.log(".");
+        }
+        sleep(1000);
+        g_device_status = "running"
+        console.log("Device restarted successfully!\n");
+    }
+}
+
+function process_stop() {
+    if (g_device_status === "stopping") {
+        console.log("\nDevice will be stopped in 3 seconds");
+        for (var i = 0; i < 3; i++) {
+            sleep(1000);
+            console.log(".");
+        }
+        sleep(1000);
+        g_device_status = "stopped"
+        console.log("Device stopped successfully!\n");
+    }
+}
+
+function process_start() {
+    if (g_device_status === "starting") {
+        console.log("\nDevice will be started in 3 seconds");
+        for (var i = 0; i < 3; i++) {
+            sleep(1000);
+            console.log(".");
+        }
+        sleep(1000);
+        g_device_status = "running"
+        console.log("Device started successfully!\n");
+    }
+}
+
 while (true)
 {
     sleep(1000);
+    if (g_device_status === "restarting") {
+        process_restart()
+    }
+    else if (g_device_status === "stopping") {
+        process_stop()
+    }
+    else if (g_device_status === "starting") {
+        process_start()
+    }
 }
 
 console.log("end")
