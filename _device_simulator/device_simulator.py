@@ -27,9 +27,21 @@ CONFIG_NOTIFICATION_MESSAGE = "Hi, How are you today?"
 ###################################################################################
 
 g_messaging_client = None
+
 g_gpio_values = {}
-g_uart_properties = {'1': { 'baudrate': 6, 'parity': 1 }, '2': { 'baudrate': 7, 'parity': 2 }}
+
 g_device_status = "running"
+
+g_uart_properties = {
+    '1': { 'baudrate': 6, 'parity': 1 }, 
+    '2': { 'baudrate': 7, 'parity': 2 } }
+
+g_gpio_properties = {
+    '1': { 'direction': 0, 'mode': 0, 'alert': 0, 'alertperiod': 0   }, 
+    '2': { 'direction': 0, 'mode': 3, 'alert': 1, 'alertperiod': 60  },
+    '3': { 'direction': 1, 'mode': 0, 'alert': 0, 'alertperiod': 0   },
+    '4': { 'direction': 1, 'mode': 2, 'alert': 1, 'alertperiod': 120 } }
+g_gpio_voltage = 1
 
 
 
@@ -66,8 +78,13 @@ def generate_pubtopic(subtopic):
     return CONFIG_PREPEND_REPLY_TOPIC + CONFIG_SEPARATOR + subtopic
 
 def handle_api(api, subtopic, subpayload):
-    global g_gpio_values, g_uart_properties, g_device_status
+    global g_device_status, g_uart_properties
+    global g_gpio_values, g_gpio_properties, g_gpio_voltage
 
+
+    ####################################################
+    # GET/SET STATUS
+    ####################################################
     if api == "get_status":
         topic = generate_pubtopic(subtopic)
         payload = {}
@@ -90,6 +107,9 @@ def handle_api(api, subtopic, subpayload):
         publish(topic, payload)
 
 
+    ####################################################
+    # GET/SET UART PROPERTIES
+    ####################################################
     elif api == "get_uart_properties":
         topic = generate_pubtopic(subtopic)
         subpayload = json.loads(subpayload)
@@ -105,11 +125,65 @@ def handle_api(api, subtopic, subpayload):
         subpayload = json.loads(subpayload)
         print(subpayload)
 
-        g_uart_properties[str(subpayload["number"])] = { 'baudrate': subpayload["baudrate"], 'parity': subpayload["parity"] } 
+        g_uart_properties[str(subpayload["number"])] = { 
+            'baudrate': subpayload["baudrate"], 
+            'parity': subpayload["parity"] } 
         value = g_uart_properties[str(subpayload["number"])]
 
         payload = {}
         payload["value"] = value
+        publish(topic, payload)
+
+
+    ####################################################
+    # GET/SET GPIO PROPERTIES
+    ####################################################
+    elif api == "get_gpio_properties":
+        topic = generate_pubtopic(subtopic)
+        subpayload = json.loads(subpayload)
+
+        value = g_gpio_properties[str(subpayload["number"])]
+
+        payload = {}
+        payload["value"] = value
+        publish(topic, payload)
+
+    elif api == "set_gpio_properties":
+        topic = generate_pubtopic(subtopic)
+        subpayload = json.loads(subpayload)
+        print(subpayload)
+
+        g_gpio_properties[str(subpayload["number"])] = { 
+            'direction': subpayload["direction"], 
+            'mode': subpayload["mode"],
+            'alert': subpayload["alert"],
+            'alertperiod': subpayload["alertperiod"] } 
+        value = g_gpio_properties[str(subpayload["number"])]
+
+        payload = {}
+        payload["value"] = value
+        publish(topic, payload)
+
+
+    ####################################################
+    # GET/SET GPIO VOLTAGE
+    ####################################################
+    elif api == "get_gpio_voltage":
+        topic = generate_pubtopic(subtopic)
+
+        payload = {}
+        payload["value"] = g_gpio_voltage
+        publish(topic, payload)
+
+    elif api == "set_gpio_voltage":
+        topic = generate_pubtopic(subtopic)
+        subpayload = json.loads(subpayload)
+        print(subpayload)
+
+        g_gpio_voltage = subpayload["voltage"]
+
+        payload = {}
+        payload["value"] = g_gpio_voltage
         publish(topic, payload)
 
 
