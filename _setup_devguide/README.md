@@ -836,6 +836,17 @@ As a result, it will only be receiving subtopics under DEVICEID topic solely for
 Each device publishes to its own assigned MQTT topic using its device identification and server (server/DEVICEID/#)
 Subscribing or publishing to other MQTT topics will fail as the message broker restricts the permissions of topic for each device.
 
+	MQTT device connection details:
+
+	1. MQTT host: richmondu.com
+	2. MQTT port: 8883
+	3. MQTT clientid: DEVICEID
+	4. MQTT username: UUID
+	5. MQTT password: SERIALNUMBER
+	6. TLS CA certificate
+	7. TLS client certificates
+	8. TLS client private key
+
 Below is a summary and a detailed list of the topics the device will receive and publish.
 
 
