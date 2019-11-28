@@ -6,8 +6,23 @@ var ArgumentParser = require('argparse');
 
 
 
-var g_uart_properties = {'1': { 'baudrate': 6, 'parity': 1 }, '2': { 'baudrate': 7, 'parity': 2 }};
+
+
 var g_device_status = "running";
+
+var g_uart_properties = {
+    '1': { 'baudrate': 6, 'parity': 1 }, 
+    '2': { 'baudrate': 7, 'parity': 2 } };
+
+var g_gpio_properties = {
+    '1': { 'direction': 0, 'mode': 0, 'alert': 0, 'alertperiod': 0   }, 
+    '2': { 'direction': 0, 'mode': 3, 'alert': 1, 'alertperiod': 60  },
+    '3': { 'direction': 1, 'mode': 0, 'alert': 0, 'alertperiod': 0   },
+    '4': { 'direction': 1, 'mode': 2, 'alert': 1, 'alertperiod': 120 } };
+
+var g_gpio_voltage = 1;
+
+
 
 
 
@@ -133,15 +148,16 @@ client.on("connect", function()
 function handle_api(api, topic, payload) {
     console.log("\r\n" + topic + "\r\n" + payload);
 
+
+    ////////////////////////////////////////////////////
+    // GET/SET STATUS
+    ////////////////////////////////////////////////////
     if (api == "get_status") {
         pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
         var obj = {
             "value": g_device_status
         };
         client.publish(pubtopic, JSON.stringify(obj));
-
-        //console.log(pubtopic);
-        //console.log(JSON.stringify(obj));
     }
     else if (api == "set_status") {
         pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
@@ -162,11 +178,12 @@ function handle_api(api, topic, payload) {
             "value": g_device_status
         };
         client.publish(pubtopic, JSON.stringify(obj));
-
-        //console.log(pubtopic);
-        //console.log(JSON.stringify(obj));
     }
 
+
+    ////////////////////////////////////////////////////
+    // GET/SET UART PROPERTIES
+    ////////////////////////////////////////////////////
     else if (api == "get_uart_properties") {
         pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
         var obj = JSON.parse(payload);
@@ -182,16 +199,16 @@ function handle_api(api, topic, payload) {
     else if (api == "set_uart_properties") {
         pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
         var obj = JSON.parse(payload);
-        var number = obj.number;
+        var number   = obj.number;
         var baudrate = Number(obj.baudrate);
-        var parity = Number(obj.parity);
+        var parity   = Number(obj.parity);
 
         console.log(number);
         console.log(baudrate);
         console.log(parity);
         g_uart_properties[number] = {
-            "baudrate": baudrate, 
-            "parity": parity
+            "baudrate" : baudrate, 
+            "parity"   : parity
         };
         var response = { "value": g_uart_properties[number] };
         client.publish(pubtopic, JSON.stringify(response));
@@ -199,6 +216,75 @@ function handle_api(api, topic, payload) {
         console.log(pubtopic);
         console.log(JSON.stringify(response));
     }
+
+
+    ////////////////////////////////////////////////////
+    // GET/SET GPIO PROPERTIES
+    ////////////////////////////////////////////////////
+    else if (api == "get_gpio_properties") {
+        pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
+        var obj = JSON.parse(payload);
+        var number = obj.number;
+
+        console.log(number);
+        var response = { "value": g_gpio_properties[number] };
+        client.publish(pubtopic, JSON.stringify(response));
+
+        console.log(pubtopic);
+        console.log(JSON.stringify(response));
+    }
+    else if (api == "set_gpio_properties") {
+        pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
+        var obj = JSON.parse(payload);
+        var number      = obj.number;
+        var direction   = Number(obj.direction);
+        var mode        = Number(obj.mode);
+        var alert       = Number(obj.alert);
+        var alertperiod = Number(obj.alertperiod);
+
+        console.log(number);
+        console.log(direction);
+        console.log(mode);
+        console.log(alert);
+        console.log(alertperiod);
+        g_gpio_properties[number] = {
+            "direction"  : direction, 
+            "mode"       : mode,
+            "alert"      : alert,
+            "alertperiod": alertperiod,
+        };
+        var response = { "value": g_gpio_properties[number] };
+        client.publish(pubtopic, JSON.stringify(response));
+
+        console.log(pubtopic);
+        console.log(JSON.stringify(response));
+    }
+
+
+    ////////////////////////////////////////////////////
+    // GET/SET GPIO VOLTAGE
+    ////////////////////////////////////////////////////
+    else if (api == "get_gpio_voltage") {
+        pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
+        var response = { "value": g_gpio_voltage };
+        client.publish(pubtopic, JSON.stringify(response));
+
+        console.log(pubtopic);
+        console.log(JSON.stringify(response));
+    }
+    else if (api == "set_gpio_voltage") {
+        pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
+        var obj = JSON.parse(payload);
+        g_gpio_voltage = Number(obj.voltage);
+        console.log(g_gpio_voltage);
+
+        var response = { "value": g_gpio_voltage };
+        client.publish(pubtopic, JSON.stringify(response));
+
+        console.log(pubtopic);
+        console.log(JSON.stringify(response));
+    }
+
 
     else if (api == "write_uart") {
         pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
