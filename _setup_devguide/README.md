@@ -4,8 +4,10 @@ Below contains a step-by-step instructions on installing and setting up the fron
 
 It also contains the documentation of <b>REST APIs</b> to be used by Android/IOS mobile apps to communicate with the backend and 3rd-party services. 
 
+It also contains the documentation of <b>Device Firmware Messaging APIs</b> to be used by device firmware to communicate with the backend message broker. 
 
-### Development Tools
+
+## Development Tools
 
 Please install the following tools to get the IoT Portal running on your local machine.
 
@@ -61,7 +63,7 @@ Please install the following tools to get the IoT Portal running on your local m
     To be used for non-Docker version.
 
 
-### Development Setup
+## Development Setup
 
 Please follow the steps below to get the IoT Portal running on your local machine.
 
@@ -183,7 +185,7 @@ To run tests with the device simulator, please refer to the usage guide in https
 
 
 
-### REST API Documentation
+## REST API Documentation
 
 This is for the front-end developers.
 
@@ -371,7 +373,7 @@ DETAILED:
 		-  Response:
 		   {'status': 'OK', 'message': string, 'token': {'access': string, 'id': string, 'refresh': string}, 'name': string }
 		   {'status': 'NG', 'message': string}
-		   // name is being return together with the tokens as per special UX requirement
+		   // name is now included in the response as per special UX requirement
 		-  Details:
 		   How to compute the JWT token using Javascript
 		   base64UrlEncodedHeader = urlEncode(base64Encode(JSON.stringify({
@@ -811,7 +813,7 @@ DETAILED:
 
 
 
-### Device Firmware Messaging API Documentation
+## Device Firmware Messaging API Documentation
 
 This is for the firmware developers.
 
@@ -883,6 +885,7 @@ DETAILED:
 		   payload: { 'value': { 'baudrate': int, 'parity': int } }
 
 	3. GPIO
+
 		A. GET GPIO VOLTAGE
 		-  Receive:
 		   topic: DEVICEID/get_gpio_voltage
@@ -915,6 +918,7 @@ DETAILED:
 		   payload: { 'value': { 'direction': int, 'mode': int, 'alert': int, 'alertperiod': int } }
 
 	4. I2C
+
 		A. get_i2c_properties
 		-  Subscribe:
 		   topic:
@@ -922,6 +926,7 @@ DETAILED:
 		-  Publish:
 		   topic:
 		   payload:
+
 		B. set_i2c_properties
 		-  Subscribe:
 		   topic:
@@ -931,7 +936,7 @@ DETAILED:
 		   payload:
 
 
-### Database Documentation
+## Database Documentation
 
 1. TODO
 
