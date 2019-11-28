@@ -817,9 +817,22 @@ DETAILED:
 
 This is for the firmware developers.
 
-A device will connect to the portal using its UUID and SerialNumber as MQTT username and password respectively.
-Each device subscribes to its own assigned MQTT topic using its device identification (DEVICEID/#).
-So it will only be receiving subtopics under DEVICEID topic.
+A device can connect to the portal using MQTT protocol over TLS connection.
+It establishes connection with the message broker using its UUID and SerialNumber as MQTT username and password respectively.
+This is a security measure added in addition to the mutual authentication using SSL X.509 certificates with ECC security.
+The ECC certificates are stored in a 3rd-party hardware ATECC chip for hardware-grade secure storage.
+
+	Security measures for device connectivity:
+
+	1. MQTT connectivity over secured TLS connection
+	2. ECC-based (Elliptic Curve Cryptography ECC) PKI and X.509 certificates
+	3. Enforcement of mutual authentication on both MQTT broker and MQTT client configurations
+	4. Unique MQTT credentials (username and password) per device
+	5. Strict restrictions for MQTT topic permission (subscribe and publish) per device
+	6. [TODO] ECC certificates stored in 3rd-party ATECC hardware chip 
+
+Upon connection, each device subscribes to its own dedicated MQTT topic using its device identification (DEVICEID/#).
+As a result, it will only be receiving subtopics under DEVICEID topic solely for the device.
 Each device publishes to its own assigned MQTT topic using its device identification and server (server/DEVICEID/#)
 Subscribing or publishing to other MQTT topics will fail as the message broker restricts the permissions of topic for each device.
 
