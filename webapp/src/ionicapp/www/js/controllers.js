@@ -2054,7 +2054,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, Devices, Use
     var server = Server.rest_api;
 
     $scope.data = {
-        'username': $stateParams.username,
+        'username': User.get_username(),
         'token': User.get_token(),
 
         'devicename': "",
@@ -2236,7 +2236,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
     var server = Server.rest_api;
 
     $scope.data = {
-        'username'    : $stateParams.username,
+        'username'    : User.get_username(),
         'token'       : User.get_token(),
         'devicename'  : $stateParams.devicename,
         'deviceid'    : $stateParams.deviceid,
@@ -2338,7 +2338,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
     var server = Server.rest_api;
     
     $scope.data = {
-        'username': $stateParams.username,
+        'username': User.get_username(),
         'token': User.get_token(),
         'devicename': $stateParams.devicename,
         'deviceid': $stateParams.deviceid,
@@ -2570,7 +2570,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
     var server = Server.rest_api;
 
     $scope.data = {
-        'username': $stateParams.username,
+        'username': User.get_username(),
         'token': User.get_token(),
         'devicename': $stateParams.devicename,
         'devicestatus': $stateParams.devicestatus,
@@ -2756,18 +2756,71 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
 
     var server = Server.rest_api;
 
+    $scope.voltages = [
+        { "id":0,  "label": "3.3 V"       },
+        { "id":1,  "label": "5 V"         },
+    ];
+
+    $scope.directions = [
+        { "id":0,  "label": "Input"       },
+        { "id":1,  "label": "Output"      },
+    ];
+
+    $scope.modes_input = [
+        { "id":0,  "label": "High Level"  },
+        { "id":1,  "label": "Low Level"   },
+        { "id":2,  "label": "High Edge"   },
+        { "id":3,  "label": "Low Edge"    },
+    ];
+
+    $scope.modes_output = [
+        { "id":0,  "label": "Level"       },
+        { "id":1,  "label": "Pulse"       },
+        { "id":2,  "label": "Clock"       },
+    ];
+
+    $scope.modes = $scope.modes_input;
+    
+    $scope.alerts = [
+        { "id":0,  "label": "Once"         },
+        { "id":1,  "label": "Continuously" },
+    ];
+    
+    
     $scope.data = {
-        'username': $stateParams.username,
+        'username': User.get_username(),
         'token': User.get_token(),
         'devicename': $stateParams.devicename,
         'devicestatus': $stateParams.devicestatus,
         'deviceid': $stateParams.deviceid,
         'serialnumber': $stateParams.serialnumber,
        
-        'gpionumber': $scope.gpionumber,
-        'gpiovalue': $scope.gpiovalue,
-        'gpiovalueset': $scope.gpiovalueset
+        'activeSection': 1,
+        'voltageidx': $scope.voltages[0].id,
+        'directionidx': $scope.directions[0].id,
+        'modeidx': $scope.modes[0].id,
+        'alertidx': $scope.alerts[0].id,
+        'alertperiod': 60,
+
+        'showNotification': 0,
+        'message': "Hello World!",
+        'email': "",
+        'phonenumber': "",
+        'sendemail': 0,
+        'sendsms': 0,
+        'sendnotification': 0,
+        'senddevice': 0,
     };
+
+    $scope.changeSection = function(s) {
+        $scope.data.activeSection = s;
+        $scope.submitQuery();
+    };
+
+    $scope.changeNotification = function(i) {
+        $scope.data.showNotification = i;
+    };
+    
 
     handle_error = function(error) {
         // Handle failed login
@@ -2788,6 +2841,185 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         }
     };
     
+   
+    get_gpio_properties = function() {
+        //
+        // GET GPIO PROPERTIES
+        //
+        // - Request:
+        //   GET /devices/device/<devicename>/gpio/<number>/properties
+        //   headers: { 'Authorization': 'Bearer ' + token.access }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string, 'value': { 'direction': int, 'mode': int, 'alert': int, 'alertperiod': int } }
+        //   { 'status': 'NG', 'message': string }
+        //
+        $http({
+            method: 'GET',
+            url: server + '/devices/device/' + $scope.data.devicename + '/gpio/' + $scope.data.activeSection.toString() + '/properties',
+            headers: {'Authorization': 'Bearer ' + $scope.data.token.access},
+        })
+        .then(function (result) {
+            console.log(result.data);
+            $scope.data.directionidx = result.data.value.direction;
+            $scope.data.modeidx      = result.data.value.mode;
+            $scope.data.alertidx     = result.data.value.alert;
+            $scope.data.alertperiod  = result.data.value.alertperiod;
+            //get_gpio_voltage();
+        })
+        .catch(function (error) {
+            handle_error(error);
+        }); 
+    };
+
+
+    set_gpio_properties = function() {
+        //
+        // SET GPIO PROPERTIES
+        //
+        // - Request:
+        //   POST /devices/device/<devicename>/gpio/<number>/properties
+        //   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
+        //   data: { 'direction': int, 'mode': int, 'alert': int, 'alertperiod': int }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string }
+        //   { 'status': 'NG', 'message': string }        
+        //
+        $http({
+            method: 'POST',
+            url: server + '/devices/device/' + $scope.data.devicename + '/gpio/' + $scope.data.activeSection.toString() + '/properties',
+            headers: { 'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json' },
+            data: { 'direction': $scope.data.directionidx, 'mode': $scope.data.modeidx, 'alert': $scope.data.alertidx, 'alertperiod': $scope.data.alertperiod }
+        })
+        .then(function (result) {
+            console.log(result.data);
+            //set_gpio_voltage();
+            $ionicPopup.alert({
+                title: 'Device GPIO',
+                template: 'GPIO ' + $scope.data.activeSection.toString() + ' was configured successfully!',
+            });            
+        })
+        .catch(function (error) {
+            handle_error(error);
+        }); 
+    };
+    
+
+    get_gpio_voltage = function() {
+        //
+        // GET GPIO VOLTAGE
+        //
+        // - Request:
+        //   GET /devices/device/<devicename>/gpio/voltage
+        //   headers: { 'Authorization': 'Bearer ' + token.access }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string, 'value': { 'voltage': int } }
+        //   { 'status': 'NG', 'message': string }
+        //
+        $http({
+            method: 'GET',
+            url: server + '/devices/device/' + $scope.data.devicename + '/gpio/voltage',
+            headers: {'Authorization': 'Bearer ' + $scope.data.token.access},
+        })
+        .then(function (result) {
+            console.log(result.data);
+            $scope.data.voltageidx = result.data.value;
+        })
+        .catch(function (error) {
+            handle_error(error);
+        }); 
+    };
+
+
+    set_gpio_voltage = function() {
+        //
+        // SET GPIO VOLTAGE
+        //
+        // - Request:
+        //   POST /devices/device/<devicename>/gpio/voltage
+        //   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
+        //   data: { 'voltage': int }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string }
+        //   { 'status': 'NG', 'message': string }        
+        //
+        $http({
+            method: 'POST',
+            url: server + '/devices/device/' + $scope.data.devicename + '/gpio/voltage',
+            headers: { 'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json' },
+            data: { 'voltage': $scope.data.voltageidx }
+        })
+        .then(function (result) {
+            console.log(result.data);
+        })
+        .catch(function (error) {
+            handle_error(error);
+        }); 
+    };
+
+    
+    get_profile = function() {
+        //        
+        // GET USER INFO
+        //
+        // - Request:
+        //   GET /user
+        //   headers: {'Authorization': 'Bearer ' + token.access}
+        //
+        // - Response:
+        //   {'status': 'OK', 'message': string, 'info': {'email': string, 'phone_number': string, 'name': string} }
+        //   {'status': 'NG', 'message': string}
+        //         
+        $http({
+            method: 'GET',
+            url: server + '/user',
+            headers: {'Authorization': 'Bearer ' + $scope.data.token.access}
+        })
+        .then(function (result) {
+            console.log("ACCOUNT OK");
+            console.log(result.data);
+            
+            if ($scope.data.email !== undefined) {
+                $scope.data.email = result.data.info.email;
+                if (result.data.info.email_verified) {
+                    $scope.data.sendemail = 1;
+                }
+                else {
+                    $scope.data.sendemail = 0;
+                }
+            }
+            else {
+                $scope.data.email = "";
+                $scope.data.sendemail = 0;
+            }
+            
+            if (result.data.info.phone_number !== undefined) {
+                $scope.data.phonenumber = result.data.info.phone_number;
+                if (result.data.info.phone_number_verified) {
+                    $scope.data.sendsms = 1;
+                    $scope.data.sendnotification = 0;
+                }
+                else {
+                    $scope.data.sendsms = 0;
+                    $scope.data.sendnotification = 0;
+                }
+            }
+            else {
+                $scope.data.phonenumber = "";
+                $scope.data.sendsms = 0;
+                $scope.data.sendnotification = 0;
+            }
+        })
+        .catch(function (error) {
+            handle_error(error);
+        }); 
+    };
+
+
+/*
     get_gpio = function() {
         // 
         // GET GPIO
@@ -2857,56 +3089,34 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             handle_error(error);
         }); 
     };
+*/
 
-    $scope.submitGet = function() {
-        console.log("devicename=" + $scope.data.devicename);
-        console.log("gpionumber=" + $scope.data.gpionumber);
+    $scope.submit = function() {
 
+/*
         if ($scope.data.devicestatus !== 'Online') {
             $ionicPopup.alert({title: 'Device Error', template: 'Device is offline!'});
             return;
         }
-
-        // Handle invalid input
-        if ($scope.data.gpionumber === undefined) {
-            console.log("ERROR: GPIO number is empty!");
-            // TODO: replace alert with ionic alert
-            alert("ERROR: GPIO number is empty!");
-            return;
-        }
-
-        get_gpio();
+*/
+        
+        set_gpio_properties();
+        set_gpio_voltage();
     };
 
-    $scope.submitSet = function() {
-        console.log("devicename=" + $scope.data.devicename);
-        console.log("gpionumber=" + $scope.data.gpionumber);
-        console.log("gpiovalueset=" + $scope.data.gpiovalueset);
-
+    $scope.submitQuery = function() {
+        
+/*
         if ($scope.data.devicestatus !== 'Online') {
             $ionicPopup.alert({title: 'Device Error', template: 'Device is offline!'});
             return;
         }
+*/
 
-        // Handle invalid input
-        if ($scope.data.gpionumber === undefined) {
-            console.log("ERROR: GPIO number is empty!");
-            // TODO: replace alert with ionic alert
-            alert("ERROR: GPIO number is empty!");
-            return;
-        }
-
-        gpiovalueset = 0;
-        if ($scope.data.gpiovalueset === true) {
-            gpiovalueset = 1;
-        }
-
-        set_gpio({
-            'value': gpiovalueset.toString()
-        });
+        get_gpio_properties();
+        get_gpio_voltage();
     };
-  
-  
+
     $scope.submitDeviceList = function() {
         console.log("hello");
         var device_param = {
@@ -2919,7 +3129,10 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         };
         $state.go('configureDevice', device_param);
     };
-  
+    
+    
+    $scope.submitQuery();
+    get_profile();  
 }])
    
 .controller('deviceUARTCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
@@ -2955,7 +3168,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
     ];     
 
     $scope.data = {
-        'username': $stateParams.username,
+        'username': User.get_username(),
         'token': User.get_token(),
         'devicename': $stateParams.devicename,
         'devicestatus': $stateParams.devicestatus,
@@ -2966,13 +3179,14 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         'baudrateidx': $scope.baudrates[0].id,
         'parityidx': $scope.parities[0].id,
         
+        'showNotification': 0,
         'message': "Hello World!",
         'email': "",
         'phonenumber': "",
         'sendemail': 0,
         'sendsms': 0,
         'sendnotification': 0,
-        'senddevice': 0
+        'senddevice': 0,
     };
 
     $scope.changeSection = function(s) {
@@ -2980,6 +3194,9 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         $scope.submitQuery();
     };
     
+    $scope.changeNotification = function(i) {
+        $scope.data.showNotification = i;
+    };
 
 
     
@@ -3120,6 +3337,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         }); 
     };
 
+
  /*
     set_uart = function(param) {
         //
@@ -3154,12 +3372,24 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
 */
 
     $scope.submit = function() {
+        
+        if ($scope.data.devicestatus !== 'Online') {
+            $ionicPopup.alert({title: 'Device Error', template: 'Device is offline!'});
+            return;
+        }
+        
         set_uart_properties();
     };
     
     $scope.submitQuery = function() {
+        
+        if ($scope.data.devicestatus !== 'Online') {
+            $ionicPopup.alert({title: 'Device Error', template: 'Device is offline!'});
+            return;
+        }
+
         get_uart_properties();
-    }
+    };
 
     $scope.submitDeviceList = function() {
         console.log("hello");
@@ -3187,7 +3417,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
     var server = Server.rest_api;
 
     $scope.data = {
-        'username': $stateParams.username,
+        'username': User.get_username(),
         'token': User.get_token(),
         'devicename': $stateParams.devicename,
         'devicestatus': $stateParams.devicestatus,
@@ -3355,7 +3585,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
 
 
     $scope.data = {
-        'username': $stateParams.username,
+        'username': User.get_username(),
         'token': User.get_token(),
         'devicename': $stateParams.devicename,
         'devicestatus': $stateParams.devicestatus,
