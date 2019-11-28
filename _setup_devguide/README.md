@@ -824,12 +824,12 @@ The ECC certificates are stored in a 3rd-party hardware ATECC chip for hardware-
 
 	Security measures for device connectivity:
 
-	1. MQTT connectivity over secured TLS connection
-	2. ECC-based (Elliptic Curve Cryptography ECC) PKI and X.509 certificates
-	3. Enforcement of mutual authentication on both MQTT broker and MQTT client configurations
-	4. Unique MQTT credentials (username and password) per device
-	5. Strict restrictions for MQTT topic permission (subscribe and publish) per device
-	6. [TODO] ECC certificates stored in 3rd-party ATECC hardware chip 
+		1. MQTT connectivity over secured TLS connection
+		2. ECC-based (Elliptic Curve Cryptography ECC) PKI and X.509 certificates
+		3. Enforcement of mutual authentication on both MQTT broker and MQTT client configurations
+		4. Unique MQTT credentials (username and password) per device
+		5. Strict restrictions for MQTT topic permission (subscribe and publish) per device
+		6. [TODO] ECC certificates stored in 3rd-party ATECC hardware chip 
 
 Upon connection, each device subscribes to its own dedicated MQTT topic using its device identification (DEVICEID/#).
 As a result, it will only be receiving subtopics under DEVICEID topic solely for the device.
@@ -838,16 +838,16 @@ Subscribing or publishing to other MQTT topics will fail as the message broker r
 
 	MQTT device connection details:
 
-	1.  MQTT host: richmondu.com
-	2.  MQTT port: 8883
-	3.  MQTT clientid: DEVICEID
-	4.  MQTT username: UUID
-	5.  MQTT password: SERIALNUMBER
-	6.  TLS CA certificate
-	7.  TLS client certificates
-	8.  TLS client private key
-	9.  MQTT subscribe topic: DEVICEID/#
-	10. MQTT publish topic: server/DEVICEID/#
+		1.  MQTT host: richmondu.com
+		2.  MQTT port: 8883
+		3.  MQTT clientid: DEVICEID
+		4.  MQTT username: UUID
+		5.  MQTT password: SERIALNUMBER
+		6.  TLS CA certificate
+		7.  TLS client certificates
+		8.  TLS client private key
+		9.  MQTT subscribe topic: DEVICEID/#
+		10. MQTT publish topic: server/DEVICEID/#
 
 Below is a summary and a detailed list of the subtopics the device will receive and publish.
 
