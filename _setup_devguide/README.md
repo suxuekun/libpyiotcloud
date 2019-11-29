@@ -574,9 +574,10 @@ DETAILED:
 		   GET /devices/device/DEVICENAME/status
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
-		   { 'status': 'OK', 'message': string, 'value': string }
+		   { 'status': 'OK', 'message': string, 'value': { "status": string, "version": string } }
 		   { 'status': 'NG', 'message': string }
-		   // value can be any of the following: restarting, stopping, stopped, starting, running
+		   // status can be any of the following: restarting, stopping, stopped, starting, running
+		   // version is the firmware version
 
 		B. SET STATUS
 		-  Request:
@@ -593,7 +594,43 @@ DETAILED:
 		   GET /devices/device/DEVICENAME/uart/NUMBER/properties
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
-		   { 'status': 'OK', 'message': string, 'value': { 'baudrate': int, 'parity': int } }
+		   { 'status': 'OK', 'message': string, 'value':
+		     { 
+		        'baudrate': int,
+		        'parity': int,
+		        'notification': {
+		            'messages': [
+		                { 'message': string, 'enable': boolean }, 
+		            ],
+		            'endpoints' : {
+		                'mobile': {
+		                    'recipients': string, // can be multiple items separated by comma
+		                    'enable': boolean,
+		                    //'recipients_list': [{'to': string, 'group': boolean}, ],
+		                },
+		                'email': {
+		                    'recipients': string, // can be multiple items separated by comma
+		                    'enable': boolean,
+		                    //'recipients_list': [{'to': '', 'group': boolean}, ],
+		                },
+		                'notification': {
+		                    'recipients': string, // can be multiple items separated by comma
+		                    'enable': boolean,
+		                    //'recipients_list': [{'to': '', 'group': boolean}, ],
+		                },
+		                'modem': {
+		                    'recipients': string, // can be multiple items separated by comma
+		                    'enable': boolean,
+		                    //'recipients_list': [{'to': '', 'group': boolean}, ],
+		                },
+		                'storage': {
+		                    'recipients': string, // can be multiple items separated by comma
+		                    'enable': boolean,
+		                    //'recipients_list': [{'to': '', 'group': boolean}, ],
+		                },
+		            }
+		        }
+		   } }
 		   { 'status': 'NG', 'message': string }
 		   // baudrate is an index of the value in the list of baudrates
 		   // parity is an index of the value in the list of parities
@@ -603,7 +640,43 @@ DETAILED:
 		-  Request:
 		   POST /devices/device/DEVICENAME/uart/NUMBER/properties
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-		   data: { 'baudrate': int, 'parity': int }
+		   data: 
+		   { 
+		        'baudrate': int,
+		        'parity': int,
+		        'notification': {
+		            'messages': [
+		                { 'message': string, 'enable': boolean },
+		            ],
+		            'endpoints' : {
+		                'mobile': {
+		                    'recipients': string, // can be multiple items separated by comma
+		                    'enable': boolean,
+		                    //'recipients_list': [{'to': string, 'group': boolean}, ],
+		                },
+		                'email': {
+		                    'recipients': string, // can be multiple items separated by comma
+		                    'enable': boolean,
+		                    //'recipients_list': [{'to': '', 'group': boolean}, ],
+		                },
+		                'notification': {
+		                    'recipients': string, // can be multiple items separated by comma
+		                    'enable': boolean,
+		                    //'recipients_list': [{'to': '', 'group': boolean}, ],
+		                },
+		                'modem': {
+		                    'recipients': string, // can be multiple items separated by comma
+		                    'enable': boolean,
+		                    //'recipients_list': [{'to': '', 'group': boolean}, ],
+		                },
+		                'storage': {
+		                    'recipients': string, // can be multiple items separated by comma
+		                    'enable': boolean,
+		                    //'recipients_list': [{'to': '', 'group': boolean}, ],
+		                },
+		            }
+		        }
+		   }
 		   // baudrate is an index of the value in the list of baudrates
 		   // parity is an index of the value in the list of parities
 		-  Response:
@@ -636,11 +709,55 @@ DETAILED:
 		   GET /devices/device/DEVICENAME/gpio/NUMBER/properties
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
-		   { 'status': 'OK', 'message': string, 'value': { 'direction': int, 'mode': int, 'alert': int, 'alertperiod': int, 'polarity': int, 'width': int, 'mark': int, 'space': int } }
+		   { 'status': 'OK', 'message': string, 'value':
+		     { 
+		        'direction': int,
+		        'mode': int,
+		        'alert': int,
+		        'alertperiod': int,
+		        'polarity': int,
+		        'width': int,
+		        'mark': int,
+		        'space': int,
+		        'notification': {
+		            'messages': [
+		                { 'message': string, 'enable': boolean }, 
+		                { 'message': string, 'enable': boolean }
+		            ],
+		            'endpoints' : {
+		                'mobile': {
+		                    'recipients': string, // can be multiple items separated by comma
+		                    'enable': boolean,
+		                    //'recipients_list': [{'to': string, 'group': boolean}, ],
+		                },
+		                'email': {
+		                    'recipients': string, // can be multiple items separated by comma
+		                    'enable': boolean,
+		                    //'recipients_list': [{'to': '', 'group': boolean}, ],
+		                },
+		                'notification': {
+		                    'recipients': string, // can be multiple items separated by comma
+		                    'enable': boolean,
+		                    //'recipients_list': [{'to': '', 'group': boolean}, ],
+		                },
+		                'modem': {
+		                    'recipients': string, // can be multiple items separated by comma
+		                    'enable': boolean,
+		                    //'recipients_list': [{'to': '', 'group': boolean}, ],
+		                },
+		                'storage': {
+		                    'recipients': string, // can be multiple items separated by comma
+		                    'enable': boolean,
+		                    //'recipients_list': [{'to': '', 'group': boolean}, ],
+		                },
+		            }
+		        }
+		   } }
 		   { 'status': 'NG', 'message': string }
 		   // direction is an index of the value in the list of directions
 		   // mode is an index of the value in the list of modes
 		   // alert is an index of the value in the list of alerts
+		   // alert is an optional and is valid only when direction points to Input
 		   // alertperiod is optional and is valid only if alert points to Continuously
 		   // polarity is an index of the value in the list of polarities
 		   // polarity is optional and is valid only when direction points to Output
@@ -652,10 +769,54 @@ DETAILED:
 		-  Request:
 		   POST /devices/device/DEVICENAME/gpio/NUMBER/properties
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-		   data: { 'direction': int, 'mode': int, 'alert': int, 'alertperiod': int, 'polarity': int, 'width': int, 'mark': int, 'space': int }
+		   data: 
+		   { 
+		        'direction': int,
+		        'mode': int,
+		        'alert': int,
+		        'alertperiod': int,
+		        'polarity': int,
+		        'width': int,
+		        'mark': int,
+		        'space': int,
+		        'notification': {
+		            'messages': [
+		                { 'message': string, 'enable': boolean }, 
+		                { 'message': string, 'enable': boolean }
+		            ],
+		            'endpoints' : {
+		                'mobile': {
+		                    'recipients': string, // can be multiple items separated by comma
+		                    'enable': boolean,
+		                    //'recipients_list': [{'to': string, 'group': boolean}, ],
+		                },
+		                'email': {
+		                    'recipients': string, // can be multiple items separated by comma
+		                    'enable': boolean,
+		                    //'recipients_list': [{'to': '', 'group': boolean}, ],
+		                },
+		                'notification': {
+		                    'recipients': string, // can be multiple items separated by comma
+		                    'enable': boolean,
+		                    //'recipients_list': [{'to': '', 'group': boolean}, ],
+		                },
+		                'modem': {
+		                    'recipients': string, // can be multiple items separated by comma
+		                    'enable': boolean,
+		                    //'recipients_list': [{'to': '', 'group': boolean}, ],
+		                },
+		                'storage': {
+		                    'recipients': string, // can be multiple items separated by comma
+		                    'enable': boolean,
+		                    //'recipients_list': [{'to': '', 'group': boolean}, ],
+		                },
+		            }
+		        }
+		   }
 		   // direction is an index of the value in the list of directions
 		   // mode is an index of the value in the list of modes
 		   // alert is an index of the value in the list of alerts
+		   // alert is an optional and is valid only when direction points to Input
 		   // alertperiod is optional and is valid only if alert points to Continuously
 		   // polarity is an index of the value in the list of polarities
 		   // polarity is optional and is valid only when direction points to Output
