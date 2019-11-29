@@ -1070,7 +1070,7 @@ DETAILED:
 		   topic: DEVICEID/get_status
 		-  Publish:
 		   topic: server/DEVICEID/get_status
-		   payload: { 'value': string }
+		   payload: { 'value': {'status': string, 'version': string} }
 
 		B. SET STATUS
 		-  Receive:
