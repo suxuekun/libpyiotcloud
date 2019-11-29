@@ -69,7 +69,7 @@ def login():
     if username is None or password is None:
         response = json.dumps({'status': 'NG', 'message': reason})
         print('\r\nERROR Login: Username password format invalid\r\n')
-        return response, status.HTTP_400_BAD_REQUEST
+        return response, status.HTTP_401_UNAUTHORIZED
     print('login username={}'.format(username))
 
     # check if a parameter is empty
@@ -85,7 +85,7 @@ def login():
         # because it provides additional info for hackers
         response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
         print('\r\nERROR Login: Username does not exist [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
+        return response, status.HTTP_404_NOT_FOUND
 
     # check if password is valid
     access, refresh, id = g_database_client.login(username, password)
@@ -140,7 +140,7 @@ def signup():
     if username is None or password is None:
         response = json.dumps({'status': 'NG', 'message': reason})
         print('\r\nERROR Signup: Username password format invalid\r\n')
-        return response, status.HTTP_400_BAD_REQUEST
+        return response, status.HTTP_401_UNAUTHORIZED
     #print('signup username={}'.format(username))
 
     data = flask.request.get_json()
@@ -197,7 +197,7 @@ def signup():
     if not result:
         response = json.dumps({'status': 'NG', 'message': 'Internal server error'})
         print('\r\nERROR Signup: Internal server error [{},{},{},{},{}]\r\n'.format(username, password, email, givenname, familyname))
-        return response, status.HTTP_400_BAD_REQUEST
+        return response, status.HTTP_500_INTERNAL_SERVER_ERROR
 
     response = json.dumps({'status': 'OK', 'message': 'User registered successfully. Check email for confirmation code.'})
     print('\r\nSignup successful: {}\r\n{}\r\n'.format(username, response))
@@ -225,7 +225,7 @@ def confirm_signup():
     #print('confirm_signup username={} confirmationcode={}'.format(username, confirmationcode))
 
     # check if a parameter is empty
-    if len(username) == 0 or len(confirmationcode) == 0:
+    if len(username) == 0 or len(confirmationcode) != 6:
         response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
         print('\r\nERROR Confirm Signup: Empty parameter found [{}]\r\n'.format(username))
         return response, status.HTTP_400_BAD_REQUEST
@@ -235,7 +235,7 @@ def confirm_signup():
     if not result:
         response = json.dumps({'status': 'NG', 'message': 'Invalid code'})
         print('\r\nERROR Confirm Signup: Invalid code [{},{}]\r\n'.format(username, confirmationcode))
-        return response, status.HTTP_400_BAD_REQUEST
+        return response, status.HTTP_500_INTERNAL_SERVER_ERROR
 
     response = json.dumps({'status': 'OK', 'message': 'User registration confirmed successfully'})
     print('\r\nConfirm Signup successful: {}\r\n{}\r\n'.format(username, response))
@@ -272,7 +272,7 @@ def resend_confirmation_code():
     if not result:
         response = json.dumps({'status': 'NG', 'message': 'Invalid code'})
         print('\r\nERROR Resend Confirmation: Invalid code [{}]\r\n'.format(username))
-        return response, status.HTTP_400_BAD_REQUEST
+        return response, status.HTTP_500_INTERNAL_SERVER_ERROR
 
     response = json.dumps({'status': 'OK', 'message': 'Confirmation code resend successfully'})
     print('\r\nResend Confirmation successful: {}\r\n{}\r\n'.format(username, response))
@@ -316,7 +316,7 @@ def forgot_password():
     if not result:
         response = json.dumps({'status': 'NG', 'message': 'Internal server error'})
         print('\r\nERROR Recover Account: Internal server error [{}]\r\n'.format(email))
-        return response, status.HTTP_400_BAD_REQUEST
+        return response, status.HTTP_500_INTERNAL_SERVER_ERROR
 
     response = json.dumps({'status': 'OK', 'message': 'User account recovery successfully. Check email for confirmation code.', 'username': username})
     print('\r\nRecover Account successful: {}\r\n{}\r\n'.format(username, response))
@@ -343,7 +343,7 @@ def confirm_forgot_password():
     if username is None or password is None:
         response = json.dumps({'status': 'NG', 'message': reason})
         print('\r\nERROR Reset Password: Username password format invalid\r\n')
-        return response, status.HTTP_400_BAD_REQUEST
+        return response, status.HTTP_401_UNAUTHORIZED
     print('confirm_forgot_password username={}'.format(username))
 
     data = flask.request.get_json()
@@ -361,7 +361,7 @@ def confirm_forgot_password():
     if not result:
         response = json.dumps({'status': 'NG', 'message': 'Invalid code'})
         print('\r\nERROR Reset Password: Invalid code [{}]\r\n'.format(username))
-        return response, status.HTTP_400_BAD_REQUEST
+        return response, status.HTTP_500_INTERNAL_SERVER_ERROR
 
     response = json.dumps({'status': 'OK', 'message': 'User account recovery confirmed successfully.'})
     print('\r\nReset Password successful: {}\r\n{}\r\n'.format(username, response))
@@ -413,20 +413,18 @@ def logout():
     if len(username) == 0 or len(token) == 0:
         response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
         print('\r\nERROR Logout: Empty parameter found\r\n')
-        # NOTE:
-        # No need to return error code status.HTTP_401_UNAUTHORIZED since this is a logout
-        return response
+        return response, status.HTTP_400_BAD_REQUEST
 
     # check if username and token is valid
     verify_ret, new_token = g_database_client.verify_token(username, token)
     if verify_ret == 2:
         response = json.dumps({'status': 'NG', 'message': 'Token expired'})
         print('\r\nERROR Logout: Token expired [{}]\r\n'.format(username))
-        return response
+        return response, status.HTTP_401_UNAUTHORIZED
     elif verify_ret != 0:
         response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
         print('\r\nERROR Logout: Token is invalid [{}]\r\n'.format(username))
-        return response
+        return response, status.HTTP_401_UNAUTHORIZED
 
     if new_token:
         g_database_client.logout(new_token['access'])
@@ -480,18 +478,18 @@ def get_user_info():
     if len(username) == 0 or len(token) == 0:
         response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
         print('\r\nERROR Userinfo: Empty parameter found\r\n')
-        return response
+        return response, status.HTTP_400_BAD_REQUEST
 
     # check if username and token is valid
     verify_ret, new_token = g_database_client.verify_token(username, token)
     if verify_ret == 2: # token expired
         response = json.dumps({'status': 'NG', 'message': 'Token expired'})
         print('\r\nERROR Userinfo: Token expired [{}]\r\n'.format(username))
-        return response
+        return response, status.HTTP_401_UNAUTHORIZED
     elif verify_ret != 0:
         response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
         print('\r\nERROR Userinfo: Token is invalid [{}]\r\n'.format(username))
-        return response
+        return response, status.HTTP_401_UNAUTHORIZED
 
     if new_token:
         info = g_database_client.get_user_info(new_token['access'])
@@ -553,18 +551,18 @@ def delete_user():
         print('\r\nERROR Delete user: Empty parameter found\r\n')
         # NOTE:
         # No need to return error code status.HTTP_401_UNAUTHORIZED since this is a logout
-        return response
+        return response, status.HTTP_400_BAD_REQUEST
 
     # check if username and token is valid
     verify_ret, new_token = g_database_client.verify_token(username, token)
     if verify_ret == 2: # token expired
         response = json.dumps({'status': 'NG', 'message': 'Token expired'})
         print('\r\nERROR Delete user: Token expired [{}]\r\n'.format(username))
-        return response
+        return response, status.HTTP_401_UNAUTHORIZED
     elif verify_ret != 0:
         response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
         print('\r\nERROR Delete user: Token is invalid [{}]\r\n'.format(username))
-        return response
+        return response, status.HTTP_401_UNAUTHORIZED
 
     # delete the user in cognito
     if new_token:
@@ -574,7 +572,7 @@ def delete_user():
     if result == False:
         response = json.dumps({'status': 'NG', 'message': 'Delete user failed internal error'})
         print('\r\nERROR Delete user: Internal error [{}]\r\n'.format(username))
-        return response
+        return response, status.HTTP_500_INTERNAL_SERVER_ERROR
 
     # TODO: delete user devices
 
@@ -624,14 +622,14 @@ def refresh_user_token():
         print('\r\nERROR Refresh token: Empty parameter found\r\n')
         # NOTE:
         # No need to return error code status.HTTP_401_UNAUTHORIZED since this is a logout
-        return response
+        return response, status.HTTP_400_BAD_REQUEST
 
     # get refresh and id token
     data = flask.request.get_json()
     if not data.get("refresh") or not data.get("id"):
         response = json.dumps({'status': 'NG', 'message': 'Refresh and ID tokens are not provided'})
         print('\r\nERROR Refresh token: Refresh and ID tokens are not provided [{}]\r\n'.format(username))
-        return response
+        return response, status.HTTP_400_BAD_REQUEST
     token['refresh'] = data['refresh']
     token['id'] = data['id']
 
@@ -640,7 +638,7 @@ def refresh_user_token():
     if new_token is None:
         response = json.dumps({'status': 'NG', 'message': 'Refresh token invalid'})
         print('\r\nERROR Refresh token: Token expired [{}]\r\n'.format(username))
-        return response
+        return response, status.HTTP_500_INTERNAL_SERVER_ERROR
 
     msg = {'status': 'OK', 'message': 'Refresh token successful.', 'token': new_token}
     response = json.dumps(msg)
@@ -683,25 +681,25 @@ def verify_phone_number():
     if len(username) == 0 or len(token) == 0:
         response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
         print('\r\nERROR Verify phone: Empty parameter found\r\n')
-        return response
+        return response, status.HTTP_400_BAD_REQUEST
 
     # check if username and token is valid
     verify_ret, new_token = g_database_client.verify_token(username, token)
     if verify_ret == 2: # token expired
         response = json.dumps({'status': 'NG', 'message': 'Token expired'})
         print('\r\nERROR Verify phone: Token expired [{}]\r\n'.format(username))
-        return response
+        return response, status.HTTP_401_UNAUTHORIZED
     elif verify_ret != 0:
         response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
         print('\r\nERROR Verify phone: Token is invalid [{}]\r\n'.format(username))
-        return response
+        return response, status.HTTP_401_UNAUTHORIZED
 
     # verify phone number
     result = g_database_client.request_verify_phone_number(token["access"])
     if not result:
         response = json.dumps({'status': 'NG', 'message': 'Request failed'})
         print('\r\nERROR Verify phone: Request failed [{}]\r\n'.format(username))
-        return response, status.HTTP_400_BAD_REQUEST
+        return response, status.HTTP_500_INTERNAL_SERVER_ERROR
 
     response = json.dumps({'status': 'OK', 'message': 'Verify phone successful'})
     print('\r\nVerify phone successful: {}\r\n{}\r\n'.format(username, response))
@@ -744,18 +742,18 @@ def confirm_verify_phone_number():
     if len(username) == 0 or len(token) == 0:
         response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
         print('\r\nERROR Confirm verify phone: Empty parameter found\r\n')
-        return response
+        return response, status.HTTP_400_BAD_REQUEST
 
     # check if username and token is valid
     verify_ret, new_token = g_database_client.verify_token(username, token)
     if verify_ret == 2: # token expired
         response = json.dumps({'status': 'NG', 'message': 'Token expired'})
         print('\r\nERROR Confirm verify phone: Token expired [{}]\r\n'.format(username))
-        return response
+        return response, status.HTTP_401_UNAUTHORIZED
     elif verify_ret != 0:
         response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
         print('\r\nERROR Confirm verify phone: Token is invalid [{}]\r\n'.format(username))
-        return response
+        return response, status.HTTP_401_UNAUTHORIZED
 
     data = flask.request.get_json()
 
@@ -764,7 +762,7 @@ def confirm_verify_phone_number():
     if not result:
         response = json.dumps({'status': 'NG', 'message': 'Request failed'})
         print('\r\nERROR Confirm verify phone: Request failed [{}]\r\n'.format(username))
-        return response, status.HTTP_400_BAD_REQUEST
+        return response, status.HTTP_500_INTERNAL_SERVER_ERROR
 
     response = json.dumps({'status': 'OK', 'message': 'Confirm verify phone successful'})
     print('\r\nConfirm verify phone successful: {}\r\n{}\r\n'.format(username, response))
@@ -807,18 +805,18 @@ def change_password():
     if len(username) == 0 or len(token) == 0:
         response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
         print('\r\nERROR Change password: Empty parameter found\r\n')
-        return response
+        return response, status.HTTP_400_BAD_REQUEST
 
     # check if username and token is valid
     verify_ret, new_token = g_database_client.verify_token(username, token)
     if verify_ret == 2: # token expired
         response = json.dumps({'status': 'NG', 'message': 'Token expired'})
         print('\r\nERROR Change password: Token expired [{}]\r\n'.format(username))
-        return response
+        return response, status.HTTP_401_UNAUTHORIZED
     elif verify_ret != 0:
         response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
         print('\r\nERROR Change password: Token is invalid [{}]\r\n'.format(username))
-        return response
+        return response, status.HTTP_401_UNAUTHORIZED
 
     data = flask.request.get_json()
     password, newpassword, reason = get_jwtencode_user_pass(data["token"])
@@ -832,7 +830,7 @@ def change_password():
     if not result:
         response = json.dumps({'status': 'NG', 'message': 'Request failed'})
         print('\r\nERROR Change password: Request failed [{}]\r\n'.format(username))
-        return response, status.HTTP_400_BAD_REQUEST
+        return response, status.HTTP_500_INTERNAL_SERVER_ERROR
 
     response = json.dumps({'status': 'OK', 'message': 'Change password successful'})
     print('\r\nChange password successful: {}\r\n{}\r\n'.format(username, response))
@@ -876,18 +874,18 @@ def update_user_info():
     if len(username) == 0 or len(token) == 0:
         response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
         print('\r\nERROR Update user: Empty parameter found\r\n')
-        return response
+        return response, status.HTTP_400_BAD_REQUEST
 
     # check if username and token is valid
     verify_ret, new_token = g_database_client.verify_token(username, token)
     if verify_ret == 2: # token expired
         response = json.dumps({'status': 'NG', 'message': 'Token expired'})
         print('\r\nERROR Update user: Token expired [{}]\r\n'.format(username))
-        return response
+        return response, status.HTTP_401_UNAUTHORIZED
     elif verify_ret != 0:
         response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
         print('\r\nERROR Update user: Token is invalid [{}]\r\n'.format(username))
-        return response
+        return response, status.HTTP_401_UNAUTHORIZED
 
     # get the input parameters
     data = flask.request.get_json()
@@ -911,7 +909,7 @@ def update_user_info():
     if not result:
         response = json.dumps({'status': 'NG', 'message': 'Request failed'})
         print('\r\nERROR Update user: Request failed [{}]\r\n'.format(username))
-        return response, status.HTTP_400_BAD_REQUEST
+        return response, status.HTTP_500_INTERNAL_SERVER_ERROR
 
     response = json.dumps({'status': 'OK', 'message': 'Change password successful'})
     print('\r\nUpdate user successful: {}\r\n{}\r\n'.format(username, response))
@@ -958,18 +956,18 @@ def get_subscription():
         print('\r\nERROR Get Subscription: Empty parameter found\r\n')
         # NOTE:
         # No need to return error code status.HTTP_401_UNAUTHORIZED since this is a logout
-        return response
+        return response, status.HTTP_400_BAD_REQUEST
 
     # check if username and token is valid
     verify_ret, new_token = g_database_client.verify_token(username, token)
     if verify_ret == 2:
         response = json.dumps({'status': 'NG', 'message': 'Token expired'})
         print('\r\nERROR Get Subscription: Token expired [{}]\r\n'.format(username))
-        return response
+        return response, status.HTTP_401_UNAUTHORIZED
     elif verify_ret != 0:
         response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
         print('\r\nERROR Get Subscription: Token is invalid [{}]\r\n'.format(username))
-        return response
+        return response, status.HTTP_401_UNAUTHORIZED
 
     subscription = g_database_client.get_subscription(username)
     print(subscription)
@@ -1024,20 +1022,20 @@ def set_subscription():
         print('\r\nERROR Set Subscription: Empty parameter found\r\n')
         # NOTE:
         # No need to return error code status.HTTP_401_UNAUTHORIZED since this is a logout
-        return response
+        return response, status.HTTP_400_BAD_REQUEST
 
     # check if username and token is valid
     verify_ret, new_token = g_database_client.verify_token(username, token)
     if verify_ret == 2:
         response = json.dumps({'status': 'NG', 'message': 'Token expired'})
         print('\r\nERROR Set Subscription: Token expired [{}]\r\n'.format(username))
-        return response
+        return response, status.HTTP_401_UNAUTHORIZED
     elif verify_ret != 0:
         response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
         print('\r\nERROR Set Subscription: Token is invalid [{}]\r\n'.format(username))
         # NOTE:
         # No need to return error code status.HTTP_401_UNAUTHORIZED since this is a logout
-        return response
+        return response, status.HTTP_401_UNAUTHORIZED
 
     subscription = g_database_client.set_subscription(username, credits)
     print(subscription)
@@ -1092,23 +1090,18 @@ def set_payment_paypal_setup():
     if len(username) == 0 or len(token) == 0:
         response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
         print('\r\nERROR Paypal Setup: Empty parameter found\r\n')
-        return response
+        return response, status.HTTP_400_BAD_REQUEST
 
     # check if username and token is valid
     verify_ret, new_token = g_database_client.verify_token(username, token)
     if verify_ret == 2:
         response = json.dumps({'status': 'NG', 'message': 'Token expired'})
         print('\r\nERROR Paypal Setup: Token expired [{}]\r\n'.format(username))
-        return response
+        return response, status.HTTP_401_UNAUTHORIZED
     elif verify_ret != 0:
         response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
         print('\r\nERROR Paypal Setup: Token is invalid [{}]\r\n'.format(username))
-        return response
-
-    if flask.request.method != 'POST':
-        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
-        print('\r\nERROR Paypal Setup: Token is invalid [{}]\r\n'.format(username))
-        return response
+        return response, status.HTTP_401_UNAUTHORIZED
 
     print(payment)
     approval_url, payment_id, token = g_database_client.transactions_paypal_set_payment(username, token, payment)
@@ -1160,23 +1153,18 @@ def set_payment_paypal_execute():
     if len(username) == 0 or len(token) == 0:
         response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
         print('\r\nERROR Paypal Execute: Empty parameter found\r\n')
-        return response
+        return response, status.HTTP_400_BAD_REQUEST
 
     # check if username and token is valid
     verify_ret, new_token = g_database_client.verify_token(username, token)
     if verify_ret == 2:
         response = json.dumps({'status': 'NG', 'message': 'Token expired'})
         print('\r\nERROR Paypal Execute: Token expired [{}]\r\n'.format(username))
-        return response
+        return response, status.HTTP_401_UNAUTHORIZED
     elif verify_ret != 0:
         response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
         print('\r\nERROR Paypal Execute: Token is invalid [{}]\r\n'.format(username))
-        return response
-
-    if flask.request.method != 'POST':
-        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
-        print('\r\nERROR Paypal Execute: Token is invalid [{}]\r\n'.format(username))
-        return response
+        return response, status.HTTP_401_UNAUTHORIZED
 
     print(payment)
     status = g_database_client.transactions_paypal_execute_payment(username, token, payment)
@@ -1234,27 +1222,20 @@ def set_payment_paypal_verify():
         print('\r\nERROR Paypal Verify: Empty parameter found\r\n')
         # NOTE:
         # No need to return error code status.HTTP_401_UNAUTHORIZED since this is a logout
-        return response
+        return response, status.HTTP_400_BAD_REQUEST
 
     # check if username and token is valid
     verify_ret, new_token = g_database_client.verify_token(username, token)
     if verify_ret == 2:
         response = json.dumps({'status': 'NG', 'message': 'Token expired'})
         print('\r\nERROR Paypal Verify: Token expired [{}]\r\n'.format(username))
-        return response
+        return response, status.HTTP_401_UNAUTHORIZED
     elif verify_ret != 0:
         response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
         print('\r\nERROR Paypal Verify: Token is invalid [{}]\r\n'.format(username))
         # NOTE:
         # No need to return error code status.HTTP_401_UNAUTHORIZED since this is a logout
-        return response
-
-    if flask.request.method != 'POST':
-        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
-        print('\r\nERROR Paypal Verify: Token is invalid [{}]\r\n'.format(username))
-        # NOTE:
-        # No need to return error code status.HTTP_401_UNAUTHORIZED since this is a logout
-        return response
+        return response, status.HTTP_401_UNAUTHORIZED
 
     print(payment)
     status = g_database_client.transactions_paypal_verify_payment(username, token, payment)
@@ -1388,7 +1369,7 @@ def register_device(devicename):
     if verify_ret == 2:
         response = json.dumps({'status': 'NG', 'message': 'Token expired'})
         print('\r\nERROR Add/Delete Device: Token expired [{}]\r\n'.format(username))
-        return response
+        return response, status.HTTP_401_UNAUTHORIZED
     elif verify_ret != 0:
         response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
         print('\r\nERROR Add/Delete Device: Token is invalid [{}]\r\n'.format(username))
@@ -1424,7 +1405,7 @@ def register_device(devicename):
         if not result:
             response = json.dumps({'status': 'NG', 'message': 'Device could not be registered in message broker'})
             print('\r\nERROR Add Device: Device could not be registered  in message broker [{},{}]\r\n'.format(username, devicename))
-            return response, status.HTTP_400_BAD_REQUEST
+            return response, status.HTTP_500_INTERNAL_SERVER_ERROR
 
         msg = {'status': 'OK', 'message': 'Devices registered successfully.'}
         if new_token:
@@ -1451,7 +1432,7 @@ def register_device(devicename):
         if not result:
             response = json.dumps({'status': 'NG', 'message': 'Device could not be unregistered in message broker'})
             print('\r\nERROR Delete Device: Device could not be unregistered  in message broker [{},{}]\r\n'.format(username, devicename))
-            return response, status.HTTP_400_BAD_REQUEST
+            return response, status.HTTP_500_INTERNAL_SERVER_ERROR
 
         msg = {'status': 'OK', 'message': 'Devices unregistered successfully.'}
         if new_token:
