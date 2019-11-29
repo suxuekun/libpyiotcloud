@@ -1664,7 +1664,7 @@ def get_device_histories_filtered():
 #   headers: {'Authorization': 'Bearer ' + token.access}
 #
 # - Response:
-#   { 'status': 'OK', 'message': string, 'value': string }
+#   { 'status': 'OK', 'message': string, 'value': { "status": string, "version": string } }
 #   { 'status': 'NG', 'message': string}
 #
 @app.route('/devices/device/<devicename>/status', methods=['GET'])
@@ -2112,8 +2112,23 @@ def set_uart_properties(devicename, number):
 
     # get username from token
     data = flask.request.get_json()
-    print(api)
     print(data)
+    if data['baudrate'] is None or data['parity'] is None or data['notification'] is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid parameters'})
+        print('\r\nERROR Invalid parameters\r\n')
+        return response, status.HTTP_400_BAD_REQUEST
+    print(data['baudrate'])
+    print(data['parity'])
+    print(data['notification'])
+
+    # get notifications and remove from list
+    notification = data['notification']
+    data.pop('notification')
+    print(data)
+    print(notification)
+    source = "uart{}".format(number)
+    print(json.dumps({'source': source}))
+
     data['token'] = {'access': auth_header_token}
     data['devicename'] = devicename
     data['username'] = g_database_client.get_username_from_token(data['token'])
@@ -2189,6 +2204,53 @@ def set_gpio_properties(devicename, number):
 
     # get username from token
     data = flask.request.get_json()
+    print(data)
+    if data['direction'] is None or data['mode'] is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid parameters'})
+        print('\r\nERROR Invalid parameters\r\n')
+        return response, status.HTTP_400_BAD_REQUEST
+    if data['direction'] == 0:
+        if data['alert'] is None:
+            response = json.dumps({'status': 'NG', 'message': 'Invalid parameters'})
+            print('\r\nERROR Invalid parameters\r\n')
+            return response, status.HTTP_400_BAD_REQUEST
+        elif data['alert'] == 1:
+            if data['alertperiod'] is None:
+                response = json.dumps({'status': 'NG', 'message': 'Invalid parameters'})
+                print('\r\nERROR Invalid parameters\r\n')
+                return response, status.HTTP_400_BAD_REQUEST
+    elif data['direction'] == 1:
+        if data['polarity'] is None:
+            response = json.dumps({'status': 'NG', 'message': 'Invalid parameters'})
+            print('\r\nERROR Invalid parameters\r\n')
+            return response, status.HTTP_400_BAD_REQUEST
+        elif data['polarity'] == 1 and data['width'] is None:
+            response = json.dumps({'status': 'NG', 'message': 'Invalid parameters'})
+            print('\r\nERROR Invalid parameters\r\n')
+            return response, status.HTTP_400_BAD_REQUEST
+        elif data['polarity'] == 2:
+            if data['mark'] is None or data['space'] is None:
+                response = json.dumps({'status': 'NG', 'message': 'Invalid parameters'})
+                print('\r\nERROR Invalid parameters\r\n')
+                return response, status.HTTP_400_BAD_REQUEST
+    print(data['direction'])
+    print(data['mode'])
+    print(data['alert'])
+    print(data['alertperiod'])
+    print(data['polarity'])
+    print(data['width'])
+    print(data['mark'])
+    print(data['space'])
+
+
+    # get notifications and remove from list
+    notification = data['notification']
+    data.pop('notification')
+    print(data)
+    print(notification)
+    source = "gpio{}".format(number)
+    print(json.dumps({'source': source}))
+
     print(api)
     print(data)
     data['token'] = {'access': auth_header_token}
