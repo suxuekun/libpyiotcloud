@@ -271,6 +271,14 @@ SUMMARY:
 		D. PAYPAL EXECUTE              - POST   /account/payment/paypalexecute
 		E. PAYPAL VERIFY               - POST   /account/payment/paypalverify
 
+	6. HTTP error codes
+
+		A. HTTP_400_BAD_REQUEST           - Invalid input
+		B. HTTP_401_UNAUTHORIZED          - Invalid password or invalid/expired token
+		C. HTTP_404_NOT_FOUND             - User or device not found
+		D. HTTP_409_CONFLICT              - User or device already exist
+		E. HTTP_500_INTERNAL_SERVER_ERROR - Internal processing error or 3rd-party API failure
+		F. HTTP_503_SERVICE_UNAVAILABLE   - Device is unreachable
 
 
 DETAILED:
