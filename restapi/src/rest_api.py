@@ -1440,7 +1440,7 @@ def register_device(devicename):
         if not device:
             response = json.dumps({'status': 'NG', 'message': 'Device is not registered'})
             print('\r\nERROR Delete Device: Device is not registered [{},{}]\r\n'.format(username, devicename))
-            return response, status.HTTP_400_BAD_REQUEST
+            return response, status.HTTP_404_NOT_FOUND
 
         # delete device from database
         g_database_client.delete_device(username, devicename)
@@ -1514,7 +1514,7 @@ def get_device(devicename):
     if not device:
         response = json.dumps({'status': 'NG', 'message': 'Device is not registered'})
         print('\r\nERROR Get Device: Device is not registered [{},{}]\r\n'.format(username, devicename))
-        return response, status.HTTP_400_BAD_REQUEST
+        return response, status.HTTP_404_NOT_FOUND
 
 
     msg = {'status': 'OK', 'message': 'Devices queried successfully.', 'device': device}
@@ -2345,7 +2345,7 @@ def process_request_get(api, data):
     if not g_database_client.find_device(username, devicename):
         response = json.dumps({'status': 'NG', 'message': 'Device is not registered'})
         print('\r\nERROR Device is not registered [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
+        return response, status.HTTP_404_NOT_FOUND
 
     # get deviceid for subscribe purpose (AMQP)
     deviceid = g_database_client.get_deviceid(username, devicename)
@@ -2371,23 +2371,23 @@ def process_request_get(api, data):
                 msg['new_token'] = new_token
             response = json.dumps(msg)
             print('\r\nERROR Could not communicate with device [{}, {}]\r\n'.format(username, devicename))
-            return response, status.HTTP_401_UNAUTHORIZED
+            return response, status.HTTP_500_INTERNAL_SERVER_ERROR
     except:
         msg = {'status': 'NG', 'message': 'Could not communicate with device'}
         if new_token:
             msg['new_token'] = new_token
         response = json.dumps(msg)
         print('\r\nERROR Could not communicate with device [{}, {}]\r\n'.format(username, devicename))
-        return response, status.HTTP_401_UNAUTHORIZED
+        return response, status.HTTP_500_INTERNAL_SERVER_ERROR
 
     # return HTTP response
     if response is None:
-        msg = {'status': 'NG', 'message': 'Could not communicate with device'}
+        msg = {'status': 'NG', 'message': 'Device is unreachable'}
         if new_token:
             msg['new_token'] = new_token
         response = json.dumps(msg)
-        print('\r\nERROR Could not communicate with device [{}, {}]\r\n'.format(username, devicename))
-        return response, status.HTTP_401_UNAUTHORIZED
+        print('\r\nERROR Device is unreachable [{}, {}]\r\n'.format(username, devicename))
+        return response, status.HTTP_503_SERVICE_UNAVAILABLE
 
     print(response)
     msg = {'status': 'OK', 'message': 'Device accessed successfully.'}
@@ -2421,7 +2421,7 @@ def process_request(api, data):
     if not g_database_client.find_device(username, devicename):
         response = json.dumps({'status': 'NG', 'message': 'Device is not registered'})
         print('\r\nERROR Device is not registered [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
+        return response, status.HTTP_404_NOT_FOUND
 
     # get deviceid for subscribe purpose (AMQP)
     deviceid = g_database_client.get_deviceid(username, devicename)
@@ -2447,23 +2447,23 @@ def process_request(api, data):
                 msg['new_token'] = new_token
             response = json.dumps(msg)
             print('\r\nERROR Could not communicate with device [{}, {}]\r\n'.format(username, devicename))
-            return response, status.HTTP_401_UNAUTHORIZED
+            return response, status.HTTP_500_INTERNAL_SERVER_ERROR
     except:
         msg = {'status': 'NG', 'message': 'Could not communicate with device'}
         if new_token:
             msg['new_token'] = new_token
         response = json.dumps(msg)
         print('\r\nERROR Could not communicate with device [{}, {}]\r\n'.format(username, devicename))
-        return response, status.HTTP_401_UNAUTHORIZED
+        return response, status.HTTP_500_INTERNAL_SERVER_ERROR
 
     # return HTTP response
     if response is None:
-        msg = {'status': 'NG', 'message': 'Could not communicate with device'}
+        msg = {'status': 'NG', 'message': 'Device is unreachable'}
         if new_token:
             msg['new_token'] = new_token
         response = json.dumps(msg)
-        print('\r\nERROR Could not communicate with device [{}, {}]\r\n'.format(username, devicename))
-        return response, status.HTTP_401_UNAUTHORIZED
+        print('\r\nERROR Device is unreachable [{}, {}]\r\n'.format(username, devicename))
+        return response, status.HTTP_503_SERVICE_UNAVAILABLE
 
     print(response)
     msg = {'status': 'OK', 'message': 'Device accessed successfully.'}
