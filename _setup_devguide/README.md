@@ -496,7 +496,7 @@ DETAILED:
 		- LIMITATION. HTTP GET requests do not permit including payload/data parameters.
 		- CONSISTENCY. To make APIs consistent, HTTP POST/DELETE requests are also made similar to their corresponding HTTP GET requests.
 		- PRACTICE. 3rd-party APIs such as RabbitMQ HTTP APIs also employ the same technique.
-		- FRAMEWORK. Flask provides a framework to parse parameters in the URL path in the backend.
+		- FRAMEWORK. Flask provides a framework to parse parameters in the URL path, applicable to both GET and POST, in the backend.
 		- CONVENIENT. The consistency-ness makes it easy and convenient to implement and debug in the frontend.
 		- EASY. Supporting this only requires simple string concatenation to generate the URL field.
 
