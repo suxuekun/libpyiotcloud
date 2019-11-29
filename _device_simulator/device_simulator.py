@@ -32,6 +32,11 @@ g_gpio_values = {}
 
 g_device_status = "running"
 
+g_firmware_version_MAJOR = 0
+g_firmware_version_MINOR = 1
+g_firmware_version = (g_firmware_version_MAJOR*100 + g_firmware_version_MINOR)
+g_firmware_version_STR = "{}.{}".format(g_firmware_version_MAJOR, g_firmware_version_MINOR)
+
 g_uart_properties = {
     '1': { 'baudrate': 6, 'parity': 1 }, 
     '2': { 'baudrate': 7, 'parity': 2 } }
@@ -88,7 +93,7 @@ def handle_api(api, subtopic, subpayload):
     if api == "get_status":
         topic = generate_pubtopic(subtopic)
         payload = {}
-        payload["value"] = g_device_status
+        payload["value"] = { "status": g_device_status, "version": g_firmware_version_STR }
         publish(topic, payload)
 
     elif api == "set_status":
@@ -154,10 +159,14 @@ def handle_api(api, subtopic, subpayload):
         print(subpayload)
 
         g_gpio_properties[str(subpayload["number"])] = { 
-            'direction': subpayload["direction"], 
-            'mode': subpayload["mode"],
+            'direction' : subpayload["direction"], 
+            'mode' : subpayload["mode"],
             'alert': subpayload["alert"],
-            'alertperiod': subpayload["alertperiod"] } 
+            'alertperiod': subpayload["alertperiod"],
+            'polarity': subpayload["polarity"],
+            'width': subpayload["width"],
+            'mark': subpayload["mark"],
+            'space': subpayload["space"] }
         value = g_gpio_properties[str(subpayload["number"])]
 
         payload = {}
@@ -443,6 +452,8 @@ if __name__ == '__main__':
     print("Welcome to IoT Device Controller example...\n")
     print("Demonstrate remote access of FT900 via Bridgetek IoT Cloud")
     print("-------------------------------------------------------")
+
+    print("\nFIRMWARE VERSION = {} ({})".format(g_firmware_version_STR, g_firmware_version))
 
     print("\nTLS CERTIFICATES")
     print("ca:   {}".format(args.USE_DEVICE_CA))

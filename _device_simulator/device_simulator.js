@@ -10,15 +10,20 @@ var ArgumentParser = require('argparse');
 
 var g_device_status = "running";
 
+var g_firmware_version_MAJOR = 0;
+var g_firmware_version_MINOR = 1;
+var g_firmware_version = (g_firmware_version_MAJOR*100 + g_firmware_version_MINOR);
+var g_firmware_version_STR = g_firmware_version_MAJOR.toString() + "." + g_firmware_version_MINOR.toString();
+
 var g_uart_properties = {
     '1': { 'baudrate': 6, 'parity': 1 }, 
     '2': { 'baudrate': 7, 'parity': 2 } };
 
 var g_gpio_properties = {
-    '1': { 'direction': 0, 'mode': 0, 'alert': 0, 'alertperiod':   0,   'polarity': 0, 'width': 0, 'mark': 0, 'space': 0 },
-    '2': { 'direction': 0, 'mode': 3, 'alert': 1, 'alertperiod':  60,   'polarity': 0, 'width': 0, 'mark': 0, 'space': 0 },
-    '3': { 'direction': 1, 'mode': 0, 'alert': 0, 'alertperiod':   0,   'polarity': 0, 'width': 0, 'mark': 0, 'space': 0 },
-    '4': { 'direction': 1, 'mode': 2, 'alert': 1, 'alertperiod': 120,   'polarity': 1, 'width': 0, 'mark': 1, 'space': 2 } }
+    '1': { 'direction': 0, 'mode': 0, 'alert': 0, 'alertperiod':   0, 'polarity': 0, 'width': 0, 'mark': 0, 'space': 0 },
+    '2': { 'direction': 0, 'mode': 3, 'alert': 1, 'alertperiod':  60, 'polarity': 0, 'width': 0, 'mark': 0, 'space': 0 },
+    '3': { 'direction': 1, 'mode': 0, 'alert': 0, 'alertperiod':   0, 'polarity': 0, 'width': 0, 'mark': 0, 'space': 0 },
+    '4': { 'direction': 1, 'mode': 2, 'alert': 1, 'alertperiod': 120, 'polarity': 1, 'width': 0, 'mark': 1, 'space': 2 } }
 
 var g_gpio_voltage = 1;
 
@@ -89,6 +94,8 @@ if (args.USE_PASSWORD != null && args.USE_PASSWORD.length > 0) {
 }
 
 
+console.log("\nFIRMWARE VERSION = " + g_firmware_version_STR + " (" + g_firmware_version.toString() + ")");
+
 console.log("\nTLS CERTIFICATES");
 console.log("ca:   " + CONFIG_TLS_CA);
 console.log("cert: " + CONFIG_TLS_CERT);
@@ -155,7 +162,7 @@ function handle_api(api, topic, payload) {
     if (api == "get_status") {
         pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
         var obj = {
-            "value": g_device_status
+            "value": { "status": g_device_status, "version": g_firmware_version_STR }
         };
         client.publish(pubtopic, JSON.stringify(obj));
     }
@@ -199,16 +206,12 @@ function handle_api(api, topic, payload) {
     else if (api == "set_uart_properties") {
         pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
         var obj = JSON.parse(payload);
-        var number   = obj.number;
-        var baudrate = Number(obj.baudrate);
-        var parity   = Number(obj.parity);
-
+        var number = obj.number;
         console.log(number);
-        console.log(baudrate);
-        console.log(parity);
+
         g_uart_properties[number] = {
-            "baudrate" : baudrate, 
-            "parity"   : parity
+            "baudrate" : Number(obj.baudrate), 
+            "parity"   : Number(obj.parity)
         };
         var response = { "value": g_uart_properties[number] };
         client.publish(pubtopic, JSON.stringify(response));
@@ -236,22 +239,18 @@ function handle_api(api, topic, payload) {
     else if (api == "set_gpio_properties") {
         pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
         var obj = JSON.parse(payload);
-        var number      = obj.number;
-        var direction   = Number(obj.direction);
-        var mode        = Number(obj.mode);
-        var alert       = Number(obj.alert);
-        var alertperiod = Number(obj.alertperiod);
-
+        var number = obj.number;
         console.log(number);
-        console.log(direction);
-        console.log(mode);
-        console.log(alert);
-        console.log(alertperiod);
+
         g_gpio_properties[number] = {
-            "direction"  : direction, 
-            "mode"       : mode,
-            "alert"      : alert,
-            "alertperiod": alertperiod,
+            "direction"  : Number(obj.direction),
+            "mode"       : Number(obj.mode),
+            "alert"      : Number(obj.alert),
+            "alertperiod": Number(obj.alertperiod),
+            "polarity"   : Number(obj.polarity),
+            "width"      : Number(obj.width),
+            "mark"       : Number(obj.mark),
+            "space"      : Number(obj.space)
         };
         var response = { "value": g_gpio_properties[number] };
         client.publish(pubtopic, JSON.stringify(response));
