@@ -18,8 +18,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Device
     $scope.devices = [];
 
     $scope.data = {
-        'username': User.get_username(), //$stateParams.username,
-        'token': User.get_token()        //$stateParams.token
+        'username': User.get_username(),
+        'token': User.get_token()
     };
 
     $scope.submitTest = function(device) {
@@ -71,7 +71,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Device
         //   headers: {'Authorization': 'Bearer ' + token.access}
         //
         // - Response:
-        //   { 'status': 'OK', 'message': string, 'value': string}
+        //   { 'status': 'OK', 'message': string, 'value': { "status": string, "version": string } }
         //   { 'status': 'NG', 'message': string}
         //        
         $http({
@@ -111,47 +111,6 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Device
         }
     };    
     
-    
-    $scope.submitView = function(device) {
-        console.log("view" + device.devicename);
-        
-        console.log("username=" + $scope.data.username);
-        console.log("token=" + $scope.data.token);
-        console.log("devicename=" + device.devicename);
-
-        //
-        // GET DEVICE
-        //
-        // - Request:
-        //   GET /devices/device/<devicename>
-        //   headers: {'Authorization': 'Bearer ' + token.access}
-        //
-        // - Response:
-        //   {'status': 'OK', 'message': string, 'device': {'devicename': string, 'deviceid': string, 'cert': cert, 'pkey': pkey}}
-        //   {'status': 'NG', 'message': string}
-        //   
-        $http({
-            method: 'GET',
-            url: server + '/devices/device/' + device.devicename,
-            headers: {'Authorization': 'Bearer ' + $scope.data.token.access}
-        })
-        .then(function (result) {
-            console.log(result.data);
-            var device_param = {
-                'username': $scope.data.username,
-                'token': $scope.data.token,
-                'devicename': result.data.device.devicename,
-                'deviceid': result.data.device.deviceid,
-                'devicecert': result.data.device.cert,
-                'devicepkey': result.data.device.pkey,
-                'deviceca': result.data.device.ca
-            };
-            $state.go('viewDevice', device_param);
-        })
-        .catch(function (error) {
-            handle_error(error);
-        }); 
-    };
 
     $scope.$on('$ionicView.enter', function(e) {
         //console.log("DEVICES enter ionicView REFRESH LIST");
@@ -2382,7 +2341,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         'devicename': $stateParams.devicename,
         'deviceid': $stateParams.deviceid,
         'serialnumber': $stateParams.serialnumber,
-        'devicestatus': 'UNKNOWN'
+        'devicestatus': 'UNKNOWN',
+        'deviceversion': 'UNKNOWN'
     };
 
     $scope.submitEthernet = function() {
@@ -2463,7 +2423,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         //   headers: {'Authorization': 'Bearer ' + token.access}
         //
         // - Response:
-        //   { 'status': 'OK', 'message': string, 'value': string}
+        //   { 'status': 'OK', 'message': string, 'value': { "status": string, "version": string } }
         //   { 'status': 'NG', 'message': string}
         //        
         $http({
@@ -2474,10 +2434,12 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         .then(function (result) {
             console.log(result.data);
             $scope.data.devicestatus = 'Online';
+            $scope.data.deviceversion = result.data.value.version;
         })
         .catch(function (error) {
             handle_error(error);
             $scope.data.devicestatus = 'Offline';
+            $scope.data.deviceversion = 'UNKNOWN';
         }); 
     };   
 
@@ -2774,26 +2736,56 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         'devicestatus': $stateParams.devicestatus,
         'deviceid': $stateParams.deviceid,
         'serialnumber': $stateParams.serialnumber,
-       
-        'activeSection': 1,
-        'voltageidx': $scope.voltages[0].id,
-        'directionidx': $scope.directions[0].id,
-        'modeidx': $scope.modes[0].id,
-        'polarityidx': $scope.polarities[0].id,
-        'width': 1,
-        'mark': 1,
-        'space': 1,
-        'alertidx': $scope.alerts[0].id,
-        'alertperiod': 60,
 
+        'activeSection': 1,
         'showNotification': 0,
-        'message': "Hello World!",
-        'email': "",
-        'phonenumber': "",
-        'sendemail': 0,
-        'sendsms': 0,
-        'sendnotification': 0,
-        'senddevice': 0,
+        'voltageidx': $scope.voltages[0].id,
+
+        'gpio': {
+            'direction'   : $scope.directions[0].id,
+            'mode'        : $scope.modes[0].id,
+            'alert'       : $scope.alerts[0].id,
+            'alertperiod' : 60,
+            'polarity'    : $scope.polarities[0].id,
+            'width'       : 1,
+            'mark'        : 1,
+            'space'       : 1,
+        
+            'notification': {
+                'messages': [ 
+                    { 'message': 'Hello World!', 'enable': true },
+                    { 'message': 'Hi World!', 'enable': false },
+                ],
+                'endpoints' : {
+                    'mobile': {
+                        'recipients': '',
+                        'enable': false,
+                        //'recipients_list': [{'to': '', 'group': false}, ],
+                    },
+                    'email': {
+                        'recipients': '',
+                        'enable': false,
+                        //'recipients_list': [{'to': '', 'group': false}, ],
+                    },
+                    'notification': {
+                        'recipients': '',
+                        'enable': false,
+                        //'recipients_list': [{'to': '', 'group': false}, ],
+                    },
+                    'modem': {
+                        'recipients': '',
+                        'enable': false,
+                        //'recipients_list': [{'to': '', 'group': false}, ],
+                    },
+                    'storage': {
+                        'recipients': '',
+                        'enable': false,
+                        //'recipients_list': [{'to': '', 'group': false}, ],
+                    },
+                }
+            }
+        },        
+        
     };
 
     $scope.changeSection = function(s) {
@@ -2806,7 +2798,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
     };
     
 
-    handle_error = function(error) {
+    handle_error = function(error, showerror) {
         if (error.data !== null) {
             console.log("ERROR: Control Device failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
 
@@ -2815,7 +2807,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
                 $scope.data.token = User.get_token();
             }
             
-            if (error.status == 503) {
+            if (error.status == 503 && showerror === true ) {
                 $ionicPopup.alert({ title: 'Error', template: 'Device is unreachable!', buttons: [{text: 'OK', type: 'button-assertive'}] });
             }            
         }
@@ -2835,7 +2827,48 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         //   headers: { 'Authorization': 'Bearer ' + token.access }
         //
         // - Response:
-        //   { 'status': 'OK', 'message': string, 'value': { 'direction': int, 'mode': int, 'alert': int, 'alertperiod': int, 'polarity': int, 'width': int, 'mark': int, 'space': int } }
+        //   { 'status': 'OK', 'message': string, 'value':
+        //     { 
+        //      'direction': int,
+        //      'mode': int,
+        //      'alert': int,
+        //      'alertperiod': int,
+        //      'polarity': int,
+        //      'width': int,
+        //      'mark': int,
+        //      'space': int,
+        //      'notification': {
+        //          'messages': [{ 'message': string, 'enable': boolean }, { 'message': string, 'enable': boolean }],
+        //          'endpoints' : {
+        //              'mobile': {
+        //                  'recipients': string, // can be multiple items separated by comma
+        //                  'enable': boolean,
+        //                  //'recipients_list': [{'to': string, 'group': boolean}, ],
+        //              },
+        //              'email': {
+        //                  'recipients': string, // can be multiple items separated by comma
+        //                  'enable': boolean,
+        //                  //'recipients_list': [{'to': '', 'group': boolean}, ],
+        //              },
+        //              'notification': {
+        //                  'recipients': string, // can be multiple items separated by comma
+        //                  'enable': boolean,
+        //                  //'recipients_list': [{'to': '', 'group': boolean}, ],
+        //              },
+        //              'modem': {
+        //                  'recipients': string, // can be multiple items separated by comma
+        //                  'enable': boolean,
+        //                  //'recipients_list': [{'to': '', 'group': boolean}, ],
+        //              },
+        //              'storage': {
+        //                  'recipients': string, // can be multiple items separated by comma
+        //                  'enable': boolean,
+        //                  //'recipients_list': [{'to': '', 'group': boolean}, ],
+        //              },
+        //          }
+        //      }
+        //     }        
+        //   }
         //   { 'status': 'NG', 'message': string }
         //
         $http({
@@ -2845,66 +2878,70 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         })
         .then(function (result) {
             console.log(result.data);
-            $scope.data.directionidx = result.data.value.direction;
-            if ($scope.data.directionidx === 0) {
-                // input
-                $scope.data.modeidx = result.data.value.mode;
-            }
-            else {
-                // output
-                $scope.data.polarityidx = result.data.value.polarity;
-                $scope.data.modeidx = result.data.value.mode;
-                if ($scope.data.modeidx === 1) {
-                    // pulse
-                    $scope.data.width = result.data.value.width;
-                }
-                else if ($scope.data.modeidx === 2) {
-                    // clock
-                    $scope.data.mark = result.data.value.mark;
-                    $scope.data.space = result.data.value.space;
-                }
-            }
-            $scope.data.alertidx     = result.data.value.alert;
-            $scope.data.alertperiod  = result.data.value.alertperiod;
+
+            $scope.data.gpio.direction   = result.data.value.direction;
+            $scope.data.gpio.mode        = result.data.value.mode;
+            $scope.data.gpio.alert       = result.data.value.alert;
+            $scope.data.gpio.alertperiod = result.data.value.alertperiod;
+            $scope.data.gpio.polarity    = result.data.value.polarity;
+            $scope.data.gpio.width       = result.data.value.width;
+            $scope.data.gpio.mark        = result.data.value.mark;
+            $scope.data.gpio.space       = result.data.value.space;
         })
         .catch(function (error) {
-            handle_error(error);
+            handle_error(error, true);
         }); 
     };
 
 
     set_gpio_properties = function() {
-        
-        param = {
-            'direction': $scope.data.directionidx,
-            'mode': $scope.data.modeidx,
-            'alert': $scope.data.alertidx, 
-            'alertperiod': $scope.data.alertperiod,
-        };
-        if ($scope.data.directionidx === 0) {
-            // input
-        }
-        else {
-            // output
-            param.polarity = $scope.data.polarityidx;
-            if ($scope.data.modeidx === 1) {
-                // pulse
-                param.width = $scope.data.width;
-            }
-            else if ($scope.data.modeidx === 2) {
-                // clock
-                param.mark = $scope.data.mark;
-                param.space = $scope.data.space;
-            }
-        }
-        
         //
         // SET GPIO PROPERTIES
         //
         // - Request:
         //   POST /devices/device/<devicename>/gpio/<number>/properties
         //   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
-        //   data: { 'direction': int, 'mode': int, 'alert': int, 'alertperiod': int, 'polarity': int, 'width': int, 'mark': int, 'space': int }
+        //   data: 
+        //   { 
+        //      'direction': int,
+        //      'mode': int,
+        //      'alert': int,
+        //      'alertperiod': int,
+        //      'polarity': int,
+        //      'width': int,
+        //      'mark': int,
+        //      'space': int,
+        //      'notification': {
+        //          'messages': [{ 'message': string, 'enable': boolean }, { 'message': string, 'enable': boolean }],
+        //          'endpoints' : {
+        //              'mobile': {
+        //                  'recipients': string, // can be multiple items separated by comma
+        //                  'enable': boolean,
+        //                  //'recipients_list': [{'to': string, 'group': boolean}, ],
+        //              },
+        //              'email': {
+        //                  'recipients': string, // can be multiple items separated by comma
+        //                  'enable': boolean,
+        //                  //'recipients_list': [{'to': '', 'group': boolean}, ],
+        //              },
+        //              'notification': {
+        //                  'recipients': string, // can be multiple items separated by comma
+        //                  'enable': boolean,
+        //                  //'recipients_list': [{'to': '', 'group': boolean}, ],
+        //              },
+        //              'modem': {
+        //                  'recipients': string, // can be multiple items separated by comma
+        //                  'enable': boolean,
+        //                  //'recipients_list': [{'to': '', 'group': boolean}, ],
+        //              },
+        //              'storage': {
+        //                  'recipients': string, // can be multiple items separated by comma
+        //                  'enable': boolean,
+        //                  //'recipients_list': [{'to': '', 'group': boolean}, ],
+        //              },
+        //          }
+        //      }
+        //   }
         //
         // - Response:
         //   { 'status': 'OK', 'message': string }
@@ -2914,7 +2951,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             method: 'POST',
             url: server + '/devices/device/' + $scope.data.devicename + '/gpio/' + $scope.data.activeSection.toString() + '/properties',
             headers: { 'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json' },
-            data: param
+            data: $scope.data.gpio
         })
         .then(function (result) {
             console.log(result.data);
@@ -2925,7 +2962,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             });            
         })
         .catch(function (error) {
-            handle_error(error);
+            handle_error(error, true);
         }); 
     };
     
@@ -2952,7 +2989,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             $scope.data.voltageidx = result.data.value;
         })
         .catch(function (error) {
-            handle_error(error);
+            handle_error(error, false);
         }); 
     };
 
@@ -2980,7 +3017,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             console.log(result.data);
         })
         .catch(function (error) {
-            handle_error(error);
+            handle_error(error, false);
         }); 
     };
 
@@ -3005,40 +3042,27 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         .then(function (result) {
             console.log("ACCOUNT OK");
             console.log(result.data);
-            
-            if ($scope.data.email !== undefined) {
-                $scope.data.email = result.data.info.email;
-                if (result.data.info.email_verified) {
-                    $scope.data.sendemail = 1;
-                }
-                else {
-                    $scope.data.sendemail = 0;
-                }
+
+            if (result.data.info.email !== undefined) {
+                $scope.data.gpio.notification.endpoints.email.recipients = result.data.info.email;
             }
-            else {
-                $scope.data.email = "";
-                $scope.data.sendemail = 0;
+    
+            if (result.data.info.email_verified !== undefined) {
+                $scope.data.gpio.notification.endpoints.email.enable = result.data.info.email_verified;
             }
-            
+    
             if (result.data.info.phone_number !== undefined) {
-                $scope.data.phonenumber = result.data.info.phone_number;
-                if (result.data.info.phone_number_verified) {
-                    $scope.data.sendsms = 1;
-                    $scope.data.sendnotification = 0;
-                }
-                else {
-                    $scope.data.sendsms = 0;
-                    $scope.data.sendnotification = 0;
-                }
+                $scope.data.gpio.notification.endpoints.mobile.recipients = result.data.info.phone_number;
+                $scope.data.gpio.notification.endpoints.notification.recipients = result.data.info.phone_number;
             }
-            else {
-                $scope.data.phonenumber = "";
-                $scope.data.sendsms = 0;
-                $scope.data.sendnotification = 0;
+    
+            if (result.data.info.phone_number_verified !== undefined) {
+                $scope.data.gpio.notification.endpoints.mobile.enable = result.data.info.phone_number_verified;
+                $scope.data.gpio.notification.endpoints.notification.enable = result.data.info.phone_number_verified;
             }
         })
         .catch(function (error) {
-            handle_error(error);
+            handle_error(error, false);
         }); 
     };
 
@@ -3200,17 +3224,44 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         'serialnumber': $stateParams.serialnumber,
         
         'activeSection': 1,
-        'baudrateidx': $scope.baudrates[0].id,
-        'parityidx': $scope.parities[0].id,
-        
         'showNotification': 0,
-        'message': "Hello World!",
-        'email': "",
-        'phonenumber': "",
-        'sendemail': 0,
-        'sendsms': 0,
-        'sendnotification': 0,
-        'senddevice': 0,
+        
+        'uart': {
+            'baudrate': $scope.baudrates[0].id,
+            'parity': $scope.parities[0].id,
+            'notification': {
+                'messages': [ 
+                    { 'message': 'Hello World!', 'enable': true }, 
+                ],
+                'endpoints' : {
+                    'mobile': {
+                        'recipients': '',
+                        'enable': false,
+                        //'recipients_list': [{'to': '', 'group': false}, ],
+                    },
+                    'email': {
+                        'recipients': '',
+                        'enable': false,
+                        //'recipients_list': [{'to': '', 'group': false}, ],
+                    },
+                    'notification': {
+                        'recipients': '',
+                        'enable': false,
+                        //'recipients_list': [{'to': '', 'group': false}, ],
+                    },
+                    'modem': {
+                        'recipients': '',
+                        'enable': false,
+                        //'recipients_list': [{'to': '', 'group': false}, ],
+                    },
+                    'storage': {
+                        'recipients': '',
+                        'enable': false,
+                        //'recipients_list': [{'to': '', 'group': false}, ],
+                    },
+                }
+            }
+        },
     };
 
     $scope.changeSection = function(s) {
@@ -3253,7 +3304,42 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         //   headers: { 'Authorization': 'Bearer ' + token.access }
         //
         // - Response:
-        //   { 'status': 'OK', 'message': string, 'value': { 'baudrate': int, 'parity': int } }
+        //   { 'status': 'OK', 'message': string, 'value': 
+        //     { 
+        //      'baudrate': int,
+        //      'parity': int,
+        //      'notification': {
+        //          'messages': [{ 'message': string, 'enable': boolean }, ...],
+        //          'endpoints' : {
+        //              'mobile': {
+        //                  'recipients': string, // can be multiple items separated by comma
+        //                  'enable': boolean,
+        //                  //'recipients_list': [{'to': string, 'group': boolean}, ],
+        //              },
+        //              'email': {
+        //                  'recipients': string, // can be multiple items separated by comma
+        //                  'enable': boolean,
+        //                  //'recipients_list': [{'to': '', 'group': boolean}, ],
+        //              },
+        //              'notification': {
+        //                  'recipients': string, // can be multiple items separated by comma
+        //                  'enable': boolean,
+        //                  //'recipients_list': [{'to': '', 'group': boolean}, ],
+        //              },
+        //              'modem': {
+        //                  'recipients': string, // can be multiple items separated by comma
+        //                  'enable': boolean,
+        //                  //'recipients_list': [{'to': '', 'group': boolean}, ],
+        //              },
+        //              'storage': {
+        //                  'recipients': string, // can be multiple items separated by comma
+        //                  'enable': boolean,
+        //                  //'recipients_list': [{'to': '', 'group': boolean}, ],
+        //              },
+        //          }
+        //      }
+        //     }
+        //   }
         //   { 'status': 'NG', 'message': string }
         //
         $http({
@@ -3263,8 +3349,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         })
         .then(function (result) {
             console.log(result.data);
-            $scope.data.baudrateidx = result.data.value.baudrate;
-            $scope.data.parityidx   = result.data.value.parity;
+            $scope.data.uart.baudrate = result.data.value.baudrate;
+            $scope.data.uart.parity = result.data.value.parity;
         })
         .catch(function (error) {
             handle_error(error);
@@ -3279,7 +3365,41 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         // - Request:
         //   POST /devices/device/<devicename>/uart/<number>/properties
         //   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
-        //   data: { 'baudrate': int, 'parity': int }
+        //   data: 
+        //   { 
+        //      'baudrate': int,
+        //      'parity': int,
+        //      'notification': {
+        //          'messages': [{ 'message': string, 'enable': boolean }, ...],
+        //          'endpoints' : {
+        //              'mobile': {
+        //                  'recipients': string, // can be multiple items separated by comma
+        //                  'enable': boolean,
+        //                  //'recipients_list': [{'to': string, 'group': boolean}, ],
+        //              },
+        //              'email': {
+        //                  'recipients': string, // can be multiple items separated by comma
+        //                  'enable': boolean,
+        //                  //'recipients_list': [{'to': '', 'group': boolean}, ],
+        //              },
+        //              'notification': {
+        //                  'recipients': string, // can be multiple items separated by comma
+        //                  'enable': boolean,
+        //                  //'recipients_list': [{'to': '', 'group': boolean}, ],
+        //              },
+        //              'modem': {
+        //                  'recipients': string, // can be multiple items separated by comma
+        //                  'enable': boolean,
+        //                  //'recipients_list': [{'to': '', 'group': boolean}, ],
+        //              },
+        //              'storage': {
+        //                  'recipients': string, // can be multiple items separated by comma
+        //                  'enable': boolean,
+        //                  //'recipients_list': [{'to': '', 'group': boolean}, ],
+        //              },
+        //          }
+        //      }
+        //   }
         //
         // - Response:
         //   { 'status': 'OK', 'message': string }
@@ -3289,7 +3409,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             method: 'POST',
             url: server + '/devices/device/' + $scope.data.devicename + '/uart/' + $scope.data.activeSection.toString() + '/properties',
             headers: { 'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json' },
-            data: { 'baudrate': $scope.data.baudrateidx, 'parity': $scope.data.parityidx }
+            data: $scope.data.uart
         })
         .then(function (result) {
             console.log(result.data);
@@ -3325,75 +3445,29 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             console.log("ACCOUNT OK");
             console.log(result.data);
             
-            if ($scope.data.email !== undefined) {
-                $scope.data.email = result.data.info.email;
-                if (result.data.info.email_verified) {
-                    $scope.data.sendemail = 1;
-                }
-                else {
-                    $scope.data.sendemail = 0;
-                }
+
+            if (result.data.info.email !== undefined) {
+                $scope.data.uart.notification.endpoints.email.recipients = result.data.info.email;
             }
-            else {
-                $scope.data.email = "";
-                $scope.data.sendemail = 0;
+    
+            if (result.data.info.email_verified !== undefined) {
+                $scope.data.uart.notification.endpoints.email.enable = result.data.info.email_verified;
             }
-            
+    
             if (result.data.info.phone_number !== undefined) {
-                $scope.data.phonenumber = result.data.info.phone_number;
-                if (result.data.info.phone_number_verified) {
-                    $scope.data.sendsms = 1;
-                    $scope.data.sendnotification = 0;
-                }
-                else {
-                    $scope.data.sendsms = 0;
-                    $scope.data.sendnotification = 0;
-                }
+                $scope.data.uart.notification.endpoints.mobile.recipients = result.data.info.phone_number;
+                $scope.data.uart.notification.endpoints.notification.recipients = result.data.info.phone_number;
             }
-            else {
-                $scope.data.phonenumber = "";
-                $scope.data.sendsms = 0;
-                $scope.data.sendnotification = 0;
+    
+            if (result.data.info.phone_number_verified !== undefined) {
+                $scope.data.uart.notification.endpoints.mobile.enable = result.data.info.phone_number_verified;
+                $scope.data.uart.notification.endpoints.notification.enable = result.data.info.phone_number_verified;
             }
         })
         .catch(function (error) {
             handle_error(error);
         }); 
     };
-
-
- /*
-    set_uart = function(param) {
-        //
-        // SET UART
-        //
-        // - Request:
-        //   POST /devices/device/<devicename>/uart
-        //   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
-        //   data: { 'value': string }
-        //
-        // - Response:
-        //   { 'status': 'OK', 'message': string, 'value': string }
-        //   { 'status': 'NG', 'message': string}        
-        //
-        $http({
-            method: 'POST',
-            url: server + '/devices/device/' + $scope.data.devicename + '/uart',
-            headers: { 'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json' },
-            data: param
-        })
-        .then(function (result) {
-            console.log(result.data);
-            $ionicPopup.alert({
-                title: 'Device UART',
-                template: 'Message was written to UART successfully!',
-            });            
-        })
-        .catch(function (error) {
-            handle_error(error);
-        }); 
-    };
-*/
 
     $scope.submit = function() {
         
