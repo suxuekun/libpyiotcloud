@@ -8,10 +8,10 @@
   <ion-content padding="true" class="has-header">
     <form id="deviceGPIO-form18" class="list">
       <div id="deviceGPIO-button-bar4" class="button-bar">
-        <button id="deviceGPIO-button60" ng-click="changeSection(1)" ng-class="{'active': data.activeSection==1}" style="font-size:13px;" class="button button-dark button-block">GPIO 1</button>
-        <button id="deviceGPIO-button61" ng-click="changeSection(2)" ng-class="{'active': data.activeSection==2}" style="font-size:13px;" class="button button-dark button-block">GPIO 2</button>
-        <button id="deviceGPIO-button62" ng-click="changeSection(3)" ng-class="{'active': data.activeSection==3}" style="font-size:13px;" class="button button-dark button-block">GPIO 3</button>
-        <button id="deviceGPIO-button63" ng-click="changeSection(4)" ng-class="{'active': data.activeSection==4}" style="font-size:13px;" class="button button-dark button-block">GPIO 4</button>
+        <button id="deviceGPIO-button60" ng-click="changeSection(1)" ng-class="{'active': data.activeSection==1}" style="font-size:13px;" class="button button-stable button-large button-block">GPIO 1</button>
+        <button id="deviceGPIO-button61" ng-click="changeSection(2)" ng-class="{'active': data.activeSection==2}" style="font-size:13px;" class="button button-stable button-block">GPIO 2</button>
+        <button id="deviceGPIO-button62" ng-click="changeSection(3)" ng-class="{'active': data.activeSection==3}" style="font-size:13px;" class="button button-stable button-block">GPIO 3</button>
+        <button id="deviceGPIO-button63" ng-click="changeSection(4)" ng-class="{'active': data.activeSection==4}" style="font-size:13px;" class="button button-stable button-block">GPIO 4</button>
       </div>
       <label class="item item-select" id="deviceGPIO-select15">
         <span class="input-label">Voltage</span>
@@ -24,10 +24,40 @@
         <span class="input-label">Direction</span>
         <select ng-model="data.directionidx" ng-options="direction.id as direction.label for direction in directions"></select>
       </label>
+    </form>
+    <form id="deviceGPIO-form44" class="list" ng-show="data.directionidx==0">
       <label class="item item-select" id="deviceGPIO-select13">
         <span class="input-label">Mode</span>
-        <select ng-model="data.modeidx" ng-options="mode.id as mode.label for mode in modes"></select>
+        <select ng-model="data.modeidx" ng-options="mode.id as mode.label for mode in modes_input" ng-show="data.directionidx==0"></select>
       </label>
+    </form>
+    <form id="deviceGPIO-form46" class="list" ng-show="data.directionidx==1">
+      <label class="item item-select" id="deviceGPIO-select11">
+        <span class="input-label">Mode</span>
+        <select ng-model="data.modeidx" ng-options="mode.id as mode.label for mode in modes_output" ng-show="data.directionidx==1"></select>
+      </label>
+      <label class="item item-select" id="deviceGPIO-select17">
+        <span class="input-label">Polarity</span>
+        <select ng-model="data.polarityidx" ng-options="polarity.id as polarity.label for polarity in polarities" ng-show="data.directionidx==1"></select>
+      </label>
+    </form>
+    <form id="deviceGPIO-form45" class="list" ng-show="data.directionidx==1 &amp;&amp; data.modeidx==1">
+      <label class="item item-input" id="deviceGPIO-input75">
+        <span class="input-label">Width</span>
+        <input type="number" placeholder="seconds" ng-show="data.directionidx==1" ng-model="data.width">
+      </label>
+    </form>
+    <form id="deviceGPIO-form52" class="list" ng-show="data.directionidx==1 &amp;&amp; data.modeidx==2">
+      <label class="item item-input" id="deviceGPIO-input77">
+        <span class="input-label">Space</span>
+        <input type="number" placeholder="seconds" ng-show="data.directionidx==1" ng-model="data.space">
+      </label>
+      <label class="item item-input" id="deviceGPIO-input76">
+        <span class="input-label">Mark</span>
+        <input type="number" placeholder="seconds" ng-show="data.directionidx==1" ng-model="data.mark">
+      </label>
+    </form>
+    <form id="deviceGPIO-form37" class="list">
       <label class="item item-select" id="deviceGPIO-select14">
         <span class="input-label">Alert</span>
         <select ng-model="data.alertidx" ng-options="alert.id as alert.label for alert in alerts"></select>
@@ -37,13 +67,10 @@
         <input type="number" placeholder="Seconds" ng-model="data.alertperiod">
       </label>
     </form>
-    <form id="deviceGPIO-form46" class="list">
-      <div id="deviceGPIO-markdown35" class="show-list-numbers-and-dots">
-        <hr>
-      </div>
-      <ion-toggle toggle-class="toggle-positive" id="deviceGPIO-toggle3" ng-change="changeNotification(data.showNotification)" ng-model="data.showNotification">Show Notification Settings</ion-toggle>
+    <form id="deviceGPIO-form47" class="list">
+      <ion-toggle toggle-class="toggle-positive" id="deviceGPIO-toggle14" ng-change="changeNotification(data.showNotification)" ng-model="data.showNotification">Show Notification Settings</ion-toggle>
     </form>
-    <form id="deviceGPIO-form47" class="list" ng-show="data.showNotification==1">
+    <form id="deviceGPIO-form56" class="list" ng-show="data.showNotification==1">
       <div id="deviceGPIO-markdown48" class="show-list-numbers-and-dots">
         <p style="color:#000000;">Message</p>
       </div>

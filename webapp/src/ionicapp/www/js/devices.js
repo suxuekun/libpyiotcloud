@@ -2,7 +2,7 @@
 
 angular.module('devices', [])
 
-.service('Devices', ['$http', 'Server', 'User', 'Token', function($http, Server, User, Token){
+.service('Devices', ['$http', '$ionicPopup', 'Server', 'User', 'Token', function($http, $ionicPopup, Server, User, Token){
     
     var server = Server.rest_api;
 
@@ -37,12 +37,12 @@ angular.module('devices', [])
                     
                     if (error.data.message === "Token expired") {
                         Token.refresh(userdata);
+                        $ionicPopup.alert({ title: 'Error', template: 'Token expired!', buttons: [{text: 'OK', type: 'button-assertive'}] });
                     }
                 }
                 else {
                     console.log("ERROR: Server is down!"); 
-                    // TODO: replace alert with ionic alert
-                    //alert("ERROR: Server is down!");
+                    $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
                 }
                 
                 return [];
