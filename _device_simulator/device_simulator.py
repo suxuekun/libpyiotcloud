@@ -37,10 +37,10 @@ g_uart_properties = {
     '2': { 'baudrate': 7, 'parity': 2 } }
 
 g_gpio_properties = {
-    '1': { 'direction': 0, 'mode': 0, 'alert': 0, 'alertperiod': 0   }, 
-    '2': { 'direction': 0, 'mode': 3, 'alert': 1, 'alertperiod': 60  },
-    '3': { 'direction': 1, 'mode': 0, 'alert': 0, 'alertperiod': 0   },
-    '4': { 'direction': 1, 'mode': 2, 'alert': 1, 'alertperiod': 120 } }
+    '1': { 'direction': 0, 'mode': 0, 'alert': 0, 'alertperiod':   0,   'polarity': 0, 'width': 0, 'mark': 0, 'space': 0 },
+    '2': { 'direction': 0, 'mode': 3, 'alert': 1, 'alertperiod':  60,   'polarity': 0, 'width': 0, 'mark': 0, 'space': 0 },
+    '3': { 'direction': 1, 'mode': 0, 'alert': 0, 'alertperiod':   0,   'polarity': 0, 'width': 0, 'mark': 0, 'space': 0 },
+    '4': { 'direction': 1, 'mode': 2, 'alert': 1, 'alertperiod': 120,   'polarity': 1, 'width': 0, 'mark': 1, 'space': 2 } }
 g_gpio_voltage = 1
 
 
