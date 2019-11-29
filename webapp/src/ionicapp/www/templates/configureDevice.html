@@ -1,42 +1,32 @@
 <ion-view title="Configure Device" hide-back-button="true" nav-transition="none" id="page15" class="page_width">
   <ion-nav-buttons side="left" class="has-header">
-    <button class="button button-icon icon ion-android-close" ng-click="submitDeviceList()"></button>
+    <button class="button button-icon icon ion-android-close" ng-click="exitPage()"></button>
   </ion-nav-buttons>
   <ion-nav-buttons side="right" class="has-header">
-    <button class="button button-icon icon ion-refresh" ng-click="submitGetStatus()"></button>
+    <button class="button button-icon icon ion-refresh" ng-click="getStatus()"></button>
   </ion-nav-buttons>
   <ion-content padding="true" class="has-header">
-    <div id="configureDevice-markdown19" ng-click="submitView()" style="text-align:center;" class="show-list-numbers-and-dots">
-      <p style="color:#444444;font-size:18px;">
-        <strong> {{ data.devicename }} </strong>
-      </p>
-    </div>
-    <div id="configureDevice-markdown30" ng-click="submitView()" style="text-align:center;" class="show-list-numbers-and-dots">
+    <div class="spacer" style="width: 300px; height: 10px;"></div>
+    <button id="configureDevice-button43" ng-click="getDevice()" class="button button-light button-large button-block icon-right ion-android-settings">{{ data.devicename }}</button>
+    <div id="configureDevice-markdown30" ng-click="getDevice()" style="text-align:center;" class="show-list-numbers-and-dots">
       <p style="color:#444444;font-size:12px;">UUID: {{ data.deviceid }}</p>
     </div>
-    <div id="configureDevice-markdown69" ng-click="submitView()" style="text-align:center;" class="show-list-numbers-and-dots">
+    <div id="configureDevice-markdown69" ng-click="getDevice()" style="text-align:center;" class="show-list-numbers-and-dots">
       <p style="color:#444444;font-size:12px;">Serial Number: {{ data.serialnumber }}</p>
     </div>
-    <div id="configureDevice-markdown39" style="text-align:center;" class="show-list-numbers-and-dots">
+    <div id="configureDevice-markdown39" ng-click="getDevice()" style="text-align:center;" class="show-list-numbers-and-dots">
       <p style="color:#444444;font-size:12px;">Status: {{ data.devicestatus }}</p>
     </div>
+    <div class="spacer" style="width: 300px; height: 20px;"></div>
     <div id="configureDevice-markdown33" class="show-list-numbers-and-dots">
       <hr>
     </div>
+    <div class="spacer" style="height: 30px;"></div>
     <button id="configureDevice-button20" ng-click="submitUART()" ng-disabled="data.devicestatus==&quot;Detecting...&quot;" style="font-size:18px;" class="button button-dark button-large button-outline widget_button">UART</button>
     <button id="configureDevice-button52" ng-click="submitGPIO()" ng-disabled="data.devicestatus==&quot;Detecting...&quot;" style="font-size:18px;" class="button button-dark button-large button-outline widget_button">GPIO</button>
+    <div class="spacer" style="width: 300px; height: 7px;"></div>
     <button id="configureDevice-button18" ng-click="submitGPIO()" ng-disabled="data.devicestatus==&quot;Detecting...&quot;" style="font-size:18px;" class="button button-dark button-large button-outline widget_button">I2C</button>
-    <div id="configureDevice-markdown16" class="show-list-numbers-and-dots">
-      <hr>
-    </div>
-    <button id="configureDevice-button47" ng-click="submitSetStatus(&quot;restart&quot;)" ng-disabled="data.devicestatus==&quot;Detecting...&quot;" class="button button-positive button-block">RESTART DEVICE</button>
-    <button id="configureDevice-button30" ng-click="submitSetStatus(&quot;start&quot;)" ng-disabled="data.devicestatus==&quot;Detecting...&quot;" class="button button-balanced widget_button">START DEVICE</button>
-    <button id="configureDevice-button23" ng-click="submitSetStatus(&quot;stop&quot;)" ng-disabled="data.devicestatus==&quot;Detecting...&quot;" class="button button-assertive widget_button">STOP DEVICE</button>
-    <div id="configureDevice-markdown21" class="show-list-numbers-and-dots">
-      <hr>
-    </div>
-    <button id="configureDevice-button22" ng-click="submitNotifications()" ng-disabled="data.devicestatus==&quot;Detecting...&quot;" style="font-size:14px;text-align:left;" class="button button-dark button-large button-outline icon-right ion-android-notifications widget_button">Notification</button>
-    <button id="configureDevice-button21" ng-click="submitEthernet()" ng-disabled="data.devicestatus==&quot;Detecting...&quot;" style="font-size:18px;text-align:left;" class="button button-dark button-large button-outline icon-right ion-network widget_button">Ethernet</button>
+    <button id="configureDevice-button22" ng-click="submitNotifications()" ng-disabled="data.devicestatus==&quot;Detecting...&quot;" style="font-size:14px;text-align:left;" class="button button-assertive button-large icon-right ion-android-notifications widget_button">Notification</button>
     <div class="spacer" style="height: 5px;"></div>
   </ion-content>
 </ion-view>

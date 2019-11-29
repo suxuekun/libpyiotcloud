@@ -1,6 +1,6 @@
-<ion-view title="Devices" hide-back-button="true" nav-transition="none" id="page2" style="background-color:#FFFFFF;" class="page_width" onload="submitRefresh()">
+<ion-view title="Devices" hide-back-button="true" nav-transition="none" id="page2" style="background-color:#FFFFFF;" class="page_width">
   <ion-nav-buttons side="right" class="has-header">
-    <button class="button button-icon icon ion-android-add" ng-click="submitAdd()"></button>
+    <button class="button button-icon icon ion-refresh" ng-click="submitRefresh()"></button>
   </ion-nav-buttons>
   <ion-content padding="true" class="has-header">
     <div class="spacer" style="width: 300px; height: 12px;"></div>
@@ -22,6 +22,6 @@
         </div>
       </div>
     </ion-list>
-    <button id="devices-button24" ng-click="submitRefresh()" class="button button-dark button-block">Refresh</button>
+    <button id="devices-button24" ng-click="submitAdd()" style="font-weight:600;" class="button button-light button-large button-block icon-right ion-android-add-circle"></button>
   </ion-content>
 </ion-view>
