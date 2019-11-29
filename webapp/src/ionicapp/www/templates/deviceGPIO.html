@@ -9,9 +9,9 @@
     <form id="deviceGPIO-form18" class="list">
       <div id="deviceGPIO-button-bar4" class="button-bar">
         <button id="deviceGPIO-button60" ng-click="changeSection(1)" ng-class="{'active': data.activeSection==1}" style="font-size:13px;" class="button button-stable button-large button-block">GPIO 1</button>
-        <button id="deviceGPIO-button61" ng-click="changeSection(2)" ng-class="{'active': data.activeSection==2}" style="font-size:13px;" class="button button-stable button-block">GPIO 2</button>
-        <button id="deviceGPIO-button62" ng-click="changeSection(3)" ng-class="{'active': data.activeSection==3}" style="font-size:13px;" class="button button-stable button-block">GPIO 3</button>
-        <button id="deviceGPIO-button63" ng-click="changeSection(4)" ng-class="{'active': data.activeSection==4}" style="font-size:13px;" class="button button-stable button-block">GPIO 4</button>
+        <button id="deviceGPIO-button61" ng-click="changeSection(2)" ng-class="{'active': data.activeSection==2}" style="font-size:13px;" class="button button-stable button-large button-block">GPIO 2</button>
+        <button id="deviceGPIO-button62" ng-click="changeSection(3)" ng-class="{'active': data.activeSection==3}" style="font-size:13px;" class="button button-stable button-large button-block">GPIO 3</button>
+        <button id="deviceGPIO-button63" ng-click="changeSection(4)" ng-class="{'active': data.activeSection==4}" style="font-size:13px;" class="button button-stable button-large button-block">GPIO 4</button>
       </div>
       <label class="item item-select" id="deviceGPIO-select15">
         <span class="input-label">Voltage</span>
@@ -22,86 +22,90 @@
       </div>
       <label class="item item-select" id="deviceGPIO-select12">
         <span class="input-label">Direction</span>
-        <select ng-model="data.directionidx" ng-options="direction.id as direction.label for direction in directions"></select>
+        <select ng-model="data.gpio.direction" ng-options="direction.id as direction.label for direction in directions"></select>
       </label>
     </form>
-    <form id="deviceGPIO-form44" class="list" ng-show="data.directionidx==0">
+    <form id="deviceGPIO-form44" class="list" ng-show="data.gpio.direction==0">
       <label class="item item-select" id="deviceGPIO-select13">
         <span class="input-label">Mode</span>
-        <select ng-model="data.modeidx" ng-options="mode.id as mode.label for mode in modes_input" ng-show="data.directionidx==0"></select>
+        <select ng-model="data.gpio.mode" ng-options="mode.id as mode.label for mode in modes_input"></select>
       </label>
     </form>
-    <form id="deviceGPIO-form46" class="list" ng-show="data.directionidx==1">
+    <form id="deviceGPIO-form46" class="list" ng-show="data.gpio.direction==1">
       <label class="item item-select" id="deviceGPIO-select11">
         <span class="input-label">Mode</span>
-        <select ng-model="data.modeidx" ng-options="mode.id as mode.label for mode in modes_output" ng-show="data.directionidx==1"></select>
+        <select ng-model="data.gpio.mode" ng-options="mode.id as mode.label for mode in modes_output"></select>
       </label>
       <label class="item item-select" id="deviceGPIO-select17">
         <span class="input-label">Polarity</span>
-        <select ng-model="data.polarityidx" ng-options="polarity.id as polarity.label for polarity in polarities" ng-show="data.directionidx==1"></select>
+        <select ng-model="data.gpio.polarity" ng-options="polarity.id as polarity.label for polarity in polarities"></select>
       </label>
     </form>
-    <form id="deviceGPIO-form45" class="list" ng-show="data.directionidx==1 &amp;&amp; data.modeidx==1">
+    <form id="deviceGPIO-form45" class="list" ng-show="data.gpio.direction==1 &amp;&amp; data.gpio.mode==1">
       <label class="item item-input" id="deviceGPIO-input75">
         <span class="input-label">Width</span>
-        <input type="number" placeholder="seconds" ng-show="data.directionidx==1" ng-model="data.width">
+        <input type="number" placeholder="seconds" ng-model="data.gpio.width">
       </label>
     </form>
-    <form id="deviceGPIO-form52" class="list" ng-show="data.directionidx==1 &amp;&amp; data.modeidx==2">
+    <form id="deviceGPIO-form52" class="list" ng-show="data.gpio.direction==1 &amp;&amp; data.gpio.mode==2">
       <label class="item item-input" id="deviceGPIO-input77">
         <span class="input-label">Space</span>
-        <input type="number" placeholder="seconds" ng-show="data.directionidx==1" ng-model="data.space">
+        <input type="number" placeholder="seconds" ng-model="data.gpio.space">
       </label>
       <label class="item item-input" id="deviceGPIO-input76">
         <span class="input-label">Mark</span>
-        <input type="number" placeholder="seconds" ng-show="data.directionidx==1" ng-model="data.mark">
+        <input type="number" placeholder="seconds" ng-model="data.gpio.mark">
       </label>
     </form>
-    <form id="deviceGPIO-form37" class="list">
+    <form id="deviceGPIO-form37" class="list" ng-show="data.gpio.direction==0">
       <label class="item item-select" id="deviceGPIO-select14">
         <span class="input-label">Alert</span>
-        <select ng-model="data.alertidx" ng-options="alert.id as alert.label for alert in alerts"></select>
+        <select ng-model="data.gpio.alert" ng-options="alert.id as alert.label for alert in alerts"></select>
       </label>
       <label class="item item-input" id="deviceGPIO-input70">
         <span class="input-label">Alert every</span>
-        <input type="number" placeholder="Seconds" ng-model="data.alertperiod">
+        <input type="number" placeholder="Seconds" ng-model="data.gpio.alertperiod">
       </label>
     </form>
     <form id="deviceGPIO-form47" class="list">
       <ion-toggle toggle-class="toggle-positive" id="deviceGPIO-toggle14" ng-change="changeNotification(data.showNotification)" ng-model="data.showNotification">Show Notification Settings</ion-toggle>
     </form>
     <form id="deviceGPIO-form56" class="list" ng-show="data.showNotification==1">
-      <div id="deviceGPIO-markdown48" class="show-list-numbers-and-dots">
-        <p style="color:#000000;">Message</p>
+      <div id="deviceGPIO-markdown19" class="show-list-numbers-and-dots">
+        <p style="color:#000000;">Messages</p>
       </div>
+      <ion-checkbox id="deviceGPIO-checkbox9" ng-checked="data.gpio.notification.messages[0].enable">Message on activation</ion-checkbox>
       <label class="item item-input" id="deviceGPIO-textarea5">
-        <span class="input-label"></span><textarea placeholder="" ng-model="data.message">Hello World!</textarea></label>
+        <span class="input-label"></span><textarea placeholder="" ng-model="data.gpio.notification.messages[0].message"></textarea></label>
+      <ion-checkbox id="deviceGPIO-checkbox10" ng-checked="data.gpio.notification.messages[1].enable">Message on deactivation</ion-checkbox>
+      <label class="item item-input" id="deviceGPIO-textarea6">
+        <span class="input-label"></span><textarea placeholder="" ng-model="data.gpio.notification.messages[1].message"></textarea></label>
     </form>
     <form id="deviceGPIO-form48" class="list" ng-show="data.showNotification==1">
       <div id="deviceGPIO-markdown59" class="show-list-numbers-and-dots">
         <p style="color:#000000;">Recipients</p>
       </div>
-      <ion-checkbox id="deviceGPIO-checkbox5" ng-checked="data.sendemail == 1">Send email to </ion-checkbox>
+      <ion-checkbox id="deviceGPIO-checkbox5" ng-checked="data.gpio.notification.endpoints.email.enable">Send email to </ion-checkbox>
       <label class="item item-input" id="deviceGPIO-input71">
-        <input type="email" placeholder="Email Address" ng-model="data.email">
+        <input type="email" placeholder="Email address(es)" ng-model="data.gpio.notification.endpoints.email.recipients">
       </label>
     </form>
     <form id="deviceGPIO-form49" class="list" ng-show="data.showNotification==1">
-      <ion-checkbox id="deviceGPIO-checkbox6" ng-checked="data.sendsms == 1">Send SMS to </ion-checkbox>
+      <ion-checkbox id="deviceGPIO-checkbox6" ng-checked="data.gpio.notification.endpoints.mobile.enable">Send SMS to </ion-checkbox>
       <label class="item item-input" id="deviceGPIO-input72">
-        <input type="tel" placeholder="Phone Number" ng-model="data.phonenumber">
+        <input type="tel" placeholder="Phone number(s)" ng-model="data.gpio.notification.endpoints.mobile.recipients">
       </label>
     </form>
     <form id="deviceGPIO-form50" class="list" ng-show="data.showNotification==1">
-      <ion-checkbox id="deviceGPIO-checkbox7" ng-checked="data.sendnotification == 1">Send notification to </ion-checkbox>
+      <ion-checkbox id="deviceGPIO-checkbox7" ng-checked="data.gpio.notification.endpoints.notification.enable">Send notification to </ion-checkbox>
       <label class="item item-input" id="deviceGPIO-input73">
-        <input type="tel" placeholder="Phone Number" ng-model="data.phonenumber">
+        <input type="tel" placeholder="Phone number(s)" ng-model="data.gpio.notification.endpoints.notification.recipients">
       </label>
     </form>
     <form id="deviceGPIO-form51" class="list" ng-show="data.showNotification==1">
-      <ion-checkbox id="deviceGPIO-checkbox8" ng-checked="data.senddevice == 1">Send to IoT Modem</ion-checkbox>
+      <ion-checkbox id="deviceGPIO-checkbox8" ng-checked="data.gpio.notification.endpoints.modem.enable">Send to IoT Modem</ion-checkbox>
       <label class="item item-input" id="deviceGPIO-input74">
-        <input type="text" placeholder="Device">
+        <input type="text" placeholder="Device name(s)" ng-model="data.gpio.notification.endpoints.modem.recipients">
       </label>
     </form>
     <button id="deviceGPIO-button29" ng-click="submit()" class="button button-dark button-block">SAVE</button>

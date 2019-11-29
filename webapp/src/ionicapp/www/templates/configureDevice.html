@@ -6,7 +6,6 @@
     <button class="button button-icon icon ion-refresh" ng-click="getStatus()"></button>
   </ion-nav-buttons>
   <ion-content padding="true" class="has-header">
-    <div class="spacer" style="width: 300px; height: 10px;"></div>
     <button id="configureDevice-button43" ng-click="getDevice()" class="button button-light button-large button-block icon-right ion-android-settings">{{ data.devicename }}</button>
     <div id="configureDevice-markdown30" ng-click="getDevice()" style="text-align:center;" class="show-list-numbers-and-dots">
       <p style="color:#444444;font-size:12px;">UUID: {{ data.deviceid }}</p>
@@ -15,13 +14,16 @@
       <p style="color:#444444;font-size:12px;">Serial Number: {{ data.serialnumber }}</p>
     </div>
     <div id="configureDevice-markdown39" ng-click="getDevice()" style="text-align:center;" class="show-list-numbers-and-dots">
+      <p style="color:#444444;font-size:12px;">Firmware Version: {{ data.deviceversion }}</p>
+    </div>
+    <div id="configureDevice-markdown16" ng-click="getDevice()" style="text-align:center;" class="show-list-numbers-and-dots">
       <p style="color:#444444;font-size:12px;">Status: {{ data.devicestatus }}</p>
     </div>
-    <div class="spacer" style="width: 300px; height: 20px;"></div>
+    <div class="spacer" style="width: 300px; height: 10px;"></div>
     <div id="configureDevice-markdown33" class="show-list-numbers-and-dots">
       <hr>
     </div>
-    <div class="spacer" style="height: 30px;"></div>
+    <div class="spacer" style="height: 20px;"></div>
     <button id="configureDevice-button20" ng-click="submitUART()" ng-disabled="data.devicestatus==&quot;Detecting...&quot;" style="font-size:18px;" class="button button-dark button-large button-outline widget_button">UART</button>
     <button id="configureDevice-button52" ng-click="submitGPIO()" ng-disabled="data.devicestatus==&quot;Detecting...&quot;" style="font-size:18px;" class="button button-dark button-large button-outline widget_button">GPIO</button>
     <div class="spacer" style="width: 300px; height: 7px;"></div>
