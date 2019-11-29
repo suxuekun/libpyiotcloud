@@ -952,12 +952,12 @@ DETAILED:
 		   payload: { 'number': int }
 		-  Publish:
 		   topic: server/DEVICEID/get_gpio_properties
-		   payload: { 'value': { 'direction': int, 'mode': int, 'alert': int, 'alertperiod': int } }
+		   payload: { 'value': { 'direction': int, 'mode': int, 'alert': int, 'alertperiod': int, 'polarity': int, 'width': int, 'mark': int, 'space': int } }
 
 		D. SET GPIO PROPERTIES
 		-  Receive:
 		   topic: DEVICEID/set_gpio_properties
-		   payload: { 'number': int, 'direction': int, 'mode': int, 'alert': int, 'alertperiod': int }
+		   payload: { 'number': int, 'direction': int, 'mode': int, 'alert': int, 'alertperiod': int, 'polarity': int, 'width': int, 'mark': int, 'space': int }
 		-  Publish:
 		   topic: server/DEVICEID/set_gpio_properties
 		   payload: { 'value': { 'direction': int, 'mode': int, 'alert': int, 'alertperiod': int } }
