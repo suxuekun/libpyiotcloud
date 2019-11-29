@@ -492,6 +492,15 @@ DETAILED:
 
 	2. Device registration and management APIs
 
+		DEVICENAME (and other parameters) are included in the URL field because of the following reasons:
+		- LIMITATION. HTTP GET requests do not permit including payload/data parameters.
+		- CONSISTENCY. To make APIs consistent, HTTP POST/DELETE requests are also made similar to their corresponding HTTP GET requests.
+		- PRACTICE. 3rd-party APIs such as RabbitMQ HTTP APIs also employ the same technique.
+		- FRAMEWORK. Flask provides a framework to parse parameters in the URL path in the backend.
+		- CONVENIENT. The consistency-ness makes it easy and convenient to implement and debug in the frontend.
+		- EASY. Supporting this only requires simple string concatenation to generate the URL field.
+
+
 		A. GET DEVICES
 		-  Request:
 		   GET /devices
@@ -548,6 +557,7 @@ DETAILED:
 		DEVICENAME is unique for all devices of a user.
 		Two users can have the same DEVICENAME. 
 		But this will not cause conflict because each API call provides a token which contains user's USERNAME.
+
 
 		New requirements:
 
@@ -618,23 +628,32 @@ DETAILED:
 		   GET /devices/device/DEVICENAME/gpio/NUMBER/properties
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
-		   { 'status': 'OK', 'message': string, 'value': { 'direction': int, 'mode': int, 'alert': int, 'alertperiod': int } }
+		   { 'status': 'OK', 'message': string, 'value': { 'direction': int, 'mode': int, 'alert': int, 'alertperiod': int, 'polarity': int, 'width': int, 'mark': int, 'space': int } }
 		   { 'status': 'NG', 'message': string }
 		   // direction is an index of the value in the list of directions
 		   // mode is an index of the value in the list of modes
 		   // alert is an index of the value in the list of alerts
-		   // alertperiod is the number of seconds to alert when alert is set to continuously
-		   // sending only the index saves memory on the device and computation on frontend
+		   // alertperiod is optional and is valid only if alert points to Continuously
+		   // polarity is an index of the value in the list of polarities
+		   // polarity is optional and is valid only when direction points to Output
+		   // width is optional and is valid only when direction points to Output and mode points to Pulse
+		   // mark is optional and is valid only when direction points to Output and mode points to Clock
+		   // space is optional and is valid only when direction points to Output and mode points to Clock
 
 		H. SET GPIO PROPERTIES
 		-  Request:
 		   POST /devices/device/DEVICENAME/gpio/NUMBER/properties
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-		   data: { 'direction': int, 'mode': int, 'alert': int, 'alertperiod': int }
+		   data: { 'direction': int, 'mode': int, 'alert': int, 'alertperiod': int, 'polarity': int, 'width': int, 'mark': int, 'space': int }
 		   // direction is an index of the value in the list of directions
 		   // mode is an index of the value in the list of modes
 		   // alert is an index of the value in the list of alerts
-		   // alertperiod is the number of seconds to alert when alert is set to continuously
+		   // alertperiod is optional and is valid only if alert points to Continuously
+		   // polarity is an index of the value in the list of polarities
+		   // polarity is optional and is valid only when direction points to Output
+		   // width is optional and is valid only when direction points to Output and mode points to Pulse
+		   // mark is optional and is valid only when direction points to Output and mode points to Clock
+		   // space is optional and is valid only when direction points to Output and mode points to Clock
 		-  Response:
 		   { 'status': 'OK', 'message': string }
 		   { 'status': 'NG', 'message': string }
