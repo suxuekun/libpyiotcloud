@@ -33,25 +33,25 @@
     </form>
     <form id="deviceUART-form40" class="list" ng-show="data.showNotification==1">
       <h5 id="deviceUART-heading13" style="color:#444444;">Recipients</h5>
-      <ion-checkbox id="deviceUART-checkbox1" ng-checked="data.uart.notification.endpoints.email.enable">Send email to </ion-checkbox>
+      <ion-checkbox id="deviceUART-checkbox1" ng-model="data.uart.notification.endpoints.email.enable">Send email to </ion-checkbox>
       <label class="item item-input" id="deviceUART-input66">
         <input type="text" placeholder="Email address(es)" ng-model="data.uart.notification.endpoints.email.recipients">
       </label>
     </form>
     <form id="deviceUART-form38" class="list" ng-show="data.showNotification==1">
-      <ion-checkbox id="deviceUART-checkbox2" ng-checked="data.uart.notification.endpoints.mobile.enable">Send SMS to </ion-checkbox>
+      <ion-checkbox id="deviceUART-checkbox2" ng-model="data.uart.notification.endpoints.mobile.enable">Send SMS to </ion-checkbox>
       <label class="item item-input" id="deviceUART-input68">
         <input type="text" placeholder="Phone number(s)" ng-model="data.uart.notification.endpoints.mobile.recipients">
       </label>
     </form>
     <form id="deviceUART-form41" class="list" ng-show="data.showNotification==1">
-      <ion-checkbox id="deviceUART-checkbox3" ng-checked="data.uart.notification.endpoints.notification.enable">Send notification to </ion-checkbox>
+      <ion-checkbox id="deviceUART-checkbox3" ng-model="data.uart.notification.endpoints.notification.enable">Send notification to </ion-checkbox>
       <label class="item item-input" id="deviceUART-input67">
         <input type="text" placeholder="Phone number(s)" ng-model="data.uart.notification.endpoints.notification.recipients">
       </label>
     </form>
     <form id="deviceUART-form42" class="list" ng-show="data.showNotification==1">
-      <ion-checkbox id="deviceUART-checkbox4" ng-checked="data.uart.notification.endpoints.modem.enable">Send to IoT Modem </ion-checkbox>
+      <ion-checkbox id="deviceUART-checkbox4" ng-model="data.uart.notification.endpoints.modem.enable">Send to IoT Modem </ion-checkbox>
       <label class="item item-input" id="deviceUART-input69">
         <input type="text" placeholder="Device name(s)" ng-model="data.uart.notification.endpoints.modem.recipients">
       </label>

@@ -2055,6 +2055,80 @@ def trigger_notification(devicename):
 
 #########################
 
+def build_default_notifications(type, token):
+    notifications = {}
+
+    if type == "uart":
+        notifications["messages"] = [
+            {
+                "message": "Hello World", 
+                "enable": True
+            }
+        ]
+    else:
+        notifications["messages"] = [
+            {
+                "message": "Hello World", 
+                "enable": True
+            }, 
+            {
+                "message": "Hi World", 
+                "enable": False
+            }
+        ]
+
+    notifications["endpoints"] = {
+        "mobile": {
+            "recipients": "",
+            "recipients_list" : [],
+            "enable": False
+        },
+        "email": {
+            "recipients": "",
+            "recipients_list" : [],
+            "enable": False
+        },
+        "notification": {
+            "recipients": "",
+            "recipients_list" : [],
+            "enable": False
+        },
+        "modem": {
+            "recipients": "",
+            "recipients_list" : [],
+            "enable": False
+        },
+        "storage": {
+            "recipients": "",
+            "recipients_list" : [],
+            "enable": False
+        },
+    }
+
+    info = g_database_client.get_user_info(token['access'])
+    if info is None:
+        return None
+
+    if info.get("email"):
+        notifications["endpoints"]["email"]["recipients"] = info["email"]
+        notifications["endpoints"]["email"]["recipients_list"].append({ "to": info["email"], "group": False })
+
+    if info.get("email_verified"):
+        notifications["endpoints"]["email"]["enable"] = info["email_verified"]
+
+    if info.get("phone_number"):
+        notifications["endpoints"]["mobile"]["recipients"] = info["phone_number"]
+        notifications["endpoints"]["mobile"]["recipients_list"].append({ "to": info["email"], "group": False })
+        notifications["endpoints"]["notification"]["recipients"] = info["phone_number"]
+        notifications["endpoints"]["notification"]["recipients_list"].append({ "to": info["email"], "group": False })
+
+    if info.get("phone_number_verified"):
+        notifications["endpoints"]["mobile"]["enable"] = info["phone_number_verified"]
+        notifications["endpoints"]["notification"]["enable"] = info["phone_number_verified"]
+
+    return notifications
+
+
 #
 # GET UART PROPERTIES
 #
@@ -2076,20 +2150,38 @@ def get_uart_properties(devicename, number):
         response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
         print('\r\nERROR Invalid authorization header\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
+    token = {'access': auth_header_token}
 
     # get username from token
     data = {}
-    data['token'] = {'access': auth_header_token}
+    data['token'] = token
     data['devicename'] = devicename
-    data['username'] = g_database_client.get_username_from_token(data['token'])
-    if data['username'] is None:
+    username = g_database_client.get_username_from_token(data['token'])
+    if username is None:
         response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
         print('\r\nERROR Invalid token\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
+    data['username'] = username
     data['number'] = number
     print('get_uart_properties username={} devicename={}'.format(data['username'], data['devicename']))
 
-    return process_request(api, data)
+    response, status = process_request(api, data)
+    if status != 200:
+        return response, status
+
+    source = "uart{}".format(number)
+    notification = g_database_client.get_device_notification(username, devicename, source)
+    if notification is not None:
+        response = json.loads(response)
+        response['value']['notification'] = notification
+        response = json.dumps(response)
+    else:
+        response = json.loads(response)
+        response['value']['notification'] = build_default_notifications("uart", token)
+        response = json.dumps(response)
+
+    return response
+
 
 #
 # SET UART PROPERTIES
@@ -2130,21 +2222,30 @@ def set_uart_properties(devicename, number):
     data.pop('notification')
     print(data)
     print(notification)
-    source = "uart{}".format(number)
-    print(json.dumps({'source': source}))
 
     data['token'] = {'access': auth_header_token}
     data['devicename'] = devicename
-    data['username'] = g_database_client.get_username_from_token(data['token'])
-    if data['username'] is None:
+    username = g_database_client.get_username_from_token(data['token'])
+    if username is None:
         response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
         print('\r\nERROR Invalid token\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
+    data['username'] = username
     data['number'] = number
     print('set_uart_properties username={} devicename={}'.format(data['username'], data['devicename']))
 
-    return process_request(api, data)
+    response, status = process_request(api, data)
+    if status != 200:
+        return response, status
 
+    source = "uart{}".format(number)
+    notification = g_database_client.update_device_notification(username, devicename, source, notification)
+    if notification is not None:
+        response = json.loads(response)
+        response['value']['notification'] = notification
+        response = json.dumps(response)
+
+    return response
 
 
 #
@@ -2168,20 +2269,38 @@ def get_gpio_properties(devicename, number):
         response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
         print('\r\nERROR Invalid authorization header\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
+    token = {'access': auth_header_token}
 
     # get username from token
     data = {}
-    data['token'] = {'access': auth_header_token}
+    data['token'] = token
     data['devicename'] = devicename
-    data['username'] = g_database_client.get_username_from_token(data['token'])
-    if data['username'] is None:
+    username = g_database_client.get_username_from_token(data['token'])
+    if username is None:
         response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
         print('\r\nERROR Invalid token\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
+    data['username'] = username
     data['number'] = number
     print('get_gpio_properties username={} devicename={}'.format(data['username'], data['devicename']))
 
-    return process_request(api, data)
+    response, status = process_request(api, data)
+    if status != 200:
+        return response, status
+
+    source = "gpio{}".format(number)
+    notification = g_database_client.get_device_notification(username, devicename, source)
+    if notification is not None:
+        response = json.loads(response)
+        response['value']['notification'] = notification
+        response = json.dumps(response)
+    else:
+        response = json.loads(response)
+        response['value']['notification'] = build_default_notifications("gpio", token)
+        response = json.dumps(response)
+
+    return response
+
 
 #
 # SET GPIO PROPERTIES
@@ -2252,22 +2371,32 @@ def set_gpio_properties(devicename, number):
     data.pop('notification')
     print(data)
     print(notification)
-    source = "gpio{}".format(number)
-    print(json.dumps({'source': source}))
 
     print(api)
     print(data)
     data['token'] = {'access': auth_header_token}
     data['devicename'] = devicename
-    data['username'] = g_database_client.get_username_from_token(data['token'])
-    if data['username'] is None:
+    username = g_database_client.get_username_from_token(data['token'])
+    if username is None:
         response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
         print('\r\nERROR Invalid token\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
+    data['username'] = username
     data['number'] = number
     print('set_gpio_properties username={} devicename={}'.format(data['username'], data['devicename']))
 
-    return process_request(api, data)
+    response, status = process_request(api, data)
+    if status != 200:
+        return response, status
+
+    source = "gpio{}".format(number)
+    notification = g_database_client.update_device_notification(username, devicename, source, notification)
+    if notification is not None:
+        response = json.loads(response)
+        response['value']['notification'] = notification
+        response = json.dumps(response)
+
+    return response
 
 
 
@@ -2445,7 +2574,7 @@ def process_request_get(api, data):
         response = json.dumps(msg)
     except:
         response = json.dumps(msg)
-    return response
+    return response, 200
 
 
 def process_request(api, data):
@@ -2521,7 +2650,7 @@ def process_request(api, data):
         response = json.dumps(msg)
     except:
         response = json.dumps(msg)
-    return response
+    return response, 200
 
 
 # Authorization header for username and password

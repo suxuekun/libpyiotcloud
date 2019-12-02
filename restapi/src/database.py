@@ -231,6 +231,23 @@ class database_client:
 
 
     ##########################################################
+    # notifications
+    ##########################################################
+
+    def add_device_notification(self, username, devicename, source, notification):
+        return self._devices.add_device_notification(username, devicename, source, notification)
+
+    def update_device_notification(self, username, devicename, source, notification):
+        return self._devices.update_device_notification(username, devicename, source, notification)
+
+    def delete_device_notification(self, username, devicename):
+        return self._devices.delete_device_notification(username, devicename)
+
+    def get_device_notification(self, username, devicename, source):
+        return self._devices.get_device_notification(username, devicename, source)
+
+
+    ##########################################################
     # devices
     ##########################################################
 
@@ -735,6 +752,57 @@ class database_client_mongodb:
         except:
             print("delete_device_history: Exception occurred")
             pass
+
+
+    ##########################################################
+    # notifications
+    ##########################################################
+
+    def get_notifications_document(self):
+        return self.client[config.CONFIG_MONGODB_TB_NOTIFICATIONS]
+
+    def add_device_notification(self, username, devicename, source, notification):
+        notifications = self.get_notifications_document();
+        item = {}
+        item['username'] = username
+        item['devicename'] = devicename
+        item['source'] = source
+        item['notification'] = notification
+        notifications.insert_one(item)
+
+    def update_device_notification(self, username, devicename, source, notification):
+        notifications = self.get_notifications_document();
+        item = {}
+        item['username'] = username
+        item['devicename'] = devicename
+        item['source'] = source
+        item['notification'] = notification
+        print("update_device_notification find_one")
+        found = notifications.find_one({'username': username, 'devicename': devicename, 'source': source})
+        if found is None:
+            print("update_device_notification insert_one")
+            print(found)
+            notifications.insert_one(item)
+        else:
+            print("update_device_notification replace_one")
+            notifications.replace_one({'username': username, 'devicename': devicename, 'source': source}, item)
+
+    def delete_device_notification(self, username, devicename):
+        notifications = self.get_notifications_document();
+        try:
+            notifications.delete_many({'username': username, 'devicename': devicename})
+        except:
+            print("delete_device_notification: Exception occurred")
+            pass
+
+    def get_device_notification(self, username, devicename, source):
+        notifications = self.get_notifications_document();
+        if notifications:
+            for notification in notifications.find({'username': username, 'devicename': devicename, 'source': source}):
+                notification.pop('_id')
+                print(notification['notification'])
+                return notification['notification']
+        return None
 
 
     ##########################################################

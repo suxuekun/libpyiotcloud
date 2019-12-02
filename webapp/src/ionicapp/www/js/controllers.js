@@ -2759,27 +2759,27 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
                     'mobile': {
                         'recipients': '',
                         'enable': false,
-                        //'recipients_list': [{'to': '', 'group': false}, ],
+                        'recipients_list': [],
                     },
                     'email': {
                         'recipients': '',
                         'enable': false,
-                        //'recipients_list': [{'to': '', 'group': false}, ],
+                        'recipients_list': [],
                     },
                     'notification': {
                         'recipients': '',
                         'enable': false,
-                        //'recipients_list': [{'to': '', 'group': false}, ],
+                        'recipients_list': [],
                     },
                     'modem': {
                         'recipients': '',
                         'enable': false,
-                        //'recipients_list': [{'to': '', 'group': false}, ],
+                        'recipients_list': [],
                     },
                     'storage': {
                         'recipients': '',
                         'enable': false,
-                        //'recipients_list': [{'to': '', 'group': false}, ],
+                        'recipients_list': [],
                     },
                 }
             }
@@ -2795,7 +2795,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
     $scope.changeNotification = function(i) {
         $scope.data.showNotification = i;
     };
-    
+
 
     handle_error = function(error, showerror) {
         if (error.data !== null) {
@@ -2878,14 +2878,19 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         .then(function (result) {
             console.log(result.data);
 
-            $scope.data.gpio.direction   = result.data.value.direction;
-            $scope.data.gpio.mode        = result.data.value.mode;
-            $scope.data.gpio.alert       = result.data.value.alert;
-            $scope.data.gpio.alertperiod = result.data.value.alertperiod;
-            $scope.data.gpio.polarity    = result.data.value.polarity;
-            $scope.data.gpio.width       = result.data.value.width;
-            $scope.data.gpio.mark        = result.data.value.mark;
-            $scope.data.gpio.space       = result.data.value.space;
+            if (result.data.value.notification !== undefined) {
+                $scope.data.gpio = result.data.value; 
+            }
+            else {
+                $scope.data.gpio.direction   = result.data.value.direction;
+                $scope.data.gpio.mode        = result.data.value.mode;
+                $scope.data.gpio.alert       = result.data.value.alert;
+                $scope.data.gpio.alertperiod = result.data.value.alertperiod;
+                $scope.data.gpio.polarity    = result.data.value.polarity;
+                $scope.data.gpio.width       = result.data.value.width;
+                $scope.data.gpio.mark        = result.data.value.mark;
+                $scope.data.gpio.space       = result.data.value.space;
+            }
         })
         .catch(function (error) {
             handle_error(error, true);
@@ -3021,6 +3026,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
     };
 
     
+/*    
     get_profile = function() {
         //        
         // GET USER INFO
@@ -3064,7 +3070,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             handle_error(error, false);
         }); 
     };
-
+*/
 
 /*
     get_gpio = function() {
@@ -3179,7 +3185,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
     
     
     $scope.submitQuery();
-    get_profile();  
+    //get_profile();  
 }])
    
 .controller('deviceUARTCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
@@ -3236,27 +3242,27 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
                     'mobile': {
                         'recipients': '',
                         'enable': false,
-                        //'recipients_list': [{'to': '', 'group': false}, ],
+                        'recipients_list': [],
                     },
                     'email': {
                         'recipients': '',
                         'enable': false,
-                        //'recipients_list': [{'to': '', 'group': false}, ],
+                        'recipients_list': [],
                     },
                     'notification': {
                         'recipients': '',
                         'enable': false,
-                        //'recipients_list': [{'to': '', 'group': false}, ],
+                        'recipients_list': [],
                     },
                     'modem': {
                         'recipients': '',
                         'enable': false,
-                        //'recipients_list': [{'to': '', 'group': false}, ],
+                        'recipients_list': [],
                     },
                     'storage': {
                         'recipients': '',
                         'enable': false,
-                        //'recipients_list': [{'to': '', 'group': false}, ],
+                        'recipients_list': [],
                     },
                 }
             }
@@ -3271,7 +3277,6 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
     $scope.changeNotification = function(i) {
         $scope.data.showNotification = i;
     };
-
 
     
     handle_error = function(error) {
@@ -3348,8 +3353,13 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         })
         .then(function (result) {
             console.log(result.data);
-            $scope.data.uart.baudrate = result.data.value.baudrate;
-            $scope.data.uart.parity = result.data.value.parity;
+            if (result.data.value.notification !== undefined) {
+                $scope.data.uart = result.data.value;
+            }
+            else {
+                $scope.data.uart.baudrate = result.data.value.baudrate;
+                $scope.data.uart.parity = result.data.value.parity;
+            }
         })
         .catch(function (error) {
             handle_error(error);
@@ -3422,7 +3432,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         }); 
     };
 
-
+/*
     get_profile = function() {
         //        
         // GET USER INFO
@@ -3467,6 +3477,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             handle_error(error);
         }); 
     };
+*/
 
     $scope.submit = function() {
         
@@ -3493,7 +3504,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
     };
 
     $scope.submitQuery();
-    get_profile();
+    //get_profile();
 }])
    
 .controller('deviceRTCCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller

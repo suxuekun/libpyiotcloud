@@ -604,36 +604,40 @@ DETAILED:
 		            ],
 		            'endpoints' : {
 		                'mobile': {
-		                    'recipients': string, // can be multiple items separated by comma
+		                    'recipients': string,   // can be multiple items separated by comma
 		                    'enable': boolean,
-		                    //'recipients_list': [{'to': string, 'group': boolean}, ],
+		                    'recipients_list': []   // array of JSON object. example: [{'to': string, 'group': boolean}, ],
 		                },
 		                'email': {
-		                    'recipients': string, // can be multiple items separated by comma
+		                    'recipients': string,   // can be multiple items separated by comma
 		                    'enable': boolean,
-		                    //'recipients_list': [{'to': '', 'group': boolean}, ],
+		                    'recipients_list': []   // array of JSON object. example: [{'to': string, 'group': boolean}, ],
 		                },
 		                'notification': {
-		                    'recipients': string, // can be multiple items separated by comma
+		                    'recipients': string,   // can be multiple items separated by comma
 		                    'enable': boolean,
-		                    //'recipients_list': [{'to': '', 'group': boolean}, ],
+		                    'recipients_list': []   // array of JSON object. example: [{'to': string, 'group': boolean}, ],
 		                },
 		                'modem': {
-		                    'recipients': string, // can be multiple items separated by comma
+		                    'recipients': string,   // can be multiple items separated by comma
 		                    'enable': boolean,
-		                    //'recipients_list': [{'to': '', 'group': boolean}, ],
+		                    'recipients_list': []   // array of JSON object. example: [{'to': string, 'group': boolean}, ],
 		                },
 		                'storage': {
-		                    'recipients': string, // can be multiple items separated by comma
+		                    'recipients': string,   // can be multiple items separated by comma
 		                    'enable': boolean,
-		                    //'recipients_list': [{'to': '', 'group': boolean}, ],
+		                    'recipients_list': []   // array of JSON object. example: [{'to': string, 'group': boolean}, ],
 		                },
 		            }
 		        }
 		   } }
 		   { 'status': 'NG', 'message': string }
 		   // baudrate is an index of the value in the list of baudrates
+		   //   ft900_uart_simple.h: UART_DIVIDER_XXX
+		   //   ["110", "150", "300", "1200", "2400", "4800", "9600", "19200", "31250", "38400", "57600", "115200", "230400", "460800", "921600", "1000000"]
 		   // parity is an index of the value in the list of parities
+		   //   ft900_uart_simple.h: uart_parity_t
+		   //   ["None", "Odd", "Even"]
 		   // sending only the index saves memory on the device and computation on frontend
 
 		D. SET UART PROPERTIES
@@ -650,35 +654,40 @@ DETAILED:
 		            ],
 		            'endpoints' : {
 		                'mobile': {
-		                    'recipients': string, // can be multiple items separated by comma
+		                    'recipients': string,   // can be multiple items separated by comma
 		                    'enable': boolean,
-		                    //'recipients_list': [{'to': string, 'group': boolean}, ],
+		                    'recipients_list': []   // array of JSON object. example: [{'to': string, 'group': boolean}, ],
 		                },
 		                'email': {
-		                    'recipients': string, // can be multiple items separated by comma
+		                    'recipients': string,   // can be multiple items separated by comma
 		                    'enable': boolean,
-		                    //'recipients_list': [{'to': '', 'group': boolean}, ],
+		                    'recipients_list': []   // array of JSON object. example: [{'to': string, 'group': boolean}, ],
 		                },
 		                'notification': {
-		                    'recipients': string, // can be multiple items separated by comma
+		                    'recipients': string,   // can be multiple items separated by comma
 		                    'enable': boolean,
-		                    //'recipients_list': [{'to': '', 'group': boolean}, ],
+		                    'recipients_list': []   // array of JSON object. example: [{'to': string, 'group': boolean}, ],
 		                },
 		                'modem': {
-		                    'recipients': string, // can be multiple items separated by comma
+		                    'recipients': string,   // can be multiple items separated by comma
 		                    'enable': boolean,
-		                    //'recipients_list': [{'to': '', 'group': boolean}, ],
+		                    'recipients_list': []   // array of JSON object. example: [{'to': string, 'group': boolean}, ],
 		                },
 		                'storage': {
-		                    'recipients': string, // can be multiple items separated by comma
+		                    'recipients': string,   // can be multiple items separated by comma
 		                    'enable': boolean,
-		                    //'recipients_list': [{'to': '', 'group': boolean}, ],
+		                    'recipients_list': []   // array of JSON object. example: [{'to': string, 'group': boolean}, ],
 		                },
 		            }
 		        }
 		   }
 		   // baudrate is an index of the value in the list of baudrates
+		   //   ft900_uart_simple.h: UART_DIVIDER_XXX
+		   //   ["110", "150", "300", "1200", "2400", "4800", "9600", "19200", "31250", "38400", "57600", "115200", "230400", "460800", "921600", "1000000"]
 		   // parity is an index of the value in the list of parities
+		   //   ft900_uart_simple.h: uart_parity_t
+		   //   ["None", "Odd", "Even"]
+		   // sending only the index saves memory on the device and computation on frontend
 		-  Response:
 		   { 'status': 'OK', 'message': string }
 		   { 'status': 'NG', 'message': string }
@@ -721,49 +730,61 @@ DETAILED:
 		        'space': int,
 		        'notification': {
 		            'messages': [
-		                { 'message': string, 'enable': boolean }, 
-		                { 'message': string, 'enable': boolean }
+		                { 'message': string, 'enable': boolean }, // for GPIO, index 0 will always refer to message on activation
+		                { 'message': string, 'enable': boolean }  // for GPIO, index 1 will always refer to message on deactivation
 		            ],
 		            'endpoints' : {
 		                'mobile': {
-		                    'recipients': string, // can be multiple items separated by comma
+		                    'recipients': string,   // can be multiple items separated by comma
 		                    'enable': boolean,
-		                    //'recipients_list': [{'to': string, 'group': boolean}, ],
+		                    'recipients_list': []   // array of JSON object. example: [{'to': string, 'group': boolean}, ],
 		                },
 		                'email': {
-		                    'recipients': string, // can be multiple items separated by comma
+		                    'recipients': string,   // can be multiple items separated by comma
 		                    'enable': boolean,
-		                    //'recipients_list': [{'to': '', 'group': boolean}, ],
+		                    'recipients_list': []   // array of JSON object. example: [{'to': string, 'group': boolean}, ],
 		                },
 		                'notification': {
-		                    'recipients': string, // can be multiple items separated by comma
+		                    'recipients': string,   // can be multiple items separated by comma
 		                    'enable': boolean,
-		                    //'recipients_list': [{'to': '', 'group': boolean}, ],
+		                    'recipients_list': []   // array of JSON object. example: [{'to': string, 'group': boolean}, ],
 		                },
 		                'modem': {
-		                    'recipients': string, // can be multiple items separated by comma
+		                    'recipients': string,   // can be multiple items separated by comma
 		                    'enable': boolean,
-		                    //'recipients_list': [{'to': '', 'group': boolean}, ],
+		                    'recipients_list': []   // array of JSON object. example: [{'to': string, 'group': boolean}, ],
 		                },
 		                'storage': {
-		                    'recipients': string, // can be multiple items separated by comma
+		                    'recipients': string,   // can be multiple items separated by comma
 		                    'enable': boolean,
-		                    //'recipients_list': [{'to': '', 'group': boolean}, ],
+		                    'recipients_list': []   // array of JSON object. example: [{'to': string, 'group': boolean}, ],
 		                },
 		            }
 		        }
 		   } }
 		   { 'status': 'NG', 'message': string }
 		   // direction is an index of the value in the list of directions
+		   //     ft900_gpio.h: pad_dir_t
+		   //     ["Input", "Output"]
 		   // mode is an index of the value in the list of modes
+		   //     ft900_gpio.h
+		   //     direction == "Input"
+		   //       ["High Level", "Low Level", "High Edge", "Low Edge"]
+		   //     direction == "Output"
+		   //       ["Level", "Clock", "Pulse"]
 		   // alert is an index of the value in the list of alerts
+		   //     ["Once", "Continuously"]
 		   // alert is an optional and is valid only when direction points to Input
 		   // alertperiod is optional and is valid only if alert points to Continuously
 		   // polarity is an index of the value in the list of polarities
+		   //     ft900_gpio.h
+		   //     direction == "Output"
+		   //       ["Positive", "Negative"]
 		   // polarity is optional and is valid only when direction points to Output
 		   // width is optional and is valid only when direction points to Output and mode points to Pulse
 		   // mark is optional and is valid only when direction points to Output and mode points to Clock
 		   // space is optional and is valid only when direction points to Output and mode points to Clock
+		   // sending only the index saves memory on the device and computation on frontend
 
 		H. SET GPIO PROPERTIES
 		-  Request:
@@ -781,48 +802,60 @@ DETAILED:
 		        'space': int,
 		        'notification': {
 		            'messages': [
-		                { 'message': string, 'enable': boolean }, 
-		                { 'message': string, 'enable': boolean }
+		                { 'message': string, 'enable': boolean }, // for GPIO, index 0 will always refer to message on activation
+		                { 'message': string, 'enable': boolean }  // for GPIO, index 1 will always refer to message on deactivation
 		            ],
 		            'endpoints' : {
 		                'mobile': {
 		                    'recipients': string, // can be multiple items separated by comma
 		                    'enable': boolean,
-		                    //'recipients_list': [{'to': string, 'group': boolean}, ],
+		                    'recipients_list': [] // array of JSON object. example: [{'to': string, 'group': boolean}, ],
 		                },
 		                'email': {
 		                    'recipients': string, // can be multiple items separated by comma
 		                    'enable': boolean,
-		                    //'recipients_list': [{'to': '', 'group': boolean}, ],
+		                    'recipients_list': [] // array of JSON object. example: [{'to': string, 'group': boolean}, ],
 		                },
 		                'notification': {
 		                    'recipients': string, // can be multiple items separated by comma
 		                    'enable': boolean,
-		                    //'recipients_list': [{'to': '', 'group': boolean}, ],
+		                    'recipients_list': [] // array of JSON object. example: [{'to': string, 'group': boolean}, ],
 		                },
 		                'modem': {
 		                    'recipients': string, // can be multiple items separated by comma
 		                    'enable': boolean,
-		                    //'recipients_list': [{'to': '', 'group': boolean}, ],
+		                    'recipients_list': [] // array of JSON object. example: [{'to': string, 'group': boolean}, ],
 		                },
 		                'storage': {
 		                    'recipients': string, // can be multiple items separated by comma
 		                    'enable': boolean,
-		                    //'recipients_list': [{'to': '', 'group': boolean}, ],
+		                    'recipients_list': [] // array of JSON object. example: [{'to': string, 'group': boolean}, ],
 		                },
 		            }
 		        }
 		   }
 		   // direction is an index of the value in the list of directions
+		   //     ft900_gpio.h: pad_dir_t
+		   //     ["Input", "Output"]
 		   // mode is an index of the value in the list of modes
+		   //     ft900_gpio.h
+		   //     direction == "Input"
+		   //       ["High Level", "Low Level", "High Edge", "Low Edge"]
+		   //     direction == "Output"
+		   //       ["Level", "Clock", "Pulse"]
 		   // alert is an index of the value in the list of alerts
+		   //     ["Once", "Continuously"]
 		   // alert is an optional and is valid only when direction points to Input
 		   // alertperiod is optional and is valid only if alert points to Continuously
 		   // polarity is an index of the value in the list of polarities
+		   //     ft900_gpio.h
+		   //     direction == "Output"
+		   //       ["Positive", "Negative"]
 		   // polarity is optional and is valid only when direction points to Output
 		   // width is optional and is valid only when direction points to Output and mode points to Pulse
 		   // mark is optional and is valid only when direction points to Output and mode points to Clock
 		   // space is optional and is valid only when direction points to Output and mode points to Clock
+		   // sending only the index saves memory on the device and computation on frontend
 		-  Response:
 		   { 'status': 'OK', 'message': string }
 		   { 'status': 'NG', 'message': string }
