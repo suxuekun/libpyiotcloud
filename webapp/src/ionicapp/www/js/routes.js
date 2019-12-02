@@ -220,8 +220,8 @@ angular.module('app.routes', [])
     controller: 'deviceUARTCtrl'
   })
 
-  .state('deviceRTC', {
-    url: '/page_device_rtc',
+  .state('deviceI2C', {
+    url: '/page_device_i2c',
 	params: {
 		devicename: "",
 		username: "",
@@ -230,8 +230,38 @@ angular.module('app.routes', [])
 		deviceid: "",
 		serialnumber: ""		
 },
-    templateUrl: 'templates/deviceRTC.html',
-    controller: 'deviceRTCCtrl'
+    templateUrl: 'templates/deviceI2C.html',
+    controller: 'deviceI2CCtrl'
+  })
+
+  .state('addI2CDevice', {
+    url: '/page_add_i2c_device',
+	params: {
+		devicename: "",
+		username: "",
+		token: "",
+		devicestatus: "",
+		deviceid: "",
+		serialnumber: ""		
+},
+    templateUrl: 'templates/addI2CDevice.html',
+    controller: 'addI2CDeviceCtrl'
+  })
+
+  .state('addI2CDeviceDetails', {
+    url: '/page_add_i2c_device_details',
+	params: {
+		devicename: "",
+		username: "",
+		token: "",
+		devicestatus: "",
+		deviceid: "",
+		serialnumber: "",
+		model: "",
+		manufacturer: ""		
+},
+    templateUrl: 'templates/addI2CDeviceDetails.html',
+    controller: 'addI2CDeviceDetailsCtrl'
   })
 
   .state('deviceNotifications', {

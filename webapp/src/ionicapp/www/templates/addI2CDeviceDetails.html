@@ -1,0 +1,48 @@
+<ion-view title="Add I2C Device Details" hide-back-button="true" cache-view="false" nav-transition="none" id="page26" class="page_width">
+  <ion-nav-buttons side="left" class="has-header">
+    <button class="button button-icon icon ion-android-close" ng-click="submitDeviceList()"></button>
+  </ion-nav-buttons>
+  <ion-nav-buttons side="right" class="has-header">
+    <button class="button button-icon icon ion-refresh" ng-click="getI2CDevices()"></button>
+  </ion-nav-buttons>
+  <ion-content padding="true" class="has-header">
+    <form id="addI2CDeviceDetails-form59" class="list">
+      <div class="spacer" style="width: 300px; height: 10px;"></div>
+      <div id="addI2CDeviceDetails-markdown60" class="show-list-numbers-and-dots">
+        <p style="color:#000000;">Manufacturer</p>
+      </div>
+      <div id="addI2CDeviceDetails-markdown22" class="show-list-numbers-and-dots">
+        <p style="color:#444444;font-size:18px;">
+          <strong> {{ data.sensor.manufacturer }} </strong>
+        </p>
+      </div>
+      <div class="spacer" style="height: 15px;"></div>
+      <div id="addI2CDeviceDetails-markdown67" class="show-list-numbers-and-dots">
+        <p style="color:#000000;">Device Model</p>
+      </div>
+      <div id="addI2CDeviceDetails-markdown23" class="show-list-numbers-and-dots">
+        <p style="color:#444444;font-size:18px;">
+          <strong> {{ data.sensor.model }} </strong>
+        </p>
+      </div>
+    </form>
+    <div id="addI2CDeviceDetails-markdown70" class="show-list-numbers-and-dots">
+      <hr>
+    </div>
+    <div class="spacer" style="width: 300px; height: 50px;"></div>
+    <form id="addI2CDeviceDetails-form64" class="list">
+      <div id="addI2CDeviceDetails-markdown21" class="show-list-numbers-and-dots">
+        <p style="color:#000000;">Provide the details below</p>
+      </div>
+      <label class="item item-input item-stacked-label" id="addI2CDeviceDetails-input87">
+        <span class="input-label">Name</span>
+        <input type="text" placeholder="" ng-model="data.sensorname">
+      </label>
+      <label class="item item-input item-stacked-label" id="addI2CDeviceDetails-input88">
+        <span class="input-label">I2C Address</span>
+        <input type="text" placeholder="0x00 - 0xFF" ng-model="data.sensor.address">
+      </label>
+    </form>
+    <button id="addI2CDeviceDetails-button27" ng-click="addI2CSensor()" class="button button-dark button-block">ADD</button>
+  </ion-content>
+</ion-view>
