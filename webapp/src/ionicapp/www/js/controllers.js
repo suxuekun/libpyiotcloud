@@ -1287,7 +1287,6 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server) {
         if ($scope.data.phonenumber !== undefined) {
             if ($scope.data.phonenumber.length !== 0) {
                 param.phone_number = $scope.data.phonenumber;
-                return;
             }
         }        
         

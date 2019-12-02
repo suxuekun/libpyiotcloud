@@ -182,9 +182,13 @@ def signup():
 
     # check if username is already in database
     if g_database_client.find_user(username):
-        response = json.dumps({'status': 'NG', 'message': 'Username already exists'})
-        print('\r\nERROR Signup: Username already exists [{}]\r\n'.format(username))
-        return response, status.HTTP_409_CONFLICT
+        if g_database_client.is_email_verified(username):
+            response = json.dumps({'status': 'NG', 'message': 'Username already exists'})
+            print('\r\nERROR Signup: Username already exists [{}]\r\n'.format(username))
+            return response, status.HTTP_409_CONFLICT
+        else:
+            # user already signed up but unverified, so delete the user for signup to proceed
+            g_database_client.admin_delete_user(username)
 
     # check if email is already in database
     if g_database_client.find_email(email) is not None:
