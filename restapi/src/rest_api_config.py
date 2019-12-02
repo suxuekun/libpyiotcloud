@@ -48,14 +48,16 @@ class config:
 
     # Database settings
     if os.name == 'nt':
-        CONFIG_MONGODB_HOST     = "127.0.0.1"
+        CONFIG_MONGODB_HOST         = "127.0.0.1"
     else:
-        CONFIG_MONGODB_HOST     = "mongodb"
-    CONFIG_MONGODB_PORT         = 27017
-    CONFIG_MONGODB_DB           = "iotcloud-database"
-    CONFIG_MONGODB_TB_PROFILES  = "profiles"
-    CONFIG_MONGODB_TB_DEVICES   = "devices"
-    CONFIG_MONGODB_TB_HISTORY   = "history"
+        CONFIG_MONGODB_HOST         = "mongodb"
+    CONFIG_MONGODB_PORT             = 27017
+    CONFIG_MONGODB_DB               = "iotcloud-database"
+    CONFIG_MONGODB_TB_PROFILES      = "profiles"
+    CONFIG_MONGODB_TB_DEVICES       = "devices"
+    CONFIG_MONGODB_TB_HISTORY       = "history"
+    CONFIG_MONGODB_TB_NOTIFICATIONS = "notifications"
+    CONFIG_MONGODB_TB_RECIPIENTS    = "recipients"
     CONFIG_MONGODB_TB_SUBSCRIPTIONS = "subscriptions"
     CONFIG_MONGODB_TB_TRANSACTIONS  = "transactions"
 

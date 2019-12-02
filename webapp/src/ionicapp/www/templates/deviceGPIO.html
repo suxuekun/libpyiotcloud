@@ -74,10 +74,10 @@
       <div id="deviceGPIO-markdown19" class="show-list-numbers-and-dots">
         <p style="color:#000000;">Messages</p>
       </div>
-      <ion-checkbox id="deviceGPIO-checkbox9" ng-checked="data.gpio.notification.messages[0].enable">Message on activation</ion-checkbox>
+      <ion-checkbox id="deviceGPIO-checkbox9" ng-model="data.gpio.notification.messages[0].enable">Message on activation</ion-checkbox>
       <label class="item item-input" id="deviceGPIO-textarea5">
         <span class="input-label"></span><textarea placeholder="" ng-model="data.gpio.notification.messages[0].message"></textarea></label>
-      <ion-checkbox id="deviceGPIO-checkbox10" ng-checked="data.gpio.notification.messages[1].enable">Message on deactivation</ion-checkbox>
+      <ion-checkbox id="deviceGPIO-checkbox10" ng-model="data.gpio.notification.messages[1].enable">Message on deactivation</ion-checkbox>
       <label class="item item-input" id="deviceGPIO-textarea6">
         <span class="input-label"></span><textarea placeholder="" ng-model="data.gpio.notification.messages[1].message"></textarea></label>
     </form>
@@ -85,25 +85,25 @@
       <div id="deviceGPIO-markdown59" class="show-list-numbers-and-dots">
         <p style="color:#000000;">Recipients</p>
       </div>
-      <ion-checkbox id="deviceGPIO-checkbox5" ng-checked="data.gpio.notification.endpoints.email.enable">Send email to </ion-checkbox>
+      <ion-checkbox id="deviceGPIO-checkbox5" ng-model="data.gpio.notification.endpoints.email.enable">Send email to </ion-checkbox>
       <label class="item item-input" id="deviceGPIO-input71">
         <input type="email" placeholder="Email address(es)" ng-model="data.gpio.notification.endpoints.email.recipients">
       </label>
     </form>
     <form id="deviceGPIO-form49" class="list" ng-show="data.showNotification==1">
-      <ion-checkbox id="deviceGPIO-checkbox6" ng-checked="data.gpio.notification.endpoints.mobile.enable">Send SMS to </ion-checkbox>
+      <ion-checkbox id="deviceGPIO-checkbox6" ng-model="data.gpio.notification.endpoints.mobile.enable">Send SMS to </ion-checkbox>
       <label class="item item-input" id="deviceGPIO-input72">
         <input type="tel" placeholder="Phone number(s)" ng-model="data.gpio.notification.endpoints.mobile.recipients">
       </label>
     </form>
     <form id="deviceGPIO-form50" class="list" ng-show="data.showNotification==1">
-      <ion-checkbox id="deviceGPIO-checkbox7" ng-checked="data.gpio.notification.endpoints.notification.enable">Send notification to </ion-checkbox>
+      <ion-checkbox id="deviceGPIO-checkbox7" ng-model="data.gpio.notification.endpoints.notification.enable">Send notification to </ion-checkbox>
       <label class="item item-input" id="deviceGPIO-input73">
         <input type="tel" placeholder="Phone number(s)" ng-model="data.gpio.notification.endpoints.notification.recipients">
       </label>
     </form>
     <form id="deviceGPIO-form51" class="list" ng-show="data.showNotification==1">
-      <ion-checkbox id="deviceGPIO-checkbox8" ng-checked="data.gpio.notification.endpoints.modem.enable">Send to IoT Modem</ion-checkbox>
+      <ion-checkbox id="deviceGPIO-checkbox8" ng-model="data.gpio.notification.endpoints.modem.enable">Send to IoT Modem</ion-checkbox>
       <label class="item item-input" id="deviceGPIO-input74">
         <input type="text" placeholder="Device name(s)" ng-model="data.gpio.notification.endpoints.modem.recipients">
       </label>
