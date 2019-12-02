@@ -263,6 +263,9 @@ This page contains a step-by-step tutorial on <b>how to use the IoT Portal</b> i
 
     <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/device_simulator_deviceid_py.png" width="600"/>
 
+    <b> NOTE: After implementing additional security measures in the backend, device also needs to provide the MQTT username and MQTT password with the UUID and SerialNumber, respectively. </b>
+
+
 2. Run <b>device_simulator.py.bat</b>
 
     <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/device_simulator_bootup_py.png" width="600"/>
@@ -297,7 +300,10 @@ This page contains a step-by-step tutorial on <b>how to use the IoT Portal</b> i
    NOTE: To get a device ID, you must first register a device in the IoT Portal.
    
     <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/device_simulator_deviceid_js.png" width="600"/>
-    
+
+    <b> NOTE: After implementing additional security measures in the backend, device also needs to provide the MQTT username and MQTT password with the UUID and SerialNumber, respectively. </b>
+
+
 2. Run <b>device_simulator.js.bat</b>
 
     <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/device_simulator_bootup_js.png" width="600"/>
@@ -316,6 +322,8 @@ This page contains a step-by-step tutorial on <b>how to use the IoT Portal</b> i
     NOTE: To get a device ID, you must first register a device in the IoT Portal.
 
     <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/code_ft90Xiotbrtcloud.png" width="600"/>
+    
+    <b> NOTE: After implementing additional security measures in the backend, device also needs to provide the MQTT username and MQTT password with the UUID and SerialNumber, respectively. </b>
     
 2. Compile code and load the binary.
 
