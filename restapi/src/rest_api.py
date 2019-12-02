@@ -2474,6 +2474,238 @@ def set_gpio_voltage(devicename):
     return process_request(api, data)
 
 
+#
+# GET I2C SENSORS
+#
+# - Request:
+#   GET /devices/device/DEVICENAME/i2c/sensors
+#   headers: { 'Authorization': 'Bearer ' + token.access }
+#
+# - Response:
+#   { 'status': 'OK', 'message': string, 'sensors': array[{'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'timestamp': string}, ...] }
+#   { 'status': 'NG', 'message': string }
+#
+@app.route('/devices/device/<devicename>/i2c/sensors', methods=['GET'])
+def get_i2c_sensors(devicename):
+    # get token from Authorization header
+    auth_header_token = get_auth_header_token()
+    if auth_header_token is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
+        print('\r\nERROR Get I2C Sensors: Invalid authorization header [{}]\r\n'.format(username))
+        return response, status.HTTP_401_UNAUTHORIZED
+    token = {'access': auth_header_token}
+
+    # get username from token
+    username = g_database_client.get_username_from_token(token)
+    if username is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
+        print('\r\nERROR Get I2C Sensors: Invalid token\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
+    print('get_i2c_sensors username={}'.format(username))
+
+    # check if a parameter is empty
+    if len(username) == 0 or len(token) == 0:
+        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+        print('\r\nERROR Get I2C Sensors: Empty parameter found\r\n')
+        return response, status.HTTP_400_BAD_REQUEST
+
+    # check if username and token is valid
+    verify_ret, new_token = g_database_client.verify_token(username, token)
+    if verify_ret == 2:
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Get I2C Sensors: Token expired [{}]\r\n'.format(username))
+        return response, status.HTTP_401_UNAUTHORIZED
+    elif verify_ret != 0:
+        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
+        print('\r\nERROR Get I2C Sensors: Token is invalid [{}]\r\n'.format(username))
+        return response, status.HTTP_401_UNAUTHORIZED
+
+    sensors = g_database_client.get_sensors(username, devicename)
+
+
+    msg = {'status': 'OK', 'message': 'I2C Sensors queried successfully.', 'sensors': sensors}
+    if new_token:
+        msg['new_token'] = new_token
+    response = json.dumps(msg)
+    print('\r\nGet I2C Sensors successful: {}\r\n{} sensors\r\n'.format(username, len(sensors)))
+    return response
+
+
+########################################################################################################
+#
+# ADD I2C SENSOR
+#
+# - Request:
+#   POST /devices/device/<devicename>/i2c/sensors/sensor/<sensorname>
+#   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+#   data: {'address': int, 'manufacturer': string, 'model': string}
+#
+# - Response:
+#   {'status': 'OK', 'message': string}
+#   {'status': 'NG', 'message': string}
+#
+#
+# DELETE I2C SENSOR
+#
+# - Request:
+#   DELETE /devices/device/<devicename>/i2c/sensors/sensor/<sensorname>
+#   headers: {'Authorization': 'Bearer ' + token.access}
+#
+# - Response:
+#   {'status': 'OK', 'message': string}
+#   {'status': 'NG', 'message': string}
+#
+########################################################################################################
+@app.route('/devices/device/<devicename>/i2c/sensors/sensor/<sensorname>', methods=['POST', 'DELETE'])
+def register_i2c_sensor(devicename, sensorname):
+    # get token from Authorization header
+    auth_header_token = get_auth_header_token()
+    if auth_header_token is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
+        print('\r\nERROR Add/Delete I2C Sensor: Invalid authorization header\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
+    token = {'access': auth_header_token}
+
+    # get username from token
+    username = g_database_client.get_username_from_token(token)
+    if username is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
+        print('\r\nERROR Add/Delete I2C Sensor: Invalid token\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
+    print('register_i2c_sensor username={} devicename={} sensorname={}'.format(username, devicename, sensorname))
+
+    # check if a parameter is empty
+    if len(username) == 0 or len(token) == 0 or len(devicename) == 0 or len(sensorname) == 0:
+        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+        print('\r\nERROR Add/Delete I2C Sensor: Empty parameter found\r\n')
+        return response, status.HTTP_400_BAD_REQUEST
+
+    # check if username and token is valid
+    verify_ret, new_token = g_database_client.verify_token(username, token)
+    if verify_ret == 2:
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Add/Delete I2C Sensor: Token expired [{}]\r\n'.format(username))
+        return response, status.HTTP_401_UNAUTHORIZED
+    elif verify_ret != 0:
+        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
+        print('\r\nERROR Add/Delete I2C Sensor: Token is invalid [{}]\r\n'.format(username))
+        return response, status.HTTP_401_UNAUTHORIZED
+
+    if flask.request.method == 'POST':
+        # check if sensor is registered
+        if g_database_client.get_sensor(username, devicename, sensorname):
+            response = json.dumps({'status': 'NG', 'message': 'Sensor is already registered'})
+            print('\r\nERROR Add I2C Sensor: Sensor is already registered [{},{}]\r\n'.format(username, devicename))
+            return response, status.HTTP_409_CONFLICT
+
+        data = flask.request.get_json()
+        print(data)
+        if not data.get("address") or not data.get("manufacturer") or not data.get("model"):
+            response = json.dumps({'status': 'NG', 'message': 'Parameters not included'})
+            print('\r\nERROR Add I2C Sensor: Parameters not included [{},{}]\r\n'.format(username, devicename))
+            return response, status.HTTP_400_BAD_REQUEST
+        print(data["address"])
+        print(data["manufacturer"])
+        print(data["model"])
+
+        # add sensor to database
+        result = g_database_client.add_sensor(username, devicename, sensorname, data["address"], data["manufacturer"], data["model"])
+        print(result)
+        if not result:
+            response = json.dumps({'status': 'NG', 'message': 'Sensor could not be registered'})
+            print('\r\nERROR Add I2C Sensor: Sensor could not be registered [{},{}]\r\n'.format(username, devicename))
+            return response, status.HTTP_500_INTERNAL_SERVER_ERROR
+
+        msg = {'status': 'OK', 'message': 'Devices registered successfully.'}
+        if new_token:
+            msg['new_token'] = new_token
+        response = json.dumps(msg)
+        print('\r\nI2C Sensor registered successful: {}\r\n{}\r\n'.format(username, response))
+        return response
+
+    elif flask.request.method == 'DELETE':
+
+        # check if sensor is registered
+        sensor = g_database_client.get_sensor(username, devicename, sensorname)
+        if not sensor:
+            response = json.dumps({'status': 'NG', 'message': 'Sensor is not registered'})
+            print('\r\nERROR Delete I2C Sensor: Sensor is not registered [{},{}]\r\n'.format(username, devicename))
+            return response, status.HTTP_404_NOT_FOUND
+
+        # delete device from database
+        g_database_client.delete_sensor(username, devicename, sensorname)
+
+        msg = {'status': 'OK', 'message': 'I2C Sensor unregistered successfully.'}
+        if new_token:
+            msg['new_token'] = new_token
+        response = json.dumps(msg)
+        print('\r\nI2C Sensor unregistered successful: {}\r\n{}\r\n'.format(username, response))
+        return response
+
+
+########################################################################################################
+#
+# GET I2C SENSOR
+#
+# - Request:
+#   GET /devices/device/<devicename>/i2c/sensors/sensor/<sensorname>
+#   headers: {'Authorization': 'Bearer ' + token.access}
+#
+# - Response:
+#   {'status': 'OK', 'message': string, 'sensor': {'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'timestamp': string}}
+#   {'status': 'NG', 'message': string}
+#
+########################################################################################################
+@app.route('/devices/device/<devicename>/i2c/sensors/sensor/<sensorname>', methods=['GET'])
+def get_i2c_sensor(devicename, sensorname):
+    # get token from Authorization header
+    auth_header_token = get_auth_header_token()
+    if auth_header_token is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
+        print('\r\nERROR Get I2C Sensor: Invalid authorization header\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
+    token = {'access': auth_header_token}
+
+    # get username from token
+    username = g_database_client.get_username_from_token(token)
+    if username is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
+        print('\r\nERROR Get I2C Sensor: Invalid token\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
+    print('get_i2c_sensor username={} devicename={} sensorname={}'.format(username, devicename, sensorname))
+
+    # check if a parameter is empty
+    if len(username) == 0 or len(token) == 0 or len(devicename) == 0 or len(sensorname) == 0:
+        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+        print('\r\nERROR Get I2C Sensor: Empty parameter found\r\n')
+        return response, status.HTTP_400_BAD_REQUEST
+
+    # check if username and token is valid
+    verify_ret, new_token = g_database_client.verify_token(username, token)
+    if verify_ret == 2:
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Get I2C Sensor: Token expired [{}]\r\n'.format(username))
+        return response, status.HTTP_401_UNAUTHORIZED
+    elif verify_ret != 0:
+        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
+        print('\r\nERROR Get I2C Sensor: Token is invalid [{}]\r\n'.format(username))
+        return response, status.HTTP_401_UNAUTHORIZED
+
+    # check if sensor is registered
+    sensor = g_database_client.get_sensor(username, devicename, sensorname)
+    if not sensor:
+        response = json.dumps({'status': 'NG', 'message': 'Sensor is not registered'})
+        print('\r\nERROR Get I2C Sensor: Sensor is not registered [{},{}]\r\n'.format(username, devicename))
+        return response, status.HTTP_404_NOT_FOUND
+
+
+    msg = {'status': 'OK', 'message': 'Sensor queried successfully.', 'sensor': sensor}
+    if new_token:
+        msg['new_token'] = new_token
+    response = json.dumps(msg)
+    print('\r\nSensor queried successful: {}\r\n{}\r\n'.format(username, response))
+    return response
+
 
 #########################
 
