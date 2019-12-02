@@ -96,11 +96,17 @@ class database_client:
     def find_email(self, email):
         return self._users.find_email(email)
 
+    def is_email_verified(self, username):
+        return self._users.is_email_verified(username)
+
     def get_user_info(self, access_token):
         return self._users.get_user_info(access_token)
 
     def delete_user(self, username, access_token):
         return self._users.delete_user(username, access_token)
+
+    def admin_delete_user(self, username):
+        return self._users.admin_delete_user(username)
 
     def login(self, username, password):
         return self._users.login(username, password)
@@ -289,13 +295,27 @@ class database_client_cognito:
         return users
 
     def find_user(self, username):
+        print("find_user")
         (result, users) = self.client.admin_list_users()
         if result == False:
+            print("find_user False")
             return True
         if users:
             for user in users:
                 if user["username"] == username:
                     return True
+        return False
+
+    def is_email_verified(self, username):
+        print("find_user")
+        (result, users) = self.client.admin_list_users()
+        if result == False:
+            print("find_user False")
+            return True
+        if users:
+            for user in users:
+                if user["username"] == username:
+                    return user["status"]=="CONFIRMED"
         return False
 
     def find_email(self, email):
@@ -316,6 +336,10 @@ class database_client_cognito:
 
     def delete_user(self, username, access_token):
         (result, response) = self.client.delete_user(username, access_token)
+        return result
+
+    def admin_delete_user(self, username):
+        (result, response) = self.client.admin_delete_user(username)
         return result
 
     def login(self, username, password):

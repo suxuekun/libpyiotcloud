@@ -177,7 +177,17 @@ class cognito_client:
 		try:
 			response = self.__get_client().admin_delete_user(**params)
 			#response = self.__get_client().delete_user(**params)
-			print(response)
+		except:
+			return (False, None)
+		return (self.__get_result(response), response)
+
+	def admin_delete_user(self, username):
+		params = {
+			'UserPoolId' : self.pool_id,
+			'Username'   : username,
+		}
+		try:
+			response = self.__get_client().admin_delete_user(**params)
 		except:
 			return (False, None)
 		return (self.__get_result(response), response)
@@ -348,7 +358,7 @@ class cognito_client:
 
 
 	def admin_list_users(self):
-		attributes = ["email", "given_name", "family_name"]
+		attributes = ["email", "given_name", "family_name", "email"]
 		params = {
 			'UserPoolId'      : self.pool_id,
 			'AttributesToGet' : attributes
@@ -363,6 +373,7 @@ class cognito_client:
 			user_list = []
 			for user in users:
 				user_attributes = self.__cognito_to_dict(user["Attributes"])
+				#print(user)
 				user_attributes["username"] = user["Username"]
 				user_attributes["creationdate"] = user["UserCreateDate"]
 				user_attributes["modifieddate"] = user["UserLastModifiedDate"]
