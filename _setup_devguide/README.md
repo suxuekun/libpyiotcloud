@@ -243,7 +243,7 @@ SUMMARY:
 		F. SET GPIO VOLTAGE            - POST   /devices/device/DEVICENAME/gpio/voltage
 		G. GET GPIO PROPERTIES         - GET    /devices/device/DEVICENAME/gpio/NUMBER/properties
 		H. SET GPIO PROPERTIES         - POST   /devices/device/DEVICENAME/gpio/NUMBER/properties
-		I. GET I2C SENSOR              - GET    /devices/device/DEVICENAME/i2c/sensors
+		I. GET I2C SENSORS             - GET    /devices/device/DEVICENAME/i2c/sensors
 		I. ADD I2C SENSOR              - POST   /devices/device/DEVICENAME/i2c/sensors/sensor/SENSORNAME
 		J. DELETE I2C SENSOR           - DELETE /devices/device/DEVICENAME/i2c/sensors/sensor/SENSORNAME
 		K. GET I2C SENSOR              - GET    /devices/device/DEVICENAME/i2c/sensors/sensor/SENSORNAME
