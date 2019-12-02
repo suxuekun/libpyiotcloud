@@ -58,6 +58,7 @@ class config:
     CONFIG_MONGODB_TB_HISTORY       = "history"
     CONFIG_MONGODB_TB_NOTIFICATIONS = "notifications"
     CONFIG_MONGODB_TB_RECIPIENTS    = "recipients"
+    CONFIG_MONGODB_TB_I2CSENSORS    = "i2csensors"
     CONFIG_MONGODB_TB_SUBSCRIPTIONS = "subscriptions"
     CONFIG_MONGODB_TB_TRANSACTIONS  = "transactions"
 

@@ -248,6 +248,23 @@ class database_client:
 
 
     ##########################################################
+    # sensors
+    ##########################################################
+
+    def get_sensors(self, username, devicename):
+        return self._devices.get_sensors(username, devicename)
+
+    def add_sensor(self, username, devicename, sensorname, address, manufacturer, model):
+        return self._devices.add_sensor(username, devicename, sensorname, address, manufacturer, model)
+
+    def delete_sensor(self, username, devicename, sensorname):
+        self._devices.delete_sensor(username, devicename, sensorname)
+
+    def get_sensor(self, username, devicename, sensorname):
+        return self._devices.get_sensor(username, devicename, sensorname)
+
+
+    ##########################################################
     # devices
     ##########################################################
 
@@ -802,6 +819,52 @@ class database_client_mongodb:
                 notification.pop('_id')
                 print(notification['notification'])
                 return notification['notification']
+        return None
+
+
+    ##########################################################
+    # sensors
+    ##########################################################
+
+    def get_sensors_document(self):
+        return self.client[config.CONFIG_MONGODB_TB_I2CSENSORS]
+
+    def get_sensors(self, username, devicename):
+        sensor_list = []
+        i2csensors = self.get_sensors_document();
+        if i2csensors:
+            for i2csensor in i2csensors.find({'username': username, 'devicename': devicename}):
+                i2csensor.pop('_id')
+                sensor_list.append(i2csensor)
+        return sensor_list
+
+    def add_sensor(self, username, devicename, sensorname, address, manufacturer, model):
+        i2csensors = self.get_sensors_document();
+        timestamp = str(int(time.time()))
+        device = {}
+        device['username']     = username
+        device['devicename']   = devicename
+        device['sensorname']   = sensorname
+        device['address']      = address
+        device['manufacturer'] = manufacturer
+        device['model']        = model
+        i2csensors.insert_one(device)
+        return True
+
+    def delete_sensor(self, username, devicename, sensorname):
+        i2csensors = self.get_sensors_document();
+        try:
+            i2csensors.delete_many({'username': username, 'devicename': devicename, 'sensorname': sensorname})
+        except:
+            print("delete_sensor: Exception occurred")
+            pass
+
+    def get_sensor(self, username, devicename, sensorname):
+        i2csensors = self.get_sensors_document();
+        if i2csensors:
+            for i2csensor in i2csensors.find({'username': username, 'devicename': devicename, 'sensorname': sensorname}):
+                i2csensor.pop('_id')
+                return i2csensor
         return None
 
 
