@@ -243,6 +243,10 @@ SUMMARY:
 		F. SET GPIO VOLTAGE            - POST   /devices/device/DEVICENAME/gpio/voltage
 		G. GET GPIO PROPERTIES         - GET    /devices/device/DEVICENAME/gpio/NUMBER/properties
 		H. SET GPIO PROPERTIES         - POST   /devices/device/DEVICENAME/gpio/NUMBER/properties
+		I. GET I2C SENSOR              - GET    /devices/device/DEVICENAME/i2c/sensors
+		I. ADD I2C SENSOR              - POST   /devices/device/DEVICENAME/i2c/sensors/sensor/SENSORNAME
+		J. DELETE I2C SENSOR           - DELETE /devices/device/DEVICENAME/i2c/sensors/sensor/SENSORNAME
+		K. GET I2C SENSOR              - GET    /devices/device/DEVICENAME/i2c/sensors/sensor/SENSORNAME
 
 		Old requirements:
 		A. GET STATUS                  - GET    /devices/device/DEVICENAME/status
@@ -859,6 +863,42 @@ DETAILED:
 		-  Response:
 		   { 'status': 'OK', 'message': string }
 		   { 'status': 'NG', 'message': string }
+
+		I. GET I2C SENSORS
+		-  Request:
+		   GET /devices/device/DEVICENAME/i2c/sensors
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		-  Response:
+		   { 'status': 'OK', 'message': string, 
+		     'sensors': array[{'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'timestamp': string}, ...]}
+		   { 'status': 'NG', 'message': string}
+		   // timestamp refers to the epoch time the sensor was registered/added
+
+		J. ADD I2C SENSOR
+		-  Request:
+		   POST /devices/device/DEVICENAME/i2c/sensors/sensor/SENSORNAME
+		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+		   data: {'address': int, 'manufacturer': string, 'model': string}
+		-  Response:
+		   { 'status': 'OK', 'message': string}
+		   { 'status': 'NG', 'message': string}
+
+		K. DELETE I2C SENSOR
+		-  Request:
+		   DELETE /devices/device/DEVICENAME/i2c/sensors/sensor/SENSORNAME
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		-  Response:
+		   { 'status': 'OK', 'message': string}
+		   { 'status': 'NG', 'message': string}
+
+		L. GET I2C SENSOR
+		-  Request:
+		   GET /devices/device/DEVICENAME/i2c/sensors/sensor/SENSORNAME
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		-  Response:
+		   { 'status': 'OK', 'message': string, 'sensor': {'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'timestamp': string}}
+		   { 'status': 'NG', 'message': string}
+		   // timestamp refers to the epoch time the sensor was registered/added
 
 
 		Old requirements:
