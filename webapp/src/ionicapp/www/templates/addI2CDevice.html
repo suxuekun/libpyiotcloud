@@ -3,7 +3,7 @@
     <button class="button button-icon icon ion-android-close" ng-click="submitDeviceList()"></button>
   </ion-nav-buttons>
   <ion-nav-buttons side="right" class="has-header">
-    <button class="button button-icon icon ion-refresh" ng-click="getI2CDevices()"></button>
+    <button class="button button-positive icon ion-refresh" ng-click="getI2CDevices()"></button>
   </ion-nav-buttons>
   <ion-content padding="true" class="has-header">
     <div id="addI2CDevice-markdown35" class="show-list-numbers-and-dots">
@@ -33,6 +33,6 @@
         <select ng-model="data.i2c.devicemodel" ng-options="devicemodel.id as devicemodel.label for devicemodel in devicemodels_ada"></select>
       </label>
     </form>
-    <button id="addI2CDevice-button26" ng-click="submitTest()" class="button button-dark button-block">NEXT</button>
+    <button id="addI2CDevice-button26" ng-click="submitTest()" class="button button-positive button-block">NEXT</button>
   </ion-content>
 </ion-view>

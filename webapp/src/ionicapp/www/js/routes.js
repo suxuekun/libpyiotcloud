@@ -121,22 +121,44 @@ angular.module('app.routes', [])
     controller: 'confirmPhoneNumberCtrl'
   })
 
-  .state('menu.settings', {
-    url: '/page_settings',
+  .state('menu.about', {
+    url: '/page_about',
+	params: {
+		username: "",
+		token: ""		
+},
     views: {
       'side-menu21': {
-        templateUrl: 'templates/settings.html',
-        controller: 'settingsCtrl'
+        templateUrl: 'templates/about.html',
+        controller: 'aboutCtrl'
       }
     }
   })
 
-  .state('menu.help', {
-    url: '/page_help',
+  .state('menu.feedback', {
+    url: '/page_feedback',
+	params: {
+		username: "",
+		token: ""		
+},
     views: {
       'side-menu21': {
-        templateUrl: 'templates/help.html',
-        controller: 'helpCtrl'
+        templateUrl: 'templates/feedback.html',
+        controller: 'feedbackCtrl'
+      }
+    }
+  })
+
+  .state('menu.helpSupport', {
+    url: '/page_help',
+	params: {
+		username: "",
+		token: ""		
+},
+    views: {
+      'side-menu21': {
+        templateUrl: 'templates/helpSupport.html',
+        controller: 'helpSupportCtrl'
       }
     }
   })

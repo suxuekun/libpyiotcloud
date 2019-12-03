@@ -1,11 +1,11 @@
 <ion-view title="Account" hide-back-button="true" nav-transition="none" id="page3" class="page_width">
   <ion-nav-buttons side="right" class="has-header">
-    <button class="button button-assertive icon ion-trash-b" ng-click="submitDeleteaccount()"></button>
+    <button class="button button-positive icon ion-trash-b" ng-click="submitDeleteaccount()"></button>
   </ion-nav-buttons>
   <ion-content padding="true" class="has-header">
     <div id="account-button-bar2" class="button-bar">
-      <button id="account-button50" ng-class="{'active': data.activeSection==1}" ng-click="changeSection(1)" class="button button-dark button-block">Profile</button>
-      <button id="account-button51" ng-class="{'active': data.activeSection==2}" ng-click="changeSection(2)" class="button button-dark button-block">Subscription</button>
+      <button id="account-button50" ng-class="{'active': data.activeSection==1}" ng-click="changeSection(1)" class="button button-positive button-small button-block">Profile</button>
+      <button id="account-button51" ng-class="{'active': data.activeSection==2}" ng-click="changeSection(2)" class="button button-positive button-small button-block">Subscription</button>
     </div>
     <form id="account-form16" class="list" ng-show="data.activeSection==1">
       <label class="item item-input item-floating-label" id="account-input43">
@@ -20,9 +20,9 @@
         <span class="input-label">Mobile Number</span>
         <input type="text" placeholder="" ng-model="data.phonenumber">
       </label>
-      <button id="account-button19" ng-click="submitVerifynumber()" ng-show="data.phonenumber.includes(&quot;Unverified&quot;)" class="button button-dark button-block">Verify mobile number</button>
+      <button id="account-button19" ng-click="submitVerifynumber()" ng-show="data.phonenumber.includes(&quot;Unverified&quot;)" class="button button-positive button-block button-outline">Verify mobile number</button>
       <button id="account-button42" ng-click="submitSavechanges()" class="button button-positive button-block">Save changes</button>
-      <button id="account-button39" ng-click="submitChangepassword()" class="button button-dark button-block">Change password</button>
+      <button id="account-button39" ng-click="submitChangepassword()" class="button button-positive button-block button-outline">Change password</button>
     </form>
     <form id="account-form19" class="list" ng-show="data.activeSection==2">
       <label class="item item-input" id="account-input48">
@@ -33,11 +33,11 @@
         <span class="input-label">Credits</span>
         <input type="text" placeholder="" readonly="" ng-model="data.subscription_credits">
       </label>
-      <button id="account-button10" ng-click="submitBuycredits()" class="button button-dark button-block">Buy credits</button>
+      <button id="account-button10" ng-click="submitBuycredits()" class="button button-positive button-block">Buy credits</button>
     </form>
     <form id="account-form15" class="list" ng-show="data.activeSection==2">
-      <button id="account-button53" ng-click="" class="button button-stable button-block">View credit purchases</button>
-      <button id="account-button54" ng-click="" class="button button-stable button-block">View credit usage</button>
+      <button id="account-button53" ng-click="" class="button button-positive button-block button-outline">View credit purchases</button>
+      <button id="account-button54" ng-click="" class="button button-positive button-block button-outline">View credit usage</button>
     </form>
   </ion-content>
 </ion-view>

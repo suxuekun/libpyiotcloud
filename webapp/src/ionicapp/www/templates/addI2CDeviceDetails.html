@@ -3,7 +3,7 @@
     <button class="button button-icon icon ion-android-close" ng-click="submitDeviceList()"></button>
   </ion-nav-buttons>
   <ion-nav-buttons side="right" class="has-header">
-    <button class="button button-icon icon ion-refresh" ng-click="getI2CDevices()"></button>
+    <button class="button button-positive icon ion-refresh" ng-click="getI2CDevices()"></button>
   </ion-nav-buttons>
   <ion-content padding="true" class="has-header">
     <form id="addI2CDeviceDetails-form59" class="list">
@@ -12,7 +12,7 @@
         <p style="color:#000000;">Manufacturer</p>
       </div>
       <div id="addI2CDeviceDetails-markdown22" class="show-list-numbers-and-dots">
-        <p style="color:#444444;font-size:18px;">
+        <p style="color:#387EF5;font-size:18px;">
           <strong> {{ data.sensor.manufacturer }} </strong>
         </p>
       </div>
@@ -21,7 +21,7 @@
         <p style="color:#000000;">Device Model</p>
       </div>
       <div id="addI2CDeviceDetails-markdown23" class="show-list-numbers-and-dots">
-        <p style="color:#444444;font-size:18px;">
+        <p style="color:#387EF5;font-size:18px;">
           <strong> {{ data.sensor.model }} </strong>
         </p>
       </div>
@@ -43,6 +43,6 @@
         <input type="text" placeholder="0x00 - 0xFF" ng-model="data.sensor.address">
       </label>
     </form>
-    <button id="addI2CDeviceDetails-button27" ng-click="addI2CSensor()" class="button button-dark button-block">ADD</button>
+    <button id="addI2CDeviceDetails-button27" ng-click="addI2CSensor()" class="button button-positive button-block">ADD</button>
   </ion-content>
 </ion-view>
