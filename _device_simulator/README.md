@@ -257,7 +257,7 @@ This page contains a step-by-step tutorial on <b>how to use the IoT Portal</b> i
 
 ### Test
 
-1. Update DEVICE_ID in <b>device_simulator.py.bat</b>
+1. Update DEVICE_ID in <b>device_simulator.py.bat</b> (or device_simulator.py.sh for Linux/MacOS)
 
    NOTE: To get a device ID, you must first register a device in the IoT Portal.
 
@@ -266,7 +266,7 @@ This page contains a step-by-step tutorial on <b>how to use the IoT Portal</b> i
     <b> NOTE: After implementing additional security measures in the backend, device also needs to provide the MQTT username and MQTT password with the UUID and SerialNumber, respectively. </b>
 
 
-2. Run <b>device_simulator.py.bat</b>
+2. Run <b>device_simulator.py.bat</b> (or device_simulator.py.sh for Linux/MacOS)
 
     <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/device_simulator_bootup_py.png" width="600"/>
 
@@ -295,7 +295,7 @@ This page contains a step-by-step tutorial on <b>how to use the IoT Portal</b> i
 
 ### Test
 
-1. Update DEVICE_ID in <b>device_simulator.js.bat</b>
+1. Update DEVICE_ID in <b>device_simulator.js.bat</b> (or device_simulator.js.sh for Linux/MacOS)
 
    NOTE: To get a device ID, you must first register a device in the IoT Portal.
    
@@ -304,7 +304,7 @@ This page contains a step-by-step tutorial on <b>how to use the IoT Portal</b> i
     <b> NOTE: After implementing additional security measures in the backend, device also needs to provide the MQTT username and MQTT password with the UUID and SerialNumber, respectively. </b>
 
 
-2. Run <b>device_simulator.js.bat</b>
+2. Run <b>device_simulator.js.bat</b> (or device_simulator.js.sh for Linux/MacOS)
 
     <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/device_simulator_bootup_js.png" width="600"/>
 
