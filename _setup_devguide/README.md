@@ -705,6 +705,7 @@ DETAILED:
 		   { 'status': 'OK', 'message': string, 'value': { 'voltage': int } }
 		   { 'status': 'NG', 'message': string }
 		   // voltage is an index of the value in the list of voltages
+		   //   ["3.3 V", "5 V"]
 
 		F. SET GPIO VOLTAGE
 		-  Request:
@@ -713,6 +714,7 @@ DETAILED:
 		   data: { 'voltage': int }
 		   // note that no gpio NUMBER is included because this applies to all 4 gpios
 		   // voltage is an index of the value in the list of voltages
+		   //   ["3.3 V", "5 V"]
 		-  Response:
 		   { 'status': 'OK', 'message': string }
 		   { 'status': 'NG', 'message': string }
