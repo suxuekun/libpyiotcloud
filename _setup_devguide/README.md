@@ -873,6 +873,13 @@ DETAILED:
 		     'sensors': array[{'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'timestamp': string}, ...]}
 		   { 'status': 'NG', 'message': string}
 		   // timestamp refers to the epoch time the sensor was registered/added
+		   // list of manufacturers and models: 
+		   //     Electronic Dollar Store
+		   //         POT  - Potentiometer
+		   //         DIGI - Digit Display
+		   //         LED  - RGB LED
+		   //         TEMP - Temperature Sensor
+		   //         BEEP - Piezoelectric Beeper
 
 		J. ADD I2C SENSOR
 		-  Request:
@@ -896,7 +903,8 @@ DETAILED:
 		   GET /devices/device/DEVICENAME/i2c/sensors/sensor/SENSORNAME
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
-		   { 'status': 'OK', 'message': string, 'sensor': {'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'timestamp': string}}
+		   { 'status': 'OK', 'message': string, 
+		     'sensor': {'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'timestamp': string}}
 		   { 'status': 'NG', 'message': string}
 		   // timestamp refers to the epoch time the sensor was registered/added
 
