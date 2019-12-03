@@ -2408,7 +2408,7 @@ def set_gpio_properties(devicename, number):
 #   headers: { 'Authorization': 'Bearer ' + token.access }
 #
 # - Response:
-#   { 'status': 'OK', 'message': string, 'value': { 'voltage': int } }
+#   { 'status': 'OK', 'message': string, 'value': int }
 #   { 'status': 'NG', 'message': string }
 #
 @app.route('/devices/device/<devicename>/gpio/voltage', methods=['GET'])
@@ -2706,6 +2706,150 @@ def get_i2c_sensor(devicename, sensorname):
     print('\r\nSensor queried successful: {}\r\n{}\r\n'.format(username, response))
     return response
 
+
+
+#########################
+
+
+########################################################################################################
+#
+# SEND FEEDBACK
+#
+# - Request:
+#   POST /others/feedback
+#   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+#   data: { 'feedback': string, 'rating': int, 'contactme': boolean, 'recipient': string }
+#   // recipient is temporary for testing purposes only
+#
+# - Response:
+#  {'status': 'OK', 'message': string}
+#  {'status': 'NG', 'message': string}
+#
+########################################################################################################
+@app.route('/others/feedback', methods=['POST'])
+def send_feedback():
+    # get token from Authorization header
+    auth_header_token = get_auth_header_token()
+    if auth_header_token is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
+        print('\r\nERROR Send Feedback: Invalid authorization header\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
+    token = {'access': auth_header_token}
+
+    # get username from token
+    username = g_database_client.get_username_from_token(token)
+    if username is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
+        print('\r\nERROR Send Feedback: Invalid token\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
+    print('send_feedback username={}'.format(username))
+
+    # check if a parameter is empty
+    if len(username) == 0 or len(token) == 0:
+        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+        print('\r\nERROR Send Feedback: Empty parameter found\r\n')
+        return response, status.HTTP_400_BAD_REQUEST
+
+    # check if username and token is valid
+    verify_ret, new_token = g_database_client.verify_token(username, token)
+    if verify_ret == 2:
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Send Feedback: Token expired [{}]\r\n'.format(username))
+        return response, status.HTTP_401_UNAUTHORIZED
+    elif verify_ret != 0:
+        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
+        print('\r\nERROR Send Feedback: Token is invalid [{}]\r\n'.format(username))
+        return response, status.HTTP_401_UNAUTHORIZED
+
+    # check if a parameter is empty
+    data = flask.request.get_json()
+    if data["feedback"] is None or data["rating"] is None or data["contactme"] is None:
+        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+        print('\r\nERROR Send Feedback: Empty parameter found\r\n')
+        return response, status.HTTP_400_BAD_REQUEST
+    feedback = data['feedback']
+    rating = data['rating']
+    contactme = data['contactme']
+    print("Feedback:  {}".format(feedback))
+    print("Rating:    {}".format(rating))
+    print("Contactme: {}".format(contactme))
+    if data.get("recipient"):
+        recipient = data['recipient']
+        print("Recipient: {}".format(recipient))
+
+    response = json.dumps({'status': 'OK', 'message': 'Feedback sent successfully.'})
+    print('\r\nFeedback sent successfully: {}\r\n{}\r\n'.format(username, response))
+    return response
+
+
+########################################################################################################
+#
+# GET FAQS/TERMS AND CONDITIONS/PRIVACY STATEMENTS/LICENSE
+#
+# - Request:
+#   GET /others/ITEM
+#   headers: {'Authorization': 'Bearer ' + token.access}
+#
+# - Response:
+#   {'status': 'OK', 'message': string, '<item>': string}
+#   {'status': 'NG', 'message': string}
+#
+########################################################################################################
+@app.route('/others/<item>', methods=['GET'])
+def get_item(item):
+    # get token from Authorization header
+    auth_header_token = get_auth_header_token()
+    if auth_header_token is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
+        print('\r\nERROR Get Item Content: Invalid authorization header\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
+    token = {'access': auth_header_token}
+
+    # get username from token
+    username = g_database_client.get_username_from_token(token)
+    if username is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
+        print('\r\nERROR Get Item Content: Invalid token\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
+    print('get_{} username={}'.format(item, username))
+
+    # check if a parameter is empty
+    if len(username) == 0 or len(token) == 0:
+        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+        print('\r\nERROR Get Item Content: Empty parameter found\r\n')
+        return response, status.HTTP_400_BAD_REQUEST
+
+    # check if username and token is valid
+    verify_ret, new_token = g_database_client.verify_token(username, token)
+    if verify_ret == 2:
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Get Item Content: Token expired [{}]\r\n'.format(username))
+        return response, status.HTTP_401_UNAUTHORIZED
+    elif verify_ret != 0:
+        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
+        print('\r\nERROR Get Item Content: Token is invalid [{}]\r\n'.format(username))
+        return response, status.HTTP_401_UNAUTHORIZED
+
+    # check if a parameter is empty
+    if item == "faqs":
+        content = "Temporary faqs content"
+    elif item == "terms":
+        content = "Temporary terms and conditions content"
+    elif item == "privacy":
+        content = "Temporary privacy statements content"
+    elif item == "license":
+        content = "Temporary license content"
+    else:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid request found'})
+        print('\r\nERROR Get Item Content: Invalid request found\r\n')
+        return response, status.HTTP_400_BAD_REQUEST
+
+
+    msg = {'status': 'OK', 'message': 'Content queried successfully.'}
+    msg[item] = content
+    response = json.dumps(msg)
+    print('\r\nContent queried successfully: {}\r\n{}\r\n'.format(username, response))
+    return response
 
 #########################
 
