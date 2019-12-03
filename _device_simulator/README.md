@@ -319,15 +319,17 @@ This page contains a step-by-step tutorial on <b>how to use the IoT Portal</b> i
 
 ### Test
 
-1. Update DEVICE_ID in <b>iot_config.h</b>
+1. Update USE_DEVICE_ID in <b>iot_config.h</b>
 
     NOTE: To get a device ID, you must first register a device in the IoT Portal.
 
     <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/code_ft90Xiotbrtcloud.png" width="600"/>
     
+2. Update MQTT_CLIENT_USER and MQTT_CLIENT_PASS in <b>iot_config.h</b>
+
     <b> NOTE: After implementing additional security measures in the backend, device also needs to provide the MQTT username and MQTT password with the UUID and SerialNumber, respectively. </b>
     
-2. Compile code and load the binary.
+3. Compile code and load the binary.
 
     <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/device_bootup.png" width="700"/>
 
