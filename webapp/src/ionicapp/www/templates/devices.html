@@ -1,13 +1,13 @@
 <ion-view title="Devices" hide-back-button="true" nav-transition="none" id="page2" style="background-color:#FFFFFF;" class="page_width">
   <ion-nav-buttons side="right" class="has-header">
-    <button class="button button-icon icon ion-refresh" ng-click="submitRefresh()"></button>
+    <button class="button button-positive icon ion-refresh" ng-click="submitRefresh()"></button>
   </ion-nav-buttons>
   <ion-content padding="true" class="has-header">
     <div class="spacer" style="width: 300px; height: 12px;"></div>
     <ion-list id="devices-list10">
       <div class="item item-body" id="devices-list-item-container4" ng-repeat="device in devices" ng-click="submitTest(device)" ng-disabled="device.devicestatus==&quot;Detecting...&quot;">
         <div id="devices-markdown34" ng-disabled="device.devicestatus==&quot;Detecting...&quot;" class="show-list-numbers-and-dots">
-          <p style="margin-top:0px;color:#444444;font-size:18px;">
+          <p style="margin-top:0px;color:#387EF5;font-size:18px;">
             <strong>{{ device.devicename }}</strong>
           </p>
         </div>
@@ -22,6 +22,6 @@
         </div>
       </div>
     </ion-list>
-    <button id="devices-button24" ng-click="submitAdd()" style="font-weight:600;" class="button button-light button-large button-block icon-right ion-android-add-circle"></button>
+    <button id="devices-button24" ng-click="submitAdd()" style="font-weight:600;" class="button button-positive button-large button-block button-clear icon-right ion-android-add-circle"></button>
   </ion-content>
 </ion-view>

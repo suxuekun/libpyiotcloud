@@ -9807,7 +9807,8 @@ a.button {
   margin: 0% auto; }
 
 .widget_button {
-  width: 48% !important; }
+  width: 48% !important;
+  height: 100px; }
 
 .message_textarea {
   height: 150px; }

@@ -3,15 +3,15 @@
     <button class="button button-icon icon ion-android-close" ng-click="submitDeviceList()"></button>
   </ion-nav-buttons>
   <ion-nav-buttons side="right" class="has-header">
-    <button class="button button-icon icon ion-refresh" ng-click="submitQuery()"></button>
+    <button class="button button-positive icon ion-refresh" ng-click="submitQuery()"></button>
   </ion-nav-buttons>
   <ion-content padding="true" class="has-header">
     <form id="deviceGPIO-form18" class="list">
       <div id="deviceGPIO-button-bar4" class="button-bar">
-        <button id="deviceGPIO-button60" ng-click="changeSection(1)" ng-class="{'active': data.activeSection==1}" style="font-size:13px;" class="button button-stable button-large button-block">GPIO 1</button>
-        <button id="deviceGPIO-button61" ng-click="changeSection(2)" ng-class="{'active': data.activeSection==2}" style="font-size:13px;" class="button button-stable button-large button-block">GPIO 2</button>
-        <button id="deviceGPIO-button62" ng-click="changeSection(3)" ng-class="{'active': data.activeSection==3}" style="font-size:13px;" class="button button-stable button-large button-block">GPIO 3</button>
-        <button id="deviceGPIO-button63" ng-click="changeSection(4)" ng-class="{'active': data.activeSection==4}" style="font-size:13px;" class="button button-stable button-large button-block">GPIO 4</button>
+        <button id="deviceGPIO-button60" ng-click="changeSection(1)" ng-class="{'active': data.activeSection==1}" class="button button-positive button-small button-block">GPIO 1</button>
+        <button id="deviceGPIO-button61" ng-click="changeSection(2)" ng-class="{'active': data.activeSection==2}" class="button button-positive button-small button-block">GPIO 2</button>
+        <button id="deviceGPIO-button62" ng-click="changeSection(3)" ng-class="{'active': data.activeSection==3}" class="button button-positive button-small button-block">GPIO 3</button>
+        <button id="deviceGPIO-button63" ng-click="changeSection(4)" ng-class="{'active': data.activeSection==4}" class="button button-positive button-small button-block">GPIO 4</button>
       </div>
       <label class="item item-select" id="deviceGPIO-select15">
         <span class="input-label">Voltage</span>
@@ -108,6 +108,6 @@
         <input type="text" placeholder="Device name(s)" ng-model="data.gpio.notification.endpoints.modem.recipients">
       </label>
     </form>
-    <button id="deviceGPIO-button29" ng-click="submit()" class="button button-dark button-block">SAVE</button>
+    <button id="deviceGPIO-button29" ng-click="submit()" class="button button-positive button-block">SAVE</button>
   </ion-content>
 </ion-view>

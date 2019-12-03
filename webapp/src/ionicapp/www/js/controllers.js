@@ -1969,20 +1969,250 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token)
     };
 }])
    
-.controller('settingsCtrl', ['$scope', '$stateParams', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+.controller('aboutCtrl', ['$scope', '$stateParams', '$state', '$ionicPopup', '$http', 'Server', 'User', 'Token', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
 // You can include any angular dependencies as parameters for this function
 // TIP: Access Route Parameters for your page via $stateParams.parameterName
-function ($scope, $stateParams) {
+function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token) {
+
+    var server = Server.rest_api;
+
+    $scope.data = {
+        'username': User.get_username(), //$stateParams.username,
+        'token': User.get_token()        //$stateParams.token
+    };
+    
+    handle_error = function(error) {
+        if (error.data !== null) {
+            console.log("ERROR: Failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
+
+            if (error.data.message === "Token expired") {
+                Token.refresh({'username': $scope.data.username, 'token': $scope.data.token});
+                $scope.data.token = User.get_token();
+            }
+            
+            if (error.status == 503) {
+                $ionicPopup.alert({ title: 'Error', template: 'Device is unreachable!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+            }            
+        }
+        else {
+            console.log("ERROR: Server is down!"); 
+            $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+        }
+    };
+    
+    
+    // GET TERMS AND CONDITIONS
+    $scope.getTermsAndConditions = function() {
+        console.log("getTermsAndConditions");
+        get_item("terms");
+    };
+
+    // GET PRIVACY STATEMENTS
+    $scope.getPrivacyStatements = function() {
+        console.log("getPrivacyStatements");
+        get_item("privacy");
+    };
+
+    // GET LICENSE
+    $scope.getLicense = function() {
+        console.log("getLicense");
+        get_item("license");
+    };
 
 
+    get_item = function(item) {
+        console.log(item);
+        //
+        // GET FAQS/TERMS AND CONDITIONS/PRIVACY STATEMENTS/LICENSE
+        //
+        // - Request:
+        //   GET /others/ITEM
+        //   headers: { 'Authorization': 'Bearer ' + token.access }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string, 'ITEM': string }
+        //   { 'status': 'NG', 'message': string }
+        //
+        $http({
+            method: 'GET',
+            url: server + '/others/' + item,
+            headers: {'Authorization': 'Bearer ' + $scope.data.token.access}
+        })
+        .then(function (result) {
+            console.log(result.data);
+            
+            $ionicPopup.alert({ title: 'Success', template: result.data[item],
+                buttons: [{ text: "OK", type: 'button-positive' }]
+            });
+        })
+        .catch(function (error) {
+            handle_error(error);
+        }); 
+    };
+    
 }])
    
-.controller('helpCtrl', ['$scope', '$stateParams', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+.controller('feedbackCtrl', ['$scope', '$stateParams', '$state', '$ionicPopup', '$http', 'Server', 'User', 'Token', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
 // You can include any angular dependencies as parameters for this function
 // TIP: Access Route Parameters for your page via $stateParams.parameterName
-function ($scope, $stateParams) {
+function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token) {
+
+    var server = Server.rest_api;
+
+    $scope.data = {
+        'username': User.get_username(), //$stateParams.username,
+        'token': User.get_token(),        //$stateParams.token
+        
+        'feedback': {
+            'feedback': '',
+            'rating': 10,
+            'contactme': false
+        }
+    };
+
+    $scope.changeSection = function(s) {
+        $scope.data.feedback.rating = s;
+        console.log($scope.data.feedback.rating);
+    };
+
+    handle_error = function(error) {
+        if (error.data !== null) {
+            console.log("ERROR: Failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
+
+            if (error.data.message === "Token expired") {
+                Token.refresh({'username': $scope.data.username, 'token': $scope.data.token});
+                $scope.data.token = User.get_token();
+            }
+            
+            if (error.status == 503) {
+                $ionicPopup.alert({ title: 'Error', template: 'Device is unreachable!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+            }            
+        }
+        else {
+            console.log("ERROR: Server is down!"); 
+            $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+        }
+    };
+    
+    
+    // GET TERMS AND CONDITIONS
+    $scope.sendFeedback = function() {
+        if ($scope.data.feedback.feedback === undefined) {
+            $ionicPopup.alert({title: 'Input error', template: 'Feedback is empty'});
+            return;    
+        }
+        if ($scope.data.feedback.feedback.length === 0) {
+            $ionicPopup.alert({title: 'Input error', template: 'Feedback is empty'});
+            return;    
+        }        
+        console.log("sendFeedback");
+        send_feedback();
+    };
 
 
+    send_feedback = function() {
+        //
+        // SEND FEEDBACK
+        //
+        // - Request:
+        //   POST /others/feedback
+        //   headers: headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+        //   data: { 'feedback': string, 'rating': int, 'contactme': boolean, 'recipient': string }
+        //   // recipient is temporary for testing purposes only
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string }
+        //   { 'status': 'NG', 'message': string }
+        //
+        $http({
+            method: 'POST',
+            url: server + '/others/feedback',
+            headers: {'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json'},
+            data: $scope.data.feedback
+        })
+        .then(function (result) {
+            console.log(result.data);
+            
+            $ionicPopup.alert({ title: 'Success', template: "Thank you for sending feedback!",
+                buttons: [{ text: "OK", type: 'button-positive' }]
+            });
+        })
+        .catch(function (error) {
+            handle_error(error);
+        }); 
+    };
+    
+}])
+   
+.controller('helpSupportCtrl', ['$scope', '$stateParams', '$state', '$ionicPopup', '$http', 'Server', 'User', 'Token', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+// You can include any angular dependencies as parameters for this function
+// TIP: Access Route Parameters for your page via $stateParams.parameterName
+function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token) {
+
+    var server = Server.rest_api;
+
+    $scope.data = {
+        'username': User.get_username(), //$stateParams.username,
+        'token': User.get_token()        //$stateParams.token
+    };
+    
+    handle_error = function(error) {
+        if (error.data !== null) {
+            console.log("ERROR: Failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
+
+            if (error.data.message === "Token expired") {
+                Token.refresh({'username': $scope.data.username, 'token': $scope.data.token});
+                $scope.data.token = User.get_token();
+            }
+            
+            if (error.status == 503) {
+                $ionicPopup.alert({ title: 'Error', template: 'Device is unreachable!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+            }            
+        }
+        else {
+            console.log("ERROR: Server is down!"); 
+            $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+        }
+    };
+    
+    
+    // GET TERMS AND CONDITIONS
+    $scope.getFAQs = function() {
+        console.log("getFAQs");
+        get_item("faqs");
+    };
+
+
+    get_item = function(item) {
+        console.log(item);
+        //
+        // GET FAQS/TERMS AND CONDITIONS/PRIVACY STATEMENTS/LICENSE
+        //
+        // - Request:
+        //   GET /others/ITEM
+        //   headers: { 'Authorization': 'Bearer ' + token.access }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string, 'ITEM': string }
+        //   { 'status': 'NG', 'message': string }
+        //
+        $http({
+            method: 'GET',
+            url: server + '/others/' + item,
+            headers: {'Authorization': 'Bearer ' + $scope.data.token.access}
+        })
+        .then(function (result) {
+            console.log(result.data);
+            
+            $ionicPopup.alert({ title: 'Success', template: result.data[item],
+                buttons: [{ text: "OK", type: 'button-positive' }]
+            });
+        })
+        .catch(function (error) {
+            handle_error(error);
+        }); 
+    };
+    
 }])
    
 .controller('addDeviceCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'Devices', 'User', 'Token', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
@@ -3011,7 +3241,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         })
         .then(function (result) {
             console.log(result.data);
-            $scope.data.voltageidx = result.data.value;
+            $scope.data.voltageidx = result.data.value.voltage;
         })
         .catch(function (error) {
             handle_error(error, false);
