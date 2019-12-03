@@ -210,72 +210,80 @@ SUMMARY:
 
 	1. User sign-up/sign-in APIs
 
-		A. SIGN-UP                     - POST   /user/signup
-		B. CONFIRM SIGN-UP             - POST   /user/confirm_signup
-		C. RESEND CONFIRMATION CODE    - POST   /user/resend_confirmation_code
-		D. FORGOT PASSWORD             - POST   /user/forgot_password
-		E. CONFIRM FORGOT PASSWORD     - POST   /user/confirm_forgot_password
-		F. LOGIN                       - POST   /user/login
-		G. LOGOUT                      - POST   /user/logout
-		H. GET USER INFO               - GET    /user
-		I. UPDATE USER INFO            - POST   /user
-		J. DELETE USER                 - DELETE /user
-		K. REFRESH USER TOKEN          - POST   /user/token
-		L. VERIFY PHONE NUMBER         - POST   /user/verify_phone_number
-		M. CONFIRM VERIFY PHONE NUMBER - POST   /user/confirm_verify_phone_number
-		N. CHANGE PASSWORD             - POST   /user/change_password
+		A. SIGN-UP                        - POST   /user/signup
+		B. CONFIRM SIGN-UP                - POST   /user/confirm_signup
+		C. RESEND CONFIRMATION CODE       - POST   /user/resend_confirmation_code
+		D. FORGOT PASSWORD                - POST   /user/forgot_password
+		E. CONFIRM FORGOT PASSWORD        - POST   /user/confirm_forgot_password
+		F. LOGIN                          - POST   /user/login
+		G. LOGOUT                         - POST   /user/logout
+		H. GET USER INFO                  - GET    /user
+		I. UPDATE USER INFO               - POST   /user
+		J. DELETE USER                    - DELETE /user
+		K. REFRESH USER TOKEN             - POST   /user/token
+		L. VERIFY PHONE NUMBER            - POST   /user/verify_phone_number
+		M. CONFIRM VERIFY PHONE NUMBER    - POST   /user/confirm_verify_phone_number
+		N. CHANGE PASSWORD                - POST   /user/change_password
 
 	2. Device registration and management APIs
 
-		A. GET DEVICES                 - GET    /devices
-		B. ADD DEVICE                  - POST   /devices/device/DEVICENAME
-		C. DELETE DEVICE               - DELETE /devices/device/DEVICENAME
-		D. GET DEVICE                  - GET    /devices/device/DEVICENAME
+		A. GET DEVICES                    - GET    /devices
+		B. ADD DEVICE                     - POST   /devices/device/DEVICENAME
+		C. DELETE DEVICE                  - DELETE /devices/device/DEVICENAME
+		D. GET DEVICE                     - GET    /devices/device/DEVICENAME
 
 	3. Device access and control APIs
 
 		New requirements:
-		A. GET STATUS                  - GET    /devices/device/DEVICENAME/status
-		B. SET STATUS                  - POST   /devices/device/DEVICENAME/status
-		C. GET UART PROPERTIES         - GET    /devices/device/DEVICENAME/uart/NUMBER/properties
-		D. SET UART PROPERTIES         - POST   /devices/device/DEVICENAME/uart/NUMBER/properties
-		E. GET GPIO VOLTAGE            - GET    /devices/device/DEVICENAME/gpio/voltage
-		F. SET GPIO VOLTAGE            - POST   /devices/device/DEVICENAME/gpio/voltage
-		G. GET GPIO PROPERTIES         - GET    /devices/device/DEVICENAME/gpio/NUMBER/properties
-		H. SET GPIO PROPERTIES         - POST   /devices/device/DEVICENAME/gpio/NUMBER/properties
-		I. GET I2C SENSORS             - GET    /devices/device/DEVICENAME/i2c/sensors
-		I. ADD I2C SENSOR              - POST   /devices/device/DEVICENAME/i2c/sensors/sensor/SENSORNAME
-		J. DELETE I2C SENSOR           - DELETE /devices/device/DEVICENAME/i2c/sensors/sensor/SENSORNAME
-		K. GET I2C SENSOR              - GET    /devices/device/DEVICENAME/i2c/sensors/sensor/SENSORNAME
+		A. GET STATUS                     - GET    /devices/device/DEVICENAME/status
+		B. SET STATUS                     - POST   /devices/device/DEVICENAME/status
+		C. GET UART PROPERTIES            - GET    /devices/device/DEVICENAME/uart/NUMBER/properties
+		D. SET UART PROPERTIES            - POST   /devices/device/DEVICENAME/uart/NUMBER/properties
+		E. GET GPIO VOLTAGE               - GET    /devices/device/DEVICENAME/gpio/voltage
+		F. SET GPIO VOLTAGE               - POST   /devices/device/DEVICENAME/gpio/voltage
+		G. GET GPIO PROPERTIES            - GET    /devices/device/DEVICENAME/gpio/NUMBER/properties
+		H. SET GPIO PROPERTIES            - POST   /devices/device/DEVICENAME/gpio/NUMBER/properties
+		I. GET I2C SENSORS                - GET    /devices/device/DEVICENAME/i2c/sensors
+		I. ADD I2C SENSOR                 - POST   /devices/device/DEVICENAME/i2c/sensors/sensor/SENSORNAME
+		J. DELETE I2C SENSOR              - DELETE /devices/device/DEVICENAME/i2c/sensors/sensor/SENSORNAME
+		K. GET I2C SENSOR                 - GET    /devices/device/DEVICENAME/i2c/sensors/sensor/SENSORNAME
 
 		Old requirements:
-		A. GET STATUS                  - GET    /devices/device/DEVICENAME/status
-		B. SET STATUS                  - POST   /devices/device/DEVICENAME/status
-		C. GET IP                      - GET    /devices/device/DEVICENAME/ip
-		D. GET SUBNET                  - GET    /devices/device/DEVICENAME/subnet
-		E. GET GATEWAY                 - GET    /devices/device/DEVICENAME/gateway
-		F. GET MAC                     - GET    /devices/device/DEVICENAME/mac
-		G. GET GPIO                    - GET    /devices/device/DEVICENAME/gpio/NUMBER
-		H. SET GPIO                    - POST   /devices/device/DEVICENAME/gpio/NUMBER
-		I. GET RTC                     - GET    /devices/device/DEVICENAME/rtc
-		J. SET UART                    - POST   /devices/device/DEVICENAME/uart
-		K. SET NOTIFICATION            - POST   /devices/device/DEVICENAME/notification
+		A. GET STATUS                     - GET    /devices/device/DEVICENAME/status
+		B. SET STATUS                     - POST   /devices/device/DEVICENAME/status
+		C. GET IP                         - GET    /devices/device/DEVICENAME/ip
+		D. GET SUBNET                     - GET    /devices/device/DEVICENAME/subnet
+		E. GET GATEWAY                    - GET    /devices/device/DEVICENAME/gateway
+		F. GET MAC                        - GET    /devices/device/DEVICENAME/mac
+		G. GET GPIO                       - GET    /devices/device/DEVICENAME/gpio/NUMBER
+		H. SET GPIO                       - POST   /devices/device/DEVICENAME/gpio/NUMBER
+		I. GET RTC                        - GET    /devices/device/DEVICENAME/rtc
+		J. SET UART                       - POST   /devices/device/DEVICENAME/uart
+		K. SET NOTIFICATION               - POST   /devices/device/DEVICENAME/notification
 
 	4. Device transaction recording APIs
 
-		A. GET HISTORIES               - GET    /devices/histories
-		B. GET HISTORIES FILTERED      - POST   /devices/histories
+		A. GET HISTORIES                  - GET    /devices/histories
+		B. GET HISTORIES FILTERED         - POST   /devices/histories
 		   (filter by device name, direction, topic, date start, date end)
 
 	5. Account subscription and payment APIs
 
-		A. GET SUBSCRIPTION            - GET    /account/subscription
-		B. SET SUBSCRIPTION            - POST   /account/subscription
-		C. PAYPAL SETUP                - POST   /account/payment/paypalsetup
-		D. PAYPAL EXECUTE              - POST   /account/payment/paypalexecute
-		E. PAYPAL VERIFY               - POST   /account/payment/paypalverify
+		A. GET SUBSCRIPTION               - GET    /account/subscription
+		B. SET SUBSCRIPTION               - POST   /account/subscription
+		C. PAYPAL SETUP                   - POST   /account/payment/paypalsetup
+		D. PAYPAL EXECUTE                 - POST   /account/payment/paypalexecute
+		E. PAYPAL VERIFY                  - POST   /account/payment/paypalverify
 
-	6. HTTP error codes
+	6. Others (should items B-E be just static content?)
+
+		A. SEND FEEDBACK                  - POST   /others/feedback
+		B. GET FAQS                       - GET    /others/faqs
+		C. GET TERMS AND CONDITIONS       - GET    /others/terms
+		D. GET PRIVACY STATEMENTS         - GET    /others/privacy
+		E. GET LICENSE                    - GET    /others/license
+
+	7. HTTP error codes
 
 		A. HTTP_400_BAD_REQUEST           - Invalid input
 		B. HTTP_401_UNAUTHORIZED          - Invalid password or invalid/expired token
@@ -702,7 +710,7 @@ DETAILED:
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		   // note that no gpio NUMBER is included because this applies to all 4 gpios
 		-  Response:
-		   { 'status': 'OK', 'message': string, 'value': { 'voltage': int } }
+		   { 'status': 'OK', 'message': string, 'value': int }
 		   { 'status': 'NG', 'message': string }
 		   // voltage is an index of the value in the list of voltages
 		   //   ["3.3 V", "5 V"]
@@ -875,13 +883,6 @@ DETAILED:
 		     'sensors': array[{'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'timestamp': string}, ...]}
 		   { 'status': 'NG', 'message': string}
 		   // timestamp refers to the epoch time the sensor was registered/added
-		   // list of manufacturers and models: 
-		   //     Electronic Dollar Store
-		   //         POT  - Potentiometer
-		   //         DIGI - Digit Display
-		   //         LED  - RGB LED
-		   //         TEMP - Temperature Sensor
-		   //         BEEP - Piezoelectric Beeper
 
 		J. ADD I2C SENSOR
 		-  Request:
@@ -905,8 +906,7 @@ DETAILED:
 		   GET /devices/device/DEVICENAME/i2c/sensors/sensor/SENSORNAME
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
-		   { 'status': 'OK', 'message': string, 
-		     'sensor': {'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'timestamp': string}}
+		   { 'status': 'OK', 'message': string, 'sensor': {'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'timestamp': string}}
 		   { 'status': 'NG', 'message': string}
 		   // timestamp refers to the epoch time the sensor was registered/added
 
@@ -1082,6 +1082,50 @@ DETAILED:
 		   {'status': 'OK', 'message': string}
 		   {'status': 'NG', 'message': string}
 
+
+	6. Others
+
+		A. SEND FEEDBACK
+		-  Request:
+		   POST /others/feedback
+		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+		   data: { 'feedback': string, 'rating': int, 'contactme': boolean, 'recipient': string }
+		   // recipient is temporary for testing purposes only
+		-  Response:
+		   {'status': 'OK', 'message': string }
+		   {'status': 'NG', 'message': string }
+
+		B. GET FAQS
+		-  Request:
+		   GET /others/faqs
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		-  Response:
+		   {'status': 'OK', 'message': string, 'faqs': string }
+		   {'status': 'NG', 'message': string }
+
+		C. GET TERMS AND CONDITIONS
+		-  Request:
+		   GET /others/termsandconditions
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		-  Response:
+		   {'status': 'OK', 'message': string, 'termsandconditions': string }
+		   {'status': 'NG', 'message': string }
+
+		D. GET PRIVACY STATEMENTS
+		-  Request:
+		   GET /others/privacystatements
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		-  Response:
+		   {'status': 'OK', 'message': string, 'privacystatements': string }
+		   {'status': 'NG', 'message': string }
+
+		E. GET LICENSE
+		-  Request:
+		   GET /others/license
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		-  Response:
+		   {'status': 'OK', 'message': string, 'license': string }
+		   {'status': 'NG', 'message': string }
 
 
 ## Device Firmware Messaging API Documentation
