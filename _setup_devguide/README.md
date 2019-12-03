@@ -1105,18 +1105,18 @@ DETAILED:
 
 		C. GET TERMS AND CONDITIONS
 		-  Request:
-		   GET /others/termsandconditions
+		   GET /others/terms
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
-		   {'status': 'OK', 'message': string, 'termsandconditions': string }
+		   {'status': 'OK', 'message': string, 'terms': string }
 		   {'status': 'NG', 'message': string }
 
 		D. GET PRIVACY STATEMENTS
 		-  Request:
-		   GET /others/privacystatements
+		   GET /others/privacy
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
-		   {'status': 'OK', 'message': string, 'privacystatements': string }
+		   {'status': 'OK', 'message': string, 'privacy': string }
 		   {'status': 'NG', 'message': string }
 
 		E. GET LICENSE
