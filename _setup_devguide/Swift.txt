@@ -1,0 +1,67 @@
+import Foundation
+import Glibc
+ 
+ 
+
+// Sample test case 
+let jsonString = """
+{"messages":[{"message":"This is always on index 0.","enable":true},{"message":"This is always on index 1.","enable":false}]}
+"""
+
+// Data model for the sample response
+struct Response: Codable
+{
+    struct Message: Codable {
+        var message: String
+        var enable: Bool
+    }
+    var messages:[Message]
+}
+
+
+// Decode a JSON response to a data model
+func decodeJSONResponseToDataModel(jsonInput: String) -> Response 
+{
+    let jsonData = jsonInput.data(using: .utf8)!
+    let response = try! JSONDecoder().decode(Response.self, from: jsonData)
+    return response
+}
+
+// Encode a data model to JSON response
+func encodeDataModelToJSON(dataInput: Response) -> String
+{
+    let jsonString = try! JSONEncoder().encode(dataInput)
+    let response = String(data: jsonString, encoding: .utf8)!
+    return response
+}
+
+// Tests if JSON decoding is correct 
+func unitTest(iterations: Int, verbose: Bool) 
+{
+    for n in 1...iterations {
+        let response = decodeJSONResponseToDataModel(jsonInput: jsonString)
+        
+        print(jsonString)
+        if verbose == true {
+            print(response)
+            for message in response.messages {
+                print(String(n) + " " + message.message + " " + String(message.enable))
+            }
+        }
+        
+        let jsonDecodedEncodedString = encodeDataModelToJSON(dataInput: response)
+        print(jsonDecodedEncodedString)
+        
+        if response.messages[0].enable == true {
+            print(String(n) + " Success: JSON array order is correct")
+        }
+        else {
+            print(String(n) + " Failed : JSON array order is incorrect")
+        }
+    }
+}
+
+// Demonstrate that there is no JSON array ordering issue in Swift
+// Demonstrate how to do this in Swift using Codable and JSONDecoder and JSONEncoder
+//unitTest(iterations: 1, verbose: true)
+unitTest(iterations: 100, verbose: false)
