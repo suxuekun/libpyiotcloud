@@ -47,6 +47,8 @@ g_gpio_properties = {
     '3': { 'direction': 1, 'mode': 0, 'alert': 0, 'alertperiod':   0,   'polarity': 0, 'width': 0, 'mark': 0, 'space': 0 },
     '4': { 'direction': 1, 'mode': 2, 'alert': 1, 'alertperiod': 120,   'polarity': 1, 'width': 0, 'mark': 1, 'space': 2 } }
 g_gpio_voltage = 1
+g_gpio_voltages = ['3.3 V', '5 V']
+
 
 
 
@@ -181,8 +183,9 @@ def handle_api(api, subtopic, subpayload):
         topic = generate_pubtopic(subtopic)
 
         payload = {}
-        payload["value"] = g_gpio_voltage
+        payload["value"] = {"voltage": g_gpio_voltage}
         publish(topic, payload)
+        print(g_gpio_voltages[g_gpio_voltage])
 
     elif api == "set_gpio_voltage":
         topic = generate_pubtopic(subtopic)
@@ -190,9 +193,10 @@ def handle_api(api, subtopic, subpayload):
         print(subpayload)
 
         g_gpio_voltage = subpayload["voltage"]
+        print(g_gpio_voltages[g_gpio_voltage])
 
         payload = {}
-        payload["value"] = g_gpio_voltage
+        payload["value"] = {"voltage": g_gpio_voltage}
         publish(topic, payload)
 
 
