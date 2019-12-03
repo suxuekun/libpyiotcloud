@@ -265,7 +265,7 @@ function handle_api(api, topic, payload) {
     ////////////////////////////////////////////////////
     else if (api == "get_gpio_voltage") {
         pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
-        var response = { "value": g_gpio_voltage };
+        var response = { "value": { "voltage": g_gpio_voltage } };
         client.publish(pubtopic, JSON.stringify(response));
 
         console.log(pubtopic);
@@ -277,7 +277,7 @@ function handle_api(api, topic, payload) {
         g_gpio_voltage = Number(obj.voltage);
         console.log(g_gpio_voltage);
 
-        var response = { "value": g_gpio_voltage };
+        var response = { "value": { "voltage": g_gpio_voltage } };
         client.publish(pubtopic, JSON.stringify(response));
 
         console.log(pubtopic);

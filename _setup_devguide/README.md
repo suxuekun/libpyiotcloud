@@ -710,7 +710,7 @@ DETAILED:
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		   // note that no gpio NUMBER is included because this applies to all 4 gpios
 		-  Response:
-		   { 'status': 'OK', 'message': string, 'value': int }
+		   { 'status': 'OK', 'message': string, 'value': { 'voltage': int } }
 		   { 'status': 'NG', 'message': string }
 		   // voltage is an index of the value in the list of voltages
 		   //   ["3.3 V", "5 V"]
