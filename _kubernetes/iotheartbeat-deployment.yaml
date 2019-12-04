@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: heartbeat
+  labels:
+    app: iotheartbeat
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: iotheartbeat
+  template:
+    metadata:
+      labels:
+        app: iotheartbeat
+    spec:
+      containers:
+        - name: iotheartbeat
+          image: richmondu/iotheartbeat
+          env:
+          - name: CONFIG_USE_ECC
+            valueFrom:
+              secretKeyRef:
+                name: environment
+                key: CONFIG_USE_ECC
+          - name: CONFIG_USE_MQTT_DEFAULT_USER
+            valueFrom:
+              secretKeyRef:
+                name: environment
+                key: CONFIG_USE_MQTT_DEFAULT_USER
+          - name: CONFIG_USE_MQTT_DEFAULT_PASS
+            valueFrom:
+              secretKeyRef:
+                name: environment
+                key: CONFIG_USE_MQTT_DEFAULT_PASS
