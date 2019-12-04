@@ -66,14 +66,22 @@ CONFIG_SEPARATOR            = '/'
 ###################################################################################
 
 
-def add_history(deviceid, topic, payload, direction):
+def add_history(history_client, deviceid, topic, payload, direction):
 
-    # Write to database
-    g_history_client.add_device_history(deviceid, topic, payload, direction)
+    # Write publish/subscribe message to database
+    history_client.add_device_history(deviceid, topic, payload, direction)
 
+    # Write publish heartbeat to database
+    if direction == "From":
+        try:
+            heartbeat = history_client.add_device_heartbeat(deviceid)
+            print("heartbeat = {}".format(heartbeat))
+        except:
+            print("exception add_device_heartbeat")
+    
     # Display database
     if config.CONFIG_DEBUG_HISTORY:
-        histories = g_history_client.get_device_history(deviceid)
+        histories = history_client.get_device_history(deviceid)
         print("{}".format(len(histories) ))
         for history in histories:
             if history["direction"]=="From":
@@ -82,7 +90,7 @@ def add_history(deviceid, topic, payload, direction):
                 print("{}: {}   {} {} [{}]".format(history["timestamp"], history["direction"], history["devicename"], history["topic"], len(history["payload"]) ))
         print("")
     else:
-        histories = g_history_client.get_device_history(deviceid)
+        histories = history_client.get_device_history(deviceid)
         print("{}: {}".format(deviceid, len(histories)))
 
 
@@ -92,10 +100,14 @@ def on_message(subtopic, subpayload):
         item = {}
         if subtopic.startswith("server"):
             arr_subtopic = subtopic.split("/", 2)
-            add_history(arr_subtopic[1], arr_subtopic[2], subpayload.decode("utf-8"), "From")
+            #add_history(g_history_client, arr_subtopic[1], arr_subtopic[2], subpayload.decode("utf-8"), "From")
+            thr = threading.Thread(target = add_history, args = (g_history_client, arr_subtopic[1], arr_subtopic[2], subpayload.decode("utf-8"), "From", ))
+            thr.start()
         else:
             arr_subtopic = subtopic.split("/", 1)
-            add_history(arr_subtopic[0], arr_subtopic[1], subpayload.decode("utf-8"), "To")
+            #add_history(g_history_client, arr_subtopic[0], arr_subtopic[1], subpayload.decode("utf-8"), "To")
+            thr = threading.Thread(target = add_history, args = (g_history_client, arr_subtopic[0], arr_subtopic[1], subpayload.decode("utf-8"), "To", ))
+            thr.start()
     except:
         print("exception")
         return

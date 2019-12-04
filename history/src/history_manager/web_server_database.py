@@ -174,6 +174,9 @@ class database_client:
     def get_deviceid(self, username, devicename):
         return self._devices.get_deviceid(username, devicename)
 
+    def add_device_heartbeat(self, deviceid):
+        return self._devices.add_device_heartbeat(deviceid)
+
 
 class database_utils:
 
@@ -528,6 +531,22 @@ class database_client_mongodb:
                 #print(user)
                 if device['username'] == username and device['devicename'] == devicename:
                     return device['deviceid']
+        return None
+
+    def add_device_heartbeat(self, deviceid):
+        devices = self.get_registered_devices()
+        if devices:
+            for device in devices.find({'deviceid': deviceid},{'username': 1, 'devicename': 1, 'deviceid': 1, 'cert':1, 'pkey':1}):
+                print('add_device_heartbeat {}'.format(device))
+                if device.get('heartbeat'):
+                    print('add_device_heartbeat {}'.format(device['heartbeat']))
+                    device['heartbeat'] = str(int(time.time()))
+                    devices.replace_one({'deviceid': deviceid}, device)
+                else:
+                    print('add_device_heartbeat no heartbeat')
+                    device['heartbeat'] = str(int(time.time()))
+                    devices.replace_one({'deviceid': deviceid}, device)
+                return device['heartbeat']
         return None
 
 

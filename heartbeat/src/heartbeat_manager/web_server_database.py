@@ -546,7 +546,7 @@ class database_client_mongodb:
                     print('add_device_heartbeat no heartbeat')
                     device['heartbeat'] = str(int(time.time()))
                     devices.replace_one({'deviceid': deviceid}, device)
-                return device
+                return device['heartbeat']
         return None
 
 
