@@ -894,7 +894,7 @@ DETAILED:
 		-  Request:
 		   POST /devices/device/DEVICENAME/i2c/sensors/sensor/SENSORNAME
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-		   data: {'address': int, 'manufacturer': string, 'model': string, 'name': string}
+		   data: {'address': int, 'manufacturer': string, 'model': string}
 		   // list of manufacturers:
 		      ["Adafruit", "DF Robot", "Electronic Dollar Store"]
 		         default = "Electronic Dollar Store"
