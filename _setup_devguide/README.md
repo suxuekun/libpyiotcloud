@@ -610,7 +610,7 @@ DETAILED:
 		     { 
 		        'baudrate': int,
 		        'parity': int,
-		        'notification': {
+		        'notification': { // this notification object is generic for UART/GPIO/I2C
 		            'messages': [
 		                { 'message': string, 'enable': boolean }, 
 		            ],
@@ -660,7 +660,7 @@ DETAILED:
 		   { 
 		        'baudrate': int,
 		        'parity': int,
-		        'notification': {
+		        'notification': { // this notification object is generic for UART/GPIO/I2C
 		            'messages': [
 		                { 'message': string, 'enable': boolean },
 		            ],
@@ -742,7 +742,7 @@ DETAILED:
 		        'width': int,
 		        'mark': int,
 		        'space': int,
-		        'notification': {
+		        'notification': { // this notification object is generic for UART/GPIO/I2C
 		            'messages': [
 		                { 'message': string, 'enable': boolean }, // for GPIO, index 0 will always refer to message on activation
 		                { 'message': string, 'enable': boolean }  // for GPIO, index 1 will always refer to message on deactivation
@@ -814,7 +814,7 @@ DETAILED:
 		        'width': int,
 		        'mark': int,
 		        'space': int,
-		        'notification': {
+		        'notification': { // this notification object is generic for UART/GPIO/I2C
 		            'messages': [
 		                { 'message': string, 'enable': boolean }, // for GPIO, index 0 will always refer to message on activation
 		                { 'message': string, 'enable': boolean }  // for GPIO, index 1 will always refer to message on deactivation
