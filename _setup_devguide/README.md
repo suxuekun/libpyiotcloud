@@ -902,11 +902,11 @@ DETAILED:
 		      Adafruit: []
 		      DF Robot: []
 		      Electronic Dollar Store: [
-		         { "model": "BEEP", "name": "Piezoelectric Beeper", "desc": "Beeps a MIDI tone", "link": "https://electricdollarstore.com/beep.html"},
-		         { "model": "DIGI", "name": "Digit Display",        "desc": "2-digit seven segment display", "link": "https://electricdollarstore.com/dig2.html"},
+		         { "model": "BEEP", "name": "Piezoelectric Beeper", "desc": "Beeps a MIDI tone",              "link": "https://electricdollarstore.com/beep.html"},
+		         { "model": "DIGI", "name": "Digit Display",        "desc": "2-digit seven segment display",  "link": "https://electricdollarstore.com/dig2.html"},
 		         { "model": "LED",  "name": "RGB LED",              "desc": "LED brightness control capable", "link": "https://electricdollarstore.com/led.html"},
-		         { "model": "POT",  "name": "Potentiometer",        "desc": "Input range device", "link": "https://electricdollarstore.com/pot.html"},
-		         { "model": "TEMP", "name": "Temperature Sensor",   "desc": "Input thresholded device", "link": "https://electricdollarstore.com/temp.html"},
+		         { "model": "POT",  "name": "Potentiometer",        "desc": "Input range device",             "link": "https://electricdollarstore.com/pot.html"},
+		         { "model": "TEMP", "name": "Temperature Sensor",   "desc": "Input thresholded device",       "link": "https://electricdollarstore.com/temp.html"},
 		      ]
 		-  Response:
 		   { 'status': 'OK', 'message': string}
