@@ -393,7 +393,8 @@ DETAILED:
 		   POST /user/login
 		   headers: {'Authorization': 'Bearer ' + jwtEncode(username, password)}
 		-  Response:
-		   {'status': 'OK', 'message': string, 'token': {'access': string, 'id': string, 'refresh': string}, 'name': string }
+		   {'status': 'OK', 'message': string, 
+		    'token': {'access': string, 'id': string, 'refresh': string}, 'name': string }
 		   {'status': 'NG', 'message': string}
 		   // name is now included in the response as per special UX requirement
 		-  Details:
@@ -563,7 +564,8 @@ DETAILED:
 		   GET /devices/device/DEVICENAME
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
-		   { 'status': 'OK', 'message': string, 'device': {'devicename': string, 'deviceid': string, 'serialnumber': string, 'timestamp': string}}
+		   { 'status': 'OK', 'message': string, 
+		     'device': {'devicename': string, 'deviceid': string, 'serialnumber': string, 'timestamp': string}}
 		   { 'status': 'NG', 'message': string}
 		   // deviceid refers to UUID
 		   // timestamp refers to the epoch time the device was registered/added
@@ -908,7 +910,8 @@ DETAILED:
 		   GET /devices/device/DEVICENAME/i2c/sensors/sensor/SENSORNAME
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
-		   { 'status': 'OK', 'message': string, 'sensor': {'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'timestamp': string}}
+		   { 'status': 'OK', 'message': string, 
+		     'sensor': {'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'timestamp': string} }
 		   { 'status': 'NG', 'message': string}
 		   // timestamp refers to the epoch time the sensor was registered/added
 
