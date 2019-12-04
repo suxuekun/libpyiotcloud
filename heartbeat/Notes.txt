@@ -1,0 +1,8 @@
+docker build -t hbt .
+docker run -d --name hbt hbt
+
+	docker ps -a
+	docker-machine ls // get the ip address for testing with MQTT.FX
+
+docker stop hbt
+docker rm hbt
