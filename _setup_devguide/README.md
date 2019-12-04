@@ -582,7 +582,9 @@ DETAILED:
 		Two users can have the same DEVICENAME. 
 		But this will not cause conflict because each API call provides a token which contains user's USERNAME.
 
-
+		The NOTIFICATION object in GET/SET UART/GPIO/I2C PROPERTIES is made generic to be simple, extensible and performant.
+		
+		
 		New requirements:
 
 		A. GET STATUS
