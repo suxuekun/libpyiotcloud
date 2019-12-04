@@ -42,7 +42,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Device
         $state.go('addDevice', $scope.data);
     };
     
-    $scope.submitRefresh = function() {
+    $scope.submitRefresh = function(livestatus) {
 
         console.log("refresh");
         
@@ -53,14 +53,28 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Device
             if ($scope.devices.length !== 0) {
                 $scope.devices_counthdr = $scope.devices.length.toString() + " devices registered";
                 
-                console.log($scope.devices.length);
-                var indexy = 0;
-                for (indexy=0; indexy<$scope.devices.length; indexy++) {
-                    console.log("indexy=" + indexy.toString() + " " + $scope.devices[indexy].devicename);
-                    if ($scope.devices[indexy].devicestatus === undefined) {
-                        $scope.devices[indexy].devicestatus = "Detecting...";
+                if (livestatus === true) {
+                    console.log($scope.devices.length);
+                    var indexy = 0;
+                    for (indexy=0; indexy<$scope.devices.length; indexy++) {
+                        console.log("indexy=" + indexy.toString() + " " + $scope.devices[indexy].devicename);
+                        if ($scope.devices[indexy].devicestatus === undefined) {
+                            $scope.devices[indexy].devicestatus = "Detecting...";
+                        }
+                        query_device(indexy, $scope.devices[indexy].devicename);
                     }
-                    query_device(indexy, $scope.devices[indexy].devicename);
+                }
+                else {
+                    var indexy = 0;
+                    for (indexy=0; indexy<$scope.devices.length; indexy++) {
+                        if ($scope.devices[indexy].heartbeat !== undefined) {
+                            var heartbeat = new Date($scope.devices[indexy].heartbeat * 1000);
+                            $scope.devices[indexy].devicestatus = "Last active: " + heartbeat;
+                        }
+                        else {
+                            $scope.devices[indexy].devicestatus = "Last active: N/A";
+                        }
+                    }
                 }
             }
             else {
@@ -120,7 +134,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Device
 
     $scope.$on('$ionicView.enter', function(e) {
         //console.log("DEVICES enter ionicView REFRESH LIST");
-        $scope.submitRefresh();
+        $scope.submitRefresh(false);
     });
     
     
@@ -132,7 +146,10 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Device
         else if (devicestatus === "Offline") {
             return 'item-offline';
         }
-        return 'item-detecting';
+        else if (devicestatus === "Detecting...") {
+            return 'item-detecting';
+        }
+        return 'item-lastactive';
     };
 
 }])
@@ -2608,13 +2625,13 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         'devicename': $stateParams.devicename,
         'deviceid': $stateParams.deviceid,
         'serialnumber': $stateParams.serialnumber,
-        'devicestatus': 'UNKNOWN',
+        'devicestatus': 'Status: UNKNOWN',
         'deviceversion': 'UNKNOWN'
     };
 
     $scope.submitGPIO = function() {
         console.log("devicename=" + $scope.data.devicename);
-        if ($scope.data.devicestatus === 'UNKNOWN') {
+        if ($scope.data.devicestatus === 'Status: UNKNOWN') {
             return;
         }
         $state.go('deviceGPIO', $scope.data, {animate: false} );
@@ -2622,7 +2639,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
 
     $scope.submitUART = function() {
         console.log("devicename=" + $scope.data.devicename);
-        if ($scope.data.devicestatus === 'UNKNOWN') {
+        if ($scope.data.devicestatus === 'Status: UNKNOWN') {
             return;
         }
         $state.go('deviceUART', $scope.data, {animate: false} );
@@ -2630,7 +2647,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
 
     $scope.submitI2C = function() {
         console.log("devicename=" + $scope.data.devicename);
-        if ($scope.data.devicestatus === 'UNKNOWN') {
+        if ($scope.data.devicestatus === 'Status: UNKNOWN') {
             return;
         }
         $state.go('deviceI2C', $scope.data, {animate: false} );
@@ -2638,7 +2655,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
 
     $scope.submitNotifications = function() {
         console.log("devicename=" + $scope.data.devicename);
-        if ($scope.data.devicestatus === 'UNKNOWN') {
+        if ($scope.data.devicestatus === 'Status: UNKNOWN') {
             return;
         }
         $state.go('deviceNotifications', $scope.data, {animate: false} );
@@ -2654,6 +2671,14 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
                 Token.refresh({'username': $scope.data.username, 'token': $scope.data.token});
                 $scope.data.token = User.get_token();
             }
+            
+            if (error.status == 503) {
+                var heartbeat = new Date(error.data.heartbeat * 1000);
+                $scope.data.devicestatus = "Last active: " + heartbeat;                
+            }
+            else {
+                $scope.data.devicestatus = "Status: UNKNOWN";                
+            }
         }
         else {
             console.log("ERROR: Server is down!"); 
@@ -2668,7 +2693,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
     };
 
     get_status = function() {
-        $scope.data.devicestatus = 'Detecting...';
+        $scope.data.devicestatus = 'Status: Detecting...';
         //
         // GET STATUS
         // - Request:
@@ -2686,12 +2711,12 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         })
         .then(function (result) {
             console.log(result.data);
-            $scope.data.devicestatus = 'Online';
+            $scope.data.devicestatus = 'Status: Online';
             $scope.data.deviceversion = result.data.value.version;
         })
         .catch(function (error) {
             handle_error(error);
-            $scope.data.devicestatus = 'Offline';
+            //$scope.data.devicestatus = 'Offline';
             $scope.data.deviceversion = 'UNKNOWN';
         }); 
     };   

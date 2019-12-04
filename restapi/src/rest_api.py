@@ -1680,7 +1680,7 @@ def get_device_histories_filtered():
 #
 # - Response:
 #   { 'status': 'OK', 'message': string, 'value': { "status": string, "version": string } }
-#   { 'status': 'NG', 'message': string}
+#   { 'status': 'NG', 'message': string, 'heartbeat': string }
 #
 @app.route('/devices/device/<devicename>/status', methods=['GET'])
 def get_status(devicename):
@@ -1698,14 +1698,28 @@ def get_status(devicename):
     data = {}
     data['token'] = {'access': auth_header_token}
     data['devicename'] = devicename
-    data['username'] = g_database_client.get_username_from_token(data['token'])
-    if data['username'] is None:
+    username = g_database_client.get_username_from_token(data['token'])
+    if username is None:
         response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
         print('\r\nERROR Invalid token\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
+    data['username'] = username
     print('get_status username={} devicename={}'.format(data['username'], data['devicename']))
 
-    return process_request_get(api, data)
+    response, status = process_request_get(api, data)
+    if status == 503: # HTTP_503_SERVICE_UNAVAILABLE
+        # if device is unreachable, add the heartbeat timestamp
+        device = g_database_client.find_device(username, devicename)
+        if not device:
+            response = json.dumps({'status': 'NG', 'message': 'Device is not registered'})
+            print('\r\nERROR Device is not registered [{},{}]\r\n'.format(username, devicename))
+            return response, status.HTTP_404_NOT_FOUND
+        response = json.loads(response)
+        response['heartbeat'] = device['heartbeat']
+        response = json.dumps(response)
+        return response, status
+
+    return response
 
 #
 # SET STATUS
