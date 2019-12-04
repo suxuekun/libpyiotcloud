@@ -894,7 +894,20 @@ DETAILED:
 		-  Request:
 		   POST /devices/device/DEVICENAME/i2c/sensors/sensor/SENSORNAME
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-		   data: {'address': int, 'manufacturer': string, 'model': string}
+		   data: {'address': int, 'manufacturer': string, 'model': string, 'name': string}
+		   // list of manufacturers:
+		      ["Adafruit", "DF Robot", "Electronic Dollar Store"]
+		         default = "Electronic Dollar Store"
+		   // list of device models supported per manufacturer:
+		      Adafruit: []
+		      DF Robot: []
+		      Electronic Dollar Store: [
+		         { "model": "BEEP", "name": "Piezoelectric Beeper", "desc": "Beeps a MIDI tone", "link": "https://electricdollarstore.com/beep.html"},
+		         { "model": "DIGI", "name": "Digit Display",        "desc": "2-digit seven segment display", "link": "https://electricdollarstore.com/dig2.html"},
+		         { "model": "LED",  "name": "RGB LED",              "desc": "LED brightness control capable", "link": "https://electricdollarstore.com/led.html"},
+		         { "model": "POT",  "name": "Potentiometer",        "desc": "Input range device", "link": "https://electricdollarstore.com/pot.html"},
+		         { "model": "TEMP", "name": "Temperature Sensor",   "desc": "Input thresholded device", "link": "https://electricdollarstore.com/temp.html"},
+		      ]
 		-  Response:
 		   { 'status': 'OK', 'message': string}
 		   { 'status': 'NG', 'message': string}
