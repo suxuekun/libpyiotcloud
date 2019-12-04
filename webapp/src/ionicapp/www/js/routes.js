@@ -181,7 +181,8 @@ angular.module('app.routes', [])
 		devicename: "",
 		deviceid: "",
 		serialnumber: "",
-		timestamp: ""		
+		timestamp: "",
+		heartbeat: ""		
 },
     templateUrl: 'templates/viewDevice.html',
     controller: 'viewDeviceCtrl'
@@ -279,8 +280,7 @@ angular.module('app.routes', [])
 		devicestatus: "",
 		deviceid: "",
 		serialnumber: "",
-		model: "",
-		manufacturer: ""		
+		i2c: ""		
 },
     templateUrl: 'templates/addI2CDeviceDetails.html',
     controller: 'addI2CDeviceDetailsCtrl'

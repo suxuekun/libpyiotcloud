@@ -75,7 +75,6 @@ def add_history(history_client, deviceid, topic, payload, direction):
     if direction == "From":
         try:
             heartbeat = history_client.add_device_heartbeat(deviceid)
-            print("heartbeat = {}".format(heartbeat))
         except:
             print("exception add_device_heartbeat")
     

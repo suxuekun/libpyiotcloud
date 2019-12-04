@@ -287,6 +287,9 @@ class database_client:
     def find_device(self, username, devicename):
         return self._devices.find_device(username, devicename)
 
+    def find_device_by_id(self, deviceid):
+        return self._devices.find_device_by_id(deviceid)
+
     def get_deviceid(self, username, devicename):
         return self._devices.get_deviceid(username, devicename)
 
@@ -885,7 +888,7 @@ class database_client_mongodb:
         device_list = []
         devices = self.get_registered_devices()
         if devices and devices.count():
-            for device in devices.find({'username': username},{'devicename':1, 'deviceid': 1, 'serialnumber':1, 'timestamp':1}):
+            for device in devices.find({'username': username},{'devicename':1, 'deviceid': 1, 'serialnumber':1, 'timestamp':1, 'heartbeat':1}):
                 device.pop('_id')
                 device_list.append(device)
         return device_list
@@ -906,10 +909,20 @@ class database_client_mongodb:
         if devices:
             devices.delete_one({ 'username': username, 'devicename': devicename })
 
+    # a user cannot register the same device name
     def find_device(self, username, devicename):
         devices = self.get_registered_devices()
         if devices:
-            for device in devices.find({'username': username, 'devicename': devicename},{'devicename':1, 'deviceid': 1, 'serialnumber':1, 'timestamp':1}):
+            for device in devices.find({'username': username, 'devicename': devicename},{'devicename':1, 'deviceid': 1, 'serialnumber':1, 'timestamp':1, 'heartbeat':1}):
+                device.pop('_id')
+                return device
+        return None
+
+    # a user cannot register a device if it is already registered by another user
+    def find_device_by_id(self, deviceid):
+        devices = self.get_registered_devices()
+        if devices:
+            for device in devices.find({'deviceid': deviceid},{'username': 1, 'devicename':1, 'deviceid': 1, 'serialnumber':1, 'timestamp':1}):
                 device.pop('_id')
                 return device
         return None

@@ -536,10 +536,8 @@ class database_client_mongodb:
     def add_device_heartbeat(self, deviceid):
         devices = self.get_registered_devices()
         if devices:
-            for device in devices.find({'deviceid': deviceid},{'username': 1, 'devicename': 1, 'deviceid': 1, 'cert':1, 'pkey':1}):
-                print('add_device_heartbeat {}'.format(device))
+            for device in devices.find({'deviceid': deviceid},{'username': 1, 'devicename': 1, 'deviceid': 1, 'serialnumber':1, 'timestamp': 1, 'heartbeat': 1}):
                 if device.get('heartbeat'):
-                    print('add_device_heartbeat {}'.format(device['heartbeat']))
                     device['heartbeat'] = str(int(time.time()))
                     devices.replace_one({'deviceid': deviceid}, device)
                 else:
