@@ -275,13 +275,15 @@ SUMMARY:
 		D. PAYPAL EXECUTE                 - POST   /account/payment/paypalexecute
 		E. PAYPAL VERIFY                  - POST   /account/payment/paypalverify
 
-	6. Others (should items B-E be just static content?)
+	6. Others
 
 		A. SEND FEEDBACK                  - POST   /others/feedback
 		B. GET FAQS                       - GET    /others/faqs
 		C. GET TERMS AND CONDITIONS       - GET    /others/terms
 		D. GET PRIVACY STATEMENTS         - GET    /others/privacy
 		E. GET LICENSE                    - GET    /others/license
+		(should items B-E be just static content?)
+		(pro for making it a dynamic content: if legal issue arises, content can be updated w/o user redownloading the mobile app)
 
 	7. HTTP error codes
 
@@ -290,7 +292,7 @@ SUMMARY:
 		C. HTTP_404_NOT_FOUND             - User or device not found
 		D. HTTP_409_CONFLICT              - User or device already exist
 		E. HTTP_500_INTERNAL_SERVER_ERROR - Internal processing error or 3rd-party API failure
-		F. HTTP_503_SERVICE_UNAVAILABLE   - Device is unreachable
+		F. HTTP_503_SERVICE_UNAVAILABLE   - Device is offline/unreachable
 
 
 DETAILED:
