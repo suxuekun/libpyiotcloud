@@ -12,7 +12,7 @@
     <form id="addI2CDevice-form17" class="list">
       <label class="item item-select" id="addI2CDevice-select16">
         <span class="input-label"></span>
-        <select ng-model="data.i2c.manufacturer" ng-options="manufacturer.id as manufacturer.label for manufacturer in manufacturers"></select>
+        <select ng-model="data.i2c.manufacturerid" ng-options="manufacturer.id as manufacturer.name for manufacturer in manufacturers"></select>
       </label>
     </form>
     <div id="addI2CDevice-markdown17" class="show-list-numbers-and-dots">
@@ -21,18 +21,24 @@
     <div id="addI2CDevice-markdown48" class="show-list-numbers-and-dots">
       <p style="color:#000000;">Device Models</p>
     </div>
-    <form id="addI2CDevice-form39" class="list" ng-show="data.i2c.manufacturer==0">
-      <label class="item item-select" id="addI2CDevice-select18">
-        <span class="input-label"></span>
-        <select ng-model="data.i2c.devicemodel" ng-options="devicemodel.id as devicemodel.label for devicemodel in devicemodels_eds"></select>
-      </label>
-    </form>
-    <form id="addI2CDevice-form54" class="list" ng-show="data.i2c.manufacturer==1">
+    <form id="addI2CDevice-form39" class="list" ng-show="data.i2c.manufacturerid==0">
       <label class="item item-select" id="addI2CDevice-select19">
         <span class="input-label"></span>
-        <select ng-model="data.i2c.devicemodel" ng-options="devicemodel.id as devicemodel.label for devicemodel in devicemodels_ada"></select>
+        <select ng-model="data.i2c.devicemodelid" ng-options="devicemodel.id as devicemodel.model for devicemodel in devicemodels_ada"></select>
       </label>
     </form>
-    <button id="addI2CDevice-button26" ng-click="submitTest()" class="button button-positive button-block">NEXT</button>
+    <form id="addI2CDevice-form27" class="list" ng-show="data.i2c.manufacturerid==1">
+      <label class="item item-select" id="addI2CDevice-select18">
+        <span class="input-label"></span>
+        <select ng-model="data.i2c.devicemodelid" ng-options="devicemodel.id as devicemodel.model for devicemodel in devicemodels_dfr"></select>
+      </label>
+    </form>
+    <form id="addI2CDevice-form36" class="list" ng-show="data.i2c.manufacturerid==2">
+      <label class="item item-select" id="addI2CDevice-select20">
+        <span class="input-label"></span>
+        <select ng-model="data.i2c.devicemodelid" ng-options="devicemodel.id as devicemodel.model for devicemodel in devicemodels_eds"></select>
+      </label>
+    </form>
+    <button id="addI2CDevice-button26" ng-click="submitAdd()" class="button button-positive button-block">NEXT</button>
   </ion-content>
 </ion-view>

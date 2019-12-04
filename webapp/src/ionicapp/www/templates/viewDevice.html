@@ -21,9 +21,13 @@
         <span class="input-label">Serial Number</span>
         <input type="text" placeholder="" ng-model="data.serialnumber" readonly="">
       </label>
-      <label class="item item-input" id="viewDevice-input59" name="input-timestamp">
+      <label class="item item-input item-stacked-label" id="viewDevice-input59" name="input-timestamp">
         <span class="input-label">Registration Date</span>
         <input type="text" placeholder="" ng-model="data.timestamp" readonly="">
+      </label>
+      <label class="item item-input item-stacked-label" id="viewDevice-input89" name="input-heartbeat">
+        <span class="input-label">Last Active</span>
+        <input type="text" placeholder="" ng-model="data.heartbeat" readonly="">
       </label>
     </form>
     <button id="viewDevice-button46" ng-click="configureDevice()" class="button button-positive button-block">Configure Device</button>

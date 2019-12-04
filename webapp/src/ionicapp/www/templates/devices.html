@@ -4,6 +4,9 @@
   </ion-nav-buttons>
   <ion-content padding="true" class="has-header">
     <div class="spacer" style="width: 300px; height: 12px;"></div>
+    <div id="devices-markdown36" class="show-list-numbers-and-dots">
+      <p style="color:#AAAAAA;font-size:12px;">{{ devices_counthdr }}</p>
+    </div>
     <ion-list id="devices-list10">
       <div class="item item-body" id="devices-list-item-container4" ng-repeat="device in devices" ng-click="submitTest(device)" ng-disabled="device.devicestatus==&quot;Detecting...&quot;">
         <div id="devices-markdown34" ng-disabled="device.devicestatus==&quot;Detecting...&quot;" class="show-list-numbers-and-dots">

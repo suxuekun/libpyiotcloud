@@ -530,10 +530,12 @@ DETAILED:
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
 		   { 'status': 'OK', 'message': string, 
-		     'devices': array[{'devicename': string, 'deviceid': string, 'serialnumber': string, 'timestamp': string}, ...]}
+		     'devices': array[{'devicename': string, 'deviceid': string, 'serialnumber': string, 'timestamp': string, 'heartbeat': string}, ...]}
 		   { 'status': 'NG', 'message': string}
 		   // deviceid refers to UUID
 		   // timestamp refers to the epoch time the device was registered/added
+		   // heartbeat refers to the epoch time of the last publish packet sent by the device
+		   // heartbeat will only appear if device has published an MQTT packet
 
 		B. ADD DEVICE
 		-  Request:
@@ -547,6 +549,8 @@ DETAILED:
 		   //   UUID: PH80XXRRMMDDYYzz (16 characters)
 		   //   SerialNumber: SSSSS (5 digits)
 		   //   where ZZ hexadecimal is equivalent to SSSSS in decimal
+		   // registering a device using an already used devicename returns HTTP_409_CONFLICT with 'Device name is already taken'
+		   // registering a device using an already used deviceid returns HTTP_409_CONFLICT with 'Device UUID is already registered'
 		-  Response:
 		   { 'status': 'OK', 'message': string}
 		   { 'status': 'NG', 'message': string}
@@ -565,10 +569,12 @@ DETAILED:
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
 		   { 'status': 'OK', 'message': string, 
-		     'device': {'devicename': string, 'deviceid': string, 'serialnumber': string, 'timestamp': string}}
+		     'device': {'devicename': string, 'deviceid': string, 'serialnumber': string, 'timestamp': string, 'heartbeat': string}}
 		   { 'status': 'NG', 'message': string}
 		   // deviceid refers to UUID
 		   // timestamp refers to the epoch time the device was registered/added
+		   // heartbeat refers to the epoch time of the last publish packet sent by the device
+		   // heartbeat will only appear if device has published an MQTT packet
 
 
 	3. Device access and control APIs
@@ -908,6 +914,7 @@ DETAILED:
 		         { "model": "POT",  "name": "Potentiometer",        "desc": "Input range device",             "link": "https://electricdollarstore.com/pot.html"},
 		         { "model": "TEMP", "name": "Temperature Sensor",   "desc": "Input thresholded device",       "link": "https://electricdollarstore.com/temp.html"},
 		      ]
+		   // registering a sensor using an already used sensorname returns HTTP_409_CONFLICT with 'Sensor name is already taken'
 		-  Response:
 		   { 'status': 'OK', 'message': string}
 		   { 'status': 'NG', 'message': string}

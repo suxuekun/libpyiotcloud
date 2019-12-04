@@ -16,7 +16,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Device
     var server = Server.rest_api;
 
     $scope.devices = [];
-
+    $scope.devices_counthdr = "No device registered" ;
+    
     $scope.data = {
         'username': User.get_username(),
         'token': User.get_token()
@@ -50,6 +51,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Device
             $scope.devices = res;
             $scope.data.token = User.get_token();
             if ($scope.devices.length !== 0) {
+                $scope.devices_counthdr = $scope.devices.length.toString() + " devices registered";
+                
                 console.log($scope.devices.length);
                 var indexy = 0;
                 for (indexy=0; indexy<$scope.devices.length; indexy++) {
@@ -59,6 +62,9 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Device
                     }
                     query_device(indexy, $scope.devices[indexy].devicename);
                 }
+            }
+            else {
+                $scope.devices_counthdr = "No device registered";
             }
         });
     };
@@ -2363,16 +2369,12 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, Devices, Use
             if (error.data !== null) {
                 console.log("ERROR: Register Device failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
 
-                $ionicPopup.alert({
-                    title: 'Error',
-                    template: 'Failed to add device!',
-                    buttons: [
-                        {
-                            text: 'OK',
-                            type: 'button-assertive'
-                        }
-                    ]
-                });               
+                if (error.status == 409) {
+                    $ionicPopup.alert({ title: 'Error', template: error.data.message, buttons: [{text: 'OK', type: 'button-assertive'}] });
+                }
+                else {
+                    $ionicPopup.alert({ title: 'Error', template: 'Failed to add device!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+                }
 
                 if (error.data.message === "Token expired") {
                     Token.refresh({'username': $scope.data.username, 'token': $scope.data.token});
@@ -2419,6 +2421,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         'deviceid'    : $stateParams.deviceid,
         'serialnumber': $stateParams.serialnumber,
         'timestamp'   : $stateParams.timestamp,
+        'heartbeat'   : $stateParams.heartbeat,
     };
 
 
@@ -2720,6 +2723,13 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             console.log(result.data);
 
             var timestamp = new Date(result.data.device.timestamp* 1000);
+            var heartbeat = null;
+            if (result.data.device.heartbeat !== undefined) {
+                heartbeat = new Date(result.data.device.heartbeat* 1000);
+            }
+            else {
+                heartbeat = "N/A";
+            }
             var device_param = {
                 'username': $scope.data.username,
                 'token': $scope.data.token,
@@ -2727,6 +2737,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
                 'deviceid': result.data.device.deviceid,
                 'serialnumber': result.data.device.serialnumber,
                 'timestamp': timestamp,
+                'heartbeat': heartbeat,
             };
             
             $state.go('viewDevice', device_param);
@@ -3776,7 +3787,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
     };
 
     $scope.sensors = [];
-    
+    $scope.sensors_counthdr = "No I2C device registered";
    
     handle_error = function(error) {
         if (error.data !== null) {
@@ -3825,6 +3836,16 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             console.log(result.data);
             
             $scope.sensors = result.data.sensors;
+            
+            if ($scope.sensors.length === 0) {
+                $scope.sensors_counthdr = "No I2C device registered" ;
+            }
+            else if ($scope.sensors.length === 1) {
+                $scope.sensors_counthdr = "1 I2C device registered";
+            }
+            else {
+                $scope.sensors_counthdr = $scope.sensors.length.toString() + " I2C devices registered";
+            }
         })
         .catch(function (error) {
             handle_error(error);
@@ -3921,24 +3942,40 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
     var server = Server.rest_api;
 
     $scope.manufacturers = [
-        { "id":0,  "label": "Electronic Dollar Store" },
-        { "id":1,  "label": "Adafruit"                },
+        { "id":0,  "name": "Adafruit", "default": false },
+        { "id":1,  "name": "DF Robot", "default": false },
+        { "id":2,  "name": "Electronic Dollar Store", "default": true },
     ];
 
+    $scope.devicemodels_ada = [{ "id":0,  "model": "N/A" }];
+    $scope.devicemodels_dfr = [{ "id":0,  "model": "N/A" }];
     $scope.devicemodels_eds = [
-        { "id":0,  "label": "POT",  "description": "Potentiometer",        "link": "https://electricdollarstore.com/pot.html"  },
-        { "id":1,  "label": "DIGI", "description": "Digit Display",        "link": "https://electricdollarstore.com/dig2.html" },
-        { "id":2,  "label": "LED",  "description": "RGB LED",              "link": "https://electricdollarstore.com/led.html"  },
-        { "id":3,  "label": "TEMP", "description": "Temperature Sensor",   "link": "https://electricdollarstore.com/temp.html" },
-        { "id":4,  "label": "BEEP", "description": "Piezoelectric Beeper", "link": "https://electricdollarstore.com/beep.html" },
-    ];
-    
-    $scope.devicemodels_ada = [
-        { "id":0,  "label": "TEST" },
-    ];
- 
-    $scope.devicemodels = $scope.devicemodels_eds;
+        { "id":0,  "model": "BEEP", 
+            "name": "Piezoelectric Beeper", 
+            "desc": "Beeps a MIDI tone",
+            "link": "https://electricdollarstore.com/beep.html" },
 
+        { "id":1,  "model": "DIGI", 
+            "name": "Digit Display",        
+            "desc": "2-digit seven segment display",  
+            "link": "https://electricdollarstore.com/dig2.html" },
+
+        { "id":2,  "model": "LED",  
+            "name": "RGB LED",
+            "desc": "LED brightness control capable",  
+            "link": "https://electricdollarstore.com/led.html"  },
+
+        { "id":3,  "model": "POT",  
+            "name": "Potentiometer",
+            "desc": "Input range device",  
+            "link": "https://electricdollarstore.com/pot.html"  },
+
+        { "id":4,  "model": "TEMP", 
+            "name": "Temperature Sensor",   
+            "desc": "Input thresholded device",   
+            "link": "https://electricdollarstore.com/temp.html" },
+    ];
+    $scope.devicemodels = $scope.devicemodels_eds;
  
  
     $scope.data = {
@@ -3950,41 +3987,33 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         'serialnumber': $stateParams.serialnumber,
      
         'i2c': {
-            'manufacturer'           : $scope.manufacturers[0].id,
-            'manufacturerlabel'      : $scope.manufacturers[0].label,
-            'devicemodel'            : $scope.devicemodels[0].id,
-            'devicemodellabel'       : $scope.devicemodels[0].label,
-            'devicemodeldescription' : $scope.devicemodels[0].description,
+            'manufacturerid'     : $scope.manufacturers[2].id,
+            'devicemodelid'      : $scope.devicemodels[0].id,
+
+            'manufacturer' : $scope.manufacturers[2].name,
+            'model'        : $scope.devicemodels[0].model,
+            'name'  : $scope.devicemodels[0].name,
+            'desc'  : $scope.devicemodels[0].desc,
+            'link'  : $scope.devicemodels[0].link,
         }
     };
 
 
-    $scope.submitTest = function() {
-        console.log("submitTest");
+    $scope.submitAdd = function() {
+        console.log("submitAdd");
         
-        console.log($scope.data.i2c.manufacturer);
-        console.log($scope.data.i2c.devicemodel);
+        if ($scope.data.i2c.manufacturerid != 2) {
+            $ionicPopup.alert({ title: 'Error', template: 'Selected choice is invalid!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+            return;
+        }
         
-        $scope.data.i2c.manufacturerlabel = $scope.manufacturers[$scope.data.i2c.manufacturer].label;
-        $scope.data.i2c.devicemodellabel = $scope.devicemodels[$scope.data.i2c.devicemodel].label;
-        $scope.data.i2c.descriptionlabel = $scope.devicemodels[$scope.data.i2c.devicemodel].description;
-
-        console.log($scope.data.i2c.manufacturerlabel);
-        console.log($scope.data.i2c.devicemodellabel);
-        console.log($scope.data.i2c.descriptionlabel);
-
-        var device_param = {
-            'username': $scope.data.username,
-            'token': $scope.data.token,
-            'devicename': $scope.data.devicename,
-            'devicestatus': $scope.data.devicestatus,
-            'deviceid': $scope.data.deviceid,
-            'serialnumber': $scope.data.serialnumber,
-
-            'manufacturer': $scope.data.i2c.manufacturerlabel,
-            'model': $scope.data.i2c.devicemodellabel + " - " + $scope.data.i2c.descriptionlabel,
-        };
-        $state.go('addI2CDeviceDetails', device_param);        
+        $scope.data.i2c.manufacturer = $scope.manufacturers[$scope.data.i2c.manufacturerid].name;
+        $scope.data.i2c.model        = $scope.devicemodels[$scope.data.i2c.devicemodelid].model,
+        $scope.data.i2c.name         = $scope.devicemodels[$scope.data.i2c.devicemodelid].name,
+        $scope.data.i2c.desc         = $scope.devicemodels[$scope.data.i2c.devicemodelid].desc,
+        $scope.data.i2c.link         = $scope.devicemodels[$scope.data.i2c.devicemodelid].link,
+        
+        $state.go('addI2CDeviceDetails', $scope.data);        
     };
     
     
@@ -4019,11 +4048,13 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         'deviceid'    : $stateParams.deviceid,
         'serialnumber': $stateParams.serialnumber,
      
-        'sensorname'  : "Sensor1",
-        'sensor': {
-            'manufacturer': $stateParams.manufacturer,
-            'model'       : $stateParams.model,
-            'address'     : 255,
+        'i2c'         : $stateParams.i2c,
+        
+        'sensorname' : $stateParams.i2c.model + ' 1',
+        'sensor' : {
+            'manufacturer': $stateParams.i2c.manufacturer,
+            'model': $stateParams.i2c.model,
+            'address': 0xFF,
         }
     };
 
@@ -4039,7 +4070,10 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             
             if (error.status == 503) {
                 $ionicPopup.alert({ title: 'Error', template: 'Device is unreachable!', buttons: [{text: 'OK', type: 'button-assertive'}] });
-            }            
+            }
+            else if (error.status == 409) {
+                $ionicPopup.alert({ title: 'Error', template: error.data.message, buttons: [{text: 'OK', type: 'button-assertive'}] });
+            }
         }
         else {
             console.log("ERROR: Server is down!"); 
