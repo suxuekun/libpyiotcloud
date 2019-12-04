@@ -533,9 +533,10 @@ DETAILED:
 		     'devices': array[{'devicename': string, 'deviceid': string, 'serialnumber': string, 'timestamp': string, 'heartbeat': string}, ...]}
 		   { 'status': 'NG', 'message': string}
 		   // deviceid refers to UUID
-		   // timestamp refers to the epoch time the device was registered/added
-		   // heartbeat refers to the epoch time of the last publish packet sent by the device
+		   // timestamp refers to the epoch time (in seconds) the device was registered/added
+		   // heartbeat refers to the epoch time (in seconds) of the last publish packet sent by the device
 		   // heartbeat will only appear if device has published an MQTT packet
+		   // In Javascript, heartbeat can be converted to a readable date using "new Date(heartbeat* 1000)"
 
 		B. ADD DEVICE
 		-  Request:
@@ -572,9 +573,10 @@ DETAILED:
 		     'device': {'devicename': string, 'deviceid': string, 'serialnumber': string, 'timestamp': string, 'heartbeat': string}}
 		   { 'status': 'NG', 'message': string}
 		   // deviceid refers to UUID
-		   // timestamp refers to the epoch time the device was registered/added
-		   // heartbeat refers to the epoch time of the last publish packet sent by the device
+		   // timestamp refers to the epoch time (in seconds) the device was registered/added
+		   // heartbeat refers to the epoch time (in seconds) of the last publish packet sent by the device
 		   // heartbeat will only appear if device has published an MQTT packet
+		   // In Javascript, heartbeat can be converted to a readable date using "new Date(heartbeat* 1000)"
 
 
 	3. Device access and control APIs
@@ -599,9 +601,13 @@ DETAILED:
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
 		   { 'status': 'OK', 'message': string, 'value': { "status": string, "version": string } }
-		   { 'status': 'NG', 'message': string }
+		   { 'status': 'NG', 'message': string, 'heartbeat': string }
 		   // status can be any of the following: restarting, stopping, stopped, starting, running
 		   // version is the firmware version
+		   // if HTTP ERROR CODE is HTTP_503_SERVICE_UNAVAILABLE, heartbeat will be included in the error message
+		   // heartbeat refers to the epoch time (in seconds) of the last publish packet sent by the device
+		   // heartbeat will only appear if device has published an MQTT packet
+		   // In Javascript, heartbeat can be converted to a readable date using "new Date(heartbeat* 1000)"
 
 		B. SET STATUS
 		-  Request:

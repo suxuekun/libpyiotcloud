@@ -17,7 +17,7 @@
       <p style="color:#444444;font-size:12px;">Firmware Version: {{ data.deviceversion }}</p>
     </div>
     <div id="configureDevice-markdown16" ng-click="getDevice()" style="text-align:center;" class="show-list-numbers-and-dots">
-      <p style="color:#444444;font-size:12px;">Status: {{ data.devicestatus }}</p>
+      <p style="color:#444444;font-size:12px;">{{ data.devicestatus }}</p>
     </div>
     <div class="spacer" style="height: 20px;"></div>
     <button id="configureDevice-button20" ng-click="submitUART()" ng-disabled="data.devicestatus==&quot;Detecting...&quot;" class="button button-positive button-large button-outline widget_button">UART</button>
