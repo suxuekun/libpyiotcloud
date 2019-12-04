@@ -1380,12 +1380,7 @@ def register_device(devicename):
         return response, status.HTTP_401_UNAUTHORIZED
 
     if flask.request.method == 'POST':
-        # check if device is registered
-        if g_database_client.find_device(username, devicename):
-            response = json.dumps({'status': 'NG', 'message': 'Device is already registered'})
-            print('\r\nERROR Add Device: Device is already registered [{},{}]\r\n'.format(username, devicename))
-            return response, status.HTTP_409_CONFLICT
-
+        # check parameters
         data = flask.request.get_json()
         print(data)
         if not data.get("deviceid") or not data.get("serialnumber"):
@@ -1394,6 +1389,22 @@ def register_device(devicename):
             return response, status.HTTP_400_BAD_REQUEST
         print(data["deviceid"])
         print(data["serialnumber"])
+
+        # check if device is registered
+        # a user cannot register the same device name
+        if g_database_client.find_device(username, devicename):
+            response = json.dumps({'status': 'NG', 'message': 'Device name is already taken'})
+            print('\r\nERROR Add Device: Device name is already taken [{},{}]\r\n'.format(username, devicename))
+            return response, status.HTTP_409_CONFLICT
+
+        # check if device is registered
+        # a user cannot register a device if it is already registered by another user
+        if g_database_client.find_device_by_id(data["deviceid"]):
+            response = json.dumps({'status': 'NG', 'message': 'Device UUID is already registered'})
+            print('\r\nERROR Add Device: Device uuid is already registered[{}]\r\n'.format(data["deviceid"]))
+            return response, status.HTTP_409_CONFLICT
+
+        # TODO: check if UUID and serial number matches
 
         # add device to database
         result = g_database_client.add_device(username, devicename, data["deviceid"], data["serialnumber"])
@@ -2594,8 +2605,8 @@ def register_i2c_sensor(devicename, sensorname):
     if flask.request.method == 'POST':
         # check if sensor is registered
         if g_database_client.get_sensor(username, devicename, sensorname):
-            response = json.dumps({'status': 'NG', 'message': 'Sensor is already registered'})
-            print('\r\nERROR Add I2C Sensor: Sensor is already registered [{},{}]\r\n'.format(username, devicename))
+            response = json.dumps({'status': 'NG', 'message': 'Sensor name is already taken'})
+            print('\r\nERROR Add I2C Sensor: Sensor name is already taken [{},{},{}]\r\n'.format(username, devicename, sensorname))
             return response, status.HTTP_409_CONFLICT
 
         data = flask.request.get_json()
