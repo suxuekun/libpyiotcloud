@@ -69,20 +69,25 @@ CONFIG_SEPARATOR            = '/'
 def heartbeat_thread(heartbeat_client, deviceid):
 
     # Write to database
-    device = heartbeat_client.add_device_heartbeat(deviceid)
-    if device is None:
-        print("Device id not found {}".format(device))
-
+    try:
+        heartbeat = heartbeat_client.add_device_heartbeat(deviceid)
+        if heartbeat is None:
+            print("Device id not found {}".format(heartbeat))
+        else:
+            print("Device heartbeat {}".format(heartbeat))
+    except:
+        print("exception heartbeat_thread")
+    
 
 def on_message(subtopic, subpayload):
 
     try:
         arr_subtopic = subtopic.split(CONFIG_SEPARATOR, 2)
-        #heartbeat_thread(arr_subtopic[1])
+        #heartbeat_thread(g_heartbeat_client, arr_subtopic[1])
         thr = threading.Thread(target = heartbeat_thread, args = (g_heartbeat_client, arr_subtopic[1], ))
         thr.start()
     except:
-        print("exception")
+        print("exception on_message")
         return
 
 
