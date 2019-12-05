@@ -6,7 +6,12 @@
     <button class="button button-positive icon ion-refresh" ng-click="getI2CSensors()"></button>
   </ion-nav-buttons>
   <ion-content padding="true" class="has-header">
-    <div class="spacer" style="width: 300px; height: 12px;"></div>
+    <div id="deviceI2C-button-bar6" class="button-bar">
+      <button id="deviceI2C-button75" ng-class="{'active': data.activeSection==1}" ng-click="changeSection(1)" class="button button-positive button-small button-block">I2C 1</button>
+      <button id="deviceI2C-button76" ng-class="{'active': data.activeSection==2}" ng-click="changeSection(2)" class="button button-positive button-small button-block">I2C 2</button>
+      <button id="deviceI2C-button77" ng-class="{'active': data.activeSection==3}" ng-click="changeSection(3)" class="button button-positive button-small button-block">I2C 3</button>
+      <button id="deviceI2C-button79" ng-class="{'active': data.activeSection==4}" ng-click="changeSection(4)" class="button button-positive button-small button-block">I2C 4</button>
+    </div>
     <div id="deviceI2C-markdown37" class="show-list-numbers-and-dots">
       <p style="color:#AAAAAA;font-size:12px;">{{ sensors_counthdr }}</p>
     </div>

@@ -265,7 +265,8 @@ angular.module('app.routes', [])
 		token: "",
 		devicestatus: "",
 		deviceid: "",
-		serialnumber: ""		
+		serialnumber: "",
+		i2cnumber: ""		
 },
     templateUrl: 'templates/addI2CDevice.html',
     controller: 'addI2CDeviceCtrl'
@@ -280,7 +281,8 @@ angular.module('app.routes', [])
 		devicestatus: "",
 		deviceid: "",
 		serialnumber: "",
-		i2c: ""		
+		i2c: "",
+		i2cnumber: ""		
 },
     templateUrl: 'templates/addI2CDeviceDetails.html',
     controller: 'addI2CDeviceDetailsCtrl'

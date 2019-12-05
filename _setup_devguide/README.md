@@ -228,25 +228,36 @@ SUMMARY:
 	2. Device registration and management APIs
 
 		A. GET DEVICES                    - GET    /devices
-		B. ADD DEVICE                     - POST   /devices/device/DEVICENAME
-		C. DELETE DEVICE                  - DELETE /devices/device/DEVICENAME
-		D. GET DEVICE                     - GET    /devices/device/DEVICENAME
+		B. GET DEVICES FILTERED           - GET    /devices/filter/FILTERSTRING
+		C. ADD DEVICE                     - POST   /devices/device/DEVICENAME
+		D. DELETE DEVICE                  - DELETE /devices/device/DEVICENAME
+		E. GET DEVICE                     - GET    /devices/device/DEVICENAME
 
 	3. Device access and control APIs
 
 		New requirements:
 		A. GET STATUS                     - GET    /devices/device/DEVICENAME/status
 		B. SET STATUS                     - POST   /devices/device/DEVICENAME/status
-		C. GET UART PROPERTIES            - GET    /devices/device/DEVICENAME/uart/NUMBER/properties
-		D. SET UART PROPERTIES            - POST   /devices/device/DEVICENAME/uart/NUMBER/properties
-		E. GET GPIO VOLTAGE               - GET    /devices/device/DEVICENAME/gpio/voltage
-		F. SET GPIO VOLTAGE               - POST   /devices/device/DEVICENAME/gpio/voltage
-		G. GET GPIO PROPERTIES            - GET    /devices/device/DEVICENAME/gpio/NUMBER/properties
-		H. SET GPIO PROPERTIES            - POST   /devices/device/DEVICENAME/gpio/NUMBER/properties
-		I. GET I2C SENSORS                - GET    /devices/device/DEVICENAME/i2c/sensors
-		I. ADD I2C SENSOR                 - POST   /devices/device/DEVICENAME/i2c/sensors/sensor/SENSORNAME
-		J. DELETE I2C SENSOR              - DELETE /devices/device/DEVICENAME/i2c/sensors/sensor/SENSORNAME
-		K. GET I2C SENSOR                 - GET    /devices/device/DEVICENAME/i2c/sensors/sensor/SENSORNAME
+
+		C. GET UART PROPERTIES            - GET    /devices/device/DEVICENAME/uart/properties
+		D. SET UART PROPERTIES            - POST   /devices/device/DEVICENAME/uart/properties
+		E. IS ENABLED/DISABLED UART       - GET    /devices/device/DEVICENAME/uart/enable (TODO)
+		F. ENABLE/DISABLE UART            - POST   /devices/device/DEVICENAME/uart/enable (TODO)
+
+		G. GET GPIO VOLTAGE               - GET    /devices/device/DEVICENAME/gpio/voltage
+		H. SET GPIO VOLTAGE               - POST   /devices/device/DEVICENAME/gpio/voltage
+		I. GET GPIOS                      - GET    /devices/device/DEVICENAME/gpios
+		J. GET GPIO PROPERTIES            - GET    /devices/device/DEVICENAME/gpio/NUMBER/properties
+		K. SET GPIO PROPERTIES            - POST   /devices/device/DEVICENAME/gpio/NUMBER/properties
+		L. IS ENABLED/DISABLED GPIO       - GET    /devices/device/DEVICENAME/gpio/NUMBER/enable (TODO)
+		M. ENABLE/DISABLE GPIO            - POST   /devices/device/DEVICENAME/gpio/NUMBER/enable (TODO)
+
+		N. GET I2C DEVICES                - GET    /devices/device/DEVICENAME/i2c/NUMBER/sensors
+		O. ADD I2C DEVICES                - POST   /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME
+		P. DELETE I2C DEVICES             - DELETE /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME
+		Q. GET I2C DEVICE                 - GET    /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME
+		R. IS ENABLED/DISABLED I2C        - GET    /devices/device/DEVICENAME/i2c/NUMBER/enable (TODO)
+		S. ENABLE/DISABLE I2C             - POST   /devices/device/DEVICENAME/i2c/NUMBER/enable (TODO)
 
 		Old requirements:
 		A. GET STATUS                     - GET    /devices/device/DEVICENAME/status
@@ -275,17 +286,17 @@ SUMMARY:
 		D. PAYPAL EXECUTE                 - POST   /account/payment/paypalexecute
 		E. PAYPAL VERIFY                  - POST   /account/payment/paypalverify
 
-	6. Others
+	6. Supported I2C devices
+
+		A. GET SUPPORTED I2C DEVICES      - GET    /others/i2cdevices
+
+	7. Others
 
 		A. SEND FEEDBACK                  - POST   /others/feedback
 		B. GET FAQS                       - GET    /others/faqs
-		C. GET TERMS AND CONDITIONS       - GET    /others/terms
-		D. GET PRIVACY STATEMENTS         - GET    /others/privacy
-		E. GET LICENSE                    - GET    /others/license
-		(should items B-E be just static content?)
-		(pro for making it a dynamic content: if legal issue arises, content can be updated w/o user redownloading the mobile app)
+		C. GET ABOUT                      - GET    /others/about
 
-	7. HTTP error codes
+	8. HTTP error codes
 
 		A. HTTP_400_BAD_REQUEST           - Invalid input
 		B. HTTP_401_UNAUTHORIZED          - Invalid password or invalid/expired token
@@ -538,7 +549,17 @@ DETAILED:
 		   // heartbeat will only appear if device has published an MQTT packet
 		   // In Javascript, heartbeat can be converted to a readable date using "new Date(heartbeat* 1000)"
 
-		B. ADD DEVICE
+		B. GET DEVICES FILTERED
+		-  Request:
+		   GET /devices/filter/FILTERSTRING
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		-  Response:
+		   { 'status': 'OK', 'message': string, 
+		     'devices': array[{'devicename': string, 'deviceid': string, 'serialnumber': string, 'timestamp': string, 'heartbeat': string}, ...]}
+		   { 'status': 'NG', 'message': string}
+		   // filter can be the devicename or deviceid
+
+		C. ADD DEVICE
 		-  Request:
 		   POST /devices/device/DEVICENAME
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
@@ -556,7 +577,7 @@ DETAILED:
 		   { 'status': 'OK', 'message': string}
 		   { 'status': 'NG', 'message': string}
 
-		C. DELETE DEVICE
+		D. DELETE DEVICE
 		-  Request:
 		   DELETE /devices/device/DEVICENAME
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -564,7 +585,7 @@ DETAILED:
 		   { 'status': 'OK', 'message': string}
 		   { 'status': 'NG', 'message': string}
 
-		D. GET DEVICE
+		E. GET DEVICE
 		-  Request:
 		   GET /devices/device/DEVICENAME
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -621,7 +642,7 @@ DETAILED:
 
 		C. GET UART PROPERTIES
 		-  Request:
-		   GET /devices/device/DEVICENAME/uart/NUMBER/properties
+		   GET /devices/device/DEVICENAME/uart/properties
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
 		   { 'status': 'OK', 'message': string, 'value':
@@ -672,7 +693,7 @@ DETAILED:
 
 		D. SET UART PROPERTIES
 		-  Request:
-		   POST /devices/device/DEVICENAME/uart/NUMBER/properties
+		   POST /devices/device/DEVICENAME/uart/properties
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
 		   data: 
 		   { 
@@ -745,7 +766,29 @@ DETAILED:
 		   { 'status': 'OK', 'message': string }
 		   { 'status': 'NG', 'message': string }
 
-		G. GET GPIO PROPERTIES
+		G. GET GPIOS
+		-  Request:
+		   GET /devices/device/DEVICENAME/gpios
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		-  Response:
+		   { 'status': 'OK', 'message': string, 
+		     'value': { 
+		        'voltage': int,
+		        'gpios': [
+		            {"direction": int, "status": int}, 
+		            {"direction": int, "status": int}, 
+		            {"direction": int, "status": int}, 
+		            {"direction": int, "status": int}
+		        ]
+		     }
+		   }
+		   // direction is an index of the value in the list of directions
+		   //     ft900_gpio.h: pad_dir_t
+		   //     ["Input", "Output"]
+		   // status is an index of the value in the list of livestatuses
+		   //     ["Low", "High"]
+
+		H. GET GPIO PROPERTIES
 		-  Request:
 		   GET /devices/device/DEVICENAME/gpio/NUMBER/properties
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -818,7 +861,7 @@ DETAILED:
 		   // space is optional and is valid only when direction points to Output and mode points to Clock
 		   // sending only the index saves memory on the device and computation on frontend
 
-		H. SET GPIO PROPERTIES
+		I. SET GPIO PROPERTIES
 		-  Request:
 		   POST /devices/device/DEVICENAME/gpio/NUMBER/properties
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
@@ -892,9 +935,9 @@ DETAILED:
 		   { 'status': 'OK', 'message': string }
 		   { 'status': 'NG', 'message': string }
 
-		I. GET I2C SENSORS
+		J. GET I2C DEVICES
 		-  Request:
-		   GET /devices/device/DEVICENAME/i2c/sensors
+		   GET /devices/device/DEVICENAME/i2c/NUMBER/sensors
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
 		   { 'status': 'OK', 'message': string, 
@@ -902,17 +945,17 @@ DETAILED:
 		   { 'status': 'NG', 'message': string}
 		   // timestamp refers to the epoch time the sensor was registered/added
 
-		J. ADD I2C SENSOR
+		K. ADD I2C DEVICE
 		-  Request:
-		   POST /devices/device/DEVICENAME/i2c/sensors/sensor/SENSORNAME
+		   POST /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
 		   data: {'address': int, 'manufacturer': string, 'model': string}
 		   // list of manufacturers:
-		      ["Adafruit", "DF Robot", "Electronic Dollar Store"]
+		      ["Adafruit", "Spark Fun", "Electronic Dollar Store"]
 		         default = "Electronic Dollar Store"
 		   // list of device models supported per manufacturer:
 		      Adafruit: []
-		      DF Robot: []
+		      Spark Fun: []
 		      Electronic Dollar Store: [
 		         { "model": "BEEP", "name": "Piezoelectric Beeper", "desc": "Beeps a MIDI tone",              "link": "https://electricdollarstore.com/beep.html"},
 		         { "model": "DIGI", "name": "Digit Display",        "desc": "2-digit seven segment display",  "link": "https://electricdollarstore.com/dig2.html"},
@@ -925,17 +968,17 @@ DETAILED:
 		   { 'status': 'OK', 'message': string}
 		   { 'status': 'NG', 'message': string}
 
-		K. DELETE I2C SENSOR
+		L. DELETE I2C DEVICE
 		-  Request:
-		   DELETE /devices/device/DEVICENAME/i2c/sensors/sensor/SENSORNAME
+		   DELETE /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
 		   { 'status': 'OK', 'message': string}
 		   { 'status': 'NG', 'message': string}
 
-		L. GET I2C SENSOR
+		M. GET I2C DEVICE
 		-  Request:
-		   GET /devices/device/DEVICENAME/i2c/sensors/sensor/SENSORNAME
+		   GET /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
 		   { 'status': 'OK', 'message': string, 
@@ -1116,7 +1159,21 @@ DETAILED:
 		   {'status': 'NG', 'message': string}
 
 
-	6. Others
+	6. Supported I2C devices
+
+		A. GET SUPPORTED I2C DEVICES
+		-  Request:
+		   GET /others/i2cdevices
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		-  Response:
+		   {'status': 'OK', 'message': string, 'document': json_object }
+		   {'status': 'NG', 'message': string }
+		   // document refers to the JSON document file uploaded in AWS S3
+		   // the file has been temporarily made public at https://ft900-iot-portal.s3.amazonaws.com/supported_i2c_devices.json
+		   // this API provides access to the contents of the JSON file
+
+
+	7. Others
 
 		A. SEND FEEDBACK
 		-  Request:
@@ -1133,31 +1190,15 @@ DETAILED:
 		   GET /others/faqs
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
-		   {'status': 'OK', 'message': string, 'faqs': string }
+		   {'status': 'OK', 'message': string, 'url': {'faqs': string} }
 		   {'status': 'NG', 'message': string }
 
-		C. GET TERMS AND CONDITIONS
+		C. GET ABOUT
 		-  Request:
-		   GET /others/terms
+		   GET /others/about
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
-		   {'status': 'OK', 'message': string, 'terms': string }
-		   {'status': 'NG', 'message': string }
-
-		D. GET PRIVACY STATEMENTS
-		-  Request:
-		   GET /others/privacy
-		   headers: {'Authorization': 'Bearer ' + token.access}
-		-  Response:
-		   {'status': 'OK', 'message': string, 'privacy': string }
-		   {'status': 'NG', 'message': string }
-
-		E. GET LICENSE
-		-  Request:
-		   GET /others/license
-		   headers: {'Authorization': 'Bearer ' + token.access}
-		-  Response:
-		   {'status': 'OK', 'message': string, 'license': string }
+		   {'status': 'OK', 'message': string, 'url': {'terms': string, 'privacy': string, 'license': string} }
 		   {'status': 'NG', 'message': string }
 
 

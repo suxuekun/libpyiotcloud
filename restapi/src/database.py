@@ -251,17 +251,17 @@ class database_client:
     # sensors
     ##########################################################
 
-    def get_sensors(self, username, devicename):
-        return self._devices.get_sensors(username, devicename)
+    def get_sensors(self, username, devicename, number):
+        return self._devices.get_sensors(username, devicename, number)
 
-    def add_sensor(self, username, devicename, sensorname, address, manufacturer, model):
-        return self._devices.add_sensor(username, devicename, sensorname, address, manufacturer, model)
+    def add_sensor(self, username, devicename, number, sensorname, address, manufacturer, model):
+        return self._devices.add_sensor(username, devicename, number, sensorname, address, manufacturer, model)
 
-    def delete_sensor(self, username, devicename, sensorname):
-        self._devices.delete_sensor(username, devicename, sensorname)
+    def delete_sensor(self, username, devicename, number, sensorname):
+        self._devices.delete_sensor(username, devicename, number, sensorname)
 
-    def get_sensor(self, username, devicename, sensorname):
-        return self._devices.get_sensor(username, devicename, sensorname)
+    def get_sensor(self, username, devicename, number, sensorname):
+        return self._devices.get_sensor(username, devicename, number, sensorname)
 
 
     ##########################################################
@@ -276,6 +276,9 @@ class database_client:
 
     def get_devices(self, username):
         return self._devices.get_devices(username)
+
+    def get_devices_with_filter(self, username, filter):
+        return self._devices.get_devices_with_filter(username, filter)
 
     def add_device(self, username, devicename, uuid, serialnumber):
         # todo: verify uuid and serialnumber matches
@@ -832,21 +835,22 @@ class database_client_mongodb:
     def get_sensors_document(self):
         return self.client[config.CONFIG_MONGODB_TB_I2CSENSORS]
 
-    def get_sensors(self, username, devicename):
+    def get_sensors(self, username, devicename, number):
         sensor_list = []
         i2csensors = self.get_sensors_document();
         if i2csensors:
-            for i2csensor in i2csensors.find({'username': username, 'devicename': devicename}):
+            for i2csensor in i2csensors.find({'username': username, 'devicename': devicename, 'number': number}):
                 i2csensor.pop('_id')
                 sensor_list.append(i2csensor)
         return sensor_list
 
-    def add_sensor(self, username, devicename, sensorname, address, manufacturer, model):
+    def add_sensor(self, username, devicename, number, sensorname, address, manufacturer, model):
         i2csensors = self.get_sensors_document();
         timestamp = str(int(time.time()))
         device = {}
         device['username']     = username
         device['devicename']   = devicename
+        device['number']       = number
         device['sensorname']   = sensorname
         device['address']      = address
         device['manufacturer'] = manufacturer
@@ -854,18 +858,18 @@ class database_client_mongodb:
         i2csensors.insert_one(device)
         return True
 
-    def delete_sensor(self, username, devicename, sensorname):
+    def delete_sensor(self, username, devicename, number, sensorname):
         i2csensors = self.get_sensors_document();
         try:
-            i2csensors.delete_many({'username': username, 'devicename': devicename, 'sensorname': sensorname})
+            i2csensors.delete_many({'username': username, 'devicename': devicename, 'number': number, 'sensorname': sensorname})
         except:
             print("delete_sensor: Exception occurred")
             pass
 
-    def get_sensor(self, username, devicename, sensorname):
+    def get_sensor(self, username, devicename, number, sensorname):
         i2csensors = self.get_sensors_document();
         if i2csensors:
-            for i2csensor in i2csensors.find({'username': username, 'devicename': devicename, 'sensorname': sensorname}):
+            for i2csensor in i2csensors.find({'username': username, 'devicename': devicename, 'number': number, 'sensorname': sensorname}):
                 i2csensor.pop('_id')
                 return i2csensor
         return None
@@ -891,6 +895,19 @@ class database_client_mongodb:
             for device in devices.find({'username': username},{'devicename':1, 'deviceid': 1, 'serialnumber':1, 'timestamp':1, 'heartbeat':1}):
                 device.pop('_id')
                 device_list.append(device)
+        return device_list
+
+    def get_devices_with_filter(self, username, filter):
+        device_list = []
+        devices = self.get_registered_devices()
+        if devices and devices.count():
+            filter_lo = filter.lower()
+            for device in devices.find({'username': username},{'devicename':1, 'deviceid': 1, 'serialnumber':1, 'timestamp':1, 'heartbeat':1}):
+                device.pop('_id')
+                if filter_lo in device["devicename"].lower():
+                    device_list.append(device)
+                elif filter_lo in device["deviceid"].lower():
+                    device_list.append(device)
         return device_list
 
     def add_device(self, username, devicename, deviceid, serialnumber):
