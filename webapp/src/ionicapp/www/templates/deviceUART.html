@@ -7,10 +7,8 @@
   </ion-nav-buttons>
   <ion-content padding="true" class="has-header">
     <form id="deviceUART-form35" class="list">
-      <div id="deviceUART-button-bar3" class="button-bar">
-        <button id="deviceUART-button58" ng-class="{'active': data.activeSection==1}" ng-click="changeSection(1)" class="button button-positive button-small button-block">UART 1</button>
-        <button id="deviceUART-button59" ng-class="{'active': data.activeSection==2}" ng-click="changeSection(2)" class="button button-positive button-small button-block">UART 2</button>
-      </div>
+      <div id="deviceUART-button-bar3" class="button-bar"></div>
+      <div class="spacer" style="width: 300px; height: 12px;"></div>
       <label class="item item-select" id="deviceUART-select9">
         <span class="input-label">Baud Rate</span>
         <select ng-model="data.uart.baudrate" ng-options="baudrate.id as baudrate.label for baudrate in baudrates"></select>
@@ -35,19 +33,19 @@
       <h5 id="deviceUART-heading13" style="color:#444444;">Recipients</h5>
       <ion-checkbox id="deviceUART-checkbox1" ng-model="data.uart.notification.endpoints.email.enable">Send email to </ion-checkbox>
       <label class="item item-input" id="deviceUART-input66">
-        <input type="text" placeholder="Email address(es)" ng-model="data.uart.notification.endpoints.email.recipients">
+        <input type="text" placeholder="Email address(es)" ng-model="data.uart.notification.endpoints.email.recipients" readonly="">
       </label>
     </form>
     <form id="deviceUART-form38" class="list" ng-show="data.showNotification==1">
       <ion-checkbox id="deviceUART-checkbox2" ng-model="data.uart.notification.endpoints.mobile.enable">Send SMS to </ion-checkbox>
       <label class="item item-input" id="deviceUART-input68">
-        <input type="text" placeholder="Phone number(s)" ng-model="data.uart.notification.endpoints.mobile.recipients">
+        <input type="text" placeholder="Phone number(s)" ng-model="data.uart.notification.endpoints.mobile.recipients" readonly="">
       </label>
     </form>
     <form id="deviceUART-form41" class="list" ng-show="data.showNotification==1">
       <ion-checkbox id="deviceUART-checkbox3" ng-model="data.uart.notification.endpoints.notification.enable">Send notification to </ion-checkbox>
       <label class="item item-input" id="deviceUART-input67">
-        <input type="text" placeholder="Phone number(s)" ng-model="data.uart.notification.endpoints.notification.recipients">
+        <input type="text" placeholder="Phone number(s)" ng-model="data.uart.notification.endpoints.notification.recipients" readonly="">
       </label>
     </form>
     <form id="deviceUART-form42" class="list" ng-show="data.showNotification==1">

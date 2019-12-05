@@ -37,9 +37,7 @@ g_firmware_version_MINOR = 1
 g_firmware_version = (g_firmware_version_MAJOR*100 + g_firmware_version_MINOR)
 g_firmware_version_STR = "{}.{}".format(g_firmware_version_MAJOR, g_firmware_version_MINOR)
 
-g_uart_properties = {
-    '1': { 'baudrate': 6, 'parity': 1 }, 
-    '2': { 'baudrate': 7, 'parity': 2 } }
+g_uart_properties = { 'baudrate': 6, 'parity': 1 }
 
 g_gpio_properties = {
     '1': { 'direction': 0, 'mode': 0, 'alert': 0, 'alertperiod':   0,   'polarity': 0, 'width': 0, 'mark': 0, 'space': 0 },
@@ -121,7 +119,7 @@ def handle_api(api, subtopic, subpayload):
         topic = generate_pubtopic(subtopic)
         subpayload = json.loads(subpayload)
 
-        value = g_uart_properties[str(subpayload["number"])]
+        value = g_uart_properties
 
         payload = {}
         payload["value"] = value
@@ -132,13 +130,12 @@ def handle_api(api, subtopic, subpayload):
         subpayload = json.loads(subpayload)
         print(subpayload)
 
-        g_uart_properties[str(subpayload["number"])] = { 
+        g_uart_properties = { 
             'baudrate': subpayload["baudrate"], 
             'parity': subpayload["parity"] } 
-        value = g_uart_properties[str(subpayload["number"])]
 
         payload = {}
-        payload["value"] = value
+        payload["value"] = g_uart_properties
         publish(topic, payload)
 
 
@@ -170,6 +167,24 @@ def handle_api(api, subtopic, subpayload):
             'mark': subpayload["mark"],
             'space': subpayload["space"] }
         value = g_gpio_properties[str(subpayload["number"])]
+
+        payload = {}
+        payload["value"] = value
+        publish(topic, payload)
+
+    elif api == "get_gpios":
+        topic = generate_pubtopic(subtopic)
+        subpayload = json.loads(subpayload)
+
+        value = {
+            'voltage': g_gpio_voltage,
+            'gpios': [
+                {'direction': g_gpio_properties['1']['direction'], 'status': 0},
+                {'direction': g_gpio_properties['2']['direction'], 'status': 0},
+                {'direction': g_gpio_properties['3']['direction'], 'status': 0},
+                {'direction': g_gpio_properties['4']['direction'], 'status': 0},
+            ]
+        }
 
         payload = {}
         payload["value"] = value

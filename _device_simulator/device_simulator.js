@@ -15,9 +15,7 @@ var g_firmware_version_MINOR = 1;
 var g_firmware_version = (g_firmware_version_MAJOR*100 + g_firmware_version_MINOR);
 var g_firmware_version_STR = g_firmware_version_MAJOR.toString() + "." + g_firmware_version_MINOR.toString();
 
-var g_uart_properties = {
-    '1': { 'baudrate': 6, 'parity': 1 }, 
-    '2': { 'baudrate': 7, 'parity': 2 } };
+var g_uart_properties = { 'baudrate': 6, 'parity': 1 }
 
 var g_gpio_properties = {
     '1': { 'direction': 0, 'mode': 0, 'alert': 0, 'alertperiod':   0, 'polarity': 0, 'width': 0, 'mark': 0, 'space': 0 },
@@ -194,10 +192,8 @@ function handle_api(api, topic, payload) {
     else if (api == "get_uart_properties") {
         pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
         var obj = JSON.parse(payload);
-        var number = obj.number;
 
-        console.log(number);
-        var response = { "value": g_uart_properties[number] };
+        var response = { "value": g_uart_properties };
         client.publish(pubtopic, JSON.stringify(response));
 
         console.log(pubtopic);
@@ -206,14 +202,12 @@ function handle_api(api, topic, payload) {
     else if (api == "set_uart_properties") {
         pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
         var obj = JSON.parse(payload);
-        var number = obj.number;
-        console.log(number);
 
-        g_uart_properties[number] = {
+        g_uart_properties = {
             "baudrate" : Number(obj.baudrate), 
             "parity"   : Number(obj.parity)
         };
-        var response = { "value": g_uart_properties[number] };
+        var response = { "value": g_uart_properties };
         client.publish(pubtopic, JSON.stringify(response));
 
         console.log(pubtopic);

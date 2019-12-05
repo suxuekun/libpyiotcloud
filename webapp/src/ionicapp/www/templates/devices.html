@@ -3,11 +3,15 @@
     <button class="button button-positive icon ion-refresh" ng-click="submitRefresh(true)"></button>
   </ion-nav-buttons>
   <ion-content padding="true" class="has-header">
-    <div class="spacer" style="width: 300px; height: 12px;"></div>
+    <form id="devices-form54" class="list">
+      <label class="item item-input" id="devices-input90">
+        <input type="text" placeholder="Search" ng-model="data.devices_filter" ng-keypress="submitSearch($event)">
+      </label>
+    </form>
     <div id="devices-markdown36" class="show-list-numbers-and-dots">
       <p style="color:#AAAAAA;font-size:12px;">{{ devices_counthdr }}</p>
     </div>
-    <ion-list id="devices-list10">
+    <ion-list id="devices-list12">
       <div class="item item-body" id="devices-list-item-container4" ng-repeat="device in devices" ng-click="submitTest(device)" ng-disabled="device.devicestatus==&quot;Detecting...&quot;">
         <div id="devices-markdown34" ng-disabled="device.devicestatus==&quot;Detecting...&quot;" class="show-list-numbers-and-dots">
           <p style="margin-top:0px;color:#387EF5;font-size:18px;">
