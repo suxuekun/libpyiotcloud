@@ -13,6 +13,7 @@
         <button id="deviceGPIO-button62" ng-click="changeSection(3)" ng-class="{'active': data.activeSection==3}" class="button button-positive button-small button-block">GPIO 3</button>
         <button id="deviceGPIO-button63" ng-click="changeSection(4)" ng-class="{'active': data.activeSection==4}" class="button button-positive button-small button-block">GPIO 4</button>
       </div>
+      <ion-toggle toggle-class="toggle-positive" id="deviceGPIO-toggle4" ng-model="data.enableGPIO" ng-change="changeGPIO(data.enableGPIO)">Enable</ion-toggle>
       <label class="item item-select" id="deviceGPIO-select15">
         <span class="input-label">Voltage</span>
         <select ng-model="data.voltageidx" ng-options="voltage.id as voltage.label for voltage in voltages"></select>

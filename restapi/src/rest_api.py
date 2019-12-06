@@ -72,7 +72,7 @@ def login():
         response = json.dumps({'status': 'NG', 'message': reason})
         print('\r\nERROR Login: Username password format invalid\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
-    print('login username={}'.format(username))
+    print('login username={} password={}'.format(username, password))
 
     # check if a parameter is empty
     if len(username) == 0 or len(password) == 0:
@@ -114,8 +114,7 @@ def login():
     if name is not None:
         msg['name'] = name
     response = json.dumps(msg)
-    print('\r\nLogin successful: {}\r\n'.format(username))
-    #print('\r\nLogin successful: {}\r\n{}\r\n'.format(username, response))
+    #print('\r\nLogin successful: {}\r\n'.format(username))
     return response
 
 ########################################################################################################
@@ -501,7 +500,6 @@ def get_user_info():
         info = g_database_client.get_user_info(new_token['access'])
     else:
         info = g_database_client.get_user_info(token['access'])
-    print(info)
 
     # handle no family name
     if 'given_name' in info:
@@ -899,7 +897,7 @@ def update_user_info():
         phonenumber = data['phone_number']
     else:
         phonenumber = None
-    print(phonenumber)
+    #print(phonenumber)
     name = data['name']
     names = name.split(" ")
     if (len(names) > 1):
@@ -954,7 +952,7 @@ def get_subscription():
         response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
         print('\r\nERROR Get Subscription: Invalid token\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
-    print('get_subscription username={}'.format(username))
+    print('get_subscription {}'.format(username))
 
     # check if a parameter is empty
     if len(username) == 0 or len(token) == 0:
@@ -976,7 +974,7 @@ def get_subscription():
         return response, status.HTTP_401_UNAUTHORIZED
 
     subscription = g_database_client.get_subscription(username)
-    print(subscription)
+    #print(subscription)
     msg = {'status': 'OK', 'message': 'User subscription queried successfully.', 'subscription': subscription}
 
 
@@ -1020,7 +1018,7 @@ def set_subscription():
         response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
         print('\r\nERROR Set Subscription: Invalid token\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
-    print('set_subscription username={}'.format(username))
+    print('set_subscription {}'.format(username))
 
     # check if a parameter is empty
     if len(username) == 0 or len(token) == 0:
@@ -1044,7 +1042,7 @@ def set_subscription():
         return response, status.HTTP_401_UNAUTHORIZED
 
     subscription = g_database_client.set_subscription(username, credits)
-    print(subscription)
+    #print(subscription)
     msg = {'status': 'OK', 'message': 'User subscription set successfully.', 'subscription': subscription}
 
 
@@ -1090,7 +1088,7 @@ def set_payment_paypal_setup():
         response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
         print('\r\nERROR Paypal Setup: Invalid token\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
-    print('set_payment_paypal_setup username={}'.format(username))
+    print('set_payment_paypal_setup {}'.format(username))
 
     # check if a parameter is empty
     if len(username) == 0 or len(token) == 0:
@@ -1109,7 +1107,7 @@ def set_payment_paypal_setup():
         print('\r\nERROR Paypal Setup: Token is invalid [{}]\r\n'.format(username))
         return response, status.HTTP_401_UNAUTHORIZED
 
-    print(payment)
+    #print(payment)
     approval_url, payment_id, token = g_database_client.transactions_paypal_set_payment(username, token, payment)
     msg = {'status': 'OK', 'message': 'Paypal payment setup successful.', 'approval_url': approval_url, 'paymentId': payment_id, 'token': token}
 
@@ -1153,7 +1151,7 @@ def set_payment_paypal_execute():
         response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
         print('\r\nERROR Paypal Execute: Invalid token\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
-    print('set_payment_paypal_execute username={}'.format(username))
+    print('set_payment_paypal_execute {}'.format(username))
 
     # check if a parameter is empty
     if len(username) == 0 or len(token) == 0:
@@ -1172,7 +1170,7 @@ def set_payment_paypal_execute():
         print('\r\nERROR Paypal Execute: Token is invalid [{}]\r\n'.format(username))
         return response, status.HTTP_401_UNAUTHORIZED
 
-    print(payment)
+    #print(payment)
     status = g_database_client.transactions_paypal_execute_payment(username, token, payment)
     if status:
         msg = {'status': 'OK', 'message': 'Paypal payment execution successful.'}
@@ -1220,7 +1218,7 @@ def set_payment_paypal_verify():
         response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
         print('\r\nERROR Paypal Verify: Invalid token\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
-    print('set_payment_paypal_verify username={}'.format(username))
+    print('set_payment_paypal_verify {}'.format(username))
 
     # check if a parameter is empty
     if len(username) == 0 or len(token) == 0:
@@ -1243,7 +1241,7 @@ def set_payment_paypal_verify():
         # No need to return error code status.HTTP_401_UNAUTHORIZED since this is a logout
         return response, status.HTTP_401_UNAUTHORIZED
 
-    print(payment)
+    #print(payment)
     status = g_database_client.transactions_paypal_verify_payment(username, token, payment)
     if status:
         msg = {'status': 'OK', 'message': 'Paypal payment verification successful.'}
@@ -1271,7 +1269,7 @@ def set_payment_paypal_verify():
 #   headers: {'Authorization': 'Bearer ' + token.access}
 #
 # - Response:
-#   {'status': 'OK', 'message': string, 'devices': array[{'devicename': string, 'deviceid': string, 'serialnumber': string, 'timestamp': string}, ...]}
+#   {'status': 'OK', 'message': string, 'devices': array[{'devicename': string, 'deviceid': string, 'serialnumber': string, 'timestamp': string, 'heartbeat': string, 'version': string}, ...]}
 #   {'status': 'NG', 'message': string}
 #
 ########################################################################################################
@@ -1291,7 +1289,7 @@ def get_device_list():
         response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
         print('\r\nERROR Get Devices: Invalid token\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
-    print('get_device_list username={}'.format(username))
+    print('get_device_list {}'.format(username))
 
     # check if a parameter is empty
     if len(username) == 0 or len(token) == 0:
@@ -1318,7 +1316,7 @@ def get_device_list():
     if new_token:
         msg['new_token'] = new_token
     response = json.dumps(msg)
-    print('\r\nGet Devices successful: {}\r\n{} devices\r\n'.format(username, len(devices)))
+    print('get_device_list {} {} devices'.format(username, len(devices)))
     return response
 
 ########################################################################################################
@@ -1330,7 +1328,7 @@ def get_device_list():
 #   headers: {'Authorization': 'Bearer ' + token.access}
 #
 # - Response:
-#   {'status': 'OK', 'message': string, 'devices': array[{'devicename': string, 'deviceid': string, 'serialnumber': string, 'timestamp': string}, ...]}
+#   {'status': 'OK', 'message': string, 'devices': array[{'devicename': string, 'deviceid': string, 'serialnumber': string, 'timestamp': string, 'heartbeat': string, 'version': string}, ...]}
 #   {'status': 'NG', 'message': string}
 #
 ########################################################################################################
@@ -1350,10 +1348,10 @@ def get_device_list_filtered(filter):
         response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
         print('\r\nERROR Get Devices: Invalid token\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
-    print('get_device_list_filtered username={} filter={}'.format(username, filter))
+    print('get_device_list_filtered {}'.format(username))
 
     # check if a parameter is empty
-    if len(username) == 0 or len(token) == 0:
+    if len(username) == 0 or len(token) == 0 or len(filter) == 0:
         response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
         print('\r\nERROR Get Devices: Empty parameter found\r\n')
         return response, status.HTTP_400_BAD_REQUEST
@@ -1421,7 +1419,7 @@ def register_device(devicename):
         response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
         print('\r\nERROR Add/Delete Device: Invalid token\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
-    print('register_device username={} devicename={}'.format(username, devicename))
+    print('register_device {} devicename={}'.format(username, devicename))
 
     # check if a parameter is empty
     if len(username) == 0 or len(token) == 0 or len(devicename) == 0:
@@ -1443,13 +1441,13 @@ def register_device(devicename):
     if flask.request.method == 'POST':
         # check parameters
         data = flask.request.get_json()
-        print(data)
+        #print(data)
         if not data.get("deviceid") or not data.get("serialnumber"):
             response = json.dumps({'status': 'NG', 'message': 'Parameters not included'})
             print('\r\nERROR Add Device: Parameters not included [{},{}]\r\n'.format(username, devicename))
             return response, status.HTTP_400_BAD_REQUEST
-        print(data["deviceid"])
-        print(data["serialnumber"])
+        #print(data["deviceid"])
+        #print(data["serialnumber"])
 
         # check if device is registered
         # a user cannot register the same device name
@@ -1477,7 +1475,7 @@ def register_device(devicename):
 
         # add and configure message broker user
         result = message_broker_register(data["deviceid"], data["serialnumber"])
-        print(result)
+        #print(result)
         if not result:
             response = json.dumps({'status': 'NG', 'message': 'Device could not be registered in message broker'})
             print('\r\nERROR Add Device: Device could not be registered  in message broker [{},{}]\r\n'.format(username, devicename))
@@ -1504,7 +1502,7 @@ def register_device(devicename):
 
         # delete message broker user
         result = message_broker_unregister(device["deviceid"])
-        print(result)
+        #print(result)
         if not result:
             response = json.dumps({'status': 'NG', 'message': 'Device could not be unregistered in message broker'})
             print('\r\nERROR Delete Device: Device could not be unregistered  in message broker [{},{}]\r\n'.format(username, devicename))
@@ -1527,7 +1525,7 @@ def register_device(devicename):
 #   headers: {'Authorization': 'Bearer ' + token.access}
 #
 # - Response:
-#   {'status': 'OK', 'message': string, 'device': {'devicename': string, 'deviceid': string, 'serialnumber': string, 'timestamp': string}}
+#   {'status': 'OK', 'message': string, 'device': {'devicename': string, 'deviceid': string, 'serialnumber': string, 'timestamp': string, 'heartbeat': string, 'version': string}}
 #   {'status': 'NG', 'message': string}
 #
 ########################################################################################################
@@ -1547,7 +1545,7 @@ def get_device(devicename):
         response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
         print('\r\nERROR Get Device: Invalid token\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
-    print('get_device username={} devicename={}'.format(username, devicename))
+    print('get_device {} devicename={}'.format(username, devicename))
 
     # check if a parameter is empty
     if len(username) == 0 or len(token) == 0 or len(devicename) == 0:
@@ -1609,7 +1607,6 @@ def get_device_histories():
         print('\r\nERROR Get Histories: Invalid authorization header\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
     token = {'access': auth_header_token}
-    print('get_user_histories token={}'.format(token["access"]))
 
     # get username from token
     username = g_database_client.get_username_from_token(token)
@@ -1617,7 +1614,7 @@ def get_device_histories():
         response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
         print('\r\nERROR Get Histories: Invalid token\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
-    print('get_user_histories username={}'.format(username))
+    print('get_user_histories {}'.format(username))
 
     # check if a parameter is empty
     if len(username) == 0 or len(token) == 0:
@@ -1637,7 +1634,7 @@ def get_device_histories():
         return response, status.HTTP_401_UNAUTHORIZED
 
     histories = g_database_client.get_user_history(username)
-    print(histories)
+    #print(histories)
 
 
     msg = {'status': 'OK', 'message': 'User histories queried successfully.', 'histories': histories}
@@ -1679,7 +1676,7 @@ def get_device_histories_filtered():
         response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
         print('\r\nERROR Get Histories: Invalid token\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
-    print('get_user_histories username={}'.format(username))
+    print('get_user_histories {}'.format(username))
 
     # check if a parameter is empty
     if len(username) == 0 or len(token) == 0:
@@ -1717,7 +1714,7 @@ def get_device_histories_filtered():
             dateend = data["dateend"]
 
     histories = g_database_client.get_user_history_filtered(username, devicename, direction, topic, datebegin, dateend)
-    print(histories)
+    #print(histories)
 
 
     msg = {'status': 'OK', 'message': 'User histories queried successfully.', 'histories': histories}
@@ -1747,7 +1744,6 @@ def get_device_histories_filtered():
 def get_status(devicename):
     api = 'get_status'
 
-    print(devicename)
     # get token from Authorization header
     auth_header_token = get_auth_header_token()
     if auth_header_token is None:
@@ -1765,21 +1761,27 @@ def get_status(devicename):
         print('\r\nERROR Invalid token\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
     data['username'] = username
-    print('get_status username={} devicename={}'.format(data['username'], data['devicename']))
+    #print('get_status {} devicename={}'.format(data['username'], data['devicename']))
 
     response, status = process_request_get(api, data)
     if status == 503: # HTTP_503_SERVICE_UNAVAILABLE
-        # if device is unreachable, add the heartbeat timestamp
-        device = g_database_client.find_device(username, devicename)
-        if not device:
+        # if device is unreachable, get the cached heartbeat and version
+        cached_value = g_database_client.get_device_cached_values(username, devicename)
+        if not cached_value:
             response = json.dumps({'status': 'NG', 'message': 'Device is not registered'})
             print('\r\nERROR Device is not registered [{},{}]\r\n'.format(username, devicename))
             return response, status.HTTP_404_NOT_FOUND
-        if device.get('heartbeat'):
-            response = json.loads(response)
-            response['heartbeat'] = device['heartbeat']
-            response = json.dumps(response)
+        response = json.loads(response)
+        response['value'] = cached_value
+        response = json.dumps(response)
         return response, status
+
+    if status == 200:
+        response = json.loads(response)
+        version = response["value"]["version"]
+        print(version)
+        response = json.dumps(response)
+        g_database_client.save_device_version(username, devicename, version)
 
     return response
 
@@ -1814,7 +1816,7 @@ def set_status(devicename):
         response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
         print('\r\nERROR Invalid token\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
-    print('set_status username={} devicename={}'.format(data['username'], data['devicename']))
+    print('set_status {} devicename={}'.format(data['username'], data['devicename']))
 
     return process_request(api, data)
 
@@ -1849,7 +1851,7 @@ def get_ip(devicename):
         response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
         print('\r\nERROR Invalid token\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
-    print('get_ip username={}'.format(data['username']))
+    print('get_ip {}'.format(data['username']))
 
     return process_request_get(api, data)
 
@@ -1884,7 +1886,7 @@ def get_subnet(devicename):
         response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
         print('\r\nERROR Invalid token\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
-    print('get_subnet username={}'.format(data['username']))
+    print('get_subnet {}'.format(data['username']))
 
     return process_request_get(api, data)
 
@@ -1919,7 +1921,7 @@ def get_gateway(devicename):
         response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
         print('\r\nERROR Invalid token\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
-    print('get_gateway username={}'.format(data['username']))
+    print('get_gateway {}'.format(data['username']))
 
     return process_request_get(api, data)
 
@@ -1954,7 +1956,7 @@ def get_mac(devicename):
         response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
         print('\r\nERROR Invalid token\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
-    print('get_mac username={}'.format(data['username']))
+    print('get_mac {}'.format(data['username']))
 
     return process_request_get(api, data)
 
@@ -1990,7 +1992,7 @@ def get_gpio(devicename, number):
         response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
         print('\r\nERROR Invalid token\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
-    print('get_gpio username={}'.format(data['username']))
+    print('get_gpio {}'.format(data['username']))
 
     return process_request_get(api, data)
 
@@ -2027,7 +2029,7 @@ def set_gpio(devicename, number):
         response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
         print('\r\nERROR Invalid token\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
-    print('set_gpio username={}'.format(data['username']))
+    print('set_gpio {}'.format(data['username']))
 
     return process_request(api, data)
 
@@ -2062,7 +2064,7 @@ def get_rtc(devicename):
         response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
         print('\r\nERROR Invalid token\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
-    print('get_rtc username={}'.format(data['username']))
+    print('get_rtc {}'.format(data['username']))
 
     return process_request_get(api, data)
 
@@ -2098,7 +2100,7 @@ def write_uart(devicename):
         response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
         print('\r\nERROR Invalid token\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
-    print('write_uart username={}'.format(data['username']))
+    print('write_uart {}'.format(data['username']))
 
     return process_request(api, data)
 
@@ -2134,7 +2136,7 @@ def trigger_notification(devicename):
         response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
         print('\r\nERROR Invalid token\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
-    print('trigger_notification username={}'.format(data['username']))
+    print('trigger_notification {}'.format(data['username']))
 
     return process_request(api, data)
 
@@ -2224,7 +2226,7 @@ def build_default_notifications(type, token):
 #   headers: { 'Authorization': 'Bearer ' + token.access }
 #
 # - Response:
-#   { 'status': 'OK', 'message': string, 'value': { 'baudrate': int, 'parity': int } }
+#   { 'status': 'OK', 'message': string, 'value': { 'baudrate': int, 'parity': int, 'databits': int, 'stopbits': int, 'flowcontrol': int } }
 #   { 'status': 'NG', 'message': string }
 #
 @app.route('/devices/device/<devicename>/uart/properties', methods=['GET'])
@@ -2249,7 +2251,7 @@ def get_uart_properties(devicename):
         print('\r\nERROR Invalid token\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
     data['username'] = username
-    print('get_uart_properties username={} devicename={}'.format(data['username'], data['devicename']))
+    print('get_uart_properties {} devicename={}'.format(data['username'], data['devicename']))
 
     response, status = process_request(api, data)
     if status != 200:
@@ -2275,7 +2277,7 @@ def get_uart_properties(devicename):
 # - Request:
 #   POST /devices/device/<devicename>/uart/properties
 #   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
-#   data: { 'baudrate': int, 'parity': int }
+#   data: { 'baudrate': int, 'parity': int, 'databits': int, 'stopbits': int, 'flowcontrol': int }
 #
 # - Response:
 #   { 'status': 'OK', 'message': string }
@@ -2294,20 +2296,20 @@ def set_uart_properties(devicename):
 
     # get username from token
     data = flask.request.get_json()
-    print(data)
-    if data['baudrate'] is None or data['parity'] is None or data['notification'] is None:
+    #print(data)
+    if data['baudrate'] is None or data['parity'] is None or data['databits'] is None or data['stopbits'] is None or data['flowcontrol'] is None or data['notification'] is None:
         response = json.dumps({'status': 'NG', 'message': 'Invalid parameters'})
         print('\r\nERROR Invalid parameters\r\n')
         return response, status.HTTP_400_BAD_REQUEST
-    print(data['baudrate'])
-    print(data['parity'])
-    print(data['notification'])
+    #print(data['baudrate'])
+    #print(data['parity'])
+    #print(data['notification'])
 
     # get notifications and remove from list
     notification = data['notification']
     data.pop('notification')
-    print(data)
-    print(notification)
+    #print(data)
+    #print(notification)
 
     data['token'] = {'access': auth_header_token}
     data['devicename'] = devicename
@@ -2317,7 +2319,7 @@ def set_uart_properties(devicename):
         print('\r\nERROR Invalid token\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
     data['username'] = username
-    print('set_uart_properties username={} devicename={}'.format(data['username'], data['devicename']))
+    print('set_uart_properties {} devicename={}'.format(data['username'], data['devicename']))
 
     response, status = process_request(api, data)
     if status != 200:
@@ -2331,6 +2333,49 @@ def set_uart_properties(devicename):
         response = json.dumps(response)
 
     return response
+
+
+#
+# ENABLE/DISABLE UART
+#
+# - Request:
+#   POST /devices/device/DEVICENAME/uart/enable
+#   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
+#   data: { 'enable': boolean }
+#
+# - Response:
+#   { 'status': 'OK', 'message': string }
+#   { 'status': 'NG', 'message': string }
+#
+@app.route('/devices/device/<devicename>/uart/enable', methods=['POST'])
+def enable_uart(devicename):
+    api = 'enable_uart'
+
+    # get token from Authorization header
+    auth_header_token = get_auth_header_token()
+    if auth_header_token is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
+        print('\r\nERROR Invalid authorization header\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
+
+    # get username from token
+    data = flask.request.get_json()
+    if data['enable'] is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid parameters'})
+        print('\r\nERROR Invalid parameters\r\n')
+        return response, status.HTTP_400_BAD_REQUEST
+
+    data['token'] = {'access': auth_header_token}
+    data['devicename'] = devicename
+    username = g_database_client.get_username_from_token(data['token'])
+    if username is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
+        print('\r\nERROR Invalid token\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
+    data['username'] = username
+    print('enable_uart {} devicename={}'.format(data['username'], data['devicename']))
+
+    return process_request(api, data)
 
 
 #
@@ -2376,7 +2421,7 @@ def get_gpios(devicename):
         print('\r\nERROR Invalid token\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
     data['username'] = username
-    print('get_gpios username={} devicename={}'.format(data['username'], data['devicename']))
+    print('get_gpios {} devicename={}'.format(data['username'], data['devicename']))
 
     return process_request(api, data)
 
@@ -2415,7 +2460,7 @@ def get_gpio_properties(devicename, number):
         return response, status.HTTP_401_UNAUTHORIZED
     data['username'] = username
     data['number'] = number
-    print('get_gpio_properties username={} devicename={}'.format(data['username'], data['devicename']))
+    print('get_gpio_properties {} devicename={}'.format(data['username'], data['devicename']))
 
     response, status = process_request(api, data)
     if status != 200:
@@ -2460,7 +2505,7 @@ def set_gpio_properties(devicename, number):
 
     # get username from token
     data = flask.request.get_json()
-    print(data)
+    #print(data)
     if data['direction'] is None or data['mode'] is None:
         response = json.dumps({'status': 'NG', 'message': 'Invalid parameters'})
         print('\r\nERROR Invalid parameters\r\n')
@@ -2489,24 +2534,24 @@ def set_gpio_properties(devicename, number):
                 response = json.dumps({'status': 'NG', 'message': 'Invalid parameters'})
                 print('\r\nERROR Invalid parameters\r\n')
                 return response, status.HTTP_400_BAD_REQUEST
-    print(data['direction'])
-    print(data['mode'])
-    print(data['alert'])
-    print(data['alertperiod'])
-    print(data['polarity'])
-    print(data['width'])
-    print(data['mark'])
-    print(data['space'])
+    #print(data['direction'])
+    #print(data['mode'])
+    #print(data['alert'])
+    #print(data['alertperiod'])
+    #print(data['polarity'])
+    #print(data['width'])
+    #print(data['mark'])
+    #print(data['space'])
 
 
     # get notifications and remove from list
     notification = data['notification']
     data.pop('notification')
-    print(data)
-    print(notification)
+    #print(data)
+    #print(notification)
 
-    print(api)
-    print(data)
+    #print(api)
+    #print(data)
     data['token'] = {'access': auth_header_token}
     data['devicename'] = devicename
     username = g_database_client.get_username_from_token(data['token'])
@@ -2516,7 +2561,7 @@ def set_gpio_properties(devicename, number):
         return response, status.HTTP_401_UNAUTHORIZED
     data['username'] = username
     data['number'] = number
-    print('set_gpio_properties username={} devicename={}'.format(data['username'], data['devicename']))
+    print('set_gpio_properties {} devicename={}'.format(data['username'], data['devicename']))
 
     response, status = process_request(api, data)
     if status != 200:
@@ -2564,7 +2609,7 @@ def get_gpio_voltage(devicename):
         response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
         print('\r\nERROR Invalid token\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
-    print('get_gpio_voltage username={} devicename={}'.format(data['username'], data['devicename']))
+    print('get_gpio_voltage {} devicename={}'.format(data['username'], data['devicename']))
 
     return process_request(api, data)
 
@@ -2593,8 +2638,8 @@ def set_gpio_voltage(devicename):
 
     # get username from token
     data = flask.request.get_json()
-    print(api)
-    print(data)
+    #print(api)
+    #print(data)
     data['token'] = {'access': auth_header_token}
     data['devicename'] = devicename
     data['username'] = g_database_client.get_username_from_token(data['token'])
@@ -2602,7 +2647,51 @@ def set_gpio_voltage(devicename):
         response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
         print('\r\nERROR Invalid token\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
-    print('set_gpio_voltage username={} devicename={}'.format(data['username'], data['devicename']))
+    print('set_gpio_voltage {} devicename={}'.format(data['username'], data['devicename']))
+
+    return process_request(api, data)
+
+
+#
+# ENABLE/DISABLE GPIO
+#
+# - Request:
+#   POST /devices/device/DEVICENAME/gpio/NUMBER/enable
+#   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
+#   data: { 'enable': boolean }
+#
+# - Response:
+#   { 'status': 'OK', 'message': string }
+#   { 'status': 'NG', 'message': string }
+#
+@app.route('/devices/device/<devicename>/gpio/<number>/enable', methods=['POST'])
+def enable_gpio(devicename, number):
+    api = 'enable_gpio'
+
+    # get token from Authorization header
+    auth_header_token = get_auth_header_token()
+    if auth_header_token is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
+        print('\r\nERROR Invalid authorization header\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
+
+    # get username from token
+    data = flask.request.get_json()
+    if data['enable'] is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid parameters'})
+        print('\r\nERROR Invalid parameters\r\n')
+        return response, status.HTTP_400_BAD_REQUEST
+
+    data['token'] = {'access': auth_header_token}
+    data['devicename'] = devicename
+    username = g_database_client.get_username_from_token(data['token'])
+    if username is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
+        print('\r\nERROR Invalid token\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
+    data['username'] = username
+    data['number'] = number
+    print('enable_gpio {} devicename={} number={}'.format(username, devicename, number))
 
     return process_request(api, data)
 
@@ -2634,7 +2723,7 @@ def get_i2c_sensors(devicename, number):
         response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
         print('\r\nERROR Get I2C Sensors: Invalid token\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
-    print('get_i2c_sensors username={} devicename={} number={}'.format(username, devicename, number))
+    print('get_i2c_sensors {} devicename={} number={}'.format(username, devicename, number))
 
     # check if a parameter is empty
     if len(username) == 0 or len(token) == 0:
@@ -2705,7 +2794,7 @@ def register_i2c_sensor(devicename, number, sensorname):
         response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
         print('\r\nERROR Add/Delete I2C Sensor: Invalid token\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
-    print('register_i2c_sensor username={} devicename={} number={} sensorname={}'.format(username, devicename, number, sensorname))
+    print('register_i2c_sensor {} devicename={} number={} sensorname={}'.format(username, devicename, number, sensorname))
 
     # check if a parameter is empty
     if len(username) == 0 or len(token) == 0 or len(devicename) == 0 or len(sensorname) == 0:
@@ -2732,18 +2821,18 @@ def register_i2c_sensor(devicename, number, sensorname):
             return response, status.HTTP_409_CONFLICT
 
         data = flask.request.get_json()
-        print(data)
+        #print(data)
         if not data.get("address") or not data.get("manufacturer") or not data.get("model"):
             response = json.dumps({'status': 'NG', 'message': 'Parameters not included'})
             print('\r\nERROR Add I2C Sensor: Parameters not included [{},{}]\r\n'.format(username, devicename))
             return response, status.HTTP_400_BAD_REQUEST
-        print(data["address"])
-        print(data["manufacturer"])
-        print(data["model"])
+        #print(data["address"])
+        #print(data["manufacturer"])
+        #print(data["model"])
 
         # add sensor to database
         result = g_database_client.add_sensor(username, devicename, number, sensorname, data["address"], data["manufacturer"], data["model"])
-        print(result)
+        #print(result)
         if not result:
             response = json.dumps({'status': 'NG', 'message': 'Sensor could not be registered'})
             print('\r\nERROR Add I2C Sensor: Sensor could not be registered [{},{}]\r\n'.format(username, devicename))
@@ -2805,7 +2894,7 @@ def get_i2c_sensor(devicename, number, sensorname):
         response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
         print('\r\nERROR Get I2C Sensor: Invalid token\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
-    print('get_i2c_sensor username={} devicename={} number={} sensorname={}'.format(username, devicename, number, sensorname))
+    print('get_i2c_sensor {} devicename={} number={} sensorname={}'.format(username, devicename, number, sensorname))
 
     # check if a parameter is empty
     if len(username) == 0 or len(token) == 0 or len(devicename) == 0 or len(sensorname) == 0:
@@ -2839,6 +2928,49 @@ def get_i2c_sensor(devicename, number, sensorname):
     print('\r\nSensor queried successful: {}\r\n{}\r\n'.format(username, response))
     return response
 
+
+#
+# ENABLE/DISABLE I2C
+#
+# - Request:
+#   POST /devices/device/DEVICENAME/i2c/NUMBER/enable
+#   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
+#   data: { 'enable': boolean }
+#
+# - Response:
+#   { 'status': 'OK', 'message': string }
+#   { 'status': 'NG', 'message': string }
+#
+@app.route('/devices/device/<devicename>/i2c/<number>/enable', methods=['POST'])
+def enable_i2c(devicename, number):
+    api = 'enable_i2c'
+
+    # get token from Authorization header
+    auth_header_token = get_auth_header_token()
+    if auth_header_token is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
+        print('\r\nERROR Invalid authorization header\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
+
+    # get username from token
+    data = flask.request.get_json()
+    if data['enable'] is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid parameters'})
+        print('\r\nERROR Invalid parameters\r\n')
+        return response, status.HTTP_400_BAD_REQUEST
+
+    data['token'] = {'access': auth_header_token}
+    data['devicename'] = devicename
+    username = g_database_client.get_username_from_token(data['token'])
+    if username is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
+        print('\r\nERROR Invalid token\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
+    data['username'] = username
+    data['number'] = number
+    print('enable_i2c {} devicename={} number={}'.format(username, devicename, number))
+
+    return process_request(api, data)
 
 
 #########################
@@ -2875,7 +3007,7 @@ def send_feedback():
         response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
         print('\r\nERROR Send Feedback: Invalid token\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
-    print('send_feedback username={}'.format(username))
+    print('send_feedback {}'.format(username))
 
     # check if a parameter is empty
     if len(username) == 0 or len(token) == 0:
@@ -2903,12 +3035,8 @@ def send_feedback():
     feedback = data['feedback']
     rating = data['rating']
     contactme = data['contactme']
-    print("Feedback:  {}".format(feedback))
-    print("Rating:    {}".format(rating))
-    print("Contactme: {}".format(contactme))
     if data.get("recipient"):
         recipient = data['recipient']
-        print("Recipient: {}".format(recipient))
 
     response = json.dumps({'status': 'OK', 'message': 'Feedback sent successfully.'})
     print('\r\nFeedback sent successfully: {}\r\n{}\r\n'.format(username, response))
@@ -2944,7 +3072,7 @@ def get_item(item):
         response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
         print('\r\nERROR Get About: Invalid token\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
-    print('get_{} username={}'.format(item, username))
+    print('get_{} {}'.format(item, username))
 
     # check if a parameter is empty
     if len(username) == 0 or len(token) == 0:
@@ -3013,7 +3141,7 @@ def get_supported_i2c_devices():
         response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
         print('\r\nERROR Get Supported I2C Devices: Invalid token\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
-    print('get_supported_i2c_devices username={}'.format(username))
+    print('get_supported_i2c_devices {}'.format(username))
 
     # check if a parameter is empty
     if len(username) == 0 or len(token) == 0:
@@ -3072,7 +3200,7 @@ def generate_subscribe_topic(topic, separator):
 
 def process_request_get(api, data):
 
-    print("\r\nAPI: {} username={} devicename={}".format(api, data['username'], data['devicename']))
+    print("\r\nAPI: {} {} devicename={}".format(api, data['username'], data['devicename']))
 
     username = data['username']
     token = data['token']
@@ -3151,8 +3279,7 @@ def process_request_get(api, data):
 
 def process_request(api, data):
 
-    #print("\r\nAPI: {} request={}".format(api, data))
-    print("\r\nAPI: {} username={}".format(api, data['username']))
+    print("\r\nAPI: {} {} devicename={}".format(api, data['username'], data['devicename']))
 
     username = data['username']
     token = data['token']
@@ -3421,17 +3548,17 @@ def message_broker_unregister(deviceid):
 def on_mqtt_message(client, userdata, msg):
     if CONFIG_PREPEND_REPLY_TOPIC == '':
         g_queue_dict[msg.topic] = msg.payload
-        print("RCV: {}".format(g_queue_dict))
+        #print("RCV: {}".format(g_queue_dict))
     else:
         index = msg.topic.find(CONFIG_PREPEND_REPLY_TOPIC)
         if index == 0:
             g_queue_dict[msg.topic] = msg.payload
-            print("RCV: {}".format(g_queue_dict))
+            #print("RCV: {}".format(g_queue_dict))
 
 def on_amqp_message(ch, method, properties, body):
     #print("RCV: {} {}".format(method.routing_key, body))
     g_queue_dict[method.routing_key] = body
-    print("RCV: {}".format(g_queue_dict))
+    #print("RCV: {}".format(g_queue_dict))
 
 def receive_message(topic):
     time.sleep(1)
@@ -3440,13 +3567,13 @@ def receive_message(topic):
         try:
             data = g_queue_dict[topic].decode("utf-8")
             g_queue_dict.pop(topic)
-            print("API: response={}\r\n".format(data))
+            #print("API: response={}\r\n".format(data))
             return data
         except:
             #print("x")
             time.sleep(1)
             i += 1
-        if i >= 3:
+        if i >= 1:
             print("receive_message timed_out")
             break
     return None

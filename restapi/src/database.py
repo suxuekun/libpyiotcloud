@@ -293,8 +293,17 @@ class database_client:
     def find_device_by_id(self, deviceid):
         return self._devices.find_device_by_id(deviceid)
 
+    def get_device_cached_values(self, username, devicename):
+        return self._devices.get_device_cached_values(username, devicename)
+
     def get_deviceid(self, username, devicename):
         return self._devices.get_deviceid(username, devicename)
+
+    def add_device_heartbeat(self, deviceid):
+        return self._devices.add_device_heartbeat(deviceid)
+
+    def save_device_version(self, username, devicename, version):
+        return self._devices.save_device_version(username, devicename, version)
 
 
 class database_utils:
@@ -335,10 +344,8 @@ class database_client_cognito:
         return users
 
     def find_user(self, username):
-        print("find_user")
         (result, users) = self.client.admin_list_users()
         if result == False:
-            print("find_user False")
             return True
         if users:
             for user in users:
@@ -347,10 +354,8 @@ class database_client_cognito:
         return False
 
     def is_email_verified(self, username):
-        print("find_user")
         (result, users) = self.client.admin_list_users()
         if result == False:
-            print("find_user False")
             return True
         if users:
             for user in users:
@@ -393,7 +398,7 @@ class database_client_cognito:
 
     def logout(self, token):
         (result, response) = self.client.logout(token)
-        print("cognito logout = {}".format(result))
+        #print("cognito logout = {}".format(result))
 
     def refresh_token(self, username, token):
         (result, response) = self.client.refresh_token(token['refresh'])
@@ -462,21 +467,21 @@ class database_client_cognito:
 
     def get_user_group(self, username):
         val = self.client.admin_list_groups_for_user(username)
-        print(val[1])
+        #print(val[1])
         return val[1]
 
     def add_user_to_group(self, username):
         groupname = 'PaidSubscribers'
         val = self.client.admin_add_user_to_group(username, groupname)
         val = self.client.admin_list_groups_for_user(username)
-        print(val[1])
+        #print(val[1])
         return val[1]
 
     def remove_user_from_group(self, username):
         groupname = 'PaidSubscribers'
         val = self.client.admin_remove_user_from_group(username, groupname)
         val = self.client.admin_list_groups_for_user(username)
-        print(val[1])
+        #print(val[1])
         return val[1]
 
     def request_verify_phone_number(self, access_token):
@@ -528,7 +533,7 @@ class database_client_mongodb:
             print("Payment creation failed! {}".format(payment.error))
             return
         approval_url = self.paypal.get_payment_link(payment)
-        print("\r\nPayment creation successful!\r\n")
+        #print("\r\nPayment creation successful!\r\n")
 
         data = {
             "paymentId": payment["id"],
@@ -536,7 +541,7 @@ class database_client_mongodb:
             "create_time": payment["create_time"],
             "sku": item_sku,
         }
-        print(data)
+        #print(data)
         return approval_url, data["paymentId"], data["token"]
 
     def paypal_execute_payment(self, username, token, payment):
@@ -573,7 +578,7 @@ class database_client_mongodb:
             print("Payment not yet completed! {}".format(status))
             return False
 
-        print("Payment completed successfully!")
+        #print("Payment completed successfully!")
         self.paypal.display_payment_result(payment_result)
         return True
 
@@ -614,7 +619,7 @@ class database_client_mongodb:
                 for subscription in subscriptions.find({'username': username},{'username': 1, 'type': 1, 'credits': 1}):
                     current_amount = int(subscription['credits'])
                     new_amount = int(subscription['credits']) + int(credits)
-                    print("current_amount={} new_amount={}".format(current_amount, new_amount))
+                    #print("current_amount={} new_amount={}".format(current_amount, new_amount))
                     subscription['type'] = config.CONFIG_SUBSCRIPTION_PAID_TYPE
                     subscription['credits'] = str(new_amount)
                     self.client.subscriptions.replace_one({'username': username}, subscription)
@@ -709,7 +714,7 @@ class database_client_mongodb:
         users = self.get_registered_users()
         if users:
             for user in users.find({'username': username},{'username': 1, 'password': 1, 'email': 1, 'givenname': 1, 'familyname': 1, 'timestamp': 1, 'token': 1, 'status': 1, 'confirmationcode': 1 }):
-                print(user)
+                #print(user)
                 if user['status'] == "UNCONFIRMED":
                     if user['confirmationcode'] == confirmationcode:
                         user['status'] = "CONFIRMED"
@@ -800,14 +805,14 @@ class database_client_mongodb:
         item['devicename'] = devicename
         item['source'] = source
         item['notification'] = notification
-        print("update_device_notification find_one")
+        #print("update_device_notification find_one")
         found = notifications.find_one({'username': username, 'devicename': devicename, 'source': source})
         if found is None:
-            print("update_device_notification insert_one")
-            print(found)
+            #print("update_device_notification insert_one")
+            #print(found)
             notifications.insert_one(item)
         else:
-            print("update_device_notification replace_one")
+            #print("update_device_notification replace_one")
             notifications.replace_one({'username': username, 'devicename': devicename, 'source': source}, item)
 
     def delete_device_notification(self, username, devicename):
@@ -823,7 +828,7 @@ class database_client_mongodb:
         if notifications:
             for notification in notifications.find({'username': username, 'devicename': devicename, 'source': source}):
                 notification.pop('_id')
-                print(notification['notification'])
+                #print(notification['notification'])
                 return notification['notification']
         return None
 
@@ -885,14 +890,14 @@ class database_client_mongodb:
     def display_devices(self, username):
         devices = self.get_registered_devices()
         if devices:
-            for device in devices.find({'username': username},{'username': 1, 'devicename':1, 'deviceid': 1, 'serialnumber':1, 'timestamp':1}):
+            for device in devices.find({'username': username},{'username': 1, 'devicename':1, 'deviceid': 1, 'serialnumber':1, 'timestamp':1, 'heartbeat': 1, 'version': 1}):
                 print(device)
 
     def get_devices(self, username):
         device_list = []
         devices = self.get_registered_devices()
         if devices and devices.count():
-            for device in devices.find({'username': username},{'devicename':1, 'deviceid': 1, 'serialnumber':1, 'timestamp':1, 'heartbeat':1}):
+            for device in devices.find({'username': username},{'devicename':1, 'deviceid': 1, 'serialnumber':1, 'timestamp':1, 'heartbeat':1, 'version': 1}):
                 device.pop('_id')
                 device_list.append(device)
         return device_list
@@ -902,7 +907,7 @@ class database_client_mongodb:
         devices = self.get_registered_devices()
         if devices and devices.count():
             filter_lo = filter.lower()
-            for device in devices.find({'username': username},{'devicename':1, 'deviceid': 1, 'serialnumber':1, 'timestamp':1, 'heartbeat':1}):
+            for device in devices.find({'username': username},{'devicename':1, 'deviceid': 1, 'serialnumber':1, 'timestamp':1, 'heartbeat':1, 'version': 1}):
                 device.pop('_id')
                 if filter_lo in device["devicename"].lower():
                     device_list.append(device)
@@ -930,7 +935,7 @@ class database_client_mongodb:
     def find_device(self, username, devicename):
         devices = self.get_registered_devices()
         if devices:
-            for device in devices.find({'username': username, 'devicename': devicename},{'devicename':1, 'deviceid': 1, 'serialnumber':1, 'timestamp':1, 'heartbeat':1}):
+            for device in devices.find({'username': username, 'devicename': devicename},{'devicename':1, 'deviceid': 1, 'serialnumber':1, 'timestamp':1, 'heartbeat':1, 'version': 1}):
                 device.pop('_id')
                 return device
         return None
@@ -939,7 +944,15 @@ class database_client_mongodb:
     def find_device_by_id(self, deviceid):
         devices = self.get_registered_devices()
         if devices:
-            for device in devices.find({'deviceid': deviceid},{'username': 1, 'devicename':1, 'deviceid': 1, 'serialnumber':1, 'timestamp':1}):
+            for device in devices.find({'deviceid': deviceid},{'username': 1, 'devicename':1, 'deviceid': 1, 'serialnumber':1, 'timestamp':1, 'heartbeat':1, 'version': 1}):
+                device.pop('_id')
+                return device
+        return None
+
+    def get_device_cached_values(self, username, devicename):
+        devices = self.get_registered_devices()
+        if devices:
+            for device in devices.find({'username': username, 'devicename': devicename},{'heartbeat':1, 'version': 1}):
                 device.pop('_id')
                 return device
         return None
@@ -949,6 +962,34 @@ class database_client_mongodb:
         if devices:
             for device in devices.find({'username': username, 'devicename': devicename},{'deviceid': 1}):
                 return device['deviceid']
+        return None
+
+    def add_device_heartbeat(self, deviceid):
+        devices = self.get_registered_devices()
+        if devices:
+            for device in devices.find({'deviceid': deviceid},{'username': 1, 'devicename': 1, 'deviceid': 1, 'serialnumber':1, 'timestamp': 1, 'heartbeat': 1, 'version': 1}):
+                if device.get('heartbeat'):
+                    device['heartbeat'] = str(int(time.time()))
+                    devices.replace_one({'deviceid': deviceid}, device)
+                else:
+                    #print('add_device_heartbeat no heartbeat')
+                    device['heartbeat'] = str(int(time.time()))
+                    devices.replace_one({'deviceid': deviceid}, device)
+                return device['heartbeat']
+        return None
+
+    def save_device_version(self, username, devicename, version):
+        devices = self.get_registered_devices()
+        if devices:
+            for device in devices.find({'username': username, 'devicename': devicename},{'username': 1, 'devicename': 1, 'deviceid': 1, 'serialnumber':1, 'timestamp': 1, 'heartbeat': 1, 'version': 1}):
+                if device.get('version'):
+                    device['version'] = version
+                    devices.replace_one({'username': username, 'devicename': devicename}, device)
+                else:
+                    #print('save_device_version no version')
+                    device['version'] = version
+                    devices.replace_one({'username': username, 'devicename': devicename}, device)
+                return device['version']
         return None
 
 

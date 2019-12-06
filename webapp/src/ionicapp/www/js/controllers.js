@@ -34,9 +34,19 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Device
             'token': User.get_username(),
             'devicename': device.devicename,
             'deviceid': device.deviceid,
-            'serialnumber': device.serialnumber
+            'serialnumber': device.serialnumber,
+            'devicestatus': "Status: UNKNOWN",
+            'deviceversion': "UNKNOWN",
         };
-       
+
+        if (device.heartbeat !== undefined) {
+            let heartbeat = new Date(device.heartbeat * 1000);
+            device_param.devicestatus = "Last active: " + heartbeat;    
+        }
+        if (device.version !== undefined) {
+            device_param.deviceversion = device.version;    
+        }
+
         $state.go('configureDevice', device_param );
     };
     
@@ -73,20 +83,26 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Device
                 
                 if (livestatus === true) {
                     console.log($scope.devices.length);
-                    var indexy = 0;
+                    let indexy = 0;
                     for (indexy=0; indexy<$scope.devices.length; indexy++) {
                         console.log("indexy=" + indexy.toString() + " " + $scope.devices[indexy].devicename);
-                        if ($scope.devices[indexy].devicestatus === undefined) {
-                            $scope.devices[indexy].devicestatus = "Detecting...";
+                        
+                        if ($scope.devices[indexy].heartbeat !== undefined) {
+                            let heartbeat = new Date($scope.devices[indexy].heartbeat * 1000);
+                            $scope.devices[indexy].devicestatus = "Last active: " + heartbeat;
                         }
+                        else {
+                            $scope.devices[indexy].devicestatus = "Last active: N/A";
+                        }
+                        
                         query_device(indexy, $scope.devices[indexy].devicename);
                     }
                 }
                 else {
-                    var indexy = 0;
+                    let indexy = 0;
                     for (indexy=0; indexy<$scope.devices.length; indexy++) {
                         if ($scope.devices[indexy].heartbeat !== undefined) {
-                            var heartbeat = new Date($scope.devices[indexy].heartbeat * 1000);
+                            let heartbeat = new Date($scope.devices[indexy].heartbeat * 1000);
                             $scope.devices[indexy].devicestatus = "Last active: " + heartbeat;
                         }
                         else {
@@ -124,7 +140,6 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Device
         })
         .catch(function (error) {
             console.log(devicename + ": Offline");
-            $scope.devices[index].devicestatus = 'Offline';
             if (error.data.message === "Token expired") {
                 Token.refresh({'username': $scope.data.username, 'token': $scope.data.token});
                 $scope.data.token = User.get_token();
@@ -2445,6 +2460,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         'serialnumber': $stateParams.serialnumber,
         'timestamp'   : $stateParams.timestamp,
         'heartbeat'   : $stateParams.heartbeat,
+        'version'     : $stateParams.version
     };
 
 
@@ -2551,7 +2567,9 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             'token'        : $scope.data.token,
             'devicename'   : $scope.data.devicename,
             'deviceid'     : $scope.data.deviceid,
-            'serialnumber' : $scope.data.serialnumber
+            'serialnumber' : $scope.data.serialnumber,
+            'deviceversion': $scope.data.version,
+            'devicestatus' : "Last active: " + $scope.data.heartbeat
         };
        
         $state.go('configureDevice', device_param);    
@@ -2631,8 +2649,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         'devicename': $stateParams.devicename,
         'deviceid': $stateParams.deviceid,
         'serialnumber': $stateParams.serialnumber,
-        'devicestatus': 'Status: UNKNOWN',
-        'deviceversion': 'UNKNOWN'
+        'devicestatus': $stateParams.devicestatus,
+        'deviceversion': $stateParams.deviceversion
     };
 
     $scope.submitGPIO = function() {
@@ -2667,6 +2685,14 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         $state.go('deviceNotifications', $scope.data, {animate: false} );
     };
 
+    $scope.submitTODO = function() {
+        console.log("devicename=" + $scope.data.devicename);
+        if ($scope.data.devicestatus === 'Status: UNKNOWN') {
+            return;
+        }
+        $ionicPopup.alert({ title: 'Error', template: 'Not yet supported!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+    };
+
 
     handle_error = function(error) {
         // Handle failed login
@@ -2679,8 +2705,15 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             }
             
             if (error.status == 503) {
-                var heartbeat = new Date(error.data.heartbeat * 1000);
-                $scope.data.devicestatus = "Last active: " + heartbeat;                
+                if (error.data.value !== undefined) {
+                    if (error.data.value.heartbeat !== undefined) {
+                        var heartbeat = new Date(error.data.value.heartbeat * 1000);
+                        $scope.data.devicestatus = "Last active: " + heartbeat;
+                    }        
+                    if (error.data.value.version !== undefined) {
+                        $scope.data.deviceversion = error.data.value.version;
+                    }
+                }
             }
             else {
                 $scope.data.devicestatus = "Status: UNKNOWN";                
@@ -2699,7 +2732,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
     };
 
     get_status = function() {
-        $scope.data.devicestatus = 'Status: Detecting...';
+        //$scope.data.devicestatus = 'Status: Detecting...';
         //
         // GET STATUS
         // - Request:
@@ -2722,8 +2755,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         })
         .catch(function (error) {
             handle_error(error);
-            //$scope.data.devicestatus = 'Offline';
-            $scope.data.deviceversion = 'UNKNOWN';
+            console.log(error.data.value);
         }); 
     };   
 
@@ -2769,6 +2801,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
                 'serialnumber': result.data.device.serialnumber,
                 'timestamp': timestamp,
                 'heartbeat': heartbeat,
+                'version': $scope.data.deviceversion
             };
             
             $state.go('viewDevice', device_param);
@@ -3031,6 +3064,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
 
         'activeSection': 1,
         'showNotification': 0,
+        'enableGPIO': true,
         'voltageidx': $scope.voltages[0].id,
 
         'gpio': {
@@ -3082,6 +3116,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
 
     $scope.changeSection = function(s) {
         $scope.data.activeSection = s;
+        $scope.data.enableGPIO = true;
         $scope.submitQuery();
     };
 
@@ -3089,7 +3124,33 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         $scope.data.showNotification = i;
     };
 
-
+    $scope.changeGPIO = function(i) {
+        console.log(i);
+        let title = "Enable GPIO";
+        let action = "enable GPIO";
+        if (i === false) {
+            title = "Disable GPIO";
+            action = "disable GPIO";
+        }
+        $ionicPopup.alert({ 
+            title: title + $scope.data.activeSection.toString(), 
+            template: 'Are you sure you want to ' + action + $scope.data.activeSection.toString() +'?',
+            buttons: [{ 
+                    text: 'No', type: 'button-negative',
+                    onTap: function(e) {
+                        $scope.data.enableGPIO = !i;
+                    }
+                }, {
+                    text: 'Yes', type: 'button-positive',
+                    onTap: function(e) {
+                        $scope.data.enableGPIO = i;
+                        enable_gpio(i);
+                    }
+                }
+            ]            
+        });            
+    };
+    
     handle_error = function(error, showerror) {
         if (error.data !== null) {
             console.log("ERROR: Control Device failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
@@ -3355,6 +3416,42 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
     };
 
 
+    enable_gpio = function(enable) {
+        action = "enabled";
+        if (enable === false) {
+            action = "disabled";
+        }
+        //
+        // ENABLE/DISABLE GPIO
+        //
+        // - Request:
+        //   POST /devices/device/<devicename>/gpio/<number>/enable
+        //   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
+        //   data: {'enable': boolean}
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string }
+        //   { 'status': 'NG', 'message': string }        
+        //
+        $http({
+            method: 'POST',
+            url: server + '/devices/device/' + $scope.data.devicename + '/gpio/' + $scope.data.activeSection.toString()  + '/enable',
+            headers: { 'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json' },
+            data: { 'enable': enable }
+        })
+        .then(function (result) {
+            console.log(result.data);
+            $ionicPopup.alert({
+                title: 'Device GPIO',
+                template: 'GPIO ' + $scope.data.activeSection.toString() + ' was ' + action + ' successfully!',
+            });            
+        })
+        .catch(function (error) {
+            handle_error(error);
+        }); 
+    };
+
+
     $scope.submit = function() {
 
         set_gpio_properties();
@@ -3417,6 +3514,25 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         { "id":2, "label": "Even" }
     ];     
 
+    $scope.databits = [
+        { "id":0, "label": "5" },
+        { "id":1, "label": "6" },
+        { "id":2, "label": "7" },
+        { "id":3, "label": "8" },
+        { "id":4, "label": "9" },
+    ];     
+
+    $scope.stopbits = [
+        { "id":0, "label": "1"   },
+        { "id":1, "label": "1.5" },
+        { "id":2, "label": "2"   }
+    ];     
+
+    $scope.flowcontrols = [
+        { "id":0, "label": "None" },
+        { "id":1, "label": "Hardware" },
+    ];     
+
     $scope.data = {
         'username': User.get_username(),
         'token': User.get_token(),
@@ -3427,10 +3543,14 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         
         'activeSection': 1,
         'showNotification': 0,
+        'enableUART': true,
         
         'uart': {
             'baudrate': $scope.baudrates[0].id,
             'parity': $scope.parities[0].id,
+            'databits': $scope.databits[0].id,
+            'stopbits': $scope.stopbits[0].id,
+            'flowcontrol': $scope.flowcontrols[0].id,
             'notification': {
                 'messages': [ 
                     { 'message': 'Hello World!', 'enable': true }, 
@@ -3475,6 +3595,33 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         $scope.data.showNotification = i;
     };
 
+    $scope.changeUART = function(i) {
+        console.log(i);
+        let title = "Enable UART";
+        let action = "enable UART";
+        if (i === false) {
+            title = "Disable UART";
+            action = "disable UART";
+        }
+        $ionicPopup.alert({ 
+            title: title,
+            template: 'Are you sure you want to ' + action + '?',
+            buttons: [{ 
+                    text: 'No', type: 'button-negative',
+                    onTap: function(e) {
+                        $scope.data.enableUART = !i;
+                    }
+                }, {
+                    text: 'Yes', type: 'button-positive',
+                    onTap: function(e) {
+                        $scope.data.enableUART = i;
+                        enable_uart(i);
+                    }
+                }
+            ]            
+        });            
+    };
+
     
     handle_error = function(error) {
         if (error.data !== null) {
@@ -3509,6 +3656,9 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         //     { 
         //      'baudrate': int,
         //      'parity': int,
+        //      'databits': int,
+        //      'stopbits': int,
+        //      'flowcontrol': int,
         //      'notification': {
         //          'messages': [{ 'message': string, 'enable': boolean }, ...],
         //          'endpoints' : {
@@ -3575,6 +3725,9 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         //   { 
         //      'baudrate': int,
         //      'parity': int,
+        //      'databits': int,
+        //      'stopbits': int,
+        //      'flowcontrol': int,
         //      'notification': {
         //          'messages': [{ 'message': string, 'enable': boolean }, ...],
         //          'endpoints' : {
@@ -3629,6 +3782,43 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         }); 
     };
 
+
+    enable_uart = function(enable) {
+        action = "enabled";
+        if (enable === false) {
+            action = "disabled";
+        }
+        //
+        // ENABLE/DISABLE UART
+        //
+        // - Request:
+        //   POST /devices/device/<devicename>/uart/enable
+        //   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
+        //   data: {'enable': boolean}
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string }
+        //   { 'status': 'NG', 'message': string }        
+        //
+        $http({
+            method: 'POST',
+            url: server + '/devices/device/' + $scope.data.devicename + '/uart/enable',
+            headers: { 'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json' },
+            data: { 'enable': enable }
+        })
+        .then(function (result) {
+            console.log(result.data);
+            $ionicPopup.alert({
+                title: 'Device UART',
+                template: 'UART ' + $scope.data.activeSection.toString() + ' was ' + action + ' successfully!',
+            });            
+        })
+        .catch(function (error) {
+            handle_error(error);
+        }); 
+    };
+    
+    
 /*
     get_profile = function() {
         //        
@@ -3720,6 +3910,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         'serialnumber': $stateParams.serialnumber,
         
         'activeSection': 1,
+        'enableI2C': true,
     };
 
     $scope.sensors = [];
@@ -3728,7 +3919,37 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
     $scope.changeSection = function(s) {
         $scope.data.activeSection = s;
         $scope.getI2CSensors();
+        $scope.data.enableI2C = true;
     };
+   
+    $scope.changeI2C = function(i) {
+        console.log(i);
+        let title = "Enable I2C";
+        let action = "enable I2C";
+        if (i === false) {
+            title = "Disable I2C";
+            action = "disable I2C";
+        }
+        $ionicPopup.alert({ 
+            title: title + $scope.data.activeSection.toString(), 
+            template: 'Are you sure you want to ' + action + $scope.data.activeSection.toString() +'?',
+            buttons: [{ 
+                    text: 'No', type: 'button-negative',
+                    onTap: function(e) {
+                        $scope.data.enableI2C = !i;
+                    }
+                }, {
+                    text: 'Yes', type: 'button-positive',
+                    onTap: function(e) {
+                        $scope.data.enableI2C = i;
+                        enable_i2c(i);
+                    }
+                }
+            ]            
+        });            
+    };
+   
+   
    
     handle_error = function(error) {
         if (error.data !== null) {
@@ -3836,6 +4057,41 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         }); 
     };
 
+
+    enable_i2c = function(enable) {
+        action = "enabled";
+        if (enable === false) {
+            action = "disabled";
+        }
+        //
+        // ENABLE/DISABLE I2C
+        //
+        // - Request:
+        //   POST /devices/device/<devicename>/i2c/<number>/enable
+        //   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
+        //   data: {'enable': boolean}
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string }
+        //   { 'status': 'NG', 'message': string }        
+        //
+        $http({
+            method: 'POST',
+            url: server + '/devices/device/' + $scope.data.devicename + '/i2c/' + $scope.data.activeSection.toString()  + '/enable',
+            headers: { 'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json' },
+            data: { 'enable': enable }
+        })
+        .then(function (result) {
+            console.log(result.data);
+            $ionicPopup.alert({
+                title: 'Device I2C',
+                template: 'I2C ' + $scope.data.activeSection.toString() + ' was ' + action + ' successfully!',
+            });            
+        })
+        .catch(function (error) {
+            handle_error(error);
+        }); 
+    };
 
 
     // ADD I2C DEVICES    

@@ -241,23 +241,20 @@ SUMMARY:
 
 		C. GET UART PROPERTIES            - GET    /devices/device/DEVICENAME/uart/properties
 		D. SET UART PROPERTIES            - POST   /devices/device/DEVICENAME/uart/properties
-		E. IS ENABLED/DISABLED UART       - GET    /devices/device/DEVICENAME/uart/enable (TODO)
-		F. ENABLE/DISABLE UART            - POST   /devices/device/DEVICENAME/uart/enable (TODO)
+		E. ENABLE/DISABLE UART            - POST   /devices/device/DEVICENAME/uart/enable
 
-		G. GET GPIO VOLTAGE               - GET    /devices/device/DEVICENAME/gpio/voltage
-		H. SET GPIO VOLTAGE               - POST   /devices/device/DEVICENAME/gpio/voltage
-		I. GET GPIOS                      - GET    /devices/device/DEVICENAME/gpios
-		J. GET GPIO PROPERTIES            - GET    /devices/device/DEVICENAME/gpio/NUMBER/properties
-		K. SET GPIO PROPERTIES            - POST   /devices/device/DEVICENAME/gpio/NUMBER/properties
-		L. IS ENABLED/DISABLED GPIO       - GET    /devices/device/DEVICENAME/gpio/NUMBER/enable (TODO)
-		M. ENABLE/DISABLE GPIO            - POST   /devices/device/DEVICENAME/gpio/NUMBER/enable (TODO)
+		F. GET GPIO VOLTAGE               - GET    /devices/device/DEVICENAME/gpio/voltage
+		G. SET GPIO VOLTAGE               - POST   /devices/device/DEVICENAME/gpio/voltage
+		H. GET GPIOS                      - GET    /devices/device/DEVICENAME/gpios
+		I. GET GPIO PROPERTIES            - GET    /devices/device/DEVICENAME/gpio/NUMBER/properties
+		J. SET GPIO PROPERTIES            - POST   /devices/device/DEVICENAME/gpio/NUMBER/properties
+		K. ENABLE/DISABLE GPIO            - POST   /devices/device/DEVICENAME/gpio/NUMBER/enable
 
-		N. GET I2C DEVICES                - GET    /devices/device/DEVICENAME/i2c/NUMBER/sensors
-		O. ADD I2C DEVICES                - POST   /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME
-		P. DELETE I2C DEVICES             - DELETE /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME
-		Q. GET I2C DEVICE                 - GET    /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME
-		R. IS ENABLED/DISABLED I2C        - GET    /devices/device/DEVICENAME/i2c/NUMBER/enable (TODO)
-		S. ENABLE/DISABLE I2C             - POST   /devices/device/DEVICENAME/i2c/NUMBER/enable (TODO)
+		L. GET I2C DEVICES                - GET    /devices/device/DEVICENAME/i2c/NUMBER/sensors
+		M. ADD I2C DEVICES                - POST   /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME
+		N. DELETE I2C DEVICES             - DELETE /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME
+		O. GET I2C DEVICE                 - GET    /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME
+		P. ENABLE/DISABLE I2C             - POST   /devices/device/DEVICENAME/i2c/NUMBER/enable
 
 		Old requirements:
 		A. GET STATUS                     - GET    /devices/device/DEVICENAME/status
@@ -541,13 +538,15 @@ DETAILED:
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
 		   { 'status': 'OK', 'message': string, 
-		     'devices': array[{'devicename': string, 'deviceid': string, 'serialnumber': string, 'timestamp': string, 'heartbeat': string}, ...]}
+		     'devices': array[{'devicename': string, 'deviceid': string, 'serialnumber': string, 'timestamp': string, 'heartbeat': string, 'version': string}, ...]}
 		   { 'status': 'NG', 'message': string}
 		   // deviceid refers to UUID
 		   // timestamp refers to the epoch time (in seconds) the device was registered/added
 		   // heartbeat refers to the epoch time (in seconds) of the last publish packet sent by the device
 		   // heartbeat will only appear if device has published an MQTT packet
 		   // In Javascript, heartbeat can be converted to a readable date using "new Date(heartbeat* 1000)"
+		   // version will only appear if device has previously been queried already
+		   // heartbeat and version are cached values
 
 		B. GET DEVICES FILTERED
 		-  Request:
@@ -555,7 +554,7 @@ DETAILED:
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
 		   { 'status': 'OK', 'message': string, 
-		     'devices': array[{'devicename': string, 'deviceid': string, 'serialnumber': string, 'timestamp': string, 'heartbeat': string}, ...]}
+		     'devices': array[{'devicename': string, 'deviceid': string, 'serialnumber': string, 'timestamp': string, 'heartbeat': string, 'version': string}, ...]}
 		   { 'status': 'NG', 'message': string}
 		   // filter will be applied to devicename and deviceid
 		   // if devicename or deviceid contains the filter string, the device will be returned
@@ -592,13 +591,15 @@ DETAILED:
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
 		   { 'status': 'OK', 'message': string, 
-		     'device': {'devicename': string, 'deviceid': string, 'serialnumber': string, 'timestamp': string, 'heartbeat': string}}
+		     'device': {'devicename': string, 'deviceid': string, 'serialnumber': string, 'timestamp': string, 'heartbeat': string, 'version': string}}
 		   { 'status': 'NG', 'message': string}
 		   // deviceid refers to UUID
 		   // timestamp refers to the epoch time (in seconds) the device was registered/added
 		   // heartbeat refers to the epoch time (in seconds) of the last publish packet sent by the device
 		   // heartbeat will only appear if device has published an MQTT packet
 		   // In Javascript, heartbeat can be converted to a readable date using "new Date(heartbeat* 1000)"
+		   // version will only appear if device has previously been queried already
+		   // heartbeat and version are cached values
 
 
 	3. Device access and control APIs
@@ -623,10 +624,10 @@ DETAILED:
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
 		   { 'status': 'OK', 'message': string, 'value': { "status": string, "version": string } }
-		   { 'status': 'NG', 'message': string, 'heartbeat': string }
+		   { 'status': 'NG', 'message': string, 'value': { "heartbeat": string, "version": string} }
 		   // status can be any of the following: restarting, stopping, stopped, starting, running
 		   // version is the firmware version
-		   // if HTTP ERROR CODE is HTTP_503_SERVICE_UNAVAILABLE, heartbeat will be included in the error message
+		   // if HTTP ERROR CODE is HTTP_503_SERVICE_UNAVAILABLE, cached value containing heartbeat and version will be included in the error message
 		   // heartbeat refers to the epoch time (in seconds) of the last publish packet sent by the device
 		   // heartbeat will only appear if device has published an MQTT packet
 		   // In Javascript, heartbeat can be converted to a readable date using "new Date(heartbeat* 1000)"
@@ -650,6 +651,9 @@ DETAILED:
 		     { 
 		        'baudrate': int,
 		        'parity': int,
+		        'databits': int,
+		        'stopbits': int,
+		        'flowcontrol': int,
 		        'notification': { // this notification object is generic for UART/GPIO/I2C
 		            'messages': [
 		                { 'message': string, 'enable': boolean }, 
@@ -687,9 +691,22 @@ DETAILED:
 		   // baudrate is an index of the value in the list of baudrates
 		   //   ft900_uart_simple.h: UART_DIVIDER_XXX
 		   //   ["110", "150", "300", "1200", "2400", "4800", "9600", "19200", "31250", "38400", "57600", "115200", "230400", "460800", "921600", "1000000"]
+		   //      default = 7 (19200)
 		   // parity is an index of the value in the list of parities
-		   //   ft900_uart_simple.h: uart_parity_t
+		   //   ft900_uart_simple.h: uart_parity_t enum
 		   //   ["None", "Odd", "Even"]
+		   //      default = 0 (None)
+		   // databits is an index of the value in the list of databits
+		   //   ft900_uart_simple.h: uart_data_bits_t enum
+		   //   ["5", "6", "7", "8", "9"]
+		   //      default = 3 (8)
+		   // stopbits is an index of the value in the list of stopbits
+		   //   ft900_uart_simple.h: uart_stop_bits_t enum
+		   //   ["1", "1.5", "2"]
+		   //      default = 0 (1)
+		   // flowcontrol is an index of the value in the list of flowcontrols
+		   //   ["None", "Hardware"]
+		   //      default = 0 (None)
 		   // sending only the index saves memory on the device and computation on frontend
 
 		D. SET UART PROPERTIES
@@ -700,6 +717,9 @@ DETAILED:
 		   { 
 		        'baudrate': int,
 		        'parity': int,
+		        'databits': int,
+		        'stopbits': int,
+		        'flowcontrol': int,
 		        'notification': { // this notification object is generic for UART/GPIO/I2C
 		            'messages': [
 		                { 'message': string, 'enable': boolean },
@@ -736,15 +756,38 @@ DETAILED:
 		   // baudrate is an index of the value in the list of baudrates
 		   //   ft900_uart_simple.h: UART_DIVIDER_XXX
 		   //   ["110", "150", "300", "1200", "2400", "4800", "9600", "19200", "31250", "38400", "57600", "115200", "230400", "460800", "921600", "1000000"]
+		   //      default = 7 (19200)
 		   // parity is an index of the value in the list of parities
-		   //   ft900_uart_simple.h: uart_parity_t
+		   //   ft900_uart_simple.h: uart_parity_t enum
 		   //   ["None", "Odd", "Even"]
+		   //      default = 0 (None)
+		   // databits is an index of the value in the list of databits
+		   //   ft900_uart_simple.h: uart_data_bits_t enum
+		   //   ["5", "6", "7", "8", "9"]
+		   //      default = 3 (8)
+		   // stopbits is an index of the value in the list of stopbits
+		   //   ft900_uart_simple.h: uart_stop_bits_t enum
+		   //   ["1", "1.5", "2"]
+		   //      default = 0 (1)
+		   // flowcontrol is an index of the value in the list of flowcontrols
+		   //   ["None", "Hardware"]
+		   //      default = 0 (None)
 		   // sending only the index saves memory on the device and computation on frontend
 		-  Response:
 		   { 'status': 'OK', 'message': string }
 		   { 'status': 'NG', 'message': string }
 
-		E. GET GPIO VOLTAGE
+		E. ENABLE/DISABLE UART
+		-  Request:
+		   POST /devices/device/DEVICENAME/uart/enable
+		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+		   data: { 'enable': boolean }
+		-  Response:
+		   { 'status': 'OK', 'message': string }
+		   { 'status': 'NG', 'message': string }
+
+
+		F. GET GPIO VOLTAGE
 		-  Request:
 		   GET /devices/device/DEVICENAME/gpio/voltage
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -755,7 +798,7 @@ DETAILED:
 		   // voltage is an index of the value in the list of voltages
 		   //   ["3.3 V", "5 V"]
 
-		F. SET GPIO VOLTAGE
+		G. SET GPIO VOLTAGE
 		-  Request:
 		   POST /devices/device/DEVICENAME/gpio/voltage
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
@@ -767,7 +810,7 @@ DETAILED:
 		   { 'status': 'OK', 'message': string }
 		   { 'status': 'NG', 'message': string }
 
-		G. GET GPIOS
+		H. GET GPIOS
 		-  Request:
 		   GET /devices/device/DEVICENAME/gpios
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -789,7 +832,7 @@ DETAILED:
 		   // status is an index of the value in the list of livestatuses
 		   //     ["Low", "High"]
 
-		H. GET GPIO PROPERTIES
+		I. GET GPIO PROPERTIES
 		-  Request:
 		   GET /devices/device/DEVICENAME/gpio/NUMBER/properties
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -862,7 +905,7 @@ DETAILED:
 		   // space is optional and is valid only when direction points to Output and mode points to Clock
 		   // sending only the index saves memory on the device and computation on frontend
 
-		I. SET GPIO PROPERTIES
+		J. SET GPIO PROPERTIES
 		-  Request:
 		   POST /devices/device/DEVICENAME/gpio/NUMBER/properties
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
@@ -936,7 +979,17 @@ DETAILED:
 		   { 'status': 'OK', 'message': string }
 		   { 'status': 'NG', 'message': string }
 
-		J. GET I2C DEVICES
+		K. ENABLE/DISABLE GPIO
+		-  Request:
+		   POST /devices/device/DEVICENAME/gpio/NUMBER/enable
+		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+		   data: { 'enable': boolean }
+		-  Response:
+		   { 'status': 'OK', 'message': string }
+		   { 'status': 'NG', 'message': string }
+
+
+		L. GET I2C DEVICES
 		-  Request:
 		   GET /devices/device/DEVICENAME/i2c/NUMBER/sensors
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -946,7 +999,7 @@ DETAILED:
 		   { 'status': 'NG', 'message': string}
 		   // timestamp refers to the epoch time the sensor was registered/added
 
-		K. ADD I2C DEVICE
+		M. ADD I2C DEVICE
 		-  Request:
 		   POST /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
@@ -969,7 +1022,7 @@ DETAILED:
 		   { 'status': 'OK', 'message': string}
 		   { 'status': 'NG', 'message': string}
 
-		L. DELETE I2C DEVICE
+		N. DELETE I2C DEVICE
 		-  Request:
 		   DELETE /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -977,7 +1030,7 @@ DETAILED:
 		   { 'status': 'OK', 'message': string}
 		   { 'status': 'NG', 'message': string}
 
-		M. GET I2C DEVICE
+		O. GET I2C DEVICE
 		-  Request:
 		   GET /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -986,6 +1039,15 @@ DETAILED:
 		     'sensor': {'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'timestamp': string} }
 		   { 'status': 'NG', 'message': string}
 		   // timestamp refers to the epoch time the sensor was registered/added
+
+		P. ENABLE/DISABLE I2C
+		-  Request:
+		   POST /devices/device/DEVICENAME/i2c/NUMBER/enable
+		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+		   data: { 'enable': boolean }
+		-  Response:
+		   { 'status': 'OK', 'message': string }
+		   { 'status': 'NG', 'message': string }
 
 
 		Old requirements:

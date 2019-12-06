@@ -182,7 +182,8 @@ angular.module('app.routes', [])
 		deviceid: "",
 		serialnumber: "",
 		timestamp: "",
-		heartbeat: ""		
+		heartbeat: "",
+		version: ""		
 },
     templateUrl: 'templates/viewDevice.html',
     controller: 'viewDeviceCtrl'
@@ -195,7 +196,9 @@ angular.module('app.routes', [])
 		username: "",
 		token: "",
 		deviceid: "",
-		serialnumber: ""		
+		serialnumber: "",
+		deviceversion: "",
+		devicestatus: ""		
 },
     templateUrl: 'templates/configureDevice.html',
     controller: 'configureDeviceCtrl'
