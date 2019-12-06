@@ -6,6 +6,12 @@
     <button class="button button-positive icon ion-refresh" ng-click="submitQuery()"></button>
   </ion-nav-buttons>
   <ion-content padding="true" class="has-header">
+    <div class="spacer" style="width: 300px; height: 12px;"></div>
+    <div id="deviceGPIO-markdown57" style="text-align:center;" class="show-list-numbers-and-dots">
+      <p style="color:#387EF5;font-size:18px;">
+        <strong> {{ data.devicename }} </strong>
+      </p>
+    </div>
     <form id="deviceGPIO-form18" class="list">
       <div id="deviceGPIO-button-bar4" class="button-bar">
         <button id="deviceGPIO-button60" ng-click="changeSection(1)" ng-class="{'active': data.activeSection==1}" class="button button-positive button-small button-block">GPIO 1</button>

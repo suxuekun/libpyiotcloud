@@ -2822,7 +2822,7 @@ def register_i2c_sensor(devicename, number, sensorname):
 
         data = flask.request.get_json()
         #print(data)
-        if not data.get("address") or not data.get("manufacturer") or not data.get("model"):
+        if data["address"] is None or data["manufacturer"] is None or data["model"] is None or data["class"] is None or data["attributes"] is None:
             response = json.dumps({'status': 'NG', 'message': 'Parameters not included'})
             print('\r\nERROR Add I2C Sensor: Parameters not included [{},{}]\r\n'.format(username, devicename))
             return response, status.HTTP_400_BAD_REQUEST
@@ -2831,7 +2831,7 @@ def register_i2c_sensor(devicename, number, sensorname):
         #print(data["model"])
 
         # add sensor to database
-        result = g_database_client.add_sensor(username, devicename, number, sensorname, data["address"], data["manufacturer"], data["model"])
+        result = g_database_client.add_sensor(username, devicename, number, sensorname, data)
         #print(result)
         if not result:
             response = json.dumps({'status': 'NG', 'message': 'Sensor could not be registered'})

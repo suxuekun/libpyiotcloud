@@ -1,0 +1,63 @@
+<ion-view title="Display" hide-back-button="true" cache-view="false" nav-transition="none" id="page30" class="page_width">
+  <ion-nav-buttons side="left" class="has-header">
+    <button class="button button-icon icon ion-android-close" ng-click="submitDeviceList()"></button>
+  </ion-nav-buttons>
+  <ion-nav-buttons side="right" class="has-header">
+    <button class="button button-positive icon ion-refresh" ng-click="getI2CSensors()"></button>
+  </ion-nav-buttons>
+  <ion-content padding="true" class="has-header">
+    <div class="spacer" style="width: 300px; height: 12px;"></div>
+    <div id="display-markdown81" style="text-align:center;" class="show-list-numbers-and-dots">
+      <p style="color:#387EF5;font-size:18px;">
+        <strong> {{ data.devicename }} </strong>
+      </p>
+    </div>
+    <div id="display-markdown80" style="text-align:center;" class="show-list-numbers-and-dots">
+      <p style="color:#444444;font-size:18px;">
+        <strong> {{ data.sensor.sensorname }} </strong> - I2C {{ data.sensor.number }}</p>
+    </div>
+    <form id="display-form69" class="list">
+      <div class="spacer" style="width: 300px; height: 20px;"></div>
+      <div id="display-markdown94" class="show-list-numbers-and-dots">
+        <p style="color:#387EF5;">Source endpoint</p>
+      </div>
+      <label class="item item-select" id="display-select27">
+        <span class="input-label"></span>
+        <select ng-model="data.attributes.endpoint" ng-options="endpoint.id as endpoint.label for endpoint in endpoints"></select>
+      </label>
+    </form>
+    <form id="display-form65" class="list" ng-show="data.attributes.endpoint==0">
+      <div id="display-markdown92" class="show-list-numbers-and-dots">
+        <p style="color:#387EF5;">Type</p>
+      </div>
+      <ion-radio id="display-radio3">Text</ion-radio>
+      <ion-radio id="display-radio4">Decimal</ion-radio>
+      <ion-radio id="display-radio5">Hexadecimal</ion-radio>
+    </form>
+    <form id="display-form66" class="list" ng-show="data.attributes.endpoint==0">
+      <div id="display-markdown93" class="show-list-numbers-and-dots">
+        <p style="color:#387EF5;">Text</p>
+      </div>
+      <label class="item item-input" id="display-input104">
+        <input type="text" placeholder="" ng-model="data.attributes.text">
+      </label>
+    </form>
+    <form id="display-form70" class="list" ng-show="data.attributes.endpoint==1">
+      <div id="display-markdown96" class="show-list-numbers-and-dots">
+        <p style="color:#387EF5;">Hardware</p>
+      </div>
+      <label class="item item-select" id="display-select30">
+        <span class="input-label">IoT Modem</span>
+        <select ng-model="data.attributes.hardware.devicename"></select>
+      </label>
+      <label class="item item-select" id="display-select31">
+        <span class="input-label">I2C Sensor</span>
+        <select ng-model="data.attributes.hardware.sensorname"></select>
+      </label>
+    </form>
+    <form id="display-form71" class="list">
+      <button id="display-button82" ng-click="submit()" class="button button-positive button-block">SAVE</button>
+      <div class="spacer" style="height: 100px;"></div>
+    </form>
+  </ion-content>
+</ion-view>

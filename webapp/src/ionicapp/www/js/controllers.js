@@ -3914,7 +3914,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
     };
 
     $scope.sensors = [];
-    $scope.sensors_counthdr = "No I2C device registered";
+    $scope.sensors_counthdr = "No I2C device registered for I2C " + $scope.data.activeSection.toString();
 
     $scope.changeSection = function(s) {
         $scope.data.activeSection = s;
@@ -4000,18 +4000,48 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             $scope.sensors = result.data.sensors;
             
             if ($scope.sensors.length === 0) {
-                $scope.sensors_counthdr = "No I2C device registered" ;
+                $scope.sensors_counthdr = "No I2C device registered for I2C " + $scope.data.activeSection.toString();
             }
             else if ($scope.sensors.length === 1) {
-                $scope.sensors_counthdr = "1 I2C device registered";
+                $scope.sensors_counthdr = "1 I2C device registered for I2C " + $scope.data.activeSection.toString();
             }
             else {
-                $scope.sensors_counthdr = $scope.sensors.length.toString() + " I2C devices registered";
+                $scope.sensors_counthdr = $scope.sensors.length.toString() + " I2C devices registered for I2C " + $scope.data.activeSection.toString();
             }
         })
         .catch(function (error) {
             handle_error(error);
         }); 
+    };
+
+
+    $scope.processSensor = function(sensor) {
+        
+        param = {
+            'username': $scope.data.username,
+            'token':$scope.data.token,
+            'devicename': $scope.data.devicename,
+            'devicestatus': $scope.data.devicestatus,
+            'deviceid': $scope.data.deviceid,
+            'serialnumber': $scope.data.serialnumber,
+        };
+        param.sensor = sensor;
+        
+        if (sensor.class === "light") {
+            $state.go('light', param);
+        }
+        else if (sensor.class === "temperature") {
+            $state.go('temperature', param);
+        }
+        else if (sensor.class === "speaker") {
+            $state.go('speaker', param);
+        }
+        else if (sensor.class === "display") {
+            $state.go('display', param);
+        }
+        else if (sensor.class === "potentiometer") {
+            $state.go('potentiometer', param);
+        }
     };
 
 
@@ -4133,6 +4163,276 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
     };
 }])
    
+.controller('lightCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+// You can include any angular dependencies as parameters for this function
+// TIP: Access Route Parameters for your page via $stateParams.parameterName
+function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token) {
+
+    var server = Server.rest_api;
+
+    $scope.endpoints = [
+        { "id":0,  "label": "Manual"   },
+        { "id":1,  "label": "Hardware" },
+    ];
+
+
+    $scope.data = {
+        'username': User.get_username(),
+        'token': User.get_token(),
+        'devicename': $stateParams.devicename,
+        'devicestatus': $stateParams.devicestatus,
+        'deviceid': $stateParams.deviceid,
+        'serialnumber': $stateParams.serialnumber,
+        
+        'sensor': $stateParams.sensor,
+        
+        
+        'colorstr': '#000000',
+        'colorRED'  : 0,
+        'colorGREEN': 0,
+        'colorBLUE' : 0,
+        
+        'attributes': {
+            'endpoint': $scope.endpoints[0].id,
+            'hardware': {
+                'devicename': '',  
+                'sensorname': '',  
+            },
+            'color': 0,
+            'brightness': 100,
+            'timeout': 1,
+        }
+    };
+
+    $scope.computeHexCode = function() {
+        let red   = ("0" + parseInt($scope.data.colorRED, 10).toString(16)).slice(-2).toUpperCase();
+        let green = ("0" + parseInt($scope.data.colorGREEN, 10).toString(16)).slice(-2).toUpperCase();
+        let blue  = ("0" + parseInt($scope.data.colorBLUE, 10).toString(16)).slice(-2).toUpperCase();
+        $scope.data.colorstr = "#" + red + green + blue;
+        $scope.data.color = parseInt("0x" + red + green + blue, 16);
+    };
+
+    $scope.computeBrightness = function() {
+        $scope.data.attributes.brightness = parseInt($scope.data.attributes.brightness, 10);
+    };
+    
+    $scope.computeRGB = function(keyEvent) {
+        if (keyEvent.which === 13) {
+            //console.log($scope.data.colorRED);
+            let color = $scope.data.colorstr.replace("#", "0x");
+            $scope.data.color = parseInt($scope.data.colorstr.replace("#", "0x"), 16);
+            $scope.data.colorRED = $scope.data.color & 0xFF0000;
+            $scope.data.colorGREEN = $scope.data.color & 0x00FF00; 
+            $scope.data.colorBLUE = $scope.data.color & 0x0000FF;
+            //console.log($scope.data.colorRED);
+            //console.log($scope.data.colorGREEN);
+            //console.log($scope.data.colorBLUE);
+        }
+    };
+    
+    
+    $scope.submit = function() {
+        console.log("submit");
+        console.log($scope.data.attributes);    
+    };
+
+    // EXIT PAGE
+    $scope.submitDeviceList = function() {
+        console.log("submitDeviceList");
+        var device_param = {
+            'username': $scope.data.username,
+            'token': $scope.data.token,
+            'devicename': $scope.data.devicename,
+            'devicestatus': $scope.data.devicestatus,
+            'deviceid': $scope.data.deviceid,
+            'serialnumber': $scope.data.serialnumber,
+        };
+        $state.go('deviceI2C', device_param);
+    };
+}])
+   
+.controller('temperatureCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+// You can include any angular dependencies as parameters for this function
+// TIP: Access Route Parameters for your page via $stateParams.parameterName
+function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token) {
+
+    var server = Server.rest_api;
+
+    $scope.data = {
+        'username': User.get_username(),
+        'token': User.get_token(),
+        'devicename': $stateParams.devicename,
+        'devicestatus': $stateParams.devicestatus,
+        'deviceid': $stateParams.deviceid,
+        'serialnumber': $stateParams.serialnumber,
+        
+        'sensor': $stateParams.sensor,
+    };
+
+
+
+
+    // EXIT PAGE
+    $scope.submitDeviceList = function() {
+        console.log("submitDeviceList");
+
+        var device_param = {
+            'username': $scope.data.username,
+            'token': $scope.data.token,
+            'devicename': $scope.data.devicename,
+            'devicestatus': $scope.data.devicestatus,
+            'deviceid': $scope.data.deviceid,
+            'serialnumber': $scope.data.serialnumber,
+        };
+        $state.go('deviceI2C', device_param);
+    };
+}])
+   
+.controller('displayCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+// You can include any angular dependencies as parameters for this function
+// TIP: Access Route Parameters for your page via $stateParams.parameterName
+function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token) {
+
+    var server = Server.rest_api;
+
+    $scope.endpoints = [
+        { "id":0,  "label": "Manual"   },
+        { "id":1,  "label": "Hardware" },
+    ];
+
+    $scope.data = {
+        'username': User.get_username(),
+        'token': User.get_token(),
+        'devicename': $stateParams.devicename,
+        'devicestatus': $stateParams.devicestatus,
+        'deviceid': $stateParams.deviceid,
+        'serialnumber': $stateParams.serialnumber,
+        
+        'sensor': $stateParams.sensor,
+        
+        'attributes': {
+            'endpoint': $scope.endpoints[0].id,
+            'hardware': {
+                'devicename': '',  
+                'sensorname': '',  
+            },
+            'type': 0,
+            'text': 'Hello World!',
+        }        
+    };
+
+    $scope.submit = function() {
+        console.log("submit");  
+        console.log($scope.data.attributes);  
+    };
+
+
+    // EXIT PAGE
+    $scope.submitDeviceList = function() {
+        console.log("submitDeviceList");
+
+        var device_param = {
+            'username': $scope.data.username,
+            'token': $scope.data.token,
+            'devicename': $scope.data.devicename,
+            'devicestatus': $scope.data.devicestatus,
+            'deviceid': $scope.data.deviceid,
+            'serialnumber': $scope.data.serialnumber,
+        };
+        $state.go('deviceI2C', device_param);
+    };
+}])
+   
+.controller('speakerCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+// You can include any angular dependencies as parameters for this function
+// TIP: Access Route Parameters for your page via $stateParams.parameterName
+function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token) {
+
+    var server = Server.rest_api;
+
+    $scope.endpoints = [
+        { "id":0,  "label": "Manual"   },
+        { "id":1,  "label": "Hardware" },
+    ];
+    
+    $scope.data = {
+        'username': User.get_username(),
+        'token': User.get_token(),
+        'devicename': $stateParams.devicename,
+        'devicestatus': $stateParams.devicestatus,
+        'deviceid': $stateParams.deviceid,
+        'serialnumber': $stateParams.serialnumber,
+        
+        'sensor': $stateParams.sensor,
+        
+        'attributes': {
+            'endpoint': $scope.endpoints[0].id,
+            'hardware': {
+                'devicename': '',  
+                'sensorname': '',  
+            },
+        }
+    };
+
+    $scope.submit = function() {
+        console.log("submit");
+        console.log($scope.data.attributes);  
+    };
+
+
+    // EXIT PAGE
+    $scope.submitDeviceList = function() {
+        console.log("submitDeviceList");
+
+        var device_param = {
+            'username': $scope.data.username,
+            'token': $scope.data.token,
+            'devicename': $scope.data.devicename,
+            'devicestatus': $scope.data.devicestatus,
+            'deviceid': $scope.data.deviceid,
+            'serialnumber': $scope.data.serialnumber,
+        };
+        $state.go('deviceI2C', device_param);
+    };
+}])
+   
+.controller('potentiometerCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+// You can include any angular dependencies as parameters for this function
+// TIP: Access Route Parameters for your page via $stateParams.parameterName
+function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token) {
+
+    var server = Server.rest_api;
+
+    $scope.data = {
+        'username': User.get_username(),
+        'token': User.get_token(),
+        'devicename': $stateParams.devicename,
+        'devicestatus': $stateParams.devicestatus,
+        'deviceid': $stateParams.deviceid,
+        'serialnumber': $stateParams.serialnumber,
+        
+        'sensor': $stateParams.sensor,
+    };
+
+
+
+
+    // EXIT PAGE
+    $scope.submitDeviceList = function() {
+        console.log("submitDeviceList");
+
+        var device_param = {
+            'username': $scope.data.username,
+            'token': $scope.data.token,
+            'devicename': $scope.data.devicename,
+            'devicestatus': $scope.data.devicestatus,
+            'deviceid': $scope.data.deviceid,
+            'serialnumber': $scope.data.serialnumber,
+        };
+        $state.go('deviceI2C', device_param);
+    };
+}])
+   
 .controller('addI2CDeviceCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
 // You can include any angular dependencies as parameters for this function
 // TIP: Access Route Parameters for your page via $stateParams.parameterName
@@ -4141,38 +4441,59 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
     var server = Server.rest_api;
 
     $scope.manufacturers = [
-        { "id":0,  "name": "Adafruit", "default": false },
-        { "id":1,  "name": "Sparkfun", "default": false },
-        { "id":2,  "name": "Electronic Dollar Store", "default": true },
+        { "id":0,  "name": "Adafruit" },
+        { "id":1,  "name": "Sparkfun" },
+        { "id":2,  "name": "Electronic Dollar Store" },
     ];
 
     $scope.devicemodels_ada = [{ "id":0,  "model": "N/A" }];
     $scope.devicemodels_spf = [{ "id":0,  "model": "N/A" }];
     $scope.devicemodels_eds = [
-        { "id":0,  "model": "BEEP", 
+        { 
+            "id":0,  
+            "model": "BEEP", 
             "name": "Piezoelectric Beeper", 
             "desc": "Beeps a MIDI tone",
-            "link": "https://electricdollarstore.com/beep.html" },
-
-        { "id":1,  "model": "DIGI", 
+            "link": "https://electricdollarstore.com/beep.html",
+            "class": "speaker",
+            "attributes": [],
+        },
+        {   
+            "id":1,  
+            "model": "DIGI", 
             "name": "Digit Display",        
             "desc": "2-digit seven segment display",  
-            "link": "https://electricdollarstore.com/dig2.html" },
-
-        { "id":2,  "model": "LED",  
+            "link": "https://electricdollarstore.com/dig2.html",
+            "class": "display",
+            "attributes": [],
+        },
+        { 
+            "id":2,  
+            "model": "LED",  
             "name": "RGB LED",
             "desc": "LED brightness control capable",  
-            "link": "https://electricdollarstore.com/led.html"  },
-
-        { "id":3,  "model": "POT",  
+            "link": "https://electricdollarstore.com/led.html",
+            "class": "light",
+            "attributes": [],
+        },
+        { 
+            "id":3,  
+            "model": "POT",  
             "name": "Potentiometer",
             "desc": "Input range device",  
-            "link": "https://electricdollarstore.com/pot.html"  },
-
-        { "id":4,  "model": "TEMP", 
+            "link": "https://electricdollarstore.com/pot.html",
+            "class": "potentiometer",
+            "attributes": [],
+        },
+        {   
+            "id":4,  
+            "model": "TEMP", 
             "name": "Temperature Sensor",   
             "desc": "Input thresholded device",   
-            "link": "https://electricdollarstore.com/temp.html" },
+            "link": "https://electricdollarstore.com/temp.html",
+            "class": "temperature",
+            "attributes": [],
+        },
     ];
     $scope.devicemodels = $scope.devicemodels_eds;
  
@@ -4195,6 +4516,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             'name'  : $scope.devicemodels[0].name,
             'desc'  : $scope.devicemodels[0].desc,
             'link'  : $scope.devicemodels[0].link,
+            'class' : $scope.devicemodels[0].class,
+            'attributes' : $scope.devicemodels[0].attributes,
         }
     };
 
@@ -4212,6 +4535,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         $scope.data.i2c.name         = $scope.devicemodels[$scope.data.i2c.devicemodelid].name,
         $scope.data.i2c.desc         = $scope.devicemodels[$scope.data.i2c.devicemodelid].desc,
         $scope.data.i2c.link         = $scope.devicemodels[$scope.data.i2c.devicemodelid].link,
+        $scope.data.i2c.class        = $scope.devicemodels[$scope.data.i2c.devicemodelid].class,
+        $scope.data.i2c.attributes   = $scope.devicemodels[$scope.data.i2c.devicemodelid].attributes,
         
         $state.go('addI2CDeviceDetails', $scope.data);        
     };
@@ -4309,6 +4634,12 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             'manufacturer': $stateParams.i2c.manufacturer,
             'model': $stateParams.i2c.model,
             'address': 0xFF,
+
+            'class': $stateParams.i2c.class,
+            'attributes': $stateParams.i2c.attributes,
+            //'name': $stateParams.i2c.name,
+            //'desc': $stateParams.i2c.desc,
+            //'link': $stateParams.i2c.link,
         }
     };
 
@@ -4366,6 +4697,13 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         console.log($scope.data.sensor.manufacturer);
         console.log($scope.data.sensor.model);
         console.log($scope.data.sensor.address);
+        
+        console.log($scope.data.sensor.class);
+        console.log($scope.data.sensor.attributes);
+        //console.log($scope.data.sensor.name);
+        //console.log($scope.data.sensor.desc);
+        //console.log($scope.data.sensor.link);
+
 
         sensor_param = $scope.data.sensor;
         add_i2c_sensor(sensor_param);
@@ -4393,7 +4731,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         .then(function (result) {
             console.log(result.data);
             
-            $ionicPopup.alert({ title: 'Success', template: 'Sensor added successfully!',
+            template = 'Sensor added successfully to I2C ' + $scope.data.i2cnumber.toString() + '!'
+            $ionicPopup.alert({ title: 'Success', template: template,
                 buttons: [{ text: 'OK', type: 'button-positive',
                     onTap: function(e) {
                         $state.go('deviceI2C', {
@@ -4695,7 +5034,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Device
     
     $scope.submitRefresh = function() {
     
-        Devices.fetch($scope.data).then(function(res) {
+        Devices.fetch($scope.data, "").then(function(res) {
             var i;
             for (i=0; i<res.length; i++) {
                 var result = $scope.devices.includes(res[i].devicename);

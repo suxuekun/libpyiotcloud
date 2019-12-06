@@ -6,6 +6,12 @@
     <button class="button button-positive icon ion-refresh" ng-click="getI2CSensors()"></button>
   </ion-nav-buttons>
   <ion-content padding="true" class="has-header">
+    <div class="spacer" style="width: 300px; height: 12px;"></div>
+    <div id="deviceI2C-markdown73" style="text-align:center;" class="show-list-numbers-and-dots">
+      <p style="color:#387EF5;font-size:18px;">
+        <strong> {{ data.devicename }} </strong>
+      </p>
+    </div>
     <div id="deviceI2C-button-bar6" class="button-bar">
       <button id="deviceI2C-button75" ng-class="{'active': data.activeSection==1}" ng-click="changeSection(1)" class="button button-positive button-small button-block">I2C 1</button>
       <button id="deviceI2C-button76" ng-class="{'active': data.activeSection==2}" ng-click="changeSection(2)" class="button button-positive button-small button-block">I2C 2</button>
@@ -19,7 +25,7 @@
       <p style="color:#AAAAAA;font-size:12px;">{{ sensors_counthdr }}</p>
     </div>
     <ion-list id="deviceI2C-list11">
-      <div class="item item-body" id="deviceI2C-list-item-container5" ng-repeat="sensor in sensors" ng-click="deleteI2CSensor(sensor)">
+      <div class="item item-body" id="deviceI2C-list-item-container5" ng-repeat="sensor in sensors" ng-click="processSensor(sensor)">
         <div id="deviceI2C-markdown65" class="show-list-numbers-and-dots">
           <p style="margin-top:0px;color:#387EF5;font-size:18px;">
             <strong> {{ sensor.sensorname }} </strong>
