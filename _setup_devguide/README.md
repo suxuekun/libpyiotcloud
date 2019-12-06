@@ -557,7 +557,8 @@ DETAILED:
 		   { 'status': 'OK', 'message': string, 
 		     'devices': array[{'devicename': string, 'deviceid': string, 'serialnumber': string, 'timestamp': string, 'heartbeat': string}, ...]}
 		   { 'status': 'NG', 'message': string}
-		   // filter can be the devicename or deviceid
+		   // filter will be applied to devicename and deviceid
+		   // if devicename or deviceid contains the filter string, the device will be returned
 
 		C. ADD DEVICE
 		-  Request:
