@@ -37,7 +37,7 @@ g_firmware_version_MINOR = 1
 g_firmware_version = (g_firmware_version_MAJOR*100 + g_firmware_version_MINOR)
 g_firmware_version_STR = "{}.{}".format(g_firmware_version_MAJOR, g_firmware_version_MINOR)
 
-g_uart_properties = { 'baudrate': 6, 'parity': 1 }
+g_uart_properties = { 'baudrate': 7, 'parity': 0, 'databits': 3, 'stopbits': 0, 'flowcontrol': 0 }
 g_uart_enabled = True
 
 g_gpio_properties = {
@@ -135,7 +135,11 @@ def handle_api(api, subtopic, subpayload):
 
         g_uart_properties = { 
             'baudrate': subpayload["baudrate"], 
-            'parity': subpayload["parity"] } 
+            'parity': subpayload["parity"],
+            'databits': subpayload["databits"],
+            'stopbits': subpayload["stopbits"],
+            'flowcontrol': subpayload["flowcontrol"],
+        }
 
         payload = {}
         payload["value"] = g_uart_properties
