@@ -1,0 +1,56 @@
+<ion-view title="Speaker" hide-back-button="true" cache-view="false" nav-transition="none" id="page31" class="page_width">
+  <ion-nav-buttons side="left" class="has-header">
+    <button class="button button-icon icon ion-android-close" ng-click="submitDeviceList()"></button>
+  </ion-nav-buttons>
+  <ion-nav-buttons side="right" class="has-header">
+    <button class="button button-positive icon ion-refresh" ng-click="getI2CSensors()"></button>
+  </ion-nav-buttons>
+  <ion-content padding="true" class="has-header">
+    <div class="spacer" style="width: 300px; height: 12px;"></div>
+    <div id="speaker-markdown82" style="text-align:center;" class="show-list-numbers-and-dots">
+      <p style="color:#387EF5;font-size:18px;">
+        <strong> {{ data.devicename }} </strong>
+      </p>
+    </div>
+    <div id="speaker-markdown84" style="text-align:center;" class="show-list-numbers-and-dots">
+      <p style="color:#444444;font-size:18px;">
+        <strong> {{ data.sensor.sensorname }} </strong> - I2C {{ data.sensor.number }}</p>
+    </div>
+    <div class="spacer" style="width: 300px; height: 20px;"></div>
+    <form id="speaker-form72" class="list">
+      <div id="speaker-markdown97" class="show-list-numbers-and-dots">
+        <p style="color:#387EF5;">Source endpoint</p>
+      </div>
+      <label class="item item-select" id="speaker-select32">
+        <span class="input-label"></span>
+        <select ng-model="data.attributes.endpoint" ng-options="endpoint.id as endpoint.label for endpoint in endpoints"></select>
+      </label>
+    </form>
+    <form id="speaker-form74" class="list" ng-show="data.attributes.endpoint==1">
+      <div id="speaker-markdown99" class="show-list-numbers-and-dots">
+        <p style="color:#387EF5;">Hardware</p>
+      </div>
+      <label class="item item-select" id="speaker-select34">
+        <span class="input-label">IoT Modem</span>
+        <select></select>
+      </label>
+      <label class="item item-select" id="speaker-select35">
+        <span class="input-label">I2C Device</span>
+        <select></select>
+      </label>
+    </form>
+    <form id="speaker-form77" class="list">
+      <div id="speaker-markdown98" class="show-list-numbers-and-dots">
+        <p style="color:#387EF5;">Select MIDI file to play</p>
+      </div>
+      <label class="item item-select" id="speaker-select36">
+        <span class="input-label"></span>
+        <select></select>
+      </label>
+    </form>
+    <form id="speaker-form75" class="list">
+      <button id="speaker-button84" ng-click="submit()" class="button button-positive button-block">SAVE</button>
+      <div class="spacer" style="height: 100px;"></div>
+    </form>
+  </ion-content>
+</ion-view>

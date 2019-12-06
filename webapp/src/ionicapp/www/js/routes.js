@@ -260,6 +260,81 @@ angular.module('app.routes', [])
     controller: 'deviceI2CCtrl'
   })
 
+  .state('light', {
+    url: '/page_light',
+	params: {
+		devicename: "",
+		username: "",
+		token: "",
+		devicestatus: "",
+		deviceid: "",
+		serialnumber: "",
+		sensor: ""		
+},
+    templateUrl: 'templates/light.html',
+    controller: 'lightCtrl'
+  })
+
+  .state('temperature', {
+    url: '/page_temperature',
+	params: {
+		devicename: "",
+		username: "",
+		token: "",
+		devicestatus: "",
+		deviceid: "",
+		serialnumber: "",
+		sensor: ""		
+},
+    templateUrl: 'templates/temperature.html',
+    controller: 'temperatureCtrl'
+  })
+
+  .state('display', {
+    url: '/page_display',
+	params: {
+		devicename: "",
+		username: "",
+		token: "",
+		devicestatus: "",
+		deviceid: "",
+		serialnumber: "",
+		sensor: ""		
+},
+    templateUrl: 'templates/display.html',
+    controller: 'displayCtrl'
+  })
+
+  .state('speaker', {
+    url: '/page_speaker',
+	params: {
+		devicename: "",
+		username: "",
+		token: "",
+		devicestatus: "",
+		deviceid: "",
+		serialnumber: "",
+		sensor: ""		
+},
+    templateUrl: 'templates/speaker.html',
+    controller: 'speakerCtrl'
+  })
+
+  .state('potentiometer', {
+    url: '/page_potentiometer',
+	params: {
+		devicename: "",
+		username: "",
+		token: "",
+		devicestatus: "",
+		deviceid: "",
+		serialnumber: "",
+		sensor: ""		
+},
+    templateUrl: 'templates/potentiometer.html',
+    controller: 'potentiometerCtrl'
+  })
+
   .state('addI2CDevice', {
     url: '/page_add_i2c_device',
 	params: {

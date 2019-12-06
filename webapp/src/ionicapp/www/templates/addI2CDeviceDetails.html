@@ -8,6 +8,11 @@
   <ion-content padding="true" class="has-header">
     <form id="addI2CDeviceDetails-form59" class="list">
       <div class="spacer" style="width: 300px; height: 10px;"></div>
+      <div id="addI2CDeviceDetails-markdown75" style="text-align:center;" class="show-list-numbers-and-dots">
+        <p style="color:#387EF5;font-size:18px;">
+          <strong> {{ data.devicename }} </strong>
+        </p>
+      </div>
       <div id="addI2CDeviceDetails-markdown60" class="show-list-numbers-and-dots">
         <p style="color:#000000;">Manufacturer</p>
       </div>
@@ -39,11 +44,11 @@
       <div id="addI2CDeviceDetails-markdown21" class="show-list-numbers-and-dots">
         <p style="color:#000000;">Provide the details below</p>
       </div>
-      <label class="item item-input item-stacked-label" id="addI2CDeviceDetails-input87">
+      <label class="item item-input" id="addI2CDeviceDetails-input87">
         <span class="input-label">Name</span>
         <input type="text" placeholder="" ng-model="data.sensorname">
       </label>
-      <label class="item item-input item-stacked-label" id="addI2CDeviceDetails-input88">
+      <label class="item item-input" id="addI2CDeviceDetails-input88">
         <span class="input-label">I2C Address</span>
         <input type="text" placeholder="0x00 - 0xFF" ng-model="data.sensor.address">
       </label>

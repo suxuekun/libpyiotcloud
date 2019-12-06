@@ -254,8 +254,8 @@ class database_client:
     def get_sensors(self, username, devicename, number):
         return self._devices.get_sensors(username, devicename, number)
 
-    def add_sensor(self, username, devicename, number, sensorname, address, manufacturer, model):
-        return self._devices.add_sensor(username, devicename, number, sensorname, address, manufacturer, model)
+    def add_sensor(self, username, devicename, number, sensorname, data):
+        return self._devices.add_sensor(username, devicename, number, sensorname, data)
 
     def delete_sensor(self, username, devicename, number, sensorname):
         self._devices.delete_sensor(username, devicename, number, sensorname)
@@ -846,10 +846,11 @@ class database_client_mongodb:
         if i2csensors:
             for i2csensor in i2csensors.find({'username': username, 'devicename': devicename, 'number': number}):
                 i2csensor.pop('_id')
+                i2csensor.pop('username')
                 sensor_list.append(i2csensor)
         return sensor_list
 
-    def add_sensor(self, username, devicename, number, sensorname, address, manufacturer, model):
+    def add_sensor(self, username, devicename, number, sensorname, data):
         i2csensors = self.get_sensors_document();
         timestamp = str(int(time.time()))
         device = {}
@@ -857,10 +858,11 @@ class database_client_mongodb:
         device['devicename']   = devicename
         device['number']       = number
         device['sensorname']   = sensorname
-        device['address']      = address
-        device['manufacturer'] = manufacturer
-        device['model']        = model
-        i2csensors.insert_one(device)
+        device_all = {}
+        device_all.update(device)
+        device_all.update(data)
+        print(device_all)
+        i2csensors.insert_one(device_all)
         return True
 
     def delete_sensor(self, username, devicename, number, sensorname):
@@ -876,6 +878,7 @@ class database_client_mongodb:
         if i2csensors:
             for i2csensor in i2csensors.find({'username': username, 'devicename': devicename, 'number': number, 'sensorname': sensorname}):
                 i2csensor.pop('_id')
+                i2csensor.pop('username')
                 return i2csensor
         return None
 

@@ -251,8 +251,8 @@ SUMMARY:
 		K. ENABLE/DISABLE GPIO            - POST   /devices/device/DEVICENAME/gpio/NUMBER/enable
 
 		L. GET I2C DEVICES                - GET    /devices/device/DEVICENAME/i2c/NUMBER/sensors
-		M. ADD I2C DEVICES                - POST   /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME
-		N. DELETE I2C DEVICES             - DELETE /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME
+		M. ADD I2C DEVICE                 - POST   /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME
+		N. DELETE I2C DEVICE              - DELETE /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME
 		O. GET I2C DEVICE                 - GET    /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME
 		P. ENABLE/DISABLE I2C             - POST   /devices/device/DEVICENAME/i2c/NUMBER/enable
 
@@ -995,7 +995,7 @@ DETAILED:
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
 		   { 'status': 'OK', 'message': string, 
-		     'sensors': array[{'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'timestamp': string}, ...]}
+		     'sensors': array[{'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'class': string, 'attributes': [], 'timestamp': string}, ...]}
 		   { 'status': 'NG', 'message': string}
 		   // timestamp refers to the epoch time the sensor was registered/added
 
@@ -1003,20 +1003,8 @@ DETAILED:
 		-  Request:
 		   POST /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-		   data: {'address': int, 'manufacturer': string, 'model': string}
-		   // list of manufacturers:
-		      ["Adafruit", "Spark Fun", "Electronic Dollar Store"]
-		         default = "Electronic Dollar Store"
-		   // list of device models supported per manufacturer:
-		      Adafruit: []
-		      Spark Fun: []
-		      Electronic Dollar Store: [
-		         { "model": "BEEP", "name": "Piezoelectric Beeper", "desc": "Beeps a MIDI tone",              "link": "https://electricdollarstore.com/beep.html"},
-		         { "model": "DIGI", "name": "Digit Display",        "desc": "2-digit seven segment display",  "link": "https://electricdollarstore.com/dig2.html"},
-		         { "model": "LED",  "name": "RGB LED",              "desc": "LED brightness control capable", "link": "https://electricdollarstore.com/led.html"},
-		         { "model": "POT",  "name": "Potentiometer",        "desc": "Input range device",             "link": "https://electricdollarstore.com/pot.html"},
-		         { "model": "TEMP", "name": "Temperature Sensor",   "desc": "Input thresholded device",       "link": "https://electricdollarstore.com/temp.html"},
-		      ]
+		   data: {'address': int, 'manufacturer': string, 'model': string, 'class': string, 'attributes': []}
+		   // call GET SUPPORTED I2C DEVICES to get the JSON data contained here: https://ft900-iot-portal.s3.amazonaws.com/supported_i2c_devices.json
 		   // registering a sensor using an already used sensorname returns HTTP_409_CONFLICT with 'Sensor name is already taken'
 		-  Response:
 		   { 'status': 'OK', 'message': string}
@@ -1036,11 +1024,61 @@ DETAILED:
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
 		   { 'status': 'OK', 'message': string, 
-		     'sensor': {'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'timestamp': string} }
+		     'sensor': {'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'class': string, 'attributes': [], 'timestamp': string} }
 		   { 'status': 'NG', 'message': string}
 		   // timestamp refers to the epoch time the sensor was registered/added
+		   // class can be LIGHT, DISPLAY, SPEAKER, TEMPERATURE, POTENTIOMETER
 
-		P. ENABLE/DISABLE I2C
+		P. SET I2C DEVICE
+		-  Request:
+		   POST /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		   data: { "endpoint": int, "hardware": {"devicename": string, "sensorname": string}, "color": int, "brightness": int, 'timeout': int } // LIGHT attributes
+		   data: { "endpoint": int, "hardware": {"devicename": string, "sensorname": string}, "type": int, "text": string } // DISPLAY attributes
+		   data: { "endpoint": int, "hardware": {"devicename": string, "sensorname": string}, "file": {"name": string, "size": int} } // SPEAKER attributes
+		   // class is LIGHT:
+		   //   endpoint is an index to the list source endpoints:
+		   //     ["Manual", "Hardware"]
+		   //   if endpoint is Manual
+		   //     color is an integer value of the hex color 0xRRGGBB where each RR, GG, BB can be 0x00-0xFF
+		   //     brightness is the percentage value. value should be 0-100
+		   //     timeout indicates the number of seconds
+		   //   if endpoint is Hardware
+		   //     color is an integer value of the hex color 0xRRGGBB where each RR, GG, BB can be 0x00-0xFF
+		   //     hardware contains the devicename (input IoT Modem device) and sensorname (input I2C device)
+		   //       devicename is the name of the IoT modem device
+		   //       sensorname is the name of the input I2C device
+		   //     timeout indicates the number of seconds
+		   // class is DISPLAY:
+		   //   endpoint is an index to the list source endpoints:
+		   //     ["Manual", "Hardware"]
+		   //   if endpoint is Manual
+		   //     type is an index to the list of types
+		   //       ["Text", "Decimal", "Hexadecimal"]
+		   //     text is the characters to display
+		   //   if endpoint is Hardware
+		   //     hardware contains the devicename (input IoT Modem device) and sensorname (input I2C device)
+		   //       devicename is the name of the IoT modem device
+		   //       sensorname is the name of the input I2C device
+		   // class is SPEAKER:
+		   //   endpoint is an index to the list source endpoints:
+		   //     ["Manual", "Hardware"]
+		   //   if endpoint is Manual
+		   //     file is the sound/music file to send and play
+		   //       name is the name of the sound/music file to send and play
+		   //       size is the size of the sound/music file to send and play
+		   //   if endpoint is Hardware
+		   //     hardware contains the devicename (input IoT Modem device) and sensorname (input I2C device)
+		   //       devicename is the name of the IoT modem device
+		   //       sensorname is the name of the input I2C device
+		   //     file is the sound/music file to send and play
+		   //       name is the name of the sound/music file to send and play
+		   //       size is the size of the sound/music file to send and play
+		-  Response:
+		   { 'status': 'OK', 'message': string }
+		   { 'status': 'NG', 'message': string}
+
+		Q. ENABLE/DISABLE I2C
 		-  Request:
 		   POST /devices/device/DEVICENAME/i2c/NUMBER/enable
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
