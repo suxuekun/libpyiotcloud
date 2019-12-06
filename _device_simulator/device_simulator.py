@@ -38,6 +38,7 @@ g_firmware_version = (g_firmware_version_MAJOR*100 + g_firmware_version_MINOR)
 g_firmware_version_STR = "{}.{}".format(g_firmware_version_MAJOR, g_firmware_version_MINOR)
 
 g_uart_properties = { 'baudrate': 6, 'parity': 1 }
+g_uart_enabled = True
 
 g_gpio_properties = {
     '1': { 'direction': 0, 'mode': 0, 'alert': 0, 'alertperiod':   0,   'polarity': 0, 'width': 0, 'mark': 0, 'space': 0 },
@@ -46,7 +47,9 @@ g_gpio_properties = {
     '4': { 'direction': 1, 'mode': 2, 'alert': 1, 'alertperiod': 120,   'polarity': 1, 'width': 0, 'mark': 1, 'space': 2 } }
 g_gpio_voltage = 1
 g_gpio_voltages = ['3.3 V', '5 V']
+g_gpio_enabled = [True, True, True, True]
 
+g_i2c_enabled = [True, True, True, True]
 
 
 
@@ -113,7 +116,7 @@ def handle_api(api, subtopic, subpayload):
 
 
     ####################################################
-    # GET/SET UART PROPERTIES
+    # UART
     ####################################################
     elif api == "get_uart_properties":
         topic = generate_pubtopic(subtopic)
@@ -138,9 +141,21 @@ def handle_api(api, subtopic, subpayload):
         payload["value"] = g_uart_properties
         publish(topic, payload)
 
+    elif api == "enable_uart":
+        topic = generate_pubtopic(subtopic)
+        subpayload = json.loads(subpayload)
+        print(subpayload)
+
+        g_uart_enabled = subpayload["enable"]
+        print(g_uart_enabled)
+
+        payload = {}
+        payload["value"] = g_uart_enabled
+        publish(topic, payload)
+
 
     ####################################################
-    # GET/SET GPIO PROPERTIES
+    # GPIO
     ####################################################
     elif api == "get_gpio_properties":
         topic = generate_pubtopic(subtopic)
@@ -190,10 +205,18 @@ def handle_api(api, subtopic, subpayload):
         payload["value"] = value
         publish(topic, payload)
 
+    elif api == "enable_gpio":
+        topic = generate_pubtopic(subtopic)
+        subpayload = json.loads(subpayload)
+        print(subpayload)
 
-    ####################################################
-    # GET/SET GPIO VOLTAGE
-    ####################################################
+        g_gpio_enabled[int(subpayload["number"])-1] = subpayload["enable"]
+        print(g_gpio_enabled)
+
+        payload = {}
+        payload["value"] = g_gpio_enabled[int(subpayload["number"])-1]
+        publish(topic, payload)
+
     elif api == "get_gpio_voltage":
         topic = generate_pubtopic(subtopic)
 
@@ -215,6 +238,27 @@ def handle_api(api, subtopic, subpayload):
         publish(topic, payload)
 
 
+    ####################################################
+    # I2C
+    ####################################################
+
+    elif api == "enable_i2c":
+        topic = generate_pubtopic(subtopic)
+        subpayload = json.loads(subpayload)
+        print(subpayload)
+
+        g_i2c_enabled[int(subpayload["number"])-1] = subpayload["enable"]
+        print(g_i2c_enabled)
+
+        payload = {}
+        payload["value"] = g_i2c_enabled[int(subpayload["number"])-1]
+        publish(topic, payload)
+
+
+
+    ####################################################
+    # OLD REQUIREMENTS
+    ####################################################
 
     elif api == "write_uart":
         topic = generate_pubtopic(subtopic)

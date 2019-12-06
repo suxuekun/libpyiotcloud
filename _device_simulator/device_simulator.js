@@ -16,15 +16,17 @@ var g_firmware_version = (g_firmware_version_MAJOR*100 + g_firmware_version_MINO
 var g_firmware_version_STR = g_firmware_version_MAJOR.toString() + "." + g_firmware_version_MINOR.toString();
 
 var g_uart_properties = { 'baudrate': 6, 'parity': 1 }
+var g_uart_enabled = true
 
 var g_gpio_properties = {
     '1': { 'direction': 0, 'mode': 0, 'alert': 0, 'alertperiod':   0, 'polarity': 0, 'width': 0, 'mark': 0, 'space': 0 },
     '2': { 'direction': 0, 'mode': 3, 'alert': 1, 'alertperiod':  60, 'polarity': 0, 'width': 0, 'mark': 0, 'space': 0 },
     '3': { 'direction': 1, 'mode': 0, 'alert': 0, 'alertperiod':   0, 'polarity': 0, 'width': 0, 'mark': 0, 'space': 0 },
     '4': { 'direction': 1, 'mode': 2, 'alert': 1, 'alertperiod': 120, 'polarity': 1, 'width': 0, 'mark': 1, 'space': 2 } }
-
 var g_gpio_voltage = 1;
+var g_gpio_enabled = [true, true, true, true]
 
+var g_i2c_enabled = [true, true, true, true]
 
 
 
@@ -187,7 +189,7 @@ function handle_api(api, topic, payload) {
 
 
     ////////////////////////////////////////////////////
-    // GET/SET UART PROPERTIES
+    // UART
     ////////////////////////////////////////////////////
     else if (api == "get_uart_properties") {
         pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
@@ -213,10 +215,23 @@ function handle_api(api, topic, payload) {
         console.log(pubtopic);
         console.log(JSON.stringify(response));
     }
+    else if (api == "enable_uart") {
+        pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
+        var obj = JSON.parse(payload);
+
+        g_uart_enabled = obj.enable
+
+        var response = { "value": g_uart_enabled };
+        client.publish(pubtopic, JSON.stringify(response));
+        console.log(g_uart_enabled);
+
+        console.log(pubtopic);
+        console.log(JSON.stringify(response));
+    }
 
 
     ////////////////////////////////////////////////////
-    // GET/SET GPIO PROPERTIES
+    // GPIO
     ////////////////////////////////////////////////////
     else if (api == "get_gpio_properties") {
         pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
@@ -252,11 +267,6 @@ function handle_api(api, topic, payload) {
         console.log(pubtopic);
         console.log(JSON.stringify(response));
     }
-
-
-    ////////////////////////////////////////////////////
-    // GET/SET GPIO VOLTAGE
-    ////////////////////////////////////////////////////
     else if (api == "get_gpio_voltage") {
         pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
         var response = { "value": { "voltage": g_gpio_voltage } };
@@ -277,8 +287,42 @@ function handle_api(api, topic, payload) {
         console.log(pubtopic);
         console.log(JSON.stringify(response));
     }
+    else if (api == "enable_gpio") {
+        pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
+        var obj = JSON.parse(payload);
+
+        g_gpio_enabled[Number(obj.number)-1] = obj.enable
+
+        var response = { "value": g_gpio_enabled[Number(obj.number)-1] };
+        client.publish(pubtopic, JSON.stringify(response));
+        console.log(g_gpio_enabled);
+
+        console.log(pubtopic);
+        console.log(JSON.stringify(response));
+    }
 
 
+    ////////////////////////////////////////////////////
+    // I2C
+    ////////////////////////////////////////////////////
+    else if (api == "enable_i2c") {
+        pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
+        var obj = JSON.parse(payload);
+
+        g_i2c_enabled[Number(obj.number)-1] = obj.enable
+
+        var response = { "value": g_i2c_enabled[Number(obj.number)-1] };
+        client.publish(pubtopic, JSON.stringify(response));
+        console.log(g_i2c_enabled);
+
+        console.log(pubtopic);
+        console.log(JSON.stringify(response));
+    }
+
+
+    ////////////////////////////////////////////////////
+    // OTHERS
+    ////////////////////////////////////////////////////
     else if (api == "write_uart") {
         pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
         var obj = JSON.parse(payload);
