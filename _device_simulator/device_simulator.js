@@ -15,7 +15,7 @@ var g_firmware_version_MINOR = 1;
 var g_firmware_version = (g_firmware_version_MAJOR*100 + g_firmware_version_MINOR);
 var g_firmware_version_STR = g_firmware_version_MAJOR.toString() + "." + g_firmware_version_MINOR.toString();
 
-var g_uart_properties = { 'baudrate': 6, 'parity': 1 }
+var g_uart_properties = { 'baudrate': 7, 'parity': 0, 'databits': 3, 'stopbits': 0, 'flowcontrol': 0 }
 var g_uart_enabled = true
 
 var g_gpio_properties = {
@@ -206,8 +206,11 @@ function handle_api(api, topic, payload) {
         var obj = JSON.parse(payload);
 
         g_uart_properties = {
-            "baudrate" : Number(obj.baudrate), 
-            "parity"   : Number(obj.parity)
+            "baudrate"    : Number(obj.baudrate), 
+            "parity"      : Number(obj.parity),
+            "databits"    : Number(obj.databits),
+            "stopbits"    : Number(obj.stopbits),
+            "flowcontrol" : Number(obj.flowcontrol)
         };
         var response = { "value": g_uart_properties };
         client.publish(pubtopic, JSON.stringify(response));
