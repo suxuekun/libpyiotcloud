@@ -9,6 +9,7 @@
     <form id="deviceUART-form35" class="list">
       <div id="deviceUART-button-bar3" class="button-bar"></div>
       <div class="spacer" style="width: 300px; height: 12px;"></div>
+      <ion-toggle toggle-class="toggle-positive" id="deviceUART-toggle3" ng-model="data.enableUART" ng-change="changeUART(data.enableUART)">Enable</ion-toggle>
       <label class="item item-select" id="deviceUART-select9">
         <span class="input-label">Baud Rate</span>
         <select ng-model="data.uart.baudrate" ng-options="baudrate.id as baudrate.label for baudrate in baudrates"></select>
@@ -16,6 +17,18 @@
       <label class="item item-select" id="deviceUART-select10">
         <span class="input-label">Parity</span>
         <select ng-model="data.uart.parity" ng-options="parity.id as parity.label for parity in parities"></select>
+      </label>
+      <label class="item item-select" id="deviceUART-select21">
+        <span class="input-label">Data Bits</span>
+        <select ng-model="data.uart.databits" ng-options="databit.id as databit.label for databit in databits"></select>
+      </label>
+      <label class="item item-select" id="deviceUART-select22">
+        <span class="input-label">Stop Bits</span>
+        <select ng-model="data.uart.stopbits" ng-options="stopbit.id as stopbit.label for stopbit in stopbits"></select>
+      </label>
+      <label class="item item-select" id="deviceUART-select23">
+        <span class="input-label">Flow Control</span>
+        <select ng-model="data.uart.flowcontrol" ng-options="flowcontrol.id as flowcontrol.label for flowcontrol in flowcontrols"></select>
       </label>
     </form>
     <form id="deviceUART-form22" class="list">

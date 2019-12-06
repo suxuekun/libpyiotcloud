@@ -12,6 +12,9 @@
       <button id="deviceI2C-button77" ng-class="{'active': data.activeSection==3}" ng-click="changeSection(3)" class="button button-positive button-small button-block">I2C 3</button>
       <button id="deviceI2C-button79" ng-class="{'active': data.activeSection==4}" ng-click="changeSection(4)" class="button button-positive button-small button-block">I2C 4</button>
     </div>
+    <form id="deviceI2C-form26" class="list">
+      <ion-toggle toggle-class="toggle-positive" id="deviceI2C-toggle5" ng-model="data.enableI2C" ng-change="changeI2C(data.enableI2C)">Enable</ion-toggle>
+    </form>
     <div id="deviceI2C-markdown37" class="show-list-numbers-and-dots">
       <p style="color:#AAAAAA;font-size:12px;">{{ sensors_counthdr }}</p>
     </div>

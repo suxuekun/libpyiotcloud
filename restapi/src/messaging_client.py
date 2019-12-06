@@ -258,14 +258,15 @@ class messaging_client:
             self.amqp_connected = False
 
     def subscribe_mqtt(self, client, topic, subscribe=True):
-        print("SUB: topic={}".format(topic))
         if client:
             if subscribe:
+                print("SUB: topic={}".format(topic))
                 try:
                     client.subscribe(topic, qos=CONFIG_QOS)
                 except:
                     return False
             else:
+                print("UNSUB: topic={}".format(topic))
                 try:
                     client.unsubscribe(topic)
                 except:

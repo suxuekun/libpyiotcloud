@@ -6,9 +6,9 @@
     <button class="button button-icon icon ion-trash-b" ng-click="deleteDevice()"></button>
   </ion-nav-buttons>
   <ion-content padding="true" class="has-header">
-    <div class="spacer" style="width: 300px; height: 12px;"></div>
+    <div class="spacer" style="height: 12px;"></div>
     <div id="viewDevice-markdown13" style="text-align:center;" class="show-list-numbers-and-dots">
-      <p style="color:#444444;font-size:18px;">
+      <p style="color:#387EF5;font-size:18px;">
         <strong> {{ data.devicename }} </strong>
       </p>
     </div>
@@ -17,18 +17,17 @@
         <span class="input-label">UUID</span>
         <input type="text" placeholder="" ng-model="data.deviceid" readonly="">
       </label>
-      <label class="item item-input" id="viewDevice-input58" name="input-serialnumber">
-        <span class="input-label">Serial Number</span>
-        <input type="text" placeholder="" ng-model="data.serialnumber" readonly="">
-      </label>
-      <label class="item item-input item-stacked-label" id="viewDevice-input59" name="input-timestamp">
-        <span class="input-label">Registration Date</span>
-        <input type="text" placeholder="" ng-model="data.timestamp" readonly="">
-      </label>
-      <label class="item item-input item-stacked-label" id="viewDevice-input89" name="input-heartbeat">
-        <span class="input-label">Last Active</span>
-        <input type="text" placeholder="" ng-model="data.heartbeat" readonly="">
-      </label>
+      <div id="viewDevice-markdown51" class="show-list-numbers-and-dots"></div>
+      <div class="spacer" style="width: 300px; height: 10px;"></div>
+      <div id="viewDevice-markdown38" class="show-list-numbers-and-dots">
+        <p style="color:#444444;font-size:12px;">Serial number: {{ data.serialnumber }}</p>
+      </div>
+      <div id="viewDevice-markdown54" class="show-list-numbers-and-dots">
+        <p style="color:#444444;font-size:12px;">Registration: {{ data.timestamp }}</p>
+      </div>
+      <div id="viewDevice-markdown53" class="show-list-numbers-and-dots">
+        <p style="color:#444444;font-size:12px;">Last active: {{ data.heartbeat }}</p>
+      </div>
     </form>
     <button id="viewDevice-button46" ng-click="configureDevice()" class="button button-positive button-block">Configure Device</button>
     <button id="viewDevice-button21" ng-click="getDevice()" style="text-align:left;" class="button button-positive button-block button-outline icon-right ion-android-arrow-dropright">Query Device</button>
