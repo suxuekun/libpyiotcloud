@@ -40,15 +40,29 @@ g_firmware_version_STR = "{}.{}".format(g_firmware_version_MAJOR, g_firmware_ver
 g_uart_properties = { 'baudrate': 7, 'parity': 0, 'databits': 3, 'stopbits': 0, 'flowcontrol': 0 }
 g_uart_enabled = True
 
-g_gpio_properties = {
-    '1': { 'direction': 0, 'mode': 0, 'alert': 0, 'alertperiod':   0,   'polarity': 0, 'width': 0, 'mark': 0, 'space': 0 },
-    '2': { 'direction': 0, 'mode': 3, 'alert': 1, 'alertperiod':  60,   'polarity': 0, 'width': 0, 'mark': 0, 'space': 0 },
-    '3': { 'direction': 1, 'mode': 0, 'alert': 0, 'alertperiod':   0,   'polarity': 0, 'width': 0, 'mark': 0, 'space': 0 },
-    '4': { 'direction': 1, 'mode': 2, 'alert': 1, 'alertperiod': 120,   'polarity': 1, 'width': 0, 'mark': 1, 'space': 2 } }
+g_gpio_properties = [
+    { 'direction': 0, 'mode': 0, 'alert': 0, 'alertperiod':   0,   'polarity': 0, 'width': 0, 'mark': 0, 'space': 0 },
+    { 'direction': 0, 'mode': 3, 'alert': 1, 'alertperiod':  60,   'polarity': 0, 'width': 0, 'mark': 0, 'space': 0 },
+    { 'direction': 1, 'mode': 0, 'alert': 0, 'alertperiod':   0,   'polarity': 0, 'width': 0, 'mark': 0, 'space': 0 },
+    { 'direction': 1, 'mode': 2, 'alert': 1, 'alertperiod': 120,   'polarity': 1, 'width': 0, 'mark': 1, 'space': 2 } ]
 g_gpio_voltage = 1
 g_gpio_voltages = ['3.3 V', '5 V']
 g_gpio_enabled = [True, True, True, True]
 
+g_i2c_properties = [
+    {
+        { 'address': 0, 'class': 0, 'attributes': {} },
+    },
+    {
+        { 'address': 1, 'class': 1, 'attributes': {} },
+    },
+    {
+        { 'address': 2, 'class': 2, 'attributes': {} },
+    },
+    {
+        { 'address': 3, 'class': 3, 'attributes': {} },
+    }
+]
 g_i2c_enabled = [True, True, True, True]
 
 
@@ -165,7 +179,8 @@ def handle_api(api, subtopic, subpayload):
         topic = generate_pubtopic(subtopic)
         subpayload = json.loads(subpayload)
 
-        value = g_gpio_properties[str(subpayload["number"])]
+        number = int(subpayload["number"])-1
+        value = g_gpio_properties[number]
 
         payload = {}
         payload["value"] = value
@@ -176,7 +191,8 @@ def handle_api(api, subtopic, subpayload):
         subpayload = json.loads(subpayload)
         print(subpayload)
 
-        g_gpio_properties[str(subpayload["number"])] = { 
+        number = int(subpayload["number"])-1
+        g_gpio_properties[number] = { 
             'direction' : subpayload["direction"], 
             'mode' : subpayload["mode"],
             'alert': subpayload["alert"],
@@ -185,7 +201,7 @@ def handle_api(api, subtopic, subpayload):
             'width': subpayload["width"],
             'mark': subpayload["mark"],
             'space': subpayload["space"] }
-        value = g_gpio_properties[str(subpayload["number"])]
+        value = g_gpio_properties[number]
 
         payload = {}
         payload["value"] = value
@@ -198,10 +214,10 @@ def handle_api(api, subtopic, subpayload):
         value = {
             'voltage': g_gpio_voltage,
             'gpios': [
-                {'direction': g_gpio_properties['1']['direction'], 'status': 0},
-                {'direction': g_gpio_properties['2']['direction'], 'status': 0},
-                {'direction': g_gpio_properties['3']['direction'], 'status': 0},
-                {'direction': g_gpio_properties['4']['direction'], 'status': 0},
+                {'direction': g_gpio_properties[0]['direction'], 'status': 0},
+                {'direction': g_gpio_properties[1]['direction'], 'status': 0},
+                {'direction': g_gpio_properties[2]['direction'], 'status': 0},
+                {'direction': g_gpio_properties[3]['direction'], 'status': 0},
             ]
         }
 

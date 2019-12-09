@@ -18,11 +18,11 @@ var g_firmware_version_STR = g_firmware_version_MAJOR.toString() + "." + g_firmw
 var g_uart_properties = { 'baudrate': 7, 'parity': 0, 'databits': 3, 'stopbits': 0, 'flowcontrol': 0 }
 var g_uart_enabled = true
 
-var g_gpio_properties = {
-    '1': { 'direction': 0, 'mode': 0, 'alert': 0, 'alertperiod':   0, 'polarity': 0, 'width': 0, 'mark': 0, 'space': 0 },
-    '2': { 'direction': 0, 'mode': 3, 'alert': 1, 'alertperiod':  60, 'polarity': 0, 'width': 0, 'mark': 0, 'space': 0 },
-    '3': { 'direction': 1, 'mode': 0, 'alert': 0, 'alertperiod':   0, 'polarity': 0, 'width': 0, 'mark': 0, 'space': 0 },
-    '4': { 'direction': 1, 'mode': 2, 'alert': 1, 'alertperiod': 120, 'polarity': 1, 'width': 0, 'mark': 1, 'space': 2 } }
+var g_gpio_properties = [
+    { 'direction': 0, 'mode': 0, 'alert': 0, 'alertperiod':   0, 'polarity': 0, 'width': 0, 'mark': 0, 'space': 0 },
+    { 'direction': 0, 'mode': 3, 'alert': 1, 'alertperiod':  60, 'polarity': 0, 'width': 0, 'mark': 0, 'space': 0 },
+    { 'direction': 1, 'mode': 0, 'alert': 0, 'alertperiod':   0, 'polarity': 0, 'width': 0, 'mark': 0, 'space': 0 },
+    { 'direction': 1, 'mode': 2, 'alert': 1, 'alertperiod': 120, 'polarity': 1, 'width': 0, 'mark': 1, 'space': 2 } ]
 var g_gpio_voltage = 1;
 var g_gpio_enabled = [true, true, true, true]
 
@@ -239,7 +239,7 @@ function handle_api(api, topic, payload) {
     else if (api == "get_gpio_properties") {
         pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
         var obj = JSON.parse(payload);
-        var number = obj.number;
+        var number = Number(obj.number)-1;
 
         console.log(number);
         var response = { "value": g_gpio_properties[number] };
@@ -251,7 +251,7 @@ function handle_api(api, topic, payload) {
     else if (api == "set_gpio_properties") {
         pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
         var obj = JSON.parse(payload);
-        var number = obj.number;
+        var number = Number(obj.number)-1;
         console.log(number);
 
         g_gpio_properties[number] = {
