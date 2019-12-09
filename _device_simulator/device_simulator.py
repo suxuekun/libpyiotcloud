@@ -51,16 +51,16 @@ g_gpio_enabled = [True, True, True, True]
 
 g_i2c_properties = [
     {
-        { 'address': 0, 'class': 0, 'attributes': {} },
+        '0': { 'class': 0, 'attributes': {} },
     },
     {
-        { 'address': 1, 'class': 1, 'attributes': {} },
+        '0': { 'class': 0, 'attributes': {} },
     },
     {
-        { 'address': 2, 'class': 2, 'attributes': {} },
+        '0': { 'class': 0, 'attributes': {} },
     },
     {
-        { 'address': 3, 'class': 3, 'attributes': {} },
+        '0': { 'class': 0, 'attributes': {} },
     }
 ]
 g_i2c_enabled = [True, True, True, True]
@@ -98,6 +98,17 @@ def publish(topic, payload):
 
 def generate_pubtopic(subtopic):
     return CONFIG_PREPEND_REPLY_TOPIC + CONFIG_SEPARATOR + subtopic
+
+def setClassAttributes(device_class, class_attributes):
+    attributes = None
+    if class_attributes.get("number"):
+        class_attributes.pop("number")
+    if class_attributes.get("class"):
+        class_attributes.pop("class")
+    if class_attributes.get("address"):
+        class_attributes.pop("address")
+    attributes = class_attributes
+    return attributes
 
 def handle_api(api, subtopic, subpayload):
     global g_device_status, g_uart_properties
@@ -274,6 +285,44 @@ def handle_api(api, subtopic, subpayload):
         payload["value"] = g_i2c_enabled[int(subpayload["number"])-1]
         publish(topic, payload)
 
+    elif api == "get_i2c_device_properties":
+        topic = generate_pubtopic(subtopic)
+        subpayload = json.loads(subpayload)
+
+        number = int(subpayload["number"])-1
+        address = str(subpayload["address"])
+        value = None 
+        try:
+            if g_i2c_properties[number].get(address):
+                value = g_i2c_properties[number][address]["attributes"]
+                print()
+                print(value)
+                print()
+        except:
+            pass
+
+        payload = {}
+        if value is not None:
+            payload["value"] = value
+        publish(topic, payload)
+
+    elif api == "set_i2c_device_properties":
+        topic = generate_pubtopic(subtopic)
+        subpayload = json.loads(subpayload)
+        print(subpayload)
+
+        number = int(subpayload["number"])-1
+        address = str(subpayload["address"])
+        device_class = subpayload["class"]
+        g_i2c_properties[number][address] = {
+            'class': device_class,
+            'attributes' : setClassAttributes(device_class, subpayload) }
+        print()
+        print(g_i2c_properties[number])
+        print()
+
+        payload = {}
+        publish(topic, payload)
 
 
     ####################################################
