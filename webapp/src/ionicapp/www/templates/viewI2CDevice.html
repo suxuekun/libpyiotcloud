@@ -1,0 +1,44 @@
+<ion-view title="View I2C Device" hide-back-button="true" cache-view="false" nav-transition="none" id="page28" class="page_width">
+  <ion-nav-buttons side="left" class="has-header">
+    <button class="button button-icon icon ion-android-close" ng-click="processI2CSensor()"></button>
+  </ion-nav-buttons>
+  <ion-nav-buttons side="right" class="has-header">
+    <button class="button button-positive icon ion-trash-b" ng-click="deleteI2CSensor()"></button>
+  </ion-nav-buttons>
+  <ion-content padding="true" class="has-header">
+    <div class="spacer" style="width: 300px; height: 12px;"></div>
+    <div id="viewI2CDevice-markdown76" style="text-align:center;" class="show-list-numbers-and-dots">
+      <p style="color:#387EF5;font-size:18px;">
+        <strong> {{ data.devicename }} </strong>
+      </p>
+    </div>
+    <button id="viewI2CDevice-button97" ng-click="processI2CSensor()" style="font-weight:500;font-size:18px;" class="button button-dark button-block button-clear icon-right ion-android-settings">{{ data.sensor.sensorname }} - I2C {{ data.sensor.number }}</button>
+    <form id="viewI2CDevice-form31" class="list">
+      <div class="spacer" style="width: 480px; height: 20px;"></div>
+      <div id="viewI2CDevice-markdown89" class="show-list-numbers-and-dots">
+        <p style="color:#387EF5;">Manufacturer</p>
+      </div>
+      <div id="viewI2CDevice-markdown101" class="show-list-numbers-and-dots">
+        <p style="color:#444444;font-size:18px;">{{ data.sensor.manufacturer }}</p>
+      </div>
+      <div id="viewI2CDevice-markdown102" class="show-list-numbers-and-dots">
+        <p style="color:#387EF5;">Model</p>
+      </div>
+      <div id="viewI2CDevice-markdown103" class="show-list-numbers-and-dots">
+        <p style="color:#444444;font-size:18px;">{{ data.sensor.model }}</p>
+      </div>
+      <div id="viewI2CDevice-markdown104" class="show-list-numbers-and-dots">
+        <p style="color:#387EF5;">Address</p>
+      </div>
+      <div id="viewI2CDevice-markdown105" class="show-list-numbers-and-dots">
+        <p style="color:#444444;font-size:18px;">{{ data.sensor.address }}</p>
+      </div>
+      <div id="viewI2CDevice-markdown106" class="show-list-numbers-and-dots">
+        <p style="color:#387EF5;">Class</p>
+      </div>
+      <div id="viewI2CDevice-markdown122" class="show-list-numbers-and-dots">
+        <p style="color:#444444;font-size:18px;">{{ data.sensor.class }}</p>
+      </div>
+    </form>
+  </ion-content>
+</ion-view>

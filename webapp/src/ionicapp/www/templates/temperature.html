@@ -3,7 +3,7 @@
     <button class="button button-icon icon ion-android-close" ng-click="submitDeviceList()"></button>
   </ion-nav-buttons>
   <ion-nav-buttons side="right" class="has-header">
-    <button class="button button-positive icon ion-refresh" ng-click="getI2CSensors()"></button>
+    <button class="button button-positive icon ion-refresh" ng-click="submitRefresh()"></button>
   </ion-nav-buttons>
   <ion-content padding="true" class="has-header">
     <div class="spacer" style="width: 300px; height: 12px;"></div>
@@ -12,9 +12,78 @@
         <strong> {{ data.devicename }} </strong>
       </p>
     </div>
-    <div id="temperature-markdown79" style="text-align:center;" class="show-list-numbers-and-dots">
-      <p style="color:#444444;font-size:18px;">
-        <strong> {{ data.sensor.sensorname }} </strong> - I2C {{ data.sensor.number }}</p>
-    </div>
+    <button id="temperature-button93" ng-click="viewI2CDevice()" style="font-weight:500;font-size:18px;" class="button button-dark button-block button-clear icon-right ion-android-settings">{{ data.sensor.sensorname }} - I2C {{ data.sensor.number }}</button>
+    <div class="spacer" style="width: 300px; height: 20px;"></div>
+    <form id="temperature-form83" class="list">
+      <div id="temperature-markdown111" class="show-list-numbers-and-dots">
+        <p style="color:#387EF5;">Threshold</p>
+      </div>
+      <label class="item item-input" id="temperature-input120">
+        <span class="input-label">Minimum Limit</span>
+        <input type="text" placeholder="" ng-model="data.attributes.threshold.min">
+      </label>
+      <label class="item item-input" id="temperature-input121">
+        <span class="input-label">Maximum Limit</span>
+        <input type="text" placeholder="" ng-model="data.attributes.threshold.max">
+      </label>
+      <label class="item item-select" id="temperature-select37">
+        <span class="input-label">Activate when</span>
+        <select ng-model="data.attributes.threshold.activate" ng-options="activate.id as activate.label for activate in activates"></select>
+      </label>
+    </form>
+    <form id="temperature-form84" class="list">
+      <div id="temperature-markdown112" class="show-list-numbers-and-dots">
+        <p style="color:#387EF5;">Alert</p>
+      </div>
+      <label class="item item-select" id="temperature-select38">
+        <span class="input-label">Type</span>
+        <select ng-model="data.attributes.alert.type" ng-options="alert.id as alert.label for alert in alerts"></select>
+      </label>
+      <label class="item item-input" id="temperature-input123">
+        <span class="input-label">Period (milliseconds)</span>
+        <input type="text" placeholder="" ng-model="data.attributes.alert.period">
+      </label>
+    </form>
+    <form id="temperature-form85" class="list">
+      <div id="temperature-markdown113" class="show-list-numbers-and-dots">
+        <p style="color:#387EF5;">Notification settings</p>
+      </div>
+      <ion-toggle toggle-class="toggle-positive" id="temperature-toggle25" ng-change="changeNotification(data.showNotification)" ng-model="data.showNotification">Show</ion-toggle>
+    </form>
+    <form id="temperature-form86" class="list" ng-show="data.showNotification==1">
+      <div id="temperature-markdown109" class="show-list-numbers-and-dots">
+        <p style="color:#387EF5;">Messages</p>
+      </div>
+      <ion-checkbox id="temperature-checkbox20" ng-model="data.attributes.notification.messages[0].enable">Message on activation</ion-checkbox>
+      <label class="item item-input" id="temperature-textarea12">
+        <span class="input-label"></span><textarea placeholder="" ng-model="data.attributes.notification.messages[0].message"></textarea></label>
+      <ion-checkbox id="temperature-checkbox19" ng-model="data.attributes.notification.messages[1].enable">Message on deactivation</ion-checkbox>
+      <label class="item item-input" id="temperature-textarea13">
+        <span class="input-label"></span><textarea placeholder="" ng-model="data.attributes.notification.messages[1].message"></textarea></label>
+    </form>
+    <form id="temperature-form87" class="list" ng-show="data.showNotification==1">
+      <div id="temperature-markdown110" class="show-list-numbers-and-dots">
+        <p style="color:#387EF5;">Recipients</p>
+      </div>
+      <ion-checkbox id="temperature-checkbox21" ng-model="data.attributes.notification.endpoints.email.enable">Send SMS to</ion-checkbox>
+      <label class="item item-input" id="temperature-input129">
+        <input type="text" placeholder="" ng-model="data.attributes.notification.endpoints.email.recipients">
+      </label>
+      <ion-checkbox id="temperature-checkbox22" ng-model="data.attributes.notification.endpoints.mobile.enable">Send email to</ion-checkbox>
+      <label class="item item-input" id="temperature-input130">
+        <input type="text" placeholder="" ng-model="data.attributes.notification.endpoints.mobile.recipients">
+      </label>
+      <ion-checkbox id="temperature-checkbox23" ng-model="data.attributes.notification.endpoints.notification.enable">Send notification to</ion-checkbox>
+      <label class="item item-input" id="temperature-input131">
+        <input type="text" placeholder="" ng-model="data.attributes.notification.endpoints.notification.recipients">
+      </label>
+      <ion-checkbox id="temperature-checkbox24" ng-model="data.attributes.notification.endpoints.modem.enable">Send to IoT Modem</ion-checkbox>
+      <label class="item item-input" id="temperature-input132">
+        <input type="text" placeholder="" ng-model="data.attributes.notification.endpoints.modem.recipients">
+      </label>
+    </form>
+    <form id="temperature-form92" class="list">
+      <button id="temperature-button90" ng-click="submit()" class="button button-positive button-block">SAVE</button>
+    </form>
   </ion-content>
 </ion-view>
