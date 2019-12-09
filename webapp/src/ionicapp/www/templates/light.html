@@ -1,80 +1,77 @@
-<ion-view title="Light" hide-back-button="true" cache-view="false" nav-transition="none" id="page28" class="page_width">
+<ion-view title="Light" hide-back-button="true" cache-view="false" nav-transition="none" id="page33" class="page_width">
   <ion-nav-buttons side="left" class="has-header">
     <button class="button button-icon icon ion-android-close" ng-click="submitDeviceList()"></button>
   </ion-nav-buttons>
   <ion-nav-buttons side="right" class="has-header">
-    <button class="button button-positive icon ion-refresh" ng-click="getI2CSensors()"></button>
+    <button class="button button-positive icon ion-refresh" ng-click="submitRefresh()"></button>
   </ion-nav-buttons>
   <ion-content padding="true" class="has-header">
     <div class="spacer" style="width: 300px; height: 12px;"></div>
-    <div id="light-markdown76" style="text-align:center;" class="show-list-numbers-and-dots">
+    <div id="light-markdown125" style="text-align:center;" class="show-list-numbers-and-dots">
       <p style="color:#387EF5;font-size:18px;">
         <strong> {{ data.devicename }} </strong>
       </p>
     </div>
-    <div id="light-markdown77" style="text-align:center;" class="show-list-numbers-and-dots">
-      <p style="color:#444444;font-size:18px;">
-        <strong> {{ data.sensor.sensorname }} </strong> - I2C {{ data.sensor.number }}</p>
-    </div>
-    <form id="light-form31" class="list">
+    <button id="light-button92" ng-click="viewI2CDevice()" style="font-weight:500;font-size:18px;" class="button button-dark button-block button-clear icon-right ion-android-settings">{{ data.sensor.sensorname }} - I2C {{ data.sensor.number }}</button>
+    <form id="light-form93" class="list">
       <div class="spacer" style="width: 480px; height: 20px;"></div>
-      <div id="light-markdown89" class="show-list-numbers-and-dots">
+      <div id="light-markdown127" class="show-list-numbers-and-dots">
         <p style="color:#387EF5;">Source endpoint</p>
       </div>
-      <label class="item item-select" id="light-select24">
+      <label class="item item-select" id="light-select41">
         <span class="input-label"></span>
         <select ng-model="data.attributes.endpoint" ng-options="endpoint.id as endpoint.label for endpoint in endpoints"></select>
       </label>
     </form>
-    <form id="light-form53" class="list">
-      <div id="light-markdown86" class="show-list-numbers-and-dots">
+    <form id="light-form94" class="list">
+      <div id="light-markdown128" class="show-list-numbers-and-dots">
         <p style="color:#387EF5;">Color</p>
       </div>
-      <ion-item class="range range-assertive" id="light-range1">Red
+      <ion-item class="range range-assertive" id="light-range5">Red
         <input type="range" value="0" min="0" max="255" step="1" ng-model="data.colorRED" ng-change="computeHexCode()">
       </ion-item>
-      <ion-item class="range range-balanced" id="light-range2">Green
+      <ion-item class="range range-balanced" id="light-range6">Green
         <input type="range" value="0" min="0" max="255" step="1" ng-model="data.colorGREEN" ng-change="computeHexCode()">
       </ion-item>
-      <ion-item class="range range-positive" id="light-range3">Blue
+      <ion-item class="range range-positive" id="light-range7">Blue
         <input type="range" value="0" min="0" max="255" step="1" ng-model="data.colorBLUE" ng-change="computeHexCode()">
       </ion-item>
-      <label class="item item-input" id="light-input93">
+      <label class="item item-input" id="light-input145">
         <span class="input-label">Hex code</span>
         <input type="text" placeholder="#RRGGBB" ng-model="data.colorstr" ng-keypress="computeRGB($event)">
       </label>
     </form>
-    <form id="light-form61" class="list" ng-show="data.attributes.endpoint==0">
-      <div id="light-markdown90" class="show-list-numbers-and-dots">
+    <form id="light-form95" class="list" ng-show="data.attributes.endpoint==0">
+      <div id="light-markdown129" class="show-list-numbers-and-dots">
         <p style="color:#387EF5;">Brightness {{ data.attributes.brightness }}%</p>
       </div>
-      <ion-item class="range range-positive" id="light-range4">
+      <ion-item class="range range-positive" id="light-range8">
         <input type="range" value="50" min="0" max="100" step="1" ng-model="data.attributes.brightness" ng-click="computeBrightness()">
       </ion-item>
     </form>
-    <form id="light-form55" class="list" ng-show="data.attributes.endpoint==1">
-      <div id="light-markdown91" class="show-list-numbers-and-dots">
+    <form id="light-form96" class="list" ng-show="data.attributes.endpoint==1">
+      <div id="light-markdown130" class="show-list-numbers-and-dots">
         <p style="color:#387EF5;">Hardware</p>
       </div>
-      <label class="item item-select" id="light-select25">
+      <label class="item item-select" id="light-select42">
         <span class="input-label">IoT Modem</span>
         <select></select>
       </label>
-      <label class="item item-select" id="light-select26">
+      <label class="item item-select" id="light-select43">
         <span class="input-label">I2C Device</span>
         <select></select>
       </label>
     </form>
-    <form id="light-form62" class="list">
-      <div id="light-markdown100" class="show-list-numbers-and-dots">
+    <form id="light-form97" class="list">
+      <div id="light-markdown131" class="show-list-numbers-and-dots">
         <p style="color:#387EF5;">Timeout (seconds)</p>
       </div>
-      <label class="item item-input" id="light-input99">
+      <label class="item item-input" id="light-input146">
         <input type="number" placeholder="" ng-model="data.attributes.timeout">
       </label>
     </form>
-    <form id="light-form63" class="list">
-      <button id="light-button80" ng-click="submit()" class="button button-positive button-block">SAVE</button>
+    <form id="light-form98" class="list">
+      <button id="light-button91" ng-click="submit()" class="button button-positive button-block">SAVE</button>
       <div class="spacer" style="height: 100px;"></div>
     </form>
   </ion-content>

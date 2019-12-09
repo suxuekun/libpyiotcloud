@@ -3071,7 +3071,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             'direction'   : $scope.directions[0].id,
             'mode'        : $scope.modes[0].id,
             'alert'       : $scope.alerts[0].id,
-            'alertperiod' : 60,
+            'alertperiod' : 60000,
             'polarity'    : $scope.polarities[0].id,
             'width'       : 1,
             'mark'        : 1,
@@ -4163,6 +4163,106 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
     };
 }])
    
+.controller('viewI2CDeviceCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+// You can include any angular dependencies as parameters for this function
+// TIP: Access Route Parameters for your page via $stateParams.parameterName
+function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token) {
+
+    var server = Server.rest_api;
+
+    $scope.data = {
+        'username': User.get_username(),
+        'token': User.get_token(),
+        'devicename': $stateParams.devicename,
+        'devicestatus': $stateParams.devicestatus,
+        'deviceid': $stateParams.deviceid,
+        'serialnumber': $stateParams.serialnumber,
+        
+        'sensor': $stateParams.sensor,
+    };
+    
+    
+    // DELETE I2C SENSOR
+    $scope.deleteI2CSensor = function() {
+        console.log("deleteI2CSensor");
+        
+        $ionicPopup.alert({ title: 'Delete Sensor', template: 'Are you sure you want to delete this sensor?',
+            buttons: [
+                { text: 'No', type: 'button-negative', },
+                { text: 'Yes', type: 'button-assertive',
+                    onTap: function(e) {
+                        delete_i2c_sensor($scope.data.sensor);
+                        $scope.submitDeviceList();
+                    }
+                }
+            ]            
+        });
+    };
+    
+    delete_i2c_sensor = function(sensor) {
+        //
+        // DELETE I2C SENSOR
+        //
+        // - Request:
+        //   DELETE /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/<sensorname>
+        //   headers: { 'Authorization': 'Bearer ' + token.access }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string }
+        //   { 'status': 'NG', 'message': string }
+        //
+        $http({
+            method: 'DELETE',
+            url: server + '/devices/device/' + $scope.data.devicename + '/i2c/' + sensor.number.toString() + '/sensors/sensor/' + sensor.sensorname,
+            headers: {'Authorization': 'Bearer ' + $scope.data.token.access}
+        })
+        .then(function (result) {
+            console.log(result.data);
+        })
+        .catch(function (error) {
+            handle_error(error);
+        }); 
+    };    
+    
+
+    // GO BACK TO SPECIFIC I2C DEVICE PAGE
+    $scope.processI2CSensor = function() {
+        console.log("processI2CSensor");
+        sensor = $scope.data.sensor;
+        param = $scope.data;
+        
+        if (sensor.class === "light") {
+            $state.go('light', param);
+        }
+        else if (sensor.class === "temperature") {
+            $state.go('temperature', param);
+        }
+        else if (sensor.class === "speaker") {
+            $state.go('speaker', param);
+        }
+        else if (sensor.class === "display") {
+            $state.go('display', param);
+        }
+        else if (sensor.class === "potentiometer") {
+            $state.go('potentiometer', param);
+        }        
+    };
+    
+    // EXIT PAGE
+    $scope.submitDeviceList = function() {
+        console.log("submitDeviceList");
+        var device_param = {
+            'username': $scope.data.username,
+            'token': $scope.data.token,
+            'devicename': $scope.data.devicename,
+            'devicestatus': $scope.data.devicestatus,
+            'deviceid': $scope.data.deviceid,
+            'serialnumber': $scope.data.serialnumber,
+        };
+        $state.go('deviceI2C', device_param);
+    };
+}])
+   
 .controller('lightCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
 // You can include any angular dependencies as parameters for this function
 // TIP: Access Route Parameters for your page via $stateParams.parameterName
@@ -4195,7 +4295,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         'attributes': {
             'endpoint': $scope.endpoints[0].id,
             'hardware': {
-                'devicename': '',  
+                'devicename': '',
                 'sensorname': '',  
             },
             'color': 0,
@@ -4233,9 +4333,109 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
     
     $scope.submit = function() {
         console.log("submit");
-        console.log($scope.data.attributes);    
+        console.log($scope.data.attributes);
+        set_i2c_device_properties();
     };
 
+    set_i2c_device_properties = function() {
+        //
+        // SET I2C DEVICE PROPERTIES
+        //
+        // - Request:
+        //   POST /devices/device/<devicename>/i2c/<number>/sensors/sensor/<sensorname>/properties
+        //   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
+        //   data: 
+        //   { 
+        //      'endpoint': int,
+        //      'color': int,
+        //      'brightness': int,
+        //      'timeout': int,
+        //      'hardware': { 'devicename': string, 'sensorname': string }
+        //   }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string }
+        //   { 'status': 'NG', 'message': string }        
+        //
+        $http({
+            method: 'POST',
+            url: server + '/devices/device/' + $scope.data.devicename + '/i2c/' + $scope.data.sensor.number.toString() + '/sensors/sensor/' + $scope.data.sensor.sensorname + '/properties',
+            headers: { 'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json' },
+            data: $scope.data.attributes
+        })
+        .then(function (result) {
+            console.log(result.data);
+            //set_gpio_voltage();
+            $ionicPopup.alert({
+                title: 'I2C device',
+                template: $scope.data.sensor.sensorname + ' on I2C ' + $scope.data.sensor.number.toString() + ' was configured successfully!',
+            });            
+        })
+        .catch(function (error) {
+            handle_error(error, true);
+        }); 
+    };
+
+
+    $scope.submitRefresh = function() {
+        console.log("submitRefresh");
+        console.log($scope.data.attributes);
+        get_i2c_device_properties();
+    };
+
+    get_i2c_device_properties = function() {
+        //
+        // GET I2C DEVICE PROPERTIES
+        //
+        // - Request:
+        //   GET /devices/device/<devicename>/i2c/<number>/sensors/sensor/<sensorname>/properties
+        //   headers: { 'Authorization': 'Bearer ' + token.access }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string }
+        //   { 'status': 'NG', 'message': string }        
+        //
+        $http({
+            method: 'GET',
+            url: server + '/devices/device/' + $scope.data.devicename + '/i2c/' + $scope.data.sensor.number.toString() + '/sensors/sensor/' + $scope.data.sensor.sensorname + '/properties',
+            headers: { 'Authorization': 'Bearer ' + $scope.data.token.access },
+        })
+        .then(function (result) {
+            console.log(result.data);
+            if (result.data.value !== undefined) {
+                $scope.data.attributes = result.data.value;
+                
+                if  ($scope.data.attributes.color !== undefined) {
+                    $scope.data.colorstr = ("00000" + parseInt($scope.data.attributes.color, 10).toString(16)).slice(-6).toUpperCase();
+                    $scope.data.colorstr = "#" + $scope.data.colorstr;
+                    $scope.data.colorRED = $scope.data.attributes.color & 0xFF0000;
+                    $scope.data.colorGREEN = $scope.data.attributes.color & 0x00FF00; 
+                    $scope.data.colorBLUE = $scope.data.attributes.color & 0x0000FF;
+                }
+            }
+        })
+        .catch(function (error) {
+            handle_error(error, true);
+        }); 
+    };
+
+
+
+    // VIEW I2C DEVICE
+    $scope.viewI2CDevice = function() {
+        console.log("viewI2CDevice");
+        var device_param = {
+            'username': $scope.data.username,
+            'token': $scope.data.token,
+            'devicename': $scope.data.devicename,
+            'devicestatus': $scope.data.devicestatus,
+            'deviceid': $scope.data.deviceid,
+            'serialnumber': $scope.data.serialnumber,
+            'sensor': $scope.data.sensor,
+        };
+        $state.go('viewI2CDevice', device_param);
+    };
+    
     // EXIT PAGE
     $scope.submitDeviceList = function() {
         console.log("submitDeviceList");
@@ -4249,6 +4449,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         };
         $state.go('deviceI2C', device_param);
     };
+    
+    $scope.submitRefresh();
 }])
    
 .controller('temperatureCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
@@ -4258,6 +4460,21 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
 
     var server = Server.rest_api;
 
+    $scope.modes = [
+        { "id":0,  "label": "Threshold"  },
+        { "id":1,  "label": "Continuous" },
+    ];
+
+    $scope.activates = [
+        { "id":0,  "label": "Out of range" },
+        { "id":1,  "label": "Within range" },
+    ];
+    
+    $scope.alerts = [
+        { "id":0,  "label": "Once"         },
+        { "id":1,  "label": "Continuously" },
+    ];    
+    
     $scope.data = {
         'username': User.get_username(),
         'token': User.get_token(),
@@ -4267,10 +4484,161 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         'serialnumber': $stateParams.serialnumber,
         
         'sensor': $stateParams.sensor,
+        
+        'attributes': {
+            'threshold': {
+                'min': 0,
+                'max': 100,
+                'activate': $scope.activates[0].id,
+            },
+            'alert': {
+                'type': $scope.alerts[0].id,
+                'period': 60000,
+            },
+            
+            'notification': {
+                'messages': [ 
+                    { 'message': 'Hello World!', 'enable': true },
+                    { 'message': 'Hi World!', 'enable': false },
+                ],
+                'endpoints' : {
+                    'mobile': {
+                        'recipients': '',
+                        'enable': false,
+                        'recipients_list': [],
+                    },
+                    'email': {
+                        'recipients': '',
+                        'enable': false,
+                        'recipients_list': [],
+                    },
+                    'notification': {
+                        'recipients': '',
+                        'enable': false,
+                        'recipients_list': [],
+                    },
+                    'modem': {
+                        'recipients': '',
+                        'enable': false,
+                        'recipients_list': [],
+                    },
+                    'storage': {
+                        'recipients': '',
+                        'enable': false,
+                        'recipients_list': [],
+                    },
+                }
+            }
+        },
+        
+        'showNotification': 0,        
     };
 
+    $scope.changeNotification = function(i) {
+        $scope.data.showNotification = i;
+    };
+    
+    
+    $scope.submitRefresh = function() {
+        console.log("submitRefresh");
+        console.log($scope.data.attributes);
+        get_i2c_device_properties();
+    };
 
+    get_i2c_device_properties = function() {
+        //
+        // GET I2C DEVICE PROPERTIES
+        //
+        // - Request:
+        //   GET /devices/device/<devicename>/i2c/<number>/sensors/sensor/<sensorname>/properties
+        //   headers: { 'Authorization': 'Bearer ' + token.access }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string }
+        //   { 'status': 'NG', 'message': string }        
+        //
+        $http({
+            method: 'GET',
+            url: server + '/devices/device/' + $scope.data.devicename + '/i2c/' + $scope.data.sensor.number.toString() + '/sensors/sensor/' + $scope.data.sensor.sensorname + '/properties',
+            headers: { 'Authorization': 'Bearer ' + $scope.data.token.access },
+        })
+        .then(function (result) {
+            console.log(result.data);
+            if (result.data.value !== undefined) {
+                if (result.data.value.threshold !== undefined) {
+                    $scope.data.attributes = result.data.value;
+                }
+                else {
+                    $scope.data.attributes.notification = result.data.value.notification;
+                }
+            }
+        })
+        .catch(function (error) {
+            handle_error(error, true);
+        }); 
+    };
+    
+    
+    $scope.submit = function() {
+        console.log("submit");
+        console.log($scope.data.attributes);
+        set_i2c_properties();
+    };
 
+    set_i2c_properties = function() {
+        //
+        // SET I2C PROPERTIES
+        //
+        // - Request:
+        //   POST /devices/device/<devicename>/i2c/<number>/sensors/sensor/<sensorname>/properties
+        //   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
+        //   data: 
+        //   { 
+        //      'endpoint': int,
+        //      'color': int,
+        //      'brightness': int,
+        //      'timeout': int,
+        //      'hardware': { 'devicename': string, 'sensorname': string }
+        //   }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string }
+        //   { 'status': 'NG', 'message': string }        
+        //
+        $http({
+            method: 'POST',
+            url: server + '/devices/device/' + $scope.data.devicename + '/i2c/' + $scope.data.sensor.number.toString() + '/sensors/sensor/' + $scope.data.sensor.sensorname + '/properties',
+            headers: { 'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json' },
+            data: $scope.data.attributes
+        })
+        .then(function (result) {
+            console.log(result.data);
+            //set_gpio_voltage();
+            $ionicPopup.alert({
+                title: 'I2C device',
+                template: $scope.data.sensor.sensorname + ' on I2C ' + $scope.data.sensor.number.toString() + ' was configured successfully!',
+            });            
+        })
+        .catch(function (error) {
+            handle_error(error, true);
+        }); 
+    };
+    
+    
+    // VIEW I2C DEVICE
+    $scope.viewI2CDevice = function() {
+        console.log("viewI2CDevice");
+        var device_param = {
+            'username': $scope.data.username,
+            'token': $scope.data.token,
+            'devicename': $scope.data.devicename,
+            'devicestatus': $scope.data.devicestatus,
+            'deviceid': $scope.data.deviceid,
+            'serialnumber': $scope.data.serialnumber,
+            'sensor': $scope.data.sensor,
+        };
+        $state.go('viewI2CDevice', device_param);
+    };
 
     // EXIT PAGE
     $scope.submitDeviceList = function() {
@@ -4286,6 +4654,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         };
         $state.go('deviceI2C', device_param);
     };
+    
+    $scope.submitRefresh();
 }])
    
 .controller('displayCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
@@ -4298,6 +4668,12 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
     $scope.endpoints = [
         { "id":0,  "label": "Manual"   },
         { "id":1,  "label": "Hardware" },
+    ];
+
+    $scope.types = [
+        { "id":0,  "label": "Text"   },
+        { "id":1,  "label": "Decimal" },
+        { "id":2,  "label": "Hexadecimal" },
     ];
 
     $scope.data = {
@@ -4316,17 +4692,129 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
                 'devicename': '',  
                 'sensorname': '',  
             },
-            'type': 0,
+            'type': $scope.types[0].id,
             'text': 'Hello World!',
         }        
     };
 
+
+    $scope.checkboxSelect = function(event) {
+        console.log(event);
+        console.log(event.checked);
+    };
+
     $scope.submit = function() {
-        console.log("submit");  
-        console.log($scope.data.attributes);  
+        console.log("submit");
+        console.log($scope.data.attributes);
+        set_i2c_properties();
+    };
+
+    set_i2c_properties = function() {
+        //
+        // SET I2C PROPERTIES
+        //
+        // - Request:
+        //   POST /devices/device/<devicename>/i2c/<number>/sensors/sensor/<sensorname>/properties
+        //   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
+        //   data: 
+        //   { 
+        //      'endpoint': int,
+        //      'color': int,
+        //      'brightness': int,
+        //      'timeout': int,
+        //      'hardware': { 'devicename': string, 'sensorname': string }
+        //   }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string }
+        //   { 'status': 'NG', 'message': string }        
+        //
+        $http({
+            method: 'POST',
+            url: server + '/devices/device/' + $scope.data.devicename + '/i2c/' + $scope.data.sensor.number.toString() + '/sensors/sensor/' + $scope.data.sensor.sensorname + '/properties',
+            headers: { 'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json' },
+            data: $scope.data.attributes
+        })
+        .then(function (result) {
+            console.log(result.data);
+            //set_gpio_voltage();
+            $ionicPopup.alert({
+                title: 'I2C device',
+                template: $scope.data.sensor.sensorname + ' on I2C ' + $scope.data.sensor.number.toString() + ' was configured successfully!',
+            });            
+        })
+        .catch(function (error) {
+            handle_error(error, true);
+        }); 
     };
 
 
+    $scope.submitRefresh = function() {
+        console.log("submitRefresh");
+        console.log($scope.data.attributes);
+        get_i2c_device_properties();
+    };
+
+    get_i2c_device_properties = function() {
+        //
+        // GET I2C DEVICE PROPERTIES
+        //
+        // - Request:
+        //   GET /devices/device/<devicename>/i2c/<number>/sensors/sensor/<sensorname>/properties
+        //   headers: { 'Authorization': 'Bearer ' + token.access }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string }
+        //   { 'status': 'NG', 'message': string }        
+        //
+        $http({
+            method: 'GET',
+            url: server + '/devices/device/' + $scope.data.devicename + '/i2c/' + $scope.data.sensor.number.toString() + '/sensors/sensor/' + $scope.data.sensor.sensorname + '/properties',
+            headers: { 'Authorization': 'Bearer ' + $scope.data.token.access },
+        })
+        .then(function (result) {
+            console.log(result.data);
+            if (result.data.value !== undefined) {
+                $scope.data.attributes = result.data.value;
+            }
+        })
+        .catch(function (error) {
+            handle_error(error, true);
+        }); 
+    };
+
+
+    // VIEW I2C DEVICE
+    $scope.viewI2CDevice = function() {
+        console.log("viewI2CDevice");
+        var device_param = {
+            'username': $scope.data.username,
+            'token': $scope.data.token,
+            'devicename': $scope.data.devicename,
+            'devicestatus': $scope.data.devicestatus,
+            'deviceid': $scope.data.deviceid,
+            'serialnumber': $scope.data.serialnumber,
+            'sensor': $scope.data.sensor,
+        };
+        $state.go('viewI2CDevice', device_param);
+    };
+    
+    
+    // VIEW I2C DEVICE
+    $scope.viewI2CDevice = function() {
+        console.log("viewI2CDevice");
+        var device_param = {
+            'username': $scope.data.username,
+            'token': $scope.data.token,
+            'devicename': $scope.data.devicename,
+            'devicestatus': $scope.data.devicestatus,
+            'deviceid': $scope.data.deviceid,
+            'serialnumber': $scope.data.serialnumber,
+            'sensor': $scope.data.sensor,
+        };
+        $state.go('viewI2CDevice', device_param);
+    };
+    
     // EXIT PAGE
     $scope.submitDeviceList = function() {
         console.log("submitDeviceList");
@@ -4341,6 +4829,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         };
         $state.go('deviceI2C', device_param);
     };
+    
+    $scope.submitRefresh();
 }])
    
 .controller('speakerCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
@@ -4374,12 +4864,68 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         }
     };
 
+
     $scope.submit = function() {
         console.log("submit");
-        console.log($scope.data.attributes);  
+        console.log($scope.data.attributes);
+        set_i2c_properties();
+    };
+
+    set_i2c_properties = function() {
+        //
+        // SET I2C PROPERTIES
+        //
+        // - Request:
+        //   POST /devices/device/<devicename>/i2c/<number>/sensors/sensor/<sensorname>/properties
+        //   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
+        //   data: 
+        //   { 
+        //      'endpoint': int,
+        //      'color': int,
+        //      'brightness': int,
+        //      'timeout': int,
+        //      'hardware': { 'devicename': string, 'sensorname': string }
+        //   }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string }
+        //   { 'status': 'NG', 'message': string }        
+        //
+        $http({
+            method: 'POST',
+            url: server + '/devices/device/' + $scope.data.devicename + '/i2c/' + $scope.data.sensor.number.toString() + '/sensors/sensor/' + $scope.data.sensor.sensorname + '/properties',
+            headers: { 'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json' },
+            data: $scope.data.attributes
+        })
+        .then(function (result) {
+            console.log(result.data);
+            //set_gpio_voltage();
+            $ionicPopup.alert({
+                title: 'I2C device',
+                template: $scope.data.sensor.sensorname + ' on I2C ' + $scope.data.sensor.number.toString() + ' was configured successfully!',
+            });            
+        })
+        .catch(function (error) {
+            handle_error(error, true);
+        }); 
     };
 
 
+    // VIEW I2C DEVICE
+    $scope.viewI2CDevice = function() {
+        console.log("viewI2CDevice");
+        var device_param = {
+            'username': $scope.data.username,
+            'token': $scope.data.token,
+            'devicename': $scope.data.devicename,
+            'devicestatus': $scope.data.devicestatus,
+            'deviceid': $scope.data.deviceid,
+            'serialnumber': $scope.data.serialnumber,
+            'sensor': $scope.data.sensor,
+        };
+        $state.go('viewI2CDevice', device_param);
+    };
+    
     // EXIT PAGE
     $scope.submitDeviceList = function() {
         console.log("submitDeviceList");
@@ -4403,6 +4949,21 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
 
     var server = Server.rest_api;
 
+    $scope.modes = [
+        { "id":0,  "label": "Threshold"  },
+        { "id":1,  "label": "Continuous" },
+    ];
+
+    $scope.activates = [
+        { "id":0,  "label": "Out of range" },
+        { "id":1,  "label": "Within range" },
+    ];
+    
+    $scope.alerts = [
+        { "id":0,  "label": "Once"         },
+        { "id":1,  "label": "Continuously" },
+    ];    
+    
     $scope.data = {
         'username': User.get_username(),
         'token': User.get_token(),
@@ -4412,10 +4973,162 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         'serialnumber': $stateParams.serialnumber,
         
         'sensor': $stateParams.sensor,
+        
+        'attributes': {
+            'mode': $scope.modes[0].id,
+            'threshold': {
+                'min': 0,
+                'max': 100,
+                'activate': $scope.activates[0].id,
+            },
+            'alert': {
+                'type': $scope.alerts[0].id,
+                'period': 60000,
+            },
+            
+            'notification': {
+                'messages': [ 
+                    { 'message': 'Hello World!', 'enable': true },
+                    { 'message': 'Hi World!', 'enable': false },
+                ],
+                'endpoints' : {
+                    'mobile': {
+                        'recipients': '',
+                        'enable': false,
+                        'recipients_list': [],
+                    },
+                    'email': {
+                        'recipients': '',
+                        'enable': false,
+                        'recipients_list': [],
+                    },
+                    'notification': {
+                        'recipients': '',
+                        'enable': false,
+                        'recipients_list': [],
+                    },
+                    'modem': {
+                        'recipients': '',
+                        'enable': false,
+                        'recipients_list': [],
+                    },
+                    'storage': {
+                        'recipients': '',
+                        'enable': false,
+                        'recipients_list': [],
+                    },
+                }
+            }
+        },
+        
+        'showNotification': 0,        
     };
 
+    $scope.changeNotification = function(i) {
+        $scope.data.showNotification = i;
+    };
+    
+    
+    $scope.submitRefresh = function() {
+        console.log("submitRefresh");
+        console.log($scope.data.attributes);
+        get_i2c_device_properties();
+    };
 
+    get_i2c_device_properties = function() {
+        //
+        // GET I2C DEVICE PROPERTIES
+        //
+        // - Request:
+        //   GET /devices/device/<devicename>/i2c/<number>/sensors/sensor/<sensorname>/properties
+        //   headers: { 'Authorization': 'Bearer ' + token.access }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string }
+        //   { 'status': 'NG', 'message': string }        
+        //
+        $http({
+            method: 'GET',
+            url: server + '/devices/device/' + $scope.data.devicename + '/i2c/' + $scope.data.sensor.number.toString() + '/sensors/sensor/' + $scope.data.sensor.sensorname + '/properties',
+            headers: { 'Authorization': 'Bearer ' + $scope.data.token.access },
+        })
+        .then(function (result) {
+            console.log(result.data);
+            if (result.data.value !== undefined) {
+                if (result.data.value.threshold !== undefined) {
+                    $scope.data.attributes = result.data.value;
+                }
+                else {
+                    $scope.data.attributes.notification = result.data.value.notification;
+                }
+            }
+        })
+        .catch(function (error) {
+            handle_error(error, true);
+        }); 
+    };
+    
+    
+    $scope.submit = function() {
+        console.log("submit");
+        console.log($scope.data.attributes);
+        set_i2c_properties();
+    };
 
+    set_i2c_properties = function() {
+        //
+        // SET I2C PROPERTIES
+        //
+        // - Request:
+        //   POST /devices/device/<devicename>/i2c/<number>/sensors/sensor/<sensorname>/properties
+        //   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
+        //   data: 
+        //   { 
+        //      'endpoint': int,
+        //      'color': int,
+        //      'brightness': int,
+        //      'timeout': int,
+        //      'hardware': { 'devicename': string, 'sensorname': string }
+        //   }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string }
+        //   { 'status': 'NG', 'message': string }        
+        //
+        $http({
+            method: 'POST',
+            url: server + '/devices/device/' + $scope.data.devicename + '/i2c/' + $scope.data.sensor.number.toString() + '/sensors/sensor/' + $scope.data.sensor.sensorname + '/properties',
+            headers: { 'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json' },
+            data: $scope.data.attributes
+        })
+        .then(function (result) {
+            console.log(result.data);
+            //set_gpio_voltage();
+            $ionicPopup.alert({
+                title: 'I2C device',
+                template: $scope.data.sensor.sensorname + ' on I2C ' + $scope.data.sensor.number.toString() + ' was configured successfully!',
+            });            
+        })
+        .catch(function (error) {
+            handle_error(error, true);
+        }); 
+    };
+
+    
+    // VIEW I2C DEVICE
+    $scope.viewI2CDevice = function() {
+        console.log("viewI2CDevice");
+        var device_param = {
+            'username': $scope.data.username,
+            'token': $scope.data.token,
+            'devicename': $scope.data.devicename,
+            'devicestatus': $scope.data.devicestatus,
+            'deviceid': $scope.data.deviceid,
+            'serialnumber': $scope.data.serialnumber,
+            'sensor': $scope.data.sensor,
+        };
+        $state.go('viewI2CDevice', device_param);
+    };
 
     // EXIT PAGE
     $scope.submitDeviceList = function() {
@@ -4431,6 +5144,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         };
         $state.go('deviceI2C', device_param);
     };
+    
+    $scope.submitRefresh();
 }])
    
 .controller('addI2CDeviceCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
@@ -4656,7 +5371,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             if (error.status == 503) {
                 $ionicPopup.alert({ title: 'Error', template: 'Device is unreachable!', buttons: [{text: 'OK', type: 'button-assertive'}] });
             }
-            else if (error.status == 409) {
+            else if (error.status == 409 || error.status == 400) {
                 $ionicPopup.alert({ title: 'Error', template: error.data.message, buttons: [{text: 'OK', type: 'button-assertive'}] });
             }
         }

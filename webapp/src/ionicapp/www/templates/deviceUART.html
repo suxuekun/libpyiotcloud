@@ -15,6 +15,10 @@
         </p>
       </div>
       <ion-toggle toggle-class="toggle-positive" id="deviceUART-toggle3" ng-model="data.enableUART" ng-change="changeUART(data.enableUART)">Enable</ion-toggle>
+      <div class="spacer" style="width: 300px; height: 20px;"></div>
+      <div id="deviceUART-markdown120" class="show-list-numbers-and-dots">
+        <p style="color:#387EF5;">Properties</p>
+      </div>
       <label class="item item-select" id="deviceUART-select9">
         <span class="input-label">Baud Rate</span>
         <select ng-model="data.uart.baudrate" ng-options="baudrate.id as baudrate.label for baudrate in baudrates"></select>
@@ -37,36 +41,30 @@
       </label>
     </form>
     <form id="deviceUART-form22" class="list">
-      <div id="deviceUART-markdown11" class="show-list-numbers-and-dots">
-        <hr>
+      <div id="deviceUART-markdown119" class="show-list-numbers-and-dots">
+        <p style="color:#387EF5;">Notification settings</p>
       </div>
-      <ion-toggle toggle-class="toggle-positive" id="deviceUART-toggle2" ng-change="changeNotification(data.showNotification)" ng-model="data.showNotification">Show Notification Settings</ion-toggle>
+      <ion-toggle toggle-class="toggle-positive" id="deviceUART-toggle2" ng-change="changeNotification(data.showNotification)" ng-model="data.showNotification">Show</ion-toggle>
     </form>
     <form id="deviceUART-form43" class="list" ng-show="data.showNotification==1">
-      <h5 id="deviceUART-heading12" style="color:#444444;">Message</h5>
+      <h5 id="deviceUART-heading12" style="color:#387EF5;font-weight:400;">Message</h5>
       <label class="item item-input" id="deviceUART-textarea4">
         <span class="input-label"></span><textarea placeholder="" ng-model="data.uart.notification.messages[0].message">Type message here</textarea></label>
     </form>
     <form id="deviceUART-form40" class="list" ng-show="data.showNotification==1">
-      <h5 id="deviceUART-heading13" style="color:#444444;">Recipients</h5>
+      <h5 id="deviceUART-heading13" style="color:#387EF5;font-weight:400;">Recipients</h5>
       <ion-checkbox id="deviceUART-checkbox1" ng-model="data.uart.notification.endpoints.email.enable">Send email to </ion-checkbox>
       <label class="item item-input" id="deviceUART-input66">
         <input type="text" placeholder="Email address(es)" ng-model="data.uart.notification.endpoints.email.recipients" readonly="">
       </label>
-    </form>
-    <form id="deviceUART-form38" class="list" ng-show="data.showNotification==1">
       <ion-checkbox id="deviceUART-checkbox2" ng-model="data.uart.notification.endpoints.mobile.enable">Send SMS to </ion-checkbox>
       <label class="item item-input" id="deviceUART-input68">
         <input type="text" placeholder="Phone number(s)" ng-model="data.uart.notification.endpoints.mobile.recipients" readonly="">
       </label>
-    </form>
-    <form id="deviceUART-form41" class="list" ng-show="data.showNotification==1">
       <ion-checkbox id="deviceUART-checkbox3" ng-model="data.uart.notification.endpoints.notification.enable">Send notification to </ion-checkbox>
       <label class="item item-input" id="deviceUART-input67">
         <input type="text" placeholder="Phone number(s)" ng-model="data.uart.notification.endpoints.notification.recipients" readonly="">
       </label>
-    </form>
-    <form id="deviceUART-form42" class="list" ng-show="data.showNotification==1">
       <ion-checkbox id="deviceUART-checkbox4" ng-model="data.uart.notification.endpoints.modem.enable">Send to IoT Modem </ion-checkbox>
       <label class="item item-input" id="deviceUART-input69">
         <input type="text" placeholder="Device name(s)" ng-model="data.uart.notification.endpoints.modem.recipients">

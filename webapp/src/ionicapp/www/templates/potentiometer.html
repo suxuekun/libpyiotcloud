@@ -3,7 +3,7 @@
     <button class="button button-icon icon ion-android-close" ng-click="submitDeviceList()"></button>
   </ion-nav-buttons>
   <ion-nav-buttons side="right" class="has-header">
-    <button class="button button-positive icon ion-refresh" ng-click="getI2CSensors()"></button>
+    <button class="button button-positive icon ion-refresh" ng-click="submitRefresh()"></button>
   </ion-nav-buttons>
   <ion-content padding="true" class="has-header">
     <div class="spacer" style="width: 300px; height: 12px;"></div>
@@ -12,9 +12,87 @@
         <strong> {{ data.devicename }} </strong>
       </p>
     </div>
-    <div id="potentiometer-markdown85" style="text-align:center;" class="show-list-numbers-and-dots">
-      <p style="color:#444444;font-size:18px;">
-        <strong> {{ data.sensor.sensorname }} </strong> - I2C {{ data.sensor.number }}</p>
+    <button id="potentiometer-button96" ng-click="viewI2CDevice()" style="font-weight:500;font-size:18px;" class="button button-dark button-block button-clear icon-right ion-android-settings">{{ data.sensor.sensorname }} - I2C {{ data.sensor.number }}</button>
+    <div class="spacer" style="width: 300px; height: 20px;"></div>
+    <form id="potentiometer-form68" class="list">
+      <div id="potentiometer-markdown117" class="show-list-numbers-and-dots">
+        <p style="color:#387EF5;">Mode</p>
+      </div>
+      <label class="item item-select" id="potentiometer-select28">
+        <span class="input-label"></span>
+        <select ng-model="data.attributes.mode" ng-options="mode.id as mode.label for mode in modes"></select>
+      </label>
+    </form>
+    <div id="potentiometer-markdown115" class="show-list-numbers-and-dots">
+      <p style="color:#387EF5;">Threshold</p>
     </div>
+    <form id="potentiometer-form73" class="list" ng-show="data.attributes.mode==0">
+      <label class="item item-input" id="potentiometer-input103">
+        <span class="input-label">Minimum Limit</span>
+        <input type="text" placeholder="" ng-model="data.attributes.threshold.min">
+      </label>
+      <label class="item item-input" id="potentiometer-input105">
+        <span class="input-label">Maximum Limit</span>
+        <input type="text" placeholder="" ng-model="data.attributes.threshold.max">
+      </label>
+      <label class="item item-select" id="potentiometer-select29">
+        <span class="input-label">Activate when</span>
+        <select ng-model="data.attributes.threshold.activate" ng-options="activate.id as activate.label for activate in activates"></select>
+      </label>
+    </form>
+    <form id="potentiometer-form76" class="list">
+      <div id="potentiometer-markdown114" class="show-list-numbers-and-dots">
+        <p style="color:#387EF5;">Alert</p>
+      </div>
+      <label class="item item-select" id="potentiometer-select33">
+        <span class="input-label">Type</span>
+        <select ng-model="data.attributes.alert.type" ng-options="alert.id as alert.label for alert in alerts"></select>
+      </label>
+      <label class="item item-input" id="potentiometer-input107">
+        <span class="input-label">Period (milliseconds)</span>
+        <input type="text" placeholder="" ng-model="data.attributes.alert.period">
+      </label>
+    </form>
+    <form id="potentiometer-form78" class="list">
+      <div id="potentiometer-markdown116" class="show-list-numbers-and-dots">
+        <p style="color:#387EF5;">Notification settings</p>
+      </div>
+      <ion-toggle toggle-class="toggle-positive" id="potentiometer-toggle13" ng-change="changeNotification(data.showNotification)" ng-model="data.showNotification">Show</ion-toggle>
+    </form>
+    <form id="potentiometer-form79" class="list" ng-show="data.showNotification==1">
+      <div id="potentiometer-markdown107" class="show-list-numbers-and-dots">
+        <p style="color:#387EF5;">Messages</p>
+      </div>
+      <ion-checkbox id="potentiometer-checkbox12" ng-model="data.attributes.notification.messages[0].enable">Message on activation</ion-checkbox>
+      <label class="item item-input" id="potentiometer-textarea10">
+        <span class="input-label"></span><textarea placeholder="" ng-model="data.attributes.notification.messages[0].message"></textarea></label>
+      <ion-checkbox id="potentiometer-checkbox13" ng-model="data.attributes.notification.messages[1].enable">Message on deactivation</ion-checkbox>
+      <label class="item item-input" id="potentiometer-textarea11">
+        <span class="input-label"></span><textarea placeholder="" ng-model="data.attributes.notification.messages[1].message"></textarea></label>
+    </form>
+    <form id="potentiometer-form80" class="list" ng-show="data.showNotification==1">
+      <div id="potentiometer-markdown108" class="show-list-numbers-and-dots">
+        <p style="color:#387EF5;">Recipients</p>
+      </div>
+      <ion-checkbox id="potentiometer-checkbox14" ng-model="data.attributes.notification.endpoints.email.enable">Send email to</ion-checkbox>
+      <label class="item item-input" id="potentiometer-input113">
+        <input type="text" placeholder="Email address(es)" ng-model="data.attributes.notification.endpoints.email.recipients">
+      </label>
+      <ion-checkbox id="potentiometer-checkbox15" ng-model="data.attributes.notification.endpoints.mobile.enable">Send SMS to</ion-checkbox>
+      <label class="item item-input" id="potentiometer-input115">
+        <input type="text" placeholder="Phone number(s)" ng-model="data.attributes.notification.endpoints.mobile.recipients">
+      </label>
+      <ion-checkbox id="potentiometer-checkbox16" ng-model="data.attributes.notification.endpoints.notification.enable">Send notification to</ion-checkbox>
+      <label class="item item-input" id="potentiometer-input116">
+        <input type="text" placeholder="Phone number(s)" ng-model="data.attributes.notification.endpoints.notification.recipients">
+      </label>
+      <ion-checkbox id="potentiometer-checkbox17" ng-model="data.attributes.notification.endpoints.modem.enable">Send to IoT Modem</ion-checkbox>
+      <label class="item item-input" id="potentiometer-input114">
+        <input type="text" placeholder="Device(s)" ng-model="data.attributes.notification.endpoints.modem.recipients">
+      </label>
+    </form>
+    <form id="potentiometer-form91" class="list">
+      <button id="potentiometer-button88" ng-click="submit()" class="button button-positive button-block">SAVE</button>
+    </form>
   </ion-content>
 </ion-view>

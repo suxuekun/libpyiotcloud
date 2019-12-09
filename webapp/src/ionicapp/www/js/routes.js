@@ -260,8 +260,23 @@ angular.module('app.routes', [])
     controller: 'deviceI2CCtrl'
   })
 
+  .state('viewI2CDevice', {
+    url: '/page_view_i2c_device',
+	params: {
+		devicename: "",
+		username: "",
+		token: "",
+		devicestatus: "",
+		deviceid: "",
+		serialnumber: "",
+		sensor: ""		
+},
+    templateUrl: 'templates/viewI2CDevice.html',
+    controller: 'viewI2CDeviceCtrl'
+  })
+
   .state('light', {
-    url: '/page_light',
+    url: '/page33',
 	params: {
 		devicename: "",
 		username: "",

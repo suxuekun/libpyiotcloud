@@ -3,7 +3,7 @@
     <button class="button button-icon icon ion-android-close" ng-click="submitDeviceList()"></button>
   </ion-nav-buttons>
   <ion-nav-buttons side="right" class="has-header">
-    <button class="button button-positive icon ion-refresh" ng-click="getI2CSensors()"></button>
+    <button class="button button-positive icon ion-refresh" ng-click="submitRefresh()"></button>
   </ion-nav-buttons>
   <ion-content padding="true" class="has-header">
     <div class="spacer" style="width: 300px; height: 12px;"></div>
@@ -12,10 +12,7 @@
         <strong> {{ data.devicename }} </strong>
       </p>
     </div>
-    <div id="display-markdown80" style="text-align:center;" class="show-list-numbers-and-dots">
-      <p style="color:#444444;font-size:18px;">
-        <strong> {{ data.sensor.sensorname }} </strong> - I2C {{ data.sensor.number }}</p>
-    </div>
+    <button id="display-button94" ng-click="viewI2CDevice()" style="font-weight:500;font-size:18px;" class="button button-dark button-block button-clear icon-right ion-android-settings">{{ data.sensor.sensorname }} - I2C {{ data.sensor.number }}</button>
     <form id="display-form69" class="list">
       <div class="spacer" style="width: 300px; height: 20px;"></div>
       <div id="display-markdown94" class="show-list-numbers-and-dots">
@@ -30,9 +27,10 @@
       <div id="display-markdown92" class="show-list-numbers-and-dots">
         <p style="color:#387EF5;">Type</p>
       </div>
-      <ion-radio id="display-radio3">Text</ion-radio>
-      <ion-radio id="display-radio4">Decimal</ion-radio>
-      <ion-radio id="display-radio5">Hexadecimal</ion-radio>
+      <label class="item item-select" id="display-select11">
+        <span class="input-label"></span>
+        <select ng-model="data.attributes.type" ng-options="type.id as type.label for type in types"></select>
+      </label>
     </form>
     <form id="display-form66" class="list" ng-show="data.attributes.endpoint==0">
       <div id="display-markdown93" class="show-list-numbers-and-dots">

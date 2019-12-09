@@ -14,26 +14,29 @@
         </p>
       </div>
       <div id="addI2CDeviceDetails-markdown60" class="show-list-numbers-and-dots">
-        <p style="color:#000000;">Manufacturer</p>
+        <p style="color:#387EF5;">Manufacturer</p>
       </div>
       <div id="addI2CDeviceDetails-markdown22" class="show-list-numbers-and-dots">
-        <p style="color:#387EF5;font-size:18px;">
+        <p style="color:#444444;font-size:18px;">
           <strong> {{ data.i2c.manufacturer }} </strong>
         </p>
       </div>
       <div class="spacer" style="height: 15px;"></div>
       <div id="addI2CDeviceDetails-markdown67" class="show-list-numbers-and-dots">
-        <p style="color:#000000;">Device Model</p>
+        <p style="color:#387EF5;">Device Model</p>
       </div>
       <div id="addI2CDeviceDetails-markdown23" class="show-list-numbers-and-dots">
-        <p style="color:#387EF5;font-size:18px;">
+        <p style="color:#444444;font-size:18px;">
           <strong> {{ data.i2c.model }} </strong> ({{ data.i2c.name }})</p>
       </div>
       <div id="addI2CDeviceDetails-markdown9" class="show-list-numbers-and-dots">
-        <p style="color:#387EF5;font-size:12px;">{{ data.i2c.desc }}</p>
+        <p style="color:#444444;font-size:12px;">{{ data.i2c.desc }}</p>
       </div>
       <div id="addI2CDeviceDetails-markdown33" class="show-list-numbers-and-dots">
-        <p style="color:#387EF5;font-size:12px;">{{ data.i2c.link }}</p>
+        <p style="color:#444444;font-size:12px;">{{ data.i2c.link }}</p>
+      </div>
+      <div id="addI2CDeviceDetails-markdown133" class="show-list-numbers-and-dots">
+        <p style="color:#444444;font-size:12px;">{{ data.i2c.class }}</p>
       </div>
     </form>
     <div id="addI2CDeviceDetails-markdown70" class="show-list-numbers-and-dots">
@@ -42,7 +45,7 @@
     <div class="spacer" style="width: 300px; height: 15px;"></div>
     <form id="addI2CDeviceDetails-form64" class="list">
       <div id="addI2CDeviceDetails-markdown21" class="show-list-numbers-and-dots">
-        <p style="color:#000000;">Provide the details below</p>
+        <p style="color:#387EF5;">Provide the details below</p>
       </div>
       <label class="item item-input" id="addI2CDeviceDetails-input87">
         <span class="input-label">Name</span>
@@ -50,7 +53,7 @@
       </label>
       <label class="item item-input" id="addI2CDeviceDetails-input88">
         <span class="input-label">I2C Address</span>
-        <input type="text" placeholder="0x00 - 0xFF" ng-model="data.sensor.address">
+        <input type="text" placeholder="0x01 - 0xFF" ng-model="data.sensor.address">
       </label>
     </form>
     <button id="addI2CDeviceDetails-button27" ng-click="addI2CSensor()" class="button button-positive button-block">ADD</button>
