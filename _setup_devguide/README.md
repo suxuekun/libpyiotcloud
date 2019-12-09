@@ -254,7 +254,9 @@ SUMMARY:
 		M. ADD I2C DEVICE                 - POST   /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME
 		N. DELETE I2C DEVICE              - DELETE /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME
 		O. GET I2C DEVICE                 - GET    /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME
-		P. ENABLE/DISABLE I2C             - POST   /devices/device/DEVICENAME/i2c/NUMBER/enable
+		P. SET I2C DEVICE PROPERTIES      - POST   /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME/properties
+		Q. GET I2C DEVICE PROPERTIES      - GET    /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME/properties
+		R. ENABLE/DISABLE I2C             - POST   /devices/device/DEVICENAME/i2c/NUMBER/enable
 
 		Old requirements:
 		A. GET STATUS                     - GET    /devices/device/DEVICENAME/status
@@ -995,7 +997,7 @@ DETAILED:
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
 		   { 'status': 'OK', 'message': string, 
-		     'sensors': array[{'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'class': string, 'attributes': [], 'timestamp': string}, ...]}
+		     'sensors': array[{'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'class': string, 'timestamp': string, 'attributes': []}, ...]}
 		   { 'status': 'NG', 'message': string}
 		   // timestamp refers to the epoch time the sensor was registered/added
 
@@ -1006,6 +1008,8 @@ DETAILED:
 		   data: {'address': int, 'manufacturer': string, 'model': string, 'class': string, 'attributes': []}
 		   // call GET SUPPORTED I2C DEVICES to get the JSON data contained here: https://ft900-iot-portal.s3.amazonaws.com/supported_i2c_devices.json
 		   // registering a sensor using an already used sensorname returns HTTP_409_CONFLICT with 'Sensor name is already taken'
+		   // address should be greater than 0 and less than or equal to 255
+		   // registering a sensor using an already used address for the slot returns HTTP_409_CONFLICT with 'Sensor address is already taken'
 		-  Response:
 		   { 'status': 'OK', 'message': string}
 		   { 'status': 'NG', 'message': string}
@@ -1024,19 +1028,23 @@ DETAILED:
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
 		   { 'status': 'OK', 'message': string, 
-		     'sensor': {'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'class': string, 'attributes': [], 'timestamp': string} }
+		     'sensor': {'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'class': string, 'timestamp': string, 'attributes': []} }
 		   { 'status': 'NG', 'message': string}
 		   // timestamp refers to the epoch time the sensor was registered/added
 		   // class can be LIGHT, DISPLAY, SPEAKER, TEMPERATURE, POTENTIOMETER
 
-		P. SET I2C DEVICE
+		P. SET I2C DEVICE PROPERTIES
 		-  Request:
-		   POST /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME
-		   headers: {'Authorization': 'Bearer ' + token.access}
-		   data: { "endpoint": int, "hardware": {"devicename": string, "sensorname": string}, "color": int, "brightness": int, 'timeout': int } // LIGHT attributes
-		   data: { "endpoint": int, "hardware": {"devicename": string, "sensorname": string}, "type": int, "text": string } // DISPLAY attributes
-		   data: { "endpoint": int, "hardware": {"devicename": string, "sensorname": string}, "file": {"name": string, "size": int} } // SPEAKER attributes
-		   // class is LIGHT:
+		   POST /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME/properties
+		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+		   // LIGHT class
+		   data: {
+		           "endpoint": int, 
+		           "hardware": {"devicename": string, "sensorname": string}, 
+		           "color": int, 
+		           "brightness": int, 
+		           "timeout": int 
+		         }
 		   //   endpoint is an index to the list source endpoints:
 		   //     ["Manual", "Hardware"]
 		   //   if endpoint is Manual
@@ -1049,7 +1057,14 @@ DETAILED:
 		   //       devicename is the name of the IoT modem device
 		   //       sensorname is the name of the input I2C device
 		   //     timeout indicates the number of seconds
-		   // class is DISPLAY:
+		   //
+		   // DISPLAY class
+		   data: { 
+		           "endpoint": int, 
+		           "hardware": {"devicename": string, "sensorname": string}, 
+		           "type": int, 
+		           "text": string 
+		         }
 		   //   endpoint is an index to the list source endpoints:
 		   //     ["Manual", "Hardware"]
 		   //   if endpoint is Manual
@@ -1060,7 +1075,14 @@ DETAILED:
 		   //     hardware contains the devicename (input IoT Modem device) and sensorname (input I2C device)
 		   //       devicename is the name of the IoT modem device
 		   //       sensorname is the name of the input I2C device
-		   // class is SPEAKER:
+		   //
+		   // SPEAKER class
+		   data: { 
+		           "endpoint": int, 
+		           "hardware": {"devicename": string, "sensorname": string}, 
+		           "file": {"name": string, "size": int} 
+		         }
+		   // TODO: how to send the file
 		   //   endpoint is an index to the list source endpoints:
 		   //     ["Manual", "Hardware"]
 		   //   if endpoint is Manual
@@ -1074,8 +1096,134 @@ DETAILED:
 		   //     file is the sound/music file to send and play
 		   //       name is the name of the sound/music file to send and play
 		   //       size is the size of the sound/music file to send and play
+		   //
+		   // TEMPERATURE class
+		   data: { 
+		           "threshold": {"min": int, "max": int, "activate": int}, 
+		           "alert": {"type": int, 'period': int}, 
+		           "notification": json_obj 
+		         }
+		   //   activate is an index to the list of activates
+		   //     ["Out of range", "Within range"]
+		   //   alert type is an index of the value in the list of alerts
+		   //     ["Once", "Continuously"]
+		   //   alert period is the time in milliseconds for the alert when alert type points to Continuously
+		   //   notification refers to the the same notification settings in GPIO
+		   //
+		   // POTENTIOMETER class
+		   data: { 
+		           "mode": int, 
+		           "threshold": {"min": int, "max": int, "activate": int}, 
+		           "alert": {"type": int, 'period': int}, 
+		           "notification": json_obj 
+		         }
+		   //   mode is an index to the list of modes
+		   //     ["Threshold", "Continuous"]
+		   //   activate is an index to the list of activates
+		   //     ["Out of range", "Within range"]
+		   //   alert type is an index of the value in the list of alerts
+		   //     ["Once", "Continuously"]
+		   //   alert period is the time in milliseconds for the alert when alert type points to Continuously
+		   //   notification refers to the the same notification settings in GPIO
 		-  Response:
 		   { 'status': 'OK', 'message': string }
+		   { 'status': 'NG', 'message': string}
+
+		Q. GET I2C DEVICE PROPERTIES
+		-  Request:
+		   POST /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME/properties
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		-  Response:
+		   { 'status': 'OK', 'message': string, 'value':
+		     // LIGHT class
+		     {
+		           "endpoint": int, 
+		           "hardware": {"devicename": string, "sensorname": string}, 
+		           "color": int, 
+		           "brightness": int, 
+		           "timeout": int 
+		     }
+		   //   endpoint is an index to the list source endpoints:
+		   //     ["Manual", "Hardware"]
+		   //   if endpoint is Manual
+		   //     color is an integer value of the hex color 0xRRGGBB where each RR, GG, BB can be 0x00-0xFF
+		   //     brightness is the percentage value. value should be 0-100
+		   //     timeout indicates the number of seconds
+		   //   if endpoint is Hardware
+		   //     color is an integer value of the hex color 0xRRGGBB where each RR, GG, BB can be 0x00-0xFF
+		   //     hardware contains the devicename (input IoT Modem device) and sensorname (input I2C device)
+		   //       devicename is the name of the IoT modem device
+		   //       sensorname is the name of the input I2C device
+		   //     timeout indicates the number of seconds
+		   //
+		   // DISPLAY class
+		      { 
+		           "endpoint": int, 
+		           "hardware": {"devicename": string, "sensorname": string}, 
+		           "type": int, 
+		           "text": string 
+		      }
+		   //   endpoint is an index to the list source endpoints:
+		   //     ["Manual", "Hardware"]
+		   //   if endpoint is Manual
+		   //     type is an index to the list of types
+		   //       ["Text", "Decimal", "Hexadecimal"]
+		   //     text is the characters to display
+		   //   if endpoint is Hardware
+		   //     hardware contains the devicename (input IoT Modem device) and sensorname (input I2C device)
+		   //       devicename is the name of the IoT modem device
+		   //       sensorname is the name of the input I2C device
+		   //
+		   // SPEAKER class
+		      { 
+		           "endpoint": int, 
+		           "hardware": {"devicename": string, "sensorname": string}, 
+		           "file": {"name": string, "size": int} 
+		      }
+		   // TODO: how to send the file
+		   //   endpoint is an index to the list source endpoints:
+		   //     ["Manual", "Hardware"]
+		   //   if endpoint is Manual
+		   //     file is the sound/music file to send and play
+		   //       name is the name of the sound/music file to send and play
+		   //       size is the size of the sound/music file to send and play
+		   //   if endpoint is Hardware
+		   //     hardware contains the devicename (input IoT Modem device) and sensorname (input I2C device)
+		   //       devicename is the name of the IoT modem device
+		   //       sensorname is the name of the input I2C device
+		   //     file is the sound/music file to send and play
+		   //       name is the name of the sound/music file to send and play
+		   //       size is the size of the sound/music file to send and play
+		   //
+		   // TEMPERATURE class
+		      {
+		           "threshold": {"min": int, "max": int, "activate": int}, 
+		           "alert": {"type": int, 'period': int}, 
+		           "notification": json_obj 
+		      }
+		   //   activate is an index to the list of activates
+		   //     ["Out of range", "Within range"]
+		   //   alert type is an index of the value in the list of alerts
+		   //     ["Once", "Continuously"]
+		   //   alert period is the time in milliseconds for the alert when alert type points to Continuously
+		   //   notification refers to the the same notification settings in GPIO
+		   //
+		   // POTENTIOMETER class
+		      { 
+		           "mode": int, 
+		           "threshold": {"min": int, "max": int, "activate": int}, 
+		           "alert": {"type": int, 'period': int}, 
+		           "notification": json_obj 
+		      }
+		   //   mode is an index to the list of modes
+		   //     ["Threshold", "Continuous"]
+		   //   activate is an index to the list of activates
+		   //     ["Out of range", "Within range"]
+		   //   alert type is an index of the value in the list of alerts
+		   //     ["Once", "Continuously"]
+		   //   alert period is the time in milliseconds for the alert when alert type points to Continuously
+		   //   notification refers to the the same notification settings in GPIO
+
 		   { 'status': 'NG', 'message': string}
 
 		Q. ENABLE/DISABLE I2C
