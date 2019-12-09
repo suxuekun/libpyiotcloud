@@ -263,6 +263,9 @@ class database_client:
     def get_sensor(self, username, devicename, number, sensorname):
         return self._devices.get_sensor(username, devicename, number, sensorname)
 
+    def get_sensor_by_address(self, username, devicename, number, address):
+        return self._devices.get_sensor_by_address(username, devicename, number, address)
+
 
     ##########################################################
     # devices
@@ -876,7 +879,18 @@ class database_client_mongodb:
     def get_sensor(self, username, devicename, number, sensorname):
         i2csensors = self.get_sensors_document();
         if i2csensors:
-            for i2csensor in i2csensors.find({'username': username, 'devicename': devicename, 'number': number, 'sensorname': sensorname}):
+            # sensorname should be unique allthroughout the slots
+            for i2csensor in i2csensors.find({'username': username, 'devicename': devicename, 'sensorname': sensorname}):
+            #for i2csensor in i2csensors.find({'username': username, 'devicename': devicename, 'number': number, 'sensorname': sensorname}):
+                i2csensor.pop('_id')
+                i2csensor.pop('username')
+                return i2csensor
+        return None
+
+    def get_sensor_by_address(self, username, devicename, number, address):
+        i2csensors = self.get_sensors_document();
+        if i2csensors:
+            for i2csensor in i2csensors.find({'username': username, 'devicename': devicename, 'number': number, 'address': address}):
                 i2csensor.pop('_id')
                 i2csensor.pop('username')
                 return i2csensor
