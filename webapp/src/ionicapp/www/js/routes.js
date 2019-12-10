@@ -275,8 +275,23 @@ angular.module('app.routes', [])
     controller: 'viewI2CDeviceCtrl'
   })
 
+  .state('unknown', {
+    url: '/page_unknown',
+	params: {
+		devicename: "",
+		username: "",
+		token: "",
+		devicestatus: "",
+		deviceid: "",
+		serialnumber: "",
+		sensor: ""		
+},
+    templateUrl: 'templates/unknown.html',
+    controller: 'unknownCtrl'
+  })
+
   .state('light', {
-    url: '/page33',
+    url: '/page34',
 	params: {
 		devicename: "",
 		username: "",
