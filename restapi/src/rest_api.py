@@ -2219,6 +2219,50 @@ def build_default_notifications(type, token):
 
 
 #
+# GET UARTS
+#
+# - Request:
+#   GET /devices/device/<devicename>/uarts
+#   headers: { 'Authorization': 'Bearer ' + token.access }
+#
+# - Response:
+#   { 'status': 'OK', 'message': string, 
+#     'value': { 
+#       'uarts': [
+#         {'enabled': int}, 
+#       ]
+#     }
+#   }
+#   { 'status': 'NG', 'message': string }
+#
+@app.route('/devices/device/<devicename>/uarts', methods=['GET'])
+def get_uarts(devicename):
+    api = 'get_uarts'
+
+    # get token from Authorization header
+    auth_header_token = get_auth_header_token()
+    if auth_header_token is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
+        print('\r\nERROR Invalid authorization header\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
+    token = {'access': auth_header_token}
+
+    # get username from token
+    data = {}
+    data['token'] = token
+    data['devicename'] = devicename
+    username = g_database_client.get_username_from_token(data['token'])
+    if username is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
+        print('\r\nERROR Invalid token\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
+    data['username'] = username
+    print('get_uarts {} devicename={}'.format(data['username'], data['devicename']))
+
+    return process_request(api, data)
+
+
+#
 # GET UART PROPERTIES
 #
 # - Request:
@@ -2692,6 +2736,53 @@ def enable_gpio(devicename, number):
     data['username'] = username
     data['number'] = number
     print('enable_gpio {} devicename={} number={}'.format(username, devicename, number))
+
+    return process_request(api, data)
+
+
+#
+# GET I2CS
+#
+# - Request:
+#   GET /devices/device/<devicename>/i2cs
+#   headers: { 'Authorization': 'Bearer ' + token.access }
+#
+# - Response:
+#   { 'status': 'OK', 'message': string, 
+#     'value': { 
+#       'i2cs': [
+#         {'enabled': int}, 
+#         {'enabled': int}, 
+#         {'enabled': int}, 
+#         {'enabled': int}, 
+#       ]
+#     }
+#   }
+#   { 'status': 'NG', 'message': string }
+#
+@app.route('/devices/device/<devicename>/i2cs', methods=['GET'])
+def get_i2cs(devicename):
+    api = 'get_i2cs'
+
+    # get token from Authorization header
+    auth_header_token = get_auth_header_token()
+    if auth_header_token is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
+        print('\r\nERROR Invalid authorization header\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
+    token = {'access': auth_header_token}
+
+    # get username from token
+    data = {}
+    data['token'] = token
+    data['devicename'] = devicename
+    username = g_database_client.get_username_from_token(data['token'])
+    if username is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
+        print('\r\nERROR Invalid token\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
+    data['username'] = username
+    print('get_i2cs {} devicename={}'.format(data['username'], data['devicename']))
 
     return process_request(api, data)
 
