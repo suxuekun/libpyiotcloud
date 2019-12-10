@@ -3183,10 +3183,10 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         //     { 
         //      'voltage': int,
         //      'gpios': [
-        //         {'direction': int, 'status': int, 'enabled': boolean},
-        //         {'direction': int, 'status': int, 'enabled': boolean}, 
-        //         {'direction': int, 'status': int, 'enabled': boolean}, 
-        //         {'direction': int, 'status': int, 'enabled': boolean}
+        //         {'direction': int, 'status': int, 'enabled': int},
+        //         {'direction': int, 'status': int, 'enabled': int}, 
+        //         {'direction': int, 'status': int, 'enabled': int}, 
+        //         {'direction': int, 'status': int, 'enabled': int}
         //      ]
         //     }        
         //   }
@@ -3206,7 +3206,12 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
                 }
                 if (result.data.value.gpios !== undefined) {
                     if (result.data.value.gpios[$scope.data.activeSection - 1].enabled !== undefined) {
-                        $scope.data.enableGPIO = result.data.value.gpios[$scope.data.activeSection - 1].enabled;
+                        if (result.data.value.gpios[$scope.data.activeSection - 1].enabled === 0) {
+                            $scope.data.enableGPIO = false;
+                        }
+                        else {
+                            $scope.data.enableGPIO = true;
+                        }
                     }
                 }
             }
@@ -3427,8 +3432,10 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
 
 
     enable_gpio = function(enable) {
+        var enable_int = 1;
         action = "enabled";
         if (enable === false) {
+            enable_int = 0;
             action = "disabled";
         }
         //
@@ -3437,7 +3444,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         // - Request:
         //   POST /devices/device/<devicename>/gpio/<number>/enable
         //   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
-        //   data: {'enable': boolean}
+        //   data: {'enable': int}
         //
         // - Response:
         //   { 'status': 'OK', 'message': string }
@@ -3447,7 +3454,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             method: 'POST',
             url: server + '/devices/device/' + $scope.data.devicename + '/gpio/' + $scope.data.activeSection.toString()  + '/enable',
             headers: { 'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json' },
-            data: { 'enable': enable }
+            data: { 'enable': enable_int }
         })
         .then(function (result) {
             console.log(result.data);
@@ -3489,8 +3496,12 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
     };
     
     
+    $scope.$on('$ionicView.enter', function(e) {
+        $scope.submitQuery();
+    });
+    
     //$scope.submitQuery();
-    get_gpios();
+    //get_gpios();
 }])
    
 .controller('deviceUARTCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
@@ -3795,8 +3806,10 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
 
 
     enable_uart = function(enable) {
+        var enable_int = 1;        
         action = "enabled";
         if (enable === false) {
+            enable_int = 0;
             action = "disabled";
         }
         //
@@ -3805,7 +3818,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         // - Request:
         //   POST /devices/device/<devicename>/uart/enable
         //   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
-        //   data: {'enable': boolean}
+        //   data: {'enable': int}
         //
         // - Response:
         //   { 'status': 'OK', 'message': string }
@@ -3815,7 +3828,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             method: 'POST',
             url: server + '/devices/device/' + $scope.data.devicename + '/uart/enable',
             headers: { 'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json' },
-            data: { 'enable': enable }
+            data: { 'enable': enable_int }
         })
         .then(function (result) {
             console.log(result.data);
@@ -3829,53 +3842,51 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         }); 
     };
     
-    
-/*
-    get_profile = function() {
-        //        
-        // GET USER INFO
+
+    get_uarts = function() {
+        //
+        // GET UARTS
         //
         // - Request:
-        //   GET /user
-        //   headers: {'Authorization': 'Bearer ' + token.access}
+        //   GET /devices/device/<devicename>/uarts
+        //   headers: { 'Authorization': 'Bearer ' + token.access }
         //
         // - Response:
-        //   {'status': 'OK', 'message': string, 'info': {'email': string, 'phone_number': string, 'name': string} }
-        //   {'status': 'NG', 'message': string}
-        //         
+        //   { 'status': 'OK', 'message': string, 'value':
+        //     { 
+        //      'uarts': [
+        //         {'enabled': int},
+        //      ]
+        //     }        
+        //   }
+        //   { 'status': 'NG', 'message': string }
+        //
         $http({
             method: 'GET',
-            url: server + '/user',
-            headers: {'Authorization': 'Bearer ' + $scope.data.token.access}
+            url: server + '/devices/device/' + $scope.data.devicename + '/uarts',
+            headers: {'Authorization': 'Bearer ' + $scope.data.token.access},
         })
         .then(function (result) {
-            console.log("ACCOUNT OK");
             console.log(result.data);
             
-
-            if (result.data.info.email !== undefined) {
-                $scope.data.uart.notification.endpoints.email.recipients = result.data.info.email;
-            }
-    
-            if (result.data.info.email_verified !== undefined) {
-                $scope.data.uart.notification.endpoints.email.enable = result.data.info.email_verified;
-            }
-    
-            if (result.data.info.phone_number !== undefined) {
-                $scope.data.uart.notification.endpoints.mobile.recipients = result.data.info.phone_number;
-                $scope.data.uart.notification.endpoints.notification.recipients = result.data.info.phone_number;
-            }
-    
-            if (result.data.info.phone_number_verified !== undefined) {
-                $scope.data.uart.notification.endpoints.mobile.enable = result.data.info.phone_number_verified;
-                $scope.data.uart.notification.endpoints.notification.enable = result.data.info.phone_number_verified;
+            if (result.data.value !== undefined) {
+                if (result.data.value.uarts !== undefined) {
+                    if (result.data.value.uarts[0].enabled !== undefined) {
+                        if (result.data.value.uarts[0].enabled === 0) {
+                            $scope.data.enableUART = false;
+                        }
+                        else {
+                            $scope.data.enableUART = true;
+                        }
+                    }
+                }
             }
         })
         .catch(function (error) {
-            handle_error(error);
+            handle_error(error, false);
         }); 
-    };
-*/
+    };    
+
 
     $scope.submit = function() {
         
@@ -3885,6 +3896,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
     $scope.submitQuery = function() {
 
         get_uart_properties();
+        get_uarts();
     };
 
     $scope.submitDeviceList = function() {
@@ -3982,10 +3994,60 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
     };
     
     
+    get_i2cs = function() {
+        //
+        // GET I2CS
+        //
+        // - Request:
+        //   GET /devices/device/<devicename>/i2cs
+        //   headers: { 'Authorization': 'Bearer ' + token.access }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string, 'value':
+        //     { 
+        //      'i2cs': [
+        //         {'enabled': int},
+        //         {'enabled': int}, 
+        //         {'enabled': int}, 
+        //         {'enabled': int}
+        //      ]
+        //     }        
+        //   }
+        //   { 'status': 'NG', 'message': string }
+        //
+        $http({
+            method: 'GET',
+            url: server + '/devices/device/' + $scope.data.devicename + '/i2cs',
+            headers: {'Authorization': 'Bearer ' + $scope.data.token.access},
+        })
+        .then(function (result) {
+            console.log(result.data);
+            
+            if (result.data.value !== undefined) {
+                if (result.data.value.i2cs !== undefined) {
+                    if (result.data.value.i2cs[$scope.data.activeSection - 1].enabled !== undefined) {
+                        if (result.data.value.i2cs[$scope.data.activeSection - 1].enabled === 0) {
+                            $scope.data.enableI2C = false;
+                        }
+                        else {
+                            $scope.data.enableI2C = true;
+                        }
+                    }
+                }
+            }
+        })
+        .catch(function (error) {
+            handle_error(error, false);
+        }); 
+    };
+    
+    
+    
     // GET I2C DEVICES
     $scope.getI2CSensors = function() {
         console.log("getI2CSensors");
         get_i2c_sensors();
+        get_i2cs();
     };
 
     get_i2c_sensors = function() {
@@ -4038,20 +4100,30 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         };
         param.sensor = sensor;
         
-        if (sensor.class === "light") {
-            $state.go('light', param);
+        if (sensor.class !== undefined) {
+            if (sensor.class === "light") {
+                $state.go('light', param);
+            }
+            else if (sensor.class === "temperature") {
+                $state.go('temperature', param);
+            }
+            else if (sensor.class === "speaker") {
+                $state.go('speaker', param);
+            }
+            else if (sensor.class === "display") {
+                $state.go('display', param);
+            }
+            else if (sensor.class === "potentiometer") {
+                $state.go('potentiometer', param);
+            }
+            else {
+                $state.go('unknown', param);
+            }
         }
-        else if (sensor.class === "temperature") {
-            $state.go('temperature', param);
-        }
-        else if (sensor.class === "speaker") {
-            $state.go('speaker', param);
-        }
-        else if (sensor.class === "display") {
-            $state.go('display', param);
-        }
-        else if (sensor.class === "potentiometer") {
-            $state.go('potentiometer', param);
+        else {
+            param.sensor.class = "unknown";
+            param.sensor.attributes = [];
+            $state.go('unknown', param);
         }
     };
 
@@ -4100,8 +4172,10 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
 
 
     enable_i2c = function(enable) {
+        var enable_int = 1;            
         action = "enabled";
         if (enable === false) {
+            enable_int = 0;
             action = "disabled";
         }
         //
@@ -4110,7 +4184,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         // - Request:
         //   POST /devices/device/<devicename>/i2c/<number>/enable
         //   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
-        //   data: {'enable': boolean}
+        //   data: {'enable': int}
         //
         // - Response:
         //   { 'status': 'OK', 'message': string }
@@ -4120,7 +4194,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             method: 'POST',
             url: server + '/devices/device/' + $scope.data.devicename + '/i2c/' + $scope.data.activeSection.toString()  + '/enable',
             headers: { 'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json' },
-            data: { 'enable': enable }
+            data: { 'enable': enable_int }
         })
         .then(function (result) {
             console.log(result.data);
@@ -4242,21 +4316,79 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         sensor = $scope.data.sensor;
         param = $scope.data;
         
-        if (sensor.class === "light") {
-            $state.go('light', param);
+        if (sensor.class !== undefined) {
+            if (sensor.class === "light") {
+                $state.go('light', param);
+            }
+            else if (sensor.class === "temperature") {
+                $state.go('temperature', param);
+            }
+            else if (sensor.class === "speaker") {
+                $state.go('speaker', param);
+            }
+            else if (sensor.class === "display") {
+                $state.go('display', param);
+            }
+            else if (sensor.class === "potentiometer") {
+                $state.go('potentiometer', param);
+            }
+            else {
+                $state.go('unknown', param);
+            }
         }
-        else if (sensor.class === "temperature") {
-            $state.go('temperature', param);
+        else {
+            param.sensor.class = "unknown";
+            param.sensor.attributes = [];
+            $state.go('unknown', param);
         }
-        else if (sensor.class === "speaker") {
-            $state.go('speaker', param);
-        }
-        else if (sensor.class === "display") {
-            $state.go('display', param);
-        }
-        else if (sensor.class === "potentiometer") {
-            $state.go('potentiometer', param);
-        }        
+    };
+    
+    // EXIT PAGE
+    $scope.submitDeviceList = function() {
+        console.log("submitDeviceList");
+        var device_param = {
+            'username': $scope.data.username,
+            'token': $scope.data.token,
+            'devicename': $scope.data.devicename,
+            'devicestatus': $scope.data.devicestatus,
+            'deviceid': $scope.data.deviceid,
+            'serialnumber': $scope.data.serialnumber,
+        };
+        $state.go('deviceI2C', device_param);
+    };
+}])
+   
+.controller('unknownCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', 'Devices', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+// You can include any angular dependencies as parameters for this function
+// TIP: Access Route Parameters for your page via $stateParams.parameterName
+function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token, Devices) {
+
+    var server = Server.rest_api;
+
+    $scope.data = {
+        'username': User.get_username(),
+        'token': User.get_token(),
+        'devicename': $stateParams.devicename,
+        'devicestatus': $stateParams.devicestatus,
+        'deviceid': $stateParams.deviceid,
+        'serialnumber': $stateParams.serialnumber,
+        
+        'sensor': $stateParams.sensor,
+    };
+
+    // VIEW I2C DEVICE
+    $scope.viewI2CDevice = function() {
+        console.log("viewI2CDevice");
+        var device_param = {
+            'username': $scope.data.username,
+            'token': $scope.data.token,
+            'devicename': $scope.data.devicename,
+            'devicestatus': $scope.data.devicestatus,
+            'deviceid': $scope.data.deviceid,
+            'serialnumber': $scope.data.serialnumber,
+            'sensor': $scope.data.sensor,
+        };
+        $state.go('viewI2CDevice', device_param);
     };
     
     // EXIT PAGE
