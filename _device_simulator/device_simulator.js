@@ -15,18 +15,33 @@ var g_firmware_version_MINOR = 1;
 var g_firmware_version = (g_firmware_version_MAJOR*100 + g_firmware_version_MINOR);
 var g_firmware_version_STR = g_firmware_version_MAJOR.toString() + "." + g_firmware_version_MINOR.toString();
 
-var g_uart_properties = { 'baudrate': 7, 'parity': 0, 'databits': 3, 'stopbits': 0, 'flowcontrol': 0 }
-var g_uart_enabled = true
+var g_uart_properties = { 'baudrate': 7, 'parity': 0, 'databits': 3, 'stopbits': 0, 'flowcontrol': 0 };
+var g_uart_enabled = true;
 
 var g_gpio_properties = [
     { 'direction': 0, 'mode': 0, 'alert': 0, 'alertperiod':   0, 'polarity': 0, 'width': 0, 'mark': 0, 'space': 0 },
     { 'direction': 0, 'mode': 3, 'alert': 1, 'alertperiod':  60, 'polarity': 0, 'width': 0, 'mark': 0, 'space': 0 },
     { 'direction': 1, 'mode': 0, 'alert': 0, 'alertperiod':   0, 'polarity': 0, 'width': 0, 'mark': 0, 'space': 0 },
-    { 'direction': 1, 'mode': 2, 'alert': 1, 'alertperiod': 120, 'polarity': 1, 'width': 0, 'mark': 1, 'space': 2 } ]
+    { 'direction': 1, 'mode': 2, 'alert': 1, 'alertperiod': 120, 'polarity': 1, 'width': 0, 'mark': 1, 'space': 2 } ];
 var g_gpio_voltage = 1;
-var g_gpio_enabled = [true, true, true, true]
+var g_gpio_enabled = [true, true, true, true];
+var g_gpio_status = [0, 1, 0, 1];
 
-var g_i2c_enabled = [true, true, true, true]
+var g_i2c_properties = [
+    {
+        '0': { 'class': 0, 'attributes': {} },
+    },
+    {
+        '0': { 'class': 0, 'attributes': {} },
+    },
+    {
+        '0': { 'class': 0, 'attributes': {} },
+    },
+    {
+        '0': { 'class': 0, 'attributes': {} },
+    }
+];
+var g_i2c_enabled = [true, true, true, true];
 
 
 
@@ -151,8 +166,25 @@ client.on("connect", function()
     }
 });
 
+function setClassAttributes(device_class, class_attributes) 
+{
+    var attributes = null;
+    if (class_attributes.number != null) {
+        delete class_attributes["number"];
+    }
+    if (class_attributes.class != null) {
+        delete class_attributes["class"];
+    }
+    if (class_attributes.address != null) {
+        delete class_attributes["address"];
+    }
+    attributes = class_attributes
+    return attributes
+}
+
 // handle API call
-function handle_api(api, topic, payload) {
+function handle_api(api, topic, payload) 
+{
     console.log("\r\n" + topic + "\r\n" + payload);
 
 
@@ -303,11 +335,72 @@ function handle_api(api, topic, payload) {
         console.log(pubtopic);
         console.log(JSON.stringify(response));
     }
+    else if (api == "get_gpios") {
+        pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
+        var response = {
+            'value': {
+                'voltage': g_gpio_voltage,
+                'gpios': [
+                    {'direction': g_gpio_properties[0]['direction'], 'status': g_gpio_status[0], 'enabled': g_gpio_enabled[0] },
+                    {'direction': g_gpio_properties[1]['direction'], 'status': g_gpio_status[1], 'enabled': g_gpio_enabled[1] },
+                    {'direction': g_gpio_properties[2]['direction'], 'status': g_gpio_status[2], 'enabled': g_gpio_enabled[2] },
+                    {'direction': g_gpio_properties[3]['direction'], 'status': g_gpio_status[3], 'enabled': g_gpio_enabled[3] }
+                ]
+            }
+        }
+        client.publish(pubtopic, JSON.stringify(response));
 
+        console.log(pubtopic);
+        console.log(JSON.stringify(response));
+    }
 
     ////////////////////////////////////////////////////
     // I2C
     ////////////////////////////////////////////////////
+    else if (api == "get_i2c_device_properties") {
+        pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
+        var obj = JSON.parse(payload);
+        var number = Number(obj.number)-1;
+        var address = Number(obj.address).toString();
+        var value = null;
+        console.log(number);
+
+        if (g_i2c_properties[number][address] != null) {
+            value = g_i2c_properties[number][address]["attributes"];
+            console.log("");
+            console.log(value);
+            console.log("");
+        }
+
+        var response = {};
+        if (value != null) {
+            response["value"] = value;
+        }
+        client.publish(pubtopic, JSON.stringify(response));
+        console.log(pubtopic);
+        console.log(JSON.stringify(response));
+    }
+    else if (api == "set_i2c_device_properties") {
+        pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
+        var obj = JSON.parse(payload);
+        var number = Number(obj.number)-1;
+        var address = Number(obj.address).toString();
+        var device_class = obj.class;
+        console.log(number);
+
+        g_i2c_properties[number][address] = {
+            "class"      : device_class,
+            "attributes" : setClassAttributes(device_class, obj)
+        };
+        console.log("");
+        console.log(g_i2c_properties[number]);
+        console.log("");
+
+        var response = {};
+        client.publish(pubtopic, JSON.stringify(response));
+        console.log(pubtopic);
+        console.log(JSON.stringify(response));
+    }
     else if (api == "enable_i2c") {
         pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
         var obj = JSON.parse(payload);
@@ -560,6 +653,7 @@ function handle_api(api, topic, payload) {
         console.log(JSON.stringify(obj));
     }
     else {
+        console.log("UNSUPPORTED");
     }
 } 
 
