@@ -46,11 +46,11 @@
       </div>
       <label class="item item-select" id="display-select30">
         <span class="input-label">IoT Modem</span>
-        <select ng-model="data.attributes.hardware.devicename"></select>
+        <select ng-options="device.id as device.devicename for device in devices" ng-model="data.hardware_devicename" ng-change="changeDevice()"></select>
       </label>
       <label class="item item-select" id="display-select31">
-        <span class="input-label">I2C Sensor</span>
-        <select ng-model="data.attributes.hardware.sensorname"></select>
+        <span class="input-label">I2C Device</span>
+        <select ng-options="i2cdevice.id as i2cdevice.sensorname for i2cdevice in i2cdevices" ng-model="data.hardware_sensorname"></select>
       </label>
     </form>
     <form id="display-form71" class="list">

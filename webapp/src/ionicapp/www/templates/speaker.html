@@ -3,7 +3,7 @@
     <button class="button button-icon icon ion-android-close" ng-click="submitDeviceList()"></button>
   </ion-nav-buttons>
   <ion-nav-buttons side="right" class="has-header">
-    <button class="button button-positive icon ion-refresh" ng-click="getI2CSensors()"></button>
+    <button class="button button-positive icon ion-refresh" ng-click="submitRefresh()"></button>
   </ion-nav-buttons>
   <ion-content padding="true" class="has-header">
     <div class="spacer" style="width: 300px; height: 12px;"></div>
@@ -29,20 +29,28 @@
       </div>
       <label class="item item-select" id="speaker-select34">
         <span class="input-label">IoT Modem</span>
-        <select></select>
+        <select ng-options="device.id as device.devicename for device in devices" ng-model="data.hardware_devicename" ng-change="changeDevice()"></select>
       </label>
       <label class="item item-select" id="speaker-select35">
         <span class="input-label">I2C Device</span>
-        <select></select>
+        <select ng-options="i2cdevice.id as i2cdevice.sensorname for i2cdevice in i2cdevices" ng-model="data.hardware_sensorname"></select>
       </label>
     </form>
     <form id="speaker-form77" class="list">
       <div id="speaker-markdown98" class="show-list-numbers-and-dots">
-        <p style="color:#387EF5;">Select MIDI file to play</p>
+        <p style="color:#387EF5;">Set MIDI file configuration</p>
       </div>
-      <label class="item item-select" id="speaker-select36">
-        <span class="input-label"></span>
-        <select></select>
+      <label class="item item-input" id="speaker-input92">
+        <span class="input-label">Duration (milliseconds)</span>
+        <input type="number" placeholder="" ng-model="data.attributes.midi.duration">
+      </label>
+      <label class="item item-input" id="speaker-input93">
+        <span class="input-label">Pitch (note) </span>
+        <input type="number" placeholder="possible values: 55-126" ng-model="data.attributes.midi.pitch">
+      </label>
+      <label class="item item-input" id="speaker-input94">
+        <span class="input-label">Delay (milliseconds)</span>
+        <input type="number" placeholder="" ng-model="data.attributes.midi.delay">
       </label>
     </form>
     <form id="speaker-form75" class="list">
