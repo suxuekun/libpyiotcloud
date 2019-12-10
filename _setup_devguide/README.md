@@ -239,25 +239,27 @@ SUMMARY:
 		A. GET STATUS                     - GET    /devices/device/DEVICENAME/status
 		B. SET STATUS                     - POST   /devices/device/DEVICENAME/status
 
-		C. GET UART PROPERTIES            - GET    /devices/device/DEVICENAME/uart/properties
-		D. SET UART PROPERTIES            - POST   /devices/device/DEVICENAME/uart/properties
-		E. ENABLE/DISABLE UART            - POST   /devices/device/DEVICENAME/uart/enable
+		C. GET UARTS                      - GET    /devices/device/DEVICENAME/uarts
+		D. GET UART PROPERTIES            - GET    /devices/device/DEVICENAME/uart/properties
+		E. SET UART PROPERTIES            - POST   /devices/device/DEVICENAME/uart/properties
+		F. ENABLE/DISABLE UART            - POST   /devices/device/DEVICENAME/uart/enable
 
-		F. GET GPIO VOLTAGE               - GET    /devices/device/DEVICENAME/gpio/voltage
-		G. SET GPIO VOLTAGE               - POST   /devices/device/DEVICENAME/gpio/voltage
-		H. GET GPIOS                      - GET    /devices/device/DEVICENAME/gpios
-		I. GET GPIO PROPERTIES            - GET    /devices/device/DEVICENAME/gpio/NUMBER/properties
-		J. SET GPIO PROPERTIES            - POST   /devices/device/DEVICENAME/gpio/NUMBER/properties
-		K. ENABLE/DISABLE GPIO            - POST   /devices/device/DEVICENAME/gpio/NUMBER/enable
+		G. GET GPIOS                      - GET    /devices/device/DEVICENAME/gpios
+		H. GET GPIO PROPERTIES            - GET    /devices/device/DEVICENAME/gpio/NUMBER/properties
+		I. SET GPIO PROPERTIES            - POST   /devices/device/DEVICENAME/gpio/NUMBER/properties
+		J. ENABLE/DISABLE GPIO            - POST   /devices/device/DEVICENAME/gpio/NUMBER/enable
+		K. GET GPIO VOLTAGE               - GET    /devices/device/DEVICENAME/gpio/voltage
+		L. SET GPIO VOLTAGE               - POST   /devices/device/DEVICENAME/gpio/voltage
 
-		L. GET ALL I2C DEVICES            - GET    /devices/device/DEVICENAME/i2c/sensors
-		M. GET I2C DEVICES                - GET    /devices/device/DEVICENAME/i2c/NUMBER/sensors
-		N. ADD I2C DEVICE                 - POST   /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME
-		O. DELETE I2C DEVICE              - DELETE /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME
-		P. GET I2C DEVICE                 - GET    /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME
-		Q. SET I2C DEVICE PROPERTIES      - POST   /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME/properties
-		R. GET I2C DEVICE PROPERTIES      - GET    /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME/properties
-		S. ENABLE/DISABLE I2C             - POST   /devices/device/DEVICENAME/i2c/NUMBER/enable
+		M. GET I2CS                       - GET    /devices/device/DEVICENAME/i2cs
+		N. GET ALL I2C DEVICES            - GET    /devices/device/DEVICENAME/i2c/sensors
+		O. GET I2C DEVICES                - GET    /devices/device/DEVICENAME/i2c/NUMBER/sensors
+		P. ADD I2C DEVICE                 - POST   /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME
+		Q. DELETE I2C DEVICE              - DELETE /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME
+		R. GET I2C DEVICE                 - GET    /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME
+		S. SET I2C DEVICE PROPERTIES      - POST   /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME/properties
+		T. GET I2C DEVICE PROPERTIES      - GET    /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME/properties
+		U. ENABLE/DISABLE I2C             - POST   /devices/device/DEVICENAME/i2c/NUMBER/enable
 
 		Old requirements:
 		A. GET STATUS                     - GET    /devices/device/DEVICENAME/status
@@ -645,7 +647,23 @@ DETAILED:
 		   { 'status': 'OK', 'message': string, 'value': string}
 		   { 'status': 'NG', 'message': string }
 
-		C. GET UART PROPERTIES
+
+
+		C. GET UARTS
+		-  Request:
+		   GET /devices/device/DEVICENAME/uarts
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		-  Response:
+		   { 'status': 'OK', 'message': string, 
+		     'value': { 
+		        'uarts': [
+		            {"enabled": int}, 
+		        ]
+		     }
+		   }
+		   // enabled is an int indicating if disabled (0) or enabled (1)
+
+		D. GET UART PROPERTIES
 		-  Request:
 		   GET /devices/device/DEVICENAME/uart/properties
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -712,7 +730,7 @@ DETAILED:
 		   //      default = 0 (None)
 		   // sending only the index saves memory on the device and computation on frontend
 
-		D. SET UART PROPERTIES
+		E. SET UART PROPERTIES
 		-  Request:
 		   POST /devices/device/DEVICENAME/uart/properties
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
@@ -780,40 +798,19 @@ DETAILED:
 		   { 'status': 'OK', 'message': string }
 		   { 'status': 'NG', 'message': string }
 
-		E. ENABLE/DISABLE UART
+		F. ENABLE/DISABLE UART
 		-  Request:
 		   POST /devices/device/DEVICENAME/uart/enable
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-		   data: { 'enable': boolean }
+		   data: { 'enable': int }
+		   // enable is an int indicating if disabled (0) or enabled (1)
 		-  Response:
 		   { 'status': 'OK', 'message': string }
 		   { 'status': 'NG', 'message': string }
 
 
-		F. GET GPIO VOLTAGE
-		-  Request:
-		   GET /devices/device/DEVICENAME/gpio/voltage
-		   headers: {'Authorization': 'Bearer ' + token.access}
-		   // note that no gpio NUMBER is included because this applies to all 4 gpios
-		-  Response:
-		   { 'status': 'OK', 'message': string, 'value': { 'voltage': int } }
-		   { 'status': 'NG', 'message': string }
-		   // voltage is an index of the value in the list of voltages
-		   //   ["3.3 V", "5 V"]
 
-		G. SET GPIO VOLTAGE
-		-  Request:
-		   POST /devices/device/DEVICENAME/gpio/voltage
-		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-		   data: { 'voltage': int }
-		   // note that no gpio NUMBER is included because this applies to all 4 gpios
-		   // voltage is an index of the value in the list of voltages
-		   //   ["3.3 V", "5 V"]
-		-  Response:
-		   { 'status': 'OK', 'message': string }
-		   { 'status': 'NG', 'message': string }
-
-		H. GET GPIOS
+		G. GET GPIOS
 		-  Request:
 		   GET /devices/device/DEVICENAME/gpios
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -822,21 +819,21 @@ DETAILED:
 		     'value': { 
 		        'voltage': int,
 		        'gpios': [
-		            {"direction": int, "status": int, "enabled": boolean}, 
-		            {"direction": int, "status": int, "enabled": boolean}, 
-		            {"direction": int, "status": int, "enabled": boolean}, 
-		            {"direction": int, "status": int, "enabled": boolean}
+		            {"enabled": int, "direction": int, "status": int},
+		            {"enabled": int, "direction": int, "status": int},
+		            {"enabled": int, "direction": int, "status": int},
+		            {"enabled": int, "direction": int, "status": int},
 		        ]
 		     }
 		   }
+		   // enabled is an int indicating if disabled (0) or enabled (1)
 		   // direction is an index of the value in the list of directions
 		   //     ft900_gpio.h: pad_dir_t
 		   //     ["Input", "Output"]
 		   // status is an index of the value in the list of livestatuses
 		   //     ["Low", "High"]
-		   // enabled is a boolean indicating if enabled (true) or disabled (false)
 
-		I. GET GPIO PROPERTIES
+		H. GET GPIO PROPERTIES
 		-  Request:
 		   GET /devices/device/DEVICENAME/gpio/NUMBER/properties
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -909,7 +906,7 @@ DETAILED:
 		   // space is optional and is valid only when direction points to Output and mode points to Clock
 		   // sending only the index saves memory on the device and computation on frontend
 
-		J. SET GPIO PROPERTIES
+		I. SET GPIO PROPERTIES
 		-  Request:
 		   POST /devices/device/DEVICENAME/gpio/NUMBER/properties
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
@@ -983,17 +980,59 @@ DETAILED:
 		   { 'status': 'OK', 'message': string }
 		   { 'status': 'NG', 'message': string }
 
-		K. ENABLE/DISABLE GPIO
+		J. ENABLE/DISABLE GPIO
 		-  Request:
 		   POST /devices/device/DEVICENAME/gpio/NUMBER/enable
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-		   data: { 'enable': boolean }
+		   data: { 'enable': int }
+		   // enable is an int indicating if disabled (0) or enabled (1)
+		-  Response:
+		   { 'status': 'OK', 'message': string }
+		   { 'status': 'NG', 'message': string }
+
+		K. GET GPIO VOLTAGE
+		-  Request:
+		   GET /devices/device/DEVICENAME/gpio/voltage
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		   // note that no gpio NUMBER is included because this applies to all 4 gpios
+		-  Response:
+		   { 'status': 'OK', 'message': string, 'value': { 'voltage': int } }
+		   { 'status': 'NG', 'message': string }
+		   // voltage is an index of the value in the list of voltages
+		   //   ["3.3 V", "5 V"]
+
+		L. SET GPIO VOLTAGE
+		-  Request:
+		   POST /devices/device/DEVICENAME/gpio/voltage
+		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+		   data: { 'voltage': int }
+		   // note that no gpio NUMBER is included because this applies to all 4 gpios
+		   // voltage is an index of the value in the list of voltages
+		   //   ["3.3 V", "5 V"]
 		-  Response:
 		   { 'status': 'OK', 'message': string }
 		   { 'status': 'NG', 'message': string }
 
 
-		L. GET ALL I2C DEVICES
+
+		M. GET I2CS
+		-  Request:
+		   GET /devices/device/DEVICENAME/i2cs
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		-  Response:
+		   { 'status': 'OK', 'message': string, 
+		     'value': { 
+		        'i2cs': [
+		            {"enabled": int},
+		            {"enabled": int},
+		            {"enabled": int},
+		            {"enabled": int},
+		        ]
+		     }
+		   }
+		   // enabled is an int indicating if disabled (0) or enabled (1)
+
+		N. GET ALL I2C DEVICES
 		-  Request:
 		   GET /devices/device/DEVICENAME/i2c/sensors
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -1003,7 +1042,7 @@ DETAILED:
 		   { 'status': 'NG', 'message': string}
 		   // timestamp refers to the epoch time the sensor was registered/added
 
-		M. GET I2C DEVICES
+		O. GET I2C DEVICES
 		-  Request:
 		   GET /devices/device/DEVICENAME/i2c/NUMBER/sensors
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -1013,7 +1052,7 @@ DETAILED:
 		   { 'status': 'NG', 'message': string}
 		   // timestamp refers to the epoch time the sensor was registered/added
 
-		N. ADD I2C DEVICE
+		P. ADD I2C DEVICE
 		-  Request:
 		   POST /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
@@ -1026,7 +1065,7 @@ DETAILED:
 		   { 'status': 'OK', 'message': string}
 		   { 'status': 'NG', 'message': string}
 
-		O. DELETE I2C DEVICE
+		Q. DELETE I2C DEVICE
 		-  Request:
 		   DELETE /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -1034,7 +1073,7 @@ DETAILED:
 		   { 'status': 'OK', 'message': string}
 		   { 'status': 'NG', 'message': string}
 
-		P. GET I2C DEVICE
+		R. GET I2C DEVICE
 		-  Request:
 		   GET /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -1045,7 +1084,7 @@ DETAILED:
 		   // timestamp refers to the epoch time the sensor was registered/added
 		   // class can be LIGHT, DISPLAY, SPEAKER, TEMPERATURE, POTENTIOMETER
 
-		Q. SET I2C DEVICE PROPERTIES
+		S. SET I2C DEVICE PROPERTIES
 		-  Request:
 		   POST /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME/properties
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
@@ -1152,7 +1191,7 @@ DETAILED:
 		   { 'status': 'OK', 'message': string }
 		   { 'status': 'NG', 'message': string}
 
-		R. GET I2C DEVICE PROPERTIES
+		T. GET I2C DEVICE PROPERTIES
 		-  Request:
 		   POST /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME/properties
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -1260,11 +1299,12 @@ DETAILED:
 
 		   { 'status': 'NG', 'message': string}
 
-		S. ENABLE/DISABLE I2C
+		U. ENABLE/DISABLE I2C
 		-  Request:
 		   POST /devices/device/DEVICENAME/i2c/NUMBER/enable
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-		   data: { 'enable': boolean }
+		   data: { 'enable': int }
+		   // enable is an int indicating if disabled (0) or enabled (1)
 		-  Response:
 		   { 'status': 'OK', 'message': string }
 		   { 'status': 'NG', 'message': string }
@@ -1501,7 +1541,7 @@ The ECC certificates are stored in a 3rd-party hardware ATECC chip for hardware-
 		3. Enforcement of mutual authentication on both MQTT broker and MQTT client configurations
 		4. Unique MQTT credentials (username and password) per device
 		5. Strict restrictions for MQTT topic permission (subscribe and publish) per device
-		6. [TODO] ECC certificates stored in 3rd-party ATECC hardware chip 
+		6. [TODO] ECC certificates and UUID stored in 3rd-party ATECC hardware chip 
 
 Upon connection, each device subscribes to its own dedicated MQTT topic using its device identification (DEVICEID/#).
 As a result, it will only be receiving subtopics under DEVICEID topic solely for the device.
@@ -1527,26 +1567,28 @@ Below is a summary and a detailed list of the subtopics the device will receive 
 SUMMARY:
 
 	1. STATUS
-		A. GET STATUS          rcv: DEVICEID/get_status,          pub: server/DEVICEID/get_status
-		B. SET STATUS          rcv: DEVICEID/set_status,          pub: server/DEVICEID/set_status
+		A. GET STATUS                rcv: DEVICEID/get_status,                pub: server/DEVICEID/get_status
+		B. SET STATUS                rcv: DEVICEID/set_status,                pub: server/DEVICEID/set_status
 
 	2. UART
-		A. GET UART PROPERTIES rcv: DEVICEID/get_uart_properties, pub: server/DEVICEID/get_uart_properties
-		B. SET UART PROPERTIES rcv: DEVICEID/set_uart_properties, pub: server/DEVICEID/set_uart_properties
-		C. ENABLE UART         rcv: DEVICEID/enable_uart,         pub: server/DEVICEID/enable_uart
+		A. GET UARTS                 rcv: DEVICEID/get_uarts,                 pub: server/DEVICEID/get_uarts
+		B. GET UART PROPERTIES       rcv: DEVICEID/get_uart_properties,       pub: server/DEVICEID/get_uart_properties
+		C. SET UART PROPERTIES       rcv: DEVICEID/set_uart_properties,       pub: server/DEVICEID/set_uart_properties
+		D. ENABLE UART               rcv: DEVICEID/enable_uart,               pub: server/DEVICEID/enable_uart
 
 	3. GPIO
-		A. GET GPIO VOLTAGE    rcv: DEVICEID/get_gpio_voltage,    pub: server/DEVICEID/get_gpio_voltage
-		B. SET GPIO VOLTAGE    rcv: DEVICEID/set_gpio_voltage,    pub: server/DEVICEID/set_gpio_voltage
-		C. GET GPIOS           rcv: DEVICEID/get_gpios,           pub: server/DEVICEID/get_gpios
-		D. GET GPIO PROPERTIES rcv: DEVICEID/get_gpio_properties, pub: server/DEVICEID/get_gpio_properties
-		E. SET GPIO PROPERTIES rcv: DEVICEID/set_gpio_properties, pub: server/DEVICEID/set_gpio_properties
-		F. ENABLE GPIO         rcv: DEVICEID/enable_gpio,         pub: server/DEVICEID/enable_gpio
+		A. GET GPIOS                 rcv: DEVICEID/get_gpios,                 pub: server/DEVICEID/get_gpios
+		B. GET GPIO PROPERTIES       rcv: DEVICEID/get_gpio_properties,       pub: server/DEVICEID/get_gpio_properties
+		C. SET GPIO PROPERTIES       rcv: DEVICEID/set_gpio_properties,       pub: server/DEVICEID/set_gpio_properties
+		D. ENABLE GPIO               rcv: DEVICEID/enable_gpio,               pub: server/DEVICEID/enable_gpio
+		E. GET GPIO VOLTAGE          rcv: DEVICEID/get_gpio_voltage,          pub: server/DEVICEID/get_gpio_voltage
+		F. SET GPIO VOLTAGE          rcv: DEVICEID/set_gpio_voltage,          pub: server/DEVICEID/set_gpio_voltage
 
 	4. I2C
-		A. GET I2C DEVICE PROPERTIES rcv: DEVICEID/get_i2c_device_properties, pub: server/DEVICEID/get_i2c_device_properties
-		B. SET I2C DEVICE PROPERTIES rcv: DEVICEID/set_i2c_device_properties, pub: server/DEVICEID/set_i2c_device_properties
-		C. ENABLE I2C                rcv: DEVICEID/enable_i2c,                pub: server/DEVICEID/enable_i2c
+		A. GET I2CS                  rcv: DEVICEID/get_i2cs,                  pub: server/DEVICEID/get_i2cs
+		B. GET I2C DEVICE PROPERTIES rcv: DEVICEID/get_i2c_device_properties, pub: server/DEVICEID/get_i2c_device_properties
+		C. SET I2C DEVICE PROPERTIES rcv: DEVICEID/set_i2c_device_properties, pub: server/DEVICEID/set_i2c_device_properties
+		D. ENABLE I2C                rcv: DEVICEID/enable_i2c,                pub: server/DEVICEID/enable_i2c
 
 
 DETAILED:
@@ -1568,16 +1610,24 @@ DETAILED:
 		   topic: server/DEVICEID/set_status
 		   payload: { 'value': string }
 
+
 	2. UART
 
-		A. GET UART PROPERTIES
+		A. GET UARTS
+		-  Receive:
+		   topic: DEVICEID/get_uarts
+		-  Publish:
+		   topic: server/DEVICEID/get_uarts
+		   payload: { 'value': { 'uarts': [ {'enabled': int} ]} }
+
+		B. GET UART PROPERTIES
 		-  Receive:
 		   topic: DEVICEID/get_uart_properties
 		-  Publish:
 		   topic: server/DEVICEID/get_uart_properties
 		   payload: { 'value': { 'baudrate': int, 'parity': int } }
 
-		B. SET UART PROPERTIES
+		C. SET UART PROPERTIES
 		-  Receive:
 		   topic: DEVICEID/set_uart_properties
 		   payload: { 'baudrate': int, 'parity': int }
@@ -1585,40 +1635,25 @@ DETAILED:
 		   topic: server/DEVICEID/set_uart_properties
 		   payload: { 'value': { 'baudrate': int, 'parity': int } }
 
-		C. ENABLE UART
+		D. ENABLE UART
 		-  Receive:
 		   topic: DEVICEID/enable_uart
-		   payload: { 'enable': boolean }
+		   payload: { 'enable': int }
 		-  Publish:
 		   topic: server/DEVICEID/enable_uart
-		   payload: { 'value': { 'enable': boolean } }
+		   payload: { 'value': { 'enable': int } }
 
 
 	3. GPIO
 
-		A. GET GPIO VOLTAGE
-		-  Receive:
-		   topic: DEVICEID/get_gpio_voltage
-		-  Publish:
-		   topic: server/DEVICEID/get_gpio_voltage
-		   payload: { 'value': { 'voltage': int } }
-
-		B. SET GPIO VOLTAGE
-		-  Receive:
-		   topic: DEVICEID/set_gpio_voltage
-		   payload: { 'voltage': int }
-		-  Publish:
-		   topic: server/DEVICEID/set_gpio_voltage
-		   payload: { 'value': { 'voltage': int } }
-
-		C. GET GPIOS
+		A. GET GPIOS
 		-  Receive:
 		   topic: DEVICEID/get_gpios
 		-  Publish:
 		   topic: server/DEVICEID/get_gpios
-		   payload: { 'value': { 'voltage': int, 'gpios': [ {'direction': int, 'status': int, 'enabled': boolean}, ... ]} }
+		   payload: { 'value': { 'voltage': int, 'gpios': [ {'direction': int, 'status': int, 'enabled': int}, {'direction': int, 'status': int, 'enabled': int}, {'direction': int, 'status': int, 'enabled': int}, {'direction': int, 'status': int, 'enabled': int} ]} }
 
-		D. GET GPIO PROPERTIES
+		B. GET GPIO PROPERTIES
 		-  Receive:
 		   topic: DEVICEID/get_gpio_properties
 		   payload: { 'number': int }
@@ -1626,7 +1661,7 @@ DETAILED:
 		   topic: server/DEVICEID/get_gpio_properties
 		   payload: { 'value': {'direction': int, 'mode': int, 'alert': int, 'alertperiod': int, 'polarity': int, 'width': int, 'mark': int, 'space': int} }
 
-		E. SET GPIO PROPERTIES
+		C. SET GPIO PROPERTIES
 		-  Receive:
 		   topic: DEVICEID/set_gpio_properties
 		   payload: { 'number': int, 'direction': int, 'mode': int, 'alert': int, 'alertperiod': int, 'polarity': int, 'width': int, 'mark': int, 'space': int }
@@ -1634,45 +1669,61 @@ DETAILED:
 		   topic: server/DEVICEID/set_gpio_properties
 		   payload: { 'value': {'direction': int, 'mode': int, 'alert': int, 'alertperiod': int, 'polarity': int, 'width': int, 'mark': int, 'space': int} }
 
-		F. ENABLE GPIO
+		D. ENABLE GPIO
 		-  Receive:
 		   topic: DEVICEID/enable_gpio
-		   payload: { 'number': int, 'enable': boolean }
+		   payload: { 'number': int, 'enable': int }
 		-  Publish:
 		   topic: server/DEVICEID/enable_gpio
-		   payload: { 'value': {'enable': boolean} }
+		   payload: { 'value': {'enable': int} }
+
+		E. GET GPIO VOLTAGE
+		-  Receive:
+		   topic: DEVICEID/get_gpio_voltage
+		-  Publish:
+		   topic: server/DEVICEID/get_gpio_voltage
+		   payload: { 'value': { 'voltage': int } }
+
+		F. SET GPIO VOLTAGE
+		-  Receive:
+		   topic: DEVICEID/set_gpio_voltage
+		   payload: { 'voltage': int }
+		-  Publish:
+		   topic: server/DEVICEID/set_gpio_voltage
+		   payload: { 'value': { 'voltage': int } }
 
 
 	4. I2C
 
-		A. GET I2C DEVICE PROPERTIES
+		A. GET I2CS
+		-  Receive:
+		   topic: DEVICEID/get_i2cs
+		-  Publish:
+		   topic: server/DEVICEID/get_i2cs
+		   payload: { 'value': { 'i2cs': [ {'enabled': int}, {'enabled': int}, {'enabled': int}, {'enabled': int} ]} }
+
+		B. GET I2C DEVICE PROPERTIES
 		-  Receive:
 		   topic: DEVICEID/get_i2c_device_properties
-		   payload: { 'number': int }
+		   payload: { 'number': int, 'address': int }
 		-  Publish:
 		   topic: server/DEVICEID/get_i2c_device_properties
-		   payload: { 'value': { 'direction': int, 'mode': int, 'alert': int, 'alertperiod': int, 'polarity': int, 'width': int, 'mark': int, 'space': int } }
+		   payload: { 'value': { TODO:Refer to GET I2C DEVICE PROPERTIES API } }
 
-		B. SET I2C DEVICE PROPERTIES
+		C. SET I2C DEVICE PROPERTIES
 		-  Receive:
 		   topic: DEVICEID/set_i2c_device_properties
-		   payload: { 'number': int, 'direction': int, 'mode': int, 'alert': int, 'alertperiod': int, 'polarity': int, 'width': int, 'mark': int, 'space': int }
+		   payload: { 'number': int, 'address': int, 'class': string, ...  TODO:Refer to SET I2C DEVICE PROPERTIES API ...}
 		-  Publish:
 		   topic: server/DEVICEID/set_i2c_device_properties
-		   payload: { 'value': { 'direction': int, 'mode': int, 'alert': int, 'alertperiod': int } }
+		   payload: { 'value': { 'number': int, 'address': int, 'class': string, ...  TODO ... } }
 
-		C. ENABLE GPIO
+		D. ENABLE I2C
 		-  Receive:
 		   topic: DEVICEID/enable_i2c
-		   payload: { 'number': int, 'enable': boolean }
+		   payload: { 'number': int, 'enable': int }
 		-  Publish:
 		   topic: server/DEVICEID/enable_i2c
-		   payload: { 'value': { 'enable': boolean } }
-
-
-## Database Documentation
-
-1. TODO
-
+		   payload: { 'value': { 'enable': int } }
 
 
