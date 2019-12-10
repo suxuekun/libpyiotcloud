@@ -822,10 +822,10 @@ DETAILED:
 		     'value': { 
 		        'voltage': int,
 		        'gpios': [
-		            {"direction": int, "status": int}, 
-		            {"direction": int, "status": int}, 
-		            {"direction": int, "status": int}, 
-		            {"direction": int, "status": int}
+		            {"direction": int, "status": int, "enabled": boolean}, 
+		            {"direction": int, "status": int, "enabled": boolean}, 
+		            {"direction": int, "status": int, "enabled": boolean}, 
+		            {"direction": int, "status": int, "enabled": boolean}
 		        ]
 		     }
 		   }
@@ -834,6 +834,7 @@ DETAILED:
 		   //     ["Input", "Output"]
 		   // status is an index of the value in the list of livestatuses
 		   //     ["Low", "High"]
+		   // enabled is a boolean indicating if enabled (true) or disabled (false)
 
 		I. GET GPIO PROPERTIES
 		-  Request:
