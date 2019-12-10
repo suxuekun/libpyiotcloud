@@ -244,7 +244,7 @@ function handle_api(api, topic, payload)
             "stopbits"    : Number(obj.stopbits),
             "flowcontrol" : Number(obj.flowcontrol)
         };
-        var response = { "value": g_uart_properties };
+        var response = {};
         client.publish(pubtopic, JSON.stringify(response));
 
         console.log(pubtopic);
@@ -256,7 +256,7 @@ function handle_api(api, topic, payload)
 
         g_uart_enabled = obj.enable
 
-        var response = { "value": g_uart_enabled };
+        var response = {};
         client.publish(pubtopic, JSON.stringify(response));
         console.log(g_uart_enabled);
 
@@ -310,7 +310,7 @@ function handle_api(api, topic, payload)
             "mark"       : Number(obj.mark),
             "space"      : Number(obj.space)
         };
-        var response = { "value": g_gpio_properties[number] };
+        var response = {};
         client.publish(pubtopic, JSON.stringify(response));
 
         console.log(pubtopic);
@@ -330,7 +330,7 @@ function handle_api(api, topic, payload)
         g_gpio_voltage = Number(obj.voltage);
         console.log(g_gpio_voltage);
 
-        var response = { "value": { "voltage": g_gpio_voltage } };
+        var response = {};
         client.publish(pubtopic, JSON.stringify(response));
 
         console.log(pubtopic);
@@ -342,7 +342,7 @@ function handle_api(api, topic, payload)
 
         g_gpio_enabled[Number(obj.number)-1] = obj.enable
 
-        var response = { "value": g_gpio_enabled[Number(obj.number)-1] };
+        var response = {};
         client.publish(pubtopic, JSON.stringify(response));
         console.log(g_gpio_enabled);
 
@@ -421,7 +421,7 @@ function handle_api(api, topic, payload)
 
         g_i2c_enabled[Number(obj.number)-1] = obj.enable
 
-        var response = { "value": g_i2c_enabled[Number(obj.number)-1] };
+        var response = {};
         client.publish(pubtopic, JSON.stringify(response));
         console.log(g_i2c_enabled);
 

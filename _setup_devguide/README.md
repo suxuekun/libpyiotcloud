@@ -1618,22 +1618,42 @@ DETAILED:
 		   topic: DEVICEID/get_uarts
 		-  Publish:
 		   topic: server/DEVICEID/get_uarts
-		   payload: { 'value': { 'uarts': [ {'enabled': int} ]} }
+		   payload: { 
+		     'value': { 
+		       'uarts': [ 
+		           {'enabled': int}, 
+		       ]
+		     }
+		   }
 
 		B. GET UART PROPERTIES
 		-  Receive:
 		   topic: DEVICEID/get_uart_properties
 		-  Publish:
 		   topic: server/DEVICEID/get_uart_properties
-		   payload: { 'value': { 'baudrate': int, 'parity': int } }
+		   payload: { 
+		     'value': { 
+		       'baudrate': int, 
+		       'parity': int, 
+		       'databits': int, 
+		       'stopbits': int, 
+		       'flowcontrol': int 
+		     } 
+		   }
 
 		C. SET UART PROPERTIES
 		-  Receive:
 		   topic: DEVICEID/set_uart_properties
-		   payload: { 'baudrate': int, 'parity': int }
+		   payload: { 
+		       'baudrate': int, 
+		       'parity': int, 
+		       'databits': int, 
+		       'stopbits': int, 
+		       'flowcontrol': int 
+		   }
 		-  Publish:
 		   topic: server/DEVICEID/set_uart_properties
-		   payload: { 'value': { 'baudrate': int, 'parity': int } }
+		   payload: {}
 
 		D. ENABLE UART
 		-  Receive:
@@ -1641,7 +1661,7 @@ DETAILED:
 		   payload: { 'enable': int }
 		-  Publish:
 		   topic: server/DEVICEID/enable_uart
-		   payload: { 'value': { 'enable': int } }
+		   payload: {}
 
 
 	3. GPIO
@@ -1651,7 +1671,17 @@ DETAILED:
 		   topic: DEVICEID/get_gpios
 		-  Publish:
 		   topic: server/DEVICEID/get_gpios
-		   payload: { 'value': { 'voltage': int, 'gpios': [ {'direction': int, 'status': int, 'enabled': int}, {'direction': int, 'status': int, 'enabled': int}, {'direction': int, 'status': int, 'enabled': int}, {'direction': int, 'status': int, 'enabled': int} ]} }
+		   payload: { 
+		     'value': { 
+		       'voltage': int, 
+		       'gpios': [ 
+		           {'direction': int, 'status': int, 'enabled': int}, 
+		           {'direction': int, 'status': int, 'enabled': int}, 
+		           {'direction': int, 'status': int, 'enabled': int}, 
+		           {'direction': int, 'status': int, 'enabled': int} 
+		       ]
+		     }
+		   }
 
 		B. GET GPIO PROPERTIES
 		-  Receive:
@@ -1659,15 +1689,36 @@ DETAILED:
 		   payload: { 'number': int }
 		-  Publish:
 		   topic: server/DEVICEID/get_gpio_properties
-		   payload: { 'value': {'direction': int, 'mode': int, 'alert': int, 'alertperiod': int, 'polarity': int, 'width': int, 'mark': int, 'space': int} }
+		   payload: { 
+		     'value': {
+		       'direction': int, 
+		       'mode': int, 
+		       'alert': int, 
+		       'alertperiod': int, 
+		       'polarity': int, 
+		       'width': int, 
+		       'mark': int, 
+		       'space': int
+		     } 
+		   }
 
 		C. SET GPIO PROPERTIES
 		-  Receive:
 		   topic: DEVICEID/set_gpio_properties
-		   payload: { 'number': int, 'direction': int, 'mode': int, 'alert': int, 'alertperiod': int, 'polarity': int, 'width': int, 'mark': int, 'space': int }
+		   payload: { 
+		       'number': int, 
+		       'direction': int, 
+		       'mode': int, 
+		       'alert': int, 
+		       'alertperiod': int, 
+		       'polarity': int, 
+		       'width': int, 
+		       'mark': int, 
+		       'space': int 
+		   }
 		-  Publish:
 		   topic: server/DEVICEID/set_gpio_properties
-		   payload: { 'value': {'direction': int, 'mode': int, 'alert': int, 'alertperiod': int, 'polarity': int, 'width': int, 'mark': int, 'space': int} }
+		   payload: {}
 
 		D. ENABLE GPIO
 		-  Receive:
@@ -1675,7 +1726,7 @@ DETAILED:
 		   payload: { 'number': int, 'enable': int }
 		-  Publish:
 		   topic: server/DEVICEID/enable_gpio
-		   payload: { 'value': {'enable': int} }
+		   payload: {}
 
 		E. GET GPIO VOLTAGE
 		-  Receive:
@@ -1690,7 +1741,7 @@ DETAILED:
 		   payload: { 'voltage': int }
 		-  Publish:
 		   topic: server/DEVICEID/set_gpio_voltage
-		   payload: { 'value': { 'voltage': int } }
+		   payload: {}
 
 
 	4. I2C
@@ -1700,7 +1751,16 @@ DETAILED:
 		   topic: DEVICEID/get_i2cs
 		-  Publish:
 		   topic: server/DEVICEID/get_i2cs
-		   payload: { 'value': { 'i2cs': [ {'enabled': int}, {'enabled': int}, {'enabled': int}, {'enabled': int} ]} }
+		   payload: { 
+		     'value': { 
+		       'i2cs': [ 
+		           {'enabled': int}, 
+		           {'enabled': int}, 
+		           {'enabled': int}, 
+		           {'enabled': int} 
+		       ]
+		     }
+		   }
 
 		B. GET I2C DEVICE PROPERTIES
 		-  Receive:
@@ -1708,15 +1768,22 @@ DETAILED:
 		   payload: { 'number': int, 'address': int }
 		-  Publish:
 		   topic: server/DEVICEID/get_i2c_device_properties
-		   payload: { 'value': { TODO:Refer to GET I2C DEVICE PROPERTIES API } }
+		   payload: { 
+		     'value': { TODO:Refer to GET I2C DEVICE PROPERTIES API } 
+		   }
 
 		C. SET I2C DEVICE PROPERTIES
 		-  Receive:
 		   topic: DEVICEID/set_i2c_device_properties
-		   payload: { 'number': int, 'address': int, 'class': string, ...  TODO:Refer to SET I2C DEVICE PROPERTIES API ...}
+		   payload: { 
+		       'number': int, 
+		       'address': int, 
+		       'class': string, 
+		       ...  TODO:Refer to SET I2C DEVICE PROPERTIES API ...
+		   }
 		-  Publish:
 		   topic: server/DEVICEID/set_i2c_device_properties
-		   payload: { 'value': { 'number': int, 'address': int, 'class': string, ...  TODO ... } }
+		   payload: {}
 
 		D. ENABLE I2C
 		-  Receive:
@@ -1724,6 +1791,6 @@ DETAILED:
 		   payload: { 'number': int, 'enable': int }
 		-  Publish:
 		   topic: server/DEVICEID/enable_i2c
-		   payload: { 'value': { 'enable': int } }
+		   payload: {}
 
 

@@ -168,9 +168,9 @@ def handle_api(api, subtopic, subpayload):
             'stopbits': subpayload["stopbits"],
             'flowcontrol': subpayload["flowcontrol"],
         }
+        print(g_uart_properties)
 
         payload = {}
-        payload["value"] = g_uart_properties
         publish(topic, payload)
 
     elif api == "get_uarts":
@@ -197,7 +197,6 @@ def handle_api(api, subtopic, subpayload):
         print(g_uart_enabled)
 
         payload = {}
-        payload["value"] = g_uart_enabled
         publish(topic, payload)
 
 
@@ -233,7 +232,6 @@ def handle_api(api, subtopic, subpayload):
         value = g_gpio_properties[number]
 
         payload = {}
-        payload["value"] = value
         publish(topic, payload)
 
     elif api == "get_gpios":
@@ -264,7 +262,6 @@ def handle_api(api, subtopic, subpayload):
         print(g_gpio_enabled)
 
         payload = {}
-        payload["value"] = g_gpio_enabled[int(subpayload["number"])-1]
         publish(topic, payload)
 
     elif api == "get_gpio_voltage":
@@ -284,7 +281,6 @@ def handle_api(api, subtopic, subpayload):
         print(g_gpio_voltages[g_gpio_voltage])
 
         payload = {}
-        payload["value"] = {"voltage": g_gpio_voltage}
         publish(topic, payload)
 
 
@@ -319,7 +315,6 @@ def handle_api(api, subtopic, subpayload):
         print(g_i2c_enabled)
 
         payload = {}
-        payload["value"] = g_i2c_enabled[int(subpayload["number"])-1]
         publish(topic, payload)
 
     elif api == "get_i2c_device_properties":
