@@ -38,7 +38,7 @@ g_firmware_version = (g_firmware_version_MAJOR*100 + g_firmware_version_MINOR)
 g_firmware_version_STR = "{}.{}".format(g_firmware_version_MAJOR, g_firmware_version_MINOR)
 
 g_uart_properties = { 'baudrate': 7, 'parity': 0, 'databits': 3, 'stopbits': 0, 'flowcontrol': 0 }
-g_uart_enabled = True
+g_uart_enabled = 1
 
 g_gpio_properties = [
     { 'direction': 0, 'mode': 0, 'alert': 0, 'alertperiod':   0,   'polarity': 0, 'width': 0, 'mark': 0, 'space': 0 },
@@ -47,7 +47,7 @@ g_gpio_properties = [
     { 'direction': 1, 'mode': 2, 'alert': 1, 'alertperiod': 120,   'polarity': 1, 'width': 0, 'mark': 1, 'space': 2 } ]
 g_gpio_voltage = 1
 g_gpio_voltages = ['3.3 V', '5 V']
-g_gpio_enabled = [True, True, True, True]
+g_gpio_enabled = [1, 1, 1, 1]
 g_gpio_status = [0, 1, 0, 1]
 
 g_i2c_properties = [
@@ -64,7 +64,7 @@ g_i2c_properties = [
         '0': { 'class': 0, 'attributes': {} },
     }
 ]
-g_i2c_enabled = [True, True, True, True]
+g_i2c_enabled = [1, 1, 1, 1]
 
 
 
@@ -112,8 +112,10 @@ def setClassAttributes(device_class, class_attributes):
     return attributes
 
 def handle_api(api, subtopic, subpayload):
-    global g_device_status, g_uart_properties
-    global g_gpio_values, g_gpio_properties, g_gpio_voltage
+    global g_device_status
+    global g_uart_properties, g_uart_enabled
+    global g_gpio_properties, g_gpio_enabled, g_gpio_voltage, g_gpio_status, g_gpio_values
+    global g_i2c_properties, g_i2c_enabled
 
 
     ####################################################
@@ -171,12 +173,27 @@ def handle_api(api, subtopic, subpayload):
         payload["value"] = g_uart_properties
         publish(topic, payload)
 
+    elif api == "get_uarts":
+        topic = generate_pubtopic(subtopic)
+        subpayload = json.loads(subpayload)
+
+        value = {
+            'uarts': [
+                {'enabled': g_uart_enabled },
+            ]
+        }
+        print(g_uart_enabled)
+
+        payload = {}
+        payload["value"] = value
+        publish(topic, payload)
+
     elif api == "enable_uart":
         topic = generate_pubtopic(subtopic)
         subpayload = json.loads(subpayload)
         print(subpayload)
 
-        g_uart_enabled = subpayload["enable"]
+        g_uart_enabled = int(subpayload["enable"])
         print(g_uart_enabled)
 
         payload = {}
@@ -232,6 +249,7 @@ def handle_api(api, subtopic, subpayload):
                 {'direction': g_gpio_properties[3]['direction'], 'status': g_gpio_status[3], 'enabled': g_gpio_enabled[3] }
             ]
         }
+        print(g_gpio_enabled)
 
         payload = {}
         payload["value"] = value
@@ -273,6 +291,24 @@ def handle_api(api, subtopic, subpayload):
     ####################################################
     # I2C
     ####################################################
+
+    elif api == "get_i2cs":
+        topic = generate_pubtopic(subtopic)
+        subpayload = json.loads(subpayload)
+
+        value = {
+            'i2cs': [
+                {'enabled': g_i2c_enabled[0] },
+                {'enabled': g_i2c_enabled[1] },
+                {'enabled': g_i2c_enabled[2] },
+                {'enabled': g_i2c_enabled[3] }
+            ]
+        }
+        print(g_i2c_enabled)
+
+        payload = {}
+        payload["value"] = value
+        publish(topic, payload)
 
     elif api == "enable_i2c":
         topic = generate_pubtopic(subtopic)
