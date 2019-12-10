@@ -250,13 +250,14 @@ SUMMARY:
 		J. SET GPIO PROPERTIES            - POST   /devices/device/DEVICENAME/gpio/NUMBER/properties
 		K. ENABLE/DISABLE GPIO            - POST   /devices/device/DEVICENAME/gpio/NUMBER/enable
 
-		L. GET I2C DEVICES                - GET    /devices/device/DEVICENAME/i2c/NUMBER/sensors
-		M. ADD I2C DEVICE                 - POST   /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME
-		N. DELETE I2C DEVICE              - DELETE /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME
-		O. GET I2C DEVICE                 - GET    /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME
-		P. SET I2C DEVICE PROPERTIES      - POST   /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME/properties
-		Q. GET I2C DEVICE PROPERTIES      - GET    /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME/properties
-		R. ENABLE/DISABLE I2C             - POST   /devices/device/DEVICENAME/i2c/NUMBER/enable
+		L. GET ALL I2C DEVICES            - GET    /devices/device/DEVICENAME/i2c/sensors
+		M. GET I2C DEVICES                - GET    /devices/device/DEVICENAME/i2c/NUMBER/sensors
+		N. ADD I2C DEVICE                 - POST   /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME
+		O. DELETE I2C DEVICE              - DELETE /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME
+		P. GET I2C DEVICE                 - GET    /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME
+		Q. SET I2C DEVICE PROPERTIES      - POST   /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME/properties
+		R. GET I2C DEVICE PROPERTIES      - GET    /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME/properties
+		S. ENABLE/DISABLE I2C             - POST   /devices/device/DEVICENAME/i2c/NUMBER/enable
 
 		Old requirements:
 		A. GET STATUS                     - GET    /devices/device/DEVICENAME/status
@@ -991,7 +992,17 @@ DETAILED:
 		   { 'status': 'NG', 'message': string }
 
 
-		L. GET I2C DEVICES
+		L. GET ALL I2C DEVICES
+		-  Request:
+		   GET /devices/device/DEVICENAME/i2c/sensors
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		-  Response:
+		   { 'status': 'OK', 'message': string, 
+		     'sensors': array[{'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'class': string, 'timestamp': string, 'attributes': []}, ...]}
+		   { 'status': 'NG', 'message': string}
+		   // timestamp refers to the epoch time the sensor was registered/added
+
+		M. GET I2C DEVICES
 		-  Request:
 		   GET /devices/device/DEVICENAME/i2c/NUMBER/sensors
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -1001,7 +1012,7 @@ DETAILED:
 		   { 'status': 'NG', 'message': string}
 		   // timestamp refers to the epoch time the sensor was registered/added
 
-		M. ADD I2C DEVICE
+		N. ADD I2C DEVICE
 		-  Request:
 		   POST /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
@@ -1014,7 +1025,7 @@ DETAILED:
 		   { 'status': 'OK', 'message': string}
 		   { 'status': 'NG', 'message': string}
 
-		N. DELETE I2C DEVICE
+		O. DELETE I2C DEVICE
 		-  Request:
 		   DELETE /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -1022,7 +1033,7 @@ DETAILED:
 		   { 'status': 'OK', 'message': string}
 		   { 'status': 'NG', 'message': string}
 
-		O. GET I2C DEVICE
+		P. GET I2C DEVICE
 		-  Request:
 		   GET /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -1033,7 +1044,7 @@ DETAILED:
 		   // timestamp refers to the epoch time the sensor was registered/added
 		   // class can be LIGHT, DISPLAY, SPEAKER, TEMPERATURE, POTENTIOMETER
 
-		P. SET I2C DEVICE PROPERTIES
+		Q. SET I2C DEVICE PROPERTIES
 		-  Request:
 		   POST /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME/properties
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
@@ -1048,11 +1059,11 @@ DETAILED:
 		   //   endpoint is an index to the list source endpoints:
 		   //     ["Manual", "Hardware"]
 		   //   if endpoint is Manual
-		   //     color is an integer value of the hex color 0xRRGGBB where each RR, GG, BB can be 0x00-0xFF
+		   //     color is an integer value of the hex color 0xRRGGBB where each RR (red), GG (green), BB (blue) can be 0x00-0xFF (0-255)
 		   //     brightness is the percentage value. value should be 0-100
 		   //     timeout indicates the number of seconds
 		   //   if endpoint is Hardware
-		   //     color is an integer value of the hex color 0xRRGGBB where each RR, GG, BB can be 0x00-0xFF
+		   //     color is an integer value of the hex color 0xRRGGBB where each RR (red), GG (green), BB (blue) can be 0x00-0xFF (0-255)
 		   //     hardware contains the devicename (input IoT Modem device) and sensorname (input I2C device)
 		   //       devicename is the name of the IoT modem device
 		   //       sensorname is the name of the input I2C device
@@ -1078,24 +1089,35 @@ DETAILED:
 		   //
 		   // SPEAKER class
 		   data: { 
-		           "endpoint": int, 
-		           "hardware": {"devicename": string, "sensorname": string}, 
-		           "file": {"name": string, "size": int} 
+		            "endpoint": int, 
+		            "hardware": {"devicename": string, "sensorname": string},
+		            "type": "midi",
+		            "midi": { "duration": int, "pitch": int, "delay": int }
 		         }
 		   // TODO: how to send the file
 		   //   endpoint is an index to the list source endpoints:
 		   //     ["Manual", "Hardware"]
 		   //   if endpoint is Manual
-		   //     file is the sound/music file to send and play
-		   //       name is the name of the sound/music file to send and play
-		   //       size is the size of the sound/music file to send and play
+		   //     type is the type of sound to play
+		   //     midi is the sound/music configuration of the MIDI sound
+		   //       duration is the note duration in milliseconds [default: 100]
+		   //       pitch is the MIDI note number to use. possible values is from 55-126 [default: 55]
+		   //       delay is the time in milliseconds before sound is repeated [default: 100]
+		   //       file is the sound/music file to send and play
+		   //         name is the name of the sound/music file to send and play
+		   //         size is the size of the sound/music file to send and play
 		   //   if endpoint is Hardware
 		   //     hardware contains the devicename (input IoT Modem device) and sensorname (input I2C device)
 		   //       devicename is the name of the IoT modem device
 		   //       sensorname is the name of the input I2C device
-		   //     file is the sound/music file to send and play
-		   //       name is the name of the sound/music file to send and play
-		   //       size is the size of the sound/music file to send and play
+		   //     type is the type of sound to play
+		   //     midi is the sound/music configuration of the MIDI sound
+		   //       duration is the note duration in milliseconds [default: 100]
+		   //       pitch is the MIDI note number to use. possible values is from 55-126 [default: 55]
+		   //       delay is the time in milliseconds before sound is repeated [default: 100]
+		   //       file is the sound/music file to send and play
+		   //         name is the name of the sound/music file to send and play
+		   //         size is the size of the sound/music file to send and play
 		   //
 		   // TEMPERATURE class
 		   data: { 
@@ -1129,7 +1151,7 @@ DETAILED:
 		   { 'status': 'OK', 'message': string }
 		   { 'status': 'NG', 'message': string}
 
-		Q. GET I2C DEVICE PROPERTIES
+		R. GET I2C DEVICE PROPERTIES
 		-  Request:
 		   POST /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME/properties
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -1146,11 +1168,11 @@ DETAILED:
 		   //   endpoint is an index to the list source endpoints:
 		   //     ["Manual", "Hardware"]
 		   //   if endpoint is Manual
-		   //     color is an integer value of the hex color 0xRRGGBB where each RR, GG, BB can be 0x00-0xFF
+		   //     color is an integer value of the hex color 0xRRGGBB where each RR (red), GG (green), BB (blue) can be 0x00-0xFF (0-255)
 		   //     brightness is the percentage value. value should be 0-100
 		   //     timeout indicates the number of seconds
 		   //   if endpoint is Hardware
-		   //     color is an integer value of the hex color 0xRRGGBB where each RR, GG, BB can be 0x00-0xFF
+		   //     color is an integer value of the hex color 0xRRGGBB where each RR (red), GG (green), BB (blue) can be 0x00-0xFF (0-255)
 		   //     hardware contains the devicename (input IoT Modem device) and sensorname (input I2C device)
 		   //       devicename is the name of the IoT modem device
 		   //       sensorname is the name of the input I2C device
@@ -1176,24 +1198,35 @@ DETAILED:
 		   //
 		   // SPEAKER class
 		      { 
-		           "endpoint": int, 
-		           "hardware": {"devicename": string, "sensorname": string}, 
-		           "file": {"name": string, "size": int} 
+		            "endpoint": int, 
+		            "hardware": {"devicename": string, "sensorname": string}, 
+		            "type": "midi",
+		            "midi": { "duration": int, "pitch": int, "delay": int }
 		      }
 		   // TODO: how to send the file
 		   //   endpoint is an index to the list source endpoints:
 		   //     ["Manual", "Hardware"]
 		   //   if endpoint is Manual
-		   //     file is the sound/music file to send and play
-		   //       name is the name of the sound/music file to send and play
-		   //       size is the size of the sound/music file to send and play
+		   //     type is the type of sound to play
+		   //     midi is the sound/music configuration of the MIDI sound
+		   //       duration is the note duration in milliseconds [default: 100]
+		   //       pitch is the MIDI note number to use. possible values is from 55-126 [default: 55]
+		   //       delay is the time in milliseconds before sound is repeated [default: 100]
+		   //       file is the sound/music file to send and play
+		   //         name is the name of the sound/music file to send and play
+		   //         size is the size of the sound/music file to send and play
 		   //   if endpoint is Hardware
 		   //     hardware contains the devicename (input IoT Modem device) and sensorname (input I2C device)
 		   //       devicename is the name of the IoT modem device
 		   //       sensorname is the name of the input I2C device
-		   //     file is the sound/music file to send and play
-		   //       name is the name of the sound/music file to send and play
-		   //       size is the size of the sound/music file to send and play
+		   //     type is the type of sound to play
+		   //     midi is the sound/music configuration of the MIDI sound
+		   //       duration is the note duration in milliseconds [default: 100]
+		   //       pitch is the MIDI note number to use. possible values is from 55-126 [default: 55]
+		   //       delay is the time in milliseconds before sound is repeated [default: 100]
+		   //       file is the sound/music file to send and play
+		   //         name is the name of the sound/music file to send and play
+		   //         size is the size of the sound/music file to send and play
 		   //
 		   // TEMPERATURE class
 		      {
@@ -1226,7 +1259,7 @@ DETAILED:
 
 		   { 'status': 'NG', 'message': string}
 
-		Q. ENABLE/DISABLE I2C
+		S. ENABLE/DISABLE I2C
 		-  Request:
 		   POST /devices/device/DEVICENAME/i2c/NUMBER/enable
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
