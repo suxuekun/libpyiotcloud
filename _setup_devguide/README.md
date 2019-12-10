@@ -1236,7 +1236,7 @@ DETAILED:
 		   { 'status': 'NG', 'message': string }
 
 
-		Old requirements:
+		Old requirements: (OBSOLOTED)
 
 		A. GET STATUS
 		-  Request:
@@ -1493,22 +1493,26 @@ Below is a summary and a detailed list of the subtopics the device will receive 
 SUMMARY:
 
 	1. STATUS
-		A. GET STATUS           rcv: DEVICEID/get_status,          pub: server/DEVICEID/get_status
-		B. SET STATUS           rcv: DEVICEID/set_status,          pub: server/DEVICEID/set_status
+		A. GET STATUS          rcv: DEVICEID/get_status,          pub: server/DEVICEID/get_status
+		B. SET STATUS          rcv: DEVICEID/set_status,          pub: server/DEVICEID/set_status
 
 	2. UART
-		A. GET UART PROPERTIES  rcv: DEVICEID/get_uart_properties, pub: server/DEVICEID/get_uart_properties
-		B. SET UART PROPERTIES  rcv: DEVICEID/set_uart_properties, pub: server/DEVICEID/set_uart_properties
+		A. GET UART PROPERTIES rcv: DEVICEID/get_uart_properties, pub: server/DEVICEID/get_uart_properties
+		B. SET UART PROPERTIES rcv: DEVICEID/set_uart_properties, pub: server/DEVICEID/set_uart_properties
+		C. ENABLE UART         rcv: DEVICEID/enable_uart,         pub: server/DEVICEID/enable_uart
 
 	3. GPIO
-		A. GET GPIO VOLTAGE     rcv: DEVICEID/get_gpio_voltage,    pub: server/DEVICEID/get_gpio_voltage
-		B. SET GPIO VOLTAGE     rcv: DEVICEID/set_gpio_voltage,    pub: server/DEVICEID/set_gpio_voltage
-		C. GET GPIO PROPERTIES  rcv: DEVICEID/get_gpio_properties, pub: server/DEVICEID/get_gpio_properties
-		D. SET GPIO PROPERTIES  rcv: DEVICEID/set_gpio_properties, pub: server/DEVICEID/set_gpio_properties
+		A. GET GPIO VOLTAGE    rcv: DEVICEID/get_gpio_voltage,    pub: server/DEVICEID/get_gpio_voltage
+		B. SET GPIO VOLTAGE    rcv: DEVICEID/set_gpio_voltage,    pub: server/DEVICEID/set_gpio_voltage
+		C. GET GPIOS           rcv: DEVICEID/get_gpios,           pub: server/DEVICEID/get_gpios
+		D. GET GPIO PROPERTIES rcv: DEVICEID/get_gpio_properties, pub: server/DEVICEID/get_gpio_properties
+		E. SET GPIO PROPERTIES rcv: DEVICEID/set_gpio_properties, pub: server/DEVICEID/set_gpio_properties
+		F. ENABLE GPIO         rcv: DEVICEID/enable_gpio,         pub: server/DEVICEID/enable_gpio
 
 	4. I2C
-		A. get_i2c_properties   rcv: DEVICEID/get_i2c_properties,  pub: server/DEVICEID/get_i2c_properties
-		B. set_i2c_properties   rcv: DEVICEID/set_i2c_properties,  pub: server/DEVICEID/set_i2c_properties
+		A. GET I2C DEVICE PROPERTIES rcv: DEVICEID/get_i2c_device_properties, pub: server/DEVICEID/get_i2c_device_properties
+		B. SET I2C DEVICE PROPERTIES rcv: DEVICEID/set_i2c_device_properties, pub: server/DEVICEID/set_i2c_device_properties
+		C. ENABLE I2C                rcv: DEVICEID/enable_i2c,                pub: server/DEVICEID/enable_i2c
 
 
 DETAILED:
@@ -1535,7 +1539,6 @@ DETAILED:
 		A. GET UART PROPERTIES
 		-  Receive:
 		   topic: DEVICEID/get_uart_properties
-		   payload: { 'number': int }
 		-  Publish:
 		   topic: server/DEVICEID/get_uart_properties
 		   payload: { 'value': { 'baudrate': int, 'parity': int } }
@@ -1543,10 +1546,19 @@ DETAILED:
 		B. SET UART PROPERTIES
 		-  Receive:
 		   topic: DEVICEID/set_uart_properties
-		   payload: { 'number': int, 'baudrate': int, 'parity': int }
+		   payload: { 'baudrate': int, 'parity': int }
 		-  Publish:
 		   topic: server/DEVICEID/set_uart_properties
 		   payload: { 'value': { 'baudrate': int, 'parity': int } }
+
+		C. ENABLE UART
+		-  Receive:
+		   topic: DEVICEID/enable_uart
+		   payload: { 'enable': boolean }
+		-  Publish:
+		   topic: server/DEVICEID/enable_uart
+		   payload: { 'value': { 'enable': boolean } }
+
 
 	3. GPIO
 
@@ -1555,7 +1567,7 @@ DETAILED:
 		   topic: DEVICEID/get_gpio_voltage
 		-  Publish:
 		   topic: server/DEVICEID/get_gpio_voltage
-		   payload: { 'value': int }
+		   payload: { 'value': { 'voltage': int } }
 
 		B. SET GPIO VOLTAGE
 		-  Receive:
@@ -1563,41 +1575,65 @@ DETAILED:
 		   payload: { 'voltage': int }
 		-  Publish:
 		   topic: server/DEVICEID/set_gpio_voltage
-		   payload: { 'value': int }
+		   payload: { 'value': { 'voltage': int } }
 
-		C. GET GPIO PROPERTIES
+		C. GET GPIOS
+		-  Receive:
+		   topic: DEVICEID/get_gpios
+		-  Publish:
+		   topic: server/DEVICEID/get_gpios
+		   payload: { 'value': { 'voltage': int, 'gpios': [ {'direction': int, 'status': int, 'enabled': boolean}, ... ]} }
+
+		D. GET GPIO PROPERTIES
 		-  Receive:
 		   topic: DEVICEID/get_gpio_properties
 		   payload: { 'number': int }
 		-  Publish:
 		   topic: server/DEVICEID/get_gpio_properties
-		   payload: { 'value': { 'direction': int, 'mode': int, 'alert': int, 'alertperiod': int, 'polarity': int, 'width': int, 'mark': int, 'space': int } }
+		   payload: { 'value': {'direction': int, 'mode': int, 'alert': int, 'alertperiod': int, 'polarity': int, 'width': int, 'mark': int, 'space': int} }
 
-		D. SET GPIO PROPERTIES
+		E. SET GPIO PROPERTIES
 		-  Receive:
 		   topic: DEVICEID/set_gpio_properties
 		   payload: { 'number': int, 'direction': int, 'mode': int, 'alert': int, 'alertperiod': int, 'polarity': int, 'width': int, 'mark': int, 'space': int }
 		-  Publish:
 		   topic: server/DEVICEID/set_gpio_properties
-		   payload: { 'value': { 'direction': int, 'mode': int, 'alert': int, 'alertperiod': int } }
+		   payload: { 'value': {'direction': int, 'mode': int, 'alert': int, 'alertperiod': int, 'polarity': int, 'width': int, 'mark': int, 'space': int} }
+
+		F. ENABLE GPIO
+		-  Receive:
+		   topic: DEVICEID/enable_gpio
+		   payload: { 'number': int, 'enable': boolean }
+		-  Publish:
+		   topic: server/DEVICEID/enable_gpio
+		   payload: { 'value': {'enable': boolean} }
+
 
 	4. I2C
 
-		A. get_i2c_properties
-		-  Subscribe:
-		   topic:
-		   payload:
+		A. GET I2C DEVICE PROPERTIES
+		-  Receive:
+		   topic: DEVICEID/get_i2c_device_properties
+		   payload: { 'number': int }
 		-  Publish:
-		   topic:
-		   payload:
+		   topic: server/DEVICEID/get_i2c_device_properties
+		   payload: { 'value': { 'direction': int, 'mode': int, 'alert': int, 'alertperiod': int, 'polarity': int, 'width': int, 'mark': int, 'space': int } }
 
-		B. set_i2c_properties
-		-  Subscribe:
-		   topic:
-		   payload:
+		B. SET I2C DEVICE PROPERTIES
+		-  Receive:
+		   topic: DEVICEID/set_i2c_device_properties
+		   payload: { 'number': int, 'direction': int, 'mode': int, 'alert': int, 'alertperiod': int, 'polarity': int, 'width': int, 'mark': int, 'space': int }
 		-  Publish:
-		   topic:
-		   payload:
+		   topic: server/DEVICEID/set_i2c_device_properties
+		   payload: { 'value': { 'direction': int, 'mode': int, 'alert': int, 'alertperiod': int } }
+
+		C. ENABLE GPIO
+		-  Receive:
+		   topic: DEVICEID/enable_i2c
+		   payload: { 'number': int, 'enable': boolean }
+		-  Publish:
+		   topic: server/DEVICEID/enable_i2c
+		   payload: { 'value': { 'enable': boolean } }
 
 
 ## Database Documentation
