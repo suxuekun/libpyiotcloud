@@ -48,6 +48,7 @@ g_gpio_properties = [
 g_gpio_voltage = 1
 g_gpio_voltages = ['3.3 V', '5 V']
 g_gpio_enabled = [True, True, True, True]
+g_gpio_status = [0, 1, 0, 1]
 
 g_i2c_properties = [
     {
@@ -225,10 +226,10 @@ def handle_api(api, subtopic, subpayload):
         value = {
             'voltage': g_gpio_voltage,
             'gpios': [
-                {'direction': g_gpio_properties[0]['direction'], 'status': 0},
-                {'direction': g_gpio_properties[1]['direction'], 'status': 0},
-                {'direction': g_gpio_properties[2]['direction'], 'status': 0},
-                {'direction': g_gpio_properties[3]['direction'], 'status': 0},
+                {'direction': g_gpio_properties[0]['direction'], 'status': g_gpio_status[0], 'enabled': g_gpio_enabled[0] },
+                {'direction': g_gpio_properties[1]['direction'], 'status': g_gpio_status[1], 'enabled': g_gpio_enabled[1] },
+                {'direction': g_gpio_properties[2]['direction'], 'status': g_gpio_status[2], 'enabled': g_gpio_enabled[2] },
+                {'direction': g_gpio_properties[3]['direction'], 'status': g_gpio_status[3], 'enabled': g_gpio_enabled[3] }
             ]
         }
 
@@ -457,6 +458,9 @@ def handle_api(api, subtopic, subpayload):
         else:
             publish(topic, subpayload)
             print("Notification triggered to email/SMS recipient!")
+
+    else:
+        print("UNSUPPORTED")
 
 
 
