@@ -1737,8 +1737,8 @@ def get_device_histories_filtered():
 #   headers: {'Authorization': 'Bearer ' + token.access}
 #
 # - Response:
-#   { 'status': 'OK', 'message': string, 'value': { "status": string, "version": string } }
-#   { 'status': 'NG', 'message': string, 'heartbeat': string }
+#   { 'status': 'OK', 'message': string, 'value': { 'status': int, 'version': string } }
+#   { 'status': 'NG', 'message': string, 'value': { 'heartbeat': string, 'version': string} }
 #
 @app.route('/devices/device/<devicename>/status', methods=['GET'])
 def get_status(devicename):
@@ -1763,8 +1763,8 @@ def get_status(devicename):
     data['username'] = username
     #print('get_status {} devicename={}'.format(data['username'], data['devicename']))
 
-    response, status = process_request_get(api, data)
-    if status == 503: # HTTP_503_SERVICE_UNAVAILABLE
+    response, status_return = process_request_get(api, data)
+    if status_return == 503: # HTTP_503_SERVICE_UNAVAILABLE
         # if device is unreachable, get the cached heartbeat and version
         cached_value = g_database_client.get_device_cached_values(username, devicename)
         if not cached_value:
@@ -1774,7 +1774,7 @@ def get_status(devicename):
         response = json.loads(response)
         response['value'] = cached_value
         response = json.dumps(response)
-        return response, status
+        return response, status_return
 
     if status == 200:
         response = json.loads(response)
@@ -1790,10 +1790,10 @@ def get_status(devicename):
 # - Request:
 #   POST /devices/device/<devicename>/status
 #   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-#   data: { 'value': string }
+#   data: { 'status': int }
 #
 # - Response:
-#   { 'status': 'OK', 'message': string, 'value': string}
+#   { 'status': 'OK', 'message': string, 'value': {'status': string} }
 #   { 'status': 'NG', 'message': string}
 #
 @app.route('/devices/device/<devicename>/status', methods=['POST'])
@@ -1807,8 +1807,16 @@ def set_status(devicename):
         print('\r\nERROR Invalid authorization header\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
 
-    # get username from token
+    # get parameter input
     data = flask.request.get_json()
+
+    # check parameter input
+    if data['status'] is None:
+        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+        print('\r\nERROR Set status: Empty parameter found\r\n')
+        return response, status.HTTP_400_BAD_REQUEST
+
+    # get username from token
     data['token'] = {'access': auth_header_token}
     data['devicename'] = devicename
     data['username'] = g_database_client.get_username_from_token(data['token'])
@@ -2270,12 +2278,12 @@ def get_uarts(devicename):
 #   headers: { 'Authorization': 'Bearer ' + token.access }
 #
 # - Response:
-#   { 'status': 'OK', 'message': string, 'value': { 'baudrate': int, 'parity': int, 'databits': int, 'stopbits': int, 'flowcontrol': int } }
+#   { 'status': 'OK', 'message': string, 'value': { 'baudrate': int, 'parity': int, 'flowcontrol': int, 'stopbits': int, 'databits': int } }
 #   { 'status': 'NG', 'message': string }
 #
 @app.route('/devices/device/<devicename>/uart/properties', methods=['GET'])
-def get_uart_properties(devicename):
-    api = 'get_uart_properties'
+def get_uart_prop(devicename):
+    api = 'get_uart_prop'
 
     # get token from Authorization header
     auth_header_token = get_auth_header_token()
@@ -2295,7 +2303,7 @@ def get_uart_properties(devicename):
         print('\r\nERROR Invalid token\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
     data['username'] = username
-    print('get_uart_properties {} devicename={}'.format(data['username'], data['devicename']))
+    print('get_uart_prop {} devicename={}'.format(data['username'], data['devicename']))
 
     response, status = process_request(api, data)
     if status != 200:
@@ -2321,15 +2329,15 @@ def get_uart_properties(devicename):
 # - Request:
 #   POST /devices/device/<devicename>/uart/properties
 #   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
-#   data: { 'baudrate': int, 'parity': int, 'databits': int, 'stopbits': int, 'flowcontrol': int }
+#   data: { 'baudrate': int, 'parity': int, 'flowcontrol': int, 'stopbits': int, 'databits': int }
 #
 # - Response:
 #   { 'status': 'OK', 'message': string }
 #   { 'status': 'NG', 'message': string }
 #
 @app.route('/devices/device/<devicename>/uart/properties', methods=['POST'])
-def set_uart_properties(devicename):
-    api = 'set_uart_properties'
+def set_uart_prop(devicename):
+    api = 'set_uart_prop'
 
     # get token from Authorization header
     auth_header_token = get_auth_header_token()
@@ -2363,7 +2371,7 @@ def set_uart_properties(devicename):
         print('\r\nERROR Invalid token\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
     data['username'] = username
-    print('set_uart_properties {} devicename={}'.format(data['username'], data['devicename']))
+    print('set_uart_prop {} devicename={}'.format(data['username'], data['devicename']))
 
     response, status = process_request(api, data)
     if status != 200:
@@ -2385,7 +2393,7 @@ def set_uart_properties(devicename):
 # - Request:
 #   POST /devices/device/DEVICENAME/uart/enable
 #   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
-#   data: { 'enable': boolean }
+#   data: { 'enable': int }
 #
 # - Response:
 #   { 'status': 'OK', 'message': string }
@@ -2404,6 +2412,8 @@ def enable_uart(devicename):
 
     # get username from token
     data = flask.request.get_json()
+
+    # check parameter input
     if data['enable'] is None:
         response = json.dumps({'status': 'NG', 'message': 'Invalid parameters'})
         print('\r\nERROR Invalid parameters\r\n')
@@ -2482,8 +2492,15 @@ def get_gpios(devicename):
 #   { 'status': 'NG', 'message': string }
 #
 @app.route('/devices/device/<devicename>/gpio/<number>/properties', methods=['GET'])
-def get_gpio_properties(devicename, number):
-    api = 'get_gpio_properties'
+def get_gpio_prop(devicename, number):
+    api = 'get_gpio_prop'
+
+    # check number parameter
+    number = int(number)
+    if number > 4 or number < 1:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid parameters'})
+        print('\r\nERROR Invalid parameters\r\n')
+        return response, status.HTTP_400_BAD_REQUEST
 
     # get token from Authorization header
     auth_header_token = get_auth_header_token()
@@ -2503,8 +2520,8 @@ def get_gpio_properties(devicename, number):
         print('\r\nERROR Invalid token\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
     data['username'] = username
-    data['number'] = int(number)
-    print('get_gpio_properties {} devicename={}'.format(data['username'], data['devicename']))
+    data['number'] = number
+    print('get_gpio_prop {} devicename={}'.format(data['username'], data['devicename']))
 
     response, status = process_request(api, data)
     if status != 200:
@@ -2537,8 +2554,15 @@ def get_gpio_properties(devicename, number):
 #   { 'status': 'NG', 'message': string }
 #
 @app.route('/devices/device/<devicename>/gpio/<number>/properties', methods=['POST'])
-def set_gpio_properties(devicename, number):
-    api = 'set_gpio_properties'
+def set_gpio_prop(devicename, number):
+    api = 'set_gpio_prop'
+
+    # check number parameter
+    number = int(number)
+    if number > 4 or number < 1:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid parameters'})
+        print('\r\nERROR Invalid parameters\r\n')
+        return response, status.HTTP_400_BAD_REQUEST
 
     # get token from Authorization header
     auth_header_token = get_auth_header_token()
@@ -2604,8 +2628,10 @@ def set_gpio_properties(devicename, number):
         print('\r\nERROR Invalid token\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
     data['username'] = username
-    data['number'] = int(number)
-    print('set_gpio_properties {} devicename={}'.format(data['username'], data['devicename']))
+
+    # note: python dict maintains insertion order so number will always be the last key
+    data['number'] = number
+    print('set_gpio_prop {} devicename={}'.format(data['username'], data['devicename']))
 
     response, status = process_request(api, data)
     if status != 200:
@@ -2680,8 +2706,19 @@ def set_gpio_voltage(devicename):
         print('\r\nERROR Invalid authorization header\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
 
-    # get username from token
+    # get parameter inputs
     data = flask.request.get_json()
+
+    # check parameter input
+    if data['voltage'] is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid parameters'})
+        print('\r\nERROR Invalid parameters\r\n')
+        return response, status.HTTP_400_BAD_REQUEST
+    if data['voltage'] > 1:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid parameters'})
+        print('\r\nERROR Invalid parameters\r\n')
+        return response, status.HTTP_400_BAD_REQUEST
+
     #print(api)
     #print(data)
     data['token'] = {'access': auth_header_token}
@@ -2702,7 +2739,7 @@ def set_gpio_voltage(devicename):
 # - Request:
 #   POST /devices/device/DEVICENAME/gpio/NUMBER/enable
 #   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
-#   data: { 'enable': boolean }
+#   data: { 'enable': int }
 #
 # - Response:
 #   { 'status': 'OK', 'message': string }
@@ -2712,6 +2749,13 @@ def set_gpio_voltage(devicename):
 def enable_gpio(devicename, number):
     api = 'enable_gpio'
 
+    # check number parameter
+    number = int(number)
+    if number > 4 or number < 1:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid parameters'})
+        print('\r\nERROR Invalid parameters\r\n')
+        return response, status.HTTP_400_BAD_REQUEST
+
     # get token from Authorization header
     auth_header_token = get_auth_header_token()
     if auth_header_token is None:
@@ -2719,8 +2763,10 @@ def enable_gpio(devicename, number):
         print('\r\nERROR Invalid authorization header\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
 
-    # get username from token
+    # get parameter inputs
     data = flask.request.get_json()
+
+    # check parameter input
     if data['enable'] is None:
         response = json.dumps({'status': 'NG', 'message': 'Invalid parameters'})
         print('\r\nERROR Invalid parameters\r\n')
@@ -2734,6 +2780,8 @@ def enable_gpio(devicename, number):
         print('\r\nERROR Invalid token\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
     data['username'] = username
+
+    # note: python dict maintains insertion order so number will always be the last key
     data['number'] = number
     print('enable_gpio {} devicename={} number={}'.format(username, devicename, number))
 
@@ -2857,6 +2905,13 @@ def get_all_i2c_sensors(devicename):
 #
 @app.route('/devices/device/<devicename>/i2c/<number>/sensors', methods=['GET'])
 def get_i2c_sensors(devicename, number):
+
+    # check number parameter
+    if int(number) > 4 or int(number) < 1:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid parameters'})
+        print('\r\nERROR Invalid parameters\r\n')
+        return response, status.HTTP_400_BAD_REQUEST
+
     # get token from Authorization header
     auth_header_token = get_auth_header_token()
     if auth_header_token is None:
@@ -2928,6 +2983,13 @@ def get_i2c_sensors(devicename, number):
 ########################################################################################################
 @app.route('/devices/device/<devicename>/i2c/<number>/sensors/sensor/<sensorname>', methods=['POST', 'DELETE'])
 def register_i2c_sensor(devicename, number, sensorname):
+
+    # check number parameter
+    if int(number) > 4 or int(number) < 1:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid parameters'})
+        print('\r\nERROR Invalid parameters\r\n')
+        return response, status.HTTP_400_BAD_REQUEST
+
     # get token from Authorization header
     auth_header_token = get_auth_header_token()
     if auth_header_token is None:
@@ -3041,6 +3103,13 @@ def register_i2c_sensor(devicename, number, sensorname):
 ########################################################################################################
 @app.route('/devices/device/<devicename>/i2c/<number>/sensors/sensor/<sensorname>', methods=['GET'])
 def get_i2c_sensor(devicename, number, sensorname):
+
+    # check number parameter
+    if int(number) > 4 or int(number) < 1:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid parameters'})
+        print('\r\nERROR Invalid parameters\r\n')
+        return response, status.HTTP_400_BAD_REQUEST
+
     # get token from Authorization header
     auth_header_token = get_auth_header_token()
     if auth_header_token is None:
@@ -3105,8 +3174,15 @@ def get_i2c_sensor(devicename, number, sensorname):
 #
 ########################################################################################################
 @app.route('/devices/device/<devicename>/i2c/<number>/sensors/sensor/<sensorname>/properties', methods=['POST'])
-def set_i2c_device_properties(devicename, number, sensorname):
-    print('set_i2c_device_properties')
+def set_i2c_dev_prop(devicename, number, sensorname):
+    print('set_i2c_dev_prop')
+
+    # check number parameter
+    if int(number) > 4 or int(number) < 1:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid parameters'})
+        print('\r\nERROR Invalid parameters\r\n')
+        return response, status.HTTP_400_BAD_REQUEST
+
     # get token from Authorization header
     auth_header_token = get_auth_header_token()
     if auth_header_token is None:
@@ -3120,7 +3196,7 @@ def set_i2c_device_properties(devicename, number, sensorname):
         response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
         print('\r\nERROR Set I2C Sensor: Invalid token\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
-    print('set_i2c_device_properties {} devicename={} number={} sensorname={}'.format(username, devicename, number, sensorname))
+    print('set_i2c_dev_prop {} devicename={} number={} sensorname={}'.format(username, devicename, number, sensorname))
 
     # check if a parameter is empty
     if len(username) == 0 or len(token) == 0 or len(devicename) == 0 or len(sensorname) == 0:
@@ -3153,15 +3229,15 @@ def set_i2c_device_properties(devicename, number, sensorname):
         print('\r\nERROR Get I2C Sensor: Sensor is not registered [{},{}]\r\n'.format(username, devicename))
         return response, status.HTTP_404_NOT_FOUND
 
-    api = 'set_i2c_device_properties'
-    print('set_i2c_device_properties {}'.format(data))
+    api = 'set_i2c_dev_prop'
+    print('set_i2c_dev_prop {}'.format(data))
     data['token'] = token
     data['devicename'] = devicename
     data['username'] = username
-    data['number'] = int(number)
     data['address'] = sensor['address']
     data['class'] = sensor['class']
-    print('set_i2c_device_properties {} devicename={} number={}'.format(username, devicename, number))
+    data['number'] = int(number)
+    print('set_i2c_dev_prop {} devicename={} number={}'.format(username, devicename, number))
 
 
     # no notification data
@@ -3201,8 +3277,15 @@ def set_i2c_device_properties(devicename, number, sensorname):
 #
 ########################################################################################################
 @app.route('/devices/device/<devicename>/i2c/<number>/sensors/sensor/<sensorname>/properties', methods=['GET'])
-def get_i2c_device_properties(devicename, number, sensorname):
-    print('get_i2c_device_properties')
+def get_i2c_dev_prop(devicename, number, sensorname):
+    print('get_i2c_dev_prop')
+
+    # check number parameter
+    if int(number) > 4 or int(number) < 1:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid parameters'})
+        print('\r\nERROR Invalid parameters\r\n')
+        return response, status.HTTP_400_BAD_REQUEST
+
     # get token from Authorization header
     auth_header_token = get_auth_header_token()
     if auth_header_token is None:
@@ -3216,7 +3299,7 @@ def get_i2c_device_properties(devicename, number, sensorname):
         response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
         print('\r\nERROR Get I2C Sensor: Invalid token\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
-    print('get_i2c_device_properties {} devicename={} number={} sensorname={}'.format(username, devicename, number, sensorname))
+    print('get_i2c_dev_prop {} devicename={} number={} sensorname={}'.format(username, devicename, number, sensorname))
 
     # check if a parameter is empty
     if len(username) == 0 or len(token) == 0 or len(devicename) == 0 or len(sensorname) == 0:
@@ -3242,15 +3325,15 @@ def get_i2c_device_properties(devicename, number, sensorname):
         print('\r\nERROR Get I2C Sensor: Sensor is not registered [{},{}]\r\n'.format(username, devicename))
         return response, status.HTTP_404_NOT_FOUND
 
-    api = 'get_i2c_device_properties'
+    api = 'get_i2c_dev_prop'
     data = {}
     data['token'] = token
     data['devicename'] = devicename
     data['username'] = username
-    data['number'] = int(number)
     data['address'] = sensor['address']
     data['class'] = sensor['class']
-    print('get_i2c_device_properties {} devicename={} number={}'.format(username, devicename, number))
+    data['number'] = int(number)
+    print('get_i2c_dev_prop {} devicename={} number={}'.format(username, devicename, number))
 
     # no notification object required
     if sensor["class"] != "temperature" and sensor["class"] != "potentiometer":
@@ -3290,7 +3373,7 @@ def get_i2c_device_properties(devicename, number, sensorname):
 # - Request:
 #   POST /devices/device/DEVICENAME/i2c/NUMBER/enable
 #   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
-#   data: { 'enable': boolean }
+#   data: { 'enable': int }
 #
 # - Response:
 #   { 'status': 'OK', 'message': string }
@@ -3299,6 +3382,13 @@ def get_i2c_device_properties(devicename, number, sensorname):
 @app.route('/devices/device/<devicename>/i2c/<number>/enable', methods=['POST'])
 def enable_i2c(devicename, number):
     api = 'enable_i2c'
+
+    # check number parameter
+    number = int(number)
+    if number > 4 or number < 1:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid parameters'})
+        print('\r\nERROR Invalid parameters\r\n')
+        return response, status.HTTP_400_BAD_REQUEST
 
     # get token from Authorization header
     auth_header_token = get_auth_header_token()
@@ -3309,6 +3399,8 @@ def enable_i2c(devicename, number):
 
     # get username from token
     data = flask.request.get_json()
+
+    # check parameter input
     if data['enable'] is None:
         response = json.dumps({'status': 'NG', 'message': 'Invalid parameters'})
         print('\r\nERROR Invalid parameters\r\n')
@@ -3322,6 +3414,8 @@ def enable_i2c(devicename, number):
         print('\r\nERROR Invalid token\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
     data['username'] = username
+
+    # note: python dict maintains insertion order so number will always be the last key
     data['number'] = number
     print('enable_i2c {} devicename={} number={}'.format(username, devicename, number))
 
@@ -3928,7 +4022,7 @@ def receive_message(topic):
             #print("x")
             time.sleep(1)
             i += 1
-        if i >= 1:
+        if i >= 2:
             print("receive_message timed_out")
             break
     return None

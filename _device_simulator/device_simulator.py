@@ -30,16 +30,34 @@ g_messaging_client = None
 
 g_gpio_values = {}
 
-g_device_status = "running"
-
+# FIRMWARE VERSION (for GET STATUS)
 g_firmware_version_MAJOR = 0
 g_firmware_version_MINOR = 1
 g_firmware_version = (g_firmware_version_MAJOR*100 + g_firmware_version_MINOR)
 g_firmware_version_STR = "{}.{}".format(g_firmware_version_MAJOR, g_firmware_version_MINOR)
 
-g_uart_properties = { 'baudrate': 7, 'parity': 0, 'databits': 3, 'stopbits': 0, 'flowcontrol': 0 }
+# DEVICE STATUS (for GET STATUS)
+DEVICE_STATUS_STARTING   = 0
+DEVICE_STATUS_RUNNING    = 1
+DEVICE_STATUS_RESTART    = 2
+DEVICE_STATUS_RESTARTING = 3
+DEVICE_STATUS_STOP       = 4
+DEVICE_STATUS_STOPPING   = 5
+DEVICE_STATUS_STOPPED    = 6
+DEVICE_STATUS_START      = 7
+g_device_status = DEVICE_STATUS_RUNNING
+
+# UART
+g_uart_properties = { 'baudrate': 7, 'parity': 0, 'flowcontrol': 0, 'stopbits': 0, 'databits': 1 }
 g_uart_enabled = 1
 
+g_uart_baudrate = ["110", "150", "300", "1200", "2400", "4800", "9600", "19200", "31250", "38400", "57600", "115200", "230400", "460800", "921600", "1000000"]
+g_uart_parity  = ["None", "Odd", "Even"]
+g_uart_flowcontrol = ["None", "Rts/Cts", "Xon/Xoff"]
+g_uart_stopbits = ["1", "2"]
+g_uart_databits = ["7", "8"]
+
+# GPIO
 g_gpio_properties = [
     { 'direction': 0, 'mode': 0, 'alert': 0, 'alertperiod':   0,   'polarity': 0, 'width': 0, 'mark': 0, 'space': 0 },
     { 'direction': 0, 'mode': 3, 'alert': 1, 'alertperiod':  60,   'polarity': 0, 'width': 0, 'mark': 0, 'space': 0 },
@@ -50,6 +68,7 @@ g_gpio_voltages = ['3.3 V', '5 V']
 g_gpio_enabled = [1, 1, 1, 1]
 g_gpio_status = [0, 1, 0, 1]
 
+# I2C
 g_i2c_properties = [
     {
         '0': { 'class': 0, 'attributes': {} },
@@ -65,6 +84,34 @@ g_i2c_properties = [
     }
 ]
 g_i2c_enabled = [1, 1, 1, 1]
+
+###################################################################################
+# APIs
+###################################################################################
+
+# device status
+API_GET_STATUS                = "get_status"
+API_SET_STATUS                = "set_status"
+
+# uart
+API_GET_UARTS                 = "get_uarts"
+API_GET_UART_PROPERTIES       = "get_uart_prop"
+API_SET_UART_PROPERTIES       = "set_uart_prop"
+API_ENABLE_UART               = "enable_uart"
+
+# gpio
+API_GET_GPIOS                 = "get_gpios"
+API_GET_GPIO_PROPERTIES       = "get_gpio_prop"
+API_SET_GPIO_PROPERTIES       = "set_gpio_prop"
+API_ENABLE_GPIO               = "enable_gpio"
+API_GET_GPIO_VOLTAGE          = "get_gpio_voltage"
+API_SET_GPIO_VOLTAGE          = "set_gpio_voltage"
+
+# i2c
+API_GET_I2CS                  = "get_i2cs"
+API_GET_I2C_DEVICE_PROPERTIES = "get_i2c_dev_prop"
+API_SET_I2C_DEVICE_PROPERTIES = "set_i2c_dev_prop"
+API_ENABLE_I2C                = "enable_i2c"
 
 
 
@@ -121,59 +168,39 @@ def handle_api(api, subtopic, subpayload):
     ####################################################
     # GET/SET STATUS
     ####################################################
-    if api == "get_status":
+    if api == API_GET_STATUS:
         topic = generate_pubtopic(subtopic)
         payload = {}
         payload["value"] = { "status": g_device_status, "version": g_firmware_version_STR }
         publish(topic, payload)
 
-    elif api == "set_status":
+    elif api == API_SET_STATUS:
         topic = generate_pubtopic(subtopic)
         subpayload = json.loads(subpayload)
 
-        if subpayload["value"] == "restart":
-            g_device_status = "restarting"
-        elif subpayload["value"] == "stop":
-            g_device_status = "stopping"
-        elif subpayload["value"] == "start":
-            g_device_status = "starting"
+        status = subpayload["status"]
+        if status == DEVICE_STATUS_RESTART:
+            if g_device_status != DEVICE_STATUS_RESTARTING:
+                g_device_status = DEVICE_STATUS_RESTARTING
+                print("DEVICE_STATUS_RESTART")
+        elif status == DEVICE_STATUS_STOP:
+            if g_device_status != DEVICE_STATUS_STOPPING and g_device_status != DEVICE_STATUS_STOPPED:
+                g_device_status = DEVICE_STATUS_STOPPING
+                print("DEVICE_STATUS_STOP")
+        elif status == DEVICE_STATUS_START:
+            if g_device_status != DEVICE_STATUS_STARTING and g_device_status != DEVICE_STATUS_RUNNING:
+                g_device_status = DEVICE_STATUS_STARTING
+                print("DEVICE_STATUS_START")
 
         payload = {}
-        payload["value"] = g_device_status
+        payload["value"] = {"status": g_device_status}
         publish(topic, payload)
 
 
     ####################################################
     # UART
     ####################################################
-    elif api == "get_uart_properties":
-        topic = generate_pubtopic(subtopic)
-        subpayload = json.loads(subpayload)
-
-        value = g_uart_properties
-
-        payload = {}
-        payload["value"] = value
-        publish(topic, payload)
-
-    elif api == "set_uart_properties":
-        topic = generate_pubtopic(subtopic)
-        subpayload = json.loads(subpayload)
-        print(subpayload)
-
-        g_uart_properties = { 
-            'baudrate': subpayload["baudrate"], 
-            'parity': subpayload["parity"],
-            'databits': subpayload["databits"],
-            'stopbits': subpayload["stopbits"],
-            'flowcontrol': subpayload["flowcontrol"],
-        }
-        print(g_uart_properties)
-
-        payload = {}
-        publish(topic, payload)
-
-    elif api == "get_uarts":
+    elif api == API_GET_UARTS:
         topic = generate_pubtopic(subtopic)
         subpayload = json.loads(subpayload)
 
@@ -188,7 +215,45 @@ def handle_api(api, subtopic, subpayload):
         payload["value"] = value
         publish(topic, payload)
 
-    elif api == "enable_uart":
+    elif api == API_GET_UART_PROPERTIES:
+        topic = generate_pubtopic(subtopic)
+        subpayload = json.loads(subpayload)
+
+        value = g_uart_properties
+        print(g_uart_properties)
+        print(g_uart_baudrate[g_uart_properties['baudrate']])
+        print(g_uart_parity[g_uart_properties['parity']])
+        print(g_uart_flowcontrol[g_uart_properties['flowcontrol']])
+        print(g_uart_stopbits[g_uart_properties['stopbits']])
+        print(g_uart_databits[g_uart_properties['databits']])
+
+        payload = {}
+        payload["value"] = value
+        publish(topic, payload)
+
+    elif api == API_SET_UART_PROPERTIES:
+        topic = generate_pubtopic(subtopic)
+        subpayload = json.loads(subpayload)
+        print(subpayload)
+
+        g_uart_properties = { 
+            'baudrate': subpayload["baudrate"], 
+            'parity': subpayload["parity"],
+            'flowcontrol': subpayload["flowcontrol"],
+            'stopbits': subpayload["stopbits"],
+            'databits': subpayload["databits"],
+        }
+        print(g_uart_properties)
+        print(g_uart_baudrate[g_uart_properties['baudrate']])
+        print(g_uart_parity[g_uart_properties['parity']])
+        print(g_uart_flowcontrol[g_uart_properties['flowcontrol']])
+        print(g_uart_stopbits[g_uart_properties['stopbits']])
+        print(g_uart_databits[g_uart_properties['databits']])
+
+        payload = {}
+        publish(topic, payload)
+
+    elif api == API_ENABLE_UART:
         topic = generate_pubtopic(subtopic)
         subpayload = json.loads(subpayload)
         print(subpayload)
@@ -203,7 +268,26 @@ def handle_api(api, subtopic, subpayload):
     ####################################################
     # GPIO
     ####################################################
-    elif api == "get_gpio_properties":
+    elif api == API_GET_GPIOS:
+        topic = generate_pubtopic(subtopic)
+        subpayload = json.loads(subpayload)
+
+        value = {
+            'voltage': g_gpio_voltage,
+            'gpios': [
+                {'direction': g_gpio_properties[0]['direction'], 'status': g_gpio_status[0], 'enabled': g_gpio_enabled[0] },
+                {'direction': g_gpio_properties[1]['direction'], 'status': g_gpio_status[1], 'enabled': g_gpio_enabled[1] },
+                {'direction': g_gpio_properties[2]['direction'], 'status': g_gpio_status[2], 'enabled': g_gpio_enabled[2] },
+                {'direction': g_gpio_properties[3]['direction'], 'status': g_gpio_status[3], 'enabled': g_gpio_enabled[3] }
+            ]
+        }
+        print(g_gpio_enabled)
+
+        payload = {}
+        payload["value"] = value
+        publish(topic, payload)
+
+    elif api == API_GET_GPIO_PROPERTIES:
         topic = generate_pubtopic(subtopic)
         subpayload = json.loads(subpayload)
 
@@ -214,7 +298,7 @@ def handle_api(api, subtopic, subpayload):
         payload["value"] = value
         publish(topic, payload)
 
-    elif api == "set_gpio_properties":
+    elif api == API_SET_GPIO_PROPERTIES:
         topic = generate_pubtopic(subtopic)
         subpayload = json.loads(subpayload)
         print(subpayload)
@@ -234,26 +318,7 @@ def handle_api(api, subtopic, subpayload):
         payload = {}
         publish(topic, payload)
 
-    elif api == "get_gpios":
-        topic = generate_pubtopic(subtopic)
-        subpayload = json.loads(subpayload)
-
-        value = {
-            'voltage': g_gpio_voltage,
-            'gpios': [
-                {'direction': g_gpio_properties[0]['direction'], 'status': g_gpio_status[0], 'enabled': g_gpio_enabled[0] },
-                {'direction': g_gpio_properties[1]['direction'], 'status': g_gpio_status[1], 'enabled': g_gpio_enabled[1] },
-                {'direction': g_gpio_properties[2]['direction'], 'status': g_gpio_status[2], 'enabled': g_gpio_enabled[2] },
-                {'direction': g_gpio_properties[3]['direction'], 'status': g_gpio_status[3], 'enabled': g_gpio_enabled[3] }
-            ]
-        }
-        print(g_gpio_enabled)
-
-        payload = {}
-        payload["value"] = value
-        publish(topic, payload)
-
-    elif api == "enable_gpio":
+    elif api == API_ENABLE_GPIO:
         topic = generate_pubtopic(subtopic)
         subpayload = json.loads(subpayload)
         print(subpayload)
@@ -264,7 +329,7 @@ def handle_api(api, subtopic, subpayload):
         payload = {}
         publish(topic, payload)
 
-    elif api == "get_gpio_voltage":
+    elif api == API_GET_GPIO_VOLTAGE:
         topic = generate_pubtopic(subtopic)
 
         payload = {}
@@ -272,7 +337,7 @@ def handle_api(api, subtopic, subpayload):
         publish(topic, payload)
         print(g_gpio_voltages[g_gpio_voltage])
 
-    elif api == "set_gpio_voltage":
+    elif api == API_SET_GPIO_VOLTAGE:
         topic = generate_pubtopic(subtopic)
         subpayload = json.loads(subpayload)
         print(subpayload)
@@ -288,7 +353,7 @@ def handle_api(api, subtopic, subpayload):
     # I2C
     ####################################################
 
-    elif api == "get_i2cs":
+    elif api == API_GET_I2CS:
         topic = generate_pubtopic(subtopic)
         subpayload = json.loads(subpayload)
 
@@ -306,18 +371,7 @@ def handle_api(api, subtopic, subpayload):
         payload["value"] = value
         publish(topic, payload)
 
-    elif api == "enable_i2c":
-        topic = generate_pubtopic(subtopic)
-        subpayload = json.loads(subpayload)
-        print(subpayload)
-
-        g_i2c_enabled[int(subpayload["number"])-1] = subpayload["enable"]
-        print(g_i2c_enabled)
-
-        payload = {}
-        publish(topic, payload)
-
-    elif api == "get_i2c_device_properties":
+    elif api == API_GET_I2C_DEVICE_PROPERTIES:
         topic = generate_pubtopic(subtopic)
         subpayload = json.loads(subpayload)
 
@@ -338,7 +392,7 @@ def handle_api(api, subtopic, subpayload):
             payload["value"] = value
         publish(topic, payload)
 
-    elif api == "set_i2c_device_properties":
+    elif api == API_SET_I2C_DEVICE_PROPERTIES:
         topic = generate_pubtopic(subtopic)
         subpayload = json.loads(subpayload)
         print(subpayload)
@@ -355,6 +409,18 @@ def handle_api(api, subtopic, subpayload):
 
         payload = {}
         publish(topic, payload)
+
+    elif api == API_ENABLE_I2C:
+        topic = generate_pubtopic(subtopic)
+        subpayload = json.loads(subpayload)
+        print(subpayload)
+
+        g_i2c_enabled[int(subpayload["number"])-1] = subpayload["enable"]
+        print(g_i2c_enabled)
+
+        payload = {}
+        publish(topic, payload)
+
 
 
     ####################################################
@@ -545,7 +611,7 @@ def restart():
 
 def process_restart():
     global g_device_status
-    if g_device_status == "restarting":
+    if g_device_status == DEVICE_STATUS_RESTARTING:
         print("\nDevice will be restarting in 3 seconds")
         for x in range(3):
             time.sleep(1)
@@ -555,24 +621,24 @@ def process_restart():
 
 def process_stop():
     global g_device_status
-    if g_device_status == "stopping":
+    if g_device_status == DEVICE_STATUS_STOPPING:
         print("\nDevice will be stopped in 3 seconds")
         for x in range(3):
             time.sleep(1)
             print(".")
         time.sleep(1)
-        g_device_status = "stopped"
+        g_device_status = DEVICE_STATUS_STOPPED
         print("Device stopped successfully!\n")
 
 def process_start():
     global g_device_status
-    if g_device_status == "starting":
+    if g_device_status == DEVICE_STATUS_STARTING:
         print("\nDevice will be started in 3 seconds")
         for x in range(3):
             time.sleep(1)
             print(".")
         time.sleep(1)
-        g_device_status = "running"
+        g_device_status = DEVICE_STATUS_RUNNING
         print("Device started successfully!\n")
 
 
@@ -672,11 +738,11 @@ if __name__ == '__main__':
             time.sleep(1)
 
             # process restart
-            if g_device_status == "restarting":
+            if g_device_status == DEVICE_STATUS_RESTARTING:
                process_restart()
-            elif g_device_status == "stopping":
+            elif g_device_status == DEVICE_STATUS_STOPPING:
                process_stop()
-            elif g_device_status == "starting":
+            elif g_device_status == DEVICE_STATUS_STARTING:
                process_start()
 
         g_messaging_client.release()
