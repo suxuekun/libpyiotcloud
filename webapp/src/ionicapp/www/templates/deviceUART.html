@@ -19,6 +19,7 @@
       <div id="deviceUART-markdown120" class="show-list-numbers-and-dots">
         <p style="color:#387EF5;">Properties</p>
       </div>
+      <button id="deviceUART-button100" ng-click="setDefaultProperties()" class="button button-stable button-block button-outline">Set default values</button>
       <label class="item item-select" id="deviceUART-select9">
         <span class="input-label">Baud Rate</span>
         <select ng-model="data.uart.baudrate" ng-options="baudrate.id as baudrate.label for baudrate in baudrates"></select>
@@ -27,17 +28,17 @@
         <span class="input-label">Parity</span>
         <select ng-model="data.uart.parity" ng-options="parity.id as parity.label for parity in parities"></select>
       </label>
-      <label class="item item-select" id="deviceUART-select21">
-        <span class="input-label">Data Bits</span>
-        <select ng-model="data.uart.databits" ng-options="databit.id as databit.label for databit in databits"></select>
+      <label class="item item-select" id="deviceUART-select23">
+        <span class="input-label">Flow Control</span>
+        <select ng-model="data.uart.flowcontrol" ng-options="flowcontrol.id as flowcontrol.label for flowcontrol in flowcontrols"></select>
       </label>
       <label class="item item-select" id="deviceUART-select22">
         <span class="input-label">Stop Bits</span>
         <select ng-model="data.uart.stopbits" ng-options="stopbit.id as stopbit.label for stopbit in stopbits"></select>
       </label>
-      <label class="item item-select" id="deviceUART-select23">
-        <span class="input-label">Flow Control</span>
-        <select ng-model="data.uart.flowcontrol" ng-options="flowcontrol.id as flowcontrol.label for flowcontrol in flowcontrols"></select>
+      <label class="item item-select" id="deviceUART-select21">
+        <span class="input-label">Data Bits</span>
+        <select ng-model="data.uart.databits" ng-options="databit.id as databit.label for databit in databits"></select>
       </label>
     </form>
     <form id="deviceUART-form22" class="list">

@@ -9914,3 +9914,7 @@ a.button {
 
 .item-lastactive {
   color: black; }
+
+.slider-red {
+  color: red;
+  background-color: red; }

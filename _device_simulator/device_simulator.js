@@ -8,16 +8,35 @@ var ArgumentParser = require('argparse');
 
 
 
-var g_device_status = "running";
 
+// FIRMWARE VERSION (for GET STATUS)
 var g_firmware_version_MAJOR = 0;
 var g_firmware_version_MINOR = 1;
 var g_firmware_version = (g_firmware_version_MAJOR*100 + g_firmware_version_MINOR);
 var g_firmware_version_STR = g_firmware_version_MAJOR.toString() + "." + g_firmware_version_MINOR.toString();
 
-var g_uart_properties = { 'baudrate': 7, 'parity': 0, 'databits': 3, 'stopbits': 0, 'flowcontrol': 0 };
+// DEVICE STATUS (for GET STATUS)
+var DEVICE_STATUS_STARTING   = 0
+var DEVICE_STATUS_RUNNING    = 1
+var DEVICE_STATUS_RESTART    = 2
+var DEVICE_STATUS_RESTARTING = 3
+var DEVICE_STATUS_STOP       = 4
+var DEVICE_STATUS_STOPPING   = 5
+var DEVICE_STATUS_STOPPED    = 6
+var DEVICE_STATUS_START      = 7
+var g_device_status = DEVICE_STATUS_RUNNING;
+
+// UART
+var g_uart_properties = { 'baudrate': 7, 'parity': 0, 'flowcontrol': 0, 'stopbits': 0, 'databits': 1 };
 var g_uart_enabled = 1;
 
+var g_uart_baudrate = ["110", "150", "300", "1200", "2400", "4800", "9600", "19200", "31250", "38400", "57600", "115200", "230400", "460800", "921600", "1000000"];
+var g_uart_parity  = ["None", "Odd", "Even"];
+var g_uart_flowcontrol = ["None", "Rts/Cts", "Xon/Xoff"];
+var g_uart_stopbits = ["1", "2"];
+var g_uart_databits = ["7", "8"];
+
+// GPIO
 var g_gpio_properties = [
     { 'direction': 0, 'mode': 0, 'alert': 0, 'alertperiod':   0, 'polarity': 0, 'width': 0, 'mark': 0, 'space': 0 },
     { 'direction': 0, 'mode': 3, 'alert': 1, 'alertperiod':  60, 'polarity': 0, 'width': 0, 'mark': 0, 'space': 0 },
@@ -27,6 +46,7 @@ var g_gpio_voltage = 1;
 var g_gpio_enabled = [1, 1, 1, 1];
 var g_gpio_status = [0, 1, 0, 1];
 
+// I2C
 var g_i2c_properties = [
     {
         '0': { 'class': 0, 'attributes': {} },
@@ -43,13 +63,37 @@ var g_i2c_properties = [
 ];
 var g_i2c_enabled = [1, 1, 1, 1];
 
+// APIs
 
+// device status
+var API_GET_STATUS                = "get_status";
+var API_SET_STATUS                = "set_status";
+
+// uart
+var API_GET_UARTS                 = "get_uarts";
+var API_GET_UART_PROPERTIES       = "get_uart_prop";
+var API_SET_UART_PROPERTIES       = "set_uart_prop";
+var API_ENABLE_UART               = "enable_uart";
+
+// gpio
+var API_GET_GPIOS                 = "get_gpios";
+var API_GET_GPIO_PROPERTIES       = "get_gpio_prop";
+var API_SET_GPIO_PROPERTIES       = "set_gpio_prop";
+var API_ENABLE_GPIO               = "enable_gpio";
+var API_GET_GPIO_VOLTAGE          = "get_gpio_voltage";
+var API_SET_GPIO_VOLTAGE          = "set_gpio_voltage";
+
+// i2c
+var API_GET_I2CS                  = "get_i2cs";
+var API_GET_I2C_DEVICE_PROPERTIES = "get_i2c_dev_prop";
+var API_SET_I2C_DEVICE_PROPERTIES = "set_i2c_dev_prop";
+var API_ENABLE_I2C                = "enable_i2c";
 
 
 // UART notification configuration
 var CONFIG_NOTIFICATION_UART_KEYWORD = "Hello World";
-var CONFIG_NOTIFICATION_RECIPIENT   = "richmond.umagat@brtchip.com";
-var CONFIG_NOTIFICATION_MESSAGE    = "Hi, How are you today?";
+var CONFIG_NOTIFICATION_RECIPIENT    = "richmond.umagat@brtchip.com";
+var CONFIG_NOTIFICATION_MESSAGE      = "Hi, How are you today?";
 
 // default configurations
 var CONFIG_DEVICE_ID     = "";
@@ -191,30 +235,41 @@ function handle_api(api, topic, payload)
     ////////////////////////////////////////////////////
     // GET/SET STATUS
     ////////////////////////////////////////////////////
-    if (api == "get_status") {
+    if (api == API_GET_STATUS) {
         pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
         var obj = {
             "value": { "status": g_device_status, "version": g_firmware_version_STR }
         };
         client.publish(pubtopic, JSON.stringify(obj));
     }
-    else if (api == "set_status") {
+    else if (api == API_SET_STATUS) {
         pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
         var obj = JSON.parse(payload);
 
-        var value = obj.value;
-        if (value == "restart") {
-            g_device_status = "restarting";
+        var status = obj.status;
+        if (status == DEVICE_STATUS_RESTART) {
+            if (g_device_status != DEVICE_STATUS_RESTARTING){
+                g_device_status = DEVICE_STATUS_RESTARTING;
+                console.log("DEVICE_STATUS_RESTART");
+            }
         }
-        else if (value == "stop") {
-            g_device_status = "stopping";
+        else if (status == DEVICE_STATUS_STOP) {
+            if (g_device_status != DEVICE_STATUS_STOPPING && g_device_status != DEVICE_STATUS_STOPPED){
+                g_device_status = DEVICE_STATUS_STOPPING;
+                console.log("DEVICE_STATUS_STOP");
+            }
         }
-        else if (value == "start") {
-            g_device_status = "starting";
+        else if (status == DEVICE_STATUS_START) {
+            if (g_device_status != DEVICE_STATUS_STARTING && g_device_status != DEVICE_STATUS_RUNNING){
+                g_device_status = DEVICE_STATUS_STARTING;
+                console.log("DEVICE_STATUS_START");
+            }
         }
 
         var obj = {
-            "value": g_device_status
+            "value": {
+                "status": g_device_status
+            }
         };
         client.publish(pubtopic, JSON.stringify(obj));
     }
@@ -223,47 +278,7 @@ function handle_api(api, topic, payload)
     ////////////////////////////////////////////////////
     // UART
     ////////////////////////////////////////////////////
-    else if (api == "get_uart_properties") {
-        pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
-        var obj = JSON.parse(payload);
-
-        var response = { "value": g_uart_properties };
-        client.publish(pubtopic, JSON.stringify(response));
-
-        console.log(pubtopic);
-        console.log(JSON.stringify(response));
-    }
-    else if (api == "set_uart_properties") {
-        pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
-        var obj = JSON.parse(payload);
-
-        g_uart_properties = {
-            "baudrate"    : Number(obj.baudrate), 
-            "parity"      : Number(obj.parity),
-            "databits"    : Number(obj.databits),
-            "stopbits"    : Number(obj.stopbits),
-            "flowcontrol" : Number(obj.flowcontrol)
-        };
-        var response = {};
-        client.publish(pubtopic, JSON.stringify(response));
-
-        console.log(pubtopic);
-        console.log(JSON.stringify(response));
-    }
-    else if (api == "enable_uart") {
-        pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
-        var obj = JSON.parse(payload);
-
-        g_uart_enabled = obj.enable
-
-        var response = {};
-        client.publish(pubtopic, JSON.stringify(response));
-        console.log(g_uart_enabled);
-
-        console.log(pubtopic);
-        console.log(JSON.stringify(response));
-    }
-    else if (api == "get_uarts") {
+    else if (api == API_GET_UARTS) {
         pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
         var response = {
             'value': {
@@ -277,12 +292,83 @@ function handle_api(api, topic, payload)
         console.log(pubtopic);
         console.log(JSON.stringify(response));
     }
+    else if (api == API_GET_UART_PROPERTIES) {
+        pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
+        var obj = JSON.parse(payload);
+
+        var response = { "value": g_uart_properties };
+        client.publish(pubtopic, JSON.stringify(response));
+
+        console.log(g_uart_properties);
+        console.log(g_uart_baudrate[g_uart_properties['baudrate']]);
+        console.log(g_uart_parity[g_uart_properties['parity']]);
+        console.log(g_uart_flowcontrol[g_uart_properties['flowcontrol']]);
+        console.log(g_uart_stopbits[g_uart_properties['stopbits']]);
+        console.log(g_uart_databits[g_uart_properties['databits']]);
+        console.log(pubtopic);
+        console.log(JSON.stringify(response));
+    }
+    else if (api == API_SET_UART_PROPERTIES) {
+        pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
+        var obj = JSON.parse(payload);
+
+        g_uart_properties = {
+            "baudrate"    : Number(obj.baudrate), 
+            "parity"      : Number(obj.parity),
+            "flowcontrol" : Number(obj.flowcontrol),
+            "stopbits"    : Number(obj.stopbits),
+            "databits"    : Number(obj.databits)
+        };
+        var response = {};
+        client.publish(pubtopic, JSON.stringify(response));
+
+        console.log(g_uart_properties);
+        console.log(g_uart_baudrate[g_uart_properties['baudrate']]);
+        console.log(g_uart_parity[g_uart_properties['parity']]);
+        console.log(g_uart_flowcontrol[g_uart_properties['flowcontrol']]);
+        console.log(g_uart_stopbits[g_uart_properties['stopbits']]);
+        console.log(g_uart_databits[g_uart_properties['databits']]);
+        console.log(pubtopic);
+        console.log(JSON.stringify(response));
+    }
+    else if (api == API_ENABLE_UART) {
+        pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
+        var obj = JSON.parse(payload);
+
+        g_uart_enabled = obj.enable
+
+        var response = {};
+        client.publish(pubtopic, JSON.stringify(response));
+        console.log(g_uart_enabled);
+
+        console.log(pubtopic);
+        console.log(JSON.stringify(response));
+    }
 
 
     ////////////////////////////////////////////////////
     // GPIO
     ////////////////////////////////////////////////////
-    else if (api == "get_gpio_properties") {
+    else if (api == API_GET_GPIOS) {
+        pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
+        var response = {
+            'value': {
+                'voltage': g_gpio_voltage,
+                'gpios': [
+                    {'direction': g_gpio_properties[0]['direction'], 'status': g_gpio_status[0], 'enabled': g_gpio_enabled[0] },
+                    {'direction': g_gpio_properties[1]['direction'], 'status': g_gpio_status[1], 'enabled': g_gpio_enabled[1] },
+                    {'direction': g_gpio_properties[2]['direction'], 'status': g_gpio_status[2], 'enabled': g_gpio_enabled[2] },
+                    {'direction': g_gpio_properties[3]['direction'], 'status': g_gpio_status[3], 'enabled': g_gpio_enabled[3] }
+                ]
+            }
+        }
+        client.publish(pubtopic, JSON.stringify(response));
+
+        console.log(pubtopic);
+        console.log(JSON.stringify(response));
+    }
+
+    else if (api == API_GET_GPIO_PROPERTIES) {
         pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
         var obj = JSON.parse(payload);
         var number = Number(obj.number)-1;
@@ -294,7 +380,7 @@ function handle_api(api, topic, payload)
         console.log(pubtopic);
         console.log(JSON.stringify(response));
     }
-    else if (api == "set_gpio_properties") {
+    else if (api == API_SET_GPIO_PROPERTIES) {
         pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
         var obj = JSON.parse(payload);
         var number = Number(obj.number)-1;
@@ -316,27 +402,7 @@ function handle_api(api, topic, payload)
         console.log(pubtopic);
         console.log(JSON.stringify(response));
     }
-    else if (api == "get_gpio_voltage") {
-        pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
-        var response = { "value": { "voltage": g_gpio_voltage } };
-        client.publish(pubtopic, JSON.stringify(response));
-
-        console.log(pubtopic);
-        console.log(JSON.stringify(response));
-    }
-    else if (api == "set_gpio_voltage") {
-        pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
-        var obj = JSON.parse(payload);
-        g_gpio_voltage = Number(obj.voltage);
-        console.log(g_gpio_voltage);
-
-        var response = {};
-        client.publish(pubtopic, JSON.stringify(response));
-
-        console.log(pubtopic);
-        console.log(JSON.stringify(response));
-    }
-    else if (api == "enable_gpio") {
+    else if (api == API_ENABLE_GPIO) {
         pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
         var obj = JSON.parse(payload);
 
@@ -349,16 +415,40 @@ function handle_api(api, topic, payload)
         console.log(pubtopic);
         console.log(JSON.stringify(response));
     }
-    else if (api == "get_gpios") {
+    else if (api == API_GET_GPIO_VOLTAGE) {
+        pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
+        var response = { "value": { "voltage": g_gpio_voltage } };
+        client.publish(pubtopic, JSON.stringify(response));
+
+        console.log(pubtopic);
+        console.log(JSON.stringify(response));
+    }
+    else if (api == API_SET_GPIO_VOLTAGE) {
+        pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
+        var obj = JSON.parse(payload);
+        g_gpio_voltage = Number(obj.voltage);
+        console.log(g_gpio_voltage);
+
+        var response = {};
+        client.publish(pubtopic, JSON.stringify(response));
+
+        console.log(pubtopic);
+        console.log(JSON.stringify(response));
+    }
+
+
+    ////////////////////////////////////////////////////
+    // I2C
+    ////////////////////////////////////////////////////
+    else if (api == API_GET_I2CS) {
         pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
         var response = {
             'value': {
-                'voltage': g_gpio_voltage,
-                'gpios': [
-                    {'direction': g_gpio_properties[0]['direction'], 'status': g_gpio_status[0], 'enabled': g_gpio_enabled[0] },
-                    {'direction': g_gpio_properties[1]['direction'], 'status': g_gpio_status[1], 'enabled': g_gpio_enabled[1] },
-                    {'direction': g_gpio_properties[2]['direction'], 'status': g_gpio_status[2], 'enabled': g_gpio_enabled[2] },
-                    {'direction': g_gpio_properties[3]['direction'], 'status': g_gpio_status[3], 'enabled': g_gpio_enabled[3] }
+                'i2cs': [
+                    {'enabled': g_i2c_enabled[0] },
+                    {'enabled': g_i2c_enabled[1] },
+                    {'enabled': g_i2c_enabled[2] },
+                    {'enabled': g_i2c_enabled[3] }
                 ]
             }
         }
@@ -367,11 +457,7 @@ function handle_api(api, topic, payload)
         console.log(pubtopic);
         console.log(JSON.stringify(response));
     }
-
-    ////////////////////////////////////////////////////
-    // I2C
-    ////////////////////////////////////////////////////
-    else if (api == "get_i2c_device_properties") {
+    else if (api == API_GET_I2C_DEVICE_PROPERTIES) {
         pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
         var obj = JSON.parse(payload);
         var number = Number(obj.number)-1;
@@ -394,7 +480,7 @@ function handle_api(api, topic, payload)
         console.log(pubtopic);
         console.log(JSON.stringify(response));
     }
-    else if (api == "set_i2c_device_properties") {
+    else if (api == API_SET_I2C_DEVICE_PROPERTIES) {
         pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
         var obj = JSON.parse(payload);
         var number = Number(obj.number)-1;
@@ -415,7 +501,7 @@ function handle_api(api, topic, payload)
         console.log(pubtopic);
         console.log(JSON.stringify(response));
     }
-    else if (api == "enable_i2c") {
+    else if (api == API_ENABLE_I2C) {
         pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
         var obj = JSON.parse(payload);
 
@@ -428,23 +514,7 @@ function handle_api(api, topic, payload)
         console.log(pubtopic);
         console.log(JSON.stringify(response));
     }
-    else if (api == "get_i2cs") {
-        pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
-        var response = {
-            'value': {
-                'i2cs': [
-                    {'enabled': g_i2c_enabled[0] },
-                    {'enabled': g_i2c_enabled[1] },
-                    {'enabled': g_i2c_enabled[2] },
-                    {'enabled': g_i2c_enabled[3] }
-                ]
-            }
-        }
-        client.publish(pubtopic, JSON.stringify(response));
 
-        console.log(pubtopic);
-        console.log(JSON.stringify(response));
-    }
 
     ////////////////////////////////////////////////////
     // OTHERS
@@ -708,40 +778,40 @@ client.on("error", function(error)
 });
 
 function process_restart() {
-    if (g_device_status === "restarting") {
+    if (g_device_status === DEVICE_STATUS_RESTARTING) {
         console.log("\nDevice will be stopped in 3 seconds");
         for (var i = 0; i < 3; i++) {
             sleep(1000);
             console.log(".");
         }
         sleep(1000);
-        g_device_status = "running"
+        g_device_status = DEVICE_STATUS_RUNNING
         console.log("Device restarted successfully!\n");
     }
 }
 
 function process_stop() {
-    if (g_device_status === "stopping") {
+    if (g_device_status === DEVICE_STATUS_STOPPING) {
         console.log("\nDevice will be stopped in 3 seconds");
         for (var i = 0; i < 3; i++) {
             sleep(1000);
             console.log(".");
         }
         sleep(1000);
-        g_device_status = "stopped"
+        g_device_status = DEVICE_STATUS_STOPPED
         console.log("Device stopped successfully!\n");
     }
 }
 
 function process_start() {
-    if (g_device_status === "starting") {
+    if (g_device_status === DEVICE_STATUS_STARTING) {
         console.log("\nDevice will be started in 3 seconds");
         for (var i = 0; i < 3; i++) {
             sleep(1000);
             console.log(".");
         }
         sleep(1000);
-        g_device_status = "running"
+        g_device_status = DEVICE_STATUS_RUNNING
         console.log("Device started successfully!\n");
     }
 }
@@ -749,13 +819,13 @@ function process_start() {
 while (true)
 {
     sleep(1000);
-    if (g_device_status === "restarting") {
+    if (g_device_status === DEVICE_STATUS_RESTARTING) {
         process_restart()
     }
-    else if (g_device_status === "stopping") {
+    else if (g_device_status === DEVICE_STATUS_STOPPING) {
         process_stop()
     }
-    else if (g_device_status === "starting") {
+    else if (g_device_status === DEVICE_STATUS_STARTING) {
         process_start()
     }
 }

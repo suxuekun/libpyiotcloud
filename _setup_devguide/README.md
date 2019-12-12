@@ -250,6 +250,7 @@ SUMMARY:
 		J. ENABLE/DISABLE GPIO            - POST   /devices/device/DEVICENAME/gpio/NUMBER/enable
 		K. GET GPIO VOLTAGE               - GET    /devices/device/DEVICENAME/gpio/voltage
 		L. SET GPIO VOLTAGE               - POST   /devices/device/DEVICENAME/gpio/voltage
+		   (NUMBER can be 1-4 only and corresponds to GPIO1,GPIO2,GPIO3,GPIO4)
 
 		M. GET I2CS                       - GET    /devices/device/DEVICENAME/i2cs
 		N. GET ALL I2C DEVICES            - GET    /devices/device/DEVICENAME/i2c/sensors
@@ -260,6 +261,7 @@ SUMMARY:
 		S. SET I2C DEVICE PROPERTIES      - POST   /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME/properties
 		T. GET I2C DEVICE PROPERTIES      - GET    /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME/properties
 		U. ENABLE/DISABLE I2C             - POST   /devices/device/DEVICENAME/i2c/NUMBER/enable
+		   (NUMBER can be 1-4 only and corresponds to I2C1,I2C2,I2C3,I2C4)
 
 		Old requirements:
 		A. GET STATUS                     - GET    /devices/device/DEVICENAME/status
@@ -628,10 +630,14 @@ DETAILED:
 		   GET /devices/device/DEVICENAME/status
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
-		   { 'status': 'OK', 'message': string, 'value': { "status": string, "version": string } }
+		   { 'status': 'OK', 'message': string, 'value': { "status": int, "version": string } }
 		   { 'status': 'NG', 'message': string, 'value': { "heartbeat": string, "version": string} }
-		   // status can be any of the following: restarting, stopping, stopped, starting, running
-		   // version is the firmware version
+		   // status is an index of the value in the list of statuses
+		   //   ["starting", "running", "restart", "restarting", "stop", "stopping", "stopped", "start"]
+		   //      restart->restarting->running
+		   //      stop->stopping->stopped
+		   //      start->starting->running
+		   // version is the firmware version in the string format of "major_version.minor_version"
 		   // if HTTP ERROR CODE is HTTP_503_SERVICE_UNAVAILABLE, cached value containing heartbeat and version will be included in the error message
 		   // heartbeat refers to the epoch time (in seconds) of the last publish packet sent by the device
 		   // heartbeat will only appear if device has published an MQTT packet
@@ -641,10 +647,12 @@ DETAILED:
 		-  Request:
 		   POST /devices/device/DEVICENAME/status
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-		   data: { 'value': string }
-		   // value can be any of the following: restart, stop, start
+		   data: { 'status': int }
+		   // status is an index of the value in the list of statuses
+		   //   ["starting", "running", "restart", "restarting", "stop", "stopping", "stopped", "start"]
+		   // for SET STATUS, only valid are "restart", "stop", "start"
 		-  Response:
-		   { 'status': 'OK', 'message': string, 'value': string}
+		   { 'status': 'OK', 'message': string, 'value': {'status': int}}
 		   { 'status': 'NG', 'message': string }
 
 
@@ -672,9 +680,9 @@ DETAILED:
 		     { 
 		        'baudrate': int,
 		        'parity': int,
-		        'databits': int,
-		        'stopbits': int,
 		        'flowcontrol': int,
+		        'stopbits': int,
+		        'databits': int,
 		        'notification': { // this notification object is generic for UART/GPIO/I2C
 		            'messages': [
 		                { 'message': string, 'enable': boolean }, 
@@ -717,17 +725,17 @@ DETAILED:
 		   //   ft900_uart_simple.h: uart_parity_t enum
 		   //   ["None", "Odd", "Even"]
 		   //      default = 0 (None)
-		   // databits is an index of the value in the list of databits
-		   //   ft900_uart_simple.h: uart_data_bits_t enum
-		   //   ["5", "6", "7", "8", "9"]
-		   //      default = 3 (8)
+		   // flowcontrol is an index of the value in the list of flowcontrols
+		   //   ["None", "Rts/Cts", "Xon/Xoff"]
+		   //      default = 0 (None)
 		   // stopbits is an index of the value in the list of stopbits
 		   //   ft900_uart_simple.h: uart_stop_bits_t enum
-		   //   ["1", "1.5", "2"]
+		   //   ["1", "2"]
 		   //      default = 0 (1)
-		   // flowcontrol is an index of the value in the list of flowcontrols
-		   //   ["None", "Hardware"]
-		   //      default = 0 (None)
+		   // databits is an index of the value in the list of databits
+		   //   ft900_uart_simple.h: uart_data_bits_t enum
+		   //   ["7", "8"]
+		   //      default = 1 (8)
 		   // sending only the index saves memory on the device and computation on frontend
 
 		E. SET UART PROPERTIES
@@ -738,9 +746,9 @@ DETAILED:
 		   { 
 		        'baudrate': int,
 		        'parity': int,
-		        'databits': int,
-		        'stopbits': int,
 		        'flowcontrol': int,
+		        'stopbits': int,
+		        'databits': int,
 		        'notification': { // this notification object is generic for UART/GPIO/I2C
 		            'messages': [
 		                { 'message': string, 'enable': boolean },
@@ -782,17 +790,17 @@ DETAILED:
 		   //   ft900_uart_simple.h: uart_parity_t enum
 		   //   ["None", "Odd", "Even"]
 		   //      default = 0 (None)
-		   // databits is an index of the value in the list of databits
-		   //   ft900_uart_simple.h: uart_data_bits_t enum
-		   //   ["5", "6", "7", "8", "9"]
-		   //      default = 3 (8)
+		   // flowcontrol is an index of the value in the list of flowcontrols
+		   //   ["None", "Rts/Cts", "Xon/Xoff"]
+		   //      default = 0 (None)
 		   // stopbits is an index of the value in the list of stopbits
 		   //   ft900_uart_simple.h: uart_stop_bits_t enum
-		   //   ["1", "1.5", "2"]
+		   //   ["1", "2"]
 		   //      default = 0 (1)
-		   // flowcontrol is an index of the value in the list of flowcontrols
-		   //   ["None", "Hardware"]
-		   //      default = 0 (None)
+		   // databits is an index of the value in the list of databits
+		   //   ft900_uart_simple.h: uart_data_bits_t enum
+		   //   ["7", "8"]
+		   //      default = 1 (8)
 		   // sending only the index saves memory on the device and computation on frontend
 		-  Response:
 		   { 'status': 'OK', 'message': string }
@@ -826,12 +834,14 @@ DETAILED:
 		        ]
 		     }
 		   }
+		   // voltage is an index of the value in the list of voltages
+		   //   ["3.3 V", "5 V"]
 		   // enabled is an int indicating if disabled (0) or enabled (1)
 		   // direction is an index of the value in the list of directions
-		   //     ft900_gpio.h: pad_dir_t
-		   //     ["Input", "Output"]
+		   //   ft900_gpio.h: pad_dir_t
+		   //   ["Input", "Output"]
 		   // status is an index of the value in the list of livestatuses
-		   //     ["Low", "High"]
+		   //   ["Low", "High"]
 
 		H. GET GPIO PROPERTIES
 		-  Request:
@@ -1310,7 +1320,7 @@ DETAILED:
 		   { 'status': 'NG', 'message': string }
 
 
-		Old requirements: (OBSOLOTED)
+		Old requirements: (OBSOLETED)
 
 		A. GET STATUS
 		-  Request:
@@ -1567,28 +1577,28 @@ Below is a summary and a detailed list of the subtopics the device will receive 
 SUMMARY:
 
 	1. STATUS
-		A. GET STATUS                rcv: DEVICEID/get_status,                pub: server/DEVICEID/get_status
-		B. SET STATUS                rcv: DEVICEID/set_status,                pub: server/DEVICEID/set_status
+		A. GET STATUS                get_status
+		B. SET STATUS                set_status
 
 	2. UART
-		A. GET UARTS                 rcv: DEVICEID/get_uarts,                 pub: server/DEVICEID/get_uarts
-		B. GET UART PROPERTIES       rcv: DEVICEID/get_uart_properties,       pub: server/DEVICEID/get_uart_properties
-		C. SET UART PROPERTIES       rcv: DEVICEID/set_uart_properties,       pub: server/DEVICEID/set_uart_properties
-		D. ENABLE UART               rcv: DEVICEID/enable_uart,               pub: server/DEVICEID/enable_uart
+		A. GET UARTS                 get_uarts
+		B. GET UART PROPERTIES       get_uart_prop
+		C. SET UART PROPERTIES       set_uart_prop
+		D. ENABLE UART               enable_uart
 
 	3. GPIO
-		A. GET GPIOS                 rcv: DEVICEID/get_gpios,                 pub: server/DEVICEID/get_gpios
-		B. GET GPIO PROPERTIES       rcv: DEVICEID/get_gpio_properties,       pub: server/DEVICEID/get_gpio_properties
-		C. SET GPIO PROPERTIES       rcv: DEVICEID/set_gpio_properties,       pub: server/DEVICEID/set_gpio_properties
-		D. ENABLE GPIO               rcv: DEVICEID/enable_gpio,               pub: server/DEVICEID/enable_gpio
-		E. GET GPIO VOLTAGE          rcv: DEVICEID/get_gpio_voltage,          pub: server/DEVICEID/get_gpio_voltage
-		F. SET GPIO VOLTAGE          rcv: DEVICEID/set_gpio_voltage,          pub: server/DEVICEID/set_gpio_voltage
+		A. GET GPIOS                 get_gpios
+		B. GET GPIO PROPERTIES       get_gpio_prop
+		C. SET GPIO PROPERTIES       set_gpio_prop
+		D. ENABLE GPIO               enable_gpio
+		E. GET GPIO VOLTAGE          get_gpio_voltage
+		F. SET GPIO VOLTAGE          set_gpio_voltage
 
 	4. I2C
-		A. GET I2CS                  rcv: DEVICEID/get_i2cs,                  pub: server/DEVICEID/get_i2cs
-		B. GET I2C DEVICE PROPERTIES rcv: DEVICEID/get_i2c_device_properties, pub: server/DEVICEID/get_i2c_device_properties
-		C. SET I2C DEVICE PROPERTIES rcv: DEVICEID/set_i2c_device_properties, pub: server/DEVICEID/set_i2c_device_properties
-		D. ENABLE I2C                rcv: DEVICEID/enable_i2c,                pub: server/DEVICEID/enable_i2c
+		A. GET I2CS                  get_i2cs
+		B. GET I2C DEVICE PROPERTIES get_i2c_dev_prop
+		C. SET I2C DEVICE PROPERTIES set_i2c_dev_prop
+		D. ENABLE I2C                enable_i2c
 
 
 DETAILED:
@@ -1600,15 +1610,20 @@ DETAILED:
 		   topic: DEVICEID/get_status
 		-  Publish:
 		   topic: server/DEVICEID/get_status
-		   payload: { 'value': {'status': string, 'version': string} }
-
+		   payload: { 'value': {'status': int, 'version': string} }
+		   // version is the firmware version in the string format of "major_version.minor_version"
+		   // status is an index of the value in the list of statuses
+		   //   ["starting", "running", "restart", "restarting", "stop", "stopping", "stopped", "start"]
+		   
 		B. SET STATUS
 		-  Receive:
 		   topic: DEVICEID/set_status
-		   payload: { 'value': string }
+		   payload: { 'status': int }
+		   // status is an index of the value in the list of statuses
+		   //   ["starting", "running", "restart", "restarting", "stop", "stopping", "stopped", "start"]
 		-  Publish:
 		   topic: server/DEVICEID/set_status
-		   payload: { 'value': string }
+		   payload: { 'value': {'status': int} }
 
 
 	2. UART
@@ -1625,40 +1640,80 @@ DETAILED:
 		       ]
 		     }
 		   }
+		   // enable is an int indicating if disabled (0) or enabled (1)
 
 		B. GET UART PROPERTIES
 		-  Receive:
-		   topic: DEVICEID/get_uart_properties
+		   topic: DEVICEID/get_uart_prop
 		-  Publish:
-		   topic: server/DEVICEID/get_uart_properties
+		   topic: server/DEVICEID/get_uart_prop
 		   payload: { 
 		     'value': { 
 		       'baudrate': int, 
 		       'parity': int, 
-		       'databits': int, 
-		       'stopbits': int, 
 		       'flowcontrol': int 
+		       'stopbits': int, 
+		       'databits': int, 
 		     } 
 		   }
+		   // baudrate is an index of the value in the list of baudrates
+		   //   ft900_uart_simple.h: UART_DIVIDER_XXX
+		   //   ["110", "150", "300", "1200", "2400", "4800", "9600", "19200", "31250", "38400", "57600", "115200", "230400", "460800", "921600", "1000000"]
+		   //      default = 7 (19200)
+		   // parity is an index of the value in the list of parities
+		   //   ft900_uart_simple.h: uart_parity_t enum
+		   //   ["None", "Odd", "Even"]
+		   //      default = 0 (None)
+		   // flowcontrol is an index of the value in the list of flowcontrols
+		   //   ["None", "Rts/Cts", "Xon/Xoff"]
+		   //      default = 0 (None)
+		   // stopbits is an index of the value in the list of stopbits
+		   //   ft900_uart_simple.h: uart_stop_bits_t enum
+		   //   ["1", "2"]
+		   //      default = 0 (1)
+		   // databits is an index of the value in the list of databits
+		   //   ft900_uart_simple.h: uart_data_bits_t enum
+		   //   ["7", "8"]
+		   //      default = 1 (8)
 
 		C. SET UART PROPERTIES
 		-  Receive:
-		   topic: DEVICEID/set_uart_properties
+		   topic: DEVICEID/set_uart_prop
 		   payload: { 
 		       'baudrate': int, 
 		       'parity': int, 
-		       'databits': int, 
-		       'stopbits': int, 
 		       'flowcontrol': int 
+		       'stopbits': int, 
+		       'databits': int, 
 		   }
+		   // baudrate is an index of the value in the list of baudrates
+		   //   ft900_uart_simple.h: UART_DIVIDER_XXX
+		   //   ["110", "150", "300", "1200", "2400", "4800", "9600", "19200", "31250", "38400", "57600", "115200", "230400", "460800", "921600", "1000000"]
+		   //      default = 7 (19200)
+		   // parity is an index of the value in the list of parities
+		   //   ft900_uart_simple.h: uart_parity_t enum
+		   //   ["None", "Odd", "Even"]
+		   //      default = 0 (None)
+		   // flowcontrol is an index of the value in the list of flowcontrols
+		   //   ["None", "Rts/Cts", "Xon/Xoff"]
+		   //      default = 0 (None)
+		   // stopbits is an index of the value in the list of stopbits
+		   //   ft900_uart_simple.h: uart_stop_bits_t enum
+		   //   ["1", "2"]
+		   //      default = 0 (1)
+		   // databits is an index of the value in the list of databits
+		   //   ft900_uart_simple.h: uart_data_bits_t enum
+		   //   ["7", "8"]
+		   //      default = 1 (8)
 		-  Publish:
-		   topic: server/DEVICEID/set_uart_properties
+		   topic: server/DEVICEID/set_uart_prop
 		   payload: {}
 
 		D. ENABLE UART
 		-  Receive:
 		   topic: DEVICEID/enable_uart
 		   payload: { 'enable': int }
+		   // enable is an int indicating if disabled (0) or enabled (1)
 		-  Publish:
 		   topic: server/DEVICEID/enable_uart
 		   payload: {}
@@ -1675,20 +1730,27 @@ DETAILED:
 		     'value': { 
 		       'voltage': int, 
 		       'gpios': [ 
-		           {'direction': int, 'status': int, 'enabled': int}, 
-		           {'direction': int, 'status': int, 'enabled': int}, 
-		           {'direction': int, 'status': int, 'enabled': int}, 
-		           {'direction': int, 'status': int, 'enabled': int} 
+		           {'enabled': int, 'direction': int, 'status': int}, 
+		           {'enabled': int, 'direction': int, 'status': int}, 
+		           {'enabled': int, 'direction': int, 'status': int}, 
+		           {'enabled': int, 'direction': int, 'status': int} 
 		       ]
 		     }
 		   }
+		   // voltage is an index of the value in the list of voltages
+		   //   ["3.3 V", "5 V"]
+		   // enable is an int indicating if disabled (0) or enabled (1)
+		   // direction is an index of the value in the list of directions
+		   //   ["Input", "Output"]
+		   // status is an index of the value in the list of directions
+		   //   ["Low", "High"]
 
 		B. GET GPIO PROPERTIES
 		-  Receive:
-		   topic: DEVICEID/get_gpio_properties
+		   topic: DEVICEID/get_gpio_prop
 		   payload: { 'number': int }
 		-  Publish:
-		   topic: server/DEVICEID/get_gpio_properties
+		   topic: server/DEVICEID/get_gpio_prop
 		   payload: { 
 		     'value': {
 		       'direction': int, 
@@ -1701,12 +1763,32 @@ DETAILED:
 		       'space': int
 		     } 
 		   }
+		   // direction is an index of the value in the list of directions
+		   //     ft900_gpio.h: pad_dir_t
+		   //     ["Input", "Output"]
+		   // mode is an index of the value in the list of modes
+		   //     ft900_gpio.h
+		   //     direction == "Input"
+		   //       ["High Level", "Low Level", "High Edge", "Low Edge"]
+		   //     direction == "Output"
+		   //       ["Level", "Clock", "Pulse"]
+		   // alert is an index of the value in the list of alerts
+		   //     ["Once", "Continuously"]
+		   // alert is an optional and is valid only when direction points to Input
+		   // alertperiod is optional and is valid only if alert points to Continuously
+		   // polarity is an index of the value in the list of polarities
+		   //     ft900_gpio.h
+		   //     direction == "Output"
+		   //       ["Positive", "Negative"]
+		   // polarity is optional and is valid only when direction points to Output
+		   // width is optional and is valid only when direction points to Output and mode points to Pulse
+		   // mark is optional and is valid only when direction points to Output and mode points to Clock
+		   // space is optional and is valid only when direction points to Output and mode points to Clock
 
 		C. SET GPIO PROPERTIES
 		-  Receive:
-		   topic: DEVICEID/set_gpio_properties
-		   payload: { 
-		       'number': int, 
+		   topic: DEVICEID/set_gpio_prop
+		   payload: {
 		       'direction': int, 
 		       'mode': int, 
 		       'alert': int, 
@@ -1714,16 +1796,39 @@ DETAILED:
 		       'polarity': int, 
 		       'width': int, 
 		       'mark': int, 
-		       'space': int 
+		       'space': int,
+		       'number': int
 		   }
+		   // direction is an index of the value in the list of directions
+		   //     ft900_gpio.h: pad_dir_t
+		   //     ["Input", "Output"]
+		   // mode is an index of the value in the list of modes
+		   //     ft900_gpio.h
+		   //     direction == "Input"
+		   //       ["High Level", "Low Level", "High Edge", "Low Edge"]
+		   //     direction == "Output"
+		   //       ["Level", "Clock", "Pulse"]
+		   // alert is an index of the value in the list of alerts
+		   //     ["Once", "Continuously"]
+		   // alert is an optional and is valid only when direction points to Input
+		   // alertperiod is optional and is valid only if alert points to Continuously
+		   // polarity is an index of the value in the list of polarities
+		   //     ft900_gpio.h
+		   //     direction == "Output"
+		   //       ["Positive", "Negative"]
+		   // polarity is optional and is valid only when direction points to Output
+		   // width is optional and is valid only when direction points to Output and mode points to Pulse
+		   // mark is optional and is valid only when direction points to Output and mode points to Clock
+		   // space is optional and is valid only when direction points to Output and mode points to Clock
 		-  Publish:
-		   topic: server/DEVICEID/set_gpio_properties
+		   topic: server/DEVICEID/set_gpio_prop
 		   payload: {}
 
 		D. ENABLE GPIO
 		-  Receive:
 		   topic: DEVICEID/enable_gpio
-		   payload: { 'number': int, 'enable': int }
+		   payload: { 'enable': int, 'number': int }
+		   // enable is an int indicating if disabled (0) or enabled (1)
 		-  Publish:
 		   topic: server/DEVICEID/enable_gpio
 		   payload: {}
@@ -1734,11 +1839,15 @@ DETAILED:
 		-  Publish:
 		   topic: server/DEVICEID/get_gpio_voltage
 		   payload: { 'value': { 'voltage': int } }
+		   // voltage is an index of the value in the list of voltages
+		   //   ["3.3 V", "5 V"]
 
 		F. SET GPIO VOLTAGE
 		-  Receive:
 		   topic: DEVICEID/set_gpio_voltage
 		   payload: { 'voltage': int }
+		   // voltage is an index of the value in the list of voltages
+		   //   ["3.3 V", "5 V"]
 		-  Publish:
 		   topic: server/DEVICEID/set_gpio_voltage
 		   payload: {}
@@ -1761,20 +1870,21 @@ DETAILED:
 		       ]
 		     }
 		   }
+		   // enable is an int indicating if disabled (0) or enabled (1)
 
 		B. GET I2C DEVICE PROPERTIES
 		-  Receive:
-		   topic: DEVICEID/get_i2c_device_properties
+		   topic: DEVICEID/get_i2c_dev_prop
 		   payload: { 'number': int, 'address': int }
 		-  Publish:
-		   topic: server/DEVICEID/get_i2c_device_properties
+		   topic: server/DEVICEID/get_i2c_dev_prop
 		   payload: { 
 		     'value': { TODO:Refer to GET I2C DEVICE PROPERTIES API } 
 		   }
 
 		C. SET I2C DEVICE PROPERTIES
 		-  Receive:
-		   topic: DEVICEID/set_i2c_device_properties
+		   topic: DEVICEID/set_i2c_dev_prop
 		   payload: { 
 		       'number': int, 
 		       'address': int, 
@@ -1782,13 +1892,14 @@ DETAILED:
 		       ...  TODO:Refer to SET I2C DEVICE PROPERTIES API ...
 		   }
 		-  Publish:
-		   topic: server/DEVICEID/set_i2c_device_properties
+		   topic: server/DEVICEID/set_i2c_dev_prop
 		   payload: {}
 
 		D. ENABLE I2C
 		-  Receive:
 		   topic: DEVICEID/enable_i2c
-		   payload: { 'number': int, 'enable': int }
+		   payload: { 'enable': int, 'number': int }
+		   // enable is an int indicating if disabled (0) or enabled (1)
 		-  Publish:
 		   topic: server/DEVICEID/enable_i2c
 		   payload: {}

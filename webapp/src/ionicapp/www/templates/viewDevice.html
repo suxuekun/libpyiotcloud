@@ -3,7 +3,7 @@
     <button class="button button-icon icon ion-android-close" ng-click="exitPage()"></button>
   </ion-nav-buttons>
   <ion-nav-buttons side="right" class="has-header">
-    <button class="button button-icon icon ion-trash-b" ng-click="deleteDevice()"></button>
+    <button class="button button-icon icon ion-trash-b" ng-click="deleteDevice(data.devicename)"></button>
   </ion-nav-buttons>
   <ion-content padding="true" class="has-header">
     <div class="spacer" style="height: 12px;"></div>
@@ -30,9 +30,9 @@
       </div>
     </form>
     <button id="viewDevice-button46" ng-click="configureDevice()" class="button button-positive button-block">Configure Device</button>
-    <button id="viewDevice-button21" ng-click="getDevice()" style="text-align:left;" class="button button-positive button-block button-outline icon-right ion-android-arrow-dropright">Query Device</button>
-    <button id="viewDevice-button56" ng-click="setDevice(&quot;restart&quot;)" style="text-align:left;" class="button button-positive button-block button-outline icon-right ion-android-arrow-dropright">Restart Device</button>
-    <button id="viewDevice-button64" ng-click="setDevice(&quot;start&quot;)" style="text-align:left;" class="button button-positive button-block button-outline icon-right ion-android-arrow-dropright">Start Device</button>
-    <button id="viewDevice-button57" ng-click="setDevice(&quot;stop&quot;)" style="text-align:left;" class="button button-positive button-block button-outline icon-right ion-android-arrow-dropright">Stop Device</button>
+    <button id="viewDevice-button21" ng-click="getDevice(data.devicename)" style="text-align:left;" class="button button-positive button-block button-outline icon-right ion-android-arrow-dropright">Query Device</button>
+    <button id="viewDevice-button56" ng-click="setDevice(data.devicename, &quot;restart&quot;)" style="text-align:left;" class="button button-positive button-block button-outline icon-right ion-android-arrow-dropright">Restart Device</button>
+    <button id="viewDevice-button64" ng-click="setDevice(data.devicename, &quot;start&quot;)" style="text-align:left;" class="button button-positive button-block button-outline icon-right ion-android-arrow-dropright">Start Device</button>
+    <button id="viewDevice-button57" ng-click="setDevice(data.devicename, &quot;stop&quot;)" style="text-align:left;" class="button button-positive button-block button-outline icon-right ion-android-arrow-dropright">Stop Device</button>
   </ion-content>
 </ion-view>
