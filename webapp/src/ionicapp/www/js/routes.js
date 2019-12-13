@@ -404,7 +404,8 @@ angular.module('app.routes', [])
 		token: "",
 		devicestatus: "",
 		deviceid: "",
-		serialnumber: ""		
+		serialnumber: "",
+		status: ""		
 },
     templateUrl: 'templates/deviceNotifications.html',
     controller: 'deviceNotificationsCtrl'
