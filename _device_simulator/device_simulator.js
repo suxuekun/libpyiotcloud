@@ -516,6 +516,29 @@ function handle_api(api, topic, payload)
     }
 
 
+
+    ////////////////////////////////////////////////////
+    // NOTIFICATION
+    ////////////////////////////////////////////////////
+    else if (api == "trigger_notification"){
+        pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
+        var obj = JSON.parse(payload);
+
+        if (obj.recipient != CONFIG_DEVICE_ID) {
+            // Notification from cloud
+            client.publish(pubtopic, payload);
+            console.log("Notification triggered to email/SMS recipient!");
+        }
+        else {
+            // Notification from another device
+            console.log("Notification received from device " + obj.sender + ":");
+            console.log(obj.message);
+            console.log();
+        }
+    }
+
+
+
     ////////////////////////////////////////////////////
     // OTHERS
     ////////////////////////////////////////////////////
@@ -537,11 +560,6 @@ function handle_api(api, topic, payload)
             console.log("Notification triggered to email/SMS recipient!");
         }
         client.publish(pubtopic, JSON.stringify(obj));
-    }
-    else if (api == "trigger_notification"){
-        pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
-        client.publish(pubtopic, payload);
-        console.log("Notification triggered to email/SMS recipient!");
     }
     else if (api == "get_gpio") {
         pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
