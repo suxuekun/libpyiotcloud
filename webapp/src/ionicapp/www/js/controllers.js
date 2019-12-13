@@ -6134,6 +6134,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         'deviceid': $stateParams.deviceid,
         'serialnumber': $stateParams.serialnumber,
         
+        'status': $stateParams.status,
+        
         'recipient': "",
         'message': $scope.message,
         
@@ -6206,7 +6208,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         console.log("message=" + $scope.data.message);
  
 
-        if ($scope.data.devicestatus !== 'Online') {
+        if ($scope.data.status !== 'Online') {
             $ionicPopup.alert({title: 'Device Error', template: 'Device is offline!'});
             return;
         }
@@ -6254,6 +6256,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             'devicestatus': $scope.data.devicestatus,
             'deviceid': $scope.data.deviceid,
             'serialnumber': $scope.data.serialnumber,
+            
+            'status': $scope.data.status,
         };
         $state.go('configureDevice', device_param);
     };
