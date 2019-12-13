@@ -424,6 +424,26 @@ def handle_api(api, subtopic, subpayload):
 
 
     ####################################################
+    # NOTIFICATION
+    ####################################################
+
+    elif api == "trigger_notification":
+        topic = generate_pubtopic(subtopic)
+        subpayload = json.loads(subpayload)
+
+        if subpayload["recipient"] != CONFIG_DEVICE_ID:
+            # Notification from cloud
+            publish(topic, subpayload)
+            print("Notification triggered to email/SMS recipient!")
+        else:
+            # Notification from another device
+            print("Notification received from device {}:".format(subpayload["sender"]))
+            print(subpayload["message"])
+            print()
+
+
+
+    ####################################################
     # OLD REQUIREMENTS
     ####################################################
 
@@ -545,16 +565,6 @@ def handle_api(api, subtopic, subpayload):
         payload = {}
         payload["value"] = value
         publish(topic, payload)
-
-    elif api == "trigger_notification":
-        topic = generate_pubtopic(subtopic)
-        subpayload = json.loads(subpayload)
-
-        if subpayload["recipient"] == CONFIG_DEVICE_ID:
-            print(subpayload["message"])
-        else:
-            publish(topic, subpayload)
-            print("Notification triggered to email/SMS recipient!")
 
     else:
         print("UNSUPPORTED")
