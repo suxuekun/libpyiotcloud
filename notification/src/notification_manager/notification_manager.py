@@ -81,6 +81,7 @@ def notification_thread(messaging_client, deviceid, recipient, message, subject,
         payload = {}
         payload["recipient"] = recipient
         payload["message"] = message
+        payload["sender"] = deviceid
         payload = json.dumps(payload)
         print("payload={}".format(payload))
         try:
@@ -137,35 +138,73 @@ def notification_thread(messaging_client, deviceid, recipient, message, subject,
 
 def on_message(subtopic, subpayload):
 
+    print(subtopic)
+
+    topicarr = subtopic.split("/")
     try:
-        payload = json.loads(subpayload)
-        recipient = payload["recipient"]
-        message = payload["message"]
+        if len(topicarr) == 5:
+            deviceid = topicarr[1]
+            source = topicarr[3]
+            menos = topicarr[4]
+            if menos == "mobile":
+                print("mobile")
+                payload = json.loads(subpayload)
+                recipient = "+{}".format(payload["recipient"])
+                message = payload["message"]
+                thr = threading.Thread(target = notification_thread, args = (g_messaging_client, deviceid, recipient, message, None, notification_types.SMS, -1, ))
+                thr.start()
+            elif menos == "email":
+                print("email")
+                payload = json.loads(subpayload)
+                recipient = payload["recipient"]
+                message = payload["message"]
+                thr = threading.Thread(target = notification_thread, args = (g_messaging_client, deviceid, recipient, message, aws_config.CONFIG_PINPOINT_EMAIL_SUBJECT, notification_types.EMAIL, -1, ))
+                thr.start()
+            elif menos == "notification":
+                print("notification")
+                # TODO
+            elif menos == "mOdem":
+                print("mOdem")
+                payload = json.loads(subpayload)
+                recipient = payload["recipient"]
+                message = payload["message"]
+                thr = threading.Thread(target = notification_thread, args = (g_messaging_client, deviceid, recipient, message, None, notification_types.DEVICE, -1, ))
+                thr.start()
+            elif menos == "storage":
+                print("storage")
+                # TODO
+            elif menos == "default":
+                print("default")
 
-        # get device id
-        topicarr = subtopic.split("/")
-        deviceid = topicarr[1]
+        elif len(topicarr) == 3:
+            # get device id
+            deviceid = topicarr[1]
 
-        # get options value
-        options = -1
-        if payload.get("options") is not None:
-            options = int(payload["options"])
+            payload = json.loads(subpayload)
+            recipient = payload["recipient"]
+            message = payload["message"]
 
-        is_email = True if recipient.find("@")!=-1 else False
-        is_mobile = True if recipient[0] == '+' else False
-        subject = aws_config.CONFIG_PINPOINT_EMAIL_SUBJECT if is_email else None
-        type = notification_types.UNKNOWN
-        if is_email:
-            type = notification_types.EMAIL
-        elif is_mobile:
-            type = notification_types.SMS
-        else:
-            type = notification_types.DEVICE
+            # get options value
+            options = -1
+            if payload.get("options") is not None:
+                options = int(payload["options"])
 
-        thr = threading.Thread(target = notification_thread, args = (g_messaging_client, deviceid, recipient, message, subject, type, options, ))
-        thr.start()
+            is_email = True if recipient.find("@")!=-1 else False
+            is_mobile = True if recipient[0] == '+' else False
+            subject = aws_config.CONFIG_PINPOINT_EMAIL_SUBJECT if is_email else None
+            type = notification_types.UNKNOWN
+            if is_email:
+                type = notification_types.EMAIL
+            elif is_mobile:
+                type = notification_types.SMS
+            else:
+                type = notification_types.DEVICE
+
+            thr = threading.Thread(target = notification_thread, args = (g_messaging_client, deviceid, recipient, message, subject, type, options, ))
+            thr.start()
     except:
         return
+    return
 
 
 def on_mqtt_message(client, userdata, msg):
@@ -266,6 +305,8 @@ if __name__ == '__main__':
     time.sleep(1)
     subtopic = "{}{}+{}trigger_notification".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_SEPARATOR)
     g_messaging_client.subscribe(subtopic, subscribe=True, declare=True, consume_continuously=True)
+    subtopic2 = "{}{}+{}trigger_notification{}#".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_SEPARATOR, CONFIG_SEPARATOR)
+    g_messaging_client.subscribe(subtopic2, subscribe=True, declare=True, consume_continuously=True)
 
 
     while g_messaging_client.is_connected():

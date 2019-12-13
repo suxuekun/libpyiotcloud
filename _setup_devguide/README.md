@@ -1582,9 +1582,18 @@ SUMMARY:
 
 	2. UART
 		A. GET UARTS                 get_uarts
+		   - gets enabled status of the UART
+
 		B. GET UART PROPERTIES       get_uart_prop
+		   - gets structure data with correct value mapping (due to unexposed values)
+
 		C. SET UART PROPERTIES       set_uart_prop
+		   - sets structure data with correct value mapping
+		   - calls uart_close(), uart_soft_reset(), uart_open()
+
 		D. ENABLE UART               enable_uart
+		   - DISABLE: calls uart_close() and uart_soft_reset()
+		   - ENABLE: calls uart_open()
 
 	3. GPIO
 		A. GET GPIOS                 get_gpios
@@ -1599,6 +1608,10 @@ SUMMARY:
 		B. GET I2C DEVICE PROPERTIES get_i2c_dev_prop
 		C. SET I2C DEVICE PROPERTIES set_i2c_dev_prop
 		D. ENABLE I2C                enable_i2c
+
+	5. Notifications
+		A. SEND NOTIFICATION         trigger_notifications
+		B. RECV NOTIFICATION         trigger_notifications
 
 
 DETAILED:
@@ -1904,4 +1917,9 @@ DETAILED:
 		   topic: server/DEVICEID/enable_i2c
 		   payload: {}
 
+
+	5. Notifications
+
+		A. SEND NOTIFICATION         trigger_notifications
+		B. RECV NOTIFICATION         trigger_notifications
 
