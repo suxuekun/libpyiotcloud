@@ -49,16 +49,16 @@ var g_gpio_status = [0, 1, 0, 1];
 // I2C
 var g_i2c_properties = [
     {
-        '0': { 'class': 0, 'attributes': {} },
+        '0': { 'enabled': 0, 'class': 0, 'attributes': {} },
     },
     {
-        '0': { 'class': 0, 'attributes': {} },
+        '0': { 'enabled': 0, 'class': 0, 'attributes': {} },
     },
     {
-        '0': { 'class': 0, 'attributes': {} },
+        '0': { 'enabled': 0, 'class': 0, 'attributes': {} },
     },
     {
-        '0': { 'class': 0, 'attributes': {} },
+        '0': { 'enabled': 0, 'class': 0, 'attributes': {} },
     }
 ];
 var g_i2c_enabled = [1, 1, 1, 1];
@@ -85,8 +85,10 @@ var API_SET_GPIO_VOLTAGE          = "set_gpio_voltage";
 
 // i2c
 var API_GET_I2CS                  = "get_i2cs";
+var API_GET_I2C_DEVICES           = "get_i2c_devs";
 var API_GET_I2C_DEVICE_PROPERTIES = "get_i2c_dev_prop";
 var API_SET_I2C_DEVICE_PROPERTIES = "set_i2c_dev_prop";
+var API_ENABLE_I2C_DEVICE         = "enable_i2c_dev";
 var API_ENABLE_I2C                = "enable_i2c";
 
 
@@ -457,6 +459,18 @@ function handle_api(api, topic, payload)
         console.log(pubtopic);
         console.log(JSON.stringify(response));
     }
+    else if (api == API_GET_I2C_DEVICES) {
+        pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
+        var response = {
+            'value': {
+                'i2cs': g_i2c_properties
+            }
+        }
+        client.publish(pubtopic, JSON.stringify(response));
+
+        console.log(pubtopic);
+        console.log(JSON.stringify(response));
+    }
     else if (api == API_GET_I2C_DEVICE_PROPERTIES) {
         pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
         var obj = JSON.parse(payload);
@@ -490,8 +504,31 @@ function handle_api(api, topic, payload)
 
         g_i2c_properties[number][address] = {
             "class"      : device_class,
-            "attributes" : setClassAttributes(device_class, obj)
+            "attributes" : setClassAttributes(device_class, obj),
+            "enabled"    : 0
         };
+        console.log("");
+        console.log(g_i2c_properties[number]);
+        console.log("");
+
+        var response = {};
+        client.publish(pubtopic, JSON.stringify(response));
+        console.log(pubtopic);
+        console.log(JSON.stringify(response));
+    }
+    else if (api == API_ENABLE_I2C_DEVICE) {
+        pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
+        var obj = JSON.parse(payload);
+        var number = Number(obj.number)-1;
+        var address = Number(obj.address).toString();
+        var enable = Number(obj.enable);
+        console.log(number);
+
+        try {
+            g_i2c_properties[number][address]["enabled"] = enable
+        }
+        catch {
+        }
         console.log("");
         console.log(g_i2c_properties[number]);
         console.log("");
@@ -524,17 +561,18 @@ function handle_api(api, topic, payload)
         pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
         var obj = JSON.parse(payload);
 
-        if (obj.recipient != CONFIG_DEVICE_ID) {
-            // Notification from cloud
-            client.publish(pubtopic, payload);
-            console.log("Notification triggered to email/SMS recipient!");
-        }
-        else {
-            // Notification from another device
-            console.log("Notification received from device " + obj.sender + ":");
-            console.log(obj.message);
-            console.log();
-        }
+        // Notification from cloud
+        client.publish(pubtopic, payload);
+        console.log("Notification triggered to email/SMS recipient!");
+    }
+    else if (api == "recv_notification"){
+        pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
+        var obj = JSON.parse(payload);
+
+        // Notification from another device
+        console.log("Notification received from device " + obj.sender + ":");
+        console.log(obj.message);
+        console.log();
     }
 
 

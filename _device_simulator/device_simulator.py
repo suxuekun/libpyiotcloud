@@ -71,16 +71,16 @@ g_gpio_status = [0, 1, 0, 1]
 # I2C
 g_i2c_properties = [
     {
-        '0': { 'class': 0, 'attributes': {} },
+        '0': { 'enabled': 0, 'class': 0, 'attributes': {} },
     },
     {
-        '0': { 'class': 0, 'attributes': {} },
+        '0': { 'enabled': 0, 'class': 0, 'attributes': {} },
     },
     {
-        '0': { 'class': 0, 'attributes': {} },
+        '0': { 'enabled': 0, 'class': 0, 'attributes': {} },
     },
     {
-        '0': { 'class': 0, 'attributes': {} },
+        '0': { 'enabled': 0, 'class': 0, 'attributes': {} },
     }
 ]
 g_i2c_enabled = [1, 1, 1, 1]
@@ -109,8 +109,10 @@ API_SET_GPIO_VOLTAGE          = "set_gpio_voltage"
 
 # i2c
 API_GET_I2CS                  = "get_i2cs"
+API_GET_I2C_DEVICES           = "get_i2c_devs"
 API_GET_I2C_DEVICE_PROPERTIES = "get_i2c_dev_prop"
 API_SET_I2C_DEVICE_PROPERTIES = "set_i2c_dev_prop"
+API_ENABLE_I2C_DEVICE         = "enable_i2c_dev"
 API_ENABLE_I2C                = "enable_i2c"
 
 
@@ -371,6 +373,18 @@ def handle_api(api, subtopic, subpayload):
         payload["value"] = value
         publish(topic, payload)
 
+    elif api == API_GET_I2C_DEVICES:
+        topic = generate_pubtopic(subtopic)
+        subpayload = json.loads(subpayload)
+
+        value = {
+            'i2cs': g_i2c_properties
+        }
+
+        payload = {}
+        payload["value"] = value
+        publish(topic, payload)
+
     elif api == API_GET_I2C_DEVICE_PROPERTIES:
         topic = generate_pubtopic(subtopic)
         subpayload = json.loads(subpayload)
@@ -402,7 +416,28 @@ def handle_api(api, subtopic, subpayload):
         device_class = subpayload["class"]
         g_i2c_properties[number][address] = {
             'class': device_class,
-            'attributes' : setClassAttributes(device_class, subpayload) }
+            'attributes' : setClassAttributes(device_class, subpayload),
+            'enabled': 0
+        }
+        print()
+        print(g_i2c_properties[number])
+        print()
+
+        payload = {}
+        publish(topic, payload)
+
+    elif api == API_ENABLE_I2C_DEVICE:
+        topic = generate_pubtopic(subtopic)
+        subpayload = json.loads(subpayload)
+        print(subpayload)
+
+        number = int(subpayload["number"])-1
+        address = str(subpayload["address"])
+        enable = int(subpayload["enable"])
+        try:
+            g_i2c_properties[number][address]["enabled"] = enable
+        except:
+            pass
         print()
         print(g_i2c_properties[number])
         print()
@@ -430,16 +465,17 @@ def handle_api(api, subtopic, subpayload):
     elif api == "trigger_notification":
         topic = generate_pubtopic(subtopic)
         subpayload = json.loads(subpayload)
+        # Notification from cloud
+        publish(topic, subpayload)
+        print("Notification triggered to email/SMS recipient!")
 
-        if subpayload["recipient"] != CONFIG_DEVICE_ID:
-            # Notification from cloud
-            publish(topic, subpayload)
-            print("Notification triggered to email/SMS recipient!")
-        else:
-            # Notification from another device
-            print("Notification received from device {}:".format(subpayload["sender"]))
-            print(subpayload["message"])
-            print()
+    elif api == "recv_notification":
+        topic = generate_pubtopic(subtopic)
+        subpayload = json.loads(subpayload)
+        # Notification from another device
+        print("Notification received from device {}:".format(subpayload["sender"]))
+        print(subpayload["message"])
+        print()
 
 
 
