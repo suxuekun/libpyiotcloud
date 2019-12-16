@@ -67,8 +67,9 @@
         <input type="text" placeholder="Phone number(s)" ng-model="data.uart.notification.endpoints.notification.recipients" readonly="">
       </label>
       <ion-checkbox id="deviceUART-checkbox4" ng-model="data.uart.notification.endpoints.modem.enable">Send to IoT Modem </ion-checkbox>
-      <label class="item item-input" id="deviceUART-input69">
-        <input type="text" placeholder="Device name(s)" ng-model="data.uart.notification.endpoints.modem.recipients">
+      <label class="item item-select" id="deviceUART-select26">
+        <span class="input-label"></span>
+        <select ng-options="device.id as device.devicename for device in devices" ng-model="data.hardware_devicename"></select>
       </label>
     </form>
     <button id="deviceUART-button28" ng-click="submit()" class="button button-positive button-block">SAVE</button>
