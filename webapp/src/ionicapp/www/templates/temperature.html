@@ -78,8 +78,9 @@
         <input type="text" placeholder="" ng-model="data.attributes.notification.endpoints.notification.recipients">
       </label>
       <ion-checkbox id="temperature-checkbox24" ng-model="data.attributes.notification.endpoints.modem.enable">Send to IoT Modem</ion-checkbox>
-      <label class="item item-input" id="temperature-input132">
-        <input type="text" placeholder="" ng-model="data.attributes.notification.endpoints.modem.recipients">
+      <label class="item item-select" id="temperature-select41">
+        <span class="input-label"></span>
+        <select ng-options="device.id as device.devicename for device in devices" ng-model="data.hardware_devicename"></select>
       </label>
     </form>
     <form id="temperature-form92" class="list">

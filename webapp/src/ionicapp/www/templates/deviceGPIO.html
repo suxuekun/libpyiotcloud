@@ -25,6 +25,7 @@
         <span class="input-label">Voltage</span>
         <select ng-model="data.voltageidx" ng-options="voltage.id as voltage.label for voltage in voltages"></select>
       </label>
+      <button id="deviceGPIO-button101" ng-click="set_gpio_voltage()" class="button button-stable button-block button-outline">Set Voltage</button>
       <div class="spacer" style="width: 300px; height: 20px;"></div>
       <div id="deviceGPIO-markdown124" class="show-list-numbers-and-dots">
         <p style="color:#387EF5;">Properties</p>
@@ -113,8 +114,9 @@
         <input type="tel" placeholder="Phone number(s)" ng-model="data.gpio.notification.endpoints.notification.recipients" readonly="">
       </label>
       <ion-checkbox id="deviceGPIO-checkbox8" ng-model="data.gpio.notification.endpoints.modem.enable">Send to IoT Modem</ion-checkbox>
-      <label class="item item-input" id="deviceGPIO-input74">
-        <input type="text" placeholder="Device name(s)" ng-model="data.gpio.notification.endpoints.modem.recipients">
+      <label class="item item-select" id="deviceGPIO-select36">
+        <span class="input-label"></span>
+        <select ng-options="device.id as device.devicename for device in devices" ng-model="data.hardware_devicename"></select>
       </label>
     </form>
     <button id="deviceGPIO-button29" ng-click="submit()" class="button button-positive button-block">SAVE</button>
