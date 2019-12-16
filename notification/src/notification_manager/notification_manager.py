@@ -3,6 +3,7 @@ from notification_client import notification_client
 from notification_client import notification_types
 from notification_client import notification_models
 from notification_config import config as notification_config
+from web_server_database import database_client
 import json
 import time
 import argparse
@@ -23,6 +24,7 @@ CONFIG_USE_ECC = True if int(os.environ["CONFIG_USE_ECC"]) == 1 else False
 # Enable to use AMQP for webserver-to-messagebroker communication
 # Disable to use MQTT for webserver-to-messagebroker communication
 CONFIG_USE_AMQP = False
+CONFIG_DBHOST = notification_config.CONFIG_MONGODB_HOST
 ###################################################################################
 
 
@@ -33,7 +35,8 @@ CONFIG_USE_AMQP = False
 
 g_messaging_client = None
 g_notification_client = None
-g_gpio_values = {}
+g_database_client = None
+
 
 
 ###################################################################################
@@ -74,9 +77,9 @@ print("MODEL_SMS {}".format(CONFIG_MODEL_SMS))
 
 def notification_thread(messaging_client, deviceid, recipient, message, subject, type, options):
 
-    if type == type == notification_types.DEVICE:
+    if type == notification_types.DEVICE:
         # Send to another device
-        topic = "{}{}trigger_notification".format(recipient, CONFIG_SEPARATOR)
+        topic = "{}{}recv_notification".format(recipient, CONFIG_SEPARATOR)
         print("topic={}".format(topic))
         payload = {}
         payload["recipient"] = recipient
@@ -139,42 +142,86 @@ def notification_thread(messaging_client, deviceid, recipient, message, subject,
 def on_message(subtopic, subpayload):
 
     print(subtopic)
-
+    notification = None
     topicarr = subtopic.split("/")
     try:
         if len(topicarr) == 5:
             deviceid = topicarr[1]
             source = topicarr[3]
             menos = topicarr[4]
+            payload = json.loads(subpayload)
+            if not payload.get("recipient") or not payload.get("message"):
+                notification = g_database_client.get_device_notification_by_deviceid(deviceid, source)
+                #print(notification)
+            if not payload.get("recipient"):
+                #print("no recipient")
+                if notification is not None:
+                    if menos == "modem":
+                        payload["recipient"] = notification["endpoints"][menos]["recipients_id"]
+                    elif menos != "default":
+                        payload["recipient"] = notification["endpoints"][menos]["recipients"]
+                    #print("new recipient: {}".format(payload["recipient"]))
+            if not payload.get("message"):
+                #print("no message")
+                if notification is not None:
+                    payload["message"] = notification["messages"][0]["message"]
+                    #print("new message: {}".format(payload["message"]))
+
             if menos == "mobile":
                 print("mobile")
-                payload = json.loads(subpayload)
-                recipient = "+{}".format(payload["recipient"])
+                if payload["recipient"][0] != '+':
+                    recipient = "+{}".format(payload["recipient"])
+                else:
+                    recipient = payload["recipient"]
                 message = payload["message"]
+                print("recipient={} message={}".format(recipient, message))
                 thr = threading.Thread(target = notification_thread, args = (g_messaging_client, deviceid, recipient, message, None, notification_types.SMS, -1, ))
                 thr.start()
             elif menos == "email":
                 print("email")
-                payload = json.loads(subpayload)
                 recipient = payload["recipient"]
                 message = payload["message"]
+                print("recipient={} message={}".format(recipient, message))
                 thr = threading.Thread(target = notification_thread, args = (g_messaging_client, deviceid, recipient, message, aws_config.CONFIG_PINPOINT_EMAIL_SUBJECT, notification_types.EMAIL, -1, ))
                 thr.start()
             elif menos == "notification":
-                print("notification")
+                print("notification TODO")
                 # TODO
-            elif menos == "mOdem":
-                print("mOdem")
-                payload = json.loads(subpayload)
+            elif menos == "modem":
+                print("modem")
                 recipient = payload["recipient"]
                 message = payload["message"]
+                print("recipient={} message={}".format(recipient, message))
                 thr = threading.Thread(target = notification_thread, args = (g_messaging_client, deviceid, recipient, message, None, notification_types.DEVICE, -1, ))
                 thr.start()
             elif menos == "storage":
-                print("storage")
+                print("storage TODO")
                 # TODO
             elif menos == "default":
                 print("default")
+                if notification is not None:
+                    recipient = notification["endpoints"]["mobile"]["recipients"]
+                    message = payload["message"]
+                    print("recipient={} message={}".format(recipient, message))
+                    thr = threading.Thread(target = notification_thread, args = (g_messaging_client, deviceid, recipient, message, None, notification_types.SMS, -1, ))
+                    thr.start()
+                    thr.join()
+
+                    recipient2 = notification["endpoints"]["email"]["recipients"]
+                    message2 = payload["message"]
+                    print("recipient={} message={}".format(recipient2, message2))
+                    thr2 = threading.Thread(target = notification_thread, args = (g_messaging_client, deviceid, recipient2, message2, aws_config.CONFIG_PINPOINT_EMAIL_SUBJECT, notification_types.EMAIL, -1, ))
+                    thr2.start()
+                    thr2.join()
+
+                    recipient3 = notification["endpoints"]["modem"]["recipients_id"]
+                    message3 = payload["message"]
+                    print("recipient={} message={}".format(recipient3, message3))
+                    thr3 = threading.Thread(target = notification_thread, args = (g_messaging_client, deviceid, recipient3, message3, None, notification_types.DEVICE, -1, ))
+                    thr3.start()
+                    thr3.join()
+            else:
+                print("UNSUPPORTED {}".format(menos))
 
         elif len(topicarr) == 3:
             # get device id
@@ -202,7 +249,9 @@ def on_message(subtopic, subpayload):
 
             thr = threading.Thread(target = notification_thread, args = (g_messaging_client, deviceid, recipient, message, subject, type, options, ))
             thr.start()
-    except:
+    except Exception as e:
+        print("exception")
+        print(e)
         return
     return
 
@@ -240,6 +289,7 @@ def parse_arguments(argv):
     parser.add_argument('--USE_DEVICE_CERT', required=False, default=CONFIG_TLS_CERT, help='Device certificate to use')
     parser.add_argument('--USE_DEVICE_PKEY', required=False, default=CONFIG_TLS_PKEY, help='Device private key to use')
     parser.add_argument('--USE_HOST',        required=False, default=CONFIG_HOST,     help='Host server to connect to')
+    parser.add_argument('--USE_DBHOST',      required=False, default=CONFIG_DBHOST,   help='Host DB server to connect to')
     parser.add_argument('--USE_USERNAME',    required=False, default=CONFIG_USERNAME, help='Username to use in connection')
     parser.add_argument('--USE_PASSWORD',    required=False, default=CONFIG_PASSWORD, help='Password to use in connection')
     return parser.parse_args(argv)
@@ -255,6 +305,7 @@ if __name__ == '__main__':
     CONFIG_TLS_CERT    = args.USE_DEVICE_CERT
     CONFIG_TLS_PKEY    = args.USE_DEVICE_PKEY
     CONFIG_HOST        = args.USE_HOST
+    CONFIG_DBHOST      = args.USE_DBHOST
     CONFIG_USERNAME    = args.USE_USERNAME
     CONFIG_PASSWORD    = args.USE_PASSWORD
     print("")
@@ -264,9 +315,15 @@ if __name__ == '__main__':
     print("USE_DEVICE_CERT={}".format(args.USE_DEVICE_CERT))
     print("USE_DEVICE_PKEY={}".format(args.USE_DEVICE_PKEY))
     print("USE_HOST={}".format(args.USE_HOST))
+    print("USE_DBHOST={}".format(args.USE_DBHOST))
     print("USE_USERNAME={}".format(args.USE_USERNAME))
     print("USE_PASSWORD={}".format(args.USE_PASSWORD))
     print("")
+
+
+    # Initialize MongoDB
+    g_database_client = database_client(host=CONFIG_DBHOST)
+    g_database_client.initialize()
 
 
     # Initialize Notification client (Pinpoint, SNS, Twilio or Nexmo)
