@@ -260,7 +260,8 @@ SUMMARY:
 		R. GET I2C DEVICE                 - GET    /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME
 		S. SET I2C DEVICE PROPERTIES      - POST   /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME/properties
 		T. GET I2C DEVICE PROPERTIES      - GET    /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME/properties
-		U. ENABLE/DISABLE I2C             - POST   /devices/device/DEVICENAME/i2c/NUMBER/enable
+		U. ENABLE/DISABLE I2C DEVICE      - POST   /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME/enable
+		V. ENABLE/DISABLE I2C             - POST   /devices/device/DEVICENAME/i2c/NUMBER/enable
 		   (NUMBER can be 1-4 only and corresponds to I2C1,I2C2,I2C3,I2C4)
 
 		Old requirements:
@@ -1319,7 +1320,17 @@ DETAILED:
 
 		   { 'status': 'NG', 'message': string}
 
-		U. ENABLE/DISABLE I2C
+		U. ENABLE/DISABLE I2C DEVICE
+		-  Request:
+		   POST /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME/enable
+		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+		   data: { 'enable': int }
+		   // enable is an int indicating if disabled (0) or enabled (1)
+		-  Response:
+		   { 'status': 'OK', 'message': string }
+		   { 'status': 'NG', 'message': string }
+
+		V. ENABLE/DISABLE I2C
 		-  Request:
 		   POST /devices/device/DEVICENAME/i2c/NUMBER/enable
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
@@ -1600,24 +1611,32 @@ SUMMARY:
 		C. SET UART PROPERTIES       set_uart_prop
 		   - sets structure data with correct value mapping
 		   - calls uart_close(), uart_soft_reset(), uart_open()
+		     * uart_soft_reset is needed to prevent distorted text when changing databits or parity
+		     * interrupt_attach, uart_enable_interrupt and uart_enable_interrupts_globally needs to be called because uart_soft_reset clears the interrupt
 
-		D. ENABLE UART               enable_uart
+		D. ENABLE/DISABLE UART       enable_uart
 		   - DISABLE: calls uart_close() and uart_soft_reset()
+		     * uart_soft_reset is needed to prevent distorted text when changing databits or parity
 		   - ENABLE: calls uart_open()
+		     * interrupt_attach, uart_enable_interrupt and uart_enable_interrupts_globally needs to be called because uart_soft_reset clears the interrupt
 
 	3. GPIO
 		A. GET GPIOS                 get_gpios
 		B. GET GPIO PROPERTIES       get_gpio_prop
 		C. SET GPIO PROPERTIES       set_gpio_prop
-		D. ENABLE GPIO               enable_gpio
+		D. ENABLE/DISABLE GPIO       enable_gpio
+
 		E. GET GPIO VOLTAGE          get_gpio_voltage
 		F. SET GPIO VOLTAGE          set_gpio_voltage
+		   - 3.3v: gpio_write(16, 0), gpio_write(17, 1)
+		   - 5v:   gpio_write(16, 1), gpio_write(17, 0)
 
 	4. I2C
 		A. GET I2CS                  get_i2cs
 		B. GET I2C DEVICE PROPERTIES get_i2c_dev_prop
 		C. SET I2C DEVICE PROPERTIES set_i2c_dev_prop
-		D. ENABLE I2C                enable_i2c
+		D. ENABLE/DISABLE I2C DEVICE enable_i2c_dev
+		E. ENABLE/DISABLE I2C        enable_i2c
 
 	5. Notifications
 		A. SEND NOTIFICATION         trigger_notifications
@@ -1732,7 +1751,7 @@ DETAILED:
 		   topic: server/DEVICEID/set_uart_prop
 		   payload: {}
 
-		D. ENABLE UART
+		D. ENABLE/DISABLE UART
 		-  Receive:
 		   topic: DEVICEID/enable_uart
 		   payload: { 'enable': int }
@@ -1847,7 +1866,7 @@ DETAILED:
 		   topic: server/DEVICEID/set_gpio_prop
 		   payload: {}
 
-		D. ENABLE GPIO
+		D. ENABLE/DISABLE GPIO
 		-  Receive:
 		   topic: DEVICEID/enable_gpio
 		   payload: { 'enable': int, 'number': int }
@@ -1895,7 +1914,32 @@ DETAILED:
 		   }
 		   // enable is an int indicating if disabled (0) or enabled (1)
 
-		B. GET I2C DEVICE PROPERTIES
+		B. GET I2C DEVICES
+		-  Receive:
+		   topic: DEVICEID/get_i2c_devs
+		-  Publish:
+		   topic: server/DEVICEID/get_i2c_devs
+		   payload: { 
+		     'value': { 
+		       'i2cs': [ 
+		           {
+		              address: { 'enabled': 0, 'class': 0, 'attributes': {} },
+		           },
+		           {
+		              address: { 'enabled': 0, 'class': 0, 'attributes': {} },
+		           },
+		           {
+		              address: { 'enabled': 0, 'class': 0, 'attributes': {} },
+		           },
+		           {
+		              address: { 'enabled': 0, 'class': 0, 'attributes': {} },
+		           },
+		       ]
+		     }
+		   }
+		   // enable is an int indicating if disabled (0) or enabled (1)
+
+		C. GET I2C DEVICE PROPERTIES
 		-  Receive:
 		   topic: DEVICEID/get_i2c_dev_prop
 		   payload: { 'number': int, 'address': int }
@@ -1905,7 +1949,7 @@ DETAILED:
 		     'value': { TODO:Refer to GET I2C DEVICE PROPERTIES API } 
 		   }
 
-		C. SET I2C DEVICE PROPERTIES
+		D. SET I2C DEVICE PROPERTIES
 		-  Receive:
 		   topic: DEVICEID/set_i2c_dev_prop
 		   payload: { 
@@ -1918,7 +1962,16 @@ DETAILED:
 		   topic: server/DEVICEID/set_i2c_dev_prop
 		   payload: {}
 
-		D. ENABLE I2C
+		E. ENABLE/DISABLE I2C DEVICE
+		-  Receive:
+		   topic: DEVICEID/enable_i2c_dev
+		   payload: { 'enable': int, 'number': int, 'address': int }
+		   // enable is an int indicating if disabled (0) or enabled (1)
+		-  Publish:
+		   topic: server/DEVICEID/enable_i2c
+		   payload: {}
+
+		F. ENABLE/DISABLE I2C
 		-  Receive:
 		   topic: DEVICEID/enable_i2c
 		   payload: { 'enable': int, 'number': int }
