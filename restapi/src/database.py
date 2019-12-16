@@ -235,16 +235,21 @@ class database_client:
     ##########################################################
 
     def add_device_notification(self, username, devicename, source, notification):
-        return self._devices.add_device_notification(username, devicename, source, notification)
+        deviceid = self._devices.get_deviceid(username, devicename)
+        return self._devices.add_device_notification(username, devicename, deviceid, source, notification)
 
     def update_device_notification(self, username, devicename, source, notification):
-        return self._devices.update_device_notification(username, devicename, source, notification)
+        deviceid = self._devices.get_deviceid(username, devicename)
+        return self._devices.update_device_notification(username, devicename, deviceid, source, notification)
 
     def delete_device_notification(self, username, devicename):
         return self._devices.delete_device_notification(username, devicename)
 
     def get_device_notification(self, username, devicename, source):
         return self._devices.get_device_notification(username, devicename, source)
+
+    def get_device_notification_by_deviceid(self, deviceid, source):
+        return self._devices.get_device_notification_by_deviceid(deviceid, source)
 
 
     ##########################################################
@@ -795,31 +800,35 @@ class database_client_mongodb:
     def get_notifications_document(self):
         return self.client[config.CONFIG_MONGODB_TB_NOTIFICATIONS]
 
-    def add_device_notification(self, username, devicename, source, notification):
+    def add_device_notification(self, username, devicename, deviceid, source, notification):
         notifications = self.get_notifications_document();
         item = {}
         item['username'] = username
         item['devicename'] = devicename
+        item['deviceid'] = deviceid
         item['source'] = source
         item['notification'] = notification
         notifications.insert_one(item)
+        return item
 
-    def update_device_notification(self, username, devicename, source, notification):
+    def update_device_notification(self, username, devicename, deviceid, source, notification):
         notifications = self.get_notifications_document();
         item = {}
         item['username'] = username
         item['devicename'] = devicename
+        item['deviceid'] = deviceid
         item['source'] = source
         item['notification'] = notification
         #print("update_device_notification find_one")
         found = notifications.find_one({'username': username, 'devicename': devicename, 'source': source})
         if found is None:
-            #print("update_device_notification insert_one")
+            print("update_device_notification insert_one")
             #print(found)
             notifications.insert_one(item)
         else:
-            #print("update_device_notification replace_one")
+            print("update_device_notification replace_one")
             notifications.replace_one({'username': username, 'devicename': devicename, 'source': source}, item)
+        return item
 
     def delete_device_notification(self, username, devicename):
         notifications = self.get_notifications_document();
@@ -833,6 +842,15 @@ class database_client_mongodb:
         notifications = self.get_notifications_document();
         if notifications:
             for notification in notifications.find({'username': username, 'devicename': devicename, 'source': source}):
+                notification.pop('_id')
+                #print(notification['notification'])
+                return notification['notification']
+        return None
+
+    def get_device_notification_by_deviceid(self, deviceid, source):
+        notifications = self.get_notifications_document();
+        if notifications:
+            for notification in notifications.find({'deviceid': deviceid, 'source': source}):
                 notification.pop('_id')
                 #print(notification['notification'])
                 return notification['notification']

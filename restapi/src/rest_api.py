@@ -2312,6 +2312,9 @@ def get_uart_prop(devicename):
     source = "uart"
     notification = g_database_client.get_device_notification(username, devicename, source)
     if notification is not None:
+        if notification["endpoints"]["modem"].get("recipients_id"):
+            notification["endpoints"]["modem"].pop("recipients_id")
+        #print(notification)
         response = json.loads(response)
         response['value']['notification'] = notification
         response = json.dumps(response)
@@ -2359,9 +2362,10 @@ def set_uart_prop(devicename):
 
     # get notifications and remove from list
     notification = data['notification']
-    data.pop('notification')
-    #print(data)
     #print(notification)
+    data.pop('notification')
+    #print(notification)
+    #print(data)
 
     data['token'] = {'access': auth_header_token}
     data['devicename'] = devicename
@@ -2377,12 +2381,21 @@ def set_uart_prop(devicename):
     if status != 200:
         return response, status
 
+    #print("recipients: {}".format(notification["endpoints"]["modem"]["recipients"]))
+    deviceid = g_database_client.get_deviceid(username, notification["endpoints"]["modem"]["recipients"])
+    if deviceid is not None:
+        notification["endpoints"]["modem"]["recipients_id"] = deviceid
+        #print("recipients_id: {}".format(notification["endpoints"]["modem"]["recipients_id"]))
+
     source = "uart"
-    notification = g_database_client.update_device_notification(username, devicename, source, notification)
-    if notification is not None:
-        response = json.loads(response)
-        response['value']['notification'] = notification
-        response = json.dumps(response)
+    item = g_database_client.update_device_notification(username, devicename, source, notification)
+    #print(item["deviceid"])
+
+    #xyz = g_database_client.get_device_notification(username, devicename, source)
+    #print(xyz)
+
+    #xyz = g_database_client.get_device_notification_by_deviceid(item["deviceid"], source)
+    #print(xyz)
 
     return response
 
@@ -3365,6 +3378,68 @@ def get_i2c_dev_prop(devicename, number, sensorname):
 
     return response
 
+
+
+#
+# ENABLE/DISABLE I2C DEVICE
+#
+# - Request:
+#   POST /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME/enable
+#   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
+#   data: { 'enable': int }
+#
+# - Response:
+#   { 'status': 'OK', 'message': string }
+#   { 'status': 'NG', 'message': string }
+#
+@app.route('/devices/device/<devicename>/i2c/<number>/sensors/sensor/<sensorname>/enable', methods=['POST'])
+def enable_i2c_dev(devicename, number, sensorname):
+    api = 'enable_i2c_dev'
+
+    # check number parameter
+    if int(number) > 4 or int(number) < 1:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid parameters'})
+        print('\r\nERROR Invalid parameters\r\n')
+        return response, status.HTTP_400_BAD_REQUEST
+
+    # get token from Authorization header
+    auth_header_token = get_auth_header_token()
+    if auth_header_token is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
+        print('\r\nERROR Invalid authorization header\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
+
+    # get username from token
+    data = flask.request.get_json()
+
+    # check parameter input
+    if data['enable'] is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid parameters'})
+        print('\r\nERROR Invalid parameters\r\n')
+        return response, status.HTTP_400_BAD_REQUEST
+
+    data['token'] = {'access': auth_header_token}
+    data['devicename'] = devicename
+    username = g_database_client.get_username_from_token(data['token'])
+    if username is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
+        print('\r\nERROR Invalid token\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
+    data['username'] = username
+
+    # check if sensor is registered
+    sensor = g_database_client.get_sensor(username, devicename, number, sensorname)
+    if not sensor:
+        response = json.dumps({'status': 'NG', 'message': 'Sensor is not registered'})
+        print('\r\nERROR Get I2C Sensor: Sensor is not registered [{},{}]\r\n'.format(username, devicename))
+        return response, status.HTTP_404_NOT_FOUND
+
+    data['address'] = sensor['address']
+    # note: python dict maintains insertion order so number will always be the last key
+    data['number'] = int(number)
+    print('enable_i2c_dev {} devicename={} number={}'.format(username, devicename, number))
+
+    return process_request(api, data)
 
 
 #
