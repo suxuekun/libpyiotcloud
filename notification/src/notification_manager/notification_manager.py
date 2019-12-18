@@ -75,23 +75,33 @@ print("MODEL_SMS {}".format(CONFIG_MODEL_SMS))
 ###################################################################################
 
 
+def send_notification_status(messaging_client, deviceid, status):
+    topic = "{}{}status_notification".format(deviceid, CONFIG_SEPARATOR)
+    payload = { "status": status }
+    messaging_client.publish(topic, json.dumps(payload), False)
+
+def send_notification_device(messaging_client, deviceid, recipient, message):
+    topic = "{}{}recv_notification".format(recipient, CONFIG_SEPARATOR)
+    #print("topic={}".format(topic))
+    payload = {}
+    payload["recipient"] = recipient
+    payload["message"] = message
+    payload["sender"] = deviceid
+    payload = json.dumps(payload)
+    #print("payload={}".format(payload))
+    try:
+        messaging_client.publish(topic, payload)
+        #print("\r\nSending message='{}' to recipient='{}' done.\r\n\r\n".format(message, recipient))
+        send_notification_status(messaging_client, deviceid, "OK. message sent to {}.".format(recipient))
+    except:
+        send_notification_status(messaging_client, deviceid, "NG")
+        print("PUBLISH FAILED!")
+
 def notification_thread(messaging_client, deviceid, recipient, message, subject, type, options):
 
     if type == notification_types.DEVICE:
         # Send to another device
-        topic = "{}{}recv_notification".format(recipient, CONFIG_SEPARATOR)
-        print("topic={}".format(topic))
-        payload = {}
-        payload["recipient"] = recipient
-        payload["message"] = message
-        payload["sender"] = deviceid
-        payload = json.dumps(payload)
-        print("payload={}".format(payload))
-        try:
-            messaging_client.publish(topic, payload)
-            print("\r\nSending message='{}' to recipient='{}' done.\r\n\r\n".format(message, recipient))
-        except:
-            print("PUBLISH FAILED!")
+        send_notification_device(messaging_client, deviceid, recipient, message)
     else:
         # Send to SMS or email
         if options >= 0:
@@ -105,12 +115,14 @@ def notification_thread(messaging_client, deviceid, recipient, message, subject,
             try:
                 response = new_client.send_message(recipient, message, subject=subject, type=type)
             except:
+                send_notification_status(messaging_client, deviceid, "NG")
                 return
         else:
             # No options parameter
             try:
                 response = g_notification_client.send_message(recipient, message, subject=subject, type=type)
             except:
+                send_notification_status(messaging_client, deviceid, "NG")
                 return
 
         # Display result
@@ -120,28 +132,96 @@ def notification_thread(messaging_client, deviceid, recipient, message, subject,
                     message, recipient,
                     response["ResponseMetadata"]["HTTPStatusCode"]==200, 
                     response["MessageResponse"]["Result"][recipient]["StatusCode"]==200))
+                send_notification_status(messaging_client, deviceid, "OK. message sent to {}.".format(recipient))
             except:
                 try:
                     print("\r\nSending message='{}' to recipient='{}' done. {}\r\n\r\n".format(
                         message, recipient,
                         response["ResponseMetadata"]["HTTPStatusCode"]==200))
+                    send_notification_status(messaging_client, deviceid, "OK. message sent to {}.".format(recipient))
                 except:
                     print("\r\nSending message='{}' to recipient='{}' done.\r\n\r\n".format(
                         message, recipient))
         else:
             typeStr = "SMS  " if type == notification_types.SMS else "Email"
             try:
-                print("{}: {} options={} [{} {}] {}".format(deviceid, typeStr, options, len(recipient), len(message), response["ResponseMetadata"]["HTTPStatusCode"]==200 and response["MessageResponse"]["Result"][recipient]["StatusCode"]==200))
+                res = response["ResponseMetadata"]["HTTPStatusCode"]==200 and response["MessageResponse"]["Result"][recipient]["StatusCode"]==200
+                print("{}: {} options={} [{} {}] {}".format(deviceid, typeStr, options, len(recipient), len(message), res))
+                if res == True:
+                    send_notification_status(messaging_client, deviceid, "OK. message sent to {}.".format(recipient))
+                else:
+                    send_notification_status(messaging_client, deviceid, "NG")
             except:
                 try:
-                    print("{}: {} options={} [{} {}] {}".format(deviceid, typeStr, options, len(recipient), len(message), response["ResponseMetadata"]["HTTPStatusCode"]==200))
+                    res = response["ResponseMetadata"]["HTTPStatusCode"]==200
+                    print("{}: {} options={} [{} {}] {}".format(deviceid, typeStr, options, len(recipient), len(message), res))
+                    if res == True:
+                        send_notification_status(messaging_client, deviceid, "OK. message sent to {}.".format(recipient))
+                    else:
+                        send_notification_status(messaging_client, deviceid, "NG")
                 except:
                     print("{}: {} options={} [{} {}] True".format(deviceid, typeStr, options, len(recipient), len(message) ))
+
+def send_notification_mobile_threaded(messaging_client, deviceid, recipient, message):
+    #print("mobile")
+    if recipient[0] != '+':
+        recipient = "+{}".format(recipient)
+    #print("recipient={} message={}".format(recipient, message))
+    thr = threading.Thread(target = notification_thread, args = (messaging_client, deviceid, recipient, message, None, notification_types.SMS, -1, ))
+    thr.start()
+    return thr
+
+def send_notification_email_threaded(messaging_client, deviceid, recipient, message):
+    #print("email")
+    #print("recipient={} message={}".format(recipient, message))
+    thr = threading.Thread(target = notification_thread, args = (messaging_client, deviceid, recipient, message, aws_config.CONFIG_PINPOINT_EMAIL_SUBJECT, notification_types.EMAIL, -1, ))
+    thr.start()
+    return thr
+
+def send_notification_modem_threaded(messaging_client, deviceid, recipient, message):
+    #print("modem")
+    #print("recipient={} message={}".format(recipient, message))
+    thr = threading.Thread(target = notification_thread, args = (messaging_client, deviceid, recipient, message, None, notification_types.DEVICE, -1, ))
+    thr.start()
+    return thr
+
+def send_notification_default_threaded(messaging_client, deviceid, notification, message):
+    #print("default")
+    if notification is not None:
+        if notification["endpoints"]["mobile"]["enable"] == True:
+            thr = send_notification_mobile_threaded(messaging_client, deviceid, notification["endpoints"]["mobile"]["recipients"], message)
+            thr.join()
+        if notification["endpoints"]["email"]["enable"] == True:
+            thr = send_notification_email_threaded(messaging_client, deviceid, notification["endpoints"]["email"]["recipients"], message)
+            thr.join()
+        if notification["endpoints"]["modem"]["enable"] == True:
+            thr = send_notification_modem_threaded(messaging_client, deviceid, notification["endpoints"]["modem"]["recipients_id"], message)
+            thr.join()
+    else:
+        send_notification_status(messaging_client, deviceid, "NG. database entry not found.")
+
+def send_notification_menos(messaging_client, deviceid, payload, notification, menos):
+    if menos == "mobile":
+        send_notification_mobile_threaded(messaging_client, deviceid, payload["recipient"], payload["message"])
+    elif menos == "email":
+        send_notification_email_threaded(messaging_client, deviceid, payload["recipient"], payload["message"])
+    elif menos == "notification":
+        # TODO
+        pass
+    elif menos == "modem":
+        send_notification_modem_threaded(messaging_client, deviceid, payload["recipient"], payload["message"])
+    elif menos == "storage":
+        # TODO
+        pass
+    elif menos == "default":
+        send_notification_default_threaded(messaging_client, deviceid, notification, payload["message"])
+    else:
+        print("UNSUPPORTED {}".format(menos))
 
 
 def on_message(subtopic, subpayload):
 
-    print(subtopic)
+    #print(subtopic)
     notification = None
     topicarr = subtopic.split("/")
     try:
@@ -157,71 +237,33 @@ def on_message(subtopic, subpayload):
                 #print("no recipient")
                 if notification is not None:
                     if menos == "modem":
-                        payload["recipient"] = notification["endpoints"][menos]["recipients_id"]
+                        if notification["endpoints"][menos]["enable"] == True:
+                            payload["recipient"] = notification["endpoints"][menos]["recipients_id"]
+                        else:
+                            send_notification_status(g_messaging_client, deviceid, "NG. {} recipient is not enabled.".format(menos))
+                            return
                     elif menos != "default":
-                        payload["recipient"] = notification["endpoints"][menos]["recipients"]
-                    #print("new recipient: {}".format(payload["recipient"]))
+                        if notification["endpoints"][menos]["enable"] == True:
+                            payload["recipient"] = notification["endpoints"][menos]["recipients"]
+                        else:
+                            send_notification_status(g_messaging_client, deviceid, "NG. {} recipient is not enabled.".format(menos))
+                            return
+                else:
+                    send_notification_status(g_messaging_client, deviceid, "NG. database entry not found.")
+                    return
             if not payload.get("message"):
                 #print("no message")
                 if notification is not None:
                     payload["message"] = notification["messages"][0]["message"]
+                    if len(payload["message"]) == 0:
+                        send_notification_status(g_messaging_client, deviceid, "NG. message is empty.")
+                        return
                     #print("new message: {}".format(payload["message"]))
-
-            if menos == "mobile":
-                print("mobile")
-                if payload["recipient"][0] != '+':
-                    recipient = "+{}".format(payload["recipient"])
                 else:
-                    recipient = payload["recipient"]
-                message = payload["message"]
-                print("recipient={} message={}".format(recipient, message))
-                thr = threading.Thread(target = notification_thread, args = (g_messaging_client, deviceid, recipient, message, None, notification_types.SMS, -1, ))
-                thr.start()
-            elif menos == "email":
-                print("email")
-                recipient = payload["recipient"]
-                message = payload["message"]
-                print("recipient={} message={}".format(recipient, message))
-                thr = threading.Thread(target = notification_thread, args = (g_messaging_client, deviceid, recipient, message, aws_config.CONFIG_PINPOINT_EMAIL_SUBJECT, notification_types.EMAIL, -1, ))
-                thr.start()
-            elif menos == "notification":
-                print("notification TODO")
-                # TODO
-            elif menos == "modem":
-                print("modem")
-                recipient = payload["recipient"]
-                message = payload["message"]
-                print("recipient={} message={}".format(recipient, message))
-                thr = threading.Thread(target = notification_thread, args = (g_messaging_client, deviceid, recipient, message, None, notification_types.DEVICE, -1, ))
-                thr.start()
-            elif menos == "storage":
-                print("storage TODO")
-                # TODO
-            elif menos == "default":
-                print("default")
-                if notification is not None:
-                    recipient = notification["endpoints"]["mobile"]["recipients"]
-                    message = payload["message"]
-                    print("recipient={} message={}".format(recipient, message))
-                    thr = threading.Thread(target = notification_thread, args = (g_messaging_client, deviceid, recipient, message, None, notification_types.SMS, -1, ))
-                    thr.start()
-                    thr.join()
+                    send_notification_status(g_messaging_client, deviceid, "NG. database entry not found.")
+                    return
 
-                    recipient2 = notification["endpoints"]["email"]["recipients"]
-                    message2 = payload["message"]
-                    print("recipient={} message={}".format(recipient2, message2))
-                    thr2 = threading.Thread(target = notification_thread, args = (g_messaging_client, deviceid, recipient2, message2, aws_config.CONFIG_PINPOINT_EMAIL_SUBJECT, notification_types.EMAIL, -1, ))
-                    thr2.start()
-                    thr2.join()
-
-                    recipient3 = notification["endpoints"]["modem"]["recipients_id"]
-                    message3 = payload["message"]
-                    print("recipient={} message={}".format(recipient3, message3))
-                    thr3 = threading.Thread(target = notification_thread, args = (g_messaging_client, deviceid, recipient3, message3, None, notification_types.DEVICE, -1, ))
-                    thr3.start()
-                    thr3.join()
-            else:
-                print("UNSUPPORTED {}".format(menos))
+            send_notification_menos(g_messaging_client, deviceid, payload, notification, menos)
 
         elif len(topicarr) == 3:
             # get device id
