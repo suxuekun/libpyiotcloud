@@ -2036,3 +2036,14 @@ DETAILED:
 		B. STATUS NOTIFICATION       status_notifications
 		C. RECV NOTIFICATION         recv_notifications
 
+
+	UART Notification sequence
+
+	<img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/notification_sequence_UART" width="1000"/>
+
+
+	GPIO Notification sequence
+
+	<img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/notification_sequence_GPIO" width="1000"/>
+
+
