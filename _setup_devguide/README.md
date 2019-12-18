@@ -2039,11 +2039,11 @@ DETAILED:
 
 UART Notification sequence
 
-    <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/notification_sequence_UART.png" width="1000"/>
+  <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/notification_sequence_UART.png" width="1000"/>
 
 
 GPIO Notification sequence
 
-    <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/notification_sequence_GPIO.png" width="1000"/>
+  <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/notification_sequence_GPIO.png" width="1000"/>
 
 
