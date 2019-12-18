@@ -5149,11 +5149,11 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         { "id":1,  "label": "Hardware" },
     ];
 
-    $scope.types = [
-        { "id":0,  "label": "Text"   },
-        { "id":1,  "label": "Decimal" },
-        { "id":2,  "label": "Hexadecimal" },
-    ];
+    //$scope.types = [
+    //    { "id":0,  "label": "Text"   },
+    //    { "id":1,  "label": "Decimal" },
+    //    { "id":2,  "label": "Hexadecimal" },
+    //];
 
     // handle hardware endpoint
     $scope.devices = [ {"id":0, "devicename": ""} ];
@@ -5177,7 +5177,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                 'devicename': '',  
                 'sensorname': '',  
             },
-            'type': $scope.types[0].id,
+            //'type': $scope.types[0].id,
             'text': 'Hello World!',
         },
         
@@ -6041,7 +6041,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         },
         {   
             "id":1,  
-            "model": "DIGI", 
+            "model": "DIG2", 
             "name": "Digit Display",        
             "desc": "2-digit seven segment display",  
             "link": "https://electricdollarstore.com/dig2.html",
