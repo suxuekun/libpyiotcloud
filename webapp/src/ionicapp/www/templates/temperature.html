@@ -16,17 +16,35 @@
     <div class="spacer" style="width: 300px; height: 20px;"></div>
     <form id="temperature-form83" class="list">
       <div id="temperature-markdown111" class="show-list-numbers-and-dots">
+        <p style="color:#387EF5;">Mode</p>
+      </div>
+      <label class="item item-select" id="temperature-select37">
+        <span class="input-label"></span>
+        <select ng-model="data.attributes.mode" ng-options="mode.id as mode.label for mode in modes"></select>
+      </label>
+    </form>
+    <form id="temperature-form109" class="list" ng-show="data.attributes.mode==0">
+      <div id="temperature-markdown131" class="show-list-numbers-and-dots">
         <p style="color:#387EF5;">Threshold</p>
       </div>
-      <label class="item item-input" id="temperature-input120">
+      <label class="item item-input" id="temperature-input102">
+        <span class="input-label">Value</span>
+        <input type="text" placeholder="" ng-model="data.attributes.threshold.min">
+      </label>
+    </form>
+    <form id="temperature-form110" class="list" ng-show="data.attributes.mode==1">
+      <div id="temperature-markdown141" class="show-list-numbers-and-dots">
+        <p style="color:#387EF5;">Threshold</p>
+      </div>
+      <label class="item item-input" id="temperature-input106">
         <span class="input-label">Minimum Limit</span>
         <input type="text" placeholder="" ng-model="data.attributes.threshold.min">
       </label>
-      <label class="item item-input" id="temperature-input121">
+      <label class="item item-input" id="temperature-input108">
         <span class="input-label">Maximum Limit</span>
         <input type="text" placeholder="" ng-model="data.attributes.threshold.max">
       </label>
-      <label class="item item-select" id="temperature-select37">
+      <label class="item item-select" id="temperature-select29">
         <span class="input-label">Activate when</span>
         <select ng-model="data.attributes.threshold.activate" ng-options="activate.id as activate.label for activate in activates"></select>
       </label>
@@ -44,13 +62,22 @@
         <input type="text" placeholder="" ng-model="data.attributes.alert.period">
       </label>
     </form>
-    <form id="temperature-form85" class="list">
+    <form id="temperature-form111" class="list" ng-show="data.attributes.mode==2">
+      <div id="temperature-markdown142" class="show-list-numbers-and-dots">
+        <p style="color:#387EF5;">Hardware</p>
+      </div>
+      <label class="item item-select" id="temperature-select44">
+        <span class="input-label">IoT Modem</span>
+        <select ng-model="data.hardware_devicename" ng-options="device.id as device.devicename for device in devices"></select>
+      </label>
+    </form>
+    <form id="temperature-form85" class="list" ng-show="data.attributes.mode!=2">
       <div id="temperature-markdown113" class="show-list-numbers-and-dots">
         <p style="color:#387EF5;">Notification settings</p>
       </div>
       <ion-toggle toggle-class="toggle-positive" id="temperature-toggle25" ng-change="changeNotification(data.showNotification)" ng-model="data.showNotification">Show</ion-toggle>
     </form>
-    <form id="temperature-form86" class="list" ng-show="data.showNotification==1">
+    <form id="temperature-form86" class="list" ng-show="data.showNotification==1 &amp;&amp; data.attributes.mode!=2">
       <div id="temperature-markdown109" class="show-list-numbers-and-dots">
         <p style="color:#387EF5;">Messages</p>
       </div>
@@ -61,7 +88,7 @@
       <label class="item item-input" id="temperature-textarea13">
         <span class="input-label"></span><textarea placeholder="" ng-model="data.attributes.notification.messages[1].message"></textarea></label>
     </form>
-    <form id="temperature-form87" class="list" ng-show="data.showNotification==1">
+    <form id="temperature-form87" class="list" ng-show="data.showNotification==1 &amp;&amp; data.attributes.mode!=2">
       <div id="temperature-markdown110" class="show-list-numbers-and-dots">
         <p style="color:#387EF5;">Recipients</p>
       </div>

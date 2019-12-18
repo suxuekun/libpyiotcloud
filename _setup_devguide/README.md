@@ -907,6 +907,7 @@ DETAILED:
 		   //     ["Once", "Continuously"]
 		   // alert is an optional and is valid only when direction points to Input
 		   // alertperiod is optional and is valid only if alert points to Continuously
+		   // alertperiod is in milliseconds
 		   // polarity is an index of the value in the list of polarities
 		   //     ft900_gpio.h
 		   //     direction == "Output"
@@ -978,6 +979,7 @@ DETAILED:
 		   //     ["Once", "Continuously"]
 		   // alert is an optional and is valid only when direction points to Input
 		   // alertperiod is optional and is valid only if alert points to Continuously
+		   // alertperiod is in milliseconds
 		   // polarity is an index of the value in the list of polarities
 		   //     ft900_gpio.h
 		   //     direction == "Output"
@@ -1171,38 +1173,55 @@ DETAILED:
 		   //         size is the size of the sound/music file to send and play
 		   //
 		   // TEMPERATURE class
-		   data: { 
-		           "threshold": {"min": int, "max": int, "activate": int}, 
-		           "alert": {"type": int, 'period': int}, 
-		           "notification": json_obj 
-		         }
-		   //   activate is an index to the list of activates
-		   //     ["Out of range", "Within range"]
-		   //   alert type is an index of the value in the list of alerts
-		   //     ["Once", "Continuously"]
-		   //   alert period is the time in milliseconds for the alert when alert type points to Continuously
-		   //   notification refers to the the same notification settings in GPIO
-		   //
-		   // POTENTIOMETER class
-		   data: { 
+		      {
 		           "mode": int, 
 		           "threshold": {"value": int, "min": int, "max": int, "activate": int}, 
 		           "alert": {"type": int, 'period': int}, 
-		           "notification": json_obj 
-		         }
+		           "hardware": {"devicename": string, "sensorname": string}, 
+		           "notification": json_obj,
+		      }
 		   //   mode is an index to the list of modes
 		   //     ["Single Threshold", "Dual Threshold", "Continuous"]
 		   //   threshold
 		   //     if Single Threshold:
 		   //       value is used
 		   //     if Dual Threshold:
-		   //       min, max and activate are used
-		   //       activate is an index to the list of activates
-		   //         ["Out of range", "Within range"]
+		   //       min and max are used
+		   //   activate is an index to the list of activates
+		   //     ["Out of range", "Within range"]
 		   //   alert type is an index of the value in the list of alerts
 		   //     ["Once", "Continuously"]
 		   //   alert period is the time in milliseconds for the alert when alert type points to Continuously
 		   //   notification refers to the the same notification settings in GPIO
+		   //   hardware
+		   //     appears when mode is continuous
+		   //     sensorname is not needed
+		   //
+		   // POTENTIOMETER class
+		      {
+		           "mode": int, 
+		           "threshold": {"value": int, "min": int, "max": int, "activate": int}, 
+		           "alert": {"type": int, 'period': int}, 
+		           "hardware": {"devicename": string, "sensorname": string}, 
+		           "notification": json_obj 
+		      }
+		   //   mode is an index to the list of modes
+		   //     ["Single Threshold", "Dual Threshold", "Continuous"]
+		   //   threshold
+		   //     if Single Threshold:
+		   //       value is used
+		   //     if Dual Threshold:
+		   //       min and max are used
+		   //   activate is an index to the list of activates
+		   //     ["Out of range", "Within range"]
+		   //   alert type is an index of the value in the list of alerts
+		   //     ["Once", "Continuously"]
+		   //   alert period is the time in milliseconds for the alert when alert type points to Continuously
+		   //   notification refers to the the same notification settings in GPIO
+		   //   notification appears when mode is NOT continuous
+		   //   hardware
+		   //     appears when mode is continuous
+		   //     sensorname is not needed
 		-  Response:
 		   { 'status': 'OK', 'message': string }
 		   { 'status': 'NG', 'message': string}
@@ -1286,22 +1305,35 @@ DETAILED:
 		   //
 		   // TEMPERATURE class
 		      {
-		           "threshold": {"min": int, "max": int, "activate": int}, 
+		           "mode": int, 
+		           "threshold": {"value": int, "min": int, "max": int, "activate": int}, 
 		           "alert": {"type": int, 'period': int}, 
-		           "notification": json_obj 
+		           "hardware": {"devicename": string, "sensorname": string}, 
+		           "notification": json_obj,
 		      }
+		   //   mode is an index to the list of modes
+		   //     ["Single Threshold", "Dual Threshold", "Continuous"]
+		   //   threshold
+		   //     if Single Threshold:
+		   //       value is used
+		   //     if Dual Threshold:
+		   //       min and max are used
 		   //   activate is an index to the list of activates
 		   //     ["Out of range", "Within range"]
 		   //   alert type is an index of the value in the list of alerts
 		   //     ["Once", "Continuously"]
 		   //   alert period is the time in milliseconds for the alert when alert type points to Continuously
 		   //   notification refers to the the same notification settings in GPIO
+		   //   hardware
+		   //     appears when mode is continuous
+		   //     sensorname is not needed
 		   //
 		   // POTENTIOMETER class
-		      { 
+		      {
 		           "mode": int, 
-		           "threshold": {"min": int, "max": int, "activate": int}, 
+		           "threshold": {"value": int, "min": int, "max": int, "activate": int}, 
 		           "alert": {"type": int, 'period': int}, 
+		           "hardware": {"devicename": string, "sensorname": string}, 
 		           "notification": json_obj 
 		      }
 		   //   mode is an index to the list of modes
@@ -1317,6 +1349,10 @@ DETAILED:
 		   //     ["Once", "Continuously"]
 		   //   alert period is the time in milliseconds for the alert when alert type points to Continuously
 		   //   notification refers to the the same notification settings in GPIO
+		   //   notification appears when mode is NOT continuous
+		   //   hardware
+		   //     appears when mode is continuous
+		   //     sensorname is not needed
 
 		   { 'status': 'NG', 'message': string}
 
@@ -1599,7 +1635,10 @@ SUMMARY:
 
 	1. STATUS
 		A. GET STATUS                get_status
+		   - starting, running, restart, restarting, stop, stopping, stopped, start
+
 		B. SET STATUS                set_status
+		   - restart, stop, start
 
 	2. UART
 		A. GET UARTS                 get_uarts
@@ -1619,6 +1658,15 @@ SUMMARY:
 		     * uart_soft_reset is needed to prevent distorted text when changing databits or parity
 		   - ENABLE: calls uart_open()
 		     * interrupt_attach, uart_enable_interrupt and uart_enable_interrupts_globally needs to be called because uart_soft_reset clears the interrupt
+
+		E. UART AT Commands
+		   - AT+M (Mobile)
+		   - AT+E (Email)
+		   - AT+N (Notification)
+		   - AT+O (mOdem)
+		   - AT+S (Storage)
+		   - AT+D (Default)
+		   - Others
 
 	3. GPIO
 		A. GET GPIOS                 get_gpios
@@ -1640,7 +1688,8 @@ SUMMARY:
 
 	5. Notifications
 		A. SEND NOTIFICATION         trigger_notifications
-		B. RECV NOTIFICATION         trigger_notifications
+		B. STATUS NOTIFICATION       status_notifications
+		C. RECV NOTIFICATION         recv_notifications
 
 
 DETAILED:
@@ -1984,5 +2033,6 @@ DETAILED:
 	5. Notifications
 
 		A. SEND NOTIFICATION         trigger_notifications
-		B. RECV NOTIFICATION         trigger_notifications
+		B. STATUS NOTIFICATION       status_notifications
+		C. RECV NOTIFICATION         recv_notifications
 

@@ -36,7 +36,7 @@
         <select ng-options="i2cdevice.id as i2cdevice.sensorname for i2cdevice in i2cdevices" ng-model="data.hardware_sensorname"></select>
       </label>
     </form>
-    <form id="speaker-form77" class="list">
+    <form id="speaker-form77" class="list" ng-show="data.attributes.endpoint==0">
       <div id="speaker-markdown98" class="show-list-numbers-and-dots">
         <p style="color:#387EF5;">Set MIDI file configuration</p>
       </div>
@@ -44,11 +44,24 @@
         <span class="input-label">Duration (milliseconds)</span>
         <input type="number" placeholder="" ng-model="data.attributes.midi.duration">
       </label>
-      <label class="item item-input" id="speaker-input93">
-        <span class="input-label">Pitch (note) </span>
-        <input type="number" placeholder="values: 55-126" ng-model="data.attributes.midi.pitch">
+      <label class="item item-input" id="speaker-input101">
+        <span class="input-label">Pitch (note)</span>
+        <input type="number" placeholder="55-126" ng-model="data.attributes.midi.pitch">
       </label>
       <label class="item item-input" id="speaker-input94">
+        <span class="input-label">Delay (milliseconds)</span>
+        <input type="number" placeholder="" ng-model="data.attributes.midi.delay">
+      </label>
+    </form>
+    <form id="speaker-form107" class="list" ng-show="data.attributes.endpoint==1">
+      <div id="speaker-markdown129" class="show-list-numbers-and-dots">
+        <p style="color:#387EF5;">Set MIDI file configuration</p>
+      </div>
+      <label class="item item-input" id="speaker-input99">
+        <span class="input-label">Duration (milliseconds)</span>
+        <input type="number" placeholder="" ng-model="data.attributes.midi.duration">
+      </label>
+      <label class="item item-input" id="speaker-input100">
         <span class="input-label">Delay (milliseconds)</span>
         <input type="number" placeholder="" ng-model="data.attributes.midi.delay">
       </label>
