@@ -4905,8 +4905,9 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
     var server = Server.rest_api;
 
     $scope.modes = [
-        { "id":0,  "label": "Threshold"  },
-        { "id":1,  "label": "Continuous" },
+        { "id":0,  "label": "Single Threshold"  },
+        { "id":1,  "label": "Dual Threshold"  },
+        { "id":2,  "label": "Continuous" },
     ];
 
     $scope.activates = [
@@ -4933,7 +4934,9 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         'hardware_devicename': $scope.devices[0].id,
         
         'attributes': {
+            'mode': $scope.modes[0].id,
             'threshold': {
+                'value': 0,
                 'min': 0,
                 'max': 100,
                 'activate': $scope.activates[0].id,
@@ -4941,6 +4944,10 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             'alert': {
                 'type': $scope.alerts[0].id,
                 'period': 60000,
+            },
+            'hardware': {
+                'devicename': '',  
+                'sensorname': '',  
             },
             
             'notification': {
