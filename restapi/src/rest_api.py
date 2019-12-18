@@ -1481,6 +1481,15 @@ def register_device(devicename):
             print('\r\nERROR Add Device: Device could not be registered  in message broker [{},{}]\r\n'.format(username, devicename))
             return response, status.HTTP_500_INTERNAL_SERVER_ERROR
 
+        # add default uart notification recipients
+        # this is necessary so that an entry exist for consumption of notification manager
+        source = "uart"
+        notification = g_database_client.get_device_notification(username, devicename, source)
+        if notification is None:
+            notification = build_default_notifications(source, token)
+            if notification is not None:
+                g_database_client.update_device_notification(username, devicename, source, notification)
+
         msg = {'status': 'OK', 'message': 'Devices registered successfully.'}
         if new_token:
             msg['new_token'] = new_token
@@ -2651,11 +2660,7 @@ def set_gpio_prop(devicename, number):
         return response, status
 
     source = "gpio{}".format(number)
-    notification = g_database_client.update_device_notification(username, devicename, source, notification)
-    if notification is not None:
-        response = json.loads(response)
-        response['value']['notification'] = notification
-        response = json.dumps(response)
+    g_database_client.update_device_notification(username, devicename, source, notification)
 
     return response
 
@@ -3267,10 +3272,6 @@ def set_i2c_dev_prop(devicename, number, sensorname):
 
     source = "i2c{}{}".format(number, sensorname)
     notification = g_database_client.update_device_notification(username, devicename, source, notification)
-    if notification is not None:
-        response = json.loads(response)
-        response['value']['notification'] = notification
-        response = json.dumps(response)
 
     return response
 
