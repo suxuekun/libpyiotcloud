@@ -4,6 +4,7 @@ from notification_client import notification_types
 from notification_client import notification_models
 from notification_config import config as notification_config
 from web_server_database import database_client
+from datetime import datetime
 import json
 import time
 import argparse
@@ -98,6 +99,9 @@ def send_notification_device(messaging_client, deviceid, recipient, message):
         print("PUBLISH FAILED!")
 
 def notification_thread(messaging_client, deviceid, recipient, message, subject, type, options):
+
+    # append timestamp on the message
+    message += " [" + datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S") + " UTC]"
 
     if type == notification_types.DEVICE:
         # Send to another device
@@ -254,11 +258,30 @@ def on_message(subtopic, subpayload):
             if not payload.get("message"):
                 #print("no message")
                 if notification is not None:
-                    payload["message"] = notification["messages"][0]["message"]
-                    if len(payload["message"]) == 0:
-                        send_notification_status(g_messaging_client, deviceid, "NG. message is empty.")
-                        return
-                    #print("new message: {}".format(payload["message"]))
+                    if source == "uart":
+                        payload["message"] = notification["messages"][0]["message"]
+                        if len(payload["message"]) == 0:
+                            send_notification_status(g_messaging_client, deviceid, "NG. message is empty.")
+                            return
+                        #print("new message: {}".format(payload["message"]))
+                    else:
+                        # if source is gpio or i2c, there can be 2 messages, message on activation and message on deactivation
+                        # check the activate parameter
+                        index = 0
+                        if payload["activate"] == 0:
+                            index = 1
+                        if notification["messages"][index]["enable"]:
+                            payload["message"] = notification["messages"][index]["message"]
+                        else:
+                            # message on activation/deactivation is disabled
+                            if payload["activate"]:
+                                send_notification_status(g_messaging_client, deviceid, "NG. message on activation is disabled.")
+                            else:
+                                send_notification_status(g_messaging_client, deviceid, "NG. message on deactivation is disabled.")
+                            return
+                        if len(payload["message"]) == 0:
+                            send_notification_status(g_messaging_client, deviceid, "NG. message is empty.")
+                            return
                 else:
                     send_notification_status(g_messaging_client, deviceid, "NG. database entry not found.")
                     return
