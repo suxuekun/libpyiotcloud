@@ -2605,8 +2605,8 @@ def set_gpio_prop(devicename, number):
             response = json.dumps({'status': 'NG', 'message': 'Invalid parameters'})
             print('\r\nERROR Invalid parameters\r\n')
             return response, status.HTTP_400_BAD_REQUEST
-        if data['alertperiod'] < 100:
-            response = json.dumps({'status': 'NG', 'message': 'Invalid parameters: alert period should be >= 100 milliseconds'})
+        if data['alertperiod'] < 5000:
+            response = json.dumps({'status': 'NG', 'message': 'Invalid parameters: alert period should be >= 5000 milliseconds'})
             print('\r\nERROR Invalid parameters\r\n')
             return response, status.HTTP_400_BAD_REQUEST
     elif data['direction'] == 1: # OUTPUT
