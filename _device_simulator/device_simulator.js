@@ -38,10 +38,10 @@ var g_uart_databits = ["7", "8"];
 
 // GPIO
 var g_gpio_properties = [
-    { 'direction': 0, 'mode': 0, 'alert': 0, 'alertperiod':   0, 'polarity': 0, 'width': 0, 'mark': 0, 'space': 0 },
-    { 'direction': 0, 'mode': 3, 'alert': 1, 'alertperiod':  60, 'polarity': 0, 'width': 0, 'mark': 0, 'space': 0 },
-    { 'direction': 1, 'mode': 0, 'alert': 0, 'alertperiod':   0, 'polarity': 0, 'width': 0, 'mark': 0, 'space': 0 },
-    { 'direction': 1, 'mode': 2, 'alert': 1, 'alertperiod': 120, 'polarity': 1, 'width': 0, 'mark': 1, 'space': 2 } ];
+    { 'direction': 0, 'mode': 0, 'alert': 0, 'alertperiod':   0, 'polarity': 0, 'width': 0, 'mark': 0, 'space': 0, 'count': 0 },
+    { 'direction': 0, 'mode': 3, 'alert': 1, 'alertperiod':  60, 'polarity': 0, 'width': 0, 'mark': 0, 'space': 0, 'count': 0 },
+    { 'direction': 1, 'mode': 0, 'alert': 0, 'alertperiod':   0, 'polarity': 0, 'width': 0, 'mark': 0, 'space': 0, 'count': 0 },
+    { 'direction': 1, 'mode': 2, 'alert': 1, 'alertperiod': 120, 'polarity': 1, 'width': 0, 'mark': 1, 'space': 2, 'count': 0 } ];
 var g_gpio_voltage = 1;
 var g_gpio_enabled = [1, 1, 1, 1];
 var g_gpio_status = [0, 1, 0, 1];
@@ -396,7 +396,8 @@ function handle_api(api, topic, payload)
             "polarity"   : Number(obj.polarity),
             "width"      : Number(obj.width),
             "mark"       : Number(obj.mark),
-            "space"      : Number(obj.space)
+            "space"      : Number(obj.space),
+            "count"      : Number(obj.count)
         };
         var response = {};
         client.publish(pubtopic, JSON.stringify(response));

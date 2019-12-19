@@ -59,10 +59,10 @@ g_uart_databits = ["7", "8"]
 
 # GPIO
 g_gpio_properties = [
-    { 'direction': 0, 'mode': 0, 'alert': 0, 'alertperiod':   0,   'polarity': 0, 'width': 0, 'mark': 0, 'space': 0 },
-    { 'direction': 0, 'mode': 3, 'alert': 1, 'alertperiod':  60,   'polarity': 0, 'width': 0, 'mark': 0, 'space': 0 },
-    { 'direction': 1, 'mode': 0, 'alert': 0, 'alertperiod':   0,   'polarity': 0, 'width': 0, 'mark': 0, 'space': 0 },
-    { 'direction': 1, 'mode': 2, 'alert': 1, 'alertperiod': 120,   'polarity': 1, 'width': 0, 'mark': 1, 'space': 2 } ]
+    { 'direction': 0, 'mode': 0, 'alert': 0, 'alertperiod':   0,   'polarity': 0, 'width': 0, 'mark': 0, 'space': 0, 'count': 0 },
+    { 'direction': 0, 'mode': 3, 'alert': 1, 'alertperiod':  60,   'polarity': 0, 'width': 0, 'mark': 0, 'space': 0, 'count': 0 },
+    { 'direction': 1, 'mode': 0, 'alert': 0, 'alertperiod':   0,   'polarity': 0, 'width': 0, 'mark': 0, 'space': 0, 'count': 0 },
+    { 'direction': 1, 'mode': 2, 'alert': 1, 'alertperiod': 120,   'polarity': 1, 'width': 0, 'mark': 1, 'space': 2, 'count': 0 } ]
 g_gpio_voltage = 1
 g_gpio_voltages = ['3.3 V', '5 V']
 g_gpio_enabled = [1, 1, 1, 1]
@@ -314,7 +314,8 @@ def handle_api(api, subtopic, subpayload):
             'polarity': subpayload["polarity"],
             'width': subpayload["width"],
             'mark': subpayload["mark"],
-            'space': subpayload["space"] }
+            'space': subpayload["space"],
+            'count': subpayload["count"] }
         value = g_gpio_properties[number]
 
         payload = {}
