@@ -3074,6 +3074,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         'activeSection': 1,
         'showNotification': 0,
         'enableGPIO': true,
+        'statusGPIO': true,
         'voltageidx': $scope.voltages[0].id,
         'hardware_devicename': $scope.devices[0].id,
         
@@ -3238,11 +3239,19 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                 }
                 if (result.data.value.gpios !== undefined) {
                     if (result.data.value.gpios[$scope.data.activeSection - 1].enabled !== undefined) {
+                        // update enabled UI
                         if (result.data.value.gpios[$scope.data.activeSection - 1].enabled === 0) {
                             $scope.data.enableGPIO = false;
                         }
                         else {
                             $scope.data.enableGPIO = true;
+                        }
+                        // update status UI
+                        if (result.data.value.gpios[$scope.data.activeSection - 1].status === 0) {
+                            $scope.data.statusGPIO = false;
+                        }
+                        else {
+                            $scope.data.statusGPIO = true;
                         }
                     }
                 }
@@ -3523,10 +3532,11 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         $scope.data.gpio.notification.endpoints.modem.recipients = $scope.devices[$scope.data.hardware_devicename].devicename;
         console.log($scope.data.gpio);
         if ($scope.data.gpio.direction === 0) {
-            if ($scope.data.gpio.alertperiod < 100) {
-                $ionicPopup.alert({ title: 'Error', template: 'Alert period must be >= 100!', 
+            if ($scope.data.gpio.alertperiod < 5000) {
+                $ionicPopup.alert({ title: 'Error', template: 'Alert period must be >= 5000!', 
                     buttons: [{text: 'OK', type: 'button-assertive'}] });
-                $scope.data.gpio.alertperiod = 100;
+                $scope.data.gpio.alertperiod = 5000;
+                return;
             }
         }
         else {
@@ -3560,6 +3570,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             }
         }
         set_gpio_properties();
+        $scope.data.enableGPIO = false;
     };
 
     $scope.submitQuery = function() {

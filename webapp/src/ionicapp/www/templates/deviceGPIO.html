@@ -20,6 +20,7 @@
         <button id="deviceGPIO-button63" ng-click="changeSection(4)" ng-class="{'active': data.activeSection==4}" class="button button-positive button-small button-block">GPIO 4</button>
       </div>
       <ion-toggle toggle-class="toggle-positive" id="deviceGPIO-toggle4" ng-model="data.enableGPIO" ng-change="changeGPIO(data.enableGPIO)">Enable</ion-toggle>
+      <ion-toggle toggle-class="toggle-positive" id="deviceGPIO-toggle8" ng-model="data.statusGPIO" ng-disabled="true">Status</ion-toggle>
       <div class="spacer" style="width: 300px; height: 20px;"></div>
       <label class="item item-select" id="deviceGPIO-select15">
         <span class="input-label">Voltage</span>
@@ -58,13 +59,13 @@
       </label>
     </form>
     <form id="deviceGPIO-form52" class="list" ng-show="data.gpio.direction==1 &amp;&amp; data.gpio.mode==2">
-      <label class="item item-input" id="deviceGPIO-input77">
-        <span class="input-label">Space (ms)</span>
-        <input type="number" placeholder="" ng-model="data.gpio.space">
-      </label>
       <label class="item item-input" id="deviceGPIO-input76">
         <span class="input-label">Mark (ms)</span>
         <input type="number" placeholder="" ng-model="data.gpio.mark">
+      </label>
+      <label class="item item-input" id="deviceGPIO-input77">
+        <span class="input-label">Space (ms)</span>
+        <input type="number" placeholder="" ng-model="data.gpio.space">
       </label>
       <label class="item item-input" id="deviceGPIO-input105">
         <span class="input-label">Count</span>
