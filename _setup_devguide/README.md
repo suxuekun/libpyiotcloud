@@ -859,6 +859,7 @@ DETAILED:
 		        'width': int,
 		        'mark': int,
 		        'space': int,
+		        'count': int,
 		        'notification': { // this notification object is generic for UART/GPIO/I2C
 		            'messages': [
 		                { 'message': string, 'enable': boolean }, // for GPIO, index 0 will always refer to message on activation
@@ -907,15 +908,16 @@ DETAILED:
 		   //     ["Once", "Continuously"]
 		   // alert is an optional and is valid only when direction points to Input
 		   // alertperiod is optional and is valid only if alert points to Continuously
-		   // alertperiod is in milliseconds
+		   // alertperiod is in milliseconds and should be >= 100
 		   // polarity is an index of the value in the list of polarities
 		   //     ft900_gpio.h
 		   //     direction == "Output"
-		   //       ["Positive", "Negative"]
+		   //       ["Negative", "Positive"]
 		   // polarity is optional and is valid only when direction points to Output
-		   // width is optional and is valid only when direction points to Output and mode points to Pulse
-		   // mark is optional and is valid only when direction points to Output and mode points to Clock
-		   // space is optional and is valid only when direction points to Output and mode points to Clock
+		   // width is optional and is valid only when direction points to Output and mode points to Pulse (width (ms) should be > 0)
+		   // mark is optional and is valid only when direction points to Output and mode points to Clock (mark (ms) should be > 0)
+		   // space is optional and is valid only when direction points to Output and mode points to Clock (space (ms) should be > 0)
+		   // count is optional and is valid only when direction points to Output and mode points to Clock (count should be > 0)
 		   // sending only the index saves memory on the device and computation on frontend
 
 		I. SET GPIO PROPERTIES
@@ -932,6 +934,7 @@ DETAILED:
 		        'width': int,
 		        'mark': int,
 		        'space': int,
+		        'count': int,
 		        'notification': { // this notification object is generic for UART/GPIO/I2C
 		            'messages': [
 		                { 'message': string, 'enable': boolean }, // for GPIO, index 0 will always refer to message on activation
@@ -979,15 +982,16 @@ DETAILED:
 		   //     ["Once", "Continuously"]
 		   // alert is an optional and is valid only when direction points to Input
 		   // alertperiod is optional and is valid only if alert points to Continuously
-		   // alertperiod is in milliseconds
+		   // alertperiod is in milliseconds and should be >= 100
 		   // polarity is an index of the value in the list of polarities
 		   //     ft900_gpio.h
 		   //     direction == "Output"
-		   //       ["Positive", "Negative"]
+		   //       ["Negative", "Positive"]
 		   // polarity is optional and is valid only when direction points to Output
-		   // width is optional and is valid only when direction points to Output and mode points to Pulse
-		   // mark is optional and is valid only when direction points to Output and mode points to Clock
-		   // space is optional and is valid only when direction points to Output and mode points to Clock
+		   // width is optional and is valid only when direction points to Output and mode points to Pulse (width (ms) should be > 0)
+		   // mark is optional and is valid only when direction points to Output and mode points to Clock (mark (ms) should be > 0)
+		   // space is optional and is valid only when direction points to Output and mode points to Clock (space (ms) should be > 0)
+		   // count is optional and is valid only when direction points to Output and mode points to Clock (count should be > 0)
 		   // sending only the index saves memory on the device and computation on frontend
 		-  Response:
 		   { 'status': 'OK', 'message': string }
@@ -1852,6 +1856,7 @@ DETAILED:
 		       'width': int, 
 		       'mark': int, 
 		       'space': int
+		       'count': int
 		     } 
 		   }
 		   // direction is an index of the value in the list of directions
@@ -1870,11 +1875,12 @@ DETAILED:
 		   // polarity is an index of the value in the list of polarities
 		   //     ft900_gpio.h
 		   //     direction == "Output"
-		   //       ["Positive", "Negative"]
+		   //       ["Negative", "Positive"]
 		   // polarity is optional and is valid only when direction points to Output
-		   // width is optional and is valid only when direction points to Output and mode points to Pulse
-		   // mark is optional and is valid only when direction points to Output and mode points to Clock
-		   // space is optional and is valid only when direction points to Output and mode points to Clock
+		   // width is optional and is valid only when direction points to Output and mode points to Pulse (width (ms) should be > 0)
+		   // mark is optional and is valid only when direction points to Output and mode points to Clock (mark (ms) should be > 0)
+		   // space is optional and is valid only when direction points to Output and mode points to Clock (space (ms) should be > 0)
+		   // count is optional and is valid only when direction points to Output and mode points to Clock (count should be > 0)
 
 		C. SET GPIO PROPERTIES
 		-  Receive:
@@ -1888,6 +1894,7 @@ DETAILED:
 		       'width': int, 
 		       'mark': int, 
 		       'space': int,
+		       'count': int,
 		       'number': int
 		   }
 		   // direction is an index of the value in the list of directions
@@ -1906,11 +1913,12 @@ DETAILED:
 		   // polarity is an index of the value in the list of polarities
 		   //     ft900_gpio.h
 		   //     direction == "Output"
-		   //       ["Positive", "Negative"]
+		   //       ["Negative", "Positive"]
 		   // polarity is optional and is valid only when direction points to Output
-		   // width is optional and is valid only when direction points to Output and mode points to Pulse
-		   // mark is optional and is valid only when direction points to Output and mode points to Clock
-		   // space is optional and is valid only when direction points to Output and mode points to Clock
+		   // width is optional and is valid only when direction points to Output and mode points to Pulse (width (ms) should be > 0)
+		   // mark is optional and is valid only when direction points to Output and mode points to Clock (mark (ms) should be > 0)
+		   // space is optional and is valid only when direction points to Output and mode points to Clock (space (ms) should be > 0)
+		   // count is optional and is valid only when direction points to Output and mode points to Clock (count should be > 0)
 		-  Publish:
 		   topic: server/DEVICEID/set_gpio_prop
 		   payload: {}
