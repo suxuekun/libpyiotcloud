@@ -53,18 +53,22 @@
     </form>
     <form id="deviceGPIO-form45" class="list" ng-show="data.gpio.direction==1 &amp;&amp; data.gpio.mode==1">
       <label class="item item-input" id="deviceGPIO-input75">
-        <span class="input-label">Width</span>
-        <input type="number" placeholder="seconds" ng-model="data.gpio.width">
+        <span class="input-label">Width (ms)</span>
+        <input type="number" placeholder="" ng-model="data.gpio.width">
       </label>
     </form>
     <form id="deviceGPIO-form52" class="list" ng-show="data.gpio.direction==1 &amp;&amp; data.gpio.mode==2">
       <label class="item item-input" id="deviceGPIO-input77">
-        <span class="input-label">Space</span>
-        <input type="number" placeholder="seconds" ng-model="data.gpio.space">
+        <span class="input-label">Space (ms)</span>
+        <input type="number" placeholder="" ng-model="data.gpio.space">
       </label>
       <label class="item item-input" id="deviceGPIO-input76">
-        <span class="input-label">Mark</span>
-        <input type="number" placeholder="seconds" ng-model="data.gpio.mark">
+        <span class="input-label">Mark (ms)</span>
+        <input type="number" placeholder="" ng-model="data.gpio.mark">
+      </label>
+      <label class="item item-input" id="deviceGPIO-input105">
+        <span class="input-label">Count</span>
+        <input type="number" placeholder="" ng-model="data.gpio.count">
       </label>
     </form>
     <form id="deviceGPIO-form37" class="list" ng-show="data.gpio.direction==0">
@@ -76,7 +80,7 @@
         <select ng-model="data.gpio.alert" ng-options="alert.id as alert.label for alert in alerts"></select>
       </label>
       <label class="item item-input" id="deviceGPIO-input70">
-        <span class="input-label">Period (milliseconds)</span>
+        <span class="input-label">Period (ms)</span>
         <input type="number" placeholder="" ng-model="data.gpio.alertperiod">
       </label>
     </form>
@@ -92,10 +96,10 @@
       </div>
       <ion-checkbox id="deviceGPIO-checkbox9" ng-model="data.gpio.notification.messages[0].enable">Message on activation</ion-checkbox>
       <label class="item item-input" id="deviceGPIO-textarea5">
-        <span class="input-label"></span><textarea placeholder="" ng-model="data.gpio.notification.messages[0].message" readonly=""></textarea></label>
+        <span class="input-label"></span><textarea placeholder="" ng-model="data.gpio.notification.messages[0].message"></textarea></label>
       <ion-checkbox id="deviceGPIO-checkbox10" ng-model="data.gpio.notification.messages[1].enable">Message on deactivation</ion-checkbox>
       <label class="item item-input" id="deviceGPIO-textarea6">
-        <span class="input-label"></span><textarea placeholder="" ng-model="data.gpio.notification.messages[1].message" readonly=""></textarea></label>
+        <span class="input-label"></span><textarea placeholder="" ng-model="data.gpio.notification.messages[1].message"></textarea></label>
     </form>
     <form id="deviceGPIO-form48" class="list" ng-show="data.showNotification==1">
       <div id="deviceGPIO-markdown59" class="show-list-numbers-and-dots">

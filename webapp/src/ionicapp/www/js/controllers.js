@@ -3051,8 +3051,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
     $scope.modes = $scope.modes_input;
 
     $scope.polarities = [
-        { "id":0,  "label": "Positive"     },
-        { "id":1,  "label": "Negative"     },
+        { "id":0,  "label": "Negative"     },
+        { "id":1,  "label": "Positive"     },
     ];
     
     $scope.alerts = [
@@ -3081,11 +3081,12 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             'direction'   : $scope.directions[0].id,
             'mode'        : $scope.modes[0].id,
             'alert'       : $scope.alerts[0].id,
-            'alertperiod' : 60000,
+            'alertperiod' : 10000,
             'polarity'    : $scope.polarities[0].id,
             'width'       : 1,
             'mark'        : 1,
             'space'       : 1,
+            'count'       : 1,
         
             'notification': {
                 'messages': [ 
@@ -3520,6 +3521,44 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
 
     $scope.submit = function() {
         $scope.data.gpio.notification.endpoints.modem.recipients = $scope.devices[$scope.data.hardware_devicename].devicename;
+        console.log($scope.data.gpio);
+        if ($scope.data.gpio.direction === 0) {
+            if ($scope.data.gpio.alertperiod < 100) {
+                $ionicPopup.alert({ title: 'Error', template: 'Alert period must be >= 100!', 
+                    buttons: [{text: 'OK', type: 'button-assertive'}] });
+                $scope.data.gpio.alertperiod = 100;
+            }
+        }
+        else {
+            if ($scope.data.gpio.mode === 1) {
+                if ($scope.data.gpio.width < 1) {
+                    $ionicPopup.alert({ title: 'Error', template: 'Width must be > 0!', 
+                        buttons: [{text: 'OK', type: 'button-assertive'}] });
+                    $scope.data.gpio.width = 100;
+                    return;
+                }
+            }
+            else if ($scope.data.gpio.mode === 2) {
+                if ($scope.data.gpio.mark < 1) {
+                    $ionicPopup.alert({ title: 'Error', template: 'Mark must be > 0!', 
+                        buttons: [{text: 'OK', type: 'button-assertive'}] });
+                    $scope.data.gpio.mark = 100;
+                    return;
+                }
+                if ($scope.data.gpio.space < 1) {
+                    $ionicPopup.alert({ title: 'Error', template: 'Space must be > 0!', 
+                        buttons: [{text: 'OK', type: 'button-assertive'}] });
+                    $scope.data.gpio.space = 100;
+                    return;
+                }
+                if ($scope.data.gpio.count < 1) {
+                    $ionicPopup.alert({ title: 'Error', template: 'Count must be > 0!', 
+                        buttons: [{text: 'OK', type: 'button-assertive'}] });
+                    $scope.data.gpio.count = 1;
+                    return;
+                }
+            }
+        }
         set_gpio_properties();
     };
 

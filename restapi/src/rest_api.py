@@ -2600,28 +2600,39 @@ def set_gpio_prop(devicename, number):
         response = json.dumps({'status': 'NG', 'message': 'Invalid parameters'})
         print('\r\nERROR Invalid parameters\r\n')
         return response, status.HTTP_400_BAD_REQUEST
-    if data['direction'] == 0:
-        if data['alert'] is None:
+    if data['direction'] == 0: # INPUT
+        if data['alert'] is None or data['alertperiod'] is None:
             response = json.dumps({'status': 'NG', 'message': 'Invalid parameters'})
             print('\r\nERROR Invalid parameters\r\n')
             return response, status.HTTP_400_BAD_REQUEST
-        elif data['alert'] == 1:
-            if data['alertperiod'] is None:
-                response = json.dumps({'status': 'NG', 'message': 'Invalid parameters'})
-                print('\r\nERROR Invalid parameters\r\n')
-                return response, status.HTTP_400_BAD_REQUEST
-    elif data['direction'] == 1:
+        if data['alertperiod'] < 100:
+            response = json.dumps({'status': 'NG', 'message': 'Invalid parameters: alert period should be >= 100 milliseconds'})
+            print('\r\nERROR Invalid parameters\r\n')
+            return response, status.HTTP_400_BAD_REQUEST
+    elif data['direction'] == 1: # OUTPUT
+        # If OUTPUT, polarity must be present
         if data['polarity'] is None:
             response = json.dumps({'status': 'NG', 'message': 'Invalid parameters'})
             print('\r\nERROR Invalid parameters\r\n')
             return response, status.HTTP_400_BAD_REQUEST
-        elif data['polarity'] == 1 and data['width'] is None:
-            response = json.dumps({'status': 'NG', 'message': 'Invalid parameters'})
-            print('\r\nERROR Invalid parameters\r\n')
-            return response, status.HTTP_400_BAD_REQUEST
-        elif data['polarity'] == 2:
-            if data['mark'] is None or data['space'] is None:
-                response = json.dumps({'status': 'NG', 'message': 'Invalid parameters'})
+        # If MODE is PULSE, width must be present
+        # If MODE is CLOCK, mark and space must be present
+        if data['mode'] == 1: # PULSE
+            if data['width'] is None:
+                response = json.dumps({'status': 'NG', 'message': 'Invalid parameters: width should be present'})
+                print('\r\nERROR Invalid parameters\r\n')
+                return response, status.HTTP_400_BAD_REQUEST
+            if data['width'] == 0:
+                response = json.dumps({'status': 'NG', 'message': 'Invalid parameters: width should be > 0 when mode is 1'})
+                print('\r\nERROR Invalid parameters\r\n')
+                return response, status.HTTP_400_BAD_REQUEST
+        elif data['mode'] == 2: # CLOCK
+            if data['mark'] is None or data['space'] is None or data['count'] is None:
+                response = json.dumps({'status': 'NG', 'message': 'Invalid parameters: mark, space, count should be present'})
+                print('\r\nERROR Invalid parameters\r\n')
+                return response, status.HTTP_400_BAD_REQUEST
+            if data['mark'] == 0 or data['space'] == 0 or data['count'] == 0:
+                response = json.dumps({'status': 'NG', 'message': 'Invalid parameters: mark, space, count should be > 0 when mode is 2'})
                 print('\r\nERROR Invalid parameters\r\n')
                 return response, status.HTTP_400_BAD_REQUEST
     #print(data['direction'])
@@ -2655,9 +2666,9 @@ def set_gpio_prop(devicename, number):
     data['number'] = number
     print('set_gpio_prop {} devicename={}'.format(data['username'], data['devicename']))
 
-    response, status = process_request(api, data)
-    if status != 200:
-        return response, status
+    response, status_err = process_request(api, data)
+    if status_err != 200:
+        return response, status_err
 
     source = "gpio{}".format(number)
     g_database_client.update_device_notification(username, devicename, source, notification)
