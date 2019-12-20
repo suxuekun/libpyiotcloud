@@ -1658,10 +1658,10 @@ SUMMARY:
 		     * interrupt_attach, uart_enable_interrupt and uart_enable_interrupts_globally needs to be called because uart_soft_reset clears the interrupt
 
 		D. ENABLE/DISABLE UART       enable_uart
-		   - DISABLE: calls uart_close() and uart_soft_reset()
-		     * uart_soft_reset is needed to prevent distorted text when changing databits or parity
 		   - ENABLE: calls uart_open()
 		     * interrupt_attach, uart_enable_interrupt and uart_enable_interrupts_globally needs to be called because uart_soft_reset clears the interrupt
+		   - DISABLE: calls uart_close() and uart_soft_reset()
+		     * uart_soft_reset is needed to prevent distorted text when changing databits or parity
 
 		E. UART AT Commands
 		   - AT+M (Mobile)
@@ -1674,9 +1674,28 @@ SUMMARY:
 
 	3. GPIO
 		A. GET GPIOS                 get_gpios
+		   - gets enabled, direction and status of all 4 GPIO pins
+
 		B. GET GPIO PROPERTIES       get_gpio_prop
 		C. SET GPIO PROPERTIES       set_gpio_prop
+		   - if input pin, disable OUTPUT ENABLE pin
+		   - else if output pin, enable OUTPUT ENABLE pin
+		     and set output pin to inactive state (opposite of specified polarity)
+
 		D. ENABLE/DISABLE GPIO       enable_gpio
+		   - ENABLE:
+		     If INPUT
+		     - calls gpio_read() the creates a timer or interrupt
+		       timer if already in activation mode
+		       interrupt to wait to get to activation mode before create timer
+		     Else OUTPUT
+		     - if Level or Pulse mode, call gpio_write() and delayms()
+		       else if Clock, create a task that calls gpio_write() and delayms()
+		   - DISABLE:
+		     If INPUT
+		     - deletes timer and or interrupt
+		     Else OUTPUT
+		     - if Clock mode, delete the task
 
 		E. GET GPIO VOLTAGE          get_gpio_voltage
 		F. SET GPIO VOLTAGE          set_gpio_voltage
@@ -1692,8 +1711,13 @@ SUMMARY:
 
 	5. Notifications
 		A. SEND NOTIFICATION         trigger_notifications
+		-  to publish/trigger MENOS notifications
+
 		B. STATUS NOTIFICATION       status_notifications
+		-  to listen/receive status of MENOS notifications
+
 		C. RECV NOTIFICATION         recv_notifications
+		-  to receive device/mOdemo notification from other devices/mOdems
 
 
 DETAILED:
@@ -2040,9 +2064,29 @@ DETAILED:
 
 	5. Notifications
 
-		A. SEND NOTIFICATION         trigger_notifications
-		B. STATUS NOTIFICATION       status_notifications
-		C. RECV NOTIFICATION         recv_notifications
+		A. SEND NOTIFICATION         trigger_notification
+		-  Receive:
+		   topic: DEVICEID/trigger_notification
+		   payload: { "recipient": string, "message": string }
+		-  Publish:
+		   topic: server/DEVICEID/trigger_notification
+		   topic: server/DEVICEID/trigger_notification/uart/MENOS
+		   topic: server/DEVICEID/trigger_notification/gpioX/MENOS
+		   topic: server/DEVICEID/trigger_notification/i2cX/MENOS
+		   // MENOS: mobile, email, notification, modem, storage
+		   payload: { "recipient": string, "message": string }
+
+		B. STATUS NOTIFICATION       status_notification
+		-  Receive:
+		   topic: DEVICEID/status_notification
+		   payload: { "status": string }
+		   // status is result of the trigger_notification
+
+		C. RECV NOTIFICATION         recv_notification
+		-  Receive:
+		   topic: DEVICEID/recv_notification
+		   payload: { "sender": string, "message": string }
+		   // sender is the DEVICEID of the sender device/mOdem
 
 
 UART Notification sequence
