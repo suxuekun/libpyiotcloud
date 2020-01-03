@@ -20,7 +20,7 @@
       </div>
       <label class="item item-select" id="potentiometer-select28">
         <span class="input-label"></span>
-        <select ng-model="data.attributes.mode" ng-options="mode.id as mode.label for mode in modes"></select>
+        <select ng-model="data.attributes.mode" ng-options="mode.id as mode.label for mode in modes" ng-change="changeMode()"></select>
       </label>
     </form>
     <form id="potentiometer-form73" class="list" ng-show="data.attributes.mode==0">
@@ -29,7 +29,7 @@
       </div>
       <label class="item item-input" id="potentiometer-input103">
         <span class="input-label">Value</span>
-        <input type="text" placeholder="" ng-model="data.attributes.threshold.value">
+        <input type="number" placeholder="" ng-model="data.attributes.threshold.value">
       </label>
     </form>
     <form id="potentiometer-form106" class="list" ng-show="data.attributes.mode==1">
@@ -38,11 +38,11 @@
       </div>
       <label class="item item-input" id="potentiometer-input97">
         <span class="input-label">Minimum Limit</span>
-        <input type="text" placeholder="" ng-model="data.attributes.threshold.min">
+        <input type="number" placeholder="" ng-model="data.attributes.threshold.min">
       </label>
       <label class="item item-input" id="potentiometer-input98">
         <span class="input-label">Maximum Limit</span>
-        <input type="text" placeholder="" ng-model="data.attributes.threshold.max">
+        <input type="number" placeholder="" ng-model="data.attributes.threshold.max">
       </label>
       <label class="item item-select" id="potentiometer-select43">
         <span class="input-label">Activate when</span>
@@ -59,7 +59,7 @@
       </label>
       <label class="item item-input" id="potentiometer-input107">
         <span class="input-label">Period (milliseconds)</span>
-        <input type="text" placeholder="" ng-model="data.attributes.alert.period">
+        <input type="number" placeholder="" ng-model="data.attributes.alert.period">
       </label>
     </form>
     <form id="potentiometer-form108" class="list" ng-show="data.attributes.mode==2">

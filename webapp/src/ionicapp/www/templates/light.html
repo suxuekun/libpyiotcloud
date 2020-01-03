@@ -20,7 +20,7 @@
       </div>
       <label class="item item-select" id="light-select17">
         <span class="input-label"></span>
-        <select ng-model="data.attributes.endpoint" ng-options="endpoint.id as endpoint.label for endpoint in endpoints"></select>
+        <select ng-model="data.attributes.endpoint" ng-options="endpoint.id as endpoint.label for endpoint in endpoints" ng-change="changeEndpoint()"></select>
       </label>
     </form>
     <form id="light-form100" class="list">
