@@ -1148,12 +1148,16 @@ DETAILED:
 		   data: { 
 		            "endpoint": int, 
 		            "hardware": {"devicename": string, "sensorname": string},
-		            "type": "midi",
-		            "midi": { "duration": int, "pitch": int, "delay": int }
+		            "type": int,
+		            "values": { "duration": int, "pitch": int, "delay": int }
 		         }
 		   // TODO: how to send the file
 		   //   endpoint is an index to the list source endpoints:
 		   //     ["Manual", "Hardware"]
+		   //   type is an index to the list of sound types:
+		   //     ["midi"]
+		   //   values is the parameters for the specified type
+		   //     for midi type, values should include duration, pitch, delay
 		   //   if endpoint is Manual
 		   //     type is the type of sound to play
 		   //     midi is the sound/music configuration of the MIDI sound
@@ -1276,15 +1280,19 @@ DETAILED:
 		   //       sensorname is the name of the input I2C device
 		   //
 		   // SPEAKER class
-		      { 
+		   data: { 
 		            "endpoint": int, 
-		            "hardware": {"devicename": string, "sensorname": string}, 
-		            "type": "midi",
-		            "midi": { "duration": int, "pitch": int, "delay": int }
-		      }
+		            "hardware": {"devicename": string, "sensorname": string},
+		            "type": int,
+		            "values": { "duration": int, "pitch": int, "delay": int }
+		         }
 		   // TODO: how to send the file
 		   //   endpoint is an index to the list source endpoints:
 		   //     ["Manual", "Hardware"]
+		   //   type is an index to the list of sound types:
+		   //     ["midi"]
+		   //   values is the parameters for the specified type
+		   //     for midi type, values should include duration, pitch, delay
 		   //   if endpoint is Manual
 		   //     type is the type of sound to play
 		   //     midi is the sound/music configuration of the MIDI sound
