@@ -4691,9 +4691,9 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             //console.log($scope.data.colorRED);
             let color = $scope.data.colorstr.replace("#", "0x");
             $scope.data.attributes.color = parseInt(color.replace("#", "0x"), 16);
-            $scope.data.colorRED = $scope.data.attributes.color & 0xFF0000;
-            $scope.data.colorGREEN = $scope.data.attributes.color & 0x00FF00; 
-            $scope.data.colorBLUE = $scope.data.attributes.color & 0x0000FF;
+            $scope.data.colorRED = ($scope.data.attributes.color & 0xFF0000) >> 16;
+            $scope.data.colorGREEN = ($scope.data.attributes.color & 0x00FF00) >> 8; 
+            $scope.data.colorBLUE = ($scope.data.attributes.color & 0x0000FF) >> 0;
             //console.log($scope.data.colorRED);
             //console.log($scope.data.colorGREEN);
             //console.log($scope.data.colorBLUE);
@@ -4797,9 +4797,9 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                 if  ($scope.data.attributes.color !== undefined) {
                     $scope.data.colorstr = ("00000" + parseInt($scope.data.attributes.color, 10).toString(16)).slice(-6).toUpperCase();
                     $scope.data.colorstr = "#" + $scope.data.colorstr;
-                    $scope.data.colorRED = $scope.data.attributes.color & 0xFF0000;
-                    $scope.data.colorGREEN = $scope.data.attributes.color & 0x00FF00; 
-                    $scope.data.colorBLUE = $scope.data.attributes.color & 0x0000FF;
+                    $scope.data.colorRED = ($scope.data.attributes.color & 0xFF0000) >> 16;
+                    $scope.data.colorGREEN = ($scope.data.attributes.color & 0x00FF00) >> 8; 
+                    $scope.data.colorBLUE = ($scope.data.attributes.color & 0x0000FF) >> 0;
                 }
                 
                 // handle hardware endpoint
@@ -4940,11 +4940,15 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         $state.go('deviceI2C', device_param);
     };
     
+    $scope.changeEndpoint = function() {
+        if ($scope.data.attributes.endpoint === 1) {
+            console.log("changeEndpoint");
+            // handle hardware endpoint
+            get_devices();    
+        }
+    };    
+    
     $scope.submitRefresh();
-
-
-    // handle hardware endpoint
-    get_devices();
 }])
    
 .controller('temperatureCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', 'Devices', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
@@ -5040,6 +5044,9 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
 
     $scope.changeNotification = function(i) {
         $scope.data.showNotification = i;
+        if (i===true) {
+            get_devices();    
+        }    
     };
     
     
@@ -5190,8 +5197,12 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         $state.go('deviceI2C', device_param);
     };
     
-    $scope.submitRefresh();
-    get_devices();    
+    $scope.changeMode = function() {
+        console.log("changeMode");
+        get_devices();    
+    };    
+    
+    $scope.submitRefresh();  
 }])
    
 .controller('displayCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', 'Devices', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
@@ -5496,11 +5507,15 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         $state.go('deviceI2C', device_param);
     };
     
+    $scope.changeEndpoint = function() {
+        if ($scope.data.attributes.endpoint === 1) {
+            console.log("changeEndpoint");
+            // handle hardware endpoint
+            get_devices();    
+        }
+    };    
+    
     $scope.submitRefresh();
-    
-    
-    // handle hardware endpoint
-    get_devices();    
 }])
    
 .controller('speakerCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', 'Devices', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
@@ -5519,7 +5534,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
     $scope.devices = [ {"id":0, "devicename": ""} ];
     $scope.i2cdevices = [ {"id":0, "sensorname": ""} ];
     $scope.i2cdevices_empty = [ {"id":0, "sensorname": ""} ];
-    
+    $scope.types = [ {"id":0, "type": "midi"} ];
     
     $scope.data = {
         'username': User.get_username(),
@@ -5537,8 +5552,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                 'devicename': '',  
                 'sensorname': '',  
             },
-            'type': "midi",
-            'midi': {
+            'type': $scope.types[0].id,
+            'values': {
                 'duration': 100,
                 'pitch': 55,
                 'delay': 100,
@@ -5574,15 +5589,15 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         }
 
         // Set input to integer
-        $scope.data.attributes.midi.duration = parseInt($scope.data.attributes.midi.duration, 10);
-        $scope.data.attributes.midi.pitch = parseInt($scope.data.attributes.midi.pitch, 10);
-        if ($scope.data.attributes.midi.pitch < 55) {
-            $scope.data.attributes.midi.pitch = 55;
+        $scope.data.attributes.values.duration = parseInt($scope.data.attributes.values.duration, 10);
+        $scope.data.attributes.values.pitch = parseInt($scope.data.attributes.values.pitch, 10);
+        if ($scope.data.attributes.values.pitch < 55) {
+            $scope.data.attributes.values.pitch = 55;
         }
-        if ($scope.data.attributes.midi.pitch >126) {
-            $scope.data.attributes.midi.pitch = 126;
+        if ($scope.data.attributes.values.pitch >126) {
+            $scope.data.attributes.values.pitch = 126;
         }
-        $scope.data.attributes.midi.delay = parseInt($scope.data.attributes.midi.delay, 10);
+        $scope.data.attributes.values.delay = parseInt($scope.data.attributes.values.delay, 10);
 
         set_i2c_properties();
     };
@@ -5795,8 +5810,16 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
     };
 
     
-    // handle hardware endpoint
-    get_devices();    
+    $scope.changeEndpoint = function() {
+        if ($scope.data.attributes.endpoint === 1) {
+            console.log("changeEndpoint");
+            // handle hardware endpoint
+            get_devices();    
+        }
+    };
+    
+    $scope.submitRefresh();
+    
 }])
    
 .controller('potentiometerCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', 'Devices', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
@@ -5892,6 +5915,9 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
 
     $scope.changeNotification = function(i) {
         $scope.data.showNotification = i;
+        if (i===true) {
+            get_devices();    
+        }    
     };
     
     
@@ -6067,8 +6093,12 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         $state.go('deviceI2C', device_param);
     };
     
-    $scope.submitRefresh();
-    get_devices();    
+    $scope.changeMode = function() {
+        console.log("changeMode");
+        get_devices();    
+    };    
+    
+    $scope.submitRefresh();  
 }])
    
 .controller('addI2CDeviceCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
