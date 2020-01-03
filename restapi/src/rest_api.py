@@ -44,6 +44,18 @@ CORS(app)
 
 
 ###################################################################################
+# i2c device classes
+###################################################################################
+
+I2C_DEVICE_CLASS_SPEAKER       = 0
+I2C_DEVICE_CLASS_DISPLAY       = 1
+I2C_DEVICE_CLASS_LIGHT         = 2
+I2C_DEVICE_CLASS_POTENTIOMETER = 3
+I2C_DEVICE_CLASS_TEMPERATURE   = 4
+
+
+
+###################################################################################
 # HTTP REST APIs
 ###################################################################################
 
@@ -3188,6 +3200,21 @@ def get_i2c_sensor(devicename, number, sensorname):
     return response
 
 
+
+def get_i2c_device_class(classname):
+    if classname == "speaker":
+        return I2C_DEVICE_CLASS_SPEAKER
+    elif classname == "display":
+        return I2C_DEVICE_CLASS_DISPLAY
+    elif classname == "light":
+        return I2C_DEVICE_CLASS_LIGHT
+    elif classname == "potentiometer":
+        return I2C_DEVICE_CLASS_POTENTIOMETER
+    elif classname == "temperature":
+        return I2C_DEVICE_CLASS_TEMPERATURE
+    return 0xFF
+
+
 ########################################################################################################
 #
 # SET I2C DEVICE PROPERTIES
@@ -3264,7 +3291,7 @@ def set_i2c_dev_prop(devicename, number, sensorname):
     data['devicename'] = devicename
     data['username'] = username
     data['address'] = sensor['address']
-    data['class'] = sensor['class']
+    data['class'] = int(get_i2c_device_class(sensor['class']))
     data['number'] = int(number)
     print('set_i2c_dev_prop {} devicename={} number={}'.format(username, devicename, number))
 
@@ -3356,12 +3383,12 @@ def get_i2c_dev_prop(devicename, number, sensorname):
     data['devicename'] = devicename
     data['username'] = username
     data['address'] = sensor['address']
-    data['class'] = sensor['class']
+    data['class'] = int(get_i2c_device_class(sensor['class']))
     data['number'] = int(number)
     print('get_i2c_dev_prop {} devicename={} number={}'.format(username, devicename, number))
 
     # no notification object required
-    if sensor["class"] != "temperature" and sensor["class"] != "potentiometer":
+    if data["class"] != I2C_DEVICE_CLASS_TEMPERATURE and data["class"] != I2C_DEVICE_CLASS_POTENTIOMETER:
         return process_request(api, data)
 
     # has notification object required
