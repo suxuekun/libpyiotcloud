@@ -86,9 +86,11 @@ var API_SET_GPIO_VOLTAGE          = "set_gpio_voltage";
 // i2c
 var API_GET_I2CS                  = "get_i2cs";
 var API_GET_I2C_DEVICES           = "get_i2c_devs";
+var API_ADD_I2C_DEVICE            = "add_i2c_dev";
+var API_REMOVE_I2C_DEVICE         = "remove_i2c_dev";
+var API_ENABLE_I2C_DEVICE         = "enable_i2c_dev";
 var API_GET_I2C_DEVICE_PROPERTIES = "get_i2c_dev_prop";
 var API_SET_I2C_DEVICE_PROPERTIES = "set_i2c_dev_prop";
-var API_ENABLE_I2C_DEVICE         = "enable_i2c_dev";
 var API_ENABLE_I2C                = "enable_i2c";
 
 
@@ -467,7 +469,35 @@ function handle_api(api, topic, payload)
         console.log(pubtopic);
         console.log(JSON.stringify(response));
     }
-    else if (api == API_GET_I2C_DEVICE_PROPERTIES) {
+    else if (api == API_ADD_I2C_DEVICE) {
+        console.log("API_ADD_I2C_DEVICE");
+    }
+    else if (api == API_REMOVE_I2C_DEVICE) {
+        console.log("API_REMOVE_I2C_DEVICE");
+    }
+    else if (api == API_ENABLE_I2C_DEVICE) {
+        console.log("API_ENABLE_I2C_DEVICE");
+        pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
+        var obj = JSON.parse(payload);
+        var number = Number(obj.number)-1;
+        var address = Number(obj.address).toString();
+        var enable = Number(obj.enable);
+        console.log(number);
+
+        try {
+            g_i2c_properties[number][address]["enabled"] = enable
+        }
+        catch {
+        }
+        console.log("");
+        console.log(g_i2c_properties[number]);
+        console.log("");
+
+        var response = {};
+        client.publish(pubtopic, JSON.stringify(response));
+        console.log(pubtopic);
+        console.log(JSON.stringify(response));
+    }    else if (api == API_GET_I2C_DEVICE_PROPERTIES) {
         pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
         var obj = JSON.parse(payload);
         var number = Number(obj.number)-1;
@@ -503,28 +533,6 @@ function handle_api(api, topic, payload)
             "attributes" : setClassAttributes(device_class, obj),
             "enabled"    : 0
         };
-        console.log("");
-        console.log(g_i2c_properties[number]);
-        console.log("");
-
-        var response = {};
-        client.publish(pubtopic, JSON.stringify(response));
-        console.log(pubtopic);
-        console.log(JSON.stringify(response));
-    }
-    else if (api == API_ENABLE_I2C_DEVICE) {
-        pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
-        var obj = JSON.parse(payload);
-        var number = Number(obj.number)-1;
-        var address = Number(obj.address).toString();
-        var enable = Number(obj.enable);
-        console.log(number);
-
-        try {
-            g_i2c_properties[number][address]["enabled"] = enable
-        }
-        catch {
-        }
         console.log("");
         console.log(g_i2c_properties[number]);
         console.log("");
