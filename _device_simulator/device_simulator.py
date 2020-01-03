@@ -104,9 +104,11 @@ API_SET_GPIO_VOLTAGE          = "set_gpio_voltage"
 # i2c
 API_GET_I2CS                  = "get_i2cs"
 API_GET_I2C_DEVICES           = "get_i2c_devs"
+API_ADD_I2C_DEVICE            = "add_i2c_dev"
+API_REMOVE_I2C_DEVICE         = "remove_i2c_dev"
+API_ENABLE_I2C_DEVICE         = "enable_i2c_dev"
 API_GET_I2C_DEVICE_PROPERTIES = "get_i2c_dev_prop"
 API_SET_I2C_DEVICE_PROPERTIES = "set_i2c_dev_prop"
-API_ENABLE_I2C_DEVICE         = "enable_i2c_dev"
 API_ENABLE_I2C                = "enable_i2c"
 
 
@@ -369,6 +371,7 @@ def handle_api(api, subtopic, subpayload):
         publish(topic, payload)
 
     elif api == API_GET_I2C_DEVICES:
+        print("API_GET_I2C_DEVICES")
         topic = generate_pubtopic(subtopic)
         subpayload = json.loads(subpayload)
 
@@ -378,6 +381,31 @@ def handle_api(api, subtopic, subpayload):
 
         payload = {}
         payload["value"] = value
+        publish(topic, payload)
+
+    elif api == API_ADD_I2C_DEVICE:
+        print("API_ADD_I2C_DEVICE")
+
+    elif api == API_REMOVE_I2C_DEVICE:
+        print("API_REMOVE_I2C_DEVICE")
+
+    elif api == API_ENABLE_I2C_DEVICE:
+        topic = generate_pubtopic(subtopic)
+        subpayload = json.loads(subpayload)
+        print(subpayload)
+
+        number = int(subpayload["number"])-1
+        address = str(subpayload["address"])
+        enable = int(subpayload["enable"])
+        try:
+            g_i2c_properties[number][address]["enabled"] = enable
+        except:
+            pass
+        print()
+        print(g_i2c_properties[number])
+        print()
+
+        payload = {}
         publish(topic, payload)
 
     elif api == API_GET_I2C_DEVICE_PROPERTIES:
@@ -414,25 +442,6 @@ def handle_api(api, subtopic, subpayload):
             'attributes' : setClassAttributes(device_class, subpayload),
             'enabled': 0
         }
-        print()
-        print(g_i2c_properties[number])
-        print()
-
-        payload = {}
-        publish(topic, payload)
-
-    elif api == API_ENABLE_I2C_DEVICE:
-        topic = generate_pubtopic(subtopic)
-        subpayload = json.loads(subpayload)
-        print(subpayload)
-
-        number = int(subpayload["number"])-1
-        address = str(subpayload["address"])
-        enable = int(subpayload["enable"])
-        try:
-            g_i2c_properties[number][address]["enabled"] = enable
-        except:
-            pass
         print()
         print(g_i2c_properties[number])
         print()
