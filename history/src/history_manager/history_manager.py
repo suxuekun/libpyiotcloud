@@ -59,6 +59,7 @@ CONFIG_AMQP_TLS_PORT        = 5671
 CONFIG_PREPEND_REPLY_TOPIC  = "server"
 CONFIG_SEPARATOR            = '/'
 
+CONFIG_SENSOR_READING_TOPIC = "sensor_reading"
 
 
 ###################################################################################
@@ -99,6 +100,12 @@ def on_message(subtopic, subpayload):
         item = {}
         if subtopic.startswith("server"):
             arr_subtopic = subtopic.split("/", 2)
+
+            # Do not record sensor readings
+            if arr_subtopic[2].startswith(CONFIG_SENSOR_READING_TOPIC):
+               print(CONFIG_SENSOR_READING_TOPIC)
+               return
+
             #add_history(g_history_client, arr_subtopic[1], arr_subtopic[2], subpayload.decode("utf-8"), "From")
             thr = threading.Thread(target = add_history, args = (g_history_client, arr_subtopic[1], arr_subtopic[2], subpayload.decode("utf-8"), "From", ))
             thr.start()
