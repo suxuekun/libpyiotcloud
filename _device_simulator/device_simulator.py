@@ -5,6 +5,7 @@ import argparse
 import sys
 import os
 import psutil
+import threading
 from messaging_client import messaging_client # common module from parent directory
 
 
@@ -19,6 +20,10 @@ CONFIG_USE_AMQP = False
 ###################################################################################
 # global variables
 ###################################################################################
+
+g_timer_thread_use = False
+g_timer_thread_stop = threading.Event()
+g_timer_thread_timeout = 5
 
 g_messaging_client = None
 
@@ -569,6 +574,39 @@ def process_start():
         print("Device started successfully!\n")
 
 
+class TimerThread(threading.Thread):
+
+    def __init__(self, event, timeout):
+        threading.Thread.__init__(self)
+        self.stopped = event
+        self.timeout = timeout
+
+    def run(self):
+        print("")
+        while not self.stopped.wait(self.timeout):
+            topic = "server/{}/sensor_reading".format(CONFIG_DEVICE_ID)
+            value = {
+                "sensors": {
+                    "i2c1":   [{"address": 1, "value": 1, "unit": "celcius"}],
+                    "i2c2":   [{"address": 2, "value": 2, "unit": "celcius"}],
+                    "i2c3":   [{"address": 3, "value": 3, "unit": "celcius"}],
+                    "i2c4":   [{"address": 4, "value": 4, "unit": "celcius"}],
+                    "adc1":   [{"value": 1, "unit": "voltage"}],
+                    "adc2":   [{"value": 2, "unit": "voltage"}],
+                    "1wire":  [{"value": 1, "unit": "celcius"}],
+                    "tprobe": [{"value": 1, "unit": "celcius"}, {"value": 1, "unit": "celcius"}],
+                }
+            }
+            payload = {}
+            payload["value"] = value
+            #print("my thread")
+            #print(topic)
+            #print(payload)
+            publish(topic, payload)
+            print("")
+
+
+
 
 ###################################################################################
 # Main entry point
@@ -660,6 +698,11 @@ if __name__ == '__main__':
         subtopic = "{}{}#".format(CONFIG_DEVICE_ID, CONFIG_SEPARATOR)
         g_messaging_client.subscribe(subtopic, subscribe=True, declare=True, consume_continuously=True)
 
+        # Start the timer thread
+        if g_timer_thread_use:
+            thr = TimerThread(g_timer_thread_stop, g_timer_thread_timeout)
+            thr.start()
+
         # Exit when disconnection happens
         while g_messaging_client.is_connected():
             time.sleep(1)
@@ -673,5 +716,8 @@ if __name__ == '__main__':
                process_start()
 
         g_messaging_client.release()
+
+        if g_timer_thread_use:
+            g_timer_thread_stop.set()
 
     print("application exits!")
