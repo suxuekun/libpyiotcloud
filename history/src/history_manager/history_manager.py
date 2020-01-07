@@ -103,7 +103,6 @@ def on_message(subtopic, subpayload):
 
             # Do not record sensor readings
             if arr_subtopic[2].startswith(CONFIG_SENSOR_READING_TOPIC):
-               print(CONFIG_SENSOR_READING_TOPIC)
                return
 
             #add_history(g_history_client, arr_subtopic[1], arr_subtopic[2], subpayload.decode("utf-8"), "From")
