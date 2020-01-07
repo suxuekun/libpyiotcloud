@@ -73,6 +73,7 @@ Major differences between Minikube and Amazon EKS:
         docker push richmondu/iotmongodb
         docker push richmondu/iotrabbitmq
         docker push richmondu/iothistory
+        docker push richmondu/iotsensor
         docker push richmondu/iotnotification
         docker push richmondu/iotrestapi
         docker push richmondu/iotwebapp
@@ -103,10 +104,11 @@ Major differences between Minikube and Amazon EKS:
         kubectl apply -f iotrabbitmq-service.yaml
 
 
-6. Run history manager and notification manager
+6. Run history manager, notification manager and sensor manager
 
         kubectl apply -f iothistory-deployment.yaml
         kubectl apply -f iotnotification-deployment.yaml
+        kubectl apply -f iotsensor-deployment.yaml
 
 
 7. Run RESTAPI
@@ -142,6 +144,7 @@ Major differences between Minikube and Amazon EKS:
         kubectl delete deployment restapi
         kubectl delete deployment history
         kubectl delete deployment notification
+        kubectl delete deployment sensor
         kubectl delete service rabbitmq
         kubectl delete deployment rabbitmq
         kubectl delete service mongodb
@@ -181,5 +184,5 @@ Major differences between Minikube and Amazon EKS:
 
 ### Action Items:
 
-         1. Force the 7 pods to be contained in 1-2 nodes only.
+         1. Force the 8 pods to be contained in 1-2 nodes only.
             Currently, 5 of the pods that have services are located in separate nodes by default.
