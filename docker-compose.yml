@@ -117,6 +117,18 @@ services:
       - CONFIG_USE_ECC
       - CONFIG_USE_MQTT_DEFAULT_USER
       - CONFIG_USE_MQTT_DEFAULT_PASS
+  sensor:
+    build: ./sensor
+    restart: always
+    networks:
+      - mydockernet
+    depends_on:
+      - rabbitmq
+      - mongodb
+    environment:
+      - CONFIG_USE_ECC
+      - CONFIG_USE_MQTT_DEFAULT_USER
+      - CONFIG_USE_MQTT_DEFAULT_PASS
 networks:
   mydockernet:
     driver: bridge
