@@ -1,0 +1,8 @@
+docker build -t sns .
+docker run -d --name sns sns
+
+	docker ps -a
+	docker-machine ls // get the ip address for testing with MQTT.FX
+
+docker stop sns
+docker rm sns
