@@ -235,7 +235,6 @@ SUMMARY:
 
 	3. Device access and control APIs
 
-		New requirements:
 		A. GET STATUS                     - GET    /devices/device/DEVICENAME/status
 		B. SET STATUS                     - POST   /devices/device/DEVICENAME/status
 
@@ -263,19 +262,6 @@ SUMMARY:
 		U. ENABLE/DISABLE I2C DEVICE      - POST   /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME/enable
 		V. ENABLE/DISABLE I2C             - POST   /devices/device/DEVICENAME/i2c/NUMBER/enable
 		   (NUMBER can be 1-4 only and corresponds to I2C1,I2C2,I2C3,I2C4)
-
-		Old requirements:
-		A. GET STATUS                     - GET    /devices/device/DEVICENAME/status
-		B. SET STATUS                     - POST   /devices/device/DEVICENAME/status
-		C. GET IP                         - GET    /devices/device/DEVICENAME/ip
-		D. GET SUBNET                     - GET    /devices/device/DEVICENAME/subnet
-		E. GET GATEWAY                    - GET    /devices/device/DEVICENAME/gateway
-		F. GET MAC                        - GET    /devices/device/DEVICENAME/mac
-		G. GET GPIO                       - GET    /devices/device/DEVICENAME/gpio/NUMBER
-		H. SET GPIO                       - POST   /devices/device/DEVICENAME/gpio/NUMBER
-		I. GET RTC                        - GET    /devices/device/DEVICENAME/rtc
-		J. SET UART                       - POST   /devices/device/DEVICENAME/uart
-		K. SET NOTIFICATION               - POST   /devices/device/DEVICENAME/notification
 
 	4. Device transaction recording APIs
 
@@ -1387,101 +1373,6 @@ DETAILED:
 		-  Response:
 		   { 'status': 'OK', 'message': string }
 		   { 'status': 'NG', 'message': string }
-
-
-		Old requirements: (OBSOLETED)
-
-		A. GET STATUS
-		-  Request:
-		   GET /devices/device/DEVICENAME/status
-		   headers: {'Authorization': 'Bearer ' + token.access}
-		-  Response:
-		   { 'status': 'OK', 'message': string, 'value': string }
-		   { 'status': 'NG', 'message': string}
-
-		B. SET STATUS
-		-  Request:
-		   POST /devices/device/DEVICENAME/status
-		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-		   data: { 'value': string }
-		-  Response:
-		   { 'status': 'OK', 'message': string, 'value': string}
-		   { 'status': 'NG', 'message': string}
-
-		C. GET IP
-		-  Request:
-		   GET /devices/device/DEVICENAME/ip
-		   headers: {'Authorization': 'Bearer ' + token.access}
-		-  Response:
-		   { 'status': 'OK', 'message': string, 'value': string }
-		   { 'status': 'NG', 'message': string}
-
-		D. GET SUBNET
-		-  Request:
-		   GET /devices/device/DEVICENAME/subnet
-		   headers: {'Authorization': 'Bearer ' + token.access}
-		-  Response:
-		   { 'status': 'OK', 'message': string, 'value': string }
-		   { 'status': 'NG', 'message': string}
-
-		E. GET GATEWAY
-		-  Request:
-		   GET /devices/device/DEVICENAME/gateway
-		   headers: {'Authorization': 'Bearer ' + token.access}
-		-  Response:
-		   { 'status': 'OK', 'message': string, 'value': string }
-		   { 'status': 'NG', 'message': string}
-
-		F. GET MAC
-		-  Request:
-		   GET /devices/device/DEVICENAME/mac
-		   headers: {'Authorization': 'Bearer ' + token.access}
-		-  Response:
-		   { 'status': 'OK', 'message': string, 'value': string }
-		   { 'status': 'NG', 'message': string}
-
-		G. GET GPIO
-		-  Request:
-		   GET /devices/device/DEVICENAME/gpio/NUMBER
-		   headers: {'Authorization': 'Bearer ' + token.access}
-		-  Response:
-		   { 'status': 'OK', 'message': string, 'value': string }
-		   { 'status': 'NG', 'message': string}
-
-		H. SET GPIO
-		-  Request:
-		   POST /devices/device/DEVICENAME/gpio/NUMBER
-		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-		   data: { 'value': string }
-		-  Response:
-		   { 'status': 'OK', 'message': string, 'value': string }
-		   { 'status': 'NG', 'message': string}
-
-		I. GET RTC
-		-  Request:
-		   GET /devices/device/DEVICENAME/rtc
-		   headers: {'Authorization': 'Bearer ' + token.access}
-		-  Response:
-		   { 'status': 'OK', 'message': string, 'value': string }
-		   { 'status': 'NG', 'message': string}
-
-		J. SET UART
-		-  Request:
-		   POST /devices/device/DEVICENAME/uart
-		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-		   data: { 'value': string }
-		-  Response:
-		   { 'status': 'OK', 'message': string, 'value': string }
-		   { 'status': 'NG', 'message': string}
-
-		K. SET NOTIFICATION
-		-  Request:
-		   POST /devices/device/DEVICENAME/notification
-		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-		   data: { 'recipient': string, 'message': string }
-		-  Response:
-		   { 'status': 'OK', 'message': string}
-		   { 'status': 'NG', 'message': string}
 
 
 	4. Device transaction recording APIs
