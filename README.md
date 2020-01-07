@@ -66,7 +66,7 @@ An alternative solution is using an AWS serverless solution wherein:
 ### High-level architecture diagram:
 <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/architecture.png" width="1000"/>
 
-7 docker containers and microservices
+8 docker containers and microservices
 
 1. <b>Webserver</b> - Nginx (contains SSL certificate; all requests go to NGINX; forwards HTTP requests to webapp or restapi)
 2. <b>Webapp</b> - Ionic (front-end web framework that can also be compiled for Android and iOS)
@@ -75,6 +75,7 @@ An alternative solution is using an AWS serverless solution wherein:
 5. <b>Database</b> - MongoDB (database for storing device information for registered devices)
 6. <b>Notification</b> (handles sending of messages to email/SMS recipients)
 7. <b>Historian</b> (handles saving of device requests and responses for each devices of all users)
+8. <b>Sensorian</b> (handles saving of sensor readings for each devices of all users)
 
 
 
@@ -98,7 +99,8 @@ An alternative solution is using an AWS serverless solution wherein:
 3. <b>RabbitMQ</b>: accessed by restapi, device, notification service and history service
 4. <b>History service</b> -> RabbitMQ, MongoDB
 5. <b>Notification service</b> -> RabbitMQ, Pinpoint, Twilio, Nexmo
-6. <b>Programming Languages:</b> Python
+6. <b>Sensor service</b> -> RabbitMQ, MongoDB
+7. <b>Programming Languages:</b> Python
 
 
 
@@ -181,7 +183,7 @@ Menu, account, history
        B. MQTT device simulators (Python Paho-MQTT and NodeJS)
        C. AMQP device simulator (Python Pika-AMQP)
     5. Deployment to AWS EC2 as microservices using Docker, Kubernetes and Jenkins
-       - 7 microservices/docker containers [rabbitmq, mongodb, webapp, restapi, nginx, notification, historian]
+       - 8 microservices/docker containers [rabbitmq, mongodb, webapp, restapi, nginx, notification, historian, sensorian]
        - with Dockerfiles, Docker-compose file, Kubernetes files and Jenkinsfile
        - Kubernetes files tested on Minikube
        - Jenkinsfile for automated building and testing of docker images
@@ -978,6 +980,8 @@ Note: Using Kubernetes will also change the infrastracture.
               - NEXMO_SECRET
               - CONFIG_USE_EMAIL_MODEL
               - CONFIG_USE_SMS_MODEL
+              - CONFIG_USE_MQTT_DEFAULT_USER
+              - CONFIG_USE_MQTT_DEFAULT_PASS
           history:
             build: ./history
             restart: always
@@ -989,6 +993,21 @@ Note: Using Kubernetes will also change the infrastracture.
               - mongodb
             environment:
               - CONFIG_USE_ECC
+              - CONFIG_USE_MQTT_DEFAULT_USER
+              - CONFIG_USE_MQTT_DEFAULT_PASS
+          sensor:
+            build: ./sensor
+            restart: always
+            networks:
+              mydockernet:
+                ipv4_address: 172.18.0.9
+            depends_on:
+              - rabbitmq
+              - mongodb
+            environment:
+              - CONFIG_USE_ECC
+              - CONFIG_USE_MQTT_DEFAULT_USER
+              - CONFIG_USE_MQTT_DEFAULT_PASS
         networks:
           mydockernet:
             driver: bridge
