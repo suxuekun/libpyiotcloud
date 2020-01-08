@@ -6114,6 +6114,11 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         { "id":2,  "name": "Electronic Dollar Store" },
     ];
 
+    $scope.devicetypes = [
+        { "id":0,  "type": "input" },
+        { "id":1,  "type": "output" }
+    ];
+
     $scope.devicemodels_ada = [{ "id":0,  "model": "N/A" }];
     $scope.devicemodels_spf = [{ "id":0,  "model": "N/A" }];
     $scope.devicemodels_eds = [
@@ -6184,6 +6189,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             'name'  : $scope.devicemodels[0].name,
             'desc'  : $scope.devicemodels[0].desc,
             'link'  : $scope.devicemodels[0].link,
+            'type'  : $scope.devicetypes[0].type,
             'class' : $scope.devicemodels[0].class,
             'attributes' : $scope.devicemodels[0].attributes,
         }
@@ -6199,12 +6205,16 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         }
         
         $scope.data.i2c.manufacturer = $scope.manufacturers[$scope.data.i2c.manufacturerid].name;
-        $scope.data.i2c.model        = $scope.devicemodels[$scope.data.i2c.devicemodelid].model,
-        $scope.data.i2c.name         = $scope.devicemodels[$scope.data.i2c.devicemodelid].name,
-        $scope.data.i2c.desc         = $scope.devicemodels[$scope.data.i2c.devicemodelid].desc,
-        $scope.data.i2c.link         = $scope.devicemodels[$scope.data.i2c.devicemodelid].link,
-        $scope.data.i2c.class        = $scope.devicemodels[$scope.data.i2c.devicemodelid].class,
-        $scope.data.i2c.attributes   = $scope.devicemodels[$scope.data.i2c.devicemodelid].attributes,
+        $scope.data.i2c.model        = $scope.devicemodels[$scope.data.i2c.devicemodelid].model;
+        $scope.data.i2c.name         = $scope.devicemodels[$scope.data.i2c.devicemodelid].name;
+        $scope.data.i2c.desc         = $scope.devicemodels[$scope.data.i2c.devicemodelid].desc;
+        $scope.data.i2c.link         = $scope.devicemodels[$scope.data.i2c.devicemodelid].link;
+        $scope.data.i2c.class        = $scope.devicemodels[$scope.data.i2c.devicemodelid].class;
+        $scope.data.i2c.type         = "output";
+        if ($scope.data.i2c.class === "temperature" || $scope.data.i2c.class === "potentiometer") {
+            $scope.data.i2c.type     = "input";
+        }
+        $scope.data.i2c.attributes   = $scope.devicemodels[$scope.data.i2c.devicemodelid].attributes;
         
         $state.go('addI2CDeviceDetails', $scope.data);        
     };
@@ -6303,6 +6313,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             'model': $stateParams.i2c.model,
             'address': 0xFF,
 
+            'type': $stateParams.i2c.type,
             'class': $stateParams.i2c.class,
             'attributes': $stateParams.i2c.attributes,
             //'name': $stateParams.i2c.name,
@@ -6366,6 +6377,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         console.log($scope.data.sensor.model);
         console.log($scope.data.sensor.address);
         
+        console.log($scope.data.sensor.type);
         console.log($scope.data.sensor.class);
         console.log($scope.data.sensor.attributes);
         //console.log($scope.data.sensor.name);

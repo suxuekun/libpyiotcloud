@@ -39,9 +39,30 @@
       <div id="viewI2CDevice-markdown122" class="show-list-numbers-and-dots">
         <p style="color:#444444;font-size:18px;">{{ data.sensor.class }}</p>
       </div>
+      <div id="viewI2CDevice-markdown145" class="show-list-numbers-and-dots">
+        <p style="color:#387EF5;">Type</p>
+      </div>
+      <div id="viewI2CDevice-markdown146" class="show-list-numbers-and-dots">
+        <p style="color:#444444;font-size:18px;">{{ data.sensor.type }}</p>
+      </div>
     </form>
     <form id="viewI2CDevice-form105" class="list">
       <ion-toggle toggle-class="toggle-positive" id="viewI2CDevice-toggle7" ng-model="data.enable" ng-change="changeI2CDevice(data.enable)">Enable</ion-toggle>
+    </form>
+    <form id="viewI2CDevice-form112" class="list" ng-show="data.sensor.type==&quot;input&quot;">
+      <div id="viewI2CDevice-markdown147" class="show-list-numbers-and-dots">
+        <p style="color:#387EF5;">Live Status</p>
+      </div>
+      <div id="viewI2CDevice-markdown148" class="show-list-numbers-and-dots">
+        <p style="color:#444444;font-size:18px;">Value: </p>
+      </div>
+      <div id="viewI2CDevice-markdown149" class="show-list-numbers-and-dots">
+        <p style="color:#444444;font-size:18px;">Min Value: </p>
+      </div>
+      <div id="viewI2CDevice-markdown150" class="show-list-numbers-and-dots">
+        <p style="color:#444444;font-size:18px;">Max Value: </p>
+      </div>
+      <div class="spacer" style="height: 100px;"></div>
     </form>
   </ion-content>
 </ion-view>
