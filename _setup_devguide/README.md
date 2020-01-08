@@ -1064,6 +1064,7 @@ DETAILED:
 		   // registering a sensor using an already used sensorname returns HTTP_409_CONFLICT with 'Sensor name is already taken'
 		   // address should be greater than 0 and less than or equal to 255
 		   // registering a sensor using an already used address for the slot returns HTTP_409_CONFLICT with 'Sensor address is already taken'
+		   // Note: The device class defines if device type is INPUT or OUTPUT
 		-  Response:
 		   { 'status': 'OK', 'message': string}
 		   { 'status': 'NG', 'message': string}
