@@ -1041,7 +1041,7 @@ DETAILED:
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
 		   { 'status': 'OK', 'message': string, 
-		     'sensors': array[{'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'class': string, 'timestamp': string, 'attributes': []}, ...]}
+		     'sensors': array[{'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': string, 'attributes': []}, ...]}
 		   { 'status': 'NG', 'message': string}
 		   // timestamp refers to the epoch time the sensor was registered/added
 
@@ -1051,7 +1051,7 @@ DETAILED:
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
 		   { 'status': 'OK', 'message': string, 
-		     'sensors': array[{'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'class': string, 'timestamp': string, 'attributes': []}, ...]}
+		     'sensors': array[{'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': string, 'attributes': []}, ...]}
 		   { 'status': 'NG', 'message': string}
 		   // timestamp refers to the epoch time the sensor was registered/added
 
@@ -1059,7 +1059,7 @@ DETAILED:
 		-  Request:
 		   POST /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-		   data: {'address': int, 'manufacturer': string, 'model': string, 'class': string, 'attributes': []}
+		   data: {'address': int, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'attributes': []}
 		   // call GET SUPPORTED I2C DEVICES to get the JSON data contained here: https://ft900-iot-portal.s3.amazonaws.com/supported_i2c_devices.json
 		   // registering a sensor using an already used sensorname returns HTTP_409_CONFLICT with 'Sensor name is already taken'
 		   // address should be greater than 0 and less than or equal to 255
@@ -1082,7 +1082,7 @@ DETAILED:
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
 		   { 'status': 'OK', 'message': string, 
-		     'sensor': {'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'class': string, 'timestamp': string, 'attributes': []} }
+		     'sensor': {'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': string, 'attributes': []} }
 		   { 'status': 'NG', 'message': string}
 		   // timestamp refers to the epoch time the sensor was registered/added
 		   // class can be LIGHT, DISPLAY, SPEAKER, TEMPERATURE, POTENTIOMETER

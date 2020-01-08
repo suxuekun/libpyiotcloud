@@ -3068,7 +3068,7 @@ def register_i2c_sensor(devicename, number, sensorname):
         # get parameters
         data = flask.request.get_json()
         #print(data)
-        if data["address"] is None or data["manufacturer"] is None or data["model"] is None or data["class"] is None or data["attributes"] is None:
+        if data["address"] is None or data["manufacturer"] is None or data["model"] is None or data["class"] is None or data["type"] is None or data["attributes"] is None:
             response = json.dumps({'status': 'NG', 'message': 'Parameters not included'})
             print('\r\nERROR Add I2C Sensor: Parameters not included [{},{}]\r\n'.format(username, devicename))
             return response, status.HTTP_400_BAD_REQUEST
