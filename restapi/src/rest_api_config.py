@@ -61,6 +61,7 @@ class config:
     CONFIG_MONGODB_TB_I2CSENSORS    = "i2csensors"
     CONFIG_MONGODB_TB_SUBSCRIPTIONS = "subscriptions"
     CONFIG_MONGODB_TB_TRANSACTIONS  = "transactions"
+    CONFIG_MONGODB_TB_SENSORREADINGS = "sensorreadings"
 
     # Subscription/Payment
     CONFIG_SUBSCRIPTION_TYPE       = "Free"
