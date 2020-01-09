@@ -261,6 +261,8 @@ SUMMARY:
 		T. GET I2C DEVICE PROPERTIES      - GET    /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME/properties
 		U. ENABLE/DISABLE I2C DEVICE      - POST   /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME/enable
 		V. ENABLE/DISABLE I2C             - POST   /devices/device/DEVICENAME/i2c/NUMBER/enable
+		W. GET I2C DEVICE READINGS        - GET    /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME/readings
+		X. DELETE I2C DEVICE READINGS     - DELETE /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME/readings
 		   (NUMBER can be 1-4 only and corresponds to I2C1,I2C2,I2C3,I2C4)
 
 	4. Device transaction recording APIs
@@ -1371,6 +1373,22 @@ DETAILED:
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
 		   data: { 'enable': int }
 		   // enable is an int indicating if disabled (0) or enabled (1)
+		-  Response:
+		   { 'status': 'OK', 'message': string }
+		   { 'status': 'NG', 'message': string }
+
+		W. GET I2C DEVICE READINGS
+		-  Request:
+		   GET /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME/readings
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		-  Response:
+		   { 'status': 'OK', 'message': string, 'sensor_readings': {'value': int, 'lowest': int, 'highest': int} }
+		   { 'status': 'NG', 'message': string }
+
+		X. DELETE I2C DEVICE READINGS
+		-  Request:
+		   DELETE /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME/readings
+		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
 		   { 'status': 'OK', 'message': string }
 		   { 'status': 'NG', 'message': string }
