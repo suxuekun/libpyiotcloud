@@ -3,6 +3,11 @@ import os
 
 class config:
 
+    # General settings
+    CONFIG_DEBUG_HISTORY          = False
+    CONFIG_ENABLE_MAX_HISTORY     = False
+    CONFIG_MAX_HISTORY_PER_DEVICE = 20
+
     # Database settings
     CONFIG_MONGODB_HOST           = "mongodb"
     CONFIG_MONGODB_PORT           = 27017
@@ -10,11 +15,8 @@ class config:
     CONFIG_MONGODB_TB_PROFILES    = "profiles"
     CONFIG_MONGODB_TB_DEVICES     = "devices"
     CONFIG_MONGODB_TB_HISTORY     = "history"
-
-    # History records
-    CONFIG_DEBUG_HISTORY          = False
-    CONFIG_ENABLE_MAX_HISTORY     = False
-    CONFIG_MAX_HISTORY_PER_DEVICE = 20
+    CONFIG_MONGODB_TB_NOTIFICATIONS  = "notifications"
+    CONFIG_MONGODB_TB_SENSORREADINGS = "sensorreadings"
 
     # RabbitMQ settings
     CONFIG_MQTT_DEFAULT_USER      = os.environ["CONFIG_USE_MQTT_DEFAULT_USER"]
