@@ -172,6 +172,23 @@ class database_client:
 
 
     ##########################################################
+    # sensor readings
+    ##########################################################
+
+    def add_sensor_reading(self, deviceid, source, address, sensor_readings):
+        self._devices.update_sensor_reading(deviceid, source, address, sensor_readings)
+
+    def delete_sensor_reading(self, username, devicename, source, address):
+        self._devices.delete_sensor_reading(self._devices.get_deviceid(username, devicename), source, address)
+
+    def get_sensor_reading(self, username, devicename, source, address):
+        return self._devices.get_sensor_reading_by_deviceid(self._devices.get_deviceid(username, devicename), source, address)
+
+    def get_sensor_reading_by_deviceid(self, deviceid, source, address):
+        return self._devices.get_sensor_reading_by_deviceid(deviceid, source, address)
+
+
+    ##########################################################
     # devices
     ##########################################################
 
@@ -547,6 +564,48 @@ class database_client_mongodb:
                 notification.pop('_id')
                 #print(notification['notification'])
                 return notification['notification']
+        return None
+
+
+    ##########################################################
+    # sensor readings
+    ##########################################################
+
+    def get_sensorreadings_document(self):
+        return self.client[config.CONFIG_MONGODB_TB_SENSORREADINGS]
+
+    def update_sensor_reading(self, deviceid, source, address, sensor_readings):
+        sensorreadings = self.get_sensorreadings_document();
+        item = {}
+        item['deviceid'] = deviceid
+        item['source'] = source
+        item['address'] = address
+        item['sensor_readings'] = sensor_readings
+        #print("update_sensor_reading find_one")
+        found = sensorreadings.find_one({'deviceid': deviceid, 'source': source, 'address': address})
+        if found is None:
+            #print("update_sensor_reading insert_one")
+            #print(found)
+            sensorreadings.insert_one(item)
+        else:
+            #print("update_sensor_reading replace_one")
+            sensorreadings.replace_one({'deviceid': deviceid, 'source': source, 'address': address}, item)
+
+    def delete_sensor_reading(self, deviceid, source, address):
+        sensorreadings = self.get_sensorreadings_document();
+        try:
+            sensorreadings.delete_many({'deviceid': deviceid, 'source': source, 'address': address})
+        except:
+            print("delete_sensor_reading: Exception occurred")
+            pass
+
+    def get_sensor_reading_by_deviceid(self, deviceid, source, address):
+        sensorreadings = self.get_sensorreadings_document();
+        if sensorreadings:
+            for sensorreading in sensorreadings.find({'deviceid': deviceid, 'source': source, 'address': address}):
+                sensorreading.pop('_id')
+                #print(sensorreading['sensor_readings'])
+                return sensorreading['sensor_readings']
         return None
 
 
