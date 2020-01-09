@@ -6,6 +6,7 @@ import sys
 import os
 import psutil
 import threading
+import random
 from messaging_client import messaging_client # common module from parent directory
 
 
@@ -21,7 +22,7 @@ CONFIG_USE_AMQP = False
 # global variables
 ###################################################################################
 
-g_timer_thread_use = False
+g_timer_thread_use = True
 g_timer_thread_stop = threading.Event()
 g_timer_thread_timeout = 5
 
@@ -68,6 +69,7 @@ g_gpio_enabled = [1, 1, 1, 1]
 g_gpio_status = [0, 1, 0, 1]
 
 # I2C
+g_i2c_classes = ["speaker", "display", "light", "potentiometer", "temperature"]
 g_i2c_properties = [
     {
         '0': { 'enabled': 0, 'class': 0, 'attributes': {} },
@@ -585,25 +587,47 @@ class TimerThread(threading.Thread):
         print("")
         while not self.stopped.wait(self.timeout):
             topic = "server/{}/sensor_reading".format(CONFIG_DEVICE_ID)
-            value = {
-                "sensors": {
-                    "i2c1":   [{"address": 1, "value": 1, "unit": "celcius"}],
-                    "i2c2":   [{"address": 2, "value": 2, "unit": "celcius"}],
-                    "i2c3":   [{"address": 3, "value": 3, "unit": "celcius"}],
-                    "i2c4":   [{"address": 4, "value": 4, "unit": "celcius"}],
-                    "adc1":   [{"value": 1, "unit": "voltage"}],
-                    "adc2":   [{"value": 2, "unit": "voltage"}],
-                    "1wire":  [{"value": 1, "unit": "celcius"}],
-                    "tprobe": [{"value": 1, "unit": "celcius"}, {"value": 1, "unit": "celcius"}],
-                }
+            sensors = { 
+#                "i2c1":   [{"address": 1, "value": 1, "unit": "celcius"}],
+#                "i2c2":   [{"address": 2, "value": 2, "unit": "celcius"}],
+#                "i2c3":   [{"address": 3, "value": 3, "unit": "celcius"}],
+#                "i2c4":   [{"address": 4, "value": 4, "unit": "celcius"}],
+#                "adc1":   [{"value": 1, "unit": "voltage"}],
+#                "adc2":   [{"value": 2, "unit": "voltage"}],
+#                "1wire":  [{"value": 1, "unit": "celcius"}],
+#                "tprobe": [{"value": 1, "unit": "celcius"}, {"value": 1, "unit": "celcius"}],
             }
-            payload = {}
-            payload["value"] = value
-            #print("my thread")
-            #print(topic)
-            #print(payload)
-            publish(topic, payload)
-            print("")
+
+            num_entries = 0
+            for x in range(4):
+                i2c = "i2c{}".format(x+1)
+                entries = []
+                for y in g_i2c_properties[x]:
+                    entry = {}
+                    # i2c device address should be > 0
+                    # i2c device should be enabled
+                    # i2c device class should be of type INPUT
+                    if (int(y) > 0 and g_i2c_properties[x][y]["enabled"]):
+                        i2c_class = g_i2c_classes[g_i2c_properties[x][y]["class"]]
+                        if (i2c_class == "temperature" or i2c_class == "potentiometer"):
+                            entry["address"] = int(y)
+                            entry["value"] = random.randint(0, 40)
+                            entries.append(entry)
+                if len(entries):
+                    sensors[i2c] = entries 
+                    num_entries += 1
+
+            if num_entries > 0:
+                payload = {}
+                payload["sensors"] = sensors
+                #print("my thread")
+                #print(topic)
+                print("")
+                #print(payload)
+                publish(topic, payload)
+                print("")
+            else:
+                print("no enabled I2C INPUT devices")
 
 
 
