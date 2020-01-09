@@ -70,10 +70,32 @@ CONFIG_SEPARATOR            = '/'
 
 def add_sensor_reading(database_client, deviceid, topic, payload):
 
-    print(deviceid)
-    print(topic)
-    print(payload)
-    print("")
+    #print(deviceid)
+    #print(topic)
+    payload = json.loads(payload)
+
+    for source in payload["sensors"]:
+        for sensor in payload["sensors"][source]:
+            address = sensor["address"]
+            value = sensor["value"]
+            #print("{} source:{} address:{} value:{}".format(deviceid, source, address, value))
+            sensor_readings = database_client.get_sensor_reading_by_deviceid(deviceid, source, address)
+            if sensor_readings is None:
+                #print("no readings")
+                sensor_readings = {}
+                sensor_readings["value"] = value
+                sensor_readings["lowest"] = value
+                sensor_readings["highest"] = value
+            else:
+                #print("yes readings")
+                sensor_readings["value"] = value
+                if value > sensor_readings["highest"]:
+                    sensor_readings["highest"] = value
+                elif value < sensor_readings["lowest"]:
+                    sensor_readings["lowest"] = value
+            #print(sensor_readings)
+            database_client.add_sensor_reading(deviceid, source, address, sensor_readings)
+    #print("")
 
 
 def on_message(subtopic, subpayload):
