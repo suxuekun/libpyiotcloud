@@ -292,6 +292,7 @@ SUMMARY:
 		J. ENABLE/DISABLE ADC DEVICE      - POST   /devices/device/DEVICENAME/adc/NUMBER/sensors/sensor/SENSORNAME/enable
 		K. GET ADC DEVICE READINGS        - GET    /devices/device/DEVICENAME/adc/NUMBER/sensors/sensor/SENSORNAME/readings
 		L. DELETE ADC DEVICE READINGS     - DELETE /devices/device/DEVICENAME/adc/NUMBER/sensors/sensor/SENSORNAME/readings
+		   (NUMBER can be 1-2 only and corresponds to ADC1,ADC2)
 
 		//
 		// 1wire
@@ -305,6 +306,7 @@ SUMMARY:
 		T. ENABLE/DISABLE 1WIRE DEVICE    - POST   /devices/device/DEVICENAME/1wire/NUMBER/sensors/sensor/SENSORNAME/enable
 		U. GET 1WIRE DEVICE READINGS      - GET    /devices/device/DEVICENAME/1wire/NUMBER/sensors/sensor/SENSORNAME/readings
 		V. DELETE 1WIRE DEVICE READINGS   - DELETE /devices/device/DEVICENAME/1wire/NUMBER/sensors/sensor/SENSORNAME/readings
+		   (NUMBER will always be 1 since there is only 1 1wire)
 
 		//
 		// tprobe
@@ -318,6 +320,7 @@ SUMMARY:
 		DD. ENABLE/DISABLE TPROBE DEVICE  - POST   /devices/device/DEVICENAME/tprobe/NUMBER/sensors/sensor/SENSORNAME/enable
 		EE. GET TPROBE DEVICE READINGS    - GET    /devices/device/DEVICENAME/tprobe/NUMBER/sensors/sensor/SENSORNAME/readings
 		FF. DELETE TPROBE DEVICE READINGS - DELETE /devices/device/DEVICENAME/tprobe/NUMBER/sensors/sensor/SENSORNAME/readings
+		   (NUMBER will always be 1 since there is only 1 tprobe)
 
 
 	5. Device transaction recording APIs
