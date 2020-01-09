@@ -75,3 +75,13 @@ spec:
               secretKeyRef:
                 name: environment
                 key: CONFIG_USE_JWT_SECRET_KEY
+          - name: AWS_S3_FILE_I2C_DEVICES
+            valueFrom:
+              secretKeyRef:
+                name: environment
+                key: AWS_S3_FILE_I2C_DEVICES
+          - name: AWS_S3_FILE_SENSOR_DEVICES
+            valueFrom:
+              secretKeyRef:
+                name: environment
+                key: AWS_S3_FILE_SENSOR_DEVICES
