@@ -196,6 +196,11 @@ The REST APIs are the gateway of the frontend (mobile apps, web app) to the back
   <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/architecture_backend.png" width="1000"/>
 
 
+Below is the sequence diagram for live status values for INPUT devices (I2C INPUT devices, ADC/ONEWIRE/TPROBE devices).
+
+  <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/architecture_livestatus.png" width="1000"/>
+
+
 There are 3 ways to access the REST APIs.
 
 1. Access directly from the live backend https://richmondu.com
