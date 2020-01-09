@@ -4419,6 +4419,78 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         'enabled': true,
     };
     
+    $scope.sensor_readings = {
+        'value': 0,
+        'lowest': 0,
+        'highest': 0,
+    }
+
+    // GET I2C SENSOR READING
+    $scope.getI2CSensorReading = function(sensor) {
+        console.log("getI2CSensorReading");
+        get_i2c_sensor_reading(sensor);
+    };
+
+    get_i2c_sensor_reading = function(sensor) {
+        //
+        // GET I2C SENSOR READING
+        //
+        // - Request:
+        //   GET /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/<sensorname>/readings
+        //   headers: { 'Authorization': 'Bearer ' + token.access }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string, 'sensor_readings': {'value': int, 'lowest': int, 'highest': int} }
+        //   { 'status': 'NG', 'message': string }
+        //
+        $http({
+            method: 'GET',
+            url: server + '/devices/device/' + $scope.data.devicename + '/i2c/' + sensor.number.toString() + '/sensors/sensor/' + sensor.sensorname + "/readings",
+            headers: {'Authorization': 'Bearer ' + $scope.data.token.access}
+        })
+        .then(function (result) {
+            console.log(result.data);
+            $scope.sensor_readings = result.data.sensor_readings;
+        })
+        .catch(function (error) {
+            handle_error(error);
+        }); 
+        
+    };
+
+    
+    // DELETE I2C SENSOR READING
+    $scope.deleteI2CSensorReading = function(sensor) {
+        console.log("deleteI2CSensorReading");
+        delete_i2c_sensor_reading(sensor);
+    };
+
+    delete_i2c_sensor_reading = function(sensor) {
+        //
+        // DELETE I2C SENSOR READING
+        //
+        // - Request:
+        //   DELETE /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/<sensorname>/readings
+        //   headers: { 'Authorization': 'Bearer ' + token.access }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string }
+        //   { 'status': 'NG', 'message': string }
+        //
+        $http({
+            method: 'DELETE',
+            url: server + '/devices/device/' + $scope.data.devicename + '/i2c/' + sensor.number.toString() + '/sensors/sensor/' + sensor.sensorname + "/readings",
+            headers: {'Authorization': 'Bearer ' + $scope.data.token.access}
+        })
+        .then(function (result) {
+            console.log(result.data);
+        })
+        .catch(function (error) {
+            handle_error(error);
+        }); 
+        
+    };
+
     
     // DELETE I2C SENSOR
     $scope.deleteI2CSensor = function() {
