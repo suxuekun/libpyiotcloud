@@ -54,14 +54,16 @@
         <p style="color:#387EF5;">Live Status</p>
       </div>
       <div id="viewI2CDevice-markdown148" class="show-list-numbers-and-dots">
-        <p style="color:#444444;font-size:18px;">Value: </p>
+        <p style="color:#444444;font-size:18px;">Value: {{ sensor_readings.value }}</p>
       </div>
       <div id="viewI2CDevice-markdown149" class="show-list-numbers-and-dots">
-        <p style="color:#444444;font-size:18px;">Min Value: </p>
+        <p style="color:#444444;font-size:18px;">Lowest: {{ sensor_readings.lowest }}</p>
       </div>
       <div id="viewI2CDevice-markdown150" class="show-list-numbers-and-dots">
-        <p style="color:#444444;font-size:18px;">Max Value: </p>
+        <p style="color:#444444;font-size:18px;">Highest: {{ sensor_readings.highest }}</p>
       </div>
+      <button id="viewI2CDevice-button102" ng-click="getI2CSensorReading(data.sensor)" class="button button-positive button-block">Get sensor reading</button>
+      <button id="viewI2CDevice-button103" ng-click="deleteI2CSensorReading(data.sensor)" class="button button-positive button-block button-outline">Reset sensor reading</button>
       <div class="spacer" style="height: 100px;"></div>
     </form>
   </ion-content>
