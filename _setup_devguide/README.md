@@ -271,9 +271,8 @@ SUMMARY:
 		S. SET I2C DEVICE PROPERTIES      - POST   /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME/properties
 		T. GET I2C DEVICE PROPERTIES      - GET    /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME/properties
 		U. ENABLE/DISABLE I2C DEVICE      - POST   /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME/enable
-		V. ENABLE/DISABLE I2C             - POST   /devices/device/DEVICENAME/i2c/NUMBER/enable
-		W. GET I2C DEVICE READINGS        - GET    /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME/readings
-		X. DELETE I2C DEVICE READINGS     - DELETE /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME/readings
+		V. GET I2C DEVICE READINGS        - GET    /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME/readings
+		W. DELETE I2C DEVICE READINGS     - DELETE /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME/readings
 		   (NUMBER can be 1-4 only and corresponds to I2C1,I2C2,I2C3,I2C4)
 
 	4. Device access and control APIs (ADC, ONEWIRE, TPROBE)
@@ -1147,7 +1146,7 @@ DETAILED:
 		     'sensor': {'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': string, 'attributes': []} }
 		   { 'status': 'NG', 'message': string}
 		   // timestamp refers to the epoch time the sensor was registered/added
-		   // class can be LIGHT, DISPLAY, SPEAKER, TEMPERATURE, POTENTIOMETER
+		   // class can be SPEAKER, DISPLAY, LIGHT, POTENTIOMETER, TEMPERATURE
 
 		S. SET I2C DEVICE PROPERTIES
 		-  Request:
@@ -1455,6 +1454,326 @@ DETAILED:
 
 	4. Device access and control APIs (ADC, ONEWIRE, TPROBE)
 
+
+		//
+		// adc
+		//
+
+		A. GET ADC VOLTAGE
+		-  Request:
+		   GET /devices/device/DEVICENAME/adc/voltage
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		   // note that no adc NUMBER is included because this applies to all 2 adcs
+		-  Response:
+		   { 'status': 'OK', 'message': string, 'value': { 'voltage': int } }
+		   { 'status': 'NG', 'message': string }
+		   // voltage is an index of the value in the list of voltages
+		   //   ["-5/+5V Range", "-10/+10V Range", "0/10V Range"]
+
+		B. SET ADC VOLTAGE
+		-  Request:
+		   POST /devices/device/DEVICENAME/adc/voltage
+		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+		   data: { 'voltage': int }
+		   // note that no adc NUMBER is included because this applies to all 2 adcs
+		   // voltage is an index of the value in the list of voltages
+		   //   ["-5/+5V Range", "-10/+10V Range", "0/10V Range"]
+		-  Response:
+		   { 'status': 'OK', 'message': string }
+		   { 'status': 'NG', 'message': string }
+
+		C. ADD ADC DEVICE
+		-  Request:
+		   POST /devices/device/DEVICENAME/adc/NUMBER/sensors/sensor/SENSORNAME
+		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+		   data: {'manufacturer': string, 'model': string, 'class': string, 'type': string, 'attributes': []}
+		   // call GET SUPPORTED SENSOR DEVICES to get the JSON data contained here: https://ft900-iot-portal.s3.amazonaws.com/supported_sensor_devices.json
+		   // registering a sensor using an already used sensorname returns HTTP_409_CONFLICT with 'Sensor name is already taken'
+		   // Note: The device class defines if device type is INPUT or OUTPUT
+		-  Response:
+		   { 'status': 'OK', 'message': string}
+		   { 'status': 'NG', 'message': string}
+
+		D. DELETE ADC DEVICE
+		-  Request:
+		   DELETE /devices/device/DEVICENAME/adc/NUMBER/sensors/sensor/SENSORNAME
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		-  Response:
+		   { 'status': 'OK', 'message': string}
+
+		E. GET ADC DEVICE
+		-  Request:
+		   GET /devices/device/DEVICENAME/adc/NUMBER/sensors/sensor/SENSORNAME
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		-  Response:
+		   { 'status': 'OK', 'message': string, 
+		     'sensor': {'sensorname': string, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': string, 'attributes': []} }
+		   { 'status': 'NG', 'message': string}
+		   // timestamp refers to the epoch time the sensor was registered/added
+		   // class can be ANEMOMETER
+
+		F. GET ADC DEVICES
+		-  Request:
+		   GET /devices/device/DEVICENAME/adc/NUMBER/sensors
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		-  Response:
+		   { 'status': 'OK', 'message': string, 
+		     'sensors': array[{'sensorname': string, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': string, 'attributes': []}, ...]}
+		   { 'status': 'NG', 'message': string}
+		   // timestamp refers to the epoch time the sensor was registered/added
+
+		G. GET ALL ADC DEVICES
+		-  Request:
+		   GET /devices/device/DEVICENAME/adc/sensors
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		-  Response:
+		   { 'status': 'OK', 'message': string, 
+		     'sensors': array[{'sensorname': string, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': string, 'attributes': []}, ...]}
+		   { 'status': 'NG', 'message': string}
+		   // timestamp refers to the epoch time the sensor was registered/added
+
+		H. SET ADC DEVICE PROPERTIES
+		-  Request:
+		   POST /devices/device/DEVICENAME/adc/NUMBER/sensors/sensor/SENSORNAME/properties
+		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+		   data: { XXX }
+		-  Response:
+		   { 'status': 'OK', 'message': string}
+		   { 'status': 'NG', 'message': string}
+
+		I. GET ADC DEVICE PROPERTIES
+		-  Request:
+		   POST /devices/device/DEVICENAME/adc/NUMBER/sensors/sensor/SENSORNAME/properties
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		-  Response:
+		   { 'status': 'OK', 'message': string, 'value': XXX }
+		   { 'status': 'NG', 'message': string}
+
+		J. ENABLE/DISABLE ADC DEVICE
+		-  Request:
+		   POST /devices/device/DEVICENAME/adc/NUMBER/sensors/sensor/SENSORNAME/enable
+		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+		   data: { 'enable': int }
+		   // enable is an int indicating if disabled (0) or enabled (1)
+		-  Response:
+		   { 'status': 'OK', 'message': string }
+		   { 'status': 'NG', 'message': string }
+
+		K. GET ADC DEVICE READINGS
+		-  Request:
+		   GET /devices/device/DEVICENAME/adc/NUMBER/sensors/sensor/SENSORNAME/readings
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		-  Response:
+		   { 'status': 'OK', 'message': string, 'sensor_readings': {'value': int, 'lowest': int, 'highest': int} }
+		   { 'status': 'NG', 'message': string }
+
+		L. DELETE ADC DEVICE READINGS
+		-  Request:
+		   DELETE /devices/device/DEVICENAME/adc/NUMBER/sensors/sensor/SENSORNAME/readings
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		-  Response:
+		   { 'status': 'OK', 'message': string }
+		   { 'status': 'NG', 'message': string }
+
+
+
+		//
+		// 1wire
+		//
+
+		M. ADD 1WIRE DEVICE
+		-  Request:
+		   POST /devices/device/DEVICENAME/1wire/NUMBER/sensors/sensor/SENSORNAME
+		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+		   data: {'manufacturer': string, 'model': string, 'class': string, 'type': string, 'attributes': []}
+		   // call GET SUPPORTED SENSOR DEVICES to get the JSON data contained here: https://ft900-iot-portal.s3.amazonaws.com/supported_sensor_devices.json
+		   // registering a sensor using an already used sensorname returns HTTP_409_CONFLICT with 'Sensor name is already taken'
+		   // Note: The device class defines if device type is INPUT or OUTPUT
+		-  Response:
+		   { 'status': 'OK', 'message': string}
+		   { 'status': 'NG', 'message': string}
+
+		N. DELETE 1WIRE DEVICE
+		-  Request:
+		   DELETE /devices/device/DEVICENAME/1wire/NUMBER/sensors/sensor/SENSORNAME
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		-  Response:
+		   { 'status': 'OK', 'message': string}
+		   { 'status': 'NG', 'message': string}
+
+		O. GET 1WIRE DEVICE
+		-  Request:
+		   GET /devices/device/DEVICENAME/1wire/NUMBER/sensors/sensor/SENSORNAME
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		-  Response:
+		   { 'status': 'OK', 'message': string, 
+		     'sensor': {'sensorname': string, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': string, 'attributes': []} }
+		   { 'status': 'NG', 'message': string}
+		   // timestamp refers to the epoch time the sensor was registered/added
+		   // class can be TEMPERATURE
+
+		P. GET 1WIRE DEVICES
+		-  Request:
+		   GET /devices/device/DEVICENAME/1wire/NUMBER/sensors
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		-  Response:
+		   { 'status': 'OK', 'message': string, 
+		     'sensors': array[{'sensorname': string, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': string, 'attributes': []}, ...]}
+		   { 'status': 'NG', 'message': string}
+		   // timestamp refers to the epoch time the sensor was registered/added
+
+		Q. GET ALL 1WIRE DEVICES
+		-  Request:
+		   GET /devices/device/DEVICENAME/1wire/sensors
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		-  Response:
+		   { 'status': 'OK', 'message': string, 
+		     'sensors': array[{'sensorname': string, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': string, 'attributes': []}, ...]}
+		   { 'status': 'NG', 'message': string}
+		   // timestamp refers to the epoch time the sensor was registered/added
+
+		R. SET 1WIRE DEVICE PROPERTIES
+		-  Request:
+		   POST /devices/device/DEVICENAME/1wire/NUMBER/sensors/sensor/SENSORNAME/properties
+		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+		   data: { XXX }
+		-  Response:
+		   { 'status': 'OK', 'message': string}
+		   { 'status': 'NG', 'message': string}
+
+		S. GET 1WIRE DEVICE PROPERTIES
+		-  Request:
+		   POST /devices/device/DEVICENAME/1wire/NUMBER/sensors/sensor/SENSORNAME/properties
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		-  Response:
+		   { 'status': 'OK', 'message': string, 'value': XXX }
+		   { 'status': 'NG', 'message': string}
+
+		T. ENABLE/DISABLE 1WIRE DEVICE
+		-  Request:
+		   POST /devices/device/DEVICENAME/1wire/NUMBER/sensors/sensor/SENSORNAME/enable
+		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+		   data: { 'enable': int }
+		   // enable is an int indicating if disabled (0) or enabled (1)
+		-  Response:
+		   { 'status': 'OK', 'message': string }
+		   { 'status': 'NG', 'message': string }
+
+		U. GET 1WIRE DEVICE READINGS
+		-  Request:
+		   GET /devices/device/DEVICENAME/1wire/NUMBER/sensors/sensor/SENSORNAME/readings
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		-  Response:
+		   { 'status': 'OK', 'message': string, 'sensor_readings': {'value': int, 'lowest': int, 'highest': int} }
+		   { 'status': 'NG', 'message': string }
+
+		V. DELETE 1WIRE DEVICE READINGS
+		-  Request:
+		   DELETE /devices/device/DEVICENAME/1wire/NUMBER/sensors/sensor/SENSORNAME/readings
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		-  Response:
+		   { 'status': 'OK', 'message': string }
+		   { 'status': 'NG', 'message': string }
+
+
+
+		//
+		// tprobe
+		//
+
+		W. ADD TPROBE DEVICE
+		-  Request:
+		   POST /devices/device/DEVICENAME/tprobe/NUMBER/sensors/sensor/SENSORNAME
+		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+		   data: {'manufacturer': string, 'model': string, 'class': string, 'type': string, 'attributes': []}
+		   // call GET SUPPORTED SENSOR DEVICES to get the JSON data contained here: https://ft900-iot-portal.s3.amazonaws.com/supported_sensor_devices.json
+		   // registering a sensor using an already used sensorname returns HTTP_409_CONFLICT with 'Sensor name is already taken'
+		   // Note: The device class defines if device type is INPUT or OUTPUT
+		-  Response:
+		   { 'status': 'OK', 'message': string}
+		   { 'status': 'NG', 'message': string}
+
+		X. DELETE TPROBE DEVICE
+		-  Request:
+		   DELETE /devices/device/DEVICENAME/tprobe/NUMBER/sensors/sensor/SENSORNAME
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		-  Response:
+		   { 'status': 'OK', 'message': string}
+		   { 'status': 'NG', 'message': string}
+
+		Y. GET TPROBE DEVICE
+		-  Request:
+		   GET /devices/device/DEVICENAME/tprobe/NUMBER/sensors/sensor/SENSORNAME
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		-  Response:
+		   { 'status': 'OK', 'message': string, 
+		     'sensor': {'sensorname': string, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': string, 'attributes': []} }
+		   { 'status': 'NG', 'message': string}
+		   // timestamp refers to the epoch time the sensor was registered/added
+		   // class can be TEMPERATURE with subclass of HUMIDITY
+
+		Z. GET TPROBE DEVICES
+		-  Request:
+		   GET /devices/device/DEVICENAME/tprobe/NUMBER/sensors
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		-  Response:
+		   { 'status': 'OK', 'message': string, 
+		     'sensors': array[{'sensorname': string, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': string, 'attributes': []}, ...]}
+		   { 'status': 'NG', 'message': string}
+		   // timestamp refers to the epoch time the sensor was registered/added
+
+		AA. GET ALL TPROBE DEVICES
+		-  Request:
+		   GET /devices/device/DEVICENAME/tprobe/sensors
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		-  Response:
+		   { 'status': 'OK', 'message': string, 
+		     'sensors': array[{'sensorname': string, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': string, 'attributes': []}, ...]}
+		   { 'status': 'NG', 'message': string}
+		   // timestamp refers to the epoch time the sensor was registered/added
+
+		BB. SET TPROBE DEVICE PROPERTIES
+		-  Request:
+		   POST /devices/device/DEVICENAME/tprobe/NUMBER/sensors/sensor/SENSORNAME/properties
+		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+		   data: { XXX }
+		-  Response:
+		   { 'status': 'OK', 'message': string}
+		   { 'status': 'NG', 'message': string}
+
+		CC. GET TPROBE DEVICE PROPERTIES
+		-  Request:
+		   POST /devices/device/DEVICENAME/tprobe/NUMBER/sensors/sensor/SENSORNAME/properties
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		-  Response:
+		   { 'status': 'OK', 'message': string, 'value': XXX }
+		   { 'status': 'NG', 'message': string}
+
+		DD. ENABLE/DISABLE TPROBE DEVICE
+		-  Request:
+		   POST /devices/device/DEVICENAME/tprobe/NUMBER/sensors/sensor/SENSORNAME/enable
+		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+		   data: { 'enable': int }
+		   // enable is an int indicating if disabled (0) or enabled (1)
+		-  Response:
+		   { 'status': 'OK', 'message': string }
+		   { 'status': 'NG', 'message': string }
+
+		EE. GET TPROBE DEVICE READINGS
+		-  Request:
+		   GET /devices/device/DEVICENAME/tprobe/NUMBER/sensors/sensor/SENSORNAME/readings
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		-  Response:
+		   { 'status': 'OK', 'message': string, 'sensor_readings': {'value': int, 'lowest': int, 'highest': int} }
+		   { 'status': 'NG', 'message': string }
+
+		FF. DELETE TPROBE DEVICE READINGS
+		-  Request:
+		   DELETE /devices/device/DEVICENAME/tprobe/NUMBER/sensors/sensor/SENSORNAME/readings
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		-  Response:
+		   { 'status': 'OK', 'message': string }
+		   { 'status': 'NG', 'message': string }
 
 
 	5. Device transaction recording APIs
