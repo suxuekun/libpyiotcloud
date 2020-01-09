@@ -126,6 +126,9 @@ An alternative solution is using an AWS serverless solution wherein:
 ### UML Sequence diagram (device access/control):
 <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/sequence3.png" width="800"/>
 
+### UML Sequence diagram (sensor live status):
+<img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/architecture_livestatus.png" width="800"/>
+
 ### Notes:
 
     1. RabbitMQ supports AMQP and MQTT.
