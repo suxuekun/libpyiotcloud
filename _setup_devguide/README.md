@@ -238,16 +238,20 @@ SUMMARY:
 		D. DELETE DEVICE                  - DELETE /devices/device/DEVICENAME
 		E. GET DEVICE                     - GET    /devices/device/DEVICENAME
 
-	3. Device access and control APIs
+	3. Device access and control APIs (UART, GPIO, I2C)
 
 		A. GET STATUS                     - GET    /devices/device/DEVICENAME/status
 		B. SET STATUS                     - POST   /devices/device/DEVICENAME/status
 
+		//
+		// uart
 		C. GET UARTS                      - GET    /devices/device/DEVICENAME/uarts
 		D. GET UART PROPERTIES            - GET    /devices/device/DEVICENAME/uart/properties
 		E. SET UART PROPERTIES            - POST   /devices/device/DEVICENAME/uart/properties
 		F. ENABLE/DISABLE UART            - POST   /devices/device/DEVICENAME/uart/enable
 
+		//
+		// gpio
 		G. GET GPIOS                      - GET    /devices/device/DEVICENAME/gpios
 		H. GET GPIO PROPERTIES            - GET    /devices/device/DEVICENAME/gpio/NUMBER/properties
 		I. SET GPIO PROPERTIES            - POST   /devices/device/DEVICENAME/gpio/NUMBER/properties
@@ -256,6 +260,8 @@ SUMMARY:
 		L. SET GPIO VOLTAGE               - POST   /devices/device/DEVICENAME/gpio/voltage
 		   (NUMBER can be 1-4 only and corresponds to GPIO1,GPIO2,GPIO3,GPIO4)
 
+		//
+		// i2c
 		M. GET I2CS                       - GET    /devices/device/DEVICENAME/i2cs
 		N. GET ALL I2C DEVICES            - GET    /devices/device/DEVICENAME/i2c/sensors
 		O. GET I2C DEVICES                - GET    /devices/device/DEVICENAME/i2c/NUMBER/sensors
@@ -270,13 +276,57 @@ SUMMARY:
 		X. DELETE I2C DEVICE READINGS     - DELETE /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME/readings
 		   (NUMBER can be 1-4 only and corresponds to I2C1,I2C2,I2C3,I2C4)
 
-	4. Device transaction recording APIs
+	4. Device access and control APIs (ADC, ONEWIRE, TPROBE)
+
+		//
+		// adc
+		A. GET ADC VOLTAGE                - GET    /devices/device/DEVICENAME/adc/voltage
+		B. SET ADC VOLTAGE                - POST   /devices/device/DEVICENAME/adc/voltage
+		C. ADD ADC DEVICE                 - POST   /devices/device/DEVICENAME/adc/NUMBER/sensors/sensor/SENSORNAME
+		D. DELETE ADC DEVICE              - DELETE /devices/device/DEVICENAME/adc/NUMBER/sensors/sensor/SENSORNAME
+		E. GET ADC DEVICE                 - GET    /devices/device/DEVICENAME/adc/NUMBER/sensors/sensor/SENSORNAME
+		F. GET ADC DEVICES                - GET    /devices/device/DEVICENAME/adc/NUMBER/sensors
+		G. GET ALL ADC DEVICES            - GET    /devices/device/DEVICENAME/adc/sensors
+		H. SET ADC DEVICE PROPERTIES      - POST   /devices/device/DEVICENAME/adc/NUMBER/sensors/sensor/SENSORNAME/properties
+		I. GET ADC DEVICE PROPERTIES      - GET    /devices/device/DEVICENAME/adc/NUMBER/sensors/sensor/SENSORNAME/properties
+		J. ENABLE/DISABLE ADC DEVICE      - POST   /devices/device/DEVICENAME/adc/NUMBER/sensors/sensor/SENSORNAME/enable
+		K. GET ADC DEVICE READINGS        - GET    /devices/device/DEVICENAME/adc/NUMBER/sensors/sensor/SENSORNAME/readings
+		L. DELETE ADC DEVICE READINGS     - DELETE /devices/device/DEVICENAME/adc/NUMBER/sensors/sensor/SENSORNAME/readings
+
+		//
+		// 1wire
+		M. ADD 1WIRE DEVICE               - POST   /devices/device/DEVICENAME/1wire/NUMBER/sensors/sensor/SENSORNAME
+		N. DELETE 1WIRE DEVICE            - DELETE /devices/device/DEVICENAME/1wire/NUMBER/sensors/sensor/SENSORNAME
+		O. GET 1WIRE DEVICE               - GET    /devices/device/DEVICENAME/1wire/NUMBER/sensors/sensor/SENSORNAME
+		P. GET 1WIRE DEVICES              - GET    /devices/device/DEVICENAME/1wire/NUMBER/sensors
+		Q. GET ALL 1WIRE DEVICES          - GET    /devices/device/DEVICENAME/1wire/sensors
+		R. SET 1WIRE DEVICE PROPERTIES    - POST   /devices/device/DEVICENAME/1wire/NUMBER/sensors/sensor/SENSORNAME/properties
+		S. GET 1WIRE DEVICE PROPERTIES    - GET    /devices/device/DEVICENAME/1wire/NUMBER/sensors/sensor/SENSORNAME/properties
+		T. ENABLE/DISABLE 1WIRE DEVICE    - POST   /devices/device/DEVICENAME/1wire/NUMBER/sensors/sensor/SENSORNAME/enable
+		U. GET 1WIRE DEVICE READINGS      - GET    /devices/device/DEVICENAME/1wire/NUMBER/sensors/sensor/SENSORNAME/readings
+		V. DELETE 1WIRE DEVICE READINGS   - DELETE /devices/device/DEVICENAME/1wire/NUMBER/sensors/sensor/SENSORNAME/readings
+
+		//
+		// tprobe
+		W.  ADD TPROBE DEVICE             - POST   /devices/device/DEVICENAME/tprobe/NUMBER/sensors/sensor/SENSORNAME
+		X.  DELETE TPROBE DEVICE          - DELETE /devices/device/DEVICENAME/tprobe/NUMBER/sensors/sensor/SENSORNAME
+		Y.  GET TPROBE DEVICE             - GET    /devices/device/DEVICENAME/tprobe/NUMBER/sensors/sensor/SENSORNAME
+		Z.  GET TPROBE DEVICES            - GET    /devices/device/DEVICENAME/tprobe/NUMBER/sensors
+		AA. GET ALL TPROBE DEVICES        - GET    /devices/device/DEVICENAME/tprobe/sensors
+		BB. SET TPROBE DEVICE PROPERTIES  - POST   /devices/device/DEVICENAME/tprobe/NUMBER/sensors/sensor/SENSORNAME/properties
+		CC. GET TPROBE DEVICE PROPERTIES  - GET    /devices/device/DEVICENAME/tprobe/NUMBER/sensors/sensor/SENSORNAME/properties
+		DD. ENABLE/DISABLE TPROBE DEVICE  - POST   /devices/device/DEVICENAME/tprobe/NUMBER/sensors/sensor/SENSORNAME/enable
+		EE. GET TPROBE DEVICE READINGS    - GET    /devices/device/DEVICENAME/tprobe/NUMBER/sensors/sensor/SENSORNAME/readings
+		FF. DELETE TPROBE DEVICE READINGS - DELETE /devices/device/DEVICENAME/tprobe/NUMBER/sensors/sensor/SENSORNAME/readings
+
+
+	5. Device transaction recording APIs
 
 		A. GET HISTORIES                  - GET    /devices/histories
 		B. GET HISTORIES FILTERED         - POST   /devices/histories
 		   (filter by device name, direction, topic, date start, date end)
 
-	5. Account subscription and payment APIs
+	6. Account subscription and payment APIs
 
 		A. GET SUBSCRIPTION               - GET    /account/subscription
 		B. SET SUBSCRIPTION               - POST   /account/subscription
@@ -284,17 +334,18 @@ SUMMARY:
 		D. PAYPAL EXECUTE                 - POST   /account/payment/paypalexecute
 		E. PAYPAL VERIFY                  - POST   /account/payment/paypalverify
 
-	6. Supported I2C devices
+	7. Supported devices
 
-		A. GET SUPPORTED I2C DEVICES      - GET    /others/i2cdevices
+		A. GET SUPPORTED I2C DEVICES      - GET    /others/i2cdevices [OBSOLETED, use GET SUPPORTED SENSOR DEVICES instead]
+		B. GET SUPPORTED SENSOR DEVICES   - GET    /others/sensordevices
 
-	7. Others
+	8. Others
 
 		A. SEND FEEDBACK                  - POST   /others/feedback
 		B. GET FAQS                       - GET    /others/faqs
 		C. GET ABOUT                      - GET    /others/about
 
-	8. HTTP error codes
+	9. HTTP error codes
 
 		A. HTTP_400_BAD_REQUEST           - Invalid input
 		B. HTTP_401_UNAUTHORIZED          - Invalid password or invalid/expired token
@@ -1067,7 +1118,7 @@ DETAILED:
 		   POST /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
 		   data: {'address': int, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'attributes': []}
-		   // call GET SUPPORTED I2C DEVICES to get the JSON data contained here: https://ft900-iot-portal.s3.amazonaws.com/supported_i2c_devices.json
+		   // call GET SUPPORTED SENSOR DEVICES to get the JSON data contained here: https://ft900-iot-portal.s3.amazonaws.com/supported_sensor_devices.json
 		   // registering a sensor using an already used sensorname returns HTTP_409_CONFLICT with 'Sensor name is already taken'
 		   // address should be greater than 0 and less than or equal to 255
 		   // registering a sensor using an already used address for the slot returns HTTP_409_CONFLICT with 'Sensor address is already taken'
@@ -1399,7 +1450,11 @@ DETAILED:
 		   { 'status': 'NG', 'message': string }
 
 
-	4. Device transaction recording APIs
+	4. Device access and control APIs (ADC, ONEWIRE, TPROBE)
+
+
+
+	5. Device transaction recording APIs
 
 		A. GET HISTORIES
 		-  Request:
@@ -1429,7 +1484,7 @@ DETAILED:
 		   { 'status': 'NG', 'message': string}
 
 
-	5. Account subscription and payment APIs
+	6. Account subscription and payment APIs
 
 		A. GET SUBSCRIPTION
 		-  Request:
@@ -1476,7 +1531,7 @@ DETAILED:
 		   {'status': 'NG', 'message': string}
 
 
-	6. Supported I2C devices
+	7. Supported I2C devices
 
 		A. GET SUPPORTED I2C DEVICES
 		-  Request:
@@ -1490,7 +1545,7 @@ DETAILED:
 		   // this API provides access to the contents of the JSON file
 
 
-	7. Others
+	8. Others
 
 		A. SEND FEEDBACK
 		-  Request:

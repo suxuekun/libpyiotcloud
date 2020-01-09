@@ -3846,6 +3846,68 @@ def get_supported_i2c_devices():
     return response
 
 
+########################################################################################################
+#
+# GET SUPPORTED SENSOR DEVICES
+#
+# - Request:
+#   GET /others/sensordevices
+#   headers: {'Authorization': 'Bearer ' + token.access}
+#
+# - Response:
+#   {'status': 'OK', 'message': string, 'document': json_object } }
+#   {'status': 'NG', 'message': string}
+#
+########################################################################################################
+@app.route('/others/sensordevices', methods=['GET'])
+def get_supported_sensor_devices():
+    # get token from Authorization header
+    auth_header_token = get_auth_header_token()
+    if auth_header_token is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
+        print('\r\nERROR Get Supported Sensor Devices: Invalid authorization header\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
+    token = {'access': auth_header_token}
+
+    # get username from token
+    username = g_database_client.get_username_from_token(token)
+    if username is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
+        print('\r\nERROR Get Supported Sensor Devices: Invalid token\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
+    print('get_supported_sensor_devices {}'.format(username))
+
+    # check if a parameter is empty
+    if len(username) == 0 or len(token) == 0:
+        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+        print('\r\nERROR Get Supported Sensor Devices: Empty parameter found\r\n')
+        return response, status.HTTP_400_BAD_REQUEST
+
+    # check if username and token is valid
+    verify_ret, new_token = g_database_client.verify_token(username, token)
+    if verify_ret == 2:
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Get Supported Sensor Devices: Token expired [{}]\r\n'.format(username))
+        return response, status.HTTP_401_UNAUTHORIZED
+    elif verify_ret != 0:
+        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
+        print('\r\nERROR Get Supported Sensor Devices: Token is invalid [{}]\r\n'.format(username))
+        return response, status.HTTP_401_UNAUTHORIZED
+
+    # check if a parameter is empty
+    result, document = g_storage_client.get_supported_sensor_devices()
+    if not result:
+        response = json.dumps({'status': 'NG', 'message': 'Could not retrieve JSON document'})
+        print('\r\nERROR Get Supported Sensor Devices: Could not retrieve JSON document [{}]\r\n'.format(username))
+        return response, status.HTTP_500_INTERNAL_SERVER_ERROR
+
+
+    msg = {'status': 'OK', 'message': 'Content queried successfully.'}
+    msg['document'] = document
+    response = json.dumps(msg)
+    print('\r\nContent queried successfully: {}\r\n{}\r\n'.format(username, response))
+    return response
+
 #########################
 
 
