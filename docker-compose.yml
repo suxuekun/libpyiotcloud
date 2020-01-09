@@ -48,6 +48,7 @@ services:
       - AWS_S3_REGION
       - AWS_S3_BUCKET
       - AWS_S3_FILE_I2C_DEVICES
+      - AWS_S3_FILE_SENSOR_DEVICES
   webapp:
     build: 
       context: ./webapp
