@@ -256,23 +256,23 @@ class database_client:
     # sensors
     ##########################################################
 
-    def get_all_sensors(self, username, devicename):
-        return self._devices.get_all_sensors(username, devicename)
+    def get_all_sensors(self, username, devicename, source):
+        return self._devices.get_all_sensors(username, devicename, source)
 
-    def get_sensors(self, username, devicename, number):
-        return self._devices.get_sensors(username, devicename, number)
+    def get_sensors(self, username, devicename, source, number):
+        return self._devices.get_sensors(username, devicename, source, number)
 
-    def add_sensor(self, username, devicename, number, sensorname, data):
-        return self._devices.add_sensor(username, devicename, number, sensorname, data)
+    def add_sensor(self, username, devicename, source, number, sensorname, data):
+        return self._devices.add_sensor(username, devicename, source, number, sensorname, data)
 
-    def delete_sensor(self, username, devicename, number, sensorname):
-        self._devices.delete_sensor(username, devicename, number, sensorname)
+    def delete_sensor(self, username, devicename, source, number, sensorname):
+        self._devices.delete_sensor(username, devicename, source, number, sensorname)
 
-    def get_sensor(self, username, devicename, number, sensorname):
-        return self._devices.get_sensor(username, devicename, number, sensorname)
+    def get_sensor(self, username, devicename, source, number, sensorname):
+        return self._devices.get_sensor(username, devicename, source, number, sensorname)
 
-    def get_sensor_by_address(self, username, devicename, number, address):
-        return self._devices.get_sensor_by_address(username, devicename, number, address)
+    def get_sensor_by_address(self, username, devicename, source, number, address):
+        return self._devices.get_sensor_by_address(username, devicename, source, number, address)
 
 
     ##########################################################
@@ -881,32 +881,33 @@ class database_client_mongodb:
     def get_sensors_document(self):
         return self.client[config.CONFIG_MONGODB_TB_I2CSENSORS]
 
-    def get_all_sensors(self, username, devicename):
+    def get_all_sensors(self, username, devicename, source):
         sensor_list = []
         i2csensors = self.get_sensors_document();
         if i2csensors:
-            for i2csensor in i2csensors.find({'username': username, 'devicename': devicename}):
+            for i2csensor in i2csensors.find({'username': username, 'devicename': devicename, 'source': source}):
                 i2csensor.pop('_id')
                 i2csensor.pop('username')
                 sensor_list.append(i2csensor)
         return sensor_list
 
-    def get_sensors(self, username, devicename, number):
+    def get_sensors(self, username, devicename, source, number):
         sensor_list = []
         i2csensors = self.get_sensors_document();
         if i2csensors:
-            for i2csensor in i2csensors.find({'username': username, 'devicename': devicename, 'number': number}):
+            for i2csensor in i2csensors.find({'username': username, 'devicename': devicename, 'source': source, 'number': number}):
                 i2csensor.pop('_id')
                 i2csensor.pop('username')
                 sensor_list.append(i2csensor)
         return sensor_list
 
-    def add_sensor(self, username, devicename, number, sensorname, data):
+    def add_sensor(self, username, devicename, source, number, sensorname, data):
         i2csensors = self.get_sensors_document();
         timestamp = str(int(time.time()))
         device = {}
         device['username']     = username
         device['devicename']   = devicename
+        device['source']       = source
         device['number']       = number
         device['sensorname']   = sensorname
         device_all = {}
@@ -916,29 +917,30 @@ class database_client_mongodb:
         i2csensors.insert_one(device_all)
         return True
 
-    def delete_sensor(self, username, devicename, number, sensorname):
+    def delete_sensor(self, username, devicename, source, number, sensorname):
         i2csensors = self.get_sensors_document();
         try:
-            i2csensors.delete_many({'username': username, 'devicename': devicename, 'number': number, 'sensorname': sensorname})
+            i2csensors.delete_many({'username': username, 'devicename': devicename, 'source': source, 'number': number, 'sensorname': sensorname})
         except:
             print("delete_sensor: Exception occurred")
             pass
 
-    def get_sensor(self, username, devicename, number, sensorname):
+    def get_sensor(self, username, devicename, source, number, sensorname):
         i2csensors = self.get_sensors_document();
         if i2csensors:
-            # sensorname should be unique allthroughout the slots
+            # Note: sensorname should be unique allthroughout the slots and accross I2C/ADC/1WIRE/TPROBE
+            # so number and source should not be included
             for i2csensor in i2csensors.find({'username': username, 'devicename': devicename, 'sensorname': sensorname}):
-            #for i2csensor in i2csensors.find({'username': username, 'devicename': devicename, 'number': number, 'sensorname': sensorname}):
+            #for i2csensor in i2csensors.find({'username': username, 'devicename': devicename, 'sensorname': sensorname, 'source': source, 'number': number}):
                 i2csensor.pop('_id')
                 i2csensor.pop('username')
                 return i2csensor
         return None
 
-    def get_sensor_by_address(self, username, devicename, number, address):
+    def get_sensor_by_address(self, username, devicename, source, number, address):
         i2csensors = self.get_sensors_document();
         if i2csensors:
-            for i2csensor in i2csensors.find({'username': username, 'devicename': devicename, 'number': number, 'address': address}):
+            for i2csensor in i2csensors.find({'username': username, 'devicename': devicename, 'source': source, 'number': number, 'address': address}):
                 i2csensor.pop('_id')
                 i2csensor.pop('username')
                 return i2csensor
@@ -957,22 +959,38 @@ class database_client_mongodb:
         item = {}
         item['deviceid'] = deviceid
         item['source'] = source
-        item['address'] = address
+        if address is not None:
+            item['address'] = address
         item['sensor_readings'] = sensor_readings
-        #print("update_sensor_reading find_one")
-        found = sensorreadings.find_one({'deviceid': deviceid, 'source': source, 'address': address})
-        if found is None:
-            #print("update_sensor_reading insert_one")
-            #print(found)
-            sensorreadings.insert_one(item)
+
+        if address is None:
+            #print("update_sensor_reading find_one")
+            found = sensorreadings.find_one({'deviceid': deviceid, 'source': source})
+            if found is None:
+                #print("update_sensor_reading insert_one")
+                #print(found)
+                sensorreadings.insert_one(item)
+            else:
+                #print("update_sensor_reading replace_one")
+                sensorreadings.replace_one({'deviceid': deviceid, 'source': source}, item)
         else:
-            #print("update_sensor_reading replace_one")
-            sensorreadings.replace_one({'deviceid': deviceid, 'source': source, 'address': address}, item)
+            #print("update_sensor_reading find_one")
+            found = sensorreadings.find_one({'deviceid': deviceid, 'source': source, 'address': address})
+            if found is None:
+                #print("update_sensor_reading insert_one")
+                #print(found)
+                sensorreadings.insert_one(item)
+            else:
+                #print("update_sensor_reading replace_one")
+                sensorreadings.replace_one({'deviceid': deviceid, 'source': source, 'address': address}, item)
 
     def delete_sensor_reading(self, deviceid, source, address):
         sensorreadings = self.get_sensorreadings_document();
         try:
-            sensorreadings.delete_many({'deviceid': deviceid, 'source': source, 'address': address})
+            if address is None:
+                sensorreadings.delete_many({'deviceid': deviceid, 'source': source})
+            else:
+                sensorreadings.delete_many({'deviceid': deviceid, 'source': source, 'address': address})
         except:
             print("delete_sensor_reading: Exception occurred")
             pass
@@ -980,10 +998,16 @@ class database_client_mongodb:
     def get_sensor_reading_by_deviceid(self, deviceid, source, address):
         sensorreadings = self.get_sensorreadings_document();
         if sensorreadings:
-            for sensorreading in sensorreadings.find({'deviceid': deviceid, 'source': source, 'address': address}):
-                sensorreading.pop('_id')
-                #print(sensorreading['sensor_readings'])
-                return sensorreading['sensor_readings']
+            if address is None:
+                for sensorreading in sensorreadings.find({'deviceid': deviceid, 'source': source}):
+                    sensorreading.pop('_id')
+                    #print(sensorreading['sensor_readings'])
+                    return sensorreading['sensor_readings']
+            else:
+                for sensorreading in sensorreadings.find({'deviceid': deviceid, 'source': source, 'address': address}):
+                    sensorreading.pop('_id')
+                    #print(sensorreading['sensor_readings'])
+                    return sensorreading['sensor_readings']
         return None
 
 
