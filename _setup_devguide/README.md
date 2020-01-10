@@ -230,6 +230,7 @@ SUMMARY:
 		M. CONFIRM VERIFY PHONE NUMBER    - POST   /user/confirm_verify_phone_number
 		N. CHANGE PASSWORD                - POST   /user/change_password
 
+
 	2. Device registration and management APIs
 
 		A. GET DEVICES                    - GET    /devices
@@ -238,8 +239,11 @@ SUMMARY:
 		D. DELETE DEVICE                  - DELETE /devices/device/DEVICENAME
 		E. GET DEVICE                     - GET    /devices/device/DEVICENAME
 
-	3. Device access and control APIs (UART, GPIO, I2C)
 
+	3. Device access and control APIs (STATUS, UART, GPIO)
+
+		//
+		// status
 		A. GET STATUS                     - GET    /devices/device/DEVICENAME/status
 		B. SET STATUS                     - POST   /devices/device/DEVICENAME/status
 
@@ -260,74 +264,77 @@ SUMMARY:
 		L. SET GPIO VOLTAGE               - POST   /devices/device/DEVICENAME/gpio/voltage
 		   (NUMBER can be 1-4 only and corresponds to GPIO1,GPIO2,GPIO3,GPIO4)
 
-		//
-		// i2c
-		M. GET ALL I2C DEVICES            - GET    /devices/device/DEVICENAME/i2c/sensors
-		N. GET I2C DEVICES                - GET    /devices/device/DEVICENAME/i2c/NUMBER/sensors
-		O. ADD I2C DEVICE                 - POST   /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME
-		P. DELETE I2C DEVICE              - DELETE /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME
-		Q. GET I2C DEVICE                 - GET    /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME
-		R. SET I2C DEVICE PROPERTIES      - POST   /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME/properties
-		S. GET I2C DEVICE PROPERTIES      - GET    /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME/properties
-		T. ENABLE/DISABLE I2C DEVICE      - POST   /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME/enable
-		U. GET I2C DEVICE READINGS        - GET    /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME/readings
-		V. DELETE I2C DEVICE READINGS     - DELETE /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME/readings
+
+	4. Device access and control APIs (I2C)
+
+		A. ADD I2C DEVICE                 - POST   /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME
+		B. DELETE I2C DEVICE              - DELETE /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME
+		C. GET I2C DEVICE                 - GET    /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME
+		D. GET I2C DEVICES                - GET    /devices/device/DEVICENAME/i2c/NUMBER/sensors
+		E. GET ALL I2C DEVICES            - GET    /devices/device/DEVICENAME/i2c/sensors
+		F. SET I2C DEVICE PROPERTIES      - POST   /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME/properties
+		G. GET I2C DEVICE PROPERTIES      - GET    /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME/properties
+		H. ENABLE/DISABLE I2C DEVICE      - POST   /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME/enable
+		I. GET I2C DEVICE READINGS        - GET    /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME/readings
+		J. DELETE I2C DEVICE READINGS     - DELETE /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME/readings
 		   (NUMBER can be 1-4 only and corresponds to I2C1,I2C2,I2C3,I2C4)
 
-	4. Device access and control APIs (ADC, ONEWIRE, TPROBE)
 
-		//
-		// adc
-		A. GET ADC VOLTAGE                - GET    /devices/device/DEVICENAME/adc/voltage
-		B. SET ADC VOLTAGE                - POST   /devices/device/DEVICENAME/adc/voltage
-		C. ADD ADC DEVICE                 - POST   /devices/device/DEVICENAME/adc/NUMBER/sensors/sensor/SENSORNAME
-		D. DELETE ADC DEVICE              - DELETE /devices/device/DEVICENAME/adc/NUMBER/sensors/sensor/SENSORNAME
-		E. GET ADC DEVICE                 - GET    /devices/device/DEVICENAME/adc/NUMBER/sensors/sensor/SENSORNAME
-		F. GET ADC DEVICES                - GET    /devices/device/DEVICENAME/adc/NUMBER/sensors
-		G. GET ALL ADC DEVICES            - GET    /devices/device/DEVICENAME/adc/sensors
-		H. SET ADC DEVICE PROPERTIES      - POST   /devices/device/DEVICENAME/adc/NUMBER/sensors/sensor/SENSORNAME/properties
-		I. GET ADC DEVICE PROPERTIES      - GET    /devices/device/DEVICENAME/adc/NUMBER/sensors/sensor/SENSORNAME/properties
-		J. ENABLE/DISABLE ADC DEVICE      - POST   /devices/device/DEVICENAME/adc/NUMBER/sensors/sensor/SENSORNAME/enable
-		K. GET ADC DEVICE READINGS        - GET    /devices/device/DEVICENAME/adc/NUMBER/sensors/sensor/SENSORNAME/readings
-		L. DELETE ADC DEVICE READINGS     - DELETE /devices/device/DEVICENAME/adc/NUMBER/sensors/sensor/SENSORNAME/readings
+	5. Device access and control APIs (ADC)
+
+		A. ADD ADC DEVICE                 - POST   /devices/device/DEVICENAME/adc/NUMBER/sensors/sensor/SENSORNAME
+		B. DELETE ADC DEVICE              - DELETE /devices/device/DEVICENAME/adc/NUMBER/sensors/sensor/SENSORNAME
+		C. GET ADC DEVICE                 - GET    /devices/device/DEVICENAME/adc/NUMBER/sensors/sensor/SENSORNAME
+		D. GET ADC DEVICES                - GET    /devices/device/DEVICENAME/adc/NUMBER/sensors
+		E. GET ALL ADC DEVICES            - GET    /devices/device/DEVICENAME/adc/sensors
+		F. SET ADC DEVICE PROPERTIES      - POST   /devices/device/DEVICENAME/adc/NUMBER/sensors/sensor/SENSORNAME/properties
+		G. GET ADC DEVICE PROPERTIES      - GET    /devices/device/DEVICENAME/adc/NUMBER/sensors/sensor/SENSORNAME/properties
+		H. ENABLE/DISABLE ADC DEVICE      - POST   /devices/device/DEVICENAME/adc/NUMBER/sensors/sensor/SENSORNAME/enable
+		I. GET ADC DEVICE READINGS        - GET    /devices/device/DEVICENAME/adc/NUMBER/sensors/sensor/SENSORNAME/readings
+		J. DELETE ADC DEVICE READINGS     - DELETE /devices/device/DEVICENAME/adc/NUMBER/sensors/sensor/SENSORNAME/readings
 		   (NUMBER can be 1-2 only and corresponds to ADC1,ADC2)
+		K. GET ADC VOLTAGE                - GET    /devices/device/DEVICENAME/adc/voltage
+		L. SET ADC VOLTAGE                - POST   /devices/device/DEVICENAME/adc/voltage
 
-		//
-		// 1wire
-		M. ADD 1WIRE DEVICE               - POST   /devices/device/DEVICENAME/1wire/NUMBER/sensors/sensor/SENSORNAME
-		N. DELETE 1WIRE DEVICE            - DELETE /devices/device/DEVICENAME/1wire/NUMBER/sensors/sensor/SENSORNAME
-		O. GET 1WIRE DEVICE               - GET    /devices/device/DEVICENAME/1wire/NUMBER/sensors/sensor/SENSORNAME
-		P. GET 1WIRE DEVICES              - GET    /devices/device/DEVICENAME/1wire/NUMBER/sensors
-		Q. GET ALL 1WIRE DEVICES          - GET    /devices/device/DEVICENAME/1wire/sensors
-		R. SET 1WIRE DEVICE PROPERTIES    - POST   /devices/device/DEVICENAME/1wire/NUMBER/sensors/sensor/SENSORNAME/properties
-		S. GET 1WIRE DEVICE PROPERTIES    - GET    /devices/device/DEVICENAME/1wire/NUMBER/sensors/sensor/SENSORNAME/properties
-		T. ENABLE/DISABLE 1WIRE DEVICE    - POST   /devices/device/DEVICENAME/1wire/NUMBER/sensors/sensor/SENSORNAME/enable
-		U. GET 1WIRE DEVICE READINGS      - GET    /devices/device/DEVICENAME/1wire/NUMBER/sensors/sensor/SENSORNAME/readings
-		V. DELETE 1WIRE DEVICE READINGS   - DELETE /devices/device/DEVICENAME/1wire/NUMBER/sensors/sensor/SENSORNAME/readings
+
+	6. Device access and control APIs (1WIRE)
+
+		A. ADD 1WIRE DEVICE               - POST   /devices/device/DEVICENAME/1wire/NUMBER/sensors/sensor/SENSORNAME
+		B. DELETE 1WIRE DEVICE            - DELETE /devices/device/DEVICENAME/1wire/NUMBER/sensors/sensor/SENSORNAME
+		C. GET 1WIRE DEVICE               - GET    /devices/device/DEVICENAME/1wire/NUMBER/sensors/sensor/SENSORNAME
+		D. GET 1WIRE DEVICES              - GET    /devices/device/DEVICENAME/1wire/NUMBER/sensors
+		E. GET ALL 1WIRE DEVICES          - GET    /devices/device/DEVICENAME/1wire/sensors
+		F. SET 1WIRE DEVICE PROPERTIES    - POST   /devices/device/DEVICENAME/1wire/NUMBER/sensors/sensor/SENSORNAME/properties
+		G. GET 1WIRE DEVICE PROPERTIES    - GET    /devices/device/DEVICENAME/1wire/NUMBER/sensors/sensor/SENSORNAME/properties
+		H. ENABLE/DISABLE 1WIRE DEVICE    - POST   /devices/device/DEVICENAME/1wire/NUMBER/sensors/sensor/SENSORNAME/enable
+		I. GET 1WIRE DEVICE READINGS      - GET    /devices/device/DEVICENAME/1wire/NUMBER/sensors/sensor/SENSORNAME/readings
+		J. DELETE 1WIRE DEVICE READINGS   - DELETE /devices/device/DEVICENAME/1wire/NUMBER/sensors/sensor/SENSORNAME/readings
 		   (NUMBER will always be 1 since there is only 1 1wire)
 
-		//
-		// tprobe
-		W.  ADD TPROBE DEVICE             - POST   /devices/device/DEVICENAME/tprobe/NUMBER/sensors/sensor/SENSORNAME
-		X.  DELETE TPROBE DEVICE          - DELETE /devices/device/DEVICENAME/tprobe/NUMBER/sensors/sensor/SENSORNAME
-		Y.  GET TPROBE DEVICE             - GET    /devices/device/DEVICENAME/tprobe/NUMBER/sensors/sensor/SENSORNAME
-		Z.  GET TPROBE DEVICES            - GET    /devices/device/DEVICENAME/tprobe/NUMBER/sensors
-		AA. GET ALL TPROBE DEVICES        - GET    /devices/device/DEVICENAME/tprobe/sensors
-		BB. SET TPROBE DEVICE PROPERTIES  - POST   /devices/device/DEVICENAME/tprobe/NUMBER/sensors/sensor/SENSORNAME/properties
-		CC. GET TPROBE DEVICE PROPERTIES  - GET    /devices/device/DEVICENAME/tprobe/NUMBER/sensors/sensor/SENSORNAME/properties
-		DD. ENABLE/DISABLE TPROBE DEVICE  - POST   /devices/device/DEVICENAME/tprobe/NUMBER/sensors/sensor/SENSORNAME/enable
-		EE. GET TPROBE DEVICE READINGS    - GET    /devices/device/DEVICENAME/tprobe/NUMBER/sensors/sensor/SENSORNAME/readings
-		FF. DELETE TPROBE DEVICE READINGS - DELETE /devices/device/DEVICENAME/tprobe/NUMBER/sensors/sensor/SENSORNAME/readings
+
+	7. Device access and control APIs (TPROBE)
+
+		A. ADD TPROBE DEVICE             - POST   /devices/device/DEVICENAME/tprobe/NUMBER/sensors/sensor/SENSORNAME
+		B. DELETE TPROBE DEVICE          - DELETE /devices/device/DEVICENAME/tprobe/NUMBER/sensors/sensor/SENSORNAME
+		C. GET TPROBE DEVICE             - GET    /devices/device/DEVICENAME/tprobe/NUMBER/sensors/sensor/SENSORNAME
+		D. GET TPROBE DEVICES            - GET    /devices/device/DEVICENAME/tprobe/NUMBER/sensors
+		E. GET ALL TPROBE DEVICES        - GET    /devices/device/DEVICENAME/tprobe/sensors
+		F. SET TPROBE DEVICE PROPERTIES  - POST   /devices/device/DEVICENAME/tprobe/NUMBER/sensors/sensor/SENSORNAME/properties
+		G. GET TPROBE DEVICE PROPERTIES  - GET    /devices/device/DEVICENAME/tprobe/NUMBER/sensors/sensor/SENSORNAME/properties
+		H. ENABLE/DISABLE TPROBE DEVICE  - POST   /devices/device/DEVICENAME/tprobe/NUMBER/sensors/sensor/SENSORNAME/enable
+		I. GET TPROBE DEVICE READINGS    - GET    /devices/device/DEVICENAME/tprobe/NUMBER/sensors/sensor/SENSORNAME/readings
+		J. DELETE TPROBE DEVICE READINGS - DELETE /devices/device/DEVICENAME/tprobe/NUMBER/sensors/sensor/SENSORNAME/readings
 		   (NUMBER will always be 1 since there is only 1 tprobe)
 
 
-	5. Device transaction recording APIs
+	8. Device transaction recording APIs
 
 		A. GET HISTORIES                  - GET    /devices/histories
 		B. GET HISTORIES FILTERED         - POST   /devices/histories
 		   (filter by device name, direction, topic, date start, date end)
 
-	6. Account subscription and payment APIs
+
+	9. Account subscription and payment APIs
 
 		A. GET SUBSCRIPTION               - GET    /account/subscription
 		B. SET SUBSCRIPTION               - POST   /account/subscription
@@ -335,18 +342,21 @@ SUMMARY:
 		D. PAYPAL EXECUTE                 - POST   /account/payment/paypalexecute
 		E. PAYPAL VERIFY                  - POST   /account/payment/paypalverify
 
-	7. Supported devices
+
+	10. Supported devices
 
 		A. GET SUPPORTED I2C DEVICES      - GET    /others/i2cdevices [OBSOLETED, use GET SUPPORTED SENSOR DEVICES instead]
 		B. GET SUPPORTED SENSOR DEVICES   - GET    /others/sensordevices
 
-	8. Others
+
+	11. Others
 
 		A. SEND FEEDBACK                  - POST   /others/feedback
 		B. GET FAQS                       - GET    /others/faqs
 		C. GET ABOUT                      - GET    /others/about
 
-	9. HTTP error codes
+
+	12. HTTP error codes
 
 		A. HTTP_400_BAD_REQUEST           - Invalid input
 		B. HTTP_401_UNAUTHORIZED          - Invalid password or invalid/expired token
@@ -574,7 +584,7 @@ DETAILED:
 		   Double check your results here: https://jwt.io/
 
 
-	2. Device registration and management APIs
+	2. Device registration and management APIs 
 
 		DEVICENAME (and other parameters) are included in the URL field because of the following reasons:
 		- LIMITATION. HTTP GET requests do not permit including payload/data parameters.
@@ -655,7 +665,7 @@ DETAILED:
 		   // heartbeat and version are cached values
 
 
-	3. Device access and control APIs
+	3. Device access and control APIs (STATUS, UART, GPIO)
 
 		For device APIs, note that DEVICENAME is used instead of DEVICEID.
 		This strategy is more secure as the unique DEVICEID is not easily exposed in the HTTP packets.
@@ -668,8 +678,6 @@ DETAILED:
 
 		The NOTIFICATION object in GET/SET UART/GPIO/I2C PROPERTIES is made generic to be simple, extensible and performant.
 		
-		
-		New requirements:
 
 		A. GET STATUS
 		-  Request:
@@ -1076,45 +1084,10 @@ DETAILED:
 		   { 'status': 'NG', 'message': string }
 
 
+	4. Device access and control APIs (I2C)
 
-		M. GET I2CS
-		-  Request:
-		   GET /devices/device/DEVICENAME/i2cs
-		   headers: {'Authorization': 'Bearer ' + token.access}
-		-  Response:
-		   { 'status': 'OK', 'message': string, 
-		     'value': { 
-		        'i2cs': [
-		            {"enabled": int},
-		            {"enabled": int},
-		            {"enabled": int},
-		            {"enabled": int},
-		        ]
-		     }
-		   }
-		   // enabled is an int indicating if disabled (0) or enabled (1)
 
-		N. GET ALL I2C DEVICES
-		-  Request:
-		   GET /devices/device/DEVICENAME/i2c/sensors
-		   headers: {'Authorization': 'Bearer ' + token.access}
-		-  Response:
-		   { 'status': 'OK', 'message': string, 
-		     'sensors': array[{'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': string, 'attributes': []}, ...]}
-		   { 'status': 'NG', 'message': string}
-		   // timestamp refers to the epoch time the sensor was registered/added
-
-		O. GET I2C DEVICES
-		-  Request:
-		   GET /devices/device/DEVICENAME/i2c/NUMBER/sensors
-		   headers: {'Authorization': 'Bearer ' + token.access}
-		-  Response:
-		   { 'status': 'OK', 'message': string, 
-		     'sensors': array[{'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': string, 'attributes': []}, ...]}
-		   { 'status': 'NG', 'message': string}
-		   // timestamp refers to the epoch time the sensor was registered/added
-
-		P. ADD I2C DEVICE
+		A. ADD I2C DEVICE
 		-  Request:
 		   POST /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
@@ -1128,7 +1101,7 @@ DETAILED:
 		   { 'status': 'OK', 'message': string}
 		   { 'status': 'NG', 'message': string}
 
-		Q. DELETE I2C DEVICE
+		B. DELETE I2C DEVICE
 		-  Request:
 		   DELETE /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -1136,7 +1109,7 @@ DETAILED:
 		   { 'status': 'OK', 'message': string}
 		   { 'status': 'NG', 'message': string}
 
-		R. GET I2C DEVICE
+		C. GET I2C DEVICE
 		-  Request:
 		   GET /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -1147,30 +1120,72 @@ DETAILED:
 		   // timestamp refers to the epoch time the sensor was registered/added
 		   // class can be SPEAKER, DISPLAY, LIGHT, POTENTIOMETER, TEMPERATURE
 
-		S. SET I2C DEVICE PROPERTIES
+		D. GET I2C DEVICES
+		-  Request:
+		   GET /devices/device/DEVICENAME/i2c/NUMBER/sensors
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		-  Response:
+		   { 'status': 'OK', 'message': string, 
+		     'sensors': array[{'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': string, 'attributes': []}, ...]}
+		   { 'status': 'NG', 'message': string}
+		   // timestamp refers to the epoch time the sensor was registered/added
+
+		E. GET ALL I2C DEVICES
+		-  Request:
+		   GET /devices/device/DEVICENAME/i2c/sensors
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		-  Response:
+		   { 'status': 'OK', 'message': string, 
+		     'sensors': array[{'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': string, 'attributes': []}, ...]}
+		   { 'status': 'NG', 'message': string}
+		   // timestamp refers to the epoch time the sensor was registered/added
+
+		F. SET I2C DEVICE PROPERTIES
 		-  Request:
 		   POST /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME/properties
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-		   // LIGHT class
-		   data: {
-		           "endpoint": int, 
-		           "hardware": {"devicename": string, "sensorname": string}, 
-		           "color": int, 
-		           "brightness": int, 
-		           "timeout": int 
-		         }
+		     // LIGHT class
+		   data: { 
+		           "color": {
+		               "usage": int,
+		               "single": {
+		                    "endpoint": int,
+		                    "manual": int,
+		                    "hardware": {"devicename": string, "sensorname": string}
+		               },
+		               "individual": {
+		                   "red": {
+		                       "endpoint": int,
+		                       "manual": int,
+		                       "hardware": {"devicename": string, "sensorname": string}
+		                   },
+		                   "green": {
+		                       "endpoint": int,
+		                       "manual": int,
+		                       "hardware": {"devicename": string, "sensorname": string}
+		                   },
+		                   "blue": {
+		                       "endpoint": int,
+		                       "manual": int,
+		                       "hardware": {"devicename": string, "sensorname": string}
+		                   }
+		               }
+		           }, 
+		           "fadeouttime": int 
+		     }
+		   //   color usage is an index to the list of color usages:
+		   //     ["RGB as single unit", "RGB as individual units"]
+		   //   single should be used if "RGB as single unit" is selected for color usage
+		   //   individual should be used if "RGB as individual units" is selected for color usage
 		   //   endpoint is an index to the list source endpoints:
 		   //     ["Manual", "Hardware"]
 		   //   if endpoint is Manual
-		   //     color is an integer value of the hex color 0xRRGGBB where each RR (red), GG (green), BB (blue) can be 0x00-0xFF (0-255)
-		   //     brightness is the percentage value. value should be 0-100
-		   //     timeout indicates the number of seconds
+		   //     manual is an integer value of the hex color 0xRRGGBB where each RR (red), GG (green), BB (blue) can be 0x00-0xFF (0-255)
 		   //   if endpoint is Hardware
-		   //     color is an integer value of the hex color 0xRRGGBB where each RR (red), GG (green), BB (blue) can be 0x00-0xFF (0-255)
 		   //     hardware contains the devicename (input IoT Modem device) and sensorname (input I2C device)
 		   //       devicename is the name of the IoT modem device
 		   //       sensorname is the name of the input I2C device
-		   //     timeout indicates the number of seconds
+		   //   fadeouttime indicates the number of seconds for fadeout
 		   //
 		   // DISPLAY class
 		   data: { 
@@ -1280,7 +1295,7 @@ DETAILED:
 		   { 'status': 'OK', 'message': string }
 		   { 'status': 'NG', 'message': string}
 
-		T. GET I2C DEVICE PROPERTIES
+		G. GET I2C DEVICE PROPERTIES
 		-  Request:
 		   POST /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME/properties
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -1288,24 +1303,46 @@ DETAILED:
 		   { 'status': 'OK', 'message': string, 'value':
 		     // LIGHT class
 		     {
-		           "endpoint": int, 
-		           "hardware": {"devicename": string, "sensorname": string}, 
-		           "color": int, 
-		           "brightness": int, 
-		           "timeout": int 
+		           "color": {
+		               "usage": int,
+		               "single": {
+		                    "endpoint": int,
+		                    "manual": int,
+		                    "hardware": {"devicename": string, "sensorname": string}
+		               },
+		               "individual": {
+		                   "red": {
+		                       "endpoint": int,
+		                       "manual": int,
+		                       "hardware": {"devicename": string, "sensorname": string}
+		                   },
+		                   "green": {
+		                       "endpoint": int,
+		                       "manual": int,
+		                       "hardware": {"devicename": string, "sensorname": string}
+		                   },
+		                   "blue": {
+		                       "endpoint": int,
+		                       "manual": int,
+		                       "hardware": {"devicename": string, "sensorname": string}
+		                   }
+		               }
+		           }, 
+		           "fadeouttime": int 
 		     }
+		   //   color usage is an index to the list of color usages:
+		   //     ["RGB as single unit", "RGB as individual units"]
+		   //   single should be used if "RGB as single unit" is selected for color usage
+		   //   individual should be used if "RGB as individual units" is selected for color usage
 		   //   endpoint is an index to the list source endpoints:
 		   //     ["Manual", "Hardware"]
 		   //   if endpoint is Manual
-		   //     color is an integer value of the hex color 0xRRGGBB where each RR (red), GG (green), BB (blue) can be 0x00-0xFF (0-255)
-		   //     brightness is the percentage value. value should be 0-100
-		   //     timeout indicates the number of seconds
+		   //     manual is an integer value of the hex color 0xRRGGBB where each RR (red), GG (green), BB (blue) can be 0x00-0xFF (0-255)
 		   //   if endpoint is Hardware
-		   //     color is an integer value of the hex color 0xRRGGBB where each RR (red), GG (green), BB (blue) can be 0x00-0xFF (0-255)
 		   //     hardware contains the devicename (input IoT Modem device) and sensorname (input I2C device)
 		   //       devicename is the name of the IoT modem device
 		   //       sensorname is the name of the input I2C device
-		   //     timeout indicates the number of seconds
+		   //   fadeouttime indicates the number of seconds for fadeout
 		   //
 		   // DISPLAY class
 		      { 
@@ -1414,7 +1451,7 @@ DETAILED:
 
 		   { 'status': 'NG', 'message': string}
 
-		U. ENABLE/DISABLE I2C DEVICE
+		H. ENABLE/DISABLE I2C DEVICE
 		-  Request:
 		   POST /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME/enable
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
@@ -1424,17 +1461,7 @@ DETAILED:
 		   { 'status': 'OK', 'message': string }
 		   { 'status': 'NG', 'message': string }
 
-		V. ENABLE/DISABLE I2C
-		-  Request:
-		   POST /devices/device/DEVICENAME/i2c/NUMBER/enable
-		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-		   data: { 'enable': int }
-		   // enable is an int indicating if disabled (0) or enabled (1)
-		-  Response:
-		   { 'status': 'OK', 'message': string }
-		   { 'status': 'NG', 'message': string }
-
-		W. GET I2C DEVICE READINGS
+		I. GET I2C DEVICE READINGS
 		-  Request:
 		   GET /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME/readings
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -1442,7 +1469,7 @@ DETAILED:
 		   { 'status': 'OK', 'message': string, 'sensor_readings': {'value': int, 'lowest': int, 'highest': int} }
 		   { 'status': 'NG', 'message': string }
 
-		X. DELETE I2C DEVICE READINGS
+		J. DELETE I2C DEVICE READINGS
 		-  Request:
 		   DELETE /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME/readings
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -1451,37 +1478,10 @@ DETAILED:
 		   { 'status': 'NG', 'message': string }
 
 
-	4. Device access and control APIs (ADC, ONEWIRE, TPROBE)
+	5. Device access and control APIs (ADC)
 
 
-		//
-		// adc
-		//
-
-		A. GET ADC VOLTAGE
-		-  Request:
-		   GET /devices/device/DEVICENAME/adc/voltage
-		   headers: {'Authorization': 'Bearer ' + token.access}
-		   // note that no adc NUMBER is included because this applies to all 2 adcs
-		-  Response:
-		   { 'status': 'OK', 'message': string, 'value': { 'voltage': int } }
-		   { 'status': 'NG', 'message': string }
-		   // voltage is an index of the value in the list of voltages
-		   //   ["-5/+5V Range", "-10/+10V Range", "0/10V Range"]
-
-		B. SET ADC VOLTAGE
-		-  Request:
-		   POST /devices/device/DEVICENAME/adc/voltage
-		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-		   data: { 'voltage': int }
-		   // note that no adc NUMBER is included because this applies to all 2 adcs
-		   // voltage is an index of the value in the list of voltages
-		   //   ["-5/+5V Range", "-10/+10V Range", "0/10V Range"]
-		-  Response:
-		   { 'status': 'OK', 'message': string }
-		   { 'status': 'NG', 'message': string }
-
-		C. ADD ADC DEVICE
+		A. ADD ADC DEVICE
 		-  Request:
 		   POST /devices/device/DEVICENAME/adc/NUMBER/sensors/sensor/SENSORNAME
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
@@ -1493,14 +1493,14 @@ DETAILED:
 		   { 'status': 'OK', 'message': string}
 		   { 'status': 'NG', 'message': string}
 
-		D. DELETE ADC DEVICE
+		B. DELETE ADC DEVICE
 		-  Request:
 		   DELETE /devices/device/DEVICENAME/adc/NUMBER/sensors/sensor/SENSORNAME
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
 		   { 'status': 'OK', 'message': string}
 
-		E. GET ADC DEVICE
+		C. GET ADC DEVICE
 		-  Request:
 		   GET /devices/device/DEVICENAME/adc/NUMBER/sensors/sensor/SENSORNAME
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -1511,7 +1511,7 @@ DETAILED:
 		   // timestamp refers to the epoch time the sensor was registered/added
 		   // class can be ANEMOMETER
 
-		F. GET ADC DEVICES
+		D. GET ADC DEVICES
 		-  Request:
 		   GET /devices/device/DEVICENAME/adc/NUMBER/sensors
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -1521,7 +1521,7 @@ DETAILED:
 		   { 'status': 'NG', 'message': string}
 		   // timestamp refers to the epoch time the sensor was registered/added
 
-		G. GET ALL ADC DEVICES
+		E. GET ALL ADC DEVICES
 		-  Request:
 		   GET /devices/device/DEVICENAME/adc/sensors
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -1531,7 +1531,7 @@ DETAILED:
 		   { 'status': 'NG', 'message': string}
 		   // timestamp refers to the epoch time the sensor was registered/added
 
-		H. SET ADC DEVICE PROPERTIES
+		F. SET ADC DEVICE PROPERTIES
 		-  Request:
 		   POST /devices/device/DEVICENAME/adc/NUMBER/sensors/sensor/SENSORNAME/properties
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
@@ -1540,7 +1540,7 @@ DETAILED:
 		   { 'status': 'OK', 'message': string}
 		   { 'status': 'NG', 'message': string}
 
-		I. GET ADC DEVICE PROPERTIES
+		G. GET ADC DEVICE PROPERTIES
 		-  Request:
 		   POST /devices/device/DEVICENAME/adc/NUMBER/sensors/sensor/SENSORNAME/properties
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -1548,7 +1548,7 @@ DETAILED:
 		   { 'status': 'OK', 'message': string, 'value': XXX }
 		   { 'status': 'NG', 'message': string}
 
-		J. ENABLE/DISABLE ADC DEVICE
+		H. ENABLE/DISABLE ADC DEVICE
 		-  Request:
 		   POST /devices/device/DEVICENAME/adc/NUMBER/sensors/sensor/SENSORNAME/enable
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
@@ -1558,7 +1558,7 @@ DETAILED:
 		   { 'status': 'OK', 'message': string }
 		   { 'status': 'NG', 'message': string }
 
-		K. GET ADC DEVICE READINGS
+		I. GET ADC DEVICE READINGS
 		-  Request:
 		   GET /devices/device/DEVICENAME/adc/NUMBER/sensors/sensor/SENSORNAME/readings
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -1566,7 +1566,7 @@ DETAILED:
 		   { 'status': 'OK', 'message': string, 'sensor_readings': {'value': int, 'lowest': int, 'highest': int} }
 		   { 'status': 'NG', 'message': string }
 
-		L. DELETE ADC DEVICE READINGS
+		J. DELETE ADC DEVICE READINGS
 		-  Request:
 		   DELETE /devices/device/DEVICENAME/adc/NUMBER/sensors/sensor/SENSORNAME/readings
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -1574,13 +1574,34 @@ DETAILED:
 		   { 'status': 'OK', 'message': string }
 		   { 'status': 'NG', 'message': string }
 
+		K. GET ADC VOLTAGE
+		-  Request:
+		   GET /devices/device/DEVICENAME/adc/voltage
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		   // note that no adc NUMBER is included because this applies to all 2 adcs
+		-  Response:
+		   { 'status': 'OK', 'message': string, 'value': { 'voltage': int } }
+		   { 'status': 'NG', 'message': string }
+		   // voltage is an index of the value in the list of voltages
+		   //   ["-5/+5V Range", "-10/+10V Range", "0/10V Range"]
+
+		L. SET ADC VOLTAGE
+		-  Request:
+		   POST /devices/device/DEVICENAME/adc/voltage
+		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+		   data: { 'voltage': int }
+		   // note that no adc NUMBER is included because this applies to all 2 adcs
+		   // voltage is an index of the value in the list of voltages
+		   //   ["-5/+5V Range", "-10/+10V Range", "0/10V Range"]
+		-  Response:
+		   { 'status': 'OK', 'message': string }
+		   { 'status': 'NG', 'message': string }
 
 
-		//
-		// 1wire
-		//
+	6. Device access and control APIs (1WIRE)
 
-		M. ADD 1WIRE DEVICE
+
+		A. ADD 1WIRE DEVICE
 		-  Request:
 		   POST /devices/device/DEVICENAME/1wire/NUMBER/sensors/sensor/SENSORNAME
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
@@ -1592,7 +1613,7 @@ DETAILED:
 		   { 'status': 'OK', 'message': string}
 		   { 'status': 'NG', 'message': string}
 
-		N. DELETE 1WIRE DEVICE
+		B. DELETE 1WIRE DEVICE
 		-  Request:
 		   DELETE /devices/device/DEVICENAME/1wire/NUMBER/sensors/sensor/SENSORNAME
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -1600,7 +1621,7 @@ DETAILED:
 		   { 'status': 'OK', 'message': string}
 		   { 'status': 'NG', 'message': string}
 
-		O. GET 1WIRE DEVICE
+		C. GET 1WIRE DEVICE
 		-  Request:
 		   GET /devices/device/DEVICENAME/1wire/NUMBER/sensors/sensor/SENSORNAME
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -1611,7 +1632,7 @@ DETAILED:
 		   // timestamp refers to the epoch time the sensor was registered/added
 		   // class can be TEMPERATURE
 
-		P. GET 1WIRE DEVICES
+		D. GET 1WIRE DEVICES
 		-  Request:
 		   GET /devices/device/DEVICENAME/1wire/NUMBER/sensors
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -1621,7 +1642,7 @@ DETAILED:
 		   { 'status': 'NG', 'message': string}
 		   // timestamp refers to the epoch time the sensor was registered/added
 
-		Q. GET ALL 1WIRE DEVICES
+		E. GET ALL 1WIRE DEVICES
 		-  Request:
 		   GET /devices/device/DEVICENAME/1wire/sensors
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -1631,7 +1652,7 @@ DETAILED:
 		   { 'status': 'NG', 'message': string}
 		   // timestamp refers to the epoch time the sensor was registered/added
 
-		R. SET 1WIRE DEVICE PROPERTIES
+		F. SET 1WIRE DEVICE PROPERTIES
 		-  Request:
 		   POST /devices/device/DEVICENAME/1wire/NUMBER/sensors/sensor/SENSORNAME/properties
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
@@ -1640,7 +1661,7 @@ DETAILED:
 		   { 'status': 'OK', 'message': string}
 		   { 'status': 'NG', 'message': string}
 
-		S. GET 1WIRE DEVICE PROPERTIES
+		G. GET 1WIRE DEVICE PROPERTIES
 		-  Request:
 		   POST /devices/device/DEVICENAME/1wire/NUMBER/sensors/sensor/SENSORNAME/properties
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -1648,7 +1669,7 @@ DETAILED:
 		   { 'status': 'OK', 'message': string, 'value': XXX }
 		   { 'status': 'NG', 'message': string}
 
-		T. ENABLE/DISABLE 1WIRE DEVICE
+		H. ENABLE/DISABLE 1WIRE DEVICE
 		-  Request:
 		   POST /devices/device/DEVICENAME/1wire/NUMBER/sensors/sensor/SENSORNAME/enable
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
@@ -1658,7 +1679,7 @@ DETAILED:
 		   { 'status': 'OK', 'message': string }
 		   { 'status': 'NG', 'message': string }
 
-		U. GET 1WIRE DEVICE READINGS
+		I. GET 1WIRE DEVICE READINGS
 		-  Request:
 		   GET /devices/device/DEVICENAME/1wire/NUMBER/sensors/sensor/SENSORNAME/readings
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -1666,7 +1687,7 @@ DETAILED:
 		   { 'status': 'OK', 'message': string, 'sensor_readings': {'value': int, 'lowest': int, 'highest': int} }
 		   { 'status': 'NG', 'message': string }
 
-		V. DELETE 1WIRE DEVICE READINGS
+		J. DELETE 1WIRE DEVICE READINGS
 		-  Request:
 		   DELETE /devices/device/DEVICENAME/1wire/NUMBER/sensors/sensor/SENSORNAME/readings
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -1675,12 +1696,10 @@ DETAILED:
 		   { 'status': 'NG', 'message': string }
 
 
+	7. Device access and control APIs (TPROBE)
 
-		//
-		// tprobe
-		//
 
-		W. ADD TPROBE DEVICE
+		A. ADD TPROBE DEVICE
 		-  Request:
 		   POST /devices/device/DEVICENAME/tprobe/NUMBER/sensors/sensor/SENSORNAME
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
@@ -1692,7 +1711,7 @@ DETAILED:
 		   { 'status': 'OK', 'message': string}
 		   { 'status': 'NG', 'message': string}
 
-		X. DELETE TPROBE DEVICE
+		B. DELETE TPROBE DEVICE
 		-  Request:
 		   DELETE /devices/device/DEVICENAME/tprobe/NUMBER/sensors/sensor/SENSORNAME
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -1700,7 +1719,7 @@ DETAILED:
 		   { 'status': 'OK', 'message': string}
 		   { 'status': 'NG', 'message': string}
 
-		Y. GET TPROBE DEVICE
+		C. GET TPROBE DEVICE
 		-  Request:
 		   GET /devices/device/DEVICENAME/tprobe/NUMBER/sensors/sensor/SENSORNAME
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -1711,7 +1730,7 @@ DETAILED:
 		   // timestamp refers to the epoch time the sensor was registered/added
 		   // class can be TEMPERATURE with subclass of HUMIDITY
 
-		Z. GET TPROBE DEVICES
+		D. GET TPROBE DEVICES
 		-  Request:
 		   GET /devices/device/DEVICENAME/tprobe/NUMBER/sensors
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -1721,7 +1740,7 @@ DETAILED:
 		   { 'status': 'NG', 'message': string}
 		   // timestamp refers to the epoch time the sensor was registered/added
 
-		AA. GET ALL TPROBE DEVICES
+		E. GET ALL TPROBE DEVICES
 		-  Request:
 		   GET /devices/device/DEVICENAME/tprobe/sensors
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -1731,7 +1750,7 @@ DETAILED:
 		   { 'status': 'NG', 'message': string}
 		   // timestamp refers to the epoch time the sensor was registered/added
 
-		BB. SET TPROBE DEVICE PROPERTIES
+		F. SET TPROBE DEVICE PROPERTIES
 		-  Request:
 		   POST /devices/device/DEVICENAME/tprobe/NUMBER/sensors/sensor/SENSORNAME/properties
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
@@ -1740,7 +1759,7 @@ DETAILED:
 		   { 'status': 'OK', 'message': string}
 		   { 'status': 'NG', 'message': string}
 
-		CC. GET TPROBE DEVICE PROPERTIES
+		G. GET TPROBE DEVICE PROPERTIES
 		-  Request:
 		   POST /devices/device/DEVICENAME/tprobe/NUMBER/sensors/sensor/SENSORNAME/properties
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -1748,7 +1767,7 @@ DETAILED:
 		   { 'status': 'OK', 'message': string, 'value': XXX }
 		   { 'status': 'NG', 'message': string}
 
-		DD. ENABLE/DISABLE TPROBE DEVICE
+		H. ENABLE/DISABLE TPROBE DEVICE
 		-  Request:
 		   POST /devices/device/DEVICENAME/tprobe/NUMBER/sensors/sensor/SENSORNAME/enable
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
@@ -1758,7 +1777,7 @@ DETAILED:
 		   { 'status': 'OK', 'message': string }
 		   { 'status': 'NG', 'message': string }
 
-		EE. GET TPROBE DEVICE READINGS
+		I. GET TPROBE DEVICE READINGS
 		-  Request:
 		   GET /devices/device/DEVICENAME/tprobe/NUMBER/sensors/sensor/SENSORNAME/readings
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -1766,7 +1785,7 @@ DETAILED:
 		   { 'status': 'OK', 'message': string, 'sensor_readings': {'value': int, 'lowest': int, 'highest': int} }
 		   { 'status': 'NG', 'message': string }
 
-		FF. DELETE TPROBE DEVICE READINGS
+		J. DELETE TPROBE DEVICE READINGS
 		-  Request:
 		   DELETE /devices/device/DEVICENAME/tprobe/NUMBER/sensors/sensor/SENSORNAME/readings
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -1775,7 +1794,7 @@ DETAILED:
 		   { 'status': 'NG', 'message': string }
 
 
-	5. Device transaction recording APIs
+	8. Device transaction recording APIs
 
 		A. GET HISTORIES
 		-  Request:
@@ -1805,7 +1824,7 @@ DETAILED:
 		   { 'status': 'NG', 'message': string}
 
 
-	6. Account subscription and payment APIs
+	9. Account subscription and payment APIs
 
 		A. GET SUBSCRIPTION
 		-  Request:
@@ -1852,7 +1871,7 @@ DETAILED:
 		   {'status': 'NG', 'message': string}
 
 
-	7. Supported I2C devices
+	10. Supported I2C devices
 
 		A. GET SUPPORTED I2C DEVICES
 		-  Request:
@@ -1865,8 +1884,19 @@ DETAILED:
 		   // the file has been temporarily made public at https://ft900-iot-portal.s3.amazonaws.com/supported_i2c_devices.json
 		   // this API provides access to the contents of the JSON file
 
+		B. GET SUPPORTED SENSOR DEVICES
+		-  Request:
+		   GET /others/sensordevices
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		-  Response:
+		   {'status': 'OK', 'message': string, 'document': json_object }
+		   {'status': 'NG', 'message': string }
+		   // document refers to the JSON document file uploaded in AWS S3
+		   // the file has been temporarily made public at https://ft900-iot-portal.s3.amazonaws.com/supported_sensor_devices.json
+		   // this API provides access to the contents of the JSON file
 
-	8. Others
+
+	11. Others
 
 		A. SEND FEEDBACK
 		-  Request:
