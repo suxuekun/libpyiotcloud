@@ -2103,13 +2103,13 @@ SUMMARY:
 		C. ENABLE/DISABLE TPROBE DEVICE enable_tprobe_dev
 
 	8. Notifications
-		A. SEND NOTIFICATION            trigger_notifications
+		A. SEND NOTIFICATION            trigger_notification
 		-  to publish/trigger MENOS notifications
 
-		B. STATUS NOTIFICATION          status_notifications
+		B. STATUS NOTIFICATION          status_notification
 		-  to listen/receive status of MENOS notifications
 
-		C. RECV NOTIFICATION            recv_notifications
+		C. RECV NOTIFICATION            recv_notification
 		-  to receive device/mOdemo notification from other devices/mOdems
 
 
