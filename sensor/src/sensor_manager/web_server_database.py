@@ -579,22 +579,37 @@ class database_client_mongodb:
         item = {}
         item['deviceid'] = deviceid
         item['source'] = source
-        item['address'] = address
+        if address is not None:
+            item['address'] = address
         item['sensor_readings'] = sensor_readings
         #print("update_sensor_reading find_one")
-        found = sensorreadings.find_one({'deviceid': deviceid, 'source': source, 'address': address})
-        if found is None:
-            #print("update_sensor_reading insert_one")
-            #print(found)
-            sensorreadings.insert_one(item)
+
+        if address is None:
+            found = sensorreadings.find_one({'deviceid': deviceid, 'source': source})
+            if found is None:
+                #print("update_sensor_reading insert_one")
+                #print(found)
+                sensorreadings.insert_one(item)
+            else:
+                #print("update_sensor_reading replace_one")
+                sensorreadings.replace_one({'deviceid': deviceid, 'source': source}, item)
         else:
-            #print("update_sensor_reading replace_one")
-            sensorreadings.replace_one({'deviceid': deviceid, 'source': source, 'address': address}, item)
+            found = sensorreadings.find_one({'deviceid': deviceid, 'source': source, 'address': address})
+            if found is None:
+                #print("update_sensor_reading insert_one")
+                #print(found)
+                sensorreadings.insert_one(item)
+            else:
+                #print("update_sensor_reading replace_one")
+                sensorreadings.replace_one({'deviceid': deviceid, 'source': source, 'address': address}, item)
 
     def delete_sensor_reading(self, deviceid, source, address):
         sensorreadings = self.get_sensorreadings_document();
         try:
-            sensorreadings.delete_many({'deviceid': deviceid, 'source': source, 'address': address})
+            if address is None:
+                sensorreadings.delete_many({'deviceid': deviceid, 'source': source})
+            else:
+                sensorreadings.delete_many({'deviceid': deviceid, 'source': source, 'address': address})
         except:
             print("delete_sensor_reading: Exception occurred")
             pass
@@ -602,10 +617,16 @@ class database_client_mongodb:
     def get_sensor_reading_by_deviceid(self, deviceid, source, address):
         sensorreadings = self.get_sensorreadings_document();
         if sensorreadings:
-            for sensorreading in sensorreadings.find({'deviceid': deviceid, 'source': source, 'address': address}):
-                sensorreading.pop('_id')
-                #print(sensorreading['sensor_readings'])
-                return sensorreading['sensor_readings']
+            if address is None:
+                for sensorreading in sensorreadings.find({'deviceid': deviceid, 'source': source}):
+                    sensorreading.pop('_id')
+                    #print(sensorreading['sensor_readings'])
+                    return sensorreading['sensor_readings']
+            else:
+                for sensorreading in sensorreadings.find({'deviceid': deviceid, 'source': source, 'address': address}):
+                    sensorreading.pop('_id')
+                    #print(sensorreading['sensor_readings'])
+                    return sensorreading['sensor_readings']
         return None
 
 
