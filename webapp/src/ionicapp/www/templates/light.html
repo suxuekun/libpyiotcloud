@@ -12,63 +12,55 @@
         <strong> {{ data.devicename }} </strong>
       </p>
     </div>
-    <button id="light-button98" ng-click="viewI2CDevice()" style="font-weight:500;font-size:18px;" class="button button-dark button-block button-clear icon-right ion-android-settings">{{ data.sensor.sensorname }} - I2C {{ data.sensor.number }}</button>
+    <button id="light-button98" ng-click="viewI2CDevice()" style="font-weight:500;font-size:18px;" class="button button-dark button-block button-clear icon-right ion-android-settings">{{ data.sensor.sensorname }} - {{data.source}} {{ data.sensor.number }}</button>
     <form id="light-form99" class="list">
       <div class="spacer" style="width: 480px; height: 20px;"></div>
       <div id="light-markdown123" class="show-list-numbers-and-dots">
-        <p style="color:#387EF5;">Source endpoint</p>
+        <p style="color:#387EF5;">Color usage</p>
       </div>
       <label class="item item-select" id="light-select17">
         <span class="input-label"></span>
-        <select ng-model="data.attributes.endpoint" ng-options="endpoint.id as endpoint.label for endpoint in endpoints" ng-change="changeEndpoint()"></select>
+        <select ng-model="data.attributes.color.usage" ng-options="colorusage.id as colorusage.label for colorusage in colorusages"></select>
       </label>
     </form>
-    <form id="light-form100" class="list">
+    <form id="light-form100" class="list" ng-show="data.attributes.color.usage==0">
       <div id="light-markdown126" class="show-list-numbers-and-dots">
-        <p style="color:#387EF5;">Color</p>
+        <p style="color:#387EF5;">Color settings</p>
       </div>
-      <ion-item class="range range-assertive assertive" id="light-range9">Red
-        <input type="range" value="0" min="0" max="255" step="1" ng-model="data.colorRED" ng-change="computeHexCode()">
-      </ion-item>
-      <ion-item class="range range-balanced balanced" id="light-range10">Green
-        <input type="range" value="0" min="0" max="255" step="1" ng-model="data.colorGREEN" ng-change="computeHexCode()">
-      </ion-item>
-      <ion-item class="range range-positive positive" id="light-range11">Blue
-        <input type="range" value="0" min="0" max="255" step="1" ng-model="data.colorBLUE" ng-change="computeHexCode()">
-      </ion-item>
-      <label class="item item-input" id="light-input95">
-        <span class="input-label">Hex code</span>
-        <input type="text" placeholder="#RRGGBB" ng-model="data.colorstr" ng-keypress="computeRGB($event)">
-      </label>
+      <button id="light-button110" ng-click="configureColor(&quot;RGB&quot;)" style="text-align:left;" class="button button-stable button-large button-block button-outline icon-right ion-ios-arrow-forward">RGB</button>
     </form>
-    <form id="light-form101" class="list" ng-show="data.attributes.endpoint==0">
-      <div id="light-markdown132" class="show-list-numbers-and-dots">
-        <p style="color:#387EF5;">Brightness {{ data.attributes.brightness }}%</p>
+    <form id="light-form119" class="list" ng-show="data.attributes.color.usage==1">
+      <div id="light-markdown174" class="show-list-numbers-and-dots">
+        <p style="color:#387EF5;">Color values</p>
       </div>
-      <ion-item class="range range-positive" id="light-range12">
-        <input type="range" value="50" min="0" max="100" step="1" ng-model="data.attributes.brightness" ng-click="computeBrightness()">
-      </ion-item>
-    </form>
-    <form id="light-form102" class="list" ng-show="data.attributes.endpoint==1">
-      <div id="light-markdown134" class="show-list-numbers-and-dots">
-        <p style="color:#387EF5;">Hardware</p>
-      </div>
-      <label class="item item-select" id="light-select24">
-        <span class="input-label">IoT Modem</span>
-        <select ng-options="device.id as device.devicename for device in devices" ng-model="data.hardware_devicename" ng-change="changeDevice()"></select>
-      </label>
-      <label class="item item-select" id="light-select25">
-        <span class="input-label">I2C Device</span>
-        <select ng-options="i2cdevice.id as i2cdevice.sensorname for i2cdevice in i2cdevices" ng-model="data.hardware_sensorname"></select>
-      </label>
+      <button id="light-button113" ng-click="configureColor(&quot;RED&quot;)" style="text-align:left;" class="button button-assertive button-large button-block button-outline icon-right ion-ios-arrow-forward">Red</button>
+      <button id="light-button114" ng-click="configureColor(&quot;GREEN&quot;)" style="text-align:left;" class="button button-balanced button-large button-block button-outline icon-right ion-ios-arrow-forward">Green</button>
+      <button id="light-button115" ng-click="configureColor(&quot;BLUE&quot;)" style="text-align:left;" class="button button-positive button-large button-block button-outline icon-right ion-ios-arrow-forward">Blue</button>
     </form>
     <form id="light-form103" class="list">
       <div id="light-markdown135" class="show-list-numbers-and-dots">
-        <p style="color:#387EF5;">Timeout (seconds)</p>
+        <p style="color:#387EF5;">Fadeout time (sec)</p>
       </div>
       <label class="item item-input" id="light-input96">
-        <input type="number" placeholder="" ng-model="data.attributes.timeout">
+        <input type="number" placeholder="" ng-model="data.attributes.fadeouttime">
       </label>
+      <div id="light-markdown182" class="show-list-numbers-and-dots">
+        <p style="color:#387EF5;">{{ data.attributes.color.single.manual}}</p>
+
+        <p style="color:#387EF5;">{{ data.attributes.color.single.hardware}}</p>
+
+        <p style="color:#387EF5;">{{ data.attributes.color.individual.red.manual}}</p>
+
+        <p style="color:#387EF5;">{{ data.attributes.color.individual.red.hardware}}</p>
+
+        <p style="color:#387EF5;">{{ data.attributes.color.individual.green.manual}}</p>
+
+        <p style="color:#387EF5;">{{ data.attributes.color.individual.green.hardware}}</p>
+
+        <p style="color:#387EF5;">{{ data.attributes.color.individual.blue.manual}}</p>
+
+        <p style="color:#387EF5;">{{ data.attributes.color.individual.blue.hardware}}</p>
+      </div>
     </form>
     <form id="light-form104" class="list">
       <button id="light-button99" ng-click="submit()" class="button button-positive button-block">SAVE</button>

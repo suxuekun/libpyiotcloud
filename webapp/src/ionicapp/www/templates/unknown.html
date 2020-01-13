@@ -9,6 +9,6 @@
         <strong> {{ data.devicename }} </strong>
       </p>
     </div>
-    <button id="unknown-button92" ng-click="viewI2CDevice()" style="font-weight:500;font-size:18px;" class="button button-dark button-block button-clear icon-right ion-android-settings">{{ data.sensor.sensorname }} - I2C {{ data.sensor.number }}</button>
+    <button id="unknown-button92" ng-click="viewI2CDevice()" style="font-weight:500;font-size:18px;" class="button button-dark button-block button-clear icon-right ion-android-settings">{{ data.sensor.sensorname }} - {{data.source}} {{ data.sensor.number }}</button>
   </ion-content>
 </ion-view>

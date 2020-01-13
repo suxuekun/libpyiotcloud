@@ -1,0 +1,49 @@
+<ion-view title="Device ADC" hide-back-button="true" cache-view="false" nav-transition="none" id="page35" class="page_width">
+  <ion-nav-buttons side="left" class="has-header">
+    <button class="button button-icon icon ion-android-close" ng-click="submitDeviceList()"></button>
+  </ion-nav-buttons>
+  <ion-nav-buttons side="right" class="has-header">
+    <button class="button button-positive icon ion-refresh" ng-click="getADCSensors()"></button>
+  </ion-nav-buttons>
+  <ion-content padding="true" class="has-header">
+    <div class="spacer" style="width: 300px; height: 12px;"></div>
+    <div id="deviceADC-markdown151" style="text-align:center;" class="show-list-numbers-and-dots">
+      <p style="color:#387EF5;font-size:18px;">
+        <strong> {{ data.devicename }} </strong>
+      </p>
+    </div>
+    <div id="deviceADC-button-bar7" class="button-bar">
+      <button id="deviceADC-button104" ng-class="{'active': data.activeSection==1}" ng-click="changeSection(1)" class="button button-positive button-small button-block">ADC 1</button>
+      <button id="deviceADC-button105" ng-class="{'active': data.activeSection==2}" ng-click="changeSection(2)" class="button button-positive button-small button-block">ADC 2</button>
+    </div>
+    <form id="deviceADC-form113" class="list">
+      <label class="item item-select" id="deviceADC-select11">
+        <span class="input-label">Voltage</span>
+        <select ng-model="data.voltage" ng-options="voltage.id as voltage.label for voltage in voltages"></select>
+      </label>
+      <button id="deviceADC-button106" ng-click="set_adc_voltage()" class="button button-stable button-block button-outline">Set Voltage</button>
+    </form>
+    <div id="deviceADC-markdown152" class="show-list-numbers-and-dots">
+      <p style="color:#AAAAAA;font-size:12px;">{{ sensors_counthdr }}</p>
+    </div>
+    <ion-list id="deviceADC-list10">
+      <div class="item item-body" id="deviceADC-list-item-container6" ng-repeat="sensor in sensors" ng-click="processSensor(sensor)">
+        <div id="deviceADC-markdown153" class="show-list-numbers-and-dots">
+          <p style="margin-top:0px;color:#387EF5;font-size:18px;">
+            <strong> {{ sensor.sensorname }} </strong>
+          </p>
+        </div>
+        <div id="deviceADC-markdown154" class="show-list-numbers-and-dots">
+          <p style="margin-top:0px;color:#444444;font-size:10px;">{{ sensor.manufacturer }}</p>
+        </div>
+        <div id="deviceADC-markdown155" class="show-list-numbers-and-dots">
+          <p style="margin-top:0px;color:#444444;font-size:10px;">{{ sensor.model }}</p>
+        </div>
+        <div id="deviceADC-markdown156" class="show-list-numbers-and-dots">
+          <p style="margin-top:0px;color:#444444;font-size:10px;">{{ sensor.enabled }}</p>
+        </div>
+      </div>
+    </ion-list>
+    <button id="deviceADC-button108" ng-click="addADCDevice()" class="button button-positive button-large button-block button-clear icon-right ion-android-add-circle"></button>
+  </ion-content>
+</ion-view>

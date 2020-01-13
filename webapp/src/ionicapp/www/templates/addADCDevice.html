@@ -1,0 +1,44 @@
+<ion-view title="Add ADC Device" hide-back-button="true" cache-view="false" nav-transition="none" id="page39" class="page_width">
+  <ion-nav-buttons side="left" class="has-header">
+    <button class="button button-icon icon ion-android-close" ng-click="submitDeviceList()"></button>
+  </ion-nav-buttons>
+  <ion-nav-buttons side="right" class="has-header">
+    <button class="button button-positive icon ion-refresh" ng-click="getADCDevices()"></button>
+  </ion-nav-buttons>
+  <ion-content padding="true" class="has-header">
+    <div class="spacer" style="width: 300px; height: 12px;"></div>
+    <div id="addADCDevice-markdown183" style="text-align:center;" class="show-list-numbers-and-dots">
+      <p style="color:#387EF5;font-size:18px;">
+        <strong> {{ data.devicename }} </strong>
+      </p>
+    </div>
+    <div id="addADCDevice-markdown184" style="text-align:center;" class="show-list-numbers-and-dots">
+      <p style="color:#444444;font-size:18px;">
+        <strong> ADC {{ data.adcnumber }} </strong>
+      </p>
+    </div>
+    <div class="spacer" style="width: 300px; height: 10px;"></div>
+    <div id="addADCDevice-markdown185" class="show-list-numbers-and-dots">
+      <p style="color:#387EF5;">Manufacturer</p>
+    </div>
+    <form id="addADCDevice-form127" class="list">
+      <label class="item item-select" id="addADCDevice-select56">
+        <span class="input-label"></span>
+        <select ng-model="data.adc.manufacturerid" ng-options="manufacturer.id as manufacturer.name for manufacturer in manufacturers"></select>
+      </label>
+    </form>
+    <div id="addADCDevice-markdown186" class="show-list-numbers-and-dots">
+      <hr>
+    </div>
+    <div id="addADCDevice-markdown187" class="show-list-numbers-and-dots">
+      <p style="color:#387EF5;">Device Models</p>
+    </div>
+    <form id="addADCDevice-form128" class="list" ng-show="data.adc.manufacturerid==0">
+      <label class="item item-select" id="addADCDevice-select57">
+        <span class="input-label"></span>
+        <select ng-model="data.adc.devicemodelid" ng-options="devicemodel.id as devicemodel.model for devicemodel in devicemodels_unk"></select>
+      </label>
+    </form>
+    <button id="addADCDevice-button116" ng-click="submitAdd()" class="button button-positive button-block">NEXT</button>
+  </ion-content>
+</ion-view>

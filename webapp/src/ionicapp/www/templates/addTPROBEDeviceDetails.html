@@ -1,0 +1,76 @@
+<ion-view title="Add TPROBE Device Details" hide-back-button="true" cache-view="false" nav-transition="none" id="page16" class="page_width">
+  <ion-nav-buttons side="left" class="has-header">
+    <button class="button button-icon icon ion-android-close" ng-click="submitDeviceList()"></button>
+  </ion-nav-buttons>
+  <ion-nav-buttons side="right" class="has-header">
+    <button class="button button-positive icon ion-refresh" ng-click="getTPROBEDevices()"></button>
+  </ion-nav-buttons>
+  <ion-content padding="true" class="has-header">
+    <form id="addTPROBEDeviceDetails-form142" class="list">
+      <div class="spacer" style="width: 300px; height: 10px;"></div>
+      <div id="addTPROBEDeviceDetails-markdown157" style="text-align:center;" class="show-list-numbers-and-dots">
+        <p style="color:#387EF5;font-size:18px;">
+          <strong> {{ data.devicename }} </strong>
+        </p>
+      </div>
+      <div id="addTPROBEDeviceDetails-markdown158" style="text-align:center;" class="show-list-numbers-and-dots">
+        <p style="color:#444444;font-size:18px;">
+          <strong> TPROBE </strong>
+        </p>
+      </div>
+      <div class="spacer" style="width: 300px; height: 10px;"></div>
+      <div id="addTPROBEDeviceDetails-markdown159" class="show-list-numbers-and-dots">
+        <p style="color:#387EF5;">Manufacturer</p>
+      </div>
+      <div id="addTPROBEDeviceDetails-markdown160" class="show-list-numbers-and-dots">
+        <p style="color:#444444;font-size:18px;">
+          <strong> {{ data.tprobe.manufacturer }} </strong>
+        </p>
+      </div>
+      <div id="addTPROBEDeviceDetails-markdown161" class="show-list-numbers-and-dots">
+        <p style="color:#387EF5;">Device Model</p>
+      </div>
+      <div id="addTPROBEDeviceDetails-markdown162" class="show-list-numbers-and-dots">
+        <p style="color:#444444;font-size:18px;">
+          <strong> {{ data.tprobe.model }} </strong> ({{ data.tprobe.name }})</p>
+      </div>
+      <div id="addTPROBEDeviceDetails-markdown163" class="show-list-numbers-and-dots">
+        <p style="color:#387EF5;">Device Description</p>
+      </div>
+      <div id="addTPROBEDeviceDetails-markdown164" class="show-list-numbers-and-dots">
+        <p style="color:#444444;font-size:18px;">{{ data.tprobe.desc }}</p>
+      </div>
+      <div id="addTPROBEDeviceDetails-markdown165" class="show-list-numbers-and-dots">
+        <p style="color:#387EF5;">Device Link</p>
+      </div>
+      <div id="addTPROBEDeviceDetails-markdown166" class="show-list-numbers-and-dots">
+        <p style="color:#444444;font-size:18px;">{{ data.tprobe.link }}</p>
+      </div>
+      <div id="addTPROBEDeviceDetails-markdown167" class="show-list-numbers-and-dots">
+        <p style="color:#387EF5;">Device Class</p>
+      </div>
+      <div id="addTPROBEDeviceDetails-markdown168" class="show-list-numbers-and-dots">
+        <p style="color:#444444;font-size:18px;">{{ data.tprobe.class }}</p>
+      </div>
+      <div id="addTPROBEDeviceDetails-markdown217" class="show-list-numbers-and-dots">
+        <p style="color:#387EF5;">Device Type</p>
+      </div>
+      <div id="addTPROBEDeviceDetails-markdown218" class="show-list-numbers-and-dots">
+        <p style="color:#444444;font-size:18px;">{{ data.tprobe.type }}</p>
+      </div>
+    </form>
+    <div id="addTPROBEDeviceDetails-markdown227" class="show-list-numbers-and-dots">
+      <hr>
+    </div>
+    <form id="addTPROBEDeviceDetails-form143" class="list">
+      <div id="addTPROBEDeviceDetails-markdown228" class="show-list-numbers-and-dots">
+        <p style="color:#387EF5;">Provide the details below</p>
+      </div>
+      <label class="item item-input" id="addTPROBEDeviceDetails-input120">
+        <span class="input-label">Name</span>
+        <input type="text" placeholder="" ng-model="data.sensorname">
+      </label>
+    </form>
+    <button id="addTPROBEDeviceDetails-button111" ng-click="addTPROBESensor()" class="button button-positive button-block">ADD</button>
+  </ion-content>
+</ion-view>

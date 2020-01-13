@@ -1,0 +1,76 @@
+<ion-view title="Add ADC Device Details" hide-back-button="true" cache-view="false" nav-transition="none" id="page40" class="page_width">
+  <ion-nav-buttons side="left" class="has-header">
+    <button class="button button-icon icon ion-android-close" ng-click="submitDeviceList()"></button>
+  </ion-nav-buttons>
+  <ion-nav-buttons side="right" class="has-header">
+    <button class="button button-positive icon ion-refresh" ng-click="getI2CDevices()"></button>
+  </ion-nav-buttons>
+  <ion-content padding="true" class="has-header">
+    <form id="addADCDeviceDetails-form117" class="list">
+      <div class="spacer" style="width: 300px; height: 10px;"></div>
+      <div id="addADCDeviceDetails-markdown173" style="text-align:center;" class="show-list-numbers-and-dots">
+        <p style="color:#387EF5;font-size:18px;">
+          <strong> {{ data.devicename }} </strong>
+        </p>
+      </div>
+      <div id="addADCDeviceDetails-markdown188" style="text-align:center;" class="show-list-numbers-and-dots">
+        <p style="color:#444444;font-size:18px;">
+          <strong> ADC {{ data.adcnumber }} </strong>
+        </p>
+      </div>
+      <div class="spacer" style="width: 300px; height: 10px;"></div>
+      <div id="addADCDeviceDetails-markdown189" class="show-list-numbers-and-dots">
+        <p style="color:#387EF5;">Manufacturer</p>
+      </div>
+      <div id="addADCDeviceDetails-markdown190" class="show-list-numbers-and-dots">
+        <p style="color:#444444;font-size:18px;">
+          <strong> {{ data.adc.manufacturer }} </strong>
+        </p>
+      </div>
+      <div id="addADCDeviceDetails-markdown191" class="show-list-numbers-and-dots">
+        <p style="color:#387EF5;">Device Model</p>
+      </div>
+      <div id="addADCDeviceDetails-markdown192" class="show-list-numbers-and-dots">
+        <p style="color:#444444;font-size:18px;">
+          <strong> {{ data.adc.model }} </strong> ({{ data.adc.name }})</p>
+      </div>
+      <div id="addADCDeviceDetails-markdown193" class="show-list-numbers-and-dots">
+        <p style="color:#387EF5;">Device Description</p>
+      </div>
+      <div id="addADCDeviceDetails-markdown194" class="show-list-numbers-and-dots">
+        <p style="color:#444444;font-size:18px;">{{ data.adc.desc }}</p>
+      </div>
+      <div id="addADCDeviceDetails-markdown195" class="show-list-numbers-and-dots">
+        <p style="color:#387EF5;">Device Link</p>
+      </div>
+      <div id="addADCDeviceDetails-markdown196" class="show-list-numbers-and-dots">
+        <p style="color:#444444;font-size:18px;">{{ data.adc.link }}</p>
+      </div>
+      <div id="addADCDeviceDetails-markdown197" class="show-list-numbers-and-dots">
+        <p style="color:#387EF5;">Device Class</p>
+      </div>
+      <div id="addADCDeviceDetails-markdown198" class="show-list-numbers-and-dots">
+        <p style="color:#444444;font-size:18px;">{{ data.adc.class }}</p>
+      </div>
+      <div id="addADCDeviceDetails-markdown199" class="show-list-numbers-and-dots">
+        <p style="color:#387EF5;">Device Type</p>
+      </div>
+      <div id="addADCDeviceDetails-markdown200" class="show-list-numbers-and-dots">
+        <p style="color:#444444;font-size:18px;">{{ data.adc.type }}</p>
+      </div>
+    </form>
+    <div id="addADCDeviceDetails-markdown201" class="show-list-numbers-and-dots">
+      <hr>
+    </div>
+    <form id="addADCDeviceDetails-form131" class="list">
+      <div id="addADCDeviceDetails-markdown202" class="show-list-numbers-and-dots">
+        <p style="color:#387EF5;">Provide the details below</p>
+      </div>
+      <label class="item item-input" id="addADCDeviceDetails-input109">
+        <span class="input-label">Name</span>
+        <input type="text" placeholder="" ng-model="data.sensorname">
+      </label>
+    </form>
+    <button id="addADCDeviceDetails-button107" ng-click="addADCSensor()" class="button button-positive button-block">ADD</button>
+  </ion-content>
+</ion-view>

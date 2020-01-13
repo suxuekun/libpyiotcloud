@@ -204,20 +204,6 @@ angular.module('app.routes', [])
     controller: 'configureDeviceCtrl'
   })
 
-  .state('deviceEthernet', {
-    url: '/page_device_ethernet',
-	params: {
-		devicename: "",
-		username: "",
-		token: "",
-		devicestatus: "",
-		deviceid: "",
-		serialnumber: ""		
-},
-    templateUrl: 'templates/deviceEthernet.html',
-    controller: 'deviceEthernetCtrl'
-  })
-
   .state('deviceGPIO', {
     url: '/page_device_gpio',
 	params: {
@@ -260,6 +246,48 @@ angular.module('app.routes', [])
     controller: 'deviceI2CCtrl'
   })
 
+  .state('deviceADC', {
+    url: '/page_device_adc',
+	params: {
+		devicename: "",
+		username: "",
+		token: "",
+		devicestatus: "",
+		deviceid: "",
+		serialnumber: ""		
+},
+    templateUrl: 'templates/deviceADC.html',
+    controller: 'deviceADCCtrl'
+  })
+
+  .state('deviceTPROBE', {
+    url: '/page_device_tprobe',
+	params: {
+		devicename: "",
+		username: "",
+		token: "",
+		devicestatus: "",
+		deviceid: "",
+		serialnumber: ""		
+},
+    templateUrl: 'templates/deviceTPROBE.html',
+    controller: 'deviceTPROBECtrl'
+  })
+
+  .state('device1WIRE', {
+    url: '/page47',
+	params: {
+		devicename: "",
+		username: "",
+		token: "",
+		devicestatus: "",
+		deviceid: "",
+		serialnumber: ""		
+},
+    templateUrl: 'templates/device1WIRE.html',
+    controller: 'device1WIRECtrl'
+  })
+
   .state('viewI2CDevice', {
     url: '/page_view_i2c_device',
 	params: {
@@ -269,10 +297,63 @@ angular.module('app.routes', [])
 		devicestatus: "",
 		deviceid: "",
 		serialnumber: "",
-		sensor: ""		
+		sensor: "",
+		attributes: "",
+		source: ""		
 },
     templateUrl: 'templates/viewI2CDevice.html',
     controller: 'viewI2CDeviceCtrl'
+  })
+
+  .state('viewADCDevice', {
+    url: '/page_view_adc_device',
+	params: {
+		devicename: "",
+		username: "",
+		token: "",
+		devicestatus: "",
+		deviceid: "",
+		serialnumber: "",
+		sensor: "",
+		attributes: "",
+		source: ""		
+},
+    templateUrl: 'templates/viewADCDevice.html',
+    controller: 'viewADCDeviceCtrl'
+  })
+
+  .state('viewTPROBEDevice', {
+    url: '/page_view_tprobe_device',
+	params: {
+		devicename: "",
+		username: "",
+		token: "",
+		devicestatus: "",
+		deviceid: "",
+		serialnumber: "",
+		sensor: "",
+		attributes: "",
+		source: ""		
+},
+    templateUrl: 'templates/viewTPROBEDevice.html',
+    controller: 'viewTPROBEDeviceCtrl'
+  })
+
+  .state('view1WIREDevice', {
+    url: '/page46',
+	params: {
+		devicename: "",
+		username: "",
+		token: "",
+		devicestatus: "",
+		deviceid: "",
+		serialnumber: "",
+		sensor: "",
+		attributes: "",
+		source: ""		
+},
+    templateUrl: 'templates/view1WIREDevice.html',
+    controller: 'view1WIREDeviceCtrl'
   })
 
   .state('unknown', {
@@ -291,7 +372,7 @@ angular.module('app.routes', [])
   })
 
   .state('light', {
-    url: '/page34',
+    url: '/page_light',
 	params: {
 		devicename: "",
 		username: "",
@@ -299,10 +380,29 @@ angular.module('app.routes', [])
 		devicestatus: "",
 		deviceid: "",
 		serialnumber: "",
-		sensor: ""		
+		sensor: "",
+		attributes: "",
+		source: ""		
 },
     templateUrl: 'templates/light.html',
     controller: 'lightCtrl'
+  })
+
+  .state('lightRGB', {
+    url: '/page_light_RGB',
+	params: {
+		devicename: "",
+		username: "",
+		token: "",
+		devicestatus: "",
+		deviceid: "",
+		serialnumber: "",
+		sensor: "",
+		attributes: "",
+		colortype: ""		
+},
+    templateUrl: 'templates/lightRGB.html',
+    controller: 'lightRGBCtrl'
   })
 
   .state('temperature', {
@@ -314,7 +414,8 @@ angular.module('app.routes', [])
 		devicestatus: "",
 		deviceid: "",
 		serialnumber: "",
-		sensor: ""		
+		sensor: "",
+		source: ""		
 },
     templateUrl: 'templates/temperature.html',
     controller: 'temperatureCtrl'
@@ -329,7 +430,8 @@ angular.module('app.routes', [])
 		devicestatus: "",
 		deviceid: "",
 		serialnumber: "",
-		sensor: ""		
+		sensor: "",
+		source: ""		
 },
     templateUrl: 'templates/display.html',
     controller: 'displayCtrl'
@@ -344,7 +446,8 @@ angular.module('app.routes', [])
 		devicestatus: "",
 		deviceid: "",
 		serialnumber: "",
-		sensor: ""		
+		sensor: "",
+		source: ""		
 },
     templateUrl: 'templates/speaker.html',
     controller: 'speakerCtrl'
@@ -359,10 +462,27 @@ angular.module('app.routes', [])
 		devicestatus: "",
 		deviceid: "",
 		serialnumber: "",
-		sensor: ""		
+		sensor: "",
+		source: ""		
 },
     templateUrl: 'templates/potentiometer.html',
     controller: 'potentiometerCtrl'
+  })
+
+  .state('anemometer', {
+    url: '/page_anenometer',
+	params: {
+		devicename: "",
+		username: "",
+		token: "",
+		devicestatus: "",
+		deviceid: "",
+		serialnumber: "",
+		sensor: "",
+		source: ""		
+},
+    templateUrl: 'templates/anemometer.html',
+    controller: 'anemometerCtrl'
   })
 
   .state('addI2CDevice', {
@@ -380,6 +500,51 @@ angular.module('app.routes', [])
     controller: 'addI2CDeviceCtrl'
   })
 
+  .state('addADCDevice', {
+    url: '/page_add_adc_device',
+	params: {
+		devicename: "",
+		username: "",
+		token: "",
+		devicestatus: "",
+		deviceid: "",
+		serialnumber: "",
+		adcnumber: ""		
+},
+    templateUrl: 'templates/addADCDevice.html',
+    controller: 'addADCDeviceCtrl'
+  })
+
+  .state('addTPROBEDevice', {
+    url: '/page_add_tprobe_device',
+	params: {
+		devicename: "",
+		username: "",
+		token: "",
+		devicestatus: "",
+		deviceid: "",
+		serialnumber: "",
+		tprobenumber: ""		
+},
+    templateUrl: 'templates/addTPROBEDevice.html',
+    controller: 'addTPROBEDeviceCtrl'
+  })
+
+  .state('add1WIREDevice', {
+    url: '/page45',
+	params: {
+		devicename: "",
+		username: "",
+		token: "",
+		devicestatus: "",
+		deviceid: "",
+		serialnumber: "",
+		onewirenumber: ""		
+},
+    templateUrl: 'templates/add1WIREDevice.html',
+    controller: 'add1WIREDeviceCtrl'
+  })
+
   .state('addI2CDeviceDetails', {
     url: '/page_add_i2c_device_details',
 	params: {
@@ -394,6 +559,54 @@ angular.module('app.routes', [])
 },
     templateUrl: 'templates/addI2CDeviceDetails.html',
     controller: 'addI2CDeviceDetailsCtrl'
+  })
+
+  .state('addADCDeviceDetails', {
+    url: '/page_add_adc_device_details',
+	params: {
+		devicename: "",
+		username: "",
+		token: "",
+		devicestatus: "",
+		deviceid: "",
+		serialnumber: "",
+		adc: "",
+		adcnumber: ""		
+},
+    templateUrl: 'templates/addADCDeviceDetails.html',
+    controller: 'addADCDeviceDetailsCtrl'
+  })
+
+  .state('addTPROBEDeviceDetails', {
+    url: '/page16',
+	params: {
+		devicename: "",
+		username: "",
+		token: "",
+		devicestatus: "",
+		deviceid: "",
+		serialnumber: "",
+		tprobe: "",
+		tprobenumber: ""		
+},
+    templateUrl: 'templates/addTPROBEDeviceDetails.html',
+    controller: 'addTPROBEDeviceDetailsCtrl'
+  })
+
+  .state('add1WIREDeviceDetails', {
+    url: '/page43',
+	params: {
+		devicename: "",
+		username: "",
+		token: "",
+		devicestatus: "",
+		deviceid: "",
+		serialnumber: "",
+		onewire: "",
+		onewirenumber: ""		
+},
+    templateUrl: 'templates/add1WIREDeviceDetails.html',
+    controller: 'add1WIREDeviceDetailsCtrl'
   })
 
   .state('deviceNotifications', {

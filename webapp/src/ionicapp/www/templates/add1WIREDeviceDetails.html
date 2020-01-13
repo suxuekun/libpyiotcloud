@@ -1,0 +1,76 @@
+<ion-view title="Add 1WIRE Device Details" hide-back-button="true" cache-view="false" nav-transition="none" id="page43" class="page_width">
+  <ion-nav-buttons side="left" class="has-header">
+    <button class="button button-icon icon ion-android-close" ng-click="submitDeviceList()"></button>
+  </ion-nav-buttons>
+  <ion-nav-buttons side="right" class="has-header">
+    <button class="button button-positive icon ion-refresh" ng-click="get1WIREDevices()"></button>
+  </ion-nav-buttons>
+  <ion-content padding="true" class="has-header">
+    <form id="add1WIREDeviceDetails-form150" class="list">
+      <div class="spacer" style="width: 300px; height: 10px;"></div>
+      <div id="add1WIREDeviceDetails-markdown253" style="text-align:center;" class="show-list-numbers-and-dots">
+        <p style="color:#387EF5;font-size:18px;">
+          <strong> {{ data.devicename }} </strong>
+        </p>
+      </div>
+      <div id="add1WIREDeviceDetails-markdown254" style="text-align:center;" class="show-list-numbers-and-dots">
+        <p style="color:#444444;font-size:18px;">
+          <strong> 1WIRE </strong>
+        </p>
+      </div>
+      <div class="spacer" style="width: 300px; height: 10px;"></div>
+      <div id="add1WIREDeviceDetails-markdown255" class="show-list-numbers-and-dots">
+        <p style="color:#387EF5;">Manufacturer</p>
+      </div>
+      <div id="add1WIREDeviceDetails-markdown256" class="show-list-numbers-and-dots">
+        <p style="color:#444444;font-size:18px;">
+          <strong> {{ data.onewire.manufacturer }} </strong>
+        </p>
+      </div>
+      <div id="add1WIREDeviceDetails-markdown257" class="show-list-numbers-and-dots">
+        <p style="color:#387EF5;">Device Model</p>
+      </div>
+      <div id="add1WIREDeviceDetails-markdown258" class="show-list-numbers-and-dots">
+        <p style="color:#444444;font-size:18px;">
+          <strong> {{ data.onewire.model }} </strong> ({{ data.onewire.name }})</p>
+      </div>
+      <div id="add1WIREDeviceDetails-markdown259" class="show-list-numbers-and-dots">
+        <p style="color:#387EF5;">Device Description</p>
+      </div>
+      <div id="add1WIREDeviceDetails-markdown260" class="show-list-numbers-and-dots">
+        <p style="color:#444444;font-size:18px;">{{ data.onewire.desc }}</p>
+      </div>
+      <div id="add1WIREDeviceDetails-markdown261" class="show-list-numbers-and-dots">
+        <p style="color:#387EF5;">Device Link</p>
+      </div>
+      <div id="add1WIREDeviceDetails-markdown262" class="show-list-numbers-and-dots">
+        <p style="color:#444444;font-size:18px;">{{ data.onewire.link }}</p>
+      </div>
+      <div id="add1WIREDeviceDetails-markdown263" class="show-list-numbers-and-dots">
+        <p style="color:#387EF5;">Device Class</p>
+      </div>
+      <div id="add1WIREDeviceDetails-markdown264" class="show-list-numbers-and-dots">
+        <p style="color:#444444;font-size:18px;">{{ data.onewire.class }}</p>
+      </div>
+      <div id="add1WIREDeviceDetails-markdown265" class="show-list-numbers-and-dots">
+        <p style="color:#387EF5;">Device Type</p>
+      </div>
+      <div id="add1WIREDeviceDetails-markdown266" class="show-list-numbers-and-dots">
+        <p style="color:#444444;font-size:18px;">{{ data.onewire.type }}</p>
+      </div>
+    </form>
+    <div id="add1WIREDeviceDetails-markdown267" class="show-list-numbers-and-dots">
+      <hr>
+    </div>
+    <form id="add1WIREDeviceDetails-form151" class="list">
+      <div id="add1WIREDeviceDetails-markdown268" class="show-list-numbers-and-dots">
+        <p style="color:#387EF5;">Provide the details below</p>
+      </div>
+      <label class="item item-input" id="add1WIREDeviceDetails-input121">
+        <span class="input-label">Name</span>
+        <input type="text" placeholder="" ng-model="data.sensorname">
+      </label>
+    </form>
+    <button id="add1WIREDeviceDetails-button129" ng-click="add1WIRESensor()" class="button button-positive button-block">ADD</button>
+  </ion-content>
+</ion-view>
