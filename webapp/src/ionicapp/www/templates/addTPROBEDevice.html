@@ -1,0 +1,44 @@
+<ion-view title="Add TPROBE Device" hide-back-button="true" cache-view="false" nav-transition="none" id="page37" class="page_width">
+  <ion-nav-buttons side="left" class="has-header">
+    <button class="button button-icon icon ion-android-close" ng-click="submitDeviceList()"></button>
+  </ion-nav-buttons>
+  <ion-nav-buttons side="right" class="has-header">
+    <button class="button button-positive icon ion-refresh" ng-click="getTPROBEDevices()"></button>
+  </ion-nav-buttons>
+  <ion-content padding="true" class="has-header">
+    <div class="spacer" style="width: 300px; height: 12px;"></div>
+    <div id="addTPROBEDevice-markdown229" style="text-align:center;" class="show-list-numbers-and-dots">
+      <p style="color:#387EF5;font-size:18px;">
+        <strong> {{ data.devicename }} </strong>
+      </p>
+    </div>
+    <div id="addTPROBEDevice-markdown230" style="text-align:center;" class="show-list-numbers-and-dots">
+      <p style="color:#444444;font-size:18px;">
+        <strong> TPROBE </strong>
+      </p>
+    </div>
+    <div class="spacer" style="width: 300px; height: 10px;"></div>
+    <div id="addTPROBEDevice-markdown231" class="show-list-numbers-and-dots">
+      <p style="color:#387EF5;">Manufacturer</p>
+    </div>
+    <form id="addTPROBEDevice-form144" class="list">
+      <label class="item item-select" id="addTPROBEDevice-select63">
+        <span class="input-label"></span>
+        <select ng-model="data.tprobe.manufacturerid" ng-options="manufacturer.id as manufacturer.name for manufacturer in manufacturers"></select>
+      </label>
+    </form>
+    <div id="addTPROBEDevice-markdown232" class="show-list-numbers-and-dots">
+      <hr>
+    </div>
+    <div id="addTPROBEDevice-markdown233" class="show-list-numbers-and-dots">
+      <p style="color:#387EF5;">Device Models</p>
+    </div>
+    <form id="addTPROBEDevice-form148" class="list" ng-show="data.tprobe.manufacturerid==0">
+      <label class="item item-select" id="addTPROBEDevice-select64">
+        <span class="input-label"></span>
+        <select ng-model="data.tprobe.devicemodelid" ng-options="devicemodel.id as devicemodel.model for devicemodel in devicemodels_its"></select>
+      </label>
+    </form>
+    <button id="addTPROBEDevice-button112" ng-click="submitAdd()" class="button button-positive button-block">NEXT</button>
+  </ion-content>
+</ion-view>

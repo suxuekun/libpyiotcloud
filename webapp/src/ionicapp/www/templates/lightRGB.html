@@ -1,0 +1,144 @@
+<ion-view title="Light RGB" hide-back-button="true" cache-view="false" nav-transition="none" id="page38" class="page_width">
+  <ion-nav-buttons side="left" class="has-header">
+    <button class="button button-icon icon ion-android-close" ng-click="submitExit()"></button>
+  </ion-nav-buttons>
+  <ion-content padding="true" class="has-header">
+    <div class="spacer" style="width: 300px; height: 12px;"></div>
+    <div id="lightRGB-markdown169" style="text-align:center;" class="show-list-numbers-and-dots">
+      <p style="color:#387EF5;font-size:18px;">
+        <strong> {{ data.colortype }} </strong>
+      </p>
+    </div>
+    <div class="spacer" style="width: 480px; height: 20px;"></div>
+    <form id="lightRGB-form114" class="list" ng-show="data.colortype==&quot;RGB&quot;">
+      <div id="lightRGB-markdown170" class="show-list-numbers-and-dots">
+        <p style="color:#387EF5;">Source endpoint</p>
+      </div>
+      <label class="item item-select" id="lightRGB-select46">
+        <span class="input-label"></span>
+        <select ng-model="data.attributes.color.single.endpoint" ng-options="endpoint.id as endpoint.label for endpoint in endpoints" ng-change="changeEndpoint()"></select>
+      </label>
+    </form>
+    <form id="lightRGB-form121" class="list" ng-show="data.colortype==&quot;RED&quot;">
+      <div id="lightRGB-markdown176" class="show-list-numbers-and-dots">
+        <p style="color:#387EF5;">Source endpoint</p>
+      </div>
+      <label class="item item-select" id="lightRGB-select24">
+        <span class="input-label"></span>
+        <select ng-model="data.attributes.color.individual.red.endpoint" ng-options="endpoint.id as endpoint.label for endpoint in endpoints" ng-change="changeEndpoint()"></select>
+      </label>
+    </form>
+    <form id="lightRGB-form122" class="list" ng-show="data.colortype==&quot;GREEN&quot;">
+      <div id="lightRGB-markdown177" class="show-list-numbers-and-dots">
+        <p style="color:#387EF5;">Source endpoint</p>
+      </div>
+      <label class="item item-select" id="lightRGB-select25">
+        <span class="input-label"></span>
+        <select ng-model="data.attributes.color.individual.green.endpoint" ng-options="endpoint.id as endpoint.label for endpoint in endpoints" ng-change="changeEndpoint()"></select>
+      </label>
+    </form>
+    <form id="lightRGB-form123" class="list" ng-show="data.colortype==&quot;BLUE&quot;">
+      <div id="lightRGB-markdown178" class="show-list-numbers-and-dots">
+        <p style="color:#387EF5;">Source endpoint</p>
+      </div>
+      <label class="item item-select" id="lightRGB-select49">
+        <span class="input-label"></span>
+        <select ng-model="data.attributes.color.individual.blue.endpoint" ng-options="endpoint.id as endpoint.label for endpoint in endpoints" ng-change="changeEndpoint()"></select>
+      </label>
+    </form>
+    <form id="lightRGB-form115" class="list" ng-show="data.colortype==&quot;RGB&quot; &amp;&amp; data.attributes.color.single.endpoint==0">
+      <div id="lightRGB-markdown171" class="show-list-numbers-and-dots">
+        <p style="color:#387EF5;">Color {{ data.attributes.color.single.manual }}</p>
+      </div>
+      <ion-item class="range range-assertive assertive" id="lightRGB-range13">Red
+        <input type="range" value="0" min="0" max="255" step="1" ng-model="datatemp.colorRED" ng-change="computeHexCode()">
+      </ion-item>
+      <ion-item class="range range-balanced balanced" id="lightRGB-range14">Green
+        <input type="range" value="0" min="0" max="255" step="1" ng-model="datatemp.colorGREEN" ng-change="computeHexCode()">
+      </ion-item>
+      <ion-item class="range range-positive positive" id="lightRGB-range15">Blue
+        <input type="range" value="0" min="0" max="255" step="1" ng-model="datatemp.colorBLUE" ng-change="computeHexCode()">
+      </ion-item>
+    </form>
+    <form id="lightRGB-form101" class="list" ng-show="data.colortype==&quot;RED&quot; &amp;&amp; data.attributes.color.individual.red.endpoint==0">
+      <div id="lightRGB-markdown132" class="show-list-numbers-and-dots">
+        <p style="color:#387EF5;">Color {{ data.attributes.color.individual.red.manual }}</p>
+      </div>
+      <ion-item class="range range-assertive assertive" id="lightRGB-range16">Red
+        <input type="range" value="0" min="0" max="255" step="1" ng-model="data.attributes.color.individual.red.manual" ng-change="computeHexCode()">
+      </ion-item>
+    </form>
+    <form id="lightRGB-form102" class="list" ng-show="data.colortype==&quot;GREEN&quot; &amp;&amp; data.attributes.color.individual.green.endpoint==0">
+      <div id="lightRGB-markdown134" class="show-list-numbers-and-dots">
+        <p style="color:#387EF5;">Color {{ data.attributes.color.individual.green.manual }}</p>
+      </div>
+      <ion-item class="range range-balanced balanced" id="lightRGB-range20">Green
+        <input type="range" value="0" min="0" max="255" step="1" ng-model="data.attributes.color.individual.green.manual" ng-change="computeHexCode()">
+      </ion-item>
+    </form>
+    <form id="lightRGB-form120" class="list" ng-show="data.colortype==&quot;BLUE&quot; &amp;&amp; data.attributes.color.individual.blue.endpoint==0">
+      <div id="lightRGB-markdown175" class="show-list-numbers-and-dots">
+        <p style="color:#387EF5;">Color {{ data.attributes.color.individual.blue.manual }}</p>
+      </div>
+      <ion-item class="range range-positive positive" id="lightRGB-range24">Blue
+        <input type="range" value="0" min="0" max="255" step="1" ng-model="data.attributes.color.individual.blue.manual" ng-change="computeHexCode()">
+      </ion-item>
+    </form>
+    <form id="lightRGB-form116" class="list" ng-show="data.colortype==&quot;RGB&quot; &amp;&amp; data.attributes.color.single.endpoint==1">
+      <div id="lightRGB-markdown172" class="show-list-numbers-and-dots">
+        <p style="color:#387EF5;">Hardware</p>
+      </div>
+      <label class="item item-select" id="lightRGB-select47">
+        <span class="input-label">IoT Modem</span>
+        <select ng-options="device.id as device.devicename for device in devices" ng-model="datatemp.hardware_devicename" ng-change="changeDevice()"></select>
+      </label>
+      <label class="item item-select" id="lightRGB-select48">
+        <span class="input-label">I2C Device</span>
+        <select ng-options="i2cdevice.id as i2cdevice.sensorname for i2cdevice in i2cdevices" ng-model="datatemp.hardware_sensorname"></select>
+      </label>
+    </form>
+    <form id="lightRGB-form124" class="list" ng-show="data.colortype==&quot;RED&quot; &amp;&amp; data.attributes.color.individual.red.endpoint==1">
+      <div id="lightRGB-markdown179" class="show-list-numbers-and-dots">
+        <p style="color:#387EF5;">Hardware</p>
+      </div>
+      <label class="item item-select" id="lightRGB-select50">
+        <span class="input-label">IoT Modem</span>
+        <select ng-options="device.id as device.devicename for device in devices" ng-model="datatemp.hardware_devicename" ng-change="changeDevice()"></select>
+      </label>
+      <label class="item item-select" id="lightRGB-select51">
+        <span class="input-label">I2C Device</span>
+        <select ng-options="i2cdevice.id as i2cdevice.sensorname for i2cdevice in i2cdevices" ng-model="datatemp.hardware_sensorname"></select>
+      </label>
+    </form>
+    <form id="lightRGB-form125" class="list" ng-show="data.colortype==&quot;GREEN&quot; &amp;&amp; data.attributes.color.individual.green.endpoint==1">
+      <div id="lightRGB-markdown180" class="show-list-numbers-and-dots">
+        <p style="color:#387EF5;">Hardware</p>
+      </div>
+      <label class="item item-select" id="lightRGB-select52">
+        <span class="input-label">IoT Modem</span>
+        <select ng-options="device.id as device.devicename for device in devices" ng-model="datatemp.hardware_devicename" ng-change="changeDevice()"></select>
+      </label>
+      <label class="item item-select" id="lightRGB-select53">
+        <span class="input-label">I2C Device</span>
+        <select ng-options="i2cdevice.id as i2cdevice.sensorname for i2cdevice in i2cdevices" ng-model="datatemp.hardware_sensorname"></select>
+      </label>
+    </form>
+    <form id="lightRGB-form126" class="list" ng-show="data.colortype==&quot;BLUE&quot; &amp;&amp; data.attributes.color.individual.blue.endpoint==1">
+      <div id="lightRGB-markdown181" class="show-list-numbers-and-dots">
+        <p style="color:#387EF5;">Hardware</p>
+      </div>
+      <label class="item item-select" id="lightRGB-select54">
+        <span class="input-label">IoT Modem</span>
+        <select ng-options="device.id as device.devicename for device in devices" ng-model="datatemp.hardware_devicename" ng-change="changeDevice()"></select>
+      </label>
+      <label class="item item-select" id="lightRGB-select55">
+        <span class="input-label">I2C Device</span>
+        <select ng-options="i2cdevice.id as i2cdevice.sensorname for i2cdevice in i2cdevices" ng-model="datatemp.hardware_sensorname"></select>
+      </label>
+    </form>
+    <form id="lightRGB-form118" class="list">
+      <button id="lightRGB-button109" ng-click="submitContinue()" class="button button-positive button-block">CONTINUE</button>
+      <div class="spacer" style="height: 100px;"></div>
+    </form>
+  </ion-content>
+</ion-view>

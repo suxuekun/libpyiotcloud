@@ -1,0 +1,64 @@
+<ion-view title="View ADC Device" hide-back-button="true" cache-view="false" nav-transition="none" id="page42" class="page_width">
+  <ion-nav-buttons side="left" class="has-header">
+    <button class="button button-icon icon ion-android-close" ng-click="processADCSensor()"></button>
+  </ion-nav-buttons>
+  <ion-nav-buttons side="right" class="has-header">
+    <button class="button button-positive icon ion-trash-b" ng-click="deleteADCSensor()"></button>
+  </ion-nav-buttons>
+  <ion-content padding="true" class="has-header">
+    <div class="spacer" style="width: 300px; height: 12px;"></div>
+    <div id="viewADCDevice-markdown212" style="text-align:center;" class="show-list-numbers-and-dots">
+      <p style="color:#387EF5;font-size:18px;">
+        <strong> {{ data.devicename }} </strong>
+      </p>
+    </div>
+    <button id="viewADCDevice-button119" style="font-weight:500;font-size:18px;" class="button button-dark button-block button-clear">{{ data.sensor.sensorname }} - {{data.source}} {{ data.sensor.number }}</button>
+    <form id="viewADCDevice-form139" class="list">
+      <div class="spacer" style="width: 480px; height: 10px;"></div>
+      <div id="viewADCDevice-markdown213" class="show-list-numbers-and-dots">
+        <p style="color:#387EF5;">Manufacturer</p>
+      </div>
+      <div id="viewADCDevice-markdown214" class="show-list-numbers-and-dots">
+        <p style="color:#444444;font-size:18px;">{{ data.sensor.manufacturer }}</p>
+      </div>
+      <div id="viewADCDevice-markdown215" class="show-list-numbers-and-dots">
+        <p style="color:#387EF5;">Model</p>
+      </div>
+      <div id="viewADCDevice-markdown216" class="show-list-numbers-and-dots">
+        <p style="color:#444444;font-size:18px;">{{ data.sensor.model }}</p>
+      </div>
+      <div id="viewADCDevice-markdown219" class="show-list-numbers-and-dots">
+        <p style="color:#387EF5;">Class</p>
+      </div>
+      <div id="viewADCDevice-markdown220" class="show-list-numbers-and-dots">
+        <p style="color:#444444;font-size:18px;">{{ data.sensor.class }}</p>
+      </div>
+      <div id="viewADCDevice-markdown221" class="show-list-numbers-and-dots">
+        <p style="color:#387EF5;">Type</p>
+      </div>
+      <div id="viewADCDevice-markdown222" class="show-list-numbers-and-dots">
+        <p style="color:#444444;font-size:18px;">{{ data.sensor.type }}</p>
+      </div>
+    </form>
+    <form id="viewADCDevice-form140" class="list">
+      <ion-toggle toggle-class="toggle-positive" id="viewADCDevice-toggle10" ng-model="data.enable" ng-change="changeADCDevice(data.enable)">Enable</ion-toggle>
+    </form>
+    <form id="viewADCDevice-form141" class="list" ng-show="data.sensor.type==&quot;input&quot;">
+      <div id="viewADCDevice-markdown223" class="show-list-numbers-and-dots">
+        <p style="color:#387EF5;">Live Status</p>
+      </div>
+      <div id="viewADCDevice-markdown224" class="show-list-numbers-and-dots">
+        <p style="color:#444444;font-size:18px;">Value: {{ sensor_readings.value }}</p>
+      </div>
+      <div id="viewADCDevice-markdown225" class="show-list-numbers-and-dots">
+        <p style="color:#444444;font-size:18px;">Lowest: {{ sensor_readings.lowest }}</p>
+      </div>
+      <div id="viewADCDevice-markdown226" class="show-list-numbers-and-dots">
+        <p style="color:#444444;font-size:18px;">Highest: {{ sensor_readings.highest }}</p>
+      </div>
+      <button id="viewADCDevice-button120" ng-click="getADCSensorReading(data.sensor)" class="button button-positive button-block">Get sensor reading</button>
+      <button id="viewADCDevice-button121" ng-click="deleteADCSensorReading(data.sensor)" class="button button-positive button-block button-outline">Reset sensor reading</button>
+      <div class="spacer" style="height: 100px;"></div>
+    </form>
+  </ion-content>
+</ion-view>

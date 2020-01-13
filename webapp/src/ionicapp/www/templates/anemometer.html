@@ -1,0 +1,117 @@
+<ion-view title="Anemometer" hide-back-button="true" cache-view="false" nav-transition="none" id="page41" class="page_width">
+  <ion-nav-buttons side="left" class="has-header">
+    <button class="button button-icon icon ion-android-close" ng-click="submitDeviceList()"></button>
+  </ion-nav-buttons>
+  <ion-nav-buttons side="right" class="has-header">
+    <button class="button button-positive icon ion-refresh" ng-click="submitRefresh()"></button>
+  </ion-nav-buttons>
+  <ion-content padding="true" class="has-header">
+    <div class="spacer" style="width: 300px; height: 12px;"></div>
+    <div id="anemometer-markdown203" style="text-align:center;" class="show-list-numbers-and-dots">
+      <p style="color:#387EF5;font-size:18px;">
+        <strong> {{ data.devicename }} </strong>
+      </p>
+    </div>
+    <button id="anemometer-button117" ng-click="viewADCDevice()" style="font-weight:500;font-size:18px;" class="button button-dark button-block button-clear icon-right ion-android-settings">{{ data.sensor.sensorname }} - {{data.source}} {{ data.sensor.number }}</button>
+    <div class="spacer" style="width: 300px; height: 20px;"></div>
+    <form id="anemometer-form129" class="list">
+      <div id="anemometer-markdown204" class="show-list-numbers-and-dots">
+        <p style="color:#387EF5;">Mode</p>
+      </div>
+      <label class="item item-select" id="anemometer-select58">
+        <span class="input-label"></span>
+        <select ng-model="data.attributes.mode" ng-options="mode.id as mode.label for mode in modes" ng-change="changeMode()"></select>
+      </label>
+    </form>
+    <form id="anemometer-form130" class="list" ng-show="data.attributes.mode==0">
+      <div id="anemometer-markdown205" class="show-list-numbers-and-dots">
+        <p style="color:#387EF5;">Threshold</p>
+      </div>
+      <label class="item item-input" id="anemometer-input110">
+        <span class="input-label">Value</span>
+        <input type="number" placeholder="" ng-model="data.attributes.threshold.value">
+      </label>
+    </form>
+    <form id="anemometer-form132" class="list" ng-show="data.attributes.mode==1">
+      <div id="anemometer-markdown206" class="show-list-numbers-and-dots">
+        <p style="color:#387EF5;">Threshold</p>
+      </div>
+      <label class="item item-input" id="anemometer-input111">
+        <span class="input-label">Minimum Limit</span>
+        <input type="number" placeholder="" ng-model="data.attributes.threshold.min">
+      </label>
+      <label class="item item-input" id="anemometer-input112">
+        <span class="input-label">Maximum Limit</span>
+        <input type="number" placeholder="" ng-model="data.attributes.threshold.max">
+      </label>
+      <label class="item item-select" id="anemometer-select59">
+        <span class="input-label">Activate when</span>
+        <select ng-model="data.attributes.threshold.activate" ng-options="activate.id as activate.label for activate in activates"></select>
+      </label>
+    </form>
+    <form id="anemometer-form133" class="list">
+      <div id="anemometer-markdown207" class="show-list-numbers-and-dots">
+        <p style="color:#387EF5;">Alert</p>
+      </div>
+      <label class="item item-select" id="anemometer-select60">
+        <span class="input-label">Type</span>
+        <select ng-model="data.attributes.alert.type" ng-options="alert.id as alert.label for alert in alerts"></select>
+      </label>
+      <label class="item item-input" id="anemometer-input114">
+        <span class="input-label">Period (milliseconds)</span>
+        <input type="number" placeholder="" ng-model="data.attributes.alert.period">
+      </label>
+    </form>
+    <form id="anemometer-form134" class="list" ng-show="data.attributes.mode==2">
+      <div id="anemometer-markdown208" class="show-list-numbers-and-dots">
+        <p style="color:#387EF5;">Hardware</p>
+      </div>
+      <label class="item item-select" id="anemometer-select61">
+        <span class="input-label">IoT Modem</span>
+        <select ng-model="data.hardware_devicename" ng-options="device.id as device.devicename for device in devices"></select>
+      </label>
+    </form>
+    <form id="anemometer-form135" class="list" ng-show="data.attributes.mode!=2">
+      <div id="anemometer-markdown209" class="show-list-numbers-and-dots">
+        <p style="color:#387EF5;">Notification settings</p>
+      </div>
+      <ion-toggle toggle-class="toggle-positive" id="anemometer-toggle9" ng-change="changeNotification(data.showNotification)" ng-model="data.showNotification">Show</ion-toggle>
+    </form>
+    <form id="anemometer-form136" class="list" ng-show="data.showNotification==1 &amp;&amp; data.attributes.mode!=2">
+      <div id="anemometer-markdown210" class="show-list-numbers-and-dots">
+        <p style="color:#387EF5;">Messages</p>
+      </div>
+      <ion-checkbox id="anemometer-checkbox18" ng-model="data.attributes.notification.messages[0].enable">Message on activation</ion-checkbox>
+      <label class="item item-input" id="anemometer-textarea14">
+        <span class="input-label"></span><textarea placeholder="" ng-model="data.attributes.notification.messages[0].message"></textarea></label>
+      <ion-checkbox id="anemometer-checkbox25" ng-model="data.attributes.notification.messages[1].enable">Message on deactivation</ion-checkbox>
+      <label class="item item-input" id="anemometer-textarea15">
+        <span class="input-label"></span><textarea placeholder="" ng-model="data.attributes.notification.messages[1].message"></textarea></label>
+    </form>
+    <form id="anemometer-form137" class="list" ng-show="data.showNotification==1 &amp;&amp; data.attributes.mode!=2">
+      <div id="anemometer-markdown211" class="show-list-numbers-and-dots">
+        <p style="color:#387EF5;">Recipients</p>
+      </div>
+      <ion-checkbox id="anemometer-checkbox26" ng-model="data.attributes.notification.endpoints.email.enable">Send email to</ion-checkbox>
+      <label class="item item-input" id="anemometer-input117">
+        <input type="text" placeholder="Email address(es)" ng-model="data.attributes.notification.endpoints.email.recipients">
+      </label>
+      <ion-checkbox id="anemometer-checkbox27" ng-model="data.attributes.notification.endpoints.mobile.enable">Send SMS to</ion-checkbox>
+      <label class="item item-input" id="anemometer-input118">
+        <input type="text" placeholder="Phone number(s)" ng-model="data.attributes.notification.endpoints.mobile.recipients">
+      </label>
+      <ion-checkbox id="anemometer-checkbox28" ng-model="data.attributes.notification.endpoints.notification.enable">Send notification to</ion-checkbox>
+      <label class="item item-input" id="anemometer-input119">
+        <input type="text" placeholder="Phone number(s)" ng-model="data.attributes.notification.endpoints.notification.recipients">
+      </label>
+      <ion-checkbox id="anemometer-checkbox29" ng-model="data.attributes.notification.endpoints.modem.enable">Send to IoT Modem</ion-checkbox>
+      <label class="item item-select" id="anemometer-select62">
+        <span class="input-label"></span>
+        <select ng-options="device.id as device.devicename for device in devices" ng-model="data.hardware_devicename"></select>
+      </label>
+    </form>
+    <form id="anemometer-form138" class="list">
+      <button id="anemometer-button118" ng-click="submit()" class="button button-positive button-block">SAVE</button>
+    </form>
+  </ion-content>
+</ion-view>

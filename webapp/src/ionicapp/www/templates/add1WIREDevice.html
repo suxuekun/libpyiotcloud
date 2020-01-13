@@ -1,0 +1,44 @@
+<ion-view title="Add 1WIRE Device" hide-back-button="true" cache-view="false" nav-transition="none" id="page45" class="page_width">
+  <ion-nav-buttons side="left" class="has-header">
+    <button class="button button-icon icon ion-android-close" ng-click="submitDeviceList()"></button>
+  </ion-nav-buttons>
+  <ion-nav-buttons side="right" class="has-header">
+    <button class="button button-positive icon ion-refresh" ng-click="get1WIREDevices()"></button>
+  </ion-nav-buttons>
+  <ion-content padding="true" class="has-header">
+    <div class="spacer" style="width: 300px; height: 12px;"></div>
+    <div id="add1WIREDevice-markdown269" style="text-align:center;" class="show-list-numbers-and-dots">
+      <p style="color:#387EF5;font-size:18px;">
+        <strong> {{ data.devicename }} </strong>
+      </p>
+    </div>
+    <div id="add1WIREDevice-markdown270" style="text-align:center;" class="show-list-numbers-and-dots">
+      <p style="color:#444444;font-size:18px;">
+        <strong> 1WIRE </strong>
+      </p>
+    </div>
+    <div class="spacer" style="width: 300px; height: 10px;"></div>
+    <div id="add1WIREDevice-markdown271" class="show-list-numbers-and-dots">
+      <p style="color:#387EF5;">Manufacturer</p>
+    </div>
+    <form id="add1WIREDevice-form149" class="list">
+      <label class="item item-select" id="add1WIREDevice-select65">
+        <span class="input-label"></span>
+        <select ng-model="data.onewire.manufacturerid" ng-options="manufacturer.id as manufacturer.name for manufacturer in manufacturers"></select>
+      </label>
+    </form>
+    <div id="add1WIREDevice-markdown272" class="show-list-numbers-and-dots">
+      <hr>
+    </div>
+    <div id="add1WIREDevice-markdown273" class="show-list-numbers-and-dots">
+      <p style="color:#387EF5;">Device Models</p>
+    </div>
+    <form id="add1WIREDevice-form152" class="list" ng-show="data.onewire.manufacturerid==0">
+      <label class="item item-select" id="add1WIREDevice-select66">
+        <span class="input-label"></span>
+        <select ng-model="data.onewire.devicemodelid" ng-options="devicemodel.id as devicemodel.model for devicemodel in devicemodels_mxi"></select>
+      </label>
+    </form>
+    <button id="add1WIREDevice-button122" ng-click="submitAdd()" class="button button-positive button-block">NEXT</button>
+  </ion-content>
+</ion-view>
