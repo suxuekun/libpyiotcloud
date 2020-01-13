@@ -86,37 +86,78 @@ g_i2c_properties = [
 ]
 g_i2c_enabled = [1, 1, 1, 1]
 
+# ADC
+g_adc_classes = ["anenomometer"]
+g_adc_voltage = 1
+g_adc_voltages = ["-5/+5V Range", "-10/+10V Range", "0/10V Range"]
+g_adc_properties = [
+    { 'enabled': 0, 'class': 0, 'attributes': {} },
+    { 'enabled': 0, 'class': 0, 'attributes': {} },
+]
+
+# 1WIRE
+g_1wire_properties = [
+    { 'enabled': 0, 'class': 0, 'attributes': {} }
+]
+
+# TPROBE
+g_tprobe_properties = [
+    { 'enabled': 0, 'class': 0, 'attributes': {} }
+]
+
+
+
 ###################################################################################
 # APIs
 ###################################################################################
 
 # device status
-API_GET_STATUS                = "get_status"
-API_SET_STATUS                = "set_status"
+API_GET_STATUS                   = "get_status"
+API_SET_STATUS                   = "set_status"
 
 # uart
-API_GET_UARTS                 = "get_uarts"
-API_GET_UART_PROPERTIES       = "get_uart_prop"
-API_SET_UART_PROPERTIES       = "set_uart_prop"
-API_ENABLE_UART               = "enable_uart"
+API_GET_UARTS                    = "get_uarts"
+API_GET_UART_PROPERTIES          = "get_uart_prop"
+API_SET_UART_PROPERTIES          = "set_uart_prop"
+API_ENABLE_UART                  = "enable_uart"
 
 # gpio
-API_GET_GPIOS                 = "get_gpios"
-API_GET_GPIO_PROPERTIES       = "get_gpio_prop"
-API_SET_GPIO_PROPERTIES       = "set_gpio_prop"
-API_ENABLE_GPIO               = "enable_gpio"
-API_GET_GPIO_VOLTAGE          = "get_gpio_voltage"
-API_SET_GPIO_VOLTAGE          = "set_gpio_voltage"
+API_GET_GPIOS                    = "get_gpios"
+API_GET_GPIO_PROPERTIES          = "get_gpio_prop"
+API_SET_GPIO_PROPERTIES          = "set_gpio_prop"
+API_ENABLE_GPIO                  = "enable_gpio"
+API_GET_GPIO_VOLTAGE             = "get_gpio_voltage"
+API_SET_GPIO_VOLTAGE             = "set_gpio_voltage"
 
 # i2c
-API_GET_I2CS                  = "get_i2cs"
-API_GET_I2C_DEVICES           = "get_i2c_devs"
-API_ADD_I2C_DEVICE            = "add_i2c_dev"
-API_REMOVE_I2C_DEVICE         = "remove_i2c_dev"
-API_ENABLE_I2C_DEVICE         = "enable_i2c_dev"
-API_GET_I2C_DEVICE_PROPERTIES = "get_i2c_dev_prop"
-API_SET_I2C_DEVICE_PROPERTIES = "set_i2c_dev_prop"
-API_ENABLE_I2C                = "enable_i2c"
+API_ADD_I2C_DEVICE               = "add_i2c_dev"
+API_REMOVE_I2C_DEVICE            = "remove_i2c_dev"
+API_GET_I2C_DEVICES              = "get_i2c_devs"
+API_ENABLE_I2C_DEVICE            = "enable_i2c_dev"
+API_GET_I2C_DEVICE_PROPERTIES    = "get_i2c_dev_prop"
+API_SET_I2C_DEVICE_PROPERTIES    = "set_i2c_dev_prop"
+API_GET_I2CS                     = "get_i2cs"
+API_ENABLE_I2C                   = "enable_i2c"
+
+# adc
+API_GET_ADC_DEVICES              = "get_adc_devs"
+API_ENABLE_ADC_DEVICE            = "enable_adc_dev"
+API_GET_ADC_DEVICE_PROPERTIES    = "get_adc_dev_prop"
+API_SET_ADC_DEVICE_PROPERTIES    = "set_adc_dev_prop"
+API_GET_ADC_VOLTAGE              = "get_adc_voltage"
+API_SET_ADC_VOLTAGE              = "set_adc_voltage"
+
+# 1wire
+API_GET_1WIRE_DEVICES            = "get_1wire_devs"
+API_ENABLE_1WIRE_DEVICE          = "enable_1wire_dev"
+API_GET_1WIRE_DEVICE_PROPERTIES  = "get_1wire_dev_prop"
+API_SET_1WIRE_DEVICE_PROPERTIES  = "set_1wire_dev_prop"
+
+# tprobe
+API_GET_TPROBE_DEVICES           = "get_tprobe_devs"
+API_ENABLE_TPROBE_DEVICE         = "enable_tprobe_dev"
+API_GET_TPROBE_DEVICE_PROPERTIES = "get_tprobe_dev_prop"
+API_SET_TPROBE_DEVICE_PROPERTIES = "set_tprobe_dev_prop"
 
 
 
@@ -168,6 +209,7 @@ def handle_api(api, subtopic, subpayload):
     global g_uart_properties, g_uart_enabled
     global g_gpio_properties, g_gpio_enabled, g_gpio_voltage, g_gpio_status, g_gpio_values
     global g_i2c_properties, g_i2c_enabled
+    global g_adc_voltage
 
 
     ####################################################
@@ -468,6 +510,246 @@ def handle_api(api, subtopic, subpayload):
         publish(topic, payload)
 
 
+    ####################################################
+    # ADC
+    ####################################################
+
+    elif api == API_GET_ADC_DEVICES:
+        print("API_GET_ADC_DEVICES")
+        topic = generate_pubtopic(subtopic)
+        subpayload = json.loads(subpayload)
+
+        value = {
+            'adcs': g_adc_properties
+        }
+
+        payload = {}
+        payload["value"] = value
+        publish(topic, payload)	
+
+    elif api == API_ENABLE_ADC_DEVICE:
+        topic = generate_pubtopic(subtopic)
+        subpayload = json.loads(subpayload)
+        print(subpayload)
+
+        number = int(subpayload["number"])-1
+        enable = int(subpayload["enable"])
+        try:
+            g_adc_properties[number]["enabled"] = enable
+        except:
+            pass
+        print()
+        print(g_adc_properties[number])
+        print()
+
+        payload = {}
+        publish(topic, payload)
+
+    elif api == API_GET_ADC_DEVICE_PROPERTIES:
+        topic = generate_pubtopic(subtopic)
+        subpayload = json.loads(subpayload)
+
+        number = int(subpayload["number"])-1
+        value = None 
+        try:
+            value = g_adc_properties[number]["attributes"]
+            print()
+            print(value)
+            print()
+        except:
+            pass
+
+        payload = {}
+        if value is not None:
+            payload["value"] = value
+        publish(topic, payload)
+
+    elif api == API_SET_ADC_DEVICE_PROPERTIES:
+        topic = generate_pubtopic(subtopic)
+        subpayload = json.loads(subpayload)
+        print(subpayload)
+
+        number = int(subpayload["number"])-1
+        device_class = subpayload["class"]
+        g_adc_properties[number] = {
+            'class': device_class,
+            'attributes' : setClassAttributes(device_class, subpayload),
+            'enabled': 0
+        }
+        print()
+        print(g_adc_properties[number])
+        print()
+
+        payload = {}
+        publish(topic, payload)
+
+    elif api == API_GET_ADC_VOLTAGE:
+        topic = generate_pubtopic(subtopic)
+
+        payload = {}
+        payload["value"] = {"voltage": g_adc_voltage}
+        publish(topic, payload)
+        print(g_adc_voltages[g_adc_voltage])
+
+    elif api == API_SET_ADC_VOLTAGE:
+        topic = generate_pubtopic(subtopic)
+        subpayload = json.loads(subpayload)
+        print(subpayload)
+
+        g_adc_voltage = subpayload["voltage"]
+        print(g_adc_voltages[g_adc_voltage])
+
+        payload = {}
+        publish(topic, payload)
+
+
+    ####################################################
+    # 1WIRE
+    ####################################################
+
+    elif api == API_GET_1WIRE_DEVICES:
+        print("API_GET_1WIRE_DEVICES")
+        topic = generate_pubtopic(subtopic)
+        subpayload = json.loads(subpayload)
+
+        value = {
+            '1wires': g_1wire_properties
+        }
+
+        payload = {}
+        payload["value"] = value
+        publish(topic, payload)	
+
+    elif api == API_ENABLE_1WIRE_DEVICE:
+        topic = generate_pubtopic(subtopic)
+        subpayload = json.loads(subpayload)
+        print(subpayload)
+
+        number = int(subpayload["number"])-1
+        enable = int(subpayload["enable"])
+        try:
+            g_1wire_properties[number]["enabled"] = enable
+        except:
+            pass
+        print()
+        print(g_1wire_properties[number])
+        print()
+
+        payload = {}
+        publish(topic, payload)
+
+    elif api == API_GET_1WIRE_DEVICE_PROPERTIES:
+        topic = generate_pubtopic(subtopic)
+        subpayload = json.loads(subpayload)
+
+        number = int(subpayload["number"])-1
+        value = None 
+        try:
+            value = g_1wire_properties[number]["attributes"]
+            print()
+            print(value)
+            print()
+        except:
+            pass
+
+        payload = {}
+        if value is not None:
+            payload["value"] = value
+        publish(topic, payload)
+
+    elif api == API_SET_1WIRE_DEVICE_PROPERTIES:
+        topic = generate_pubtopic(subtopic)
+        subpayload = json.loads(subpayload)
+        print(subpayload)
+
+        number = int(subpayload["number"])-1
+        device_class = subpayload["class"]
+        g_1wire_properties[number] = {
+            'class': device_class,
+            'attributes' : setClassAttributes(device_class, subpayload),
+            'enabled': 0
+        }
+        print()
+        print(g_1wire_properties[number])
+        print()
+
+        payload = {}
+        publish(topic, payload)
+
+
+    ####################################################
+    # TPROBE
+    ####################################################
+
+    elif api == API_GET_TPROBE_DEVICES:
+        print("API_GET_TPROBE_DEVICES")
+        topic = generate_pubtopic(subtopic)
+        subpayload = json.loads(subpayload)
+
+        value = {
+            'tprobes': g_tprobe_properties
+        }
+
+        payload = {}
+        payload["value"] = value
+        publish(topic, payload)	
+
+    elif api == API_ENABLE_TPROBE_DEVICE:
+        topic = generate_pubtopic(subtopic)
+        subpayload = json.loads(subpayload)
+        print(subpayload)
+
+        number = int(subpayload["number"])-1
+        enable = int(subpayload["enable"])
+        try:
+            g_tprobe_properties[number]["enabled"] = enable
+        except:
+            pass
+        print()
+        print(g_tprobe_properties[number])
+        print()
+
+        payload = {}
+        publish(topic, payload)
+
+    elif api == API_GET_TPROBE_DEVICE_PROPERTIES:
+        topic = generate_pubtopic(subtopic)
+        subpayload = json.loads(subpayload)
+
+        number = int(subpayload["number"])-1
+        value = None 
+        try:
+            value = g_tprobe_properties[number]["attributes"]
+            print()
+            print(value)
+            print()
+        except:
+            pass
+
+        payload = {}
+        if value is not None:
+            payload["value"] = value
+        publish(topic, payload)
+
+    elif api == API_SET_TPROBE_DEVICE_PROPERTIES:
+        topic = generate_pubtopic(subtopic)
+        subpayload = json.loads(subpayload)
+        print(subpayload)
+
+        number = int(subpayload["number"])-1
+        device_class = subpayload["class"]
+        g_tprobe_properties[number] = {
+            'class': device_class,
+            'attributes' : setClassAttributes(device_class, subpayload),
+            'enabled': 0
+        }
+        print()
+        print(g_tprobe_properties[number])
+        print()
+
+        payload = {}
+        publish(topic, payload)
+
 
     ####################################################
     # NOTIFICATION
@@ -627,7 +909,8 @@ class TimerThread(threading.Thread):
                 publish(topic, payload)
                 print("")
             else:
-                print("no enabled I2C INPUT devices")
+                #print("no enabled I2C INPUT devices")
+                pass
 
 
 
