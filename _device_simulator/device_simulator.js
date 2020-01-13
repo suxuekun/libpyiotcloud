@@ -63,38 +63,84 @@ var g_i2c_properties = [
 ];
 var g_i2c_enabled = [1, 1, 1, 1];
 
+// ADC
+var g_adc_voltage = 1;
+var g_adc_voltages = ["-5/+5V Range", "-10/+10V Range", "0/10V Range"];
+var g_adc_properties = [
+    { 'enabled': 0, 'class': 0, 'attributes': {} },
+    { 'enabled': 0, 'class': 0, 'attributes': {} }
+];
+
+// 1WIRE
+var g_1wire_properties = [
+    { 'enabled': 0, 'class': 0, 'attributes': {} }
+];
+
+// TPROBE
+var g_tprobe_properties = [
+    { 'enabled': 0, 'class': 0, 'attributes': {} }
+];
+
+
+
+///////////////////////////////////////////////////////////////////////////////////
 // APIs
+///////////////////////////////////////////////////////////////////////////////////
 
 // device status
-var API_GET_STATUS                = "get_status";
-var API_SET_STATUS                = "set_status";
+var API_GET_STATUS                   = "get_status";
+var API_SET_STATUS                   = "set_status";
 
 // uart
-var API_GET_UARTS                 = "get_uarts";
-var API_GET_UART_PROPERTIES       = "get_uart_prop";
-var API_SET_UART_PROPERTIES       = "set_uart_prop";
-var API_ENABLE_UART               = "enable_uart";
+var API_GET_UARTS                    = "get_uarts";
+var API_GET_UART_PROPERTIES          = "get_uart_prop";
+var API_SET_UART_PROPERTIES          = "set_uart_prop";
+var API_ENABLE_UART                  = "enable_uart";
 
 // gpio
-var API_GET_GPIOS                 = "get_gpios";
-var API_GET_GPIO_PROPERTIES       = "get_gpio_prop";
-var API_SET_GPIO_PROPERTIES       = "set_gpio_prop";
-var API_ENABLE_GPIO               = "enable_gpio";
-var API_GET_GPIO_VOLTAGE          = "get_gpio_voltage";
-var API_SET_GPIO_VOLTAGE          = "set_gpio_voltage";
+var API_GET_GPIOS                    = "get_gpios";
+var API_GET_GPIO_PROPERTIES          = "get_gpio_prop";
+var API_SET_GPIO_PROPERTIES          = "set_gpio_prop";
+var API_ENABLE_GPIO                  = "enable_gpio";
+var API_GET_GPIO_VOLTAGE             = "get_gpio_voltage";
+var API_SET_GPIO_VOLTAGE             = "set_gpio_voltage";
 
 // i2c
-var API_GET_I2CS                  = "get_i2cs";
-var API_GET_I2C_DEVICES           = "get_i2c_devs";
-var API_ADD_I2C_DEVICE            = "add_i2c_dev";
-var API_REMOVE_I2C_DEVICE         = "remove_i2c_dev";
-var API_ENABLE_I2C_DEVICE         = "enable_i2c_dev";
-var API_GET_I2C_DEVICE_PROPERTIES = "get_i2c_dev_prop";
-var API_SET_I2C_DEVICE_PROPERTIES = "set_i2c_dev_prop";
-var API_ENABLE_I2C                = "enable_i2c";
+var API_GET_I2CS                     = "get_i2cs";
+var API_GET_I2C_DEVICES              = "get_i2c_devs";
+var API_ADD_I2C_DEVICE               = "add_i2c_dev";
+var API_REMOVE_I2C_DEVICE            = "remove_i2c_dev";
+var API_ENABLE_I2C_DEVICE            = "enable_i2c_dev";
+var API_GET_I2C_DEVICE_PROPERTIES    = "get_i2c_dev_prop";
+var API_SET_I2C_DEVICE_PROPERTIES    = "set_i2c_dev_prop";
+var API_ENABLE_I2C                   = "enable_i2c";
+
+// adc
+var API_GET_ADC_DEVICES              = "get_adc_devs";
+var API_ENABLE_ADC_DEVICE            = "enable_adc_dev";
+var API_GET_ADC_DEVICE_PROPERTIES    = "get_adc_dev_prop";
+var API_SET_ADC_DEVICE_PROPERTIES    = "set_adc_dev_prop";
+var API_GET_ADC_VOLTAGE              = "get_adc_voltage";
+var API_SET_ADC_VOLTAGE              = "set_adc_voltage";
+
+// 1wire
+var API_GET_1WIRE_DEVICES            = "get_1wire_devs";
+var API_ENABLE_1WIRE_DEVICE          = "enable_1wire_dev";
+var API_GET_1WIRE_DEVICE_PROPERTIES  = "get_1wire_dev_prop";
+var API_SET_1WIRE_DEVICE_PROPERTIES  = "set_1wire_dev_prop";
+
+// tprobe
+var API_GET_TPROBE_DEVICES           = "get_tprobe_devs";
+var API_ENABLE_TPROBE_DEVICE         = "enable_tprobe_dev";
+var API_GET_TPROBE_DEVICE_PROPERTIES = "get_tprobe_dev_prop";
+var API_SET_TPROBE_DEVICE_PROPERTIES = "set_tprobe_dev_prop";
 
 
-// default configurations
+
+///////////////////////////////////////////////////////////////////////////////////
+// MQTT and AMQP default configurations
+///////////////////////////////////////////////////////////////////////////////////
+
 var CONFIG_DEVICE_ID     = "";
 var CONFIG_USERNAME      = null;
 var CONFIG_PASSWORD      = null;
@@ -497,7 +543,8 @@ function handle_api(api, topic, payload)
         client.publish(pubtopic, JSON.stringify(response));
         console.log(pubtopic);
         console.log(JSON.stringify(response));
-    }    else if (api == API_GET_I2C_DEVICE_PROPERTIES) {
+    }
+    else if (api == API_GET_I2C_DEVICE_PROPERTIES) {
         pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
         var obj = JSON.parse(payload);
         var number = Number(obj.number)-1;
@@ -556,6 +603,272 @@ function handle_api(api, topic, payload)
         console.log(JSON.stringify(response));
     }
 
+
+    ////////////////////////////////////////////////////
+    // ADC
+    ////////////////////////////////////////////////////
+    else if (api == API_GET_ADC_DEVICES) {
+        pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
+        var response = {
+            'value': {
+                'adcs': g_adc_properties
+            }
+        }
+        client.publish(pubtopic, JSON.stringify(response));
+
+        console.log(pubtopic);
+        console.log(JSON.stringify(response));
+    }
+    else if (api == API_ENABLE_ADC_DEVICE) {
+        console.log("API_ENABLE_ADC_DEVICE");
+        pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
+        var obj = JSON.parse(payload);
+        var number = Number(obj.number)-1;
+        var enable = Number(obj.enable);
+        console.log(number);
+
+        try {
+            g_adc_properties[number]["enabled"] = enable
+        }
+        catch {
+        }
+        console.log("");
+        console.log(g_adc_properties[number]);
+        console.log("");
+
+        var response = {};
+        client.publish(pubtopic, JSON.stringify(response));
+        console.log(pubtopic);
+        console.log(JSON.stringify(response));
+    }
+    else if (api == API_GET_ADC_DEVICE_PROPERTIES) {
+        pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
+        var obj = JSON.parse(payload);
+        var number = Number(obj.number)-1;
+        var value = null;
+        console.log(number);
+
+        if (g_adc_properties[number] != null) {
+            value = g_adc_properties[number]["attributes"];
+            console.log("");
+            console.log(value);
+            console.log("");
+        }
+
+        var response = {};
+        if (value != null) {
+            response["value"] = value;
+        }
+        client.publish(pubtopic, JSON.stringify(response));
+        console.log(pubtopic);
+        console.log(JSON.stringify(response));
+    }
+    else if (api == API_SET_ADC_DEVICE_PROPERTIES) {
+        pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
+        var obj = JSON.parse(payload);
+        var number = Number(obj.number)-1;
+        var device_class = obj.class;
+        console.log(number);
+
+        g_adc_properties[number] = {
+            "class"      : device_class,
+            "attributes" : setClassAttributes(device_class, obj),
+            "enabled"    : 0
+        };
+        console.log("");
+        console.log(g_adc_properties[number]);
+        console.log("");
+
+        var response = {};
+        client.publish(pubtopic, JSON.stringify(response));
+        console.log(pubtopic);
+        console.log(JSON.stringify(response));
+    }
+    else if (api == API_GET_ADC_VOLTAGE) {
+        pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
+        var response = { "value": { "voltage": g_adc_voltage } };
+        client.publish(pubtopic, JSON.stringify(response));
+        console.log(g_adc_voltages[g_adc_voltage]);
+
+        console.log(pubtopic);
+        console.log(JSON.stringify(response));
+    }
+    else if (api == API_SET_ADC_VOLTAGE) {
+        pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
+        var obj = JSON.parse(payload);
+        g_adc_voltage = Number(obj.voltage);
+        console.log(g_adc_voltages[g_adc_voltage]);
+
+        var response = {};
+        client.publish(pubtopic, JSON.stringify(response));
+
+        console.log(pubtopic);
+        console.log(JSON.stringify(response));
+    }
+
+
+    ////////////////////////////////////////////////////
+    // 1WIRE
+    ////////////////////////////////////////////////////
+    else if (api == API_GET_1WIRE_DEVICES) {
+        pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
+        var response = {
+            'value': {
+                '1wires': g_1wire_properties
+            }
+        }
+        client.publish(pubtopic, JSON.stringify(response));
+
+        console.log(pubtopic);
+        console.log(JSON.stringify(response));
+    }
+    else if (api == API_ENABLE_1WIRE_DEVICE) {
+        console.log("API_ENABLE_1WIRE_DEVICE");
+        pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
+        var obj = JSON.parse(payload);
+        var number = Number(obj.number)-1;
+        var enable = Number(obj.enable);
+        console.log(number);
+
+        try {
+            g_1wire_properties[number]["enabled"] = enable
+        }
+        catch {
+        }
+        console.log("");
+        console.log(g_1wire_properties[number]);
+        console.log("");
+
+        var response = {};
+        client.publish(pubtopic, JSON.stringify(response));
+        console.log(pubtopic);
+        console.log(JSON.stringify(response));
+    }
+    else if (api == API_GET_1WIRE_DEVICE_PROPERTIES) {
+        pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
+        var obj = JSON.parse(payload);
+        var number = Number(obj.number)-1;
+        var value = null;
+        console.log(number);
+
+        if (g_1wire_properties[number] != null) {
+            value = g_1wire_properties[number]["attributes"];
+            console.log("");
+            console.log(value);
+            console.log("");
+        }
+
+        var response = {};
+        if (value != null) {
+            response["value"] = value;
+        }
+        client.publish(pubtopic, JSON.stringify(response));
+        console.log(pubtopic);
+        console.log(JSON.stringify(response));
+    }
+    else if (api == API_SET_1WIRE_DEVICE_PROPERTIES) {
+        pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
+        var obj = JSON.parse(payload);
+        var number = Number(obj.number)-1;
+        var device_class = obj.class;
+        console.log(number);
+
+        g_1wire_properties[number] = {
+            "class"      : device_class,
+            "attributes" : setClassAttributes(device_class, obj),
+            "enabled"    : 0
+        };
+        console.log("");
+        console.log(g_1wire_properties[number]);
+        console.log("");
+
+        var response = {};
+        client.publish(pubtopic, JSON.stringify(response));
+        console.log(pubtopic);
+        console.log(JSON.stringify(response));
+    }
+
+
+    ////////////////////////////////////////////////////
+    // TPROBE
+    ////////////////////////////////////////////////////
+    else if (api == API_GET_TPROBE_DEVICES) {
+        pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
+        var response = {
+            'value': {
+                'tprobes': g_tprobe_properties
+            }
+        }
+        client.publish(pubtopic, JSON.stringify(response));
+
+        console.log(pubtopic);
+        console.log(JSON.stringify(response));
+    }
+    else if (api == API_ENABLE_TPROBE_DEVICE) {
+        console.log("API_ENABLE_TPROBE_DEVICE");
+        pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
+        var obj = JSON.parse(payload);
+        var number = Number(obj.number)-1;
+        var enable = Number(obj.enable);
+        console.log(number);
+
+        try {
+            g_tprobe_properties[number]["enabled"] = enable
+        }
+        catch {
+        }
+        console.log("");
+        console.log(g_tprobe_properties[number]);
+        console.log("");
+
+        var response = {};
+        client.publish(pubtopic, JSON.stringify(response));
+        console.log(pubtopic);
+        console.log(JSON.stringify(response));
+    }
+    else if (api == API_GET_TPROBE_DEVICE_PROPERTIES) {
+        pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
+        var obj = JSON.parse(payload);
+        var number = Number(obj.number)-1;
+        var value = null;
+        console.log(number);
+
+        if (g_tprobe_properties[number] != null) {
+            value = g_tprobe_properties[number]["attributes"];
+            console.log("");
+            console.log(value);
+            console.log("");
+        }
+
+        var response = {};
+        if (value != null) {
+            response["value"] = value;
+        }
+        client.publish(pubtopic, JSON.stringify(response));
+        console.log(pubtopic);
+        console.log(JSON.stringify(response));
+    }
+    else if (api == API_SET_TPROBE_DEVICE_PROPERTIES) {
+        pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
+        var obj = JSON.parse(payload);
+        var number = Number(obj.number)-1;
+        var device_class = obj.class;
+        console.log(number);
+
+        g_tprobe_properties[number] = {
+            "class"      : device_class,
+            "attributes" : setClassAttributes(device_class, obj),
+            "enabled"    : 0
+        };
+        console.log("");
+        console.log(g_tprobe_properties[number]);
+        console.log("");
+
+        var response = {};
+        client.publish(pubtopic, JSON.stringify(response));
+        console.log(pubtopic);
+        console.log(JSON.stringify(response));
+    }
 
 
     ////////////////////////////////////////////////////
