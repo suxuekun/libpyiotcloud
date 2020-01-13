@@ -68,8 +68,10 @@ g_gpio_voltages = ['3.3 V', '5 V']
 g_gpio_enabled = [1, 1, 1, 1]
 g_gpio_status = [0, 1, 0, 1]
 
+
+g_device_classes = ["speaker", "display", "light", "potentiometer", "temperature", "humidity", "anenomometer"]
+
 # I2C
-g_i2c_classes = ["speaker", "display", "light", "potentiometer", "temperature"]
 g_i2c_properties = [
     {
         '0': { 'enabled': 0, 'class': 0, 'attributes': {} },
@@ -87,7 +89,6 @@ g_i2c_properties = [
 g_i2c_enabled = [1, 1, 1, 1]
 
 # ADC
-g_adc_classes = ["anenomometer"]
 g_adc_voltage = 1
 g_adc_voltages = ["-5/+5V Range", "-10/+10V Range", "0/10V Range"]
 g_adc_properties = [
@@ -881,7 +882,9 @@ class TimerThread(threading.Thread):
             }
 
             num_entries = 0
-            for x in range(4):
+
+            # process ENABLED i2c INPUT devices
+            for x in range(len(g_i2c_properties)):
                 i2c = "i2c{}".format(x+1)
                 entries = []
                 for y in g_i2c_properties[x]:
@@ -890,7 +893,7 @@ class TimerThread(threading.Thread):
                     # i2c device should be enabled
                     # i2c device class should be of type INPUT
                     if (int(y) > 0 and g_i2c_properties[x][y]["enabled"]):
-                        i2c_class = g_i2c_classes[g_i2c_properties[x][y]["class"]]
+                        i2c_class = g_device_classes[g_i2c_properties[x][y]["class"]]
                         if (i2c_class == "temperature" or i2c_class == "potentiometer"):
                             entry["address"] = int(y)
                             entry["value"] = random.randint(0, 40)
@@ -899,6 +902,52 @@ class TimerThread(threading.Thread):
                     sensors[i2c] = entries 
                     num_entries += 1
 
+            # process ENABLED adc devices
+            for x in range(len(g_adc_properties)):
+                adc = "adc{}".format(x+1)
+                # adc device address should be > 0
+                # adc device should be enabled
+                if (g_adc_properties[x]["enabled"]):
+                    adc_class = g_device_classes[g_adc_properties[x]["class"]]
+                    if (adc_class == "anenomometer"):
+                        entry = {}
+                        entry["value"] = random.randint(0, 40)
+                        if not sensors.get(adc):
+                            sensors[adc] = []
+                        sensors[adc].append(entry)
+                        num_entries += 1
+
+            # process ENABLED 1wire devices
+            for x in range(len(g_1wire_properties)):
+                onewire = "1wire{}".format(x+1)
+                # 1wire device address should be > 0
+                # 1wire device should be enabled
+                if (g_1wire_properties[x]["enabled"]):
+                    onewire_class = g_device_classes[g_1wire_properties[x]["class"]]
+                    if (onewire_class == "temperature"):
+                        entry = {}
+                        entry["value"] = random.randint(0, 40)
+                        if not sensors.get(onewire):
+                            sensors[onewire] = []
+                        sensors[onewire].append(entry)
+                        num_entries += 1
+
+            # process ENABLED tprobe devices
+            for x in range(len(g_tprobe_properties)):
+                tprobe = "tprobe{}".format(x+1)
+                # tprobe device address should be > 0
+                # tprobe device should be enabled
+                if (g_tprobe_properties[x]["enabled"]):
+                    tprobe_class = g_device_classes[g_tprobe_properties[x]["class"]]
+                    if (tprobe_class == "temperature"):
+                        entry = {}
+                        entry["value"] = random.randint(0, 40)
+                        if not sensors.get(tprobe):
+                            sensors[tprobe] = []
+                        sensors[tprobe].append(entry)
+                        num_entries += 1
+
+            # if any of the I2C INPUT/ADC/1WIRE/TPROBE devices are enabled, then send a packet
             if num_entries > 0:
                 payload = {}
                 payload["sensors"] = sensors
