@@ -2052,7 +2052,7 @@ SUMMARY:
 		   - Others
 
 	3. GPIO
-		A. GET GPIOS                 get_gpios
+		A. GET GPIOS                    get_gpios
 		   - gets enabled, direction and status of all 4 GPIO pins
 
 		B. GET GPIO PROPERTIES       get_gpio_prop
@@ -2061,7 +2061,7 @@ SUMMARY:
 		   - else if output pin, enable OUTPUT ENABLE pin
 		     and set output pin to inactive state (opposite of specified polarity)
 
-		D. ENABLE/DISABLE GPIO       enable_gpio
+		D. ENABLE/DISABLE GPIO          enable_gpio
 		   - ENABLE:
 		     If INPUT
 		     - calls gpio_read() the creates a timer or interrupt
@@ -2076,26 +2076,40 @@ SUMMARY:
 		     Else OUTPUT
 		     - if Clock mode, delete the task
 
-		E. GET GPIO VOLTAGE          get_gpio_voltage
-		F. SET GPIO VOLTAGE          set_gpio_voltage
+		E. GET GPIO VOLTAGE             get_gpio_voltage
+		F. SET GPIO VOLTAGE             set_gpio_voltage
 		   - 3.3v: gpio_write(16, 0), gpio_write(17, 1)
 		   - 5v:   gpio_write(16, 1), gpio_write(17, 0)
 
 	4. I2C
-		A. GET I2CS                  get_i2cs
-		B. GET I2C DEVICE PROPERTIES get_i2c_dev_prop
-		C. SET I2C DEVICE PROPERTIES set_i2c_dev_prop
-		D. ENABLE/DISABLE I2C DEVICE enable_i2c_dev
-		E. ENABLE/DISABLE I2C        enable_i2c
+		A. GET I2CS                     get_i2cs
+		B. GET I2C DEVICE PROPERTIES    get_i2c_dev_prop
+		C. SET I2C DEVICE PROPERTIES    set_i2c_dev_prop
+		D. ENABLE/DISABLE I2C DEVICE    enable_i2c_dev
 
-	5. Notifications
-		A. SEND NOTIFICATION         trigger_notifications
+	5. ADC
+		A. GET ADC DEVICE PROPERTIES    get_adc_dev_prop
+		B. SET ADC DEVICE PROPERTIES    set_adc_dev_prop
+		C. ENABLE/DISABLE ADC DEVICE    enable_adc_dev
+
+	6. 1WIRE
+		A. GET 1WIRE DEVICE PROPERTIES  get_1wire_dev_prop
+		B. SET 1WIRE DEVICE PROPERTIES  set_1wire_dev_prop
+		C. ENABLE/DISABLE 1WIRE DEVICE  enable_1wire_dev
+
+	7. TPROBE
+		A. GET TPROBE DEVICE PROPERTIES get_tprobe_dev_prop
+		B. SET TPROBE DEVICE PROPERTIES set_tprobe_dev_prop
+		C. ENABLE/DISABLE TPROBE DEVICE enable_tprobe_dev
+
+	8. Notifications
+		A. SEND NOTIFICATION            trigger_notifications
 		-  to publish/trigger MENOS notifications
 
-		B. STATUS NOTIFICATION       status_notifications
+		B. STATUS NOTIFICATION          status_notifications
 		-  to listen/receive status of MENOS notifications
 
-		C. RECV NOTIFICATION         recv_notifications
+		C. RECV NOTIFICATION            recv_notifications
 		-  to receive device/mOdemo notification from other devices/mOdems
 
 
@@ -2441,7 +2455,112 @@ DETAILED:
 		   payload: {}
 
 
-	5. Notifications
+	5. ADC
+
+		A. GET ADC DEVICE PROPERTIES
+		-  Receive:
+		   topic: DEVICEID/get_adc_dev_prop
+		   payload: { 'number': int, 'address': int }
+		-  Publish:
+		   topic: server/DEVICEID/get_adc_dev_prop
+		   payload: { 
+		     'value': { TODO:Refer to GET ADC DEVICE PROPERTIES API } 
+		   }
+
+		B. SET ADC DEVICE PROPERTIES
+		-  Receive:
+		   topic: DEVICEID/set_adc_dev_prop
+		   payload: { 
+		       'number': int, 
+		       'address': int, 
+		       'class': string, 
+		       ...  TODO:Refer to SET ADC DEVICE PROPERTIES API ...
+		   }
+		-  Publish:
+		   topic: server/DEVICEID/set_adc_dev_prop
+		   payload: {}
+
+		C. ENABLE/DISABLE ADC DEVICE
+		-  Receive:
+		   topic: DEVICEID/enable_adc_dev
+		   payload: { 'enable': int, 'number': int, 'address': int }
+		   // enable is an int indicating if disabled (0) or enabled (1)
+		-  Publish:
+		   topic: server/DEVICEID/enable_adc_dev
+		   payload: {}
+
+
+	6. 1WIRE
+
+		A. GET 1WIRE DEVICE PROPERTIES
+		-  Receive:
+		   topic: DEVICEID/get_1wire_dev_prop
+		   payload: { 'number': int, 'address': int }
+		-  Publish:
+		   topic: server/DEVICEID/get_1wire_dev_prop
+		   payload: { 
+		     'value': { TODO:Refer to GET 1WIRE DEVICE PROPERTIES API } 
+		   }
+
+		B. SET 1WIRE DEVICE PROPERTIES
+		-  Receive:
+		   topic: DEVICEID/set_1wire_dev_prop
+		   payload: { 
+		       'number': int, 
+		       'address': int, 
+		       'class': string, 
+		       ...  TODO:Refer to SET 1WIRE DEVICE PROPERTIES API ...
+		   }
+		-  Publish:
+		   topic: server/DEVICEID/set_1wire_dev_prop
+		   payload: {}
+
+		C. ENABLE/DISABLE 1WIRE DEVICE
+		-  Receive:
+		   topic: DEVICEID/enable_1wire_dev
+		   payload: { 'enable': int, 'number': int, 'address': int }
+		   // enable is an int indicating if disabled (0) or enabled (1)
+		-  Publish:
+		   topic: server/DEVICEID/enable_1wire_dev
+		   payload: {}
+
+
+	7. TPROBE
+
+		A. GET TPROBE DEVICE PROPERTIES
+		-  Receive:
+		   topic: DEVICEID/get_tprobe_dev_prop
+		   payload: { 'number': int, 'address': int }
+		-  Publish:
+		   topic: server/DEVICEID/get_tprobe_dev_prop
+		   payload: { 
+		     'value': { TODO:Refer to GET TPROBE DEVICE PROPERTIES API } 
+		   }
+
+		B. SET TPROBE DEVICE PROPERTIES
+		-  Receive:
+		   topic: DEVICEID/set_tprobe_dev_prop
+		   payload: { 
+		       'number': int, 
+		       'address': int, 
+		       'class': string, 
+		       ...  TODO:Refer to SET TPROBE DEVICE PROPERTIES API ...
+		   }
+		-  Publish:
+		   topic: server/DEVICEID/set_tprobe_dev_prop
+		   payload: {}
+
+		C. ENABLE/DISABLE TPROBE DEVICE
+		-  Receive:
+		   topic: DEVICEID/enable_tprobe_dev
+		   payload: { 'enable': int, 'number': int, 'address': int }
+		   // enable is an int indicating if disabled (0) or enabled (1)
+		-  Publish:
+		   topic: server/DEVICEID/enable_tprobe_dev
+		   payload: {}
+
+
+	8. Notifications
 
 		A. SEND NOTIFICATION         trigger_notification
 		-  Receive:
