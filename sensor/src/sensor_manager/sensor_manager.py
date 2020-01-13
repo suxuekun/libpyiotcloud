@@ -76,7 +76,10 @@ def add_sensor_reading(database_client, deviceid, topic, payload):
 
     for source in payload["sensors"]:
         for sensor in payload["sensors"][source]:
-            address = sensor["address"]
+            if sensor.get("address"):
+                address = sensor["address"]
+            else:
+                address = None
             value = sensor["value"]
             #print("{} source:{} address:{} value:{}".format(deviceid, source, address, value))
             sensor_readings = database_client.get_sensor_reading_by_deviceid(deviceid, source, address)
