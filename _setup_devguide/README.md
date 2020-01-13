@@ -1972,9 +1972,9 @@ DETAILED:
 		   {'status': 'NG', 'message': string}
 
 
-	10. Supported I2C devices
+	10. Supported devices
 
-		A. GET SUPPORTED I2C DEVICES
+		A. GET SUPPORTED I2C DEVICES (obsoloted: use GET SUPPORTED SENSOR DEVICES instead)
 		-  Request:
 		   GET /others/i2cdevices
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -1984,6 +1984,7 @@ DETAILED:
 		   // document refers to the JSON document file uploaded in AWS S3
 		   // the file has been temporarily made public at https://ft900-iot-portal.s3.amazonaws.com/supported_i2c_devices.json
 		   // this API provides access to the contents of the JSON file
+		   // WARNING: This API is obsoleted. Please use GET SUPPORTED SENSOR DEVICES instead.
 
 		B. GET SUPPORTED SENSOR DEVICES
 		-  Request:
