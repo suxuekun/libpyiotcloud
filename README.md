@@ -1111,6 +1111,17 @@ Note: Using Kubernetes will also change the infrastracture.
         - Developer account needs to be upgraded from personal account to business account.
         - Similar as above but replace Sandbox to Live
 
+        // Retrieving transaction details:
+        - All the transaction payments received can be retrieved in the Paypal (Business) account.
+        - Each transaction contains the following:
+            1. Transaction ID.
+            2. Name, address and number of buyer.
+            3. Date and time of transaction.
+            4. Amount paid, including currency and item details.
+            5. Net amount credited to paypal account (including breakdown of gross amount and paypal fee)        
+        - For more details, you can access the Paypal BUSINESS test account here: https://www.sandbox.paypal.com/
+            username: richmond.umagat@gmail.com
+            password: xxx
 
 ### Install Jenkins (on local and on AWS EC2)
     
