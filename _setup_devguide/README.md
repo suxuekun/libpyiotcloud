@@ -1128,7 +1128,7 @@ DETAILED:
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
 		   { 'status': 'OK', 'message': string, 
-		     'sensors': array[{'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': string, 'attributes': []}, ...]}
+		     'sensors': array[{'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': string, 'enabled': int, 'attributes': []}, ...]}
 		   { 'status': 'NG', 'message': string}
 		   // timestamp refers to the epoch time the sensor was registered/added
 
@@ -1555,7 +1555,7 @@ DETAILED:
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
 		   { 'status': 'OK', 'message': string, 
-		     'sensors': array[{'sensorname': string, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': string, 'attributes': []}, ...]}
+		     'sensors': array[{'sensorname': string, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': string, 'enabled': int, 'attributes': []}, ...]}
 		   { 'status': 'NG', 'message': string}
 		   // timestamp refers to the epoch time the sensor was registered/added
 
@@ -1724,7 +1724,7 @@ DETAILED:
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
 		   { 'status': 'OK', 'message': string, 
-		     'sensors': array[{'sensorname': string, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': string, 'attributes': []}, ...]}
+		     'sensors': array[{'sensorname': string, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': string, 'enabled': int, 'attributes': []}, ...]}
 		   { 'status': 'NG', 'message': string}
 		   // timestamp refers to the epoch time the sensor was registered/added
 
@@ -1871,7 +1871,7 @@ DETAILED:
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
 		   { 'status': 'OK', 'message': string, 
-		     'sensors': array[{'sensorname': string, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': string, 'attributes': []}, ...]}
+		     'sensors': array[{'sensorname': string, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': string, 'enabled': int, 'attributes': []}, ...]}
 		   { 'status': 'NG', 'message': string}
 		   // timestamp refers to the epoch time the sensor was registered/added
 
