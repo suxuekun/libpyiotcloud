@@ -1144,30 +1144,30 @@ DETAILED:
 		-  Request:
 		   POST /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME/properties
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-		     // LIGHT class
+		   // LIGHT class
 		   data: { 
 		           "color": {
 		               "usage": int,
 		               "single": {
 		                    "endpoint": int,
 		                    "manual": int,
-		                    "hardware": {"devicename": string, "sensorname": string}
+		                    "hardware": {"devicename": string, "peripheral": string, "sensorname": string, "attribute": string}, 
 		               },
 		               "individual": {
 		                   "red": {
 		                       "endpoint": int,
 		                       "manual": int,
-		                       "hardware": {"devicename": string, "sensorname": string}
+		                       "hardware": {"devicename": string, "peripheral": string, "sensorname": string, "attribute": string}, 
 		                   },
 		                   "green": {
 		                       "endpoint": int,
 		                       "manual": int,
-		                       "hardware": {"devicename": string, "sensorname": string}
+		                       "hardware": {"devicename": string, "peripheral": string, "sensorname": string, "attribute": string}, 
 		                   },
 		                   "blue": {
 		                       "endpoint": int,
 		                       "manual": int,
-		                       "hardware": {"devicename": string, "sensorname": string}
+		                       "hardware": {"devicename": string, "peripheral": string, "sensorname": string, "attribute": string}, 
 		                   }
 		               }
 		           }, 
@@ -1184,31 +1184,39 @@ DETAILED:
 		   //   if endpoint is Hardware
 		   //     hardware contains the devicename (input IoT Modem device) and sensorname (input I2C device)
 		   //       devicename is the name of the IoT modem device
-		   //       sensorname is the name of the input I2C device
+		   //       peripheral is the name of the peripheral device (I2C, ADC, 1WIRE, TPROBE)
+		   //       sensorname is the name of the input device
+		   //       attribute is the attribute of the device to use
 		   //   fadeouttime indicates the number of seconds for fadeout
 		   //
 		   // DISPLAY class
 		   data: { 
 		           "endpoint": int, 
-		           "hardware": {"devicename": string, "sensorname": string}, 
-		           "type": int, 
-		           "text": string 
+		           "hardware": {"devicename": string, "peripheral": string, "sensorname": string, "attribute": string}, 
+		           "format": int, 
+		           "text": string,
+		           "brightness": int
 		         }
 		   //   endpoint is an index to the list source endpoints:
 		   //     ["Manual", "Hardware"]
 		   //   if endpoint is Manual
-		   //     type is an index to the list of types
-		   //       ["Text", "Decimal", "Hexadecimal"]
+		   //     brightness is a value from 0x00 (completely dark) to 0xFF (full brightness)
+		   //       default: 255 (0xFF)
+		   //     format is an index to the list of formats
+		   //       ["00 to FF", "00 to 99", "0.0 to 9.9", "text string"]
 		   //     text is the characters to display
+		   //       default: "23"
 		   //   if endpoint is Hardware
-		   //     hardware contains the devicename (input IoT Modem device) and sensorname (input I2C device)
+		   //     hardware contains the devicename (input IoT Modem device) and sensorname (input device)
 		   //       devicename is the name of the IoT modem device
-		   //       sensorname is the name of the input I2C device
+		   //       peripheral is the name of the peripheral device (I2C, ADC, 1WIRE, TPROBE)
+		   //       sensorname is the name of the input device
+		   //       attribute is the attribute of the device to use
 		   //
 		   // SPEAKER class
 		   data: { 
 		            "endpoint": int, 
-		            "hardware": {"devicename": string, "sensorname": string},
+		            "hardware": {"devicename": string, "peripheral": string, "sensorname": string, "attribute": string}, 
 		            "type": int,
 		            "values": { "duration": int, "pitch": int, "delay": int }
 		         }
@@ -1231,7 +1239,9 @@ DETAILED:
 		   //   if endpoint is Hardware
 		   //     hardware contains the devicename (input IoT Modem device) and sensorname (input I2C device)
 		   //       devicename is the name of the IoT modem device
-		   //       sensorname is the name of the input I2C device
+		   //       peripheral is the name of the peripheral device (I2C, ADC, 1WIRE, TPROBE)
+		   //       sensorname is the name of the input device
+		   //       attribute is the attribute of the device to use
 		   //     type is the type of sound to play
 		   //     midi is the sound/music configuration of the MIDI sound
 		   //       duration is the note duration in milliseconds [default: 100]
@@ -1246,7 +1256,7 @@ DETAILED:
 		           "mode": int, 
 		           "threshold": {"value": int, "min": int, "max": int, "activate": int}, 
 		           "alert": {"type": int, 'period': int}, 
-		           "hardware": {"devicename": string, "sensorname": string}, 
+		           "hardware": {"devicename": string}, 
 		           "notification": json_obj,
 		      }
 		   //   mode is an index to the list of modes
@@ -1264,14 +1274,13 @@ DETAILED:
 		   //   notification refers to the the same notification settings in GPIO
 		   //   hardware
 		   //     appears when mode is continuous
-		   //     sensorname is not needed
 		   //
 		   // POTENTIOMETER class
 		   data: {
 		           "mode": int, 
 		           "threshold": {"value": int, "min": int, "max": int, "activate": int}, 
 		           "alert": {"type": int, 'period': int}, 
-		           "hardware": {"devicename": string, "sensorname": string}, 
+		           "hardware": {"devicename": string}, 
 		           "notification": json_obj 
 		      }
 		   //   mode is an index to the list of modes
@@ -1290,7 +1299,6 @@ DETAILED:
 		   //   notification appears when mode is NOT continuous
 		   //   hardware
 		   //     appears when mode is continuous
-		   //     sensorname is not needed
 		-  Response:
 		   { 'status': 'OK', 'message': string }
 		   { 'status': 'NG', 'message': string}
@@ -1301,30 +1309,30 @@ DETAILED:
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
 		   { 'status': 'OK', 'message': string, 'value':
-		     // LIGHT class
-		     {
+		   // LIGHT class
+		     { 
 		           "color": {
 		               "usage": int,
 		               "single": {
 		                    "endpoint": int,
 		                    "manual": int,
-		                    "hardware": {"devicename": string, "sensorname": string}
+		                    "hardware": {"devicename": string, "peripheral": string, "sensorname": string, "attribute": string}, 
 		               },
 		               "individual": {
 		                   "red": {
 		                       "endpoint": int,
 		                       "manual": int,
-		                       "hardware": {"devicename": string, "sensorname": string}
+		                       "hardware": {"devicename": string, "peripheral": string, "sensorname": string, "attribute": string}, 
 		                   },
 		                   "green": {
 		                       "endpoint": int,
 		                       "manual": int,
-		                       "hardware": {"devicename": string, "sensorname": string}
+		                       "hardware": {"devicename": string, "peripheral": string, "sensorname": string, "attribute": string}, 
 		                   },
 		                   "blue": {
 		                       "endpoint": int,
 		                       "manual": int,
-		                       "hardware": {"devicename": string, "sensorname": string}
+		                       "hardware": {"devicename": string, "peripheral": string, "sensorname": string, "attribute": string}, 
 		                   }
 		               }
 		           }, 
@@ -1341,34 +1349,42 @@ DETAILED:
 		   //   if endpoint is Hardware
 		   //     hardware contains the devicename (input IoT Modem device) and sensorname (input I2C device)
 		   //       devicename is the name of the IoT modem device
-		   //       sensorname is the name of the input I2C device
+		   //       peripheral is the name of the peripheral device (I2C, ADC, 1WIRE, TPROBE)
+		   //       sensorname is the name of the input device
+		   //       attribute is the attribute of the device to use
 		   //   fadeouttime indicates the number of seconds for fadeout
 		   //
 		   // DISPLAY class
 		      { 
 		           "endpoint": int, 
-		           "hardware": {"devicename": string, "sensorname": string}, 
-		           "type": int, 
-		           "text": string 
+		           "hardware": {"devicename": string, "peripheral": string, "sensorname": string, "attribute": string}, 
+		           "format": int, 
+		           "text": string,
+		           "brightness": int
 		      }
 		   //   endpoint is an index to the list source endpoints:
 		   //     ["Manual", "Hardware"]
 		   //   if endpoint is Manual
-		   //     type is an index to the list of types
-		   //       ["Text", "Decimal", "Hexadecimal"]
+		   //     brightness is a value from 0x00 (completely dark) to 0xFF (full brightness)
+		   //       default: 255 (0xFF)
+		   //     format is an index to the list of formats
+		   //       ["00 to FF", "00 to 99", "0.0 to 9.9", "text string"]
 		   //     text is the characters to display
+		   //       default: "23"
 		   //   if endpoint is Hardware
-		   //     hardware contains the devicename (input IoT Modem device) and sensorname (input I2C device)
+		   //     hardware contains the devicename (input IoT Modem device) and sensorname (input device)
 		   //       devicename is the name of the IoT modem device
-		   //       sensorname is the name of the input I2C device
+		   //       peripheral is the name of the peripheral device (I2C, ADC, 1WIRE, TPROBE)
+		   //       sensorname is the name of the input device
+		   //       attribute is the attribute of the device to use
 		   //
 		   // SPEAKER class
-		   data: { 
+		      { 
 		            "endpoint": int, 
-		            "hardware": {"devicename": string, "sensorname": string},
+		            "hardware": {"devicename": string, "peripheral": string, "sensorname": string, "attribute": string}, 
 		            "type": int,
 		            "values": { "duration": int, "pitch": int, "delay": int }
-		         }
+		      }
 		   // TODO: how to send the file
 		   //   endpoint is an index to the list source endpoints:
 		   //     ["Manual", "Hardware"]
@@ -1388,7 +1404,9 @@ DETAILED:
 		   //   if endpoint is Hardware
 		   //     hardware contains the devicename (input IoT Modem device) and sensorname (input I2C device)
 		   //       devicename is the name of the IoT modem device
-		   //       sensorname is the name of the input I2C device
+		   //       peripheral is the name of the peripheral device (I2C, ADC, 1WIRE, TPROBE)
+		   //       sensorname is the name of the input device
+		   //       attribute is the attribute of the device to use
 		   //     type is the type of sound to play
 		   //     midi is the sound/music configuration of the MIDI sound
 		   //       duration is the note duration in milliseconds [default: 100]
@@ -1403,7 +1421,7 @@ DETAILED:
 		           "mode": int, 
 		           "threshold": {"value": int, "min": int, "max": int, "activate": int}, 
 		           "alert": {"type": int, 'period': int}, 
-		           "hardware": {"devicename": string, "sensorname": string}, 
+		           "hardware": {"devicename": string}, 
 		           "notification": json_obj,
 		      }
 		   //   mode is an index to the list of modes
@@ -1421,14 +1439,13 @@ DETAILED:
 		   //   notification refers to the the same notification settings in GPIO
 		   //   hardware
 		   //     appears when mode is continuous
-		   //     sensorname is not needed
 		   //
 		   // POTENTIOMETER class
 		      {
 		           "mode": int, 
 		           "threshold": {"value": int, "min": int, "max": int, "activate": int}, 
 		           "alert": {"type": int, 'period': int}, 
-		           "hardware": {"devicename": string, "sensorname": string}, 
+		           "hardware": {"devicename": string}, 
 		           "notification": json_obj 
 		      }
 		   //   mode is an index to the list of modes
@@ -1447,7 +1464,6 @@ DETAILED:
 		   //   notification appears when mode is NOT continuous
 		   //   hardware
 		   //     appears when mode is continuous
-		   //     sensorname is not needed
 
 		   { 'status': 'NG', 'message': string}
 
@@ -1541,7 +1557,7 @@ DETAILED:
 		           "mode": int, 
 		           "threshold": {"value": int, "min": int, "max": int, "activate": int}, 
 		           "alert": {"type": int, 'period': int}, 
-		           "hardware": {"devicename": string, "sensorname": string}, 
+		           "hardware": {"devicename": string}, 
 		           "notification": json_obj 
 		      }
 		   //   mode is an index to the list of modes
@@ -1560,7 +1576,6 @@ DETAILED:
 		   //   notification appears when mode is NOT continuous
 		   //   hardware
 		   //     appears when mode is continuous
-		   //     sensorname is not needed
 		   -  Response:
 		   { 'status': 'OK', 'message': string}
 		   { 'status': 'NG', 'message': string}
@@ -1576,7 +1591,7 @@ DETAILED:
 		           "mode": int, 
 		           "threshold": {"value": int, "min": int, "max": int, "activate": int}, 
 		           "alert": {"type": int, 'period': int}, 
-		           "hardware": {"devicename": string, "sensorname": string}, 
+		           "hardware": {"devicename": string}, 
 		           "notification": json_obj 
 		      }
 		   //   mode is an index to the list of modes
@@ -1595,7 +1610,6 @@ DETAILED:
 		   //   notification appears when mode is NOT continuous
 		   //   hardware
 		   //     appears when mode is continuous
-		   //     sensorname is not needed
 		   { 'status': 'NG', 'message': string}
 
 		H. ENABLE/DISABLE ADC DEVICE
@@ -1712,7 +1726,7 @@ DETAILED:
 		           "mode": int, 
 		           "threshold": {"value": int, "min": int, "max": int, "activate": int}, 
 		           "alert": {"type": int, 'period': int}, 
-		           "hardware": {"devicename": string, "sensorname": string}, 
+		           "hardware": {"devicename": string}, 
 		           "notification": json_obj,
 		      }
 		   //   mode is an index to the list of modes
@@ -1730,7 +1744,6 @@ DETAILED:
 		   //   notification refers to the the same notification settings in GPIO
 		   //   hardware
 		   //     appears when mode is continuous
-		   //     sensorname is not needed
 		   //
 		-  Response:
 		   { 'status': 'OK', 'message': string}
@@ -1748,7 +1761,7 @@ DETAILED:
 		           "mode": int, 
 		           "threshold": {"value": int, "min": int, "max": int, "activate": int}, 
 		           "alert": {"type": int, 'period': int}, 
-		           "hardware": {"devicename": string, "sensorname": string}, 
+		           "hardware": {"devicename": string}, 
 		           "notification": json_obj,
 		      }
 		   //   mode is an index to the list of modes
@@ -1766,7 +1779,6 @@ DETAILED:
 		   //   notification refers to the the same notification settings in GPIO
 		   //   hardware
 		   //     appears when mode is continuous
-		   //     sensorname is not needed
 		   //
 		   { 'status': 'NG', 'message': string}
 
@@ -1855,7 +1867,41 @@ DETAILED:
 		-  Request:
 		   POST /devices/device/DEVICENAME/tprobe/NUMBER/sensors/sensor/SENSORNAME/properties
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-		   data: { XXX }
+		   data:
+		   //
+		   // TEMPERATURE class
+		      {
+		           "mode": int, 
+		           "threshold": {"value": int, "min": int, "max": int, "activate": int}, 
+		           "alert": {"type": int, 'period': int}, 
+		           "hardware": {"devicename": string}, 
+		           "notification": json_obj,
+		           
+		           // HUMIDITY class
+		           "subclass": {
+		               "mode": int, 
+		               "threshold": {"value": int, "min": int, "max": int, "activate": int}, 
+		               "alert": {"type": int, 'period': int}, 
+		               "hardware": {"devicename": string}, 
+		               "notification": json_obj,
+		           }
+		      }
+		   //   mode is an index to the list of modes
+		   //     ["Single Threshold", "Dual Threshold", "Continuous"]
+		   //   threshold
+		   //     if Single Threshold:
+		   //       value is used
+		   //     if Dual Threshold:
+		   //       min and max are used
+		   //   activate is an index to the list of activates
+		   //     ["Out of range", "Within range"]
+		   //   alert type is an index of the value in the list of alerts
+		   //     ["Once", "Continuously"]
+		   //   alert period is the time in milliseconds for the alert when alert type points to Continuously
+		   //   notification refers to the the same notification settings in GPIO
+		   //   hardware
+		   //     appears when mode is continuous
+		   //
 		-  Response:
 		   { 'status': 'OK', 'message': string}
 		   { 'status': 'NG', 'message': string}
@@ -1865,7 +1911,41 @@ DETAILED:
 		   POST /devices/device/DEVICENAME/tprobe/NUMBER/sensors/sensor/SENSORNAME/properties
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
-		   { 'status': 'OK', 'message': string, 'value': XXX }
+		   { 'status': 'OK', 'message': string, 'value': 
+		   //
+		   // TEMPERATURE class
+		      {
+		           "mode": int, 
+		           "threshold": {"value": int, "min": int, "max": int, "activate": int}, 
+		           "alert": {"type": int, 'period': int}, 
+		           "hardware": {"devicename": string}, 
+		           "notification": json_obj,
+		           
+		           // HUMIDITY class
+		           "subclass": {
+		               "mode": int, 
+		               "threshold": {"value": int, "min": int, "max": int, "activate": int}, 
+		               "alert": {"type": int, 'period': int}, 
+		               "hardware": {"devicename": string}, 
+		               "notification": json_obj,
+		           }
+		      }
+		   //   mode is an index to the list of modes
+		   //     ["Single Threshold", "Dual Threshold", "Continuous"]
+		   //   threshold
+		   //     if Single Threshold:
+		   //       value is used
+		   //     if Dual Threshold:
+		   //       min and max are used
+		   //   activate is an index to the list of activates
+		   //     ["Out of range", "Within range"]
+		   //   alert type is an index of the value in the list of alerts
+		   //     ["Once", "Continuously"]
+		   //   alert period is the time in milliseconds for the alert when alert type points to Continuously
+		   //   notification refers to the the same notification settings in GPIO
+		   //   hardware
+		   //     appears when mode is continuous
+		   //
 		   { 'status': 'NG', 'message': string}
 
 		H. ENABLE/DISABLE TPROBE DEVICE
