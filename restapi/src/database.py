@@ -265,6 +265,9 @@ class database_client:
     def get_sensors(self, username, devicename, source, number):
         return self._devices.get_sensors(username, devicename, source, number)
 
+    def get_sensors_with_enabled(self, username, devicename, source, number):
+        return self._devices.get_sensors_with_enabled(username, devicename, source, number)
+
     def add_sensor(self, username, devicename, source, number, sensorname, data):
         return self._devices.add_sensor(username, devicename, source, number, sensorname, data)
 
@@ -909,6 +912,17 @@ class database_client_mongodb:
         i2csensors = self.get_sensors_document();
         if i2csensors:
             for i2csensor in i2csensors.find({'username': username, 'devicename': devicename, 'source': source, 'number': number}):
+                i2csensor.pop('_id')
+                i2csensor.pop('username')
+                sensor_list.append(i2csensor)
+        return sensor_list
+
+    def get_sensors_with_enabled(self, username, devicename, source, number):
+        sensor_list = []
+        i2csensors = self.get_sensors_document();
+        if i2csensors:
+            for i2csensor in i2csensors.find({'username': username, 'devicename': devicename, 'source': source, 'number': number}):
+                i2csensor['enabled'] = 0
                 i2csensor.pop('_id')
                 i2csensor.pop('username')
                 sensor_list.append(i2csensor)
