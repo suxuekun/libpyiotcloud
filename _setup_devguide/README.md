@@ -272,11 +272,13 @@ SUMMARY:
 		C. GET I2C DEVICE                 - GET    /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME
 		D. GET I2C DEVICES                - GET    /devices/device/DEVICENAME/i2c/NUMBER/sensors
 		E. GET ALL I2C DEVICES            - GET    /devices/device/DEVICENAME/i2c/sensors
-		F. SET I2C DEVICE PROPERTIES      - POST   /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME/properties
-		G. GET I2C DEVICE PROPERTIES      - GET    /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME/properties
-		H. ENABLE/DISABLE I2C DEVICE      - POST   /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME/enable
-		I. GET I2C DEVICE READINGS        - GET    /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME/readings
-		J. DELETE I2C DEVICE READINGS     - DELETE /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME/readings
+		F. GET ALL I2C INPUT DEVICES      - GET    /devices/device/DEVICENAME/i2c/sensors/input
+		G. GET ALL I2C OUTPUT DEVICES     - GET    /devices/device/DEVICENAME/i2c/sensors/output
+		H. SET I2C DEVICE PROPERTIES      - POST   /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME/properties
+		I. GET I2C DEVICE PROPERTIES      - GET    /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME/properties
+		J. ENABLE/DISABLE I2C DEVICE      - POST   /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME/enable
+		K. GET I2C DEVICE READINGS        - GET    /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME/readings
+		L. DELETE I2C DEVICE READINGS     - DELETE /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME/readings
 		   (NUMBER can be 1-4 only and corresponds to I2C1,I2C2,I2C3,I2C4)
 
 
@@ -1140,7 +1142,27 @@ DETAILED:
 		   { 'status': 'NG', 'message': string}
 		   // timestamp refers to the epoch time the sensor was registered/added
 
-		F. SET I2C DEVICE PROPERTIES
+		F. GET ALL I2C INPUT DEVICES
+		-  Request:
+		   GET /devices/device/DEVICENAME/i2c/sensors/input
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		-  Response:
+		   { 'status': 'OK', 'message': string, 
+		     'sensors': array[{'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': string, 'attributes': []}, ...]}
+		   { 'status': 'NG', 'message': string}
+		   // timestamp refers to the epoch time the sensor was registered/added
+
+		G. GET ALL I2C OUPUT DEVICES
+		-  Request:
+		   GET /devices/device/DEVICENAME/i2c/sensors/output
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		-  Response:
+		   { 'status': 'OK', 'message': string, 
+		     'sensors': array[{'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': string, 'attributes': []}, ...]}
+		   { 'status': 'NG', 'message': string}
+		   // timestamp refers to the epoch time the sensor was registered/added
+
+		H. SET I2C DEVICE PROPERTIES
 		-  Request:
 		   POST /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME/properties
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
@@ -1303,7 +1325,7 @@ DETAILED:
 		   { 'status': 'OK', 'message': string }
 		   { 'status': 'NG', 'message': string}
 
-		G. GET I2C DEVICE PROPERTIES
+		I. GET I2C DEVICE PROPERTIES
 		-  Request:
 		   POST /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME/properties
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -1467,7 +1489,7 @@ DETAILED:
 
 		   { 'status': 'NG', 'message': string}
 
-		H. ENABLE/DISABLE I2C DEVICE
+		J. ENABLE/DISABLE I2C DEVICE
 		-  Request:
 		   POST /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME/enable
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
@@ -1477,7 +1499,7 @@ DETAILED:
 		   { 'status': 'OK', 'message': string }
 		   { 'status': 'NG', 'message': string }
 
-		I. GET I2C DEVICE READINGS
+		K. GET I2C DEVICE READINGS
 		-  Request:
 		   GET /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME/readings
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -1485,7 +1507,7 @@ DETAILED:
 		   { 'status': 'OK', 'message': string, 'sensor_readings': {'value': int, 'lowest': int, 'highest': int} }
 		   { 'status': 'NG', 'message': string }
 
-		J. DELETE I2C DEVICE READINGS
+		L. DELETE I2C DEVICE READINGS
 		-  Request:
 		   DELETE /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME/readings
 		   headers: {'Authorization': 'Bearer ' + token.access}
