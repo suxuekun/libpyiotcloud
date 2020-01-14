@@ -3049,7 +3049,7 @@ def get_all_i2c_type_sensors(devicename, devicetype):
 #   headers: { 'Authorization': 'Bearer ' + token.access }
 #
 # - Response:
-#   { 'status': 'OK', 'message': string, 'sensors': array[{'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'timestamp': string}, ...] }
+#   { 'status': 'OK', 'message': string, 'sensors': array[{'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'timestamp': string, 'enabled': int}, ...] }
 #   { 'status': 'NG', 'message': string }
 #
 #
@@ -3064,7 +3064,7 @@ def get_all_i2c_type_sensors(devicename, devicetype):
 #   headers: { 'Authorization': 'Bearer ' + token.access }
 #
 # - Response:
-#   { 'status': 'OK', 'message': string, 'sensors': array[{'sensorname': string, 'manufacturer': string, 'model': string, 'timestamp': string}, ...] }
+#   { 'status': 'OK', 'message': string, 'sensors': array[{'sensorname': string, 'manufacturer': string, 'model': string, 'timestamp': string, 'enabled': int}, ...] }
 #   { 'status': 'NG', 'message': string }
 #
 ########################################################################################################
@@ -3110,8 +3110,39 @@ def get_xxx_sensors(devicename, xxx, number):
         print('\r\nERROR Get {} Sensors: Token is invalid [{}]\r\n'.format(xxx, username))
         return response, status.HTTP_401_UNAUTHORIZED
 
-    sensors = g_database_client.get_sensors(username, devicename, xxx, number)
+    # query database
+    sensors = g_database_client.get_sensors_with_enabled(username, devicename, xxx, number)
+    print(len(sensors))
+    for sensor in sensors:
+        print(sensor)
+        print()
 
+    # query device
+    api = "get_{}_devs".format(xxx)
+    data = {}
+    data['token'] = token
+    data['devicename'] = devicename
+    data['username'] = username
+    data["number"] = int(number)
+    response, status = process_request(api, data)
+    if status == 200:
+        # map queried result with database result
+        print("from device")
+        response = json.loads(response)
+        print(response["value"])
+        if xxx == "i2c":
+            for item in response["value"]:
+                for sensor in sensors:
+                    if item["address"] == sensor["address"]:
+                        sensor["enabled"] = item["enabled"]
+                        break
+        else:
+            for item in response["value"]:
+                for sensor in sensors:
+                    if item["class"] == get_i2c_device_class(sensor["class"]):
+                        sensor["enabled"] = item["enabled"]
+                        break
+        print()
 
     msg = {'status': 'OK', 'message': 'Sensors queried successfully.', 'sensors': sensors}
     if new_token:
