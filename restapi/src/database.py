@@ -266,6 +266,12 @@ class database_client:
     def get_sensors(self, username, devicename, source, number):
         return self._devices.get_sensors(username, devicename, source, number)
 
+    def get_sensors_count(self, username, devicename, source, number):
+        return len(self._devices.get_sensors(username, devicename, source, number))
+
+    def get_sensors_enabled_input(self, username, devicename, source, number):
+        return self._devices.get_sensors_enabled_input(username, devicename, source, number)
+
     def get_sensors_with_enabled(self, username, devicename, source, number):
         return self._devices.get_sensors_with_enabled(username, devicename, source, number)
 
@@ -304,8 +310,14 @@ class database_client:
     def delete_sensor_reading(self, username, devicename, source, address):
         self._devices.delete_sensor_reading(self._devices.get_deviceid(username, devicename), source, address)
 
+    def delete_sensors_readings(self, username, devicename, source):
+        self._devices.delete_sensors_readings(self._devices.get_deviceid(username, devicename), source)
+
     def get_sensor_reading(self, username, devicename, source, address):
         return self._devices.get_sensor_reading_by_deviceid(self._devices.get_deviceid(username, devicename), source, address)
+
+    def get_sensors_readings(self, username, devicename, source):
+        return self._devices.get_sensors_readings_by_deviceid(self._devices.get_deviceid(username, devicename), source)
 
     def get_sensor_reading_by_deviceid(self, deviceid, source, address):
         return self._devices.get_sensor_reading_by_deviceid(deviceid, source, address)
@@ -940,6 +952,15 @@ class database_client_mongodb:
                     sensor_list.append(i2csensor)
         return sensor_list
 
+    def get_sensors_enabled_input(self, username, devicename, source, number):
+        sensor_list = []
+        i2csensors = self.get_sensors_document();
+        if i2csensors:
+            for i2csensor in i2csensors.find({'username': username, 'devicename': devicename, 'source': source, 'number': number, 'enabled': 1, 'type': 'input'}, {'sensorname': 1}):
+                i2csensor.pop('_id')
+                sensor_list.append(i2csensor)
+        return sensor_list
+
     def get_sensors_with_enabled(self, username, devicename, source, number):
         sensor_list = []
         i2csensors = self.get_sensors_document();
@@ -1091,6 +1112,14 @@ class database_client_mongodb:
             print("delete_sensor_reading: Exception occurred")
             pass
 
+    def delete_sensors_readings(self, deviceid, source):
+        sensorreadings = self.get_sensorreadings_document();
+        try:
+            sensorreadings.delete_many({'deviceid': deviceid, 'source': source})
+        except:
+            print("delete_sensors_readings: Exception occurred")
+            pass
+
     def get_sensor_reading_by_deviceid(self, deviceid, source, address):
         sensorreadings = self.get_sensorreadings_document();
         if sensorreadings:
@@ -1105,6 +1134,15 @@ class database_client_mongodb:
                     #print(sensorreading['sensor_readings'])
                     return sensorreading['sensor_readings']
         return None
+
+    def get_sensors_readings_by_deviceid(self, deviceid, source):
+        sensorreadings_list = []
+        sensorreadings = self.get_sensorreadings_document();
+        if sensorreadings:
+            for sensorreading in sensorreadings.find({'deviceid': deviceid, 'source': source}):
+                sensorreading.pop('_id')
+                sensorreadings_list.append(sensorreading['sensor_readings'])
+        return sensorreadings_list
 
 
     ##########################################################
