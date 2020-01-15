@@ -939,7 +939,7 @@ class TimerThread(threading.Thread):
                 publish(topic, payload)
                 print("")
             else:
-                #print("no enabled I2C INPUT devices")
+                #print("no enabled INPUT devices")
                 pass
 
 
