@@ -5403,7 +5403,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         'source': $stateParams.source,
         
         'attributes': $stateParams.attributes,
-        'enabled': true,
+        'enabled': $stateParams.sensor.enabled ? true: false,
     };
     
     $scope.sensor_readings = {
@@ -5411,6 +5411,23 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         'lowest': 0,
         'highest': 0,
     };
+
+
+    handle_error = function(error) {
+        if (error.data !== null) {
+            console.log("ERROR: Failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
+
+            if (error.data.message === "Token expired") {
+                Token.refresh({'username': $scope.data.username, 'token': $scope.data.token});
+                $scope.data.token = User.get_token();
+            }
+        }
+        else {
+            console.log("ERROR: Server is down!"); 
+            $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+        }
+    };
+
 
     // GET I2C SENSOR READING
     $scope.getI2CSensorReading = function(sensor) {
@@ -5584,6 +5601,9 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         })
         .catch(function (error) {
             handle_error(error);
+            
+            $scope.data.enabled = $scope.data.enabled? false: true;
+            $ionicPopup.alert({ title: 'Error', template: error.data.message, buttons: [{text: 'OK', type: 'button-assertive'}] });
         }); 
     };
 
@@ -5661,13 +5681,29 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         'source': $stateParams.source,
         
         'attributes': $stateParams.attributes,
-        'enabled': true,
+        'enabled': $stateParams.sensor.enabled ? true: false,
     };
     
     $scope.sensor_readings = {
         'value': 0,
         'lowest': 0,
         'highest': 0,
+    };
+
+
+    handle_error = function(error) {
+        if (error.data !== null) {
+            console.log("ERROR: Failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
+
+            if (error.data.message === "Token expired") {
+                Token.refresh({'username': $scope.data.username, 'token': $scope.data.token});
+                $scope.data.token = User.get_token();
+            }
+        }
+        else {
+            console.log("ERROR: Server is down!"); 
+            $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+        }
     };
 
     // GET ADC SENSOR READING
@@ -5842,6 +5878,9 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         })
         .catch(function (error) {
             handle_error(error);
+            
+            $scope.data.enabled = $scope.data.enabled? false: true;
+            $ionicPopup.alert({ title: 'Error', template: error.data.message, buttons: [{text: 'OK', type: 'button-assertive'}] });
         }); 
     };
 
@@ -5919,7 +5958,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         'source': $stateParams.source,
         
         'attributes': $stateParams.attributes,
-        'enabled': true,
+        'enabled': $stateParams.sensor.enabled ? true: false,
     };
     
     $scope.sensor_readings = {
@@ -5927,6 +5966,22 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         'lowest': 0,
         'highest': 0,
     };
+
+    handle_error = function(error) {
+        if (error.data !== null) {
+            console.log("ERROR: Failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
+
+            if (error.data.message === "Token expired") {
+                Token.refresh({'username': $scope.data.username, 'token': $scope.data.token});
+                $scope.data.token = User.get_token();
+            }
+        }
+        else {
+            console.log("ERROR: Server is down!"); 
+            $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+        }
+    };
+
 
     // GET TPROBE SENSOR READING
     $scope.getTPROBESensorReading = function(sensor) {
@@ -6100,6 +6155,9 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         })
         .catch(function (error) {
             handle_error(error);
+            
+            $scope.data.enabled = $scope.data.enabled? false: true;
+            $ionicPopup.alert({ title: 'Error', template: error.data.message, buttons: [{text: 'OK', type: 'button-assertive'}] });
         }); 
     };
 
@@ -6177,7 +6235,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         'source': $stateParams.source,
         
         'attributes': $stateParams.attributes,
-        'enabled': true,
+        'enabled': $stateParams.sensor.enabled ? true: false,
     };
     
     $scope.sensor_readings = {
@@ -6185,6 +6243,22 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         'lowest': 0,
         'highest': 0,
     };
+
+    handle_error = function(error) {
+        if (error.data !== null) {
+            console.log("ERROR: Failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
+
+            if (error.data.message === "Token expired") {
+                Token.refresh({'username': $scope.data.username, 'token': $scope.data.token});
+                $scope.data.token = User.get_token();
+            }
+        }
+        else {
+            console.log("ERROR: Server is down!"); 
+            $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+        }
+    };
+
 
     // GET 1WIRE SENSOR READING
     $scope.get1WIRESensorReading = function(sensor) {
@@ -6358,6 +6432,9 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         })
         .catch(function (error) {
             handle_error(error);
+            
+            $scope.data.enabled = $scope.data.enabled? false: true;
+            $ionicPopup.alert({ title: 'Error', template: error.data.message, buttons: [{text: 'OK', type: 'button-assertive'}] });
         }); 
     };
 
