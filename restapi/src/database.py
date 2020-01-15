@@ -3,6 +3,7 @@ import hmac
 import hashlib
 import datetime
 import random
+import copy
 from rest_api_config import config
 from pymongo import MongoClient # MongoDB
 #import psycopg2                # PostgreSQL
@@ -274,11 +275,23 @@ class database_client:
     def delete_sensor(self, username, devicename, source, number, sensorname):
         self._devices.delete_sensor(username, devicename, source, number, sensorname)
 
+    def check_sensor(self, username, devicename, sensorname):
+        return self._devices.check_sensor(username, devicename, sensorname)
+
     def get_sensor(self, username, devicename, source, number, sensorname):
         return self._devices.get_sensor(username, devicename, source, number, sensorname)
 
     def get_sensor_by_address(self, username, devicename, source, number, address):
         return self._devices.get_sensor_by_address(username, devicename, source, number, address)
+
+    def disable_unconfigure_sensors(self, username, devicename):
+        self._devices.disable_unconfigure_sensors(username, devicename)
+
+    def disable_unconfigure_sensors_source(self, username, devicename, source, number):
+        self._devices.disable_unconfigure_sensors_source(username, devicename, source, number)
+
+    def set_enable_configure_sensor(self, username, devicename, source, number, sensorname, enabled, configured):
+        self._devices.set_enable_configure_sensor(username, devicename, source, number, sensorname, enabled, configured)
 
 
     ##########################################################
@@ -913,8 +926,18 @@ class database_client_mongodb:
         if i2csensors:
             for i2csensor in i2csensors.find({'username': username, 'devicename': devicename, 'source': source, 'number': number}):
                 i2csensor.pop('_id')
-                i2csensor.pop('username')
-                sensor_list.append(i2csensor)
+                #print(i2csensor)
+                if i2csensor.get('enabled') is None and i2csensor.get('configured') is None:
+                    #print("no enabled and no configured")
+                    sensor = copy.deepcopy(i2csensor)
+                    sensor['enabled'] = 0
+                    sensor['configured'] = 0
+                    i2csensors.replace_one(i2csensor, sensor)
+                    sensor.pop('username')
+                    sensor_list.append(sensor)
+                else:
+                    i2csensor.pop('username')
+                    sensor_list.append(i2csensor)
         return sensor_list
 
     def get_sensors_with_enabled(self, username, devicename, source, number):
@@ -922,7 +945,7 @@ class database_client_mongodb:
         i2csensors = self.get_sensors_document();
         if i2csensors:
             for i2csensor in i2csensors.find({'username': username, 'devicename': devicename, 'source': source, 'number': number}):
-                i2csensor['enabled'] = 0
+                #i2csensor['enabled'] = 0
                 i2csensor.pop('_id')
                 i2csensor.pop('username')
                 sensor_list.append(i2csensor)
@@ -936,11 +959,13 @@ class database_client_mongodb:
         device['devicename']   = devicename
         device['source']       = source
         device['number']       = number
+        device['enabled']      = 0
+        device['configured']   = 0
         device['sensorname']   = sensorname
         device_all = {}
         device_all.update(device)
         device_all.update(data)
-        print(device_all)
+        #print(device_all)
         i2csensors.insert_one(device_all)
         return True
 
@@ -952,15 +977,25 @@ class database_client_mongodb:
             print("delete_sensor: Exception occurred")
             pass
 
-    def get_sensor(self, username, devicename, source, number, sensorname):
+    def check_sensor(self, username, devicename, sensorname):
         i2csensors = self.get_sensors_document();
         if i2csensors:
             # Note: sensorname should be unique allthroughout the slots and accross I2C/ADC/1WIRE/TPROBE
             # so number and source should not be included
             for i2csensor in i2csensors.find({'username': username, 'devicename': devicename, 'sensorname': sensorname}):
-            #for i2csensor in i2csensors.find({'username': username, 'devicename': devicename, 'sensorname': sensorname, 'source': source, 'number': number}):
                 i2csensor.pop('_id')
                 i2csensor.pop('username')
+                return i2csensor
+        return None
+
+    def get_sensor(self, username, devicename, source, number, sensorname):
+        i2csensors = self.get_sensors_document();
+        if i2csensors:
+            for i2csensor in i2csensors.find({'username': username, 'devicename': devicename, 'sensorname': sensorname, 'source': source, 'number': number}):
+                i2csensor.pop('_id')
+                i2csensor.pop('username')
+                #print(i2csensor)
+                #print(len(i2csensor))
                 return i2csensor
         return None
 
@@ -972,6 +1007,40 @@ class database_client_mongodb:
                 i2csensor.pop('username')
                 return i2csensor
         return None
+
+    def disable_unconfigure_sensors(self, username, devicename):
+        i2csensors = self.get_sensors_document();
+        if i2csensors:
+            for i2csensor in i2csensors.find({'username': username, 'devicename': devicename}):
+                i2csensor.pop('_id')
+                sensor = copy.deepcopy(i2csensor)
+                sensor['enabled'] = 0
+                sensor['configured'] = 0
+                i2csensors.replace_one(i2csensor, sensor)
+
+    def disable_unconfigure_sensors_source(self, username, devicename, source, number):
+        i2csensors = self.get_sensors_document();
+        if i2csensors:
+            for i2csensor in i2csensors.find({'username': username, 'devicename': devicename, 'source': source, 'number': number}):
+                i2csensor.pop('_id')
+                sensor = copy.deepcopy(i2csensor)
+                sensor['enabled'] = 0
+                sensor['configured'] = 0
+                i2csensors.replace_one(i2csensor, sensor)
+
+    def set_enable_configure_sensor(self, username, devicename, source, number, sensorname, enabled, configured):
+        i2csensors = self.get_sensors_document();
+        if i2csensors:
+            for i2csensor in i2csensors.find({'username': username, 'devicename': devicename, 'source': source, 'number': number, 'sensorname': sensorname}):
+                i2csensor.pop('_id')
+                sensor = copy.deepcopy(i2csensor)
+                sensor['enabled'] = enabled
+                sensor['configured'] = configured
+                #print("xxx")
+                #print(sensor)
+                #print("yyy")
+                i2csensors.replace_one(i2csensor, sensor)
+                break
 
 
     ##########################################################

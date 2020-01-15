@@ -2328,9 +2328,9 @@ def get_uart_prop(devicename):
     data['username'] = username
     print('get_uart_prop {} devicename={}'.format(data['username'], data['devicename']))
 
-    response, status = process_request(api, data)
-    if status != 200:
-        return response, status
+    response, status_return = process_request(api, data)
+    if status_return != 200:
+        return response, status_return
 
     source = "uart"
     notification = g_database_client.get_device_notification(username, devicename, source)
@@ -2400,9 +2400,9 @@ def set_uart_prop(devicename):
     data['username'] = username
     print('set_uart_prop {} devicename={}'.format(data['username'], data['devicename']))
 
-    response, status = process_request(api, data)
-    if status != 200:
-        return response, status
+    response, status_return = process_request(api, data)
+    if status_return != 200:
+        return response, status_return
 
     #print("recipients: {}".format(notification["endpoints"]["modem"]["recipients"]))
     deviceid = g_database_client.get_deviceid(username, notification["endpoints"]["modem"]["recipients"])
@@ -2559,9 +2559,9 @@ def get_gpio_prop(devicename, number):
     data['number'] = number
     print('get_gpio_prop {} devicename={}'.format(data['username'], data['devicename']))
 
-    response, status = process_request(api, data)
-    if status != 200:
-        return response, status
+    response, status_return = process_request(api, data)
+    if status_return != 200:
+        return response, status_return
 
     source = "gpio{}".format(number)
     notification = g_database_client.get_device_notification(username, devicename, source)
@@ -2680,9 +2680,9 @@ def set_gpio_prop(devicename, number):
     data['number'] = number
     print('set_gpio_prop {} devicename={}'.format(data['username'], data['devicename']))
 
-    response, status_err = process_request(api, data)
-    if status_err != 200:
-        return response, status_err
+    response, status_return = process_request(api, data)
+    if status_return != 200:
+        return response, status_return
 
     source = "gpio{}".format(number)
     g_database_client.update_device_notification(username, devicename, source, notification)
@@ -3111,11 +3111,11 @@ def get_xxx_sensors(devicename, xxx, number):
         return response, status.HTTP_401_UNAUTHORIZED
 
     # query database
-    sensors = g_database_client.get_sensors_with_enabled(username, devicename, xxx, number)
-    print(len(sensors))
-    for sensor in sensors:
-        print(sensor)
-        print()
+    sensors = g_database_client.get_sensors(username, devicename, xxx, number)
+    #print(len(sensors))
+    #for sensor in sensors:
+    #    print(sensor)
+    #    print()
 
     # query device
     api = "get_{}_devs".format(xxx)
@@ -3124,25 +3124,65 @@ def get_xxx_sensors(devicename, xxx, number):
     data['devicename'] = devicename
     data['username'] = username
     data["number"] = int(number)
-    response, status = process_request(api, data)
-    if status == 200:
+    response, status_return = process_request(api, data)
+    if status_return == 200:
         # map queried result with database result
-        print("from device")
+        #print("from device")
         response = json.loads(response)
-        print(response["value"])
+        #print(response["value"])
         if xxx == "i2c":
-            for item in response["value"]:
-                for sensor in sensors:
-                    if item["address"] == int(sensor["address"]):
+            # if I2C
+            #print("I2C")
+            for sensor in sensors:
+                found = False
+                for item in response["value"]:
+                    # match found for database result and actual device result
+                    # set database record to configured and actual device item["enabled"]
+                    if sensor["address"] == item["address"]:
+                        # device is configured
+                        g_database_client.set_enable_configure_sensor(username, devicename, sensor['source'], sensor['number'], sensor['sensorname'], item["enabled"], 1)
                         sensor["enabled"] = item["enabled"]
+                        sensor["configured"] = 1
+                        found = True
                         break
+                # no match found
+                # set database record to unconfigured and disabled
+                if found == False:
+                    g_database_client.set_enable_configure_sensor(username, devicename, sensor['source'], sensor['number'], sensor['sensorname'], 0, 0)
+                    sensor["enabled"] = 0
+                    sensor["configured"] = 0
         else:
-            for item in response["value"]:
-                for sensor in sensors:
-                    if item["class"] == get_i2c_device_class(sensor["class"]):
-                        sensor["enabled"] = item["enabled"]
-                        break
-        print()
+            # if ADC/1WIRE/TPROBE
+            #print("ADC/1WIRE/TPROBE")
+            for sensor in sensors:
+                found = False
+                # check if this is the active sensor
+                # if not the active sensor, then set database record to unconfigured and disabled
+                #print(sensor)
+                if sensor['configured']:
+                    for item in response["value"]:
+                        if item["class"] == get_i2c_device_class(sensor["class"]):
+                            g_database_client.set_enable_configure_sensor(username, devicename, sensor['source'], sensor['number'], sensor['sensorname'], item["enabled"], 1)
+                            sensor["enabled"] = item["enabled"]
+                            found = True
+                            break
+                    if found == False:
+                        # set database record to unconfigured and disabled
+                        g_database_client.set_enable_configure_sensor(username, devicename, sensor['source'], sensor['number'], sensor['sensorname'], 0, 0)
+                        sensor["enabled"] = 0
+                        sensor["configured"] = 0
+                else:
+                    # set database record to unconfigured and disabled
+                    g_database_client.set_enable_configure_sensor(username, devicename, sensor['source'], sensor['number'], sensor['sensorname'], 0, 0)
+                    sensor["enabled"] = 0
+                    sensor["configured"] = 0
+        #print()
+    else:
+        # cannot communicate with device so set database record to unconfigured and disabled
+        g_database_client.disable_unconfigure_sensors(username, devicename)
+        for sensor in sensors:
+            sensor["enabled"] = 0
+            sensor["configured"] = 0
 
     msg = {'status': 'OK', 'message': 'Sensors queried successfully.', 'sensors': sensors}
     if new_token:
@@ -3278,7 +3318,7 @@ def register_xxx_sensor(devicename, xxx, number, sensorname):
 
         # check if sensor is registered
         # name should be unique all throughout the slots
-        if g_database_client.get_sensor(username, devicename, xxx, number, sensorname):
+        if g_database_client.check_sensor(username, devicename, sensorname):
             response = json.dumps({'status': 'NG', 'message': 'Sensor name is already taken'})
             print('\r\nERROR Add {} Sensor: Sensor name is already taken [{},{},{}]\r\n'.format(xxx, username, devicename, sensorname))
             return response, status.HTTP_409_CONFLICT
@@ -3662,15 +3702,40 @@ def set_xxx_dev_prop(devicename, xxx, number, sensorname):
 
     # no notification data
     if not data.get("notification"):
-        return process_request(api, data)
+        print("no notification data")
+
+        response, status_return = process_request(api, data)
+        if status_return != 200:
+            # set enabled to FALSE and configured to FALSE
+            g_database_client.set_enable_configure_sensor(username, devicename, xxx, number, sensorname, 0, 0)
+            return response, status_return
+
+        # if ADC/1WIRE/TPROBE, set all other ADC/1WIRE/TPROBE to unconfigured and disabled
+        if xxx != "i2c":
+            g_database_client.disable_unconfigure_sensors_source(username, devicename, xxx, number)
+        # set to disabled and configured
+        g_database_client.set_enable_configure_sensor(username, devicename, xxx, number, sensorname, 0, 1)
+
+        return response
+
 
     # has notification parameter
     notification = data['notification']
     data.pop('notification')
 
-    response, status = process_request(api, data)
-    if status != 200:
-        return response, status
+    # query device
+    response, status_return = process_request(api, data)
+    if status_return != 200:
+        # set enabled to FALSE and configured to FALSE
+        g_database_client.set_enable_configure_sensor(username, devicename, xxx, number, sensorname, 0, 0)
+        return response, status_return
+
+    # if ADC/1WIRE/TPROBE, set all other ADC/1WIRE/TPROBE to unconfigured and disabled
+    if xxx != "i2c":
+        g_database_client.disable_unconfigure_sensors_source(username, devicename, xxx, number)
+
+    # set to disabled and configured
+    g_database_client.set_enable_configure_sensor(username, devicename, xxx, number, sensorname, 0, 1)
 
     source = "{}{}{}".format(xxx, number, sensorname)
     notification = g_database_client.update_device_notification(username, devicename, source, notification)
@@ -3772,9 +3837,9 @@ def get_xxx_dev_prop(devicename, xxx, number, sensorname):
         return process_request(api, data)
 
     # has notification object required
-    response, status = process_request(api, data)
-    if status != 200:
-        return response, status
+    response, status_return = process_request(api, data)
+    if status_return != 200:
+        return response, status_return
 
     source = "{}{}{}".format(xxx, number, sensorname)
     notification = g_database_client.get_device_notification(username, devicename, source)
@@ -3870,13 +3935,29 @@ def enable_xxx_dev(devicename, xxx, number, sensorname):
         print('\r\nERROR Get {} Sensor: Sensor is not registered [{},{}]\r\n'.format(xxx, username, devicename))
         return response, status.HTTP_404_NOT_FOUND
 
+    print(sensor)
+    if sensor["configured"] == 0:
+        response = json.dumps({'status': 'NG', 'message': 'Sensor is not yet configured'})
+        print('\r\nERROR Get {} Sensor: Sensor is yet configured [{},{}]\r\n'.format(xxx, username, devicename))
+        return response, status.HTTP_400_BAD_REQUEST
+
     if sensor.get('address'):
         data['address'] = sensor['address']
     # note: python dict maintains insertion order so number will always be the last key
     data['number'] = int(number)
     print('enable_{}_dev {} devicename={} number={}'.format(xxx, username, devicename, number))
 
-    return process_request(api, data)
+    do_enable = data['enable']
+
+    # communicate with device
+    response, status_return = process_request(api, data)
+    if status_return != 200:
+        return response, status_return
+
+    # set enabled to do_enable and configured to 1
+    g_database_client.set_enable_configure_sensor(username, devicename, xxx, number, sensorname, do_enable, 1)
+
+    return response
 
 
 #
