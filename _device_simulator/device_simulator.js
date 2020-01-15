@@ -106,14 +106,10 @@ var API_GET_GPIO_VOLTAGE             = "get_gpio_voltage";
 var API_SET_GPIO_VOLTAGE             = "set_gpio_voltage";
 
 // i2c
-var API_GET_I2CS                     = "get_i2cs";
 var API_GET_I2C_DEVICES              = "get_i2c_devs";
-var API_ADD_I2C_DEVICE               = "add_i2c_dev";
-var API_REMOVE_I2C_DEVICE            = "remove_i2c_dev";
 var API_ENABLE_I2C_DEVICE            = "enable_i2c_dev";
 var API_GET_I2C_DEVICE_PROPERTIES    = "get_i2c_dev_prop";
 var API_SET_I2C_DEVICE_PROPERTIES    = "set_i2c_dev_prop";
-var API_ENABLE_I2C                   = "enable_i2c";
 
 // adc
 var API_GET_ADC_DEVICES              = "get_adc_devs";
@@ -486,23 +482,6 @@ function handle_api(api, topic, payload)
     ////////////////////////////////////////////////////
     // I2C
     ////////////////////////////////////////////////////
-    else if (api == API_GET_I2CS) {
-        pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
-        var response = {
-            'value': {
-                'i2cs': [
-                    {'enabled': g_i2c_enabled[0] },
-                    {'enabled': g_i2c_enabled[1] },
-                    {'enabled': g_i2c_enabled[2] },
-                    {'enabled': g_i2c_enabled[3] }
-                ]
-            }
-        }
-        client.publish(pubtopic, JSON.stringify(response));
-
-        console.log(pubtopic);
-        console.log(JSON.stringify(response));
-    }
     else if (api == API_GET_I2C_DEVICES) {
         pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
         var response = {
@@ -514,12 +493,6 @@ function handle_api(api, topic, payload)
 
         console.log(pubtopic);
         console.log(JSON.stringify(response));
-    }
-    else if (api == API_ADD_I2C_DEVICE) {
-        console.log("API_ADD_I2C_DEVICE");
-    }
-    else if (api == API_REMOVE_I2C_DEVICE) {
-        console.log("API_REMOVE_I2C_DEVICE");
     }
     else if (api == API_ENABLE_I2C_DEVICE) {
         console.log("API_ENABLE_I2C_DEVICE");
@@ -586,19 +559,6 @@ function handle_api(api, topic, payload)
 
         var response = {};
         client.publish(pubtopic, JSON.stringify(response));
-        console.log(pubtopic);
-        console.log(JSON.stringify(response));
-    }
-    else if (api == API_ENABLE_I2C) {
-        pubtopic = CONFIG_PREPEND_REPLY_TOPIC + topic;
-        var obj = JSON.parse(payload);
-
-        g_i2c_enabled[Number(obj.number)-1] = obj.enable
-
-        var response = {};
-        client.publish(pubtopic, JSON.stringify(response));
-        console.log(g_i2c_enabled);
-
         console.log(pubtopic);
         console.log(JSON.stringify(response));
     }
