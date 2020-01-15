@@ -3133,7 +3133,7 @@ def get_xxx_sensors(devicename, xxx, number):
         if xxx == "i2c":
             for item in response["value"]:
                 for sensor in sensors:
-                    if item["address"] == sensor["address"]:
+                    if item["address"] == int(sensor["address"]):
                         sensor["enabled"] = item["enabled"]
                         break
         else:
