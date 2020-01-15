@@ -3117,6 +3117,17 @@ def get_xxx_sensors(devicename, xxx, number):
     #    print(sensor)
     #    print()
 
+    # get sensor readings
+    for sensor in sensors:
+        if sensor['type'] == 'input' and sensor['enabled']:
+            address = None
+            if sensor.get("address"):
+                address = sensor["address"]
+            source = "{}{}".format(xxx, number)
+            sensor_reading = g_database_client.get_sensor_reading(username, devicename, source, address)
+            if sensor_reading is not None:
+                sensor['readings'] = sensor_reading
+
     # query device
     api = "get_{}_devs".format(xxx)
     data = {}
@@ -3323,6 +3334,13 @@ def register_xxx_sensor(devicename, xxx, number, sensorname):
             print('\r\nERROR Add {} Sensor: Sensor name is already taken [{},{},{}]\r\n'.format(xxx, username, devicename, sensorname))
             return response, status.HTTP_409_CONFLICT
 
+        # can only register 1 device for adc/1wire/tprobe
+        if xxx != 'i2c':
+            if g_database_client.get_sensors_count(username, devicename, xxx, number) > 0:
+                response = json.dumps({'status': 'NG', 'message': 'Cannot add more than 1 sensor for {}'.format(xxx)})
+                print('\r\nERROR Add {} Sensor: Cannot add more than 1 sensor [{},{},{}]\r\n'.format(xxx, username, devicename, sensorname))
+                return response, status.HTTP_400_BAD_REQUEST
+
         # add sensor to database
         result = g_database_client.add_sensor(username, devicename, xxx, number, sensorname, data)
         #print(result)
@@ -3445,7 +3463,7 @@ def get_xxx_sensor(devicename, xxx, number, sensorname):
 
 ########################################################################################################
 #
-# GET I2C DEVICE READINGS
+# GET I2C DEVICE READINGS (per sensor)
 #
 # - Request:
 #   GET /devices/device/<devicename>/i2c/NUMBER/sensors/sensor/<sensorname>/readings
@@ -3455,9 +3473,9 @@ def get_xxx_sensor(devicename, xxx, number, sensorname):
 #   {'status': 'OK', 'message': string, 'sensor_readings': {'value': int, 'lowest': int, 'highest': int} }
 #   {'status': 'NG', 'message': string }
 #
-# GET ADC DEVICE READINGS
-# GET 1WIRE DEVICE READINGS
-# GET TPROBE DEVICE READINGS
+# GET ADC DEVICE READINGS (per sensor)
+# GET 1WIRE DEVICE READINGS (per sensor)
+# GET TPROBE DEVICE READINGS (per sensor)
 #
 # - Request:
 #   GET /devices/device/<devicename>/adc/NUMBER/sensors/sensor/<sensorname>/readings
@@ -3470,7 +3488,7 @@ def get_xxx_sensor(devicename, xxx, number, sensorname):
 #   {'status': 'NG', 'message': string }
 #
 #
-# DELETE I2C DEVICE READINGS
+# DELETE I2C DEVICE READINGS (per sensor)
 #
 # - Request:
 #   DELETE /devices/device/<devicename>/i2c/NUMBER/sensors/sensor/<sensorname>/readings
@@ -3480,9 +3498,9 @@ def get_xxx_sensor(devicename, xxx, number, sensorname):
 #   {'status': 'OK', 'message': string }
 #   {'status': 'NG', 'message': string }
 #
-# DELETE ADC DEVICE READINGS
-# DELETE 1WIRE DEVICE READINGS
-# DELETE TPROBE DEVICE READINGS
+# DELETE ADC DEVICE READINGS (per sensor)
+# DELETE 1WIRE DEVICE READINGS (per sensor)
+# DELETE TPROBE DEVICE READINGS (per sensor)
 #
 # - Request:
 #   DELETE /devices/device/<devicename>/adc/NUMBER/sensors/sensor/<sensorname>/readings
@@ -3582,6 +3600,142 @@ def get_xxx_sensor_readings(devicename, xxx, number, sensorname):
         print('\r\nSensor reading deleted successful: {}\r\n{}\r\n'.format(username, response))
         return response
 
+
+########################################################################################################
+#
+# GET I2C DEVICES READINGS (per peripheral slot)
+#
+# - Request:
+#   GET /devices/device/<devicename>/i2c/NUMBER/sensors/readings
+#   headers: {'Authorization': 'Bearer ' + token.access}
+#
+# - Response:
+#   {'status': 'OK', 'message': string, 'sensor_readings': {'value': int, 'lowest': int, 'highest': int} }
+#   {'status': 'NG', 'message': string }
+#
+# GET ADC DEVICES READINGS (per peripheral slot)
+# GET 1WIRE DEVICES READINGS (per peripheral slot)
+# GET TPROBE DEVICES READINGS (per peripheral slot)
+#
+# - Request:
+#   GET /devices/device/<devicename>/adc/NUMBER/sensors/readings
+#   GET /devices/device/<devicename>/1wire/NUMBER/sensors/readings
+#   GET /devices/device/<devicename>/tprobe/NUMBER/sensors/readings
+#   headers: {'Authorization': 'Bearer ' + token.access}
+#
+# - Response:
+#   {'status': 'OK', 'message': string, 'sensor_readings': {'value': int, 'lowest': int, 'highest': int} }
+#   {'status': 'NG', 'message': string }
+#
+#
+# DELETE I2C DEVICES READINGS (per peripheral slot)
+#
+# - Request:
+#   DELETE /devices/device/<devicename>/i2c/NUMBER/sensors/readings
+#   headers: {'Authorization': 'Bearer ' + token.access}
+#
+# - Response:
+#   {'status': 'OK', 'message': string }
+#   {'status': 'NG', 'message': string }
+#
+# DELETE ADC DEVICES READINGS (per peripheral slot)
+# DELETE 1WIRE DEVICES READINGS (per peripheral slot)
+# DELETE TPROBE DEVICES READINGS (per peripheral slot)
+#
+# - Request:
+#   DELETE /devices/device/<devicename>/adc/NUMBER/sensors/readings
+#   DELETE /devices/device/<devicename>/1wire/NUMBER/sensors/readings
+#   DELETE /devices/device/<devicename>/tprobe/NUMBER/sensors/readings
+#   headers: {'Authorization': 'Bearer ' + token.access}
+#
+# - Response:
+#   {'status': 'OK', 'message': string }
+#   {'status': 'NG', 'message': string }
+#
+########################################################################################################
+@app.route('/devices/device/<devicename>/<xxx>/<number>/sensors/readings', methods=['GET', 'DELETE'])
+def get_xxx_sensors_readings(devicename, xxx, number):
+
+    # check number parameter
+    if int(number) > 4 or int(number) < 1:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid parameters'})
+        print('\r\nERROR Invalid parameters\r\n')
+        return response, status.HTTP_400_BAD_REQUEST
+
+    # get token from Authorization header
+    auth_header_token = get_auth_header_token()
+    if auth_header_token is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
+        print('\r\nERROR Get {} Sensor: Invalid authorization header\r\n'.format(xxx))
+        return response, status.HTTP_401_UNAUTHORIZED
+    token = {'access': auth_header_token}
+
+    # get username from token
+    username = g_database_client.get_username_from_token(token)
+    if username is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
+        print('\r\nERROR Get {} Sensor: Invalid token\r\n'.format(xxx))
+        return response, status.HTTP_401_UNAUTHORIZED
+    print('get_{}_sensor_readings {} devicename={} number={}'.format(xxx, username, devicename, number))
+
+    # check if a parameter is empty
+    if len(username) == 0 or len(token) == 0 or len(devicename) == 0:
+        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+        print('\r\nERROR Get {} Sensor: Empty parameter found\r\n'.format(xxx))
+        return response, status.HTTP_400_BAD_REQUEST
+
+    # check if username and token is valid
+    verify_ret, new_token = g_database_client.verify_token(username, token)
+    if verify_ret == 2:
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Get {} Sensor: Token expired [{}]\r\n'.format(xxx, username))
+        return response, status.HTTP_401_UNAUTHORIZED
+    elif verify_ret != 0:
+        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
+        print('\r\nERROR Get {} Sensor: Token is invalid [{}]\r\n'.format(xxx, username))
+        return response, status.HTTP_401_UNAUTHORIZED
+
+    source = "{}{}".format(xxx, number)
+    if flask.request.method == 'GET':
+        if True:
+            # get enabled input sensors
+            sensors = g_database_client.get_sensors_enabled_input(username, devicename, xxx, number)
+
+            # get sensor reading for each enabled input sensors
+            for sensor in sensors:
+                address = None
+                if sensor.get("address"):
+                    address = sensor["address"]
+                sensor_reading = g_database_client.get_sensor_reading(username, devicename, source, address)
+                sensor['readings'] = sensor_reading
+
+            msg = {'status': 'OK', 'message': 'Sensors readings queried successfully.', 'sensor_readings': sensors}
+            if new_token:
+                msg['new_token'] = new_token
+            response = json.dumps(msg)
+            print('\r\nSensors readings queried successful: {}\r\n{}\r\n'.format(username, response))
+            return response
+        else:
+            # get sensors readings
+            sensor_readings = g_database_client.get_sensors_readings(username, devicename, source)
+
+            msg = {'status': 'OK', 'message': 'Sensors readings queried successfully.', 'sensor_readings': sensor_readings}
+            if new_token:
+                msg['new_token'] = new_token
+            response = json.dumps(msg)
+            print('\r\nSensors readings queried successful: {}\r\n{}\r\n'.format(username, response))
+            return response
+
+    elif flask.request.method == 'DELETE':
+        # delete sensors readings
+        g_database_client.delete_sensors_readings(username, devicename, source)
+
+        msg = {'status': 'OK', 'message': 'Sensors readings deleted successfully.'}
+        if new_token:
+            msg['new_token'] = new_token
+        response = json.dumps(msg)
+        print('\r\nSensors readings deleted successful: {}\r\n{}\r\n'.format(username, response))
+        return response
 
 
 def get_i2c_device_class(classname):
@@ -4302,7 +4456,7 @@ def generate_subscribe_topic(topic, separator):
     return topic
 
 
-def process_request_get(api, data):
+def process_request_get(api, data, timeout=2):
 
     print("\r\nAPI: {} {} devicename={}".format(api, data['username'], data['devicename']))
 
@@ -4343,7 +4497,7 @@ def process_request_get(api, data):
             g_messaging_client.publish(pubtopic, payload)
 
             # receive response
-            response = receive_message(subtopic)
+            response = receive_message(subtopic, timeout)
             g_messaging_client.subscribe(subtopic, subscribe=False)
         else:
             msg = {'status': 'NG', 'message': 'Could not communicate with device'}
@@ -4381,7 +4535,7 @@ def process_request_get(api, data):
     return response, 200
 
 
-def process_request(api, data):
+def process_request(api, data, timeout=2):
 
     print("\r\nAPI: {} {} devicename={}".format(api, data['username'], data['devicename']))
 
@@ -4418,7 +4572,7 @@ def process_request(api, data):
             g_messaging_client.publish(pubtopic, payload)
 
             # receive response
-            response = receive_message(subtopic)
+            response = receive_message(subtopic, timeout)
             g_messaging_client.subscribe(subtopic, subscribe=False)
         else:
             msg = {'status': 'NG', 'message': 'Could not communicate with device'}
@@ -4664,7 +4818,7 @@ def on_amqp_message(ch, method, properties, body):
     g_queue_dict[method.routing_key] = body
     #print("RCV: {}".format(g_queue_dict))
 
-def receive_message(topic):
+def receive_message(topic, timeout):
     time.sleep(1)
     i = 0
     while True:
@@ -4677,7 +4831,7 @@ def receive_message(topic):
             #print("x")
             time.sleep(1)
             i += 1
-        if i >= 2:
+        if i >= timeout:
             print("receive_message timed_out")
             break
     return None
