@@ -3972,7 +3972,43 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
         }
     };
-    
+
+/*
+    // GET I2C SENSORS READINGS
+    $scope.getI2CSensorsReadings = function() {
+        console.log("getI2CSensorsReadings");
+        get_i2c_sensors_readings();
+    };
+
+    get_i2c_sensors_readings = function() {
+        //
+        // GET I2C SENSORS READINGS
+        //
+        // - Request:
+        //   GET /devices/device/DEVICENAME/i2c/NUMBER/sensors/readings
+        //   headers: { 'Authorization': 'Bearer ' + token.access }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string, 'sensor_readings': ['sensorname': string, ..., 'sensor_readings': {'value': int, 'lowest': int, 'highest': int}], ... }
+        //   { 'status': 'NG', 'message': string }
+        //
+        $http({
+            method: 'GET',
+            url: server + '/devices/device/' + $scope.data.devicename + '/i2c/' + $scope.data.activeSection.toString() + '/sensors/readings',
+            headers: {'Authorization': 'Bearer ' + $scope.data.token.access}
+        })
+        .then(function (result) {
+            console.log("sensor_readings ok");
+            console.log(result.data);
+            console.log("sensor_readings ok");
+        })
+        .catch(function (error) {
+            handle_error(error);
+        }); 
+        
+    };
+*/
+
 /*    
     get_i2cs = function() {
         //
@@ -4657,6 +4693,11 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
     $scope.addADCDevice = function() {
         console.log("add1WIREDevice");
         
+        if ($scope.sensors.length > 0) {
+            $ionicPopup.alert({ title: 'Error', template: 'Cannot add more than 1 ADC sensor device!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+            return;
+        }
+        
         var device_param = {
             'username': $scope.data.username,
             'token': $scope.data.token,
@@ -5003,6 +5044,11 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
     $scope.addTPROBEDevice = function() {
         console.log("addTPROBEDevice");
         
+        if ($scope.sensors.length > 0) {
+            $ionicPopup.alert({ title: 'Error', template: 'Cannot add more than 1 TPROBE sensor device!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+            return;
+        }
+
         var device_param = {
             'username': $scope.data.username,
             'token': $scope.data.token,
@@ -5349,6 +5395,11 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
     $scope.add1WIREDevice = function() {
         console.log("add1WIREDevice");
         
+        if ($scope.sensors.length > 0) {
+            $ionicPopup.alert({ title: 'Error', template: 'Cannot add more than 1 ONEWIRE sensor device!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+            return;
+        }
+
         var device_param = {
             'username': $scope.data.username,
             'token': $scope.data.token,
@@ -9386,7 +9437,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
     var server = Server.rest_api;
 
     $scope.manufacturers = [
-        { "id":0,  "name": "Unknown" },
+        { "id":0,  "name": "China PLC Center" },
     ];
 
     $scope.devicetypes = [
@@ -9397,10 +9448,10 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
     $scope.devicemodels_unk = [
         { 
             "id":0,  
-            "model": "Unknown Model", 
+            "model": "QS-FS Wind sensor", 
             "name": "ADC Anemometer", 
-            "desc": "Measures wind speed and direction",
-            "link": "Unknown",
+            "desc": "Measures wind speed",
+            "link": "https://lollette.com/support/pdf/Sensor/QS-FS-en.pdf",
             "class": "anemometer",
             "attributes": [],
         }
