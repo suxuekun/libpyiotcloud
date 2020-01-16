@@ -69,7 +69,7 @@ g_gpio_enabled = [1, 1, 1, 1]
 g_gpio_status = [0, 1, 0, 1]
 
 
-g_device_classes = ["speaker", "display", "light", "potentiometer", "temperature", "humidity", "anenomometer"]
+g_device_classes = ["speaker", "display", "light", "potentiometer", "temperature", "humidity", "anemometer"]
 
 # I2C
 g_i2c_properties = [
@@ -969,7 +969,7 @@ class TimerThread(threading.Thread):
                         i2c_class = g_device_classes[g_i2c_properties[x][y]["class"]]
                         if (i2c_class == "temperature" or i2c_class == "potentiometer"):
                             entry["address"] = int(y)
-                            entry["value"] = random.randint(0, 40)
+                            entry["value"] = random.randint(0, 100)
                             entries.append(entry)
                 if len(entries):
                     sensors[i2c] = entries 
@@ -982,9 +982,9 @@ class TimerThread(threading.Thread):
                 # adc device should be enabled
                 if (g_adc_properties[x]["enabled"]):
                     adc_class = g_device_classes[g_adc_properties[x]["class"]]
-                    if (adc_class == "anenomometer"):
+                    if (adc_class == "anemometer"):
                         entry = {}
-                        entry["value"] = random.randint(0, 40)
+                        entry["value"] = random.randint(0, 100)
                         if not sensors.get(adc):
                             sensors[adc] = []
                         sensors[adc].append(entry)
