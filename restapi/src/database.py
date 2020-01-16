@@ -488,8 +488,10 @@ class database_client_cognito:
         return result, None
 
     def get_username_from_token(self, token):
-        username = self.client.get_username_from_token(token['access'])
-        return username
+        try:
+            return self.client.get_username_from_token(token['access'])
+        except:
+            return None
 
     def get_confirmationcode(self, username):
         return None
