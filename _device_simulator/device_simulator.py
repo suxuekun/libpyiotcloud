@@ -967,9 +967,13 @@ class TimerThread(threading.Thread):
                     # i2c device class should be of type INPUT
                     if (int(y) > 0 and g_i2c_properties[x][y]["enabled"]):
                         i2c_class = g_device_classes[g_i2c_properties[x][y]["class"]]
-                        if (i2c_class == "temperature" or i2c_class == "potentiometer"):
+                        if i2c_class == "potentiometer":
                             entry["address"] = int(y)
                             entry["value"] = random.randint(0, 100)
+                            entries.append(entry)
+                        elif i2c_class == "temperature":
+                            entry["address"] = int(y)
+                            entry["value"] = random.randint(0, 40)
                             entries.append(entry)
                 if len(entries):
                     sensors[i2c] = entries 
