@@ -402,7 +402,7 @@ def confirm_forgot_password():
 ########################################################################################################
 @app.route('/user/logout', methods=['POST'])
 def logout():
-    print('\r\nLogout\r\n')
+    print('\r\nLogout')
 
     try:
         # get token from Authorization header
