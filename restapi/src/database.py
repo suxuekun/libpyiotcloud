@@ -118,8 +118,8 @@ class database_client:
     def verify_token(self, username, token):
         return self._users.verify_token(username, token)
 
-    def refresh_token(self, username, token):
-        return self._users.refresh_token(username, token)
+    def refresh_token(self, token):
+        return self._users.refresh_token(token)
 
     def get_username_from_token(self, token):
         return self._users.get_username_from_token(token)
@@ -459,7 +459,7 @@ class database_client_cognito:
         (result, response) = self.client.logout(token)
         #print("cognito logout = {}".format(result))
 
-    def refresh_token(self, username, token):
+    def refresh_token(self, token):
         (result, response) = self.client.refresh_token(token['refresh'])
         if result:
             new_token = {}

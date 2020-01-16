@@ -274,6 +274,9 @@ class cognito_client:
 		return (self.__get_result(response), response)
 
 	def get_username_from_token(self, token):
+		if self.keys is None:
+			return None
+
 		try:
 			headers = jwt.get_unverified_header(token)
 		except:
@@ -300,6 +303,9 @@ class cognito_client:
 		return claims["username"]
 
 	def verify_token(self, token, username):
+		if self.keys is None:
+			return None
+
 		# get the kid from the headers prior to verification
 		try:
 			headers = jwt.get_unverified_header(token)
