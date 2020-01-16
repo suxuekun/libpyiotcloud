@@ -2960,6 +2960,56 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         }); 
     };
 
+    delete_all_device_sensors_enabled_input = function() {
+        //
+        // DELETE ALL ENABLED DEVICE SENSORS (enabled input)
+        //
+        // - Request:
+        //   DELETE /devices/device/DEVICENAME/sensors/readings
+        //   headers: { 'Authorization': 'Bearer ' + token.access }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string }
+        //   { 'status': 'NG', 'message': string }        
+        //
+        $http({
+            method: 'DELETE',
+            url: server + '/devices/device/' + $scope.data.devicename + '/sensors/readings',
+            headers: { 'Authorization': 'Bearer ' + $scope.data.token.access },
+        })
+        .then(function (result) {
+            console.log(result.data);
+        })
+        .catch(function (error) {
+            handle_error(error);
+        }); 
+    };
+
+
+    $scope.submitDelete = function() {
+        $ionicPopup.alert({
+            title: 'Reset Sensor Readings',
+            template: 'Are you sure you want to clear database values for sensor readings of all sensors?',
+            buttons: [
+                { 
+                    text: 'No',
+                    type: 'button-assertive',
+                },
+                {
+                    text: 'Yes',
+                    type: 'button-positive',
+                    onTap: function(e) {
+                        $scope.submitDeleteAction();
+                    }
+                }
+            ]            
+        });              
+    };
+
+    $scope.submitDeleteAction = function() {
+        delete_all_device_sensors_enabled_input();
+    };
+
     $scope.submitQuery = function() {
         get_all_device_sensors_enabled_input();
     };
@@ -9432,7 +9482,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             "name": "Potentiometer",
             "desc": "Input range device",  
             "link": "https://electricdollarstore.com/pot.html",
-            "class": "anemometer",
+            "class": "potentiometer",
             "type": "input",
             "attributes": [],
         },
