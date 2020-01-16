@@ -1,0 +1,35 @@
+<ion-view title="Sensor Dashboard" hide-back-button="true" cache-view="false" nav-transition="none" id="page17" class="page_width">
+  <ion-nav-buttons side="left" class="has-header">
+    <button class="button button-icon icon ion-android-close" ng-click="submitExit()"></button>
+  </ion-nav-buttons>
+  <ion-nav-buttons side="right" class="has-header">
+    <button class="button button-positive icon ion-refresh" ng-click="submitQuery()"></button>
+  </ion-nav-buttons>
+  <ion-content padding="true" class="has-header">
+    <div class="spacer" style="width: 300px; height: 12px;"></div>
+    <div id="sensorDashboard-markdown57" style="text-align:center;" class="show-list-numbers-and-dots">
+      <p style="color:#387EF5;font-size:18px;">
+        <strong> {{ data.devicename }} </strong>
+      </p>
+    </div>
+    <div class="spacer" style="width: 300px; height: 20px;"></div>
+    <div id="sensorDashboard-markdown311" class="show-list-numbers-and-dots">
+      <p style="color:#AAAAAA;font-size:12px;">{{ sensors_counthdr }}</p>
+    </div>
+    <form id="sensorDashboard-form18" class="list">
+      <div class="item item-body" id="sensorDashboard-list-item-container9" ng-repeat="sensor in sensors">
+        <div id="sensorDashboard-markdown305" class="show-list-numbers-and-dots">
+          <p style="margin-top:0px;color:#387EF5;font-size:18px;">
+            <strong>{{ sensor.sensorname }}</strong>
+          </p>
+        </div>
+        <div id="sensorDashboard-markdown307" class="show-list-numbers-and-dots">
+          <p style="margin-top:0px;color:#444444;font-size:11px;">{{ sensor.class }} - {{ sensor.source }}{{ sensor.number }}</p>
+        </div>
+        <div id="sensorDashboard-markdown310" class="show-list-numbers-and-dots">
+          <p style="margin-top:0px;color:#444444;font-size:14px;">{{ sensor.readings }}</p>
+        </div>
+      </div>
+    </form>
+  </ion-content>
+</ion-view>

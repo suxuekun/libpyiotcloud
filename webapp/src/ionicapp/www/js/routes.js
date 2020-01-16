@@ -189,7 +189,7 @@ angular.module('app.routes', [])
     controller: 'viewDeviceCtrl'
   })
 
-  .state('configureDevice', {
+  .state('device', {
     url: '/page_control_device',
 	params: {
 		devicename: "",
@@ -200,8 +200,22 @@ angular.module('app.routes', [])
 		deviceversion: "",
 		devicestatus: ""		
 },
-    templateUrl: 'templates/configureDevice.html',
-    controller: 'configureDeviceCtrl'
+    templateUrl: 'templates/device.html',
+    controller: 'deviceCtrl'
+  })
+
+  .state('sensorDashboard', {
+    url: '/page_sensor_dashboard',
+	params: {
+		devicename: "",
+		username: "",
+		token: "",
+		devicestatus: "",
+		deviceid: "",
+		serialnumber: ""		
+},
+    templateUrl: 'templates/sensorDashboard.html',
+    controller: 'sensorDashboardCtrl'
   })
 
   .state('deviceGPIO', {
