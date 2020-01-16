@@ -13,7 +13,16 @@ $ionicons-font-path: "../lib/ionic/fonts" !default;
 
 .widget_button {
 	width: 48% !important;
-	height: 85px;
+	height: 65px;
+}
+
+.widget_button_ex {
+	width: 96% !important;
+	height: 65px;
+}
+
+.line_spacing {
+	line-height: 10px;
 }
 
 .message_textarea {

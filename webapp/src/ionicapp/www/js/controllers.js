@@ -47,7 +47,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Device
             device_param.deviceversion = device.version;    
         }
 
-        $state.go('configureDevice', device_param, {reload:true} );
+        $state.go('device', device_param, {reload:true} );
     };
     
     $scope.submitAdd = function() {
@@ -1050,10 +1050,12 @@ function ($scope, $stateParams, $ionicPopup, $http, Server) {
     }
 }])
    
-.controller('menuCtrl', ['$scope', '$stateParams', '$state', '$ionicPopup', 'User', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+.controller('menuCtrl', ['$scope', '$stateParams', '$state', '$ionicPopup', '$http', 'Server', 'User', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
 // You can include any angular dependencies as parameters for this function
 // TIP: Access Route Parameters for your page via $stateParams.parameterName
-function ($scope, $stateParams, $state, $ionicPopup, User) {
+function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
+
+    var server = Server.rest_api;
 
     $scope.data = {
         'username': User.get_username(), //$stateParams.username,
@@ -1101,12 +1103,43 @@ function ($scope, $stateParams, $state, $ionicPopup, User) {
     };
     
     $scope.submitLogoutAction = function() {
-        $scope.data.username = "";        
-        $scope.data.token = "";        
-        User.clear();
-        $state.go('login');
+        console.log("logout: " + $scope.data.username);
+        $scope.logout();
     };
     
+    $scope.logout = function() {
+        // 
+        // LOGOUT
+        // 
+        // - Request:
+        //   POST /user/logout
+        //   headers: {'Authorization': 'Bearer ' + token.access}
+        // 
+        // - Response:
+        //   {'status': 'OK', 'message': string}
+        //   {'status': 'NG', 'message': string}
+        //
+        $http({
+            method: 'POST',
+            url: server + '/user/logout',
+            headers: {'Authorization': 'Bearer ' +  $scope.data.token.access}
+        })
+        .then(function (result) {
+            console.log("logout successful!");
+            console.log(result.data);
+            $scope.data.username = "";        
+            $scope.data.token = "";        
+            User.clear();
+            $state.go('login');
+        })
+        .catch(function (error) {
+            console.log("logout failed!");
+            $scope.data.username = "";        
+            $scope.data.token = "";        
+            User.clear();
+            $state.go('login');
+        });    
+    }    
 }
 
   
@@ -2638,7 +2671,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
     };
 }])
    
-.controller('configureDeviceCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+.controller('deviceCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
 // You can include any angular dependencies as parameters for this function
 // TIP: Access Route Parameters for your page via $stateParams.parameterName
 function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token) {
@@ -2658,6 +2691,11 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
     };
 
     console.log("xxx " + $scope.data.devicename);
+
+    $scope.submitDashboard = function() {
+        console.log("devicename=" + $scope.data.devicename);
+        $state.go('sensorDashboard', $scope.data, {animate: false} );
+    };   
 
     $scope.submitGPIO = function() {
         console.log("devicename=" + $scope.data.devicename);
@@ -2844,6 +2882,104 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
     });   
    
     
+}])
+   
+.controller('sensorDashboardCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', 'Devices', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+// You can include any angular dependencies as parameters for this function
+// TIP: Access Route Parameters for your page via $stateParams.parameterName
+function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token, Devices) {
+
+    var server = Server.rest_api;
+
+    $scope.sensors = [];
+    $scope.sensors_counthdr = "No sensors enabled" ;
+    
+    $scope.data = {
+        'username': User.get_username(),
+        'token': User.get_token(),
+        'devicename': $stateParams.devicename,
+        'devicestatus': $stateParams.devicestatus,
+        'deviceid': $stateParams.deviceid,
+        'serialnumber': $stateParams.serialnumber,
+    };
+
+    
+    handle_error = function(error, showerror) {
+        if (error.data !== null) {
+            console.log("ERROR: Sensor Dashboard failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
+
+            if (error.data.message === "Token expired") {
+                Token.refresh({'username': $scope.data.username, 'token': $scope.data.token});
+                $scope.data.token = User.get_token();
+            }
+            
+            if (error.status == 503 && showerror === true ) {
+                $ionicPopup.alert({ title: 'Error', template: 'Device is unreachable!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+            }            
+        }
+        else {
+            console.log("ERROR: Server is down!"); 
+            $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+        }
+    };
+    
+    get_all_device_sensors_enabled_input = function() {
+        //
+        // GET ALL ENABLED DEVICE SENSORS (enabled input)
+        //
+        // - Request:
+        //   GET /devices/device/DEVICENAME/sensors/readings
+        //   headers: { 'Authorization': 'Bearer ' + token.access }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string }
+        //   { 'status': 'NG', 'message': string }        
+        //
+        $http({
+            method: 'GET',
+            url: server + '/devices/device/' + $scope.data.devicename + '/sensors/readings',
+            headers: { 'Authorization': 'Bearer ' + $scope.data.token.access },
+        })
+        .then(function (result) {
+            console.log(result.data);
+            
+            $scope.sensors = result.data.sensors;
+            
+            if ($scope.sensors.length === 0) {
+                $scope.sensors_counthdr = "No sensor enabled";
+            }
+            else if ($scope.sensors.length === 1) {
+                $scope.sensors_counthdr = "1 sensor enabled";
+            }
+            else {
+                $scope.sensors_counthdr = $scope.sensors.length.toString() + " sensors enabled";
+            }            
+        })
+        .catch(function (error) {
+            handle_error(error);
+        }); 
+    };
+
+    $scope.submitQuery = function() {
+        get_all_device_sensors_enabled_input();
+    };
+
+    $scope.submitExit = function() {
+        console.log("hello");
+        var device_param = {
+            'username': $scope.data.username,
+            'token': $scope.data.token,
+            'devicename': $scope.data.devicename,
+            'devicestatus': $scope.data.devicestatus,
+            'deviceid': $scope.data.deviceid,
+            'serialnumber': $scope.data.serialnumber,
+        };
+        $state.go('device', device_param);
+    };
+    
+    $scope.$on('$ionicView.enter', function(e) {
+        $scope.submitQuery();
+    });
 }])
    
 .controller('deviceGPIOCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', 'Devices', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
@@ -3417,7 +3553,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             'deviceid': $scope.data.deviceid,
             'serialnumber': $scope.data.serialnumber,
         };
-        $state.go('configureDevice', device_param);
+        $state.go('device', device_param);
     };
     
     
@@ -3888,7 +4024,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             'deviceid': $scope.data.deviceid,
             'serialnumber': $scope.data.serialnumber,
         };
-        $state.go('configureDevice', device_param);
+        $state.go('device', device_param);
     };
 
     $scope.submitQuery();
@@ -4317,7 +4453,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             'deviceid': $scope.data.deviceid,
             'serialnumber': $scope.data.serialnumber,
         };
-        $state.go('configureDevice', device_param);
+        $state.go('device', device_param);
     };
 }])
    
@@ -4729,7 +4865,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             'deviceid': $scope.data.deviceid,
             'serialnumber': $scope.data.serialnumber,
         };
-        $state.go('configureDevice', device_param);
+        $state.go('device', device_param);
     };
 }])
    
@@ -5080,7 +5216,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             'deviceid': $scope.data.deviceid,
             'serialnumber': $scope.data.serialnumber,
         };
-        $state.go('configureDevice', device_param);
+        $state.go('device', device_param);
     };
 }])
    
@@ -5431,7 +5567,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             'deviceid': $scope.data.deviceid,
             'serialnumber': $scope.data.serialnumber,
         };
-        $state.go('configureDevice', device_param);
+        $state.go('device', device_param);
     };
 }])
    
