@@ -264,6 +264,10 @@ SUMMARY:
 		L. SET GPIO VOLTAGE               - POST   /devices/device/DEVICENAME/gpio/voltage
 		   (NUMBER can be 1-4 only and corresponds to GPIO1,GPIO2,GPIO3,GPIO4)
 
+		//
+		// sensor readings (for dashboard)
+		M. GET PERIPHERAL SENSOR READINGS - GET    /devices/device/DEVICENAME/sensors/readings
+
 
 	4. Device access and control APIs (I2C)
 
@@ -1092,6 +1096,17 @@ DETAILED:
 		-  Response:
 		   { 'status': 'OK', 'message': string }
 		   { 'status': 'NG', 'message': string }
+
+
+		M. GET PERIPHERAL SENSOR READINGS
+		-  Request:
+		   GET /devices/device/DEVICENAME/sensors/readings
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		-  Response:
+		   { 'status': 'OK', 'message': string, 
+		     'sensor': {'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': string, 'enabled': int, 'configured': int, 'attributes': []} }
+		   { 'status': 'NG', 'message': string}
+
 
 
 	4. Device access and control APIs (I2C)
