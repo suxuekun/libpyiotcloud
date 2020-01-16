@@ -1751,10 +1751,9 @@ def get_status(devicename):
         response = json.dumps(response)
         return response, status_return
 
-    if status == 200:
+    if status_return == 200:
         response = json.loads(response)
         version = response["value"]["version"]
-        print(version)
         response = json.dumps(response)
         g_database_client.save_device_version(username, devicename, version)
 
