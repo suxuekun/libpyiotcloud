@@ -415,8 +415,8 @@ def logout():
         # get username from token
         username = g_database_client.get_username_from_token(token)
         if username is None:
-            response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
-            print('\r\nERROR Invalid token\r\n')
+            response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+            print('\r\nERROR Logout: Token expired\r\n')
             return response, status.HTTP_401_UNAUTHORIZED
         print('logout username={}'.format(username))
 
@@ -487,8 +487,8 @@ def get_user_info():
     # get username from token
     username = g_database_client.get_username_from_token(token)
     if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
-        print('\r\nERROR Userinfo: Invalid token\r\n')
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Userinfo: Token expired\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
 
     print('get_user_info username={}'.format(username))
@@ -558,8 +558,8 @@ def delete_user():
     # get username from token
     username = g_database_client.get_username_from_token(token)
     if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
-        print('\r\nERROR Delete user: Invalid token\r\n')
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Delete user: Token expired\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
     print('delete_user username={}'.format(username))
 
@@ -622,20 +622,14 @@ def refresh_user_token():
     auth_header_token = get_auth_header_token()
     if auth_header_token is None:
         response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Refresh token: Invalid authorization header [{}]\r\n'.format(username))
+        print('\r\nERROR Refresh token: Invalid authorization header\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
     token = {'access': auth_header_token}
 
-    # get username from token
-    username = g_database_client.get_username_from_token(token)
-    if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
-        print('\r\nERROR Refresh token: Invalid token\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    print('refresh_user_token username={}'.format(username))
+    print('refresh_user_token')
 
     # check if a parameter is empty
-    if len(username) == 0 or len(token) == 0:
+    if len(token) == 0:
         response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
         print('\r\nERROR Refresh token: Empty parameter found\r\n')
         # NOTE:
@@ -646,21 +640,21 @@ def refresh_user_token():
     data = flask.request.get_json()
     if not data.get("refresh") or not data.get("id"):
         response = json.dumps({'status': 'NG', 'message': 'Refresh and ID tokens are not provided'})
-        print('\r\nERROR Refresh token: Refresh and ID tokens are not provided [{}]\r\n'.format(username))
+        print('\r\nERROR Refresh token: Refresh and ID tokens are not provided\r\n')
         return response, status.HTTP_400_BAD_REQUEST
     token['refresh'] = data['refresh']
     token['id'] = data['id']
 
     # refresh the access token
-    new_token = g_database_client.refresh_token(username, token)
+    new_token = g_database_client.refresh_token(token)
     if new_token is None:
         response = json.dumps({'status': 'NG', 'message': 'Refresh token invalid'})
-        print('\r\nERROR Refresh token: Token expired [{}]\r\n'.format(username))
+        print('\r\nERROR Refresh token: Token expired\r\n')
         return response, status.HTTP_500_INTERNAL_SERVER_ERROR
 
     msg = {'status': 'OK', 'message': 'Refresh token successful.', 'token': new_token}
     response = json.dumps(msg)
-    print('\r\nRefresh token successful: {}\r\n{}\r\n'.format(username, response))
+    print('\r\nRefresh token successful\r\n{}\r\n'.format(response))
     return response
 
 
@@ -690,8 +684,8 @@ def verify_phone_number():
     # get username from token
     username = g_database_client.get_username_from_token(token)
     if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
-        print('\r\nERROR Verify phone: Invalid token\r\n')
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Verify phone: Token expired\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
     print('refresh_user_token username={}'.format(username))
 
@@ -751,8 +745,8 @@ def confirm_verify_phone_number():
     # get username from token
     username = g_database_client.get_username_from_token(token)
     if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
-        print('\r\nERROR Confirm verify phone: Invalid token\r\n')
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Confirm verify phone: Token expired\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
     print('refresh_user_token username={}'.format(username))
 
@@ -814,8 +808,8 @@ def change_password():
     # get username from token
     username = g_database_client.get_username_from_token(token)
     if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
-        print('\r\nERROR Change password: Invalid token\r\n')
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Change password: Token expired\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
     print('refresh_user_token username={}'.format(username))
 
@@ -883,8 +877,8 @@ def update_user_info():
     # get username from token
     username = g_database_client.get_username_from_token(token)
     if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
-        print('\r\nERROR Update user: Invalid token\r\n')
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Update user: Token expired\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
     print('refresh_user_token username={}'.format(username))
 
@@ -963,8 +957,8 @@ def get_subscription():
     # get username from token
     username = g_database_client.get_username_from_token(token)
     if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
-        print('\r\nERROR Get Subscription: Invalid token\r\n')
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Get Subscription: Token expired\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
     print('get_subscription {}'.format(username))
 
@@ -1029,8 +1023,8 @@ def set_subscription():
     # get username from token
     username = g_database_client.get_username_from_token(token)
     if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
-        print('\r\nERROR Set Subscription: Invalid token\r\n')
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Set Subscription: Token expired\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
     print('set_subscription {}'.format(username))
 
@@ -1099,8 +1093,8 @@ def set_payment_paypal_setup():
     # get username from token
     username = g_database_client.get_username_from_token(token)
     if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
-        print('\r\nERROR Paypal Setup: Invalid token\r\n')
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Paypal Setup: Token expired\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
     print('set_payment_paypal_setup {}'.format(username))
 
@@ -1162,8 +1156,8 @@ def set_payment_paypal_execute():
     # get username from token
     username = g_database_client.get_username_from_token(token)
     if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
-        print('\r\nERROR Paypal Execute: Invalid token\r\n')
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Paypal Execute: Token expired\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
     print('set_payment_paypal_execute {}'.format(username))
 
@@ -1229,8 +1223,8 @@ def set_payment_paypal_verify():
     # get username from token
     username = g_database_client.get_username_from_token(token)
     if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
-        print('\r\nERROR Paypal Verify: Invalid token\r\n')
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Paypal Verify: Token expired\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
     print('set_payment_paypal_verify {}'.format(username))
 
@@ -1300,8 +1294,8 @@ def get_device_list():
     # get username from token
     username = g_database_client.get_username_from_token(token)
     if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
-        print('\r\nERROR Get Devices: Invalid token\r\n')
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Get Devices: Token expired\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
     print('get_device_list {}'.format(username))
 
@@ -1359,8 +1353,8 @@ def get_device_list_filtered(filter):
     # get username from token
     username = g_database_client.get_username_from_token(token)
     if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
-        print('\r\nERROR Get Devices: Invalid token\r\n')
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Get Devices: Token expired\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
     print('get_device_list_filtered {}'.format(username))
 
@@ -1430,8 +1424,8 @@ def register_device(devicename):
     # get username from token
     username = g_database_client.get_username_from_token(token)
     if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
-        print('\r\nERROR Add/Delete Device: Invalid token\r\n')
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Add/Delete Device: Token expired\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
     print('register_device {} devicename={}'.format(username, devicename))
 
@@ -1565,8 +1559,8 @@ def get_device(devicename):
     # get username from token
     username = g_database_client.get_username_from_token(token)
     if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
-        print('\r\nERROR Get Device: Invalid token\r\n')
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Get Device: Token expired\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
     print('get_device {} devicename={}'.format(username, devicename))
 
@@ -1634,8 +1628,8 @@ def get_device_histories():
     # get username from token
     username = g_database_client.get_username_from_token(token)
     if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
-        print('\r\nERROR Get Histories: Invalid token\r\n')
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Get Histories: Token expired\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
     print('get_user_histories {}'.format(username))
 
@@ -1696,8 +1690,8 @@ def get_device_histories_filtered():
     # get username from token
     username = g_database_client.get_username_from_token(token)
     if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
-        print('\r\nERROR Get Histories: Invalid token\r\n')
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Get Histories: Token expired\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
     print('get_user_histories {}'.format(username))
 
@@ -1780,8 +1774,8 @@ def get_status(devicename):
     data['devicename'] = devicename
     username = g_database_client.get_username_from_token(data['token'])
     if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
-        print('\r\nERROR Invalid token\r\n')
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Token expired\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
     data['username'] = username
     #print('get_status {} devicename={}'.format(data['username'], data['devicename']))
@@ -1844,8 +1838,8 @@ def set_status(devicename):
     data['devicename'] = devicename
     data['username'] = g_database_client.get_username_from_token(data['token'])
     if data['username'] is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
-        print('\r\nERROR Invalid token\r\n')
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Token expired\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
     print('set_status {} devicename={}'.format(data['username'], data['devicename']))
 
@@ -1879,8 +1873,8 @@ def get_ip(devicename):
     data['devicename'] = devicename
     data['username'] = g_database_client.get_username_from_token(data['token'])
     if data['username'] is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
-        print('\r\nERROR Invalid token\r\n')
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Token expired\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
     print('get_ip {}'.format(data['username']))
 
@@ -1914,8 +1908,8 @@ def get_subnet(devicename):
     data['devicename'] = devicename
     data['username'] = g_database_client.get_username_from_token(data['token'])
     if data['username'] is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
-        print('\r\nERROR Invalid token\r\n')
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Token expired\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
     print('get_subnet {}'.format(data['username']))
 
@@ -1949,8 +1943,8 @@ def get_gateway(devicename):
     data['devicename'] = devicename
     data['username'] = g_database_client.get_username_from_token(data['token'])
     if data['username'] is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
-        print('\r\nERROR Invalid token\r\n')
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Token expired\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
     print('get_gateway {}'.format(data['username']))
 
@@ -1984,8 +1978,8 @@ def get_mac(devicename):
     data['devicename'] = devicename
     data['username'] = g_database_client.get_username_from_token(data['token'])
     if data['username'] is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
-        print('\r\nERROR Invalid token\r\n')
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Token expired\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
     print('get_mac {}'.format(data['username']))
 
@@ -2020,8 +2014,8 @@ def get_gpio(devicename, number):
     data['number'] = number
     data['username'] = g_database_client.get_username_from_token(data['token'])
     if data['username'] is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
-        print('\r\nERROR Invalid token\r\n')
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Token expired\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
     print('get_gpio {}'.format(data['username']))
 
@@ -2057,8 +2051,8 @@ def set_gpio(devicename, number):
     data['number'] = number
     data['username'] = g_database_client.get_username_from_token(data['token'])
     if data['username'] is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
-        print('\r\nERROR Invalid token\r\n')
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Token expired\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
     print('set_gpio {}'.format(data['username']))
 
@@ -2092,8 +2086,8 @@ def get_rtc(devicename):
     data['devicename'] = devicename
     data['username'] = g_database_client.get_username_from_token(data['token'])
     if data['username'] is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
-        print('\r\nERROR Invalid token\r\n')
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Token expired\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
     print('get_rtc {}'.format(data['username']))
 
@@ -2128,8 +2122,8 @@ def write_uart(devicename):
     data['devicename'] = devicename
     data['username'] = g_database_client.get_username_from_token(data['token'])
     if data['username'] is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
-        print('\r\nERROR Invalid token\r\n')
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Token expired\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
     print('write_uart {}'.format(data['username']))
 
@@ -2164,8 +2158,8 @@ def trigger_notification(devicename):
     data['devicename'] = devicename
     data['username'] = g_database_client.get_username_from_token(data['token'])
     if data['username'] is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
-        print('\r\nERROR Invalid token\r\n')
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Token expired\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
     print('trigger_notification {}'.format(data['username']))
 
@@ -2284,8 +2278,8 @@ def get_uarts(devicename):
     data['devicename'] = devicename
     username = g_database_client.get_username_from_token(data['token'])
     if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
-        print('\r\nERROR Invalid token\r\n')
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Token expired\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
     data['username'] = username
     print('get_uarts {} devicename={}'.format(data['username'], data['devicename']))
@@ -2322,8 +2316,8 @@ def get_uart_prop(devicename):
     data['devicename'] = devicename
     username = g_database_client.get_username_from_token(data['token'])
     if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
-        print('\r\nERROR Invalid token\r\n')
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Token expired\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
     data['username'] = username
     print('get_uart_prop {} devicename={}'.format(data['username'], data['devicename']))
@@ -2394,8 +2388,8 @@ def set_uart_prop(devicename):
     data['devicename'] = devicename
     username = g_database_client.get_username_from_token(data['token'])
     if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
-        print('\r\nERROR Invalid token\r\n')
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Token expired\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
     data['username'] = username
     print('set_uart_prop {} devicename={}'.format(data['username'], data['devicename']))
@@ -2459,8 +2453,8 @@ def enable_uart(devicename):
     data['devicename'] = devicename
     username = g_database_client.get_username_from_token(data['token'])
     if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
-        print('\r\nERROR Invalid token\r\n')
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Token expired\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
     data['username'] = username
     print('enable_uart {} devicename={}'.format(data['username'], data['devicename']))
@@ -2507,8 +2501,8 @@ def get_gpios(devicename):
     data['devicename'] = devicename
     username = g_database_client.get_username_from_token(data['token'])
     if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
-        print('\r\nERROR Invalid token\r\n')
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Token expired\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
     data['username'] = username
     print('get_gpios {} devicename={}'.format(data['username'], data['devicename']))
@@ -2552,8 +2546,8 @@ def get_gpio_prop(devicename, number):
     data['devicename'] = devicename
     username = g_database_client.get_username_from_token(data['token'])
     if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
-        print('\r\nERROR Invalid token\r\n')
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Token expired\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
     data['username'] = username
     data['number'] = number
@@ -2671,8 +2665,8 @@ def set_gpio_prop(devicename, number):
     data['devicename'] = devicename
     username = g_database_client.get_username_from_token(data['token'])
     if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
-        print('\r\nERROR Invalid token\r\n')
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Token expired\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
     data['username'] = username
 
@@ -2733,8 +2727,8 @@ def get_xxx_voltage(devicename, xxx):
     data['devicename'] = devicename
     data['username'] = g_database_client.get_username_from_token(data['token'])
     if data['username'] is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
-        print('\r\nERROR Invalid token\r\n')
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Token expired\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
     print('get_{}_voltage {} devicename={}'.format(xxx, data['username'], data['devicename']))
 
@@ -2795,8 +2789,8 @@ def set_xxx_voltage(devicename, xxx):
     data['devicename'] = devicename
     data['username'] = g_database_client.get_username_from_token(data['token'])
     if data['username'] is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
-        print('\r\nERROR Invalid token\r\n')
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Token expired\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
     print('set_{}_voltage {} devicename={}'.format(xxx, data['username'], data['devicename']))
 
@@ -2846,8 +2840,8 @@ def enable_gpio(devicename, number):
     data['devicename'] = devicename
     username = g_database_client.get_username_from_token(data['token'])
     if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
-        print('\r\nERROR Invalid token\r\n')
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Token expired\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
     data['username'] = username
 
@@ -2896,8 +2890,8 @@ def get_i2cs(devicename):
     data['devicename'] = devicename
     username = g_database_client.get_username_from_token(data['token'])
     if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
-        print('\r\nERROR Invalid token\r\n')
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Token expired\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
     data['username'] = username
     print('get_i2cs {} devicename={}'.format(data['username'], data['devicename']))
@@ -2947,8 +2941,8 @@ def get_all_xxx_sensors(devicename, xxx):
     # get username from token
     username = g_database_client.get_username_from_token(token)
     if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
-        print('\r\nERROR Get All {} Sensors: Invalid token\r\n'.format(xxx))
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Get All {} Sensors: Token expired\r\n'.format(xxx))
         return response, status.HTTP_401_UNAUTHORIZED
     print('get_all_i2c_sensors {} devicename={}'.format(username, devicename))
 
@@ -3007,8 +3001,8 @@ def get_all_i2c_type_sensors(devicename, devicetype):
     # get username from token
     username = g_database_client.get_username_from_token(token)
     if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
-        print('\r\nERROR Get All {} Sensors: Invalid token\r\n'.format("i2c"))
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Get All {} Sensors: Token expired\r\n'.format("i2c"))
         return response, status.HTTP_401_UNAUTHORIZED
     print('get_all_i2c_sensors {} devicename={}'.format(username, devicename))
 
@@ -3088,8 +3082,8 @@ def get_xxx_sensors(devicename, xxx, number):
     # get username from token
     username = g_database_client.get_username_from_token(token)
     if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
-        print('\r\nERROR Get {} Sensors: Invalid token\r\n'.format(xxx))
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Get {} Sensors: Token expired\r\n'.format(xxx))
         return response, status.HTTP_401_UNAUTHORIZED
     print('get_{}_sensors {} devicename={} number={}'.format(xxx, username, devicename, number))
 
@@ -3277,8 +3271,8 @@ def register_xxx_sensor(devicename, xxx, number, sensorname):
     # get username from token
     username = g_database_client.get_username_from_token(token)
     if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
-        print('\r\nERROR Add/Delete {} Sensor: Invalid token\r\n'.format(xxx))
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Add/Delete {} Sensor: Token expired\r\n'.format(xxx))
         return response, status.HTTP_401_UNAUTHORIZED
     print('register_{}_sensor {} devicename={} number={} sensorname={}'.format(xxx, username, devicename, number, sensorname))
 
@@ -3423,8 +3417,8 @@ def get_xxx_sensor(devicename, xxx, number, sensorname):
     # get username from token
     username = g_database_client.get_username_from_token(token)
     if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
-        print('\r\nERROR Get {} Sensor: Invalid token\r\n'.format(xxx))
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Get {} Sensor: Token expired\r\n'.format(xxx))
         return response, status.HTTP_401_UNAUTHORIZED
     print('get_{}_sensor {} devicename={} number={} sensorname={}'.format(xxx, username, devicename, number, sensorname))
 
@@ -3533,8 +3527,8 @@ def get_xxx_sensor_readings(devicename, xxx, number, sensorname):
     # get username from token
     username = g_database_client.get_username_from_token(token)
     if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
-        print('\r\nERROR Get {} Sensor: Invalid token\r\n'.format(xxx))
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Get {} Sensor: Token expired\r\n'.format(xxx))
         return response, status.HTTP_401_UNAUTHORIZED
     print('get_{}_sensor_readings {} devicename={} number={} sensorname={}'.format(xxx, username, devicename, number, sensorname))
 
@@ -3673,8 +3667,8 @@ def get_xxx_sensors_readings(devicename, xxx, number):
     # get username from token
     username = g_database_client.get_username_from_token(token)
     if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
-        print('\r\nERROR Get {} Sensor: Invalid token\r\n'.format(xxx))
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Get {} Sensor: Token expired\r\n'.format(xxx))
         return response, status.HTTP_401_UNAUTHORIZED
     print('get_{}_sensor_readings {} devicename={} number={}'.format(xxx, username, devicename, number))
 
@@ -3806,8 +3800,8 @@ def set_xxx_dev_prop(devicename, xxx, number, sensorname):
     # get username from token
     username = g_database_client.get_username_from_token(token)
     if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
-        print('\r\nERROR Set {} Sensor: Invalid token\r\n'.format(xxx))
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Set {} Sensor: Token expired\r\n'.format(xxx))
         return response, status.HTTP_401_UNAUTHORIZED
     print('set_i2c_dev_prop {} devicename={} number={} sensorname={}'.format(username, devicename, number, sensorname))
 
@@ -3946,8 +3940,8 @@ def get_xxx_dev_prop(devicename, xxx, number, sensorname):
     # get username from token
     username = g_database_client.get_username_from_token(token)
     if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
-        print('\r\nERROR Get {} Sensor: Invalid token\r\n'.format(xxx))
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Get {} Sensor: Token expired\r\n'.format(xxx))
         return response, status.HTTP_401_UNAUTHORIZED
     print('get_i2c_dev_prop {} devicename={} number={} sensorname={}'.format(username, devicename, number, sensorname))
 
@@ -4077,8 +4071,8 @@ def enable_xxx_dev(devicename, xxx, number, sensorname):
     data['devicename'] = devicename
     username = g_database_client.get_username_from_token(data['token'])
     if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
-        print('\r\nERROR Invalid token\r\n')
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Token expired\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
     data['username'] = username
 
@@ -4157,8 +4151,8 @@ def enable_i2c(devicename, number):
     data['devicename'] = devicename
     username = g_database_client.get_username_from_token(data['token'])
     if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
-        print('\r\nERROR Invalid token\r\n')
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Token expired\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
     data['username'] = username
 
@@ -4200,8 +4194,8 @@ def send_feedback():
     # get username from token
     username = g_database_client.get_username_from_token(token)
     if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
-        print('\r\nERROR Send Feedback: Invalid token\r\n')
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Send Feedback: Token expired\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
     print('send_feedback {}'.format(username))
 
@@ -4265,8 +4259,8 @@ def get_item(item):
     # get username from token
     username = g_database_client.get_username_from_token(token)
     if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
-        print('\r\nERROR Get About: Invalid token\r\n')
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Get About: Token expired\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
     print('get_{} {}'.format(item, username))
 
@@ -4334,8 +4328,8 @@ def get_supported_i2c_devices():
     # get username from token
     username = g_database_client.get_username_from_token(token)
     if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
-        print('\r\nERROR Get Supported I2C Devices: Invalid token\r\n')
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Get Supported I2C Devices: Token expired\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
     print('get_supported_i2c_devices {}'.format(username))
 
@@ -4397,8 +4391,8 @@ def get_supported_sensor_devices():
     # get username from token
     username = g_database_client.get_username_from_token(token)
     if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid token'})
-        print('\r\nERROR Get Supported Sensor Devices: Invalid token\r\n')
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Get Supported Sensor Devices: Token expired\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
     print('get_supported_sensor_devices {}'.format(username))
 
