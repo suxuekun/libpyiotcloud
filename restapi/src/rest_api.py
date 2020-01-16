@@ -402,61 +402,19 @@ def confirm_forgot_password():
 ########################################################################################################
 @app.route('/user/logout', methods=['POST'])
 def logout():
-    data = flask.request.get_json()
+    print('\r\nLogout\r\n')
+
     try:
         # get token from Authorization header
         auth_header_token = get_auth_header_token()
-        if auth_header_token is None:
-            response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-            print('\r\nERROR Logout: Invalid authorization header\r\n')
-            return response, status.HTTP_401_UNAUTHORIZED
-        token = {'access': auth_header_token}
-
-        # get username from token
-        username = g_database_client.get_username_from_token(token)
-        if username is None:
-            response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-            print('\r\nERROR Logout: Token expired\r\n')
-            return response, status.HTTP_401_UNAUTHORIZED
-        print('logout username={}'.format(username))
-
+        if auth_header_token:
+            token = {'access': auth_header_token}
+            g_database_client.logout(token['access'])
+            print('\r\nLogout successful\r\n')
     except:
-        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-        print('\r\nERROR Logout: Empty parameter found\r\n')
-        # NOTE:
-        # No need to return error code status.HTTP_401_UNAUTHORIZED since this is a logout
-        return response
-    print('logout username={} token={}'.format(username, token))
+        print('\r\nERROR Logout: exception\r\n')
 
-    # check if a parameter is empty
-    if len(username) == 0 or len(token) == 0:
-        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-        print('\r\nERROR Logout: Empty parameter found\r\n')
-        return response, status.HTTP_400_BAD_REQUEST
-
-    # check if username and token is valid
-    verify_ret, new_token = g_database_client.verify_token(username, token)
-    if verify_ret == 2:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Logout: Token expired [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
-    elif verify_ret != 0:
-        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
-        print('\r\nERROR Logout: Token is invalid [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
-
-    if new_token:
-        g_database_client.logout(new_token['access'])
-    else:
-        g_database_client.logout(token['access'])
-
-
-    msg = {'status': 'OK', 'message': 'User logout successfully.'}
-    if new_token:
-        msg['new_token'] = new_token
-    response = json.dumps(msg)
-    print('\r\nLogout successful: {}\r\n{}\r\n'.format(username, response))
-    return response
+    return json.dumps({'status': 'OK', 'message': 'User logout successfully.'})
 
 
 ########################################################################################################
