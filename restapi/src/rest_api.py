@@ -3003,9 +3003,20 @@ def get_all_i2c_type_sensors(devicename, devicetype):
 #   { 'status': 'OK', 'message': string, 'sensors': array[{'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'timestamp': string, 'readings': {'value': int, 'lowest': int, 'highest': int}, 'enabled': int}, ...] }
 #   { 'status': 'NG', 'message': string }
 #
+#
+# DELETE PERIPHERAL SENSOR READINGS
+#
+# - Request:
+#   DELETE /devices/device/DEVICENAME/sensors/readings
+#   headers: { 'Authorization': 'Bearer ' + token.access }
+#
+# - Response:
+#   { 'status': 'OK', 'message': string }
+#   { 'status': 'NG', 'message': string }
+#
 ########################################################################################################
-@app.route('/devices/device/<devicename>/sensors/readings', methods=['GET'])
-def get_all_device_sensors_enabled_input(devicename):
+@app.route('/devices/device/<devicename>/sensors/readings', methods=['GET', 'DELETE'])
+def get_all_device_sensors_enabled_input_readings(devicename):
 
     # get token from Authorization header
     auth_header_token = get_auth_header_token()
@@ -3040,16 +3051,75 @@ def get_all_device_sensors_enabled_input(devicename):
         print('\r\nERROR Get All Device Sensors: Token is invalid [{}]\r\n'.format(username))
         return response, status.HTTP_401_UNAUTHORIZED
 
-    # query database
-    sensors = g_database_client.get_all_device_sensors_enabled_input(username, devicename)
-    for sensor in sensors:
-        address = None
-        if sensor.get("address"):
-            address = sensor["address"]
-        source = "{}{}".format(sensor["source"], sensor["number"])
-        sensor_reading = g_database_client.get_sensor_reading(username, devicename, source, address)
-        if sensor_reading is not None:
-            sensor['readings'] = sensor_reading
+
+    if flask.request.method == 'GET':
+        # query device
+        api = "get_devs"
+        data = {}
+        data['token'] = token
+        data['devicename'] = devicename
+        data['username'] = username
+        response, status_return = process_request(api, data)
+        if status_return == 200:
+            # query database
+            sensors = g_database_client.get_all_device_sensors_input(username, devicename)
+
+            # map queried result with database result
+            #print("from device")
+            response = json.loads(response)
+            #print(response["value"])
+
+            for sensor in sensors:
+                print(sensor)
+                found = False
+                peripheral = "{}{}".format(sensor['source'], sensor['number'])
+
+                if sensor["source"] == "i2c":
+                    if response["value"].get(peripheral):
+                        for item in response["value"][peripheral]:
+                            # match found for database result and actual device result
+                            # set database record to configured and actual device item["enabled"]
+                            if sensor["address"] == item["address"]:
+                                g_database_client.set_enable_configure_sensor(username, devicename, sensor['source'], sensor['number'], sensor['sensorname'], item["enabled"], 1)
+                                found = True
+                                break
+                else:
+                    if response["value"].get(peripheral):
+                        for item in response["value"][peripheral]:
+                            if item["class"] == get_i2c_device_class(sensor["class"]):
+                                g_database_client.set_enable_configure_sensor(username, devicename, sensor['source'], sensor['number'], sensor['sensorname'], item["enabled"], 1)
+                                found = True
+                                break
+
+                # no match found
+                # set database record to unconfigured and disabled
+                if found == False:
+                    g_database_client.set_enable_configure_sensor(username, devicename, sensor['source'], sensor['number'], sensor['sensorname'], 0, 0)
+            #print()
+        else:
+            # cannot communicate with device so set database record to unconfigured and disabled
+            g_database_client.disable_unconfigure_sensors(username, devicename)
+
+        # query database
+        sensors = g_database_client.get_all_device_sensors_enabled_input(username, devicename)
+        for sensor in sensors:
+            address = None
+            if sensor.get("address"):
+                address = sensor["address"]
+            source = "{}{}".format(sensor["source"], sensor["number"])
+            sensor_reading = g_database_client.get_sensor_reading(username, devicename, source, address)
+            if sensor_reading is not None:
+                sensor['readings'] = sensor_reading
+
+    elif flask.request.method == 'DELETE':
+        sensors = g_database_client.get_all_device_sensors_input(username, devicename)
+        for sensor in sensors:
+            address = None
+            if sensor.get("address"):
+                address = sensor["address"]
+            source = "{}{}".format(sensor["source"], sensor["number"])
+            g_database_client.delete_sensor_reading(username, devicename, source, address)
+
 
     msg = {'status': 'OK', 'message': 'Get All Device Sensors queried successfully.', 'sensors': sensors}
     if new_token:
@@ -3339,7 +3409,7 @@ def register_xxx_sensor(devicename, xxx, number, sensorname):
                 print('\r\nERROR Add {} Sensor: Sensor address is already taken [{},{},{}]\r\n'.format(xxx, username, devicename, data["address"]))
                 return response, status.HTTP_409_CONFLICT
 
-        if data["manufacturer"] is None or data["model"] is None or data["class"] is None or data["type"] is None or data["attributes"] is None:
+        if data["manufacturer"] is None or data["model"] is None or data["class"] is None or data["type"] is None or data["units"] is None or data["attributes"] is None:
             response = json.dumps({'status': 'NG', 'message': 'Parameters not included'})
             print('\r\nERROR Add {} Sensor: Parameters not included [{},{}]\r\n'.format(xxx, username, devicename))
             return response, status.HTTP_400_BAD_REQUEST
