@@ -438,7 +438,7 @@ def get_user_info():
     auth_header_token = get_auth_header_token()
     if auth_header_token is None:
         response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Userinfo: Invalid authorization header [{}]\r\n'.format(username))
+        print('\r\nERROR Userinfo: Invalid authorization header\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
     token = {'access': auth_header_token}
 
@@ -509,7 +509,7 @@ def delete_user():
     auth_header_token = get_auth_header_token()
     if auth_header_token is None:
         response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Delete user: Invalid authorization header [{}]\r\n'.format(username))
+        print('\r\nERROR Delete user: Invalid authorization header\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
     token = {'access': auth_header_token}
 
@@ -635,7 +635,7 @@ def verify_phone_number():
     auth_header_token = get_auth_header_token()
     if auth_header_token is None:
         response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Verify phone: Invalid authorization header [{}]\r\n'.format(username))
+        print('\r\nERROR Verify phone: Invalid authorization header\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
     token = {'access': auth_header_token}
 
@@ -696,7 +696,7 @@ def confirm_verify_phone_number():
     auth_header_token = get_auth_header_token()
     if auth_header_token is None:
         response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Confirm verify phone: Invalid authorization header [{}]\r\n'.format(username))
+        print('\r\nERROR Confirm verify phone: Invalid authorization header\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
     token = {'access': auth_header_token}
 
@@ -759,7 +759,7 @@ def change_password():
     auth_header_token = get_auth_header_token()
     if auth_header_token is None:
         response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Change password: Invalid authorization header [{}]\r\n'.format(username))
+        print('\r\nERROR Change password: Invalid authorization header\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
     token = {'access': auth_header_token}
 
@@ -828,7 +828,7 @@ def update_user_info():
     auth_header_token = get_auth_header_token()
     if auth_header_token is None:
         response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Update user: Invalid authorization header [{}]\r\n'.format(username))
+        print('\r\nERROR Update user: Invalid authorization header\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
     token = {'access': auth_header_token}
 
@@ -1245,7 +1245,7 @@ def get_device_list():
     auth_header_token = get_auth_header_token()
     if auth_header_token is None:
         response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Get Devices: Invalid authorization header [{}]\r\n'.format(username))
+        print('\r\nERROR Get Devices: Invalid authorization header\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
     token = {'access': auth_header_token}
 
@@ -1304,7 +1304,7 @@ def get_device_list_filtered(filter):
     auth_header_token = get_auth_header_token()
     if auth_header_token is None:
         response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Get Devices: Invalid authorization header [{}]\r\n'.format(username))
+        print('\r\nERROR Get Devices: Invalid authorization header\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
     token = {'access': auth_header_token}
 
@@ -1821,7 +1821,7 @@ def get_ip(devicename):
     auth_header_token = get_auth_header_token()
     if auth_header_token is None:
         response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Invalid authorization header [{}]\r\n'.format(username))
+        print('\r\nERROR Invalid authorization header\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
 
     # get username from token
@@ -1856,7 +1856,7 @@ def get_subnet(devicename):
     auth_header_token = get_auth_header_token()
     if auth_header_token is None:
         response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Invalid authorization header [{}]\r\n'.format(username))
+        print('\r\nERROR Invalid authorization header\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
 
     # get username from token
@@ -1891,7 +1891,7 @@ def get_gateway(devicename):
     auth_header_token = get_auth_header_token()
     if auth_header_token is None:
         response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Invalid authorization header [{}]\r\n'.format(username))
+        print('\r\nERROR Invalid authorization header\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
 
     # get username from token
@@ -2891,7 +2891,7 @@ def get_all_xxx_sensors(devicename, xxx):
     auth_header_token = get_auth_header_token()
     if auth_header_token is None:
         response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Get All {} Sensors: Invalid authorization header [{}]\r\n'.format(xxx, username))
+        print('\r\nERROR Get All {} Sensors: Invalid authorization header\r\n'.format(xxx))
         return response, status.HTTP_401_UNAUTHORIZED
     token = {'access': auth_header_token}
 
@@ -2951,7 +2951,7 @@ def get_all_i2c_type_sensors(devicename, devicetype):
     auth_header_token = get_auth_header_token()
     if auth_header_token is None:
         response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Get All {} Sensors: Invalid authorization header [{}]\r\n'.format("i2c", username))
+        print('\r\nERROR Get All {} Sensors: Invalid authorization header\r\n'.format("i2c"))
         return response, status.HTTP_401_UNAUTHORIZED
     token = {'access': auth_header_token}
 
@@ -3032,7 +3032,7 @@ def get_xxx_sensors(devicename, xxx, number):
     auth_header_token = get_auth_header_token()
     if auth_header_token is None:
         response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Get {} Sensors: Invalid authorization header [{}]\r\n'.format(xxx, username))
+        print('\r\nERROR Get {} Sensors: Invalid authorization header\r\n'.format(xxx))
         return response, status.HTTP_401_UNAUTHORIZED
     token = {'access': auth_header_token}
 
