@@ -266,7 +266,8 @@ SUMMARY:
 
 		//
 		// sensor readings (for dashboard)
-		M. GET PERIPHERAL SENSOR READINGS - GET    /devices/device/DEVICENAME/sensors/readings
+		M. GET PERIPHERAL SENSOR READINGS    - GET    /devices/device/DEVICENAME/sensors/readings
+		N. DELETE PERIPHERAL SENSOR READINGS - DELETE /devices/device/DEVICENAME/sensors/readings
 
 
 	4. Device access and control APIs (I2C)
@@ -1107,6 +1108,14 @@ DETAILED:
 		     'sensor': {'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': string, 'enabled': int, 'configured': int, 'attributes': []} }
 		   { 'status': 'NG', 'message': string}
 
+		N. DELETE PERIPHERAL SENSOR READINGS
+		-  Request:
+		   DELETE /devices/device/DEVICENAME/sensors/readings
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		-  Response:
+		   { 'status': 'OK', 'message': string, 
+		     'sensor': {'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': string, 'enabled': int, 'configured': int, 'attributes': []} }
+		   { 'status': 'NG', 'message': string}
 
 
 	4. Device access and control APIs (I2C)
