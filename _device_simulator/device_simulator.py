@@ -74,16 +74,16 @@ g_device_classes = ["speaker", "display", "light", "potentiometer", "temperature
 # I2C
 g_i2c_properties = [
     {
-        '0': { 'enabled': 0, 'class': 0, 'attributes': {} },
+        '0': { 'enabled': 0, 'class': 255, 'attributes': {} },
     },
     {
-        '0': { 'enabled': 0, 'class': 0, 'attributes': {} },
+        '0': { 'enabled': 0, 'class': 255, 'attributes': {} },
     },
     {
-        '0': { 'enabled': 0, 'class': 0, 'attributes': {} },
+        '0': { 'enabled': 0, 'class': 255, 'attributes': {} },
     },
     {
-        '0': { 'enabled': 0, 'class': 0, 'attributes': {} },
+        '0': { 'enabled': 0, 'class': 255, 'attributes': {} },
     }
 ]
 g_i2c_enabled = [1, 1, 1, 1]
@@ -92,18 +92,18 @@ g_i2c_enabled = [1, 1, 1, 1]
 g_adc_voltage = 1
 g_adc_voltages = ["-5/+5V Range", "-10/+10V Range", "0/10V Range"]
 g_adc_properties = [
-    { 'enabled': 0, 'class': 0, 'attributes': {} },
-    { 'enabled': 0, 'class': 0, 'attributes': {} },
+    { 'enabled': 0, 'class': 255, 'attributes': {} },
+    { 'enabled': 0, 'class': 255, 'attributes': {} },
 ]
 
 # 1WIRE
 g_1wire_properties = [
-    { 'enabled': 0, 'class': 0, 'attributes': {} }
+    { 'enabled': 0, 'class': 255, 'attributes': {} }
 ]
 
 # TPROBE
 g_tprobe_properties = [
-    { 'enabled': 0, 'class': 0, 'attributes': {} }
+    { 'enabled': 0, 'class': 255, 'attributes': {} }
 ]
 
 
@@ -156,6 +156,9 @@ API_GET_TPROBE_DEVICES           = "get_tprobe_devs"
 API_ENABLE_TPROBE_DEVICE         = "enable_tprobe_dev"
 API_GET_TPROBE_DEVICE_PROPERTIES = "get_tprobe_dev_prop"
 API_SET_TPROBE_DEVICE_PROPERTIES = "set_tprobe_dev_prop"
+
+# i2c/adc/1wire/tprobe
+API_GET_PERIPHERAL_DEVICES       = "get_devs"
 
 
 
@@ -407,11 +410,11 @@ def handle_api(api, subtopic, subpayload):
 
         value = []
         for y in g_i2c_properties[number]:
-            if (int(y) > 0):
+            if (int(y) > 0 and g_i2c_properties[number][y]["class"] != 255):
                 entry = {}
-                entry["address"] = int(y)
                 entry["class"]   = g_i2c_properties[number][y]["class"]
                 entry["enabled"] = g_i2c_properties[number][y]["enabled"]
+                entry["address"] = int(y)
                 value.append(entry)
         print(value)
 
@@ -491,10 +494,11 @@ def handle_api(api, subtopic, subpayload):
         number = int(subpayload["number"])-1
 
         value = []
-        entry = {}
-        entry["class"]   = g_adc_properties[number]["class"]
-        entry["enabled"] = g_adc_properties[number]["enabled"]
-        value.append(entry)
+        if g_adc_properties[number]["class"] != 255:
+            entry = {}
+            entry["class"]   = g_adc_properties[number]["class"]
+            entry["enabled"] = g_adc_properties[number]["enabled"]
+            value.append(entry)
         print(value)
 
         payload = {}
@@ -588,10 +592,11 @@ def handle_api(api, subtopic, subpayload):
         number = int(subpayload["number"])-1
 
         value = []
-        entry = {}
-        entry["class"]   = g_1wire_properties[number]["class"]
-        entry["enabled"] = g_1wire_properties[number]["enabled"]
-        value.append(entry)
+        if g_1wire_properties[number]["class"] != 255:
+            entry = {}
+            entry["class"]   = g_1wire_properties[number]["class"]
+            entry["enabled"] = g_1wire_properties[number]["enabled"]
+            value.append(entry)
         print(value)
 
         payload = {}
@@ -666,10 +671,11 @@ def handle_api(api, subtopic, subpayload):
         number = int(subpayload["number"])-1
 
         value = []
-        entry = {}
-        entry["class"]   = g_tprobe_properties[number]["class"]
-        entry["enabled"] = g_tprobe_properties[number]["enabled"]
-        value.append(entry)
+        if g_tprobe_properties[number]["class"] != 255:
+            entry = {}
+            entry["class"]   = g_tprobe_properties[number]["class"]
+            entry["enabled"] = g_tprobe_properties[number]["enabled"]
+            value.append(entry)
         print(value)
 
         payload = {}
@@ -731,6 +737,92 @@ def handle_api(api, subtopic, subpayload):
 
         payload = {}
         publish(topic, payload)
+
+
+    ####################################################
+    # i2c/adc/1wire/tprobe
+    ####################################################
+
+    elif api == API_GET_PERIPHERAL_DEVICES:
+        print("API_GET_PERIPHERAL_DEVICES")
+        topic = generate_pubtopic(subtopic)
+        subpayload = json.loads(subpayload)
+        value = {}
+
+        #
+        # i2c
+        for x in range(len(g_i2c_properties)):
+            i2c_value = []
+            for y in g_i2c_properties[x]:
+                if int(y) > 0 and g_i2c_properties[x][y]["class"] != 255:
+                    entry = {}
+                    entry["class"]   = g_i2c_properties[x][y]["class"]
+                    entry["enabled"] = g_i2c_properties[x][y]["enabled"]
+                    entry["address"] = int(y)
+                    i2c_value.append(entry)
+
+            label = "i2c{}".format(x+1)
+            print("{}: {}".format(label, i2c_value))
+
+            if len(i2c_value) > 0:
+                value[label] = {}
+                value[label] = i2c_value
+
+        #
+        # adc
+        for x in range(len(g_adc_properties)):
+            adc_value = []
+            if g_adc_properties[x]["class"] != 255:
+                entry = {}
+                entry["class"]   = g_adc_properties[x]["class"]
+                entry["enabled"] = g_adc_properties[x]["enabled"]
+                adc_value.append(entry)
+
+            label = "adc{}".format(x+1)
+            print("{}: {}".format(label, adc_value))
+
+            if len(adc_value) > 0:
+                value[label] = {}
+                value[label] = adc_value
+
+        #
+        # onewire
+        for x in range(len(g_1wire_properties)):
+            onewire_value = []
+            if g_1wire_properties[x]["class"] != 255:
+                entry = {}
+                entry["class"]   = g_1wire_properties[x]["class"]
+                entry["enabled"] = g_1wire_properties[x]["enabled"]
+                onewire_value.append(entry)
+
+            label = "1wire{}".format(x+1)
+            print("{}: {}".format(label, onewire_value))
+
+            if len(onewire_value) > 0:
+                value[label] = {}
+                value[label] = onewire_value
+
+        #
+        # tprobe
+        for x in range(len(g_tprobe_properties)):
+            tprobe_value = []
+            if g_tprobe_properties[x]["class"] != 255:
+                entry = {}
+                entry["class"]   = g_tprobe_properties[x]["class"]
+                entry["enabled"] = g_tprobe_properties[x]["enabled"]
+                tprobe_value.append(entry)
+
+            label = "tprobe{}".format(x+1)
+            print("{}: {}".format(label, tprobe_value))
+
+            if len(tprobe_value) > 0:
+                value[label] = {}
+                value[label] = tprobe_value
+
+        payload = {}
+        payload["value"] = value
+        publish(topic, payload)	
+
 
 
     ####################################################
@@ -852,14 +944,14 @@ class TimerThread(threading.Thread):
         while not self.stopped.wait(self.timeout):
             topic = "server/{}/sensor_reading".format(CONFIG_DEVICE_ID)
             sensors = { 
-#                "i2c1":   [{"address": 1, "value": 1, "unit": "celcius"}],
-#                "i2c2":   [{"address": 2, "value": 2, "unit": "celcius"}],
-#                "i2c3":   [{"address": 3, "value": 3, "unit": "celcius"}],
-#                "i2c4":   [{"address": 4, "value": 4, "unit": "celcius"}],
-#                "adc1":   [{"value": 1, "unit": "voltage"}],
-#                "adc2":   [{"value": 2, "unit": "voltage"}],
-#                "1wire":  [{"value": 1, "unit": "celcius"}],
-#                "tprobe": [{"value": 1, "unit": "celcius"}, {"value": 1, "unit": "celcius"}],
+#                "i2c1":   [{"class": 0, "value": 1, "address": 1}],
+#                "i2c2":   [{"class": 1, "value": 2, "address": 2}],
+#                "i2c3":   [{"class": 2, "value": 3, "address": 3}],
+#                "i2c4":   [{"class": 3, "value": 4, "address": 4}],
+#                "adc1":   [{"class": 0, "value": 1}],
+#                "adc2":   [{"class": 1, "value": 2}],
+#                "1wire":  [{"class": 2, "value": 3}],
+#                "tprobe": [{"class": 3, "value": 4}, {"class": 4, "value": 5}],
             }
 
             num_entries = 0
@@ -932,14 +1024,11 @@ class TimerThread(threading.Thread):
             if num_entries > 0:
                 payload = {}
                 payload["sensors"] = sensors
-                #print("my thread")
-                #print(topic)
                 print("")
-                #print(payload)
                 publish(topic, payload)
                 print("")
             else:
-                #print("no enabled INPUT devices")
+                #print("no enabled sensor")
                 pass
 
 
