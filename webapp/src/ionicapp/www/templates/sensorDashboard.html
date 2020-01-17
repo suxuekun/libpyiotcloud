@@ -18,7 +18,7 @@
         <span class="input-label">Refresh time (sec)</span>
         <input type="number" placeholder="" ng-model="refresh_time" ng-disabled="refresh_automatically">
       </label>
-      <ion-toggle toggle-class="toggle-positive" id="sensorDashboard-toggle14" ng-model="refresh_automatically" ng-change="changeRefresh(refresh_automatically)">Refresh automatically</ion-toggle>
+      <ion-toggle toggle-class="toggle-positive" id="sensorDashboard-toggle14" ng-model="refresh_automatically" ng-change="changeRefresh(refresh_automatically, refresh_time)">Refresh automatically</ion-toggle>
     </form>
     <div id="sensorDashboard-markdown311" class="show-list-numbers-and-dots">
       <p style="color:#AAAAAA;font-size:12px;">{{ sensors_counthdr }}</p>
@@ -58,7 +58,9 @@
           <p style="margin-top:0px;color:#387EF5;font-size:10px;">Highest: {{ sensor.readings.highest }}</p>
         </div>
         <div id="sensorDashboard-markdown118" style="text-align:right;" class="show-list-numbers-and-dots">
-          <p style="margin-top:0px;color:#444444;font-size:10px;">{{ sensor.class.toUpperCase() }}</p>
+          <p style="margin-top:0px;color:#444444;font-size:10px;">
+            <strong> {{ sensor.class.toUpperCase() }} </strong>
+          </p>
         </div>
       </div>
     </form>
