@@ -2989,11 +2989,16 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
     };
 
 
-    $scope.changeRefresh = function(refresh) {
+    $scope.changeRefresh = function(refresh, timeout) {
         $scope.refresh_automatically = refresh;
+        $scope.refresh_time = timeout;
         console.log(refresh);
+        console.log(timeout);
         
         if (refresh === true) {
+            if ($scope.refresh_time === 0) {
+                $scope.refresh_time = 1;
+            }
             $ionicPopup.alert({
                 title: 'Refresh values automatically',
                 template: 'The values will be refreshed automatically every ' + $scope.refresh_time + ' seconds.',
@@ -7696,7 +7701,6 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             },
             'hardware': {
                 'devicename': '',  
-                'sensorname': '',  
             },
             
             'notification': {
@@ -7895,7 +7899,18 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
     $scope.submit = function() {
         console.log("submit");
         console.log($scope.data.attributes);
-        $scope.data.attributes.notification.endpoints.modem.recipients = $scope.devices[$scope.data.hardware_devicename].devicename;
+        if ($scope.data.hardware_devicename >= $scope.devices.length) {
+            return;
+        }
+        if ($scope.data.attributes.mode!=2) {
+            // SINGLE/DUAL THRESHOLD modes
+            $scope.data.attributes.notification.endpoints.modem.recipients = $scope.devices[$scope.data.hardware_devicename].devicename;
+        }
+        else {
+            // CONTINUOUS mode
+            $scope.data.attributes.hardware.devicename = $scope.devices[$scope.data.hardware_devicename].devicename;
+        }
+        
         if ($scope.data.source === "I2C") {
             set_i2c_properties();
         }
@@ -8897,7 +8912,6 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             },
             'hardware': {
                 'devicename': '',  
-                'sensorname': '',  
             },
             
             'notification': {
@@ -9020,7 +9034,6 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         else {
             // CONTINUOUS mode
             $scope.data.attributes.hardware.devicename = $scope.devices[$scope.data.hardware_devicename].devicename;
-            //$scope.data.attributes.hardware.sensorname = $scope.i2cdevices[$scope.data.hardware_sensorname].sensorname;        
             $scope.data.attributes.alert.type = 1; // always be continuous
         }
 
@@ -9205,7 +9218,6 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             },
             'hardware': {
                 'devicename': '',  
-                'sensorname': '',  
             },
             
             'notification': {
@@ -9328,7 +9340,6 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         else {
             // CONTINUOUS mode
             $scope.data.attributes.hardware.devicename = $scope.devices[$scope.data.hardware_devicename].devicename;
-            //$scope.data.attributes.hardware.sensorname = $scope.adcdevices[$scope.data.hardware_sensorname].sensorname;        
             $scope.data.attributes.alert.type = 1; // always be continuous
         }
 
