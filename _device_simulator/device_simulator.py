@@ -943,11 +943,19 @@ class TimerThread(threading.Thread):
         print("")
         while not self.stopped.wait(self.timeout):
             topic = "server/{}/sensor_reading".format(CONFIG_DEVICE_ID)
+
+            # sample MQTT packet for sensor data publishing
+            # 1. only ENABLED properties shall be included
+            # 2. I2CX can have multiple entries (as multiple I2C devices on slot X can be enabled at the same time)
+            # 3. the backend performs the mapping to the corresponding sensorname given the address/class
+            # 4. the backed will compute the lowest and highest values as displayed in the UI. 
+            #    it will update the lowest and highest as needed based on the provided "value" 
+            # 5. the frontend will use the "unit" from the JSON file.
             sensors = { 
-#                "i2c1":   [{"class": 0, "value": 1, "address": 1}],
-#                "i2c2":   [{"class": 1, "value": 2, "address": 2}],
-#                "i2c3":   [{"class": 2, "value": 3, "address": 3}],
-#                "i2c4":   [{"class": 3, "value": 4, "address": 4}],
+#                "i2c1":   [{"class": 0, "value": 1, "address": 1}, ...],
+#                "i2c2":   [{"class": 1, "value": 2, "address": 2}, ...],
+#                "i2c3":   [{"class": 2, "value": 3, "address": 3}, ...],
+#                "i2c4":   [{"class": 3, "value": 4, "address": 4}, ...],
 #                "adc1":   [{"class": 0, "value": 1}],
 #                "adc2":   [{"class": 1, "value": 2}],
 #                "1wire":  [{"class": 2, "value": 3}],
