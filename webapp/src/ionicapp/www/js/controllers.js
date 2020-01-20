@@ -6932,6 +6932,17 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
     $scope.submit = function() {
         console.log("submit");
 
+        if ($scope.data.multiclass.attributes === "") {
+            let template = $scope.data.sensor.class + " is not yet configured!";
+            $ionicPopup.alert({ title: 'Error', template: template, buttons: [{text: 'OK', type: 'button-assertive'}] });
+            return;
+        }
+        else if ($scope.data.multiclass.subattributes === "") {
+            let template = $scope.data.sensor.subclass + " is not yet configured!";
+            $ionicPopup.alert({ title: 'Error', template: template, buttons: [{text: 'OK', type: 'button-assertive'}] });
+            return;
+        }
+
         $scope.data.attributes = $scope.data.multiclass.attributes;
         $scope.data.attributes.subattributes = $scope.data.multiclass.subattributes;
         console.log($scope.data.attributes);
@@ -10997,7 +11008,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             "name": "Programmable Resolution 1-Wire Digital Thermometer", 
             "desc": "Direct-to digital temperature sensor",
             "link": "https://datasheets.maximintegrated.com/en/ds/DS18B20.pdf",
-            "class": "humidity",
+            "class": "temperature",
             "type": "input",
             "units": ["C"],
             "attributes": [],
@@ -11041,14 +11052,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         $scope.data.onewire.desc         = $scope.devicemodels[$scope.data.onewire.devicemodelid].desc;
         $scope.data.onewire.link         = $scope.devicemodels[$scope.data.onewire.devicemodelid].link;
         $scope.data.onewire.class        = $scope.devicemodels[$scope.data.onewire.devicemodelid].class;
-        $scope.data.onewire.type         = "output";
-        if ($scope.data.onewire.class === "humidity" || 
-            $scope.data.onewire.class === "anemometer" ||
-            $scope.data.onewire.class === "humidity" ||
-            $scope.data.onewire.class === "anemometer"
-            ) {
-            $scope.data.onewire.type     = "input";
-        }
+        $scope.data.onewire.type         = $scope.devicemodels[$scope.data.onewire.devicemodelid].type;
+        $scope.data.onewire.units        = $scope.devicemodels[$scope.data.onewire.devicemodelid].units;
         $scope.data.onewire.attributes   = $scope.devicemodels[$scope.data.onewire.devicemodelid].attributes;
         
         $state.go('add1WIREDeviceDetails', $scope.data);        
