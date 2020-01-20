@@ -76,11 +76,23 @@ def add_sensor_reading(database_client, deviceid, topic, payload):
 
     for source in payload["sensors"]:
         for sensor in payload["sensors"][source]:
+            #
+            # get address
             if sensor.get("address"):
                 address = sensor["address"]
             else:
                 address = None
+
+            #
+            # get value (for class and subclass)
             value = sensor["value"]
+            # handle subclass
+            subclass_value = None
+            if sensor.get("subclass"):
+                subclass_value = sensor["subclass"]["value"]
+
+            #
+            # get last record
             #print("{} source:{} address:{} value:{}".format(deviceid, source, address, value))
             sensor_readings = database_client.get_sensor_reading_by_deviceid(deviceid, source, address)
             if sensor_readings is None:
@@ -89,13 +101,32 @@ def add_sensor_reading(database_client, deviceid, topic, payload):
                 sensor_readings["value"] = value
                 sensor_readings["lowest"] = value
                 sensor_readings["highest"] = value
+                if subclass_value is not None:
+                    sensor_readings["subclass"] = {}
+                    sensor_readings["subclass"]["value"] = value
+                    sensor_readings["subclass"]["lowest"] = value
+                    sensor_readings["subclass"]["highest"] = value
+
             else:
-                #print("yes readings")
+                #
+                # handle class
                 sensor_readings["value"] = value
                 if value > sensor_readings["highest"]:
                     sensor_readings["highest"] = value
                 elif value < sensor_readings["lowest"]:
                     sensor_readings["lowest"] = value
+
+                #
+                # handle subclass
+                if subclass_value is not None:
+                    sensor_readings["subclass"]["value"] = subclass_value
+                    if subclass_value > sensor_readings["subclass"]["highest"]:
+                        sensor_readings["subclass"]["highest"] = subclass_value
+                    elif subclass_value < sensor_readings["subclass"]["lowest"]:
+                        sensor_readings["subclass"]["lowest"] = subclass_value
+
+            #
+            # update sensor reading
             #print(sensor_readings)
             database_client.add_sensor_reading(deviceid, source, address, sensor_readings)
     #print("")
