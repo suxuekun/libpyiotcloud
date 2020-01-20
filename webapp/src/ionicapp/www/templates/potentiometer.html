@@ -111,7 +111,7 @@
       </label>
     </form>
     <form id="potentiometer-form91" class="list">
-      <button id="potentiometer-button88" ng-click="submit()" class="button button-positive button-block">SAVE</button>
+      <button id="potentiometer-button88" ng-click="submit()" class="button button-positive button-block">{{ data.sensor.subclass ? "DONE" : "SAVE" }}</button>
     </form>
   </ion-content>
 </ion-view>

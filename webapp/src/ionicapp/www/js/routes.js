@@ -347,7 +347,8 @@ angular.module('app.routes', [])
 		serialnumber: "",
 		sensor: "",
 		attributes: "",
-		source: ""		
+		source: "",
+		multiclass: ""		
 },
     templateUrl: 'templates/viewTPROBEDevice.html',
     controller: 'viewTPROBEDeviceCtrl'
@@ -383,6 +384,23 @@ angular.module('app.routes', [])
 },
     templateUrl: 'templates/unknown.html',
     controller: 'unknownCtrl'
+  })
+
+  .state('multiclass', {
+    url: '/page_multiclass',
+	params: {
+		devicename: "",
+		username: "",
+		token: "",
+		devicestatus: "",
+		deviceid: "",
+		serialnumber: "",
+		sensor: "",
+		source: "",
+		multiclass: ""		
+},
+    templateUrl: 'templates/multiclass.html',
+    controller: 'multiclassCtrl'
   })
 
   .state('light', {
@@ -429,10 +447,28 @@ angular.module('app.routes', [])
 		deviceid: "",
 		serialnumber: "",
 		sensor: "",
-		source: ""		
+		source: "",
+		multiclass: ""		
 },
     templateUrl: 'templates/temperature.html',
     controller: 'temperatureCtrl'
+  })
+
+  .state('humidity', {
+    url: '/page_humidity',
+	params: {
+		devicename: "",
+		username: "",
+		token: "",
+		devicestatus: "",
+		deviceid: "",
+		serialnumber: "",
+		sensor: "",
+		source: "",
+		multiclass: ""		
+},
+    templateUrl: 'templates/humidity.html',
+    controller: 'humidityCtrl'
   })
 
   .state('display', {

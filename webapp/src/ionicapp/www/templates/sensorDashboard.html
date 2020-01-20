@@ -36,30 +36,32 @@
         <div id="sensorDashboard-markdown313" class="show-list-numbers-and-dots">
           <p style="margin-top:0px;color:#444444;font-size:10px;">Model: {{ sensor.model }}</p>
         </div>
-        <div id="sensorDashboard-markdown309" class="show-list-numbers-and-dots">
-          <p style="margin-top:0px;color:#444444;font-size:10px;">Peripheral: {{ sensor.source.toUpperCase() }}{{ sensor.number }} </p>
-        </div>
         <div id="sensorDashboard-markdown317" class="show-list-numbers-and-dots">
+          <p style="margin-top:0px;color:#444444;font-size:12px;">.</p>
+        </div>
+        <div id="sensorDashboard-markdown348" class="show-list-numbers-and-dots">
           <p style="margin-top:0px;color:#444444;font-size:12px;">.</p>
         </div>
         <div id="sensorDashboard-markdown310" style="text-align:center;" class="show-list-numbers-and-dots">
           <p style="margin-top:0px;color:#387EF5;font-size:50px;">
-            <strong> {{ sensor.readings.value }} </strong>
-            <strong> {{ sensor.units[0] }} </strong>
+            <strong> {{ sensor.subclass ? sensor.readings.value + " " + sensor.units[0] + " | " + sensor.readings.subclass.value + " " + sensor.units[1] : sensor.readings.value + " " + sensor.units[0] }} </strong>
           </p>
+
+          <p style="color:#387EF5;font-size:50px;"> </p>
         </div>
-        <div id="sensorDashboard-markdown308" style="text-align:right;" class="show-list-numbers-and-dots">
-          <p style="margin-top:0px;color:#387EF5;font-size:12px;">.</p>
+        <div id="sensorDashboard-markdown314" style="text-align:center;" class="show-list-numbers-and-dots">
+          <p style="margin-top:0px;color:#387EF5;font-size:10px;">{{ sensor.subclass ? "Low: " + sensor.readings.lowest + " " + "High: " + sensor.readings.highest + " | " + "Low: " + sensor.readings.subclass.lowest + " " + "High: " + sensor.readings.subclass.highest : "Low: " + sensor.readings.lowest + " "
+            + "High: " + sensor.readings.highest }}</p>
         </div>
-        <div id="sensorDashboard-markdown315" style="text-align:right;" class="show-list-numbers-and-dots">
-          <p style="margin-top:0px;color:#387EF5;font-size:10px;">Lowest: {{ sensor.readings.lowest }}</p>
-        </div>
-        <div id="sensorDashboard-markdown314" style="text-align:right;" class="show-list-numbers-and-dots">
-          <p style="margin-top:0px;color:#387EF5;font-size:10px;">Highest: {{ sensor.readings.highest }}</p>
+        <div id="sensorDashboard-markdown346" style="text-align:right;" class="show-list-numbers-and-dots">
+          <p style="margin-top:0px;color:#387EF5;font-size:10px;">.</p>
         </div>
         <div id="sensorDashboard-markdown118" style="text-align:right;" class="show-list-numbers-and-dots">
+          <p style="margin-top:0px;color:#444444;font-size:10px;">Peripheral: {{ sensor.source.toUpperCase() }}{{ sensor.number }} </p>
+        </div>
+        <div id="sensorDashboard-markdown345" style="text-align:right;" class="show-list-numbers-and-dots">
           <p style="margin-top:0px;color:#444444;font-size:10px;">
-            <strong> {{ sensor.class.toUpperCase() }} </strong>
+            <strong> {{ sensor.subclass ? sensor.class.toUpperCase() + " | " + sensor.subclass.toUpperCase() : sensor.class.toUpperCase() }} </strong>
           </p>
         </div>
       </div>

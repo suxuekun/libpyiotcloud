@@ -63,7 +63,7 @@
       </div>
     </form>
     <form id="light-form104" class="list">
-      <button id="light-button99" ng-click="submit()" class="button button-positive button-block">SAVE</button>
+      <button id="light-button99" ng-click="submit()" class="button button-positive button-block">{{ data.sensor.subclass ? "DONE" : "SAVE" }}</button>
       <div class="spacer" style="height: 100px;"></div>
     </form>
   </ion-content>

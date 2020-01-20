@@ -75,7 +75,7 @@
       </label>
     </form>
     <form id="speaker-form75" class="list">
-      <button id="speaker-button84" ng-click="submit()" class="button button-positive button-block">SAVE</button>
+      <button id="speaker-button84" ng-click="submit()" class="button button-positive button-block">{{ data.sensor.subclass ? "DONE" : "SAVE" }}</button>
       <div class="spacer" style="height: 100px;"></div>
     </form>
   </ion-content>
