@@ -1,0 +1,42 @@
+<ion-view title="Multiclass" hide-back-button="true" cache-view="false" nav-transition="none" id="page50" class="page_width">
+  <ion-nav-buttons side="left" class="has-header">
+    <button class="button button-icon icon ion-android-close" ng-click="submitDeviceList()"></button>
+  </ion-nav-buttons>
+  <ion-nav-buttons side="right" class="has-header">
+    <button class="button button-positive icon ion-android-refresh" ng-click="submitRefresh()"></button>
+  </ion-nav-buttons>
+  <ion-content padding="true" class="has-header">
+    <div class="spacer" style="width: 300px; height: 12px;"></div>
+    <div id="multiclass-markdown323" style="text-align:center;" class="show-list-numbers-and-dots">
+      <p style="color:#387EF5;font-size:18px;">
+        <strong> {{ data.devicename }} </strong>
+      </p>
+    </div>
+    <button id="multiclass-button141" ng-click="viewI2CDevice()" style="font-weight:500;font-size:18px;" class="button button-dark button-block button-clear icon-right ion-android-settings">{{ data.sensor.sensorname }} - {{data.source}} {{ data.sensor.number }}</button>
+    <form id="multiclass-form178" class="list">
+      <div class="item item-body" id="multiclass-list-item-container10" ng-click="enterPage(data.sensor.class)">
+        <div id="multiclass-markdown336" class="show-list-numbers-and-dots">
+          <p style="margin-top:0px;color:#387EF5;font-size:18px;">
+            <strong> Configure {{ data.sensor.class.toUpperCase() }} </strong>
+          </p>
+        </div>
+        <div id="multiclass-markdown338" class="show-list-numbers-and-dots">
+          <p style="margin-top:0px;color:#444444;font-size:10px;">Class is {{ data.multiclass.attributes != "" ? "CONFIGURED" : "NOT CONFIGURED" }}</p>
+        </div>
+      </div>
+      <div class="item item-body" id="multiclass-list-item-container11" ng-click="enterPage(data.sensor.subclass)">
+        <div id="multiclass-markdown337" class="show-list-numbers-and-dots">
+          <p style="margin-top:0px;color:#387EF5;font-size:18px;">
+            <strong> Configure {{ data.sensor.subclass.toUpperCase() }} </strong>
+          </p>
+        </div>
+        <div id="multiclass-markdown339" class="show-list-numbers-and-dots">
+          <p style="margin-top:0px;color:#444444;font-size:10px;">Class is {{ data.multiclass.subattributes != "" ? "CONFIGURED" : "NOT CONFIGURED" }}</p>
+        </div>
+      </div>
+    </form>
+    <form id="multiclass-form179" class="list">
+      <button id="multiclass-button146" ng-click="submit()" class="button button-positive button-block">SAVE</button>
+    </form>
+  </ion-content>
+</ion-view>

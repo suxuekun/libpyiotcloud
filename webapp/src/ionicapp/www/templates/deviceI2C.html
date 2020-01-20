@@ -34,8 +34,20 @@
         <div id="deviceI2C-markdown127" class="show-list-numbers-and-dots">
           <p style="margin-top:0px;color:#444444;font-size:10px;">{{ sensor.configured ? "CONFIGURED": "UNCONFIGURED" }} and {{ sensor.enabled ? "ENABLED": "DISABLED" }}</p>
         </div>
-        <div id="deviceI2C-markdown155" class="show-list-numbers-and-dots">
-          <p style="margin-top:0px;color:#444444;font-size:10px;">{{ sensor.readings }}</p>
+        <div id="deviceI2C-markdown155" style="text-align:center;" class="show-list-numbers-and-dots">
+          <p style="margin-top:0px;color:#444444;font-size:10px;">{{ sensor.readings ? "." : "" }}</p>
+        </div>
+        <div id="deviceI2C-markdown358" style="text-align:center;" class="show-list-numbers-and-dots">
+          <p style="margin-top:0px;color:#387EF5;font-size:50px;">
+            <strong> {{ sensor.readings ? sensor.subclass ? sensor.readings.value + " " + sensor.units[0] + " | " + sensor.readings.subclass.value + " " + sensor.units[1] : sensor.readings.value + " " + sensor.units[0] : "" }} </strong>
+          </p>
+        </div>
+        <div id="deviceI2C-markdown359" style="text-align:center;" class="show-list-numbers-and-dots">
+          <p style="margin-top:0px;color:#387EF5;font-size:10px;">{{ sensor.readings ? "." : "" }}</p>
+        </div>
+        <div id="deviceI2C-markdown360" style="text-align:center;" class="show-list-numbers-and-dots">
+          <p style="margin-top:0px;color:#387EF5;font-size:10px;">{{ sensor.readings ? sensor.subclass ? "Low: " + sensor.readings.lowest + " " + "High: " + sensor.readings.highest + " | " + "Low: " + sensor.readings.subclass.lowest + " " + "High: " + sensor.readings.subclass.highest : "Low: " + sensor.readings.lowest
+            + " " + "High: " + sensor.readings.highest : "" }}</p>
         </div>
       </div>
     </ion-list>

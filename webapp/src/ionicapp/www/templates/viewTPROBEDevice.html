@@ -30,8 +30,14 @@
       <div id="viewTPROBEDevice-markdown243" class="show-list-numbers-and-dots">
         <p style="color:#387EF5;">Class</p>
       </div>
-      <div id="viewTPROBEDevice-markdown244" class="show-list-numbers-and-dots">
+      <div id="viewTPROBEDevice-markdown325" class="show-list-numbers-and-dots">
         <p style="color:#444444;font-size:18px;">{{ data.sensor.class }}</p>
+      </div>
+      <div id="viewTPROBEDevice-markdown324" class="show-list-numbers-and-dots">
+        <p style="color:#387EF5;">Subclass</p>
+      </div>
+      <div id="viewTPROBEDevice-markdown244" class="show-list-numbers-and-dots">
+        <p style="color:#444444;font-size:18px;">{{ data.sensor.subclass ? data.sensor.subclass : "none" }}</p>
       </div>
       <div id="viewTPROBEDevice-markdown245" class="show-list-numbers-and-dots">
         <p style="color:#387EF5;">Type</p>
@@ -43,21 +49,42 @@
     <form id="viewTPROBEDevice-form146" class="list">
       <ion-toggle toggle-class="toggle-positive" id="viewTPROBEDevice-toggle12" ng-model="data.enabled" ng-change="changeTPROBEDevice(data.enabled)">Enable</ion-toggle>
     </form>
-    <form id="viewTPROBEDevice-form147" class="list" ng-show="data.sensor.type==&quot;input&quot;">
+    <form id="viewTPROBEDevice-form183" class="list">
       <div id="viewTPROBEDevice-markdown247" class="show-list-numbers-and-dots">
         <p style="color:#387EF5;">Live Status</p>
       </div>
+    </form>
+    <form id="viewTPROBEDevice-form147" class="list" ng-show="data.sensor.type==&quot;input&quot;">
       <div id="viewTPROBEDevice-markdown248" class="show-list-numbers-and-dots">
+        <p style="color:#444444;font-size:18px;">{{ data.sensor.class.toUpperCase() }}</p>
+      </div>
+      <div id="viewTPROBEDevice-markdown368" class="show-list-numbers-and-dots">
         <p style="color:#444444;font-size:18px;">Value: {{ sensor_readings.value }}</p>
       </div>
-      <div id="viewTPROBEDevice-markdown249" class="show-list-numbers-and-dots">
+      <div id="viewTPROBEDevice-markdown362" class="show-list-numbers-and-dots">
         <p style="color:#444444;font-size:18px;">Lowest: {{ sensor_readings.lowest }}</p>
       </div>
-      <div id="viewTPROBEDevice-markdown250" class="show-list-numbers-and-dots">
+      <div id="viewTPROBEDevice-markdown363" class="show-list-numbers-and-dots">
         <p style="color:#444444;font-size:18px;">Highest: {{ sensor_readings.highest }}</p>
       </div>
-      <button id="viewTPROBEDevice-button126" ng-click="getTPROBESensorReading(data.sensor)" class="button button-positive button-block">Get sensor reading</button>
-      <button id="viewTPROBEDevice-button127" ng-click="deleteTPROBESensorReading(data.sensor)" class="button button-positive button-block button-outline">Reset sensor reading</button>
+    </form>
+    <form id="viewTPROBEDevice-form182" class="list" ng-show="data.sensor.type==&quot;input&quot; &amp;&amp; sensor_readings.subclass">
+      <div id="viewTPROBEDevice-markdown365" class="show-list-numbers-and-dots">
+        <p style="color:#444444;font-size:18px;">{{ data.sensor.subclass.toUpperCase() }}</p>
+      </div>
+      <div id="viewTPROBEDevice-markdown369" class="show-list-numbers-and-dots">
+        <p style="color:#444444;font-size:18px;">Value: {{ sensor_readings.subclass.value }}</p>
+      </div>
+      <div id="viewTPROBEDevice-markdown366" class="show-list-numbers-and-dots">
+        <p style="color:#444444;font-size:18px;">Lowest: {{ sensor_readings.subclass.lowest }}</p>
+      </div>
+      <div id="viewTPROBEDevice-markdown367" class="show-list-numbers-and-dots">
+        <p style="color:#444444;font-size:18px;">Highest: {{ sensor_readings.subclass.highest }}</p>
+      </div>
+    </form>
+    <form id="viewTPROBEDevice-form180" class="list" ng-show="data.sensor.type==&quot;input&quot;">
+      <button id="viewTPROBEDevice-button142" ng-click="getTPROBESensorReading(data.sensor)" class="button button-positive button-block">Get sensor reading</button>
+      <button id="viewTPROBEDevice-button143" ng-click="deleteTPROBESensorReading(data.sensor)" class="button button-positive button-block button-outline">Reset sensor reading</button>
       <div class="spacer" style="height: 100px;"></div>
     </form>
   </ion-content>

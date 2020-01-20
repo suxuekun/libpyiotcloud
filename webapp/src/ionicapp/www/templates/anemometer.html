@@ -111,7 +111,7 @@
       </label>
     </form>
     <form id="anemometer-form138" class="list">
-      <button id="anemometer-button118" ng-click="submit()" class="button button-positive button-block">SAVE</button>
+      <button id="anemometer-button118" ng-click="submit()" class="button button-positive button-block">{{ data.sensor.subclass ? "DONE" : "SAVE" }}</button>
     </form>
   </ion-content>
 </ion-view>

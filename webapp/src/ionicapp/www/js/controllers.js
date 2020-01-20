@@ -4345,79 +4345,85 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         param.source = "I2C";
         
         if (sensor.class !== undefined) {
-            if (sensor.class === "light") {
-                
-                param.attributes = {
-                    'color': {
-                        'usage': 0,
-                        'single': {
-                            'endpoint': 0,
-                            'manual': 0,
-                            'hardware': {
-                                'devicename': '',  
-                                'peripheral': '',  
-                                'sensorname': '',  
-                                'attribute': '',  
-                            },
-                        },
-                        'individual': {
-                            'red': {
-                                'endpoint': 0,
-                                'manual': 0,
-                                'hardware': {
-                                    'devicename': '',  
-                                    'peripheral': '',  
-                                    'sensorname': '',  
-                                    'attribute': '',  
-                                },
-                            },
-                            'blue': {
-                                'endpoint': 0,
-                                'manual': 0,
-                                'hardware': {
-                                    'devicename': '',  
-                                    'peripheral': '',  
-                                    'sensorname': '',  
-                                    'attribute': '',   
-                                },
-                            },
-                            'green': {
-                                'endpoint': 0,
-                                'manual': 0,
-                                'hardware': {
-                                    'devicename': '',  
-                                    'peripheral': '',  
-                                    'sensorname': '',  
-                                    'attribute': '',  
-                                },
-                            },
-                        },
-                    },
-                    'fadeouttime': 1,
-                };
-
-                $state.go('light', param);
-            }
-            else if (sensor.class === "temperature") {
-                $state.go('temperature', param);
-            }
-            else if (sensor.class === "speaker") {
-                $state.go('speaker', param);
-            }
-            else if (sensor.class === "display") {
-                $state.go('display', param);
-            }
-            else if (sensor.class === "potentiometer") {
-                $state.go('potentiometer', param);
-            }
-            else if (sensor.class === "humidity") {
-                $state.go('humidity', param);
-            }
-            else if (sensor.class === "anemometer") {
-                $state.go('anemometer', param);
+            if (sensor.subclass !== undefined) {
+                // handle multiclass
+                $state.go('multiclass', param);
             }
             else {
-                $state.go('unknown', param);
+                if (sensor.class === "light") {
+                    
+                    param.attributes = {
+                        'color': {
+                            'usage': 0,
+                            'single': {
+                                'endpoint': 0,
+                                'manual': 0,
+                                'hardware': {
+                                    'devicename': '',  
+                                    'peripheral': '',  
+                                    'sensorname': '',  
+                                    'attribute': '',  
+                                },
+                            },
+                            'individual': {
+                                'red': {
+                                    'endpoint': 0,
+                                    'manual': 0,
+                                    'hardware': {
+                                        'devicename': '',  
+                                        'peripheral': '',  
+                                        'sensorname': '',  
+                                        'attribute': '',  
+                                    },
+                                },
+                                'blue': {
+                                    'endpoint': 0,
+                                    'manual': 0,
+                                    'hardware': {
+                                        'devicename': '',  
+                                        'peripheral': '',  
+                                        'sensorname': '',  
+                                        'attribute': '',   
+                                    },
+                                },
+                                'green': {
+                                    'endpoint': 0,
+                                    'manual': 0,
+                                    'hardware': {
+                                        'devicename': '',  
+                                        'peripheral': '',  
+                                        'sensorname': '',  
+                                        'attribute': '',  
+                                    },
+                                },
+                            },
+                        },
+                        'fadeouttime': 1,
+                    };
+    
+                    $state.go('light', param);
+                }
+                else if (sensor.class === "temperature") {
+                    $state.go('temperature', param);
+                }
+                else if (sensor.class === "humidity") {
+                    $state.go('humidity', param);
+                }
+                else if (sensor.class === "speaker") {
+                    $state.go('speaker', param);
+                }
+                else if (sensor.class === "display") {
+                    $state.go('display', param);
+                }
+                else if (sensor.class === "potentiometer") {
+                    $state.go('potentiometer', param);
+                }
+                else if (sensor.class === "anemometer") {
+                    $state.go('anemometer', param);
+                }
+                else {
+                    $state.go('unknown', param);
+                }
             }
         }
         else {
@@ -4742,29 +4748,35 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         param.source = "ADC";
         
         if (sensor.class !== undefined) {
-            if (sensor.class === "light") {
-                $state.go('light', param);
-            }
-            else if (sensor.class === "temperature") {
-                $state.go('temperature', param);
-            }
-            else if (sensor.class === "speaker") {
-                $state.go('speaker', param);
-            }
-            else if (sensor.class === "display") {
-                $state.go('display', param);
-            }
-            else if (sensor.class === "potentiometer") {
-                $state.go('potentiometer', param);
-            }
-            else if (sensor.class === "humidity") {
-                $state.go('humidity', param);
-            }
-            else if (sensor.class === "anemometer") {
-                $state.go('anemometer', param);
+            if (sensor.subclass !== undefined) {
+                // handle multiclass
+                $state.go('multiclass', param);
             }
             else {
-                $state.go('unknown', param);
+                if (sensor.class === "light") {
+                    $state.go('light', param);
+                }
+                else if (sensor.class === "temperature") {
+                    $state.go('temperature', param);
+                }
+                else if (sensor.class === "humidity") {
+                    $state.go('humidity', param);
+                }
+                else if (sensor.class === "speaker") {
+                    $state.go('speaker', param);
+                }
+                else if (sensor.class === "display") {
+                    $state.go('display', param);
+                }
+                else if (sensor.class === "potentiometer") {
+                    $state.go('potentiometer', param);
+                }
+                else if (sensor.class === "anemometer") {
+                    $state.go('anemometer', param);
+                }
+                else {
+                    $state.go('unknown', param);
+                }
             }
         }
         else {
@@ -5152,29 +5164,39 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         param.source = "TPROBE";
         
         if (sensor.class !== undefined) {
-            if (sensor.class === "light") {
-                $state.go('light', param);
-            }
-            else if (sensor.class === "temperature") {
-                $state.go('temperature', param);
-            }
-            else if (sensor.class === "speaker") {
-                $state.go('speaker', param);
-            }
-            else if (sensor.class === "display") {
-                $state.go('display', param);
-            }
-            else if (sensor.class === "potentiometer") {
-                $state.go('potentiometer', param);
-            }
-            else if (sensor.class === "humidity") {
-                $state.go('humidity', param);
-            }
-            else if (sensor.class === "anemometer") {
-                $state.go('anemometer', param);
+            if (sensor.subclass !== undefined) {
+                // handle multiclass
+                param.multiclass = {
+                    'attributes': '',    
+                    'subattributes': '',    
+                }
+                $state.go('multiclass', param);
             }
             else {
-                $state.go('unknown', param);
+                if (sensor.class === "light") {
+                    $state.go('light', param);
+                }
+                else if (sensor.class === "temperature") {
+                    $state.go('temperature', param);
+                }
+                else if (sensor.class === "humidity") {
+                    $state.go('humidity', param);
+                }
+                else if (sensor.class === "speaker") {
+                    $state.go('speaker', param);
+                }
+                else if (sensor.class === "display") {
+                    $state.go('display', param);
+                }
+                else if (sensor.class === "potentiometer") {
+                    $state.go('potentiometer', param);
+                }
+                else if (sensor.class === "anemometer") {
+                    $state.go('anemometer', param);
+                }
+                else {
+                    $state.go('unknown', param);
+                }
             }
         }
         else {
@@ -5503,35 +5525,41 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         param.source = "1WIRE";
         
         if (sensor.class !== undefined) {
-            if (sensor.class === "light") {
-                $state.go('light', param);
-            }
-            else if (sensor.class === "temperature") {
-                $state.go('temperature', param);
-            }
-            else if (sensor.class === "speaker") {
-                $state.go('speaker', param);
-            }
-            else if (sensor.class === "display") {
-                $state.go('display', param);
-            }
-            else if (sensor.class === "potentiometer") {
-                $state.go('potentiometer', param);
-            }
-            else if (sensor.class === "humidity") {
-                $state.go('humidity', param);
-            }
-            else if (sensor.class === "anemometer") {
-                $state.go('anemometer', param);
+            if (sensor.subclass !== undefined) {
+                // handle multiclass
+                $state.go('multiclass', param);
             }
             else {
-                $state.go('unknown', param);
+                if (sensor.class === "light") {
+                    $state.go('light', param);
+                }
+                else if (sensor.class === "temperature") {
+                    $state.go('temperature', param);
+                }
+                else if (sensor.class === "humidity") {
+                    $state.go('humidity', param);
+                }
+                else if (sensor.class === "speaker") {
+                    $state.go('speaker', param);
+                }
+                else if (sensor.class === "display") {
+                    $state.go('display', param);
+                }
+                else if (sensor.class === "potentiometer") {
+                    $state.go('potentiometer', param);
+                }
+                else if (sensor.class === "anemometer") {
+                    $state.go('anemometer', param);
+                }
+                else {
+                    $state.go('multiclass', param);
+                }
             }
         }
         else {
-            param.sensor.class = "unknown";
+            param.sensor.class = "multiclass";
             param.sensor.attributes = [];
-            $state.go('unknown', param);
+            $state.go('multiclass', param);
         }
     };
 
@@ -5893,29 +5921,34 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         param = $scope.data;
         
         if (sensor.class !== undefined) {
-            if (sensor.class === "light") {
-                $state.go('light', param);
-            }
-            else if (sensor.class === "temperature") {
-                $state.go('temperature', param);
-            }
-            else if (sensor.class === "speaker") {
-                $state.go('speaker', param);
-            }
-            else if (sensor.class === "display") {
-                $state.go('display', param);
-            }
-            else if (sensor.class === "potentiometer") {
-                $state.go('potentiometer', param);
-            }
-            else if (sensor.class === "anemometer") {
-                $state.go('anemometer', param);
-            }
-            else if (sensor.class === "humidity") {
-                $state.go('humidity', param);
+            if (sensor.subclass !== undefined) {
+                $state.go('multiclass', param);
             }
             else {
-                $state.go('unknown', param);
+                if (sensor.class === "light") {
+                    $state.go('light', param);
+                }
+                else if (sensor.class === "temperature") {
+                    $state.go('temperature', param);
+                }
+                else if (sensor.class === "humidity") {
+                    $state.go('humidity', param);
+                }
+                else if (sensor.class === "speaker") {
+                    $state.go('speaker', param);
+                }
+                else if (sensor.class === "display") {
+                    $state.go('display', param);
+                }
+                else if (sensor.class === "potentiometer") {
+                    $state.go('potentiometer', param);
+                }
+                else if (sensor.class === "anemometer") {
+                    $state.go('anemometer', param);
+                }
+                else {
+                    $state.go('unknown', param);
+                }
             }
         }
         else {
@@ -6170,29 +6203,34 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         param = $scope.data;
         
         if (sensor.class !== undefined) {
-            if (sensor.class === "light") {
-                $state.go('light', param);
-            }
-            else if (sensor.class === "temperature") {
-                $state.go('temperature', param);
-            }
-            else if (sensor.class === "speaker") {
-                $state.go('speaker', param);
-            }
-            else if (sensor.class === "display") {
-                $state.go('display', param);
-            }
-            else if (sensor.class === "potentiometer") {
-                $state.go('potentiometer', param);
-            }
-            else if (sensor.class === "anemometer") {
-                $state.go('anemometer', param);
-            }
-            else if (sensor.class === "humidity") {
-                $state.go('humidity', param);
+            if (sensor.subclass !== undefined) {
+                $state.go('multiclass', param);
             }
             else {
-                $state.go('unknown', param);
+                if (sensor.class === "light") {
+                    $state.go('light', param);
+                }
+                else if (sensor.class === "temperature") {
+                    $state.go('temperature', param);
+                }
+                else if (sensor.class === "humidity") {
+                    $state.go('humidity', param);
+                }
+                else if (sensor.class === "speaker") {
+                    $state.go('speaker', param);
+                }
+                else if (sensor.class === "display") {
+                    $state.go('display', param);
+                }
+                else if (sensor.class === "potentiometer") {
+                    $state.go('potentiometer', param);
+                }
+                else if (sensor.class === "anemometer") {
+                    $state.go('anemometer', param);
+                }
+                else {
+                    $state.go('unknown', param);
+                }
             }
         }
         else {
@@ -6234,6 +6272,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         
         'sensor': $stateParams.sensor,
         'source': $stateParams.source,
+        'multiclass': $stateParams.multiclass,
         
         'attributes': $stateParams.attributes,
         'enabled': $stateParams.sensor.enabled ? true: false,
@@ -6447,29 +6486,34 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         param = $scope.data;
         
         if (sensor.class !== undefined) {
-            if (sensor.class === "light") {
-                $state.go('light', param);
-            }
-            else if (sensor.class === "temperature") {
-                $state.go('temperature', param);
-            }
-            else if (sensor.class === "speaker") {
-                $state.go('speaker', param);
-            }
-            else if (sensor.class === "display") {
-                $state.go('display', param);
-            }
-            else if (sensor.class === "potentiometer") {
-                $state.go('potentiometer', param);
-            }
-            else if (sensor.class === "anemometer") {
-                $state.go('anemometer', param);
-            }
-            else if (sensor.class === "humidity") {
-                $state.go('humidity', param);
+            if (sensor.subclass !== undefined) {
+                $state.go('multiclass', param);
             }
             else {
-                $state.go('unknown', param);
+                if (sensor.class === "light") {
+                    $state.go('light', param);
+                }
+                else if (sensor.class === "temperature") {
+                    $state.go('temperature', param);
+                }
+                else if (sensor.class === "humidity") {
+                    $state.go('humidity', param);
+                }
+                else if (sensor.class === "speaker") {
+                    $state.go('speaker', param);
+                }
+                else if (sensor.class === "display") {
+                    $state.go('display', param);
+                }
+                else if (sensor.class === "potentiometer") {
+                    $state.go('potentiometer', param);
+                }
+                else if (sensor.class === "anemometer") {
+                    $state.go('anemometer', param);
+                }
+                else {
+                    $state.go('unknown', param);
+                }
             }
         }
         else {
@@ -6724,35 +6768,40 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         param = $scope.data;
         
         if (sensor.class !== undefined) {
-            if (sensor.class === "light") {
-                $state.go('light', param);
-            }
-            else if (sensor.class === "temperature") {
-                $state.go('temperature', param);
-            }
-            else if (sensor.class === "speaker") {
-                $state.go('speaker', param);
-            }
-            else if (sensor.class === "display") {
-                $state.go('display', param);
-            }
-            else if (sensor.class === "potentiometer") {
-                $state.go('potentiometer', param);
-            }
-            else if (sensor.class === "anemometer") {
-                $state.go('anemometer', param);
-            }
-            else if (sensor.class === "humidity") {
-                $state.go('humidity', param);
+            if (sensor.subclass !== undefined) {
+                $state.go('multiclass', param);
             }
             else {
-                $state.go('unknown', param);
+                if (sensor.class === "light") {
+                    $state.go('light', param);
+                }
+                else if (sensor.class === "temperature") {
+                    $state.go('temperature', param);
+                }
+                else if (sensor.class === "humidity") {
+                    $state.go('humidity', param);
+                }
+                else if (sensor.class === "speaker") {
+                    $state.go('speaker', param);
+                }
+                else if (sensor.class === "display") {
+                    $state.go('display', param);
+                }
+                else if (sensor.class === "potentiometer") {
+                    $state.go('potentiometer', param);
+                }
+                else if (sensor.class === "anemometer") {
+                    $state.go('anemometer', param);
+                }
+                else {
+                    $state.go('multiclass', param);
+                }
             }
         }
         else {
-            param.sensor.class = "unknown";
+            param.sensor.class = "multiclass";
             param.sensor.attributes = [];
-            $state.go('unknown', param);
+            $state.go('multiclass', param);
         }
     };
     
@@ -6789,6 +6838,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         'sensor': $stateParams.sensor,
     };
 
+
+
     // VIEW I2C DEVICE
     $scope.viewI2CDevice = function() {
         console.log("viewI2CDevice");
@@ -6817,6 +6868,335 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         };
         $state.go('deviceI2C', device_param);
     };
+}])
+   
+.controller('multiclassCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', 'Devices', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+// You can include any angular dependencies as parameters for this function
+// TIP: Access Route Parameters for your page via $stateParams.parameterName
+function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token, Devices) {
+
+    var server = Server.rest_api;
+
+    $scope.data = {
+        'username': User.get_username(),
+        'token': User.get_token(),
+        'devicename': $stateParams.devicename,
+        'devicestatus': $stateParams.devicestatus,
+        'deviceid': $stateParams.deviceid,
+        'serialnumber': $stateParams.serialnumber,
+        
+        'sensor': $stateParams.sensor,
+        'source': $stateParams.source,
+        
+        'multiclass': $stateParams.multiclass,
+    };
+
+
+
+    $scope.enterPage = function(sensor_class) {
+        
+        var param = $scope.data;
+        console.log("enterPage " + sensor_class);
+        console.log("1 " + $scope.data.multiclass.attributes);
+        console.log("2 " + $scope.data.multiclass.subattributes);
+        
+        if (sensor_class === "light") {
+            $state.go('light', param, {reload: true});
+        }
+        else if (sensor_class === "temperature") {
+            $state.go('temperature', param, {reload: true});
+        }
+        else if (sensor_class === "humidity") {
+            $state.go('humidity', param, {reload: true});
+        }
+        else if (sensor_class === "speaker") {
+            $state.go('speaker', param, {reload: true});
+        }
+        else if (sensor_class === "display") {
+            $state.go('display', param, {reload: true});
+        }
+        else if (sensor_class === "potentiometer") {
+            $state.go('potentiometer', param, {reload: true});
+        }
+        else if (sensor_class === "anemometer") {
+            $state.go('anemometer', param, {reload: true});
+        }
+        else {
+            $state.go('unknown', param, {reload: true});
+        }
+        
+    };
+
+
+
+    $scope.submit = function() {
+        console.log("submit");
+
+        $scope.data.attributes = $scope.data.multiclass.attributes;
+        $scope.data.attributes.subattributes = $scope.data.multiclass.subattributes;
+        console.log($scope.data.attributes);
+        
+        if ($scope.data.source === "I2C") {
+            set_i2c_properties();
+        }
+        else if ($scope.data.source === "TPROBE") {
+            set_tprobe_properties();
+        }
+        else if ($scope.data.source === "1WIRE") {
+            set_1wire_properties();
+        }
+        else if ($scope.data.source === "ADC") {
+            set_adc_properties();
+        }
+    };
+
+    set_i2c_properties = function() {
+        //
+        // SET I2C PROPERTIES
+        //
+        // - Request:
+        //   POST /devices/device/<devicename>/i2c/<number>/sensors/sensor/<sensorname>/properties
+        //   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
+        //   data: 
+        //   { 
+        //   }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string }
+        //   { 'status': 'NG', 'message': string }        
+        //
+        $http({
+            method: 'POST',
+            url: server + '/devices/device/' + $scope.data.devicename + '/i2c/' + $scope.data.sensor.number.toString() + '/sensors/sensor/' + $scope.data.sensor.sensorname + '/properties',
+            headers: { 'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json' },
+            data: $scope.data.attributes
+        })
+        .then(function (result) {
+            console.log(result.data);
+            $ionicPopup.alert({
+                title: 'I2C device',
+                template: $scope.data.sensor.sensorname + ' on I2C ' + $scope.data.sensor.number.toString() + ' was configured successfully!',
+            });            
+        })
+        .catch(function (error) {
+            handle_error(error, true);
+        }); 
+    };
+    
+    set_tprobe_properties = function() {
+        //
+        // SET TPROBE PROPERTIES
+        //
+        // - Request:
+        //   POST /devices/device/<devicename>/tprobe/<number>/sensors/sensor/<sensorname>/properties
+        //   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
+        //   data: 
+        //   { 
+        //   }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string }
+        //   { 'status': 'NG', 'message': string }        
+        //
+        $http({
+            method: 'POST',
+            url: server + '/devices/device/' + $scope.data.devicename + '/tprobe/' + $scope.data.sensor.number.toString() + '/sensors/sensor/' + $scope.data.sensor.sensorname + '/properties',
+            headers: { 'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json' },
+            data: $scope.data.attributes
+        })
+        .then(function (result) {
+            console.log(result.data);
+            $ionicPopup.alert({
+                title: 'TPROBE device',
+                template: $scope.data.sensor.sensorname + ' on TPROBE ' + $scope.data.sensor.number.toString() + ' was configured successfully!',
+            });            
+        })
+        .catch(function (error) {
+            handle_error(error, true);
+        }); 
+    };
+
+    set_1wire_properties = function() {
+        //
+        // SET 1WIRE PROPERTIES
+        //
+        // - Request:
+        //   POST /devices/device/<devicename>/1wire/<number>/sensors/sensor/<sensorname>/properties
+        //   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
+        //   data: 
+        //   { 
+        //   }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string }
+        //   { 'status': 'NG', 'message': string }        
+        //
+        $http({
+            method: 'POST',
+            url: server + '/devices/device/' + $scope.data.devicename + '/1wire/' + $scope.data.sensor.number.toString() + '/sensors/sensor/' + $scope.data.sensor.sensorname + '/properties',
+            headers: { 'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json' },
+            data: $scope.data.attributes
+        })
+        .then(function (result) {
+            console.log(result.data);
+            $ionicPopup.alert({
+                title: '1WIRE device',
+                template: $scope.data.sensor.sensorname + ' on 1WIRE ' + $scope.data.sensor.number.toString() + ' was configured successfully!',
+            });            
+        })
+        .catch(function (error) {
+            handle_error(error, true);
+        }); 
+    };
+
+    set_adc_properties = function() {
+        //
+        // SET ADC PROPERTIES
+        //
+        // - Request:
+        //   POST /devices/device/<devicename>/adc/<number>/sensors/sensor/<sensorname>/properties
+        //   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
+        //   data: 
+        //   { 
+        //   }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string }
+        //   { 'status': 'NG', 'message': string }        
+        //
+        $http({
+            method: 'POST',
+            url: server + '/devices/device/' + $scope.data.devicename + '/adc/' + $scope.data.sensor.number.toString() + '/sensors/sensor/' + $scope.data.sensor.sensorname + '/properties',
+            headers: { 'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json' },
+            data: $scope.data.attributes
+        })
+        .then(function (result) {
+            console.log(result.data);
+            $ionicPopup.alert({
+                title: 'ADC device',
+                template: $scope.data.sensor.sensorname + ' on ADC ' + $scope.data.sensor.number.toString() + ' was configured successfully!',
+            });            
+        })
+        .catch(function (error) {
+            handle_error(error, true);
+        }); 
+    };
+    
+
+
+
+    $scope.submitRefresh = function() {
+        console.log("submitRefresh");
+        console.log($scope.data.attributes);
+        
+        if ($scope.data.source === "I2C") {
+            //get_i2c_device_properties();
+        }
+        else if ($scope.data.source === "TPROBE") {
+            get_tprobe_device_properties();
+        }
+        else if ($scope.data.source === "1WIRE") {
+            //get_1wire_device_properties();
+        }
+    };
+
+
+    get_tprobe_device_properties = function() {
+        //
+        // GET TPROBE DEVICE PROPERTIES
+        //
+        // - Request:
+        //   GET /devices/device/<devicename>/tprobe/<number>/sensors/sensor/<sensorname>/properties
+        //   headers: { 'Authorization': 'Bearer ' + token.access }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string }
+        //   { 'status': 'NG', 'message': string }        
+        //
+        $http({
+            method: 'GET',
+            url: server + '/devices/device/' + $scope.data.devicename + '/tprobe/' + $scope.data.sensor.number.toString() + '/sensors/sensor/' + $scope.data.sensor.sensorname + '/properties',
+            headers: { 'Authorization': 'Bearer ' + $scope.data.token.access },
+        })
+        .then(function (result) {
+            console.log(result.data);
+            if (result.data.value !== undefined) {
+                if (result.data.value.subattributes !== undefined) {
+                    $scope.data.multiclass.attributes = result.data.value;
+                    $scope.data.multiclass.subattributes = result.data.value.subattributes;
+                    delete $scope.data.multiclass.attributes["subattributes"];
+                    console.log($scope.data.multiclass.attributes);
+                    console.log($scope.data.multiclass.subattributes);
+                }
+            }
+        })
+        .catch(function (error) {
+            handle_error(error, true);
+        }); 
+    };
+
+
+
+    // VIEW I2C DEVICE
+    $scope.viewI2CDevice = function() {
+        console.log("viewI2CDevice");
+        var device_param = {
+            'username': $scope.data.username,
+            'token': $scope.data.token,
+            'devicename': $scope.data.devicename,
+            'devicestatus': $scope.data.devicestatus,
+            'deviceid': $scope.data.deviceid,
+            'serialnumber': $scope.data.serialnumber,
+            'sensor': $scope.data.sensor,
+            'source': $stateParams.source,
+            'multiclass': $scope.data.multiclass,
+        };
+        
+        if ($scope.data.source === "I2C") {
+            console.log("viewI2CDevice");
+            $state.go('viewI2CDevice', device_param);
+        }
+        else if ($scope.data.source === "ADC") {
+            console.log("viewADCDevice");
+            $state.go('viewADCDevice', device_param);
+        }
+        else if ($scope.data.source === "TPROBE") {
+            console.log("viewTPROBEDevice");
+            $state.go('viewTPROBEDevice', device_param);
+        }
+        else if ($scope.data.source === "1WIRE") {
+            console.log("view1WIREDevice");
+            $state.go('view1WIREDevice', device_param);
+        }
+    };
+    
+    // EXIT PAGE
+    $scope.submitDeviceList = function() {
+        console.log("submitDeviceList");
+        var device_param = {
+            'username': $scope.data.username,
+            'token': $scope.data.token,
+            'devicename': $scope.data.devicename,
+            'devicestatus': $scope.data.devicestatus,
+            'deviceid': $scope.data.deviceid,
+            'serialnumber': $scope.data.serialnumber,
+        };
+
+        if ($scope.data.source === "I2C") {
+           $state.go('deviceI2C', device_param);
+        }
+        else if ($scope.data.source === "ADC") {
+           $state.go('deviceADC', device_param);
+        }
+        else if ($scope.data.source === "TPROBE") {
+           $state.go('deviceTPROBE', device_param);
+        }
+        else if ($scope.data.source === "1WIRE") {
+           $state.go('device1WIRE', device_param);
+        }
+    };
+    
+    $scope.submitRefresh();
 }])
    
 .controller('lightCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', 'Devices', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
@@ -7209,17 +7589,26 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             'deviceid': $scope.data.deviceid,
             'serialnumber': $scope.data.serialnumber,
         };
-        if ($scope.data.source === "I2C") {
-           $state.go('deviceI2C', device_param);
+        
+        if ($scope.data.sensor.subclass !== undefined) {
+            device_param.sensor = $scope.data.sensor;
+            device_param.source = $scope.data.source;
+            device_param.multiclass = $scope.data.multiclass;
+            $state.go('multiclass', device_param);
         }
-        else if ($scope.data.source === "ADC") {
-           $state.go('deviceADC', device_param);
-        }
-        else if ($scope.data.source === "TPROBE") {
-           $state.go('deviceTPROBE', device_param);
-        }
-        else if ($scope.data.source === "1WIRE") {
-           $state.go('device1WIRE', device_param);
+        else {
+            if ($scope.data.source === "I2C") {
+               $state.go('deviceI2C', device_param);
+            }
+            else if ($scope.data.source === "ADC") {
+               $state.go('deviceADC', device_param);
+            }
+            else if ($scope.data.source === "TPROBE") {
+               $state.go('deviceTPROBE', device_param);
+            }
+            else if ($scope.data.source === "1WIRE") {
+               $state.go('device1WIRE', device_param);
+            }
         }
     };
     
@@ -7738,7 +8127,12 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             }
         },
         
-        'showNotification': 0,        
+        'showNotification': 0,       
+        
+        // support for multiclasses
+        //'multiclass_attributes': $stateParams.multiclass_attributes,
+        //'multiclass_subattributes': $stateParams.multiclass_subattributes,
+        'multiclass': $stateParams.multiclass
     };
 
     $scope.changeNotification = function(i) {
@@ -7841,6 +8235,14 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                 else {
                     $scope.data.attributes.notification = result.data.value.notification;
                 }
+                
+                
+                if ($scope.data.sensor.class === "temperature") {
+                    $scope.data.multiclass.attributes = $scope.data.attributes;
+                }
+                else if ($scope.data.sensor.subclass === "temperature") {
+                    $scope.data.multiclass.subattributes = $scope.data.attributes;
+                }                
             }
         })
         .catch(function (error) {
@@ -7911,14 +8313,41 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             $scope.data.attributes.hardware.devicename = $scope.devices[$scope.data.hardware_devicename].devicename;
         }
         
-        if ($scope.data.source === "I2C") {
-            set_i2c_properties();
+        
+        if ($scope.data.sensor.subclass !== undefined) {
+            var classname = "temperature";
+            
+            // support for multiclasses
+            var param = {
+                'username': $scope.data.username,
+                'token': $scope.data.token,
+                'devicename': $scope.data.devicename,
+                'devicestatus': $scope.data.devicestatus,
+                'deviceid': $scope.data.deviceid,
+                'serialnumber': $scope.data.serialnumber,
+                'sensor': $scope.data.sensor,
+                'source': $scope.data.source,
+                'multiclass': $scope.data.multiclass,             
+            };
+
+            if ($scope.data.sensor.class === classname) {
+                param.multiclass.attributes = $scope.data.attributes;
+            }
+            else if ($scope.data.sensor.subclass === classname) {
+                param.multiclass.subattributes = $scope.data.attributes;
+            }
+            $state.go('multiclass', param, {reload: true});
         }
-        else if ($scope.data.source === "TPROBE") {
-            set_tprobe_properties();
-        }
-        else if ($scope.data.source === "1WIRE") {
-            set_1wire_properties();
+        else {
+            if ($scope.data.source === "I2C") {
+                set_i2c_properties();
+            }
+            else if ($scope.data.source === "TPROBE") {
+                set_tprobe_properties();
+            }
+            else if ($scope.data.source === "1WIRE") {
+                set_1wire_properties();
+            }
         }
     };
 
@@ -8056,6 +8485,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             'serialnumber': $scope.data.serialnumber,
             'sensor': $scope.data.sensor,
             'source': $scope.data.source,
+            'multiclass': $scope.data.multiclass,             
         };
         if ($scope.data.source === "I2C") {
             console.log("viewI2CDevice");
@@ -8086,17 +8516,552 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             'deviceid': $scope.data.deviceid,
             'serialnumber': $scope.data.serialnumber,
         };
-        if ($scope.data.source === "I2C") {
-           $state.go('deviceI2C', device_param);
+        
+        if ($scope.data.sensor.subclass !== undefined) {
+            device_param.sensor = $scope.data.sensor;
+            device_param.source = $scope.data.source;
+            device_param.multiclass = $scope.data.multiclass;
+            $state.go('multiclass', device_param);
         }
-        else if ($scope.data.source === "ADC") {
-           $state.go('deviceADC', device_param);
+        else {
+            if ($scope.data.source === "I2C") {
+               $state.go('deviceI2C', device_param);
+            }
+            else if ($scope.data.source === "ADC") {
+               $state.go('deviceADC', device_param);
+            }
+            else if ($scope.data.source === "TPROBE") {
+               $state.go('deviceTPROBE', device_param);
+            }
+            else if ($scope.data.source === "1WIRE") {
+               $state.go('device1WIRE', device_param);
+            }
+        }
+    };
+    
+    $scope.changeMode = function() {
+        console.log("changeMode");
+        get_devices();    
+    };    
+    
+    $scope.submitRefresh();  
+}])
+   
+.controller('humidityCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', 'Devices', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+// You can include any angular dependencies as parameters for this function
+// TIP: Access Route Parameters for your page via $stateParams.parameterName
+function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token, Devices) {
+
+    var server = Server.rest_api;
+
+    $scope.modes = [
+        { "id":0,  "label": "Single Threshold"  },
+        { "id":1,  "label": "Dual Threshold"  },
+        { "id":2,  "label": "Continuous" },
+    ];
+
+    $scope.activates = [
+        { "id":0,  "label": "Out of range" },
+        { "id":1,  "label": "Within range" },
+    ];
+    
+    $scope.alerts = [
+        { "id":0,  "label": "Once"         },
+        { "id":1,  "label": "Continuously" },
+    ];    
+    
+    $scope.devices = [ {"id":0, "devicename": ""} ];
+    
+    $scope.data = {
+        'username': User.get_username(),
+        'token': User.get_token(),
+        'devicename': $stateParams.devicename,
+        'devicestatus': $stateParams.devicestatus,
+        'deviceid': $stateParams.deviceid,
+        'serialnumber': $stateParams.serialnumber,
+        
+        'sensor': $stateParams.sensor,
+        'source': $stateParams.source,
+        'hardware_devicename': $scope.devices[0].id,
+        
+        'attributes': {
+            'mode': $scope.modes[0].id,
+            'threshold': {
+                'value': 0,
+                'min': 0,
+                'max': 100,
+                'activate': $scope.activates[0].id,
+            },
+            'alert': {
+                'type': $scope.alerts[0].id,
+                'period': 60000,
+            },
+            'hardware': {
+                'devicename': '',  
+            },
+            
+            'notification': {
+                'messages': [ 
+                    { 'message': 'Hello World!', 'enable': true },
+                    { 'message': 'Hi World!', 'enable': false },
+                ],
+                'endpoints' : {
+                    'mobile': {
+                        'recipients': '',
+                        'enable': false,
+                        'recipients_list': [],
+                    },
+                    'email': {
+                        'recipients': '',
+                        'enable': false,
+                        'recipients_list': [],
+                    },
+                    'notification': {
+                        'recipients': '',
+                        'enable': false,
+                        'recipients_list': [],
+                    },
+                    'modem': {
+                        'recipients': '',
+                        'enable': false,
+                        'recipients_list': [],
+                    },
+                    'storage': {
+                        'recipients': '',
+                        'enable': false,
+                        'recipients_list': [],
+                    },
+                }
+            }
+        },
+        
+        'showNotification': 0,  
+        
+        // support for multiclasses
+        //'multiclass_attributes': $stateParams.multiclass_attributes,
+        //'multiclass_subattributes': $stateParams.multiclass_subattributes,
+        'multiclass': $stateParams.multiclass
+    };
+
+    $scope.changeNotification = function(i) {
+        $scope.data.showNotification = i;
+        if (i===true) {
+            get_devices();    
+        }    
+    };
+    
+    
+    $scope.submitRefresh = function() {
+        console.log("submitRefresh");
+        console.log($scope.data.attributes);
+        
+        if ($scope.data.source === "I2C") {
+            get_i2c_device_properties();
         }
         else if ($scope.data.source === "TPROBE") {
-           $state.go('deviceTPROBE', device_param);
+            get_tprobe_device_properties();
         }
         else if ($scope.data.source === "1WIRE") {
-           $state.go('device1WIRE', device_param);
+            get_1wire_device_properties();
+        }
+    };
+
+    get_i2c_device_properties = function() {
+        //
+        // GET I2C DEVICE PROPERTIES
+        //
+        // - Request:
+        //   GET /devices/device/<devicename>/i2c/<number>/sensors/sensor/<sensorname>/properties
+        //   headers: { 'Authorization': 'Bearer ' + token.access }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string }
+        //   { 'status': 'NG', 'message': string }        
+        //
+        $http({
+            method: 'GET',
+            url: server + '/devices/device/' + $scope.data.devicename + '/i2c/' + $scope.data.sensor.number.toString() + '/sensors/sensor/' + $scope.data.sensor.sensorname + '/properties',
+            headers: { 'Authorization': 'Bearer ' + $scope.data.token.access },
+        })
+        .then(function (result) {
+            console.log(result.data);
+            if (result.data.value !== undefined) {
+                if (result.data.value.threshold !== undefined) {
+                    $scope.data.attributes = result.data.value;
+                    
+                    $scope.data.hardware_devicename = 0;
+                    let indexy = 0;
+                    for (indexy=0; indexy<$scope.devices.length; indexy++) {
+                        if ($scope.devices[indexy].devicename === $scope.data.attributes.notification.endpoints.modem.recipients) {
+                            $scope.data.hardware_devicename = indexy;
+                            break;
+                        }
+                    }                    
+                }
+                else {
+                    $scope.data.attributes.notification = result.data.value.notification;
+                }
+            }
+        })
+        .catch(function (error) {
+            handle_error(error, true);
+        }); 
+    };
+    
+    get_tprobe_device_properties = function() {
+        //
+        // GET TPROBE DEVICE PROPERTIES
+        //
+        // - Request:
+        //   GET /devices/device/<devicename>/tprobe/<number>/sensors/sensor/<sensorname>/properties
+        //   headers: { 'Authorization': 'Bearer ' + token.access }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string }
+        //   { 'status': 'NG', 'message': string }        
+        //
+        $http({
+            method: 'GET',
+            url: server + '/devices/device/' + $scope.data.devicename + '/tprobe/' + $scope.data.sensor.number.toString() + '/sensors/sensor/' + $scope.data.sensor.sensorname + '/properties',
+            headers: { 'Authorization': 'Bearer ' + $scope.data.token.access },
+        })
+        .then(function (result) {
+            console.log(result.data);
+            if (result.data.value !== undefined) {
+                if (result.data.value.subattributes === undefined) {
+                    if (result.data.value.threshold !== undefined) {
+                        $scope.data.attributes = result.data.value;
+                        
+                        $scope.data.hardware_devicename = 0;
+                        let indexy = 0;
+                        for (indexy=0; indexy<$scope.devices.length; indexy++) {
+                            if ($scope.devices[indexy].devicename === $scope.data.attributes.notification.endpoints.modem.recipients) {
+                                $scope.data.hardware_devicename = indexy;
+                                break;
+                            }
+                        }                    
+                    }
+                    else {
+                        $scope.data.attributes.notification = result.data.value.notification;
+                    }
+                }
+                else {
+                    if (result.data.value.subattributes.threshold !== undefined) {
+                        $scope.data.attributes = result.data.value.subattributes;
+                        
+                        $scope.data.hardware_devicename = 0;
+                        let indexy = 0;
+                        for (indexy=0; indexy<$scope.devices.length; indexy++) {
+                            if ($scope.devices[indexy].devicename === $scope.data.attributes.notification.endpoints.modem.recipients) {
+                                $scope.data.hardware_devicename = indexy;
+                                break;
+                            }
+                        }                    
+                    }
+                    else {
+                        $scope.data.attributes.notification = result.data.value.subattributes.notification;
+                    }
+                    
+                    if ($scope.data.sensor.class === "humidity") {
+                        $scope.data.multiclass.attributes = $scope.data.attributes;
+                    }
+                    else if ($scope.data.sensor.subclass === "humidity") {
+                        $scope.data.multiclass.subattributes = $scope.data.attributes;
+                    }
+                }
+            }
+        })
+        .catch(function (error) {
+            handle_error(error, true);
+        }); 
+    };
+
+    get_1wire_device_properties = function() {
+        //
+        // GET 1WIRE DEVICE PROPERTIES
+        //
+        // - Request:
+        //   GET /devices/device/<devicename>/1wire/<number>/sensors/sensor/<sensorname>/properties
+        //   headers: { 'Authorization': 'Bearer ' + token.access }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string }
+        //   { 'status': 'NG', 'message': string }        
+        //
+        $http({
+            method: 'GET',
+            url: server + '/devices/device/' + $scope.data.devicename + '/1wire/' + $scope.data.sensor.number.toString() + '/sensors/sensor/' + $scope.data.sensor.sensorname + '/properties',
+            headers: { 'Authorization': 'Bearer ' + $scope.data.token.access },
+        })
+        .then(function (result) {
+            console.log(result.data);
+            if (result.data.value !== undefined) {
+                if (result.data.value.threshold !== undefined) {
+                    $scope.data.attributes = result.data.value;
+                    
+                    $scope.data.hardware_devicename = 0;
+                    let indexy = 0;
+                    for (indexy=0; indexy<$scope.devices.length; indexy++) {
+                        if ($scope.devices[indexy].devicename === $scope.data.attributes.notification.endpoints.modem.recipients) {
+                            $scope.data.hardware_devicename = indexy;
+                            break;
+                        }
+                    }                    
+                }
+                else {
+                    $scope.data.attributes.notification = result.data.value.notification;
+                }
+            }
+        })
+        .catch(function (error) {
+            handle_error(error, true);
+        }); 
+    };
+
+
+
+
+
+
+    
+    $scope.submit = function() {
+        console.log("submit");
+        console.log($scope.data.attributes);
+        if ($scope.data.hardware_devicename >= $scope.devices.length) {
+            return;
+        }
+        if ($scope.data.attributes.mode!=2) {
+            // SINGLE/DUAL THRESHOLD modes
+            $scope.data.attributes.notification.endpoints.modem.recipients = $scope.devices[$scope.data.hardware_devicename].devicename;
+        }
+        else {
+            // CONTINUOUS mode
+            $scope.data.attributes.hardware.devicename = $scope.devices[$scope.data.hardware_devicename].devicename;
+        }
+        
+        
+        if ($scope.data.sensor.subclass !== undefined) {
+            var classname = "humidity";
+            
+            // support for multiclasses
+            var param = {
+                'username': $scope.data.username,
+                'token': $scope.data.token,
+                'devicename': $scope.data.devicename,
+                'devicestatus': $scope.data.devicestatus,
+                'deviceid': $scope.data.deviceid,
+                'serialnumber': $scope.data.serialnumber,
+                'sensor': $scope.data.sensor,
+                'source': $scope.data.source,
+                'multiclass': $scope.data.multiclass,             
+            };
+
+            if ($scope.data.sensor.class === classname) {
+                param.multiclass.attributes = $scope.data.attributes;
+            }
+            else if ($scope.data.sensor.subclass === classname) {
+                param.multiclass.subattributes = $scope.data.attributes;
+            }
+            $state.go('multiclass', param, {reload: true});
+        }
+        else {
+            if ($scope.data.source === "I2C") {
+                set_i2c_properties();
+            }
+            else if ($scope.data.source === "TPROBE") {
+                set_tprobe_properties();
+            }
+            else if ($scope.data.source === "1WIRE") {
+                set_1wire_properties();
+            }
+        }
+    };
+
+    set_i2c_properties = function() {
+        //
+        // SET I2C PROPERTIES
+        //
+        // - Request:
+        //   POST /devices/device/<devicename>/i2c/<number>/sensors/sensor/<sensorname>/properties
+        //   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
+        //   data: 
+        //   { 
+        //   }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string }
+        //   { 'status': 'NG', 'message': string }        
+        //
+        $http({
+            method: 'POST',
+            url: server + '/devices/device/' + $scope.data.devicename + '/i2c/' + $scope.data.sensor.number.toString() + '/sensors/sensor/' + $scope.data.sensor.sensorname + '/properties',
+            headers: { 'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json' },
+            data: $scope.data.attributes
+        })
+        .then(function (result) {
+            console.log(result.data);
+            $ionicPopup.alert({
+                title: 'I2C device',
+                template: $scope.data.sensor.sensorname + ' on I2C ' + $scope.data.sensor.number.toString() + ' was configured successfully!',
+            });            
+        })
+        .catch(function (error) {
+            handle_error(error, true);
+        }); 
+    };
+    
+    set_tprobe_properties = function() {
+        //
+        // SET TPROBE PROPERTIES
+        //
+        // - Request:
+        //   POST /devices/device/<devicename>/tprobe/<number>/sensors/sensor/<sensorname>/properties
+        //   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
+        //   data: 
+        //   { 
+        //   }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string }
+        //   { 'status': 'NG', 'message': string }        
+        //
+        $http({
+            method: 'POST',
+            url: server + '/devices/device/' + $scope.data.devicename + '/tprobe/' + $scope.data.sensor.number.toString() + '/sensors/sensor/' + $scope.data.sensor.sensorname + '/properties',
+            headers: { 'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json' },
+            data: $scope.data.attributes
+        })
+        .then(function (result) {
+            console.log(result.data);
+            $ionicPopup.alert({
+                title: 'TPROBE device',
+                template: $scope.data.sensor.sensorname + ' on TPROBE ' + $scope.data.sensor.number.toString() + ' was configured successfully!',
+            });            
+        })
+        .catch(function (error) {
+            handle_error(error, true);
+        }); 
+    };
+
+    set_1wire_properties = function() {
+        //
+        // SET 1WIRE PROPERTIES
+        //
+        // - Request:
+        //   POST /devices/device/<devicename>/1wire/<number>/sensors/sensor/<sensorname>/properties
+        //   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
+        //   data: 
+        //   { 
+        //   }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string }
+        //   { 'status': 'NG', 'message': string }        
+        //
+        $http({
+            method: 'POST',
+            url: server + '/devices/device/' + $scope.data.devicename + '/1wire/' + $scope.data.sensor.number.toString() + '/sensors/sensor/' + $scope.data.sensor.sensorname + '/properties',
+            headers: { 'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json' },
+            data: $scope.data.attributes
+        })
+        .then(function (result) {
+            console.log(result.data);
+            $ionicPopup.alert({
+                title: '1WIRE device',
+                template: $scope.data.sensor.sensorname + ' on 1WIRE ' + $scope.data.sensor.number.toString() + ' was configured successfully!',
+            });            
+        })
+        .catch(function (error) {
+            handle_error(error, true);
+        }); 
+    };
+
+
+
+
+    get_devices = function() {
+        
+        param = {
+            'username': $scope.data.username,
+            'token': $scope.data.token     
+        };
+        
+        // Fetch devices
+        Devices.fetch(param, "").then(function(res) {
+            $scope.devices = res;
+            
+            let indexy = 0;
+            for (indexy=0; indexy<$scope.devices.length; indexy++) {
+                $scope.devices[indexy].id = indexy;
+            }
+            
+            console.log($scope.devices);
+            $scope.data.token = User.get_token();
+        });
+    };
+
+    // VIEW I2C DEVICE
+    $scope.viewXXXDevice = function() {
+        var device_param = {
+            'username': $scope.data.username,
+            'token': $scope.data.token,
+            'devicename': $scope.data.devicename,
+            'devicestatus': $scope.data.devicestatus,
+            'deviceid': $scope.data.deviceid,
+            'serialnumber': $scope.data.serialnumber,
+            'sensor': $scope.data.sensor,
+            'source': $scope.data.source,
+            'multiclass': $scope.data.multiclass,             
+        };
+        if ($scope.data.source === "I2C") {
+            console.log("viewI2CDevice");
+            $state.go('viewI2CDevice', device_param);
+        }
+        else if ($scope.data.source === "ADC") {
+            console.log("viewADCDevice");
+            $state.go('viewADCDevice', device_param);
+        }
+        else if ($scope.data.source === "TPROBE") {
+            console.log("viewTPROBEDevice");
+            $state.go('viewTPROBEDevice', device_param);
+        }
+        else if ($scope.data.source === "1WIRE") {
+            console.log("view1WIREDevice");
+            $state.go('view1WIREDevice', device_param);
+        }
+    };
+
+    // EXIT PAGE
+    $scope.submitDeviceList = function() {
+        console.log("submitDeviceList");
+        var device_param = {
+            'username': $scope.data.username,
+            'token': $scope.data.token,
+            'devicename': $scope.data.devicename,
+            'devicestatus': $scope.data.devicestatus,
+            'deviceid': $scope.data.deviceid,
+            'serialnumber': $scope.data.serialnumber,
+        };
+        
+        if ($scope.data.sensor.subclass !== undefined) {
+            device_param.sensor = $scope.data.sensor;
+            device_param.source = $scope.data.source;
+            device_param.multiclass = $scope.data.multiclass;
+            $state.go('multiclass', device_param);
+        }
+        else {
+            if ($scope.data.source === "I2C") {
+               $state.go('deviceI2C', device_param);
+            }
+            else if ($scope.data.source === "ADC") {
+               $state.go('deviceADC', device_param);
+            }
+            else if ($scope.data.source === "TPROBE") {
+               $state.go('deviceTPROBE', device_param);
+            }
+            else if ($scope.data.source === "1WIRE") {
+               $state.go('device1WIRE', device_param);
+            }
         }
     };
     
@@ -8465,17 +9430,26 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             'deviceid': $scope.data.deviceid,
             'serialnumber': $scope.data.serialnumber,
         };
-        if ($scope.data.source === "I2C") {
-           $state.go('deviceI2C', device_param);
+        
+        if ($scope.data.sensor.subclass !== undefined) {
+            device_param.sensor = $scope.data.sensor;
+            device_param.source = $scope.data.source;
+            device_param.multiclass = $scope.data.multiclass;
+            $state.go('multiclass', device_param);
         }
-        else if ($scope.data.source === "ADC") {
-           $state.go('deviceADC', device_param);
-        }
-        else if ($scope.data.source === "TPROBE") {
-           $state.go('deviceTPROBE', device_param);
-        }
-        else if ($scope.data.source === "1WIRE") {
-           $state.go('device1WIRE', device_param);
+        else {
+            if ($scope.data.source === "I2C") {
+               $state.go('deviceI2C', device_param);
+            }
+            else if ($scope.data.source === "ADC") {
+               $state.go('deviceADC', device_param);
+            }
+            else if ($scope.data.source === "TPROBE") {
+               $state.go('deviceTPROBE', device_param);
+            }
+            else if ($scope.data.source === "1WIRE") {
+               $state.go('device1WIRE', device_param);
+            }
         }
     };
     
@@ -8833,17 +9807,26 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             'deviceid': $scope.data.deviceid,
             'serialnumber': $scope.data.serialnumber,
         };
-        if ($scope.data.source === "I2C") {
-           $state.go('deviceI2C', device_param);
+        
+        if ($scope.data.sensor.subclass !== undefined) {
+            device_param.sensor = $scope.data.sensor;
+            device_param.source = $scope.data.source;
+            device_param.multiclass = $scope.data.multiclass;
+            $state.go('multiclass', device_param);
         }
-        else if ($scope.data.source === "ADC") {
-           $state.go('deviceADC', device_param);
-        }
-        else if ($scope.data.source === "TPROBE") {
-           $state.go('deviceTPROBE', device_param);
-        }
-        else if ($scope.data.source === "1WIRE") {
-           $state.go('device1WIRE', device_param);
+        else {
+            if ($scope.data.source === "I2C") {
+               $state.go('deviceI2C', device_param);
+            }
+            else if ($scope.data.source === "ADC") {
+               $state.go('deviceADC', device_param);
+            }
+            else if ($scope.data.source === "TPROBE") {
+               $state.go('deviceTPROBE', device_param);
+            }
+            else if ($scope.data.source === "1WIRE") {
+               $state.go('device1WIRE', device_param);
+            }
         }
     };
 
@@ -9144,17 +10127,26 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             'deviceid': $scope.data.deviceid,
             'serialnumber': $scope.data.serialnumber,
         };
-        if ($scope.data.source === "I2C") {
-           $state.go('deviceI2C', device_param);
+        
+        if ($scope.data.sensor.subclass !== undefined) {
+            device_param.sensor = $scope.data.sensor;
+            device_param.source = $scope.data.source;
+            device_param.multiclass = $scope.data.multiclass;
+            $state.go('multiclass', device_param);
         }
-        else if ($scope.data.source === "ADC") {
-           $state.go('deviceADC', device_param);
-        }
-        else if ($scope.data.source === "TPROBE") {
-           $state.go('deviceTPROBE', device_param);
-        }
-        else if ($scope.data.source === "1WIRE") {
-           $state.go('device1WIRE', device_param);
+        else {
+            if ($scope.data.source === "I2C") {
+               $state.go('deviceI2C', device_param);
+            }
+            else if ($scope.data.source === "ADC") {
+               $state.go('deviceADC', device_param);
+            }
+            else if ($scope.data.source === "TPROBE") {
+               $state.go('deviceTPROBE', device_param);
+            }
+            else if ($scope.data.source === "1WIRE") {
+               $state.go('device1WIRE', device_param);
+            }
         }
     };
     
@@ -9450,17 +10442,26 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             'deviceid': $scope.data.deviceid,
             'serialnumber': $scope.data.serialnumber,
         };
-        if ($scope.data.source === "I2C") {
-           $state.go('deviceI2C', device_param);
+        
+        if ($scope.data.sensor.subclass !== undefined) {
+            device_param.sensor = $scope.data.sensor;
+            device_param.source = $scope.data.source;
+            device_param.multiclass = $scope.data.multiclass;
+            $state.go('multiclass', device_param);
         }
-        else if ($scope.data.source === "ADC") {
-           $state.go('deviceADC', device_param);
-        }
-        else if ($scope.data.source === "TPROBE") {
-           $state.go('deviceTPROBE', device_param);
-        }
-        else if ($scope.data.source === "1WIRE") {
-           $state.go('device1WIRE', device_param);
+        else {
+            if ($scope.data.source === "I2C") {
+               $state.go('deviceI2C', device_param);
+            }
+            else if ($scope.data.source === "ADC") {
+               $state.go('deviceADC', device_param);
+            }
+            else if ($scope.data.source === "TPROBE") {
+               $state.go('deviceTPROBE', device_param);
+            }
+            else if ($scope.data.source === "1WIRE") {
+               $state.go('device1WIRE', device_param);
+            }
         }
     };
     
@@ -9885,6 +10886,20 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         $scope.data.tprobe.type         = $scope.devicemodels[$scope.data.tprobe.devicemodelid].type;
         $scope.data.tprobe.units        = $scope.devicemodels[$scope.data.tprobe.devicemodelid].units;
         $scope.data.tprobe.attributes   = $scope.devicemodels[$scope.data.tprobe.devicemodelid].attributes;
+
+        // handle multiclass
+        if ($scope.devicemodels[$scope.data.tprobe.devicemodelid].subclass !== undefined) {
+            $scope.data.tprobe.subclass = $scope.devicemodels[$scope.data.tprobe.devicemodelid].subclass;
+        }
+        else {
+            $scope.data.tprobe.subclass = "None";
+        }
+        if ($scope.devicemodels[$scope.data.tprobe.devicemodelid].subattributes !== undefined) {
+            $scope.data.tprobe.subattributes= $scope.devicemodels[$scope.data.tprobe.devicemodelid].subattributes;
+        }
+        else {
+            $scope.data.tprobe.subattributes = [];
+        }
         
         $state.go('addTPROBEDeviceDetails', $scope.data);        
     };
@@ -9982,7 +10997,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             "name": "Programmable Resolution 1-Wire Digital Thermometer", 
             "desc": "Direct-to digital temperature sensor",
             "link": "https://datasheets.maximintegrated.com/en/ds/DS18B20.pdf",
-            "class": "temperature",
+            "class": "humidity",
             "type": "input",
             "units": ["C"],
             "attributes": [],
@@ -10027,7 +11042,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         $scope.data.onewire.link         = $scope.devicemodels[$scope.data.onewire.devicemodelid].link;
         $scope.data.onewire.class        = $scope.devicemodels[$scope.data.onewire.devicemodelid].class;
         $scope.data.onewire.type         = "output";
-        if ($scope.data.onewire.class === "temperature" || 
+        if ($scope.data.onewire.class === "humidity" || 
             $scope.data.onewire.class === "anemometer" ||
             $scope.data.onewire.class === "humidity" ||
             $scope.data.onewire.class === "anemometer"
@@ -10450,6 +11465,10 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             'type': $stateParams.tprobe.type,
             'units': $stateParams.tprobe.units,
             'attributes': $stateParams.tprobe.attributes,
+            
+            'subclass': $stateParams.tprobe.subclass,
+            'subattributes': $stateParams.tprobe.subattributes,
+            
             //'name': $stateParams.tprobe.name,
             //'desc': $stateParams.tprobe.desc,
             //'link': $stateParams.tprobe.link,
@@ -10504,10 +11523,14 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         console.log($scope.data.sensor.type);
         console.log($scope.data.sensor.units);
         console.log($scope.data.sensor.attributes);
-        //console.log($scope.data.sensor.name);
-        //console.log($scope.data.sensor.desc);
-        //console.log($scope.data.sensor.link);
-
+        
+        // handle multiclass
+        if ($scope.data.sensor.subclass !== undefined) {
+            console.log($scope.data.sensor.subclass);
+        }
+        if ($scope.data.sensor.subattributes !== undefined) {
+            console.log($scope.data.sensor.subattributes);
+        }
 
         sensor_param = $scope.data.sensor;
         add_tprobe_sensor(sensor_param);
