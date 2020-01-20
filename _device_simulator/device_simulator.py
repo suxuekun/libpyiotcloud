@@ -202,6 +202,9 @@ def setClassAttributes(device_class, class_attributes):
         class_attributes.pop("class")
     if class_attributes.get("address"):
         class_attributes.pop("address")
+    # handle subclasses
+    if class_attributes.get("subclass"):
+        class_attributes.pop("subclass")
     attributes = class_attributes
     return attributes
 
@@ -709,7 +712,7 @@ def handle_api(api, subtopic, subpayload):
         try:
             value = g_tprobe_properties[number]["attributes"]
             print()
-            print(value)
+            print("GET: {}".format(value))
             print()
         except:
             pass
@@ -722,15 +725,25 @@ def handle_api(api, subtopic, subpayload):
     elif api == API_SET_TPROBE_DEVICE_PROPERTIES:
         topic = generate_pubtopic(subtopic)
         subpayload = json.loads(subpayload)
-        print(subpayload)
+        print("SET: {}".format(subpayload))
 
         number = int(subpayload["number"])-1
         device_class = subpayload["class"]
+        # handle subclass
+        device_subclass = None
+        if subpayload.get("subclass"):
+            device_subclass = subpayload["subclass"]
+
         g_tprobe_properties[number] = {
             'class': device_class,
             'attributes' : setClassAttributes(device_class, subpayload),
             'enabled': 0
         }
+
+        # handle subclass
+        if device_subclass is not None:
+            g_tprobe_properties[number]['subclass'] = device_subclass
+
         print()
         print(g_tprobe_properties[number])
         print()
@@ -959,7 +972,7 @@ class TimerThread(threading.Thread):
 #                "adc1":   [{"class": 0, "value": 1}],
 #                "adc2":   [{"class": 1, "value": 2}],
 #                "1wire":  [{"class": 2, "value": 3}],
-#                "tprobe": [{"class": 3, "value": 4}, {"class": 4, "value": 5}],
+#                "tprobe": [{"class": 3, "value": 4, subclass: {"class": 4, "value": 5}}],
             }
 
             num_entries = 0
@@ -978,10 +991,12 @@ class TimerThread(threading.Thread):
                         if i2c_class == "potentiometer":
                             entry["address"] = int(y)
                             entry["value"] = random.randint(0, 100)
+                            entry["class"] = g_i2c_properties[x][y]["class"]
                             entries.append(entry)
                         elif i2c_class == "temperature":
                             entry["address"] = int(y)
                             entry["value"] = random.randint(0, 40)
+                            entry["class"] = g_i2c_properties[x][y]["class"]
                             entries.append(entry)
                 if len(entries):
                     sensors[i2c] = entries 
@@ -997,6 +1012,7 @@ class TimerThread(threading.Thread):
                     if (adc_class == "anemometer"):
                         entry = {}
                         entry["value"] = random.randint(0, 100)
+                        entry["class"] = g_adc_properties[x]["class"]
                         if not sensors.get(adc):
                             sensors[adc] = []
                         sensors[adc].append(entry)
@@ -1012,6 +1028,7 @@ class TimerThread(threading.Thread):
                     if (onewire_class == "temperature"):
                         entry = {}
                         entry["value"] = random.randint(0, 40)
+                        entry["class"] = g_1wire_properties[x]["class"]
                         if not sensors.get(onewire):
                             sensors[onewire] = []
                         sensors[onewire].append(entry)
@@ -1024,9 +1041,21 @@ class TimerThread(threading.Thread):
                 # tprobe device should be enabled
                 if (g_tprobe_properties[x]["enabled"]):
                     tprobe_class = g_device_classes[g_tprobe_properties[x]["class"]]
-                    if (tprobe_class == "temperature"):
+
+                    # handle subclass
+                    tprobe_subclass = g_device_classes[g_tprobe_properties[x]["subclass"]]
+
+                    if (tprobe_class == "temperature" and tprobe_subclass == "humidity"):
                         entry = {}
                         entry["value"] = random.randint(0, 40)
+                        entry["class"] = g_tprobe_properties[x]["class"]
+
+                        # handle subclass
+                        entry["subclass"] = {}
+                        entry["subclass"]["value"] = random.randint(0, 100)
+                        entry["subclass"]["class"] = g_tprobe_properties[x]["subclass"]
+
+                        g_tprobe_properties[x]["class"]
                         if not sensors.get(tprobe):
                             sensors[tprobe] = []
                         sensors[tprobe].append(entry)
