@@ -965,14 +965,14 @@ class TimerThread(threading.Thread):
             #    it will update the lowest and highest as needed based on the provided "value" 
             # 5. the frontend will use the "unit" from the JSON file.
             sensors = { 
-#                "i2c1":   [{"class": 0, "value": 1, "address": 1}, ...],
-#                "i2c2":   [{"class": 1, "value": 2, "address": 2}, ...],
-#                "i2c3":   [{"class": 2, "value": 3, "address": 3}, ...],
-#                "i2c4":   [{"class": 3, "value": 4, "address": 4}, ...],
-#                "adc1":   [{"class": 0, "value": 1}],
-#                "adc2":   [{"class": 1, "value": 2}],
-#                "1wire":  [{"class": 2, "value": 3}],
-#                "tprobe": [{"class": 3, "value": 4, subclass: {"class": 4, "value": 5}}],
+#                "i2c1":    [{"class": 0, "value": 1, "address": 1}, ...],
+#                "i2c2":    [{"class": 1, "value": 2, "address": 2}, ...],
+#                "i2c3":    [{"class": 2, "value": 3, "address": 3}, ...],
+#                "i2c4":    [{"class": 3, "value": 4, "address": 4}, ...],
+#                "adc1":    [{"class": 0, "value": 1}],
+#                "adc2":    [{"class": 1, "value": 2}],
+#                "1wire1":  [{"class": 2, "value": 3}],
+#                "tprobe1": [{"class": 3, "value": 4, subclass: {"class": 4, "value": 5}}],
             }
 
             num_entries = 0
