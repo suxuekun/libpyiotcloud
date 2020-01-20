@@ -243,11 +243,18 @@ class database_client:
         deviceid = self._devices.get_deviceid(username, devicename)
         return self._devices.update_device_notification(username, devicename, deviceid, source, notification)
 
+    def update_device_notification_with_notification_subclass(self, username, devicename, source, notification, notification_subclass):
+        deviceid = self._devices.get_deviceid(username, devicename)
+        return self._devices.update_device_notification_with_notification_subclass(username, devicename, deviceid, source, notification, notification_subclass)
+
     def delete_device_notification(self, username, devicename):
         return self._devices.delete_device_notification(username, devicename)
 
     def get_device_notification(self, username, devicename, source):
         return self._devices.get_device_notification(username, devicename, source)
+
+    def get_device_notification_with_notification_subclass(self, username, devicename, source):
+        return self._devices.get_device_notification_with_notification_subclass(username, devicename, source)
 
     def get_device_notification_by_deviceid(self, deviceid, source):
         return self._devices.get_device_notification_by_deviceid(deviceid, source)
@@ -886,6 +893,26 @@ class database_client_mongodb:
             notifications.replace_one({'username': username, 'devicename': devicename, 'source': source}, item)
         return item
 
+    def update_device_notification_with_notification_subclass(self, username, devicename, deviceid, source, notification, notification_subclass):
+        notifications = self.get_notifications_document();
+        item = {}
+        item['username'] = username
+        item['devicename'] = devicename
+        item['deviceid'] = deviceid
+        item['source'] = source
+        item['notification'] = notification
+        item['notification_subclass'] = notification_subclass
+        #print("update_device_notification_with_notification_subclass find_one")
+        found = notifications.find_one({'username': username, 'devicename': devicename, 'source': source})
+        if found is None:
+            print("update_device_notification_with_notification_subclass insert_one")
+            #print(found)
+            notifications.insert_one(item)
+        else:
+            print("update_device_notification_with_notification_subclass replace_one")
+            notifications.replace_one({'username': username, 'devicename': devicename, 'source': source}, item)
+        return item
+
     def delete_device_notification(self, username, devicename):
         notifications = self.get_notifications_document();
         try:
@@ -902,6 +929,18 @@ class database_client_mongodb:
                 #print(notification['notification'])
                 return notification['notification']
         return None
+
+    def get_device_notification_with_notification_subclass(self, username, devicename, source):
+        notifications = self.get_notifications_document();
+        if notifications:
+            for notification in notifications.find({'username': username, 'devicename': devicename, 'source': source}):
+                notification.pop('_id')
+                #print(notification['notification'])
+                if notification.get('notification_subclass'):
+                    return notification['notification'], notification['notification_subclass']
+                else:
+                    return notification['notification'], None
+        return None, None
 
     def get_device_notification_by_deviceid(self, deviceid, source):
         notifications = self.get_notifications_document();

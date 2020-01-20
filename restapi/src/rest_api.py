@@ -3898,7 +3898,7 @@ def set_xxx_dev_prop(devicename, xxx, number, sensorname):
         response = json.dumps({'status': 'NG', 'message': 'Token expired'})
         print('\r\nERROR Set {} Sensor: Token expired\r\n'.format(xxx))
         return response, status.HTTP_401_UNAUTHORIZED
-    print('set_i2c_dev_prop {} devicename={} number={} sensorname={}'.format(username, devicename, number, sensorname))
+    print('set_{}_dev_prop {} devicename={} number={} sensorname={}'.format(xxx, username, devicename, number, sensorname))
 
     # check if a parameter is empty
     if len(username) == 0 or len(token) == 0 or len(devicename) == 0 or len(sensorname) == 0:
@@ -3939,6 +3939,9 @@ def set_xxx_dev_prop(devicename, xxx, number, sensorname):
     if sensor.get('address'):
         data['address'] = sensor['address']
     data['class'] = int(get_i2c_device_class(sensor['class']))
+    if sensor.get('subclass'):
+        # handle subclasses
+        data['subclass'] = int(get_i2c_device_class(sensor['subclass']))
     data['number'] = int(number)
     print('set_{}_dev_prop {} devicename={} number={}'.format(xxx, username, devicename, number))
 
@@ -3962,9 +3965,15 @@ def set_xxx_dev_prop(devicename, xxx, number, sensorname):
         return response
 
 
-    # has notification parameter
+    # has notification parameter (for class and subclass)
     notification = data['notification']
     data.pop('notification')
+    # handle subclasses
+    if data.get("subattributes"):
+        subattributes_notification = data['subattributes']['notification']
+        data['subattributes'].pop('notification')
+    else:
+        subattributes_notification = None
 
     # query device
     response, status_return = process_request(api, data)
@@ -3981,7 +3990,8 @@ def set_xxx_dev_prop(devicename, xxx, number, sensorname):
     g_database_client.set_enable_configure_sensor(username, devicename, xxx, number, sensorname, 0, 1)
 
     source = "{}{}{}".format(xxx, number, sensorname)
-    notification = g_database_client.update_device_notification(username, devicename, source, notification)
+    #g_database_client.update_device_notification(username, devicename, source, notification)
+    g_database_client.update_device_notification_with_notification_subclass(username, devicename, source, notification, subattributes_notification)
 
     return response
 
@@ -4038,7 +4048,7 @@ def get_xxx_dev_prop(devicename, xxx, number, sensorname):
         response = json.dumps({'status': 'NG', 'message': 'Token expired'})
         print('\r\nERROR Get {} Sensor: Token expired\r\n'.format(xxx))
         return response, status.HTTP_401_UNAUTHORIZED
-    print('get_i2c_dev_prop {} devicename={} number={} sensorname={}'.format(username, devicename, number, sensorname))
+    print('get_{}_dev_prop {} devicename={} number={} sensorname={}'.format(xxx, username, devicename, number, sensorname))
 
     # check if a parameter is empty
     if len(username) == 0 or len(token) == 0 or len(devicename) == 0 or len(sensorname) == 0:
@@ -4085,7 +4095,8 @@ def get_xxx_dev_prop(devicename, xxx, number, sensorname):
         return response, status_return
 
     source = "{}{}{}".format(xxx, number, sensorname)
-    notification = g_database_client.get_device_notification(username, devicename, source)
+    #notification = g_database_client.get_device_notification(username, devicename, source)
+    (notification, subattributes_notification) = g_database_client.get_device_notification_with_notification_subclass(username, devicename, source)
     if notification is not None:
         response = json.loads(response)
         if response.get('value'):
@@ -4101,6 +4112,26 @@ def get_xxx_dev_prop(devicename, xxx, number, sensorname):
         else:
             response['value'] = {}
             response['value']['notification'] = build_default_notifications(xxx, token)
+        response = json.dumps(response)
+
+    # handle subclasses
+    if subattributes_notification is not None:
+        response = json.loads(response)
+        if response.get('value'):
+            if response['value'].get('subattributes'):
+                response['value']['subattributes']['notification'] = subattributes_notification
+        else:
+            response['value'] = {}
+            response['value']['subattributes']['notification'] = subattributes_notification
+        response = json.dumps(response)
+    else:
+        response = json.loads(response)
+        if response.get('value'):
+            if response['value'].get('subattributes'):
+                response['value']['subattributes']['notification'] = build_default_notifications(xxx, token)
+        else:
+            response['value'] = {}
+            response['value']['subattributes']['notification'] = build_default_notifications(xxx, token)
         response = json.dumps(response)
 
     return response
