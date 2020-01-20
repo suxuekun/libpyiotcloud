@@ -1126,6 +1126,7 @@ DETAILED:
 		   POST /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
 		   data: {'address': int, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'units': [], 'attributes': []}
+		   // Note: multiclass sensor data requires adding of {'subclass': string, 'subattributes': []}
 		   // call GET SUPPORTED SENSOR DEVICES to get the JSON data contained here: https://ft900-iot-portal.s3.amazonaws.com/supported_sensor_devices.json
 		   // registering a sensor using an already used sensorname returns HTTP_409_CONFLICT with 'Sensor name is already taken'
 		   // address should be greater than 0 and less than or equal to 255
@@ -1556,6 +1557,7 @@ DETAILED:
 		   POST /devices/device/DEVICENAME/adc/NUMBER/sensors/sensor/SENSORNAME
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
 		   data: {'manufacturer': string, 'model': string, 'class': string, 'type': string, 'units': [], 'attributes': []}
+		   // Note: multiclass sensor data requires adding of {'subclass': string, 'subattributes': []}
 		   // call GET SUPPORTED SENSOR DEVICES to get the JSON data contained here: https://ft900-iot-portal.s3.amazonaws.com/supported_sensor_devices.json
 		   // registering a sensor using an already used sensorname returns HTTP_409_CONFLICT with 'Sensor name is already taken'
 		   // Note: The device class defines if device type is INPUT or OUTPUT
@@ -1724,6 +1726,7 @@ DETAILED:
 		   POST /devices/device/DEVICENAME/1wire/NUMBER/sensors/sensor/SENSORNAME
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
 		   data: {'manufacturer': string, 'model': string, 'class': string, 'type': string, 'units': [], 'attributes': []}
+		   // Note: multiclass sensor data requires adding of {'subclass': string, 'subattributes': []}
 		   // call GET SUPPORTED SENSOR DEVICES to get the JSON data contained here: https://ft900-iot-portal.s3.amazonaws.com/supported_sensor_devices.json
 		   // registering a sensor using an already used sensorname returns HTTP_409_CONFLICT with 'Sensor name is already taken'
 		   // Note: The device class defines if device type is INPUT or OUTPUT
@@ -1871,6 +1874,7 @@ DETAILED:
 		   POST /devices/device/DEVICENAME/tprobe/NUMBER/sensors/sensor/SENSORNAME
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
 		   data: {'manufacturer': string, 'model': string, 'class': string, 'type': string, 'units': [], 'attributes': []}
+		   // Note: multiclass sensor data requires adding of {'subclass': string, 'subattributes': []}
 		   // call GET SUPPORTED SENSOR DEVICES to get the JSON data contained here: https://ft900-iot-portal.s3.amazonaws.com/supported_sensor_devices.json
 		   // registering a sensor using an already used sensorname returns HTTP_409_CONFLICT with 'Sensor name is already taken'
 		   // Note: The device class defines if device type is INPUT or OUTPUT
