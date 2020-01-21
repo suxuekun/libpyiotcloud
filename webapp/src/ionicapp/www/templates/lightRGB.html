@@ -48,7 +48,7 @@
     </form>
     <form id="lightRGB-form115" class="list" ng-show="data.colortype==&quot;RGB&quot; &amp;&amp; data.attributes.color.single.endpoint==0">
       <div id="lightRGB-markdown171" class="show-list-numbers-and-dots">
-        <p style="color:#387EF5;">Color {{ data.attributes.color.single.manual }}</p>
+        <p style="color:#387EF5;">Color 0x{{ data.attributes.color.single.manual.toString(16).toUpperCase() }} ({{ data.attributes.color.single.manual }})</p>
       </div>
       <ion-item class="range range-assertive assertive" id="lightRGB-range13">Red
         <input type="range" value="0" min="0" max="255" step="1" ng-model="datatemp.colorRED" ng-change="computeHexCode()">
@@ -62,7 +62,7 @@
     </form>
     <form id="lightRGB-form101" class="list" ng-show="data.colortype==&quot;RED&quot; &amp;&amp; data.attributes.color.individual.red.endpoint==0">
       <div id="lightRGB-markdown132" class="show-list-numbers-and-dots">
-        <p style="color:#387EF5;">Color {{ data.attributes.color.individual.red.manual }}</p>
+        <p style="color:#387EF5;">Color 0x{{ data.attributes.color.individual.red.manual.toString(16).toUpperCase() }} ({{ data.attributes.color.individual.red.manual }})</p>
       </div>
       <ion-item class="range range-assertive assertive" id="lightRGB-range16">Red
         <input type="range" value="0" min="0" max="255" step="1" ng-model="data.attributes.color.individual.red.manual" ng-change="computeHexCode()">
@@ -70,7 +70,7 @@
     </form>
     <form id="lightRGB-form102" class="list" ng-show="data.colortype==&quot;GREEN&quot; &amp;&amp; data.attributes.color.individual.green.endpoint==0">
       <div id="lightRGB-markdown134" class="show-list-numbers-and-dots">
-        <p style="color:#387EF5;">Color {{ data.attributes.color.individual.green.manual }}</p>
+        <p style="color:#387EF5;">Color 0x{{ data.attributes.color.individual.green.manual.toString(16).toUpperCase() }} ({{ data.attributes.color.individual.green.manual }})</p>
       </div>
       <ion-item class="range range-balanced balanced" id="lightRGB-range20">Green
         <input type="range" value="0" min="0" max="255" step="1" ng-model="data.attributes.color.individual.green.manual" ng-change="computeHexCode()">
@@ -78,7 +78,7 @@
     </form>
     <form id="lightRGB-form120" class="list" ng-show="data.colortype==&quot;BLUE&quot; &amp;&amp; data.attributes.color.individual.blue.endpoint==0">
       <div id="lightRGB-markdown175" class="show-list-numbers-and-dots">
-        <p style="color:#387EF5;">Color {{ data.attributes.color.individual.blue.manual }}</p>
+        <p style="color:#387EF5;">Color 0x{{ data.attributes.color.individual.blue.manual.toString(16).toUpperCase() }} ({{ data.attributes.color.individual.blue.manual }})</p>
       </div>
       <ion-item class="range range-positive positive" id="lightRGB-range24">Blue
         <input type="range" value="0" min="0" max="255" step="1" ng-model="data.attributes.color.individual.blue.manual" ng-change="computeHexCode()">

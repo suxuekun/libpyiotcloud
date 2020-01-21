@@ -16,9 +16,18 @@
     <div class="spacer" style="width: 300px; height: 20px;"></div>
     <form id="potentiometer-form68" class="list">
       <div id="potentiometer-markdown117" class="show-list-numbers-and-dots">
-        <p style="color:#387EF5;">Mode</p>
+        <p style="color:#387EF5;">Range</p>
       </div>
       <label class="item item-select" id="potentiometer-select28">
+        <span class="input-label"></span>
+        <select ng-model="data.attributes.range" ng-options="range.id as range.label for range in ranges"></select>
+      </label>
+    </form>
+    <form id="potentiometer-form181" class="list">
+      <div id="potentiometer-markdown308" class="show-list-numbers-and-dots">
+        <p style="color:#387EF5;">Mode</p>
+      </div>
+      <label class="item item-select" id="potentiometer-select39">
         <span class="input-label"></span>
         <select ng-model="data.attributes.mode" ng-options="mode.id as mode.label for mode in modes" ng-change="changeMode()"></select>
       </label>
