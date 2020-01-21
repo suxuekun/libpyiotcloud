@@ -55,6 +55,8 @@ The web app is made of Ionic framework so it can be compiled as Android and iOS 
 - <b>Kubernetes</b> container orchestration - https://kubernetes.io
 - <b>Minikube</b> local Kubernetes cluster - https://github.com/kubernetes/minikube
 - <b>Amazon EKS</b> Kubernetes service - https://aws.amazon.com/eks
+- <b>Google Firebase Cloud Messaging (FCM)</b> for Android push notifications - https://console.firebase.google.com
+
 
 An alternative solution is using an AWS serverless solution wherein:
 
