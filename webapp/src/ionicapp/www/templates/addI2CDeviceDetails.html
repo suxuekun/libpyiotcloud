@@ -58,6 +58,12 @@
       <div id="addI2CDeviceDetails-markdown144" class="show-list-numbers-and-dots">
         <p style="color:#444444;font-size:18px;">{{ data.i2c.type }}</p>
       </div>
+      <div id="addI2CDeviceDetails-markdown249" class="show-list-numbers-and-dots">
+        <p style="color:#387EF5;">Device Address Range</p>
+      </div>
+      <div id="addI2CDeviceDetails-markdown250" class="show-list-numbers-and-dots">
+        <p style="color:#444444;font-size:18px;">0x{{ data.i2c.addresses.default.toString(16).toUpperCase() }} - 0x{{ data.i2c.addresses.max.toString(16).toUpperCase() }} ({{ data.i2c.addresses.default }} - {{ data.i2c.addresses.max }})</p>
+      </div>
     </form>
     <div id="addI2CDeviceDetails-markdown70" class="show-list-numbers-and-dots">
       <hr>

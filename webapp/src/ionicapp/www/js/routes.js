@@ -414,7 +414,8 @@ angular.module('app.routes', [])
 		serialnumber: "",
 		sensor: "",
 		attributes: "",
-		source: ""		
+		source: "",
+		from: ""		
 },
     templateUrl: 'templates/light.html',
     controller: 'lightCtrl'
@@ -431,6 +432,7 @@ angular.module('app.routes', [])
 		serialnumber: "",
 		sensor: "",
 		attributes: "",
+		source: "",
 		colortype: ""		
 },
     templateUrl: 'templates/lightRGB.html',
