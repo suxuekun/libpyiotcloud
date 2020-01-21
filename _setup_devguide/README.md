@@ -1206,23 +1206,23 @@ DETAILED:
 		               "single": {
 		                    "endpoint": int,
 		                    "manual": int,
-		                    "hardware": {"devicename": string, "peripheral": string, "sensorname": string, "attribute": string}, 
+		                    "hardware": {"devicename": string, "peripheral": string, "sensorname": string, "attribute": string, "number": int, "address": int}, 
 		               },
 		               "individual": {
 		                   "red": {
 		                       "endpoint": int,
 		                       "manual": int,
-		                       "hardware": {"devicename": string, "peripheral": string, "sensorname": string, "attribute": string}, 
+		                       "hardware": {"devicename": string, "peripheral": string, "sensorname": string, "attribute": string, "number": int, "address": int}, 
 		                   },
 		                   "green": {
 		                       "endpoint": int,
 		                       "manual": int,
-		                       "hardware": {"devicename": string, "peripheral": string, "sensorname": string, "attribute": string}, 
+		                       "hardware": {"devicename": string, "peripheral": string, "sensorname": string, "attribute": string, "number": int, "address": int}, 
 		                   },
 		                   "blue": {
 		                       "endpoint": int,
 		                       "manual": int,
-		                       "hardware": {"devicename": string, "peripheral": string, "sensorname": string, "attribute": string}, 
+		                       "hardware": {"devicename": string, "peripheral": string, "sensorname": string, "attribute": string, "number": int, "address": int}, 
 		                   }
 		               }
 		           }, 
@@ -1242,12 +1242,14 @@ DETAILED:
 		   //       peripheral is the name of the peripheral device (I2C, ADC, 1WIRE, TPROBE)
 		   //       sensorname is the name of the input device
 		   //       attribute is the attribute of the device to use
+		   //       number is the peripheral number of the input device where sensor is connected to
+		   //       address is the address of the input device where sensor is connected to. only applicable for I2C.
 		   //   fadeouttime indicates the number of seconds for fadeout
 		   //
 		   // DISPLAY class
 		   data: { 
 		           "endpoint": int, 
-		           "hardware": {"devicename": string, "peripheral": string, "sensorname": string, "attribute": string}, 
+		           "hardware": {"devicename": string, "peripheral": string, "sensorname": string, "attribute": string, "number": int, "address": int}, 
 		           "format": int, 
 		           "text": string,
 		           "brightness": int
@@ -1267,11 +1269,13 @@ DETAILED:
 		   //       peripheral is the name of the peripheral device (I2C, ADC, 1WIRE, TPROBE)
 		   //       sensorname is the name of the input device
 		   //       attribute is the attribute of the device to use
+		   //       number is the peripheral number of the input device where sensor is connected to
+		   //       address is the address of the input device where sensor is connected to. only applicable for I2C.
 		   //
 		   // SPEAKER class
 		   data: { 
 		            "endpoint": int, 
-		            "hardware": {"devicename": string, "peripheral": string, "sensorname": string, "attribute": string}, 
+		            "hardware": {"devicename": string, "peripheral": string, "sensorname": string, "attribute": string, "number": int, "address": int}, 
 		            "type": int,
 		            "values": { "duration": int, "pitch": int, "delay": int }
 		         }
@@ -1297,6 +1301,8 @@ DETAILED:
 		   //       peripheral is the name of the peripheral device (I2C, ADC, 1WIRE, TPROBE)
 		   //       sensorname is the name of the input device
 		   //       attribute is the attribute of the device to use
+		   //       number is the peripheral number of the input device where sensor is connected to
+		   //       address is the address of the input device where sensor is connected to. only applicable for I2C.
 		   //     type is the type of sound to play
 		   //     midi is the sound/music configuration of the MIDI sound
 		   //       duration is the note duration in milliseconds [default: 100]
@@ -1332,12 +1338,15 @@ DETAILED:
 		   //
 		   // POTENTIOMETER class
 		   data: {
+		           "range": int, 
 		           "mode": int, 
 		           "threshold": {"value": int, "min": int, "max": int, "activate": int}, 
 		           "alert": {"type": int, 'period': int}, 
 		           "hardware": {"devicename": string}, 
 		           "notification": json_obj 
 		      }
+		   //   range is an index to the list of ranges
+		   //     ["0-255", "0-99", "0-15", "0-9"]
 		   //   mode is an index to the list of modes
 		   //     ["Single Threshold", "Dual Threshold", "Continuous"]
 		   //   threshold
@@ -1497,12 +1506,15 @@ DETAILED:
 		   //
 		   // POTENTIOMETER class
 		      {
+		           "range": int,
 		           "mode": int, 
 		           "threshold": {"value": int, "min": int, "max": int, "activate": int}, 
 		           "alert": {"type": int, 'period': int}, 
 		           "hardware": {"devicename": string}, 
 		           "notification": json_obj 
 		      }
+		   //   range is an index to the list of ranges
+		   //     ["0-255", "0-99", "0-15", "0-9"]
 		   //   mode is an index to the list of modes
 		   //     ["Single Threshold", "Dual Threshold", "Continuous"]
 		   //   threshold
