@@ -834,6 +834,7 @@ def handle_api(api, subtopic, subpayload):
 
         payload = {}
         payload["value"] = value
+        print(payload["value"])
         publish(topic, payload)	
 
 
