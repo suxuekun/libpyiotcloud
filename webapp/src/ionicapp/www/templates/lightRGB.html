@@ -98,11 +98,11 @@
       </label>
       <label class="item item-select" id="lightRGB-select71">
         <span class="input-label">Sensor</span>
-        <select ng-options="i2cdevice.id as i2cdevice.sensorname for i2cdevice in i2cdevices" ng-model="datatemp.hardware_sensorname"></select>
+        <select ng-options="i2cdevice.id as i2cdevice.sensorname for i2cdevice in i2cdevices" ng-model="datatemp.hardware_sensorname" ng-change="changeSensor()"></select>
       </label>
       <label class="item item-select" id="lightRGB-select72">
         <span class="input-label">Attribute</span>
-        <select ng-options="i2cdevice.id as i2cdevice.sensorname for i2cdevice in i2cdevices" ng-model="datatemp.hardware_sensorname"></select>
+        <select ng-options="attribute.id as attribute.attribute for attribute in attributes" ng-model="datatemp.hardware_attribute"></select>
       </label>
     </form>
     <form id="lightRGB-form124" class="list" ng-show="data.colortype==&quot;RED&quot; &amp;&amp; data.attributes.color.individual.red.endpoint==1">
@@ -119,11 +119,11 @@
       </label>
       <label class="item item-select" id="lightRGB-select73">
         <span class="input-label">Sensor</span>
-        <select ng-options="i2cdevice.id as i2cdevice.sensorname for i2cdevice in i2cdevices" ng-model="datatemp.hardware_sensorname"></select>
+        <select ng-options="i2cdevice.id as i2cdevice.sensorname for i2cdevice in i2cdevices" ng-model="datatemp.hardware_sensorname" ng-change="changeSensor()"></select>
       </label>
       <label class="item item-select" id="lightRGB-select74">
         <span class="input-label">Attribute</span>
-        <select ng-options="i2cdevice.id as i2cdevice.sensorname for i2cdevice in i2cdevices" ng-model="datatemp.hardware_sensorname"></select>
+        <select ng-options="attribute.id as attribute.attribute for attribute in attributes" ng-model="datatemp.hardware_attribute"></select>
       </label>
     </form>
     <form id="lightRGB-form125" class="list" ng-show="data.colortype==&quot;GREEN&quot; &amp;&amp; data.attributes.color.individual.green.endpoint==1">
@@ -140,11 +140,11 @@
       </label>
       <label class="item item-select" id="lightRGB-select77">
         <span class="input-label">Sensor</span>
-        <select ng-options="i2cdevice.id as i2cdevice.sensorname for i2cdevice in i2cdevices" ng-model="datatemp.hardware_sensorname"></select>
+        <select ng-options="i2cdevice.id as i2cdevice.sensorname for i2cdevice in i2cdevices" ng-model="datatemp.hardware_sensorname" ng-change="changeSensor()"></select>
       </label>
       <label class="item item-select" id="lightRGB-select78">
         <span class="input-label">Attribute</span>
-        <select ng-options="i2cdevice.id as i2cdevice.sensorname for i2cdevice in i2cdevices" ng-model="datatemp.hardware_sensorname"></select>
+        <select ng-options="attribute.id as attribute.attribute for attribute in attributes" ng-model="datatemp.hardware_attribute"></select>
       </label>
     </form>
     <form id="lightRGB-form126" class="list" ng-show="data.colortype==&quot;BLUE&quot; &amp;&amp; data.attributes.color.individual.blue.endpoint==1">
@@ -161,11 +161,11 @@
       </label>
       <label class="item item-select" id="lightRGB-select75">
         <span class="input-label">Sensor</span>
-        <select ng-options="i2cdevice.id as i2cdevice.sensorname for i2cdevice in i2cdevices" ng-model="datatemp.hardware_sensorname"></select>
+        <select ng-options="i2cdevice.id as i2cdevice.sensorname for i2cdevice in i2cdevices" ng-model="datatemp.hardware_sensorname" ng-change="changeSensor()"></select>
       </label>
       <label class="item item-select" id="lightRGB-select76">
         <span class="input-label">Attribute</span>
-        <select ng-options="i2cdevice.id as i2cdevice.sensorname for i2cdevice in i2cdevices" ng-model="datatemp.hardware_sensorname"></select>
+        <select ng-options="attribute.id as attribute.attribute for attribute in attributes" ng-model="datatemp.hardware_attribute"></select>
       </label>
     </form>
     <form id="lightRGB-form118" class="list">

@@ -34,7 +34,8 @@
           </p>
         </div>
         <div id="light-markdown344" class="show-list-numbers-and-dots">
-          <p style="margin-top:0px;color:#444444;font-size:10px;">{{ data.attributes.color.single.endpoint == 0 ? "#" + ("00000" + data.attributes.color.single.manual.toString(16).toUpperCase()).slice(-6) : "" }}</p>
+          <p style="margin-top:0px;color:#444444;font-size:10px;">{{ data.attributes.color.single.endpoint == 0 ? "#" + ("00000" + data.attributes.color.single.manual.toString(16).toUpperCase()).slice(-6) : data.attributes.color.single.hardware.devicename + " &gt; " + data.attributes.color.single.hardware.peripheral
+            + " &gt; " + data.attributes.color.single.hardware.sensorname + " &gt; " + data.attributes.color.single.hardware.attribute }}</p>
         </div>
       </div>
     </form>
