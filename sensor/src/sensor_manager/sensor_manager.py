@@ -103,9 +103,9 @@ def add_sensor_reading(database_client, deviceid, topic, payload):
                 sensor_readings["highest"] = value
                 if subclass_value is not None:
                     sensor_readings["subclass"] = {}
-                    sensor_readings["subclass"]["value"] = value
-                    sensor_readings["subclass"]["lowest"] = value
-                    sensor_readings["subclass"]["highest"] = value
+                    sensor_readings["subclass"]["value"] = subclass_value
+                    sensor_readings["subclass"]["lowest"] = subclass_value
+                    sensor_readings["subclass"]["highest"] = subclass_value
 
             else:
                 #
