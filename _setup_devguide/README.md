@@ -1550,7 +1550,7 @@ DETAILED:
 		   GET /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME/readings
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
-		   { 'status': 'OK', 'message': string, 'sensor_readings': {'value': int, 'lowest': int, 'highest': int} }
+		   { 'status': 'OK', 'message': string, 'sensor_readings': {'value': float, 'lowest': float, 'highest': float, 'subclass': {'value': float, 'lowest': float, 'highest': float} } }
 		   { 'status': 'NG', 'message': string }
 
 		L. DELETE I2C DEVICE READINGS
@@ -1697,7 +1697,7 @@ DETAILED:
 		   GET /devices/device/DEVICENAME/adc/NUMBER/sensors/sensor/SENSORNAME/readings
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
-		   { 'status': 'OK', 'message': string, 'sensor_readings': {'value': int, 'lowest': int, 'highest': int} }
+		   { 'status': 'OK', 'message': string, 'sensor_readings': {'value': float, 'lowest': float, 'highest': float, 'subclass': {'value': float, 'lowest': float, 'highest': float} } }
 		   { 'status': 'NG', 'message': string }
 
 		J. DELETE ADC DEVICE READINGS
@@ -1868,7 +1868,7 @@ DETAILED:
 		   GET /devices/device/DEVICENAME/1wire/NUMBER/sensors/sensor/SENSORNAME/readings
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
-		   { 'status': 'OK', 'message': string, 'sensor_readings': {'value': int, 'lowest': int, 'highest': int} }
+		   { 'status': 'OK', 'message': string, 'sensor_readings': {'value': float, 'lowest': float, 'highest': float, 'subclass': {'value': float, 'lowest': float, 'highest': float} } }
 		   { 'status': 'NG', 'message': string }
 
 		J. DELETE 1WIRE DEVICE READINGS
@@ -2036,7 +2036,7 @@ DETAILED:
 		   GET /devices/device/DEVICENAME/tprobe/NUMBER/sensors/sensor/SENSORNAME/readings
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
-		   { 'status': 'OK', 'message': string, 'sensor_readings': {'value': int, 'lowest': int, 'highest': int} }
+		   { 'status': 'OK', 'message': string, 'sensor_readings': {'value': float, 'lowest': float, 'highest': float, 'subclass': {'value': float, 'lowest': float, 'highest': float} } }
 		   { 'status': 'NG', 'message': string }
 
 		J. DELETE TPROBE DEVICE READINGS
