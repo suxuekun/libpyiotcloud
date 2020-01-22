@@ -23,14 +23,6 @@
         <select ng-model="data.attributes.endpoint" ng-options="endpoint.id as endpoint.label for endpoint in endpoints" ng-change="changeEndpoint()"></select>
       </label>
     </form>
-    <form id="display-form156" class="list">
-      <div id="display-markdown293" class="show-list-numbers-and-dots">
-        <p style="color:#387EF5;">Brightness</p>
-      </div>
-      <label class="item item-input" id="display-input122">
-        <input type="number" placeholder="" ng-model="data.attributes.brightness">
-      </label>
-    </form>
     <form id="display-form66" class="list">
       <div id="display-markdown93" class="show-list-numbers-and-dots">
         <p style="color:#387EF5;">Format</p>
@@ -42,11 +34,19 @@
     </form>
     <form id="display-form157" class="list" ng-show="data.attributes.endpoint==0">
       <div id="display-markdown294" class="show-list-numbers-and-dots">
-        <p style="color:#387EF5;">Text</p>
+        <p style="color:#387EF5;">Value</p>
       </div>
       <label class="item item-input" id="display-input124">
         <input type="text" placeholder="" ng-model="data.attributes.text">
       </label>
+    </form>
+    <form id="display-form156" class="list">
+      <div id="display-markdown293" class="show-list-numbers-and-dots">
+        <p style="color:#387EF5;">Brightness 0x{{ data.attributes.brightness.toString(16).toUpperCase() }} ({{ data.attributes.brightness }})</p>
+      </div>
+      <ion-item class="range range-positive" id="display-range25">
+        <input type="range" value="127" min="0" max="255" step="1" ng-model="datatemp.brightness" ng-change="computeBrightness()">
+      </ion-item>
     </form>
     <form id="display-form70" class="list" ng-show="data.attributes.endpoint==1">
       <div id="display-markdown96" class="show-list-numbers-and-dots">
@@ -54,19 +54,19 @@
       </div>
       <label class="item item-select" id="display-select68">
         <span class="input-label">IoT Modem</span>
-        <select ng-options="device.id as device.devicename for device in devices" ng-model="data.hardware_devicename" ng-change="changeDevice()"></select>
+        <select ng-options="device.id as device.devicename for device in devices" ng-model="datatemp.hardware_devicename" ng-change="changeDevice()"></select>
       </label>
       <label class="item item-select" id="display-select31">
         <span class="input-label">Peripheral</span>
-        <select ng-options="peripheral.id as peripheral.label for peripheral in peripherals" ng-model="data.hardware_peripheral" ng-change="changePeripheral()"></select>
+        <select ng-options="peripheral.id as peripheral.label for peripheral in peripherals" ng-model="datatemp.hardware_peripheral" ng-change="changePeripheral()"></select>
       </label>
       <label class="item item-select" id="display-select69">
         <span class="input-label">Sensor</span>
-        <select ng-options="i2cdevice.id as i2cdevice.sensorname for i2cdevice in i2cdevices" ng-model="data.hardware_sensorname" ng-change="changeSensor()"></select>
+        <select ng-options="i2cdevice.id as i2cdevice.sensorname for i2cdevice in i2cdevices" ng-model="datatemp.hardware_sensorname" ng-change="changeSensor()"></select>
       </label>
       <label class="item item-select" id="display-select70">
         <span class="input-label">Attribute</span>
-        <select ng-options="i2cdevice.id as i2cdevice.sensorname for i2cdevice in i2cdevices" ng-model="data.hardware_attribute"></select>
+        <select ng-options="attribute.id as attribute.attribute for attribute in attributes" ng-model="datatemp.hardware_attribute"></select>
       </label>
     </form>
     <form id="display-form71" class="list">
