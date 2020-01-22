@@ -44,31 +44,35 @@ g_database_client = None
 # MQTT and AMQP default configurations
 ###################################################################################
 
-CONFIG_DEVICE_ID            = "notification_manager"
+CONFIG_DEVICE_ID                = "notification_manager"
 
-CONFIG_USERNAME             = notification_config.CONFIG_MQTT_DEFAULT_USER
-CONFIG_PASSWORD             = notification_config.CONFIG_MQTT_DEFAULT_PASS
+CONFIG_USERNAME                 = notification_config.CONFIG_MQTT_DEFAULT_USER
+CONFIG_PASSWORD                 = notification_config.CONFIG_MQTT_DEFAULT_PASS
 
 if CONFIG_USE_ECC:
-    CONFIG_TLS_CA           = "../cert_ecc/rootca.pem"
-    CONFIG_TLS_CERT         = "../cert_ecc/notification_manager_cert.pem"
-    CONFIG_TLS_PKEY         = "../cert_ecc/notification_manager_pkey.pem"
+    CONFIG_TLS_CA               = "../cert_ecc/rootca.pem"
+    CONFIG_TLS_CERT             = "../cert_ecc/notification_manager_cert.pem"
+    CONFIG_TLS_PKEY             = "../cert_ecc/notification_manager_pkey.pem"
 else:
-    CONFIG_TLS_CA           = "../cert/rootca.pem"
-    CONFIG_TLS_CERT         = "../cert/notification_manager_cert.pem"
-    CONFIG_TLS_PKEY         = "../cert/notification_manager_pkey.pem"
+    CONFIG_TLS_CA               = "../cert/rootca.pem"
+    CONFIG_TLS_CERT             = "../cert/notification_manager_cert.pem"
+    CONFIG_TLS_PKEY             = "../cert/notification_manager_pkey.pem"
 
-CONFIG_HOST                 = "localhost"
-CONFIG_MQTT_TLS_PORT        = 8883
-CONFIG_AMQP_TLS_PORT        = 5671
+CONFIG_HOST                     = "localhost"
+CONFIG_MQTT_TLS_PORT            = 8883
+CONFIG_AMQP_TLS_PORT            = 5671
 
-CONFIG_PREPEND_REPLY_TOPIC  = "server"
-CONFIG_SEPARATOR            = '/'
+CONFIG_PREPEND_REPLY_TOPIC      = "server"
+CONFIG_SEPARATOR                = '/'
 
-CONFIG_MODEL_EMAIL          = int(notification_config.CONFIG_USE_EMAIL_MODEL)
-CONFIG_MODEL_SMS            = int(notification_config.CONFIG_USE_SMS_MODEL)
+CONFIG_MODEL_EMAIL              = int(notification_config.CONFIG_USE_EMAIL_MODEL)
+CONFIG_MODEL_SMS                = int(notification_config.CONFIG_USE_SMS_MODEL)
+CONFIG_MODEL_PUSH_NOTIFICATION  = int(notification_config.CONFIG_USE_PUSH_NOTIFICATION_MODEL)
+
+
 print("MODEL_EMAIL {}".format(CONFIG_MODEL_EMAIL))
 print("MODEL_SMS {}".format(CONFIG_MODEL_SMS))
+print("MODEL_PUSH_NOTIFICATION {}".format(CONFIG_MODEL_PUSH_NOTIFICATION))
 
 
 ###################################################################################
@@ -123,9 +127,14 @@ def notification_thread(messaging_client, deviceid, recipient, message, subject,
                 return
         else:
             # No options parameter
+            #print(recipient)
+            #print(message)
+            #print(type)
             try:
                 response = g_notification_client.send_message(recipient, message, subject=subject, type=type)
+                #print(response)
             except:
+                print("exception")
                 send_notification_status(messaging_client, deviceid, "NG")
                 return
 
@@ -147,24 +156,31 @@ def notification_thread(messaging_client, deviceid, recipient, message, subject,
                     print("\r\nSending message='{}' to recipient='{}' done.\r\n\r\n".format(
                         message, recipient))
         else:
-            typeStr = "SMS  " if type == notification_types.SMS else "Email"
+            if type == notification_types.SMS:
+                typeStr = "SMS  " 
+            elif type == notification_types.EMAIL:
+                typeStr = "Email"
+            elif type == notification_types.PUSH_NOTIFICATION:
+                typeStr = "Push Notification"
+
             try:
                 res = response["ResponseMetadata"]["HTTPStatusCode"]==200 and response["MessageResponse"]["Result"][recipient]["StatusCode"]==200
-                print("{}: {} options={} [{} {}] {}".format(deviceid, typeStr, options, len(recipient), len(message), res))
                 if res == True:
+                    print("{}: {} [{} {}] {}".format(deviceid, typeStr, len(recipient), len(message), res))
                     send_notification_status(messaging_client, deviceid, "OK. message sent to {}.".format(recipient))
                 else:
-                    send_notification_status(messaging_client, deviceid, "NG")
+                    print("{}: {} [{} {}] {} [{} {}]".format(deviceid, typeStr, len(recipient), len(message), res, response["ResponseMetadata"]["HTTPStatusCode"], response["MessageResponse"]["Result"][recipient]["StatusMessage"]))
+                    send_notification_status(messaging_client, deviceid, "NG. {}".format(response["MessageResponse"]["Result"][recipient]["StatusMessage"]))
             except:
                 try:
                     res = response["ResponseMetadata"]["HTTPStatusCode"]==200
-                    print("{}: {} options={} [{} {}] {}".format(deviceid, typeStr, options, len(recipient), len(message), res))
+                    print("{}: {} [{} {}] {}".format(deviceid, typeStr, len(recipient), len(message), res))
                     if res == True:
                         send_notification_status(messaging_client, deviceid, "OK. message sent to {}.".format(recipient))
                     else:
                         send_notification_status(messaging_client, deviceid, "NG")
                 except:
-                    print("{}: {} options={} [{} {}] True".format(deviceid, typeStr, options, len(recipient), len(message) ))
+                    print("{}: {} [{} {}] True".format(deviceid, typeStr, len(recipient), len(message) ))
 
 def send_notification_mobile_threaded(messaging_client, deviceid, recipient, message):
     #print("mobile")
@@ -179,6 +195,13 @@ def send_notification_email_threaded(messaging_client, deviceid, recipient, mess
     #print("email")
     #print("recipient={} message={}".format(recipient, message))
     thr = threading.Thread(target = notification_thread, args = (messaging_client, deviceid, recipient, message, aws_config.CONFIG_PINPOINT_EMAIL_SUBJECT, notification_types.EMAIL, -1, ))
+    thr.start()
+    return thr
+
+def send_notification_notification_threaded(messaging_client, deviceid, recipient, message):
+    #print("push_notification")
+    #print("recipient={} message={}".format(recipient, message))
+    thr = threading.Thread(target = notification_thread, args = (messaging_client, deviceid, recipient, message, aws_config.CONFIG_PINPOINT_PUSH_NOTIFICATION_SUBJECT, notification_types.PUSH_NOTIFICATION, -1, ))
     thr.start()
     return thr
 
@@ -210,7 +233,7 @@ def send_notification_menos(messaging_client, deviceid, payload, notification, m
     elif menos == "email":
         send_notification_email_threaded(messaging_client, deviceid, payload["recipient"], payload["message"])
     elif menos == "notification":
-        # TODO
+        send_notification_notification_threaded(messaging_client, deviceid, payload["recipient"], payload["message"])
         pass
     elif menos == "modem":
         send_notification_modem_threaded(messaging_client, deviceid, payload["recipient"], payload["message"])
@@ -392,9 +415,10 @@ if __name__ == '__main__':
 
 
     # Initialize Notification client (Pinpoint, SNS, Twilio or Nexmo)
-    model_email = CONFIG_MODEL_EMAIL
-    model_sms   = CONFIG_MODEL_SMS
-    g_notification_client = notification_client(model_email, model_sms)
+    model_email             = CONFIG_MODEL_EMAIL
+    model_sms               = CONFIG_MODEL_SMS
+    model_push_notification	= CONFIG_MODEL_PUSH_NOTIFICATION
+    g_notification_client = notification_client(model_email, model_sms, model_push_notification)
     try:
         g_notification_client.initialize()
     except:
