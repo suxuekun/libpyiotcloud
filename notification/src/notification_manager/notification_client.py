@@ -17,17 +17,19 @@ class notification_models:
 
 class notification_types:
 
-    UNKNOWN  = 0
-    EMAIL    = 1
-    SMS      = 2
-    DEVICE   = 3
+    UNKNOWN           = 0
+    EMAIL             = 1
+    SMS               = 2
+    DEVICE            = 3
+    PUSH_NOTIFICATION = 4
 
 
 class notification_client:
 
-    def __init__(self, model_email, model_sms):
+    def __init__(self, model_email, model_sms, model_push_notification):
         self.model_email = model_email
         self.model_sms = model_sms
+        self.model_push_notification = model_push_notification
 
         if self.model_email==notification_models.PINPOINT:
             self._base_email = notification_client_pinpoint()
@@ -46,10 +48,18 @@ class notification_client:
         else:
             self._base_sms = self._base_email
 
+        if self.model_push_notification != self.model_email:
+            if self.model_push_notification==notification_models.PINPOINT:
+                self._base_push_notification = notification_client_pinpoint()
+        else:
+            self._base_push_notification = self._base_email
+
     def initialize(self):
         self._base_email.initialize()
         if self.model_sms != self.model_email:
             self._base_sms.initialize()
+        if self.model_push_notification != self.model_email:
+            self._base_push_notification.initialize()
 
     def send_message(self, recipient, message, subject=None, type=notification_types.UNKNOWN):
         if type == notification_types.SMS:
@@ -58,6 +68,9 @@ class notification_client:
         elif type == notification_types.EMAIL:
             #print('EMAIL')
             return self._base_email.send_message(recipient, message, subject, type)
+        elif type == notification_types.PUSH_NOTIFICATION:
+            #print('PUSH_NOTIFICATION')
+            return self._base_push_notification.send_message(recipient, message, subject, type)
         else:
             #print('UNKNOWN')
             pass
@@ -83,26 +96,28 @@ class notification_client_pinpoint:
         self.messaging_client = None
 
     def send_message(self, recipient, message, subject, type):
-        #print("PINPOINT")
         if type == notification_types.SMS:
             response = self.send_sms(recipient, message)
         elif type == notification_types.EMAIL:
             response = self.send_email(recipient, message, subject)
+        elif type == notification_types.PUSH_NOTIFICATION:
+            response = self.send_push_notification(recipient, message, subject)
         else:
             return None
         return response
 
-    def send_email(self, email_recipient, email_message, email_subject):
+    def send_email(self, recipient, message, subject):
+        #print("EMAIL {} {} {}".format(recipient, message, subject))
         response = self.client.send_messages(
             ApplicationId = self.pinpoint_project_id,
             MessageRequest = {
-                'Addresses': {email_recipient: { 'ChannelType': 'EMAIL'}},
+                'Addresses': {recipient: { 'ChannelType': 'EMAIL'}},
                 'MessageConfiguration': {
                     'EmailMessage': {
                         'FromAddress': self.email_from,
                         'SimpleEmail':  {
-                            'Subject':  {'Charset': 'UTF-8', 'Data': email_subject},
-                            'TextPart': {'Charset': 'UTF-8', 'Data': email_message}
+                            'Subject':  {'Charset': 'UTF-8', 'Data': subject},
+                            'TextPart': {'Charset': 'UTF-8', 'Data': message}
                         }
                     }
                 }
@@ -110,18 +125,76 @@ class notification_client_pinpoint:
         )
         return response
 
-    def send_sms(self, sms_recipient, sms_message):
+    def send_sms(self, recipient, message):
+        #print("SMS {} {}".format(recipient, message))
         response = self.client.send_messages(
             ApplicationId = self.pinpoint_project_id,
             MessageRequest = {
-                'Addresses': {sms_recipient: {'ChannelType': 'SMS'}},
+                'Addresses': {recipient: {'ChannelType': 'SMS'}},
                 'MessageConfiguration': {
                     'SMSMessage': {
-                        'Body': sms_message
+                        'Body': message
                     }
                 }
             }
         )
+        return response
+
+    def send_push_notification(self, recipient, message, title):
+        #print("PUSH NOTIFICATION {} {}".format(recipient, message))
+        action = "URL"
+        url = "https://www.richmondu.com"
+        priority = "normal"
+        ttl = 30
+        silent = False
+        try:
+            token = recipient["token"]
+            service = recipient["service"]
+        except:
+            token = None
+            service = "GCM"
+
+        if service == "GCM":
+            print('PUSH_NOTIFICATION GCM')
+            response = self.client.send_messages(
+                ApplicationId = self.pinpoint_project_id,
+                MessageRequest = {
+                    'Addresses': {token: {'ChannelType': service}},
+                    'MessageConfiguration': {
+                        'GCMMessage': {
+                            'Action': action,
+                            'Body': message,
+                            'Priority' : priority,
+                            'SilentPush': silent,
+                            'Title': title,
+                            'TimeToLive': ttl,
+                            'Url': url
+                        }
+                    }
+                }
+            )
+            print('PUSH_NOTIFICATION GCM ok')
+        elif service == "APNS":
+            print('PUSH_NOTIFICATION APNS')
+            response = self.client.send_messages(
+                ApplicationId = self.pinpoint_project_id,
+                MessageRequest = {
+                    'Addresses': {token: {'ChannelType': service}},
+                    'MessageConfiguration': {
+                        'APNSMessage': {
+                            'Action': action,
+                            'Body': message,
+                            'Priority' : priority,
+                            'SilentPush': silent,
+                            'Title': title,
+                            'TimeToLive': ttl,
+                            'Url': url
+                        }
+                    }
+                }
+            )
+            print('PUSH_NOTIFICATION APNS ok')
+        print(response)
         return response
 
 
