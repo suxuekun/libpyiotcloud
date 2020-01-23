@@ -1803,6 +1803,78 @@ def set_status(devicename):
     return process_request(api, data)
 
 #
+# GET SETTINGS
+# - Request:
+#   GET /devices/device/<devicename>/settings
+#   headers: {'Authorization': 'Bearer ' + token.access}
+#
+# - Response:
+#   { 'status': 'OK', 'message': string }
+#   { 'status': 'NG', 'message': string }
+#
+@app.route('/devices/device/<devicename>/settings', methods=['GET'])
+def get_settings(devicename):
+    api = 'get_settings'
+
+    # get token from Authorization header
+    auth_header_token = get_auth_header_token()
+    if auth_header_token is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
+        print('\r\nERROR Invalid authorization header\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
+
+    # get username from token
+    data = {}
+    data['token'] = {'access': auth_header_token}
+    data['devicename'] = devicename
+    username = g_database_client.get_username_from_token(data['token'])
+    if username is None:
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Token expired\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
+    data['username'] = username
+    print('get_settings {} devicename={}'.format(data['username'], data['devicename']))
+
+    return process_request_get(api, data)
+
+#
+# SET SETTINGS
+# - Request:
+#   POST /devices/device/<devicename>/settings
+#   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+#   data: { 'status': int }
+#
+# - Response:
+#   { 'status': 'OK', 'message': string, 'value': { 'sensorrate': int } }
+#   { 'status': 'NG', 'message': string}
+#
+@app.route('/devices/device/<devicename>/settings', methods=['POST'])
+def set_settings(devicename):
+    api = 'set_settings'
+
+    # get token from Authorization header
+    auth_header_token = get_auth_header_token()
+    if auth_header_token is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
+        print('\r\nERROR Invalid authorization header\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
+
+    # get parameter input
+    data = flask.request.get_json()
+
+    # get username from token
+    data['token'] = {'access': auth_header_token}
+    data['devicename'] = devicename
+    data['username'] = g_database_client.get_username_from_token(data['token'])
+    if data['username'] is None:
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Token expired\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
+    print('set_settings {} devicename={}'.format(data['username'], data['devicename']))
+
+    return process_request(api, data)
+
+#
 # GET IP
 #
 # - Request:
