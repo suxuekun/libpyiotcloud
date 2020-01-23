@@ -2263,6 +2263,13 @@ SUMMARY:
 		B. SET STATUS                set_status
 		   - restart, stop, start
 
+	2. SETTINGS
+		A. GET SETTINGS              get_settings
+		   - sensorrate (can add more settings in the future)
+
+		B. SET SETTINGS              set_settings
+		   - sensorrate (can add more settings in the future)
+
 	2. UART
 		A. GET UARTS                 get_uarts
 		   - gets enabled status of the UART
