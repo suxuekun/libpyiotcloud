@@ -1957,7 +1957,7 @@ DETAILED:
 		           "notification": json_obj,
 		           
 		           // HUMIDITY class
-		           "subclass": {
+		           "subattributes": {
 		               "mode": int, 
 		               "threshold": {"value": int, "min": int, "max": int, "activate": int}, 
 		               "alert": {"type": int, 'period': int}, 
@@ -2001,7 +2001,7 @@ DETAILED:
 		           "notification": json_obj,
 		           
 		           // HUMIDITY class
-		           "subclass": {
+		           "subattributes": {
 		               "mode": int, 
 		               "threshold": {"value": int, "min": int, "max": int, "activate": int}, 
 		               "alert": {"type": int, 'period': int}, 
