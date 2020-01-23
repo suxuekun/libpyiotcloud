@@ -22,6 +22,7 @@ CONFIG_USE_AMQP = False
 # global variables
 ###################################################################################
 
+g_timer_thread = None
 g_timer_thread_use = True
 g_timer_thread_stop = threading.Event()
 g_timer_thread_timeout = 5
@@ -30,13 +31,13 @@ g_messaging_client = None
 
 g_gpio_values = {}
 
-# FIRMWARE VERSION (for GET STATUS)
+# FIRMWARE VERSION
 g_firmware_version_MAJOR = 0
 g_firmware_version_MINOR = 1
 g_firmware_version = (g_firmware_version_MAJOR*100 + g_firmware_version_MINOR)
 g_firmware_version_STR = "{}.{}".format(g_firmware_version_MAJOR, g_firmware_version_MINOR)
 
-# DEVICE STATUS (for GET STATUS)
+# STATUS
 DEVICE_STATUS_STARTING   = 0
 DEVICE_STATUS_RUNNING    = 1
 DEVICE_STATUS_RESTART    = 2
@@ -46,6 +47,9 @@ DEVICE_STATUS_STOPPING   = 5
 DEVICE_STATUS_STOPPED    = 6
 DEVICE_STATUS_START      = 7
 g_device_status = DEVICE_STATUS_RUNNING
+
+# SETTINGS
+g_device_settings = { 'sensorrate': g_timer_thread_timeout }
 
 # UART
 g_uart_properties = { 'baudrate': 7, 'parity': 0, 'flowcontrol': 0, 'stopbits': 0, 'databits': 1 }
@@ -115,6 +119,10 @@ g_tprobe_properties = [
 # device status
 API_GET_STATUS                   = "get_status"
 API_SET_STATUS                   = "set_status"
+
+# device settings
+API_GET_SETTINGS                 = "get_settings"
+API_SET_SETTINGS                 = "set_settings"
 
 # uart
 API_GET_UARTS                    = "get_uarts"
@@ -214,10 +222,11 @@ def handle_api(api, subtopic, subpayload):
     global g_gpio_properties, g_gpio_enabled, g_gpio_voltage, g_gpio_status, g_gpio_values
     global g_i2c_properties, g_i2c_enabled
     global g_adc_voltage
+    global g_device_settings
 
 
     ####################################################
-    # GET/SET STATUS
+    # STATUS
     ####################################################
     if api == API_GET_STATUS:
         topic = generate_pubtopic(subtopic)
@@ -245,6 +254,31 @@ def handle_api(api, subtopic, subpayload):
 
         payload = {}
         payload["value"] = {"status": g_device_status}
+        publish(topic, payload)
+
+
+    ####################################################
+    # SETTINGS
+    ####################################################
+    elif api == API_GET_SETTINGS:
+        topic = generate_pubtopic(subtopic)
+
+        print("g_device_settings {}".format(g_device_settings))
+
+        payload = {}
+        payload["value"] = g_device_settings
+        publish(topic, payload)
+
+    elif api == API_SET_SETTINGS:
+        topic = generate_pubtopic(subtopic)
+        subpayload = json.loads(subpayload)
+
+        g_device_settings = subpayload
+        print("g_device_settings {}".format(g_device_settings))
+        g_timer_thread_timeout = g_device_settings["sensorrate"]
+        g_timer_thread.set_timeout(g_timer_thread_timeout)
+
+        payload = {}
         publish(topic, payload)
 
 
@@ -953,6 +987,9 @@ class TimerThread(threading.Thread):
         self.stopped = event
         self.timeout = timeout
 
+    def set_timeout(self, timeout):
+        self.timeout = timeout
+
     def run(self):
         print("")
         while not self.stopped.wait(self.timeout):
@@ -1168,8 +1205,8 @@ if __name__ == '__main__':
 
         # Start the timer thread
         if g_timer_thread_use:
-            thr = TimerThread(g_timer_thread_stop, g_timer_thread_timeout)
-            thr.start()
+            g_timer_thread = TimerThread(g_timer_thread_stop, g_timer_thread_timeout)
+            g_timer_thread.start()
 
         # Exit when disconnection happens
         while g_messaging_client.is_connected():
