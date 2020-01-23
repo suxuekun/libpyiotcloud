@@ -128,6 +128,13 @@ def add_sensor_reading(database_client, deviceid, topic, payload):
             #
             # update sensor reading
             #print(sensor_readings)
+            sensor_readings["value"] = float(sensor_readings["value"])
+            sensor_readings["lowest"] = float(sensor_readings["lowest"])
+            sensor_readings["highest"] = float(sensor_readings["highest"])
+            if sensor_readings.get("subclass"):
+                sensor_readings["subclass"]["value"] = float(sensor_readings["subclass"]["value"])
+                sensor_readings["subclass"]["lowest"] = float(sensor_readings["subclass"]["lowest"])
+                sensor_readings["subclass"]["highest"] = float(sensor_readings["subclass"]["highest"])
             database_client.add_sensor_reading(deviceid, source, address, sensor_readings)
     #print("")
 
