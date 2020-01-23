@@ -3032,6 +3032,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
     $scope.sensors_counthdr = "No sensor enabled" ;
     $scope.refresh_automatically = false;
     $scope.refresh_time = 3;
+    $scope.run_time = 0;
     
     $scope.data = {
         'username': User.get_username(),
@@ -3144,7 +3145,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                         text: 'OK',
                         type: 'button-positive',
                         onTap: function(e) {
-                            $scope.timer = setInterval($scope.submitQuery, $scope.refresh_time * 1000);
+                            $scope.timer = setInterval($scope.pollSensorData, $scope.refresh_time * 1000);
                         }
                     }
                 ]            
@@ -3154,6 +3155,35 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             clearTimeout($scope.timer);
             $scope.timer = null;
         }
+    };
+
+    $scope.pollSensorData = function() {
+        $scope.run_time += 1;
+        let run_time_1hour = Math.round(3600/$scope.refresh_time);
+        // auto-stop in 1hour 3600/$scope.refresh_time
+        if ($scope.run_time > run_time_1hour) {
+            $scope.run_time = 0;
+            clearTimeout($scope.timer);
+            console.log("clearTimeout");
+            $scope.timer = null;
+            $scope.refresh_automatically = !$scope.refresh_automatically;
+            
+            $ionicPopup.alert({
+                title: 'Refresh values automatically',
+                template: 'The polling has been stopped after 1 hour!',
+                buttons: [
+                    {
+                        text: 'OK',
+                        type: 'button-positive',
+                        onTap: function(e) {
+                            $scope.refresh_automatically = false;
+                        }
+                    }
+                ]            
+            });            
+            return;
+        }
+        $scope.submitQuery();
     };
 
     $scope.submitDelete = function() {
@@ -3206,6 +3236,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         if ($scope.timer !== null) {
             clearTimeout($scope.timer);
             console.log("clearTimeout");
+            $scope.timer = null;
         }
     });
 }])
