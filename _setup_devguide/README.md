@@ -247,27 +247,31 @@ SUMMARY:
 		A. GET STATUS                     - GET    /devices/device/DEVICENAME/status
 		B. SET STATUS                     - POST   /devices/device/DEVICENAME/status
 
+		// settings
+		C. GET SETTINGS                   - GET    /devices/device/DEVICENAME/settings
+		D. SET SETTINGS                   - POST   /devices/device/DEVICENAME/settings
+
 		//
 		// uart
-		C. GET UARTS                      - GET    /devices/device/DEVICENAME/uarts
-		D. GET UART PROPERTIES            - GET    /devices/device/DEVICENAME/uart/properties
-		E. SET UART PROPERTIES            - POST   /devices/device/DEVICENAME/uart/properties
-		F. ENABLE/DISABLE UART            - POST   /devices/device/DEVICENAME/uart/enable
+		E. GET UARTS                      - GET    /devices/device/DEVICENAME/uarts
+		F. GET UART PROPERTIES            - GET    /devices/device/DEVICENAME/uart/properties
+		G. SET UART PROPERTIES            - POST   /devices/device/DEVICENAME/uart/properties
+		H. ENABLE/DISABLE UART            - POST   /devices/device/DEVICENAME/uart/enable
 
 		//
 		// gpio
-		G. GET GPIOS                      - GET    /devices/device/DEVICENAME/gpios
-		H. GET GPIO PROPERTIES            - GET    /devices/device/DEVICENAME/gpio/NUMBER/properties
-		I. SET GPIO PROPERTIES            - POST   /devices/device/DEVICENAME/gpio/NUMBER/properties
-		J. ENABLE/DISABLE GPIO            - POST   /devices/device/DEVICENAME/gpio/NUMBER/enable
-		K. GET GPIO VOLTAGE               - GET    /devices/device/DEVICENAME/gpio/voltage
-		L. SET GPIO VOLTAGE               - POST   /devices/device/DEVICENAME/gpio/voltage
+		I. GET GPIOS                      - GET    /devices/device/DEVICENAME/gpios
+		J. GET GPIO PROPERTIES            - GET    /devices/device/DEVICENAME/gpio/NUMBER/properties
+		K. SET GPIO PROPERTIES            - POST   /devices/device/DEVICENAME/gpio/NUMBER/properties
+		L. ENABLE/DISABLE GPIO            - POST   /devices/device/DEVICENAME/gpio/NUMBER/enable
+		M. GET GPIO VOLTAGE               - GET    /devices/device/DEVICENAME/gpio/voltage
+		N. SET GPIO VOLTAGE               - POST   /devices/device/DEVICENAME/gpio/voltage
 		   (NUMBER can be 1-4 only and corresponds to GPIO1,GPIO2,GPIO3,GPIO4)
 
 		//
 		// sensor readings (for dashboard)
-		M. GET PERIPHERAL SENSOR READINGS    - GET    /devices/device/DEVICENAME/sensors/readings
-		N. DELETE PERIPHERAL SENSOR READINGS - DELETE /devices/device/DEVICENAME/sensors/readings
+		O. GET PERIPHERAL SENSOR READINGS    - GET    /devices/device/DEVICENAME/sensors/readings
+		P. DELETE PERIPHERAL SENSOR READINGS - DELETE /devices/device/DEVICENAME/sensors/readings
 
 
 	4. Device access and control APIs (I2C)
@@ -725,8 +729,27 @@ DETAILED:
 		   { 'status': 'NG', 'message': string }
 
 
+		C. GET SETTINGS
+		-  Request:
+		   GET /devices/device/DEVICENAME/settings
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		-  Response:
+		   { 'status': 'OK', 'message': string, 'value': { "sensorrate": int } }
+		   { 'status': 'NG', 'message': string }
+		   // sensorrate is the time in seconds the device publishes sensor data for ENABLED devices
 
-		C. GET UARTS
+		D. SET SETTINGS
+		-  Request:
+		   POST /devices/device/DEVICENAME/settings
+		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+		   data: { 'sensorrate': int }
+		   // sensorrate is the time in seconds the device publishes sensor data for ENABLED devices
+		-  Response:
+		   { 'status': 'OK', 'message': string }
+		   { 'status': 'NG', 'message': string }
+
+
+		E. GET UARTS
 		-  Request:
 		   GET /devices/device/DEVICENAME/uarts
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -740,7 +763,7 @@ DETAILED:
 		   }
 		   // enabled is an int indicating if disabled (0) or enabled (1)
 
-		D. GET UART PROPERTIES
+		F. GET UART PROPERTIES
 		-  Request:
 		   GET /devices/device/DEVICENAME/uart/properties
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -807,7 +830,7 @@ DETAILED:
 		   //      default = 1 (8)
 		   // sending only the index saves memory on the device and computation on frontend
 
-		E. SET UART PROPERTIES
+		G. SET UART PROPERTIES
 		-  Request:
 		   POST /devices/device/DEVICENAME/uart/properties
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
@@ -875,7 +898,7 @@ DETAILED:
 		   { 'status': 'OK', 'message': string }
 		   { 'status': 'NG', 'message': string }
 
-		F. ENABLE/DISABLE UART
+		H. ENABLE/DISABLE UART
 		-  Request:
 		   POST /devices/device/DEVICENAME/uart/enable
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
@@ -887,7 +910,7 @@ DETAILED:
 
 
 
-		G. GET GPIOS
+		I. GET GPIOS
 		-  Request:
 		   GET /devices/device/DEVICENAME/gpios
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -912,7 +935,7 @@ DETAILED:
 		   // status is an index of the value in the list of livestatuses
 		   //   ["Low", "High"]
 
-		H. GET GPIO PROPERTIES
+		J. GET GPIO PROPERTIES
 		-  Request:
 		   GET /devices/device/DEVICENAME/gpio/NUMBER/properties
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -988,7 +1011,7 @@ DETAILED:
 		   // count is optional and is valid only when direction points to Output and mode points to Clock (count should be > 0)
 		   // sending only the index saves memory on the device and computation on frontend
 
-		I. SET GPIO PROPERTIES
+		K. SET GPIO PROPERTIES
 		-  Request:
 		   POST /devices/device/DEVICENAME/gpio/NUMBER/properties
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
@@ -1065,7 +1088,7 @@ DETAILED:
 		   { 'status': 'OK', 'message': string }
 		   { 'status': 'NG', 'message': string }
 
-		J. ENABLE/DISABLE GPIO
+		L. ENABLE/DISABLE GPIO
 		-  Request:
 		   POST /devices/device/DEVICENAME/gpio/NUMBER/enable
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
@@ -1075,7 +1098,7 @@ DETAILED:
 		   { 'status': 'OK', 'message': string }
 		   { 'status': 'NG', 'message': string }
 
-		K. GET GPIO VOLTAGE
+		M. GET GPIO VOLTAGE
 		-  Request:
 		   GET /devices/device/DEVICENAME/gpio/voltage
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -1086,7 +1109,7 @@ DETAILED:
 		   // voltage is an index of the value in the list of voltages
 		   //   ["3.3 V", "5 V"]
 
-		L. SET GPIO VOLTAGE
+		N. SET GPIO VOLTAGE
 		-  Request:
 		   POST /devices/device/DEVICENAME/gpio/voltage
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
@@ -1099,7 +1122,7 @@ DETAILED:
 		   { 'status': 'NG', 'message': string }
 
 
-		M. GET PERIPHERAL SENSOR READINGS
+		O. GET PERIPHERAL SENSOR READINGS
 		-  Request:
 		   GET /devices/device/DEVICENAME/sensors/readings
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -1109,7 +1132,7 @@ DETAILED:
 		   { 'status': 'NG', 'message': string}
 		   // the subclass parameter of readings parameter will only appear if the sensor has a subclass
 
-		N. DELETE PERIPHERAL SENSOR READINGS
+		P. DELETE PERIPHERAL SENSOR READINGS
 		-  Request:
 		   DELETE /devices/device/DEVICENAME/sensors/readings
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -1230,9 +1253,11 @@ DETAILED:
 		           "fadeouttime": int 
 		     }
 		   //   color usage is an index to the list of color usages:
-		   //     ["RGB as single unit", "RGB as individual units"]
-		   //   single should be used if "RGB as single unit" is selected for color usage
-		   //   individual should be used if "RGB as individual units" is selected for color usage
+		   //     ["RGB as color", "RGB as component"]
+		   //   single should be used if "RGB as color" is selected for color usage
+		   //     manual is an int indicating the 0x00RRGGBB 
+		   //   individual should be used if "RGB as component" is selected for color usage
+		   //     manual is an int indicating the 0xRR or 0xGG or 0xBB
 		   //   endpoint is an index to the list source endpoints:
 		   //     ["Manual", "Hardware"]
 		   //   if endpoint is Manual
@@ -1404,9 +1429,11 @@ DETAILED:
 		           "fadeouttime": int 
 		     }
 		   //   color usage is an index to the list of color usages:
-		   //     ["RGB as single unit", "RGB as individual units"]
-		   //   single should be used if "RGB as single unit" is selected for color usage
-		   //   individual should be used if "RGB as individual units" is selected for color usage
+		   //     ["RGB as color", "RGB as component"]
+		   //   single should be used if "RGB as color" is selected for color usage
+		   //     manual is an int indicating the 0x00RRGGBB 
+		   //   individual should be used if "RGB as component" is selected for color usage
+		   //     manual is an int indicating the 0xRR or 0xGG or 0xBB
 		   //   endpoint is an index to the list source endpoints:
 		   //     ["Manual", "Hardware"]
 		   //   if endpoint is Manual
