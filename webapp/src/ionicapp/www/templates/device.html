@@ -3,7 +3,7 @@
     <button class="button button-icon icon ion-android-close" ng-click="exitPage()"></button>
   </ion-nav-buttons>
   <ion-nav-buttons side="right" class="has-header">
-    <button class="button button-positive icon ion-refresh" ng-click="getStatus()"></button>
+    <button class="button button-positive icon ion-refresh" ng-click="getStatus(data.devicename)"></button>
   </ion-nav-buttons>
   <ion-content padding="true" class="has-header">
     <button id="device-button43" ng-click="getDevice(data.devicename)" style="font-weight:600;font-size:18px;" class="button button-positive button-block button-clear icon-right ion-android-settings">{{ data.devicename }}</button>
@@ -20,7 +20,7 @@
     <div id="device-markdown297" class="show-list-numbers-and-dots line_spacing">
       <p style="color:#BBBBBB;font-size:12px;">View Device Peripherals Data</p>
     </div>
-    <button id="device-button132" ng-click="submitDashboard()" ng-disabled="data.devicestatus==&quot;Detecting...&quot;" style="font-size:18px;" class="button button-positive button-large button-outline widget_button_ex">Sensor Dashboard</button>
+    <button id="device-button132" ng-click="submitDashboard()" ng-disabled="data.devicestatus==&quot;Detecting...&quot;" style="font-size:18px;" class="button button-positive button-large widget_button_ex">Sensor Dashboard</button>
     <div class="spacer" style="height: 7px;"></div>
     <div id="device-markdown296" class="show-list-numbers-and-dots line_spacing">
       <p style="color:#BBBBBB;font-size:12px;">Configure Device Peripherals</p>
