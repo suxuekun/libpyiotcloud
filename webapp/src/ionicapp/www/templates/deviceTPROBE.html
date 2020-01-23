@@ -30,15 +30,15 @@
           <p style="margin-top:0px;color:#444444;font-size:10px;">{{ sensor.configured ? "CONFIGURED": "UNCONFIGURED" }} and {{ sensor.enabled ? "ENABLED": "DISABLED" }}</p>
         </div>
         <div id="deviceTPROBE-markdown350" style="text-align:center;" class="show-list-numbers-and-dots">
-          <p style="margin-top:0px;color:#444444;font-size:10px;">{{ sensor.readings ? "." : "" }}</p>
+          <p style="margin-top:0px;color:#FFFFFF;font-size:10px;">{{ sensor.readings ? "." : "" }}</p>
         </div>
         <div id="deviceTPROBE-markdown291" style="text-align:center;" class="show-list-numbers-and-dots">
-          <p style="margin-top:0px;color:#387EF5;font-size:50px;">
+          <p style="margin-top:0px;color:#387EF5;font-size:35px;">
             <strong> {{ sensor.readings ? sensor.subclass ? sensor.readings.value + " " + sensor.units[0] + " | " + sensor.readings.subclass.value + " " + sensor.units[1] : sensor.readings.value + " " + sensor.units[0] : "" }} </strong>
           </p>
         </div>
         <div id="deviceTPROBE-markdown349" style="text-align:center;" class="show-list-numbers-and-dots">
-          <p style="margin-top:0px;color:#387EF5;font-size:10px;">{{ sensor.readings ? "." : "" }}</p>
+          <p style="margin-top:0px;color:#FFFFFF;font-size:10px;">{{ sensor.readings ? "." : "" }}</p>
         </div>
         <div id="deviceTPROBE-markdown351" style="text-align:center;" class="show-list-numbers-and-dots">
           <p style="margin-top:0px;color:#387EF5;font-size:10px;">{{ sensor.readings ? sensor.subclass ? "Low: " + sensor.readings.lowest + " " + "High: " + sensor.readings.highest + " | " + "Low: " + sensor.readings.subclass.lowest + " " + "High: " + sensor.readings.subclass.highest : "Low: " + sensor.readings.lowest
