@@ -1125,7 +1125,7 @@ DETAILED:
 		-  Request:
 		   POST /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-		   data: {'address': int, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'units': [], 'attributes': []}
+		   data: {'address': int, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'units': [], 'formats': [], 'attributes': []}
 		   // Note: multiclass sensor data requires adding of {'subclass': string, 'subattributes': []}
 		   // call GET SUPPORTED SENSOR DEVICES to get the JSON data contained here: https://ft900-iot-portal.s3.amazonaws.com/supported_sensor_devices.json
 		   // registering a sensor using an already used sensorname returns HTTP_409_CONFLICT with 'Sensor name is already taken'
@@ -1150,7 +1150,7 @@ DETAILED:
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
 		   { 'status': 'OK', 'message': string, 
-		     'sensor': {'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': string, 'enabled': int, 'configured': int, 'attributes': []} }
+		     'sensor': {'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': string, 'enabled': int, 'configured': int, 'units': [], 'formats': [], 'attributes': []} }
 		   { 'status': 'NG', 'message': string}
 		   // timestamp refers to the epoch time the sensor was registered/added
 		   // class can be SPEAKER, DISPLAY, LIGHT, POTENTIOMETER, TEMPERATURE
@@ -1161,7 +1161,7 @@ DETAILED:
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
 		   { 'status': 'OK', 'message': string, 
-		     'sensors': array[{'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': string, 'enabled': int, 'configured': int, 'readings': {'value': float, 'lowest': float, 'highest': float, 'subclass': {'value': float, 'lowest': float, 'highest': float}, 'attributes': []}, ...]}
+		     'sensors': array[{'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': string, 'enabled': int, 'configured': int, 'units': [], 'formats': [], 'readings': {'value': float, 'lowest': float, 'highest': float, 'subclass': {'value': float, 'lowest': float, 'highest': float}, 'attributes': []}, ...]}
 		   { 'status': 'NG', 'message': string}
 		   // timestamp refers to the epoch time the sensor was registered/added
 		   // the subclass parameter of readings parameter will only appear if the sensor has a subclass
@@ -1172,7 +1172,7 @@ DETAILED:
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
 		   { 'status': 'OK', 'message': string, 
-		     'sensors': array[{'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': string, 'enabled': int, 'configured': int, 'attributes': []}, ...]}
+		     'sensors': array[{'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': string, 'enabled': int, 'configured': int, 'units': [], 'formats': [], 'attributes': []}, ...]}
 		   { 'status': 'NG', 'message': string}
 		   // timestamp refers to the epoch time the sensor was registered/added
 
@@ -1182,7 +1182,7 @@ DETAILED:
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
 		   { 'status': 'OK', 'message': string, 
-		     'sensors': array[{'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': string, 'enabled': int, 'configured': int, 'attributes': []}, ...]}
+		     'sensors': array[{'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': string, 'enabled': int, 'configured': int, 'units': [], 'formats': [], 'attributes': []}, ...]}
 		   { 'status': 'NG', 'message': string}
 		   // timestamp refers to the epoch time the sensor was registered/added
 
@@ -1192,7 +1192,7 @@ DETAILED:
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
 		   { 'status': 'OK', 'message': string, 
-		     'sensors': array[{'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': string, 'enabled': int, 'configured': int, 'attributes': []}, ...]}
+		     'sensors': array[{'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': string, 'enabled': int, 'configured': int, 'units': [], 'formats': [], 'attributes': []}, ...]}
 		   { 'status': 'NG', 'message': string}
 		   // timestamp refers to the epoch time the sensor was registered/added
 
@@ -1575,7 +1575,7 @@ DETAILED:
 		-  Request:
 		   POST /devices/device/DEVICENAME/adc/NUMBER/sensors/sensor/SENSORNAME
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-		   data: {'manufacturer': string, 'model': string, 'class': string, 'type': string, 'units': [], 'attributes': []}
+		   data: {'manufacturer': string, 'model': string, 'class': string, 'type': string, 'units': [], 'formats': [], 'attributes': []}
 		   // Note: multiclass sensor data requires adding of {'subclass': string, 'subattributes': []}
 		   // call GET SUPPORTED SENSOR DEVICES to get the JSON data contained here: https://ft900-iot-portal.s3.amazonaws.com/supported_sensor_devices.json
 		   // registering a sensor using an already used sensorname returns HTTP_409_CONFLICT with 'Sensor name is already taken'
@@ -1597,7 +1597,7 @@ DETAILED:
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
 		   { 'status': 'OK', 'message': string, 
-		     'sensor': {'sensorname': string, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': string, 'enabled': int, 'configured': int, 'attributes': []} }
+		     'sensor': {'sensorname': string, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': string, 'enabled': int, 'configured': int, 'units': [], 'formats': [], 'attributes': []} }
 		   { 'status': 'NG', 'message': string}
 		   // timestamp refers to the epoch time the sensor was registered/added
 		   // class can be ANEMOMETER
@@ -1608,7 +1608,7 @@ DETAILED:
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
 		   { 'status': 'OK', 'message': string, 
-		     'sensors': array[{'sensorname': string, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': string, 'enabled': int, 'configured': int, 'readings': {'value': float, 'lowest': float, 'highest': float, 'subclass': {'value': float, 'lowest': float, 'highest': float}, 'attributes': []}, ...]}
+		     'sensors': array[{'sensorname': string, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': string, 'enabled': int, 'configured': int, 'units': [], 'formats': [], 'readings': {'value': float, 'lowest': float, 'highest': float, 'subclass': {'value': float, 'lowest': float, 'highest': float}, 'attributes': []}, ...]}
 		   { 'status': 'NG', 'message': string}
 		   // timestamp refers to the epoch time the sensor was registered/added
 		   // the subclass parameter of readings parameter will only appear if the sensor has a subclass
@@ -1619,7 +1619,7 @@ DETAILED:
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
 		   { 'status': 'OK', 'message': string, 
-		     'sensors': array[{'sensorname': string, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': string, 'enabled': int, 'configured': int, 'attributes': []}, ...]}
+		     'sensors': array[{'sensorname': string, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': string, 'enabled': int, 'configured': int, 'units': [], 'formats': [], 'attributes': []}, ...]}
 		   { 'status': 'NG', 'message': string}
 		   // timestamp refers to the epoch time the sensor was registered/added
 
@@ -1745,7 +1745,7 @@ DETAILED:
 		-  Request:
 		   POST /devices/device/DEVICENAME/1wire/NUMBER/sensors/sensor/SENSORNAME
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-		   data: {'manufacturer': string, 'model': string, 'class': string, 'type': string, 'units': [], 'attributes': []}
+		   data: {'manufacturer': string, 'model': string, 'class': string, 'type': string, 'units': [], 'formats': [], 'attributes': []}
 		   // Note: multiclass sensor data requires adding of {'subclass': string, 'subattributes': []}
 		   // call GET SUPPORTED SENSOR DEVICES to get the JSON data contained here: https://ft900-iot-portal.s3.amazonaws.com/supported_sensor_devices.json
 		   // registering a sensor using an already used sensorname returns HTTP_409_CONFLICT with 'Sensor name is already taken'
@@ -1768,7 +1768,7 @@ DETAILED:
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
 		   { 'status': 'OK', 'message': string, 
-		     'sensor': {'sensorname': string, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': string, 'enabled': int, 'configured': int, 'attributes': []} }
+		     'sensor': {'sensorname': string, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': string, 'enabled': int, 'configured': int, 'units': [], 'formats': [], 'attributes': []} }
 		   { 'status': 'NG', 'message': string}
 		   // timestamp refers to the epoch time the sensor was registered/added
 		   // class can be TEMPERATURE
@@ -1779,7 +1779,7 @@ DETAILED:
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
 		   { 'status': 'OK', 'message': string, 
-		     'sensors': array[{'sensorname': string, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': string, 'enabled': int, 'configured': int, 'readings': {'value': float, 'lowest': float, 'highest': float, 'subclass': {'value': float, 'lowest': float, 'highest': float}, 'attributes': []}, ...]}
+		     'sensors': array[{'sensorname': string, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': string, 'enabled': int, 'configured': int, 'units': [], 'formats': [], 'readings': {'value': float, 'lowest': float, 'highest': float, 'subclass': {'value': float, 'lowest': float, 'highest': float}, 'attributes': []}, ...]}
 		   { 'status': 'NG', 'message': string}
 		   // timestamp refers to the epoch time the sensor was registered/added
 
@@ -1789,7 +1789,7 @@ DETAILED:
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
 		   { 'status': 'OK', 'message': string, 
-		     'sensors': array[{'sensorname': string, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': string, 'enabled': int, 'configured': int, 'attributes': []}, ...]}
+		     'sensors': array[{'sensorname': string, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': string, 'enabled': int, 'configured': int, 'units': [], 'formats': [], 'attributes': []}, ...]}
 		   { 'status': 'NG', 'message': string}
 		   // timestamp refers to the epoch time the sensor was registered/added
 
@@ -1893,7 +1893,7 @@ DETAILED:
 		-  Request:
 		   POST /devices/device/DEVICENAME/tprobe/NUMBER/sensors/sensor/SENSORNAME
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-		   data: {'manufacturer': string, 'model': string, 'class': string, 'type': string, 'units': [], 'attributes': []}
+		   data: {'manufacturer': string, 'model': string, 'class': string, 'type': string, 'units': [], 'formats': [], 'attributes': []}
 		   // Note: multiclass sensor data requires adding of {'subclass': string, 'subattributes': []}
 		   // call GET SUPPORTED SENSOR DEVICES to get the JSON data contained here: https://ft900-iot-portal.s3.amazonaws.com/supported_sensor_devices.json
 		   // registering a sensor using an already used sensorname returns HTTP_409_CONFLICT with 'Sensor name is already taken'
@@ -1916,7 +1916,7 @@ DETAILED:
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
 		   { 'status': 'OK', 'message': string, 
-		     'sensor': {'sensorname': string, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': string, 'enabled': int, 'configured': int, 'attributes': []} }
+		     'sensor': {'sensorname': string, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': string, 'enabled': int, 'configured': int, 'units': [], 'formats': [], 'attributes': []} }
 		   { 'status': 'NG', 'message': string}
 		   // timestamp refers to the epoch time the sensor was registered/added
 		   // class can be TEMPERATURE with subclass of HUMIDITY
@@ -1927,7 +1927,7 @@ DETAILED:
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
 		   { 'status': 'OK', 'message': string, 
-		     'sensors': array[{'sensorname': string, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': string, 'enabled': int, 'configured': int, 'readings': {'value': float, 'lowest': float, 'highest': float, 'subclass': {'value': float, 'lowest': float, 'highest': float}, 'attributes': []}, ...]}
+		     'sensors': array[{'sensorname': string, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': string, 'enabled': int, 'configured': int, 'units': [], 'formats': [], 'readings': {'value': float, 'lowest': float, 'highest': float, 'subclass': {'value': float, 'lowest': float, 'highest': float}, 'attributes': []}, ...]}
 		   { 'status': 'NG', 'message': string}
 		   // timestamp refers to the epoch time the sensor was registered/added
 		   // the subclass parameter of readings parameter will only appear if the sensor has a subclass
@@ -1938,7 +1938,7 @@ DETAILED:
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
 		   { 'status': 'OK', 'message': string, 
-		     'sensors': array[{'sensorname': string, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': string, 'enabled': int, 'configured': int, 'attributes': []}, ...]}
+		     'sensors': array[{'sensorname': string, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': string, 'enabled': int, 'configured': int, 'units': [], 'formats': [], 'attributes': []}, ...]}
 		   { 'status': 'NG', 'message': string}
 		   // timestamp refers to the epoch time the sensor was registered/added
 
