@@ -88,6 +88,12 @@ def login():
         return response, status.HTTP_401_UNAUTHORIZED
     print('login username={} password={}'.format(username, password))
 
+    # TODO: Temporary code for blocking
+    if True:
+        if username == " prabhakarandharma@gmail.com":
+            response = json.dumps({'status': 'NG', 'message': 'Temporarily blocked'})
+            return response, status.HTTP_401_UNAUTHORIZED
+
     # check if a parameter is empty
     if len(username) == 0 or len(password) == 0:
         response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
