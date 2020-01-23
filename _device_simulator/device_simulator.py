@@ -991,12 +991,12 @@ class TimerThread(threading.Thread):
                         i2c_class = g_device_classes[g_i2c_properties[x][y]["class"]]
                         if i2c_class == "potentiometer":
                             entry["address"] = int(y)
-                            entry["value"] = random.randint(0, 100)
+                            entry["value"] = random.randint(0, 255)
                             entry["class"] = g_i2c_properties[x][y]["class"]
                             entries.append(entry)
                         elif i2c_class == "temperature":
                             entry["address"] = int(y)
-                            entry["value"] = random.randint(0, 40)
+                            entry["value"] = float("{0:.1f}".format(random.uniform(0, 40)))
                             entry["class"] = g_i2c_properties[x][y]["class"]
                             entries.append(entry)
                 if len(entries):
@@ -1012,7 +1012,7 @@ class TimerThread(threading.Thread):
                     adc_class = g_device_classes[g_adc_properties[x]["class"]]
                     if (adc_class == "anemometer"):
                         entry = {}
-                        entry["value"] = random.randint(0, 100)
+                        entry["value"] = float("{0:.1f}".format(random.uniform(0, 100)))
                         entry["class"] = g_adc_properties[x]["class"]
                         if not sensors.get(adc):
                             sensors[adc] = []
@@ -1028,7 +1028,7 @@ class TimerThread(threading.Thread):
                     onewire_class = g_device_classes[g_1wire_properties[x]["class"]]
                     if (onewire_class == "temperature"):
                         entry = {}
-                        entry["value"] = random.randint(0, 40)
+                        entry["value"] = float("{0:.1f}".format(random.uniform(0, 40)))
                         entry["class"] = g_1wire_properties[x]["class"]
                         if not sensors.get(onewire):
                             sensors[onewire] = []
@@ -1048,12 +1048,12 @@ class TimerThread(threading.Thread):
 
                     if (tprobe_class == "temperature" and tprobe_subclass == "humidity"):
                         entry = {}
-                        entry["value"] = random.randint(0, 40)
+                        entry["value"] = float("{0:.1f}".format(random.uniform(0, 40)))
                         entry["class"] = g_tprobe_properties[x]["class"]
 
                         # handle subclass
                         entry["subclass"] = {}
-                        entry["subclass"]["value"] = random.randint(0, 100)
+                        entry["subclass"]["value"] = float("{0:.1f}".format(random.uniform(0, 100)))
                         entry["subclass"]["class"] = g_tprobe_properties[x]["subclass"]
 
                         g_tprobe_properties[x]["class"]
