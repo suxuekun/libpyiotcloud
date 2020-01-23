@@ -3409,7 +3409,7 @@ def register_xxx_sensor(devicename, xxx, number, sensorname):
                 print('\r\nERROR Add {} Sensor: Sensor address is already taken [{},{},{}]\r\n'.format(xxx, username, devicename, data["address"]))
                 return response, status.HTTP_409_CONFLICT
 
-        if data["manufacturer"] is None or data["model"] is None or data["class"] is None or data["type"] is None or data["units"] is None or data["attributes"] is None:
+        if data["manufacturer"] is None or data["model"] is None or data["class"] is None or data["type"] is None or data["units"] is None or data["formats"] is None or data["attributes"] is None:
             response = json.dumps({'status': 'NG', 'message': 'Parameters not included'})
             print('\r\nERROR Add {} Sensor: Parameters not included [{},{}]\r\n'.format(xxx, username, devicename))
             return response, status.HTTP_400_BAD_REQUEST
