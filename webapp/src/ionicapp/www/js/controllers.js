@@ -2499,7 +2499,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
     var device_statuses = ["starting", "running", "restart", "restarting", "stop", "stopping", "stopped", "start"];
 
 
-    handle_error = function(error) {
+    $scope.handle_error = function(error) {
         if (error.data !== null) {
             console.log("ERROR: Failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
 
@@ -2521,10 +2521,10 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
 
     // GET STATUS
     $scope.getDevice = function(devicename) {
-        get_status(devicename);
+        $scope.get_status(devicename);
     };
 
-    get_status = function(devicename) {
+    $scope.get_status = function(devicename) {
         //
         // GET STATUS
         // - Request:
@@ -2549,20 +2549,39 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             });              
         })
         .catch(function (error) {
-            handle_error(error);
+            $scope.handle_error(error);
         }); 
     }; 
     
     
+
+    $scope.setDeviceGeneralSettings = function() {
+        console.log("setDeviceGeneralSettings=");
+        
+        var device_param = {
+            'username'     : $scope.data.username,
+            'token'        : $scope.data.token,
+            'devicename'   : $scope.data.devicename,
+            'deviceid'     : $scope.data.deviceid,
+            'serialnumber' : $scope.data.serialnumber,
+            'timestamp'    : $scope.data.timestamp,
+            'heartbeat'    : $scope.data.heartbeat,
+            'version'      : $scope.data.version,
+        };
+       
+        $state.go('deviceGeneralSettings', device_param);    
+    };
+
+
     
     // RESTART DEVICE/START DEVICE/STOP DEVICE
     $scope.setDevice = function(devicename, status) {
         console.log("devicename=" + $scope.data.devicename);
         status_index = device_statuses.indexOf(status);
-        set_status(devicename, { 'status': status_index }); 
+        $scope.set_status(devicename, { 'status': status_index }); 
     };
     
-    set_status = function(devicename, param) {
+    $scope.set_status = function(devicename, param) {
         //
         // SET STATUS for RESTART DEVICE/START DEVICE/STOP DEVICE
         // - Request:
@@ -2588,7 +2607,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             });            
         })
         .catch(function (error) {
-            handle_error(error);
+            $scope.handle_error(error);
         }); 
     };
     
@@ -2607,7 +2626,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             'devicestatus' : "Last active: " + $scope.data.heartbeat
         };
        
-        $state.go('configureDevice', device_param);    
+        $state.go('device', device_param);    
     };
 
 
@@ -2656,7 +2675,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             $state.go('menu.devices', {'username': $scope.data.username, 'token': $scope.data.token});
         })
         .catch(function (error) {
-            handle_error(error);
+            $scope.handle_error(error);
         });    
     };
     
@@ -2669,6 +2688,118 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         };
         $state.go('menu.devices', device_param, {reload: true});
     };
+}])
+   
+.controller('deviceGeneralSettingsCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+// You can include any angular dependencies as parameters for this function
+// TIP: Access Route Parameters for your page via $stateParams.parameterName
+
+
+function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token) {
+
+    var server = Server.rest_api;
+
+    $scope.data = {
+        'username'    : User.get_username(),
+        'token'       : User.get_token(),
+        'devicename'  : $stateParams.devicename,
+        'deviceid'    : $stateParams.deviceid,
+        'serialnumber': $stateParams.serialnumber,
+        'timestamp'   : $stateParams.timestamp,
+        'heartbeat'   : $stateParams.heartbeat,
+        'version'     : $stateParams.version
+    };
+
+    $scope.settings =  {
+        'sensorrate'  : 1,
+    };
+
+
+    // GET SETTINGS
+    $scope.getSettings = function(devicename) {
+        get_settings(devicename);
+    };
+
+    get_settings = function(devicename) {
+        //
+        // GET SETTINGS
+        // - Request:
+        //   GET /devices/device/<devicename>/settings
+        //   headers: {'Authorization': 'Bearer ' + token.access}
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string, 'value': { "sensorrate": int } }
+        //   { 'status': 'NG', 'message': string}
+        //        
+        $http({
+            method: 'GET',
+            url: server + '/devices/device/' + devicename + '/settings',
+            headers: {'Authorization': 'Bearer ' +  $scope.data.token.access}
+        })
+        .then(function (result) {
+            console.log(result.data);
+            $scope.settings = result.data.value;
+        })
+        .catch(function (error) {
+            handle_error(error);
+        }); 
+    }; 
+
+
+    // RESTART SETTINGS
+    $scope.setSettings = function(devicename) {
+        set_settings(devicename); 
+    };
+    
+    set_settings = function(devicename) {
+        //
+        // SET SETTINGS
+        // - Request:
+        //   POST /devices/device/<devicename>/settings
+        //   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+        //   data: { 'status': int }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string }
+        //   { 'status': 'NG', 'message': string }
+        //        
+        $http({
+            method: 'POST',
+            url: server + '/devices/device/' + devicename + '/settings',
+            headers: {'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json'},
+            data: $scope.settings
+        })
+        .then(function (result) {
+            console.log(result.data);
+            $ionicPopup.alert({
+                title: 'Device Settings',
+                template: 'Device settings has been applied successully!',
+            });            
+        })
+        .catch(function (error) {
+            handle_error(error);
+        }); 
+    };
+    
+    
+    $scope.exitPage = function() {
+        console.log("setDeviceGeneralSettings=");
+        
+        var device_param = {
+            'username'     : $scope.data.username,
+            'token'        : $scope.data.token,
+            'devicename'   : $scope.data.devicename,
+            'deviceid'     : $scope.data.deviceid,
+            'serialnumber' : $scope.data.serialnumber,
+            'timestamp'    : $scope.data.timestamp,
+            'heartbeat'    : $scope.data.heartbeat,
+            'version'      : $scope.data.version,
+        };
+       
+        $state.go('viewDevice', device_param);    
+    };
+    
+    $scope.getSettings($scope.data.devicename);
 }])
    
 .controller('deviceCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
@@ -2741,16 +2872,19 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
     };
 
 
-    handle_error = function(error) {
+    $scope.handle_error = function(error) {
         // Handle failed login
         if (error.data !== null) {
             console.log("ERROR: Control Device failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
 
+            console.log("aaaaa");
             if (error.data.message === "Token expired") {
+            console.log("bbbbbbbbbb");
                 Token.refresh({'username': $scope.data.username, 'token': $scope.data.token});
                 $scope.data.token = User.get_token();
             }
             
+            console.log("cccccccccc");
             if (error.status == 503) {
 /*                
                 if (error.data.value !== undefined) {
@@ -2767,6 +2901,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             else {
 //                $scope.data.devicestatus = "UNKNOWN";                
             }
+            console.log("ddddd");
         }
         else {
             console.log("ERROR: Server is down!"); 
@@ -2776,12 +2911,12 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
 
 
     // GET STATUS
-    $scope.getStatus = function() {
-        get_status();
+    $scope.getStatus = function(devicename) {
+        $scope.get_status(devicename);
     };
 
-    get_status = function() {
-        console.log("get_status " + $scope.data.devicename);
+    $scope.get_status = function(devicename) {
+        console.log("get_status " + devicename);
         //$scope.data.devicestatus = 'Status: Detecting...';
         //
         // GET STATUS
@@ -2795,10 +2930,11 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         //        
         $http({
             method: 'GET',
-            url: server + '/devices/device/' + $scope.data.devicename + '/status',
+            url: server + '/devices/device/' + devicename + '/status',
             headers: {'Authorization': 'Bearer ' +  $scope.data.token.access}
         })
         .then(function (result) {
+            console.log("OK XXXXXXXXXXXXXXXXXXX");
             console.log(result.data);
             $scope.data.status = 'Online';
             if (result.data.value !== undefined) {
@@ -2806,19 +2942,20 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             }
         })
         .catch(function (error) {
+            console.log("ERRORXXXXXXXXXXXXXXXXXXXXXXXXXXX");
+            console.log($scope.data);
             $scope.data.status = 'Offline';
-            handle_error(error);
-            console.log(error.data.value);
+            $scope.handle_error(error);
         }); 
     };   
 
 
     // GET DEVICE
     $scope.getDevice = function(devicename) {
-        get_device(devicename);
+        $scope.get_device(devicename);
     };  
     
-    get_device = function(devicename) {
+    $scope.get_device = function(devicename) {
         console.log("get_device " + devicename);
         console.log("get_device " + $scope.data.devicename);
         console.log("get_device " + $stateParams.devicename);
@@ -2863,7 +3000,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             $state.go('viewDevice', device_param, {reload:true});
         })
         .catch(function (error) {
-            handle_error(error);
+            $scope.handle_error(error);
         });         
     };
 
@@ -2878,7 +3015,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
     };
    
     $scope.$on('$ionicView.enter', function(e) {
-        $scope.getStatus();
+        $scope.getStatus($scope.data.devicename);
     });   
    
     
@@ -7228,8 +7365,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
     var server = Server.rest_api;
 
     $scope.colorusages = [
-        { "id":0,  "label": "RGB as single unit"   },
-        { "id":1,  "label": "RGB as individual units" },
+        { "id":0,  "label": "RGB as color"     },
+        { "id":1,  "label": "RGB as component" },
     ];
 
 

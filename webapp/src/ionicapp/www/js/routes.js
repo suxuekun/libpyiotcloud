@@ -189,6 +189,22 @@ angular.module('app.routes', [])
     controller: 'viewDeviceCtrl'
   })
 
+  .state('deviceGeneralSettings', {
+    url: '/page_device_general_settings',
+	params: {
+		username: "",
+		token: "",
+		devicename: "",
+		deviceid: "",
+		serialnumber: "",
+		timestamp: "",
+		heartbeat: "",
+		version: ""		
+},
+    templateUrl: 'templates/deviceGeneralSettings.html',
+    controller: 'deviceGeneralSettingsCtrl'
+  })
+
   .state('device', {
     url: '/page_control_device',
 	params: {
