@@ -10672,6 +10672,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             "class": "speaker",
             "type": "output",
             "units": [],
+            "formats": [],
             "addresses": { "default": 0x30, "max": 0x36 },
             "attributes": [],
         },
@@ -10684,6 +10685,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             "class": "display",
             "type": "output",
             "units": [],
+            "formats": [],
             "addresses": { "default": 0x14, "max": 0x1A },
             "attributes": [],
         },
@@ -10696,6 +10698,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             "class": "light",
             "type": "output",
             "units": [],
+            "formats": [],
             "addresses": { "default": 0x08, "max": 0x0F },
             "attributes": [],
         },
@@ -10707,7 +10710,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             "link": "https://electricdollarstore.com/pot.html",
             "class": "potentiometer",
             "type": "input",
-            "units": ["%"],
+            "units": [""],
+            "formats": ["int"],
             "addresses": { "default": 0x28, "max": 0x2F },
             "attributes": ["Range"],
         },
@@ -10720,6 +10724,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             "class": "temperature",
             "type": "input",
             "units": ["C"],
+            "formats": ["float"],
             "addresses": { "default": 0x48, "max": 0x4F },
             "attributes": ["Temperature"],
         },
@@ -10748,6 +10753,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             'class' : $scope.devicemodels[0].class,
             'type'  : $scope.devicetypes[0].type,
             'units' : $scope.devicetypes[0].units,
+            'formats' : $scope.devicetypes[0].formats,
             "addresses": $scope.devicetypes[0].addresses,
             'attributes' : $scope.devicemodels[0].attributes,
         }
@@ -10770,6 +10776,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         $scope.data.i2c.class        = $scope.devicemodels[$scope.data.i2c.devicemodelid].class;
         $scope.data.i2c.type         = $scope.devicemodels[$scope.data.i2c.devicemodelid].type;
         $scope.data.i2c.units        = $scope.devicemodels[$scope.data.i2c.devicemodelid].units;
+        $scope.data.i2c.formats      = $scope.devicemodels[$scope.data.i2c.devicemodelid].formats;
         $scope.data.i2c.addresses    = $scope.devicemodels[$scope.data.i2c.devicemodelid].addresses;
         $scope.data.i2c.attributes   = $scope.devicemodels[$scope.data.i2c.devicemodelid].attributes;
         
@@ -10872,6 +10879,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             "class": "anemometer",
             "type": "input",
             "units": ["m/s"],
+            "formats": ["float"],
             "attributes": ["Wind Speed"],
         }
     ];
@@ -10899,6 +10907,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             'class' : $scope.devicemodels[0].class,
             'type'  : $scope.devicetypes[0].type,
             'units' : $scope.devicemodels[0].units,
+            'formats' : $scope.devicemodels[0].formats,
             'attributes' : $scope.devicemodels[0].attributes,
         }
     };
@@ -10915,6 +10924,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         $scope.data.adc.class        = $scope.devicemodels[$scope.data.adc.devicemodelid].class;
         $scope.data.adc.type         = $scope.devicemodels[$scope.data.adc.devicemodelid].type;
         $scope.data.adc.units        = $scope.devicemodels[$scope.data.adc.devicemodelid].units;
+        $scope.data.adc.formats      = $scope.devicemodels[$scope.data.adc.devicemodelid].formats;
         $scope.data.adc.attributes   = $scope.devicemodels[$scope.data.adc.devicemodelid].attributes;
         
         $state.go('addADCDeviceDetails', $scope.data);        
@@ -11016,6 +11026,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             "class": "temperature",
             "type": "input",
             "units": ["C", "%"],
+            "formats": ["float", "float"],
             "attributes": ["Temperature"],
             "subclass": "humidity",
             "subattributes": ["Humidity"],
@@ -11045,6 +11056,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             'class' : $scope.devicemodels[0].class,
             'type'  : $scope.devicetypes[0].type,
             'units' : $scope.devicemodels[0].units,
+            'formats' : $scope.devicemodels[0].formats,
             'attributes' : $scope.devicemodels[0].attributes,
         }
     };
@@ -11061,6 +11073,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         $scope.data.tprobe.class        = $scope.devicemodels[$scope.data.tprobe.devicemodelid].class;
         $scope.data.tprobe.type         = $scope.devicemodels[$scope.data.tprobe.devicemodelid].type;
         $scope.data.tprobe.units        = $scope.devicemodels[$scope.data.tprobe.devicemodelid].units;
+        $scope.data.tprobe.formats      = $scope.devicemodels[$scope.data.tprobe.devicemodelid].formats;
         $scope.data.tprobe.attributes   = $scope.devicemodels[$scope.data.tprobe.devicemodelid].attributes;
 
         // handle multiclass
@@ -11176,6 +11189,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             "class": "temperature",
             "type": "input",
             "units": ["C"],
+            "formats": ["float"],
             "attributes": ["Temperature"],
         }
     ];
@@ -11203,6 +11217,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             'type'  : $scope.devicetypes[0].type,
             'class' : $scope.devicemodels[0].class,
             'units' : $scope.devicemodels[0].units,
+            'formats' : $scope.devicemodels[0].formats,
             'attributes' : $scope.devicemodels[0].attributes,
         }
     };
@@ -11219,6 +11234,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         $scope.data.onewire.class        = $scope.devicemodels[$scope.data.onewire.devicemodelid].class;
         $scope.data.onewire.type         = $scope.devicemodels[$scope.data.onewire.devicemodelid].type;
         $scope.data.onewire.units        = $scope.devicemodels[$scope.data.onewire.devicemodelid].units;
+        $scope.data.onewire.formats      = $scope.devicemodels[$scope.data.onewire.devicemodelid].formats;
         $scope.data.onewire.attributes   = $scope.devicemodels[$scope.data.onewire.devicemodelid].attributes;
         
         $state.go('add1WIREDeviceDetails', $scope.data);        
@@ -11321,6 +11337,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             'class': $stateParams.i2c.class,
             'type': $stateParams.i2c.type,
             'units': $stateParams.i2c.units,
+            'formats': $stateParams.i2c.formats,
             'addresses': $stateParams.i2c.addresses,
             'attributes': $stateParams.i2c.attributes,
             //'name': $stateParams.i2c.name,
@@ -11387,6 +11404,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         console.log($scope.data.sensor.class);
         console.log($scope.data.sensor.type);
         console.log($scope.data.sensor.units);
+        console.log($scope.data.sensor.formats);
         console.log($scope.data.sensor.attributes);
         
         // Address must be within the address range
@@ -11492,6 +11510,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             'class': $stateParams.adc.class,
             'type': $stateParams.adc.type,
             'units': $stateParams.adc.units,
+            'formats': $stateParams.adc.formats,
             'attributes': $stateParams.adc.attributes,
             //'name': $stateParams.adc.name,
             //'desc': $stateParams.adc.desc,
@@ -11546,6 +11565,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         console.log($scope.data.sensor.class);
         console.log($scope.data.sensor.type);
         console.log($scope.data.sensor.units);
+        console.log($scope.data.sensor.formats);
         console.log($scope.data.sensor.attributes);
         //console.log($scope.data.sensor.name);
         //console.log($scope.data.sensor.desc);
@@ -11643,6 +11663,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             'class': $stateParams.tprobe.class,
             'type': $stateParams.tprobe.type,
             'units': $stateParams.tprobe.units,
+            'formats': $stateParams.tprobe.formats,
             'attributes': $stateParams.tprobe.attributes,
             
             'subclass': $stateParams.tprobe.subclass,
@@ -11701,6 +11722,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         console.log($scope.data.sensor.class);
         console.log($scope.data.sensor.type);
         console.log($scope.data.sensor.units);
+        console.log($scope.data.sensor.formats);
         console.log($scope.data.sensor.attributes);
         
         // handle multiclass
@@ -11803,6 +11825,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             'class': $stateParams.onewire.class,
             'type': $stateParams.onewire.type,
             'units': $stateParams.onewire.units,
+            'formats': $stateParams.onewire.formats,
             'attributes': $stateParams.onewire.attributes,
             //'name': $stateParams.onewire.name,
             //'desc': $stateParams.onewire.desc,
@@ -11857,6 +11880,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         console.log($scope.data.sensor.class);
         console.log($scope.data.sensor.type);
         console.log($scope.data.sensor.units);
+        console.log($scope.data.sensor.formats);
         console.log($scope.data.sensor.attributes);
         //console.log($scope.data.sensor.name);
         //console.log($scope.data.sensor.desc);
