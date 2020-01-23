@@ -88,12 +88,6 @@ def login():
         return response, status.HTTP_401_UNAUTHORIZED
     print('login username={} password={}'.format(username, password))
 
-    # TODO: Temporary code for blocking
-    if True:
-        if username == " prabhakarandharma@gmail.com":
-            response = json.dumps({'status': 'NG', 'message': 'Temporarily blocked'})
-            return response, status.HTTP_401_UNAUTHORIZED
-
     # check if a parameter is empty
     if len(username) == 0 or len(password) == 0:
         response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
@@ -3111,6 +3105,12 @@ def get_all_device_sensors_enabled_input_readings(devicename):
         print('\r\nERROR Get All Device Sensors: Token expired\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
     #print('get_all_device_sensors_enabled_input {} devicename={}'.format(username, devicename))
+
+    # TODO: Temporary code for blocking
+    if True:
+        if username == " prabhakarandharma@gmail.com":
+            response = json.dumps({'status': 'NG', 'message': 'Temporarily blocked'})
+            return response, status.HTTP_401_UNAUTHORIZED
 
     # check if a parameter is empty
     if len(username) == 0 or len(token) == 0:
