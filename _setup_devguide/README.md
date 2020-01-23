@@ -1980,6 +1980,7 @@ DETAILED:
 		   //   notification refers to the the same notification settings in GPIO
 		   //   hardware
 		   //     appears when mode is continuous
+		   //   subattributes is optional only appears if the device class has a subclass
 		   //
 		-  Response:
 		   { 'status': 'OK', 'message': string}
@@ -2024,6 +2025,7 @@ DETAILED:
 		   //   notification refers to the the same notification settings in GPIO
 		   //   hardware
 		   //     appears when mode is continuous
+		   //   subattributes is optional only appears if the device class has a subclass
 		   //
 		   { 'status': 'NG', 'message': string}
 
