@@ -197,56 +197,147 @@ Menu, account, history
        - Webapp compiled for Android using Ionic but requiring Android Studio/SDK 
        
 
-### REST APIs for User Sign-up/Sign-In
+### REST APIs
 
-    1. /user/sign_up
-       - requires username, password, email, firstname, lastname
-       - confirmation code will be sent to email
-    2. /user/confirm_sign_up
-       - requires username, confirmation
-    3. /user/login
-       - requires username, password
-       - returns access_token
-    4. /user/logout
-       - requires username, access key
-    5. /user/forgot_password
-       - requires email address
-       - confirmation code will be sent to email
-    6. /user/confirm_forgot_password
-       - requires username, new password, confirmation code
+    1. User sign-up/sign-in APIs
+        A. SIGN-UP                        - POST   /user/signup
+        B. CONFIRM SIGN-UP                - POST   /user/confirm_signup
+        C. RESEND CONFIRMATION CODE       - POST   /user/resend_confirmation_code
+        D. FORGOT PASSWORD                - POST   /user/forgot_password
+        E. CONFIRM FORGOT PASSWORD        - POST   /user/confirm_forgot_password
+        F. LOGIN                          - POST   /user/login
+        G. LOGOUT                         - POST   /user/logout
+        H. GET USER INFO                  - GET    /user
+        I. UPDATE USER INFO               - POST   /user
+        J. DELETE USER                    - DELETE /user
+        K. REFRESH USER TOKEN             - POST   /user/token
+        L. VERIFY PHONE NUMBER            - POST   /user/verify_phone_number
+        M. CONFIRM VERIFY PHONE NUMBER    - POST   /user/confirm_verify_phone_number
+        N. CHANGE PASSWORD                - POST   /user/change_password
 
-User login returns an access token that must be used in succeeding API requests.
+    2. Device registration and management APIs
+        A. GET DEVICES                    - GET    /devices
+        B. GET DEVICES FILTERED           - GET    /devices/filter/FILTERSTRING
+        C. ADD DEVICE                     - POST   /devices/device/DEVICENAME
+        D. DELETE DEVICE                  - DELETE /devices/device/DEVICENAME
+        E. GET DEVICE                     - GET    /devices/device/DEVICENAME
 
+    3. Device access and control APIs (STATUS, UART, GPIO)
+        // status
+        A. GET STATUS                     - GET    /devices/device/DEVICENAME/status
+        B. SET STATUS                     - POST   /devices/device/DEVICENAME/status
+        // settings
+        C. GET SETTINGS                   - GET    /devices/device/DEVICENAME/settings
+        D. SET SETTINGS                   - POST   /devices/device/DEVICENAME/settings
+        // uart
+        E. GET UARTS                      - GET    /devices/device/DEVICENAME/uarts
+        F. GET UART PROPERTIES            - GET    /devices/device/DEVICENAME/uart/properties
+        G. SET UART PROPERTIES            - POST   /devices/device/DEVICENAME/uart/properties
+        H. ENABLE/DISABLE UART            - POST   /devices/device/DEVICENAME/uart/enable
+        // gpio
+        I. GET GPIOS                      - GET    /devices/device/DEVICENAME/gpios
+        J. GET GPIO PROPERTIES            - GET    /devices/device/DEVICENAME/gpio/NUMBER/properties
+        K. SET GPIO PROPERTIES            - POST   /devices/device/DEVICENAME/gpio/NUMBER/properties
+        L. ENABLE/DISABLE GPIO            - POST   /devices/device/DEVICENAME/gpio/NUMBER/enable
+        M. GET GPIO VOLTAGE               - GET    /devices/device/DEVICENAME/gpio/voltage
+        N. SET GPIO VOLTAGE               - POST   /devices/device/DEVICENAME/gpio/voltage
+           (NUMBER can be 1-4 only and corresponds to GPIO1,GPIO2,GPIO3,GPIO4)
+        // sensor readings (for dashboard)
+        O. GET PERIPHERAL SENSOR READINGS    - GET    /devices/device/DEVICENAME/sensors/readings
+        P. DELETE PERIPHERAL SENSOR READINGS - DELETE /devices/device/DEVICENAME/sensors/readings
 
-### REST APIs for Device Registration/Management
+    4. Device access and control APIs (I2C)
+        A. ADD I2C DEVICE                 - POST   /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME
+        B. DELETE I2C DEVICE              - DELETE /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME
+        C. GET I2C DEVICE                 - GET    /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME
+        D. GET I2C DEVICES                - GET    /devices/device/DEVICENAME/i2c/NUMBER/sensors
+        E. GET ALL I2C DEVICES            - GET    /devices/device/DEVICENAME/i2c/sensors
+        F. GET ALL I2C INPUT DEVICES      - GET    /devices/device/DEVICENAME/i2c/sensors/input
+        G. GET ALL I2C OUTPUT DEVICES     - GET    /devices/device/DEVICENAME/i2c/sensors/output
+        H. SET I2C DEVICE PROPERTIES      - POST   /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME/properties
+        I. GET I2C DEVICE PROPERTIES      - GET    /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME/properties
+        J. ENABLE/DISABLE I2C DEVICE      - POST   /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME/enable
+        K. GET I2C DEVICE READINGS        - GET    /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME/readings
+        L. DELETE I2C DEVICE READINGS     - DELETE /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME/readings
+        M. GET I2C DEVICES READINGS       - GET    /devices/device/DEVICENAME/i2c/NUMBER/sensors/readings
+        N. DELETE I2C DEVICES READINGS    - DELETE /devices/device/DEVICENAME/i2c/NUMBER/sensors/readings
+           (NUMBER can be 1-4 only and corresponds to I2C1,I2C2,I2C3,I2C4)
 
-Device registration APIs requires username and access token returned by login.
+    5. Device access and control APIs (ADC)
+        A. ADD ADC DEVICE                 - POST   /devices/device/DEVICENAME/adc/NUMBER/sensors/sensor/SENSORNAME
+        B. DELETE ADC DEVICE              - DELETE /devices/device/DEVICENAME/adc/NUMBER/sensors/sensor/SENSORNAME
+        C. GET ADC DEVICE                 - GET    /devices/device/DEVICENAME/adc/NUMBER/sensors/sensor/SENSORNAME
+        D. GET ADC DEVICES                - GET    /devices/device/DEVICENAME/adc/NUMBER/sensors
+        E. GET ALL ADC DEVICES            - GET    /devices/device/DEVICENAME/adc/sensors
+        F. SET ADC DEVICE PROPERTIES      - POST   /devices/device/DEVICENAME/adc/NUMBER/sensors/sensor/SENSORNAME/properties
+        G. GET ADC DEVICE PROPERTIES      - GET    /devices/device/DEVICENAME/adc/NUMBER/sensors/sensor/SENSORNAME/properties
+        H. ENABLE/DISABLE ADC DEVICE      - POST   /devices/device/DEVICENAME/adc/NUMBER/sensors/sensor/SENSORNAME/enable
+        I. GET ADC DEVICE READINGS        - GET    /devices/device/DEVICENAME/adc/NUMBER/sensors/sensor/SENSORNAME/readings
+        J. DELETE ADC DEVICE READINGS     - DELETE /devices/device/DEVICENAME/adc/NUMBER/sensors/sensor/SENSORNAME/readings
+        K. GET ADC DEVICES READINGS       - GET    /devices/device/DEVICENAME/adc/NUMBER/sensors/readings
+        L. DELETE ADC DEVICES READINGS    - DELETE /devices/device/DEVICENAME/adc/NUMBER/sensors/readings
+           (NUMBER can be 1-2 only and corresponds to ADC1,ADC2)
+        M. GET ADC VOLTAGE                - GET    /devices/device/DEVICENAME/adc/voltage
+        N. SET ADC VOLTAGE                - POST   /devices/device/DEVICENAME/adc/voltage
 
-    1. /devices/register_device
-       - requires username, access_token, devicename
-       - returns deviceid, rootca, devicecert, devicepkey
-         which shall be used on the actual microcontroller device
-    2. /devices/unregister_device
-       - requires username, access_token, devicename
-    3. /devices/get_device_list
-       - requires username, access_token
-       - returns device info [devicename, deviceid, rootca, devicecert, devicepkey for all devices registered by user]
-    4. /devices/get_device_list_count
-       - requires username, access_token
-       - returns length of device list
-    5. /devices/get_device_index
-       - requires username, access_token, index
-       - returns device info for device[index]
+    6. Device access and control APIs (1WIRE)
+        A. ADD 1WIRE DEVICE               - POST   /devices/device/DEVICENAME/1wire/NUMBER/sensors/sensor/SENSORNAME
+        B. DELETE 1WIRE DEVICE            - DELETE /devices/device/DEVICENAME/1wire/NUMBER/sensors/sensor/SENSORNAME
+        C. GET 1WIRE DEVICE               - GET    /devices/device/DEVICENAME/1wire/NUMBER/sensors/sensor/SENSORNAME
+        D. GET 1WIRE DEVICES              - GET    /devices/device/DEVICENAME/1wire/NUMBER/sensors
+        E. GET ALL 1WIRE DEVICES          - GET    /devices/device/DEVICENAME/1wire/sensors
+        F. SET 1WIRE DEVICE PROPERTIES    - POST   /devices/device/DEVICENAME/1wire/NUMBER/sensors/sensor/SENSORNAME/properties
+        G. GET 1WIRE DEVICE PROPERTIES    - GET    /devices/device/DEVICENAME/1wire/NUMBER/sensors/sensor/SENSORNAME/properties
+        H. ENABLE/DISABLE 1WIRE DEVICE    - POST   /devices/device/DEVICENAME/1wire/NUMBER/sensors/sensor/SENSORNAME/enable
+        I. GET 1WIRE DEVICE READINGS      - GET    /devices/device/DEVICENAME/1wire/NUMBER/sensors/sensor/SENSORNAME/readings
+        J. DELETE 1WIRE DEVICE READINGS   - DELETE /devices/device/DEVICENAME/1wire/NUMBER/sensors/sensor/SENSORNAME/readings
+        K. GET 1WIRE DEVICES READINGS     - GET    /devices/device/DEVICENAME/1wire/NUMBER/sensors/readings
+        L. DELETE 1WIRE DEVICES READINGS  - DELETE /devices/device/DEVICENAME/1wire/NUMBER/sensors/readings
+           (NUMBER will always be 1 since there is only 1 1wire)
 
-### REST APIs for Device Access/Control
+    7. Device access and control APIs (TPROBE)
+        A. ADD TPROBE DEVICE              - POST   /devices/device/DEVICENAME/tprobe/NUMBER/sensors/sensor/SENSORNAME
+        B. DELETE TPROBE DEVICE           - DELETE /devices/device/DEVICENAME/tprobe/NUMBER/sensors/sensor/SENSORNAME
+        C. GET TPROBE DEVICE              - GET    /devices/device/DEVICENAME/tprobe/NUMBER/sensors/sensor/SENSORNAME
+        D. GET TPROBE DEVICES             - GET    /devices/device/DEVICENAME/tprobe/NUMBER/sensors
+        E. GET ALL TPROBE DEVICES         - GET    /devices/device/DEVICENAME/tprobe/sensors
+        F. SET TPROBE DEVICE PROPERTIES   - POST   /devices/device/DEVICENAME/tprobe/NUMBER/sensors/sensor/SENSORNAME/properties
+        G. GET TPROBE DEVICE PROPERTIES   - GET    /devices/device/DEVICENAME/tprobe/NUMBER/sensors/sensor/SENSORNAME/properties
+        H. ENABLE/DISABLE TPROBE DEVICE   - POST   /devices/device/DEVICENAME/tprobe/NUMBER/sensors/sensor/SENSORNAME/enable
+        I. GET TPROBE DEVICE READINGS     - GET    /devices/device/DEVICENAME/tprobe/NUMBER/sensors/sensor/SENSORNAME/readings
+        J. DELETE TPROBE DEVICE READINGS  - DELETE /devices/device/DEVICENAME/tprobe/NUMBER/sensors/sensor/SENSORNAME/readings
+        K. GET TPROBE DEVICES READINGS    - GET    /devices/device/DEVICENAME/tprobe/NUMBER/sensors/readings
+        L. DELETE TPROBE DEVICES READINGS - DELETE /devices/device/DEVICENAME/tprobe/NUMBER/sensors/readings
+           (NUMBER will always be 1 since there is only 1 tprobe)
 
-Device access APIs requires username, devicename and access token returned by login.
+    8. Device transaction recording APIs
+        A. GET HISTORIES                  - GET    /devices/histories
+        B. GET HISTORIES FILTERED         - POST   /devices/histories
+           (filter by device name, direction, topic, date start, date end)
 
-    1. /devices/device/gpio
-    2. /devices/device/rtc
-    3. /devices/device/ethernet
-    4. /devices/device/uart
-    5. /devices/device/notifications
+    9. Account subscription and payment APIs
+        A. GET SUBSCRIPTION               - GET    /account/subscription
+        B. SET SUBSCRIPTION               - POST   /account/subscription
+        C. PAYPAL SETUP                   - POST   /account/payment/paypalsetup
+        D. PAYPAL EXECUTE                 - POST   /account/payment/paypalexecute
+        E. PAYPAL VERIFY                  - POST   /account/payment/paypalverify
+
+    10. Supported devices
+        A. GET SUPPORTED I2C DEVICES      - GET    /others/i2cdevices [OBSOLETED, use GET SUPPORTED SENSOR DEVICES instead]
+        B. GET SUPPORTED SENSOR DEVICES   - GET    /others/sensordevices
+
+    11. Others
+        A. SEND FEEDBACK                  - POST   /others/feedback
+        B. GET FAQS                       - GET    /others/faqs
+        C. GET ABOUT                      - GET    /others/about
+
+    12. HTTP error codes
+        A. HTTP_400_BAD_REQUEST           - Invalid input
+        B. HTTP_401_UNAUTHORIZED          - Invalid password or invalid/expired token
+        C. HTTP_404_NOT_FOUND             - User or device not found
+        D. HTTP_409_CONFLICT              - User or device already exist
+        E. HTTP_500_INTERNAL_SERVER_ERROR - Internal processing error or 3rd-party API failure
+        F. HTTP_503_SERVICE_UNAVAILABLE   - Device is offline/unreachable
 
 
 ### Device settings for MQTT/AMQP Connectivity
