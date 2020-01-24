@@ -10286,15 +10286,26 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
     $scope.submitRefresh = function() {
         console.log("submitRefresh");
         console.log($scope.data.attributes);
-        get_i2c_device_properties();
+        if ($scope.data.source === "I2C") {
+            get_xxx_device_properties("i2c");
+        }
+        else if ($scope.data.source === "ADC") {
+            get_xxx_device_properties("adc");
+        }
+        else if ($scope.data.source === "TPROBE") {
+            get_xxx_device_properties("tprobe");
+        }
+        else if ($scope.data.source === "1WIRE") {
+            get_xxx_device_properties("1wire");
+        }
     };
 
-    get_i2c_device_properties = function() {
+    get_xxx_device_properties = function(peripheral) {
         //
-        // GET I2C DEVICE PROPERTIES
+        // GET XXX DEVICE PROPERTIES
         //
         // - Request:
-        //   GET /devices/device/<devicename>/i2c/<number>/sensors/sensor/<sensorname>/properties
+        //   GET /devices/device/<devicename>/<peripheral>/<number>/sensors/sensor/<sensorname>/properties
         //   headers: { 'Authorization': 'Bearer ' + token.access }
         //
         // - Response:
@@ -10303,7 +10314,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         //
         $http({
             method: 'GET',
-            url: server + '/devices/device/' + $scope.data.devicename + '/i2c/' + $scope.data.sensor.number.toString() + '/sensors/sensor/' + $scope.data.sensor.sensorname + '/properties',
+            url: server + '/devices/device/' + $scope.data.devicename + '/' + peripheral + '/' + $scope.data.sensor.number.toString() + '/sensors/sensor/' + $scope.data.sensor.sensorname + '/properties',
             headers: { 'Authorization': 'Bearer ' + $scope.data.token.access },
         })
         .then(function (result) {
@@ -10360,15 +10371,28 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             $scope.data.attributes.alert.type = 1; // always be continuous
         }
 
-        set_i2c_properties();
+
+        if ($scope.data.source === "I2C") {
+            set_xxx_device_properties("i2c");
+        }
+        else if ($scope.data.source === "ADC") {
+            set_xxx_device_properties("adc");
+        }
+        else if ($scope.data.source === "TPROBE") {
+            set_xxx_device_properties("tprobe");
+        }
+        else if ($scope.data.source === "1WIRE") {
+            set_xxx_device_properties("1wire");
+        }
+
     };
 
-    set_i2c_properties = function() {
+    set_xxx_device_properties = function(peripheral) {
         //
-        // SET I2C PROPERTIES
+        // SET XXX DEVICE PROPERTIES
         //
         // - Request:
-        //   POST /devices/device/<devicename>/i2c/<number>/sensors/sensor/<sensorname>/properties
+        //   POST /devices/device/<devicename>/<peripheral>/<number>/sensors/sensor/<sensorname>/properties
         //   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
         //   data: 
         //   { 
@@ -10385,7 +10409,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         //
         $http({
             method: 'POST',
-            url: server + '/devices/device/' + $scope.data.devicename + '/i2c/' + $scope.data.sensor.number.toString() + '/sensors/sensor/' + $scope.data.sensor.sensorname + '/properties',
+            url: server + '/devices/device/' + $scope.data.devicename + '/' + peripheral + '/' + $scope.data.sensor.number.toString() + '/sensors/sensor/' + $scope.data.sensor.sensorname + '/properties',
             headers: { 'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json' },
             data: $scope.data.attributes
         })
@@ -11052,6 +11076,18 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             "units": ["m/s"],
             "formats": ["float"],
             "attributes": ["Wind Speed"],
+        },
+        { 
+            "id":1,  
+            "model": "ADC Potentiometer", 
+            "name": "ADC Potentiometer", 
+            "desc": "Input range device",
+            "link": "https://lollette.com/support/pdf/Sensor/QS-FS-en.pdf",
+            "class": "potentiometer",
+            "type": "input",
+            "units": [""],
+            "formats": ["int"],
+            "attributes": ["Range"],
         }
     ];
     $scope.devicemodels = $scope.devicemodels_unk;
