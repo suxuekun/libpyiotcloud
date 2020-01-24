@@ -980,6 +980,17 @@ def process_start():
         print("Device started successfully!\n")
 
 
+def get_random_data(peripheral_class):
+    if peripheral_class == "potentiometer":
+        return random.randint(0, 255)
+    elif peripheral_class == "temperature":
+        return float("{0:.1f}".format(random.uniform(0, 40)))
+    elif peripheral_class == "anemometer":
+        return float("{0:.1f}".format(random.uniform(0, 100)))
+    elif peripheral_class == "humidity":
+        return float("{0:.1f}".format(random.uniform(0, 100)))
+
+
 class TimerThread(threading.Thread):
 
     def __init__(self, event, timeout):
@@ -1026,14 +1037,9 @@ class TimerThread(threading.Thread):
                     # i2c device class should be of type INPUT
                     if (int(y) > 0 and g_i2c_properties[x][y]["enabled"]):
                         i2c_class = g_device_classes[g_i2c_properties[x][y]["class"]]
-                        if i2c_class == "potentiometer":
+                        if i2c_class == "potentiometer" or i2c_class == "temperature":
                             entry["address"] = int(y)
-                            entry["value"] = random.randint(0, 255)
-                            entry["class"] = g_i2c_properties[x][y]["class"]
-                            entries.append(entry)
-                        elif i2c_class == "temperature":
-                            entry["address"] = int(y)
-                            entry["value"] = float("{0:.1f}".format(random.uniform(0, 40)))
+                            entry["value"] = get_random_data(i2c_class)
                             entry["class"] = g_i2c_properties[x][y]["class"]
                             entries.append(entry)
                 if len(entries):
@@ -1047,9 +1053,9 @@ class TimerThread(threading.Thread):
                 # adc device should be enabled
                 if (g_adc_properties[x]["enabled"]):
                     adc_class = g_device_classes[g_adc_properties[x]["class"]]
-                    if (adc_class == "anemometer"):
+                    if adc_class == "anemometer" or adc_class == "potentiometer":
                         entry = {}
-                        entry["value"] = float("{0:.1f}".format(random.uniform(0, 100)))
+                        entry["value"] = get_random_data(adc_class)
                         entry["class"] = g_adc_properties[x]["class"]
                         if not sensors.get(adc):
                             sensors[adc] = []
@@ -1063,9 +1069,9 @@ class TimerThread(threading.Thread):
                 # 1wire device should be enabled
                 if (g_1wire_properties[x]["enabled"]):
                     onewire_class = g_device_classes[g_1wire_properties[x]["class"]]
-                    if (onewire_class == "temperature"):
+                    if onewire_class == "temperature":
                         entry = {}
-                        entry["value"] = float("{0:.1f}".format(random.uniform(0, 40)))
+                        entry["value"] = get_random_data(onewire_class)
                         entry["class"] = g_1wire_properties[x]["class"]
                         if not sensors.get(onewire):
                             sensors[onewire] = []
@@ -1083,14 +1089,14 @@ class TimerThread(threading.Thread):
                     # handle subclass
                     tprobe_subclass = g_device_classes[g_tprobe_properties[x]["subclass"]]
 
-                    if (tprobe_class == "temperature" and tprobe_subclass == "humidity"):
+                    if tprobe_class == "temperature" and tprobe_subclass == "humidity":
                         entry = {}
-                        entry["value"] = float("{0:.1f}".format(random.uniform(0, 40)))
+                        entry["value"] = get_random_data(tprobe_class)
                         entry["class"] = g_tprobe_properties[x]["class"]
 
                         # handle subclass
                         entry["subclass"] = {}
-                        entry["subclass"]["value"] = float("{0:.1f}".format(random.uniform(0, 100)))
+                        entry["subclass"]["value"] = get_random_data(tprobe_subclass)
                         entry["subclass"]["class"] = g_tprobe_properties[x]["subclass"]
 
                         g_tprobe_properties[x]["class"]
