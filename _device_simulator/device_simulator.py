@@ -47,6 +47,7 @@ DEVICE_STATUS_STOPPING   = 5
 DEVICE_STATUS_STOPPED    = 6
 DEVICE_STATUS_START      = 7
 g_device_status = DEVICE_STATUS_RUNNING
+g_device_statuses = ["starting", "running", "restart", "restarting", "stop", "stopping", "stopped", "start"]
 
 # SETTINGS
 g_device_settings = { 'sensorrate': g_timer_thread_timeout }
@@ -260,15 +261,15 @@ def handle_api(api, subtopic, subpayload):
         if status == DEVICE_STATUS_RESTART:
             if g_device_status != DEVICE_STATUS_RESTARTING:
                 g_device_status = DEVICE_STATUS_RESTARTING
-                print("DEVICE_STATUS_RESTART")
+                print(g_device_statuses[g_device_status])
         elif status == DEVICE_STATUS_STOP:
             if g_device_status != DEVICE_STATUS_STOPPING and g_device_status != DEVICE_STATUS_STOPPED:
                 g_device_status = DEVICE_STATUS_STOPPING
-                print("DEVICE_STATUS_STOP")
+                print(g_device_statuses[g_device_status])
         elif status == DEVICE_STATUS_START:
             if g_device_status != DEVICE_STATUS_STARTING and g_device_status != DEVICE_STATUS_RUNNING:
                 g_device_status = DEVICE_STATUS_STARTING
-                print("DEVICE_STATUS_START")
+                print(g_device_statuses[g_device_status])
 
         payload = {}
         payload["value"] = {"status": g_device_status}
@@ -336,7 +337,7 @@ def handle_api(api, subtopic, subpayload):
     elif api == API_GET_SETTINGS:
         topic = generate_pubtopic(subtopic)
 
-        print("g_device_settings {}".format(g_device_settings))
+        #print("g_device_settings {}".format(g_device_settings))
 
         payload = {}
         payload["value"] = g_device_settings
@@ -347,7 +348,7 @@ def handle_api(api, subtopic, subpayload):
         subpayload = json.loads(subpayload)
 
         g_device_settings = subpayload
-        print("g_device_settings {}".format(g_device_settings))
+        #print("g_device_settings {}".format(g_device_settings))
         g_timer_thread_timeout = g_device_settings["sensorrate"]
         g_timer_thread.set_timeout(g_timer_thread_timeout)
 
@@ -367,7 +368,7 @@ def handle_api(api, subtopic, subpayload):
                 {'enabled': g_uart_enabled },
             ]
         }
-        print(g_uart_enabled)
+        #print(g_uart_enabled)
 
         payload = {}
         payload["value"] = value
@@ -378,12 +379,12 @@ def handle_api(api, subtopic, subpayload):
         subpayload = json.loads(subpayload)
 
         value = g_uart_properties
-        print(g_uart_properties)
-        print(g_uart_baudrate[g_uart_properties['baudrate']])
-        print(g_uart_parity[g_uart_properties['parity']])
-        print(g_uart_flowcontrol[g_uart_properties['flowcontrol']])
-        print(g_uart_stopbits[g_uart_properties['stopbits']])
-        print(g_uart_databits[g_uart_properties['databits']])
+        #print(g_uart_properties)
+        #print(g_uart_baudrate[g_uart_properties['baudrate']])
+        #print(g_uart_parity[g_uart_properties['parity']])
+        #print(g_uart_flowcontrol[g_uart_properties['flowcontrol']])
+        #print(g_uart_stopbits[g_uart_properties['stopbits']])
+        #print(g_uart_databits[g_uart_properties['databits']])
 
         payload = {}
         payload["value"] = value
@@ -392,7 +393,7 @@ def handle_api(api, subtopic, subpayload):
     elif api == API_SET_UART_PROPERTIES:
         topic = generate_pubtopic(subtopic)
         subpayload = json.loads(subpayload)
-        print(subpayload)
+        #print(subpayload)
 
         g_uart_properties = { 
             'baudrate': subpayload["baudrate"], 
@@ -401,12 +402,12 @@ def handle_api(api, subtopic, subpayload):
             'stopbits': subpayload["stopbits"],
             'databits': subpayload["databits"],
         }
-        print(g_uart_properties)
-        print(g_uart_baudrate[g_uart_properties['baudrate']])
-        print(g_uart_parity[g_uart_properties['parity']])
-        print(g_uart_flowcontrol[g_uart_properties['flowcontrol']])
-        print(g_uart_stopbits[g_uart_properties['stopbits']])
-        print(g_uart_databits[g_uart_properties['databits']])
+        #print(g_uart_properties)
+        #print(g_uart_baudrate[g_uart_properties['baudrate']])
+        #print(g_uart_parity[g_uart_properties['parity']])
+        #print(g_uart_flowcontrol[g_uart_properties['flowcontrol']])
+        #print(g_uart_stopbits[g_uart_properties['stopbits']])
+        #print(g_uart_databits[g_uart_properties['databits']])
 
         payload = {}
         publish(topic, payload)
@@ -414,10 +415,10 @@ def handle_api(api, subtopic, subpayload):
     elif api == API_ENABLE_UART:
         topic = generate_pubtopic(subtopic)
         subpayload = json.loads(subpayload)
-        print(subpayload)
+        #print(subpayload)
 
         g_uart_enabled = int(subpayload["enable"])
-        print(g_uart_enabled)
+        #print(g_uart_enabled)
 
         payload = {}
         publish(topic, payload)
@@ -439,7 +440,7 @@ def handle_api(api, subtopic, subpayload):
                 {'direction': g_gpio_properties[3]['direction'], 'status': g_gpio_status[3], 'enabled': g_gpio_enabled[3] }
             ]
         }
-        print(g_gpio_enabled)
+        #print(g_gpio_enabled)
 
         payload = {}
         payload["value"] = value
@@ -459,7 +460,7 @@ def handle_api(api, subtopic, subpayload):
     elif api == API_SET_GPIO_PROPERTIES:
         topic = generate_pubtopic(subtopic)
         subpayload = json.loads(subpayload)
-        print(subpayload)
+        #print(subpayload)
 
         number = int(subpayload["number"])-1
         g_gpio_properties[number] = { 
@@ -480,10 +481,10 @@ def handle_api(api, subtopic, subpayload):
     elif api == API_ENABLE_GPIO:
         topic = generate_pubtopic(subtopic)
         subpayload = json.loads(subpayload)
-        print(subpayload)
+        #print(subpayload)
 
         g_gpio_enabled[int(subpayload["number"])-1] = subpayload["enable"]
-        print(g_gpio_enabled)
+        #print(g_gpio_enabled)
 
         payload = {}
         publish(topic, payload)
@@ -494,15 +495,15 @@ def handle_api(api, subtopic, subpayload):
         payload = {}
         payload["value"] = {"voltage": g_gpio_voltage}
         publish(topic, payload)
-        print(g_gpio_voltages[g_gpio_voltage])
+        #print(g_gpio_voltages[g_gpio_voltage])
 
     elif api == API_SET_GPIO_VOLTAGE:
         topic = generate_pubtopic(subtopic)
         subpayload = json.loads(subpayload)
-        print(subpayload)
+        #print(subpayload)
 
         g_gpio_voltage = subpayload["voltage"]
-        print(g_gpio_voltages[g_gpio_voltage])
+        #print(g_gpio_voltages[g_gpio_voltage])
 
         payload = {}
         publish(topic, payload)
