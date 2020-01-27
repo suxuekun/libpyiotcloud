@@ -68,16 +68,17 @@ An alternative solution is using an AWS serverless solution wherein:
 ### High-level architecture diagram:
 <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/architecture.png" width="1000"/>
 
-8 docker containers and microservices
+9 docker containers and microservices
 
 1. <b>Webserver</b> - Nginx (contains SSL certificate; all requests go to NGINX; forwards HTTP requests to webapp or restapi)
 2. <b>Webapp</b> - Ionic (front-end web framework that can also be compiled for Android and iOS)
 3. <b>Restapi</b> - Flask with Gunicorn (back-end API called by web app and mobile apps)
 4. <b>Messaging</b> - RabbitMQ (device communicates w/RabbitMQ; web/mobile apps communicates to device via RabbitMQ)
 5. <b>Database</b> - MongoDB (database for storing device information for registered devices)
-6. <b>Notification</b> (handles sending of messages to email/SMS recipients)
-7. <b>Historian</b> (handles saving of device requests and responses for each devices of all users)
-8. <b>Sensorian</b> (handles saving of sensor readings for each devices of all users)
+6. <b>Notification</b> - handles sending of messages to email/SMS recipients
+7. <b>Historian</b> - handles saving of device requests and responses for each devices of all users
+8. <b>Sensorian</b> - handles saving of sensor readings for each devices of all users
+9. <b>Configuration</b> - handles providing of device configuration for each devices during device bootup
 
 
 
@@ -100,9 +101,10 @@ An alternative solution is using an AWS serverless solution wherein:
 2. <b>RestAPI</b> (Flask) -> Cognito, MongoDB, Paypal, RabbitMQ
 3. <b>RabbitMQ</b>: accessed by restapi, device, notification service and history service
 4. <b>History service</b> -> RabbitMQ, MongoDB
-5. <b>Notification service</b> -> RabbitMQ, Pinpoint, Twilio, Nexmo
+5. <b>Notification service</b> -> RabbitMQ, MongoDB, Pinpoint, Twilio, Nexmo
 6. <b>Sensor service</b> -> RabbitMQ, MongoDB
-7. <b>Programming Languages:</b> Python
+7. <b>Configuration service</b> -> RabbitMQ, MongoDB
+8. <b>Programming Languages:</b> Python
 
 
 
@@ -188,7 +190,7 @@ Menu, account, history
        B. MQTT device simulators (Python Paho-MQTT and NodeJS)
        C. AMQP device simulator (Python Pika-AMQP)
     5. Deployment to AWS EC2 as microservices using Docker, Kubernetes and Jenkins
-       - 8 microservices/docker containers [rabbitmq, mongodb, webapp, restapi, nginx, notification, historian, sensorian]
+       - 9 microservices/docker containers [rabbitmq, mongodb, webapp, restapi, nginx, notification, historian, sensorian, configuration]
        - with Dockerfiles, Docker-compose file, Kubernetes files and Jenkinsfile
        - Kubernetes files tested on Minikube
        - Jenkinsfile for automated building and testing of docker images
