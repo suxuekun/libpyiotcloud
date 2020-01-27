@@ -168,6 +168,12 @@ API_SET_TPROBE_DEVICE_PROPERTIES = "set_tprobe_dev_prop"
 # i2c/adc/1wire/tprobe
 API_GET_PERIPHERAL_DEVICES       = "get_devs"
 
+# sensor reading
+API_RECEIVE_SENSOR_READING       = "rcv_sensor_reading"
+API_REQUEST_SENSOR_READING       = "req_sensor_reading"
+API_PUBLISH_SENSOR_READING       = "sensor_reading"
+
+
 
 
 ###################################################################################
@@ -225,6 +231,7 @@ def handle_api(api, subtopic, subpayload):
     global g_device_settings
 
 
+
     ####################################################
     # STATUS
     ####################################################
@@ -255,6 +262,51 @@ def handle_api(api, subtopic, subpayload):
         payload = {}
         payload["value"] = {"status": g_device_status}
         publish(topic, payload)
+
+
+    ####################################################
+    # SENSOR READING
+    ####################################################
+    elif api == API_RECEIVE_SENSOR_READING:
+        topic = generate_pubtopic(subtopic)
+        subpayload = json.loads(subpayload)
+        #print()
+        source = subpayload["source"]
+        print("{}{}:{} {}".format(source["peripheral"], source["number"], source["address"], g_device_classes[source["class"]]))
+        #print(subpayload["sensors"])
+
+        if source["peripheral"] == "I2C":
+            device_class = g_device_classes[source["class"]]
+            if device_class == "light":
+                x = source["number"]-1
+                for y in g_i2c_properties[x]:
+                    if int(y) == source["address"]:
+                        if g_i2c_properties[x][y]["attributes"]["color"]["usage"] == 0: 
+                            # RGB as color
+                            prop = g_i2c_properties[x][y]["attributes"]["color"]["single"]
+                            index = 0
+                            if prop["endpoint"] == 1:
+                                value = int(subpayload["sensors"][index]["value"])
+                                scaled_value = int(value * 0xFFFFFF / 255)
+                                print("COLOR = {} scaled {} ({})".format(value, scaled_value, hex(scaled_value).upper()))
+                        elif g_i2c_properties[x][y]["attributes"]["color"]["usage"] == 1:
+                            # RGB as component
+                            prop = g_i2c_properties[x][y]["attributes"]["color"]["individual"]
+                            index = 0
+                            if prop["red"]["endpoint"] == 1:
+                                value = int(subpayload["sensors"][index]["value"])
+                                print("RED   : {} ({})".format(value, hex(value).upper()))
+                                index += 1
+                            if prop["green"]["endpoint"] == 1:
+                                value = int(subpayload["sensors"][index]["value"])
+                                print("GREEN : {} ({})".format(value, hex(value).upper()))
+                                index += 1
+                            if prop["blue"]["endpoint"] == 1:
+                                value = int(subpayload["sensors"][index]["value"])
+                                print("BLUE  : {} ({})".format(value, hex(value).upper()))
+                                index += 1
+                        print("")
+                        break
 
 
     ####################################################
@@ -1004,7 +1056,7 @@ class TimerThread(threading.Thread):
     def run(self):
         print("")
         while not self.stopped.wait(self.timeout):
-            topic = "server/{}/sensor_reading".format(CONFIG_DEVICE_ID)
+            topic = "server/{}/{}".format(CONFIG_DEVICE_ID, API_PUBLISH_SENSOR_READING)
 
             # sample MQTT packet for sensor data publishing
             # 1. only ENABLED properties shall be included
@@ -1115,6 +1167,47 @@ class TimerThread(threading.Thread):
             else:
                 #print("no enabled sensor")
                 pass
+
+
+            # process ENABLED i2c OUTPUT devices
+            for x in range(len(g_i2c_properties)):
+                for y in g_i2c_properties[x]:
+                    # i2c device address should be > 0
+                    # i2c device should be enabled
+                    if (int(y) > 0 and g_i2c_properties[x][y]["enabled"]):
+                        # if LIGHT class
+                        i2c_class = g_device_classes[g_i2c_properties[x][y]["class"]]
+                        if i2c_class == "light":
+                            topic2 = "server/{}/{}".format(CONFIG_DEVICE_ID, API_REQUEST_SENSOR_READING)
+                            payload = {}
+                            payload["type"] = 0
+                            payload["sensors"] = []
+                            #print("xxx {}".format(g_i2c_properties[x][y]))
+                            if g_i2c_properties[x][y]["attributes"]["color"]["usage"] == 0:
+                                # if RGB as color
+                                hw_color = g_i2c_properties[x][y]["attributes"]["color"]["single"]["endpoint"]
+                                if hw_color == 1:
+                                    entry = g_i2c_properties[x][y]["attributes"]["color"]["single"]["hardware"]
+                                    payload["sensors"].append(entry)
+                            elif g_i2c_properties[x][y]["attributes"]["color"]["usage"] == 1:
+                                # if RGB as component
+                                hw_red   = g_i2c_properties[x][y]["attributes"]["color"]["individual"]["red"]["endpoint"]
+                                hw_green = g_i2c_properties[x][y]["attributes"]["color"]["individual"]["green"]["endpoint"]
+                                hw_blue  = g_i2c_properties[x][y]["attributes"]["color"]["individual"]["blue"]["endpoint"]
+                                if hw_red == 1 or hw_green == 1 or hw_blue == 1:
+                                    if hw_red:
+                                        entry = g_i2c_properties[x][y]["attributes"]["color"]["individual"]["red"]["hardware"]
+                                        payload["sensors"].append(entry)
+                                    if hw_green:
+                                        entry = g_i2c_properties[x][y]["attributes"]["color"]["individual"]["green"]["hardware"]
+                                        payload["sensors"].append(entry)
+                                    if hw_blue:
+                                        entry = g_i2c_properties[x][y]["attributes"]["color"]["individual"]["blue"]["hardware"]
+                                        payload["sensors"].append(entry)
+                            payload["source"] = {"peripheral": "I2C", "number": x+1, "address": int(y), "class": g_i2c_properties[x][y]["class"]}
+                            print("")
+                            publish(topic2, payload)
+                            print("")
 
 
 
