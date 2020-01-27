@@ -56,6 +56,10 @@ class messaging_client:
         self.cert = cert
         self.pkey = pkey
 
+    def print_json(self, json_object):
+        json_formatted_str = json.dumps(json_object, indent=2)
+        print(json_formatted_str)
+
     def initialize(self, timeout=0, ignore_hostname=False):
         if self.use_amqp:
             (self.client, code) = self.initialize_ampq(ignore_hostname)
@@ -69,11 +73,11 @@ class messaging_client:
         else:
             self.release_mqtt(self.client)
 
-    def publish(self, topic, payload):
+    def publish(self, topic, payload, debug=True):
         if self.use_amqp:
             self.publish_ampq(self.client, topic, payload)
         else:
-            self.publish_mqtt(self.client, topic, payload)
+            self.publish_mqtt(self.client, topic, payload, debug)
 
     def subscribe(self, topic, subscribe=True, declare=False, consume_continuously=False, deviceid=None):
         self.consume_continuously = consume_continuously
@@ -224,8 +228,11 @@ class messaging_client:
         if client:
             client.basic_publish(exchange='amq.topic', routing_key=topic, body=payload.encode("utf-8"))
 
-    def publish_mqtt(self, client, topic, payload):
-        print("PUB: topic={} payload={}".format(topic, payload))
+    def publish_mqtt(self, client, topic, payload, debug):
+        if debug:
+            print("PUB: {}".format(topic))
+            self.print_json(json.loads(payload))
+            print("")
         if client:
             client.publish(topic, payload, qos=CONFIG_QOS)
 
