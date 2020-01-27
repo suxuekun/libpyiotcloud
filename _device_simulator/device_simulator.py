@@ -1053,19 +1053,17 @@ class TimerThread(threading.Thread):
     def set_timeout(self, timeout):
         self.timeout = timeout
 
-    def run(self):
-        print("")
-        while not self.stopped.wait(self.timeout):
-            topic = "server/{}/{}".format(CONFIG_DEVICE_ID, API_PUBLISH_SENSOR_READING)
+    def process_input_devices(self):
+        topic = "server/{}/{}".format(CONFIG_DEVICE_ID, API_PUBLISH_SENSOR_READING)
 
-            # sample MQTT packet for sensor data publishing
-            # 1. only ENABLED properties shall be included
-            # 2. I2CX can have multiple entries (as multiple I2C devices on slot X can be enabled at the same time)
-            # 3. the backend performs the mapping to the corresponding sensorname given the address/class
-            # 4. the backed will compute the lowest and highest values as displayed in the UI. 
-            #    it will update the lowest and highest as needed based on the provided "value" 
-            # 5. the frontend will use the "unit" from the JSON file.
-            sensors = { 
+        # sample MQTT packet for sensor data publishing
+        # 1. only ENABLED properties shall be included
+        # 2. I2CX can have multiple entries (as multiple I2C devices on slot X can be enabled at the same time)
+        # 3. the backend performs the mapping to the corresponding sensorname given the address/class
+        # 4. the backed will compute the lowest and highest values as displayed in the UI. 
+        #    it will update the lowest and highest as needed based on the provided "value" 
+        # 5. the frontend will use the "unit" from the JSON file.
+        sensors = { 
 #                "i2c1":    [{"class": 0, "value": 1, "address": 1}, ...],
 #                "i2c2":    [{"class": 1, "value": 2, "address": 2}, ...],
 #                "i2c3":    [{"class": 2, "value": 3, "address": 3}, ...],
@@ -1074,140 +1072,147 @@ class TimerThread(threading.Thread):
 #                "adc2":    [{"class": 1, "value": 2}],
 #                "1wire1":  [{"class": 2, "value": 3}],
 #                "tprobe1": [{"class": 3, "value": 4, subclass: {"class": 4, "value": 5}}],
-            }
+        }
 
-            num_entries = 0
+        num_entries = 0
 
-            # process ENABLED i2c INPUT devices
-            for x in range(len(g_i2c_properties)):
-                i2c = "i2c{}".format(x+1)
-                entries = []
-                for y in g_i2c_properties[x]:
+        # process ENABLED i2c INPUT devices
+        for x in range(len(g_i2c_properties)):
+            i2c = "i2c{}".format(x+1)
+            entries = []
+            for y in g_i2c_properties[x]:
+                entry = {}
+                # i2c device address should be > 0
+                # i2c device should be enabled
+                # i2c device class should be of type INPUT
+                if (int(y) > 0 and g_i2c_properties[x][y]["enabled"]):
+                    i2c_class = g_device_classes[g_i2c_properties[x][y]["class"]]
+                    if i2c_class == "potentiometer" or i2c_class == "temperature":
+                        entry["address"] = int(y)
+                        entry["value"] = get_random_data(i2c_class)
+                        entry["class"] = g_i2c_properties[x][y]["class"]
+                        entries.append(entry)
+            if len(entries):
+                sensors[i2c] = entries 
+                num_entries += 1
+
+        # process ENABLED adc devices
+        for x in range(len(g_adc_properties)):
+            adc = "adc{}".format(x+1)
+            # adc device address should be > 0
+            # adc device should be enabled
+            if (g_adc_properties[x]["enabled"]):
+                adc_class = g_device_classes[g_adc_properties[x]["class"]]
+                if adc_class == "anemometer" or adc_class == "potentiometer":
                     entry = {}
-                    # i2c device address should be > 0
-                    # i2c device should be enabled
-                    # i2c device class should be of type INPUT
-                    if (int(y) > 0 and g_i2c_properties[x][y]["enabled"]):
-                        i2c_class = g_device_classes[g_i2c_properties[x][y]["class"]]
-                        if i2c_class == "potentiometer" or i2c_class == "temperature":
-                            entry["address"] = int(y)
-                            entry["value"] = get_random_data(i2c_class)
-                            entry["class"] = g_i2c_properties[x][y]["class"]
-                            entries.append(entry)
-                if len(entries):
-                    sensors[i2c] = entries 
+                    entry["value"] = get_random_data(adc_class)
+                    entry["class"] = g_adc_properties[x]["class"]
+                    if not sensors.get(adc):
+                        sensors[adc] = []
+                    sensors[adc].append(entry)
                     num_entries += 1
 
-            # process ENABLED adc devices
-            for x in range(len(g_adc_properties)):
-                adc = "adc{}".format(x+1)
-                # adc device address should be > 0
-                # adc device should be enabled
-                if (g_adc_properties[x]["enabled"]):
-                    adc_class = g_device_classes[g_adc_properties[x]["class"]]
-                    if adc_class == "anemometer" or adc_class == "potentiometer":
-                        entry = {}
-                        entry["value"] = get_random_data(adc_class)
-                        entry["class"] = g_adc_properties[x]["class"]
-                        if not sensors.get(adc):
-                            sensors[adc] = []
-                        sensors[adc].append(entry)
-                        num_entries += 1
+        # process ENABLED 1wire devices
+        for x in range(len(g_1wire_properties)):
+            onewire = "1wire{}".format(x+1)
+            # 1wire device address should be > 0
+            # 1wire device should be enabled
+            if (g_1wire_properties[x]["enabled"]):
+                onewire_class = g_device_classes[g_1wire_properties[x]["class"]]
+                if onewire_class == "temperature":
+                    entry = {}
+                    entry["value"] = get_random_data(onewire_class)
+                    entry["class"] = g_1wire_properties[x]["class"]
+                    if not sensors.get(onewire):
+                        sensors[onewire] = []
+                    sensors[onewire].append(entry)
+                    num_entries += 1
 
-            # process ENABLED 1wire devices
-            for x in range(len(g_1wire_properties)):
-                onewire = "1wire{}".format(x+1)
-                # 1wire device address should be > 0
-                # 1wire device should be enabled
-                if (g_1wire_properties[x]["enabled"]):
-                    onewire_class = g_device_classes[g_1wire_properties[x]["class"]]
-                    if onewire_class == "temperature":
-                        entry = {}
-                        entry["value"] = get_random_data(onewire_class)
-                        entry["class"] = g_1wire_properties[x]["class"]
-                        if not sensors.get(onewire):
-                            sensors[onewire] = []
-                        sensors[onewire].append(entry)
-                        num_entries += 1
+        # process ENABLED tprobe devices
+        for x in range(len(g_tprobe_properties)):
+            tprobe = "tprobe{}".format(x+1)
+            # tprobe device address should be > 0
+            # tprobe device should be enabled
+            if (g_tprobe_properties[x]["enabled"]):
+                tprobe_class = g_device_classes[g_tprobe_properties[x]["class"]]
 
-            # process ENABLED tprobe devices
-            for x in range(len(g_tprobe_properties)):
-                tprobe = "tprobe{}".format(x+1)
-                # tprobe device address should be > 0
-                # tprobe device should be enabled
-                if (g_tprobe_properties[x]["enabled"]):
-                    tprobe_class = g_device_classes[g_tprobe_properties[x]["class"]]
+                # handle subclass
+                tprobe_subclass = g_device_classes[g_tprobe_properties[x]["subclass"]]
+
+                if tprobe_class == "temperature" and tprobe_subclass == "humidity":
+                    entry = {}
+                    entry["value"] = get_random_data(tprobe_class)
+                    entry["class"] = g_tprobe_properties[x]["class"]
 
                     # handle subclass
-                    tprobe_subclass = g_device_classes[g_tprobe_properties[x]["subclass"]]
+                    entry["subclass"] = {}
+                    entry["subclass"]["value"] = get_random_data(tprobe_subclass)
+                    entry["subclass"]["class"] = g_tprobe_properties[x]["subclass"]
 
-                    if tprobe_class == "temperature" and tprobe_subclass == "humidity":
-                        entry = {}
-                        entry["value"] = get_random_data(tprobe_class)
-                        entry["class"] = g_tprobe_properties[x]["class"]
+                    g_tprobe_properties[x]["class"]
+                    if not sensors.get(tprobe):
+                        sensors[tprobe] = []
+                    sensors[tprobe].append(entry)
+                    num_entries += 1
 
-                        # handle subclass
-                        entry["subclass"] = {}
-                        entry["subclass"]["value"] = get_random_data(tprobe_subclass)
-                        entry["subclass"]["class"] = g_tprobe_properties[x]["subclass"]
+        # if any of the I2C INPUT/ADC/1WIRE/TPROBE devices are enabled, then send a packet
+        if num_entries > 0:
+            payload = {}
+            payload["sensors"] = sensors
+            print("")
+            publish(topic, payload)
+            print("")
+        else:
+            #print("no enabled sensor")
+            pass
 
-                        g_tprobe_properties[x]["class"]
-                        if not sensors.get(tprobe):
-                            sensors[tprobe] = []
-                        sensors[tprobe].append(entry)
-                        num_entries += 1
-
-            # if any of the I2C INPUT/ADC/1WIRE/TPROBE devices are enabled, then send a packet
-            if num_entries > 0:
-                payload = {}
-                payload["sensors"] = sensors
-                print("")
-                publish(topic, payload)
-                print("")
-            else:
-                #print("no enabled sensor")
-                pass
-
-
-            # process ENABLED i2c OUTPUT devices
-            for x in range(len(g_i2c_properties)):
-                for y in g_i2c_properties[x]:
-                    # i2c device address should be > 0
-                    # i2c device should be enabled
-                    if (int(y) > 0 and g_i2c_properties[x][y]["enabled"]):
-                        # if LIGHT class
-                        i2c_class = g_device_classes[g_i2c_properties[x][y]["class"]]
-                        if i2c_class == "light":
-                            topic2 = "server/{}/{}".format(CONFIG_DEVICE_ID, API_REQUEST_SENSOR_READING)
-                            payload = {}
-                            payload["type"] = 0
-                            payload["sensors"] = []
-                            #print("xxx {}".format(g_i2c_properties[x][y]))
-                            if g_i2c_properties[x][y]["attributes"]["color"]["usage"] == 0:
-                                # if RGB as color
-                                hw_color = g_i2c_properties[x][y]["attributes"]["color"]["single"]["endpoint"]
-                                if hw_color == 1:
-                                    entry = g_i2c_properties[x][y]["attributes"]["color"]["single"]["hardware"]
+    def process_output_devices(self):
+        # process ENABLED i2c OUTPUT devices
+        for x in range(len(g_i2c_properties)):
+            for y in g_i2c_properties[x]:
+                # i2c device address should be > 0
+                # i2c device should be enabled
+                if (int(y) > 0 and g_i2c_properties[x][y]["enabled"]):
+                    # if LIGHT class
+                    i2c_class = g_device_classes[g_i2c_properties[x][y]["class"]]
+                    if i2c_class == "light":
+                        topic2 = "server/{}/{}".format(CONFIG_DEVICE_ID, API_REQUEST_SENSOR_READING)
+                        payload = {}
+                        payload["type"] = 0
+                        payload["sensors"] = []
+                        #print("xxx {}".format(g_i2c_properties[x][y]))
+                        if g_i2c_properties[x][y]["attributes"]["color"]["usage"] == 0:
+                            # if RGB as color
+                            hw_color = g_i2c_properties[x][y]["attributes"]["color"]["single"]["endpoint"]
+                            if hw_color == 1:
+                                entry = g_i2c_properties[x][y]["attributes"]["color"]["single"]["hardware"]
+                                payload["sensors"].append(entry)
+                        elif g_i2c_properties[x][y]["attributes"]["color"]["usage"] == 1:
+                            # if RGB as component
+                            hw_red   = g_i2c_properties[x][y]["attributes"]["color"]["individual"]["red"]["endpoint"]
+                            hw_green = g_i2c_properties[x][y]["attributes"]["color"]["individual"]["green"]["endpoint"]
+                            hw_blue  = g_i2c_properties[x][y]["attributes"]["color"]["individual"]["blue"]["endpoint"]
+                            if hw_red == 1 or hw_green == 1 or hw_blue == 1:
+                                if hw_red:
+                                    entry = g_i2c_properties[x][y]["attributes"]["color"]["individual"]["red"]["hardware"]
                                     payload["sensors"].append(entry)
-                            elif g_i2c_properties[x][y]["attributes"]["color"]["usage"] == 1:
-                                # if RGB as component
-                                hw_red   = g_i2c_properties[x][y]["attributes"]["color"]["individual"]["red"]["endpoint"]
-                                hw_green = g_i2c_properties[x][y]["attributes"]["color"]["individual"]["green"]["endpoint"]
-                                hw_blue  = g_i2c_properties[x][y]["attributes"]["color"]["individual"]["blue"]["endpoint"]
-                                if hw_red == 1 or hw_green == 1 or hw_blue == 1:
-                                    if hw_red:
-                                        entry = g_i2c_properties[x][y]["attributes"]["color"]["individual"]["red"]["hardware"]
-                                        payload["sensors"].append(entry)
-                                    if hw_green:
-                                        entry = g_i2c_properties[x][y]["attributes"]["color"]["individual"]["green"]["hardware"]
-                                        payload["sensors"].append(entry)
-                                    if hw_blue:
-                                        entry = g_i2c_properties[x][y]["attributes"]["color"]["individual"]["blue"]["hardware"]
-                                        payload["sensors"].append(entry)
-                            payload["source"] = {"peripheral": "I2C", "number": x+1, "address": int(y), "class": g_i2c_properties[x][y]["class"]}
-                            print("")
-                            publish(topic2, payload)
-                            print("")
+                                if hw_green:
+                                    entry = g_i2c_properties[x][y]["attributes"]["color"]["individual"]["green"]["hardware"]
+                                    payload["sensors"].append(entry)
+                                if hw_blue:
+                                    entry = g_i2c_properties[x][y]["attributes"]["color"]["individual"]["blue"]["hardware"]
+                                    payload["sensors"].append(entry)
+                        payload["source"] = {"peripheral": "I2C", "number": x+1, "address": int(y), "class": g_i2c_properties[x][y]["class"]}
+                        print("")
+                        publish(topic2, payload)
+                        print("")
+
+    def run(self):
+        print("")
+        while not self.stopped.wait(self.timeout):
+            self.process_input_devices()
+            self.process_output_devices()
+
 
 
 
