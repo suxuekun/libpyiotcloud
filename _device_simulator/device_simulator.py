@@ -969,9 +969,8 @@ def handle_api(api, subtopic, subpayload):
     elif api == API_RECEIVE_CONFIGURATION:
         topic = generate_pubtopic(subtopic)
         subpayload = json.loads(subpayload)
-        print("API_RECEIVE_CONFIGURATION")
-        print_json(subpayload)
 
+        print("")
         print("uart   {} - {}".format(subpayload["uart"],   len(subpayload["uart"])   ))
         print("gpio   {} - {}".format(subpayload["gpio"],   len(subpayload["gpio"])   ))
         print("i2c    {} - {}".format(subpayload["i2c"],    len(subpayload["i2c"])    ))
@@ -982,6 +981,15 @@ def handle_api(api, subtopic, subpayload):
         print("adc    {} - {}".format(subpayload["adc"],    len(subpayload["adc"])    ))
         print("1wire  {} - {}".format(subpayload["1wire"],  len(subpayload["1wire"])  ))
         print("tprobe {} - {}".format(subpayload["tprobe"], len(subpayload["tprobe"]) ))
+        print("")
+
+        # TODO
+        print("DEVICE CONFIGURED\r\n\r\n")
+
+
+    ####################################################
+    # UNSUPPORTED
+    ####################################################
 
     else:
         print("UNSUPPORTED")
@@ -1071,7 +1079,7 @@ def process_start():
 
 
 def query_device_configuration():
-    print("\r\nQuery device configuration")
+    print("\r\n\r\nQuery device configuration")
     topic = "server/{}/{}".format(CONFIG_DEVICE_ID, API_REQUEST_CONFIGURATION)
     payload = {}
     publish(topic, payload)
