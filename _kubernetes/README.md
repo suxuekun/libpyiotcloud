@@ -1,8 +1,10 @@
 # IoT Portal on Kubernetes
 
-Kubernetes support for IoT portal is now available. It has been tested on Amazon EKS and Minikube.
+Kubernetes support for IoT portal is now available. It has been tested on Minikube and Amazon Elastic Kubernetes Service (EKS).
 
 Running on Kubernetes on Amazon EKS is expensive costing 0.20 USD/hour. To development purpose, use Minikube.
+
+UPDATE: On Jan 21, 2020, the price for Amazon EKS has been reduced by 50% to 0.10 USD/hour.
 
 
 ### Amazon EKS
@@ -74,6 +76,7 @@ Major differences between Minikube and Amazon EKS:
         docker push richmondu/iotrabbitmq
         docker push richmondu/iothistory
         docker push richmondu/iotsensor
+        docker push richmondu/iotconfiguration
         docker push richmondu/iotnotification
         docker push richmondu/iotrestapi
         docker push richmondu/iotwebapp
@@ -109,6 +112,7 @@ Major differences between Minikube and Amazon EKS:
         kubectl apply -f iothistory-deployment.yaml
         kubectl apply -f iotnotification-deployment.yaml
         kubectl apply -f iotsensor-deployment.yaml
+        kubectl apply -f iotconfiguration-deployment.yaml
 
 
 7. Run RESTAPI
@@ -145,6 +149,7 @@ Major differences between Minikube and Amazon EKS:
         kubectl delete deployment history
         kubectl delete deployment notification
         kubectl delete deployment sensor
+        kubectl delete deployment configuration
         kubectl delete service rabbitmq
         kubectl delete deployment rabbitmq
         kubectl delete service mongodb
@@ -184,5 +189,5 @@ Major differences between Minikube and Amazon EKS:
 
 ### Action Items:
 
-         1. Force the 8 pods to be contained in 1-2 nodes only.
+         1. Force the 9 pods to be contained in 1-2 nodes only.
             Currently, 5 of the pods that have services are located in separate nodes by default.
