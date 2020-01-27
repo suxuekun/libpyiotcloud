@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: configuration
+  labels:
+    app: iotconfiguration
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: iotconfiguration
+  template:
+    metadata:
+      labels:
+        app: iotconfiguration
+    spec:
+      containers:
+        - name: iotconfiguration
+          image: richmondu/iotconfiguration
+          env:
+          - name: CONFIG_USE_ECC
+            valueFrom:
+              secretKeyRef:
+                name: environment
+                key: CONFIG_USE_ECC
+          - name: CONFIG_USE_MQTT_DEFAULT_USER
+            valueFrom:
+              secretKeyRef:
+                name: environment
+                key: CONFIG_USE_MQTT_DEFAULT_USER
+          - name: CONFIG_USE_MQTT_DEFAULT_PASS
+            valueFrom:
+              secretKeyRef:
+                name: environment
+                key: CONFIG_USE_MQTT_DEFAULT_PASS
