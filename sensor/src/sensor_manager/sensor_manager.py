@@ -61,6 +61,10 @@ CONFIG_AMQP_TLS_PORT        = 5671
 CONFIG_PREPEND_REPLY_TOPIC  = "server"
 CONFIG_SEPARATOR            = '/'
 
+API_RECEIVE_SENSOR_READING  = "rcv_sensor_reading"
+API_REQUEST_SENSOR_READING  = "req_sensor_reading"
+API_PUBLISH_SENSOR_READING  = "sensor_reading"
+
 
 
 ###################################################################################
@@ -139,19 +143,84 @@ def add_sensor_reading(database_client, deviceid, topic, payload):
     #print("")
 
 
+def get_sensor_reading(database_client, deviceid, topic, payload):
+    #print("get_sensor_reading")
+    #print(deviceid)
+    payload = json.loads(payload)
+    #print(payload["type"])
+    #print(payload["sensors"])
+
+    new_payload = {"sensors": []}
+    for sensor in payload["sensors"]:
+        value = 0
+
+        # TODO: handle multiclass using sensor["attribute"]
+
+        # elements are incomplete
+        if sensor.get("peripheral") is None or sensor.get("number") is None:
+            new_payload["sensors"].append({"value": value})
+            print("{} elements are incomplete".format(deviceid))
+            continue
+
+        # read value from database
+        peripheral = sensor["peripheral"].lower()
+        source = "{}{}".format(peripheral, sensor["number"])
+        address = None
+        if peripheral == "i2c":
+            if sensor.get("address") is None:
+                new_payload["sensors"].append({"value": value})
+                print("{} elements are incomplete".format(deviceid))
+                continue
+            address = sensor["address"]
+        sensor_readings = database_client.get_sensor_reading_by_deviceid(sensor["deviceid"], source, address)
+
+        # use the retrieved value if exists
+        entry = sensor
+        if sensor_readings is None:
+            entry["value"] = value
+        else:
+            entry["value"] = sensor_readings["value"]
+        new_payload["sensors"].append(entry)
+
+    if len(new_payload["sensors"]) > 0:
+        # add the source parameter
+        if payload.get("source"):
+            new_payload["source"] = payload["source"]
+
+        new_topic = "{}/{}".format(deviceid, API_RECEIVE_SENSOR_READING)
+        new_payload = json.dumps(new_payload)
+        g_messaging_client.publish(new_topic, new_payload, debug=False) # NOTE: enable to DEBUG
+
+
 def on_message(subtopic, subpayload):
 
     #print(subtopic)
     #print(subpayload)
 
-    try:
-        arr_subtopic = subtopic.split("/", 2)
-        thr = threading.Thread(target = add_sensor_reading, args = (g_database_client, arr_subtopic[1], arr_subtopic[2], subpayload.decode("utf-8") ))
-        thr.start()
-    except Exception as e:
-        print("exception")
-        print(e)
+    arr_subtopic = subtopic.split("/", 2)
+    if len(arr_subtopic) != 3:
         return
+
+    deviceid = arr_subtopic[1]
+    topic = arr_subtopic[2]
+    payload = subpayload.decode("utf-8")
+
+    if topic == API_PUBLISH_SENSOR_READING:
+        try:
+            thr = threading.Thread(target = add_sensor_reading, args = (g_database_client, deviceid, topic, payload ))
+            thr.start()
+        except Exception as e:
+            print("exception API_PUBLISH_SENSOR_READING")
+            print(e)
+            return
+    elif topic == API_REQUEST_SENSOR_READING:
+        try:
+            thr = threading.Thread(target = get_sensor_reading, args = (g_database_client, deviceid, topic, payload ))
+            thr.start()
+        except Exception as e:
+            print("exception API_REQUEST_SENSOR_READING")
+            print(e)
+            return
 
 
 def on_mqtt_message(client, userdata, msg):
@@ -248,8 +317,10 @@ if __name__ == '__main__':
 
     # Subscribe to messages sent for this device
     time.sleep(1)
-    subtopic = "{}{}+{}sensor_reading".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_SEPARATOR)
+    subtopic = "{}{}+{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_SEPARATOR, API_PUBLISH_SENSOR_READING)
+    subtopic2 = "{}{}+{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_SEPARATOR, API_REQUEST_SENSOR_READING)
     g_messaging_client.subscribe(subtopic, subscribe=True, declare=True, consume_continuously=True)
+    g_messaging_client.subscribe(subtopic2, subscribe=True, declare=True, consume_continuously=True)
 
 
     while g_messaging_client.is_connected():
