@@ -168,11 +168,18 @@ API_SET_TPROBE_DEVICE_PROPERTIES = "set_tprobe_dev_prop"
 # i2c/adc/1wire/tprobe
 API_GET_PERIPHERAL_DEVICES       = "get_devs"
 
+# notification
+API_RECEIVE_NOTIFICATION         = "recv_notification"
+API_TRIGGER_NOTIFICATION         = "trigger_notification"
+
 # sensor reading
 API_RECEIVE_SENSOR_READING       = "rcv_sensor_reading"
 API_REQUEST_SENSOR_READING       = "req_sensor_reading"
 API_PUBLISH_SENSOR_READING       = "sensor_reading"
 
+# configuration
+API_RECEIVE_CONFIGURATION        = "rcv_configuration"
+API_REQUEST_CONFIGURATION        = "req_configuration"
 
 
 
@@ -200,6 +207,10 @@ CONFIG_SEPARATOR            = '/'
 ###################################################################################
 # API handling
 ###################################################################################
+
+def print_json(json_object):
+    json_formatted_str = json.dumps(json_object, indent=2)
+    print(json_formatted_str)
 
 def publish(topic, payload):
     payload = json.dumps(payload)
@@ -934,19 +945,18 @@ def handle_api(api, subtopic, subpayload):
         publish(topic, payload)	
 
 
-
     ####################################################
     # NOTIFICATION
     ####################################################
 
-    elif api == "trigger_notification":
+    elif api == API_TRIGGER_NOTIFICATION:
         topic = generate_pubtopic(subtopic)
         subpayload = json.loads(subpayload)
         # Notification from cloud
         publish(topic, subpayload)
         print("Notification triggered to email/SMS recipient!")
 
-    elif api == "recv_notification":
+    elif api == API_RECEIVE_NOTIFICATION:
         topic = generate_pubtopic(subtopic)
         subpayload = json.loads(subpayload)
         # Notification from another device
@@ -955,6 +965,26 @@ def handle_api(api, subtopic, subpayload):
         print()
 
 
+    ####################################################
+    # CONFIGURATION
+    ####################################################
+
+    elif api == API_RECEIVE_CONFIGURATION:
+        topic = generate_pubtopic(subtopic)
+        subpayload = json.loads(subpayload)
+        print("API_RECEIVE_CONFIGURATION")
+        print_json(subpayload)
+
+        print("uart   {} - {}".format(subpayload["uart"],   len(subpayload["uart"])   ))
+        print("gpio   {} - {}".format(subpayload["gpio"],   len(subpayload["gpio"])   ))
+        print("i2c    {} - {}".format(subpayload["i2c"],    len(subpayload["i2c"])    ))
+        print("  i2c0 {} - {}".format(subpayload["i2c"][0], len(subpayload["i2c"][0]) ))
+        print("  i2c1 {} - {}".format(subpayload["i2c"][1], len(subpayload["i2c"][1]) ))
+        print("  i2c2 {} - {}".format(subpayload["i2c"][2], len(subpayload["i2c"][2]) ))
+        print("  i2c3 {} - {}".format(subpayload["i2c"][3], len(subpayload["i2c"][3]) ))
+        print("adc    {} - {}".format(subpayload["adc"],    len(subpayload["adc"])    ))
+        print("1wire  {} - {}".format(subpayload["1wire"],  len(subpayload["1wire"])  ))
+        print("tprobe {} - {}".format(subpayload["tprobe"], len(subpayload["tprobe"]) ))
 
     else:
         print("UNSUPPORTED")
@@ -1042,6 +1072,13 @@ def process_start():
         print("Device started successfully!\n")
 
 
+def query_device_configuration():
+    print("\r\nQuery device configuration")
+    topic = "server/{}/{}".format(CONFIG_DEVICE_ID, API_REQUEST_CONFIGURATION)
+    payload = {}
+    publish(topic, payload)
+
+
 def get_random_data(peripheral_class):
     if peripheral_class == "potentiometer":
         return random.randint(0, 255)
@@ -1051,7 +1088,6 @@ def get_random_data(peripheral_class):
         return float("{0:.1f}".format(random.uniform(0, 100)))
     elif peripheral_class == "humidity":
         return float("{0:.1f}".format(random.uniform(0, 100)))
-
 
 class TimerThread(threading.Thread):
 
@@ -1327,6 +1363,9 @@ if __name__ == '__main__':
         time.sleep(1)
         subtopic = "{}{}#".format(CONFIG_DEVICE_ID, CONFIG_SEPARATOR)
         g_messaging_client.subscribe(subtopic, subscribe=True, declare=True, consume_continuously=True)
+
+        # Query device configuration
+        #query_device_configuration()
 
         # Start the timer thread
         if g_timer_thread_use:
