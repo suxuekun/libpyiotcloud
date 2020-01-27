@@ -513,7 +513,6 @@ def handle_api(api, subtopic, subpayload):
     ####################################################
 
     elif api == API_GET_I2C_DEVICES:
-        print("API_GET_I2C_DEVICES")
         topic = generate_pubtopic(subtopic)
         subpayload = json.loads(subpayload)
         number = int(subpayload["number"])-1
@@ -526,7 +525,7 @@ def handle_api(api, subtopic, subpayload):
                 entry["enabled"] = g_i2c_properties[number][y]["enabled"]
                 entry["address"] = int(y)
                 value.append(entry)
-        print(value)
+        #print(value)
 
         payload = {}
         payload["value"] = value
@@ -535,7 +534,7 @@ def handle_api(api, subtopic, subpayload):
     elif api == API_ENABLE_I2C_DEVICE:
         topic = generate_pubtopic(subtopic)
         subpayload = json.loads(subpayload)
-        print(subpayload)
+        #print(subpayload)
 
         number = int(subpayload["number"])-1
         address = str(subpayload["address"])
@@ -544,9 +543,9 @@ def handle_api(api, subtopic, subpayload):
             g_i2c_properties[number][address]["enabled"] = enable
         except:
             pass
-        print()
-        print(g_i2c_properties[number])
-        print()
+        #print()
+        #print(g_i2c_properties[number])
+        #print()
 
         payload = {}
         publish(topic, payload)
@@ -561,9 +560,9 @@ def handle_api(api, subtopic, subpayload):
         try:
             if g_i2c_properties[number].get(address):
                 value = g_i2c_properties[number][address]["attributes"]
-                print()
-                print(value)
-                print()
+                #print()
+                #print(value)
+                #print()
         except:
             pass
 
@@ -575,7 +574,7 @@ def handle_api(api, subtopic, subpayload):
     elif api == API_SET_I2C_DEVICE_PROPERTIES:
         topic = generate_pubtopic(subtopic)
         subpayload = json.loads(subpayload)
-        print(subpayload)
+        #print(subpayload)
 
         number = int(subpayload["number"])-1
         address = str(subpayload["address"])
@@ -585,9 +584,9 @@ def handle_api(api, subtopic, subpayload):
             'attributes' : setClassAttributes(device_class, subpayload),
             'enabled': 0
         }
-        print()
-        print(g_i2c_properties[number])
-        print()
+        #print()
+        #print(g_i2c_properties[number])
+        #print()
 
         payload = {}
         publish(topic, payload)
@@ -598,7 +597,6 @@ def handle_api(api, subtopic, subpayload):
     ####################################################
 
     elif api == API_GET_ADC_DEVICES:
-        print("API_GET_ADC_DEVICES")
         topic = generate_pubtopic(subtopic)
         subpayload = json.loads(subpayload)
         number = int(subpayload["number"])-1
@@ -609,7 +607,7 @@ def handle_api(api, subtopic, subpayload):
             entry["class"]   = g_adc_properties[number]["class"]
             entry["enabled"] = g_adc_properties[number]["enabled"]
             value.append(entry)
-        print(value)
+        #print(value)
 
         payload = {}
         payload["value"] = value
@@ -618,7 +616,7 @@ def handle_api(api, subtopic, subpayload):
     elif api == API_ENABLE_ADC_DEVICE:
         topic = generate_pubtopic(subtopic)
         subpayload = json.loads(subpayload)
-        print(subpayload)
+        #print(subpayload)
 
         number = int(subpayload["number"])-1
         enable = int(subpayload["enable"])
@@ -626,9 +624,9 @@ def handle_api(api, subtopic, subpayload):
             g_adc_properties[number]["enabled"] = enable
         except:
             pass
-        print()
-        print(g_adc_properties[number])
-        print()
+        #print()
+        #print(g_adc_properties[number])
+        #print()
 
         payload = {}
         publish(topic, payload)
@@ -641,9 +639,9 @@ def handle_api(api, subtopic, subpayload):
         value = None 
         try:
             value = g_adc_properties[number]["attributes"]
-            print()
-            print(value)
-            print()
+            #print()
+            #print(value)
+            #print()
         except:
             pass
 
@@ -655,7 +653,7 @@ def handle_api(api, subtopic, subpayload):
     elif api == API_SET_ADC_DEVICE_PROPERTIES:
         topic = generate_pubtopic(subtopic)
         subpayload = json.loads(subpayload)
-        print(subpayload)
+        #print(subpayload)
 
         number = int(subpayload["number"])-1
         device_class = subpayload["class"]
@@ -664,9 +662,9 @@ def handle_api(api, subtopic, subpayload):
             'attributes' : setClassAttributes(device_class, subpayload),
             'enabled': 0
         }
-        print()
-        print(g_adc_properties[number])
-        print()
+        #print()
+        #print(g_adc_properties[number])
+        #print()
 
         payload = {}
         publish(topic, payload)
@@ -696,7 +694,6 @@ def handle_api(api, subtopic, subpayload):
     ####################################################
 
     elif api == API_GET_1WIRE_DEVICES:
-        print("API_GET_1WIRE_DEVICES")
         topic = generate_pubtopic(subtopic)
         subpayload = json.loads(subpayload)
         number = int(subpayload["number"])-1
@@ -707,7 +704,7 @@ def handle_api(api, subtopic, subpayload):
             entry["class"]   = g_1wire_properties[number]["class"]
             entry["enabled"] = g_1wire_properties[number]["enabled"]
             value.append(entry)
-        print(value)
+        #print(value)
 
         payload = {}
         payload["value"] = value
@@ -716,7 +713,7 @@ def handle_api(api, subtopic, subpayload):
     elif api == API_ENABLE_1WIRE_DEVICE:
         topic = generate_pubtopic(subtopic)
         subpayload = json.loads(subpayload)
-        print(subpayload)
+        #print(subpayload)
 
         number = int(subpayload["number"])-1
         enable = int(subpayload["enable"])
@@ -724,9 +721,9 @@ def handle_api(api, subtopic, subpayload):
             g_1wire_properties[number]["enabled"] = enable
         except:
             pass
-        print()
-        print(g_1wire_properties[number])
-        print()
+        #print()
+        #print(g_1wire_properties[number])
+        #print()
 
         payload = {}
         publish(topic, payload)
@@ -739,9 +736,9 @@ def handle_api(api, subtopic, subpayload):
         value = None 
         try:
             value = g_1wire_properties[number]["attributes"]
-            print()
-            print(value)
-            print()
+            #print()
+            #print(value)
+            #print()
         except:
             pass
 
@@ -753,7 +750,7 @@ def handle_api(api, subtopic, subpayload):
     elif api == API_SET_1WIRE_DEVICE_PROPERTIES:
         topic = generate_pubtopic(subtopic)
         subpayload = json.loads(subpayload)
-        print(subpayload)
+        #print(subpayload)
 
         number = int(subpayload["number"])-1
         device_class = subpayload["class"]
@@ -762,9 +759,9 @@ def handle_api(api, subtopic, subpayload):
             'attributes' : setClassAttributes(device_class, subpayload),
             'enabled': 0
         }
-        print()
-        print(g_1wire_properties[number])
-        print()
+        #print()
+        #print(g_1wire_properties[number])
+        #print()
 
         payload = {}
         publish(topic, payload)
@@ -775,7 +772,6 @@ def handle_api(api, subtopic, subpayload):
     ####################################################
 
     elif api == API_GET_TPROBE_DEVICES:
-        print("API_GET_TPROBE_DEVICES")
         topic = generate_pubtopic(subtopic)
         subpayload = json.loads(subpayload)
         number = int(subpayload["number"])-1
@@ -786,7 +782,7 @@ def handle_api(api, subtopic, subpayload):
             entry["class"]   = g_tprobe_properties[number]["class"]
             entry["enabled"] = g_tprobe_properties[number]["enabled"]
             value.append(entry)
-        print(value)
+        #print(value)
 
         payload = {}
         payload["value"] = value
@@ -795,7 +791,7 @@ def handle_api(api, subtopic, subpayload):
     elif api == API_ENABLE_TPROBE_DEVICE:
         topic = generate_pubtopic(subtopic)
         subpayload = json.loads(subpayload)
-        print(subpayload)
+        #print(subpayload)
 
         number = int(subpayload["number"])-1
         enable = int(subpayload["enable"])
@@ -803,9 +799,9 @@ def handle_api(api, subtopic, subpayload):
             g_tprobe_properties[number]["enabled"] = enable
         except:
             pass
-        print()
-        print(g_tprobe_properties[number])
-        print()
+        #print()
+        #print(g_tprobe_properties[number])
+        #print()
 
         payload = {}
         publish(topic, payload)
@@ -818,9 +814,9 @@ def handle_api(api, subtopic, subpayload):
         value = None 
         try:
             value = g_tprobe_properties[number]["attributes"]
-            print()
-            print("GET: {}".format(value))
-            print()
+            #print()
+            #print("GET: {}".format(value))
+            #print()
         except:
             pass
 
@@ -832,7 +828,7 @@ def handle_api(api, subtopic, subpayload):
     elif api == API_SET_TPROBE_DEVICE_PROPERTIES:
         topic = generate_pubtopic(subtopic)
         subpayload = json.loads(subpayload)
-        print("SET: {}".format(subpayload))
+        #print("SET: {}".format(subpayload))
 
         number = int(subpayload["number"])-1
         device_class = subpayload["class"]
@@ -851,9 +847,9 @@ def handle_api(api, subtopic, subpayload):
         if device_subclass is not None:
             g_tprobe_properties[number]['subclass'] = device_subclass
 
-        print()
-        print(g_tprobe_properties[number])
-        print()
+        #print()
+        #print(g_tprobe_properties[number])
+        #print()
 
         payload = {}
         publish(topic, payload)
@@ -864,7 +860,6 @@ def handle_api(api, subtopic, subpayload):
     ####################################################
 
     elif api == API_GET_PERIPHERAL_DEVICES:
-        print("API_GET_PERIPHERAL_DEVICES")
         topic = generate_pubtopic(subtopic)
         subpayload = json.loads(subpayload)
         value = {}
@@ -939,9 +934,10 @@ def handle_api(api, subtopic, subpayload):
                 value[label] = {}
                 value[label] = tprobe_value
 
+        print("")
         payload = {}
         payload["value"] = value
-        print(payload["value"])
+        #print(payload["value"])
         publish(topic, payload)	
 
 
@@ -1010,7 +1006,8 @@ def on_message(subtopic, subpayload):
 
 def on_mqtt_message(client, userdata, msg):
 
-    print("RCV: MQTT {} {}".format(msg.topic, msg.payload))
+    print("RCV: {}".format(msg.topic))
+    print_json(json.loads(msg.payload))
     on_message(msg.topic, msg.payload)
 
   
