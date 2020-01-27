@@ -71,12 +71,31 @@ API_REQUEST_CONFIGURATION   = "req_configuration"
 ###################################################################################
 
 
+def print_json(json_object):
+    json_formatted_str = json.dumps(json_object, indent=2)
+    print(json_formatted_str)
+
 def get_configuration(database_client, deviceid, topic, payload):
     #print("get_configuration")
     print(deviceid)
-    payload = json.loads(payload)
-    print(payload)
+    print(topic)
+    #payload = json.loads(payload)
+    #print(payload)
 
+
+    new_topic = "{}/{}".format(deviceid, API_RECEIVE_CONFIGURATION)
+    new_payload = {
+        "uart"   : [{}],
+        "gpio"   : [{}, {}, {}, {}],
+        "i2c"    : [[{}], [{}], [{}], [{}]],
+        "adc"    : [{},{}],
+        "1wire"  : [{}],
+        "tprobe" : [{}],
+    }
+    print_json(new_payload)
+
+    new_payload = json.dumps(new_payload)
+    g_messaging_client.publish(new_topic, new_payload, debug=False) # NOTE: enable to DEBUG
 
 
 def on_message(subtopic, subpayload):
