@@ -1,0 +1,8 @@
+docker build -t cfg .
+docker run -d --name cfg cfg
+
+	docker ps -a
+	docker-machine ls // get the ip address for testing with MQTT.FX
+
+docker stop cfg
+docker rm cfg
