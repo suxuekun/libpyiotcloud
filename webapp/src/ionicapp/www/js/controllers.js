@@ -4531,6 +4531,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
                                 'endpoint': 0,
                                 'manual': 0,
                                 'hardware': {
+                                    'deviceid': '',  
                                     'devicename': '',  
                                     'peripheral': '',  
                                     'sensorname': '',  
@@ -4544,6 +4545,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
                                     'endpoint': 0,
                                     'manual': 0,
                                     'hardware': {
+                                        'deviceid': '',  
                                         'devicename': '',  
                                         'peripheral': '',  
                                         'sensorname': '',  
@@ -4556,6 +4558,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
                                     'endpoint': 0,
                                     'manual': 0,
                                     'hardware': {
+                                        'deviceid': '',  
                                         'devicename': '',  
                                         'peripheral': '',  
                                         'sensorname': '',  
@@ -4568,6 +4571,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
                                     'endpoint': 0,
                                     'manual': 0,
                                     'hardware': {
+                                        'deviceid': '',  
                                         'devicename': '',  
                                         'peripheral': '',  
                                         'sensorname': '',  
@@ -7912,6 +7916,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                 if ($scope.datatemp.hardware_peripheral >= $scope.peripherals.length) {
                     return;
                 }
+                $scope.data.attributes.color.single.hardware.deviceid = $scope.devices[$scope.datatemp.hardware_devicename].deviceid;
                 $scope.data.attributes.color.single.hardware.devicename = $scope.devices[$scope.datatemp.hardware_devicename].devicename;
                 $scope.data.attributes.color.single.hardware.sensorname = $scope.i2cdevices[$scope.datatemp.hardware_sensorname].sensorname;
                 
@@ -7938,6 +7943,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                 if ($scope.datatemp.hardware_peripheral >= $scope.peripherals.length) {
                     return;
                 }
+                $scope.data.attributes.color.individual.red.hardware.deviceid = $scope.devices[$scope.datatemp.hardware_devicename].deviceid;
                 $scope.data.attributes.color.individual.red.hardware.devicename = $scope.devices[$scope.datatemp.hardware_devicename].devicename;
                 $scope.data.attributes.color.individual.red.hardware.sensorname = $scope.i2cdevices[$scope.datatemp.hardware_sensorname].sensorname;
                 
@@ -7964,6 +7970,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                 if ($scope.datatemp.hardware_peripheral >= $scope.peripherals.length) {
                     return;
                 }
+                $scope.data.attributes.color.individual.green.hardware.deviceid = $scope.devices[$scope.datatemp.hardware_devicename].deviceid;
                 $scope.data.attributes.color.individual.green.hardware.devicename = $scope.devices[$scope.datatemp.hardware_devicename].devicename;
                 $scope.data.attributes.color.individual.green.hardware.sensorname = $scope.i2cdevices[$scope.datatemp.hardware_sensorname].sensorname;
                 
@@ -7990,6 +7997,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                 if ($scope.datatemp.hardware_peripheral >= $scope.peripherals.length) {
                     return;
                 }
+                $scope.data.attributes.color.individual.blue.hardware.deviceid = $scope.devices[$scope.datatemp.hardware_devicename].deviceid;
                 $scope.data.attributes.color.individual.blue.hardware.devicename = $scope.devices[$scope.datatemp.hardware_devicename].devicename;
                 $scope.data.attributes.color.individual.blue.hardware.sensorname = $scope.i2cdevices[$scope.datatemp.hardware_sensorname].sensorname;
                 
@@ -9376,6 +9384,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         'attributes': {
             'endpoint': $scope.endpoints[0].id,
             'hardware': {
+                'deviceid': '',  
                 'devicename': '',  
                 'peripheral': '',  
                 'sensorname': '',  
@@ -9417,6 +9426,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             if ($scope.datatemp.hardware_peripheral >= $scope.peripherals.length) {
                 return;
             }
+            $scope.data.attributes.hardware.deviceid   = $scope.devices[$scope.datatemp.hardware_devicename].deviceid;
             $scope.data.attributes.hardware.devicename = $scope.devices[$scope.datatemp.hardware_devicename].devicename;
             $scope.data.attributes.hardware.sensorname = $scope.i2cdevices[$scope.datatemp.hardware_sensorname].sensorname;
             $scope.data.attributes.hardware.peripheral = $scope.peripherals[$scope.datatemp.hardware_peripheral].label;
@@ -9829,6 +9839,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         'attributes': {
             'endpoint': $scope.endpoints[0].id,
             'hardware': {
+                'deviceid': '',  
                 'devicename': '',  
                 'peripheral': '',  
                 'sensorname': '',  
@@ -9867,6 +9878,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             if ($scope.data.hardware_peripheral >= $scope.peripherals.length) {
                 return;
             }
+            $scope.data.attributes.hardware.deviceid   = $scope.devices[$scope.data.hardware_devicename].deviceid;
             $scope.data.attributes.hardware.devicename = $scope.devices[$scope.data.hardware_devicename].devicename;
             $scope.data.attributes.hardware.sensorname = $scope.i2cdevices[$scope.data.hardware_sensorname].sensorname;
             $scope.data.attributes.hardware.peripheral = $scope.peripherals[$scope.data.hardware_peripheral].label;
