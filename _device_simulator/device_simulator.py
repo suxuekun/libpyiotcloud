@@ -277,8 +277,8 @@ def handle_api(api, subtopic, subpayload):
 
         if source["peripheral"] == "I2C":
             device_class = g_device_classes[source["class"]]
+            x = source["number"]-1
             if device_class == "light":
-                x = source["number"]-1
                 for y in g_i2c_properties[x]:
                     if int(y) == source["address"]:
                         if g_i2c_properties[x][y]["attributes"]["color"]["usage"] == 0: 
@@ -307,7 +307,17 @@ def handle_api(api, subtopic, subpayload):
                                 index += 1
                         print("")
                         break
-
+            elif device_class == "display":
+                for y in g_i2c_properties[x]:
+                    if int(y) == source["address"]:
+                        index = 0
+                        value = int(subpayload["sensors"][index]["value"])
+                        if g_i2c_properties[x][y]["attributes"]["format"] == 0:
+                            print("HEX = {} ({})".format(hex(value).upper(), value))
+                        elif g_i2c_properties[x][y]["attributes"]["format"] == 1:
+                            print("INT = {} ({})".format(value, hex(value).upper()))
+                        print("")
+                        break
 
     ####################################################
     # SETTINGS
@@ -1173,13 +1183,13 @@ class TimerThread(threading.Thread):
                 # i2c device address should be > 0
                 # i2c device should be enabled
                 if (int(y) > 0 and g_i2c_properties[x][y]["enabled"]):
-                    # if LIGHT class
+                    topic2 = "server/{}/{}".format(CONFIG_DEVICE_ID, API_REQUEST_SENSOR_READING)
+                    payload = {}
+                    payload["sensors"] = []
+
                     i2c_class = g_device_classes[g_i2c_properties[x][y]["class"]]
                     if i2c_class == "light":
-                        topic2 = "server/{}/{}".format(CONFIG_DEVICE_ID, API_REQUEST_SENSOR_READING)
-                        payload = {}
-                        payload["type"] = 0
-                        payload["sensors"] = []
+                        # if LIGHT class
                         #print("xxx {}".format(g_i2c_properties[x][y]))
                         if g_i2c_properties[x][y]["attributes"]["color"]["usage"] == 0:
                             # if RGB as color
@@ -1187,7 +1197,7 @@ class TimerThread(threading.Thread):
                             if hw_color == 1:
                                 entry = g_i2c_properties[x][y]["attributes"]["color"]["single"]["hardware"]
                                 payload["sensors"].append(entry)
-                        elif g_i2c_properties[x][y]["attributes"]["color"]["usage"] == 1:
+                        else: #if g_i2c_properties[x][y]["attributes"]["color"]["usage"] == 1:
                             # if RGB as component
                             hw_red   = g_i2c_properties[x][y]["attributes"]["color"]["individual"]["red"]["endpoint"]
                             hw_green = g_i2c_properties[x][y]["attributes"]["color"]["individual"]["green"]["endpoint"]
@@ -1206,6 +1216,17 @@ class TimerThread(threading.Thread):
                         print("")
                         publish(topic2, payload)
                         print("")
+                    elif i2c_class == "display":
+                        # if DISPLAY class
+                        #print("xxx {}".format(g_i2c_properties[x][y]))
+                        if g_i2c_properties[x][y]["attributes"]["endpoint"] == 1:
+                            entry = g_i2c_properties[x][y]["attributes"]["hardware"]
+                            payload["sensors"].append(entry)
+                            payload["source"] = {"peripheral": "I2C", "number": x+1, "address": int(y), "class": g_i2c_properties[x][y]["class"]}
+                            print("")
+                            publish(topic2, payload)
+                            print("")
+
 
     def run(self):
         print("")
