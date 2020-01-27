@@ -8094,6 +8094,9 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             devicename = $scope.devices[$scope.datatemp.hardware_devicename].devicename;
             //console.log("changePeripheral " + $scope.data.hardware_devicename);
         }
+        else if (devicename === "") {
+            devicename = $scope.devices[$scope.datatemp.hardware_devicename].devicename;
+        }
         if (sensorname === undefined) {
             sensorname = null;
         }
@@ -8163,6 +8166,9 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                         break;
                     }
                 }
+            }
+            else {
+                $scope.datatemp.hardware_sensorname = 0;
             }
             if ($scope.datatemp.hardware_sensorname >= result.data.sensors.length) {
                 $scope.datatemp.hardware_sensorname = 0;
