@@ -1264,6 +1264,7 @@ DETAILED:
 		   //     manual is an integer value of the hex color 0xRRGGBB where each RR (red), GG (green), BB (blue) can be 0x00-0xFF (0-255)
 		   //   if endpoint is Hardware
 		   //     hardware contains the devicename (input IoT Modem device) and sensorname (input I2C device)
+		   //       deviceid is the id of the IoT modem device
 		   //       devicename is the name of the IoT modem device
 		   //       peripheral is the name of the peripheral device (I2C, ADC, 1WIRE, TPROBE)
 		   //       sensorname is the name of the input device
@@ -1291,6 +1292,7 @@ DETAILED:
 		   //       default: "23"
 		   //   if endpoint is Hardware
 		   //     hardware contains the devicename (input IoT Modem device) and sensorname (input device)
+		   //       deviceid is the id of the IoT modem device
 		   //       devicename is the name of the IoT modem device
 		   //       peripheral is the name of the peripheral device (I2C, ADC, 1WIRE, TPROBE)
 		   //       sensorname is the name of the input device
@@ -1323,6 +1325,7 @@ DETAILED:
 		   //         size is the size of the sound/music file to send and play
 		   //   if endpoint is Hardware
 		   //     hardware contains the devicename (input IoT Modem device) and sensorname (input I2C device)
+		   //       deviceid is the id of the IoT modem device
 		   //       devicename is the name of the IoT modem device
 		   //       peripheral is the name of the peripheral device (I2C, ADC, 1WIRE, TPROBE)
 		   //       sensorname is the name of the input device
@@ -1440,6 +1443,7 @@ DETAILED:
 		   //     manual is an integer value of the hex color 0xRRGGBB where each RR (red), GG (green), BB (blue) can be 0x00-0xFF (0-255)
 		   //   if endpoint is Hardware
 		   //     hardware contains the devicename (input IoT Modem device) and sensorname (input I2C device)
+		   //       deviceid is the id of the IoT modem device
 		   //       devicename is the name of the IoT modem device
 		   //       peripheral is the name of the peripheral device (I2C, ADC, 1WIRE, TPROBE)
 		   //       sensorname is the name of the input device
@@ -1467,6 +1471,7 @@ DETAILED:
 		   //       default: "23"
 		   //   if endpoint is Hardware
 		   //     hardware contains the devicename (input IoT Modem device) and sensorname (input device)
+		   //       deviceid is the id of the IoT modem device
 		   //       devicename is the name of the IoT modem device
 		   //       peripheral is the name of the peripheral device (I2C, ADC, 1WIRE, TPROBE)
 		   //       sensorname is the name of the input device
@@ -1499,6 +1504,7 @@ DETAILED:
 		   //         size is the size of the sound/music file to send and play
 		   //   if endpoint is Hardware
 		   //     hardware contains the devicename (input IoT Modem device) and sensorname (input I2C device)
+		   //       deviceid is the id of the IoT modem device
 		   //       devicename is the name of the IoT modem device
 		   //       peripheral is the name of the peripheral device (I2C, ADC, 1WIRE, TPROBE)
 		   //       sensorname is the name of the input device
