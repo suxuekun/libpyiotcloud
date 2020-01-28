@@ -172,6 +172,17 @@ class database_client:
 
 
     ##########################################################
+    # configurations
+    ##########################################################
+
+    def update_device_peripheral_configuration(self, username, devicename, source, number, address, properties):
+        return self._devices.update_device_peripheral_configuration(self._devices.get_deviceid(username, devicename), source, number, address, properties)
+
+    def get_all_device_peripheral_configuration(self, deviceid):
+        return self._devices.get_all_device_peripheral_configuration(deviceid)
+
+
+    ##########################################################
     # sensor readings
     ##########################################################
 
@@ -565,6 +576,50 @@ class database_client_mongodb:
                 #print(notification['notification'])
                 return notification['notification']
         return None
+
+
+    ##########################################################
+    # configurations
+    ##########################################################
+
+    def get_configurations_document(self):
+        return self.client[config.CONFIG_MONGODB_TB_CONFIGURATIONS]
+
+    def update_device_peripheral_configuration(self, deviceid, source, number, address, properties):
+        configurations = self.get_configurations_document()
+        item = {}
+        item['deviceid'] = deviceid
+        item['source'] = source
+        item['number'] = number
+        if address is not None:
+            item['address'] = address
+        item['properties'] = properties
+
+        #print("update_device_peripheral_configuration find_one")
+        if address is not None:
+            found = configurations.find_one({'deviceid': deviceid, 'source': source, 'number': number, 'address': address})
+            if found is None:
+                configurations.insert_one(item)
+            else:
+                configurations.replace_one({'deviceid': deviceid, 'source': source, 'number': number, 'address': address}, item)
+        else:
+            found = configurations.find_one({'deviceid': deviceid, 'source': source, 'number': number})
+            if found is None:
+                configurations.insert_one(item)
+            else:
+                configurations.replace_one({'deviceid': deviceid, 'source': source, 'number': number}, item)
+
+        return item
+
+    def get_all_device_peripheral_configuration(self, deviceid):
+        configurations_list = []
+        configurations = self.get_configurations_document()
+        if configurations:
+            for configuration in configurations.find({'deviceid': deviceid}):
+                configuration.pop('_id')
+                configuration.pop('deviceid')
+                configurations_list.append(configuration)
+        return configurations_list
 
 
     ##########################################################
