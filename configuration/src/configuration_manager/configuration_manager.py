@@ -78,21 +78,33 @@ def print_json(json_object):
 def get_configuration(database_client, deviceid, topic, payload):
     #print("get_configuration")
     print(deviceid)
-    print(topic)
+    #print(topic)
     #payload = json.loads(payload)
     #print(payload)
-
 
     new_topic = "{}/{}".format(deviceid, API_RECEIVE_CONFIGURATION)
     new_payload = {
         "uart"   : [{}],
         "gpio"   : [{}, {}, {}, {}],
-        "i2c"    : [[{}], [{}], [{}], [{}]],
+        "i2c"    : [[], [], [], []],
         "adc"    : [{},{}],
         "1wire"  : [{}],
         "tprobe" : [{}],
     }
-    print_json(new_payload)
+
+    configurations = database_client.get_all_device_peripheral_configuration(deviceid)
+    #print_json(configurations)
+    for configuration in configurations:
+        number = configuration["number"] - 1
+        source = configuration["source"]
+        configuration.pop("source")
+        configuration.pop("number")
+        if source == "i2c":
+            new_payload[source][number].append(configuration)
+        else:
+            new_payload[source][number] = configuration
+
+    #print_json(new_payload)
 
     new_payload = json.dumps(new_payload)
     g_messaging_client.publish(new_topic, new_payload, debug=False) # NOTE: enable to DEBUG
