@@ -22,6 +22,9 @@ CONFIG_USE_AMQP = False
 # global variables
 ###################################################################################
 
+CONFIG_QUERY_DEVICE_CONFIGURATION = True
+CONFIG_QUERY_DEVICE_CONFIGURATION_DEBUG = False
+
 g_timer_thread = None
 g_timer_thread_use = True
 g_timer_thread_stop = threading.Event()
@@ -209,9 +212,12 @@ CONFIG_SEPARATOR            = '/'
 # API handling
 ###################################################################################
 
-def print_json(json_object):
+def print_json(json_object, label=None):
     json_formatted_str = json.dumps(json_object, indent=2)
-    print(json_formatted_str)
+    if label is None:
+        print(json_formatted_str)
+    else:
+        print("{}\r\n{}".format(label, json_formatted_str))
 
 def publish(topic, payload):
     payload = json.dumps(payload)
@@ -970,21 +976,72 @@ def handle_api(api, subtopic, subpayload):
         topic = generate_pubtopic(subtopic)
         subpayload = json.loads(subpayload)
 
-        print("")
-        print("uart   {} - {}".format(subpayload["uart"],   len(subpayload["uart"])   ))
-        print("gpio   {} - {}".format(subpayload["gpio"],   len(subpayload["gpio"])   ))
-        print("i2c    {} - {}".format(subpayload["i2c"],    len(subpayload["i2c"])    ))
-        print("  i2c0 {} - {}".format(subpayload["i2c"][0], len(subpayload["i2c"][0]) ))
-        print("  i2c1 {} - {}".format(subpayload["i2c"][1], len(subpayload["i2c"][1]) ))
-        print("  i2c2 {} - {}".format(subpayload["i2c"][2], len(subpayload["i2c"][2]) ))
-        print("  i2c3 {} - {}".format(subpayload["i2c"][3], len(subpayload["i2c"][3]) ))
-        print("adc    {} - {}".format(subpayload["adc"],    len(subpayload["adc"])    ))
-        print("1wire  {} - {}".format(subpayload["1wire"],  len(subpayload["1wire"])  ))
-        print("tprobe {} - {}".format(subpayload["tprobe"], len(subpayload["tprobe"]) ))
-        print("")
+        if CONFIG_QUERY_DEVICE_CONFIGURATION_DEBUG:
+            print("")
+            print("uart   {} - {}\r\n".format(subpayload["uart"],   len(subpayload["uart"])   ))
+            print("gpio   {} - {}\r\n".format(subpayload["gpio"],   len(subpayload["gpio"])   ))
+            print("i2c    {} - {}\r\n".format(subpayload["i2c"],    len(subpayload["i2c"])    ))
+            print("  i2c0 {} - {}\r\n".format(subpayload["i2c"][0], len(subpayload["i2c"][0]) ))
+            print("  i2c1 {} - {}\r\n".format(subpayload["i2c"][1], len(subpayload["i2c"][1]) ))
+            print("  i2c2 {} - {}\r\n".format(subpayload["i2c"][2], len(subpayload["i2c"][2]) ))
+            print("  i2c3 {} - {}\r\n".format(subpayload["i2c"][3], len(subpayload["i2c"][3]) ))
+            print("adc    {} - {}\r\n".format(subpayload["adc"],    len(subpayload["adc"])    ))
+            print("1wire  {} - {}\r\n".format(subpayload["1wire"],  len(subpayload["1wire"])  ))
+            print("tprobe {} - {}\r\n".format(subpayload["tprobe"], len(subpayload["tprobe"]) ))
+            print("")
 
-        # TODO
-        print("DEVICE CONFIGURED\r\n\r\n")
+        if subpayload["uart"][0].get("attributes"):
+            g_uart_properties = subpayload["uart"][0]["attributes"]
+
+        for x in range(len(g_gpio_properties)):
+            if subpayload["gpio"][x].get("attributes"):
+                g_gpio_properties[x] = subpayload["gpio"][x]["attributes"]
+
+        for x in range(len(g_adc_properties)):
+            if subpayload["adc"][x].get("attributes"):
+                g_adc_properties[x]["enabled"] = 0
+                g_adc_properties[x]["class"] = subpayload["adc"][x]["class"]
+                g_adc_properties[x]["attributes"] = subpayload["adc"][x]["attributes"]
+                if subpayload["adc"][x].get("subclass"):
+                    g_adc_properties[x]["subclass"] = subpayload["adc"][x]["subclass"]
+
+        for x in range(len(g_1wire_properties)):
+            if subpayload["1wire"][x].get("attributes"):
+                g_1wire_properties[x]["enabled"] = 0
+                g_1wire_properties[x]["class"] = subpayload["1wire"][x]["class"]
+                g_1wire_properties[x]["attributes"] = subpayload["1wire"][x]["attributes"]
+                if subpayload["1wire"][x].get("subclass"):
+                    g_1wire_properties[x]["subclass"] = subpayload["1wire"][x]["subclass"]
+
+        for x in range(len(g_tprobe_properties)):
+            if subpayload["tprobe"][x].get("attributes"):
+                g_tprobe_properties[x]["enabled"] = 0
+                g_tprobe_properties[x]["class"] = subpayload["tprobe"][x]["class"]
+                g_tprobe_properties[x]["attributes"] = subpayload["tprobe"][x]["attributes"]
+                if subpayload["tprobe"][x].get("subclass"):
+                    g_tprobe_properties[x]["subclass"] = subpayload["tprobe"][x]["subclass"]
+
+        for x in range(len(g_i2c_properties)):
+            for y in range(len(subpayload["i2c"][x])):
+                if subpayload["i2c"][x][y].get("attributes"):
+                    address = str(subpayload["i2c"][x][y]["address"])
+                    g_i2c_properties[x][address] = {}
+                    g_i2c_properties[x][address]["enabled"] = 0
+                    g_i2c_properties[x][address]["class"] = subpayload["i2c"][x][y]["class"]
+                    g_i2c_properties[x][address]["attributes"] = subpayload["i2c"][x][y]["attributes"]
+                    if subpayload["i2c"][x][y].get("subclass"):
+                        g_i2c_properties[x][address]["subclass"] = subpayload["i2c"][x][y]["subclass"]
+
+        if CONFIG_QUERY_DEVICE_CONFIGURATION_DEBUG:
+            print_json(g_uart_properties, "uart")
+            print_json(g_gpio_properties, "gpio")
+            print_json(g_adc_properties, "adc")
+            print_json(g_1wire_properties, "1wire")
+            print_json(g_tprobe_properties, "tprobe")
+            print_json(g_i2c_properties, "i2c")
+
+        print("\r\nDEVICE CONFIGURATION")
+        print("Device is now configured with cached values from cloud.\r\n\r\n")
 
 
     ####################################################
@@ -1371,7 +1428,8 @@ if __name__ == '__main__':
         g_messaging_client.subscribe(subtopic, subscribe=True, declare=True, consume_continuously=True)
 
         # Query device configuration
-        #query_device_configuration()
+        if CONFIG_QUERY_DEVICE_CONFIGURATION:
+            query_device_configuration()
 
         # Start the timer thread
         if g_timer_thread_use:
