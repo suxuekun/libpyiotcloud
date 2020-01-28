@@ -1450,6 +1450,9 @@ Notes:
         - sudo systemctl status web_server
         - sudo systemctl status nginx
 
+        Jenkins: // if jenkins URL is not accessible
+        - sudo service jenkins start
+
 
 # Performance
 
