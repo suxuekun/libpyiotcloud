@@ -706,7 +706,7 @@ def confirm_verify_phone_number():
         response = json.dumps({'status': 'NG', 'message': 'Token expired'})
         print('\r\nERROR Confirm verify phone: Token expired\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
-    print('refresh_user_token username={}'.format(username))
+    print('confirm_verify_phone_number username={}'.format(username))
 
     # check if a parameter is empty
     if len(username) == 0 or len(token) == 0:
@@ -733,6 +733,31 @@ def confirm_verify_phone_number():
         response = json.dumps({'status': 'NG', 'message': 'Request failed'})
         print('\r\nERROR Confirm verify phone: Request failed [{}]\r\n'.format(username))
         return response, status.HTTP_500_INTERNAL_SERVER_ERROR
+
+    # update notifications for all devices to contain new phone number (for UART only)
+    try:
+        info = g_database_client.get_user_info(token['access'])
+        devices = g_database_client.get_devices(username)
+        sources = ["uart"]
+        for source in sources:
+            for device in devices:
+                notification = g_database_client.get_device_notification(username, device["devicename"], source)
+                if notification is not None:
+                    if info is not None:
+                        if info.get("phone_number"):
+                            notification["endpoints"]["mobile"]["recipients"] = info["phone_number"]
+                            notification["endpoints"]["mobile"]["recipients_list"] = []
+                            notification["endpoints"]["mobile"]["recipients_list"].append({ "to": info["phone_number"], "group": False })
+                            notification["endpoints"]["notification"]["recipients"] = info["phone_number"]
+                            notification["endpoints"]["notification"]["recipients_list"] = []
+                            notification["endpoints"]["notification"]["recipients_list"].append({ "to": info["phone_number"], "group": False })
+                        if info.get("phone_number_verified"):
+                            notification["endpoints"]["mobile"]["enable"] = info["phone_number_verified"]
+                            notification["endpoints"]["notification"]["enable"] = False
+                        g_database_client.update_device_notification(username, device["devicename"], source, notification)
+    except:
+        print("exception")
+        pass
 
     response = json.dumps({'status': 'OK', 'message': 'Confirm verify phone successful'})
     print('\r\nConfirm verify phone successful: {}\r\n{}\r\n'.format(username, response))
@@ -2261,13 +2286,13 @@ def build_default_notifications(type, token):
 
     if info.get("phone_number"):
         notifications["endpoints"]["mobile"]["recipients"] = info["phone_number"]
-        notifications["endpoints"]["mobile"]["recipients_list"].append({ "to": info["email"], "group": False })
+        notifications["endpoints"]["mobile"]["recipients_list"].append({ "to": info["phone_number"], "group": False })
         notifications["endpoints"]["notification"]["recipients"] = info["phone_number"]
-        notifications["endpoints"]["notification"]["recipients_list"].append({ "to": info["email"], "group": False })
+        notifications["endpoints"]["notification"]["recipients_list"].append({ "to": info["phone_number"], "group": False })
 
     if info.get("phone_number_verified"):
         notifications["endpoints"]["mobile"]["enable"] = info["phone_number_verified"]
-        #notifications["endpoints"]["notification"]["enable"] = info["phone_number_verified"]
+        #notifications["endpoints"]["notification"]["enable"] = False
 
     return notifications
 
@@ -2427,21 +2452,12 @@ def set_uart_prop(devicename):
     if status_return != 200:
         return response, status_return
 
-    #print("recipients: {}".format(notification["endpoints"]["modem"]["recipients"]))
-    deviceid = g_database_client.get_deviceid(username, notification["endpoints"]["modem"]["recipients"])
-    if deviceid is not None:
-        notification["endpoints"]["modem"]["recipients_id"] = deviceid
-        #print("recipients_id: {}".format(notification["endpoints"]["modem"]["recipients_id"]))
-
     source = "uart"
     item = g_database_client.update_device_notification(username, devicename, source, notification)
-    #print(item["deviceid"])
 
-    #xyz = g_database_client.get_device_notification(username, devicename, source)
-    #print(xyz)
-
-    #xyz = g_database_client.get_device_notification_by_deviceid(item["deviceid"], source)
-    #print(xyz)
+    # update device configuration database for device bootup
+    #print("data={}".format(data))
+    item = g_database_client.update_device_peripheral_configuration(username, devicename, "uart", 1, None, None, None, data)
 
     return response
 
@@ -2709,6 +2725,11 @@ def set_gpio_prop(devicename, number):
 
     source = "gpio{}".format(number)
     g_database_client.update_device_notification(username, devicename, source, notification)
+
+    # update device configuration database for device bootup
+    #print("data={}".format(data))
+    data.pop('number')
+    item = g_database_client.update_device_peripheral_configuration(username, devicename, "gpio", int(number), None, None, None, data)
 
     return response
 
@@ -3331,23 +3352,24 @@ def get_xxx_sensors(devicename, xxx, number):
                 # check if this is the active sensor
                 # if not the active sensor, then set database record to unconfigured and disabled
                 #print(sensor)
-                if sensor['configured']:
-                    for item in response["value"]:
-                        if item["class"] == get_i2c_device_class(sensor["class"]):
-                            g_database_client.set_enable_configure_sensor(username, devicename, sensor['source'], sensor['number'], sensor['sensorname'], item["enabled"], 1)
-                            sensor["enabled"] = item["enabled"]
-                            found = True
-                            break
-                    if found == False:
-                        # set database record to unconfigured and disabled
-                        g_database_client.set_enable_configure_sensor(username, devicename, sensor['source'], sensor['number'], sensor['sensorname'], 0, 0)
-                        sensor["enabled"] = 0
-                        sensor["configured"] = 0
-                else:
+#                if sensor['configured']:
+                for item in response["value"]:
+                    if item["class"] == get_i2c_device_class(sensor["class"]):
+                        g_database_client.set_enable_configure_sensor(username, devicename, sensor['source'], sensor['number'], sensor['sensorname'], item["enabled"], 1)
+                        sensor["enabled"] = item["enabled"]
+                        sensor["configured"] = 1
+                        found = True
+                        break
+                if found == False:
                     # set database record to unconfigured and disabled
                     g_database_client.set_enable_configure_sensor(username, devicename, sensor['source'], sensor['number'], sensor['sensorname'], 0, 0)
                     sensor["enabled"] = 0
                     sensor["configured"] = 0
+#                else:
+#                    # set database record to unconfigured and disabled
+#                    g_database_client.set_enable_configure_sensor(username, devicename, sensor['source'], sensor['number'], sensor['sensorname'], 0, 0)
+#                    sensor["enabled"] = 0
+#                    sensor["configured"] = 0
         #print()
     else:
         # cannot communicate with device so set database record to unconfigured and disabled
@@ -4034,6 +4056,27 @@ def set_xxx_dev_prop(devicename, xxx, number, sensorname):
         # set to disabled and configured
         g_database_client.set_enable_configure_sensor(username, devicename, xxx, number, sensorname, 0, 1)
 
+        # update device configuration database for device bootup
+        print("data={}".format(data))
+        data.pop('number')
+        if data.get('address'):
+            data.pop('address')
+        if data.get('class'):
+            data.pop('class')
+        if data.get('subclass'):
+            data.pop('subclass')
+
+        address = None
+        if sensor.get('address'):
+            address = sensor['address']
+        classid = None
+        if sensor.get('class'):
+            classid = int(get_i2c_device_class(sensor['class']))
+        subclassid = None
+        if sensor.get('subclass'):
+            subclassid = int(get_i2c_device_class(sensor['subclass']))
+        item = g_database_client.update_device_peripheral_configuration(username, devicename, xxx, int(number), address, classid, subclassid, data)
+
         return response
 
 
@@ -4064,6 +4107,27 @@ def set_xxx_dev_prop(devicename, xxx, number, sensorname):
     source = "{}{}{}".format(xxx, number, sensorname)
     #g_database_client.update_device_notification(username, devicename, source, notification)
     g_database_client.update_device_notification_with_notification_subclass(username, devicename, source, notification, subattributes_notification)
+
+    # update device configuration database for device bootup
+    print("data={}".format(data))
+    data.pop('number')
+    if data.get('address'):
+        data.pop('address')
+    if data.get('class'):
+        data.pop('class')
+    if data.get('subclass'):
+        data.pop('subclass')
+
+    address = None
+    if sensor.get('address'):
+        address = sensor['address']
+    classid = None
+    if sensor.get('class'):
+        classid = int(get_i2c_device_class(sensor['class']))
+    subclassid = None
+    if sensor.get('subclass'):
+        subclassid = int(get_i2c_device_class(sensor['subclass']))
+    item = g_database_client.update_device_peripheral_configuration(username, devicename, xxx, int(number), address, classid, subclassid, data)
 
     return response
 

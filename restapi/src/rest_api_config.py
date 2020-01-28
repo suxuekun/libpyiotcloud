@@ -62,6 +62,7 @@ class config:
     CONFIG_MONGODB_TB_SUBSCRIPTIONS  = "subscriptions"
     CONFIG_MONGODB_TB_TRANSACTIONS   = "transactions"
     CONFIG_MONGODB_TB_SENSORREADINGS = "sensorreadings"
+    CONFIG_MONGODB_TB_CONFIGURATIONS = "configurations"
 
     # Subscription/Payment
     CONFIG_SUBSCRIPTION_TYPE         = "Free"
