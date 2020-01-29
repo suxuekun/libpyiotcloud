@@ -1230,23 +1230,23 @@ DETAILED:
 		               "single": {
 		                    "endpoint": int,
 		                    "manual": int,
-		                    "hardware": {"deviceid": string, "devicename": string, "peripheral": string, "sensorname": string, "attribute": string, "number": int, "address": int}, 
+		                    "hardware": {"devicename": string, "peripheral": string, "sensorname": string, "attribute": string}, 
 		               },
 		               "individual": {
 		                   "red": {
 		                       "endpoint": int,
 		                       "manual": int,
-		                       "hardware": {"deviceid": string, "devicename": string, "peripheral": string, "sensorname": string, "attribute": string, "number": int, "address": int}, 
+		                       "hardware": {"devicename": string, "peripheral": string, "sensorname": string, "attribute": string}, 
 		                   },
 		                   "green": {
 		                       "endpoint": int,
 		                       "manual": int,
-		                       "hardware": {"deviceid": string, "devicename": string, "peripheral": string, "sensorname": string, "attribute": string, "number": int, "address": int}, 
+		                       "hardware": {"devicename": string, "peripheral": string, "sensorname": string, "attribute": string}, 
 		                   },
 		                   "blue": {
 		                       "endpoint": int,
 		                       "manual": int,
-		                       "hardware": {"deviceid": string, "devicename": string, "peripheral": string, "sensorname": string, "attribute": string, "number": int, "address": int}, 
+		                       "hardware": {"devicename": string, "peripheral": string, "sensorname": string, "attribute": string}, 
 		                   }
 		               }
 		           }, 
@@ -1276,7 +1276,7 @@ DETAILED:
 		   // DISPLAY class
 		   data: { 
 		           "endpoint": int, 
-		           "hardware": {"deviceid": string, "devicename": string, "peripheral": string, "sensorname": string, "attribute": string, "number": int, "address": int}, 
+		           "hardware": {"devicename": string, "peripheral": string, "sensorname": string, "attribute": string}, 
 		           "format": int, 
 		           "text": string,
 		           "brightness": int
@@ -1303,7 +1303,7 @@ DETAILED:
 		   // SPEAKER class
 		   data: { 
 		            "endpoint": int, 
-		            "hardware": {"deviceid": string, "devicename": string, "peripheral": string, "sensorname": string, "attribute": string, "number": int, "address": int}, 
+		            "hardware": {"devicename": string, "peripheral": string, "sensorname": string, "attribute": string}, 
 		            "type": int,
 		            "values": { "duration": int, "pitch": int, "delay": int }
 		         }
@@ -1409,23 +1409,23 @@ DETAILED:
 		               "single": {
 		                    "endpoint": int,
 		                    "manual": int,
-		                    "hardware": {"deviceid": string, "devicename": string, "peripheral": string, "sensorname": string, "attribute": string, "number": int, "address": int}, 
+		                    "hardware": {"devicename": string, "peripheral": string, "sensorname": string, "attribute": string}, 
 		               },
 		               "individual": {
 		                   "red": {
 		                       "endpoint": int,
 		                       "manual": int,
-		                       "hardware": {"deviceid": string, "devicename": string, "peripheral": string, "sensorname": string, "attribute": string, "number": int, "address": int}, 
+		                       "hardware": {"devicename": string, "peripheral": string, "sensorname": string, "attribute": string}, 
 		                   },
 		                   "green": {
 		                       "endpoint": int,
 		                       "manual": int,
-		                       "hardware": {"deviceid": string, "devicename": string, "peripheral": string, "sensorname": string, "attribute": string, "number": int, "address": int}, 
+		                       "hardware": {"devicename": string, "peripheral": string, "sensorname": string, "attribute": string}, 
 		                   },
 		                   "blue": {
 		                       "endpoint": int,
 		                       "manual": int,
-		                       "hardware": {"deviceid": string, "devicename": string, "peripheral": string, "sensorname": string, "attribute": string, "number": int, "address": int}, 
+		                       "hardware": {"devicename": string, "peripheral": string, "sensorname": string, "attribute": string}, 
 		                   }
 		               }
 		           }, 
@@ -1455,7 +1455,7 @@ DETAILED:
 		   // DISPLAY class
 		      { 
 		           "endpoint": int, 
-		           "hardware": {"deviceid": string, "devicename": string, "peripheral": string, "sensorname": string, "attribute": string, "number": int, "address": int}, 
+		           "hardware": {"devicename": string, "peripheral": string, "sensorname": string, "attribute": string}, 
 		           "format": int, 
 		           "text": string,
 		           "brightness": int
@@ -1482,7 +1482,7 @@ DETAILED:
 		   // SPEAKER class
 		      { 
 		            "endpoint": int, 
-		            "hardware": {"deviceid": string, "devicename": string, "peripheral": string, "sensorname": string, "attribute": string, "number": int, "address": int}, 
+		            "hardware": {"devicename": string, "peripheral": string, "sensorname": string, "attribute": string}, 
 		            "type": int,
 		            "values": { "duration": int, "pitch": int, "delay": int }
 		      }
