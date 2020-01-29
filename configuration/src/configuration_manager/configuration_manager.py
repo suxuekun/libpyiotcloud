@@ -93,6 +93,11 @@ def get_configuration(database_client, deviceid, topic, payload):
 
     configurations = database_client.get_all_device_peripheral_configuration(deviceid)
     #print_json(configurations)
+    if len(configurations) == 0:
+        new_payload = {}
+        new_payload = json.dumps(new_payload)
+        g_messaging_client.publish(new_topic, new_payload, debug=False) # NOTE: enable to DEBUG
+        return
 
     for configuration in configurations:
         number = configuration["number"] - 1
