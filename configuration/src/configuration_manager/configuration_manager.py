@@ -81,6 +81,7 @@ def get_configuration(database_client, deviceid, topic, payload):
 
     print("{} {}".format(topic, deviceid))
 
+    # set topic and payload template for the response
     new_topic = "{}{}{}".format(deviceid, CONFIG_SEPARATOR, API_RECEIVE_CONFIGURATION)
     new_payload = {
         "uart"   : [{}],
@@ -91,14 +92,25 @@ def get_configuration(database_client, deviceid, topic, payload):
         "tprobe" : [{}],
     }
 
+    # read configurations from the database
     configurations = database_client.get_all_device_peripheral_configuration(deviceid)
-    #print_json(configurations)
     if len(configurations) == 0:
+        # if no entry found, just send an empty json
         new_payload = {}
         new_payload = json.dumps(new_payload)
         g_messaging_client.publish(new_topic, new_payload, debug=False) # NOTE: enable to DEBUG
         return
+    #print_json(configurations)
 
+    # set all counters to 0
+    count_uart = 0
+    count_gpio = 0
+    count_i2c = 0
+    count_adc = 0
+    count_1wire = 0
+    count_tprobe = 0
+
+    # add configuration to the payload response
     for configuration in configurations:
         number = configuration["number"] - 1
         source = configuration["source"]
@@ -106,10 +118,36 @@ def get_configuration(database_client, deviceid, topic, payload):
         configuration.pop("number")
         if source == "i2c":
             new_payload[source][number].append(configuration)
+            count_i2c += 1
         else:
             new_payload[source][number] = configuration
-    #print_json(new_payload)
+            if source == "uart":
+                count_uart += 1
+            elif source == "gpio":
+                count_gpio += 1
+            elif source == "adc":
+                count_adc += 1
+            elif source == "1wire":
+                count_1wire += 1
+            elif source == "tprobe":
+                count_tprobe += 1
 
+    # remove entry if no configuration for that peripheral
+    if count_uart == 0:
+        new_payload.pop("uart")
+    if count_gpio == 0:
+        new_payload.pop("gpio")
+    if count_i2c == 0:
+        new_payload.pop("i2c")
+    if count_adc == 0:
+        new_payload.pop("adc")
+    if count_1wire == 0:
+        new_payload.pop("1wire")
+    if count_tprobe == 0:
+        new_payload.pop("tprobe")
+
+    # publish packet response to device
+    #print_json(new_payload)
     new_payload = json.dumps(new_payload)
     g_messaging_client.publish(new_topic, new_payload, debug=False) # NOTE: enable to DEBUG
 
