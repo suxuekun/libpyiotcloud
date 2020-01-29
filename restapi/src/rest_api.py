@@ -1465,12 +1465,19 @@ def register_device(devicename):
             return response, status.HTTP_400_BAD_REQUEST
 
         # add and configure message broker user
-        result = message_broker_register(data["deviceid"], data["serialnumber"])
-        #print(result)
-        if not result:
-            response = json.dumps({'status': 'NG', 'message': 'Device could not be registered in message broker'})
-            print('\r\nERROR Add Device: Device could not be registered  in message broker [{},{}]\r\n'.format(username, devicename))
-            return response, status.HTTP_500_INTERNAL_SERVER_ERROR
+        try:
+            # if secure is True, device will only be able to publish and subscribe to server/<deviceid>/# and <deviceid>/# respectively
+            # this means a hacker can only hack that particular device and will not be able to eavesdrop on other devices
+            # if secure is False, device will be able to publish and subscribe to/from other devices which enables multi-subscriptions
+            secure = True
+            result = message_broker_register(data["deviceid"], data["serialnumber"], secure)
+            #print(result)
+            if not result:
+                response = json.dumps({'status': 'NG', 'message': 'Device could not be registered in message broker'})
+                print('\r\nERROR Add Device: Device could not be registered  in message broker [{},{}]\r\n'.format(username, devicename))
+                return response, status.HTTP_500_INTERNAL_SERVER_ERROR
+        except:
+            pass
 
         # add default uart notification recipients
         # this is necessary so that an entry exist for consumption of notification manager
@@ -1501,12 +1508,15 @@ def register_device(devicename):
         g_database_client.delete_device(username, devicename)
 
         # delete message broker user
-        result = message_broker_unregister(device["deviceid"])
-        #print(result)
-        if not result:
-            response = json.dumps({'status': 'NG', 'message': 'Device could not be unregistered in message broker'})
-            print('\r\nERROR Delete Device: Device could not be unregistered  in message broker [{},{}]\r\n'.format(username, devicename))
-            return response, status.HTTP_500_INTERNAL_SERVER_ERROR
+        try:
+            result = message_broker_unregister(device["deviceid"])
+            #print(result)
+            if not result:
+                response = json.dumps({'status': 'NG', 'message': 'Device could not be unregistered in message broker'})
+                print('\r\nERROR Delete Device: Device could not be unregistered  in message broker [{},{}]\r\n'.format(username, devicename))
+                return response, status.HTTP_500_INTERNAL_SERVER_ERROR
+        except:
+            pass
 
         msg = {'status': 'OK', 'message': 'Devices unregistered successfully.'}
         if new_token:
@@ -5026,7 +5036,7 @@ def mq_settopicpermission(auth64, deviceid):
 
 ######
 
-def message_broker_register(deviceid, serialnumber):
+def message_broker_register(deviceid, serialnumber, secure=True):
     if config.CONFIG_ENABLE_MQ_SECURITY:
         account = config.CONFIG_MGMT_ACCOUNT
         auth64 = "Basic {}".format(str(base64.urlsafe_b64encode(account.encode("utf-8")), "utf-8"))
@@ -5038,10 +5048,12 @@ def message_broker_register(deviceid, serialnumber):
         if not result:
             print("mq_setpermission fails")
             return result
-        result = mq_settopicpermission(auth64, deviceid)
-        if not result:
-            print("mq_settopicpermission fails")
-            return result
+        # set topic permission only if secure option is enabled
+        if secure:
+            result = mq_settopicpermission(auth64, deviceid)
+            if not result:
+                print("mq_settopicpermission fails")
+                return result
     return True
 
 def message_broker_unregister(deviceid):
