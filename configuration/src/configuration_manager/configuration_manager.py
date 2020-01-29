@@ -63,6 +63,7 @@ CONFIG_SEPARATOR            = '/'
 
 API_RECEIVE_CONFIGURATION   = "rcv_configuration"
 API_REQUEST_CONFIGURATION   = "req_configuration"
+API_DELETE_CONFIGURATION    = "del_configuration"
 
 
 
@@ -75,14 +76,12 @@ def print_json(json_object):
     json_formatted_str = json.dumps(json_object, indent=2)
     print(json_formatted_str)
 
-def get_configuration(database_client, deviceid, topic, payload):
-    #print("get_configuration")
-    print(deviceid)
-    #print(topic)
-    #payload = json.loads(payload)
-    #print(payload)
 
-    new_topic = "{}/{}".format(deviceid, API_RECEIVE_CONFIGURATION)
+def get_configuration(database_client, deviceid, topic, payload):
+
+    print("{} {}".format(topic, deviceid))
+
+    new_topic = "{}{}{}".format(deviceid, CONFIG_SEPARATOR, API_RECEIVE_CONFIGURATION)
     new_payload = {
         "uart"   : [{}],
         "gpio"   : [{}, {}, {}, {}],
@@ -94,6 +93,7 @@ def get_configuration(database_client, deviceid, topic, payload):
 
     configurations = database_client.get_all_device_peripheral_configuration(deviceid)
     #print_json(configurations)
+
     for configuration in configurations:
         number = configuration["number"] - 1
         source = configuration["source"]
@@ -103,11 +103,16 @@ def get_configuration(database_client, deviceid, topic, payload):
             new_payload[source][number].append(configuration)
         else:
             new_payload[source][number] = configuration
-
     #print_json(new_payload)
 
     new_payload = json.dumps(new_payload)
     g_messaging_client.publish(new_topic, new_payload, debug=False) # NOTE: enable to DEBUG
+
+
+def del_configuration(database_client, deviceid, topic, payload):
+
+    print("{} {}".format(topic, deviceid))
+    database_client.delete_all_device_peripheral_configuration(deviceid)
 
 
 def on_message(subtopic, subpayload):
@@ -115,7 +120,7 @@ def on_message(subtopic, subpayload):
     #print(subtopic)
     #print(subpayload)
 
-    arr_subtopic = subtopic.split("/", 2)
+    arr_subtopic = subtopic.split(CONFIG_SEPARATOR, 2)
     if len(arr_subtopic) != 3:
         return
 
@@ -129,6 +134,14 @@ def on_message(subtopic, subpayload):
             thr.start()
         except Exception as e:
             print("exception API_REQUEST_CONFIGURATION")
+            print(e)
+            return
+    elif topic == API_DELETE_CONFIGURATION:
+        try:
+            thr = threading.Thread(target = del_configuration, args = (g_database_client, deviceid, topic, payload ))
+            thr.start()
+        except Exception as e:
+            print("exception API_DELETE_CONFIGURATION")
             print(e)
             return
 
@@ -228,7 +241,9 @@ if __name__ == '__main__':
     # Subscribe to messages sent for this device
     time.sleep(1)
     subtopic = "{}{}+{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_SEPARATOR, API_REQUEST_CONFIGURATION)
+    subtopic2 = "{}{}+{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_SEPARATOR, API_DELETE_CONFIGURATION)
     g_messaging_client.subscribe(subtopic, subscribe=True, declare=True, consume_continuously=True)
+    g_messaging_client.subscribe(subtopic2, subscribe=True, declare=True, consume_continuously=True)
 
 
     while g_messaging_client.is_connected():
