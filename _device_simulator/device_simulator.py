@@ -291,54 +291,56 @@ def handle_api(api, subtopic, subpayload):
     elif api == API_RECEIVE_SENSOR_READING:
         topic = generate_pubtopic(subtopic)
         subpayload = json.loads(subpayload)
-        #print()
-        source = subpayload["source"]
-        print("{}{}:{} {}".format(source["peripheral"], source["number"], source["address"], g_device_classes[source["class"]]))
-        #print(subpayload["sensors"])
 
-        if source["peripheral"] == "I2C":
-            device_class = g_device_classes[source["class"]]
-            x = source["number"]-1
-            if device_class == "light":
-                for y in g_i2c_properties[x]:
-                    if int(y) == source["address"]:
-                        if g_i2c_properties[x][y]["attributes"]["color"]["usage"] == 0: 
-                            # RGB as color
-                            prop = g_i2c_properties[x][y]["attributes"]["color"]["single"]
+        # if requested with API_REQUEST_SENSOR_READING which is already obsoleted
+        if subpayload.get("source"):
+            source = subpayload["source"]
+            print("{}{}:{} {}".format(source["peripheral"], source["number"], source["address"], g_device_classes[source["class"]]))
+            #print(subpayload["sensors"])
+
+            if source["peripheral"] == "I2C":
+                device_class = g_device_classes[source["class"]]
+                x = source["number"]-1
+                if device_class == "light":
+                    for y in g_i2c_properties[x]:
+                        if int(y) == source["address"]:
+                            if g_i2c_properties[x][y]["attributes"]["color"]["usage"] == 0: 
+                                # RGB as color
+                                prop = g_i2c_properties[x][y]["attributes"]["color"]["single"]
+                                index = 0
+                                if prop["endpoint"] == 1:
+                                    value = int(subpayload["sensors"][index]["value"])
+                                    scaled_value = int(value * 0xFFFFFF / 255)
+                                    print("COLOR = {} scaled {} ({})".format(value, scaled_value, hex(scaled_value).upper()))
+                            elif g_i2c_properties[x][y]["attributes"]["color"]["usage"] == 1:
+                                # RGB as component
+                                prop = g_i2c_properties[x][y]["attributes"]["color"]["individual"]
+                                index = 0
+                                if prop["red"]["endpoint"] == 1:
+                                    value = int(subpayload["sensors"][index]["value"])
+                                    print("RED   : {} ({})".format(value, hex(value).upper()))
+                                    index += 1
+                                if prop["green"]["endpoint"] == 1:
+                                    value = int(subpayload["sensors"][index]["value"])
+                                    print("GREEN : {} ({})".format(value, hex(value).upper()))
+                                    index += 1
+                                if prop["blue"]["endpoint"] == 1:
+                                    value = int(subpayload["sensors"][index]["value"])
+                                    print("BLUE  : {} ({})".format(value, hex(value).upper()))
+                                    index += 1
+                            print("")
+                            break
+                elif device_class == "display":
+                    for y in g_i2c_properties[x]:
+                        if int(y) == source["address"]:
                             index = 0
-                            if prop["endpoint"] == 1:
-                                value = int(subpayload["sensors"][index]["value"])
-                                scaled_value = int(value * 0xFFFFFF / 255)
-                                print("COLOR = {} scaled {} ({})".format(value, scaled_value, hex(scaled_value).upper()))
-                        elif g_i2c_properties[x][y]["attributes"]["color"]["usage"] == 1:
-                            # RGB as component
-                            prop = g_i2c_properties[x][y]["attributes"]["color"]["individual"]
-                            index = 0
-                            if prop["red"]["endpoint"] == 1:
-                                value = int(subpayload["sensors"][index]["value"])
-                                print("RED   : {} ({})".format(value, hex(value).upper()))
-                                index += 1
-                            if prop["green"]["endpoint"] == 1:
-                                value = int(subpayload["sensors"][index]["value"])
-                                print("GREEN : {} ({})".format(value, hex(value).upper()))
-                                index += 1
-                            if prop["blue"]["endpoint"] == 1:
-                                value = int(subpayload["sensors"][index]["value"])
-                                print("BLUE  : {} ({})".format(value, hex(value).upper()))
-                                index += 1
-                        print("")
-                        break
-            elif device_class == "display":
-                for y in g_i2c_properties[x]:
-                    if int(y) == source["address"]:
-                        index = 0
-                        value = int(subpayload["sensors"][index]["value"])
-                        if g_i2c_properties[x][y]["attributes"]["format"] == 0:
-                            print("HEX = {} ({})".format(hex(value).upper(), value))
-                        elif g_i2c_properties[x][y]["attributes"]["format"] == 1:
-                            print("INT = {} ({})".format(value, hex(value).upper()))
-                        print("")
-                        break
+                            value = int(subpayload["sensors"][index]["value"])
+                            if g_i2c_properties[x][y]["attributes"]["format"] == 0:
+                                print("HEX = {} ({})".format(hex(value).upper(), value))
+                            elif g_i2c_properties[x][y]["attributes"]["format"] == 1:
+                                print("INT = {} ({})".format(value, hex(value).upper()))
+                            print("")
+                            break
 
     ####################################################
     # SETTINGS
@@ -583,6 +585,7 @@ def handle_api(api, subtopic, subpayload):
 
     elif api == API_SET_I2C_DEVICE_PROPERTIES:
         topic = generate_pubtopic(subtopic)
+        print(len(subpayload))
         subpayload = json.loads(subpayload)
         #print(subpayload)
 
@@ -621,7 +624,7 @@ def handle_api(api, subtopic, subpayload):
 
         payload = {}
         payload["value"] = value
-        publish(topic, payload)	
+        publish(topic, payload)    
 
     elif api == API_ENABLE_ADC_DEVICE:
         topic = generate_pubtopic(subtopic)
@@ -718,7 +721,7 @@ def handle_api(api, subtopic, subpayload):
 
         payload = {}
         payload["value"] = value
-        publish(topic, payload)	
+        publish(topic, payload)    
 
     elif api == API_ENABLE_1WIRE_DEVICE:
         topic = generate_pubtopic(subtopic)
@@ -796,7 +799,7 @@ def handle_api(api, subtopic, subpayload):
 
         payload = {}
         payload["value"] = value
-        publish(topic, payload)	
+        publish(topic, payload)    
 
     elif api == API_ENABLE_TPROBE_DEVICE:
         topic = generate_pubtopic(subtopic)
@@ -948,7 +951,7 @@ def handle_api(api, subtopic, subpayload):
         payload = {}
         payload["value"] = value
         #print(payload["value"])
-        publish(topic, payload)	
+        publish(topic, payload)    
 
 
     ####################################################
@@ -1347,7 +1350,7 @@ class TimerThread(threading.Thread):
         print("")
         while not self.stopped.wait(self.timeout):
             self.process_input_devices()
-            self.process_output_devices()
+            #self.process_output_devices()
 
 
 
