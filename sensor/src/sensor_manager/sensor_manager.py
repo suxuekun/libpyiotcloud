@@ -72,6 +72,11 @@ API_PUBLISH_SENSOR_READING  = "sensor_reading"
 ###################################################################################
 
 
+def print_json(json_object):
+    json_formatted_str = json.dumps(json_object, indent=2)
+    print(json_formatted_str)
+
+
 def add_sensor_reading(database_client, deviceid, topic, payload):
 
     #print(deviceid)
@@ -140,6 +145,72 @@ def add_sensor_reading(database_client, deviceid, topic, payload):
                 sensor_readings["subclass"]["lowest"] = float(sensor_readings["subclass"]["lowest"])
                 sensor_readings["subclass"]["highest"] = float(sensor_readings["subclass"]["highest"])
             database_client.add_sensor_reading(deviceid, source, address, sensor_readings)
+
+
+            #
+            # forward the packet to the specified recipient in the properties
+            try:
+                peripheral = source[0:len(source)-1]
+                number = source[len(source)-1:]
+                #print("source {} {} {} {}".format(source, peripheral, number, address))
+
+                configuration = database_client.get_device_peripheral_configuration(deviceid, peripheral, int(number), address)
+                #print_json(configuration)
+                if configuration is not None:
+                    # check if continuous mode
+                    if configuration["attributes"]["mode"] == 2: 
+                        # get the device name
+                        dest_devicename = configuration["attributes"]["hardware"]["devicename"]
+                        if dest_devicename != "":
+                            #print(dest_devicename)
+                            sensor = database_client.get_sensor_by_deviceid(deviceid, peripheral, number, address)
+                            if sensor is not None:
+                                #print_json(sensor)
+                                #print("")
+                                dest_deviceid = database_client.get_deviceid(sensor["username"], dest_devicename)
+                                dest_topic = "{}/{}".format(dest_deviceid, API_RECEIVE_SENSOR_READING)
+                                #print("Hello")
+                                dest_payload = {"sensors": []}
+                                packet = {}
+                                if sensor["formats"][0] == "int":
+                                    packet = {
+                                        "peripheral": sensor["source"].upper(),
+                                        "sensorname": sensor["sensorname"],
+                                        "attribute":  sensor["attributes"][0],
+                                        "value":      int(sensor_readings["value"]), 
+                                        #"peripheral": sensor["source"].upper(), 
+                                        #"number":     int(sensor["number"]), 
+                                        #"address":    int(sensor["address"]), 
+                                        #"class":      int
+                                    }
+                                else:
+                                    packet = {
+                                        "peripheral": sensor["source"].upper(),
+                                        "sensorname": sensor["sensorname"],
+                                        "attribute":  sensor["attributes"][0],
+                                        "value":      sensor_readings["value"], 
+                                    }
+                                if sensor_readings.get("subclass"):
+                                    if sensor["formats"][1] == "int":
+                                        packet["subclass"] = { 
+                                            "attribute":  sensor["attributes"][1], 
+                                            "value": int(sensor_readings["subclass"]["value"]) 
+                                        }
+                                    else:
+                                        packet["subclass"] = { 
+                                            "attribute":  sensor["attributes"][1], 
+                                            "value": sensor_readings["subclass"]["value"] 
+                                        }
+
+                                dest_payload["sensors"].append(packet)
+                                #print_json(dest_payload)
+                                #print("")
+                                dest_payload = json.dumps(dest_payload)
+                                g_messaging_client.publish(dest_topic, dest_payload, debug=False) # NOTE: enable to DEBUG
+            except:
+                print("exception")
+                pass
+
     #print("")
 
 
@@ -175,7 +246,8 @@ def get_sensor_reading(database_client, deviceid, topic, payload):
         sensor_readings = database_client.get_sensor_reading_by_deviceid(sensor["deviceid"], source, address)
 
         # use the retrieved value if exists
-        entry = sensor
+        entry = {}
+        entry["sensorname"] = sensor["sensorname"]
         if sensor_readings is None:
             entry["value"] = value
         else:
@@ -318,9 +390,9 @@ if __name__ == '__main__':
     # Subscribe to messages sent for this device
     time.sleep(1)
     subtopic = "{}{}+{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_SEPARATOR, API_PUBLISH_SENSOR_READING)
-    subtopic2 = "{}{}+{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_SEPARATOR, API_REQUEST_SENSOR_READING)
+    #subtopic2 = "{}{}+{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_SEPARATOR, API_REQUEST_SENSOR_READING)
     g_messaging_client.subscribe(subtopic, subscribe=True, declare=True, consume_continuously=True)
-    g_messaging_client.subscribe(subtopic2, subscribe=True, declare=True, consume_continuously=True)
+    #g_messaging_client.subscribe(subtopic2, subscribe=True, declare=True, consume_continuously=True)
 
 
     while g_messaging_client.is_connected():

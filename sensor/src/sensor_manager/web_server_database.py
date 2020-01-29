@@ -189,6 +189,22 @@ class database_client:
 
 
     ##########################################################
+    # sensors
+    ##########################################################
+
+    def get_sensor_by_deviceid(self, deviceid, source, number, address):
+        return self._devices.get_sensor_by_deviceid(deviceid, source, number, address)
+
+
+    ##########################################################
+    # configurations
+    ##########################################################
+
+    def get_device_peripheral_configuration(self, deviceid, source, number, address):
+        return self._devices.get_device_peripheral_configuration(deviceid, source, number, address)
+
+
+    ##########################################################
     # devices
     ##########################################################
 
@@ -631,6 +647,52 @@ class database_client_mongodb:
 
 
     ##########################################################
+    # sensors
+    ##########################################################
+
+    def get_sensors_document(self):
+        return self.client[config.CONFIG_MONGODB_TB_I2CSENSORS]
+
+    def get_sensor_by_deviceid(self, deviceid, source, number, address):
+        i2csensors = self.get_sensors_document();
+        if i2csensors:
+            if address is not None:
+                for i2csensor in i2csensors.find({'deviceid': deviceid, 'source': source, 'number': number, 'address': address}):
+                    i2csensor.pop('_id')
+                    #i2csensor.pop('username')
+                    #i2csensor.pop('devicename')
+                    return i2csensor
+            else:
+                for i2csensor in i2csensors.find({'deviceid': deviceid, 'source': source, 'number': number}):
+                    i2csensor.pop('_id')
+                    #i2csensor.pop('username')
+                    #i2csensor.pop('devicename')
+                    return i2csensor
+        return None
+
+
+    ##########################################################
+    # configurations
+    ##########################################################
+
+    def get_configurations_document(self):
+        return self.client[config.CONFIG_MONGODB_TB_CONFIGURATIONS]
+
+    def get_device_peripheral_configuration(self, deviceid, source, number, address):
+        configurations = self.get_configurations_document()
+        if configurations:
+            if address is not None:
+                for configuration in configurations.find({'deviceid': deviceid, 'source': source, 'number': number, 'address': address}):
+                    configuration.pop('_id')
+                    return configuration
+            else:
+                for configuration in configurations.find({'deviceid': deviceid, 'source': source, 'number': number}):
+                    configuration.pop('_id')
+                    return configuration
+        return None
+
+
+    ##########################################################
     # devices
     ##########################################################
 
@@ -691,10 +753,8 @@ class database_client_mongodb:
     def get_deviceid(self, username, devicename):
         devices = self.get_registered_devices()
         if devices:
-            for device in devices.find({},{'username': 1, 'devicename': 1, 'deviceid': 1}):
-                #print(user)
-                if device['username'] == username and device['devicename'] == devicename:
-                    return device['deviceid']
+            for device in devices.find({'username': username, 'devicename': devicename},{'deviceid': 1}):
+                return device['deviceid']
         return None
 
     def add_device_heartbeat(self, deviceid):
