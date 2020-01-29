@@ -22,8 +22,10 @@ CONFIG_USE_AMQP = False
 # global variables
 ###################################################################################
 
+# device configuration on bootup
 CONFIG_QUERY_DEVICE_CONFIGURATION = True
 CONFIG_QUERY_DEVICE_CONFIGURATION_DEBUG = False
+CONFIG_DELETE_DEVICE_CONFIGURATION = False
 
 g_timer_thread = None
 g_timer_thread_use = True
@@ -184,6 +186,7 @@ API_PUBLISH_SENSOR_READING       = "sensor_reading"
 # configuration
 API_RECEIVE_CONFIGURATION        = "rcv_configuration"
 API_REQUEST_CONFIGURATION        = "req_configuration"
+API_DELETE_CONFIGURATION         = "del_configuration"
 
 
 
@@ -1137,7 +1140,13 @@ def process_start():
 
 def query_device_configuration():
     print("\r\n\r\nQuery device configuration")
-    topic = "server/{}/{}".format(CONFIG_DEVICE_ID, API_REQUEST_CONFIGURATION)
+    topic = "{}{}{}{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_DEVICE_ID, CONFIG_SEPARATOR, API_REQUEST_CONFIGURATION)
+    payload = {}
+    publish(topic, payload)
+
+def delete_device_configuration():
+    print("\r\n\r\nDelete device configuration")
+    topic = "{}{}{}{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_DEVICE_ID, CONFIG_SEPARATOR, API_DELETE_CONFIGURATION)
     payload = {}
     publish(topic, payload)
 
@@ -1163,7 +1172,7 @@ class TimerThread(threading.Thread):
         self.timeout = timeout
 
     def process_input_devices(self):
-        topic = "server/{}/{}".format(CONFIG_DEVICE_ID, API_PUBLISH_SENSOR_READING)
+        topic = "{}{}{}{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_DEVICE_ID, CONFIG_SEPARATOR, API_PUBLISH_SENSOR_READING)
 
         # sample MQTT packet for sensor data publishing
         # 1. only ENABLED properties shall be included
@@ -1282,7 +1291,7 @@ class TimerThread(threading.Thread):
                 # i2c device address should be > 0
                 # i2c device should be enabled
                 if (int(y) > 0 and g_i2c_properties[x][y]["enabled"]):
-                    topic2 = "server/{}/{}".format(CONFIG_DEVICE_ID, API_REQUEST_SENSOR_READING)
+                    topic = "{}{}{}{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_DEVICE_ID, CONFIG_SEPARATOR, API_REQUEST_SENSOR_READING)
                     payload = {}
                     payload["sensors"] = []
 
@@ -1313,7 +1322,7 @@ class TimerThread(threading.Thread):
                                     payload["sensors"].append(entry)
                         payload["source"] = {"peripheral": "I2C", "number": x+1, "address": int(y), "class": g_i2c_properties[x][y]["class"]}
                         print("")
-                        publish(topic2, payload)
+                        publish(topic, payload)
                         print("")
                     elif i2c_class == "display":
                         # if DISPLAY class
@@ -1323,7 +1332,7 @@ class TimerThread(threading.Thread):
                             payload["sensors"].append(entry)
                             payload["source"] = {"peripheral": "I2C", "number": x+1, "address": int(y), "class": g_i2c_properties[x][y]["class"]}
                             print("")
-                            publish(topic2, payload)
+                            publish(topic, payload)
                             print("")
 
 
@@ -1427,9 +1436,15 @@ if __name__ == '__main__':
         subtopic = "{}{}#".format(CONFIG_DEVICE_ID, CONFIG_SEPARATOR)
         g_messaging_client.subscribe(subtopic, subscribe=True, declare=True, consume_continuously=True)
 
+
+        # Delete device configuration
+        if CONFIG_DELETE_DEVICE_CONFIGURATION:
+            delete_device_configuration()
+
         # Query device configuration
         if CONFIG_QUERY_DEVICE_CONFIGURATION:
             query_device_configuration()
+
 
         # Start the timer thread
         if g_timer_thread_use:
