@@ -993,47 +993,53 @@ def handle_api(api, subtopic, subpayload):
             print("tprobe {} - {}\r\n".format(subpayload["tprobe"], len(subpayload["tprobe"]) ))
             print("")
 
-        if subpayload["uart"][0].get("attributes"):
-            g_uart_properties = subpayload["uart"][0]["attributes"]
+        if subpayload.get("uart"):
+            if subpayload["uart"][0].get("attributes"):
+                g_uart_properties = subpayload["uart"][0]["attributes"]
 
-        for x in range(len(g_gpio_properties)):
-            if subpayload["gpio"][x].get("attributes"):
-                g_gpio_properties[x] = subpayload["gpio"][x]["attributes"]
+        if subpayload.get("gpio"):
+            for x in range(len(g_gpio_properties)):
+                if subpayload["gpio"][x].get("attributes"):
+                    g_gpio_properties[x] = subpayload["gpio"][x]["attributes"]
 
-        for x in range(len(g_adc_properties)):
-            if subpayload["adc"][x].get("attributes"):
-                g_adc_properties[x]["enabled"] = 0
-                g_adc_properties[x]["class"] = subpayload["adc"][x]["class"]
-                g_adc_properties[x]["attributes"] = subpayload["adc"][x]["attributes"]
-                if subpayload["adc"][x].get("subclass"):
-                    g_adc_properties[x]["subclass"] = subpayload["adc"][x]["subclass"]
+        if subpayload.get("adc"):
+            for x in range(len(g_adc_properties)):
+                if subpayload["adc"][x].get("attributes"):
+                    g_adc_properties[x]["enabled"] = 0
+                    g_adc_properties[x]["class"] = subpayload["adc"][x]["class"]
+                    g_adc_properties[x]["attributes"] = subpayload["adc"][x]["attributes"]
+                    if subpayload["adc"][x].get("subclass"):
+                        g_adc_properties[x]["subclass"] = subpayload["adc"][x]["subclass"]
 
-        for x in range(len(g_1wire_properties)):
-            if subpayload["1wire"][x].get("attributes"):
-                g_1wire_properties[x]["enabled"] = 0
-                g_1wire_properties[x]["class"] = subpayload["1wire"][x]["class"]
-                g_1wire_properties[x]["attributes"] = subpayload["1wire"][x]["attributes"]
-                if subpayload["1wire"][x].get("subclass"):
-                    g_1wire_properties[x]["subclass"] = subpayload["1wire"][x]["subclass"]
+        if subpayload.get("1wire"):
+            for x in range(len(g_1wire_properties)):
+                if subpayload["1wire"][x].get("attributes"):
+                    g_1wire_properties[x]["enabled"] = 0
+                    g_1wire_properties[x]["class"] = subpayload["1wire"][x]["class"]
+                    g_1wire_properties[x]["attributes"] = subpayload["1wire"][x]["attributes"]
+                    if subpayload["1wire"][x].get("subclass"):
+                        g_1wire_properties[x]["subclass"] = subpayload["1wire"][x]["subclass"]
 
-        for x in range(len(g_tprobe_properties)):
-            if subpayload["tprobe"][x].get("attributes"):
-                g_tprobe_properties[x]["enabled"] = 0
-                g_tprobe_properties[x]["class"] = subpayload["tprobe"][x]["class"]
-                g_tprobe_properties[x]["attributes"] = subpayload["tprobe"][x]["attributes"]
-                if subpayload["tprobe"][x].get("subclass"):
-                    g_tprobe_properties[x]["subclass"] = subpayload["tprobe"][x]["subclass"]
+        if subpayload.get("tprobe"):
+            for x in range(len(g_tprobe_properties)):
+                if subpayload["tprobe"][x].get("attributes"):
+                    g_tprobe_properties[x]["enabled"] = 0
+                    g_tprobe_properties[x]["class"] = subpayload["tprobe"][x]["class"]
+                    g_tprobe_properties[x]["attributes"] = subpayload["tprobe"][x]["attributes"]
+                    if subpayload["tprobe"][x].get("subclass"):
+                        g_tprobe_properties[x]["subclass"] = subpayload["tprobe"][x]["subclass"]
 
-        for x in range(len(g_i2c_properties)):
-            for y in range(len(subpayload["i2c"][x])):
-                if subpayload["i2c"][x][y].get("attributes"):
-                    address = str(subpayload["i2c"][x][y]["address"])
-                    g_i2c_properties[x][address] = {}
-                    g_i2c_properties[x][address]["enabled"] = 0
-                    g_i2c_properties[x][address]["class"] = subpayload["i2c"][x][y]["class"]
-                    g_i2c_properties[x][address]["attributes"] = subpayload["i2c"][x][y]["attributes"]
-                    if subpayload["i2c"][x][y].get("subclass"):
-                        g_i2c_properties[x][address]["subclass"] = subpayload["i2c"][x][y]["subclass"]
+        if subpayload.get("i2c"):
+            for x in range(len(g_i2c_properties)):
+                for y in range(len(subpayload["i2c"][x])):
+                    if subpayload["i2c"][x][y].get("attributes"):
+                        address = str(subpayload["i2c"][x][y]["address"])
+                        g_i2c_properties[x][address] = {}
+                        g_i2c_properties[x][address]["enabled"] = 0
+                        g_i2c_properties[x][address]["class"] = subpayload["i2c"][x][y]["class"]
+                        g_i2c_properties[x][address]["attributes"] = subpayload["i2c"][x][y]["attributes"]
+                        if subpayload["i2c"][x][y].get("subclass"):
+                            g_i2c_properties[x][address]["subclass"] = subpayload["i2c"][x][y]["subclass"]
 
         if CONFIG_QUERY_DEVICE_CONFIGURATION_DEBUG:
             print_json(g_uart_properties, "uart")
