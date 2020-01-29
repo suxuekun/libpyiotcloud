@@ -4531,13 +4531,13 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
                                 'endpoint': 0,
                                 'manual': 0,
                                 'hardware': {
-                                    'deviceid': '',  
+                                    //'deviceid': '',  
                                     'devicename': '',  
                                     'peripheral': '',  
                                     'sensorname': '',  
                                     'attribute': '',  
-                                    'number': 0,  
-                                    'address': 0,  
+                                    //'number': 0,  
+                                    //'address': 0,  
                                 },
                             },
                             'individual': {
@@ -4545,39 +4545,39 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
                                     'endpoint': 0,
                                     'manual': 0,
                                     'hardware': {
-                                        'deviceid': '',  
+                                        //'deviceid': '',  
                                         'devicename': '',  
                                         'peripheral': '',  
                                         'sensorname': '',  
                                         'attribute': '',  
-                                        'number': 0,  
-                                        'address': 0,  
+                                        //'number': 0,  
+                                        //'address': 0,  
                                     },
                                 },
                                 'green': {
                                     'endpoint': 0,
                                     'manual': 0,
                                     'hardware': {
-                                        'deviceid': '',  
+                                        //'deviceid': '',  
                                         'devicename': '',  
                                         'peripheral': '',  
                                         'sensorname': '',  
                                         'attribute': '',  
-                                        'number': 0,  
-                                        'address': 0,  
+                                        //'number': 0,  
+                                        //'address': 0,  
                                     },
                                 },
                                 'blue': {
                                     'endpoint': 0,
                                     'manual': 0,
                                     'hardware': {
-                                        'deviceid': '',  
+                                        //'deviceid': '',  
                                         'devicename': '',  
                                         'peripheral': '',  
                                         'sensorname': '',  
                                         'attribute': '',   
-                                        'number': 0,  
-                                        'address': 0,  
+                                        //'number': 0,  
+                                        //'address': 0,  
                                     },
                                 },
                             },
@@ -7499,6 +7499,29 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         console.log("submit");
         console.log($scope.data.attributes);
         
+        if ($scope.data.attributes.color.usage === 0) {
+            $scope.data.attributes.color.individual.red.hardware.devicename = "";
+            $scope.data.attributes.color.individual.red.hardware.peripheral = "";
+            $scope.data.attributes.color.individual.red.hardware.sensorname = "";
+            $scope.data.attributes.color.individual.red.hardware.attribute = "";
+
+            $scope.data.attributes.color.individual.green.hardware.devicename = "";
+            $scope.data.attributes.color.individual.green.hardware.peripheral = "";
+            $scope.data.attributes.color.individual.green.hardware.sensorname = "";
+            $scope.data.attributes.color.individual.green.hardware.attribute = "";
+
+            $scope.data.attributes.color.individual.blue.hardware.devicename = "";
+            $scope.data.attributes.color.individual.blue.hardware.peripheral = "";
+            $scope.data.attributes.color.individual.blue.hardware.sensorname = "";
+            $scope.data.attributes.color.individual.blue.hardware.attribute = "";
+        }
+        else if ($scope.data.attributes.color.usage === 1) {
+            $scope.data.attributes.color.single.hardware.devicename = "";
+            $scope.data.attributes.color.single.hardware.peripheral = "";
+            $scope.data.attributes.color.single.hardware.sensorname = "";
+            $scope.data.attributes.color.single.hardware.attribute = "";
+        }
+        
         set_i2c_device_properties();
     };
 
@@ -7598,7 +7621,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             console.log($scope.devices);
             $scope.data.token = User.get_token();
             
-            get_all_i2c_sensors($scope.devices[0].devicename);
+            get_i2c_device_properties();
         });
     };
 
@@ -7821,6 +7844,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         if ($scope.data.colortype === "RGB") {
             if ($scope.data.attributes.color.single.endpoint === 1) {
                 get_devices(
+                    //$scope.data.attributes.color.single.hardware.deviceid,
                     $scope.data.attributes.color.single.hardware.devicename,
                     $scope.data.attributes.color.single.hardware.sensorname,
                     $scope.data.attributes.color.single.hardware.peripheral
@@ -7830,6 +7854,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         else if ($scope.data.colortype === "RED") {
             if ($scope.data.attributes.color.individual.red.endpoint === 1) {
                 get_devices(
+                    //$scope.data.attributes.color.individual.red.hardware.deviceid,
                     $scope.data.attributes.color.individual.red.hardware.devicename,
                     $scope.data.attributes.color.individual.red.hardware.sensorname,
                     $scope.data.attributes.color.individual.red.hardware.peripheral
@@ -7839,6 +7864,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         else if ($scope.data.colortype === "GREEN") {
             if ($scope.data.attributes.color.individual.green.endpoint === 1) {
                 get_devices(
+                    //$scope.data.attributes.color.individual.green.hardware.deviceid,
                     $scope.data.attributes.color.individual.green.hardware.devicename,
                     $scope.data.attributes.color.individual.green.hardware.sensorname,
                     $scope.data.attributes.color.individual.green.hardware.peripheral
@@ -7848,6 +7874,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         else if ($scope.data.colortype === "BLUE") {
             if ($scope.data.attributes.color.individual.blue.endpoint === 1) {
                 get_devices(
+                    //$scope.data.attributes.color.individual.blue.hardware.deviceid,
                     $scope.data.attributes.color.individual.blue.hardware.devicename,
                     $scope.data.attributes.color.individual.blue.hardware.sensorname,
                     $scope.data.attributes.color.individual.blue.hardware.peripheral
@@ -7916,17 +7943,17 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                 if ($scope.datatemp.hardware_peripheral >= $scope.peripherals.length) {
                     return;
                 }
-                $scope.data.attributes.color.single.hardware.deviceid = $scope.devices[$scope.datatemp.hardware_devicename].deviceid;
+                //$scope.data.attributes.color.single.hardware.deviceid = $scope.devices[$scope.datatemp.hardware_devicename].deviceid;
                 $scope.data.attributes.color.single.hardware.devicename = $scope.devices[$scope.datatemp.hardware_devicename].devicename;
                 $scope.data.attributes.color.single.hardware.sensorname = $scope.i2cdevices[$scope.datatemp.hardware_sensorname].sensorname;
                 
-                $scope.data.attributes.color.single.hardware.number = parseInt($scope.i2cdevices[$scope.datatemp.hardware_sensorname].number, 10);
-                if ($scope.i2cdevices[$scope.datatemp.hardware_sensorname].source == "i2c") {
-                    $scope.data.attributes.color.single.hardware.address = $scope.i2cdevices[$scope.datatemp.hardware_sensorname].address;
-                }
-                else {
-                    $scope.data.attributes.color.single.hardware.address = 0;
-                }
+                //$scope.data.attributes.color.single.hardware.number = parseInt($scope.i2cdevices[$scope.datatemp.hardware_sensorname].number, 10);
+                //if ($scope.i2cdevices[$scope.datatemp.hardware_sensorname].source == "i2c") {
+                //    $scope.data.attributes.color.single.hardware.address = $scope.i2cdevices[$scope.datatemp.hardware_sensorname].address;
+                //}
+                //else {
+                //    $scope.data.attributes.color.single.hardware.address = 0;
+                //}
                 
                 $scope.data.attributes.color.single.hardware.peripheral = $scope.peripherals[$scope.datatemp.hardware_peripheral].label;
                 $scope.data.attributes.color.single.hardware.attribute = $scope.attributes[$scope.datatemp.hardware_attribute].attribute;
@@ -7943,17 +7970,17 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                 if ($scope.datatemp.hardware_peripheral >= $scope.peripherals.length) {
                     return;
                 }
-                $scope.data.attributes.color.individual.red.hardware.deviceid = $scope.devices[$scope.datatemp.hardware_devicename].deviceid;
+                //$scope.data.attributes.color.individual.red.hardware.deviceid = $scope.devices[$scope.datatemp.hardware_devicename].deviceid;
                 $scope.data.attributes.color.individual.red.hardware.devicename = $scope.devices[$scope.datatemp.hardware_devicename].devicename;
                 $scope.data.attributes.color.individual.red.hardware.sensorname = $scope.i2cdevices[$scope.datatemp.hardware_sensorname].sensorname;
                 
-                $scope.data.attributes.color.individual.red.hardware.number = parseInt($scope.i2cdevices[$scope.datatemp.hardware_sensorname].number, 10);
-                if ($scope.i2cdevices[$scope.datatemp.hardware_sensorname].source == "i2c") {
-                    $scope.data.attributes.color.individual.red.hardware.address = $scope.i2cdevices[$scope.datatemp.hardware_sensorname].address;
-                }
-                else {
-                    $scope.data.attributes.color.individual.red.hardware.address = 0;
-                }
+                //$scope.data.attributes.color.individual.red.hardware.number = parseInt($scope.i2cdevices[$scope.datatemp.hardware_sensorname].number, 10);
+                //if ($scope.i2cdevices[$scope.datatemp.hardware_sensorname].source == "i2c") {
+                //    $scope.data.attributes.color.individual.red.hardware.address = $scope.i2cdevices[$scope.datatemp.hardware_sensorname].address;
+                //}
+                //else {
+                //    $scope.data.attributes.color.individual.red.hardware.address = 0;
+                //}
 
                 $scope.data.attributes.color.individual.red.hardware.peripheral = $scope.peripherals[$scope.datatemp.hardware_peripheral].label;
                 $scope.data.attributes.color.individual.red.hardware.attribute = $scope.attributes[$scope.datatemp.hardware_attribute].attribute;
@@ -7970,17 +7997,17 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                 if ($scope.datatemp.hardware_peripheral >= $scope.peripherals.length) {
                     return;
                 }
-                $scope.data.attributes.color.individual.green.hardware.deviceid = $scope.devices[$scope.datatemp.hardware_devicename].deviceid;
+                //$scope.data.attributes.color.individual.green.hardware.deviceid = $scope.devices[$scope.datatemp.hardware_devicename].deviceid;
                 $scope.data.attributes.color.individual.green.hardware.devicename = $scope.devices[$scope.datatemp.hardware_devicename].devicename;
                 $scope.data.attributes.color.individual.green.hardware.sensorname = $scope.i2cdevices[$scope.datatemp.hardware_sensorname].sensorname;
                 
-                $scope.data.attributes.color.individual.green.hardware.number = parseInt($scope.i2cdevices[$scope.datatemp.hardware_sensorname].number, 10);
-                if ($scope.i2cdevices[$scope.datatemp.hardware_sensorname].source == "i2c") {
-                    $scope.data.attributes.color.individual.green.hardware.address = $scope.i2cdevices[$scope.datatemp.hardware_sensorname].address;
-                }
-                else {
-                    $scope.data.attributes.color.individual.green.hardware.address = 0;
-                }
+                //$scope.data.attributes.color.individual.green.hardware.number = parseInt($scope.i2cdevices[$scope.datatemp.hardware_sensorname].number, 10);
+                //if ($scope.i2cdevices[$scope.datatemp.hardware_sensorname].source == "i2c") {
+                //    $scope.data.attributes.color.individual.green.hardware.address = $scope.i2cdevices[$scope.datatemp.hardware_sensorname].address;
+                //}
+                //else {
+                //    $scope.data.attributes.color.individual.green.hardware.address = 0;
+                //}
 
                 $scope.data.attributes.color.individual.green.hardware.peripheral = $scope.peripherals[$scope.datatemp.hardware_peripheral].label;
                 $scope.data.attributes.color.individual.green.hardware.attribute = $scope.attributes[$scope.datatemp.hardware_attribute].attribute;
@@ -7997,17 +8024,17 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                 if ($scope.datatemp.hardware_peripheral >= $scope.peripherals.length) {
                     return;
                 }
-                $scope.data.attributes.color.individual.blue.hardware.deviceid = $scope.devices[$scope.datatemp.hardware_devicename].deviceid;
+                //$scope.data.attributes.color.individual.blue.hardware.deviceid = $scope.devices[$scope.datatemp.hardware_devicename].deviceid;
                 $scope.data.attributes.color.individual.blue.hardware.devicename = $scope.devices[$scope.datatemp.hardware_devicename].devicename;
                 $scope.data.attributes.color.individual.blue.hardware.sensorname = $scope.i2cdevices[$scope.datatemp.hardware_sensorname].sensorname;
                 
-                $scope.data.attributes.color.individual.blue.hardware.number = parseInt($scope.i2cdevices[$scope.datatemp.hardware_sensorname].number, 10);
-                if ($scope.i2cdevices[$scope.datatemp.hardware_sensorname].source == "i2c") {
-                    $scope.data.attributes.color.individual.blue.hardware.address = $scope.i2cdevices[$scope.datatemp.hardware_sensorname].address;
-                }
-                else {
-                    $scope.data.attributes.color.individual.blue.hardware.address = 0;
-                }
+                //$scope.data.attributes.color.individual.blue.hardware.number = parseInt($scope.i2cdevices[$scope.datatemp.hardware_sensorname].number, 10);
+                //if ($scope.i2cdevices[$scope.datatemp.hardware_sensorname].source == "i2c") {
+                //    $scope.data.attributes.color.individual.blue.hardware.address = $scope.i2cdevices[$scope.datatemp.hardware_sensorname].address;
+                //}
+                //else {
+                //    $scope.data.attributes.color.individual.blue.hardware.address = 0;
+                //}
 
                 $scope.data.attributes.color.individual.blue.hardware.peripheral = $scope.peripherals[$scope.datatemp.hardware_peripheral].label;
                 $scope.data.attributes.color.individual.blue.hardware.attribute = $scope.attributes[$scope.datatemp.hardware_attribute].attribute;
@@ -8040,7 +8067,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         };
 
         console.log("get_devices");
-        
+
         // Fetch devices
         Devices.fetch(param, "").then(function(res) {
             $scope.devices = res;
@@ -8052,6 +8079,9 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                 if (devicename === $scope.devices[indexy].devicename) {
                     $scope.datatemp.hardware_devicename = indexy;
                 }
+                //if (deviceid === $scope.devices[indexy].deviceid) {
+                //    $scope.datatemp.hardware_devicename = indexy;
+                //}
             }
             
             console.log($scope.devices);
@@ -8069,6 +8099,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                 }
             }
 
+            //devicename = $scope.devices[$scope.datatemp.hardware_devicename].devicename;
             $scope.changePeripheral(devicename, sensorname);
         });
     };
@@ -9390,13 +9421,13 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         'attributes': {
             'endpoint': $scope.endpoints[0].id,
             'hardware': {
-                'deviceid': '',  
+                //'deviceid': '',  
                 'devicename': '',  
                 'peripheral': '',  
                 'sensorname': '',  
                 'attribute': '',  
-                'number': 0,  
-                'address': 0,
+                //'number': 0,  
+                //'address': 0,
             },
             'brightness': 255,
             'format': $scope.formats[0].id,
@@ -9432,15 +9463,15 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             if ($scope.datatemp.hardware_peripheral >= $scope.peripherals.length) {
                 return;
             }
-            $scope.data.attributes.hardware.deviceid   = $scope.devices[$scope.datatemp.hardware_devicename].deviceid;
+            //$scope.data.attributes.hardware.deviceid   = $scope.devices[$scope.datatemp.hardware_devicename].deviceid;
             $scope.data.attributes.hardware.devicename = $scope.devices[$scope.datatemp.hardware_devicename].devicename;
             $scope.data.attributes.hardware.sensorname = $scope.i2cdevices[$scope.datatemp.hardware_sensorname].sensorname;
             $scope.data.attributes.hardware.peripheral = $scope.peripherals[$scope.datatemp.hardware_peripheral].label;
             $scope.data.attributes.hardware.attribute  = $scope.attributes[$scope.datatemp.hardware_attribute].attribute;
-            $scope.data.attributes.hardware.number     = parseInt($scope.i2cdevices[$scope.datatemp.hardware_sensorname].number, 10);
-            if ($scope.i2cdevices[$scope.datatemp.hardware_sensorname].source == "i2c") {
-                $scope.data.attributes.hardware.address    = $scope.i2cdevices[$scope.datatemp.hardware_sensorname].address;
-            }
+            //$scope.data.attributes.hardware.number     = parseInt($scope.i2cdevices[$scope.datatemp.hardware_sensorname].number, 10);
+            //if ($scope.i2cdevices[$scope.datatemp.hardware_sensorname].source == "i2c") {
+            //    $scope.data.attributes.hardware.address    = $scope.i2cdevices[$scope.datatemp.hardware_sensorname].address;
+            //}
         }
 
         set_i2c_properties();
