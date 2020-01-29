@@ -994,7 +994,7 @@ DETAILED:
 		   //     direction == "Input"
 		   //       ["High Level", "Low Level", "High Edge", "Low Edge"]
 		   //     direction == "Output"
-		   //       ["Level", "Clock", "Pulse"]
+		   //       ["Level", "Pulse", "Clock"]
 		   // alert is an index of the value in the list of alerts
 		   //     ["Once", "Continuously"]
 		   // alert is an optional and is valid only when direction points to Input
@@ -1068,7 +1068,7 @@ DETAILED:
 		   //     direction == "Input"
 		   //       ["High Level", "Low Level", "High Edge", "Low Edge"]
 		   //     direction == "Output"
-		   //       ["Level", "Clock", "Pulse"]
+		   //       ["Level", "Pulse", "Clock"]
 		   // alert is an index of the value in the list of alerts
 		   //     ["Once", "Continuously"]
 		   // alert is an optional and is valid only when direction points to Input
