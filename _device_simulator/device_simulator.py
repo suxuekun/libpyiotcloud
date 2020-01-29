@@ -1072,6 +1072,7 @@ def on_message(subtopic, subpayload):
     expected_topic_len = len(expected_topic)
 
     if subtopic[:expected_topic_len] != expected_topic:
+        print("unexpected packet")
         return
 
     api = subtopic[expected_topic_len:]
@@ -1441,6 +1442,9 @@ if __name__ == '__main__':
         time.sleep(1)
         subtopic = "{}{}#".format(CONFIG_DEVICE_ID, CONFIG_SEPARATOR)
         g_messaging_client.subscribe(subtopic, subscribe=True, declare=True, consume_continuously=True)
+        # test security, subscribe to other topics
+        #subtopic2 = "{}{}{}{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_DEVICE_ID, CONFIG_SEPARATOR, API_PUBLISH_SENSOR_READING)
+        #g_messaging_client.subscribe(subtopic2, subscribe=True, declare=True, consume_continuously=True)
 
 
         # Delete device configuration
