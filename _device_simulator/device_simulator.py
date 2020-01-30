@@ -23,9 +23,9 @@ CONFIG_USE_AMQP = False
 ###################################################################################
 
 # device configuration on bootup
-CONFIG_QUERY_DEVICE_CONFIGURATION = True
-CONFIG_QUERY_DEVICE_CONFIGURATION_DEBUG = False
-CONFIG_DELETE_DEVICE_CONFIGURATION = False
+CONFIG_REQUEST_CONFIGURATION = True
+CONFIG_REQUEST_CONFIGURATION_DEBUG = False
+CONFIG_DELETE_CONFIGURATION = True
 
 g_timer_thread = None
 g_timer_thread_use = True
@@ -980,9 +980,11 @@ def handle_api(api, subtopic, subpayload):
 
     elif api == API_RECEIVE_CONFIGURATION:
         topic = generate_pubtopic(subtopic)
+        if len(subpayload) > 2:
+            print(len(subpayload))
         subpayload = json.loads(subpayload)
 
-        if CONFIG_QUERY_DEVICE_CONFIGURATION_DEBUG:
+        if CONFIG_REQUEST_CONFIGURATION_DEBUG:
             print("")
             print("uart   {} - {}\r\n".format(subpayload["uart"],   len(subpayload["uart"])   ))
             print("gpio   {} - {}\r\n".format(subpayload["gpio"],   len(subpayload["gpio"])   ))
@@ -1044,7 +1046,7 @@ def handle_api(api, subtopic, subpayload):
                         if subpayload["i2c"][x][y].get("subclass"):
                             g_i2c_properties[x][address]["subclass"] = subpayload["i2c"][x][y]["subclass"]
 
-        if CONFIG_QUERY_DEVICE_CONFIGURATION_DEBUG:
+        if CONFIG_REQUEST_CONFIGURATION_DEBUG:
             print_json(g_uart_properties, "uart")
             print_json(g_gpio_properties, "gpio")
             print_json(g_adc_properties, "adc")
@@ -1148,16 +1150,22 @@ def process_start():
         print("Device started successfully!\n")
 
 
-def query_device_configuration():
-    print("\r\n\r\nQuery device configuration")
+def req_configuration(peripherals = None):
+    print("\r\n\r\nRequest device configuration")
     topic = "{}{}{}{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_DEVICE_ID, CONFIG_SEPARATOR, API_REQUEST_CONFIGURATION)
-    payload = {}
+    if peripherals is None:
+        payload = {}
+    else:
+        payload = { "peripherals": peripherals }
     publish(topic, payload)
 
-def delete_device_configuration():
+def del_configuration(peripherals = None):
     print("\r\n\r\nDelete device configuration")
     topic = "{}{}{}{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_DEVICE_ID, CONFIG_SEPARATOR, API_DELETE_CONFIGURATION)
-    payload = {}
+    if peripherals is None:
+        payload = {}
+    else:
+        payload = { "peripherals": peripherals }
     publish(topic, payload)
 
 
@@ -1451,13 +1459,18 @@ if __name__ == '__main__':
 
 
         # Delete device configuration
-        if CONFIG_DELETE_DEVICE_CONFIGURATION:
-            delete_device_configuration()
+        if CONFIG_DELETE_CONFIGURATION:
+            del_configuration()
+            # can specify specific peripherals like below
+            # peripherals can be uart, gpio, i2c, adc, 1wire, tprobe
+            #del_configuration(["i2c"])
 
         # Query device configuration
-        if CONFIG_QUERY_DEVICE_CONFIGURATION:
-            query_device_configuration()
-
+        if CONFIG_REQUEST_CONFIGURATION:
+            req_configuration()
+            # can specify specific peripherals like below
+            # peripherals can be uart, gpio, i2c, adc, 1wire, tprobe
+            #req_configuration(["i2c"])
 
         # Start the timer thread
         if g_timer_thread_use:
