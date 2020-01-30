@@ -184,6 +184,9 @@ class database_client:
     def delete_all_device_peripheral_configuration(self, deviceid):
         self._devices.delete_all_device_peripheral_configuration(deviceid)
 
+    def delete_device_peripheral_configuration(self, deviceid, source):
+        self._devices.delete_device_peripheral_configuration(deviceid, source)
+
 
     ##########################################################
     # sensor readings
@@ -630,6 +633,14 @@ class database_client_mongodb:
             configurations.delete_many({'deviceid': deviceid})
         except:
             print("delete_all_device_peripheral_configuration: Exception occurred")
+            pass
+
+    def delete_device_peripheral_configuration(self, deviceid, source):
+        configurations = self.get_configurations_document()
+        try:
+            configurations.delete_many({'deviceid': deviceid, 'source': source})
+        except:
+            print("delete_device_peripheral_configuration: Exception occurred")
             pass
 
 

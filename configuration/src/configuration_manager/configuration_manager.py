@@ -132,19 +132,74 @@ def get_configuration(database_client, deviceid, topic, payload):
             elif source == "tprobe":
                 count_tprobe += 1
 
-    # remove entry if no configuration for that peripheral
-    if count_uart == 0:
-        new_payload.pop("uart")
-    if count_gpio == 0:
-        new_payload.pop("gpio")
-    if count_i2c == 0:
-        new_payload.pop("i2c")
-    if count_adc == 0:
-        new_payload.pop("adc")
-    if count_1wire == 0:
-        new_payload.pop("1wire")
-    if count_tprobe == 0:
-        new_payload.pop("tprobe")
+    # if GET_ALL_PERIPHERAL_CONFIGURATION,
+    #   only peripherals with configured sensors will be included
+    #   peripherals with no configured sensors will NOT be included to reduce size
+    # if GET_SPECIFIED_PERIPHERAL_CONFIGURATION,
+    #   specify the peripherals using "peripheral" list parameter (ex. "peripherals": ["i2c", "adc"])
+    #   only specified peripherals with configured sensors will be included
+    #   specified peripherals with no configured sensors will NOT be included to reduce size
+    payload = json.loads(payload)
+    if payload.get("peripherals"):
+        # peripherals specified
+        # remove if not specified
+        # include if have data
+        if "uart" not in payload["peripherals"]:
+            new_payload.pop("uart")
+        else:
+            # include if have data
+            if count_uart == 0:
+                new_payload.pop("uart")
+
+        if "gpio" not in payload["peripherals"]:
+            new_payload.pop("gpio")
+        else:
+            # include if have data
+            if count_gpio == 0:
+                new_payload.pop("gpio")
+
+        if "i2c" not in payload["peripherals"]:
+            new_payload.pop("i2c")
+        else:
+            # include if have data
+            if count_i2c == 0:
+                new_payload.pop("i2c")
+
+        if "adc" not in payload["peripherals"]:
+            new_payload.pop("adc")
+        else:
+            # include if have data
+            if count_adc == 0:
+                new_payload.pop("adc")
+
+        if "1wire" not in payload["peripherals"]:
+            new_payload.pop("1wire")
+        else:
+            # include if have data
+            if count_1wire == 0:
+                new_payload.pop("1wire")
+
+        if "tprobe" not in payload["peripherals"]:
+            new_payload.pop("tprobe")
+        else:
+            # include if have data
+            if count_tprobe == 0:
+                new_payload.pop("tprobe")
+    else:
+        # no peripherals specified
+        # include all if have data
+        if count_uart == 0:
+            new_payload.pop("uart")
+        if count_gpio == 0:
+            new_payload.pop("gpio")
+        if count_i2c == 0:
+            new_payload.pop("i2c")
+        if count_adc == 0:
+            new_payload.pop("adc")
+        if count_1wire == 0:
+            new_payload.pop("1wire")
+        if count_tprobe == 0:
+            new_payload.pop("tprobe")
 
     # publish packet response to device
     #print_json(new_payload)
@@ -155,7 +210,17 @@ def get_configuration(database_client, deviceid, topic, payload):
 def del_configuration(database_client, deviceid, topic, payload):
 
     print("{} {}".format(topic, deviceid))
-    database_client.delete_all_device_peripheral_configuration(deviceid)
+
+    payload = json.loads(payload)
+    if payload.get("peripherals"):
+        # peripherals specified
+        # delete configurations for specified peripheral
+        for peripheral in payload["peripherals"]:
+            database_client.delete_device_peripheral_configuration(deviceid, peripheral)
+    else:
+        # no peripherals specified
+        # delete all peripheral configurations
+        database_client.delete_all_device_peripheral_configuration(deviceid)
 
 
 def on_message(subtopic, subpayload):
