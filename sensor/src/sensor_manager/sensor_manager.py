@@ -174,6 +174,7 @@ def add_sensor_reading(database_client, deviceid, topic, payload):
                                 packet = {}
                                 if sensor["formats"][0] == "int":
                                     packet = {
+                                        "devicename": sensor["devicename"],
                                         "peripheral": sensor["source"].upper(),
                                         "sensorname": sensor["sensorname"],
                                         "attribute":  sensor["attributes"][0],
@@ -185,6 +186,7 @@ def add_sensor_reading(database_client, deviceid, topic, payload):
                                     }
                                 else:
                                     packet = {
+                                        "devicename": sensor["devicename"],
                                         "peripheral": sensor["source"].upper(),
                                         "sensorname": sensor["sensorname"],
                                         "attribute":  sensor["attributes"][0],
