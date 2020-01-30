@@ -7499,33 +7499,110 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         console.log("submit");
         console.log($scope.data.attributes);
         
-        if ($scope.data.attributes.color.usage === 0) {
-            $scope.data.attributes.color.individual.red.hardware.devicename = "";
-            $scope.data.attributes.color.individual.red.hardware.peripheral = "";
-            $scope.data.attributes.color.individual.red.hardware.sensorname = "";
-            $scope.data.attributes.color.individual.red.hardware.attribute = "";
-
-            $scope.data.attributes.color.individual.green.hardware.devicename = "";
-            $scope.data.attributes.color.individual.green.hardware.peripheral = "";
-            $scope.data.attributes.color.individual.green.hardware.sensorname = "";
-            $scope.data.attributes.color.individual.green.hardware.attribute = "";
-
-            $scope.data.attributes.color.individual.blue.hardware.devicename = "";
-            $scope.data.attributes.color.individual.blue.hardware.peripheral = "";
-            $scope.data.attributes.color.individual.blue.hardware.sensorname = "";
-            $scope.data.attributes.color.individual.blue.hardware.attribute = "";
-        }
-        else if ($scope.data.attributes.color.usage === 1) {
-            $scope.data.attributes.color.single.hardware.devicename = "";
-            $scope.data.attributes.color.single.hardware.peripheral = "";
-            $scope.data.attributes.color.single.hardware.sensorname = "";
-            $scope.data.attributes.color.single.hardware.attribute = "";
-        }
         
-        set_i2c_device_properties();
+        let send_all = false;
+        if (send_all === true) {        
+            if ($scope.data.attributes.color.usage === 0) {
+                $scope.data.attributes.color.individual.red.hardware.devicename = "";
+                $scope.data.attributes.color.individual.red.hardware.peripheral = "";
+                $scope.data.attributes.color.individual.red.hardware.sensorname = "";
+                $scope.data.attributes.color.individual.red.hardware.attribute = "";
+    
+                $scope.data.attributes.color.individual.green.hardware.devicename = "";
+                $scope.data.attributes.color.individual.green.hardware.peripheral = "";
+                $scope.data.attributes.color.individual.green.hardware.sensorname = "";
+                $scope.data.attributes.color.individual.green.hardware.attribute = "";
+    
+                $scope.data.attributes.color.individual.blue.hardware.devicename = "";
+                $scope.data.attributes.color.individual.blue.hardware.peripheral = "";
+                $scope.data.attributes.color.individual.blue.hardware.sensorname = "";
+                $scope.data.attributes.color.individual.blue.hardware.attribute = "";
+            }
+            else if ($scope.data.attributes.color.usage === 1) {
+                $scope.data.attributes.color.single.hardware.devicename = "";
+                $scope.data.attributes.color.single.hardware.peripheral = "";
+                $scope.data.attributes.color.single.hardware.sensorname = "";
+                $scope.data.attributes.color.single.hardware.attribute = "";
+            }
+            set_i2c_device_properties($scope.data.attributes);
+        }
+        else {
+            param_attributes = {
+                'color': {
+                    'usage': $scope.data.attributes.color.usage,
+                    'single': {},
+                    'individual': {},
+                },
+                'fadeouttime': $scope.data.attributes.fadeouttime
+            };
+    
+            if (param_attributes.color.usage === 0) {
+                
+                // RGB
+                param_attributes.color.single.endpoint = $scope.data.attributes.color.single.endpoint;
+                if (param_attributes.color.single.endpoint === 0) {
+                    param_attributes.color.single.manual = $scope.data.attributes.color.single.manual;
+                }
+                else {
+                    param_attributes.color.single.hardware = {};
+                    param_attributes.color.single.hardware.devicename = $scope.data.attributes.color.single.hardware.devicename;
+                    param_attributes.color.single.hardware.sensorname = $scope.data.attributes.color.single.hardware.sensorname;
+                    param_attributes.color.single.hardware.peripheral = $scope.data.attributes.color.single.hardware.peripheral;
+                    param_attributes.color.single.hardware.attribute  = $scope.data.attributes.color.single.hardware.attribute;
+                }
+                
+            }
+            else {
+
+                // RED
+                param_attributes.color.individual.red = {};
+                param_attributes.color.individual.red.endpoint = $scope.data.attributes.color.individual.red.endpoint;
+                if (param_attributes.color.individual.red.endpoint === 0) {
+                    param_attributes.color.individual.red.manual = $scope.data.attributes.color.individual.red.manual;
+                }
+                else {
+                    param_attributes.color.individual.red.hardware = {};
+                    param_attributes.color.individual.red.hardware.devicename = $scope.data.attributes.color.individual.red.hardware.devicename;
+                    param_attributes.color.individual.red.hardware.sensorname = $scope.data.attributes.color.individual.red.hardware.sensorname;
+                    param_attributes.color.individual.red.hardware.peripheral = $scope.data.attributes.color.individual.red.hardware.peripheral;
+                    param_attributes.color.individual.red.hardware.attribute  = $scope.data.attributes.color.individual.red.hardware.attribute;
+                }
+                
+                // GREEN
+                param_attributes.color.individual.green = {};
+                param_attributes.color.individual.green.endpoint = $scope.data.attributes.color.individual.green.endpoint;
+                if (param_attributes.color.individual.green.endpoint === 0) {
+                    param_attributes.color.individual.green.manual = $scope.data.attributes.color.individual.green.manual;
+                }
+                else {
+                    param_attributes.color.individual.green.hardware = {};
+                    param_attributes.color.individual.green.hardware.devicename = $scope.data.attributes.color.individual.green.hardware.devicename;
+                    param_attributes.color.individual.green.hardware.sensorname = $scope.data.attributes.color.individual.green.hardware.sensorname;
+                    param_attributes.color.individual.green.hardware.peripheral = $scope.data.attributes.color.individual.green.hardware.peripheral;
+                    param_attributes.color.individual.green.hardware.attribute  = $scope.data.attributes.color.individual.green.hardware.attribute;
+                }
+
+                // BLUE
+                param_attributes.color.individual.blue = {};
+                param_attributes.color.individual.blue.endpoint = $scope.data.attributes.color.individual.blue.endpoint;
+                if (param_attributes.color.individual.blue.endpoint === 0) {
+                    param_attributes.color.individual.blue.manual = $scope.data.attributes.color.individual.blue.manual;
+                }
+                else {
+                    param_attributes.color.individual.blue.hardware = {};
+                    param_attributes.color.individual.blue.hardware.devicename = $scope.data.attributes.color.individual.blue.hardware.devicename;
+                    param_attributes.color.individual.blue.hardware.sensorname = $scope.data.attributes.color.individual.blue.hardware.sensorname;
+                    param_attributes.color.individual.blue.hardware.peripheral = $scope.data.attributes.color.individual.blue.hardware.peripheral;
+                    param_attributes.color.individual.blue.hardware.attribute  = $scope.data.attributes.color.individual.blue.hardware.attribute;
+                }
+                
+            }
+            
+            set_i2c_device_properties(param_attributes);
+        }        
     };
 
-    set_i2c_device_properties = function() {
+    set_i2c_device_properties = function(attributes) {
         //
         // SET I2C DEVICE PROPERTIES
         //
@@ -7549,7 +7626,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             method: 'POST',
             url: server + '/devices/device/' + $scope.data.devicename + '/i2c/' + $scope.data.sensor.number.toString() + '/sensors/sensor/' + $scope.data.sensor.sensorname + '/properties',
             headers: { 'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json' },
-            data: $scope.data.attributes
+            data: attributes
         })
         .then(function (result) {
             console.log(result.data);
@@ -7591,7 +7668,119 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         .then(function (result) {
             console.log(result.data);
             if (result.data.value !== undefined) {
-                $scope.data.attributes = result.data.value;
+                
+                let read_all = false;
+                if (read_all === true) {
+                    $scope.data.attributes = result.data.value;
+                }
+                else {
+                    $scope.data.attributes.color.usage = result.data.value.color.usage;
+                    
+                    if ($scope.data.attributes.color.usage === 0) {
+                        // RGB
+                        $scope.data.attributes.color.single.endpoint = result.data.value.color.single.endpoint;
+                        if ($scope.data.attributes.color.single.endpoint === 0) {
+                            $scope.data.attributes.color.single.manual = result.data.value.color.single.manual;
+                            $scope.data.attributes.color.single.hardware.devicename = ""; // default
+                            $scope.data.attributes.color.single.hardware.peripheral = ""; // default
+                            $scope.data.attributes.color.single.hardware.sensorname = ""; // default
+                            $scope.data.attributes.color.single.hardware.attribute  = ""; // default
+                        }
+                        else {
+                            $scope.data.attributes.color.single.manual = 0; // default
+                            $scope.data.attributes.color.single.hardware.devicename = result.data.value.color.single.hardware.devicename;
+                            $scope.data.attributes.color.single.hardware.peripheral = result.data.value.color.single.hardware.peripheral;
+                            $scope.data.attributes.color.single.hardware.sensorname = result.data.value.color.single.hardware.sensorname;
+                            $scope.data.attributes.color.single.hardware.attribute  = result.data.value.color.single.hardware.attribute;
+                        }
+                        
+                        // RED
+                        $scope.data.attributes.color.individual.red.endpoint = 0; // default
+                        $scope.data.attributes.color.individual.red.manual = 0; // default
+                        $scope.data.attributes.color.individual.red.hardware.devicename = ""; // default
+                        $scope.data.attributes.color.individual.red.hardware.peripheral = ""; // default
+                        $scope.data.attributes.color.individual.red.hardware.sensorname = ""; // default
+                        $scope.data.attributes.color.individual.red.hardware.attribute  = ""; // default
+                        
+                        // GREEN
+                        $scope.data.attributes.color.individual.green.endpoint = 0; // default
+                        $scope.data.attributes.color.individual.green.manual = 0; // default
+                        $scope.data.attributes.color.individual.green.hardware.devicename = ""; // default
+                        $scope.data.attributes.color.individual.green.hardware.peripheral = ""; // default
+                        $scope.data.attributes.color.individual.green.hardware.sensorname = ""; // default
+                        $scope.data.attributes.color.individual.green.hardware.attribute  = ""; // default
+                        
+                        // BLUE
+                        $scope.data.attributes.color.individual.blue.endpoint = 0; // default
+                        $scope.data.attributes.color.individual.blue.manual = 0; // default
+                        $scope.data.attributes.color.individual.blue.hardware.devicename = ""; // default
+                        $scope.data.attributes.color.individual.blue.hardware.peripheral = ""; // default
+                        $scope.data.attributes.color.individual.blue.hardware.sensorname = ""; // default
+                        $scope.data.attributes.color.individual.blue.hardware.attribute  = ""; // default
+                    }
+                    else {
+                        // RGB
+                        $scope.data.attributes.color.single.endpoint = 0; // default
+                        $scope.data.attributes.color.single.manual = 0; // default
+                        $scope.data.attributes.color.single.hardware.devicename = ""; // default
+                        $scope.data.attributes.color.single.hardware.peripheral = ""; // default
+                        $scope.data.attributes.color.single.hardware.sensorname = ""; // default
+                        $scope.data.attributes.color.single.hardware.attribute  = ""; // default
+
+                        // RED
+                        $scope.data.attributes.color.individual.red.endpoint = result.data.value.color.individual.red.endpoint;
+                        if ($scope.data.attributes.color.individual.red.endpoint === 0) {
+                            $scope.data.attributes.color.individual.red.manual = result.data.value.color.individual.red.manual;
+                            $scope.data.attributes.color.individual.red.hardware.devicename = ""; // default
+                            $scope.data.attributes.color.individual.red.hardware.peripheral = ""; // default
+                            $scope.data.attributes.color.individual.red.hardware.sensorname = ""; // default
+                            $scope.data.attributes.color.individual.red.hardware.attribute  = ""; // default
+                        }
+                        else {
+                            $scope.data.attributes.color.individual.red.manual = 0; // default
+                            $scope.data.attributes.color.individual.red.hardware.devicename = result.data.value.color.individual.red.hardware.devicename;
+                            $scope.data.attributes.color.individual.red.hardware.peripheral = result.data.value.color.individual.red.hardware.peripheral;
+                            $scope.data.attributes.color.individual.red.hardware.sensorname = result.data.value.color.individual.red.hardware.sensorname;
+                            $scope.data.attributes.color.individual.red.hardware.attribute  = result.data.value.color.individual.red.hardware.attribute;
+                        }
+                        
+                        // GREEN
+                        $scope.data.attributes.color.individual.green.endpoint = result.data.value.color.individual.green.endpoint;
+                        if ($scope.data.attributes.color.individual.green.endpoint === 0) {
+                            $scope.data.attributes.color.individual.green.manual = result.data.value.color.individual.green.manual;
+                            $scope.data.attributes.color.individual.green.hardware.devicename = ""; // default
+                            $scope.data.attributes.color.individual.green.hardware.peripheral = ""; // default
+                            $scope.data.attributes.color.individual.green.hardware.sensorname = ""; // default
+                            $scope.data.attributes.color.individual.green.hardware.attribute  = ""; // default
+                        }
+                        else {
+                            $scope.data.attributes.color.individual.green.manual = 0; // default
+                            $scope.data.attributes.color.individual.green.hardware.devicename = result.data.value.color.individual.green.hardware.devicename;
+                            $scope.data.attributes.color.individual.green.hardware.peripheral = result.data.value.color.individual.green.hardware.peripheral;
+                            $scope.data.attributes.color.individual.green.hardware.sensorname = result.data.value.color.individual.green.hardware.sensorname;
+                            $scope.data.attributes.color.individual.green.hardware.attribute  = result.data.value.color.individual.green.hardware.attribute;
+                        }
+                        
+                        // BLUE
+                        $scope.data.attributes.color.individual.blue.endpoint = result.data.value.color.individual.blue.endpoint;
+                        if ($scope.data.attributes.color.individual.blue.endpoint === 0) {
+                            $scope.data.attributes.color.individual.blue.manual = result.data.value.color.individual.blue.manual;
+                            $scope.data.attributes.color.individual.blue.hardware.devicename = ""; // default
+                            $scope.data.attributes.color.individual.blue.hardware.peripheral = ""; // default
+                            $scope.data.attributes.color.individual.blue.hardware.sensorname = ""; // default
+                            $scope.data.attributes.color.individual.blue.hardware.attribute  = ""; // default
+                        }
+                        else {
+                            $scope.data.attributes.color.individual.blue.manual = 0; // default
+                            $scope.data.attributes.color.individual.blue.hardware.devicename = result.data.value.color.individual.blue.hardware.devicename;
+                            $scope.data.attributes.color.individual.blue.hardware.peripheral = result.data.value.color.individual.blue.hardware.peripheral;
+                            $scope.data.attributes.color.individual.blue.hardware.sensorname = result.data.value.color.individual.blue.hardware.sensorname;
+                            $scope.data.attributes.color.individual.blue.hardware.attribute  = result.data.value.color.individual.blue.hardware.attribute;
+                        }
+                    }
+                    
+                    $scope.data.attributes.fadeouttime = result.data.value.fadeouttime;
+                }
             }
         })
         .catch(function (error) {
@@ -8308,7 +8497,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         if ($scope.data.colortype==="RGB") {
             if ($scope.data.attributes.color.single.endpoint === 1) {
                 console.log("changeEndpoint");
-                get_devices("");    
+                get_devices("");
             }
         }
         else if ($scope.data.colortype==="RED") {
