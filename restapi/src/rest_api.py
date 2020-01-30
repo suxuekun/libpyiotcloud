@@ -1458,7 +1458,7 @@ def register_device(devicename):
 
         # add device to database
         result = g_database_client.add_device(username, devicename, data["deviceid"], data["serialnumber"])
-        print(result)
+        #print(result)
         if not result:
             response = json.dumps({'status': 'NG', 'message': 'Device could not be registered'})
             print('\r\nERROR Add Device: Device could not be registered [{},{}]\r\n'.format(username, devicename))
@@ -3173,7 +3173,7 @@ def get_all_device_sensors_enabled_input_readings(devicename):
             #print(response["value"])
 
             for sensor in sensors:
-                print(sensor)
+                #print(sensor)
                 found = False
                 peripheral = "{}{}".format(sensor['source'], sensor['number'])
 
@@ -3981,7 +3981,7 @@ def get_i2c_device_class(classname):
 ########################################################################################################
 @app.route('/devices/device/<devicename>/<xxx>/<number>/sensors/sensor/<sensorname>/properties', methods=['POST'])
 def set_xxx_dev_prop(devicename, xxx, number, sensorname):
-    print('set_{}_dev_prop'.format(xxx))
+    #print('set_{}_dev_prop'.format(xxx))
 
     # check number parameter
     if int(number) > 4 or int(number) < 1:
@@ -4036,7 +4036,7 @@ def set_xxx_dev_prop(devicename, xxx, number, sensorname):
         return response, status.HTTP_404_NOT_FOUND
 
     api = 'set_{}_dev_prop'.format(xxx)
-    print('set_{}_dev_prop {}'.format(xxx, data))
+    #print('set_{}_dev_prop {}'.format(xxx, data))
     data['token'] = token
     data['devicename'] = devicename
     data['username'] = username
@@ -4052,7 +4052,7 @@ def set_xxx_dev_prop(devicename, xxx, number, sensorname):
 
     # no notification data
     if not data.get("notification"):
-        print("no notification data")
+        #print("no notification data")
 
         response, status_return = process_request(api, data)
         if status_return != 200:
@@ -4067,7 +4067,7 @@ def set_xxx_dev_prop(devicename, xxx, number, sensorname):
         g_database_client.set_enable_configure_sensor(username, devicename, xxx, number, sensorname, 0, 1)
 
         # update device configuration database for device bootup
-        print("data={}".format(data))
+        #print("data={}".format(data))
         data.pop('number')
         if data.get('address'):
             data.pop('address')
@@ -4119,7 +4119,7 @@ def set_xxx_dev_prop(devicename, xxx, number, sensorname):
     g_database_client.update_device_notification_with_notification_subclass(username, devicename, source, notification, subattributes_notification)
 
     # update device configuration database for device bootup
-    print("data={}".format(data))
+    #print("data={}".format(data))
     data.pop('number')
     if data.get('address'):
         data.pop('address')
@@ -4173,7 +4173,7 @@ def set_xxx_dev_prop(devicename, xxx, number, sensorname):
 ########################################################################################################
 @app.route('/devices/device/<devicename>/<xxx>/<number>/sensors/sensor/<sensorname>/properties', methods=['GET'])
 def get_xxx_dev_prop(devicename, xxx, number, sensorname):
-    print('get_{}_dev_prop'.format(xxx))
+    #print('get_{}_dev_prop'.format(xxx))
 
     # check number parameter
     if int(number) > 4 or int(number) < 1:
@@ -4355,7 +4355,7 @@ def enable_xxx_dev(devicename, xxx, number, sensorname):
         print('\r\nERROR Get {} Sensor: Sensor is not registered [{},{}]\r\n'.format(xxx, username, devicename))
         return response, status.HTTP_404_NOT_FOUND
 
-    print(sensor)
+    #print(sensor)
     if sensor["configured"] == 0:
         response = json.dumps({'status': 'NG', 'message': 'Sensor is not yet configured'})
         print('\r\nERROR Get {} Sensor: Sensor is yet configured [{},{}]\r\n'.format(xxx, username, devicename))
@@ -4789,7 +4789,7 @@ def process_request_get(api, data, timeout=2):
         print('\r\nERROR Device is unreachable [{}, {}]\r\n'.format(username, devicename))
         return response, status.HTTP_503_SERVICE_UNAVAILABLE
 
-    print(response)
+    #print(response)
     msg = {'status': 'OK', 'message': 'Device accessed successfully.'}
     if new_token:
         msg['new_token'] = new_token
@@ -4864,7 +4864,7 @@ def process_request(api, data, timeout=2):
         print('\r\nERROR Device is unreachable [{}, {}]\r\n'.format(username, devicename))
         return response, status.HTTP_503_SERVICE_UNAVAILABLE
 
-    print(response)
+    #print(response)
     msg = {'status': 'OK', 'message': 'Device accessed successfully.'}
     if new_token:
         msg['new_token'] = new_token
