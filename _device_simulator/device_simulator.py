@@ -25,7 +25,7 @@ CONFIG_USE_AMQP = False
 # device configuration on bootup
 CONFIG_REQUEST_CONFIGURATION = True
 CONFIG_REQUEST_CONFIGURATION_DEBUG = False
-CONFIG_DELETE_CONFIGURATION = True
+CONFIG_DELETE_CONFIGURATION = False
 
 g_timer_thread = None
 g_timer_thread_use = True
