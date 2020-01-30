@@ -2297,11 +2297,24 @@ SUMMARY:
 
 		E. UART AT Commands
 		   - AT+M (Mobile)
+		           AT+M
+		           AT+M+6512345678
+		           AT+M++Hello World
+		           AT+M+6512345678+Hello World
 		   - AT+E (Email)
+		           AT+E
+		           AT+E+email@xyz.com
+		           AT+E++Hello World
+		           AT+E+email@xyz.com+Hello World
 		   - AT+N (Notification)
 		   - AT+O (mOdem)
+		           AT+O
+		           AT+O+DEVICEID
+		           AT+O++Hello World
+		           AT+O+DEVICEID+Hello World
 		   - AT+S (Storage)
 		   - AT+D (Default)
+		           AT+D
 		   - Others
 
 	3. GPIO
@@ -2335,35 +2348,48 @@ SUMMARY:
 		   - 5v:   gpio_write(16, 1), gpio_write(17, 0)
 
 	4. I2C
-		A. GET I2CS                     get_i2cs
+		A. GET I2C DEVICES              get_i2c_devs
 		B. GET I2C DEVICE PROPERTIES    get_i2c_dev_prop
 		C. SET I2C DEVICE PROPERTIES    set_i2c_dev_prop
 		D. ENABLE/DISABLE I2C DEVICE    enable_i2c_dev
 
 	5. ADC
-		A. GET ADC DEVICE PROPERTIES    get_adc_dev_prop
-		B. SET ADC DEVICE PROPERTIES    set_adc_dev_prop
-		C. ENABLE/DISABLE ADC DEVICE    enable_adc_dev
+		A. GET ADC DEVICES              get_adc_devs
+		B. GET ADC DEVICE PROPERTIES    get_adc_dev_prop
+		C. SET ADC DEVICE PROPERTIES    set_adc_dev_prop
+		D. ENABLE/DISABLE ADC DEVICE    enable_adc_dev
+		E. GET ADC VOLTAGE              get_adc_voltage
+		F. SET ADC VOLTAGE              set_adc_voltage
 
 	6. 1WIRE
-		A. GET 1WIRE DEVICE PROPERTIES  get_1wire_dev_prop
-		B. SET 1WIRE DEVICE PROPERTIES  set_1wire_dev_prop
-		C. ENABLE/DISABLE 1WIRE DEVICE  enable_1wire_dev
+		A. GET 1WIRE DEVICES            get_1wire_devs
+		B. GET 1WIRE DEVICE PROPERTIES  get_1wire_dev_prop
+		C. SET 1WIRE DEVICE PROPERTIES  set_1wire_dev_prop
+		D. ENABLE/DISABLE 1WIRE DEVICE  enable_1wire_dev
 
 	7. TPROBE
-		A. GET TPROBE DEVICE PROPERTIES get_tprobe_dev_prop
-		B. SET TPROBE DEVICE PROPERTIES set_tprobe_dev_prop
-		C. ENABLE/DISABLE TPROBE DEVICE enable_tprobe_dev
+		A. GET TPROBE DEVICES           get_tprobe_devs
+		B. GET TPROBE DEVICE PROPERTIES get_tprobe_dev_prop
+		C. SET TPROBE DEVICE PROPERTIES set_tprobe_dev_prop
+		D. ENABLE/DISABLE TPROBE DEVICE enable_tprobe_dev
 
-	8. Notifications
+	8. PERIPHERALS
+		A. GET PERIPHERAL DEVICES       get_devs
+
+	9. Notifications
 		A. SEND NOTIFICATION            trigger_notification
-		-  to publish/trigger MENOS notifications
-
 		B. STATUS NOTIFICATION          status_notification
-		-  to listen/receive status of MENOS notifications
-
 		C. RECV NOTIFICATION            recv_notification
-		-  to receive device/mOdemo notification from other devices/mOdems
+
+	10. Sensor Reading
+		A. RECEIVE SENSOR READING       rcv_sensor_reading
+		B. REQUEST SENSOR READING       req_sensor_reading
+		C. PUBLISH SENSOR READING       sensor_reading
+
+	11. Configurations
+		A. RECEIVE CONFIGURATION        rcv_configuration
+		B. REQUEST CONFIGURATION        req_configuration
+		C. DELETE CONFIGURATION         del_configuration
 
 
 DETAILED:
@@ -2813,7 +2839,12 @@ DETAILED:
 		   payload: {}
 
 
-	8. Notifications
+	8. Peripherals
+
+		A. GET PERIPHERAL DEVICES    get_devs
+
+
+	9. Notifications
 
 		A. SEND NOTIFICATION         trigger_notification
 		-  Receive:
@@ -2838,6 +2869,21 @@ DETAILED:
 		   topic: DEVICEID/recv_notification
 		   payload: { "sender": string, "message": string }
 		   // sender is the DEVICEID of the sender device/mOdem
+
+
+	10. Sensor Reading
+
+		A. RECEIVE SENSOR READING    rcv_sensor_reading
+		B. REQUEST SENSOR READING    req_sensor_reading
+		C. PUBLISH SENSOR READING    sensor_reading
+
+
+	11. Configurations
+
+		A. RECEIVE CONFIGURATION     rcv_configuration
+		B. REQUEST CONFIGURATION     req_configuration
+		C. DELETE CONFIGURATION      del_configuration
+
 
 
 UART Notification sequence
