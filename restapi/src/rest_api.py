@@ -5169,6 +5169,6 @@ if __name__ == '__main__':
         host     = config.CONFIG_HTTP_HOST, 
         port     = port, 
         threaded = True, 
-        debug    = True)
+        debug    = False)
 
 
