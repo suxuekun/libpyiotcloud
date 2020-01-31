@@ -96,7 +96,7 @@ g_i2c_properties = [
         '0': { 'enabled': 0, 'class': 255, 'attributes': {} },
     }
 ]
-g_i2c_enabled = [1, 1, 1, 1]
+g_i2c_properties_enabled_output = [{},{},{},{}]
 
 # ADC
 g_adc_voltage = 1
@@ -247,7 +247,7 @@ def handle_api(api, subtopic, subpayload):
     global g_device_status
     global g_uart_properties, g_uart_enabled
     global g_gpio_properties, g_gpio_enabled, g_gpio_voltage, g_gpio_status, g_gpio_values
-    global g_i2c_properties, g_i2c_enabled
+    global g_i2c_properties
     global g_adc_voltage
     global g_device_settings
 
@@ -349,43 +349,56 @@ def handle_api(api, subtopic, subpayload):
             attribute = subpayload["sensors"][0]["attribute"]
             value = subpayload["sensors"][0]["value"]
 
-            for x in range(len(g_i2c_properties)):
-                for y in g_i2c_properties[x]:
-                    if g_i2c_properties[x][y]["enabled"] == 1:
-                        if g_i2c_properties[x][y]["class"] <= 2:
-                            device_class = g_device_classes[g_i2c_properties[x][y]["class"]]
+            # all enabled output sensors are copied to g_i2c_properties_enabled_output during API_ENABLE_I2C_DEVICE
+            for x in range(len(g_i2c_properties_enabled_output)):
+                for y in g_i2c_properties_enabled_output[x]:
+                    if g_i2c_properties_enabled_output[x][y]["enabled"] == 1:
+                        if g_i2c_properties_enabled_output[x][y]["class"] <= 2:
+                            device_class = g_device_classes[g_i2c_properties_enabled_output[x][y]["class"]]
                             if device_class == "light":
-                                if g_i2c_properties[x][y]["attributes"]["color"]["usage"] == 0:
-                                    single = g_i2c_properties[x][y]["attributes"]["color"]["single"]
+                                # if light class
+                                if g_i2c_properties_enabled_output[x][y]["attributes"]["color"]["usage"] == 0:
+                                    single = g_i2c_properties_enabled_output[x][y]["attributes"]["color"]["single"]
                                     if single["endpoint"] == 1:
                                         hardware = single["hardware"]
                                         if hardware["devicename"] == devicename and hardware["peripheral"] == peripheral and hardware["sensorname"] == sensorname and hardware["attribute"] == attribute:
                                             print("color = {} ({})\r\n".format(value, hex(value).upper()))
+                                            g_i2c_properties_enabled_output[x][y]["value"] = value
                                             found = True
                                             break
                                 else:
-                                    individual = g_i2c_properties[x][y]["attributes"]["color"]["individual"]
+                                    individual = g_i2c_properties_enabled_output[x][y]["attributes"]["color"]["individual"]
                                     if individual["red"]["endpoint"] == 1:
                                         hardware = individual["red"]["hardware"]
                                         if hardware["devicename"] == devicename and hardware["peripheral"] == peripheral and hardware["sensorname"] == sensorname and hardware["attribute"] == attribute:
-                                            print("red = {} ({})\r\n".format(value, hex(value).upper()))
+                                            print("red = {} ({})".format(value, hex(value).upper()))
+                                            g_i2c_properties_enabled_output[x][y]["value"] &= 0x00FFFF
+                                            g_i2c_properties_enabled_output[x][y]["value"] |= ((value & 0xFF) << 16)
+                                            print("color = {} ({})\r\n".format(g_i2c_properties_enabled_output[x][y]["value"], hex(g_i2c_properties_enabled_output[x][y]["value"]).upper()))
                                             found = True
                                             break
                                     if individual["green"]["endpoint"] == 1:
                                         hardware = individual["green"]["hardware"]
                                         if hardware["devicename"] == devicename and hardware["peripheral"] == peripheral and hardware["sensorname"] == sensorname and hardware["attribute"] == attribute:
-                                            print("green = {} ({})\r\n".format(value, hex(value).upper()))
+                                            print("green = {} ({})".format(value, hex(value).upper()))
+                                            g_i2c_properties_enabled_output[x][y]["value"] &= 0xFF00FF
+                                            g_i2c_properties_enabled_output[x][y]["value"] |= ((value & 0xFF) << 8)
+                                            print("color = {} ({})\r\n".format(g_i2c_properties_enabled_output[x][y]["value"], hex(g_i2c_properties_enabled_output[x][y]["value"]).upper()))
                                             found = True
                                             break
                                     if individual["blue"]["endpoint"] == 1:
                                         hardware = individual["blue"]["hardware"]
                                         if hardware["devicename"] == devicename and hardware["peripheral"] == peripheral and hardware["sensorname"] == sensorname and hardware["attribute"] == attribute:
-                                            print("blue = {} ({})\r\n".format(value, hex(value).upper()))
+                                            print("blue = {} ({})".format(value, hex(value).upper()))
+                                            g_i2c_properties_enabled_output[x][y]["value"] &= 0xFFFF00
+                                            g_i2c_properties_enabled_output[x][y]["value"] |= ((value & 0xFF) << 0)
+                                            print("color = {} ({})\r\n".format(g_i2c_properties_enabled_output[x][y]["value"], hex(g_i2c_properties_enabled_output[x][y]["value"]).upper()))
                                             found = True
                                             break
                             elif device_class == "display":
-                                if g_i2c_properties[x][y]["attributes"]["endpoint"] == 1:
-                                    hardware = g_i2c_properties[x][y]["attributes"]["hardware"]
+                                # if display class
+                                if g_i2c_properties_enabled_output[x][y]["attributes"]["endpoint"] == 1:
+                                    hardware = g_i2c_properties_enabled_output[x][y]["attributes"]["hardware"]
                                     if hardware["devicename"] == devicename and hardware["peripheral"] == peripheral and hardware["sensorname"] == sensorname and hardware["attribute"] == attribute:
                                         print("text = {} ({})\r\n".format(value, hex(value).upper()))
                                         found = True
@@ -604,6 +617,15 @@ def handle_api(api, subtopic, subpayload):
         enable = int(subpayload["enable"])
         try:
             g_i2c_properties[number][address]["enabled"] = enable
+
+            # if enabling output sensor, add properties to g_i2c_properties_enabled_output
+            # if disabling output sensor, remove properties from g_i2c_properties_enabled_output
+            if g_i2c_properties[number][address]["class"] <= 2:
+                if enable:
+                    g_i2c_properties_enabled_output[number][address] = g_i2c_properties[number][address]
+                    g_i2c_properties_enabled_output[number][address]["value"] = 0
+                else:
+                    del g_i2c_properties_enabled_output[number][address]
         except:
             pass
         #print()
