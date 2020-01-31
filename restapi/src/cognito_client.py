@@ -275,7 +275,7 @@ class cognito_client:
 
 	def get_username_from_token(self, token):
 		if self.keys is None:
-			return None
+			(self.keys, self.keys_iss) = self.__get_userpool_keys()
 
 		try:
 			headers = jwt.get_unverified_header(token)
@@ -304,7 +304,7 @@ class cognito_client:
 
 	def verify_token(self, token, username):
 		if self.keys is None:
-			return None
+			(self.keys, self.keys_iss) = self.__get_userpool_keys()
 
 		# get the kid from the headers prior to verification
 		try:
