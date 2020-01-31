@@ -7,6 +7,7 @@ import os
 import psutil
 import threading
 import random
+import queue
 from messaging_client import messaging_client # common module from parent directory
 
 
@@ -43,16 +44,17 @@ g_firmware_version = (g_firmware_version_MAJOR*100 + g_firmware_version_MINOR)
 g_firmware_version_STR = "{}.{}".format(g_firmware_version_MAJOR, g_firmware_version_MINOR)
 
 # STATUS
-DEVICE_STATUS_STARTING   = 0
-DEVICE_STATUS_RUNNING    = 1
-DEVICE_STATUS_RESTART    = 2
-DEVICE_STATUS_RESTARTING = 3
-DEVICE_STATUS_STOP       = 4
-DEVICE_STATUS_STOPPING   = 5
-DEVICE_STATUS_STOPPED    = 6
-DEVICE_STATUS_START      = 7
+DEVICE_STATUS_STARTING    = 0
+DEVICE_STATUS_RUNNING     = 1
+DEVICE_STATUS_RESTART     = 2
+DEVICE_STATUS_RESTARTING  = 3
+DEVICE_STATUS_STOP        = 4
+DEVICE_STATUS_STOPPING    = 5
+DEVICE_STATUS_STOPPED     = 6
+DEVICE_STATUS_START       = 7
+DEVICE_STATUS_CONFIGURING = 8
 g_device_status = DEVICE_STATUS_RUNNING
-g_device_statuses = ["starting", "running", "restart", "restarting", "stop", "stopping", "stopped", "start"]
+g_device_statuses = ["starting", "running", "restart", "restarting", "stop", "stopping", "stopped", "start", "configuring"]
 
 # SETTINGS
 g_device_settings = { 'sensorrate': g_timer_thread_timeout }
@@ -177,6 +179,7 @@ API_GET_PERIPHERAL_DEVICES       = "get_devs"
 # notification
 API_RECEIVE_NOTIFICATION         = "recv_notification"
 API_TRIGGER_NOTIFICATION         = "trigger_notification"
+API_STATUS_NOTIFICATION          = "status_notification"
 
 # sensor reading
 API_RECEIVE_SENSOR_READING       = "rcv_sensor_reading"
@@ -1044,7 +1047,11 @@ def handle_api(api, subtopic, subpayload):
         # Notification from another device
         print("Notification received from device {}:".format(subpayload["sender"]))
         print(subpayload["message"])
-        print()
+        print("")
+
+    elif api == API_STATUS_NOTIFICATION:
+        print("")
+        pass
 
 
     ####################################################
@@ -1129,6 +1136,7 @@ def handle_api(api, subtopic, subpayload):
 
         print("\r\nDEVICE CONFIGURATION")
         print("Device is now configured with cached values from cloud.\r\n\r\n")
+        g_device_status = DEVICE_STATUS_RUNNING
 
 
     ####################################################
@@ -1434,7 +1442,186 @@ class TimerThread(threading.Thread):
             #self.process_output_devices()
 
 
+###################################################################################
+# UART Command handling
+###################################################################################
 
+UART_ATCOMMAND_MOBILE              = "AT+M"
+UART_ATCOMMAND_EMAIL               = "AT+E"
+UART_ATCOMMAND_NOTIFY              = "AT+N"
+UART_ATCOMMAND_MODEM               = "AT+O"
+UART_ATCOMMAND_STORAGE             = "AT+S"
+UART_ATCOMMAND_DEFAULT             = "AT+D"
+UART_ATCOMMAND_CONTINUE            = "ATC"
+UART_ATCOMMAND_ECHO                = "ATE"
+UART_ATCOMMAND_HELP                = "ATH"
+UART_ATCOMMAND_INFO                = "ATI"
+UART_ATCOMMAND_MORE                = "ATM"
+UART_ATCOMMAND_PAUSE               = "ATP"
+UART_ATCOMMAND_RESET               = "ATR"
+UART_ATCOMMAND_UPDATE              = "ATU"
+UART_ATCOMMAND_STATUS              = "AT"
+
+UART_ATCOMMAND_DESC_MOBILE         = "Send message as SMS to verified mobile number"
+UART_ATCOMMAND_DESC_EMAIL          = "Send message as email to verified email address"
+UART_ATCOMMAND_DESC_NOTIFY         = "Send message as mobile app notification to verified user"
+UART_ATCOMMAND_DESC_MODEM          = "Send message to other IoT modem devices"
+UART_ATCOMMAND_DESC_STORAGE        = "Send message to storage"
+UART_ATCOMMAND_DESC_DEFAULT        = "Send default message to configured endpoints"
+UART_ATCOMMAND_DESC_CONTINUE       = "Continue device functions"
+UART_ATCOMMAND_DESC_ECHO           = "Echo on/off (toggle)"
+UART_ATCOMMAND_DESC_HELP           = "Display help information on commands"
+UART_ATCOMMAND_DESC_INFO           = "Display device information"
+UART_ATCOMMAND_DESC_MORE           = "Display more information on error"
+UART_ATCOMMAND_DESC_PAUSE          = "Pause/Resume (toggle)"
+UART_ATCOMMAND_DESC_RESET          = "Reset device"
+UART_ATCOMMAND_DESC_UPDATE         = "Enter firmware update (UART entry point inside bootloader)"
+UART_ATCOMMAND_DESC_STATUS         = "Display device status"
+
+MENOS_MOBILE                       = "mobile"
+MENOS_EMAIL                        = "email"
+MENOS_NOTIFICATION                 = "notification"
+MENOS_MODEM                        = "modem"
+MENOS_STORAGE                      = "storage"
+MENOS_DEFAULT                      = "default"
+
+
+def uart_publish(menos, recipient=None, message=None):
+    topic = "{}/{}/trigger_notification/uart/{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_DEVICE_ID, menos)
+    payload = {}
+    if recipient is not None:
+        payload["recipient"] = recipient
+    if message is not None:
+        payload["message"] = message
+    publish(topic, payload)
+
+def uart_parse_command(cmd):
+    recipient = None
+    message = None
+    result = 1
+
+    if cmd[0] != "+":
+        print("Wrong syntax\r\n")
+        return 0, None, None
+
+    cmd_list = cmd[1:].split("+", 2)
+    if len(cmd_list) == 0:
+        print("Wrong syntax\r\n")
+        return 0, None, None
+    elif len(cmd_list) == 1:
+        recipient = cmd_list[0]
+    else:
+        recipient = cmd_list[0]
+        if len(recipient) == 0:
+            recipient = None
+        else:
+            if recipient[0] == "'":
+                recipient_len = len(recipient)
+                if recipient[recipient_len-1] != "'":
+                    print("Wrong syntax\r\n")
+                    return 0, None, None
+                recipient = recipient[1: recipient_len-1]
+            elif recipient[0] == '"':
+                recipient_len = len(recipient)
+                if recipient[recipient_len-1] != '"':
+                    print("Wrong syntax\r\n")
+                    return 0, None, None
+                recipient = recipient[1: recipient_len-1]
+
+        message = cmd_list[1]
+        if len(message) == 0:
+            message = None
+        else:
+            if message[0] == "'":
+                message_len = len(message)
+                if message[message_len-1] != "'":
+                    print("Wrong syntax\r\n")
+                    return 0, None, None
+                message = message[1: message_len-1]
+            elif message[0] == '"':
+                message_len = len(message)
+                if message[message_len-1] != '"':
+                    print("Wrong syntax\r\n")
+                    return 0, None, None
+                message = message[1: message_len-1]
+
+        if recipient is None and message is None:
+            print("Wrong syntax\r\n")
+            return 0, None, None
+
+    return result, recipient, message
+
+def uart_cmdhdl_common(idx, cmd, menos):
+    if len(cmd) == len(UART_ATCOMMANDS[idx]["command"]):
+        uart_publish(menos)
+        return
+    result, recipient, message = uart_parse_command(cmd[len(UART_ATCOMMANDS[idx]["command"]):])
+    if result:
+        uart_publish(menos, recipient, message)
+
+def uart_cmdhdl_mobile(idx, cmd):
+    uart_cmdhdl_common(idx, cmd, MENOS_MOBILE)
+
+def uart_cmdhdl_email(idx, cmd):
+    uart_cmdhdl_common(idx, cmd, MENOS_EMAIL)
+
+def uart_cmdhdl_notification(idx, cmd):
+    uart_cmdhdl_common(idx, cmd, MENOS_NOTIFICATION)
+
+def uart_cmdhdl_mOdem(idx, cmd):
+    uart_cmdhdl_common(idx, cmd, MENOS_MODEM)
+
+def uart_cmdhdl_storage(idx, cmd):
+    uart_cmdhdl_common(idx, cmd, MENOS_STORAGE)
+
+def uart_cmdhdl_default(idx, cmd):
+    if len(cmd) == len(UART_ATCOMMANDS[idx]["command"]):
+        uart_publish(MENOS_DEFAULT)
+        return
+
+def uart_cmdhdl_help(idx, cmd):
+    print('\r\nUART Commands:')
+    for command in UART_ATCOMMANDS:
+        print("{}\t{}".format(command["command"], command["help"]))
+    print('')
+
+def uart_cmdhdl_unsupported(idx, cmd):
+    print("uart_cmdhdl_unsupported")
+
+
+UART_ATCOMMANDS = [
+    { "command": UART_ATCOMMAND_MOBILE,   "fxn": uart_cmdhdl_mobile,       "help": UART_ATCOMMAND_DESC_MOBILE  },
+    { "command": UART_ATCOMMAND_EMAIL,    "fxn": uart_cmdhdl_email,        "help": UART_ATCOMMAND_DESC_EMAIL   },
+    { "command": UART_ATCOMMAND_NOTIFY,   "fxn": uart_cmdhdl_notification, "help": UART_ATCOMMAND_DESC_NOTIFY  },
+    { "command": UART_ATCOMMAND_MODEM,    "fxn": uart_cmdhdl_mOdem,        "help": UART_ATCOMMAND_DESC_MODEM   },
+    { "command": UART_ATCOMMAND_STORAGE,  "fxn": uart_cmdhdl_storage,      "help": UART_ATCOMMAND_DESC_STORAGE },
+    { "command": UART_ATCOMMAND_DEFAULT,  "fxn": uart_cmdhdl_default,      "help": UART_ATCOMMAND_DESC_DEFAULT },
+
+    { "command": UART_ATCOMMAND_CONTINUE, "fxn": uart_cmdhdl_unsupported,  "help": UART_ATCOMMAND_DESC_CONTINUE },
+    { "command": UART_ATCOMMAND_ECHO,     "fxn": uart_cmdhdl_unsupported,  "help": UART_ATCOMMAND_DESC_ECHO     },
+    { "command": UART_ATCOMMAND_HELP,     "fxn": uart_cmdhdl_help,         "help": UART_ATCOMMAND_DESC_HELP     },
+    { "command": UART_ATCOMMAND_INFO,     "fxn": uart_cmdhdl_unsupported,  "help": UART_ATCOMMAND_DESC_INFO     }, # = {software version, present configuration, present status, list of I2C devices and addresses, IP address, connection status to service, etc}" },
+    { "command": UART_ATCOMMAND_MORE,     "fxn": uart_cmdhdl_unsupported,  "help": UART_ATCOMMAND_DESC_MORE     },
+    { "command": UART_ATCOMMAND_PAUSE,    "fxn": uart_cmdhdl_unsupported,  "help": UART_ATCOMMAND_DESC_PAUSE    },
+    { "command": UART_ATCOMMAND_RESET,    "fxn": uart_cmdhdl_unsupported,  "help": UART_ATCOMMAND_DESC_RESET    },
+    { "command": UART_ATCOMMAND_UPDATE,   "fxn": uart_cmdhdl_unsupported,  "help": UART_ATCOMMAND_DESC_UPDATE   },
+
+    { "command": UART_ATCOMMAND_STATUS,   "fxn": uart_cmdhdl_mobile,       "help": UART_ATCOMMAND_DESC_STATUS   }, # OK if all is good, ERROR if device is in error state" },
+]
+
+def read_kbd_input(inputQueue):
+
+    while g_messaging_client.is_connected():
+        if g_device_status == DEVICE_STATUS_RUNNING:
+            break
+        time.sleep(1)
+
+    if g_messaging_client.is_connected():
+        uart_cmdhdl_help(0, None)
+
+        while g_messaging_client.is_connected():
+            input_str = input()
+            inputQueue.put(input_str)
 
 
 ###################################################################################
@@ -1540,6 +1727,7 @@ if __name__ == '__main__':
 
         # Query device configuration
         if CONFIG_REQUEST_CONFIGURATION:
+            g_device_status = DEVICE_STATUS_CONFIGURING
             req_configuration()
             # can specify specific peripherals like below
             # peripherals can be uart, gpio, i2c, adc, 1wire, tprobe
@@ -1550,19 +1738,34 @@ if __name__ == '__main__':
             g_timer_thread = TimerThread(g_timer_thread_stop, g_timer_thread_timeout)
             g_timer_thread.start()
 
+        # Start keyboard input thread
+        inputQueue = queue.Queue()
+        inputThread = threading.Thread(target=read_kbd_input, args=(inputQueue,), daemon=True)
+        inputThread.start()
+
         # Exit when disconnection happens
         while g_messaging_client.is_connected():
             time.sleep(1)
 
             # process restart
             if g_device_status == DEVICE_STATUS_RESTARTING:
-               process_restart()
+                process_restart()
             elif g_device_status == DEVICE_STATUS_STOPPING:
-               process_stop()
+                process_stop()
             elif g_device_status == DEVICE_STATUS_STARTING:
-               process_start()
+                process_start()
+            elif g_device_status == DEVICE_STATUS_RUNNING:
+                # process keyboard input
+                if inputQueue.qsize() > 0:
+                    cmd = inputQueue.get()
+                    for idx in range(len(UART_ATCOMMANDS)):
+                        if cmd.startswith(UART_ATCOMMANDS[idx]["command"]):
+                            UART_ATCOMMANDS[idx]["fxn"](idx, cmd)
+                            break
 
         g_messaging_client.release()
+
+        inputThread.join()
 
         if g_timer_thread_use:
             g_timer_thread_stop.set()
