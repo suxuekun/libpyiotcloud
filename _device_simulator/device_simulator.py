@@ -341,6 +341,57 @@ def handle_api(api, subtopic, subpayload):
                                 print("INT = {} ({})".format(value, hex(value).upper()))
                             print("")
                             break
+        else:
+            found = False
+            devicename = subpayload["sensors"][0]["devicename"]
+            peripheral = subpayload["sensors"][0]["peripheral"]
+            sensorname = subpayload["sensors"][0]["sensorname"]
+            attribute = subpayload["sensors"][0]["attribute"]
+            value = subpayload["sensors"][0]["value"]
+
+            for x in range(len(g_i2c_properties)):
+                for y in g_i2c_properties[x]:
+                    if g_i2c_properties[x][y]["enabled"] == 1:
+                        if g_i2c_properties[x][y]["class"] <= 2:
+                            device_class = g_device_classes[g_i2c_properties[x][y]["class"]]
+                            if device_class == "light":
+                                if g_i2c_properties[x][y]["attributes"]["color"]["usage"] == 0:
+                                    single = g_i2c_properties[x][y]["attributes"]["color"]["single"]
+                                    if single["endpoint"] == 1:
+                                        hardware = single["hardware"]
+                                        if hardware["devicename"] == devicename and hardware["peripheral"] == peripheral and hardware["sensorname"] == sensorname and hardware["attribute"] == attribute:
+                                            print("color = {} ({})\r\n".format(value, hex(value).upper()))
+                                            found = True
+                                            break
+                                else:
+                                    individual = g_i2c_properties[x][y]["attributes"]["color"]["individual"]
+                                    if individual["red"]["endpoint"] == 1:
+                                        hardware = individual["red"]["hardware"]
+                                        if hardware["devicename"] == devicename and hardware["peripheral"] == peripheral and hardware["sensorname"] == sensorname and hardware["attribute"] == attribute:
+                                            print("red = {} ({})\r\n".format(value, hex(value).upper()))
+                                            found = True
+                                            break
+                                    if individual["green"]["endpoint"] == 1:
+                                        hardware = individual["green"]["hardware"]
+                                        if hardware["devicename"] == devicename and hardware["peripheral"] == peripheral and hardware["sensorname"] == sensorname and hardware["attribute"] == attribute:
+                                            print("green = {} ({})\r\n".format(value, hex(value).upper()))
+                                            found = True
+                                            break
+                                    if individual["blue"]["endpoint"] == 1:
+                                        hardware = individual["blue"]["hardware"]
+                                        if hardware["devicename"] == devicename and hardware["peripheral"] == peripheral and hardware["sensorname"] == sensorname and hardware["attribute"] == attribute:
+                                            print("blue = {} ({})\r\n".format(value, hex(value).upper()))
+                                            found = True
+                                            break
+                            elif device_class == "display":
+                                if g_i2c_properties[x][y]["attributes"]["endpoint"] == 1:
+                                    hardware = g_i2c_properties[x][y]["attributes"]["hardware"]
+                                    if hardware["devicename"] == devicename and hardware["peripheral"] == peripheral and hardware["sensorname"] == sensorname and hardware["attribute"] == attribute:
+                                        print("text = {} ({})\r\n".format(value, hex(value).upper()))
+                                        found = True
+                                        break
+                if found == True:
+                    break
 
     ####################################################
     # SETTINGS
