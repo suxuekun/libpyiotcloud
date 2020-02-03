@@ -270,8 +270,9 @@ SUMMARY:
 
 		//
 		// sensor readings (for dashboard)
-		O. GET PERIPHERAL SENSOR READINGS    - GET    /devices/device/DEVICENAME/sensors/readings
-		P. DELETE PERIPHERAL SENSOR READINGS - DELETE /devices/device/DEVICENAME/sensors/readings
+		O. GET PERIPHERAL SENSOR READINGS         - GET    /devices/device/DEVICENAME/sensors/readings
+		P. GET PERIPHERAL SENSOR READINGS DATASET - GET    /devices/device/DEVICENAME/sensors/readings/dataset
+		Q. DELETE PERIPHERAL SENSOR READINGS      - DELETE /devices/device/DEVICENAME/sensors/readings
 
 
 	4. Device access and control APIs (I2C)
@@ -289,7 +290,8 @@ SUMMARY:
 		K. GET I2C DEVICE READINGS        - GET    /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME/readings
 		L. DELETE I2C DEVICE READINGS     - DELETE /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME/readings
 		M. GET I2C DEVICES READINGS       - GET    /devices/device/DEVICENAME/i2c/NUMBER/sensors/readings
-		N. DELETE I2C DEVICES READINGS    - DELETE /devices/device/DEVICENAME/i2c/NUMBER/sensors/readings
+		N. GET I2C DEVICE READINGS DATASET- GET    /devices/device/DEVICENAME/i2c/NUMBER/sensors/readings/dataset
+		O. DELETE I2C DEVICES READINGS    - DELETE /devices/device/DEVICENAME/i2c/NUMBER/sensors/readings
 		   (NUMBER can be 1-4 only and corresponds to I2C1,I2C2,I2C3,I2C4)
 
 
@@ -306,10 +308,11 @@ SUMMARY:
 		I. GET ADC DEVICE READINGS        - GET    /devices/device/DEVICENAME/adc/NUMBER/sensors/sensor/SENSORNAME/readings
 		J. DELETE ADC DEVICE READINGS     - DELETE /devices/device/DEVICENAME/adc/NUMBER/sensors/sensor/SENSORNAME/readings
 		K. GET ADC DEVICES READINGS       - GET    /devices/device/DEVICENAME/adc/NUMBER/sensors/readings
-		L. DELETE ADC DEVICES READINGS    - DELETE /devices/device/DEVICENAME/adc/NUMBER/sensors/readings
+		L. GET ADC DEVICE READINGS DATASET- GET    /devices/device/DEVICENAME/adc/NUMBER/sensors/readings/dataset
+		M. DELETE ADC DEVICES READINGS    - DELETE /devices/device/DEVICENAME/adc/NUMBER/sensors/readings
 		   (NUMBER can be 1-2 only and corresponds to ADC1,ADC2)
-		M. GET ADC VOLTAGE                - GET    /devices/device/DEVICENAME/adc/voltage
-		N. SET ADC VOLTAGE                - POST   /devices/device/DEVICENAME/adc/voltage
+		N. GET ADC VOLTAGE                - GET    /devices/device/DEVICENAME/adc/voltage
+		O. SET ADC VOLTAGE                - POST   /devices/device/DEVICENAME/adc/voltage
 
 
 	6. Device access and control APIs (1WIRE)
@@ -325,7 +328,8 @@ SUMMARY:
 		I. GET 1WIRE DEVICE READINGS      - GET    /devices/device/DEVICENAME/1wire/NUMBER/sensors/sensor/SENSORNAME/readings
 		J. DELETE 1WIRE DEVICE READINGS   - DELETE /devices/device/DEVICENAME/1wire/NUMBER/sensors/sensor/SENSORNAME/readings
 		K. GET 1WIRE DEVICES READINGS     - GET    /devices/device/DEVICENAME/1wire/NUMBER/sensors/readings
-		L. DELETE 1WIRE DEVICES READINGS  - DELETE /devices/device/DEVICENAME/1wire/NUMBER/sensors/readings
+		L. GET 1WIRE DEVICE READINGS DATASET- GET  /devices/device/DEVICENAME/1wire/NUMBER/sensors/readings/dataset
+		M. DELETE 1WIRE DEVICES READINGS  - DELETE /devices/device/DEVICENAME/1wire/NUMBER/sensors/readings
 		   (NUMBER will always be 1 since there is only 1 1wire)
 
 
@@ -342,7 +346,8 @@ SUMMARY:
 		I. GET TPROBE DEVICE READINGS     - GET    /devices/device/DEVICENAME/tprobe/NUMBER/sensors/sensor/SENSORNAME/readings
 		J. DELETE TPROBE DEVICE READINGS  - DELETE /devices/device/DEVICENAME/tprobe/NUMBER/sensors/sensor/SENSORNAME/readings
 		K. GET TPROBE DEVICES READINGS    - GET    /devices/device/DEVICENAME/tprobe/NUMBER/sensors/readings
-		L. DELETE TPROBE DEVICES READINGS - DELETE /devices/device/DEVICENAME/tprobe/NUMBER/sensors/readings
+		L. GET TPROBE DEVICE READINGS DATASET- GET /devices/device/DEVICENAME/tprobe/NUMBER/sensors/readings/dataset
+		M. DELETE TPROBE DEVICES READINGS - DELETE /devices/device/DEVICENAME/tprobe/NUMBER/sensors/readings
 		   (NUMBER will always be 1 since there is only 1 tprobe)
 
 
@@ -1132,7 +1137,17 @@ DETAILED:
 		   { 'status': 'NG', 'message': string}
 		   // the subclass parameter of readings parameter will only appear if the sensor has a subclass
 
-		P. DELETE PERIPHERAL SENSOR READINGS
+		P. GET PERIPHERAL SENSOR READINGS DATASET
+		-  Request:
+		   GET /devices/device/DEVICENAME/sensors/readings/dataset
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		-  Response:
+		   { 'status': 'OK', 'message': string, 
+		     'sensor': {'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': string, 'enabled': int, 'configured': int, 'units': [], 'formats': [], 'attributes': [], 'readings': [{'timestamp': float, 'value': float, 'subclass': {'value': float}}] }
+		   { 'status': 'NG', 'message': string}
+		   // the subclass parameter of readings parameter will only appear if the sensor has a subclass
+
+		Q. DELETE PERIPHERAL SENSOR READINGS
 		-  Request:
 		   DELETE /devices/device/DEVICENAME/sensors/readings
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -1592,7 +1607,15 @@ DETAILED:
 		   { 'status': 'OK', 'message': string, 'sensor_readings': {'value': float, 'lowest': float, 'highest': float, 'subclass': {'value': float, 'lowest': float, 'highest': float} } }
 		   { 'status': 'NG', 'message': string }
 
-		L. DELETE I2C DEVICE READINGS
+		L. GET I2C DEVICE READINGS DATASET
+		-  Request:
+		   GET /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME/readings/dataset
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		-  Response:
+		   { 'status': 'OK', 'message': string, 'sensor_readings': [{'timestamp': int, 'sensor_readings': {'value': float, 'subclass': {'value': float} }} ] }
+		   { 'status': 'NG', 'message': string }
+
+		M. DELETE I2C DEVICE READINGS
 		-  Request:
 		   DELETE /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME/readings
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -1739,7 +1762,15 @@ DETAILED:
 		   { 'status': 'OK', 'message': string, 'sensor_readings': {'value': float, 'lowest': float, 'highest': float, 'subclass': {'value': float, 'lowest': float, 'highest': float} } }
 		   { 'status': 'NG', 'message': string }
 
-		J. DELETE ADC DEVICE READINGS
+		J. GET ADC DEVICE READINGS DATASET
+		-  Request:
+		   GET /devices/device/DEVICENAME/adc/NUMBER/sensors/sensor/SENSORNAME/readings/dataset
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		-  Response:
+		   { 'status': 'OK', 'message': string, 'sensor_readings': [{'timestamp': int, 'sensor_readings': {'value': float, 'subclass': {'value': float} }} ] }
+		   { 'status': 'NG', 'message': string }
+
+		K. DELETE ADC DEVICE READINGS
 		-  Request:
 		   DELETE /devices/device/DEVICENAME/adc/NUMBER/sensors/sensor/SENSORNAME/readings
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -1747,7 +1778,7 @@ DETAILED:
 		   { 'status': 'OK', 'message': string }
 		   { 'status': 'NG', 'message': string }
 
-		K. GET ADC VOLTAGE
+		L. GET ADC VOLTAGE
 		-  Request:
 		   GET /devices/device/DEVICENAME/adc/voltage
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -1758,7 +1789,7 @@ DETAILED:
 		   // voltage is an index of the value in the list of voltages
 		   //   ["-5/+5V Range", "-10/+10V Range", "0/10V Range"]
 
-		L. SET ADC VOLTAGE
+		M. SET ADC VOLTAGE
 		-  Request:
 		   POST /devices/device/DEVICENAME/adc/voltage
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
@@ -1910,7 +1941,15 @@ DETAILED:
 		   { 'status': 'OK', 'message': string, 'sensor_readings': {'value': float, 'lowest': float, 'highest': float, 'subclass': {'value': float, 'lowest': float, 'highest': float} } }
 		   { 'status': 'NG', 'message': string }
 
-		J. DELETE 1WIRE DEVICE READINGS
+		J. GET 1WIRE DEVICE READINGS DATASET
+		-  Request:
+		   GET /devices/device/DEVICENAME/1wire/NUMBER/sensors/sensor/SENSORNAME/readings/dataset
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		-  Response:
+		   { 'status': 'OK', 'message': string, 'sensor_readings': [{'timestamp': int, 'sensor_readings': {'value': float, 'subclass': {'value': float} }} ] }
+		   { 'status': 'NG', 'message': string }
+
+		K. DELETE 1WIRE DEVICE READINGS
 		-  Request:
 		   DELETE /devices/device/DEVICENAME/1wire/NUMBER/sensors/sensor/SENSORNAME/readings
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -2080,7 +2119,15 @@ DETAILED:
 		   { 'status': 'OK', 'message': string, 'sensor_readings': {'value': float, 'lowest': float, 'highest': float, 'subclass': {'value': float, 'lowest': float, 'highest': float} } }
 		   { 'status': 'NG', 'message': string }
 
-		J. DELETE TPROBE DEVICE READINGS
+		J. GET TPROBE DEVICE READINGS DATASET
+		-  Request:
+		   GET /devices/device/DEVICENAME/tprobe/NUMBER/sensors/sensor/SENSORNAME/readings/dataset
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		-  Response:
+		   { 'status': 'OK', 'message': string, 'sensor_readings': [{'timestamp': int, 'sensor_readings': {'value': float, 'subclass': {'value': float} }} ] }
+		   { 'status': 'NG', 'message': string }
+
+		K. DELETE TPROBE DEVICE READINGS
 		-  Request:
 		   DELETE /devices/device/DEVICENAME/tprobe/NUMBER/sensors/sensor/SENSORNAME/readings
 		   headers: {'Authorization': 'Bearer ' + token.access}
