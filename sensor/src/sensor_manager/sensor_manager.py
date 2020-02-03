@@ -148,6 +148,17 @@ def add_sensor_reading(database_client, deviceid, topic, payload):
 
 
             #
+            # update sensor reading with timestamp for charting/graphing
+            if sensor_config.CONFIG_ENABLE_DATASET:
+                sensor_readings.pop("lowest")
+                sensor_readings.pop("highest")
+                if sensor_readings.get("subclass"):
+                    sensor_readings["subclass"].pop("lowest")
+                    sensor_readings["subclass"].pop("highest")
+                database_client.add_sensor_reading_dataset(deviceid, source, address, sensor_readings)
+
+
+            #
             # forward the packet to the specified recipient in the properties
             try:
                 peripheral = source[0:len(source)-1]
