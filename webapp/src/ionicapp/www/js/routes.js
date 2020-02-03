@@ -234,6 +234,21 @@ angular.module('app.routes', [])
     controller: 'sensorDashboardCtrl'
   })
 
+  .state('sensorChart', {
+    url: '/page_sensor_chart',
+	params: {
+		devicename: "",
+		username: "",
+		token: "",
+		devicestatus: "",
+		deviceid: "",
+		serialnumber: "",
+		sensor: ""		
+},
+    templateUrl: 'templates/sensorChart.html',
+    controller: 'sensorChartCtrl'
+  })
+
   .state('deviceGPIO', {
     url: '/page_device_gpio',
 	params: {

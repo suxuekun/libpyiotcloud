@@ -13,18 +13,22 @@
       </p>
     </div>
     <div class="spacer" style="width: 300px; height: 20px;"></div>
-    <form id="sensorDashboard-form168" class="list" ng-show="sensors.length > 0">
-      <label class="item item-input" id="sensorDashboard-input105">
+    <div id="sensorDashboard-button-bar11" class="button-bar">
+      <button id="sensorDashboard-button145" ng-class="{'active': data.activeSection==1}" ng-click="changeSection(1)" class="button button-positive button-small button-block">Values</button>
+      <button id="sensorDashboard-button147" ng-class="{'active': data.activeSection==2}" ng-click="changeSection(2)" class="button button-positive button-small button-block">Charts</button>
+    </div>
+    <form id="sensorDashboard-form193" class="list" ng-show="sensors.length > 0">
+      <label class="item item-input" id="sensorDashboard-input143">
         <span class="input-label">Refresh time (sec)</span>
         <input type="number" placeholder="" ng-model="refresh_time" ng-disabled="refresh_automatically">
       </label>
-      <ion-toggle toggle-class="toggle-positive" id="sensorDashboard-toggle14" ng-model="refresh_automatically" ng-change="changeRefresh(refresh_automatically, refresh_time)">Refresh automatically</ion-toggle>
+      <ion-toggle toggle-class="toggle-positive" id="sensorDashboard-toggle20" ng-model="refresh_automatically" ng-change="changeRefresh(refresh_automatically, refresh_time)">Refresh automatically</ion-toggle>
     </form>
     <div id="sensorDashboard-markdown311" class="show-list-numbers-and-dots">
       <p style="color:#AAAAAA;font-size:12px;">{{ sensors_counthdr }}</p>
     </div>
-    <form id="sensorDashboard-form18" class="list">
-      <div class="item item-body" id="sensorDashboard-list-item-container9" ng-repeat="sensor in sensors">
+    <form id="sensorDashboard-form18" class="list" ng-show="data.activeSection==1">
+      <div class="item item-body" id="sensorDashboard-list-item-container9" ng-repeat="sensor in sensors" ng-click="submitViewSensorChart(sensor)">
         <div id="sensorDashboard-markdown305" class="show-list-numbers-and-dots">
           <p style="margin-top:0px;color:#387EF5;font-size:18px;">
             <strong>{{ sensor.sensorname }}</strong>
@@ -66,8 +70,58 @@
         </div>
       </div>
     </form>
-    <form id="sensorDashboard-form167" class="list" ng-show="sensors.length > 0">
-      <button id="sensorDashboard-button101" ng-click="submitDelete()" class="button button-positive button-block">Reset values</button>
+    <form id="sensorDashboard-form167" class="list" ng-show="data.activeSection==2" ng-repeat="sensor in sensors">
+      <div id="canvas-holder" style="width:97%; margin:0px 0px 0px 3%;">
+
+        <br>
+        <p>
+          <b>
+            <font size="4" color="#387EF5">
+              {{ data.activeSection==2 ? sensor.sensorname: "" }}
+            </font>
+          </b>
+        </p>
+
+        <p>
+          <font size="1" color="#444444">
+            {{ data.activeSection==2 ? "Manufacturer: " + sensor.manufacturer: "" }}
+          </font>
+
+          <br>
+
+          <font size="1" color="#444444">
+            {{ data.activeSection==2 ? "Model: " + sensor.model: "" }}
+          </font>
+
+          <br>
+
+          <font size="1" color="#444444">
+            {{ data.activeSection==2 ? "Peripheral: " + sensor.source.toUpperCase() + "" + sensor.number : "" }}
+          </font>
+
+          <br>
+
+          <b>
+            <font size="1" color="#444444">
+              {{ data.activeSection==2 ? (sensor.subclass ? sensor.class.toUpperCase() + " | " + sensor.subclass.toUpperCase() : sensor.class.toUpperCase()) : "" }}
+            </font>
+          </b>
+
+          <br>
+          <br>
+
+        </p>
+
+        <canvas id="line" class="chart chart-line" chart-colors="sensors_datachart_colors" chart-data="chartData(sensor)" chart-labels="chartLabels(sensor)">
+        </canvas>
+
+        <p>
+        </p>
+
+      </div>
+    </form>
+    <form id="sensorDashboard-form196" class="list" ng-show="sensors.length > 0">
+      <button id="sensorDashboard-button149" ng-click="submitDelete()" class="button button-positive button-block">Reset values</button>
     </form>
   </ion-content>
 </ion-view>
