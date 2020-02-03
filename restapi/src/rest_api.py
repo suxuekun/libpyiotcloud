@@ -3234,6 +3234,124 @@ def get_all_device_sensors_enabled_input_readings(devicename):
 
 ########################################################################################################
 #
+# GET PERIPHERAL SENSOR READINGS DATASET
+#
+# - Request:
+#   GET /devices/device/DEVICENAME/sensors/readings/dataset
+#   headers: { 'Authorization': 'Bearer ' + token.access }
+#
+# - Response:
+#   { 'status': 'OK', 'message': string, 'sensors': array[{'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'timestamp': string, 'readings': [{'timestamp': float, 'value': float, 'subclass': {'value': float}}], 'enabled': int}, ...] }
+#   { 'status': 'NG', 'message': string }
+#
+########################################################################################################
+@app.route('/devices/device/<devicename>/sensors/readings/dataset', methods=['GET'])
+def get_all_device_sensors_enabled_input_readings_dataset(devicename):
+
+    # get token from Authorization header
+    auth_header_token = get_auth_header_token()
+    if auth_header_token is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
+        print('\r\nERROR Get All Device Sensors Dataset: Invalid authorization header\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
+    token = {'access': auth_header_token}
+
+    # get username from token
+    username = g_database_client.get_username_from_token(token)
+    if username is None:
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Get All Device Sensors Dataset: Token expired\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
+    #print('get_all_device_sensors_enabled_input {} devicename={}'.format(username, devicename))
+
+    # check if a parameter is empty
+    if len(username) == 0 or len(token) == 0:
+        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+        print('\r\nERROR Get All Device Sensors Dataset: Empty parameter found\r\n')
+        return response, status.HTTP_400_BAD_REQUEST
+
+    # check if username and token is valid
+    verify_ret, new_token = g_database_client.verify_token(username, token)
+    if verify_ret == 2:
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Get All Device Sensors Dataset: Token expired [{}]\r\n'.format(username))
+        return response, status.HTTP_401_UNAUTHORIZED
+    elif verify_ret != 0:
+        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
+        print('\r\nERROR Get All Device Sensors Dataset: Token is invalid [{}]\r\n'.format(username))
+        return response, status.HTTP_401_UNAUTHORIZED
+
+
+    if flask.request.method == 'GET':
+        # query device
+        api = "get_devs"
+        data = {}
+        data['token'] = token
+        data['devicename'] = devicename
+        data['username'] = username
+        response, status_return = process_request(api, data)
+        if status_return == 200:
+            # query database
+            sensors = g_database_client.get_all_device_sensors_input(username, devicename)
+
+            # map queried result with database result
+            #print("from device")
+            response = json.loads(response)
+            #print(response["value"])
+
+            for sensor in sensors:
+                #print(sensor)
+                found = False
+                peripheral = "{}{}".format(sensor['source'], sensor['number'])
+
+                if sensor["source"] == "i2c":
+                    if response["value"].get(peripheral):
+                        for item in response["value"][peripheral]:
+                            # match found for database result and actual device result
+                            # set database record to configured and actual device item["enabled"]
+                            if sensor["address"] == item["address"]:
+                                g_database_client.set_enable_configure_sensor(username, devicename, sensor['source'], sensor['number'], sensor['sensorname'], item["enabled"], 1)
+                                found = True
+                                break
+                else:
+                    if response["value"].get(peripheral):
+                        for item in response["value"][peripheral]:
+                            if item["class"] == get_i2c_device_class(sensor["class"]):
+                                g_database_client.set_enable_configure_sensor(username, devicename, sensor['source'], sensor['number'], sensor['sensorname'], item["enabled"], 1)
+                                found = True
+                                break
+
+                # no match found
+                # set database record to unconfigured and disabled
+                if found == False:
+                    g_database_client.set_enable_configure_sensor(username, devicename, sensor['source'], sensor['number'], sensor['sensorname'], 0, 0)
+            #print()
+        else:
+            # cannot communicate with device so set database record to unconfigured and disabled
+            g_database_client.disable_unconfigure_sensors(username, devicename)
+
+        # query database
+        sensors = g_database_client.get_all_device_sensors_enabled_input(username, devicename)
+        for sensor in sensors:
+            address = None
+            if sensor.get("address"):
+                address = sensor["address"]
+            source = "{}{}".format(sensor["source"], sensor["number"])
+            sensor_reading = g_database_client.get_sensor_reading_dataset(username, devicename, source, address)
+            if sensor_reading is not None:
+                sensor['readings'] = sensor_reading
+
+
+    msg = {'status': 'OK', 'message': 'Get All Device Sensors Dataset queried successfully.', 'sensors': sensors}
+    if new_token:
+        msg['new_token'] = new_token
+    response = json.dumps(msg)
+    print('\r\nGet All Device Sensors Dataset successful: {} {} {} sensors\r\n'.format(username, devicename, len(sensors)))
+    return response
+
+
+########################################################################################################
+#
 # GET I2C DEVICES
 #
 # - Request:
@@ -3929,6 +4047,96 @@ def get_xxx_sensors_readings(devicename, xxx, number):
         response = json.dumps(msg)
         print('\r\nSensors readings deleted successful: {}\r\n{}\r\n'.format(username, response))
         return response
+
+
+########################################################################################################
+#
+# GET I2C DEVICES READINGS DATASET (per peripheral slot)
+#
+# - Request:
+#   GET /devices/device/<devicename>/i2c/NUMBER/sensors/sensor/SENSORNAME/readings/dataset
+#   headers: {'Authorization': 'Bearer ' + token.access}
+#
+# - Response:
+#   {'status': 'OK', 'message': string, 'sensor_readings': [{'timestamp': int, 'value': int}] }
+#   {'status': 'NG', 'message': string }
+#
+# GET ADC DEVICES READINGS DATASET (per peripheral slot)
+# GET 1WIRE DEVICES READINGS DATASET (per peripheral slot)
+# GET TPROBE DEVICES READINGS DATASET (per peripheral slot)
+#
+# - Request:
+#   GET /devices/device/<devicename>/adc/NUMBER/sensors/sensor/SENSORNAME/readings/dataset
+#   GET /devices/device/<devicename>/1wire/NUMBER/sensors/sensor/SENSORNAME/readings/dataset
+#   GET /devices/device/<devicename>/tprobe/NUMBER/sensors/sensor/SENSORNAME/readings/dataset
+#   headers: {'Authorization': 'Bearer ' + token.access}
+#
+# - Response:
+#   {'status': 'OK', 'message': string, 'sensor_readings': [{'timestamp': int, 'value': int}] }
+#   {'status': 'NG', 'message': string }
+#
+########################################################################################################
+@app.route('/devices/device/<devicename>/<xxx>/<number>/sensors/sensor/<sensorname>/readings/dataset', methods=['GET'])
+def get_xxx_sensors_readings_dataset(devicename, xxx, number, sensorname):
+
+    print('get_{}_sensor_readings_dataset'.format(xxx))
+
+    # check number parameter
+    if int(number) > 4 or int(number) < 1:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid parameters'})
+        print('\r\nERROR Invalid parameters\r\n')
+        return response, status.HTTP_400_BAD_REQUEST
+
+    # get token from Authorization header
+    auth_header_token = get_auth_header_token()
+    if auth_header_token is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
+        print('\r\nERROR Get {} Sensor: Invalid authorization header\r\n'.format(xxx))
+        return response, status.HTTP_401_UNAUTHORIZED
+    token = {'access': auth_header_token}
+
+    # get username from token
+    username = g_database_client.get_username_from_token(token)
+    if username is None:
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Get {} Sensor: Token expired\r\n'.format(xxx))
+        return response, status.HTTP_401_UNAUTHORIZED
+    print('get_{}_sensor_readings_dataset {} devicename={} number={}'.format(xxx, username, devicename, number))
+
+    # check if a parameter is empty
+    if len(username) == 0 or len(token) == 0 or len(devicename) == 0:
+        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+        print('\r\nERROR Get {} Sensor: Empty parameter found\r\n'.format(xxx))
+        return response, status.HTTP_400_BAD_REQUEST
+
+    # check if username and token is valid
+    verify_ret, new_token = g_database_client.verify_token(username, token)
+    if verify_ret == 2:
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Get {} Sensor: Token expired [{}]\r\n'.format(xxx, username))
+        return response, status.HTTP_401_UNAUTHORIZED
+    elif verify_ret != 0:
+        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
+        print('\r\nERROR Get {} Sensor: Token is invalid [{}]\r\n'.format(xxx, username))
+        return response, status.HTTP_401_UNAUTHORIZED
+
+
+    # get sensor
+    sensor = g_database_client.get_sensor(username, devicename, xxx, number, sensorname)
+
+    source = "{}{}".format(xxx, number)
+    address = None
+    if sensor.get("address"):
+        address = sensor["address"]
+    sensor_reading = g_database_client.get_sensor_reading_dataset(username, devicename, source, address)
+    sensor['readings'] = sensor_reading
+
+    msg = {'status': 'OK', 'message': 'Sensors readings dataset queried successfully.', 'sensor_readings': sensor}
+    if new_token:
+        msg['new_token'] = new_token
+    response = json.dumps(msg)
+    print('\r\nSensors readings dataset queried successful: {}\r\n{}\r\n'.format(username, response))
+    return response
 
 
 def get_i2c_device_class(classname):
@@ -5169,6 +5377,6 @@ if __name__ == '__main__':
         host     = config.CONFIG_HTTP_HOST, 
         port     = port, 
         threaded = True, 
-        debug    = False)
+        debug    = True)
 
 
