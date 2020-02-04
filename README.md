@@ -393,7 +393,7 @@ Menu, account, history
 
 ### Push Notifications
     1. The IOS/ANDROID mobile app credentials are saved in Amazon Pinpoint UI console page.
-       A. [IOS] Apple Push Notification service (APNs): 2 options
+       A. [IOS] Apple Push Notification service ("APNS"): 2 options
           Key credentials
           - Key ID - required
           - Bundle identifier - required
@@ -402,10 +402,22 @@ Menu, account, history
           Certificate credentials
           - SSL certificate (.p12 file) - required
           - Certificate password (optional)
-       B. [ANDROID] Google Firebase Cloud Messaging (FCM): 1 option
+       B. [ANDROID] Google Firebase Cloud Messaging ("FCM" aka "GCM"): 1 option
           - API key - required
     2. The IOS/ANDROID mobile app generates/regenerates a unique device token whenever the app is installed/reinstalled.
+       When devicetoken expires while user is loggedin, then the notification will fail. User has to relogin.
     3. The device token is used to send a push notification to that specific device.
+       A. The app shall generate a unique device token for that specific mobile phone whenever the app is installed/reinstalled/expired.
+       B. The app shall register the device token for that user via a new API which will be called everytime user logins.
+          The backends shall store the device token on the database for that user.
+          If user uses multiple Androids/IOS, and logins simulataneously, then there will be more than 1 device token for that user.
+       C. The app shall not display the device token on the mobile app for MENOS-related UIs.
+          It shall only display **************** and not allow user to modify it.
+          This is to maintain the device token to be secure. 
+       D. The backend will read the device token in the database.
+          If user is currently login on multiple phones, then all phones will receive push notifications.
+       E. The backend shall remove all registered device token/s from the database when user logouts.  
+          So no notifications will be sent to logged out user
     4. That device token will be used for the MENOS recipient for N-otifications
        MENOS
        A. Mobile recipient: phone number
