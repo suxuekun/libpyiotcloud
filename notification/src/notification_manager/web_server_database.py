@@ -172,6 +172,14 @@ class database_client:
 
 
     ##########################################################
+    # sensors
+    ##########################################################
+
+    def get_sensor_by_deviceid(self, deviceid, source, number, address):
+        return self._devices.get_sensor_by_deviceid(deviceid, source, number, address)
+
+
+    ##########################################################
     # mobile
     ##########################################################
 
@@ -218,6 +226,9 @@ class database_client:
 
     def get_username(self, deviceid):
         return self._devices.get_username(deviceid)
+
+    def get_devicename(self, deviceid):
+        return self._devices.get_devicename(deviceid)
 
 
 class database_utils:
@@ -571,6 +582,35 @@ class database_client_mongodb:
 
 
     ##########################################################
+    # sensors
+    ##########################################################
+
+    def get_sensors_document(self):
+        return self.client[config.CONFIG_MONGODB_TB_I2CSENSORS]
+
+    def get_sensor_by_deviceid(self, deviceid, source, number, address):
+        i2csensors = self.get_sensors_document();
+        if i2csensors:
+            if address is not None:
+                #print("")
+                #for i2csensor in i2csensors.find({'deviceid': deviceid, 'source': source, 'number': number}):
+                #    print(i2csensor)
+                #    print("")
+                for i2csensor in i2csensors.find({'deviceid': deviceid, 'source': source, 'number': number, 'address': address}):
+                    i2csensor.pop('_id')
+                    #i2csensor.pop('username')
+                    #i2csensor.pop('devicename')
+                    return i2csensor
+            else:
+                for i2csensor in i2csensors.find({'deviceid': deviceid, 'source': source, 'number': number}):
+                    i2csensor.pop('_id')
+                    #i2csensor.pop('username')
+                    #i2csensor.pop('devicename')
+                    return i2csensor
+        return None
+
+
+    ##########################################################
     # mobile device tokens
     ##########################################################
 
@@ -635,21 +675,19 @@ class database_client_mongodb:
     def display_devices(self, username):
         devices = self.get_registered_devices()
         if devices:
-            for device in devices.find({},{'username': 1, 'devicename':1, 'deviceid': 1, 'timestamp':1, 'cert':1, 'pkey':1}):
-                if device['username'] == username:
-                    print(device)
+            for device in devices.find({'username': username},{'username': 1, 'devicename':1, 'deviceid': 1, 'timestamp':1, 'cert':1, 'pkey':1}):
+                print(device)
 
     def get_devices(self, username):
         device_list = []
         devices = self.get_registered_devices()
         if devices and devices.count():
             for device in devices.find({'username': username},{'username': 1, 'devicename':1, 'deviceid': 1, 'timestamp':1, 'cert':1, 'pkey':1}):
-                if device['username'] == username:
-                    device.pop('username')
-                    device.pop('timestamp')
-                    device.pop('_id')
-                    device_list.append(device)
-                    #device_list.append(str(device))
+                device.pop('username')
+                device.pop('timestamp')
+                device.pop('_id')
+                device_list.append(device)
+                #device_list.append(str(device))
         return device_list
 
     def add_device(self, username, devicename, cert, pkey):
@@ -675,21 +713,17 @@ class database_client_mongodb:
     def find_device(self, username, devicename):
         devices = self.get_registered_devices()
         if devices:
-            for device in devices.find({},{'username': 1, 'devicename': 1, 'deviceid': 1, 'cert':1, 'pkey':1}):
-                #print(user)
-                if device['username'] == username and device['devicename'] == devicename:
-                    device.pop('username')
-                    device.pop('_id')
-                    return device
+            for device in devices.find({'username': username, 'devicename': devicename},{'username': 1, 'devicename': 1, 'deviceid': 1, 'cert':1, 'pkey':1}):
+                device.pop('username')
+                device.pop('_id')
+                return device
         return None
 
     def get_deviceid(self, username, devicename):
         devices = self.get_registered_devices()
         if devices:
-            for device in devices.find({},{'username': 1, 'devicename': 1, 'deviceid': 1}):
-                #print(user)
-                if device['username'] == username and device['devicename'] == devicename:
-                    return device['deviceid']
+            for device in devices.find({'username': username, 'devicename': devicename},{'username': 1, 'devicename': 1, 'deviceid': 1}):
+                return device['deviceid']
         return None
 
     def add_device_heartbeat(self, deviceid):
@@ -711,6 +745,13 @@ class database_client_mongodb:
         if devices:
             for device in devices.find({'deviceid': deviceid},{'username': 1, 'deviceid': 1}):
                 return device['username']
+        return None
+
+    def get_devicename(self, deviceid):
+        devices = self.get_registered_devices()
+        if devices:
+            for device in devices.find({'deviceid': deviceid},{'devicename': 1}):
+                return device['devicename']
         return None
 
 
