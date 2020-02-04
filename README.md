@@ -325,16 +325,19 @@ Menu, account, history
         D. PAYPAL EXECUTE                 - POST   /account/payment/paypalexecute
         E. PAYPAL VERIFY                  - POST   /account/payment/paypalverify
 
-    10. Supported devices
+    10. Mobile services
+        A. REGISTER DEVICE TOKEN          - POST   /mobile/devicetoken
+        
+    11. Supported devices
         A. GET SUPPORTED I2C DEVICES      - GET    /others/i2cdevices [OBSOLETED, use GET SUPPORTED SENSOR DEVICES instead]
         B. GET SUPPORTED SENSOR DEVICES   - GET    /others/sensordevices
 
-    11. Others
+    12. Others
         A. SEND FEEDBACK                  - POST   /others/feedback
         B. GET FAQS                       - GET    /others/faqs
         C. GET ABOUT                      - GET    /others/about
 
-    12. HTTP error codes
+    13. HTTP error codes
         A. HTTP_400_BAD_REQUEST           - Invalid input
         B. HTTP_401_UNAUTHORIZED          - Invalid password or invalid/expired token
         C. HTTP_404_NOT_FOUND             - User or device not found
