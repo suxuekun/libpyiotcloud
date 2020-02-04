@@ -1486,13 +1486,46 @@ MENOS_STORAGE                      = "storage"
 MENOS_DEFAULT                      = "default"
 
 
-def uart_publish(menos, recipient=None, message=None):
-    topic = "{}/{}/trigger_notification/uart/{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_DEVICE_ID, menos)
+##############################################################################################################
+# Notification triggering
+##############################################################################################################
+# UART
+# server/<deviceid>/trigger_notification/<peripheral>/<menos>
+# {
+#   "recipient": string (optional),
+#   "message": string (optional)
+# }
+#
+# GPIO/ADC/1WIRE/TPROBE
+# server/<deviceid>/trigger_notification/<peripheral><number>/<menos>
+# {
+#   "recipient": string (optional),
+#   "message": string (optional),
+#   "activate": int
+# }
+#
+# I2C
+# server/<deviceid>/trigger_notification/<peripheral><number>/<menos>/<address>
+# {
+#   "recipient": string (optional),
+#   "message": string (optional),
+#   "activate": int
+# }
+#
+##############################################################################################################
+
+def menos_publish(menos, recipient=None, message=None, peripheral="uart", number="", address=None, activate=None):
+    if address is None:
+        topic = "{}/{}/trigger_notification/{}{}/{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_DEVICE_ID, peripheral, number, menos)
+    else:
+        topic = "{}/{}/trigger_notification/{}{}/{}/{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_DEVICE_ID, peripheral, number, menos, address)
     payload = {}
     if recipient is not None:
         payload["recipient"] = recipient
     if message is not None:
         payload["message"] = message
+    if activate is not None:
+        payload["activate"] = activate
     publish(topic, payload)
 
 def uart_parse_command(cmd):
@@ -1553,11 +1586,11 @@ def uart_parse_command(cmd):
 
 def uart_cmdhdl_common(idx, cmd, menos):
     if len(cmd) == len(UART_ATCOMMANDS[idx]["command"]):
-        uart_publish(menos)
+        menos_publish(menos)
         return
     result, recipient, message = uart_parse_command(cmd[len(UART_ATCOMMANDS[idx]["command"]):])
     if result:
-        uart_publish(menos, recipient, message)
+        menos_publish(menos, recipient, message)
 
 def uart_cmdhdl_mobile(idx, cmd):
     uart_cmdhdl_common(idx, cmd, MENOS_MOBILE)
@@ -1576,7 +1609,10 @@ def uart_cmdhdl_storage(idx, cmd):
 
 def uart_cmdhdl_default(idx, cmd):
     if len(cmd) == len(UART_ATCOMMANDS[idx]["command"]):
-        uart_publish(MENOS_DEFAULT)
+        # below are sample test cases for I2C notification triggering
+        #menos_publish(MENOS_EMAIL, None, None, "i2c", 1, 40, 1)
+        #menos_publish(MENOS_EMAIL, None, None, "i2c", 1, 40, 0)
+        menos_publish(MENOS_DEFAULT)
         return
 
 def uart_cmdhdl_help(idx, cmd):
