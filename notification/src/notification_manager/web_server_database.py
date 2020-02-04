@@ -172,6 +172,23 @@ class database_client:
 
 
     ##########################################################
+    # mobile
+    ##########################################################
+
+    def add_mobile_device_token(self, username, devicetoken, service):
+        self._devices.add_mobile_device_token(username, devicetoken, service)
+
+    def delete_mobile_device_token(self, username):
+        self._devices.delete_mobile_device_token(username)
+
+    def get_mobile_device_token(self, username):
+        return self._devices.get_mobile_device_token(username)
+
+    def get_mobile_device_token_by_deviceid(self, deviceid):
+        return self._devices.get_mobile_device_token(self._devices.get_username(deviceid))
+
+
+    ##########################################################
     # devices
     ##########################################################
 
@@ -198,6 +215,9 @@ class database_client:
 
     def add_device_heartbeat(self, deviceid):
         return self._devices.add_device_heartbeat(deviceid)
+
+    def get_username(self, deviceid):
+        return self._devices.get_username(deviceid)
 
 
 class database_utils:
@@ -551,6 +571,61 @@ class database_client_mongodb:
 
 
     ##########################################################
+    # mobile device tokens
+    ##########################################################
+
+    def get_mobile_devicetokens_document(self):
+        return self.client[config.CONFIG_MONGODB_TB_DEVICETOKENS]
+
+    def add_mobile_device_token(self, username, devicetoken, service):
+        devicetokens = self.get_mobile_devicetokens_document()
+        item = {}
+        item['username'] = username
+        item['devicetoken'] = [devicetoken]
+        item['service'] = [service]
+
+        print("add_mobile_device_token {} {}".format(devicetoken, service))
+        found = devicetokens.find_one({'username': username})
+        if found is None:
+            devicetokens.insert_one(item)
+        else:
+            print(found)
+            if devicetoken in found['devicetoken']:
+                for x in range(len(found['devicetoken'])):
+                    if devicetoken == found['devicetoken'][x]:
+                        if service != found['service'][x]:
+                            item['devicetoken'] += found['devicetoken']
+                            item['service'] += found['service'] 
+                            devicetokens.replace_one({'username': username}, item)
+                            break
+                        print("already in list")
+                        break
+            else:
+                print("not in list")
+                found['devicetoken'] += item['devicetoken']
+                found['service'] += item['service']
+                devicetokens.replace_one({'username': username}, item)
+
+    def delete_mobile_device_token(self, username):
+        devicetokens = self.get_mobile_devicetokens_document()
+        try:
+            devicetokens.delete_one({'username': username})
+        except:
+            print("delete_sensors_readings_dataset: Exception occurred")
+            pass
+
+    def get_mobile_device_token(self, username):
+        devicetokens = self.get_mobile_devicetokens_document()
+        if devicetokens:
+            for devicetoken in devicetokens.find({'username': username}):
+                devicetoken.pop('_id')
+                devicetoken.pop('username')
+                #print(devicetoken)
+                return devicetoken
+        return None
+
+
+    ##########################################################
     # devices
     ##########################################################
 
@@ -629,6 +704,13 @@ class database_client_mongodb:
                     device['heartbeat'] = str(int(time.time()))
                     devices.replace_one({'deviceid': deviceid}, device)
                 return device['heartbeat']
+        return None
+
+    def get_username(self, deviceid):
+        devices = self.get_registered_devices()
+        if devices:
+            for device in devices.find({'deviceid': deviceid},{'username': 1, 'deviceid': 1}):
+                return device['username']
         return None
 
 

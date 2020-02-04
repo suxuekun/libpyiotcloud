@@ -234,7 +234,6 @@ def send_notification_menos(messaging_client, deviceid, payload, notification, m
         send_notification_email_threaded(messaging_client, deviceid, payload["recipient"], payload["message"])
     elif menos == "notification":
         send_notification_notification_threaded(messaging_client, deviceid, payload["recipient"], payload["message"])
-        pass
     elif menos == "modem":
         send_notification_modem_threaded(messaging_client, deviceid, payload["recipient"], payload["message"])
     elif menos == "storage":
@@ -266,6 +265,14 @@ def on_message(subtopic, subpayload):
                     if menos == "modem":
                         if notification["endpoints"][menos]["enable"] == True:
                             payload["recipient"] = notification["endpoints"][menos]["recipients_id"]
+                        else:
+                            send_notification_status(g_messaging_client, deviceid, "NG. {} recipient is not enabled.".format(menos))
+                            return
+                    elif menos == "notification":
+                        if notification["endpoints"][menos]["enable"] == True:
+                            # read from database
+                            payload["recipient"] = g_database_client.get_mobile_device_token_by_deviceid(deviceid)
+                            #print(payload["recipient"])
                         else:
                             send_notification_status(g_messaging_client, deviceid, "NG. {} recipient is not enabled.".format(menos))
                             return
@@ -312,6 +319,7 @@ def on_message(subtopic, subpayload):
             send_notification_menos(g_messaging_client, deviceid, payload, notification, menos)
 
         elif len(topicarr) == 3:
+            print("path 2")
             # get device id
             deviceid = topicarr[1]
 

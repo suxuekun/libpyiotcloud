@@ -27,3 +27,4 @@ class config:
     CONFIG_MONGODB_TB_DEVICES          = "devices"
     CONFIG_MONGODB_TB_HISTORY          = "history"
     CONFIG_MONGODB_TB_NOTIFICATIONS    = "notifications"
+    CONFIG_MONGODB_TB_DEVICETOKENS     = "devicetokens"
