@@ -985,7 +985,7 @@ def register_mobile_device_token():
     g_database_client.add_mobile_device_token(username, devicetoken, service)
     print('\r\nAdded mobile device token\r\n')
 
-    response = json.dumps({'status': 'OK', 'message': 'Change password successful'})
+    response = json.dumps({'status': 'OK', 'message': 'Register mobile device token successful'})
     print('\r\nRegister mobile device token successful: {}\r\n{}\r\n'.format(username, response))
     return response
 
