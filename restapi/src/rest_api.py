@@ -4671,9 +4671,7 @@ def enable_xxx_dev(devicename, xxx, number, sensorname):
     address = None
     if sensor.get('address'):
         address = sensor["address"]
-    print("set_enable_device_peripheral_configuration")
     g_database_client.set_enable_device_peripheral_configuration(username, devicename, xxx, int(number), address, do_enable)
-    print("set_enable_device_peripheral_configuration ok")
 
     return response
 
