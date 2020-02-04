@@ -409,6 +409,14 @@ def logout():
         auth_header_token = get_auth_header_token()
         if auth_header_token:
             token = {'access': auth_header_token}
+
+            # get username from token
+            username = g_database_client.get_username_from_token(token)
+            if username is not None:
+                # delete mobile device tokens
+                g_database_client.delete_mobile_device_token(username)
+                print('\r\nDeleted mobile device token\r\n')
+
             g_database_client.logout(token['access'])
             print('\r\nLogout successful\r\n')
     except:
@@ -908,6 +916,77 @@ def update_user_info():
 
     response = json.dumps({'status': 'OK', 'message': 'Change password successful'})
     print('\r\nUpdate user successful: {}\r\n{}\r\n'.format(username, response))
+    return response
+
+
+########################################################################################################
+#
+# REGISTER DEVICE TOKEN
+#
+# - Request:
+#   POST /mobile/devicetoken
+#   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+#   data: {'token': jwtEncode(devicetoken, service)}
+# - Response:
+#   {'status': 'OK', 'message': string}
+#   {'status': 'NG', 'message': string}
+#
+########################################################################################################
+@app.route('/mobile/devicetoken', methods=['POST'])
+def register_mobile_device_token():
+    # get token from Authorization header
+    auth_header_token = get_auth_header_token()
+    if auth_header_token is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
+        print('\r\nERROR Register mobile device token: Invalid authorization header\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
+    token = {'access': auth_header_token}
+
+    # get username from token
+    username = g_database_client.get_username_from_token(token)
+    if username is None:
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Register mobile device token: Token expired\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
+    print('register_mobile_device_token username={}'.format(username))
+
+    # check if username and token is valid
+    verify_ret, new_token = g_database_client.verify_token(username, token)
+    if verify_ret == 2: # token expired
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Register mobile device token: Token expired [{}]\r\n'.format(username))
+        return response, status.HTTP_401_UNAUTHORIZED
+    elif verify_ret != 0:
+        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
+        print('\r\nERROR Register mobile device token: Token is invalid [{}]\r\n'.format(username))
+        return response, status.HTTP_401_UNAUTHORIZED
+
+    # decode the devicetoken and service
+    data = flask.request.get_json()
+    if data.get("token") is None:
+        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+        print('\r\nERROR Register mobile device token: Empty parameter found\r\n')
+        return response, status.HTTP_400_BAD_REQUEST
+    if len(data["token"]) == 0:
+        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found 2'})
+        print('\r\nERROR Register mobile device token: Empty parameter found 2\r\n')
+        return response, status.HTTP_400_BAD_REQUEST
+    devicetoken, service, reason = get_jwtencode_user_pass(data["token"])
+    if devicetoken is None or service is None:
+        response = json.dumps({'status': 'NG', 'message': reason})
+        print('\r\nERROR Register mobile device token: Devicetoken, service format invalid\r\n')
+        return response, status.HTTP_400_BAD_REQUEST
+    if service != "APNS" and service != "GCM":
+        response = json.dumps({'status': 'NG', 'message': reason})
+        print('\r\nERROR Register mobile device token: Service value is invalid\r\n')
+        return response, status.HTTP_400_BAD_REQUEST
+
+    # add mobile device token
+    g_database_client.add_mobile_device_token(username, devicetoken, service)
+    print('\r\nAdded mobile device token\r\n')
+
+    response = json.dumps({'status': 'OK', 'message': 'Change password successful'})
+    print('\r\nRegister mobile device token successful: {}\r\n{}\r\n'.format(username, response))
     return response
 
 
@@ -2297,8 +2376,8 @@ def build_default_notifications(type, token):
     if info.get("phone_number"):
         notifications["endpoints"]["mobile"]["recipients"] = info["phone_number"]
         notifications["endpoints"]["mobile"]["recipients_list"].append({ "to": info["phone_number"], "group": False })
-        notifications["endpoints"]["notification"]["recipients"] = info["phone_number"]
-        notifications["endpoints"]["notification"]["recipients_list"].append({ "to": info["phone_number"], "group": False })
+        #notifications["endpoints"]["notification"]["recipients"] = info["phone_number"]
+        #notifications["endpoints"]["notification"]["recipients_list"].append({ "to": info["phone_number"], "group": False })
 
     if info.get("phone_number_verified"):
         notifications["endpoints"]["mobile"]["enable"] = info["phone_number_verified"]
@@ -2396,6 +2475,9 @@ def get_uart_prop(devicename):
         if notification["endpoints"]["modem"].get("recipients_id"):
             notification["endpoints"]["modem"].pop("recipients_id")
         #print(notification)
+        # notification recipients should be empty
+        if notification["endpoints"]["notification"].get("recipients"):
+            notification["endpoints"]["notification"]["recipients"] = ""
         response = json.loads(response)
         response['value']['notification'] = notification
         response = json.dumps(response)
