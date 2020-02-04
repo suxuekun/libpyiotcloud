@@ -142,6 +142,7 @@ class notification_client_pinpoint:
 
     def send_push_notification(self, recipient, message, title):
         print("\r\nPUSH NOTIFICATION {} {}".format(recipient, message))
+        response = ""
         action = "URL"
         url = "https://www.richmondu.com"
         priority = "normal"
