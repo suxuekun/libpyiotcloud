@@ -367,20 +367,25 @@ SUMMARY:
 		E. PAYPAL VERIFY                  - POST   /account/payment/paypalverify
 
 
-	10. Supported devices
+	10. Mobile services
+
+		A. REGISTER DEVICE TOKEN          - POST   /mobile/devicetoken
+
+
+	11. Supported devices
 
 		A. GET SUPPORTED I2C DEVICES      - GET    /others/i2cdevices [OBSOLETED, use GET SUPPORTED SENSOR DEVICES instead]
 		B. GET SUPPORTED SENSOR DEVICES   - GET    /others/sensordevices
 
 
-	11. Others
+	12. Others
 
 		A. SEND FEEDBACK                  - POST   /others/feedback
 		B. GET FAQS                       - GET    /others/faqs
 		C. GET ABOUT                      - GET    /others/about
 
 
-	12. HTTP error codes
+	13. HTTP error codes
 
 		A. HTTP_400_BAD_REQUEST           - Invalid input
 		B. HTTP_401_UNAUTHORIZED          - Invalid password or invalid/expired token
@@ -2213,7 +2218,39 @@ DETAILED:
 		   {'status': 'NG', 'message': string}
 
 
-	10. Supported devices
+	10. Mobile services
+
+		A. REGISTER DEVICE TOKEN
+		-  Request:
+		   POST /mobile/devicetoken
+		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+		   data: {'token': jwtEncode(devicetoken, service)}
+		-  Response:
+		   {'status': 'OK', 'message': string}
+		   {'status': 'NG', 'message': string}
+		-  Details:
+		   // devicetoken is the unique device token generated during app installation/reinstallation
+		   // service is APNS (IOS) or GCM (ANDROID)
+		   How to compute the JWT token using Javascript
+		   base64UrlEncodedHeader = urlEncode(base64Encode(JSON.stringify({
+		     "alg": "HS256",
+		     "typ": "JWT"
+		   })));
+		   base64UrlEncodedPayload = urlEncode(base64Encode(JSON.stringify({
+		     "username": devicetoken,
+		     "password": service,
+		     "iat": Math.floor(Date.now() / 1000), // epoch time in seconds
+		     "exp": iat + 10,                      // expiry in seconds
+		   })));
+		   base64UrlEncodedSignature = urlEncode(CryptoJS.enc.Base64.stringify(CryptoJS.HmacSHA256(
+		     base64UrlEncode(header) + "." + base64UrlEncode(payload),
+		     SECRET_KEY                            // message me for the value of the secret key
+		     )));
+		   JWT = base64UrlEncodedHeader + "." base64UrlEncodedPayload + "." + base64UrlEncodedSignature
+		   Double check your results here: https://jwt.io/
+
+
+	11. Supported devices
 
 		A. GET SUPPORTED I2C DEVICES (obsoloted: use GET SUPPORTED SENSOR DEVICES instead)
 		-  Request:
@@ -2239,7 +2276,7 @@ DETAILED:
 		   // this API provides access to the contents of the JSON file
 
 
-	11. Others
+	12. Others
 
 		A. SEND FEEDBACK
 		-  Request:
