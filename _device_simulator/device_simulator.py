@@ -77,7 +77,7 @@ g_gpio_properties = [
     { 'direction': 1, 'mode': 2, 'alert': 1, 'alertperiod': 120,   'polarity': 1, 'width': 0, 'mark': 1, 'space': 2, 'count': 0 } ]
 g_gpio_voltage = 1
 g_gpio_voltages = ['3.3 V', '5 V']
-g_gpio_enabled = [1, 1, 1, 1]
+g_gpio_enabled = [0, 0, 0, 0]
 g_gpio_status = [0, 1, 0, 1]
 
 
