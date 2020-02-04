@@ -270,6 +270,9 @@ class database_client:
     def get_all_device_peripheral_configuration(self, deviceid):
         return self._devices.get_all_device_peripheral_configuration(deviceid)
 
+    def set_enable_device_peripheral_configuration(self, username, devicename, source, number, address, enabled):
+        self._devices.set_enable_device_peripheral_configuration(self._devices.get_deviceid(username, devicename), source, number, address, enabled)
+
 
     ##########################################################
     # sensors
@@ -1006,6 +1009,7 @@ class database_client_mongodb:
         if subclassid is not None:
             item['subclass'] = subclassid
         item['attributes'] = properties
+        item['enabled'] = 0
 
         #print("update_device_peripheral_configuration find_one")
         if address is not None:
@@ -1031,6 +1035,24 @@ class database_client_mongodb:
                 configuration.pop('_id')
                 configurations_list.append(configuration)
         return configurations_list
+
+    def set_enable_device_peripheral_configuration(self, deviceid, source, number, address, enabled):
+        configurations = self.get_configurations_document()
+        if configurations:
+            if address is not None:
+                for configuration in configurations.find({'deviceid': deviceid, 'source': source, 'number': number, 'address': address}):
+                    configuration.pop('_id')
+                    duplicate = copy.deepcopy(configuration)
+                    duplicate['enabled'] = enabled
+                    configurations.replace_one(configuration, duplicate)
+                    break
+            else:
+                for configuration in configurations.find({'deviceid': deviceid, 'source': source, 'number': number}):
+                    configuration.pop('_id')
+                    duplicate = copy.deepcopy(configuration)
+                    duplicate['enabled'] = enabled
+                    configurations.replace_one(configuration, duplicate)
+                    break
 
 
     ##########################################################
