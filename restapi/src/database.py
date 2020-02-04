@@ -360,6 +360,17 @@ class database_client:
 
 
     ##########################################################
+    # mobile
+    ##########################################################
+
+    def add_mobile_device_token(self, username, devicetoken, service):
+        self._devices.add_mobile_device_token(username, devicetoken, service)
+
+    def delete_mobile_device_token(self, username):
+        self._devices.delete_mobile_device_token(username)
+
+
+    ##########################################################
     # devices
     ##########################################################
 
@@ -1367,9 +1378,54 @@ class database_client_mongodb:
             pass
 
     def delete_sensors_readings_dataset(self, deviceid, source):
-        sensorreadings = self.get_sensorreadings_dataset_document();
+        sensorreadings = self.get_sensorreadings_dataset_document()
         try:
             sensorreadings.delete_many({'deviceid': deviceid, 'source': source})
+        except:
+            print("delete_sensors_readings_dataset: Exception occurred")
+            pass
+
+
+    ##########################################################
+    # mobile device tokens
+    ##########################################################
+
+    def get_mobile_devicetokens_document(self):
+        return self.client[config.CONFIG_MONGODB_TB_DEVICETOKENS]
+
+    def add_mobile_device_token(self, username, devicetoken, service):
+        devicetokens = self.get_mobile_devicetokens_document()
+        item = {}
+        item['username'] = username
+        item['devicetoken'] = [devicetoken]
+        item['service'] = [service]
+
+        #print("add_mobile_device_token {} {}".format(devicetoken, service))
+        found = devicetokens.find_one({'username': username})
+        if found is None:
+            devicetokens.insert_one(item)
+        else:
+            #print(found)
+            if devicetoken in found['devicetoken']:
+                for x in range(len(found['devicetoken'])):
+                    if devicetoken == found['devicetoken'][x]:
+                        if service != found['service'][x]:
+                            item['devicetoken'] += found['devicetoken']
+                            item['service'] += found['service'] 
+                            devicetokens.replace_one({'username': username}, item)
+                            break
+                        #print("already in list")
+                        break
+            else:
+                #print("not in list")
+                item['devicetoken'] += found['devicetoken']
+                item['service'] += found['service']
+                devicetokens.replace_one({'username': username}, item)
+
+    def delete_mobile_device_token(self, username):
+        devicetokens = self.get_mobile_devicetokens_document()
+        try:
+            devicetokens.delete_one({'username': username})
         except:
             print("delete_sensors_readings_dataset: Exception occurred")
             pass

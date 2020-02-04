@@ -64,6 +64,7 @@ class config:
     CONFIG_MONGODB_TB_CONFIGURATIONS = "configurations"
     CONFIG_MONGODB_TB_SENSORREADINGS = "sensorreadings"
     CONFIG_MONGODB_TB_SENSORREADINGS_DATASET = "sensorreadingsdataset"
+    CONFIG_MONGODB_TB_DEVICETOKENS   = "devicetokens"
 
     # Subscription/Payment
     CONFIG_SUBSCRIPTION_TYPE         = "Free"
