@@ -114,7 +114,81 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Device
             else {
                 $scope.devices_counthdr = "No device registered";
             }
+            
+            // TEST CODE ONLY
+            //register_device_token("cwqAFYB20ko:APA91bEuhsll5d0NPJS3jBqodb2rMmaPWVKGxuWolI7xpIUphGCrilRdLPT0nZ1ojnVVrJ-cAp8mEsdBr_CHGKHCBZZ25AoiYPH31mcoGq-HSelEMzz47JEJyBq51xpfv7ggPLp_PflJ", "GCM");
+            //register_device_token("5c3fe8247015e21e9807972a3a32e03b9a78c4bf0b0a91485e03a15bfdc50991", "APNS");
         });
+    };
+    
+    base64Encode = function(str) {
+        return window.btoa(str);
+    };
+    
+    urlEncode = function(str) {
+        return str.replace(/\+/g, '-').replace(/\//g, '_').replace(/\=+$/, '');
+    };
+
+    jwtEncode = function(devicetoken, service) {
+
+        // get time
+        // https://www.epochconverter.com/
+        iat = Math.floor(Date.now() / 1000); // epoch time in seconds
+        exp = iat + 10; // plus 10 seconds
+        console.log(iat);
+        console.log(exp);
+
+        // get JWT header
+        headerData = JSON.stringify({ 
+            "alg": "HS256", 
+            "typ": "JWT"
+        });
+
+        // get JWT payload
+        payloadData = JSON.stringify({
+            "username": devicetoken,
+            "password": service,
+            "iat": iat,
+            "exp": exp
+        });
+
+        // get JWT = header.payload.signature
+        // https://jwt.io/
+        secret = window.__env.jwtKey;
+        header = urlEncode(base64Encode(headerData));
+        payload = urlEncode(base64Encode(payloadData));
+        signature = urlEncode(CryptoJS.enc.Base64.stringify(CryptoJS.HmacSHA256(header + "." + payload, secret)));
+
+        jwt = header + "." + payload + "." + signature;
+        return jwt;
+    };    
+    
+    register_device_token = function(devicetoken, service) {
+        // 
+        // REGISTER DEVICE TOKEN
+        // 
+        // - Request:
+        //   POST /mobile/devicetoken
+        //   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+        //   data: {'token': jwtEncode(devicetoken, service)}
+        // 
+        // - Response:
+        //   {'status': 'OK', 'message': string}
+        //   {'status': 'NG', 'message': string}
+        //
+        $http({
+            method: 'POST',
+            url: server + '/mobile/devicetoken',
+            headers: {'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json'},
+            data: { 'token': jwtEncode(devicetoken, service) }
+        })
+        .then(function (result) {
+            console.log(result.data);
+        })
+        .catch(function (error) {
+            console.log(error);
+        });        
+        
     };
     
     query_device = function(index, devicename) {
@@ -3036,6 +3110,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
     
     $scope.sensors_datachart_colors = ['#387EF5'];
     $scope.sensors_datachart = [];
+    $scope.sensors_datachart_empty = {"labels": [], "data": []};
     
     $scope.data = {
         'username': User.get_username(),
@@ -3198,7 +3273,11 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
     };
 
     $scope.chartLabels = function(sensor) {
-        console.log("chartLabels " + sensor.sensorname);  
+        //console.log("chartLabels " + sensor.sensorname);  
+        
+        if ($scope.sensors.length === 0) {
+            return $scope.sensors_datachart_empty.labels;
+        }
         
         let indexy = 0;
         for (indexy=0; indexy<$scope.sensors.length; indexy++) {
@@ -3211,7 +3290,11 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
     };
 
     $scope.chartData = function(sensor) {
-        console.log("chartData " + sensor.sensorname);
+        //console.log("chartData " + sensor.sensorname);
+
+        if ($scope.sensors.length === 0) {
+            return $scope.sensors_datachart_empty.data;
+        }
         
         let indexy = 0;
         for (indexy=0; indexy<$scope.sensors.length; indexy++) {
