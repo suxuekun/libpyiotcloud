@@ -46,7 +46,7 @@ The web app is made of Ionic framework so it can be compiled as Android and iOS 
 - <b>GoDaddy</b> domain and SSL certificate - https://godaddy.com
 - <b>Amazon Route 53</b> DNS domain resolution - https://aws.amazon.com/route53
 - <b>Android Studio</b> (Building Ionic webapp to Androidapp) - https://developer.android.com/studio
-- <b>Amazon Pinpoint</b> email/SMS messaging platform - https://aws.amazon.com/pinpoint/
+- <b>Amazon Pinpoint</b> email/SMS/push notification messaging platform - https://aws.amazon.com/pinpoint/
 - <b>Amazon SNS</b> email/SMS messaging platform - https://aws.amazon.com/sns/
 - <b>Twilio</b> SMS messaging platform - https://www.twilio.com/
 - <b>Nexmo</b> SMS messaging platform - https://www.nexmo.com/
