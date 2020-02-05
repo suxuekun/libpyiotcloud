@@ -27,11 +27,12 @@ CONFIG_USE_AMQP = False
 CONFIG_REQUEST_CONFIGURATION = True
 CONFIG_REQUEST_CONFIGURATION_DEBUG = False
 CONFIG_DELETE_CONFIGURATION = False
+CONFIG_AUTO_ENABLE_CONFIGURATION = False
 
 g_timer_thread = None
 g_timer_thread_use = True
 g_timer_thread_stop = threading.Event()
-g_timer_thread_timeout = 5
+g_timer_thread_timeout = 10
 
 g_messaging_client = None
 
@@ -1099,8 +1100,11 @@ def handle_api(api, subtopic, subpayload):
         if subpayload.get("adc"):
             for x in range(len(g_adc_properties)):
                 if subpayload["adc"][x].get("attributes"):
-                    if subpayload["adc"][x]["enabled"]:
-                        g_adc_properties[x]["enabled"] = subpayload["adc"][x]["enabled"]
+                    if CONFIG_AUTO_ENABLE_CONFIGURATION:
+                        if subpayload["adc"][x]["enabled"]:
+                            g_adc_properties[x]["enabled"] = subpayload["adc"][x]["enabled"]
+                        else:
+                            g_adc_properties[x]["enabled"] = 0
                     else:
                         g_adc_properties[x]["enabled"] = 0
                     g_adc_properties[x]["class"] = subpayload["adc"][x]["class"]
@@ -1112,8 +1116,11 @@ def handle_api(api, subtopic, subpayload):
         if subpayload.get("1wire"):
             for x in range(len(g_1wire_properties)):
                 if subpayload["1wire"][x].get("attributes"):
-                    if subpayload["1wire"][x]["enabled"]:
-                        g_1wire_properties[x]["enabled"] = subpayload["1wire"][x]["enabled"]
+                    if CONFIG_AUTO_ENABLE_CONFIGURATION:
+                        if subpayload["1wire"][x]["enabled"]:
+                            g_1wire_properties[x]["enabled"] = subpayload["1wire"][x]["enabled"]
+                        else:
+                            g_1wire_properties[x]["enabled"] = 0
                     else:
                         g_1wire_properties[x]["enabled"] = 0
                     g_1wire_properties[x]["class"] = subpayload["1wire"][x]["class"]
@@ -1125,8 +1132,11 @@ def handle_api(api, subtopic, subpayload):
         if subpayload.get("tprobe"):
             for x in range(len(g_tprobe_properties)):
                 if subpayload["tprobe"][x].get("attributes"):
-                    if subpayload["tprobe"][x]["enabled"]:
-                        g_tprobe_properties[x]["enabled"] = subpayload["tprobe"][x]["enabled"]
+                    if CONFIG_AUTO_ENABLE_CONFIGURATION:
+                        if subpayload["tprobe"][x]["enabled"]:
+                            g_tprobe_properties[x]["enabled"] = subpayload["tprobe"][x]["enabled"]
+                        else:
+                            g_tprobe_properties[x]["enabled"] = 0
                     else:
                         g_tprobe_properties[x]["enabled"] = 0
                     g_tprobe_properties[x]["class"] = subpayload["tprobe"][x]["class"]
@@ -1141,8 +1151,11 @@ def handle_api(api, subtopic, subpayload):
                     if subpayload["i2c"][x][y].get("attributes"):
                         address = str(subpayload["i2c"][x][y]["address"])
                         g_i2c_properties[x][address] = {}
-                        if subpayload["i2c"][x][y].get("enabled"):
-                            g_i2c_properties[x][address]["enabled"] = subpayload["i2c"][x][y]["enabled"]
+                        if CONFIG_AUTO_ENABLE_CONFIGURATION:
+                            if subpayload["i2c"][x][y].get("enabled"):
+                                g_i2c_properties[x][address]["enabled"] = subpayload["i2c"][x][y]["enabled"]
+                            else:
+                                g_i2c_properties[x][address]["enabled"] = 0
                         else:
                             g_i2c_properties[x][address]["enabled"] = 0
                         g_i2c_properties[x][address]["class"] = subpayload["i2c"][x][y]["class"]
