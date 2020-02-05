@@ -27,16 +27,15 @@ CONFIG_USE_AMQP = False
 CONFIG_REQUEST_CONFIGURATION = True
 CONFIG_REQUEST_CONFIGURATION_DEBUG = False
 CONFIG_DELETE_CONFIGURATION = False
-CONFIG_AUTO_ENABLE_CONFIGURATION = False
+CONFIG_AUTO_ENABLE_CONFIGURATION = True
 
+# timer thread for publishing sensor data
+g_timer_thread_timeout = 10
 g_timer_thread = None
 g_timer_thread_use = True
 g_timer_thread_stop = threading.Event()
-g_timer_thread_timeout = 10
 
 g_messaging_client = None
-
-g_gpio_values = {}
 
 # FIRMWARE VERSION
 g_firmware_version_MAJOR = 0
@@ -250,7 +249,7 @@ def setClassAttributes(device_class, class_attributes):
 def handle_api(api, subtopic, subpayload):
     global g_device_status
     global g_uart_properties, g_uart_enabled
-    global g_gpio_properties, g_gpio_enabled, g_gpio_voltage, g_gpio_status, g_gpio_values
+    global g_gpio_properties, g_gpio_enabled, g_gpio_voltage, g_gpio_status
     global g_i2c_properties
     global g_adc_voltage
     global g_device_settings
@@ -1164,12 +1163,12 @@ def handle_api(api, subtopic, subpayload):
                             g_i2c_properties[x][address]["subclass"] = subpayload["i2c"][x][y]["subclass"]
 
         if CONFIG_REQUEST_CONFIGURATION_DEBUG:
-            print_json(g_uart_properties, "uart")
-            print_json(g_gpio_properties, "gpio")
-            print_json(g_adc_properties, "adc")
-            print_json(g_1wire_properties, "1wire")
+            print_json(g_uart_properties,   "uart")
+            print_json(g_gpio_properties,   "gpio")
+            print_json(g_adc_properties,    "adc")
+            print_json(g_1wire_properties,  "1wire")
             print_json(g_tprobe_properties, "tprobe")
-            print_json(g_i2c_properties, "i2c")
+            print_json(g_i2c_properties,    "i2c")
 
         print("\r\nDEVICE CONFIGURATION")
         print("Device is now configured with cached values from cloud.\r\n\r\n")
