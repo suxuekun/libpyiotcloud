@@ -1583,6 +1583,13 @@ def register_device(devicename):
             print('\r\nERROR Delete Device: Device is not registered [{},{}]\r\n'.format(username, devicename))
             return response, status.HTTP_404_NOT_FOUND
 
+        # delete device sensors and related information
+        sensors = g_database_client.get_all_device_sensors(username, devicename)
+        if sensors is not None:
+            for sensor in sensors:
+                if sensor.get("source") and sensor.get("number") and sensor.get("sensorname"):
+                    delete_sensor(username, devicename, sensor["source"], sensor["number"], sensor["sensorname"], sensor)
+
         # delete device from database
         g_database_client.delete_device(username, devicename)
 
@@ -3596,6 +3603,60 @@ def get_xxx_sensors(devicename, xxx, number):
     return response
 
 
+#
+# when deleting a sensor,
+# make sure the sensor configurations, sensor readings and sensor registration are also deleted
+#
+def delete_sensor(username, devicename, xxx, number, sensorname, sensor):
+
+    print("\r\ndelete_sensor {}".format(sensorname))
+    address = None
+    if sensor.get("address"):
+        address = sensor["address"]
+
+    print("")
+
+    # delete sensor notifications
+    print("Deleting sensor notifications...")
+    source = "{}{}{}".format(xxx, number, sensorname)
+    notification = g_database_client.get_device_notification(username, devicename, source)
+    print(notification)
+    g_database_client.delete_device_notification_sensor(username, devicename, source)
+    notification = g_database_client.get_device_notification(username, devicename, source)
+    print(notification)
+    print("")
+
+    # delete sensor configurations
+    print("Deleting sensor configurations...")
+    config = g_database_client.get_device_peripheral_configuration(username, devicename, xxx, int(number), address)
+    print(config)
+    g_database_client.delete_device_peripheral_configuration(username, devicename, xxx, int(number), address)
+    config = g_database_client.get_device_peripheral_configuration(username, devicename, xxx, int(number), address)
+    print(config)
+    print("")
+
+    # delete sensor readings
+    print("Deleting sensor readings...")
+    source = "{}{}".format(xxx, number)
+    readings = g_database_client.get_sensor_reading(username, devicename, source, address)
+    print(readings)
+    readings_dataset = g_database_client.get_sensor_reading_dataset(username, devicename, source, address)
+    print(readings_dataset)
+    g_database_client.delete_sensor_reading(username, devicename, source, address)
+    readings = g_database_client.get_sensor_reading(username, devicename, source, address)
+    print(readings)
+    readings_dataset = g_database_client.get_sensor_reading_dataset(username, devicename, source, address)
+    print(readings_dataset)
+    print("")
+
+    # delete sensor from database
+    print("Deleting sensor registration...")
+    g_database_client.delete_sensor(username, devicename, xxx, number, sensorname)
+    result = g_database_client.get_sensor(username, devicename, xxx, number, sensorname)
+    print(result)
+    print("")
+
+
 ########################################################################################################
 #
 # ADD I2C DEVICE
@@ -3758,8 +3819,8 @@ def register_xxx_sensor(devicename, xxx, number, sensorname):
             print('\r\nERROR Delete {} Sensor: Sensor is not registered [{},{}]\r\n'.format(xxx, username, devicename))
             return response, status.HTTP_404_NOT_FOUND
 
-        # delete device from database
-        g_database_client.delete_sensor(username, devicename, xxx, number, sensorname)
+        # delete necessary sensor-related database information
+        delete_sensor(username, devicename, xxx, number, sensorname, sensor)
 
         msg = {'status': 'OK', 'message': 'Sensor unregistered successfully.'}
         if new_token:
