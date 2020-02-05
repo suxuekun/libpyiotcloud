@@ -247,6 +247,9 @@ class database_client:
         deviceid = self._devices.get_deviceid(username, devicename)
         return self._devices.update_device_notification_with_notification_subclass(username, devicename, deviceid, source, notification, notification_subclass)
 
+    def delete_device_notification_sensor(self, username, devicename, source):
+        return self._devices.delete_device_notification_sensor(username, devicename, source)
+
     def delete_device_notification(self, username, devicename):
         return self._devices.delete_device_notification(username, devicename)
 
@@ -267,6 +270,12 @@ class database_client:
     def update_device_peripheral_configuration(self, username, devicename, source, number, address, classid, subclassid, properties):
         return self._devices.update_device_peripheral_configuration(self._devices.get_deviceid(username, devicename), source, number, address, classid, subclassid, properties)
 
+    def delete_device_peripheral_configuration(self, username, devicename, source, number, address):
+        return self._devices.delete_device_peripheral_configuration(self._devices.get_deviceid(username, devicename), source, number, address)
+
+    def get_device_peripheral_configuration(self, username, devicename, source, number, address):
+        return self._devices.get_device_peripheral_configuration(self._devices.get_deviceid(username, devicename), source, number, address)
+
     def get_all_device_peripheral_configuration(self, deviceid):
         return self._devices.get_all_device_peripheral_configuration(deviceid)
 
@@ -277,6 +286,9 @@ class database_client:
     ##########################################################
     # sensors
     ##########################################################
+
+    def get_all_device_sensors(self, username, devicename):
+        return self._devices.get_all_device_sensors(username, devicename)
 
     def get_all_device_sensors_enabled_input(self, username, devicename):
         return self._devices.get_all_device_sensors_enabled_input(username, devicename)
@@ -304,6 +316,9 @@ class database_client:
 
     def add_sensor(self, username, devicename, source, number, sensorname, data):
         return self._devices.add_sensor(username, devicename, self._devices.get_deviceid(username, devicename), source, number, sensorname, data)
+
+    def delete_device_sensors(self, username, devicename):
+        self._devices.delete_device_sensors(username, devicename)
 
     def delete_sensor(self, username, devicename, source, number, sensorname):
         self._devices.delete_sensor(username, devicename, source, number, sensorname)
@@ -950,6 +965,14 @@ class database_client_mongodb:
             notifications.replace_one({'username': username, 'devicename': devicename, 'source': source}, item)
         return item
 
+    def delete_device_notification_sensor(self, username, devicename, source):
+        notifications = self.get_notifications_document();
+        try:
+            notifications.delete_many({'username': username, 'devicename': devicename, 'source': source})
+        except:
+            print("delete_device_notification_sensor: Exception occurred")
+            pass
+
     def delete_device_notification(self, username, devicename):
         notifications = self.get_notifications_document();
         try:
@@ -1027,6 +1050,30 @@ class database_client_mongodb:
 
         return item
 
+    def delete_device_peripheral_configuration(self, deviceid, source, number, address):
+        configurations = self.get_configurations_document();
+        try:
+            if address is not None:
+                configurations.delete_many({'deviceid': deviceid, 'source': source, 'number': number, 'address': address})
+            else:
+                configurations.delete_many({'deviceid': deviceid, 'source': source, 'number': number})
+        except:
+            print("delete_device_peripheral_configuration: Exception occurred")
+            pass
+
+    def get_device_peripheral_configuration(self, deviceid, source, number, address):
+        configurations = self.get_configurations_document()
+        if configurations:
+            if address is not None:
+                for configuration in configurations.find({'deviceid': deviceid, 'source': source, 'number': number, 'address': address}):
+                    configuration.pop('_id')
+                    return configuration
+            else:
+                for configuration in configurations.find({'deviceid': deviceid, 'source': source, 'number': number}):
+                    configuration.pop('_id')
+                    return configuration
+        return None
+
     def get_all_device_peripheral_configuration(self, deviceid):
         configurations_list = []
         configurations = self.get_configurations_document()
@@ -1061,6 +1108,18 @@ class database_client_mongodb:
 
     def get_sensors_document(self):
         return self.client[config.CONFIG_MONGODB_TB_I2CSENSORS]
+
+    def get_all_device_sensors(self, username, devicename):
+        sensor_list = []
+        i2csensors = self.get_sensors_document();
+        if i2csensors:
+            for i2csensor in i2csensors.find({'username': username, 'devicename': devicename}):
+                i2csensor.pop('_id')
+                i2csensor.pop('username')
+                if i2csensor.get('deviceid'):
+                    i2csensor.pop('deviceid')
+                sensor_list.append(i2csensor)
+        return sensor_list
 
     def get_all_device_sensors_enabled_input(self, username, devicename):
         sensor_list = []
@@ -1177,6 +1236,14 @@ class database_client_mongodb:
         #print(device_all)
         i2csensors.insert_one(device_all)
         return True
+
+    def delete_device_sensors(self, username, devicename):
+        i2csensors = self.get_sensors_document();
+        try:
+            i2csensors.delete_many({'username': username, 'devicename': devicename})
+        except:
+            print("delete_device_sensors: Exception occurred")
+            pass
 
     def delete_sensor(self, username, devicename, source, number, sensorname):
         i2csensors = self.get_sensors_document();
