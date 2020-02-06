@@ -77,80 +77,69 @@ def print_json(json_object):
     print(json_formatted_str)
 
 
-def process_sensor_reading(database_client, deviceid, source, sensor):
+def store_sensor_reading(database_client, deviceid, source, address, value, subclass_value):
 
-    #
-    # get address
-    if sensor.get("address"):
-        address = sensor["address"]
-    else:
-        address = None
-
-    #
-    # get value (for class and subclass)
-    value = sensor["value"]
-    # handle subclass
-    subclass_value = None
-    if sensor.get("subclass"):
-        subclass_value = sensor["subclass"]["value"]
-
-    #
-    # get last record
-    #print("{} source:{} address:{} value:{}".format(deviceid, source, address, value))
-    sensor_readings = database_client.get_sensor_reading_by_deviceid(deviceid, source, address)
-    if sensor_readings is None:
-        #print("no readings")
-        sensor_readings = {}
-        sensor_readings["value"] = value
-        sensor_readings["lowest"] = value
-        sensor_readings["highest"] = value
-        if subclass_value is not None:
-            sensor_readings["subclass"] = {}
-            sensor_readings["subclass"]["value"] = subclass_value
-            sensor_readings["subclass"]["lowest"] = subclass_value
-            sensor_readings["subclass"]["highest"] = subclass_value
-
-    else:
+    try:
         #
-        # handle class
-        sensor_readings["value"] = value
-        if value > sensor_readings["highest"]:
-            sensor_readings["highest"] = value
-        elif value < sensor_readings["lowest"]:
+        # get last record
+        #print("{} source:{} address:{} value:{}".format(deviceid, source, address, value))
+        sensor_readings = database_client.get_sensor_reading_by_deviceid(deviceid, source, address)
+        if sensor_readings is None:
+            #print("no readings")
+            sensor_readings = {}
+            sensor_readings["value"] = value
             sensor_readings["lowest"] = value
+            sensor_readings["highest"] = value
+            if subclass_value is not None:
+                sensor_readings["subclass"] = {}
+                sensor_readings["subclass"]["value"] = subclass_value
+                sensor_readings["subclass"]["lowest"] = subclass_value
+                sensor_readings["subclass"]["highest"] = subclass_value
+
+        else:
+            #
+            # handle class
+            sensor_readings["value"] = value
+            if value > sensor_readings["highest"]:
+                sensor_readings["highest"] = value
+            elif value < sensor_readings["lowest"]:
+                sensor_readings["lowest"] = value
+
+            #
+            # handle subclass
+            if subclass_value is not None:
+                sensor_readings["subclass"]["value"] = subclass_value
+                if subclass_value > sensor_readings["subclass"]["highest"]:
+                    sensor_readings["subclass"]["highest"] = subclass_value
+                elif subclass_value < sensor_readings["subclass"]["lowest"]:
+                    sensor_readings["subclass"]["lowest"] = subclass_value
 
         #
-        # handle subclass
-        if subclass_value is not None:
-            sensor_readings["subclass"]["value"] = subclass_value
-            if subclass_value > sensor_readings["subclass"]["highest"]:
-                sensor_readings["subclass"]["highest"] = subclass_value
-            elif subclass_value < sensor_readings["subclass"]["lowest"]:
-                sensor_readings["subclass"]["lowest"] = subclass_value
-
-    #
-    # update sensor reading
-    #print(sensor_readings)
-    sensor_readings["value"] = float(sensor_readings["value"])
-    sensor_readings["lowest"] = float(sensor_readings["lowest"])
-    sensor_readings["highest"] = float(sensor_readings["highest"])
-    if sensor_readings.get("subclass"):
-        sensor_readings["subclass"]["value"] = float(sensor_readings["subclass"]["value"])
-        sensor_readings["subclass"]["lowest"] = float(sensor_readings["subclass"]["lowest"])
-        sensor_readings["subclass"]["highest"] = float(sensor_readings["subclass"]["highest"])
-    database_client.add_sensor_reading(deviceid, source, address, sensor_readings)
-
-
-    #
-    # update sensor reading with timestamp for charting/graphing
-    if sensor_config.CONFIG_ENABLE_DATASET:
-        sensor_readings.pop("lowest")
-        sensor_readings.pop("highest")
+        # update sensor reading
+        #print(sensor_readings)
+        sensor_readings["value"] = float(sensor_readings["value"])
+        sensor_readings["lowest"] = float(sensor_readings["lowest"])
+        sensor_readings["highest"] = float(sensor_readings["highest"])
         if sensor_readings.get("subclass"):
-            sensor_readings["subclass"].pop("lowest")
-            sensor_readings["subclass"].pop("highest")
-        database_client.add_sensor_reading_dataset(deviceid, source, address, sensor_readings)
+            sensor_readings["subclass"]["value"] = float(sensor_readings["subclass"]["value"])
+            sensor_readings["subclass"]["lowest"] = float(sensor_readings["subclass"]["lowest"])
+            sensor_readings["subclass"]["highest"] = float(sensor_readings["subclass"]["highest"])
+        database_client.add_sensor_reading(deviceid, source, address, sensor_readings)
 
+        #
+        # update sensor reading with timestamp for charting/graphing
+        if sensor_config.CONFIG_ENABLE_DATASET:
+            sensor_readings.pop("lowest")
+            sensor_readings.pop("highest")
+            if sensor_readings.get("subclass"):
+                sensor_readings["subclass"].pop("lowest")
+                sensor_readings["subclass"].pop("highest")
+            database_client.add_sensor_reading_dataset(deviceid, source, address, sensor_readings)
+    except:
+        pass
+
+
+def forward_sensor_reading(database_client, deviceid, source, address, value, subclass_value):
 
     #
     # forward the packet to the specified recipient in the properties
@@ -183,7 +172,7 @@ def process_sensor_reading(database_client, deviceid, source, sensor):
                                 "peripheral": sensor["source"].upper(),
                                 "sensorname": sensor["sensorname"],
                                 "attribute":  sensor["attributes"][0],
-                                "value":      int(sensor_readings["value"]), 
+                                "value":      int(value), 
                                 #"peripheral": sensor["source"].upper(), 
                                 #"number":     int(sensor["number"]), 
                                 #"address":    int(sensor["address"]), 
@@ -195,18 +184,18 @@ def process_sensor_reading(database_client, deviceid, source, sensor):
                                 "peripheral": sensor["source"].upper(),
                                 "sensorname": sensor["sensorname"],
                                 "attribute":  sensor["attributes"][0],
-                                "value":      sensor_readings["value"], 
+                                "value":      value, 
                             }
-                        if sensor_readings.get("subclass"):
+                        if subclass_value is not None:
                             if sensor["formats"][1] == "int":
                                 packet["subclass"] = { 
                                     "attribute":  sensor["attributes"][1], 
-                                    "value": int(sensor_readings["subclass"]["value"]) 
+                                    "value": int(subclass_value) 
                                 }
                             else:
                                 packet["subclass"] = { 
                                     "attribute":  sensor["attributes"][1], 
-                                    "value": sensor_readings["subclass"]["value"] 
+                                    "value": subclass_value 
                                 }
 
                         dest_payload["sensors"].append(packet)
@@ -217,6 +206,40 @@ def process_sensor_reading(database_client, deviceid, source, sensor):
     except:
         print("exception")
         pass
+
+
+def process_sensor_reading(database_client, deviceid, source, sensor):
+
+    #
+    # get address
+    address = None
+    if sensor.get("address"):
+        address = sensor["address"]
+
+    #
+    # get value (for class and subclass)
+    value = sensor["value"]
+    # handle subclass
+    subclass_value = None
+    if sensor.get("subclass"):
+        subclass_value = sensor["subclass"]["value"]
+
+    #
+    # store sensor reading
+    thr1 = threading.Thread(target = store_sensor_reading, args = (database_client, deviceid, source, address, value, subclass_value, ))
+    thr1.start()
+    #store_sensor_reading(database_client, deviceid, source, address, value, subclass_value)
+
+    #
+    # forward sensor reading (if applicable)
+    thr2 = threading.Thread(target = forward_sensor_reading, args = (database_client, deviceid, source, address, value, subclass_value, ))
+    thr2.start()
+    #forward_sensor_reading(database_client, deviceid, source, address, value, subclass_value)
+
+    #
+    # wait for store and forward threads to complete
+    thr1.join()
+    thr2.join()
 
 
 def add_sensor_reading(database_client, deviceid, topic, payload):
@@ -240,8 +263,8 @@ def add_sensor_reading(database_client, deviceid, topic, payload):
         thr.join()
 
 
-    #elapsed_time = time.time() - start_time
-    #print(elapsed_time)
+    # print elapsed time
+    #print(time.time() - start_time) 
     #print("")
 
 
