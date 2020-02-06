@@ -270,6 +270,14 @@ def on_message(subtopic, subpayload):
             menos = topicarr[4]
             payload = json.loads(subpayload)
             sensor = None
+
+            # check if deviceid exists
+            username = g_database_client.get_username(deviceid)
+            if username is None:
+                send_notification_status(g_messaging_client, deviceid, "NG. deviceid is invalid.")
+                return
+            print(username)
+
             if not payload.get("recipient") or not payload.get("message"):
                 if source.startswith("i2c"):
                     if len(topicarr) == 5:
@@ -350,33 +358,33 @@ def on_message(subtopic, subpayload):
 
             send_notification_menos(g_messaging_client, deviceid, payload, notification, menos, source, sensor)
 
-        elif len(topicarr) == 3:
-            print("path 2")
-            # get device id
-            deviceid = topicarr[1]
+        #elif len(topicarr) == 3:
+        #    print("path 2")
+        #    # get device id
+        #    deviceid = topicarr[1]
 
-            payload = json.loads(subpayload)
-            recipient = payload["recipient"]
-            message = payload["message"]
+        #    payload = json.loads(subpayload)
+        #    recipient = payload["recipient"]
+        #    message = payload["message"]
 
-            # get options value
-            options = -1
-            if payload.get("options") is not None:
-                options = int(payload["options"])
+        #    # get options value
+        #    options = -1
+        #    if payload.get("options") is not None:
+        #        options = int(payload["options"])
 
-            is_email = True if recipient.find("@")!=-1 else False
-            is_mobile = True if recipient[0] == '+' else False
-            subject = aws_config.CONFIG_PINPOINT_EMAIL_SUBJECT if is_email else None
-            type = notification_types.UNKNOWN
-            if is_email:
-                type = notification_types.EMAIL
-            elif is_mobile:
-                type = notification_types.SMS
-            else:
-                type = notification_types.DEVICE
+        #    is_email = True if recipient.find("@")!=-1 else False
+        #    is_mobile = True if recipient[0] == '+' else False
+        #    subject = aws_config.CONFIG_PINPOINT_EMAIL_SUBJECT if is_email else None
+        #    type = notification_types.UNKNOWN
+        #    if is_email:
+        #        type = notification_types.EMAIL
+        #    elif is_mobile:
+        #        type = notification_types.SMS
+        #    else:
+        #        type = notification_types.DEVICE
 
-            thr = threading.Thread(target = notification_thread, args = (g_messaging_client, deviceid, recipient, message, subject, type, options, ))
-            thr.start()
+        #    thr = threading.Thread(target = notification_thread, args = (g_messaging_client, deviceid, recipient, message, subject, type, options, ))
+        #    thr.start()
     except Exception as e:
         print("exception")
         print(e)
@@ -489,10 +497,10 @@ if __name__ == '__main__':
 
     # Subscribe to messages sent for this device
     time.sleep(1)
-    subtopic = "{}{}+{}trigger_notification".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_SEPARATOR)
+    #subtopic = "{}{}+{}trigger_notification".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_SEPARATOR)
+    #g_messaging_client.subscribe(subtopic, subscribe=True, declare=True, consume_continuously=True)
+    subtopic = "{}{}+{}trigger_notification{}#".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_SEPARATOR, CONFIG_SEPARATOR)
     g_messaging_client.subscribe(subtopic, subscribe=True, declare=True, consume_continuously=True)
-    subtopic2 = "{}{}+{}trigger_notification{}#".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_SEPARATOR, CONFIG_SEPARATOR)
-    g_messaging_client.subscribe(subtopic2, subscribe=True, declare=True, consume_continuously=True)
 
 
     while g_messaging_client.is_connected():
