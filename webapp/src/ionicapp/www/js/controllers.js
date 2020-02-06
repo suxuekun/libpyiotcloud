@@ -3148,10 +3148,6 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                 Token.refresh({'username': $scope.data.username, 'token': $scope.data.token});
                 $scope.data.token = User.get_token();
             }
-            
-            if (error.status == 503 && showerror === true ) {
-                $ionicPopup.alert({ title: 'Error', template: 'Device is unreachable!', buttons: [{text: 'OK', type: 'button-assertive'}] });
-            }            
         }
         else {
             console.log("ERROR: Server is down!"); 
