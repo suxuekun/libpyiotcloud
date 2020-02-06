@@ -278,6 +278,7 @@ def on_message(subtopic, subpayload):
                 return
             print(username)
 
+            # recipient or message is not provided, get notification info from database
             if not payload.get("recipient") or not payload.get("message"):
                 if source.startswith("i2c"):
                     if len(topicarr) == 5:
@@ -296,6 +297,8 @@ def on_message(subtopic, subpayload):
                 else:
                     notification = g_database_client.get_device_notification_by_deviceid(deviceid, source)
                 #print(notification)
+
+            # recipient is not provided, process the notification info to get the recipient
             if not payload.get("recipient"):
                 #print("no recipient")
                 if notification is not None:
@@ -322,6 +325,8 @@ def on_message(subtopic, subpayload):
                 else:
                     send_notification_status(g_messaging_client, deviceid, "NG. database entry not found.")
                     return
+
+            # message is not provided, process the notification info to get the message
             if not payload.get("message"):
                 #print("no message")
                 if notification is not None:
