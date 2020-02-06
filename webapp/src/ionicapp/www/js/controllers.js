@@ -3111,6 +3111,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
     $scope.sensors_datachart_colors = ['#387EF5'];
     $scope.sensors_datachart = [];
     $scope.sensors_datachart_empty = {"labels": [], "data": []};
+    $scope.sensors_datachart_options = {"animation": false};
     
     $scope.data = {
         'username': User.get_username(),
@@ -3127,6 +3128,14 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
 
     $scope.changeSection = function(s) {
         $scope.data.activeSection = s;
+        
+        if ($scope.timer !== null) {
+            clearTimeout($scope.timer);
+            console.log("clearTimeout");
+            $scope.timer = null;
+            $scope.refresh_automatically = false;
+        }
+        
         $scope.submitQuery();
     };
 

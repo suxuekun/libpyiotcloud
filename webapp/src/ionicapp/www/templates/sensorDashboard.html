@@ -24,6 +24,9 @@
       </label>
       <ion-toggle toggle-class="toggle-positive" id="sensorDashboard-toggle20" ng-model="refresh_automatically" ng-change="changeRefresh(refresh_automatically, refresh_time)">Refresh automatically</ion-toggle>
     </form>
+    <form id="sensorDashboard-form196" class="list" ng-show="sensors.length > 0">
+      <button id="sensorDashboard-button149" ng-click="submitDelete()" class="button button-positive button-block">Reset values</button>
+    </form>
     <div id="sensorDashboard-markdown311" class="show-list-numbers-and-dots">
       <p style="color:#AAAAAA;font-size:12px;">{{ sensors_counthdr }}</p>
     </div>
@@ -112,16 +115,13 @@
 
         </p>
 
-        <canvas id="line" class="chart chart-line" chart-colors="sensors_datachart_colors" chart-data="chartData(sensor)" chart-labels="chartLabels(sensor)">
+        <canvas id="line" class="chart chart-line" chart-colors="sensors_datachart_colors" chart-data="chartData(sensor)" chart-labels="chartLabels(sensor)" chart-options="sensors_datachart_options">
         </canvas>
 
         <p>
         </p>
 
       </div>
-    </form>
-    <form id="sensorDashboard-form196" class="list" ng-show="sensors.length > 0">
-      <button id="sensorDashboard-button149" ng-click="submitDelete()" class="button button-positive button-block">Reset values</button>
     </form>
   </ion-content>
 </ion-view>
