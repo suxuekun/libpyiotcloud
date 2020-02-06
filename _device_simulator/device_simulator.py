@@ -1150,15 +1150,21 @@ def handle_api(api, subtopic, subpayload):
                     if subpayload["i2c"][x][y].get("attributes"):
                         address = str(subpayload["i2c"][x][y]["address"])
                         g_i2c_properties[x][address] = {}
+                        g_i2c_properties[x][address]["class"] = subpayload["i2c"][x][y]["class"]
+                        g_i2c_properties[x][address]["attributes"] = subpayload["i2c"][x][y]["attributes"]
                         if CONFIG_AUTO_ENABLE_CONFIGURATION:
                             if subpayload["i2c"][x][y].get("enabled"):
                                 g_i2c_properties[x][address]["enabled"] = subpayload["i2c"][x][y]["enabled"]
+                                # if enabling output sensor, add properties to g_i2c_properties_enabled_output
+                                # if disabling output sensor, remove properties from g_i2c_properties_enabled_output
+                                if g_i2c_properties[x][address]["class"] <= 2:
+                                    if g_i2c_properties[x][address]["enabled"]:
+                                        g_i2c_properties_enabled_output[x][address] = g_i2c_properties[x][address]
+                                        g_i2c_properties_enabled_output[x][address]["value"] = 0
                             else:
                                 g_i2c_properties[x][address]["enabled"] = 0
                         else:
                             g_i2c_properties[x][address]["enabled"] = 0
-                        g_i2c_properties[x][address]["class"] = subpayload["i2c"][x][y]["class"]
-                        g_i2c_properties[x][address]["attributes"] = subpayload["i2c"][x][y]["attributes"]
                         if subpayload["i2c"][x][y].get("subclass"):
                             g_i2c_properties[x][address]["subclass"] = subpayload["i2c"][x][y]["subclass"]
 
