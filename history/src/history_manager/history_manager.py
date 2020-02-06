@@ -70,7 +70,8 @@ CONFIG_SENSOR_READING_TOPIC = "sensor_reading"
 def add_history(history_client, deviceid, topic, payload, direction):
 
     # Write publish/subscribe message to database
-    history_client.add_device_history(deviceid, topic, payload, direction)
+    # TODO: temporarily disable
+    #history_client.add_device_history(deviceid, topic, payload, direction)
 
     # Write publish heartbeat to database
     if direction == "From":
@@ -89,9 +90,6 @@ def add_history(history_client, deviceid, topic, payload, direction):
             else:
                 print("{}: {}   {} {} [{}]".format(history["timestamp"], history["direction"], history["devicename"], history["topic"], len(history["payload"]) ))
         print("")
-    else:
-        histories = history_client.get_device_history(deviceid)
-        print("{}: {}".format(deviceid, len(histories)))
 
 
 def on_message(subtopic, subpayload):
