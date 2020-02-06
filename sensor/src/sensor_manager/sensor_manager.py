@@ -163,6 +163,8 @@ def forward_sensor_reading(database_client, deviceid, source, address, value, su
                         #print_json(sensor)
                         #print("")
                         dest_deviceid = database_client.get_deviceid(sensor["username"], dest_devicename)
+                        if dest_deviceid is None:
+                            return
                         dest_topic = "{}/{}".format(dest_deviceid, API_RECEIVE_SENSOR_READING)
                         #print("Hello")
                         dest_payload = {"sensors": []}
