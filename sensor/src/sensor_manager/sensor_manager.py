@@ -77,153 +77,171 @@ def print_json(json_object):
     print(json_formatted_str)
 
 
+def process_sensor_reading(database_client, deviceid, source, sensor):
+
+    #
+    # get address
+    if sensor.get("address"):
+        address = sensor["address"]
+    else:
+        address = None
+
+    #
+    # get value (for class and subclass)
+    value = sensor["value"]
+    # handle subclass
+    subclass_value = None
+    if sensor.get("subclass"):
+        subclass_value = sensor["subclass"]["value"]
+
+    #
+    # get last record
+    #print("{} source:{} address:{} value:{}".format(deviceid, source, address, value))
+    sensor_readings = database_client.get_sensor_reading_by_deviceid(deviceid, source, address)
+    if sensor_readings is None:
+        #print("no readings")
+        sensor_readings = {}
+        sensor_readings["value"] = value
+        sensor_readings["lowest"] = value
+        sensor_readings["highest"] = value
+        if subclass_value is not None:
+            sensor_readings["subclass"] = {}
+            sensor_readings["subclass"]["value"] = subclass_value
+            sensor_readings["subclass"]["lowest"] = subclass_value
+            sensor_readings["subclass"]["highest"] = subclass_value
+
+    else:
+        #
+        # handle class
+        sensor_readings["value"] = value
+        if value > sensor_readings["highest"]:
+            sensor_readings["highest"] = value
+        elif value < sensor_readings["lowest"]:
+            sensor_readings["lowest"] = value
+
+        #
+        # handle subclass
+        if subclass_value is not None:
+            sensor_readings["subclass"]["value"] = subclass_value
+            if subclass_value > sensor_readings["subclass"]["highest"]:
+                sensor_readings["subclass"]["highest"] = subclass_value
+            elif subclass_value < sensor_readings["subclass"]["lowest"]:
+                sensor_readings["subclass"]["lowest"] = subclass_value
+
+    #
+    # update sensor reading
+    #print(sensor_readings)
+    sensor_readings["value"] = float(sensor_readings["value"])
+    sensor_readings["lowest"] = float(sensor_readings["lowest"])
+    sensor_readings["highest"] = float(sensor_readings["highest"])
+    if sensor_readings.get("subclass"):
+        sensor_readings["subclass"]["value"] = float(sensor_readings["subclass"]["value"])
+        sensor_readings["subclass"]["lowest"] = float(sensor_readings["subclass"]["lowest"])
+        sensor_readings["subclass"]["highest"] = float(sensor_readings["subclass"]["highest"])
+    database_client.add_sensor_reading(deviceid, source, address, sensor_readings)
+
+
+    #
+    # update sensor reading with timestamp for charting/graphing
+    if sensor_config.CONFIG_ENABLE_DATASET:
+        sensor_readings.pop("lowest")
+        sensor_readings.pop("highest")
+        if sensor_readings.get("subclass"):
+            sensor_readings["subclass"].pop("lowest")
+            sensor_readings["subclass"].pop("highest")
+        database_client.add_sensor_reading_dataset(deviceid, source, address, sensor_readings)
+
+
+    #
+    # forward the packet to the specified recipient in the properties
+    try:
+        peripheral = source[0:len(source)-1]
+        number = source[len(source)-1:]
+        #print("source {} {} {} {}".format(source, peripheral, number, address))
+
+        configuration = database_client.get_device_peripheral_configuration(deviceid, peripheral, int(number), address)
+        #print_json(configuration)
+        if configuration is not None:
+            # check if continuous mode
+            if configuration["attributes"]["mode"] == 2: 
+                # get the device name
+                dest_devicename = configuration["attributes"]["hardware"]["devicename"]
+                if dest_devicename != "":
+                    #print(dest_devicename)
+                    sensor = database_client.get_sensor_by_deviceid(deviceid, peripheral, number, address)
+                    if sensor is not None:
+                        #print_json(sensor)
+                        #print("")
+                        dest_deviceid = database_client.get_deviceid(sensor["username"], dest_devicename)
+                        dest_topic = "{}/{}".format(dest_deviceid, API_RECEIVE_SENSOR_READING)
+                        #print("Hello")
+                        dest_payload = {"sensors": []}
+                        packet = {}
+                        if sensor["formats"][0] == "int":
+                            packet = {
+                                "devicename": sensor["devicename"],
+                                "peripheral": sensor["source"].upper(),
+                                "sensorname": sensor["sensorname"],
+                                "attribute":  sensor["attributes"][0],
+                                "value":      int(sensor_readings["value"]), 
+                                #"peripheral": sensor["source"].upper(), 
+                                #"number":     int(sensor["number"]), 
+                                #"address":    int(sensor["address"]), 
+                                #"class":      int
+                            }
+                        else:
+                            packet = {
+                                "devicename": sensor["devicename"],
+                                "peripheral": sensor["source"].upper(),
+                                "sensorname": sensor["sensorname"],
+                                "attribute":  sensor["attributes"][0],
+                                "value":      sensor_readings["value"], 
+                            }
+                        if sensor_readings.get("subclass"):
+                            if sensor["formats"][1] == "int":
+                                packet["subclass"] = { 
+                                    "attribute":  sensor["attributes"][1], 
+                                    "value": int(sensor_readings["subclass"]["value"]) 
+                                }
+                            else:
+                                packet["subclass"] = { 
+                                    "attribute":  sensor["attributes"][1], 
+                                    "value": sensor_readings["subclass"]["value"] 
+                                }
+
+                        dest_payload["sensors"].append(packet)
+                        #print_json(dest_payload)
+                        #print("")
+                        dest_payload = json.dumps(dest_payload)
+                        g_messaging_client.publish(dest_topic, dest_payload, debug=False) # NOTE: enable to DEBUG
+    except:
+        print("exception")
+        pass
+
+
 def add_sensor_reading(database_client, deviceid, topic, payload):
 
+    #start_time = time.time()
     #print(deviceid)
     #print(topic)
     payload = json.loads(payload)
 
+
+    thr_list = []
+
     for source in payload["sensors"]:
         for sensor in payload["sensors"][source]:
-            #
-            # get address
-            if sensor.get("address"):
-                address = sensor["address"]
-            else:
-                address = None
+            thr = threading.Thread(target = process_sensor_reading, args = (database_client, deviceid, source, sensor, ))
+            thr.start()
+            thr_list.append(thr)
+            #process_sensor_reading(database_client, deviceid, source, sensor)
 
-            #
-            # get value (for class and subclass)
-            value = sensor["value"]
-            # handle subclass
-            subclass_value = None
-            if sensor.get("subclass"):
-                subclass_value = sensor["subclass"]["value"]
-
-            #
-            # get last record
-            #print("{} source:{} address:{} value:{}".format(deviceid, source, address, value))
-            sensor_readings = database_client.get_sensor_reading_by_deviceid(deviceid, source, address)
-            if sensor_readings is None:
-                #print("no readings")
-                sensor_readings = {}
-                sensor_readings["value"] = value
-                sensor_readings["lowest"] = value
-                sensor_readings["highest"] = value
-                if subclass_value is not None:
-                    sensor_readings["subclass"] = {}
-                    sensor_readings["subclass"]["value"] = subclass_value
-                    sensor_readings["subclass"]["lowest"] = subclass_value
-                    sensor_readings["subclass"]["highest"] = subclass_value
-
-            else:
-                #
-                # handle class
-                sensor_readings["value"] = value
-                if value > sensor_readings["highest"]:
-                    sensor_readings["highest"] = value
-                elif value < sensor_readings["lowest"]:
-                    sensor_readings["lowest"] = value
-
-                #
-                # handle subclass
-                if subclass_value is not None:
-                    sensor_readings["subclass"]["value"] = subclass_value
-                    if subclass_value > sensor_readings["subclass"]["highest"]:
-                        sensor_readings["subclass"]["highest"] = subclass_value
-                    elif subclass_value < sensor_readings["subclass"]["lowest"]:
-                        sensor_readings["subclass"]["lowest"] = subclass_value
-
-            #
-            # update sensor reading
-            #print(sensor_readings)
-            sensor_readings["value"] = float(sensor_readings["value"])
-            sensor_readings["lowest"] = float(sensor_readings["lowest"])
-            sensor_readings["highest"] = float(sensor_readings["highest"])
-            if sensor_readings.get("subclass"):
-                sensor_readings["subclass"]["value"] = float(sensor_readings["subclass"]["value"])
-                sensor_readings["subclass"]["lowest"] = float(sensor_readings["subclass"]["lowest"])
-                sensor_readings["subclass"]["highest"] = float(sensor_readings["subclass"]["highest"])
-            database_client.add_sensor_reading(deviceid, source, address, sensor_readings)
+    for thr in thr_list:
+        thr.join()
 
 
-            #
-            # update sensor reading with timestamp for charting/graphing
-            if sensor_config.CONFIG_ENABLE_DATASET:
-                sensor_readings.pop("lowest")
-                sensor_readings.pop("highest")
-                if sensor_readings.get("subclass"):
-                    sensor_readings["subclass"].pop("lowest")
-                    sensor_readings["subclass"].pop("highest")
-                database_client.add_sensor_reading_dataset(deviceid, source, address, sensor_readings)
-
-
-            #
-            # forward the packet to the specified recipient in the properties
-            try:
-                peripheral = source[0:len(source)-1]
-                number = source[len(source)-1:]
-                #print("source {} {} {} {}".format(source, peripheral, number, address))
-
-                configuration = database_client.get_device_peripheral_configuration(deviceid, peripheral, int(number), address)
-                #print_json(configuration)
-                if configuration is not None:
-                    # check if continuous mode
-                    if configuration["attributes"]["mode"] == 2: 
-                        # get the device name
-                        dest_devicename = configuration["attributes"]["hardware"]["devicename"]
-                        if dest_devicename != "":
-                            #print(dest_devicename)
-                            sensor = database_client.get_sensor_by_deviceid(deviceid, peripheral, number, address)
-                            if sensor is not None:
-                                #print_json(sensor)
-                                #print("")
-                                dest_deviceid = database_client.get_deviceid(sensor["username"], dest_devicename)
-                                dest_topic = "{}/{}".format(dest_deviceid, API_RECEIVE_SENSOR_READING)
-                                #print("Hello")
-                                dest_payload = {"sensors": []}
-                                packet = {}
-                                if sensor["formats"][0] == "int":
-                                    packet = {
-                                        "devicename": sensor["devicename"],
-                                        "peripheral": sensor["source"].upper(),
-                                        "sensorname": sensor["sensorname"],
-                                        "attribute":  sensor["attributes"][0],
-                                        "value":      int(sensor_readings["value"]), 
-                                        #"peripheral": sensor["source"].upper(), 
-                                        #"number":     int(sensor["number"]), 
-                                        #"address":    int(sensor["address"]), 
-                                        #"class":      int
-                                    }
-                                else:
-                                    packet = {
-                                        "devicename": sensor["devicename"],
-                                        "peripheral": sensor["source"].upper(),
-                                        "sensorname": sensor["sensorname"],
-                                        "attribute":  sensor["attributes"][0],
-                                        "value":      sensor_readings["value"], 
-                                    }
-                                if sensor_readings.get("subclass"):
-                                    if sensor["formats"][1] == "int":
-                                        packet["subclass"] = { 
-                                            "attribute":  sensor["attributes"][1], 
-                                            "value": int(sensor_readings["subclass"]["value"]) 
-                                        }
-                                    else:
-                                        packet["subclass"] = { 
-                                            "attribute":  sensor["attributes"][1], 
-                                            "value": sensor_readings["subclass"]["value"] 
-                                        }
-
-                                dest_payload["sensors"].append(packet)
-                                #print_json(dest_payload)
-                                #print("")
-                                dest_payload = json.dumps(dest_payload)
-                                g_messaging_client.publish(dest_topic, dest_payload, debug=False) # NOTE: enable to DEBUG
-            except:
-                print("exception")
-                pass
-
+    #elapsed_time = time.time() - start_time
+    #print(elapsed_time)
     #print("")
 
 
