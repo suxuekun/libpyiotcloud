@@ -1291,14 +1291,18 @@ Note: Using Kubernetes will also change the infrastracture.
        
        C. Update Jenkins configuration file
        sudo vi /etc/sysconfig/jenkins
+       i
        Update value of JENKINS_USER to "ec2-user"
        Update value of JENKINS_ARGS to "-Dmail.smtp.starttls.enable=true"
        Add JENKINS_JAVA_OPTIONS with "-Dmail.smtp.starttls.enable=true"
        :x
-       chown -R ec2-user:ec2-user /var/lib/jenkins
-       chown -R ec2-user:ec2-user /var/cache/jenkins
-       chown -R ec2-user:ec2-user /var/log/jenkins       
+       sudo chown -R ec2-user:ec2-user /var/lib/jenkins
+       sudo chown -R ec2-user:ec2-user /var/cache/jenkins
+       sudo chown -R ec2-user:ec2-user /var/log/jenkins       
        sudo service jenkins restart
+       
+       Access http://<ec2-hostname-or-ipaddress>:<port>
+       cat /var/lib/jenkins/secrets/initialAdminPassword
        
        D. Create the Jenkinsfile and commit in the repository
        https://github.com/richmondu/libpyiotcloud/blob/master/Jenkinsfile
