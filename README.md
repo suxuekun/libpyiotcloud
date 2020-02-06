@@ -788,6 +788,10 @@ Note: Using Kubernetes will also change the infrastracture.
        sudo service docker restart
        restart putty
        
+       // Git installation
+       sudo yum update -y
+       sudo yum install git -y
+
        // Set the AWS environment variables
        export AWS_ACCESS_KEY_ID=""
        export AWS_SECRET_ACCESS_KEY=""
