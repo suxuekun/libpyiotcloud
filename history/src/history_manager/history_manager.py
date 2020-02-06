@@ -67,19 +67,36 @@ CONFIG_SENSOR_READING_TOPIC = "sensor_reading"
 ###################################################################################
 
 
-def add_history(history_client, deviceid, topic, payload, direction):
+def add_history_publish(history_client, deviceid, topic, payload):
 
     # Write publish/subscribe message to database
     # TODO: temporarily disable
     #history_client.add_device_history(deviceid, topic, payload, direction)
 
     # Write publish heartbeat to database
-    if direction == "From":
-        try:
-            heartbeat = history_client.add_device_heartbeat(deviceid)
-        except:
-            print("exception add_device_heartbeat")
+    try:
+        heartbeat = history_client.add_device_heartbeat(deviceid)
+    except:
+        print("exception add_device_heartbeat")
     
+    # Display database
+    if config.CONFIG_DEBUG_HISTORY:
+        histories = history_client.get_device_history(deviceid)
+        print("{}".format(len(histories) ))
+        for history in histories:
+            if history["direction"]=="From":
+                print("{}: {} {} {} [{}]".format(history["timestamp"], history["direction"], history["devicename"], history["topic"], len(history["payload"]) ))
+            else:
+                print("{}: {}   {} {} [{}]".format(history["timestamp"], history["direction"], history["devicename"], history["topic"], len(history["payload"]) ))
+        print("")
+
+
+def add_history_receive(history_client, deviceid, topic, payload):
+
+    # Write publish/subscribe message to database
+    # TODO: temporarily disable
+    #history_client.add_device_history(deviceid, topic, payload, direction)
+
     # Display database
     if config.CONFIG_DEBUG_HISTORY:
         histories = history_client.get_device_history(deviceid)
@@ -96,20 +113,21 @@ def on_message(subtopic, subpayload):
 
     try:
         item = {}
-        if subtopic.startswith("server"):
+        if subtopic.startswith(CONFIG_PREPEND_REPLY_TOPIC):
+            #print(subtopic)
             arr_subtopic = subtopic.split("/", 2)
 
-            # Do not record sensor readings
+            # Do NOT record sensor readings
             if arr_subtopic[2].startswith(CONFIG_SENSOR_READING_TOPIC):
                return
 
-            #add_history(g_history_client, arr_subtopic[1], arr_subtopic[2], subpayload.decode("utf-8"), "From")
-            thr = threading.Thread(target = add_history, args = (g_history_client, arr_subtopic[1], arr_subtopic[2], subpayload.decode("utf-8"), "From", ))
+            #add_history_publish(g_history_client, arr_subtopic[1], arr_subtopic[2], subpayload.decode("utf-8"), "From")
+            thr = threading.Thread(target = add_history_publish, args = (g_history_client, arr_subtopic[1], arr_subtopic[2], subpayload.decode("utf-8"), ))
             thr.start()
         else:
             arr_subtopic = subtopic.split("/", 1)
-            #add_history(g_history_client, arr_subtopic[0], arr_subtopic[1], subpayload.decode("utf-8"), "To")
-            thr = threading.Thread(target = add_history, args = (g_history_client, arr_subtopic[0], arr_subtopic[1], subpayload.decode("utf-8"), "To", ))
+            #add_history_receive(g_history_client, arr_subtopic[0], arr_subtopic[1], subpayload.decode("utf-8"), "To")
+            thr = threading.Thread(target = add_history_receive, args = (g_history_client, arr_subtopic[0], arr_subtopic[1], subpayload.decode("utf-8"), ))
             thr.start()
     except:
         print("exception")
@@ -203,7 +221,9 @@ if __name__ == '__main__':
 
     # Subscribe to messages sent for this device
     time.sleep(1)
-    subtopic = "#"
+    # TODO: process publish packets only, not device requests from web/mobile apps
+    #subtopic = "#"
+    subtopic = "{}{}#".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR)
     g_messaging_client.subscribe(subtopic, subscribe=True, declare=True, consume_continuously=True)
 
 
