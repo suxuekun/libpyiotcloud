@@ -509,6 +509,7 @@ if __name__ == '__main__':
 
 
     while g_messaging_client.is_connected():
+        time.sleep(3)
         pass
 
     print("application exits!")
