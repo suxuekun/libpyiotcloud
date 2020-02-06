@@ -30,7 +30,7 @@ CONFIG_DELETE_CONFIGURATION = False
 CONFIG_AUTO_ENABLE_CONFIGURATION = True
 
 # timer thread for publishing sensor data
-g_timer_thread_timeout = 10
+g_timer_thread_timeout = 3
 g_timer_thread = None
 g_timer_thread_use = True
 g_timer_thread_stop = threading.Event()
@@ -1726,7 +1726,7 @@ if __name__ == '__main__':
 
     args = parse_arguments(sys.argv[1:])
     CONFIG_USE_AMQP    = True if int((args.USE_AMQP))==1 else False
-    CONFIG_USE_ECC    = True if int((args.USE_ECC))==1 else False
+    CONFIG_USE_ECC     = True if int((args.USE_ECC))==1 else False
     CONFIG_SEPARATOR   = "." if int((args.USE_AMQP))==1 else "/"
     CONFIG_DEVICE_ID   = args.USE_DEVICE_ID
     CONFIG_TLS_CA      = args.USE_DEVICE_CA
