@@ -743,7 +743,7 @@ class database_client_mongodb:
     def get_username(self, deviceid):
         devices = self.get_registered_devices()
         if devices:
-            for device in devices.find({'deviceid': deviceid},{'username': 1, 'deviceid': 1}):
+            for device in devices.find({'deviceid': deviceid},{'username': 1}):
                 return device['username']
         return None
 
