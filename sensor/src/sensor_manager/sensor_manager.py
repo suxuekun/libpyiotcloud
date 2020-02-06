@@ -136,6 +136,7 @@ def store_sensor_reading(database_client, deviceid, source, address, value, subc
                 sensor_readings["subclass"].pop("highest")
             database_client.add_sensor_reading_dataset(deviceid, source, address, sensor_readings)
     except:
+        print("exception store_sensor_reading")
         pass
 
 
@@ -204,7 +205,7 @@ def forward_sensor_reading(database_client, deviceid, source, address, value, su
                         dest_payload = json.dumps(dest_payload)
                         g_messaging_client.publish(dest_topic, dest_payload, debug=False) # NOTE: enable to DEBUG
     except:
-        print("exception")
+        print("exception forward_sensor_reading")
         pass
 
 
