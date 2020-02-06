@@ -3349,8 +3349,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
     $scope.pollSensorData = function() {
         $scope.run_time += 1;
         
-        // auto-stop in 1hour 3600/$scope.refresh_time
-        let run_time_max = Math.round(3600/$scope.refresh_time);
+        // auto-stop in 10hours 36000/$scope.refresh_time
+        let run_time_max = Math.round(36000/$scope.refresh_time);
         if ($scope.run_time > run_time_max) {
             
             $scope.run_time = 0;
