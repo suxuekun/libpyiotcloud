@@ -3134,6 +3134,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             clearTimeout($scope.timer);
             console.log("clearTimeout");
             $scope.timer = null;
+            $scope.run_time = 0;
             $scope.refresh_automatically = false;
         }
         
@@ -3373,15 +3374,16 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
 
     $scope.pollSensorData = function() {
         $scope.run_time += 1;
+        let seconds = 259200; // 3600 (1 hour) * 24 = 86400 seconds * 3 = 3 days
         
-        // auto-stop in 10hours 36000/$scope.refresh_time
-        let run_time_max = Math.round(36000/$scope.refresh_time);
+        // auto-stop after X seconds
+        let run_time_max = Math.round(seconds/$scope.refresh_time);
         if ($scope.run_time > run_time_max) {
             
-            $scope.run_time = 0;
             clearTimeout($scope.timer);
             console.log("clearTimeout");
             $scope.timer = null;
+            $scope.run_time = 0;
             $scope.refresh_automatically = !$scope.refresh_automatically;
             
             $ionicPopup.alert({
@@ -3475,6 +3477,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             clearTimeout($scope.timer);
             console.log("clearTimeout");
             $scope.timer = null;
+            $scope.run_time = 0;
         }
     });
 }])
