@@ -13,19 +13,20 @@
       </p>
     </div>
     <div class="spacer" style="width: 300px; height: 20px;"></div>
-    <div id="sensorDashboard-button-bar11" class="button-bar">
-      <button id="sensorDashboard-button145" ng-class="{'active': data.activeSection==1}" ng-click="changeSection(1)" class="button button-positive button-small button-block">Values</button>
-      <button id="sensorDashboard-button147" ng-class="{'active': data.activeSection==2}" ng-click="changeSection(2)" class="button button-positive button-small button-block">Charts</button>
-    </div>
     <form id="sensorDashboard-form193" class="list" ng-show="sensors.length > 0">
-      <label class="item item-input" id="sensorDashboard-input143">
+      <ion-toggle toggle-class="toggle-positive" id="sensorDashboard-toggle19" ng-model="hide_settings" ng-change="changeHideSettings(hide_settings)">Hide settings</ion-toggle>
+    </form>
+    <form id="sensorDashboard-form168" class="list" ng-show="sensors.length > 0 &amp;&amp; !hide_settings">
+      <div id="sensorDashboard-button-bar12" class="button-bar">
+        <button id="sensorDashboard-button101" ng-class="{'active': data.activeSection==1}" ng-click="changeSection(1)" class="button button-positive button-small button-block">Values</button>
+        <button id="sensorDashboard-button114" ng-class="{'active': data.activeSection==2}" ng-click="changeSection(2)" class="button button-positive button-small button-block">Charts</button>
+      </div>
+      <label class="item item-input" id="sensorDashboard-input144">
         <span class="input-label">Refresh time (sec)</span>
         <input type="number" placeholder="" ng-model="refresh_time" ng-disabled="refresh_automatically">
       </label>
-      <ion-toggle toggle-class="toggle-positive" id="sensorDashboard-toggle20" ng-model="refresh_automatically" ng-change="changeRefresh(refresh_automatically, refresh_time)">Refresh automatically</ion-toggle>
-    </form>
-    <form id="sensorDashboard-form196" class="list" ng-show="sensors.length > 0">
-      <button id="sensorDashboard-button149" ng-click="submitDelete()" class="button button-positive button-block">Reset values</button>
+      <ion-toggle toggle-class="toggle-positive" id="sensorDashboard-toggle14" ng-model="refresh_automatically" ng-change="changeRefresh(refresh_automatically, refresh_time)">Refresh automatically</ion-toggle>
+      <button id="sensorDashboard-button126" ng-click="submitDelete()" class="button button-positive button-block">Reset values</button>
     </form>
     <div id="sensorDashboard-markdown311" class="show-list-numbers-and-dots">
       <p style="color:#AAAAAA;font-size:12px;">{{ sensors_counthdr }}</p>

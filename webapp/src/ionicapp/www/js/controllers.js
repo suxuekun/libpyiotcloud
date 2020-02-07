@@ -3102,17 +3102,18 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
 
     var server = Server.rest_api;
 
+    $scope.hide_settings = false;
     $scope.sensors = [];
     $scope.sensors_counthdr = "No sensor enabled" ;
     $scope.refresh_automatically = false;
     $scope.refresh_time = 3;
     $scope.run_time = 0;
     
-    $scope.sensors_datachart_colors = ['#387EF5'];
-    $scope.sensors_datachart = [];
+    $scope.sensors_datachart_colors = ['#387EF5', '#EF473A'];
+    $scope.sensors_datachart = [{"labels": [], "data": []}];
     $scope.sensors_datachart_empty = {"labels": [], "data": []};
     $scope.sensors_datachart_options = {"animation": false};
-    
+
     $scope.data = {
         'username': User.get_username(),
         'token': User.get_token(),
@@ -3139,6 +3140,9 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         $scope.submitQuery();
     };
 
+    $scope.changeHideSettings = function(s) {
+        $scope.hide_settings = s;
+    };
     
     handle_error = function(error, showerror) {
         if (error.data !== null) {
@@ -3220,28 +3224,36 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                 $scope.sensors_counthdr = $scope.sensors.length.toString() + " sensors enabled";
             }
             
-            // set default labels and data
-            $scope.sensors_datachart = [];
-            for (var indexy=0; indexy<$scope.sensors.length; indexy++) {
+            if ($scope.sensors.length > 0) {
+                // set default labels and data
+                $scope.sensors_datachart = [];
+                for (var indexy=0; indexy<$scope.sensors.length; indexy++) {
                 
-                $scope.sensors_datachart.push({ "labels": [], "data": [] });
-                
-                var readings = $scope.sensors[indexy].readings;
-                //console.log($scope.sensors[indexy]);
-                //console.log($scope.sensors[indexy].sensorname);
-                //console.log(readings);
-                //console.log($scope.sensors_datachart);
-                
-                for (var reading in readings) {
-                    console.log(readings[reading]);
+                    if ($scope.sensors[indexy].subclass === undefined) {
+                        $scope.sensors_datachart.push({ "labels": [], "data": []});
+                    }
+                    else {
+                        $scope.sensors_datachart.push({ "labels": [], "data": [[],[]]});
+                    }
                     
-                    var timestamp = new Date(readings[reading].timestamp * 1000);
-                    var timestamp_str = timestamp.getHours() + ":" + timestamp.getMinutes() + ":" + timestamp.getSeconds();
-                    $scope.sensors_datachart[indexy].data.push(readings[reading].sensor_readings.value);
-                    $scope.sensors_datachart[indexy].labels.push(timestamp_str);
+                    var readings = $scope.sensors[indexy].readings;
+                    for (var reading in readings) {
+                        var timestamp = new Date(readings[reading].timestamp * 1000);
+                        var timestamp_str = timestamp.getHours() + ":" + timestamp.getMinutes() + ":" + timestamp.getSeconds();
+                        
+                        if ($scope.sensors[indexy].subclass === undefined) {
+                            $scope.sensors_datachart[indexy].data.push(readings[reading].sensor_readings.value);
+                        }
+                        else {
+                            $scope.sensors_datachart[indexy].data[0].push(readings[reading].sensor_readings.value);
+                            $scope.sensors_datachart[indexy].data[1].push(readings[reading].sensor_readings.subclass.value);
+                        }
+                        
+                        $scope.sensors_datachart[indexy].labels.push(timestamp_str);
+                    }
                 }
+                console.log($scope.sensors_datachart);
             }
-            
         })
         .catch(function (error) {
             handle_error(error);
@@ -3307,13 +3319,31 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         return $scope.sensors_datachart[indexy].data;
     };
 
+
+    $scope.chartSeries = function(sensor) {
+        //console.log("chartData " + sensor.sensorname);
+
+        if ($scope.sensors.length === 0) {
+            return $scope.sensors_datachart_empty.data;
+        }
+        
+        let indexy = 0;
+        for (indexy=0; indexy<$scope.sensors.length; indexy++) {
+            if ($scope.sensors[indexy].sensorname === sensor.sensorname) {
+                break;
+            }
+        }
+        
+        return $scope.sensors_datachart[indexy].series;
+    };
+
     $scope.changeRefresh = function(refresh, timeout) {
         $scope.refresh_automatically = refresh;
         $scope.refresh_time = timeout;
-        console.log(refresh);
-        console.log(timeout);
         
         if (refresh === true) {
+            //console.log(refresh);
+            //console.log(timeout);
             if ($scope.refresh_time < 1) {
                 $scope.refresh_time = 1;
             }
