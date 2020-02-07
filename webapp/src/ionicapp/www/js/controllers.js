@@ -3137,6 +3137,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             $scope.refresh_automatically = false;
         }
         
+        $scope.sensors = [];
         $scope.submitQuery();
     };
 
@@ -3212,17 +3213,19 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         .then(function (result) {
             console.log(result.data);
             
-            $scope.sensors = result.data.sensors;
             
-            if ($scope.sensors.length === 0) {
+            if (result.data.sensors.length === 0) {
                 $scope.sensors_counthdr = "No sensor enabled";
+                return;
             }
             else if ($scope.sensors.length === 1) {
                 $scope.sensors_counthdr = "1 sensor enabled";
             }
             else {
-                $scope.sensors_counthdr = $scope.sensors.length.toString() + " sensors enabled";
+                $scope.sensors_counthdr = result.data.sensors.length.toString() + " sensors enabled";
             }
+            
+            $scope.sensors = result.data.sensors;
             
             if ($scope.sensors.length > 0) {
                 // set default labels and data
