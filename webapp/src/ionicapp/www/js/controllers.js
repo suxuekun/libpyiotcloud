@@ -3149,10 +3149,6 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                 $scope.data.token = User.get_token();
             }
         }
-        else {
-            console.log("ERROR: Server is down!"); 
-            $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
-        }
     };
     
     get_all_device_sensors_enabled_input = function() {
