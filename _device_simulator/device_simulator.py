@@ -30,7 +30,7 @@ CONFIG_DELETE_CONFIGURATION = False
 CONFIG_AUTO_ENABLE_CONFIGURATION = True
 
 # timer thread for publishing sensor data
-g_timer_thread_timeout = 3
+g_timer_thread_timeout = 5
 g_timer_thread = None
 g_timer_thread_use = True
 g_timer_thread_stop = threading.Event()
