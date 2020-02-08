@@ -3317,7 +3317,7 @@ def get_all_device_sensors_enabled_input_readings(devicename):
     if new_token:
         msg['new_token'] = new_token
     response = json.dumps(msg)
-    print('\r\nGet All Device Sensors successful: {} {} {} sensors\r\n'.format(username, devicename, len(sensors)))
+    #print('\r\nGet All Device Sensors successful: {} {} {} sensors\r\n'.format(username, devicename, len(sensors)))
     return response
 
 
@@ -3435,7 +3435,7 @@ def get_all_device_sensors_enabled_input_readings_dataset(devicename):
     if new_token:
         msg['new_token'] = new_token
     response = json.dumps(msg)
-    print('\r\nGet All Device Sensors Dataset successful: {} {} {} sensors\r\n'.format(username, devicename, len(sensors)))
+    #print('\r\nGet All Device Sensors Dataset successful: {} {} {} sensors\r\n'.format(username, devicename, len(sensors)))
     return response
 
 
@@ -5081,7 +5081,7 @@ def generate_subscribe_topic(topic, separator):
 
 def process_request_get(api, data, timeout=2):
 
-    print("\r\nAPI: {} {} devicename={}".format(api, data['username'], data['devicename']))
+    #print("\r\nAPI: {} {} devicename={}".format(api, data['username'], data['devicename']))
 
     username = data['username']
     token = data['token']
@@ -5160,7 +5160,7 @@ def process_request_get(api, data, timeout=2):
 
 def process_request(api, data, timeout=2):
 
-    print("\r\nAPI: {} {} devicename={}".format(api, data['username'], data['devicename']))
+    #print("\r\nAPI: {} {} devicename={}".format(api, data['username'], data['devicename']))
 
     username = data['username']
     token = data['token']

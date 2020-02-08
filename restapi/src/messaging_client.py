@@ -202,7 +202,7 @@ class messaging_client:
             client.basic_publish(exchange='amq.topic', routing_key=topic, body=payload.encode("utf-8"))
 
     def publish_mqtt(self, client, topic, payload):
-        print("PUB: topic={} payload={}".format(topic, payload))
+        #print("PUB: topic={} payload={}".format(topic, payload))
         if client:
             client.publish(topic, payload, qos=CONFIG_QOS)
 
@@ -260,13 +260,13 @@ class messaging_client:
     def subscribe_mqtt(self, client, topic, subscribe=True):
         if client:
             if subscribe:
-                print("SUB: topic={}".format(topic))
+                #print("SUB: topic={}".format(topic))
                 try:
                     client.subscribe(topic, qos=CONFIG_QOS)
                 except:
                     return False
             else:
-                print("UNSUB: topic={}".format(topic))
+                #print("UNSUB: topic={}".format(topic))
                 try:
                     client.unsubscribe(topic)
                 except:
