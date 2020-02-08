@@ -533,6 +533,20 @@ class database_client_cognito:
             new_token['id'] = response['AuthenticationResult']['IdToken']
             print("Token refreshed! {} {}".format(result, response))
             return new_token
+        else:
+            print("Token refreshed ERROR!\r\n")
+            # during stress test, it was found that refresh token fails for some reason
+            # when it fails, try to call admin refresh token
+            (result, response) = self.client.admin_refresh_token(token['refresh'])
+            if result:
+                new_token = {}
+                new_token['access'] = response['AuthenticationResult']['AccessToken']
+                new_token['refresh'] = token['refresh']
+                new_token['id'] = response['AuthenticationResult']['IdToken']
+                print("Admin token refreshed! {} {}".format(result, response))
+                return new_token
+            else:
+                print("Admin token refreshed ERROR!\r\n")
         return None
 
     def verify_token(self, username, token):
