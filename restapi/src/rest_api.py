@@ -6,7 +6,7 @@ import hmac
 import hashlib
 import flask
 import base64
-import time
+import datetime
 from flask_json import FlaskJSON, JsonError, json_response, as_json
 from certificate_generator import certificate_generator
 from messaging_client import messaging_client
@@ -615,12 +615,12 @@ def refresh_user_token():
     new_token = g_database_client.refresh_token(token)
     if new_token is None:
         response = json.dumps({'status': 'NG', 'message': 'Refresh token invalid'})
-        print('\r\nERROR Refresh token: Token expired\r\n')
+        print('\r\nERROR Refresh token: Token expired. DATETIME {}\r\n\r\n'.format(datetime.datetime.now()))
         return response, status.HTTP_500_INTERNAL_SERVER_ERROR
 
     msg = {'status': 'OK', 'message': 'Refresh token successful.', 'token': new_token}
     response = json.dumps(msg)
-    print('\r\nRefresh token successful\r\n{}\r\n'.format(response))
+    print('\r\nRefresh token successful DATETIME {}\r\n{}\r\n'.format(datetime.datetime.now(), response))
     return response
 
 
