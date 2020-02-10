@@ -81,6 +81,15 @@ def get_configuration(database_client, deviceid, topic, payload):
 
     print("{} {}".format(topic, deviceid))
 
+    # find if deviceid exists
+    devicename = database_client.get_devicename(deviceid)
+    if devicename is None:
+        # if no entry found, just send an empty json
+        new_payload = {}
+        new_payload = json.dumps(new_payload)
+        g_messaging_client.publish(new_topic, new_payload, debug=False) # NOTE: enable to DEBUG
+        return
+
     # set topic and payload template for the response
     new_topic = "{}{}{}".format(deviceid, CONFIG_SEPARATOR, API_RECEIVE_CONFIGURATION)
     new_payload = {
