@@ -3441,6 +3441,66 @@ def get_all_device_sensors_enabled_input_readings_dataset(devicename):
 
 ########################################################################################################
 #
+# DELETE PERIPHERAL SENSOR PROPERTIES
+#
+# - Request:
+#   DELETE /devices/device/DEVICENAME/sensors/properties
+#   headers: { 'Authorization': 'Bearer ' + token.access }
+#
+# - Response:
+#   { 'status': 'OK', 'message': string }
+#   { 'status': 'NG', 'message': string }
+#
+########################################################################################################
+@app.route('/devices/device/<devicename>/sensors/properties', methods=['DELETE'])
+def delete_all_device_sensors_properties(devicename):
+
+    # get token from Authorization header
+    auth_header_token = get_auth_header_token()
+    if auth_header_token is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
+        print('\r\nERROR Delete All Device Sensors Properties: Invalid authorization header\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
+    token = {'access': auth_header_token}
+
+    # get username from token
+    username = g_database_client.get_username_from_token(token)
+    if username is None:
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Delete All Device Sensors Properties: Token expired\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
+    print('delete_all_device_sensors_properties {} devicename={}'.format(username, devicename))
+
+    # check if a parameter is empty
+    if len(username) == 0 or len(token) == 0:
+        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+        print('\r\nERROR Delete All Device Sensors Properties: Empty parameter found\r\n')
+        return response, status.HTTP_400_BAD_REQUEST
+
+    # check if username and token is valid
+    verify_ret, new_token = g_database_client.verify_token(username, token)
+    if verify_ret == 2:
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Delete All Device Sensors Properties: Token expired [{} {}]\r\n'.format(username, devicename))
+        return response, status.HTTP_401_UNAUTHORIZED
+    elif verify_ret != 0:
+        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
+        print('\r\nERROR Delete All Device Sensors Properties: Token is invalid [{} {}]\r\n'.format(username, devicename))
+        return response, status.HTTP_401_UNAUTHORIZED
+
+    g_database_client.delete_all_device_peripheral_configuration(username, devicename)
+
+    msg = {'status': 'OK', 'message': 'Delete All Device Sensors Properties deleted successfully.',}
+    if new_token:
+        msg['new_token'] = new_token
+    response = json.dumps(msg)
+    print('\r\nDelete All Device Sensors Properties successful: {} {}\r\n'.format(username, devicename))
+    return response
+
+
+
+########################################################################################################
+#
 # GET I2C DEVICES
 #
 # - Request:

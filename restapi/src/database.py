@@ -273,6 +273,9 @@ class database_client:
     def delete_device_peripheral_configuration(self, username, devicename, source, number, address):
         return self._devices.delete_device_peripheral_configuration(self._devices.get_deviceid(username, devicename), source, number, address)
 
+    def delete_all_device_peripheral_configuration(self, username, devicename):
+        return self._devices.delete_all_device_peripheral_configuration(self._devices.get_deviceid(username, devicename))
+
     def get_device_peripheral_configuration(self, username, devicename, source, number, address):
         return self._devices.get_device_peripheral_configuration(self._devices.get_deviceid(username, devicename), source, number, address)
 
@@ -1075,6 +1078,14 @@ class database_client_mongodb:
                 configurations.delete_many({'deviceid': deviceid, 'source': source, 'number': number})
         except:
             print("delete_device_peripheral_configuration: Exception occurred")
+            pass
+
+    def delete_all_device_peripheral_configuration(self, deviceid):
+        configurations = self.get_configurations_document();
+        try:
+            configurations.delete_many({'deviceid': deviceid})
+        except:
+            print("delete_all_device_peripheral_configuration: Exception occurred")
             pass
 
     def get_device_peripheral_configuration(self, deviceid, source, number, address):
