@@ -346,9 +346,9 @@ class cognito_client:
 		if claims["token_use"] != "access":
 			print('Token is not an access token')
 			return 1
-		curr_time = time.time()
+		curr_time = int(time.time())
 		if curr_time > claims["exp"] or curr_time < claims["iat"]:
-			print('Token is expired {} {}'.format(curr_time, claims["exp"]))
+			print('Token is expired {}, exp {}, iat {}'.format(curr_time, claims["exp"], claims["iat"]))
 			return 2
 		if claims["client_id"] != config.CONFIG_CLIENT_ID:
 			print('Token was not issued for this client_id')
