@@ -2785,7 +2785,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
     };
 
     $scope.settings =  {
-        'sensorrate'  : 1,
+        'sensorrate'  : 5,
     };
 
 
@@ -2820,7 +2820,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
     }; 
 
 
-    // RESTART SETTINGS
+    // SET SETTINGS
     $scope.setSettings = function(devicename) {
         set_settings(devicename); 
     };
@@ -2848,6 +2848,41 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             $ionicPopup.alert({
                 title: 'Device Settings',
                 template: 'Device settings has been applied successully!',
+            });            
+        })
+        .catch(function (error) {
+            handle_error(error);
+        }); 
+    };
+    
+    
+    // DELETE PROPERTIES
+    $scope.deleteProperties = function(devicename) {
+        delete_properties(devicename); 
+    };
+    
+    delete_properties = function(devicename) {
+        //
+        // DELETE PROPERTIES
+        // - Request:
+        //   DELETE /devices/device/<devicename>/sensors/properties
+        //   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+        //   data: { 'status': int }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string }
+        //   { 'status': 'NG', 'message': string }
+        //        
+        $http({
+            method: 'DELETE',
+            url: server + '/devices/device/' + devicename + '/sensors/properties',
+            headers: {'Authorization': 'Bearer ' + $scope.data.token.access},
+        })
+        .then(function (result) {
+            console.log(result.data);
+            $ionicPopup.alert({
+                title: 'Device Sensor Properties',
+                template: 'Device sensor properties has been reseted/cleared successully!',
             });            
         })
         .catch(function (error) {
