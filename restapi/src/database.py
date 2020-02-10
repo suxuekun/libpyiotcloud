@@ -561,6 +561,8 @@ class database_client_cognito:
                 new_token['id'] = response['AuthenticationResult']['IdToken']
                 print("Token refreshed! {} {}".format(result, response))
                 return 0, new_token
+        elif result == 2: # fail or unexpected error
+            return result, None
         elif result != 0: # fail or unexpected error
             print("Unexpected error! {}".format(result))
             return result, None

@@ -620,7 +620,7 @@ def refresh_user_token():
 
     msg = {'status': 'OK', 'message': 'Refresh token successful.', 'token': new_token}
     response = json.dumps(msg)
-    print('\r\nRefresh token successful DATETIME {}\r\n{}\r\n'.format(datetime.datetime.now(), response))
+    print('\r\nRefresh token successful DATETIME {}\r\n'.format(datetime.datetime.now()))
     return response
 
 
