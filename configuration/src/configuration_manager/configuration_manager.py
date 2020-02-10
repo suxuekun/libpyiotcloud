@@ -64,6 +64,7 @@ CONFIG_SEPARATOR            = '/'
 API_RECEIVE_CONFIGURATION   = "rcv_configuration"
 API_REQUEST_CONFIGURATION   = "req_configuration"
 API_DELETE_CONFIGURATION    = "del_configuration"
+API_SET_CONFIGURATION       = "set_configuration"
 
 
 
@@ -232,6 +233,161 @@ def del_configuration(database_client, deviceid, topic, payload):
         database_client.delete_all_device_peripheral_configuration(deviceid)
 
 
+def set_configuration(database_client, deviceid, topic, payload):
+
+    print("{} {}".format(topic, deviceid))
+
+    payload = json.loads(payload)
+
+    source = "uart"
+    if payload.get(source):
+        for x in range(len(payload[source])):
+            print(payload[source][x])
+
+            address = None
+            classid = None
+            subclassid = None
+
+            enabled = 0
+            if payload[source][x].get("enabled"):
+                enabled = payload[source][x]["enabled"]
+
+            properties = None
+            if payload[source][x].get("attributes"):
+                properties = payload[source][x]["attributes"]
+
+            database_client.update_device_peripheral_configuration_by_deviceid(deviceid, source, x+1, address, classid, subclassid, enabled, properties)
+
+    source = "gpio"
+    if payload.get(source):
+        for x in range(len(payload[source])):
+            print(payload[source][x])
+
+            address = None
+            classid = None
+            subclassid = None
+
+            enabled = 0
+            if payload[source][x].get("enabled"):
+                enabled = payload[source][x]["enabled"]
+
+            properties = None
+            if payload[source][x].get("attributes"):
+                properties = payload[source][x]["attributes"]
+            else:
+                continue
+
+            database_client.update_device_peripheral_configuration_by_deviceid(deviceid, source, x+1, address, classid, subclassid, enabled, properties)
+
+    source = "i2c"
+    if payload.get(source):
+        for x in range(len(payload[source])):
+            for y in range(len(payload[source][x])):
+                print(payload[source][x][y])
+
+                address = None
+                if payload[source][x][y].get("address"):
+                    address = payload[source][x][y]["address"]
+
+                classid = None
+                if payload[source][x][y].get("class"):
+                    classid = payload[source][x][y]["class"]
+
+                subclassid = None
+                if payload[source][x][y].get("subclass"):
+                    subclassid = payload[source][x][y]["subclass"]
+
+                enabled = 0
+                if payload[source][x][y].get("enabled"):
+                    enabled = payload[source][x][y]["enabled"]
+
+                properties = None
+                if payload[source][x][y].get("attributes"):
+                    properties = payload[source][x][y]["attributes"]
+                else:
+                    continue
+
+                database_client.update_device_peripheral_configuration_by_deviceid(deviceid, source, x+1, address, classid, subclassid, enabled, properties)
+
+    source = "adc"
+    if payload.get(source):
+        for x in range(len(payload[source])):
+            print(payload[source][x])
+
+            address = None
+            classid = None
+            if payload[source][x].get("class"):
+                classid = payload[source][x]["class"]
+
+            subclassid = None
+            if payload[source][x].get("subclass"):
+                subclassid = payload[source][x]["subclass"]
+
+            enabled = 0
+            if payload[source][x].get("enabled"):
+                enabled = payload[source][x]["enabled"]
+
+            properties = None
+            if payload[source][x].get("attributes"):
+                properties = payload[source][x]["attributes"]
+            else:
+                continue
+
+            database_client.update_device_peripheral_configuration_by_deviceid(deviceid, source, x+1, address, classid, subclassid, enabled, properties)
+
+    source = "tprobe"
+    if payload.get(source):
+        for x in range(len(payload[source])):
+            print(payload[source][x])
+
+            address = None
+            classid = None
+            if payload[source][x].get("class"):
+                classid = payload[source][x]["class"]
+
+            subclassid = None
+            if payload[source][x].get("subclass"):
+                subclassid = payload[source][x]["subclass"]
+
+            enabled = 0
+            if payload[source][x].get("enabled"):
+                enabled = payload[source][x]["enabled"]
+
+            properties = None
+            if payload[source][x].get("attributes"):
+                properties = payload[source][x]["attributes"]
+            else:
+                continue
+
+            database_client.update_device_peripheral_configuration_by_deviceid(deviceid, source, x+1, address, classid, subclassid, enabled, properties)
+
+    source = "1wire"
+    if payload.get(source):
+        for x in range(len(payload[source])):
+            print(payload[source][x])
+
+            address = None
+            classid = None
+            if payload[source][x].get("class"):
+                classid = payload[source][x]["class"]
+
+            subclassid = None
+            if payload[source][x].get("subclass"):
+                subclassid = payload[source][x]["subclass"]
+
+            enabled = 0
+            if payload[source][x].get("enabled"):
+                enabled = payload[source][x]["enabled"]
+
+            properties = None
+            if payload[source][x].get("attributes"):
+                properties = payload[source][x]["attributes"]
+            else:
+                continue
+
+            database_client.update_device_peripheral_configuration_by_deviceid(deviceid, source, x+1, address, classid, subclassid, enabled, properties)
+
+
 def on_message(subtopic, subpayload):
 
     #print(subtopic)
@@ -259,6 +415,14 @@ def on_message(subtopic, subpayload):
             thr.start()
         except Exception as e:
             print("exception API_DELETE_CONFIGURATION")
+            print(e)
+            return
+    elif topic == API_SET_CONFIGURATION:
+        try:
+            thr = threading.Thread(target = set_configuration, args = (g_database_client, deviceid, topic, payload ))
+            thr.start()
+        except Exception as e:
+            print("exception API_SET_CONFIGURATION")
             print(e)
             return
 
@@ -359,8 +523,10 @@ if __name__ == '__main__':
     time.sleep(1)
     subtopic = "{}{}+{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_SEPARATOR, API_REQUEST_CONFIGURATION)
     subtopic2 = "{}{}+{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_SEPARATOR, API_DELETE_CONFIGURATION)
+    subtopic3 = "{}{}+{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_SEPARATOR, API_SET_CONFIGURATION)
     g_messaging_client.subscribe(subtopic, subscribe=True, declare=True, consume_continuously=True)
     g_messaging_client.subscribe(subtopic2, subscribe=True, declare=True, consume_continuously=True)
+    g_messaging_client.subscribe(subtopic3, subscribe=True, declare=True, consume_continuously=True)
 
 
     while g_messaging_client.is_connected():

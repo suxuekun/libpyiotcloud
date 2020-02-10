@@ -175,8 +175,11 @@ class database_client:
     # configurations
     ##########################################################
 
-    def update_device_peripheral_configuration(self, username, devicename, source, number, address, properties):
-        return self._devices.update_device_peripheral_configuration(self._devices.get_deviceid(username, devicename), source, number, address, properties)
+    def update_device_peripheral_configuration_by_deviceid(self, deviceid, source, number, address, classid, subclassid, enabled, properties):
+        return self._devices.update_device_peripheral_configuration(deviceid, source, number, address, classid, subclassid, enabled, properties)
+
+    def update_device_peripheral_configuration(self, username, devicename, source, number, address, classid, subclassid, enabled, properties):
+        return self._devices.update_device_peripheral_configuration(self._devices.get_deviceid(username, devicename), source, number, address, classid, subclassid, enabled, vproperties)
 
     def get_all_device_peripheral_configuration(self, deviceid):
         return self._devices.get_all_device_peripheral_configuration(deviceid)
@@ -594,7 +597,7 @@ class database_client_mongodb:
     def get_configurations_document(self):
         return self.client[config.CONFIG_MONGODB_TB_CONFIGURATIONS]
 
-    def update_device_peripheral_configuration(self, deviceid, source, number, address, properties):
+    def update_device_peripheral_configuration(self, deviceid, source, number, address, classid, subclassid, enabled, properties):
         configurations = self.get_configurations_document()
         item = {}
         item['deviceid'] = deviceid
@@ -602,7 +605,12 @@ class database_client_mongodb:
         item['number'] = number
         if address is not None:
             item['address'] = address
-        item['properties'] = properties
+        if classid is not None:
+            item['class'] = classid
+        if subclassid is not None:
+            item['subclass'] = subclassid
+        item['attributes'] = properties
+        item['enabled'] = enabled
 
         #print("update_device_peripheral_configuration find_one")
         if address is not None:
