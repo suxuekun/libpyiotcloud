@@ -274,6 +274,10 @@ SUMMARY:
 		P. GET PERIPHERAL SENSOR READINGS DATASET - GET    /devices/device/DEVICENAME/sensors/readings/dataset
 		Q. DELETE PERIPHERAL SENSOR READINGS      - DELETE /devices/device/DEVICENAME/sensors/readings
 
+		//
+		// sensor properties
+		R. DELETE PERIPHERAL SENSOR PROPERTIES    - DELETE /devices/device/DEVICENAME/sensors/properties
+
 
 	4. Device access and control APIs (I2C)
 
@@ -1155,6 +1159,14 @@ DETAILED:
 		Q. DELETE PERIPHERAL SENSOR READINGS
 		-  Request:
 		   DELETE /devices/device/DEVICENAME/sensors/readings
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		-  Response:
+		   { 'status': 'OK', 'message': string}
+		   { 'status': 'NG', 'message': string}
+
+		R. DELETE PERIPHERAL SENSOR PROPERTIES
+		-  Request:
+		   DELETE /devices/device/DEVICENAME/sensors/properties
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
 		   { 'status': 'OK', 'message': string}
