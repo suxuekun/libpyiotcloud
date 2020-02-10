@@ -221,6 +221,11 @@ def del_configuration(database_client, deviceid, topic, payload):
 
     print("{} {}".format(topic, deviceid))
 
+    # find if deviceid exists
+    devicename = database_client.get_devicename(deviceid)
+    if devicename is None:
+        return
+
     payload = json.loads(payload)
     if payload.get("peripherals"):
         # peripherals specified
@@ -238,6 +243,11 @@ def set_configuration(database_client, deviceid, topic, payload):
     print("{} {}".format(topic, deviceid))
 
     payload = json.loads(payload)
+
+    # find if deviceid exists
+    devicename = database_client.get_devicename(deviceid)
+    if devicename is None:
+        return
 
     source = "uart"
     if payload.get(source):
