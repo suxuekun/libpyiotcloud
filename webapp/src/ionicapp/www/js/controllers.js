@@ -3085,7 +3085,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
     $scope.sensors = [];
     $scope.sensors_counthdr = "No sensor enabled" ;
     $scope.refresh_automatically = false;
-    $scope.refresh_time = 3;
+    $scope.refresh_time = 5;
     $scope.run_time = 0;
     
     $scope.sensors_datachart_colors = ['#387EF5', '#EF473A'];
