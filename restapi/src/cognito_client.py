@@ -269,7 +269,8 @@ class cognito_client:
 		}
 		try:
 			response = self.__get_client().initiate_auth(**params)
-		except:
+		except Exception as e:
+			print(e)
 			return (False, None)
 		return (self.__get_result(response), response)
 
@@ -348,7 +349,7 @@ class cognito_client:
 			return 1
 		curr_time = int(time.time())
 		if curr_time > claims["exp"] or curr_time < claims["iat"]:
-			print('Token is expired {}, exp {}, iat {}'.format(curr_time, claims["exp"], claims["iat"]))
+			#print('Token is expired {} [iat {}, exp {}]'.format(curr_time, claims["iat"], claims["exp"]))
 			return 2
 		if claims["client_id"] != config.CONFIG_CLIENT_ID:
 			print('Token was not issued for this client_id')

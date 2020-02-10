@@ -531,7 +531,7 @@ class database_client_cognito:
             new_token['access'] = response['AuthenticationResult']['AccessToken']
             new_token['refresh'] = token['refresh']
             new_token['id'] = response['AuthenticationResult']['IdToken']
-            print("Token refreshed! {} {}".format(result, response))
+            #print("Token refreshed! {} {}".format(result, response))
             return new_token
         else:
             print("Token refreshed ERROR!\r\n")
@@ -543,7 +543,7 @@ class database_client_cognito:
                 new_token['access'] = response['AuthenticationResult']['AccessToken']
                 new_token['refresh'] = token['refresh']
                 new_token['id'] = response['AuthenticationResult']['IdToken']
-                print("Admin token refreshed! {} {}".format(result, response))
+                #print("Admin token refreshed! {} {}".format(result, response))
                 return new_token
             else:
                 print("Admin token refreshed ERROR!\r\n")
