@@ -249,6 +249,7 @@ def set_configuration(database_client, deviceid, topic, payload):
     if devicename is None:
         return
 
+    # process UART configuration
     source = "uart"
     if payload.get(source):
         for x in range(len(payload[source])):
@@ -268,6 +269,7 @@ def set_configuration(database_client, deviceid, topic, payload):
 
             database_client.update_device_peripheral_configuration_by_deviceid(deviceid, source, x+1, address, classid, subclassid, enabled, properties)
 
+    # process GPIO configuration
     source = "gpio"
     if payload.get(source):
         for x in range(len(payload[source])):
@@ -289,6 +291,7 @@ def set_configuration(database_client, deviceid, topic, payload):
 
             database_client.update_device_peripheral_configuration_by_deviceid(deviceid, source, x+1, address, classid, subclassid, enabled, properties)
 
+    # process I2C device configuration
     source = "i2c"
     if payload.get(source):
         for x in range(len(payload[source])):
@@ -319,6 +322,7 @@ def set_configuration(database_client, deviceid, topic, payload):
 
                 database_client.update_device_peripheral_configuration_by_deviceid(deviceid, source, x+1, address, classid, subclassid, enabled, properties)
 
+    # process ADC device configuration
     source = "adc"
     if payload.get(source):
         for x in range(len(payload[source])):
@@ -345,6 +349,7 @@ def set_configuration(database_client, deviceid, topic, payload):
 
             database_client.update_device_peripheral_configuration_by_deviceid(deviceid, source, x+1, address, classid, subclassid, enabled, properties)
 
+    # process TPROBE device configuration
     source = "tprobe"
     if payload.get(source):
         for x in range(len(payload[source])):
@@ -371,6 +376,7 @@ def set_configuration(database_client, deviceid, topic, payload):
 
             database_client.update_device_peripheral_configuration_by_deviceid(deviceid, source, x+1, address, classid, subclassid, enabled, properties)
 
+    # process 1WIRE device configuration
     source = "1wire"
     if payload.get(source):
         for x in range(len(payload[source])):
