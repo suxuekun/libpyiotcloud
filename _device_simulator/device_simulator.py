@@ -30,6 +30,7 @@ CONFIG_REQUEST_CONFIGURATION_DEBUG = False
 CONFIG_DELETE_CONFIGURATION = False
 CONFIG_AUTO_ENABLE_CONFIGURATION = True
 CONFIG_SAVE_CONFIGURATION_TO_FILE = True
+CONFIG_LOAD_CONFIGURATION_FROM_FILE = False
 
 # timer thread for publishing sensor data
 g_timer_thread_timeout = 5
@@ -192,6 +193,7 @@ API_PUBLISH_SENSOR_READING       = "sensor_reading"
 API_RECEIVE_CONFIGURATION        = "rcv_configuration"
 API_REQUEST_CONFIGURATION        = "req_configuration"
 API_DELETE_CONFIGURATION         = "del_configuration"
+API_SET_CONFIGURATION            = "set_configuration"
 
 
 
@@ -1309,6 +1311,26 @@ def del_configuration(peripherals = None):
         payload = { "peripherals": peripherals }
     publish(topic, payload)
 
+def set_configuration(filename = None):
+    topic = "{}{}{}{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_DEVICE_ID, CONFIG_SEPARATOR, API_SET_CONFIGURATION)
+    payload = {}
+
+    if filename is None:
+        filename = "{}.cfg".format(CONFIG_DEVICE_ID)
+    print("\r\n\r\nLoad device configuration from file {}".format(filename))
+
+    try:
+        f = open(filename, "r")
+    except:
+        print("{} does not exist".format(filename))
+        return
+    #json_formatted_str = json.dumps(json_config, indent=2)
+    config = f.read()
+    payload = json.loads(config)
+    #print_json(payload)
+    f.close()
+    publish(topic, payload)
+
 
 def get_random_data(peripheral_class):
     if peripheral_class == "potentiometer":
@@ -1820,6 +1842,11 @@ if __name__ == '__main__':
             # can specify specific peripherals like below
             # peripherals can be uart, gpio, i2c, adc, 1wire, tprobe
             #del_configuration(["i2c"])
+
+        # Load device configuration from file
+        if CONFIG_LOAD_CONFIGURATION_FROM_FILE:
+            time.sleep(1)
+            set_configuration()
 
         # Query device configuration
         if CONFIG_REQUEST_CONFIGURATION:
