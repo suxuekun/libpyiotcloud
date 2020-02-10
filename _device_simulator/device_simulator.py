@@ -1,5 +1,6 @@
 import json
 import time
+import datetime
 import netifaces
 import argparse
 import sys
@@ -28,6 +29,7 @@ CONFIG_REQUEST_CONFIGURATION = True
 CONFIG_REQUEST_CONFIGURATION_DEBUG = False
 CONFIG_DELETE_CONFIGURATION = False
 CONFIG_AUTO_ENABLE_CONFIGURATION = True
+CONFIG_SAVE_CONFIGURATION_TO_FILE = True
 
 # timer thread for publishing sensor data
 g_timer_thread_timeout = 5
@@ -245,6 +247,19 @@ def setClassAttributes(device_class, class_attributes):
         class_attributes.pop("subclass")
     attributes = class_attributes
     return attributes
+
+def writeConfigToFile(json_config):
+    try:
+        now = datetime.datetime.now()
+        filename = "{}_{}.cfg".format(CONFIG_DEVICE_ID, now.strftime("%Y%m%d%H%M%S"))
+        f = open(filename, "w")
+        json_formatted_str = json.dumps(json_config, indent=2)
+        f.write(json_formatted_str)
+        f.close()
+        print("\r\nDevice configuration saved to {}\r\n".format(filename))
+    except:
+        print("exception")
+        pass
 
 def handle_api(api, subtopic, subpayload):
     global g_device_status
@@ -1063,6 +1078,9 @@ def handle_api(api, subtopic, subpayload):
         if len(subpayload) > 2:
             print(len(subpayload))
         subpayload = json.loads(subpayload)
+
+        if CONFIG_SAVE_CONFIGURATION_TO_FILE:
+            writeConfigToFile(subpayload)
 
         if CONFIG_REQUEST_CONFIGURATION_DEBUG:
             print("")
