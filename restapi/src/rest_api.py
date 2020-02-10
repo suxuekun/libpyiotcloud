@@ -592,7 +592,7 @@ def refresh_user_token():
         return response, status.HTTP_401_UNAUTHORIZED
     token = {'access': auth_header_token}
 
-    print('refresh_user_token')
+    #print('refresh_user_token')
 
     # check if a parameter is empty
     if len(token) == 0:
@@ -3236,11 +3236,11 @@ def get_all_device_sensors_enabled_input_readings(devicename):
     verify_ret, new_token = g_database_client.verify_token(username, token)
     if verify_ret == 2:
         response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Get All Device Sensors: Token expired [{}]\r\n'.format(username))
+        print('\r\nERROR Get All Device Sensors: Token expired [{} {}] DATETIME {}\r\n'.format(username, devicename, datetime.datetime.now()))
         return response, status.HTTP_401_UNAUTHORIZED
     elif verify_ret != 0:
         response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
-        print('\r\nERROR Get All Device Sensors: Token is invalid [{}]\r\n'.format(username))
+        print('\r\nERROR Get All Device Sensors: Token is invalid [{} {}]\r\n'.format(username, devicename))
         return response, status.HTTP_401_UNAUTHORIZED
 
 
@@ -3363,11 +3363,11 @@ def get_all_device_sensors_enabled_input_readings_dataset(devicename):
     verify_ret, new_token = g_database_client.verify_token(username, token)
     if verify_ret == 2:
         response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Get All Device Sensors Dataset: Token expired [{}]\r\n'.format(username))
+        print('\r\nERROR Get All Device Sensors Dataset: Token expired [{} {}] DATETIME {}\r\n'.format(username, devicename, datetime.datetime.now()))
         return response, status.HTTP_401_UNAUTHORIZED
     elif verify_ret != 0:
         response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
-        print('\r\nERROR Get All Device Sensors Dataset: Token is invalid [{}]\r\n'.format(username))
+        print('\r\nERROR Get All Device Sensors Dataset: Token is invalid [{} {}]\r\n'.format(username, devicename))
         return response, status.HTTP_401_UNAUTHORIZED
 
 
@@ -5143,7 +5143,7 @@ def process_request_get(api, data, timeout=2):
         if new_token:
             msg['new_token'] = new_token
         response = json.dumps(msg)
-        print('\r\nERROR Device is unreachable [{}, {}]\r\n'.format(username, devicename))
+        print('\r\nERROR Device is unreachable [{}, {}] DATETIME {}\r\n'.format(username, devicename, datetime.datetime.now()))
         return response, status.HTTP_503_SERVICE_UNAVAILABLE
 
     #print(response)
@@ -5218,7 +5218,7 @@ def process_request(api, data, timeout=2):
         if new_token:
             msg['new_token'] = new_token
         response = json.dumps(msg)
-        print('\r\nERROR Device is unreachable [{}, {}]\r\n'.format(username, devicename))
+        print('\r\nERROR Device is unreachable [{}, {}] DATETIME {}\r\n'.format(username, devicename, datetime.datetime.now()))
         return response, status.HTTP_503_SERVICE_UNAVAILABLE
 
     #print(response)
@@ -5255,7 +5255,13 @@ def get_auth_header_user_pass():
 
 # Authorization header: Bearer JWT
 def get_jwtencode_user_pass(token):
-    payload = jwt.decode(token, config.CONFIG_JWT_SECRET_KEY, algorithms=['HS256'])
+    payload = None
+    try:
+        payload = jwt.decode(token, config.CONFIG_JWT_SECRET_KEY, algorithms=['HS256'])
+    except:
+        reason = "JWT decode exception"
+        print(reason)
+        return None, None, reason
     if payload is None:
         reason = "JWT decode failed"
         print(reason)
@@ -5457,7 +5463,7 @@ def receive_message(topic, timeout):
             time.sleep(1)
             i += 1
         if i >= timeout:
-            print("receive_message timed_out")
+            #print("receive_message timed_out")
             break
     return None
 
