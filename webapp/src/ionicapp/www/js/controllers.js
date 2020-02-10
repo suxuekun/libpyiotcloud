@@ -2951,31 +2951,10 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         if (error.data !== null) {
             console.log("ERROR: Control Device failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
 
-            console.log("aaaaa");
             if (error.data.message === "Token expired") {
-            console.log("bbbbbbbbbb");
                 Token.refresh({'username': $scope.data.username, 'token': $scope.data.token});
                 $scope.data.token = User.get_token();
             }
-            
-            console.log("cccccccccc");
-            if (error.status == 503) {
-/*                
-                if (error.data.value !== undefined) {
-                    if (error.data.value.heartbeat !== undefined) {
-                        var heartbeat = new Date(error.data.value.heartbeat * 1000);
-                        $scope.data.devicestatus = "Last active: " + heartbeat;
-                    }        
-                    if (error.data.value.version !== undefined) {
-                        $scope.data.deviceversion = error.data.value.version;
-                    }
-                }
-*/
-            }
-            else {
-//                $scope.data.devicestatus = "UNKNOWN";                
-            }
-            console.log("ddddd");
         }
         else {
             console.log("ERROR: Server is down!"); 
@@ -3925,7 +3904,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
     
     handle_error = function(error, showerror) {
         if (error.data !== null) {
-            console.log("ERROR: Control Device failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
+            console.log("ERROR: Device GPIO failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
 
             if (error.data.message === "Token expired") {
                 Token.refresh({'username': $scope.data.username, 'token': $scope.data.token});
@@ -4115,7 +4094,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             get_gpios();
         })
         .catch(function (error) {
-            handle_error(error, false);
+            handle_error(error, true);
         }); 
     };
 
@@ -4515,16 +4494,16 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
     };
 
     
-    handle_error = function(error) {
+    handle_error = function(error, showerror=true) {
         if (error.data !== null) {
-            console.log("ERROR: Control Device failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
+            console.log("ERROR: Device UART failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
 
             if (error.data.message === "Token expired") {
                 Token.refresh({'username': $scope.data.username, 'token': $scope.data.token});
                 $scope.data.token = User.get_token();
             }
             
-            if (error.status == 503) {
+            if (error.status == 503 && showerror === true ) {
                 $ionicPopup.alert({ title: 'Error', template: 'Device is unreachable!', buttons: [{text: 'OK', type: 'button-assertive'}] });
             }            
         }
@@ -4887,16 +4866,16 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
    
    
    
-    handle_error = function(error) {
+    handle_error = function(error, showerror) {
         if (error.data !== null) {
-            console.log("ERROR: Add I2C Device Details failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
+            console.log("ERROR: Device I2C failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
 
             if (error.data.message === "Token expired") {
                 Token.refresh({'username': $scope.data.username, 'token': $scope.data.token});
                 $scope.data.token = User.get_token();
             }
             
-            if (error.status == 503) {
+            if (error.status == 503 && showerror === true ) {
                 $ionicPopup.alert({ title: 'Error', template: 'Device is unreachable!', buttons: [{text: 'OK', type: 'button-assertive'}] });
             }            
         }
@@ -4905,6 +4884,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
         }
     };
+
 
 /*
     // GET I2C SENSORS READINGS
@@ -5337,16 +5317,16 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
    
    
    
-    handle_error = function(error) {
+    handle_error = function(error, showerror) {
         if (error.data !== null) {
-            console.log("ERROR: Add ADC Device Details failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
+            console.log("ERROR: Device ADC failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
 
             if (error.data.message === "Token expired") {
                 Token.refresh({'username': $scope.data.username, 'token': $scope.data.token});
                 $scope.data.token = User.get_token();
             }
             
-            if (error.status == 503) {
+            if (error.status == 503 && showerror === true ) {
                 $ionicPopup.alert({ title: 'Error', template: 'Device is unreachable!', buttons: [{text: 'OK', type: 'button-assertive'}] });
             }            
         }
@@ -5755,16 +5735,16 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
    
    
    
-    handle_error = function(error) {
+    handle_error = function(error, showerror) {
         if (error.data !== null) {
-            console.log("ERROR: Add TPROBE Device Details failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
+            console.log("ERROR: Device TPROBE failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
 
             if (error.data.message === "Token expired") {
                 Token.refresh({'username': $scope.data.username, 'token': $scope.data.token});
                 $scope.data.token = User.get_token();
             }
             
-            if (error.status == 503) {
+            if (error.status == 503 && showerror === true ) {
                 $ionicPopup.alert({ title: 'Error', template: 'Device is unreachable!', buttons: [{text: 'OK', type: 'button-assertive'}] });
             }            
         }
@@ -6116,16 +6096,16 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
    
    
    
-    handle_error = function(error) {
+    handle_error = function(error, showerror) {
         if (error.data !== null) {
-            console.log("ERROR: Add 1WIRE Device Details failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
+            console.log("ERROR: Device 1WIRE failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
 
             if (error.data.message === "Token expired") {
                 Token.refresh({'username': $scope.data.username, 'token': $scope.data.token});
                 $scope.data.token = User.get_token();
             }
             
-            if (error.status == 503) {
+            if (error.status == 503 && showerror === true ) {
                 $ionicPopup.alert({ title: 'Error', template: 'Device is unreachable!', buttons: [{text: 'OK', type: 'button-assertive'}] });
             }            
         }
@@ -7612,7 +7592,25 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
     };
 
 
+    handle_error = function(error, showerror) {
+        if (error.data !== null) {
+            console.log("ERROR: Multiclass failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
 
+            if (error.data.message === "Token expired") {
+                Token.refresh({'username': $scope.data.username, 'token': $scope.data.token});
+                $scope.data.token = User.get_token();
+            }
+            
+            if (error.status == 503 && showerror === true ) {
+                $ionicPopup.alert({ title: 'Error', template: 'Device is unreachable!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+            }            
+        }
+        else {
+            console.log("ERROR: Server is down!"); 
+            $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+        }
+    };
+    
     $scope.enterPage = function(sensor_class) {
         
         var param = $scope.data;
@@ -8013,6 +8011,25 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
 */        
     };
 
+    handle_error = function(error, showerror) {
+        if (error.data !== null) {
+            console.log("ERROR: Light failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
+
+            if (error.data.message === "Token expired") {
+                Token.refresh({'username': $scope.data.username, 'token': $scope.data.token});
+                $scope.data.token = User.get_token();
+            }
+            
+            if (error.status == 503 && showerror === true ) {
+                $ionicPopup.alert({ title: 'Error', template: 'Device is unreachable!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+            }            
+        }
+        else {
+            console.log("ERROR: Server is down!"); 
+            $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+        }
+    };
+    
     $scope.configureColor = function(colortype) {
         param = {
             'username': $scope.data.username,
@@ -8557,6 +8574,26 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         'colortype': $stateParams.colortype,
     };
 
+
+    handle_error = function(error, showerror) {
+        if (error.data !== null) {
+            console.log("ERROR: Light RGB failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
+
+            if (error.data.message === "Token expired") {
+                Token.refresh({'username': $scope.data.username, 'token': $scope.data.token});
+                $scope.data.token = User.get_token();
+            }
+            
+            if (error.status == 503 && showerror === true ) {
+                $ionicPopup.alert({ title: 'Error', template: 'Device is unreachable!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+            }            
+        }
+        else {
+            console.log("ERROR: Server is down!"); 
+            $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+        }
+    };
+    
     $scope.$on('$ionicView.enter', function(e) {
         console.log("enter Light RGB");
         if ($scope.data.colortype === "RGB") {
@@ -9152,6 +9189,26 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         'multiclass': $stateParams.multiclass
     };
 
+
+    handle_error = function(error, showerror) {
+        if (error.data !== null) {
+            console.log("ERROR: Temperature failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
+
+            if (error.data.message === "Token expired") {
+                Token.refresh({'username': $scope.data.username, 'token': $scope.data.token});
+                $scope.data.token = User.get_token();
+            }
+            
+            if (error.status == 503 && showerror === true ) {
+                $ionicPopup.alert({ title: 'Error', template: 'Device is unreachable!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+            }            
+        }
+        else {
+            console.log("ERROR: Server is down!"); 
+            $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+        }
+    };
+    
     $scope.changeNotification = function(i) {
         $scope.data.showNotification = i;
         if (i===true) {
@@ -9586,6 +9643,25 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         //'multiclass_attributes': $stateParams.multiclass_attributes,
         //'multiclass_subattributes': $stateParams.multiclass_subattributes,
         'multiclass': $stateParams.multiclass
+    };
+
+    handle_error = function(error, showerror) {
+        if (error.data !== null) {
+            console.log("ERROR: Humidity failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
+
+            if (error.data.message === "Token expired") {
+                Token.refresh({'username': $scope.data.username, 'token': $scope.data.token});
+                $scope.data.token = User.get_token();
+            }
+            
+            if (error.status == 503 && showerror === true ) {
+                $ionicPopup.alert({ title: 'Error', template: 'Device is unreachable!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+            }            
+        }
+        else {
+            console.log("ERROR: Server is down!"); 
+            $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+        }
     };
 
     $scope.changeNotification = function(i) {
@@ -10031,6 +10107,26 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             'format': $scope.formats[0].id,
             'text': '23',
         },
+    };
+
+
+    handle_error = function(error, showerror) {
+        if (error.data !== null) {
+            console.log("ERROR: Display failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
+
+            if (error.data.message === "Token expired") {
+                Token.refresh({'username': $scope.data.username, 'token': $scope.data.token});
+                $scope.data.token = User.get_token();
+            }
+            
+            if (error.status == 503 && showerror === true ) {
+                $ionicPopup.alert({ title: 'Error', template: 'Device is unreachable!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+            }            
+        }
+        else {
+            console.log("ERROR: Server is down!"); 
+            $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+        }
     };
 
 
@@ -10498,6 +10594,25 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
     };
 
 
+    handle_error = function(error, showerror) {
+        if (error.data !== null) {
+            console.log("ERROR: Speaker failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
+
+            if (error.data.message === "Token expired") {
+                Token.refresh({'username': $scope.data.username, 'token': $scope.data.token});
+                $scope.data.token = User.get_token();
+            }
+            
+            if (error.status == 503 && showerror === true ) {
+                $ionicPopup.alert({ title: 'Error', template: 'Device is unreachable!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+            }            
+        }
+        else {
+            console.log("ERROR: Server is down!"); 
+            $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+        }
+    };
+    
     $scope.submit = function() {
         console.log("submit");
         console.log($scope.data.attributes);
@@ -10922,6 +11037,25 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         'showNotification': 0,        
     };
 
+    handle_error = function(error, showerror) {
+        if (error.data !== null) {
+            console.log("ERROR: Potentiometer failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
+
+            if (error.data.message === "Token expired") {
+                Token.refresh({'username': $scope.data.username, 'token': $scope.data.token});
+                $scope.data.token = User.get_token();
+            }
+            
+            if (error.status == 503 && showerror === true ) {
+                $ionicPopup.alert({ title: 'Error', template: 'Device is unreachable!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+            }            
+        }
+        else {
+            console.log("ERROR: Server is down!"); 
+            $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+        }
+    };
+    
     $scope.changeNotification = function(i) {
         $scope.data.showNotification = i;
         if (i===true) {
@@ -11264,6 +11398,26 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         
         'showNotification': 0,        
     };
+
+    handle_error = function(error, showerror) {
+        if (error.data !== null) {
+            console.log("ERROR: Anemometer failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
+
+            if (error.data.message === "Token expired") {
+                Token.refresh({'username': $scope.data.username, 'token': $scope.data.token});
+                $scope.data.token = User.get_token();
+            }
+            
+            if (error.status == 503 && showerror === true ) {
+                $ionicPopup.alert({ title: 'Error', template: 'Device is unreachable!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+            }            
+        }
+        else {
+            console.log("ERROR: Server is down!"); 
+            $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+        }
+    };
+
 
     $scope.changeNotification = function(i) {
         $scope.data.showNotification = i;
