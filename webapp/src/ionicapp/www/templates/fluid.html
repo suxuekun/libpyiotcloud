@@ -1,0 +1,117 @@
+<ion-view title="Fluid" hide-back-button="true" cache-view="false" nav-transition="none" id="page54" class="page_width">
+  <ion-nav-buttons side="left" class="has-header">
+    <button class="button button-icon icon ion-android-close" ng-click="submitDeviceList()"></button>
+  </ion-nav-buttons>
+  <ion-nav-buttons side="right" class="has-header">
+    <button class="button button-positive icon ion-refresh" ng-click="submitRefresh()"></button>
+  </ion-nav-buttons>
+  <ion-content padding="true" class="has-header">
+    <div class="spacer" style="width: 300px; height: 12px;"></div>
+    <div id="fluid-markdown382" style="text-align:center;" class="show-list-numbers-and-dots">
+      <p style="color:#387EF5;font-size:18px;">
+        <strong> {{ data.devicename }} </strong>
+      </p>
+    </div>
+    <button id="fluid-button147" ng-click="viewADCDevice()" style="font-weight:500;font-size:18px;" class="button button-dark button-block button-clear icon-right ion-android-settings">{{ data.sensor.sensorname }} - {{data.source}} {{ data.sensor.number }}</button>
+    <div class="spacer" style="width: 300px; height: 20px;"></div>
+    <form id="fluid-form201" class="list">
+      <div id="fluid-markdown383" class="show-list-numbers-and-dots">
+        <p style="color:#387EF5;">Mode</p>
+      </div>
+      <label class="item item-select" id="fluid-select91">
+        <span class="input-label"></span>
+        <select ng-model="data.attributes.mode" ng-options="mode.id as mode.label for mode in modes" ng-change="changeMode()"></select>
+      </label>
+    </form>
+    <form id="fluid-form202" class="list" ng-show="data.attributes.mode==0">
+      <div id="fluid-markdown384" class="show-list-numbers-and-dots">
+        <p style="color:#387EF5;">Threshold</p>
+      </div>
+      <label class="item item-input" id="fluid-input149">
+        <span class="input-label">Value</span>
+        <input type="number" placeholder="" ng-model="data.attributes.threshold.value">
+      </label>
+    </form>
+    <form id="fluid-form203" class="list" ng-show="data.attributes.mode==1">
+      <div id="fluid-markdown385" class="show-list-numbers-and-dots">
+        <p style="color:#387EF5;">Threshold</p>
+      </div>
+      <label class="item item-input" id="fluid-input150">
+        <span class="input-label">Minimum Limit</span>
+        <input type="number" placeholder="" ng-model="data.attributes.threshold.min">
+      </label>
+      <label class="item item-input" id="fluid-input151">
+        <span class="input-label">Maximum Limit</span>
+        <input type="number" placeholder="" ng-model="data.attributes.threshold.max">
+      </label>
+      <label class="item item-select" id="fluid-select92">
+        <span class="input-label">Activate when</span>
+        <select ng-model="data.attributes.threshold.activate" ng-options="activate.id as activate.label for activate in activates"></select>
+      </label>
+    </form>
+    <form id="fluid-form204" class="list">
+      <div id="fluid-markdown386" class="show-list-numbers-and-dots">
+        <p style="color:#387EF5;">Alert</p>
+      </div>
+      <label class="item item-select" id="fluid-select93">
+        <span class="input-label">Type</span>
+        <select ng-model="data.attributes.alert.type" ng-options="alert.id as alert.label for alert in alerts"></select>
+      </label>
+      <label class="item item-input" id="fluid-input152">
+        <span class="input-label">Period (milliseconds)</span>
+        <input type="number" placeholder="" ng-model="data.attributes.alert.period">
+      </label>
+    </form>
+    <form id="fluid-form205" class="list" ng-show="data.attributes.mode==2">
+      <div id="fluid-markdown387" class="show-list-numbers-and-dots">
+        <p style="color:#387EF5;">Hardware</p>
+      </div>
+      <label class="item item-select" id="fluid-select94">
+        <span class="input-label">IoT Modem</span>
+        <select ng-model="data.hardware_devicename" ng-options="device.id as device.devicename for device in devices"></select>
+      </label>
+    </form>
+    <form id="fluid-form206" class="list" ng-show="data.attributes.mode!=2">
+      <div id="fluid-markdown390" class="show-list-numbers-and-dots">
+        <p style="color:#387EF5;">Notification settings</p>
+      </div>
+      <ion-toggle toggle-class="toggle-positive" id="fluid-toggle21" ng-change="changeNotification(data.showNotification)" ng-model="data.showNotification">Show</ion-toggle>
+    </form>
+    <form id="fluid-form207" class="list" ng-show="data.showNotification==1 &amp;&amp; data.attributes.mode!=2">
+      <div id="fluid-markdown391" class="show-list-numbers-and-dots">
+        <p style="color:#387EF5;">Messages</p>
+      </div>
+      <ion-checkbox id="fluid-checkbox42" ng-model="data.attributes.notification.messages[0].enable">Message on activation</ion-checkbox>
+      <label class="item item-input" id="fluid-textarea22">
+        <span class="input-label"></span><textarea placeholder="" ng-model="data.attributes.notification.messages[0].message"></textarea></label>
+      <ion-checkbox id="fluid-checkbox43" ng-model="data.attributes.notification.messages[1].enable">Message on deactivation</ion-checkbox>
+      <label class="item item-input" id="fluid-textarea23">
+        <span class="input-label"></span><textarea placeholder="" ng-model="data.attributes.notification.messages[1].message"></textarea></label>
+    </form>
+    <form id="fluid-form208" class="list" ng-show="data.showNotification==1 &amp;&amp; data.attributes.mode!=2">
+      <div id="fluid-markdown392" class="show-list-numbers-and-dots">
+        <p style="color:#387EF5;">Recipients</p>
+      </div>
+      <ion-checkbox id="fluid-checkbox44" ng-model="data.attributes.notification.endpoints.email.enable">Send email to</ion-checkbox>
+      <label class="item item-input" id="fluid-input153">
+        <input type="text" placeholder="Email address(es)" ng-model="data.attributes.notification.endpoints.email.recipients">
+      </label>
+      <ion-checkbox id="fluid-checkbox45" ng-model="data.attributes.notification.endpoints.mobile.enable">Send SMS to</ion-checkbox>
+      <label class="item item-input" id="fluid-input154">
+        <input type="text" placeholder="Phone number(s)" ng-model="data.attributes.notification.endpoints.mobile.recipients">
+      </label>
+      <ion-checkbox id="fluid-checkbox46" ng-model="data.attributes.notification.endpoints.notification.enable">Send notification to</ion-checkbox>
+      <label class="item item-input" id="fluid-input155">
+        <input type="text" placeholder="****************" ng-model="data.attributes.notification.endpoints.notification.recipients" readonly="">
+      </label>
+      <ion-checkbox id="fluid-checkbox47" ng-model="data.attributes.notification.endpoints.modem.enable">Send to IoT Modem</ion-checkbox>
+      <label class="item item-select" id="fluid-select95">
+        <span class="input-label"></span>
+        <select ng-options="device.id as device.devicename for device in devices" ng-model="data.hardware_devicename"></select>
+      </label>
+    </form>
+    <form id="fluid-form209" class="list">
+      <button id="fluid-button148" ng-click="submit()" class="button button-positive button-block">{{ data.sensor.subclass ? "DONE" : "SAVE" }}</button>
+    </form>
+  </ion-content>
+</ion-view>

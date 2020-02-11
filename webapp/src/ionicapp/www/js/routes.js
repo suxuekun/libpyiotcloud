@@ -568,6 +568,38 @@ angular.module('app.routes', [])
     controller: 'anemometerCtrl'
   })
 
+  .state('battery', {
+    url: '/page_battery',
+	params: {
+		devicename: "",
+		username: "",
+		token: "",
+		devicestatus: "",
+		deviceid: "",
+		serialnumber: "",
+		sensor: "",
+		source: ""		
+},
+    templateUrl: 'templates/battery.html',
+    controller: 'batteryCtrl'
+  })
+
+  .state('fluid', {
+    url: '/page_fluid',
+	params: {
+		devicename: "",
+		username: "",
+		token: "",
+		devicestatus: "",
+		deviceid: "",
+		serialnumber: "",
+		sensor: "",
+		source: ""		
+},
+    templateUrl: 'templates/fluid.html',
+    controller: 'fluidCtrl'
+  })
+
   .state('addI2CDevice', {
     url: '/page_add_i2c_device',
 	params: {
