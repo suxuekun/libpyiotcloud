@@ -36,6 +36,7 @@ The web app is made of Ionic framework so it can be compiled as Android and iOS 
 - <b>Flask</b> web framework (REST API) - http://flask.pocoo.org/
 - <b>RabbitMQ</b> message broker (MQTT, AMQP) - https://www.rabbitmq.com/
 - <b>MongoDB</b> NoSQL database - https://www.mongodb.com/
+- <b>Redis</b> database caching - https://redis.io/
 - <b>OpenSSL</b> cryptography (X509 certificates) - https://www.openssl.org/
 - <b>Amazon EC2</b> - https://aws.amazon.com/ec2/
 - <b>Amazon Cognito</b> (user sign-up/sign-in) - https://aws.amazon.com/cognito/
