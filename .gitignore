@@ -13,6 +13,9 @@ _device_simulator/device_simulator.js_guest.bat
 _device_simulator/device_simulator.py_guest.bat
 _device_simulator/device_simulator.js_localhost.bat
 _device_simulator/device_simulator.py_localhost.bat
+_device_simulator/localhost/*.cfg
+_device_simulator/*.cfg
+_device_simulator/*.bat
 _kubernetes/environment_private.yaml
 _kubernetes/environment_private_prod.yaml
 _kubernetes/notes.txt
@@ -22,6 +25,7 @@ start.sh
 stop.sh
 _client_simulator
 _client_simulator/__pycache__
+restapi/src/redis-2.4.5-win32-win64
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
