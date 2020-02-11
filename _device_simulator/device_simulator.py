@@ -32,6 +32,10 @@ CONFIG_AUTO_ENABLE_CONFIGURATION = True
 CONFIG_SAVE_CONFIGURATION_TO_FILE = True
 CONFIG_LOAD_CONFIGURATION_FROM_FILE = False
 
+# notification thread for triggering notifications (demo 4 testing)
+CONFIG_SEND_NOTIFICATION_PERIODICALLY = False
+CONFIG_SEND_NOTIFICATION_PERIOD = 1800 # 30 minutes
+
 # timer thread for publishing sensor data
 g_timer_thread_timeout = 5
 g_timer_thread = None
@@ -1348,9 +1352,14 @@ class TimerThread(threading.Thread):
         threading.Thread.__init__(self)
         self.stopped = event
         self.timeout = timeout
+        if CONFIG_SEND_NOTIFICATION_PERIODICALLY:
+            self.notification_counter = 0
+            self.notification_max = int(CONFIG_SEND_NOTIFICATION_PERIOD/timeout)
 
     def set_timeout(self, timeout):
         self.timeout = timeout
+        if CONFIG_SEND_NOTIFICATION_PERIODICALLY:
+            self.notification_max = int(CONFIG_SEND_NOTIFICATION_PERIOD/timeout)
 
     def process_input_devices(self):
         topic = "{}{}{}{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_DEVICE_ID, CONFIG_SEPARATOR, API_PUBLISH_SENSOR_READING)
@@ -1516,12 +1525,20 @@ class TimerThread(threading.Thread):
                             publish(topic, payload)
                             print("")
 
+    def process_trigger_notification(self):
+        self.notification_counter += 1
+        if self.notification_counter >= self.notification_max:
+            self.notification_counter = 0
+            menos_publish(MENOS_EMAIL)
+            #menos_publish(MENOS_MOBILE)
 
     def run(self):
         print("")
         while not self.stopped.wait(self.timeout):
             self.process_input_devices()
             #self.process_output_devices()
+            if CONFIG_SEND_NOTIFICATION_PERIODICALLY:
+                self.process_trigger_notification()
 
 
 ###################################################################################
