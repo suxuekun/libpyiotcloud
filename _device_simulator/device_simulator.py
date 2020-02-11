@@ -424,6 +424,7 @@ def handle_api(api, subtopic, subpayload):
                                 if g_i2c_properties_enabled_output[x][y]["attributes"]["endpoint"] == 1:
                                     hardware = g_i2c_properties_enabled_output[x][y]["attributes"]["hardware"]
                                     if hardware["devicename"] == devicename and hardware["peripheral"] == peripheral and hardware["sensorname"] == sensorname and hardware["attribute"] == attribute:
+                                        value = int(value)
                                         print("text = {} ({})\r\n".format(value, hex(value).upper()))
                                         found = True
                                         break
@@ -1345,6 +1346,13 @@ def get_random_data(peripheral_class):
         return float("{0:.1f}".format(random.uniform(0, 100)))
     elif peripheral_class == "humidity":
         return float("{0:.1f}".format(random.uniform(0, 100)))
+    elif peripheral_class == "battery":
+        return float("{0:.1f}".format(random.uniform(0, 100)))
+    elif peripheral_class == "fluid":
+        return float("{0:.1f}".format(random.uniform(0, 100)))
+    else:
+        return float("{0:.1f}".format(random.uniform(0, 100)))
+
 
 class TimerThread(threading.Thread):
 
@@ -1411,7 +1419,7 @@ class TimerThread(threading.Thread):
             # adc device should be enabled
             if (g_adc_properties[x]["enabled"]):
                 adc_class = g_device_classes[g_adc_properties[x]["class"]]
-                if adc_class == "anemometer" or adc_class == "potentiometer":
+                if adc_class == "anemometer" or adc_class == "potentiometer" or adc_class == "battery" or adc_class == "fluid":
                     entry = {}
                     entry["value"] = get_random_data(adc_class)
                     entry["class"] = g_adc_properties[x]["class"]
