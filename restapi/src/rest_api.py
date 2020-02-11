@@ -54,6 +54,8 @@ I2C_DEVICE_CLASS_POTENTIOMETER = 3
 I2C_DEVICE_CLASS_TEMPERATURE   = 4
 I2C_DEVICE_CLASS_HUMIDITY      = 5
 I2C_DEVICE_CLASS_ANEMOMETER    = 6
+I2C_DEVICE_CLASS_BATTERY       = 7
+I2C_DEVICE_CLASS_FLUID         = 8
 
 
 
@@ -4357,6 +4359,10 @@ def get_i2c_device_class(classname):
         return I2C_DEVICE_CLASS_HUMIDITY
     elif classname == "anemometer":
         return I2C_DEVICE_CLASS_ANEMOMETER
+    elif classname == "battery":
+        return I2C_DEVICE_CLASS_BATTERY
+    elif classname == "fluid":
+        return I2C_DEVICE_CLASS_FLUID
     return 0xFF
 
 
