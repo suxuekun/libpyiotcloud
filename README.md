@@ -76,7 +76,7 @@ An alternative solution is using an AWS serverless solution wherein:
 3. <b>Restapi</b> - Flask with Gunicorn (back-end API called by web app and mobile apps)
 4. <b>Messaging</b> - RabbitMQ (device communicates w/RabbitMQ; web/mobile apps communicates to device via RabbitMQ)
 5. <b>Database</b> - MongoDB (database for storing device information for registered devices)
-6. <b>Notification</b> - handles sending of messages to email/SMS recipients
+6. <b>Notification</b> - handles sending of email, SMS and mobile push notifications
 7. <b>Historian</b> - handles saving of device requests and responses for each devices of all users
 8. <b>Sensorian</b> - handles saving of sensor readings for each devices of all users
 9. <b>Configuration</b> - handles providing of device configuration for each devices during device bootup
