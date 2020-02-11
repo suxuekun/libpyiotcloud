@@ -1725,6 +1725,55 @@ DETAILED:
 		   //   notification appears when mode is NOT continuous
 		   //   hardware
 		   //     appears when mode is continuous
+		   //
+		   // BATTERY class
+		      {
+		           "mode": int, 
+		           "threshold": {"value": int, "min": int, "max": int, "activate": int}, 
+		           "alert": {"type": int, 'period': int}, 
+		           "hardware": {"devicename": string}, 
+		           "notification": json_obj,
+		      }
+		   //   mode is an index to the list of modes
+		   //     ["Single Threshold", "Dual Threshold", "Continuous"]
+		   //   threshold
+		   //     if Single Threshold:
+		   //       value is used
+		   //     if Dual Threshold:
+		   //       min and max are used
+		   //   activate is an index to the list of activates
+		   //     ["Out of range", "Within range"]
+		   //   alert type is an index of the value in the list of alerts
+		   //     ["Once", "Continuously"]
+		   //   alert period is the time in milliseconds for the alert when alert type points to Continuously
+		   //   notification refers to the the same notification settings in GPIO
+		   //   hardware
+		   //     appears when mode is continuous
+		   //
+		   // FLUID class
+		      {
+		           "mode": int, 
+		           "threshold": {"value": int, "min": int, "max": int, "activate": int}, 
+		           "alert": {"type": int, 'period': int}, 
+		           "hardware": {"devicename": string}, 
+		           "notification": json_obj,
+		      }
+		   //   mode is an index to the list of modes
+		   //     ["Single Threshold", "Dual Threshold", "Continuous"]
+		   //   threshold
+		   //     if Single Threshold:
+		   //       value is used
+		   //     if Dual Threshold:
+		   //       min and max are used
+		   //   activate is an index to the list of activates
+		   //     ["Out of range", "Within range"]
+		   //   alert type is an index of the value in the list of alerts
+		   //     ["Once", "Continuously"]
+		   //   alert period is the time in milliseconds for the alert when alert type points to Continuously
+		   //   notification refers to the the same notification settings in GPIO
+		   //   hardware
+		   //     appears when mode is continuous
+		   //
 		   -  Response:
 		   { 'status': 'OK', 'message': string}
 		   { 'status': 'NG', 'message': string}
@@ -1759,6 +1808,55 @@ DETAILED:
 		   //   notification appears when mode is NOT continuous
 		   //   hardware
 		   //     appears when mode is continuous
+		   //
+		   // BATTERY class
+		      {
+		           "mode": int, 
+		           "threshold": {"value": int, "min": int, "max": int, "activate": int}, 
+		           "alert": {"type": int, 'period': int}, 
+		           "hardware": {"devicename": string}, 
+		           "notification": json_obj,
+		      }
+		   //   mode is an index to the list of modes
+		   //     ["Single Threshold", "Dual Threshold", "Continuous"]
+		   //   threshold
+		   //     if Single Threshold:
+		   //       value is used
+		   //     if Dual Threshold:
+		   //       min and max are used
+		   //   activate is an index to the list of activates
+		   //     ["Out of range", "Within range"]
+		   //   alert type is an index of the value in the list of alerts
+		   //     ["Once", "Continuously"]
+		   //   alert period is the time in milliseconds for the alert when alert type points to Continuously
+		   //   notification refers to the the same notification settings in GPIO
+		   //   hardware
+		   //     appears when mode is continuous
+		   //
+		   // FLUID class
+		      {
+		           "mode": int, 
+		           "threshold": {"value": int, "min": int, "max": int, "activate": int}, 
+		           "alert": {"type": int, 'period': int}, 
+		           "hardware": {"devicename": string}, 
+		           "notification": json_obj,
+		      }
+		   //   mode is an index to the list of modes
+		   //     ["Single Threshold", "Dual Threshold", "Continuous"]
+		   //   threshold
+		   //     if Single Threshold:
+		   //       value is used
+		   //     if Dual Threshold:
+		   //       min and max are used
+		   //   activate is an index to the list of activates
+		   //     ["Out of range", "Within range"]
+		   //   alert type is an index of the value in the list of alerts
+		   //     ["Once", "Continuously"]
+		   //   alert period is the time in milliseconds for the alert when alert type points to Continuously
+		   //   notification refers to the the same notification settings in GPIO
+		   //   hardware
+		   //     appears when mode is continuous
+		   //
 		   { 'status': 'NG', 'message': string}
 
 		H. ENABLE/DISABLE ADC DEVICE
