@@ -36,7 +36,19 @@
     <form id="addADCDevice-form128" class="list" ng-show="data.adc.manufacturerid==0">
       <label class="item item-select" id="addADCDevice-select57">
         <span class="input-label"></span>
-        <select ng-model="data.adc.devicemodelid" ng-options="devicemodel.id as devicemodel.model for devicemodel in devicemodels_unk"></select>
+        <select ng-model="data.adc.devicemodelid" ng-options="devicemodel.id as devicemodel.model for devicemodel in devicemodels_chn"></select>
+      </label>
+    </form>
+    <form id="addADCDevice-form210" class="list" ng-show="data.adc.manufacturerid==1">
+      <label class="item item-select" id="addADCDevice-select96">
+        <span class="input-label"></span>
+        <select ng-model="data.adc.devicemodelid" ng-options="devicemodel.id as devicemodel.model for devicemodel in devicemodels_brt"></select>
+      </label>
+    </form>
+    <form id="addADCDevice-form211" class="list" ng-show="data.adc.manufacturerid==2">
+      <label class="item item-select" id="addADCDevice-select97">
+        <span class="input-label"></span>
+        <select ng-model="data.adc.devicemodelid" ng-options="devicemodel.id as devicemodel.model for devicemodel in devicemodels_mil"></select>
       </label>
     </form>
     <button id="addADCDevice-button116" ng-click="submitAdd()" class="button button-positive button-block">NEXT</button>
