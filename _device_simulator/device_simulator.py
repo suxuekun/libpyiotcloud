@@ -88,7 +88,7 @@ g_gpio_enabled = [0, 0, 0, 0]
 g_gpio_status = [0, 1, 0, 1]
 
 
-g_device_classes = ["speaker", "display", "light", "potentiometer", "temperature", "humidity", "anemometer"]
+g_device_classes = ["speaker", "display", "light", "potentiometer", "temperature", "humidity", "anemometer", "battery", "fluid"]
 
 # I2C
 g_i2c_properties = [
