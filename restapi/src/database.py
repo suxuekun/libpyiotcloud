@@ -384,11 +384,23 @@ class database_client:
     # mobile
     ##########################################################
 
-    def add_mobile_device_token(self, username, devicetoken, service):
-        self._devices.add_mobile_device_token(username, devicetoken, service)
+    def add_mobile_device_token(self, username, devicetoken, service, accesstoken):
+        self._devices.add_mobile_device_token(username, devicetoken, service, accesstoken)
 
-    def delete_mobile_device_token(self, username):
-        self._devices.delete_mobile_device_token(username)
+    def update_mobile_device_token(self, accesstoken, new_accesstoken):
+        self._devices.update_mobile_device_token(accesstoken, new_accesstoken)
+
+    def delete_mobile_device_token(self, username, accesstoken):
+        self._devices.delete_mobile_device_token(username, accesstoken)
+
+    def delete_all_mobile_device_token(self, username):
+        self._devices.delete_all_mobile_device_token(username)
+
+    def get_mobile_device_token(self, username, accesstoken):
+        return self._devices.get_mobile_device_token(username, accesstoken)
+
+    def get_all_mobile_device_token(self, username):
+        return self._devices.get_all_mobile_device_token(username)
 
 
     ##########################################################
@@ -1509,42 +1521,64 @@ class database_client_mongodb:
     def get_mobile_devicetokens_document(self):
         return self.client[config.CONFIG_MONGODB_TB_DEVICETOKENS]
 
-    def add_mobile_device_token(self, username, devicetoken, service):
+    def add_mobile_device_token(self, username, devicetoken, service, accesstoken):
         devicetokens = self.get_mobile_devicetokens_document()
         item = {}
         item['username'] = username
-        item['devicetoken'] = [devicetoken]
-        item['service'] = [service]
-
-        #print("add_mobile_device_token {} {}".format(devicetoken, service))
-        found = devicetokens.find_one({'username': username})
+        item['devicetoken'] = devicetoken
+        item['service'] = service
+        item['accesstoken'] = accesstoken
+        found = devicetokens.find_one({'username': username, 'devicetoken': devicetoken, 'service': service})
+        #print(found)
         if found is None:
+            #print("insert_one")
             devicetokens.insert_one(item)
         else:
-            #print(found)
-            if devicetoken in found['devicetoken']:
-                for x in range(len(found['devicetoken'])):
-                    if devicetoken == found['devicetoken'][x]:
-                        if service != found['service'][x]:
-                            item['devicetoken'] += found['devicetoken']
-                            item['service'] += found['service'] 
-                            devicetokens.replace_one({'username': username}, item)
-                            break
-                        #print("already in list")
-                        break
-            else:
-                #print("not in list")
-                item['devicetoken'] += found['devicetoken']
-                item['service'] += found['service']
-                devicetokens.replace_one({'username': username}, item)
+            #print("replace_one")
+            devicetokens.replace_one({'username': username, 'devicetoken': devicetoken, 'service': service}, item)
 
-    def delete_mobile_device_token(self, username):
+    def update_mobile_device_token(self, accesstoken, new_accesstoken):
+        devicetokens = self.get_mobile_devicetokens_document()
+        found = devicetokens.find_one({'accesstoken': accesstoken})
+        if found is not None:
+            replacement = copy.deepcopy(found)
+            replacement['accesstoken'] = new_accesstoken
+            devicetokens.replace_one(found, replacement)
+
+    def delete_mobile_device_token(self, username, accesstoken):
         devicetokens = self.get_mobile_devicetokens_document()
         try:
-            devicetokens.delete_one({'username': username})
+            devicetokens.delete_one({'username': username, 'accesstoken': accesstoken})
         except:
-            print("delete_sensors_readings_dataset: Exception occurred")
+            print("delete_mobile_device_token: Exception occurred")
             pass
+
+    def delete_all_mobile_device_token(self, username):
+        devicetokens = self.get_mobile_devicetokens_document()
+        if devicetokens:
+            try:
+                devicetokens.delete_many({'username': username})
+            except:
+                print("delete_all_mobile_device_token: Exception occurred")
+                pass
+
+    def get_mobile_device_token(self, username, accesstoken):
+        devicetokens_list = []
+        devicetokens = self.get_mobile_devicetokens_document()
+        if devicetokens:
+            for devicetoken in devicetokens.find({'username': username, 'accesstoken': accesstoken}):
+                devicetoken.pop('_id')
+                devicetokens_list.append(devicetoken)
+        return devicetokens_list
+
+    def get_all_mobile_device_token(self, username):
+        devicetokens_list = []
+        devicetokens = self.get_mobile_devicetokens_document()
+        if devicetokens:
+            for devicetoken in devicetokens.find({'username': username}):
+                devicetoken.pop('_id')
+                devicetokens_list.append(devicetoken)
+        return devicetokens_list
 
 
     ##########################################################

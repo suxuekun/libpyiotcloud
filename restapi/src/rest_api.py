@@ -418,9 +418,21 @@ def logout():
             # get username from token
             username = g_database_client.get_username_from_token(token)
             if username is not None:
+
+                #print("")
+                #devicetoken = g_database_client.get_all_mobile_device_token(username)
+                #print(len(devicetoken))
+                #print(devicetoken)
+
                 # delete mobile device tokens
-                g_database_client.delete_mobile_device_token(username)
-                print('\r\nDeleted mobile device token\r\n')
+                g_database_client.delete_mobile_device_token(username, token['access'])
+                #g_database_client.delete_all_mobile_device_token(username)
+                #print('\r\nDeleted mobile device token')
+
+                #devicetoken = g_database_client.get_all_mobile_device_token(username)
+                #print(len(devicetoken))
+                #print(devicetoken)
+                #print("")
 
             g_database_client.logout(token['access'])
             print('\r\nLogout successful\r\n')
@@ -622,6 +634,13 @@ def refresh_user_token():
         response = json.dumps({'status': 'NG', 'message': 'Refresh token invalid'})
         print('\r\nERROR Refresh token: Token expired. DATETIME {}\r\n\r\n'.format(datetime.datetime.now()))
         return response, status.HTTP_500_INTERNAL_SERVER_ERROR
+
+    # update mobile device token
+    try:
+        g_database_client.update_mobile_device_token(token["access"], new_token["access"])
+    except:
+        print("exception update_mobile_device_token")
+        pass
 
     msg = {'status': 'OK', 'message': 'Refresh token successful.', 'token': new_token}
     response = json.dumps(msg)
@@ -987,11 +1006,17 @@ def register_mobile_device_token():
         return response, status.HTTP_400_BAD_REQUEST
 
     # add mobile device token
-    g_database_client.add_mobile_device_token(username, devicetoken, service)
-    print('\r\nAdded mobile device token\r\n')
+    g_database_client.add_mobile_device_token(username, devicetoken, service, token["access"])
+
+    #print('\r\nAdded mobile device token\r\n{}\r\n{}\r\n{}\r\n'.format(devicetoken, service, token["access"]))
+    #print("")
+    #devicetoken = g_database_client.get_all_mobile_device_token(username)
+    #print(len(devicetoken))
+    #print(devicetoken)
+    #print("")
 
     response = json.dumps({'status': 'OK', 'message': 'Register mobile device token successful'})
-    print('\r\nRegister mobile device token successful: {}\r\n{}\r\n'.format(username, response))
+    print('\r\nRegister mobile device token successful: {} {} {}\r\n'.format(username, service, devicetoken))
     return response
 
 
