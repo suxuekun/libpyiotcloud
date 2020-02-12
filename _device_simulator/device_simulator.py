@@ -125,6 +125,8 @@ g_tprobe_properties = [
     { 'enabled': 0, 'class': 255, 'attributes': {} }
 ]
 
+start_timeX = 0
+
 
 
 ###################################################################################
@@ -313,8 +315,13 @@ def handle_api(api, subtopic, subpayload):
     # SENSOR READING
     ####################################################
     elif api == API_RECEIVE_SENSOR_READING:
+        global start_timeX
+        #print(time.time())
+        print(time.time()-start_timeX)
+
         topic = generate_pubtopic(subtopic)
         subpayload = json.loads(subpayload)
+
 
         # if requested with API_REQUEST_SENSOR_READING which is already obsoleted
         if subpayload.get("source"):
@@ -1476,6 +1483,9 @@ class TimerThread(threading.Thread):
             payload = {}
             payload["sensors"] = sensors
             print("")
+            global start_timeX
+            start_timeX = time.time()
+            #print(start_timeX)
             publish(topic, payload)
             print("")
         else:
