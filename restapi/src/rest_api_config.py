@@ -66,6 +66,10 @@ class config:
     CONFIG_MONGODB_TB_SENSORREADINGS_DATASET = "sensorreadingsdataset"
     CONFIG_MONGODB_TB_DEVICETOKENS   = "devicetokens"
 
+    # Caching settings
+    CONFIG_REDIS_HOST                = "127.0.0.1"
+    CONFIG_REDIS_PORT                = 6379
+
     # Subscription/Payment
     CONFIG_SUBSCRIPTION_TYPE         = "Free"
     CONFIG_SUBSCRIPTION_PAID_TYPE    = "Paid"

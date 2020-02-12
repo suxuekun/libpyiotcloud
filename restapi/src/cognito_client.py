@@ -16,8 +16,7 @@ class cognito_client:
 		self.client_id             = config.CONFIG_CLIENT_ID
 		self.pool_id               = config.CONFIG_USER_POOL_ID
 		self.pool_region           = config.CONFIG_USER_POOL_REGION
-		self.keys                  = None
-		self.keys_iss              = None
+		self.keys, self.keys_iss   = self.__get_userpool_keys()
 
 	def __get_client(self):
 		#return boto3.Session(region_name=self.pool_region).client('cognito-idp')
@@ -125,21 +124,40 @@ class cognito_client:
 
 
 	def login(self, username, password):
-		client = self.__get_client()
-		params = {
-			'username'  : username,
-			'password'  : password,
-			'pool_id'   : self.pool_id,
-			'client_id' : self.client_id,
-			'client'    : client
-		}
-		try:
-			aws = AWSSRP(**params)
-			response = aws.authenticate_user()
-			(self.keys, self.keys_iss) = self.__get_userpool_keys()
-		except:
-			return (False, None)
-		return (self.__get_result(response), response)
+		if True:
+			params = {
+				'AuthFlow'       : 'USER_PASSWORD_AUTH',
+				'AuthParameters' : {
+					'USERNAME': username,
+					'PASSWORD': password,
+				},
+				'ClientId'        : self.client_id
+			}
+			try:
+				#start_time = time.time()
+				response = self.__get_client().initiate_auth(**params)
+				#print(time.time()-start_time)
+			except Exception as e:
+				print(e)
+				return (False, None)
+			return (self.__get_result(response), response)
+		else:
+			client = self.__get_client()
+			params = {
+				'username'  : username,
+				'password'  : password,
+				'pool_id'   : self.pool_id,
+				'client_id' : self.client_id,
+				'client'    : client
+			}
+			try:
+				#start_time = time.time()
+				aws = AWSSRP(**params)
+				response = aws.authenticate_user()
+				#print(time.time()-start_time)
+			except:
+				return (False, None)
+			return (self.__get_result(response), response)
 
 	def logout(self, access_token):
 		params = {
