@@ -1568,6 +1568,8 @@ class database_client_mongodb:
                 device.pop('_id')
                 device_list.append(device)
         return device_list
+        #devices = self.get_registered_devices()
+        #return list(devices.find({'username': username},{'devicename':1, 'deviceid': 1, 'serialnumber':1, 'timestamp':1, 'heartbeat':1, 'version': 1}))
 
     def get_devices_with_filter(self, username, filter):
         device_list = []
@@ -1577,9 +1579,32 @@ class database_client_mongodb:
             for device in devices.find({'username': username},{'devicename':1, 'deviceid': 1, 'serialnumber':1, 'timestamp':1, 'heartbeat':1, 'version': 1}):
                 device.pop('_id')
                 if filter_lo in device["devicename"].lower():
+                    # check the device name
                     device_list.append(device)
                 elif filter_lo in device["deviceid"].lower():
+                    # check the device id
                     device_list.append(device)
+                else:
+                    # check the sensors of the device
+                    sensors = self.get_sensors_document();
+                    if sensors and sensors.count():
+                        for sensor in sensors.find({'username': username, 'devicename': device['devicename']}):
+                            if filter_lo in sensor["sensorname"].lower():
+                                # check the sensor name
+                                device_list.append(device)
+                                break
+                            elif filter_lo in sensor["manufacturer"].lower():
+                                # check the sensor manufacturer
+                                device_list.append(device)
+                                break
+                            elif filter_lo in sensor["model"].lower():
+                                # check the sensor model
+                                device_list.append(device)
+                                break
+                            elif filter_lo in sensor["class"].lower():
+                                # check the sensor class
+                                device_list.append(device)
+                                break
         return device_list
 
     def add_device(self, username, devicename, deviceid, serialnumber):

@@ -17,6 +17,7 @@ from flask_api import status
 from jose import jwk, jwt
 import http.client
 from s3_client import s3_client
+#import redis
 
 
 
@@ -37,6 +38,7 @@ CONFIG_PREPEND_REPLY_TOPIC  = "server"
 g_messaging_client = None
 g_database_client = None
 g_storage_client = None
+#g_redis_client = None
 g_queue_dict  = {}
 app = flask.Flask(__name__)
 CORS(app)
@@ -1380,8 +1382,10 @@ def get_device_list():
         print('\r\nERROR Get Devices: Token is invalid [{}]\r\n'.format(username))
         return response, status.HTTP_401_UNAUTHORIZED
 
+
+    #start_time = time.time()
     devices = g_database_client.get_devices(username)
-    #print(devices)
+    #print(time.time()-start_time)
 
 
     msg = {'status': 'OK', 'message': 'Devices queried successfully.', 'devices': devices}
@@ -1439,8 +1443,10 @@ def get_device_list_filtered(filter):
         print('\r\nERROR Get Devices: Token is invalid [{}]\r\n'.format(username))
         return response, status.HTTP_401_UNAUTHORIZED
 
+
+    #start_time = time.time()
     devices = g_database_client.get_devices_with_filter(username, filter)
-    #print(devices)
+    #print(time.time()-start_time)
 
 
     msg = {'status': 'OK', 'message': 'Devices queried successfully.', 'devices': devices}
@@ -1597,12 +1603,8 @@ def register_device(devicename):
 
         # delete message broker user
         try:
-            result = message_broker_unregister(device["deviceid"])
-            #print(result)
-            if not result:
-                response = json.dumps({'status': 'NG', 'message': 'Device could not be unregistered in message broker'})
-                print('\r\nERROR Delete Device: Device could not be unregistered  in message broker [{},{}]\r\n'.format(username, devicename))
-                return response, status.HTTP_500_INTERNAL_SERVER_ERROR
+            # no checking needed
+            message_broker_unregister(device["deviceid"])
         except:
             pass
 
@@ -3571,23 +3573,8 @@ def get_xxx_sensors(devicename, xxx, number):
         print('\r\nERROR Get {} Sensors: Token is invalid [{}]\r\n'.format(xxx, username))
         return response, status.HTTP_401_UNAUTHORIZED
 
-    # query database
+    # query peripheral sensors
     sensors = g_database_client.get_sensors(username, devicename, xxx, number)
-    #print(len(sensors))
-    #for sensor in sensors:
-    #    print(sensor)
-    #    print()
-
-    # get sensor readings
-    for sensor in sensors:
-        if sensor['type'] == 'input' and sensor['enabled']:
-            address = None
-            if sensor.get("address"):
-                address = sensor["address"]
-            source = "{}{}".format(xxx, number)
-            sensor_reading = g_database_client.get_sensor_reading(username, devicename, source, address)
-            if sensor_reading is not None:
-                sensor['readings'] = sensor_reading
 
     # query device
     api = "get_{}_devs".format(xxx)
@@ -3656,6 +3643,17 @@ def get_xxx_sensors(devicename, xxx, number):
         for sensor in sensors:
             sensor["enabled"] = 0
             sensor["configured"] = 0
+
+    # get sensor readings for enabled input devices
+    for sensor in sensors:
+        if sensor['type'] == 'input' and sensor['enabled']:
+            address = None
+            if sensor.get("address"):
+                address = sensor["address"]
+            source = "{}{}".format(xxx, number)
+            sensor_reading = g_database_client.get_sensor_reading(username, devicename, source, address)
+            if sensor_reading is not None:
+                sensor['readings'] = sensor_reading
 
     msg = {'status': 'OK', 'message': 'Sensors queried successfully.', 'sensors': sensors}
     if new_token:
@@ -5575,6 +5573,8 @@ def initialize():
     # Initialize S3 client
     g_storage_client = s3_client()
 
+    # Initialize Redis client
+    #g_redis_client = redis.Redis(config.CONFIG_REDIS_HOST, config.CONFIG_REDIS_PORT, 0)
 
 
 # Initialize globally so that no issue with GUnicorn integration
