@@ -247,7 +247,7 @@ def process_sensor_reading(database_client, deviceid, source, sensor):
 
 def add_sensor_reading(database_client, deviceid, topic, payload):
 
-    start_time = time.time()
+    #start_time = time.time()
     #print(deviceid)
     #print(topic)
     payload = json.loads(payload)
@@ -267,7 +267,7 @@ def add_sensor_reading(database_client, deviceid, topic, payload):
 
 
     # print elapsed time
-    print(time.time() - start_time) 
+    #print(time.time() - start_time) 
     #print("")
 
 
