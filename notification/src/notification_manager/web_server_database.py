@@ -655,14 +655,14 @@ class database_client_mongodb:
             pass
 
     def get_mobile_device_token(self, username):
+        response = {"service": [], "devicetoken": []}
         devicetokens = self.get_mobile_devicetokens_document()
         if devicetokens:
             for devicetoken in devicetokens.find({'username': username}):
-                devicetoken.pop('_id')
-                devicetoken.pop('username')
-                #print(devicetoken)
-                return devicetoken
-        return None
+                response["service"].append(devicetoken["service"])
+                response["devicetoken"].append(devicetoken["devicetoken"])
+        #print(response)
+        return response
 
 
     ##########################################################

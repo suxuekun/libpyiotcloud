@@ -159,47 +159,47 @@ class notification_client_pinpoint:
             token = tokens[x]
             service = services[x]
 
-            print('PUSH_NOTIFICATION {} {}'.format(token, service))
-            if service == "GCM":
-                response = self.client.send_messages(
-                    ApplicationId = self.pinpoint_project_id,
-                    MessageRequest = {
-                        'Addresses': {token: {'ChannelType': service}},
-                        'MessageConfiguration': {
-                            'GCMMessage': {
-                                'Action': action,
-                                'Body': message,
-                                'Priority' : priority,
-                                'SilentPush': silent,
-                                'Title': title,
-                                'TimeToLive': ttl,
-                                'Url': url
+            if True:
+                print('PUSH_NOTIFICATION {} {}'.format(token, service))
+                if service == "GCM":
+                    response = self.client.send_messages(
+                        ApplicationId = self.pinpoint_project_id,
+                        MessageRequest = {
+                            'Addresses': {token: {'ChannelType': service}},
+                            'MessageConfiguration': {
+                                'GCMMessage': {
+                                    'Action': action,
+                                    'Body': message,
+                                    'Priority' : priority,
+                                    'SilentPush': silent,
+                                    'Title': title,
+                                    'TimeToLive': ttl,
+                                    'Url': url
+                                }
                             }
                         }
-                    }
-                )
-                print('PUSH_NOTIFICATION GCM ok')
-            elif service == "APNS":
-                response = self.client.send_messages(
-                    ApplicationId = self.pinpoint_project_id,
-                    MessageRequest = {
-                        'Addresses': {token: {'ChannelType': service}},
-                        'MessageConfiguration': {
-                            'APNSMessage': {
-                                'Action': action,
-                                'Body': message,
-                                'Priority' : priority,
-                                'SilentPush': silent,
-                                'Title': title,
-                                'TimeToLive': ttl,
-                                'Url': url
+                    )
+                    print('PUSH_NOTIFICATION GCM ok')
+                elif service == "APNS":
+                    response = self.client.send_messages(
+                        ApplicationId = self.pinpoint_project_id,
+                        MessageRequest = {
+                            'Addresses': {token: {'ChannelType': service}},
+                            'MessageConfiguration': {
+                                'APNSMessage': {
+                                    'Action': action,
+                                    'Body': message,
+                                    'Priority' : priority,
+                                    'SilentPush': silent,
+                                    'Title': title,
+                                    'TimeToLive': ttl,
+                                    'Url': url
+                                }
                             }
                         }
-                    }
-                )
-                print('PUSH_NOTIFICATION APNS ok')
-            print(response)
-            print("")
+                    )
+                    print('PUSH_NOTIFICATION APNS ok')
+                print(response)
         return response
 
 
