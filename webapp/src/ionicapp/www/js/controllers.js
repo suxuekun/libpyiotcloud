@@ -1246,8 +1246,8 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
         // https://www.epochconverter.com/
         iat = Math.floor(Date.now() / 1000); // epoch time in seconds
         exp = iat + 10; // plus 10 seconds
-        console.log(iat);
-        console.log(exp);
+        //console.log(iat);
+        //console.log(exp);
 
         // get JWT header
         headerData = JSON.stringify({ 
@@ -1294,8 +1294,8 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
         var spinner = document.getElementsByClassName("spinner");
         spinner[0].style.visibility = "visible";
 
-
-        console.log("login: " + $scope.data.username);
+        var start_time = Math.floor(Date.now() / 1000);
+        //console.log("login: " + $scope.data.username);
 
         // 
         // LOGIN
@@ -1316,7 +1316,7 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
         .then(function (result) {
             spinner[0].style.visibility = "hidden";
             
-            console.log("login: OK " + new Date().getTime());
+            console.log("login: OK " + (Math.floor(Date.now() / 1000)-start_time) + " secs");
             // Handle successful
             console.log(result.data);
 
@@ -3226,7 +3226,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             headers: { 'Authorization': 'Bearer ' + $scope.data.token.access },
         })
         .then(function (result) {
-            console.log(result.data);
+            //console.log(result.data);
             
             
             if (result.data.sensors.length === 0) {
@@ -3270,7 +3270,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                         $scope.sensors_datachart[indexy].labels.push(timestamp_str);
                     }
                 }
-                console.log($scope.sensors_datachart);
+                //console.log($scope.sensors_datachart);
             }
         })
         .catch(function (error) {
@@ -5026,12 +5026,14 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         //   { 'status': 'OK', 'message': string, 'sensors': array[{'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'timestamp': string}, ...]}
         //   { 'status': 'NG', 'message': string }
         //
+        time_start = Date.now();
         $http({
             method: 'GET',
             url: server + '/devices/device/' + $scope.data.devicename + '/i2c/' + $scope.data.activeSection.toString() + '/sensors',
             headers: {'Authorization': 'Bearer ' + $scope.data.token.access}
         })
         .then(function (result) {
+            console.log(Date.now() - time_start);
             console.log(result.data);
             
             $scope.sensors = result.data.sensors;
@@ -5047,6 +5049,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             }
         })
         .catch(function (error) {
+            console.log(Date.now() - time_start);
             handle_error(error);
         }); 
     };
@@ -11129,12 +11132,15 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         //   { 'status': 'OK', 'message': string }
         //   { 'status': 'NG', 'message': string }        
         //
+        time_start = Date.now();
         $http({
             method: 'GET',
             url: server + '/devices/device/' + $scope.data.devicename + '/' + peripheral + '/' + $scope.data.sensor.number.toString() + '/sensors/sensor/' + $scope.data.sensor.sensorname + '/properties',
             headers: { 'Authorization': 'Bearer ' + $scope.data.token.access },
         })
         .then(function (result) {
+            console.log(Date.now()-time_start);
+            
             console.log(result.data);
             if (result.data.value !== undefined) {
                 if (result.data.value.threshold !== undefined) {
@@ -11169,6 +11175,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             }
         })
         .catch(function (error) {
+            console.log(Date.now()-time_start);
             handle_error(error, true);
         }); 
     };
@@ -11224,6 +11231,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         //   { 'status': 'OK', 'message': string }
         //   { 'status': 'NG', 'message': string }        
         //
+        time_start = Date.now();
         $http({
             method: 'POST',
             url: server + '/devices/device/' + $scope.data.devicename + '/' + peripheral + '/' + $scope.data.sensor.number.toString() + '/sensors/sensor/' + $scope.data.sensor.sensorname + '/properties',
@@ -11231,6 +11239,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             data: $scope.data.attributes
         })
         .then(function (result) {
+            console.log(Date.now()-time_start);
             console.log(result.data);
             //set_gpio_voltage();
             $ionicPopup.alert({
@@ -11239,6 +11248,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             });            
         })
         .catch(function (error) {
+            console.log(Date.now()-time_start);
             handle_error(error, true);
         }); 
     };

@@ -42,6 +42,7 @@ g_storage_client = None
 g_queue_dict  = {}
 app = flask.Flask(__name__)
 CORS(app)
+start_timeX = 0
 
 
 
@@ -3502,7 +3503,6 @@ def delete_all_device_sensors_properties(devicename):
     return response
 
 
-
 ########################################################################################################
 #
 # GET I2C DEVICES
@@ -3533,6 +3533,9 @@ def delete_all_device_sensors_properties(devicename):
 ########################################################################################################
 @app.route('/devices/device/<devicename>/<xxx>/<number>/sensors', methods=['GET'])
 def get_xxx_sensors(devicename, xxx, number):
+
+    global start_timeX
+    start_timeX = time.time()
 
     # check number parameter
     if int(number) > 4 or int(number) < 1:
@@ -3575,6 +3578,8 @@ def get_xxx_sensors(devicename, xxx, number):
 
     # query peripheral sensors
     sensors = g_database_client.get_sensors(username, devicename, xxx, number)
+
+    start_time2 = time.time()
 
     # query device
     api = "get_{}_devs".format(xxx)
@@ -3654,6 +3659,10 @@ def get_xxx_sensors(devicename, xxx, number):
             sensor_reading = g_database_client.get_sensor_reading(username, devicename, source, address)
             if sensor_reading is not None:
                 sensor['readings'] = sensor_reading
+
+    end_time = time.time()
+    print("{}".format(end_time-start_time2))
+    print("{}".format(end_time-start_timeX))
 
     msg = {'status': 'OK', 'message': 'Sensors queried successfully.', 'sensors': sensors}
     if new_token:
@@ -4398,6 +4407,9 @@ def get_i2c_device_class(classname):
 def set_xxx_dev_prop(devicename, xxx, number, sensorname):
     #print('set_{}_dev_prop'.format(xxx))
 
+    global start_timeX
+    start_timeX = time.time()
+
     # check number parameter
     if int(number) > 4 or int(number) < 1:
         response = json.dumps({'status': 'NG', 'message': 'Invalid parameters'})
@@ -4520,6 +4532,7 @@ def set_xxx_dev_prop(devicename, xxx, number, sensorname):
     if status_return != 200:
         # set enabled to FALSE and configured to FALSE
         g_database_client.set_enable_configure_sensor(username, devicename, xxx, number, sensorname, 0, 0)
+        print(time.time()-start_timeX)
         return response, status_return
 
     # if ADC/1WIRE/TPROBE, set all other ADC/1WIRE/TPROBE to unconfigured and disabled
@@ -4553,6 +4566,8 @@ def set_xxx_dev_prop(devicename, xxx, number, sensorname):
     if sensor.get('subclass'):
         subclassid = int(get_i2c_device_class(sensor['subclass']))
     item = g_database_client.update_device_peripheral_configuration(username, devicename, xxx, int(number), address, classid, subclassid, data)
+
+    print(time.time()-start_timeX)
 
     return response
 
@@ -4589,6 +4604,9 @@ def set_xxx_dev_prop(devicename, xxx, number, sensorname):
 @app.route('/devices/device/<devicename>/<xxx>/<number>/sensors/sensor/<sensorname>/properties', methods=['GET'])
 def get_xxx_dev_prop(devicename, xxx, number, sensorname):
     #print('get_{}_dev_prop'.format(xxx))
+
+    global start_timeX
+    start_timeX = time.time()
 
     # check number parameter
     if int(number) > 4 or int(number) < 1:
@@ -4653,6 +4671,7 @@ def get_xxx_dev_prop(devicename, xxx, number, sensorname):
     # has notification object required
     response, status_return = process_request(api, data)
     if status_return != 200:
+        print(time.time()-start_timeX)
         return response, status_return
 
     source = "{}{}{}".format(xxx, number, sensorname)
@@ -4694,6 +4713,8 @@ def get_xxx_dev_prop(devicename, xxx, number, sensorname):
             response['value'] = {}
             response['value']['subattributes']['notification'] = build_default_notifications(xxx, token)
         response = json.dumps(response)
+
+    print(time.time()-start_timeX)
 
     return response
 
@@ -5182,9 +5203,11 @@ def process_request_get(api, data, timeout=2):
         if ret:
             # publish request
             g_messaging_client.publish(pubtopic, payload)
+            print(time.time()-start_timeX)
 
             # receive response
             response = receive_message(subtopic, timeout)
+            print(time.time()-start_timeX)
             g_messaging_client.subscribe(subtopic, subscribe=False)
         else:
             msg = {'status': 'NG', 'message': 'Could not communicate with device'}
@@ -5225,6 +5248,7 @@ def process_request_get(api, data, timeout=2):
 def process_request(api, data, timeout=2):
 
     #print("\r\nAPI: {} {} devicename={}".format(api, data['username'], data['devicename']))
+    global start_timeX
 
     username = data['username']
     token = data['token']
@@ -5257,9 +5281,11 @@ def process_request(api, data, timeout=2):
         if ret:
             # publish request
             g_messaging_client.publish(pubtopic, payload)
+            print("PUB {}".format(time.time()-start_timeX))
 
             # receive response
             response = receive_message(subtopic, timeout)
+            print("RCV {}".format(time.time()-start_timeX))
             g_messaging_client.subscribe(subtopic, subscribe=False)
         else:
             msg = {'status': 'NG', 'message': 'Could not communicate with device'}
