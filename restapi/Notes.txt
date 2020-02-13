@@ -5,3 +5,7 @@ docker-machine ls // get the ip address for testing with MQTT.FX
 
 docker stop api
 docker rm api
+
+https://vsupalov.com/flask-web-server-in-production/
+https://medium.com/building-the-system/gunicorn-3-means-of-concurrency-efbb547674b7
+https://stackoverflow.com/questions/38425620/gunicorn-workers-and-threads
