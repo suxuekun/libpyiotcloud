@@ -27,17 +27,17 @@
       <p style="color:#AAAAAA;font-size:12px;">{{ sensors_counthdr }}</p>
     </div>
     <div class="list card" id="deviceADC-card22" ng-repeat="sensor in sensors">
-      <div class="item item-body" id="deviceADC-list-item-container20" ng-click="processSensor(sensor)">
+      <div class="item item-body card_top" id="deviceADC-list-item-container20" ng-click="processSensor(sensor)">
         <div id="deviceADC-markdown404" class="show-list-numbers-and-dots">
-          <p style="margin-top:0px;color:#387EF5;font-size:18px;">
+          <p style="margin-top:0px;color:#FFFFFF;font-size:18px;">
             <strong> {{ sensor.sensorname }} </strong>
           </p>
         </div>
         <div id="deviceADC-markdown405" class="show-list-numbers-and-dots">
-          <p style="margin-top:0px;color:#444444;font-size:10px;">{{ sensor.manufacturer }} - {{ sensor.model }}</p>
+          <p style="margin-top:0px;color:#FFFFFF;font-size:10px;">{{ sensor.manufacturer }} - {{ sensor.model }}</p>
         </div>
         <div id="deviceADC-markdown406" class="show-list-numbers-and-dots">
-          <p style="margin-top:0px;color:#444444;font-size:10px;">{{ sensor.readings || !sensor.configured ? "" : (sensor.type=="input" ? "" : ((sensor.configured ? "CONFIGURED": "UNCONFIGURED") + " and " + (sensor.enabled ? "ENABLED": "DISABLED"))) }}</p>
+          <p style="margin-top:0px;color:#FFFFFF;font-size:10px;">{{ sensor.readings || !sensor.configured ? "" : (sensor.type=="input" ? "" : ((sensor.configured ? "CONFIGURED": "UNCONFIGURED") + " and " + (sensor.enabled ? "ENABLED": "DISABLED"))) }}</p>
         </div>
       </div>
       <div class="item item-body" id="deviceADC-list-item-container21" ng-click="getADCSensors()">
@@ -53,8 +53,8 @@
           <p style="margin-top:0px;color:#FFFFFF;font-size:10px;">{{ sensor.readings ? "." : "" }}</p>
         </div>
         <div id="deviceADC-markdown423" style="text-align:center;" class="show-list-numbers-and-dots">
-          <p style="margin-top:0px;color:#387EF5;font-size:10px;">{{ sensor.readings ? sensor.subclass ? "Low: " + sensor.readings.lowest + " " + "High: " + sensor.readings.highest + " | " + "Low: " + sensor.readings.subclass.lowest + " " + "High: " + sensor.readings.subclass.highest : "Low: " + sensor.readings.lowest
-            + " " + "High: " + sensor.readings.highest : "" }}</p>
+          <p style="margin-top:0px;color:#387EF5;font-size:10px;">{{ sensor.readings ? sensor.subclass ? "Low: " + sensor.readings.lowest + " " + sensor.units[0] + " High: " + sensor.readings.highest + " " + sensor.units[0] + " | " + "Low: " + sensor.readings.subclass.lowest + " " + sensor.units[1] + " High:
+            " + sensor.readings.subclass.highest + " " + sensor.units[1] : "Low: " + sensor.readings.lowest + " " + sensor.units[0] + " High: " + sensor.readings.highest + " " + sensor.units[0] : "" }}</p>
         </div>
       </div>
       <form id="deviceADC-form216" class="list">

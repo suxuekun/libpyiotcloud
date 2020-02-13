@@ -22,17 +22,17 @@
       <p style="color:#AAAAAA;font-size:12px;">{{ sensors_counthdr }}</p>
     </div>
     <div class="list card" id="deviceI2C-card21" ng-repeat="sensor in sensors">
-      <div class="item item-body" id="deviceI2C-list-item-container18" ng-click="processSensor(sensor)">
+      <div class="item item-body card_top" id="deviceI2C-list-item-container18" ng-click="processSensor(sensor)">
         <div id="deviceI2C-markdown394" class="show-list-numbers-and-dots">
-          <p style="margin-top:0px;color:#387EF5;font-size:18px;">
+          <p style="margin-top:0px;color:#FFFFFF;font-size:18px;">
             <strong> {{ sensor.sensorname }} </strong>
           </p>
         </div>
         <div id="deviceI2C-markdown395" class="show-list-numbers-and-dots">
-          <p style="margin-top:0px;color:#444444;font-size:10px;">{{ sensor.manufacturer }} - {{ sensor.model }}</p>
+          <p style="margin-top:0px;color:#FFFFFF;font-size:10px;">{{ sensor.manufacturer }} - {{ sensor.model }}</p>
         </div>
         <div id="deviceI2C-markdown396" class="show-list-numbers-and-dots">
-          <p style="margin-top:0px;color:#444444;font-size:10px;">{{ sensor.readings || !sensor.configured ? "" : (sensor.type=="input" ? "" : ((sensor.configured ? "CONFIGURED": "UNCONFIGURED") + " and " + (sensor.enabled ? "ENABLED": "DISABLED"))) }}</p>
+          <p style="margin-top:0px;color:#FFFFFF;font-size:10px;">{{ sensor.readings || !sensor.configured ? "" : (sensor.type=="input" ? "" : ((sensor.configured ? "CONFIGURED": "UNCONFIGURED") + " and " + (sensor.enabled ? "ENABLED": "DISABLED"))) }}</p>
         </div>
       </div>
       <form id="deviceI2C-form213" class="list" ng-click="getI2CSensors()">
@@ -45,8 +45,8 @@
           </p>
         </div>
         <div id="deviceI2C-markdown401" style="text-align:center;" class="show-list-numbers-and-dots">
-          <p style="margin-top:0px;color:#387EF5;font-size:10px;">{{ sensor.readings ? sensor.subclass ? "Low: " + sensor.readings.lowest + " " + "High: " + sensor.readings.highest + " | " + "Low: " + sensor.readings.subclass.lowest + " " + "High: " + sensor.readings.subclass.highest : "Low: " + sensor.readings.lowest
-            + " " + "High: " + sensor.readings.highest : "" }}</p>
+          <p style="margin-top:0px;color:#387EF5;font-size:10px;">{{ sensor.readings ? sensor.subclass ? "Low: " + sensor.readings.lowest + " " + sensor.units[0] + " High: " + sensor.readings.highest + " " + sensor.units[0] + " | " + "Low: " + sensor.readings.subclass.lowest + " " + sensor.units[1] + " High:
+            " + sensor.readings.subclass.highest + " " + sensor.units[1] : "Low: " + sensor.readings.lowest + " " + sensor.units[0] + " High: " + sensor.readings.highest + " " + sensor.units[0] : "" }}</p>
         </div>
       </form>
       <form id="deviceI2C-form212" class="list">
