@@ -17,6 +17,7 @@ from flask_api import status
 from jose import jwk, jwt
 import http.client
 from s3_client import s3_client
+import threading
 #import redis
 
 
@@ -43,9 +44,9 @@ g_database_client = None
 g_storage_client = None
 #g_redis_client = None
 g_queue_dict  = {}
+g_event_dict  = {}
 app = flask.Flask(__name__)
 CORS(app)
-#start_timeX = 0
 
 
 
@@ -94,7 +95,7 @@ def login():
         response = json.dumps({'status': 'NG', 'message': reason})
         print('\r\nERROR Login: Username password format invalid\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
-    print('login username={} password={}'.format(username, password))
+    print('login {} {}'.format(username, password))
 
     # check if a parameter is empty
     if len(username) == 0 or len(password) == 0:
@@ -410,8 +411,6 @@ def confirm_forgot_password():
 ########################################################################################################
 @app.route('/user/logout', methods=['POST'])
 def logout():
-    print('\r\nLogout')
-
     try:
         # get token from Authorization header
         auth_header_token = get_auth_header_token()
@@ -437,8 +436,9 @@ def logout():
                 #print(devicetoken)
                 #print("")
 
-            g_database_client.logout(token['access'])
-            print('\r\nLogout successful\r\n')
+            # there's only global_sign_out, no sign_out so just skip calling it logout
+            # g_database_client.logout(token['access'])
+            print('logout {}\r\n'.format(username))
     except:
         print('\r\nERROR Logout: exception\r\n')
 
@@ -1392,7 +1392,7 @@ def get_device_list():
         response = json.dumps({'status': 'NG', 'message': 'Token expired'})
         print('\r\nERROR Get Devices: Token expired\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
-    print('get_device_list {}'.format(username))
+    #print('get_device_list {}'.format(username))
 
     # check if a parameter is empty
     if len(username) == 0 or len(token) == 0:
@@ -1412,9 +1412,7 @@ def get_device_list():
         return response, status.HTTP_401_UNAUTHORIZED
 
 
-    #start_time = time.time()
     devices = g_database_client.get_devices(username)
-    #print(time.time()-start_time)
 
 
     msg = {'status': 'OK', 'message': 'Devices queried successfully.', 'devices': devices}
@@ -1473,9 +1471,7 @@ def get_device_list_filtered(filter):
         return response, status.HTTP_401_UNAUTHORIZED
 
 
-    #start_time = time.time()
     devices = g_database_client.get_devices_with_filter(username, filter)
-    #print(time.time()-start_time)
 
 
     msg = {'status': 'OK', 'message': 'Devices queried successfully.', 'devices': devices}
@@ -1892,7 +1888,7 @@ def get_status(devicename):
     data['username'] = username
     #print('get_status {} devicename={}'.format(data['username'], data['devicename']))
 
-    response, status_return = process_request_get(api, data)
+    response, status_return = process_request(api, data)
     if status_return == 503: # HTTP_503_SERVICE_UNAVAILABLE
         # if device is unreachable, get the cached heartbeat and version
         cached_value = g_database_client.get_device_cached_values(username, devicename)
@@ -1989,7 +1985,7 @@ def get_settings(devicename):
     data['username'] = username
     print('get_settings {} devicename={}'.format(data['username'], data['devicename']))
 
-    return process_request_get(api, data)
+    return process_request(api, data)
 
 #
 # SET SETTINGS
@@ -2061,7 +2057,7 @@ def get_ip(devicename):
         return response, status.HTTP_401_UNAUTHORIZED
     print('get_ip {}'.format(data['username']))
 
-    return process_request_get(api, data)
+    return process_request(api, data)
 
 #
 # GET SUBNET
@@ -2096,7 +2092,7 @@ def get_subnet(devicename):
         return response, status.HTTP_401_UNAUTHORIZED
     print('get_subnet {}'.format(data['username']))
 
-    return process_request_get(api, data)
+    return process_request(api, data)
 
 #
 # GET GATEWAY
@@ -2131,7 +2127,7 @@ def get_gateway(devicename):
         return response, status.HTTP_401_UNAUTHORIZED
     print('get_gateway {}'.format(data['username']))
 
-    return process_request_get(api, data)
+    return process_request(api, data)
 
 #
 # GET MAC
@@ -2166,7 +2162,7 @@ def get_mac(devicename):
         return response, status.HTTP_401_UNAUTHORIZED
     print('get_mac {}'.format(data['username']))
 
-    return process_request_get(api, data)
+    return process_request(api, data)
 
 # 
 # GET GPIO
@@ -2202,7 +2198,7 @@ def get_gpio(devicename, number):
         return response, status.HTTP_401_UNAUTHORIZED
     print('get_gpio {}'.format(data['username']))
 
-    return process_request_get(api, data)
+    return process_request(api, data)
 
 # 
 # SET GPIO
@@ -2274,7 +2270,7 @@ def get_rtc(devicename):
         return response, status.HTTP_401_UNAUTHORIZED
     print('get_rtc {}'.format(data['username']))
 
-    return process_request_get(api, data)
+    return process_request(api, data)
 
 #
 # SET UART
@@ -3562,9 +3558,6 @@ def delete_all_device_sensors_properties(devicename):
 @app.route('/devices/device/<devicename>/<xxx>/<number>/sensors', methods=['GET'])
 def get_xxx_sensors(devicename, xxx, number):
 
-    #global start_timeX
-    #start_timeX = time.time()
-
     # check number parameter
     if int(number) > 4 or int(number) < 1:
         response = json.dumps({'status': 'NG', 'message': 'Invalid parameters'})
@@ -3616,9 +3609,7 @@ def get_xxx_sensors(devicename, xxx, number):
     data["number"] = int(number)
 
     # query device
-    start_time2 = time.time()
     response, status_return = process_request(api, data)
-    print("{}".format(time.time()-start_time2))
 
     if status_return == 200:
         # map queried result with database result
@@ -3690,9 +3681,6 @@ def get_xxx_sensors(devicename, xxx, number):
             sensor_reading = g_database_client.get_sensor_reading(username, devicename, source, address)
             if sensor_reading is not None:
                 sensor['readings'] = sensor_reading
-
-    #end_time = time.time()
-    #print("{}".format(end_time-start_timeX))
 
     msg = {'status': 'OK', 'message': 'Sensors queried successfully.', 'sensors': sensors}
     if new_token:
@@ -4437,9 +4425,6 @@ def get_i2c_device_class(classname):
 def set_xxx_dev_prop(devicename, xxx, number, sensorname):
     #print('set_{}_dev_prop'.format(xxx))
 
-    #global start_timeX
-    #start_timeX = time.time()
-
     # check number parameter
     if int(number) > 4 or int(number) < 1:
         response = json.dumps({'status': 'NG', 'message': 'Invalid parameters'})
@@ -4562,7 +4547,6 @@ def set_xxx_dev_prop(devicename, xxx, number, sensorname):
     if status_return != 200:
         # set enabled to FALSE and configured to FALSE
         g_database_client.set_enable_configure_sensor(username, devicename, xxx, number, sensorname, 0, 0)
-        #print(time.time()-start_timeX)
         return response, status_return
 
     # if ADC/1WIRE/TPROBE, set all other ADC/1WIRE/TPROBE to unconfigured and disabled
@@ -4596,8 +4580,6 @@ def set_xxx_dev_prop(devicename, xxx, number, sensorname):
     if sensor.get('subclass'):
         subclassid = int(get_i2c_device_class(sensor['subclass']))
     item = g_database_client.update_device_peripheral_configuration(username, devicename, xxx, int(number), address, classid, subclassid, data)
-
-    #print(time.time()-start_timeX)
 
     return response
 
@@ -4634,9 +4616,6 @@ def set_xxx_dev_prop(devicename, xxx, number, sensorname):
 @app.route('/devices/device/<devicename>/<xxx>/<number>/sensors/sensor/<sensorname>/properties', methods=['GET'])
 def get_xxx_dev_prop(devicename, xxx, number, sensorname):
     #print('get_{}_dev_prop'.format(xxx))
-
-    #global start_timeX
-    #start_timeX = time.time()
 
     # check number parameter
     if int(number) > 4 or int(number) < 1:
@@ -4701,7 +4680,6 @@ def get_xxx_dev_prop(devicename, xxx, number, sensorname):
     # has notification object required
     response, status_return = process_request(api, data)
     if status_return != 200:
-        #print(time.time()-start_timeX)
         return response, status_return
 
     source = "{}{}{}".format(xxx, number, sensorname)
@@ -4743,8 +4721,6 @@ def get_xxx_dev_prop(devicename, xxx, number, sensorname):
             response['value'] = {}
             response['value']['subattributes']['notification'] = build_default_notifications(xxx, token)
         response = json.dumps(response)
-
-    #print(time.time()-start_timeX)
 
     return response
 
@@ -5194,7 +5170,7 @@ def generate_subscribe_topic(topic, separator):
     return topic
 
 
-def process_request_get(api, data, timeout=CONFIG_WAIT_DEVICE_RESPONSE_TIMEOUT_SEC):
+def process_request(api, data, timeout=CONFIG_WAIT_DEVICE_RESPONSE_TIMEOUT_SEC):
 
     #print("\r\nAPI: {} {} devicename={}".format(api, data['username'], data['devicename']))
 
@@ -5231,91 +5207,22 @@ def process_request_get(api, data, timeout=CONFIG_WAIT_DEVICE_RESPONSE_TIMEOUT_S
         # subscribe for response
         ret = g_messaging_client.subscribe(subtopic, subscribe=True, deviceid=deviceid)
         if ret:
+            # use event object to wait for response
+            event_response_available = threading.Event()
+            g_event_dict[subtopic] = event_response_available
+
             # publish request
             g_messaging_client.publish(pubtopic, payload)
-            #print(time.time()-start_timeX)
 
             # receive response
-            response = receive_message(subtopic, timeout)
-            #print(time.time()-start_timeX)
-            g_messaging_client.subscribe(subtopic, subscribe=False)
-        else:
-            msg = {'status': 'NG', 'message': 'Could not communicate with device'}
-            if new_token:
-                msg['new_token'] = new_token
-            response = json.dumps(msg)
-            print('\r\nERROR Could not communicate with device [{}, {}]\r\n'.format(username, devicename))
-            return response, status.HTTP_500_INTERNAL_SERVER_ERROR
-    except:
-        msg = {'status': 'NG', 'message': 'Could not communicate with device'}
-        if new_token:
-            msg['new_token'] = new_token
-        response = json.dumps(msg)
-        print('\r\nERROR Could not communicate with device [{}, {}]\r\n'.format(username, devicename))
-        return response, status.HTTP_500_INTERNAL_SERVER_ERROR
+            #start = time.time()
+            event_response_available.wait(timeout)
+            #print("{}".format(time.time()-start))
+            response = g_queue_dict[subtopic].decode("utf-8")
+            g_queue_dict.pop(subtopic)
+            #response = receive_message(subtopic, timeout)
 
-    # return HTTP response
-    if response is None:
-        msg = {'status': 'NG', 'message': 'Device is unreachable'}
-        if new_token:
-            msg['new_token'] = new_token
-        response = json.dumps(msg)
-        print('\r\nERROR Device is unreachable [{}, {}] DATETIME {}\r\n'.format(username, devicename, datetime.datetime.now()))
-        return response, status.HTTP_503_SERVICE_UNAVAILABLE
-
-    #print(response)
-    msg = {'status': 'OK', 'message': 'Device accessed successfully.'}
-    if new_token:
-        msg['new_token'] = new_token
-    try:
-        msg['value'] = (json.loads(response))["value"]
-        response = json.dumps(msg)
-    except:
-        response = json.dumps(msg)
-    return response, 200
-
-
-def process_request(api, data, timeout=CONFIG_WAIT_DEVICE_RESPONSE_TIMEOUT_SEC):
-
-    #print("\r\nAPI: {} {} devicename={}".format(api, data['username'], data['devicename']))
-    #global start_timeX
-
-    username = data['username']
-    token = data['token']
-    devicename = data['devicename']
-
-    # check if username and token is valid
-    verify_ret, new_token = g_database_client.verify_token(username, token)
-    if verify_ret != 0:
-        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
-        print('\r\nERROR Token is invalid [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
-
-    # check if device is registered
-    if not g_database_client.find_device(username, devicename):
-        response = json.dumps({'status': 'NG', 'message': 'Device is not registered'})
-        print('\r\nERROR Device is not registered [{}]\r\n'.format(username))
-        return response, status.HTTP_404_NOT_FOUND
-
-    # get deviceid for subscribe purpose (AMQP)
-    deviceid = g_database_client.get_deviceid(username, devicename)
-
-    # construct publish/subscribe topics and payloads
-    pubtopic = generate_publish_topic(data, deviceid, api, CONFIG_SEPARATOR)
-    payload = generate_publish_payload(data)
-    subtopic = generate_subscribe_topic(pubtopic, CONFIG_SEPARATOR)
-
-    try:
-        # subscribe for response
-        ret = g_messaging_client.subscribe(subtopic, subscribe=True, deviceid=deviceid)
-        if ret:
-            # publish request
-            g_messaging_client.publish(pubtopic, payload)
-            #print("PUB {}".format(time.time()-start_timeX))
-
-            # receive response
-            response = receive_message(subtopic, timeout)
-            #print("RCV {}".format(time.time()-start_timeX))
+            # unsubscribe for response
             g_messaging_client.subscribe(subtopic, subscribe=False)
         else:
             msg = {'status': 'NG', 'message': 'Could not communicate with device'}
@@ -5555,13 +5462,23 @@ def message_broker_unregister(deviceid):
 ###################################################################################
 
 def on_mqtt_message(client, userdata, msg):
+    #global g_event_dict, g_queue_dict
+
     if CONFIG_PREPEND_REPLY_TOPIC == '':
         g_queue_dict[msg.topic] = msg.payload
         #print("RCV: {}".format(g_queue_dict))
     else:
         index = msg.topic.find(CONFIG_PREPEND_REPLY_TOPIC)
         if index == 0:
-            g_queue_dict[msg.topic] = msg.payload
+            try:
+                #print("on_mqtt_message {}".format(msg.topic))
+                event_response_available = g_event_dict[msg.topic]
+                g_event_dict.pop(msg.topic)
+                g_queue_dict[msg.topic] = msg.payload
+                event_response_available.set()
+            except:
+                g_queue_dict[msg.topic] = msg.payload
+                print("on_mqtt_message exception !!!")
             #print("RCV: {}".format(g_queue_dict))
 
 def on_amqp_message(ch, method, properties, body):
@@ -5570,6 +5487,7 @@ def on_amqp_message(ch, method, properties, body):
     #print("RCV: {}".format(g_queue_dict))
 
 def receive_message(topic, timeout):
+    # this is now obsoleted, now using eventing instead of polling
     divisor = 1000/CONFIG_WAIT_DEVICE_RESPONSE_FREQUENCY_MS
     iteration = timeout*divisor-1
     sleeptime = 1/divisor
