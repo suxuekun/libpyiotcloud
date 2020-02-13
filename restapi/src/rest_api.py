@@ -29,6 +29,9 @@ CONFIG_USE_ECC = True if int(os.environ["CONFIG_USE_ECC"]) == 1 else False
 CONFIG_SEPARATOR            = '/'
 CONFIG_PREPEND_REPLY_TOPIC  = "server"
 
+CONFIG_WAIT_DEVICE_RESPONSE_TIMEOUT_SEC = 3
+CONFIG_WAIT_DEVICE_RESPONSE_FREQUENCY_MS = 250
+
 
 
 ###################################################################################
@@ -3604,16 +3607,19 @@ def get_xxx_sensors(devicename, xxx, number):
     # query peripheral sensors
     sensors = g_database_client.get_sensors(username, devicename, xxx, number)
 
-    #start_time2 = time.time()
-
-    # query device
+    # set to query device
     api = "get_{}_devs".format(xxx)
     data = {}
     data['token'] = token
     data['devicename'] = devicename
     data['username'] = username
     data["number"] = int(number)
+
+    # query device
+    start_time2 = time.time()
     response, status_return = process_request(api, data)
+    print("{}".format(time.time()-start_time2))
+
     if status_return == 200:
         # map queried result with database result
         #print("from device")
@@ -3686,7 +3692,6 @@ def get_xxx_sensors(devicename, xxx, number):
                 sensor['readings'] = sensor_reading
 
     #end_time = time.time()
-    #print("{}".format(end_time-start_time2))
     #print("{}".format(end_time-start_timeX))
 
     msg = {'status': 'OK', 'message': 'Sensors queried successfully.', 'sensors': sensors}
@@ -5189,7 +5194,7 @@ def generate_subscribe_topic(topic, separator):
     return topic
 
 
-def process_request_get(api, data, timeout=2):
+def process_request_get(api, data, timeout=CONFIG_WAIT_DEVICE_RESPONSE_TIMEOUT_SEC):
 
     #print("\r\nAPI: {} {} devicename={}".format(api, data['username'], data['devicename']))
 
@@ -5270,7 +5275,7 @@ def process_request_get(api, data, timeout=2):
     return response, 200
 
 
-def process_request(api, data, timeout=2):
+def process_request(api, data, timeout=CONFIG_WAIT_DEVICE_RESPONSE_TIMEOUT_SEC):
 
     #print("\r\nAPI: {} {} devicename={}".format(api, data['username'], data['devicename']))
     #global start_timeX
@@ -5565,7 +5570,9 @@ def on_amqp_message(ch, method, properties, body):
     #print("RCV: {}".format(g_queue_dict))
 
 def receive_message(topic, timeout):
-    time.sleep(1)
+    divisor = 1000/CONFIG_WAIT_DEVICE_RESPONSE_FREQUENCY_MS
+    iteration = timeout*divisor-1
+    sleeptime = 1/divisor
     i = 0
     while True:
         try:
@@ -5575,9 +5582,9 @@ def receive_message(topic, timeout):
             return data
         except:
             #print("x")
-            time.sleep(1)
+            time.sleep(sleeptime)
             i += 1
-        if i >= timeout:
+        if i > iteration:
             #print("receive_message timed_out")
             break
     return None
