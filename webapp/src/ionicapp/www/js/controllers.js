@@ -116,8 +116,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Device
             }
             
             // TEST CODE ONLY
-            //register_device_token("cwqAFYB20ko:APA91bEuhsll5d0NPJS3jBqodb2rMmaPWVKGxuWolI7xpIUphGCrilRdLPT0nZ1ojnVVrJ-cAp8mEsdBr_CHGKHCBZZ25AoiYPH31mcoGq-HSelEMzz47JEJyBq51xpfv7ggPLp_PflJ", "GCM");
-            //register_device_token("5c3fe8247015e21e9807972a3a32e03b9a78c4bf0b0a91485e03a15bfdc50991", "APNS");
+            //register_device_token("1234", "GCM");
+            //register_device_token("5678", "APNS");
         });
     };
     
