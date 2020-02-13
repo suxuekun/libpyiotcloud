@@ -14,23 +14,23 @@
     </div>
     <div class="spacer" style="width: 300px; height: 20px;"></div>
     <form id="sensorDashboard-form222" class="list">
-      <ion-toggle toggle-class="toggle-positive" id="sensorDashboard-toggle35" ng-model="hide_settings" ng-change="changeHideSettings(hide_settings)">Hide settings</ion-toggle>
+      <ion-toggle toggle-class="toggle-positive" id="sensorDashboard-toggle35" ng-model="hide_settings" ng-change="changeHideSettings(hide_settings)">.</ion-toggle>
     </form>
     <form id="sensorDashboard-form168" class="list" ng-show="!hide_settings">
-      <label class="item item-select" id="sensorDashboard-select98">
-        <span class="input-label">Device</span>
-        <select ng-options="device.devicename as device.devicename for device in devices" ng-model="data.devicename" ng-change="changeDevice(data.devicename)"></select>
-      </label>
       <div id="sensorDashboard-button-bar12" class="button-bar">
         <button id="sensorDashboard-button101" ng-class="{'active': data.activeSection==1}" ng-click="changeSection(1)" class="button button-positive button-small button-block">Values</button>
         <button id="sensorDashboard-button114" ng-class="{'active': data.activeSection==2}" ng-click="changeSection(2)" class="button button-positive button-small button-block">Charts</button>
       </div>
+      <label class="item item-select" id="sensorDashboard-select98">
+        <span class="input-label">Device</span>
+        <select ng-options="device.devicename as device.devicename for device in devices" ng-model="data.devicename" ng-change="changeDevice(data.devicename)"></select>
+      </label>
       <label class="item item-input" id="sensorDashboard-input144">
         <span class="input-label">Refresh time (sec)</span>
         <input type="number" placeholder="" ng-model="refresh_time" ng-disabled="refresh_automatically">
       </label>
       <ion-toggle toggle-class="toggle-positive" id="sensorDashboard-toggle14" ng-model="refresh_automatically" ng-change="changeRefresh(refresh_automatically, refresh_time)">Refresh automatically</ion-toggle>
-      <button id="sensorDashboard-button126" ng-click="submitDelete()" class="button button-positive button-block">Reset values</button>
+      <button id="sensorDashboard-button126" ng-click="submitDelete()" class="button button-dark button-block button-outline">Reset values</button>
     </form>
     <div id="sensorDashboard-markdown311" class="show-list-numbers-and-dots">
       <p style="color:#AAAAAA;font-size:12px;">{{ sensors_counthdr }}</p>
@@ -67,17 +67,17 @@
         </div>
       </div>
     </div>
-    <div class="list card" id="sensorDashboard-card26" ng-repeat="sensor in sensors" ng-show="data.activeSection==2" ng-click="submitQuery()">
-      <div class="item item-body card_top" id="sensorDashboard-list-item-container31">
-        <div id="sensorDashboard-markdown442" class="show-list-numbers-and-dots">
+    <div class="list card" id="sensorDashboard-card28" ng-repeat="sensor in sensors" ng-show="data.activeSection==2" ng-click="submitQuery()">
+      <div class="item item-body card_top" id="sensorDashboard-list-item-container19">
+        <div id="sensorDashboard-markdown295" class="show-list-numbers-and-dots">
           <p style="margin-top:0px;color:#FFFFFF;font-size:18px;">
             <strong>{{ sensor.sensorname }}</strong>
           </p>
         </div>
-        <div id="sensorDashboard-markdown443" class="show-list-numbers-and-dots">
+        <div id="sensorDashboard-markdown305" class="show-list-numbers-and-dots">
           <p style="margin-top:0px;color:#FFFFFF;font-size:10px;">{{ sensor.manufacturer }} - {{ sensor.model }}</p>
         </div>
-        <div id="sensorDashboard-markdown444" class="show-list-numbers-and-dots">
+        <div id="sensorDashboard-markdown310" class="show-list-numbers-and-dots">
           <p style="margin-top:0px;color:#FFFFFF;font-size:10px;">{{ sensor.subclass ? sensor.source.toUpperCase() + "" + sensor.number + " " + sensor.class.toUpperCase() + " | " + sensor.subclass.toUpperCase() : sensor.source.toUpperCase() + "" + sensor.number + " " + sensor.class.toUpperCase() }}</p>
         </div>
       </div>

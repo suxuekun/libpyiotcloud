@@ -3024,7 +3024,13 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         .then(function (result) {
             console.log("OK XXXXXXXXXXXXXXXXXXX");
             console.log(result.data);
-            $scope.data.status = 'Online';
+            
+            if (result.data.status === "OK") {
+                $scope.data.status = 'Online';
+            }
+            else {
+                $scope.data.status = 'Offline';
+            }
             if (result.data.value !== undefined) {
                 $scope.data.deviceversion = result.data.value.version;
             }
@@ -5088,6 +5094,10 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
                     $scope.sensors[i].enabled_bool = false;
                 }
             }
+            
+            if (result.data.message.includes("offline")) {
+                $ionicPopup.alert({ title: 'Error', template: 'Device is unreachable!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+            }
         })
         .catch(function (error) {
             console.log(Date.now() - time_start);
@@ -5523,6 +5533,11 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
                 else {
                     $scope.sensors[i].enabled_bool = false;
                 }
+            }
+            
+            
+            if (result.data.message.includes("offline")) {
+                $ionicPopup.alert({ title: 'Error', template: 'Device is unreachable!', buttons: [{text: 'OK', type: 'button-assertive'}] });
             }
             
             get_adc_voltage();
@@ -5969,6 +5984,10 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
                     $scope.sensors[i].enabled_bool = false;
                 }
             }
+            
+            if (result.data.message.includes("offline")) {
+                $ionicPopup.alert({ title: 'Error', template: 'Device is unreachable!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+            }
         })
         .catch(function (error) {
             handle_error(error);
@@ -6350,6 +6369,10 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
                 else {
                     $scope.sensors[i].enabled_bool = false;
                 }
+            }
+            
+            if (result.data.message.includes("offline")) {
+                $ionicPopup.alert({ title: 'Error', template: 'Device is unreachable!', buttons: [{text: 'OK', type: 'button-assertive'}] });
             }
         })
         .catch(function (error) {

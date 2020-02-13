@@ -3682,7 +3682,10 @@ def get_xxx_sensors(devicename, xxx, number):
             if sensor_reading is not None:
                 sensor['readings'] = sensor_reading
 
-    msg = {'status': 'OK', 'message': 'Sensors queried successfully.', 'sensors': sensors}
+    if status_return == 200:
+        msg = {'status': 'OK', 'message': 'Sensors queried successfully.', 'sensors': sensors}
+    else:
+        msg = {'status': 'OK', 'message': 'Sensors queried successfully but device is offline.', 'sensors': sensors}
     if new_token:
         msg['new_token'] = new_token
     response = json.dumps(msg)
@@ -5218,8 +5221,11 @@ def process_request(api, data, timeout=CONFIG_WAIT_DEVICE_RESPONSE_TIMEOUT_SEC):
             #start = time.time()
             event_response_available.wait(timeout)
             #print("{}".format(time.time()-start))
-            response = g_queue_dict[subtopic].decode("utf-8")
-            g_queue_dict.pop(subtopic)
+            if subtopic in g_queue_dict:
+                response = g_queue_dict[subtopic].decode("utf-8")
+                g_queue_dict.pop(subtopic)
+            else:
+                response = None
             #response = receive_message(subtopic, timeout)
 
             # unsubscribe for response
