@@ -26,36 +26,41 @@
     <div id="deviceADC-markdown152" class="show-list-numbers-and-dots">
       <p style="color:#AAAAAA;font-size:12px;">{{ sensors_counthdr }}</p>
     </div>
-    <ion-list id="deviceADC-list10">
-      <div class="item item-body" id="deviceADC-list-item-container6" ng-repeat="sensor in sensors" ng-click="processSensor(sensor)">
-        <div id="deviceADC-markdown153" class="show-list-numbers-and-dots">
+    <div class="list card" id="deviceADC-card22" ng-repeat="sensor in sensors">
+      <div class="item item-body" id="deviceADC-list-item-container20" ng-click="processSensor(sensor)">
+        <div id="deviceADC-markdown404" class="show-list-numbers-and-dots">
           <p style="margin-top:0px;color:#387EF5;font-size:18px;">
             <strong> {{ sensor.sensorname }} </strong>
           </p>
         </div>
-        <div id="deviceADC-markdown154" class="show-list-numbers-and-dots">
+        <div id="deviceADC-markdown405" class="show-list-numbers-and-dots">
           <p style="margin-top:0px;color:#444444;font-size:10px;">{{ sensor.manufacturer }} - {{ sensor.model }}</p>
         </div>
-        <div id="deviceADC-markdown156" class="show-list-numbers-and-dots">
-          <p style="margin-top:0px;color:#444444;font-size:10px;">{{ sensor.configured ? "CONFIGURED": "UNCONFIGURED" }} and {{ sensor.enabled ? "ENABLED": "DISABLED" }}</p>
+        <div id="deviceADC-markdown406" class="show-list-numbers-and-dots">
+          <p style="margin-top:0px;color:#444444;font-size:10px;">{{ sensor.readings || !sensor.configured ? "" : (sensor.type=="input" ? "" : ((sensor.configured ? "CONFIGURED": "UNCONFIGURED") + " and " + (sensor.enabled ? "ENABLED": "DISABLED"))) }}</p>
         </div>
-        <div id="deviceADC-markdown251" style="text-align:center;" class="show-list-numbers-and-dots">
+      </div>
+      <div class="item item-body" id="deviceADC-list-item-container21" ng-click="getADCSensors()">
+        <div id="deviceADC-markdown411" class="show-list-numbers-and-dots">
           <p style="margin-top:0px;color:#FFFFFF;font-size:10px;">{{ sensor.readings ? "." : "" }}</p>
         </div>
-        <div id="deviceADC-markdown355" style="text-align:center;" class="show-list-numbers-and-dots">
+        <div id="deviceADC-markdown421" style="text-align:center;" class="show-list-numbers-and-dots">
           <p style="margin-top:0px;color:#387EF5;font-size:35px;">
             <strong> {{ sensor.readings ? sensor.subclass ? sensor.readings.value + " " + sensor.units[0] + " | " + sensor.readings.subclass.value + " " + sensor.units[1] : sensor.readings.value + " " + sensor.units[0] : "" }} </strong>
           </p>
         </div>
-        <div id="deviceADC-markdown356" style="text-align:center;" class="show-list-numbers-and-dots">
+        <div id="deviceADC-markdown422" class="show-list-numbers-and-dots">
           <p style="margin-top:0px;color:#FFFFFF;font-size:10px;">{{ sensor.readings ? "." : "" }}</p>
         </div>
-        <div id="deviceADC-markdown357" style="text-align:center;" class="show-list-numbers-and-dots">
+        <div id="deviceADC-markdown423" style="text-align:center;" class="show-list-numbers-and-dots">
           <p style="margin-top:0px;color:#387EF5;font-size:10px;">{{ sensor.readings ? sensor.subclass ? "Low: " + sensor.readings.lowest + " " + "High: " + sensor.readings.highest + " | " + "Low: " + sensor.readings.subclass.lowest + " " + "High: " + sensor.readings.subclass.highest : "Low: " + sensor.readings.lowest
             + " " + "High: " + sensor.readings.highest : "" }}</p>
         </div>
       </div>
-    </ion-list>
+      <form id="deviceADC-form216" class="list">
+        <ion-toggle toggle-class="toggle-positive" id="deviceADC-toggle29" ng-show="sensor.configured" ng-model="sensor.enabled_bool" ng-click="changeDevice(sensor, sensor.enabled_bool)">.</ion-toggle>
+      </form>
+    </div>
     <button id="deviceADC-button108" ng-click="addADCDevice()" class="button button-positive button-large button-block button-clear icon-right ion-android-add-circle"></button>
   </ion-content>
 </ion-view>

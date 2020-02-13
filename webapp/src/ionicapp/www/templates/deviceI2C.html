@@ -21,36 +21,38 @@
     <div id="deviceI2C-markdown37" class="show-list-numbers-and-dots">
       <p style="color:#AAAAAA;font-size:12px;">{{ sensors_counthdr }}</p>
     </div>
-    <ion-list id="deviceI2C-list11">
-      <div class="item item-body" id="deviceI2C-list-item-container5" ng-repeat="sensor in sensors" ng-click="processSensor(sensor)">
-        <div id="deviceI2C-markdown65" class="show-list-numbers-and-dots">
+    <div class="list card" id="deviceI2C-card21" ng-repeat="sensor in sensors">
+      <div class="item item-body" id="deviceI2C-list-item-container18" ng-click="processSensor(sensor)">
+        <div id="deviceI2C-markdown394" class="show-list-numbers-and-dots">
           <p style="margin-top:0px;color:#387EF5;font-size:18px;">
             <strong> {{ sensor.sensorname }} </strong>
           </p>
         </div>
-        <div id="deviceI2C-markdown66" class="show-list-numbers-and-dots">
+        <div id="deviceI2C-markdown395" class="show-list-numbers-and-dots">
           <p style="margin-top:0px;color:#444444;font-size:10px;">{{ sensor.manufacturer }} - {{ sensor.model }}</p>
         </div>
-        <div id="deviceI2C-markdown127" class="show-list-numbers-and-dots">
-          <p style="margin-top:0px;color:#444444;font-size:10px;">{{ sensor.configured ? "CONFIGURED": "UNCONFIGURED" }} and {{ sensor.enabled ? "ENABLED": "DISABLED" }}</p>
+        <div id="deviceI2C-markdown396" class="show-list-numbers-and-dots">
+          <p style="margin-top:0px;color:#444444;font-size:10px;">{{ sensor.readings || !sensor.configured ? "" : (sensor.type=="input" ? "" : ((sensor.configured ? "CONFIGURED": "UNCONFIGURED") + " and " + (sensor.enabled ? "ENABLED": "DISABLED"))) }}</p>
         </div>
-        <div id="deviceI2C-markdown155" style="text-align:center;" class="show-list-numbers-and-dots">
+      </div>
+      <form id="deviceI2C-form213" class="list" ng-click="getI2CSensors()">
+        <div id="deviceI2C-markdown397" style="text-align:center;" class="show-list-numbers-and-dots">
           <p style="margin-top:0px;color:#FFFFFF;font-size:10px;">{{ sensor.readings ? "." : "" }}</p>
         </div>
-        <div id="deviceI2C-markdown358" style="text-align:center;" class="show-list-numbers-and-dots">
+        <div id="deviceI2C-markdown402" style="text-align:center;" class="show-list-numbers-and-dots">
           <p style="margin-top:0px;color:#387EF5;font-size:35px;">
             <strong> {{ sensor.readings ? sensor.subclass ? sensor.readings.value + " " + sensor.units[0] + " | " + sensor.readings.subclass.value + " " + sensor.units[1] : sensor.readings.value + " " + sensor.units[0] : "" }} </strong>
           </p>
         </div>
-        <div id="deviceI2C-markdown359" style="text-align:center;" class="show-list-numbers-and-dots">
-          <p style="margin-top:0px;color:#FFFFFF;font-size:10px;">{{ sensor.readings ? "." : "" }}</p>
-        </div>
-        <div id="deviceI2C-markdown360" style="text-align:center;" class="show-list-numbers-and-dots">
+        <div id="deviceI2C-markdown401" style="text-align:center;" class="show-list-numbers-and-dots">
           <p style="margin-top:0px;color:#387EF5;font-size:10px;">{{ sensor.readings ? sensor.subclass ? "Low: " + sensor.readings.lowest + " " + "High: " + sensor.readings.highest + " | " + "Low: " + sensor.readings.subclass.lowest + " " + "High: " + sensor.readings.subclass.highest : "Low: " + sensor.readings.lowest
             + " " + "High: " + sensor.readings.highest : "" }}</p>
         </div>
-      </div>
-    </ion-list>
+      </form>
+      <form id="deviceI2C-form212" class="list">
+        <ion-toggle toggle-class="toggle-positive" id="deviceI2C-toggle22" ng-show="sensor.configured" ng-model="sensor.enabled_bool" ng-click="changeDevice(sensor, sensor.enabled_bool)">.</ion-toggle>
+      </form>
+    </div>
     <button id="deviceI2C-button23" ng-click="addI2CDevice()" class="button button-positive button-large button-block button-clear icon-right ion-android-add-circle"></button>
   </ion-content>
 </ion-view>
