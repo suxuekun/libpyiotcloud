@@ -36,17 +36,17 @@
       <p style="color:#AAAAAA;font-size:12px;">{{ sensors_counthdr }}</p>
     </div>
     <div class="list card" id="sensorDashboard-card25" ng-repeat="sensor in sensors" ng-show="data.activeSection==1">
-      <div class="item item-body" id="sensorDashboard-list-item-container29">
+      <div class="item item-body card_top" id="sensorDashboard-list-item-container29">
         <div id="sensorDashboard-markdown434" class="show-list-numbers-and-dots">
-          <p style="margin-top:0px;color:#387EF5;font-size:18px;">
+          <p style="margin-top:0px;color:#FFFFFF;font-size:18px;">
             <strong>{{ sensor.sensorname }}</strong>
           </p>
         </div>
         <div id="sensorDashboard-markdown435" class="show-list-numbers-and-dots">
-          <p style="margin-top:0px;color:#444444;font-size:10px;">{{ sensor.manufacturer }} - {{ sensor.model }}</p>
+          <p style="margin-top:0px;color:#FFFFFF;font-size:10px;">{{ sensor.manufacturer }} - {{ sensor.model }}</p>
         </div>
         <div id="sensorDashboard-markdown436" class="show-list-numbers-and-dots">
-          <p style="margin-top:0px;color:#444444;font-size:10px;">{{ sensor.subclass ? sensor.source.toUpperCase() + "" + sensor.number + " " + sensor.class.toUpperCase() + " | " + sensor.subclass.toUpperCase() : sensor.source.toUpperCase() + "" + sensor.number + " " + sensor.class.toUpperCase() }}</p>
+          <p style="margin-top:0px;color:#FFFFFF;font-size:10px;">{{ sensor.subclass ? sensor.source.toUpperCase() + "" + sensor.number + " " + sensor.class.toUpperCase() + " | " + sensor.subclass.toUpperCase() : sensor.source.toUpperCase() + "" + sensor.number + " " + sensor.class.toUpperCase() }}</p>
         </div>
       </div>
       <div class="item item-body" id="sensorDashboard-list-item-container30" ng-click="submitQuery()">
@@ -68,17 +68,17 @@
       </div>
     </div>
     <div class="list card" id="sensorDashboard-card26" ng-repeat="sensor in sensors" ng-show="data.activeSection==2" ng-click="submitQuery()">
-      <div class="item item-body" id="sensorDashboard-list-item-container31">
+      <div class="item item-body card_top" id="sensorDashboard-list-item-container31">
         <div id="sensorDashboard-markdown442" class="show-list-numbers-and-dots">
-          <p style="margin-top:0px;color:#387EF5;font-size:18px;">
+          <p style="margin-top:0px;color:#FFFFFF;font-size:18px;">
             <strong>{{ sensor.sensorname }}</strong>
           </p>
         </div>
         <div id="sensorDashboard-markdown443" class="show-list-numbers-and-dots">
-          <p style="margin-top:0px;color:#444444;font-size:10px;">{{ sensor.manufacturer }} - {{ sensor.model }}</p>
+          <p style="margin-top:0px;color:#FFFFFF;font-size:10px;">{{ sensor.manufacturer }} - {{ sensor.model }}</p>
         </div>
         <div id="sensorDashboard-markdown444" class="show-list-numbers-and-dots">
-          <p style="margin-top:0px;color:#444444;font-size:10px;">{{ sensor.subclass ? sensor.source.toUpperCase() + "" + sensor.number + " " + sensor.class.toUpperCase() + " | " + sensor.subclass.toUpperCase() : sensor.source.toUpperCase() + "" + sensor.number + " " + sensor.class.toUpperCase() }}</p>
+          <p style="margin-top:0px;color:#FFFFFF;font-size:10px;">{{ sensor.subclass ? sensor.source.toUpperCase() + "" + sensor.number + " " + sensor.class.toUpperCase() + " | " + sensor.subclass.toUpperCase() : sensor.source.toUpperCase() + "" + sensor.number + " " + sensor.class.toUpperCase() }}</p>
         </div>
       </div>
       <div id="canvas-holder" style="width:97%; margin:0px 0px 0px 3%;">

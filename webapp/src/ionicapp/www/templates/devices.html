@@ -11,24 +11,26 @@
     <div id="devices-markdown36" class="show-list-numbers-and-dots">
       <p style="color:#AAAAAA;font-size:12px;">{{ devices_counthdr }}</p>
     </div>
-    <ion-list id="devices-list12">
-      <div class="item item-body" id="devices-list-item-container4" ng-repeat="device in devices" ng-click="submitTest(device)">
-        <div id="devices-markdown34" ng-disabled="device.devicestatus==&quot;Detecting...&quot;" class="show-list-numbers-and-dots">
-          <p style="margin-top:0px;color:#387EF5;font-size:18px;">
+    <div class="list card" id="devices-card27" ng-repeat="device in devices">
+      <div class="item item-body card_top" id="devices-list-item-container6" ng-click="submitTest(device)">
+        <div id="devices-markdown127" class="show-list-numbers-and-dots">
+          <p style="margin-top:0px;color:#FFFFFF;font-size:18px;">
             <strong>{{ device.devicename }}</strong>
           </p>
         </div>
-        <div id="devices-markdown63" ng-disabled="device.devicestatus==&quot;Detecting...&quot;" class="show-list-numbers-and-dots">
-          <p style="margin-top:0px;color:#444444;font-size:10px;">UUID: {{ device.deviceid }}</p>
-        </div>
-        <div id="devices-markdown62" ng-disabled="device.devicestatus==&quot;Detecting...&quot;" class="show-list-numbers-and-dots">
-          <hr>
-        </div>
-        <div id="devices-markdown64" ng-disabled="device.devicestatus==&quot;Detecting...&quot;" ng-class="getStyle(device.devicestatus)" class="show-list-numbers-and-dots">
-          <p style="margin-top:0px;color:#444444;font-size:10px;"> {{ device.devicestatus }}</p>
+        <div id="devices-markdown153" class="show-list-numbers-and-dots">
+          <p style="margin-top:0px;color:#FFFFFF;font-size:10px;">UUID: {{ device.deviceid }}</p>
         </div>
       </div>
-    </ion-list>
+      <div class="item item-body" id="devices-list-item-container7">
+        <div id="devices-markdown154" class="show-list-numbers-and-dots">
+          <p style="margin-top:0px;color:#444444;font-size:10px;"> {{ device.devicestatus }}</p>
+        </div>
+        <div id="devices-markdown155" class="show-list-numbers-and-dots">
+          <p style="margin-top:0px;color:#FFFFFF;font-size:10px;">UUID: {{ device.deviceid }}</p>
+        </div>
+      </div>
+    </div>
     <button id="devices-button24" ng-click="submitAdd()" style="font-weight:600;" class="button button-positive button-large button-block button-clear icon-right ion-android-add-circle"></button>
   </ion-content>
 </ion-view>
