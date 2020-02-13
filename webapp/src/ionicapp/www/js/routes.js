@@ -753,7 +753,7 @@ angular.module('app.routes', [])
     }
   })
 
-$urlRouterProvider.otherwise('/page_home')
+$urlRouterProvider.otherwise('/page_login')
 
 
 });
