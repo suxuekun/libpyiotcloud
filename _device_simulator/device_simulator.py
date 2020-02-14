@@ -1283,24 +1283,20 @@ def process_restart():
         restart()
 
 def process_stop():
-    global g_device_status
+    global g_device_status, g_timer_thread
     if g_device_status == DEVICE_STATUS_STOPPING:
-        print("\nDevice will be stopped in 3 seconds")
-        for x in range(3):
-            time.sleep(1)
-            print(".")
-        time.sleep(1)
+        print("\nDevice will be stopped...")
+        if g_timer_thread_use:
+            g_timer_thread.set_pause(True)
         g_device_status = DEVICE_STATUS_STOPPED
         print("Device stopped successfully!\n")
 
 def process_start():
-    global g_device_status
+    global g_device_status, g_timer_thread
     if g_device_status == DEVICE_STATUS_STARTING:
-        print("\nDevice will be started in 3 seconds")
-        for x in range(3):
-            time.sleep(1)
-            print(".")
-        time.sleep(1)
+        print("\nDevice will be started...")
+        if g_timer_thread_use:
+            g_timer_thread.set_pause(False)
         g_device_status = DEVICE_STATUS_RUNNING
         print("Device started successfully!\n")
 
@@ -1367,6 +1363,7 @@ class TimerThread(threading.Thread):
         threading.Thread.__init__(self)
         self.stopped = event
         self.timeout = timeout
+        self.pause = False
         if CONFIG_SEND_NOTIFICATION_PERIODICALLY:
             self.notification_counter = 0
             self.notification_max = int(CONFIG_SEND_NOTIFICATION_PERIOD/timeout)
@@ -1375,6 +1372,9 @@ class TimerThread(threading.Thread):
         self.timeout = timeout
         if CONFIG_SEND_NOTIFICATION_PERIODICALLY:
             self.notification_max = int(CONFIG_SEND_NOTIFICATION_PERIOD/timeout)
+
+    def set_pause(self, pause=True):
+        self.pause = pause
 
     def process_input_devices(self):
         topic = "{}{}{}{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_DEVICE_ID, CONFIG_SEPARATOR, API_PUBLISH_SENSOR_READING)
@@ -1553,10 +1553,13 @@ class TimerThread(threading.Thread):
     def run(self):
         print("")
         while not self.stopped.wait(self.timeout):
-            self.process_input_devices()
-            #self.process_output_devices()
-            if CONFIG_SEND_NOTIFICATION_PERIODICALLY:
-                self.process_trigger_notification()
+            if self.pause == False:
+                self.process_input_devices()
+                #self.process_output_devices()
+                if CONFIG_SEND_NOTIFICATION_PERIODICALLY:
+                    self.process_trigger_notification()
+            else:
+                print("Device is currently stopped! Not sending any sensor data.")
 
 
 ###################################################################################
