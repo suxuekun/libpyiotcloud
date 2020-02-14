@@ -2358,7 +2358,7 @@ def build_default_notifications(type, token):
                 "enable": True
             }
         ]
-    else: # gpio, i2c, adc, 1wire, tprobe
+    elif type == "gpio":
         notifications["messages"] = [
             {
                 "message": "Hello World", 
@@ -2366,7 +2366,18 @@ def build_default_notifications(type, token):
             }, 
             {
                 "message": "Hi World", 
-                "enable": False
+                "enable": True
+            }
+        ]
+    else:
+        notifications["messages"] = [
+            {
+                "message": "Sensor threshold activated", 
+                "enable": True
+            }, 
+            {
+                "message": "Sensor threshold deactivated", 
+                "enable": True
             }
         ]
 
@@ -2415,9 +2426,10 @@ def build_default_notifications(type, token):
         #notifications["endpoints"]["notification"]["recipients"] = info["phone_number"]
         #notifications["endpoints"]["notification"]["recipients_list"].append({ "to": info["phone_number"], "group": False })
 
-    if info.get("phone_number_verified"):
-        notifications["endpoints"]["mobile"]["enable"] = info["phone_number_verified"]
-        #notifications["endpoints"]["notification"]["enable"] = False
+    if type == "uart":
+        if info.get("phone_number_verified"):
+            notifications["endpoints"]["mobile"]["enable"] = info["phone_number_verified"]
+            #notifications["endpoints"]["notification"]["enable"] = False
 
     return notifications
 
