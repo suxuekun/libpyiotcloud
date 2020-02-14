@@ -33,6 +33,7 @@ CONFIG_DBHOST = sensor_config.CONFIG_MONGODB_HOST
 g_messaging_client = None
 g_sensor_client = None
 g_database_client = None
+g_queue_activated_sensors = {}
 
 
 
@@ -64,6 +65,30 @@ CONFIG_SEPARATOR            = '/'
 API_RECEIVE_SENSOR_READING  = "rcv_sensor_reading"
 API_REQUEST_SENSOR_READING  = "req_sensor_reading"
 API_PUBLISH_SENSOR_READING  = "sensor_reading"
+
+
+
+###################################################################################
+# Sensor value thresholding for notification triggering
+###################################################################################
+
+CONFIG_THRESHOLDING_NOTIFICATIONS       = True
+CONFIG_THRESHOLDING_NOTIFICATIONS_DEBUG = True
+
+MODE_THRESHOLD_SINGLE       = 0
+MODE_THRESHOLD_DUAL         = 1
+MODE_CONTINUOUS             = 2
+ACTIVATE_OUT_OF_RANGE       = 0
+ACTIVATE_WITHIN_RANGE       = 1
+ALERT_ONCE                  = 0
+ALERT_CONTINUOUSLY          = 1
+
+MENOS_MOBILE                = "mobile"
+MENOS_EMAIL                 = "email"
+MENOS_NOTIFICATION          = "notification"
+MENOS_MODEM                 = "modem"
+MENOS_STORAGE               = "storage"
+MENOS_DEFAULT               = "default"
 
 
 
@@ -140,6 +165,136 @@ def store_sensor_reading(database_client, deviceid, source, address, value, subc
         pass
 
 
+# for notification triggering used in thresholding modes
+def menos_publish(menos, deviceid, recipient=None, message=None, peripheral="uart", number="", address=None, activate=None, condition=None):
+
+    # set the topic
+    if address is None:
+        topic = "{}/{}/trigger_notification/{}{}/{}".format(CONFIG_PREPEND_REPLY_TOPIC, deviceid, peripheral, number, menos)
+    else:
+        topic = "{}/{}/trigger_notification/{}{}/{}/{}".format(CONFIG_PREPEND_REPLY_TOPIC, deviceid, peripheral, number, menos, address)
+
+    # set the payload
+    payload = {}
+    if recipient is not None:
+        payload["recipient"] = recipient
+    if message is not None:
+        payload["message"] = message
+    if activate is not None:
+        payload["activate"] = activate
+    if condition is not None:
+        payload["condition"] = condition
+
+    # publish the payload on the topic
+    payload = json.dumps(payload)
+    g_messaging_client.publish(topic, payload, debug=False)
+    if CONFIG_THRESHOLDING_NOTIFICATIONS_DEBUG:
+        print("{} {}".format(deviceid, condition))
+
+
+# for notification triggering used in thresholding modes
+def process_thresholding_notification(attributes, value, classname, sensor, source, deviceid, peripheral, number, address):
+    mode = attributes["mode"]
+    threshold = attributes["threshold"]
+    alert_type = attributes["alert"]["type"]
+    #alert_period = attributes["alert"]["alert_period"]
+
+    if mode == MODE_THRESHOLD_SINGLE:
+        # single threshold
+        deviceid_source_sensor = "{}.{}{}.{}.single".format(deviceid, source, sensor["sensorname"], classname)
+
+        threshold_value = threshold["value"]
+        #print("MODE_THRESHOLD_SINGLE {} {} {}".format(classname, value, threshold_value))
+
+        if value > threshold_value:
+            # check for activation
+            if alert_type == ALERT_ONCE:
+                if deviceid_source_sensor not in g_queue_activated_sensors:
+                    #print("activate: value > threshold_value; alert once")
+                    condition = "{} {} > {} (activation)".format(classname, value, threshold_value)
+                    menos_publish(MENOS_DEFAULT, deviceid, None, None, peripheral, number, address, 1, condition )
+                g_queue_activated_sensors[deviceid_source_sensor] = threshold_value
+            elif alert_type == ALERT_CONTINUOUSLY:
+                #print("activate: value > threshold_value; alert continuously")
+                g_queue_activated_sensors[deviceid_source_sensor] = threshold_value
+                condition = "{} {} > {} (activation)".format(classname, value, threshold_value)
+                menos_publish(MENOS_DEFAULT, deviceid, None, None, peripheral, number, address, 1, condition )
+        else:
+            # check for deactivation
+            if deviceid_source_sensor in g_queue_activated_sensors:
+                # if previously activated, send deactivation
+                queue_value = g_queue_activated_sensors[deviceid_source_sensor]
+                g_queue_activated_sensors.pop(deviceid_source_sensor)
+                condition = "{} {} <= {} (deactivation)".format(classname, value, threshold_value)
+                menos_publish(MENOS_DEFAULT, deviceid, None, None, peripheral, number, address, 0, condition )
+
+    elif mode == MODE_THRESHOLD_DUAL:
+        # dual threshold
+        deviceid_source_sensor = "{}.{}{}.{}.dual".format(deviceid, source, sensor["sensorname"], classname)
+
+        threshold_min = threshold["min"]
+        threshold_max = threshold["max"]
+        threshold_activate = threshold["activate"]
+        #print("MODE_THRESHOLD_DUAL {} {} [{} {}] {}".format(classname, value, threshold_min, threshold_max, threshold_activate))
+
+        if threshold_activate == ACTIVATE_OUT_OF_RANGE:
+
+            if value < threshold_min or value > threshold_max:
+                # check for activation
+                if alert_type == ALERT_ONCE:
+                    if deviceid_source_sensor not in g_queue_activated_sensors:
+                        #print("activate: value > threshold_value; alert once")
+                        if value < threshold_min:
+                            condition = "{} {} < {} (activation)".format(classname, value, threshold_min)
+                        else:
+                            condition = "{} {} > {} (activation)".format(classname, value, threshold_max)
+                        menos_publish(MENOS_DEFAULT, deviceid, None, None, peripheral, number, address, 1, condition )
+                    g_queue_activated_sensors[deviceid_source_sensor] = value
+                elif alert_type == ALERT_CONTINUOUSLY:
+                    #print("activate: value > threshold_value; alert continuously")
+                    g_queue_activated_sensors[deviceid_source_sensor] = value
+                    if value < threshold_min:
+                        condition = "{} {} < {} (activation)".format(classname, value, threshold_min)
+                    else:
+                        condition = "{} {} > {} (activation)".format(classname, value, threshold_max)
+                    menos_publish(MENOS_DEFAULT, deviceid, None, None, peripheral, number, address, 1, condition )
+            else:
+                # check for deactivation
+                if deviceid_source_sensor in g_queue_activated_sensors:
+                    # if previously activated, send deactivation
+                    queue_value = g_queue_activated_sensors[deviceid_source_sensor]
+                    g_queue_activated_sensors.pop(deviceid_source_sensor)
+                    condition = "{} {} <= {} <= {} (deactivation)".format(classname, threshold_min, value, threshold_max)
+                    menos_publish(MENOS_DEFAULT, deviceid, None, None, peripheral, number, address, 0, condition)
+
+        elif threshold_activate == ACTIVATE_WITHIN_RANGE:
+
+            if value >= threshold_min and value <= threshold_max:
+                # check for activation
+                if alert_type == ALERT_ONCE:
+                    if deviceid_source_sensor not in g_queue_activated_sensors:
+                        #print("activate: value > threshold_value; alert once")
+                        condition = "{} {} <= {} <= {} (activation)".format(classname, threshold_min, value, threshold_max)
+                        menos_publish(MENOS_DEFAULT, deviceid, None, None, peripheral, number, address, 1, condition)
+                    g_queue_activated_sensors[deviceid_source_sensor] = value
+                elif alert_type == ALERT_CONTINUOUSLY:
+                    #print("activate: value > threshold_value; alert continuously")
+                    g_queue_activated_sensors[deviceid_source_sensor] = value
+                    condition = "{} {} <= {} <= {} (activation)".format(classname, threshold_min, value, threshold_max)
+                    menos_publish(MENOS_DEFAULT, deviceid, None, None, peripheral, number, address, 1, condition)
+            else:
+                # check for deactivation
+                if deviceid_source_sensor in g_queue_activated_sensors:
+                    # if previously activated, send deactivation
+                    queue_value = g_queue_activated_sensors[deviceid_source_sensor]
+                    g_queue_activated_sensors.pop(deviceid_source_sensor)
+                    if value < threshold_min:
+                        condition = "{} {} < {} (deactivation)".format(classname, value, threshold_min)
+                    else:
+                        condition = "{} {} > {} (deactivation)".format(classname, value, threshold_max)
+                    menos_publish(MENOS_DEFAULT, deviceid, None, None, peripheral, number, address, 0, value)
+
+
 def forward_sensor_reading(database_client, deviceid, source, address, value, subclass_value):
 
     #
@@ -152,9 +307,10 @@ def forward_sensor_reading(database_client, deviceid, source, address, value, su
         configuration = database_client.get_device_peripheral_configuration(deviceid, peripheral, int(number), address)
         #print_json(configuration)
         if configuration is not None:
-            # check if continuous mode
-            if configuration["attributes"]["mode"] == 2: 
-                # get the device name
+            mode = configuration["attributes"]["mode"]
+            # check if continuous mode (sensor forwarding) or thresholding mode (notification triggering)
+            if mode == MODE_CONTINUOUS: 
+                # continuous mode (sensor forwarding)
                 dest_devicename = configuration["attributes"]["hardware"]["devicename"]
                 if dest_devicename != "":
                     #print(dest_devicename)
@@ -206,6 +362,16 @@ def forward_sensor_reading(database_client, deviceid, source, address, value, su
                         #print("")
                         dest_payload = json.dumps(dest_payload)
                         g_messaging_client.publish(dest_topic, dest_payload, debug=False) # NOTE: enable to DEBUG
+            else:
+                # thresholding mode (notification triggering)
+                if CONFIG_THRESHOLDING_NOTIFICATIONS:
+                    sensor = database_client.get_sensor_by_deviceid(deviceid, peripheral, number, address)
+                    if sensor is not None:
+                        process_thresholding_notification(configuration["attributes"], value, sensor["class"], sensor, source, deviceid, peripheral, number, address)
+                        if subclass_value is not None:
+                            process_thresholding_notification(configuration["attributes"]["subattributes"], subclass_value, sensor["subclass"], sensor, source, deviceid, peripheral, number, address)
+                        #print("")
+
     except:
         print("exception forward_sensor_reading")
         pass
