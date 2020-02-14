@@ -8019,14 +8019,17 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         console.log("submitRefresh");
         console.log($scope.data.attributes);
         
-        if ($scope.data.source === "I2C") {
-            //get_i2c_device_properties();
-        }
-        else if ($scope.data.source === "TPROBE") {
-            get_tprobe_device_properties();
-        }
-        else if ($scope.data.source === "1WIRE") {
-            //get_1wire_device_properties();
+        
+        if ($scope.data.multiclass.attributes === '' && $scope.data.multiclass.subattributes === '') {
+            if ($scope.data.source === "I2C") {
+                //get_i2c_device_properties();
+            }
+            else if ($scope.data.source === "TPROBE") {
+                get_tprobe_device_properties();
+            }
+            else if ($scope.data.source === "1WIRE") {
+                //get_1wire_device_properties();
+            }
         }
     };
 
