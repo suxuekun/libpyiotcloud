@@ -170,6 +170,9 @@ class database_client:
     def get_device_notification_by_deviceid(self, deviceid, source):
         return self._devices.get_device_notification_by_deviceid(deviceid, source)
 
+    def get_device_notification_with_notification_subclass_by_deviceid(self, deviceid, source):
+        return self._devices.get_device_notification_with_notification_subclass_by_deviceid(deviceid, source)
+
 
     ##########################################################
     # sensor readings
@@ -599,6 +602,18 @@ class database_client_mongodb:
                 #print(notification['notification'])
                 return notification['notification']
         return None
+
+    def get_device_notification_with_notification_subclass_by_deviceid(self, deviceid, source):
+        notifications = self.get_notifications_document();
+        if notifications:
+            for notification in notifications.find({'deviceid': deviceid, 'source': source}):
+                notification.pop('_id')
+                #print(notification['notification'])
+                if notification.get('notification_subclass'):
+                    return notification['notification'], notification['notification_subclass']
+                else:
+                    return notification['notification'], None
+        return None, None
 
 
     ##########################################################
