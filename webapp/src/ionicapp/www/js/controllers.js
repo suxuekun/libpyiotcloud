@@ -7853,18 +7853,31 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         $scope.data.attributes.subattributes = $scope.data.multiclass.subattributes;
         console.log($scope.data.attributes);
         
-        if ($scope.data.source === "I2C") {
-            set_i2c_properties();
-        }
-        else if ($scope.data.source === "TPROBE") {
-            set_tprobe_properties();
-        }
-        else if ($scope.data.source === "1WIRE") {
-            set_1wire_properties();
-        }
-        else if ($scope.data.source === "ADC") {
-            set_adc_properties();
-        }
+        
+        // Add prompt when setting properties
+        $ionicPopup.alert({ title: 'Set Properties', template: 'Are you sure you want to set this properties?',
+            buttons: [
+                { text: 'No', type: 'button-assertive', },
+                { text: 'Yes', type: 'button-positive',
+                    onTap: function(e) {
+                        
+                        if ($scope.data.source === "I2C") {
+                            set_i2c_properties();
+                        }
+                        else if ($scope.data.source === "TPROBE") {
+                            set_tprobe_properties();
+                        }
+                        else if ($scope.data.source === "1WIRE") {
+                            set_1wire_properties();
+                        }
+                        else if ($scope.data.source === "ADC") {
+                            set_adc_properties();
+                        }
+                        
+                    }
+                }
+            ]            
+        });
     };
 
     set_i2c_properties = function() {
@@ -8264,7 +8277,20 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                 $scope.data.attributes.color.single.hardware.sensorname = "";
                 $scope.data.attributes.color.single.hardware.attribute = "";
             }
-            set_i2c_device_properties($scope.data.attributes);
+            
+            
+            // Add prompt when setting properties
+            $ionicPopup.alert({ title: 'Set Properties', template: 'Are you sure you want to set this properties?',
+                buttons: [
+                    { text: 'No', type: 'button-negative', },
+                    { text: 'Yes', type: 'button-assertive',
+                        onTap: function(e) {
+                            
+                            set_i2c_device_properties($scope.data.attributes);
+                        }
+                    }
+                ]            
+            });
         }
         else {
             param_attributes = {
@@ -8337,8 +8363,20 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                 }
                 
             }
-            
-            set_i2c_device_properties(param_attributes);
+
+
+            // Add prompt when setting properties
+            $ionicPopup.alert({ title: 'Set Properties', template: 'Are you sure you want to set this properties?',
+                buttons: [
+                    { text: 'No', type: 'button-assertive', },
+                    { text: 'Yes', type: 'button-positive',
+                        onTap: function(e) {
+                            
+                            set_i2c_device_properties(param_attributes);
+                        }
+                    }
+                ]            
+            });
         }        
     };
 
@@ -9514,15 +9552,27 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             $state.go('multiclass', param, {reload: true});
         }
         else {
-            if ($scope.data.source === "I2C") {
-                set_i2c_properties();
-            }
-            else if ($scope.data.source === "TPROBE") {
-                set_tprobe_properties();
-            }
-            else if ($scope.data.source === "1WIRE") {
-                set_1wire_properties();
-            }
+            
+            // Add prompt when setting properties
+            $ionicPopup.alert({ title: 'Set Properties', template: 'Are you sure you want to set this properties?',
+                buttons: [
+                    { text: 'No', type: 'button-assertive', },
+                    { text: 'Yes', type: 'button-positive',
+                        onTap: function(e) {
+                            
+                            if ($scope.data.source === "I2C") {
+                                set_i2c_properties();
+                            }
+                            else if ($scope.data.source === "TPROBE") {
+                                set_tprobe_properties();
+                            }
+                            else if ($scope.data.source === "1WIRE") {
+                                set_1wire_properties();
+                            }
+                        }
+                    }
+                ]            
+            });
         }
     };
 
@@ -10005,15 +10055,27 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             $state.go('multiclass', param, {reload: true});
         }
         else {
-            if ($scope.data.source === "I2C") {
-                set_i2c_properties();
-            }
-            else if ($scope.data.source === "TPROBE") {
-                set_tprobe_properties();
-            }
-            else if ($scope.data.source === "1WIRE") {
-                set_1wire_properties();
-            }
+            
+            // Add prompt when setting properties
+            $ionicPopup.alert({ title: 'Set Properties', template: 'Are you sure you want to set this properties?',
+                buttons: [
+                    { text: 'No', type: 'button-assertive', },
+                    { text: 'Yes', type: 'button-positive',
+                        onTap: function(e) {
+                            
+                            if ($scope.data.source === "I2C") {
+                                set_i2c_properties();
+                            }
+                            else if ($scope.data.source === "TPROBE") {
+                                set_tprobe_properties();
+                            }
+                            else if ($scope.data.source === "1WIRE") {
+                                set_1wire_properties();
+                            }
+                        }
+                    }
+                ]            
+            });
         }
     };
 
@@ -10356,7 +10418,19 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             //}
         }
 
-        set_i2c_properties();
+
+        // Add prompt when setting properties
+        $ionicPopup.alert({ title: 'Set Properties', template: 'Are you sure you want to set this properties?',
+            buttons: [
+                { text: 'No', type: 'button-assertive', },
+                { text: 'Yes', type: 'button-positive',
+                    onTap: function(e) {
+                        
+                        set_i2c_properties();
+                    }
+                }
+            ]            
+        });
     };
 
     set_i2c_properties = function() {
@@ -10837,7 +10911,19 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         }
         $scope.data.attributes.values.delay = parseInt($scope.data.attributes.values.delay, 10);
 
-        set_i2c_properties();
+
+        // Add prompt when setting properties
+        $ionicPopup.alert({ title: 'Set Properties', template: 'Are you sure you want to set this properties?',
+            buttons: [
+                { text: 'No', type: 'button-assertive', },
+                { text: 'Yes', type: 'button-positive',
+                    onTap: function(e) {
+                        
+                        set_i2c_properties();
+                    }
+                }
+            ]            
+        });
     };
 
     set_i2c_properties = function() {
@@ -11334,19 +11420,29 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         }
 
 
-        if ($scope.data.source === "I2C") {
-            set_xxx_device_properties("i2c");
-        }
-        else if ($scope.data.source === "ADC") {
-            set_xxx_device_properties("adc");
-        }
-        else if ($scope.data.source === "TPROBE") {
-            set_xxx_device_properties("tprobe");
-        }
-        else if ($scope.data.source === "1WIRE") {
-            set_xxx_device_properties("1wire");
-        }
-
+        // Add prompt when setting properties
+        $ionicPopup.alert({ title: 'Set Properties', template: 'Are you sure you want to set this properties?',
+            buttons: [
+                { text: 'No', type: 'button-assertive', },
+                { text: 'Yes', type: 'button-positive',
+                    onTap: function(e) {
+                        
+                        if ($scope.data.source === "I2C") {
+                            set_xxx_device_properties("i2c");
+                        }
+                        else if ($scope.data.source === "ADC") {
+                            set_xxx_device_properties("adc");
+                        }
+                        else if ($scope.data.source === "TPROBE") {
+                            set_xxx_device_properties("tprobe");
+                        }
+                        else if ($scope.data.source === "1WIRE") {
+                            set_xxx_device_properties("1wire");
+                        }
+                    }
+                }
+            ]            
+        });
     };
 
     set_xxx_device_properties = function(peripheral) {
@@ -11699,7 +11795,17 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             $scope.data.attributes.alert.type = 1; // always be continuous
         }
 
-        set_adc_properties();
+        // Add prompt when setting properties
+        $ionicPopup.alert({ title: 'Set Properties', template: 'Are you sure you want to set this properties?',
+            buttons: [
+                { text: 'No', type: 'button-assertive', },
+                { text: 'Yes', type: 'button-positive',
+                    onTap: function(e) {
+                        set_adc_properties();
+                    }
+                }
+            ]            
+        });
     };
 
     set_adc_properties = function() {
@@ -12049,7 +12155,17 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             $scope.data.attributes.alert.type = 1; // always be continuous
         }
 
-        set_adc_properties();
+        // Add prompt when setting properties
+        $ionicPopup.alert({ title: 'Set Properties', template: 'Are you sure you want to set this properties?',
+            buttons: [
+                { text: 'No', type: 'button-assertive', },
+                { text: 'Yes', type: 'button-positive',
+                    onTap: function(e) {
+                        set_adc_properties();
+                    }
+                }
+            ]            
+        });
     };
 
     set_adc_properties = function() {
@@ -12399,7 +12515,17 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             $scope.data.attributes.alert.type = 1; // always be continuous
         }
 
-        set_adc_properties();
+        // Add prompt when setting properties
+        $ionicPopup.alert({ title: 'Set Properties', template: 'Are you sure you want to set this properties?',
+            buttons: [
+                { text: 'No', type: 'button-assertive', },
+                { text: 'Yes', type: 'button-positive',
+                    onTap: function(e) {
+                        set_adc_properties();
+                    }
+                }
+            ]            
+        });
     };
 
     set_adc_properties = function() {
