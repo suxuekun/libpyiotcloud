@@ -180,7 +180,10 @@ def notification_thread(messaging_client, deviceid, recipient, message, subject,
                 res = response["ResponseMetadata"]["HTTPStatusCode"]==200 and response["MessageResponse"]["Result"][recipient]["StatusCode"]==200
                 if res == True:
                     print("{}: {} [{} {}] {}".format(deviceid, typeStr, len(recipient), len(message), res))
-                    send_notification_status(messaging_client, deviceid, "OK. message sent to {}.".format(recipient))
+                    if type == notification_types.PUSH_NOTIFICATION:
+                        send_notification_status(messaging_client, deviceid, "OK. message sent to mobile phone/s.")
+                    else:
+                        send_notification_status(messaging_client, deviceid, "OK. message sent to {}.".format(recipient))
                 else:
                     print("{}: {} [{} {}] {} [{} {}]".format(deviceid, typeStr, len(recipient), len(message), res, response["ResponseMetadata"]["HTTPStatusCode"], response["MessageResponse"]["Result"][recipient]["StatusMessage"]))
                     send_notification_status(messaging_client, deviceid, "NG. {}".format(response["MessageResponse"]["Result"][recipient]["StatusMessage"]))
@@ -189,7 +192,10 @@ def notification_thread(messaging_client, deviceid, recipient, message, subject,
                     res = response["ResponseMetadata"]["HTTPStatusCode"]==200
                     print("{}: {} [{} {}] {}".format(deviceid, typeStr, len(recipient), len(message), res))
                     if res == True:
-                        send_notification_status(messaging_client, deviceid, "OK. message sent to {}.".format(recipient))
+                        if type == notification_types.PUSH_NOTIFICATION:
+                            send_notification_status(messaging_client, deviceid, "OK. message sent to mobile phone/s.")
+                        else:
+                            send_notification_status(messaging_client, deviceid, "OK. message sent to {}.".format(recipient))
                     else:
                         send_notification_status(messaging_client, deviceid, "NG")
                 except:
