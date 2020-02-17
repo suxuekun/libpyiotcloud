@@ -70,6 +70,16 @@ CONFIG_MODEL_SMS                = int(notification_config.CONFIG_USE_SMS_MODEL)
 CONFIG_MODEL_PUSH_NOTIFICATION  = int(notification_config.CONFIG_USE_PUSH_NOTIFICATION_MODEL)
 
 
+###################################################################################
+# MENOS Notification
+###################################################################################
+
+CONFIG_MENOS_PREVENT_SPAMMING   = False
+
+
+
+
+
 print("MODEL_EMAIL {}".format(CONFIG_MODEL_EMAIL))
 print("MODEL_SMS {}".format(CONFIG_MODEL_SMS))
 print("MODEL_PUSH_NOTIFICATION {}".format(CONFIG_MODEL_PUSH_NOTIFICATION))
@@ -238,26 +248,53 @@ def send_notification_modem_threaded(messaging_client, deviceid, recipient, mess
 def send_notification_default_threaded(messaging_client, deviceid, notification, message, source, sensor, payload):
     #print("default")
     if notification is not None:
-        if source.startswith("uart") or source.startswith("gpio"):
+        if CONFIG_MENOS_PREVENT_SPAMMING:
+            # Prevent spamming for unreasonable threshold values
+            # Temporarily enable EMAIL only for AT+D for I2C/ADC/1WIRE/TPROBE
+            if source.startswith("uart") or source.startswith("gpio"):
+                if notification["endpoints"]["mobile"]["enable"] == True:
+                    recipients = notification["endpoints"]["mobile"]["recipients"]
+                    thr = send_notification_mobile_threaded(messaging_client, deviceid, recipients, message, source, sensor, payload)
+                    thr.join()
+                if notification["endpoints"]["email"]["enable"] == True:
+                    recipients = notification["endpoints"]["email"]["recipients"]
+                    thr = send_notification_email_threaded(messaging_client, deviceid, recipients, message, source, sensor, payload)
+                    thr.join()
+                if notification["endpoints"]["notification"]["enable"] == True:
+                    recipients = g_database_client.get_mobile_device_token_by_deviceid(deviceid)
+                    thr = send_notification_notification_threaded(messaging_client, deviceid, recipients, message, source, sensor, payload)
+                    thr.join()
+                if notification["endpoints"]["modem"]["enable"] == True:
+                    recipients = notification["endpoints"]["modem"]["recipients_id"]
+                    thr = send_notification_modem_threaded(messaging_client, deviceid, recipients, message, source, sensor, payload)
+                    thr.join()
+                if notification["endpoints"]["storage"]["enable"] == True:
+                    pass
+            else:
+                # TODO: temporarily send only email for AT+D for I2C/ADC/1WIRE/TPROBE
+                if notification["endpoints"]["email"]["enable"] == True:
+                    recipients = notification["endpoints"]["email"]["recipients"]
+                    thr = send_notification_email_threaded(messaging_client, deviceid, recipients, message, source, sensor, payload)
+                    thr.join()
+        else:
             if notification["endpoints"]["mobile"]["enable"] == True:
-                thr = send_notification_mobile_threaded(messaging_client, deviceid, notification["endpoints"]["mobile"]["recipients"], message, source, sensor, payload)
+                recipients = notification["endpoints"]["mobile"]["recipients"]
+                thr = send_notification_mobile_threaded(messaging_client, deviceid, recipients, message, source, sensor, payload)
                 thr.join()
             if notification["endpoints"]["email"]["enable"] == True:
-                thr = send_notification_email_threaded(messaging_client, deviceid, notification["endpoints"]["email"]["recipients"], message, source, sensor, payload)
+                recipients = notification["endpoints"]["email"]["recipients"]
+                thr = send_notification_email_threaded(messaging_client, deviceid, recipients, message, source, sensor, payload)
                 thr.join()
             if notification["endpoints"]["notification"]["enable"] == True:
-                thr = send_notification_modem_threaded(messaging_client, deviceid, notification["endpoints"]["notification"]["recipients_id"], message, source, sensor, payload)
+                recipients = g_database_client.get_mobile_device_token_by_deviceid(deviceid)
+                thr = send_notification_notification_threaded(messaging_client, deviceid, recipients, message, source, sensor, payload)
                 thr.join()
             if notification["endpoints"]["modem"]["enable"] == True:
-                thr = send_notification_modem_threaded(messaging_client, deviceid, notification["endpoints"]["modem"]["recipients_id"], message, source, sensor, payload)
+                recipients = notification["endpoints"]["modem"]["recipients_id"]
+                thr = send_notification_modem_threaded(messaging_client, deviceid, recipients, message, source, sensor, payload)
                 thr.join()
             if notification["endpoints"]["storage"]["enable"] == True:
                 pass
-        else:
-            # TODO: temporarily send only email for AT+D for I2C/ADC/1WIRE/TPROBE
-            if notification["endpoints"]["email"]["enable"] == True:
-                thr = send_notification_email_threaded(messaging_client, deviceid, notification["endpoints"]["email"]["recipients"], message, source, sensor, payload)
-                thr.join()
     else:
         send_notification_status(messaging_client, deviceid, "NG. database entry not found.")
 
