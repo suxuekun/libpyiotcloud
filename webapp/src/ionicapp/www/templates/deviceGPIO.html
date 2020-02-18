@@ -85,13 +85,13 @@
         <input type="number" placeholder="" ng-model="data.gpio.alertperiod">
       </label>
     </form>
-    <form id="deviceGPIO-form164" class="list">
+    <form id="deviceGPIO-form164" class="list" ng-show="data.gpio.direction==0">
       <div id="deviceGPIO-markdown301" class="show-list-numbers-and-dots">
         <p style="color:#387EF5;">Notification settings</p>
       </div>
       <ion-toggle toggle-class="toggle-positive" id="deviceGPIO-toggle17" ng-change="changeNotification(data.showNotification)" ng-model="data.showNotification">Show</ion-toggle>
     </form>
-    <form id="deviceGPIO-form165" class="list" ng-show="data.showNotification==1">
+    <form id="deviceGPIO-form165" class="list" ng-show="data.showNotification==1 &amp;&amp; data.gpio.direction==0">
       <div id="deviceGPIO-markdown302" class="show-list-numbers-and-dots">
         <p style="color:#387EF5;">Messages</p>
       </div>
@@ -102,7 +102,7 @@
       <label class="item item-input" id="deviceGPIO-textarea17">
         <span class="input-label"></span><textarea placeholder="" ng-model="data.gpio.notification.messages[1].message"></textarea></label>
     </form>
-    <form id="deviceGPIO-form166" class="list" ng-show="data.showNotification==1">
+    <form id="deviceGPIO-form166" class="list" ng-show="data.showNotification==1 &amp;&amp; data.gpio.direction==0">
       <div id="deviceGPIO-markdown303" class="show-list-numbers-and-dots">
         <p style="color:#387EF5;">Recipients</p>
       </div>
