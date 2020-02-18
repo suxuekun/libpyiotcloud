@@ -199,7 +199,11 @@ Menu, account, history
     6. Ionic web app can be compiled as iOS/Android mobile apps
        - SSL certificate bought from GoDaddy.com registered on NGINX.
        - Webapp compiled for Android using Ionic but requiring Android Studio/SDK 
-       
+    7. Sensor data processing
+       - Sensor data graphing/charting
+       - Sensor data forwarding (forward to another IoT Modem device)
+       - Sensor data thresholding (triggering MENOS messages - Mobile, Email, Notifications, mOdem, Storage)
+
 
 ### REST APIs
 
