@@ -218,8 +218,9 @@ class messaging_client:
 
     def release_mqtt(self, client):
         try:
-            self.mqtt_connected = False
-            client.disconnect()
+            if self.mqtt_connected == True:
+                self.mqtt_connected = False
+                client.disconnect()
         except:
             pass
 
