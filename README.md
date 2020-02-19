@@ -616,6 +616,19 @@ Note: Using Kubernetes will also change the infrastracture.
            MBEDTLS_TLS_RSA_WITH_AES_128_CBC_SHA,MBEDTLS_TLS_RSA_WITH_AES_256_CBC_SHA - for RSA
            MBEDTLS_TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256 - for ECC
 
+        // RabbitMQ Clustering 
+        K. Copy .erlang.cookie from C:\Windows\System32\config\systemprofile of rabbit@pc1
+        L. On pc2, do the following:
+            Copy .erlang.cookie of pc1 to p2 at C:\Windows\System32\config\systemprofile
+            rabbitmq-server -detached
+            rabbitmqctl cluster_status
+            rabbitmqctl stop_app
+            rabbitmqctl reset
+            rabbitmqctl join_cluster rabbit@pc1
+            rabbitmqctl start_app
+            rabbitmqctl cluster_status
+            pc2 will now be in the RabbitMQ Cluster of pc1.        
+        
 
 ### Install MongoDB database.
        
