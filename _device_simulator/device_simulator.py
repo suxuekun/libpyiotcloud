@@ -1364,6 +1364,7 @@ class TimerThread(threading.Thread):
         self.stopped = event
         self.timeout = timeout
         self.pause = False
+        self.exit = False
         if CONFIG_SEND_NOTIFICATION_PERIODICALLY:
             self.notification_counter = 0
             self.notification_max = int(CONFIG_SEND_NOTIFICATION_PERIOD/timeout)
@@ -1375,6 +1376,9 @@ class TimerThread(threading.Thread):
 
     def set_pause(self, pause=True):
         self.pause = pause
+
+    def set_exit(self):
+        self.exit = True
 
     def process_input_devices(self):
         topic = "{}{}{}{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_DEVICE_ID, CONFIG_SEPARATOR, API_PUBLISH_SENSOR_READING)
@@ -1552,7 +1556,7 @@ class TimerThread(threading.Thread):
 
     def run(self):
         print("")
-        while not self.stopped.wait(self.timeout):
+        while not self.stopped.wait(self.timeout) and g_messaging_client.is_connected():
             if self.pause == False:
                 self.process_input_devices()
                 #self.process_output_devices()
@@ -1560,6 +1564,9 @@ class TimerThread(threading.Thread):
                     self.process_trigger_notification()
             else:
                 print("Device is currently stopped! Not sending any sensor data.")
+
+            if g_device_status == DEVICE_STATUS_CONFIGURING:
+                req_configuration()
 
 
 ###################################################################################
@@ -1779,6 +1786,8 @@ def read_kbd_input(inputQueue):
             input_str = input()
             inputQueue.put(input_str)
 
+        inputThread = None
+
 
 ###################################################################################
 # Main entry point
@@ -1849,7 +1858,9 @@ if __name__ == '__main__':
     g_messaging_client.set_tls(CONFIG_TLS_CA, CONFIG_TLS_CERT, CONFIG_TLS_PKEY)
 
 
+    inputThread = None
     while True:
+
         # Connect to MQTT/AMQP broker
         ignore_hostname = False
         while True:
@@ -1900,9 +1911,10 @@ if __name__ == '__main__':
             g_timer_thread.start()
 
         # Start keyboard input thread
-        inputQueue = queue.Queue()
-        inputThread = threading.Thread(target=read_kbd_input, args=(inputQueue,), daemon=True)
-        inputThread.start()
+        if inputThread == None:
+            inputQueue = queue.Queue()
+            inputThread = threading.Thread(target=read_kbd_input, args=(inputQueue,), daemon=True)
+            inputThread.start()
 
         # Exit when disconnection happens
         while g_messaging_client.is_connected():
@@ -1924,11 +1936,15 @@ if __name__ == '__main__':
                             UART_ATCOMMANDS[idx]["fxn"](idx, cmd)
                             break
 
+        time.sleep(2)
         g_messaging_client.release()
 
-        inputThread.join()
+        #inputThread.join()
 
         if g_timer_thread_use:
+            g_timer_thread.set_exit()
             g_timer_thread_stop.set()
+            g_timer_thread.join()
+
 
     print("application exits!")
