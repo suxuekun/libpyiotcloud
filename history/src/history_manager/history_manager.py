@@ -71,7 +71,7 @@ def add_history_publish(history_client, deviceid, topic, payload, direction="Fro
 
     # Write publish/subscribe message to database
     # TODO: temporarily disable
-    #history_client.add_device_history(deviceid, topic, payload, direction)
+    history_client.add_device_history(deviceid, topic, payload, direction)
 
     # Write publish heartbeat to database
     try:
