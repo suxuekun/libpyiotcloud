@@ -316,9 +316,12 @@ def forward_sensor_reading(database_client, deviceid, source, address, value, su
                     #print(dest_devicename)
                     sensor = database_client.get_sensor_by_deviceid(deviceid, peripheral, number, address)
                     if sensor is not None:
+                        username, devicename = database_client.get_username_devicename(deviceid)
+                        if username is None or devicename is None:
+                            return
                         #print_json(sensor)
                         #print("")
-                        dest_deviceid = database_client.get_deviceid(sensor["username"], dest_devicename)
+                        dest_deviceid = database_client.get_deviceid(username, dest_devicename)
                         if dest_deviceid is None:
                             return
                         dest_topic = "{}/{}".format(dest_deviceid, API_RECEIVE_SENSOR_READING)
@@ -327,7 +330,7 @@ def forward_sensor_reading(database_client, deviceid, source, address, value, su
                         packet = {}
                         if sensor["formats"][0] == "int":
                             packet = {
-                                "devicename": sensor["devicename"],
+                                "devicename": devicename,
                                 "peripheral": sensor["source"].upper(),
                                 "sensorname": sensor["sensorname"],
                                 "attribute":  sensor["attributes"][0],
@@ -339,7 +342,7 @@ def forward_sensor_reading(database_client, deviceid, source, address, value, su
                             }
                         else:
                             packet = {
-                                "devicename": sensor["devicename"],
+                                "devicename": devicename,
                                 "peripheral": sensor["source"].upper(),
                                 "sensorname": sensor["sensorname"],
                                 "attribute":  sensor["attributes"][0],
