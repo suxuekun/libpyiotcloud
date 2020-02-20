@@ -40,7 +40,7 @@ angular.module('devices', [])
                         
                         if (error.data.message === "Token expired") {
                             Token.refresh(userdata);
-                            $ionicPopup.alert({ title: 'Error', template: 'Token expired!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+                            //$ionicPopup.alert({ title: 'Error', template: 'Token expired!', buttons: [{text: 'OK', type: 'button-assertive'}] });
                         }
                     }
                     else {
@@ -81,7 +81,7 @@ angular.module('devices', [])
                         
                         if (error.data.message === "Token expired") {
                             Token.refresh(userdata);
-                            $ionicPopup.alert({ title: 'Error', template: 'Token expired!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+                            //$ionicPopup.alert({ title: 'Error', template: 'Token expired!', buttons: [{text: 'OK', type: 'button-assertive'}] });
                         }
                     }
                     else {
