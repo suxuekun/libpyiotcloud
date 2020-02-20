@@ -118,8 +118,8 @@ def on_message(subtopic, subpayload):
             arr_subtopic = subtopic.split("/", 2)
 
             # Do NOT record sensor readings
-            if arr_subtopic[2].startswith(CONFIG_SENSOR_READING_TOPIC):
-               return
+            #if arr_subtopic[2].startswith(CONFIG_SENSOR_READING_TOPIC):
+            #   return
 
             #add_history_publish(g_history_client, arr_subtopic[1], arr_subtopic[2], subpayload.decode("utf-8"), "From")
             thr = threading.Thread(target = add_history_publish, args = (g_history_client, arr_subtopic[1], arr_subtopic[2], subpayload.decode("utf-8"), ))
