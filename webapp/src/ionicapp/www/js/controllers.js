@@ -14291,6 +14291,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Device
         'token': User.get_token()        //$stateParams.token
     };
     
+    $scope.hide_settings = false;
+    
 //    $scope.items_master = []; // items retrieved from database
     $scope.items = []; // items to be shown
 /*    
