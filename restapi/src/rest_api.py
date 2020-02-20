@@ -1705,6 +1705,92 @@ def get_device(devicename):
     return response
 
 
+########################################################################################################
+#
+# UPDATE DEVICE NAME
+#
+# - Request:
+#   POST /devices/device/<devicename>/name
+#   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+#   data: {'new_devicename': string}
+#
+# - Response:
+#   {'status': 'OK', 'message': string}}
+#   {'status': 'NG', 'message': string}
+#
+########################################################################################################
+@app.route('/devices/device/<devicename>/name', methods=['POST'])
+def update_devicename(devicename):
+    # get token from Authorization header
+    auth_header_token = get_auth_header_token()
+    if auth_header_token is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
+        print('\r\nERROR Update Device Name: Invalid authorization header\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
+    token = {'access': auth_header_token}
+
+    # get username from token
+    username = g_database_client.get_username_from_token(token)
+    if username is None:
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Update Device Name: Token expired\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
+    print('get_device {} devicename={}'.format(username, devicename))
+
+    # check if a parameter is empty
+    if len(username) == 0 or len(token) == 0 or len(devicename) == 0:
+        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+        print('\r\nERROR Update Device Name: Empty parameter found\r\n')
+        return response, status.HTTP_400_BAD_REQUEST
+
+    # check if username and token is valid
+    verify_ret, new_token = g_database_client.verify_token(username, token)
+    if verify_ret == 2:
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Update Device Name: Token expired [{}]\r\n'.format(username))
+        return response, status.HTTP_401_UNAUTHORIZED
+    elif verify_ret != 0:
+        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
+        print('\r\nERROR Update Device Name: Token is invalid [{}]\r\n'.format(username))
+        return response, status.HTTP_401_UNAUTHORIZED
+
+    # check if device is registered
+    device = g_database_client.find_device(username, devicename)
+    if not device:
+        response = json.dumps({'status': 'NG', 'message': 'Device is not registered'})
+        print('\r\nERROR Update Device Name: Device is not registered [{},{}]\r\n'.format(username, devicename))
+        return response, status.HTTP_404_NOT_FOUND
+
+
+    # check if new device name is already registered
+    data = flask.request.get_json()
+    if not data.get("new_devicename"):
+        response = json.dumps({'status': 'NG', 'message': 'Parameters not included'})
+        print('\r\nERROR Update Device Name: Parameters not included [{},{}]\r\n'.format(username, devicename))
+        return response, status.HTTP_400_BAD_REQUEST
+    if len(data["new_devicename"]) == 0:
+        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+        print('\r\nERROR Update Device Name: Empty parameter found\r\n')
+        return response, status.HTTP_400_BAD_REQUEST
+    device = g_database_client.find_device(username, data["new_devicename"])
+    if device:
+        response = json.dumps({'status': 'NG', 'message': 'Device name is already registered'})
+        print('\r\nERROR Update Device Name: Device name is already registered [{},{}]\r\n'.format(username, devicename))
+        return response, status.HTTP_400_BAD_REQUEST
+
+
+    # update the device name
+    g_database_client.update_devicename(username, devicename, data["new_devicename"])
+
+
+    msg = {'status': 'OK', 'message': 'Device name updated successfully.', 'device': device}
+    if new_token:
+        msg['new_token'] = new_token
+    response = json.dumps(msg)
+    print('\r\nDevice name updated successful: {}\r\n{}\r\n'.format(username, response))
+    return response
+
+
 #########################
 
 

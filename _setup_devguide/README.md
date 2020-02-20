@@ -238,6 +238,7 @@ SUMMARY:
 		C. ADD DEVICE                     - POST   /devices/device/DEVICENAME
 		D. DELETE DEVICE                  - DELETE /devices/device/DEVICENAME
 		E. GET DEVICE                     - GET    /devices/device/DEVICENAME
+		F. UPDATE DEVICE NAME             - POST   /devices/device/DEVICENAME/name
 
 
 	3. Device access and control APIs (STATUS, UART, GPIO)
@@ -696,6 +697,16 @@ DETAILED:
 		   // In Javascript, heartbeat can be converted to a readable date using "new Date(heartbeat* 1000)"
 		   // version will only appear if device has previously been queried already
 		   // heartbeat and version are cached values
+
+		F. UPDATE DEVICE NAME
+		-  Request:
+		   POST /devices/device/DEVICENAME/name
+		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+		   data: {'new_devicename': string}
+		-  Response:
+		   { 'status': 'OK', 'message': string}
+		   { 'status': 'NG', 'message': string}
+		   // new_devicename refers to the new name of the device
 
 
 	3. Device access and control APIs (STATUS, UART, GPIO)

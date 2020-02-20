@@ -169,11 +169,7 @@ class database_client:
     ##########################################################
 
     def add_device_history(self, deviceid, topic, payload, direction):
-        devices = self.get_registered_devices()
-        if devices:
-            for device in devices.find({'deviceid': deviceid},{'devicename':1, 'deviceid': 1}):
-                self._devices.add_device_history(device['devicename'], deviceid, topic, payload, direction)
-                return
+        self._devices.add_device_history(deviceid, topic, payload, direction)
 
     def get_device_history(self, deviceid):
         return self._devices.get_device_history(deviceid)
@@ -201,7 +197,7 @@ class database_client:
     def get_user_history_filtered(self, username, devicename, direction, topic, datebegin, dateend):
         filter_devices = {'username': username}
         if devicename is not None:
-            filter_devices['devicename'] = devicename
+            filter_devices['deviceid'] = self._devices.get_deviceid(username, devicename)
 
         filter = {}
         if topic is not None:
@@ -235,29 +231,29 @@ class database_client:
     # notifications
     ##########################################################
 
-    def add_device_notification(self, username, devicename, source, notification):
-        deviceid = self._devices.get_deviceid(username, devicename)
-        return self._devices.add_device_notification(username, devicename, deviceid, source, notification)
-
     def update_device_notification(self, username, devicename, source, notification):
         deviceid = self._devices.get_deviceid(username, devicename)
-        return self._devices.update_device_notification(username, devicename, deviceid, source, notification)
+        return self._devices.update_device_notification(deviceid, source, notification)
 
     def update_device_notification_with_notification_subclass(self, username, devicename, source, notification, notification_subclass):
         deviceid = self._devices.get_deviceid(username, devicename)
-        return self._devices.update_device_notification_with_notification_subclass(username, devicename, deviceid, source, notification, notification_subclass)
+        return self._devices.update_device_notification_with_notification_subclass(deviceid, source, notification, notification_subclass)
 
     def delete_device_notification_sensor(self, username, devicename, source):
-        return self._devices.delete_device_notification_sensor(username, devicename, source)
+        deviceid = self._devices.get_deviceid(username, devicename)
+        return self._devices.delete_device_notification_sensor(deviceid, source)
 
     def delete_device_notification(self, username, devicename):
-        return self._devices.delete_device_notification(username, devicename)
+        deviceid = self._devices.get_deviceid(username, devicename)
+        return self._devices.delete_device_notification(deviceid)
 
     def get_device_notification(self, username, devicename, source):
-        return self._devices.get_device_notification(username, devicename, source)
+        deviceid = self._devices.get_deviceid(username, devicename)
+        return self._devices.get_device_notification(deviceid, source)
 
     def get_device_notification_with_notification_subclass(self, username, devicename, source):
-        return self._devices.get_device_notification_with_notification_subclass(username, devicename, source)
+        deviceid = self._devices.get_deviceid(username, devicename)
+        return self._devices.get_device_notification_with_notification_subclass(deviceid, source)
 
     def get_device_notification_with_notification_subclass_by_deviceid(self, deviceid, source):
         return self._devices.get_device_notification_with_notification_subclass_by_deviceid(deviceid, source)
@@ -294,58 +290,58 @@ class database_client:
     ##########################################################
 
     def get_all_device_sensors(self, username, devicename):
-        return self._devices.get_all_device_sensors(username, devicename)
+        return self._devices.get_all_device_sensors(self._devices.get_deviceid(username, devicename))
 
     def get_all_device_sensors_enabled_input(self, username, devicename):
-        return self._devices.get_all_device_sensors_enabled_input(username, devicename)
+        return self._devices.get_all_device_sensors_enabled_input(self._devices.get_deviceid(username, devicename))
 
     def get_all_device_sensors_input(self, username, devicename):
-        return self._devices.get_all_device_sensors_input(username, devicename)
+        return self._devices.get_all_device_sensors_input(self._devices.get_deviceid(username, devicename))
 
     def get_all_sensors(self, username, devicename, source):
-        return self._devices.get_all_sensors(username, devicename, source)
+        return self._devices.get_all_sensors(self._devices.get_deviceid(username, devicename), source)
 
     def get_all_type_sensors(self, username, devicename, source, type):
-        return self._devices.get_all_type_sensors(username, devicename, source, type)
+        return self._devices.get_all_type_sensors(self._devices.get_deviceid(username, devicename), source, type)
 
     def get_sensors(self, username, devicename, source, number):
-        return self._devices.get_sensors(username, devicename, source, number)
+        return self._devices.get_sensors(self._devices.get_deviceid(username, devicename), source, number)
 
     def get_sensors_count(self, username, devicename, source, number):
-        return len(self._devices.get_sensors(username, devicename, source, number))
+        return len(self._devices.get_sensors(self._devices.get_deviceid(username, devicename), source, number))
 
     def get_sensors_enabled_input(self, username, devicename, source, number):
-        return self._devices.get_sensors_enabled_input(username, devicename, source, number)
+        return self._devices.get_sensors_enabled_input(self._devices.get_deviceid(username, devicename), source, number)
 
     def get_sensors_with_enabled(self, username, devicename, source, number):
-        return self._devices.get_sensors_with_enabled(username, devicename, source, number)
+        return self._devices.get_sensors_with_enabled(self._devices.get_deviceid(username, devicename), source, number)
 
     def add_sensor(self, username, devicename, source, number, sensorname, data):
-        return self._devices.add_sensor(username, devicename, self._devices.get_deviceid(username, devicename), source, number, sensorname, data)
+        return self._devices.add_sensor(self._devices.get_deviceid(username, devicename), source, number, sensorname, data)
 
     def delete_device_sensors(self, username, devicename):
-        self._devices.delete_device_sensors(username, devicename)
+        self._devices.delete_device_sensors(self._devices.get_deviceid(username, devicename))
 
     def delete_sensor(self, username, devicename, source, number, sensorname):
-        self._devices.delete_sensor(username, devicename, source, number, sensorname)
+        self._devices.delete_sensor(self._devices.get_deviceid(username, devicename), source, number, sensorname)
 
     def check_sensor(self, username, devicename, sensorname):
-        return self._devices.check_sensor(username, devicename, sensorname)
+        return self._devices.check_sensor(self._devices.get_deviceid(username, devicename), sensorname)
 
     def get_sensor(self, username, devicename, source, number, sensorname):
-        return self._devices.get_sensor(username, devicename, source, number, sensorname)
+        return self._devices.get_sensor(self._devices.get_deviceid(username, devicename), source, number, sensorname)
 
     def get_sensor_by_address(self, username, devicename, source, number, address):
-        return self._devices.get_sensor_by_address(username, devicename, source, number, address)
+        return self._devices.get_sensor_by_address(self._devices.get_deviceid(username, devicename), source, number, address)
 
     def disable_unconfigure_sensors(self, username, devicename):
-        self._devices.disable_unconfigure_sensors(username, devicename)
+        self._devices.disable_unconfigure_sensors(self._devices.get_deviceid(username, devicename))
 
     def disable_unconfigure_sensors_source(self, username, devicename, source, number):
-        self._devices.disable_unconfigure_sensors_source(username, devicename, source, number)
+        self._devices.disable_unconfigure_sensors_source(self._devices.get_deviceid(username, devicename), source, number)
 
     def set_enable_configure_sensor(self, username, devicename, source, number, sensorname, enabled, configured):
-        self._devices.set_enable_configure_sensor(username, devicename, source, number, sensorname, enabled, configured)
+        self._devices.set_enable_configure_sensor(self._devices.get_deviceid(username, devicename), source, number, sensorname, enabled, configured)
 
 
     ##########################################################
@@ -446,6 +442,9 @@ class database_client:
 
     def save_device_version(self, username, devicename, version):
         return self._devices.save_device_version(username, devicename, version)
+
+    def update_devicename(self, username, devicename, new_devicename):
+        self._devices.update_devicename(username, devicename, new_devicename)
 
 
 class database_utils:
@@ -898,14 +897,13 @@ class database_client_mongodb:
     def get_history_document(self):
         return self.client[config.CONFIG_MONGODB_TB_HISTORY]
 
-    def add_device_history(self, devicename, deviceid, topic, payload, direction):
+    def add_device_history(self, deviceid, topic, payload, direction):
         history = self.get_history_document();
         timestamp = int(time.time())
         item = {}
         item['timestamp'] = timestamp
         item['direction'] = direction
         item['deviceid'] = deviceid
-        item['devicename'] = devicename
         item['topic'] = topic
         item['payload'] = payload
         history.insert_one(item);
@@ -949,85 +947,74 @@ class database_client_mongodb:
     def get_notifications_document(self):
         return self.client[config.CONFIG_MONGODB_TB_NOTIFICATIONS]
 
-    def add_device_notification(self, username, devicename, deviceid, source, notification):
+    def update_device_notification(self, deviceid, source, notification):
         notifications = self.get_notifications_document();
         item = {}
-        item['username'] = username
-        item['devicename'] = devicename
-        item['deviceid'] = deviceid
-        item['source'] = source
-        item['notification'] = notification
-        notifications.insert_one(item)
-        return item
-
-    def update_device_notification(self, username, devicename, deviceid, source, notification):
-        notifications = self.get_notifications_document();
-        item = {}
-        item['username'] = username
-        item['devicename'] = devicename
+        #item['username'] = username
+        #item['devicename'] = devicename
         item['deviceid'] = deviceid
         item['source'] = source
         item['notification'] = notification
         #print("update_device_notification find_one")
-        found = notifications.find_one({'username': username, 'devicename': devicename, 'source': source})
+        found = notifications.find_one({'deviceid': deviceid, 'source': source})
         if found is None:
             print("update_device_notification insert_one")
             #print(found)
             notifications.insert_one(item)
         else:
             print("update_device_notification replace_one")
-            notifications.replace_one({'username': username, 'devicename': devicename, 'source': source}, item)
+            notifications.replace_one({'deviceid': deviceid, 'source': source}, item)
         return item
 
-    def update_device_notification_with_notification_subclass(self, username, devicename, deviceid, source, notification, notification_subclass):
+    def update_device_notification_with_notification_subclass(self, deviceid, source, notification, notification_subclass):
         notifications = self.get_notifications_document();
         item = {}
-        item['username'] = username
-        item['devicename'] = devicename
+        #item['username'] = username
+        #item['devicename'] = devicename
         item['deviceid'] = deviceid
         item['source'] = source
         item['notification'] = notification
         item['notification_subclass'] = notification_subclass
         #print("update_device_notification_with_notification_subclass find_one")
-        found = notifications.find_one({'username': username, 'devicename': devicename, 'source': source})
+        found = notifications.find_one({'deviceid': deviceid, 'source': source})
         if found is None:
             print("update_device_notification_with_notification_subclass insert_one")
             #print(found)
             notifications.insert_one(item)
         else:
             print("update_device_notification_with_notification_subclass replace_one")
-            notifications.replace_one({'username': username, 'devicename': devicename, 'source': source}, item)
+            notifications.replace_one({'deviceid': deviceid, 'source': source}, item)
         return item
 
-    def delete_device_notification_sensor(self, username, devicename, source):
+    def delete_device_notification_sensor(self, deviceid, source):
         notifications = self.get_notifications_document();
         try:
-            notifications.delete_many({'username': username, 'devicename': devicename, 'source': source})
+            notifications.delete_many({'deviceid': deviceid, 'source': source})
         except:
             print("delete_device_notification_sensor: Exception occurred")
             pass
 
-    def delete_device_notification(self, username, devicename):
+    def delete_device_notification(self, deviceid):
         notifications = self.get_notifications_document();
         try:
-            notifications.delete_many({'username': username, 'devicename': devicename})
+            notifications.delete_many({'deviceid': deviceid})
         except:
             print("delete_device_notification: Exception occurred")
             pass
 
-    def get_device_notification(self, username, devicename, source):
+    def get_device_notification(self, deviceid, source):
         notifications = self.get_notifications_document();
         if notifications:
-            for notification in notifications.find({'username': username, 'devicename': devicename, 'source': source}):
+            for notification in notifications.find({'deviceid': deviceid, 'source': source}):
                 notification.pop('_id')
                 #print(notification['notification'])
                 return notification['notification']
         return None
 
-    def get_device_notification_with_notification_subclass(self, username, devicename, source):
+    def get_device_notification_with_notification_subclass(self, deviceid, source):
         notifications = self.get_notifications_document();
         if notifications:
-            for notification in notifications.find({'username': username, 'devicename': devicename, 'source': source}):
+            for notification in notifications.find({'deviceid': deviceid, 'source': source}):
                 notification.pop('_id')
                 #print(notification['notification'])
                 if notification.get('notification_subclass'):
@@ -1163,71 +1150,86 @@ class database_client_mongodb:
     def get_sensors_document(self):
         return self.client[config.CONFIG_MONGODB_TB_I2CSENSORS]
 
-    def get_all_device_sensors(self, username, devicename):
+    def get_all_device_sensors(self, deviceid):
         sensor_list = []
         i2csensors = self.get_sensors_document();
         if i2csensors:
-            for i2csensor in i2csensors.find({'username': username, 'devicename': devicename}):
+            for i2csensor in i2csensors.find({'deviceid': deviceid}):
                 i2csensor.pop('_id')
-                i2csensor.pop('username')
+                if i2csensor.get('username'):
+                    i2csensor.pop('username')
+                if i2csensor.get('devicename'):
+                    i2csensor.pop('devicename')
                 if i2csensor.get('deviceid'):
                     i2csensor.pop('deviceid')
                 sensor_list.append(i2csensor)
         return sensor_list
 
-    def get_all_device_sensors_enabled_input(self, username, devicename):
+    def get_all_device_sensors_enabled_input(self, deviceid):
         sensor_list = []
         i2csensors = self.get_sensors_document();
         if i2csensors:
-            for i2csensor in i2csensors.find({'username': username, 'devicename': devicename, 'enabled': 1, 'type': 'input'}):
+            for i2csensor in i2csensors.find({'deviceid': deviceid, 'enabled': 1, 'type': 'input'}):
                 i2csensor.pop('_id')
-                i2csensor.pop('username')
+                if i2csensor.get('username'):
+                    i2csensor.pop('username')
+                if i2csensor.get('devicename'):
+                    i2csensor.pop('devicename')
                 if i2csensor.get('deviceid'):
                     i2csensor.pop('deviceid')
                 sensor_list.append(i2csensor)
         return sensor_list
 
-    def get_all_device_sensors_input(self, username, devicename):
+    def get_all_device_sensors_input(self, deviceid):
         sensor_list = []
         i2csensors = self.get_sensors_document();
         if i2csensors:
-            for i2csensor in i2csensors.find({'username': username, 'devicename': devicename, 'type': 'input'}):
+            for i2csensor in i2csensors.find({'deviceid': deviceid, 'type': 'input'}):
                 i2csensor.pop('_id')
-                i2csensor.pop('username')
+                if i2csensor.get('username'):
+                    i2csensor.pop('username')
+                if i2csensor.get('devicename'):
+                    i2csensor.pop('devicename')
                 if i2csensor.get('deviceid'):
                     i2csensor.pop('deviceid')
                 sensor_list.append(i2csensor)
         return sensor_list
 
-    def get_all_sensors(self, username, devicename, source):
+    def get_all_sensors(self, deviceid, source):
         sensor_list = []
         i2csensors = self.get_sensors_document();
         if i2csensors:
-            for i2csensor in i2csensors.find({'username': username, 'devicename': devicename, 'source': source}):
+            for i2csensor in i2csensors.find({'deviceid': deviceid, 'source': source}):
                 i2csensor.pop('_id')
-                i2csensor.pop('username')
+                if i2csensor.get('username'):
+                    i2csensor.pop('username')
+                if i2csensor.get('devicename'):
+                    i2csensor.pop('devicename')
                 if i2csensor.get('deviceid'):
                     i2csensor.pop('deviceid')
                 sensor_list.append(i2csensor)
         return sensor_list
 
-    def get_all_type_sensors(self, username, devicename, source, type):
+    def get_all_type_sensors(self, deviceid, source, type):
         sensor_list = []
         i2csensors = self.get_sensors_document();
         if i2csensors:
-            for i2csensor in i2csensors.find({'username': username, 'devicename': devicename, 'source': source, 'type': type}):
+            for i2csensor in i2csensors.find({'deviceid': deviceid, 'source': source, 'type': type}):
                 i2csensor.pop('_id')
-                i2csensor.pop('username')
+                if i2csensor.get('username'):
+                    i2csensor.pop('username')
+                if i2csensor.get('devicename'):
+                    i2csensor.pop('devicename')
                 if i2csensor.get('deviceid'):
                     i2csensor.pop('deviceid')
                 sensor_list.append(i2csensor)
         return sensor_list
 
-    def get_sensors(self, username, devicename, source, number):
+    def get_sensors(self, deviceid, source, number):
         sensor_list = []
         i2csensors = self.get_sensors_document();
         if i2csensors:
-            for i2csensor in i2csensors.find({'username': username, 'devicename': devicename, 'source': source, 'number': number}):
+            for i2csensor in i2csensors.find({'deviceid': deviceid, 'source': source, 'number': number}):
                 i2csensor.pop('_id')
                 #print(i2csensor)
                 if i2csensor.get('enabled') is None and i2csensor.get('configured') is None:
@@ -1236,48 +1238,60 @@ class database_client_mongodb:
                     sensor['enabled'] = 0
                     sensor['configured'] = 0
                     i2csensors.replace_one(i2csensor, sensor)
-                    sensor.pop('username')
+                    if i2csensor.get('username'):
+                        i2csensor.pop('username')
+                    if i2csensor.get('devicename'):
+                        i2csensor.pop('devicename')
                     if i2csensor.get('deviceid'):
                         i2csensor.pop('deviceid')
                     sensor_list.append(sensor)
                 else:
-                    i2csensor.pop('username')
+                    if i2csensor.get('username'):
+                        i2csensor.pop('username')
+                    if i2csensor.get('devicename'):
+                        i2csensor.pop('devicename')
                     if i2csensor.get('deviceid'):
                         i2csensor.pop('deviceid')
                     sensor_list.append(i2csensor)
         return sensor_list
 
-    def get_sensors_enabled_input(self, username, devicename, source, number):
+    def get_sensors_enabled_input(self, deviceid, source, number):
         sensor_list = []
         i2csensors = self.get_sensors_document();
         if i2csensors:
-            for i2csensor in i2csensors.find({'username': username, 'devicename': devicename, 'source': source, 'number': number, 'enabled': 1, 'type': 'input'}, {'sensorname': 1}):
+            for i2csensor in i2csensors.find({'deviceid': deviceid, 'source': source, 'number': number, 'enabled': 1, 'type': 'input'}, {'sensorname': 1}):
                 i2csensor.pop('_id')
-                i2csensor.pop('username')
+                if i2csensor.get('username'):
+                    i2csensor.pop('username')
+                if i2csensor.get('devicename'):
+                    i2csensor.pop('devicename')
                 if i2csensor.get('deviceid'):
                     i2csensor.pop('deviceid')
                 sensor_list.append(i2csensor)
         return sensor_list
 
-    def get_sensors_with_enabled(self, username, devicename, source, number):
+    def get_sensors_with_enabled(self, deviceid, source, number):
         sensor_list = []
         i2csensors = self.get_sensors_document();
         if i2csensors:
-            for i2csensor in i2csensors.find({'username': username, 'devicename': devicename, 'source': source, 'number': number}):
+            for i2csensor in i2csensors.find({'deviceid': deviceid, 'source': source, 'number': number}):
                 #i2csensor['enabled'] = 0
                 i2csensor.pop('_id')
-                i2csensor.pop('username')
+                if i2csensor.get('username'):
+                    i2csensor.pop('username')
+                if i2csensor.get('devicename'):
+                    i2csensor.pop('devicename')
                 if i2csensor.get('deviceid'):
                     i2csensor.pop('deviceid')
                 sensor_list.append(i2csensor)
         return sensor_list
 
-    def add_sensor(self, username, devicename, deviceid, source, number, sensorname, data):
+    def add_sensor(self, deviceid, source, number, sensorname, data):
         i2csensors = self.get_sensors_document();
         timestamp = str(int(time.time()))
         device = {}
-        device['username']     = username
-        device['devicename']   = devicename
+        #device['username']     = username
+        #device['devicename']   = devicename
         device['deviceid']     = deviceid
         device['source']       = source
         device['number']       = number
@@ -1291,48 +1305,54 @@ class database_client_mongodb:
         i2csensors.insert_one(device_all)
         return True
 
-    def delete_device_sensors(self, username, devicename):
+    def delete_device_sensors(self, deviceid):
         i2csensors = self.get_sensors_document();
         try:
-            i2csensors.delete_many({'username': username, 'devicename': devicename})
+            i2csensors.delete_many({'deviceid': deviceid})
         except:
             print("delete_device_sensors: Exception occurred")
             pass
 
-    def delete_sensor(self, username, devicename, source, number, sensorname):
+    def delete_sensor(self, deviceid, source, number, sensorname):
         i2csensors = self.get_sensors_document();
         try:
-            i2csensors.delete_many({'username': username, 'devicename': devicename, 'sensorname': sensorname})
+            i2csensors.delete_many({'deviceid': deviceid, 'sensorname': sensorname})
         except:
             print("delete_sensor: Exception occurred")
             pass
 
-    def check_sensor(self, username, devicename, sensorname):
+    def check_sensor(self, deviceid, sensorname):
         i2csensors = self.get_sensors_document();
         if i2csensors:
             # Note: sensorname should be unique allthroughout the slots and accross I2C/ADC/1WIRE/TPROBE
             # so number and source should not be included
-            for i2csensor in i2csensors.find({'username': username, 'devicename': devicename, 'sensorname': sensorname}):
+            for i2csensor in i2csensors.find({'deviceid': deviceid, 'sensorname': sensorname}):
                 i2csensor.pop('_id')
-                i2csensor.pop('username')
+                if i2csensor.get('username'):
+                    i2csensor.pop('username')
+                if i2csensor.get('devicename'):
+                    i2csensor.pop('devicename')
                 if i2csensor.get('deviceid'):
                     i2csensor.pop('deviceid')
                 return i2csensor
         return None
 
-    def get_sensor(self, username, devicename, source, number, sensorname):
+    def get_sensor(self, deviceid, source, number, sensorname):
         i2csensors = self.get_sensors_document();
         if i2csensors:
-            #for i2csensor in i2csensors.find({'username': username, 'devicename': devicename, 'sensorname': sensorname}):
+            #for i2csensor in i2csensors.find({'deviceid': deviceid, 'sensorname': sensorname}):
             #    print(i2csensor)
             #print(username)
             #print(devicename)
             #print(source)
             #print(number)
             #print(sensorname)
-            for i2csensor in i2csensors.find({'username': username, 'devicename': devicename, 'sensorname': sensorname, 'source': source, 'number': number}):
+            for i2csensor in i2csensors.find({'deviceid': deviceid, 'sensorname': sensorname, 'source': source, 'number': number}):
                 i2csensor.pop('_id')
-                i2csensor.pop('username')
+                if i2csensor.get('username'):
+                    i2csensor.pop('username')
+                if i2csensor.get('devicename'):
+                    i2csensor.pop('devicename')
                 if i2csensor.get('deviceid'):
                     i2csensor.pop('deviceid')
                 #print(i2csensor)
@@ -1340,41 +1360,44 @@ class database_client_mongodb:
                 return i2csensor
         return None
 
-    def get_sensor_by_address(self, username, devicename, source, number, address):
+    def get_sensor_by_address(self, deviceid, source, number, address):
         i2csensors = self.get_sensors_document();
         if i2csensors:
-            for i2csensor in i2csensors.find({'username': username, 'devicename': devicename, 'source': source, 'number': number, 'address': address}):
+            for i2csensor in i2csensors.find({'deviceid': deviceid, 'source': source, 'number': number, 'address': address}):
                 i2csensor.pop('_id')
-                i2csensor.pop('username')
+                if i2csensor.get('username'):
+                    i2csensor.pop('username')
+                if i2csensor.get('devicename'):
+                    i2csensor.pop('devicename')
                 if i2csensor.get('deviceid'):
                     i2csensor.pop('deviceid')
                 return i2csensor
         return None
 
-    def disable_unconfigure_sensors(self, username, devicename):
+    def disable_unconfigure_sensors(self, deviceid):
         i2csensors = self.get_sensors_document();
         if i2csensors:
-            for i2csensor in i2csensors.find({'username': username, 'devicename': devicename}):
+            for i2csensor in i2csensors.find({'deviceid': deviceid}):
                 i2csensor.pop('_id')
                 sensor = copy.deepcopy(i2csensor)
                 sensor['enabled'] = 0
                 sensor['configured'] = 0
                 i2csensors.replace_one(i2csensor, sensor)
 
-    def disable_unconfigure_sensors_source(self, username, devicename, source, number):
+    def disable_unconfigure_sensors_source(self, deviceid, source, number):
         i2csensors = self.get_sensors_document();
         if i2csensors:
-            for i2csensor in i2csensors.find({'username': username, 'devicename': devicename, 'source': source, 'number': number}):
+            for i2csensor in i2csensors.find({'deviceid': deviceid, 'source': source, 'number': number}):
                 i2csensor.pop('_id')
                 sensor = copy.deepcopy(i2csensor)
                 sensor['enabled'] = 0
                 sensor['configured'] = 0
                 i2csensors.replace_one(i2csensor, sensor)
 
-    def set_enable_configure_sensor(self, username, devicename, source, number, sensorname, enabled, configured):
+    def set_enable_configure_sensor(self, deviceid, source, number, sensorname, enabled, configured):
         i2csensors = self.get_sensors_document();
         if i2csensors:
-            for i2csensor in i2csensors.find({'username': username, 'devicename': devicename, 'source': source, 'number': number, 'sensorname': sensorname}):
+            for i2csensor in i2csensors.find({'deviceid': deviceid, 'source': source, 'number': number, 'sensorname': sensorname}):
                 i2csensor.pop('_id')
                 sensor = copy.deepcopy(i2csensor)
                 sensor['enabled'] = enabled
@@ -1732,6 +1755,16 @@ class database_client_mongodb:
                     devices.replace_one({'username': username, 'devicename': devicename}, device)
                 return device['version']
         return None
+
+    def update_devicename(self, username, devicename, new_devicename):
+        devices = self.get_registered_devices()
+        if devices:
+            for device in devices.find({'username': username, 'devicename': devicename}):
+                device.pop('_id')
+                new_device = copy.deepcopy(device)
+                new_device['devicename'] = new_devicename
+                devices.replace_one(device, new_device)
+                break
 
 
 class database_client_postgresql:
