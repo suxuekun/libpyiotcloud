@@ -12,23 +12,42 @@
         <strong> {{ data.devicename }} </strong>
       </p>
     </div>
+    <div class="spacer" style="height: 12px;"></div>
     <form id="viewDevice-form24" class="list">
-      <label class="item item-input" id="viewDevice-input35" name="input-deviceid">
+      <div id="viewDevice-markdown237" class="show-list-numbers-and-dots">
+        <p style="color:#387EF5;">Device name</p>
+      </div>
+      <label class="item item-input" id="viewDevice-input35" name="input-devicename">
+        <span class="input-label">Name</span>
+        <input type="text" placeholder="" ng-model="new_devicename">
+      </label>
+      <button id="viewDevice-button149" ng-click="changeDevicename(data.devicename, new_devicename)" class="button button-positive button-block">Update Device Name</button>
+      <div id="viewDevice-markdown51" class="show-list-numbers-and-dots"></div>
+    </form>
+    <div id="viewDevice-markdown251" class="show-list-numbers-and-dots">
+      <p style="color:#387EF5;">Device information</p>
+    </div>
+    <form id="viewDevice-form167" class="list">
+      <label class="item item-input" id="viewDevice-input157" name="input-deviceid">
         <span class="input-label">UUID</span>
         <input type="text" placeholder="" ng-model="data.deviceid" readonly="">
       </label>
-      <div id="viewDevice-markdown51" class="show-list-numbers-and-dots"></div>
+      <label class="item item-input" id="viewDevice-input158" name="input-deviceid">
+        <span class="input-label">Serial Number</span>
+        <input type="text" placeholder="" ng-model="data.serialnumber" readonly="">
+      </label>
+      <div id="viewDevice-markdown118" class="show-list-numbers-and-dots"></div>
       <div class="spacer" style="width: 300px; height: 10px;"></div>
-      <div id="viewDevice-markdown38" class="show-list-numbers-and-dots">
-        <p style="color:#444444;font-size:12px;">Serial number: {{ data.serialnumber }}</p>
-      </div>
-      <div id="viewDevice-markdown54" class="show-list-numbers-and-dots">
+      <div id="viewDevice-markdown156" class="show-list-numbers-and-dots">
         <p style="color:#444444;font-size:12px;">Registration: {{ data.timestamp }}</p>
       </div>
-      <div id="viewDevice-markdown53" class="show-list-numbers-and-dots">
+      <div id="viewDevice-markdown236" class="show-list-numbers-and-dots">
         <p style="color:#444444;font-size:12px;">Last active: {{ data.heartbeat }}</p>
       </div>
     </form>
+    <div id="viewDevice-markdown252" class="show-list-numbers-and-dots">
+      <p style="color:#387EF5;">Device operations</p>
+    </div>
     <button id="viewDevice-button110" ng-click="setDeviceGeneralSettings()" style="text-align:left;" class="button button-positive button-block icon-right ion-android-arrow-dropright">Set Device General Settings</button>
     <button id="viewDevice-button21" ng-click="getDevice(data.devicename)" style="text-align:left;" class="button button-positive button-block button-outline icon-right ion-android-arrow-dropright">Query Device</button>
     <button id="viewDevice-button56" ng-click="setDevice(data.devicename, &quot;restart&quot;)" style="text-align:left;" class="button button-positive button-block button-outline icon-right ion-android-arrow-dropright">Restart Device</button>

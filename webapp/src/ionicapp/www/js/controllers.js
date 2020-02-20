@@ -82,10 +82,10 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Device
                 }
                 
                 if (livestatus === true) {
-                    console.log($scope.devices.length);
+                    //console.log($scope.devices.length);
                     let indexy = 0;
                     for (indexy=0; indexy<$scope.devices.length; indexy++) {
-                        console.log("indexy=" + indexy.toString() + " " + $scope.devices[indexy].devicename);
+                        //console.log("indexy=" + indexy.toString() + " " + $scope.devices[indexy].devicename);
                         
                         if ($scope.devices[indexy].heartbeat !== undefined) {
                             let heartbeat = new Date($scope.devices[indexy].heartbeat * 1000);
@@ -118,7 +118,11 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Device
             // TEST CODE ONLY
             //register_device_token("1234", "GCM");
             //register_device_token("5678", "APNS");
-        });
+        })
+        .catch(function (error) {
+            console.log("Devices.fetch failed!!!");
+            handle_error(error);
+        }); 
     };
     
     base64Encode = function(str) {
@@ -135,8 +139,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Device
         // https://www.epochconverter.com/
         iat = Math.floor(Date.now() / 1000); // epoch time in seconds
         exp = iat + 10; // plus 10 seconds
-        console.log(iat);
-        console.log(exp);
+        //console.log(iat);
+        //console.log(exp);
 
         // get JWT header
         headerData = JSON.stringify({ 
@@ -209,27 +213,23 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Device
         })
         .then(function (result) {
             console.log(result.data);
-            console.log(devicename + ": Online");
+            //console.log(devicename + ": Online");
             $scope.devices[index].devicestatus = 'Online';    
         })
         .catch(function (error) {
-            console.log(devicename + ": Offline");
-            if (error.data.message === "Token expired") {
-                Token.refresh({'username': $scope.data.username, 'token': $scope.data.token});
-                $scope.data.token = User.get_token();
-            }
+            handle_error(error);
         }); 
     };    
     
     handle_error = function(error) {
         // Handle failed login
         if (error.data !== null) {
-            console.log("ERROR: Get/Delete Device failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
+            console.log("ERROR: Get Device failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
 
             if (error.data.message === "Token expired") {
                 Token.refresh({'username': $scope.data.username, 'token': $scope.data.token});
                 $scope.data.token = User.get_token();
-                $ionicPopup.alert({ title: 'Error', template: 'Token expired!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+                //$ionicPopup.alert({ title: 'Error', template: 'Token expired!', buttons: [{text: 'OK', type: 'button-assertive'}] });
             }
         }
         else {
@@ -2570,7 +2570,41 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         'version'     : $stateParams.version
     };
 
+    $scope.new_devicename = $stateParams.devicename;
     var device_statuses = ["starting", "running", "restart", "restarting", "stop", "stopping", "stopped", "start"];
+
+    
+    // CHANGE DEVICENAME
+    $scope.changeDevicename = function(devicename, new_devicename) {
+        if ($scope.data.devicename === new_devicename) {
+            $ionicPopup.alert({ title: 'Error', template: 'Device name is the same!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+        }
+        else {
+            
+            $ionicPopup.alert({
+                title: 'Change Device Name',
+                template: 'Are you sure you want to change the device name from ' + devicename + ' to ' + new_devicename + '?',
+                buttons: [
+                    { 
+                        text: 'No',
+                        type: 'button-negative',
+                        onTap: function(e) {
+                            $scope.new_devicename = devicename;
+                        }
+                    },
+                    {
+                        text: 'Yes',
+                        type: 'button-positive',
+                        onTap: function(e) {
+                            $scope.new_devicename = new_devicename;
+                            $scope.update_devicename(devicename, new_devicename);
+                        }
+                    }
+                ]            
+            });            
+        }
+    };
+
 
 
     $scope.handle_error = function(error) {
@@ -2585,11 +2619,48 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             if (error.status == 503) {
                 $ionicPopup.alert({ title: 'Error', template: 'Device is unreachable!', buttons: [{text: 'OK', type: 'button-assertive'}] });
             }
+            else if (error.status >= 400 && error.status < 500) {
+                $ionicPopup.alert({ title: 'Error', template: error.data.message, buttons: [{text: 'OK', type: 'button-assertive'}] });
+            }
         }
         else {
             console.log("ERROR: Server is down!");
             $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
         }
+    }; 
+
+
+    // UPDATE DEVICE NAME
+    $scope.update_devicename = function(devicename, new_devicename) {
+        //
+        // UPDATE DEVICE NAME
+        // - Request:
+        //   POST /devices/device/<devicename>/name
+        //   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string }
+        //   { 'status': 'NG', 'message': string}
+        //        
+        $http({
+            method: 'POST',
+            url: server + '/devices/device/' + devicename + '/name',
+            headers: {'Authorization': 'Bearer ' +  $scope.data.token.access, 'Content-Type': 'application/json' },
+            data: {'new_devicename': new_devicename}
+        })
+        .then(function (result) {
+            console.log(result.data);
+            
+            $ionicPopup.alert({
+                title: 'Change Device Name',
+                template: 'Change Device Name was successful!',
+            });
+            
+            $scope.data.devicename = new_devicename;
+        })
+        .catch(function (error) {
+            $scope.handle_error(error);
+        }); 
     }; 
 
 
