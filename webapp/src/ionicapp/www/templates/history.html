@@ -2,32 +2,36 @@
   <ion-content padding="true" class="has-header">
     <div class="spacer" style="width: 300px; height: 15px;"></div>
     <form id="history-form34" class="list">
-      <ion-item class="item-divider" id="history-list-item-divider8"> Filter options</ion-item>
-      <label class="item item-select widget_button_third" id="history-select6">
+      <ion-toggle toggle-class="toggle-positive" id="history-toggle19" ng-model="hide_settings">.</ion-toggle>
+    </form>
+    <form id="history-form193" class="list" ng-show="!hide_settings">
+      <ion-item class="item-divider" id="history-list-item-divider9"> Filter options</ion-item>
+      <div class="spacer" style="width: 300px; height: 5px;"></div>
+      <label class="item item-select widget_button_third" id="history-select99">
         <span class="input-label">Device</span>
         <select ng-options="devices.indexOf(deviceidx) as deviceidx for deviceidx in devices" ng-model="deviceidx"></select>
       </label>
-      <label class="item item-select widget_button_third" id="history-select7">
+      <label class="item item-select widget_button_third" id="history-select100">
         <span class="input-label">Direction</span>
         <select ng-options="directions.indexOf(directionidx) as directionidx for directionidx in directions" ng-model="directionidx"></select>
       </label>
-      <label class="item item-select widget_button_third" id="history-select8">
+      <label class="item item-select widget_button_third" id="history-select101">
         <span class="input-label">Topic</span>
         <select ng-options="topics.indexOf(topicidx) as topicidx for topicidx in topics" ng-model="topicidx"></select>
       </label>
       <div class="spacer" style="width: 300px; height: 5px;"></div>
-      <label class="item item-input item-stacked-label widget_button_half" id="history-input64">
+      <label class="item item-input item-stacked-label widget_button_half" id="history-input156">
         <span class="input-label">Begin Date</span>
         <input type="text" placeholder="YYYY-MM-DD HH:MM:SS" ng-model="date.begin">
       </label>
-      <label class="item item-input item-stacked-label widget_button_half" id="history-input65">
+      <label class="item item-input item-stacked-label widget_button_half" id="history-input159">
         <span class="input-label">End Date</span>
         <input type="text" placeholder="YYYY-MM-DD HH:MM:SS" ng-model="date.end">
       </label>
-      <button id="history-button33" ng-click="applyFilter(deviceidx, directionidx, topicidx)" class="button button-positive button-block">Apply</button>
+      <button id="history-button150" ng-click="applyFilter(deviceidx, directionidx, topicidx)" class="button button-positive button-block">Apply</button>
     </form>
     <div id="history-markdown61" class="show-list-numbers-and-dots">
-      <p style="color:#000000;font-size:16px;">Result: {{ items.length }} transactions</p>
+      <p style="color:#AAAAAA;font-size:12px;">Result: {{ items.length }} transactions</p>
     </div>
     <ion-list id="history-list14">
       <div class="item item-body" id="history-list-item-container3" ng-repeat="item in items">
