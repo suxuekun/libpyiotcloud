@@ -6,7 +6,7 @@ class config:
     # General settings
     CONFIG_DEBUG_HISTORY          = False
     CONFIG_ENABLE_MAX_HISTORY     = True
-    CONFIG_MAX_HISTORY_PER_DEVICE = 100
+    CONFIG_MAX_HISTORY_PER_DEVICE = 50
 
     # Database settings
     CONFIG_MONGODB_HOST           = "mongodb"
