@@ -30,6 +30,22 @@ $ionicons-font-path: "../lib/ionic/fonts" !default;
 	height: 65px;
 }
 
+.widget_button_half {
+	width: 49% !important;
+	display: inline-block;
+}
+
+.widget_button_half_50 {
+	width: 48% !important;
+	height: 75px;
+	display: inline-block;
+}
+
+.widget_button_third {
+	width: 33% !important;
+	display: inline-block;
+}
+
 .line_spacing {
 	line-height: 10px;
 }

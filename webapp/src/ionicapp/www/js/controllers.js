@@ -3213,7 +3213,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         'deviceid': $stateParams.deviceid,
         'serialnumber': $stateParams.serialnumber,
         
-        'activeSection': 1,
+        'activeSection': 2,
     };
 
     $scope.timer = null;
