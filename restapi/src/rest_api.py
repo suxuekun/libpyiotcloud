@@ -26,7 +26,9 @@ import threading
 # Some configurations
 ###################################################################################
 
-CONFIG_USE_ECC = True if int(os.environ["CONFIG_USE_ECC"]) == 1 else False
+CONFIG_DEVICE_ID            = "restapi_manager"
+
+CONFIG_USE_ECC              = True if int(os.environ["CONFIG_USE_ECC"]) == 1 else False
 CONFIG_SEPARATOR            = '/'
 CONFIG_PREPEND_REPLY_TOPIC  = "server"
 
@@ -5628,7 +5630,7 @@ def initialize():
     # Initialize Message broker client
     print("Using {} for webserver-messagebroker communication!".format("AMQP" if config.CONFIG_USE_AMQP else "MQTT"))
     if config.CONFIG_USE_AMQP:
-        g_messaging_client = messaging_client(config.CONFIG_USE_AMQP, on_amqp_message)
+        g_messaging_client = messaging_client(config.CONFIG_USE_AMQP, on_amqp_message, device_id=CONFIG_DEVICE_ID)
         g_messaging_client.set_server(config.CONFIG_HOST, config.CONFIG_AMQP_TLS_PORT)
     else:
         g_messaging_client = messaging_client(config.CONFIG_USE_AMQP, on_mqtt_message)
@@ -5643,8 +5645,8 @@ def initialize():
                 print("Could not connect to message broker!")
             else:
                 break
-        except:
-            print("Could not connect to message broker! exception!")
+        except Exception as e:
+            print("Could not connect to message broker! exception! {}".format(e))
 
     # Initialize Database client
     g_database_client = database_client()
