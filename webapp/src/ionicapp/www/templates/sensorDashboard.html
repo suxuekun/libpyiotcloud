@@ -18,18 +18,18 @@
     </form>
     <form id="sensorDashboard-form168" class="list" ng-show="!hide_settings">
       <div id="sensorDashboard-button-bar12" class="button-bar">
-        <button id="sensorDashboard-button101" ng-class="{'active': data.activeSection==1}" ng-click="changeSection(1)" class="button button-positive button-small button-block">Values</button>
         <button id="sensorDashboard-button114" ng-class="{'active': data.activeSection==2}" ng-click="changeSection(2)" class="button button-positive button-small button-block">Charts</button>
+        <button id="sensorDashboard-button101" ng-class="{'active': data.activeSection==1}" ng-click="changeSection(1)" class="button button-positive button-small button-block">Values</button>
       </div>
       <label class="item item-select" id="sensorDashboard-select98">
         <span class="input-label">Device</span>
         <select ng-options="device.devicename as device.devicename for device in devices" ng-model="data.devicename" ng-change="changeDevice(data.devicename)"></select>
       </label>
-      <label class="item item-input" id="sensorDashboard-input144">
+      <label class="item item-input item-stacked-label widget_button_half_50" id="sensorDashboard-input144">
         <span class="input-label">Refresh time (sec)</span>
         <input type="number" placeholder="" ng-model="refresh_time" ng-disabled="refresh_automatically">
       </label>
-      <ion-toggle toggle-class="toggle-positive" id="sensorDashboard-toggle14" ng-model="refresh_automatically" ng-change="changeRefresh(refresh_automatically, refresh_time)">Refresh automatically</ion-toggle>
+      <ion-toggle toggle-class="toggle-positive" id="sensorDashboard-toggle14" ng-model="refresh_automatically" ng-change="changeRefresh(refresh_automatically, refresh_time)" class="widget_button_half_50">Refresh automatically</ion-toggle>
       <button id="sensorDashboard-button126" ng-click="submitDelete()" class="button button-dark button-block button-outline">Reset values</button>
     </form>
     <div id="sensorDashboard-markdown311" class="show-list-numbers-and-dots">
