@@ -3101,3 +3101,113 @@ GPIO Notification sequence
   <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/notification_sequence_GPIO.png" width="1000"/>
 
 
+## Demo
+
+1.  Demo1
+
+        Dev1
+            ADC - QS-FS Wind sensor 1 (Anemometer)
+                Dual Threshold
+                Threshold: min 0.1, max 99.9, out of range
+                Alert: once
+                Notification: 
+                    Messages: message on activation, message on deactivation
+                    Recipients: send email
+
+            Onewire - DS18B20 1 (Temperature)
+                Dual Threshold
+                Threshold: min 0.1, max 39.9, out of range
+                Alert: once
+                Notification: 
+                    Messages: message on activation, message on deactivation
+                    Recipients: send email
+
+            TProbe - Sonoff TH16 (Temperature and Humidity)
+                Temperature
+                    Single Threshold
+                    Threshold: value 39.9
+                    Alert: once
+                    Notification: 
+                        Messages: message on activation, message on deactivation
+                        Recipients: send email
+                Humidity
+                    Single Threshold
+                    Threshold: value 99.9
+                    Alert: once
+                    Notification: 
+                        Messages: message on activation, message on deactivation
+                        Recipients: send email
+
+2.  Demo2
+
+        Dev1
+            I2C POT 1
+                Mode: Continuous
+                Hardware: Demo2Dev2
+            I2C POT 2
+                Mode: Continuous
+                Hardware: Demo2Dev2
+            I2C POT 3
+                Mode: Continuous
+                Hardware: Demo2Dev2
+            I2C LED 1
+                Usage: RGB as component
+                R: Demo2Dev2 > I2C > POT 1 > Range
+                G: Demo2Dev2 > I2C > POT 2 > Range
+                B: Demo2Dev2 > I2C > POT 3 > Range
+
+        Dev 2
+            I2C POT 1
+                Mode: Continuous
+                Hardware: Demo2Dev1
+            I2C POT 2
+                Mode: Continuous
+                Hardware: Demo2Dev1
+            I2C POT 3
+                Mode: Continuous
+                Hardware: Demo2Dev1
+            I2C LED 1
+                Usage: RGB as component
+                R: Demo2Dev1 > I2C > POT 1 > Range
+                G: Demo2Dev1 > I2C > POT 2 > Range
+                B: Demo2Dev1 > I2C > POT 3 > Range
+
+3.  Demo 3
+
+        Dev1
+            ADC Battery sensor 1
+                Mode: Continuous
+                Hardware: Demo3Dev2
+            ADC Fluid sensor 1
+                Mode: Continuous
+                Hardware: Demo3Dev2
+            I2C DIG2 1
+                Endpoint: Hardware
+                Hardware: Demo3Dev2 > ADC > Battery sensor 1 > Battery Level
+            I2C DIG2 2
+                Endpoint: Hardware
+                Hardware: Demo3Dev2 > ADC > eTape Fluid sensor 1 > Fluid Level
+
+        Dev2
+            ADC Battery sensor 1
+                Mode: Continuous
+                Hardware: Demo3Dev1
+            ADC Fluid sensor 1
+                Mode: Continuous
+                Hardware: Demo3Dev1
+            I2C DIG2 1
+                Endpoint: Hardware
+                Hardware: Demo3Dev1 > ADC > Battery sensor 1 > Battery Level
+            I2C DIG2 2
+                Endpoint: Hardware
+                Hardware: Demo3Dev1 > ADC > eTape Fluid sensor 1 > Fluid Level
+
+4.  Demo 4
+
+        Dev1
+            UART
+                Notification Recipient: Mobile (SMS), Email, Notification (Push Notification)
+            Type AT+M
+            Type AT+E
+            Type AT+N (Requires logging in on Android or IOS mobile app)
+
