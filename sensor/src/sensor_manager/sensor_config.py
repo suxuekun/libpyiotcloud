@@ -7,7 +7,7 @@ class config:
     CONFIG_DEBUG_SENSOR_READING   = False
 
     CONFIG_ENABLE_DATASET         = True
-    CONFIG_MAX_DATASET            = 20
+    CONFIG_MAX_DATASET            = 24
 
     # Database settings
     CONFIG_MONGODB_HOST              = "mongodb"
