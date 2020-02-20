@@ -67,7 +67,7 @@ CONFIG_SENSOR_READING_TOPIC = "sensor_reading"
 ###################################################################################
 
 
-def add_history_publish(history_client, deviceid, topic, payload):
+def add_history_publish(history_client, deviceid, topic, payload, direction="From"):
 
     # Write publish/subscribe message to database
     # TODO: temporarily disable
@@ -91,7 +91,7 @@ def add_history_publish(history_client, deviceid, topic, payload):
         print("")
 
 
-def add_history_receive(history_client, deviceid, topic, payload):
+def add_history_receive(history_client, deviceid, topic, payload, direction="To"):
 
     # Write publish/subscribe message to database
     # TODO: temporarily disable
