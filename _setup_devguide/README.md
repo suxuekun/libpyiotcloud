@@ -3123,7 +3123,7 @@ On the EC2 side, the CPU usage is as follows:
 
 Demo setups:
 
-1.  Demo1 - demonstrates <b>sensor graphing<b> and <b>sensor thresholding (w/MENOS triggering)</b> of ADC/Onewire/TProbe sensors
+1.  Demo1 - demonstrates <b>sensor graphing</b> and <b>sensor thresholding (w/MENOS triggering)</b> of ADC/Onewire/TProbe sensors
 
         Dev1
             ADC - QS-FS Wind sensor 1 (Anemometer)
