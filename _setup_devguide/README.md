@@ -3101,7 +3101,7 @@ GPIO Notification sequence
   <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/notification_sequence_GPIO.png" width="1000"/>
 
 
-## Demo
+## Demo Setup Documentation
 
 1.  Demo1
 
