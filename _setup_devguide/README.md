@@ -2349,20 +2349,24 @@ DETAILED:
 		   { 'status': 'OK', 'message': string, 
 		     'transactions': array[{'devicename': string, 'deviceid': string, 'timestamp': string, 'recipient': string, 'messagelen': int, 'type': string, 'source': string, 'sensorname': string, 'condition': string}, ...]}
 		   { 'status': 'NG', 'message': string}
-		   // sensorname and condition are optional (ex. when source is UART/GPIO, then both sensorname and condition are not present
+		   // sensorname and condition are optional (ex. when source is UART/GPIOX, then both sensorname and condition are not present
 
 		D. GET MENOS HISTORIES FILTERED
 		-  Request:
 		   POST /devices/menos
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-		   data: { 'devicename': string }
+		   data: { 'devicename': string, 'type': string, 'source': string,  'datebegin': int, 'dateend': int }
 		   // all data items are optional (when data is empty, that is no filters are set, it is actually equivalent to as GET MENOS HISTORIES)
 		   // to filter by device name, include devicename
+		   // to filter by type, include type
+		   // to filter by source, include source
+		   // to filter by date, include datebegin or both datebegin, dateend
+		   // datebegin and dateend are both epoch computed values
 		-  Response:
 		   { 'status': 'OK', 'message': string, 
 		     'transactions': array[{'devicename': string, 'deviceid': string, 'timestamp': string, 'recipient': string, 'messagelen': int, 'type': string, 'source': string, 'sensorname': string, 'condition': string}, ...]}
 		   { 'status': 'NG', 'message': string}
-		   // sensorname and condition are optional (ex. when source is UART/GPIO, then both sensorname and condition are not present
+		   // sensorname and condition are optional (ex. when source is UART/GPIOX, then both sensorname and condition are not present
 
 
 	9. Account subscription and payment APIs
