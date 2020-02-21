@@ -36,21 +36,17 @@
     <ion-list id="history-list14">
       <div class="item item-body" id="history-list-item-container3" ng-repeat="item in items">
         <div id="history-markdown49" class="show-list-numbers-and-dots">
-          <p style="margin-top:0px;color:#444444;font-size:16px;">{{ item.direction }}
-            <strong> {{ item.devicename }} </strong>
-          </p>
+          <p style="margin-top:0px;color:#387EF5;font-size:16px;">{{ item.direction }}
+            <strong> {{ item.devicename }} </strong> {{ item.deviceid }}</p>
         </div>
         <div id="history-markdown50" class="show-list-numbers-and-dots">
-          <p style="margin-top:0px;color:#444444;font-size:12px;">{{ item.deviceid }}</p>
+          <p style="margin-top:0px;color:#444444;font-size:10px;">{{ item.timestamp }}</p>
         </div>
         <div id="history-markdown56" class="show-list-numbers-and-dots">
-          <p style="margin-top:0px;color:#444444;font-size:12px;">Topic: {{ item.topic }}</p>
+          <p style="margin-top:0px;color:#444444;font-size:10px;">Topic: {{ item.topic }}</p>
         </div>
         <div id="history-markdown52" class="show-list-numbers-and-dots">
-          <p style="margin-top:0px;color:#444444;font-size:12px;">Message: {{ item.payload }}</p>
-        </div>
-        <div id="history-markdown55" class="show-list-numbers-and-dots">
-          <p style="margin-top:0px;color:#444444;font-size:12px;">Timestamp: {{ item.timestamp }}</p>
+          <p style="margin-top:0px;color:#444444;font-size:10px;">Message: {{ item.payload }}</p>
         </div>
       </div>
     </ion-list>

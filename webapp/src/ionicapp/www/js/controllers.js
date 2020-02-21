@@ -14398,7 +14398,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Device
         "rcv_configuration",
         "req_configuration",
         "del_configuration",
-        "set_configuration",
+        "set_configuration"
         
     ];
     $scope.topicidx = 0;
@@ -14470,6 +14470,131 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Device
         });
     
         Histories.fetch($scope.data).then(function(res) {
+            $scope.items = res;
+            $scope.data.token = User.get_token();
+        }); 
+    };
+    
+    $scope.$on('$ionicView.enter', function(e) {
+        console.log("DEVICES enter ionicView REFRESH LIST");
+        $scope.submitRefresh();
+    });    
+}])
+   
+.controller('notificationCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Devices', 'Histories', 'Notifications', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+// You can include any angular dependencies as parameters for this function
+// TIP: Access Route Parameters for your page via $stateParams.parameterName
+function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Devices, Histories, Notifications) {
+
+    var server = Server.rest_api;
+    
+    $scope.data = {
+        'username': User.get_username(), //$stateParams.username,
+        'token': User.get_token()        //$stateParams.token
+    };
+    
+    $scope.hide_settings = false;
+    
+//    $scope.items_master = []; // items retrieved from database
+    $scope.items = []; // items to be shown
+/*    
+        {
+            "direction": "To",
+            "deviceid" : "1234567890",
+            "devicename": "ft900device1",
+            "topic": "get_gpio",
+            "payload": { "number": "10"},
+            "datetime": "datetime"
+        },
+    ];
+*/    
+    
+    // Filter by devices
+    $scope.devices = [ "All devices" ];
+    $scope.deviceidx = 0;
+    
+    // Filter by types
+    $scope.types = [ 
+        "All types",
+        "Mobile", 
+        "Email",
+        "Notification",
+        "Modem",
+        "Storage"
+    ];
+    $scope.type = "All types";
+
+    // Filter by date    
+    $scope.date = {
+        'begin': "",
+        'end': ""
+    };
+    
+    
+    
+    $scope.applyFilter = function(deviceidx, type) {
+
+        var devicename = null;
+        var deviceid = null;
+        var datebegin = 0;
+        var dateend = 0;
+        
+        console.log(type);
+        
+        if (deviceidx) {
+            devicename = $scope.devices[deviceidx];
+        }
+
+        if ($scope.date.begin !== undefined && $scope.date.begin !== "") {
+            console.log($scope.date.begin);
+            datebegin = new Date($scope.date.begin).valueOf() / 1000;
+            if (isNaN(datebegin)) {
+                datebegin = 0;
+            }
+            console.log(datebegin);
+             
+            
+            if ($scope.date.end !== undefined && $scope.date.end !== "") {
+                console.log($scope.date.end);
+                dateend = new Date($scope.date.end).valueOf() / 1000;
+                if (isNaN(dateend)) {
+                    dateend = 0;
+                }
+                console.log(dateend);
+            }
+        }
+
+        console.log(devicename);
+        console.log(type);
+        console.log(datebegin);
+        console.log(dateend);
+
+
+        var type_use = null;
+        if (type !== "All types") {
+            type_use = type;
+        }
+        Notifications.fetch_filtered($scope.data, devicename, type_use, datebegin, dateend).then(function(res) {
+            $scope.items = res;
+            $scope.data.token = User.get_token();
+        }); 
+    };
+    
+    
+    $scope.submitRefresh = function() {
+    
+        Devices.fetch($scope.data, "").then(function(res) {
+            var i;
+            for (i=0; i<res.length; i++) {
+                var result = $scope.devices.includes(res[i].devicename);
+                if (result === false) {
+                    $scope.devices.push(res[i].devicename);
+                }
+            }
+            $scope.data.token = User.get_token();
+        });
+    
+        Notifications.fetch($scope.data).then(function(res) {
             $scope.items = res;
             $scope.data.token = User.get_token();
         }); 

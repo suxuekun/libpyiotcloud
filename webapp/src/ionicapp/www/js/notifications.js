@@ -1,8 +1,8 @@
 /* !!! IMPORTANT: Rename "mymodule" below and add your module to Angular Modules above. */
 
-angular.module('histories', [])
+angular.module('notifications', [])
 
-.service('Histories', ['$http', 'Server', 'User', 'Token', function($http, Server, User, Token){
+.service('Notifications', ['$http', 'Server', 'User', 'Token', function($http, Server, User, Token){
     
     var server = Server.rest_api;
 
@@ -13,10 +13,10 @@ angular.module('histories', [])
             console.log(userdata);
             
             //
-            // GET HISTORIES
+            // GET MENOS HISTORIES
             //
             // - Request:
-            //   GET /devices/histories
+            //   GET /devices/menos
             //   headers: {'Authorization': 'Bearer ' + token.access}
             //
             // - Response:
@@ -27,7 +27,7 @@ angular.module('histories', [])
             //
             return $http({
                 method: 'GET',
-                url: server + '/devices/histories',
+                url: server + '/devices/menos',
                 headers: {'Authorization': 'Bearer ' + userdata.token.access}
             })
             .then(function (result) {
@@ -57,17 +57,14 @@ angular.module('histories', [])
             });
         },
         
-        fetch_filtered: function(userdata, devicename, direction, topic, datebegin, dateend) {
+        fetch_filtered: function(userdata, devicename, type, datebegin, dateend) {
 
             var filter = {};
             if (devicename !== null) {
                 filter.devicename = devicename;
             }
-            if (direction !== null) {
-                filter.direction = direction;
-            }
-            if (topic !== null) {
-                filter.topic = topic;
+            if (type !== null) {
+                filter.type = type;
             }
             if (datebegin !== null) {
                 filter.datebegin = datebegin;
@@ -77,10 +74,10 @@ angular.module('histories', [])
             }
 
             //
-            // GET HISTORIES FILTERED
+            // GET MENOS HISTORIES FILTERED
             //
             // - Request:
-            //   POST /devices/histories
+            //   POST /devices/menos
             //   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
             //   data: { 'devicename': string, 'deviceid': string, 'direction': string, 'topic': string, 
             //           'datebegin': int, 'dateend': int }
@@ -94,7 +91,7 @@ angular.module('histories', [])
             //            
             return $http({
                 method: 'POST',
-                url: server + '/devices/histories',
+                url: server + '/devices/menos',
                 headers: {'Authorization': 'Bearer ' + userdata.token.access, 'Content-Type': 'application/json'},
                 data: filter
             })
@@ -106,7 +103,7 @@ angular.module('histories', [])
                     let timestamp = new Date(result.data.transactions[indexy].timestamp * 1000); 
                     result.data.transactions[indexy].timestamp = "" + timestamp;
                 }
-
+                
                 return result.data.transactions;
             })
             .catch(function (error) {
