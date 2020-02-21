@@ -18,10 +18,11 @@ class notification_models:
 class notification_types:
 
     UNKNOWN           = 0
-    EMAIL             = 1
-    SMS               = 2
-    DEVICE            = 3
-    PUSH_NOTIFICATION = 4
+    SMS               = 1 # Mobile (sms)
+    EMAIL             = 2 # Email
+    PUSH_NOTIFICATION = 3 # Notification (push notification)
+    DEVICE            = 4 # mOdem
+    STORAGE           = 5 # Storage
 
 
 class notification_client:
@@ -53,6 +54,10 @@ class notification_client:
                 self._base_push_notification = notification_client_pinpoint()
         else:
             self._base_push_notification = self._base_email
+
+    def get_notification_types_string(self, type):
+        types = ["Unknown", "Mobile", "Email", "Notification", "Modem", "Storage"]
+        return types[type]
 
     def initialize(self):
         self._base_email.initialize()

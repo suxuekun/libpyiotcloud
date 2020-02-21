@@ -119,7 +119,7 @@ class database_client:
             if config.CONFIG_ENABLE_MAX_HISTORY:
                 devices_list = self._devices.get_device_history(deviceid, removeID=False)
                 if devices_list:
-                    devices_list.sort(key=self.sort_user_history, reverse=True)
+                    devices_list.sort(key=self.sort_by_timestamp, reverse=True)
                     try:
                         while len(devices_list) > config.CONFIG_MAX_HISTORY_PER_DEVICE:
                             self._devices.delete_device_history(devices_list[-1]['deviceid'], devices_list[-1]['timestamp'], devices_list[-1]['_id'])
@@ -131,7 +131,7 @@ class database_client:
     def get_device_history(self, deviceid):
         return self._devices.get_device_history(deviceid)
 
-    def sort_user_history(self, elem):
+    def sort_by_timestamp(self, elem):
         return elem['timestamp']
 
     def get_user_history(self, username):
@@ -145,7 +145,7 @@ class database_client:
                     history['timestamp'] = datetime.datetime.fromtimestamp(int(history['timestamp'])).strftime('%Y-%m-%d %H:%M:%S')
                 if histories and len(histories) > 0:
                     user_histories += histories
-        user_histories.sort(key=self.sort_user_history, reverse=True)
+        user_histories.sort(key=self.sort_by_timestamp, reverse=True)
         return user_histories
 
 
@@ -169,6 +169,20 @@ class database_client:
 
     def get_device_notification_by_deviceid(self, deviceid, source):
         return self._devices.get_device_notification_by_deviceid(deviceid, source)
+
+
+    ##########################################################
+    # menos
+    ##########################################################
+
+    def add_menos_transaction(self, deviceid, recipient, message, type, source, sensorname, timestamp, condition, result):
+        self._devices.add_menos_transaction(deviceid, recipient, message, type, source, sensorname, timestamp, condition, result)
+
+    def delete_menos_transaction(self, deviceid):
+        self._devices.delete_menos_transaction(deviceid)
+
+    def get_menos_transaction(self, deviceid):
+        return self._devices.get_menos_transaction(deviceid)
 
 
     ##########################################################
@@ -579,6 +593,47 @@ class database_client_mongodb:
                 #print(notification['notification'])
                 return notification['notification']
         return None
+
+
+    ##########################################################
+    # menos
+    ##########################################################
+
+    def get_menos_document(self):
+        return self.client[config.CONFIG_MONGODB_TB_MENOS]
+
+    def add_menos_transaction(self, deviceid, recipient, message, type, source, sensorname, timestamp, condition, result):
+        menos = self.get_menos_document()
+        item = {}
+        item['deviceid'] = deviceid
+        item['timestamp'] = timestamp
+        item['recipient'] = recipient
+        item['messagelen'] = len(message)
+        item['type'] = type
+        item['source'] = source
+        if sensorname is not None:
+            item['sensorname'] = sensorname
+        if condition is not None:
+            item['condition'] = condition
+        item['result'] = result
+        menos.insert_one(item)
+
+    def delete_menos_transaction(self, deviceid):
+        menos = self.get_menos_document()
+        try:
+            menos.delete_many({'deviceid': deviceid})
+        except:
+            print("delete_menos_transaction: Exception occurred")
+            pass
+
+    def get_menos_transaction(self, deviceid):
+        menos_list = []
+        menos = self.get_menos_document()
+        if menos and menos.count():
+            for menos_item in menos.find({'deviceid': deviceid}):
+                menos_item.pop('_id')
+                menos_list.append(menos_item)
+        return menos_list
 
 
     ##########################################################

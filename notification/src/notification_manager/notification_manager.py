@@ -7,6 +7,7 @@ from web_server_database import database_client
 from datetime import datetime
 import json
 import time
+import datetime
 import argparse
 import threading
 import sys
@@ -111,31 +112,58 @@ def send_notification_device(messaging_client, deviceid, recipient, message):
     except:
         send_notification_status(messaging_client, deviceid, "NG")
         print("PUBLISH FAILED!")
+        return False
+    return True
+
+def construct_message(messaging_client, deviceid, recipient, message, subject, type, options, source, sensorname, timestamp, condition):
+
+    new_message = message
+
+    # append condition string
+    if condition is not None:
+        new_message += "\r\n- condition triggered: " + condition
+
+    # append devicename, source peripheral, sensorname
+    devicename = g_database_client.get_devicename(deviceid)
+    if devicename is None:
+        return None
+    source = source.upper()
+    if sensorname is None:
+        new_message += "\r\n- from {}:{}".format(devicename, source)
+    else:
+        new_message += "\r\n- from {}:{}:{}".format(devicename, source, sensorname)
+
+    # append timestamp on the message
+    new_message += " [" + datetime.datetime.utcfromtimestamp(timestamp).strftime("%Y-%m-%d %H:%M:%S") + " UTC]"
+
+    return new_message
+
 
 def notification_thread(messaging_client, deviceid, recipient, message, subject, type, options, source, sensor, payload):
 
-    # append condition string
+    # generate information to append to the message
+    timestamp = int(time.time())
+    condition = None
     if payload.get("condition"):
-        message += "\r\n- condition triggered: " + payload["condition"]
+        condition = payload["condition"]
+    sensorname = None
+    if sensor is not None:
+        sensorname = sensor["sensorname"]
+    type_str = g_notification_client.get_notification_types_string(type)
 
-    # append devicename
-    devicename = g_database_client.get_devicename(deviceid)
-    if devicename is None:
+    # append information to the message
+    message_updated = construct_message(messaging_client, deviceid, recipient, message, subject, type, options, source, sensorname, timestamp, condition)
+    if message_updated is None:
         send_notification_status(messaging_client, deviceid, "NG")
         return
-    if sensor is None:
-        message += "\r\n- from {}:{}".format(devicename, source.upper())
-    else:
-        message += "\r\n- from {}:{}:{}".format(devicename, source.upper(), sensor["sensorname"])
 
-    # append timestamp on the message
-    message += " [" + datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S") + " UTC]"
 
+    # send message
     if type == notification_types.DEVICE:
         # Send to another device
-        send_notification_device(messaging_client, deviceid, recipient, message)
+        result = send_notification_device(messaging_client, deviceid, recipient, message_updated)
     else:
-        # Send to SMS or email
+        # Send to Mobile (sms) or Email or Notification (push notification)
         if options >= 0:
             # With options parameter
             print("OPTIONS = {}".format(options))
@@ -145,7 +173,7 @@ def notification_thread(messaging_client, deviceid, recipient, message, subject,
             new_client = notification_client(notification_models.PINPOINT, options)
             new_client.initialize()
             try:
-                response = new_client.send_message(recipient, message, subject=subject, type=type)
+                response = new_client.send_message(recipient, message_updated, subject=subject, type=type)
             except:
                 send_notification_status(messaging_client, deviceid, "NG")
                 return
@@ -155,7 +183,7 @@ def notification_thread(messaging_client, deviceid, recipient, message, subject,
             #print(message)
             #print(type)
             try:
-                response = g_notification_client.send_message(recipient, message, subject=subject, type=type)
+                response = g_notification_client.send_message(recipient, message_updated, subject=subject, type=type)
                 #print(response)
             except:
                 print("exception")
@@ -166,46 +194,40 @@ def notification_thread(messaging_client, deviceid, recipient, message, subject,
         if notification_config.CONFIG_DEBUG_NOTIFICATION:
             try:
                 print("\r\nSending message='{}' to recipient='{}' done. {} {}\r\n\r\n".format(
-                    message, recipient,
+                    message_updated, recipient,
                     response["ResponseMetadata"]["HTTPStatusCode"]==200, 
                     response["MessageResponse"]["Result"][recipient]["StatusCode"]==200))
                 send_notification_status(messaging_client, deviceid, "OK. message sent to {}.".format(recipient))
             except:
                 try:
                     print("\r\nSending message='{}' to recipient='{}' done. {}\r\n\r\n".format(
-                        message, recipient,
+                        message_updated, recipient,
                         response["ResponseMetadata"]["HTTPStatusCode"]==200))
                     send_notification_status(messaging_client, deviceid, "OK. message sent to {}.".format(recipient))
                 except:
                     print("\r\nSending message='{}' to recipient='{}' done.\r\n\r\n".format(
-                        message, recipient))
+                        message_updated, recipient))
         else:
             if response == "":
                 send_notification_status(messaging_client, deviceid, "NG")
                 return
-            if type == notification_types.SMS:
-                typeStr = "SMS  " 
-            elif type == notification_types.EMAIL:
-                typeStr = "Email"
-            elif type == notification_types.PUSH_NOTIFICATION:
-                typeStr = "Push Notification"
 
             try:
-                res = response["ResponseMetadata"]["HTTPStatusCode"]==200 and response["MessageResponse"]["Result"][recipient]["StatusCode"]==200
-                if res == True:
-                    print("{}: {} [{} {}] {}".format(deviceid, typeStr, len(recipient), len(message), res))
+                result = response["ResponseMetadata"]["HTTPStatusCode"]==200 and response["MessageResponse"]["Result"][recipient]["StatusCode"]==200
+                if result == True:
+                    print("{}: {} [{} {}] {}".format(deviceid, type_str, len(recipient), len(message_updated), result))
                     if type == notification_types.PUSH_NOTIFICATION:
                         send_notification_status(messaging_client, deviceid, "OK. message sent to mobile phone/s.")
                     else:
                         send_notification_status(messaging_client, deviceid, "OK. message sent to {}.".format(recipient))
                 else:
-                    print("{}: {} [{} {}] {} [{} {}]".format(deviceid, typeStr, len(recipient), len(message), res, response["ResponseMetadata"]["HTTPStatusCode"], response["MessageResponse"]["Result"][recipient]["StatusMessage"]))
+                    print("{}: {} [{} {}] {} [{} {}]".format(deviceid, type_str, len(recipient), len(message_updated), result, response["ResponseMetadata"]["HTTPStatusCode"], response["MessageResponse"]["Result"][recipient]["StatusMessage"]))
                     send_notification_status(messaging_client, deviceid, "NG. {}".format(response["MessageResponse"]["Result"][recipient]["StatusMessage"]))
             except:
                 try:
-                    res = response["ResponseMetadata"]["HTTPStatusCode"]==200
-                    print("{}: {} [{} {}] {}".format(deviceid, typeStr, len(recipient), len(message), res))
-                    if res == True:
+                    result = response["ResponseMetadata"]["HTTPStatusCode"]==200
+                    print("{}: {} [{} {}] {}".format(deviceid, type_str, len(recipient), len(message_updated), result))
+                    if result == True:
                         if type == notification_types.PUSH_NOTIFICATION:
                             send_notification_status(messaging_client, deviceid, "OK. message sent to mobile phone/s.")
                         else:
@@ -213,7 +235,21 @@ def notification_thread(messaging_client, deviceid, recipient, message, subject,
                     else:
                         send_notification_status(messaging_client, deviceid, "NG")
                 except:
-                    print("{}: {} [{} {}] True".format(deviceid, typeStr, len(recipient), len(message) ))
+                    print("{}: {} [{} {}] True".format(deviceid, type_str, len(recipient), len(message_updated) ))
+
+    # record message in database
+    if type == notification_types.PUSH_NOTIFICATION:
+        if recipient.get("devicetoken") and recipient.get("service"):
+            for recipient_item in recipient["service"]:
+                recipient_label = "Android" if recipient["service"] == "GCM" else "iOS"
+                g_database_client.add_menos_transaction(deviceid, recipient_label, message, type_str, source, sensorname, timestamp, condition, result)
+                #print("{}: {} {} {} {} [{} UTC]".format(deviceid, type_str, recipient_label, len(message), result, datetime.datetime.utcfromtimestamp(timestamp).strftime("%Y-%m-%d %H:%M:%S")))
+    else:
+        g_database_client.add_menos_transaction(deviceid, recipient, message, type_str, source.upper(), sensorname, timestamp, condition, result)
+        #print("{}: {} {} {} {} [{} UTC]".format(deviceid, type_str, recipient, len(message), result, datetime.datetime.utcfromtimestamp(timestamp).strftime("%Y-%m-%d %H:%M:%S")))
+
+    #print(g_database_client.get_menos_transaction(deviceid))
+
 
 def send_notification_mobile_threaded(messaging_client, deviceid, recipient, message, source, sensor, payload):
     #print("mobile")
