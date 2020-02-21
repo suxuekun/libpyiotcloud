@@ -3103,7 +3103,9 @@ GPIO Notification sequence
 
 ## Demo Setup Documentation
 
-1.  Demo1 - demonstrates sensor graphing and sensor thresholding (w/MENOS triggering) of ADC/Onewire/TProbe sensors
+1.  Demo1 
+
+    - This demonstrates sensor graphing and sensor thresholding (w/MENOS triggering) of ADC/Onewire/TProbe sensors
 
         Dev1
             ADC - QS-FS Wind sensor 1 (Anemometer)
@@ -3138,7 +3140,9 @@ GPIO Notification sequence
                         Messages: message on activation, message on deactivation
                         Recipients: send email
 
-2.  Demo2 - demonstrates sensor forwarding from 3 I2C INPUT sensors of 1 device to 1 I2C OUTPUT sensor of another device
+2.  Demo2
+
+    - This demonstrates sensor forwarding from 3 I2C INPUT sensors of 1 device to 1 I2C OUTPUT sensor of another device
 
         Dev1
             I2C POT 1
@@ -3172,7 +3176,9 @@ GPIO Notification sequence
                 G: Demo2Dev1 > I2C > POT 2 > Range
                 B: Demo2Dev1 > I2C > POT 3 > Range
 
-3.  Demo 3 - demonstrates sensor forwarding from 2 ADC INPUT sensors of 1 device to 2 I2C OUTPUT sensors of another device
+3.  Demo 3
+
+    - This demonstrates sensor forwarding from 2 ADC INPUT sensors of 1 device to 2 I2C OUTPUT sensors of another device
 
         Dev1
             ADC Battery sensor 1
@@ -3202,7 +3208,9 @@ GPIO Notification sequence
                 Endpoint: Hardware
                 Hardware: Demo3Dev1 > ADC > eTape Fluid sensor 1 > Fluid Level
 
-4.  Demo 4 - demonstrates MENOS notification triggering via UART
+4.  Demo 4 
+
+    - This demonstrates MENOS notification triggering via UART
 
         Dev1
             UART
