@@ -177,7 +177,7 @@ class database_client:
     def delete_device_history(self, deviceid):
         return self._devices.delete_device_history(deviceid)
 
-    def sort_user_history(self, elem):
+    def sort_by_timestamp(self, elem):
         return elem['timestamp']
 
     def get_user_history(self, username):
@@ -187,11 +187,11 @@ class database_client:
             for device in devices.find({'username': username}):
                 histories = self._devices.get_device_history(device["deviceid"])
                 #print(histories)
-                for history in histories:
-                    history['timestamp'] = datetime.datetime.fromtimestamp(int(history['timestamp'])).strftime('%Y-%m-%d %H:%M:%S')
+                #for history in histories:
+                #    history['timestamp'] = datetime.datetime.fromtimestamp(int(history['timestamp'])).strftime('%Y-%m-%d %H:%M:%S')
                 if histories and len(histories) > 0:
                     user_histories += histories
-        user_histories.sort(key=self.sort_user_history, reverse=True)
+        user_histories.sort(key=self.sort_by_timestamp, reverse=True)
         return user_histories
 
     def get_user_history_filtered(self, username, devicename, direction, topic, datebegin, dateend):
@@ -223,8 +223,25 @@ class database_client:
                 #print(len(histories))
         #print(len(user_histories))
 
-        user_histories.sort(key=self.sort_user_history, reverse=True)
+        user_histories.sort(key=self.sort_by_timestamp, reverse=True)
         return user_histories
+
+
+    ##########################################################
+    # menos
+    ##########################################################
+
+    def add_menos_transaction(self, deviceid, recipient, message, type, source, sensorname, timestamp, condition, result):
+        self._devices.add_menos_transaction(deviceid, recipient, message, type, source, sensorname, timestamp, condition, result)
+
+    def delete_menos_transaction(self, deviceid):
+        self._devices.delete_menos_transaction(deviceid)
+
+    def get_menos_transaction(self, deviceid):
+        return self._devices.get_menos_transaction(deviceid)
+
+    def get_menos_transaction_filtered(self, deviceid, type, datebegin, dateend):
+        return self._devices.get_menos_transaction_filtered(deviceid, type, datebegin, dateend)
 
 
     ##########################################################
@@ -938,6 +955,70 @@ class database_client_mongodb:
         except:
             print("delete_device_history: Exception occurred")
             pass
+
+
+    ##########################################################
+    # menos
+    ##########################################################
+
+    def get_menos_document(self):
+        return self.client[config.CONFIG_MONGODB_TB_MENOS]
+
+    def add_menos_transaction(self, deviceid, recipient, message, type, source, sensorname, timestamp, condition, result):
+        menos = self.get_menos_document()
+        item = {}
+        item['deviceid'] = deviceid
+        item['timestamp'] = timestamp
+        item['recipient'] = recipient
+        item['messagelen'] = len(message)
+        item['type'] = type
+        item['source'] = source
+        if sensorname is not None:
+            item['sensorname'] = sensorname
+        if condition is not None:
+            item['condition'] = condition
+        item['result'] = result
+        menos.insert_one(item)
+
+    def delete_menos_transaction(self, deviceid):
+        menos = self.get_menos_document()
+        try:
+            menos.delete_many({'deviceid': deviceid})
+        except:
+            print("delete_menos_transaction: Exception occurred")
+            pass
+
+    def get_menos_transaction(self, deviceid):
+        menos_list = []
+        menos = self.get_menos_document()
+        if menos and menos.count():
+            for menos_item in menos.find({'deviceid': deviceid}):
+                menos_item.pop('_id')
+                menos_list.append(menos_item)
+        return menos_list
+
+    def get_menos_transaction_filtered(self, deviceid, type, datebegin, dateend):
+        menos_list = []
+        menos = self.get_menos_document()
+        if menos and menos.count():
+
+            filter = {}
+            filter['deviceid'] = deviceid
+            if type is not None:
+                filter['type'] = type
+            if datebegin != 0 and dateend != 0:
+                filter['timestamp'] = {'$gte': datebegin, '$lte': dateend}
+            elif datebegin != 0:
+                filter['timestamp'] = {"$gte": datebegin}
+
+            print(filter)
+
+            for menos_item in menos.find(filter):
+                print(menos_item["timestamp"])
+                menos_item.pop('_id')
+                menos_list.append(menos_item)
+
+        return menos_list
 
 
     ##########################################################

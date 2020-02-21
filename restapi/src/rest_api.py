@@ -1806,7 +1806,7 @@ def update_devicename(devicename):
 #
 # - Response:
 #   { 'status': 'OK', 'message': string, 
-#     'histories': array[
+#     'transactions': array[
 #       {'devicename': string, 'deviceid': string, 'direction': string, 'topic': string, 'payload': string, 'timestamp': string}, ...]}
 #   { 'status': 'NG', 'message': string}
 #
@@ -1850,7 +1850,7 @@ def get_device_histories():
     #print(histories)
 
 
-    msg = {'status': 'OK', 'message': 'User histories queried successfully.', 'histories': histories}
+    msg = {'status': 'OK', 'message': 'User histories queried successfully.', 'transactions': histories}
     if new_token:
         msg['new_token'] = new_token
     response = json.dumps(msg)
@@ -1868,7 +1868,7 @@ def get_device_histories():
 #
 # - Response:
 #   { 'status': 'OK', 'message': string, 
-#     'histories': array[
+#     'transactions': array[
 #       {'devicename': string, 'deviceid': string, 'direction': string, 'topic': string, 'payload': string, 'timestamp': string}, ...]}
 #   { 'status': 'NG', 'message': string}
 #
@@ -1930,11 +1930,177 @@ def get_device_histories_filtered():
     #print(histories)
 
 
-    msg = {'status': 'OK', 'message': 'User histories queried successfully.', 'histories': histories}
+    msg = {'status': 'OK', 'message': 'User histories queried successfully.', 'transactions': histories}
     if new_token:
         msg['new_token'] = new_token
     response = json.dumps(msg)
     return response
+
+
+def sort_by_timestamp(elem):
+    return elem['timestamp']
+
+
+########################################################################################################
+#
+# GET MENOS HISTORIES
+#
+# - Request:
+#   GET /devices/menos
+#   headers: {'Authorization': 'Bearer ' + token.access}
+#
+# - Response:
+#   { 'status': 'OK', 'message': string, 
+#     'transactions': array[
+#       {'devicename': string, 'deviceid': string, 'direction': string, 'topic': string, 'payload': string, 'timestamp': string}, ...]}
+#   { 'status': 'NG', 'message': string}
+#
+########################################################################################################
+@app.route('/devices/menos', methods=['GET'])
+def get_device_menos_histories():
+    # get token from Authorization header
+    auth_header_token = get_auth_header_token()
+    if auth_header_token is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
+        print('\r\nERROR Get MENOS Histories: Invalid authorization header\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
+    token = {'access': auth_header_token}
+
+    # get username from token
+    username = g_database_client.get_username_from_token(token)
+    if username is None:
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Get MENOS Histories: Token expired\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
+    print('get_user_histories {}'.format(username))
+
+    # check if a parameter is empty
+    if len(username) == 0 or len(token) == 0:
+        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+        print('\r\nERROR Get MENOS Histories: Empty parameter found\r\n')
+        return response, status.HTTP_400_BAD_REQUEST
+
+    # check if username and token is valid
+    verify_ret, new_token = g_database_client.verify_token(username, token)
+    if verify_ret == 2: # token expired
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Get MENOS Histories: Token expired [{}]\r\n'.format(username))
+        return response, status.HTTP_401_UNAUTHORIZED
+    elif verify_ret != 0:
+        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
+        print('\r\nERROR Get MENOS Histories: Token is invalid [{}]\r\n'.format(username))
+        return response, status.HTTP_401_UNAUTHORIZED
+
+
+    # get menos histories of all devices of user
+    histories = []
+    devices = g_database_client.get_devices(username)
+    for device in devices:
+        transactions = g_database_client.get_menos_transaction(device["deviceid"])
+        for transaction in transactions:
+            transaction["devicename"] = device["devicename"]
+        histories += transactions
+    histories.sort(key=sort_by_timestamp, reverse=True)
+
+    msg = {'status': 'OK', 'message': 'User MENOS histories queried successfully.', 'transactions': histories}
+    if new_token:
+        msg['new_token'] = new_token
+    response = json.dumps(msg)
+    return response
+
+
+########################################################################################################
+#
+# GET MENOS HISTORIES FILTERED
+#
+# - Request:
+#   POST /devices/menos
+#   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+#   data: { 'devicename': string, 'deviceid': string, 'direction': string, 'topic': string, 'datebegin': int, 'dateend': int }
+#
+# - Response:
+#   { 'status': 'OK', 'message': string, 
+#     'transactions': array[
+#       {'devicename': string, 'deviceid': string, 'direction': string, 'topic': string, 'payload': string, 'timestamp': string}, ...]}
+#   { 'status': 'NG', 'message': string}
+#
+########################################################################################################
+@app.route('/devices/menos', methods=['POST'])
+def get_device_menos_histories_filtered():
+    # get token from Authorization header
+    auth_header_token = get_auth_header_token()
+    if auth_header_token is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
+        print('\r\nERROR Get MENOS Histories: Invalid authorization header\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
+    token = {'access': auth_header_token}
+
+    # get username from token
+    username = g_database_client.get_username_from_token(token)
+    if username is None:
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Get MENOS Histories: Token expired\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
+    print('get_device_menos_histories_filtered {}'.format(username))
+
+    # check if a parameter is empty
+    if len(username) == 0 or len(token) == 0:
+        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+        print('\r\nERROR Get MENOS Histories: Empty parameter found\r\n')
+        return response, status.HTTP_400_BAD_REQUEST
+
+    # check if username and token is valid
+    verify_ret, new_token = g_database_client.verify_token(username, token)
+    if verify_ret == 2: # token expired
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Get MENOS Histories: Token expired [{}]\r\n'.format(username))
+        return response, status.HTTP_401_UNAUTHORIZED
+    elif verify_ret != 0:
+        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
+        print('\r\nERROR Get MENOS Histories: Token is invalid [{}]\r\n'.format(username))
+        return response, status.HTTP_401_UNAUTHORIZED
+
+    # get filter data
+    devicename = None
+    type = None
+    datebegin = 0
+    dateend = 0
+    data = flask.request.get_json()
+    print(data)
+    if data.get("devicename"):
+        devicename = data["devicename"]
+    if data.get("type"):
+        type = data["type"]
+    if data.get("datebegin"):
+        datebegin = data["datebegin"]
+        if data.get("dateend"):
+            dateend = data["dateend"]
+
+    # get menos histories of all devices of user
+    histories = []
+    devices = g_database_client.get_devices(username)
+    if devicename is not None:
+        for device in devices:
+            if device["devicename"] == devicename:
+                transactions = g_database_client.get_menos_transaction_filtered(device["deviceid"], type, datebegin, dateend)
+                for transaction in transactions:
+                    transaction["devicename"] = device["devicename"]
+                histories += transactions
+                break
+    else:
+        for device in devices:
+            transactions = g_database_client.get_menos_transaction_filtered(device["deviceid"], type, datebegin, dateend)
+            for transaction in transactions:
+                transaction["devicename"] = device["devicename"]
+            histories += transactions
+    histories.sort(key=sort_by_timestamp, reverse=True)
+
+    msg = {'status': 'OK', 'message': 'User MENOS histories queried successfully.', 'transactions': histories}
+    if new_token:
+        msg['new_token'] = new_token
+    response = json.dumps(msg)
+    return response
+
 
 #########################
 
