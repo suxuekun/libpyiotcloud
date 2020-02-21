@@ -753,6 +753,20 @@ angular.module('app.routes', [])
     }
   })
 
+  .state('menu.notification', {
+    url: '/page_notification',
+	params: {
+		username: "",
+		token: ""		
+},
+    views: {
+      'side-menu21': {
+        templateUrl: 'templates/notification.html',
+        controller: 'notificationCtrl'
+      }
+    }
+  })
+
 $urlRouterProvider.otherwise('/page_login')
 
 
