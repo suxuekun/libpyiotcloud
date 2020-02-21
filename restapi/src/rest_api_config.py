@@ -65,6 +65,7 @@ class config:
     CONFIG_MONGODB_TB_SENSORREADINGS = "sensorreadings"
     CONFIG_MONGODB_TB_SENSORREADINGS_DATASET = "sensorreadingsdataset"
     CONFIG_MONGODB_TB_DEVICETOKENS   = "devicetokens"
+    CONFIG_MONGODB_TB_MENOS          = "menos"
 
     # Caching settings
     CONFIG_REDIS_HOST                = "127.0.0.1"
