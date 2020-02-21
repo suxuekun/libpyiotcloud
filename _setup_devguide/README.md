@@ -1163,9 +1163,12 @@ DETAILED:
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
 		   { 'status': 'OK', 'message': string, 
-		     'sensor': {'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': string, 'enabled': int, 'configured': int, 'units': [], 'formats': [], 'attributes': [], 'readings': [{'timestamp': float, 'value': float, 'subclass': {'value': float}}] }
+		     'sensor': {'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': string, 'enabled': int, 'configured': int, 'units': [], 'formats': [], 'attributes': [], 'dataset': {'labels': [], 'data': []} }
 		   { 'status': 'NG', 'message': string}
 		   // the subclass parameter of readings parameter will only appear if the sensor has a subclass
+		   // if sensor has a subclass: 'dataset':  {'labels': [], 'data': [[],[]]}
+		      if sensor has no subclass: 'dataset': {'labels': [], 'data': []}
+		      this make the dataset object directly useable by Chart.JS 
 
 		Q. DELETE PERIPHERAL SENSOR READINGS
 		-  Request:

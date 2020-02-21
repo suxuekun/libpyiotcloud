@@ -154,12 +154,7 @@ def store_sensor_reading(database_client, deviceid, source, address, value, subc
         #
         # update sensor reading with timestamp for charting/graphing
         if sensor_config.CONFIG_ENABLE_DATASET:
-            sensor_readings.pop("lowest")
-            sensor_readings.pop("highest")
-            if sensor_readings.get("subclass"):
-                sensor_readings["subclass"].pop("lowest")
-                sensor_readings["subclass"].pop("highest")
-            database_client.add_sensor_reading_dataset(deviceid, source, address, sensor_readings)
+            database_client.add_sensor_reading_dataset(deviceid, source, address, value, subclass_value)
     except:
         print("exception store_sensor_reading")
         pass

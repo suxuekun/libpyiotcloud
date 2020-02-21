@@ -202,8 +202,8 @@ class database_client:
 
     # sensor readings datasets
 
-    def add_sensor_reading_dataset(self, deviceid, source, address, sensor_readings):
-        self._devices.add_sensor_reading_dataset(deviceid, source, address, sensor_readings)
+    def add_sensor_reading_dataset(self, deviceid, source, address, value, subclass_value):
+        self._devices.add_sensor_reading_dataset(deviceid, source, address, value, subclass_value)
 
     def get_sensor_reading_dataset(self, username, devicename, source, address):
         return self._devices.get_sensor_reading_dataset_by_deviceid(self._devices.get_deviceid(username, devicename), source, address)
@@ -706,7 +706,7 @@ class database_client_mongodb:
     def get_sensorreadings_dataset_document(self):
         return self.client[config.CONFIG_MONGODB_TB_SENSORREADINGS_DATASET]
 
-    def add_sensor_reading_dataset(self, deviceid, source, address, sensor_readings):
+    def add_sensor_reading_dataset(self, deviceid, source, address, value, subclass_value):
         timestamp = str(int(time.time()))
         sensorreadings = self.get_sensorreadings_dataset_document();
         item = {}
@@ -715,7 +715,9 @@ class database_client_mongodb:
         if address is not None:
             item['address'] = address
         item['timestamp'] = timestamp
-        item['sensor_readings'] = sensor_readings
+        item['value'] = value
+        if subclass_value is not None:
+            item['subclass_value'] = subclass_value
 
         if address is not None:
             readings = sensorreadings.find({'deviceid': deviceid, 'source': source, 'address': address})

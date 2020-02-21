@@ -3557,7 +3557,7 @@ def get_all_device_sensors_enabled_input_readings_dataset(devicename):
             source = "{}{}".format(sensor["source"], sensor["number"])
             sensor_reading = g_database_client.get_sensor_reading_dataset(username, devicename, source, address)
             if sensor_reading is not None:
-                sensor['readings'] = sensor_reading
+                sensor['dataset'] = sensor_reading
 
 
     msg = {'status': 'OK', 'message': 'Get All Device Sensors Dataset queried successfully.', 'sensors': sensors}
