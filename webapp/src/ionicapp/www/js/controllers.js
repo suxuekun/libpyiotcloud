@@ -3325,8 +3325,16 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                 $scope.sensors_datachart = [];
                 for (var indexy=0; indexy<$scope.sensors.length; indexy++) {
                 
+                    $scope.sensors_datachart.push( $scope.sensors[indexy].dataset );
+
+                    for (var indexz=0; indexz<$scope.sensors[indexy].dataset.labels.length; indexz++) {
+                        var timestamp = new Date($scope.sensors[indexy].dataset.labels[indexz] * 1000);
+                        var timestamp_str = timestamp.getHours() + ":" + timestamp.getMinutes() + ":" + timestamp.getSeconds();
+                        $scope.sensors[indexy].dataset.labels[indexz] = timestamp_str;
+                    }    
+/*                
                     if ($scope.sensors[indexy].subclass === undefined) {
-                        $scope.sensors_datachart.push({ "labels": [], "data": []});
+                        $scope.sensors_datachart.push( { "labels": [], "data": []});
                     }
                     else {
                         $scope.sensors_datachart.push({ "labels": [], "data": [[],[]]});
@@ -3347,6 +3355,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                         
                         $scope.sensors_datachart[indexy].labels.push(timestamp_str);
                     }
+*/                    
                 }
                 //console.log($scope.sensors_datachart);
             }
@@ -3356,7 +3365,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         }); 
     };
 
-    delete_all_device_sensors_enabled_input = function() {
+    delete_all_device_sensors_enabled_input = function(flag=false) {
         //
         // DELETE ALL ENABLED DEVICE SENSORS (enabled input)
         //
@@ -3375,6 +3384,10 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         })
         .then(function (result) {
             console.log(result.data);
+            
+            if (flag === true) {
+                $scope.submitQuery();
+            }
         })
         .catch(function (error) {
             handle_error(error);
@@ -3424,6 +3437,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             console.log($scope.devices);
             $scope.data.token = User.get_token();
             
+            
+            //delete_all_device_sensors_enabled_input(true);            
             $scope.submitQuery();
         });
     };
