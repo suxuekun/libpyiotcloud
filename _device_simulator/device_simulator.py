@@ -34,7 +34,7 @@ CONFIG_LOAD_CONFIGURATION_FROM_FILE = False
 
 # notification thread for triggering notifications (demo 4 testing)
 CONFIG_SEND_NOTIFICATION_PERIODICALLY = False
-CONFIG_SEND_NOTIFICATION_PERIOD = 1800 # 30 minutes
+CONFIG_SEND_NOTIFICATION_PERIOD = 3600 # 1 hour
 
 # timer thread for publishing sensor data
 g_timer_thread_timeout = 5
