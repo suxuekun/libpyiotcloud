@@ -362,6 +362,9 @@ SUMMARY:
 		B. GET HISTORIES FILTERED         - POST   /devices/histories
 		   (filter by device name, direction, topic, date start, date end)
 
+		C. GET MENOS HISTORIES            - GET    /devices/menos
+		D. GET MENOS HISTORIES FILTERED   - POST   /devices/menos
+
 
 	9. Account subscription and payment APIs
 
@@ -2273,7 +2276,7 @@ DETAILED:
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
 		   { 'status': 'OK', 'message': string, 
-		     'histories': array[{'devicename': string, 'deviceid': string, 'direction': string, 'topic': string, 'payload': string, 'timestamp': string}, ...]}
+		     'transactions': array[{'devicename': string, 'deviceid': string, 'direction': string, 'topic': string, 'payload': string, 'timestamp': string}, ...]}
 		   { 'status': 'NG', 'message': string}
 
 		B. GET HISTORIES FILTERED
@@ -2287,12 +2290,79 @@ DETAILED:
 		   // to filter by topic, include topic
 		   // to filter by date, include datebegin or both datebegin, dateend
 		   // datebegin and dateend are both epoch computed values
-		   // List of topics: "get_status", "set_status", "get_ip", "get_subnet", "get_gateway", "get_mac", "get_gpio", "set_gpio", "get_rtc", "write_uart", "trigger_notifications"
+		   // List of topics: 
+		      "get_status", 
+		      "set_status", 
+		      "get_settings", 
+		      "set_settings",
+		      "get_uarts", 
+		      "get_uart_prop", 
+		      "set_uart_prop", 
+		      "enable_uart",
+		      "get_gpios", 
+		      "get_gpio_prop", 
+		      "set_gpio_prop", 
+		      "enable_gpio",
+		      "get_gpio_voltage", 
+		      "set_gpio_voltage", 
+		      "get_i2c_devs", 
+		      "enable_i2c_dev",
+		      "get_i2c_dev_prop", 
+		      "set_i2c_dev_prop", 
+		      "get_adc_devs", 
+		      "enable_adc_dev",
+		      "get_adc_dev_prop", 
+		      "set_adc_dev_prop", 
+		      "get_adc_voltage", 
+		      "set_adc_voltage",
+		      "get_1wire_devs", 
+		      "enable_1wire_dev",
+		      "get_1wire_dev_prop", 
+		      "set_1wire_dev_prop", 
+		      "get_tprobe_devs", 
+		      "enable_tprobe_dev",
+		      "get_tprobe_dev_prop", 
+		      "get_tprobe_dev_prop", 
+		      "get_devs", 
+		      "recv_notification", 
+		      "trigger_notification",
+		      "status_notification", 
+		      "rcv_sensor_reading", 
+		      "req_sensor_reading",
+		      "sensor_reading", 
+		      "rcv_configuration", 
+		      "req_configuration",
+		      "del_configuration", 
+		      "set_configuration", 
+			  
 		   // List of directions: "To", "From"
 		-  Response:
 		   { 'status': 'OK', 'message': string, 
-		     'histories': array[{'devicename': string, 'deviceid': string, 'direction': string, 'topic': string, 'payload': string, 'timestamp': string}, ...]}
+		     'transactions': array[{'devicename': string, 'deviceid': string, 'direction': string, 'topic': string, 'payload': string, 'timestamp': string}, ...]}
 		   { 'status': 'NG', 'message': string}
+
+		C. GET MENOS HISTORIES
+		-  Request:
+		   GET /devices/menos
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		-  Response:
+		   { 'status': 'OK', 'message': string, 
+		     'transactions': array[{'devicename': string, 'deviceid': string, 'timestamp': string, 'recipient': string, 'messagelen': int, 'type': string, 'source': string, 'sensorname': string, 'condition': string}, ...]}
+		   { 'status': 'NG', 'message': string}
+		   // sensorname and condition are optional (ex. when source is UART/GPIO, then both sensorname and condition are not present
+
+		D. GET MENOS HISTORIES FILTERED
+		-  Request:
+		   POST /devices/menos
+		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+		   data: { 'devicename': string }
+		   // all data items are optional (when data is empty, that is no filters are set, it is actually equivalent to as GET MENOS HISTORIES)
+		   // to filter by device name, include devicename
+		-  Response:
+		   { 'status': 'OK', 'message': string, 
+		     'transactions': array[{'devicename': string, 'deviceid': string, 'timestamp': string, 'recipient': string, 'messagelen': int, 'type': string, 'source': string, 'sensorname': string, 'condition': string}, ...]}
+		   { 'status': 'NG', 'message': string}
+		   // sensorname and condition are optional (ex. when source is UART/GPIO, then both sensorname and condition are not present
 
 
 	9. Account subscription and payment APIs
