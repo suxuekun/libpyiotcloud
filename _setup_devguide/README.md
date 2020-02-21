@@ -3110,7 +3110,7 @@ The device simulator was used to stress test the backend using the web app and w
 
   <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/demo_stress_test.png" width="1000"/>
 
-1.  Demo1 - demonstrates sensor graphing and sensor thresholding (w/MENOS triggering) of ADC/Onewire/TProbe sensors
+1.  Demo1 - demonstrates <b>sensor graphing<b> and <b>sensor thresholding (w/MENOS triggering)</b> of ADC/Onewire/TProbe sensors
 
         Dev1
             ADC - QS-FS Wind sensor 1 (Anemometer)
@@ -3145,7 +3145,7 @@ The device simulator was used to stress test the backend using the web app and w
                         Messages: message on activation, message on deactivation
                         Recipients: send email
 
-2.  Demo2 - demonstrates sensor forwarding from 3 I2C INPUT sensors of 1 device to 1 I2C OUTPUT sensor of another device
+2.  Demo2 - demonstrates <b>sensor forwarding</b> from 3 I2C INPUT sensors of 1 device to 1 I2C OUTPUT sensor of another device
 
         Dev1
             I2C POT 1
@@ -3179,7 +3179,7 @@ The device simulator was used to stress test the backend using the web app and w
                 G: Demo2Dev1 > I2C > POT 2 > Range
                 B: Demo2Dev1 > I2C > POT 3 > Range
 
-3.  Demo 3 - demonstrates sensor forwarding from 2 ADC INPUT sensors of 1 device to 2 I2C OUTPUT sensors of another device
+3.  Demo 3 - demonstrates <b>sensor forwarding</b> from 2 ADC INPUT sensors of 1 device to 2 I2C OUTPUT sensors of another device
 
         Dev1
             ADC Battery sensor 1
@@ -3209,7 +3209,7 @@ The device simulator was used to stress test the backend using the web app and w
                 Endpoint: Hardware
                 Hardware: Demo3Dev1 > ADC > eTape Fluid sensor 1 > Fluid Level
 
-4.  Demo 4 - demonstrates MENOS notification triggering via UART
+4.  Demo 4 - demonstrates <b>MENOS notification triggering via UART</b>
 
         Dev1
             UART
