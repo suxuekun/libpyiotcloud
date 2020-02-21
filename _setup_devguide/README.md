@@ -3110,6 +3110,17 @@ The device simulator was used to stress test the backend using the web app and w
 
   <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/demo_stress_test.png" width="1000"/>
 
+The 5 device simulators publishes sensor data at rate of 5 seconds interval while the 5 webapps polls the sensor dataset for graphing at 5 seconds interval too.
+On the EC2 side, the CPU usage is as follows:
+- X=5 -> ec2 cpu usage 5%  -> tested stable for ~2.5days (weekend test)
+- X=3 -> ec2 cpu usage 7%  -> tested stable for ~12 hours (Monday night test)
+- X=1 -> ec2 cpu usage 15% -> to test stability
+
+  <a href="https://www.youtube.com/watch?v=xkrd0WblCaI"
+    target="_blank"><img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/demo_stress_test.png" 
+    alt="Face Pay demo prototype" width="480" border="10" /></a>
+
+
 1.  Demo1 - demonstrates <b>sensor graphing<b> and <b>sensor thresholding (w/MENOS triggering)</b> of ADC/Onewire/TProbe sensors
 
         Dev1
