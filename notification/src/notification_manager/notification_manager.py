@@ -249,6 +249,7 @@ def notification_thread(messaging_client, deviceid, recipient, message, subject,
         #print("{}: {} {} {} {} [{} UTC]".format(deviceid, type_str, recipient, len(message), result, datetime.datetime.utcfromtimestamp(timestamp).strftime("%Y-%m-%d %H:%M:%S")))
 
     #print(g_database_client.get_menos_transaction(deviceid))
+    #g_database_client.delete_menos_transaction(deviceid)
 
 
 def send_notification_mobile_threaded(messaging_client, deviceid, recipient, message, source, sensor, payload):
