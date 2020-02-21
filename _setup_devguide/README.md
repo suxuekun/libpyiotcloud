@@ -3299,6 +3299,7 @@ Demo setups:
 4.  Demo 4 - demonstrates <b>MENOS notification triggering via UART</b>
 
         Dev1
+            Set CONFIG_SEND_NOTIFICATION_PERIODICALLY to True in device_simulator.py
             UART
                 Notification Recipient: Mobile (SMS), Email, Notification (Push Notification)
             Type AT+M
