@@ -240,8 +240,8 @@ class database_client:
     def get_menos_transaction(self, deviceid):
         return self._devices.get_menos_transaction(deviceid)
 
-    def get_menos_transaction_filtered(self, deviceid, type, datebegin, dateend):
-        return self._devices.get_menos_transaction_filtered(deviceid, type, datebegin, dateend)
+    def get_menos_transaction_filtered(self, deviceid, type, source, datebegin, dateend):
+        return self._devices.get_menos_transaction_filtered(deviceid, type, source, datebegin, dateend)
 
 
     ##########################################################
@@ -997,7 +997,7 @@ class database_client_mongodb:
                 menos_list.append(menos_item)
         return menos_list
 
-    def get_menos_transaction_filtered(self, deviceid, type, datebegin, dateend):
+    def get_menos_transaction_filtered(self, deviceid, type, source, datebegin, dateend):
         menos_list = []
         menos = self.get_menos_document()
         if menos and menos.count():
@@ -1006,15 +1006,17 @@ class database_client_mongodb:
             filter['deviceid'] = deviceid
             if type is not None:
                 filter['type'] = type
+            if source is not None:
+                filter['source'] = source
             if datebegin != 0 and dateend != 0:
                 filter['timestamp'] = {'$gte': datebegin, '$lte': dateend}
             elif datebegin != 0:
                 filter['timestamp'] = {"$gte": datebegin}
 
-            print(filter)
+            #print(filter)
 
             for menos_item in menos.find(filter):
-                print(menos_item["timestamp"])
+                #print(menos_item["timestamp"])
                 menos_item.pop('_id')
                 menos_list.append(menos_item)
 

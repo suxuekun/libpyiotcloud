@@ -9,11 +9,15 @@
         <p style="color:#387EF5;">Filter options</p>
       </div>
       <div class="spacer" style="width: 300px; height: 5px;"></div>
-      <label class="item item-select widget_button_half" id="notification-select102">
+      <label class="item item-select widget_button_third" id="notification-select102">
         <span class="input-label">Device</span>
         <select ng-options="devices.indexOf(deviceidx) as deviceidx for deviceidx in devices" ng-model="deviceidx"></select>
       </label>
-      <label class="item item-select widget_button_half" id="notification-select104">
+      <label class="item item-select widget_button_third" id="notification-select103">
+        <span class="input-label">Peripherals</span>
+        <select ng-options="peripheral for peripheral in peripherals" ng-model="peripheral"></select>
+      </label>
+      <label class="item item-select widget_button_third" id="notification-select104">
         <span class="input-label">Types</span>
         <select ng-options="type for type in types" ng-model="type"></select>
       </label>
@@ -26,7 +30,7 @@
         <span class="input-label">End Date</span>
         <input type="text" placeholder="YYYY-MM-DD HH:MM:SS" ng-model="date.end">
       </label>
-      <button id="notification-button151" ng-click="applyFilter(deviceidx, type)" class="button button-positive button-block">Apply</button>
+      <button id="notification-button151" ng-click="applyFilter(deviceidx, type, peripheral)" class="button button-positive button-block">Apply</button>
     </form>
     <div id="notification-markdown289" class="show-list-numbers-and-dots">
       <p style="color:#AAAAAA;font-size:12px;">Result: {{ items.length }} transactions</p>

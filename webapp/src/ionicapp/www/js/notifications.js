@@ -37,6 +37,8 @@ angular.module('notifications', [])
                 for (var indexy=0; indexy<result.data.transactions.length; indexy++) {
                     let timestamp = new Date(result.data.transactions[indexy].timestamp * 1000); 
                     result.data.transactions[indexy].timestamp = "" + timestamp;
+                    
+                    //result.data.transactions[indexy].source = result.data.transactions[indexy].source.toUpperCase(); 
                 }
                 
                 return result.data.transactions;
@@ -57,7 +59,7 @@ angular.module('notifications', [])
             });
         },
         
-        fetch_filtered: function(userdata, devicename, type, datebegin, dateend) {
+        fetch_filtered: function(userdata, devicename, type, source, datebegin, dateend) {
 
             var filter = {};
             if (devicename !== null) {
@@ -65,6 +67,9 @@ angular.module('notifications', [])
             }
             if (type !== null) {
                 filter.type = type;
+            }
+            if (source !== null) {
+                filter.source = source;
             }
             if (datebegin !== null) {
                 filter.datebegin = datebegin;
@@ -102,6 +107,8 @@ angular.module('notifications', [])
                 for (var indexy=0; indexy<result.data.transactions.length; indexy++) {
                     let timestamp = new Date(result.data.transactions[indexy].timestamp * 1000); 
                     result.data.transactions[indexy].timestamp = "" + timestamp;
+                    
+                    //result.data.transactions[indexy].source = result.data.transactions[indexy].source.toUpperCase(); 
                 }
                 
                 return result.data.transactions;

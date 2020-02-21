@@ -1827,7 +1827,7 @@ def get_device_histories():
         response = json.dumps({'status': 'NG', 'message': 'Token expired'})
         print('\r\nERROR Get Histories: Token expired\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
-    print('get_user_histories {}'.format(username))
+    print('get_device_histories {}'.format(username))
 
     # check if a parameter is empty
     if len(username) == 0 or len(token) == 0:
@@ -1889,7 +1889,7 @@ def get_device_histories_filtered():
         response = json.dumps({'status': 'NG', 'message': 'Token expired'})
         print('\r\nERROR Get Histories: Token expired\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
-    print('get_user_histories {}'.format(username))
+    print('get_device_histories_filtered {}'.format(username))
 
     # check if a parameter is empty
     if len(username) == 0 or len(token) == 0:
@@ -1972,7 +1972,7 @@ def get_device_menos_histories():
         response = json.dumps({'status': 'NG', 'message': 'Token expired'})
         print('\r\nERROR Get MENOS Histories: Token expired\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
-    print('get_user_histories {}'.format(username))
+    print('get_device_menos_histories {}'.format(username))
 
     # check if a parameter is empty
     if len(username) == 0 or len(token) == 0:
@@ -2016,7 +2016,7 @@ def get_device_menos_histories():
 # - Request:
 #   POST /devices/menos
 #   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-#   data: { 'devicename': string, 'deviceid': string, 'direction': string, 'topic': string, 'datebegin': int, 'dateend': int }
+#   data: { 'devicename': string, 'deviceid': string, 'type': string, 'peripheral': string, 'datebegin': int, 'dateend': int }
 #
 # - Response:
 #   { 'status': 'OK', 'message': string, 
@@ -2063,14 +2063,17 @@ def get_device_menos_histories_filtered():
     # get filter data
     devicename = None
     type = None
+    source = None
     datebegin = 0
     dateend = 0
     data = flask.request.get_json()
-    print(data)
+    #print(data)
     if data.get("devicename"):
         devicename = data["devicename"]
     if data.get("type"):
         type = data["type"]
+    if data.get("source"):
+        source = data["source"]
     if data.get("datebegin"):
         datebegin = data["datebegin"]
         if data.get("dateend"):
@@ -2082,14 +2085,14 @@ def get_device_menos_histories_filtered():
     if devicename is not None:
         for device in devices:
             if device["devicename"] == devicename:
-                transactions = g_database_client.get_menos_transaction_filtered(device["deviceid"], type, datebegin, dateend)
+                transactions = g_database_client.get_menos_transaction_filtered(device["deviceid"], type, source, datebegin, dateend)
                 for transaction in transactions:
                     transaction["devicename"] = device["devicename"]
                 histories += transactions
                 break
     else:
         for device in devices:
-            transactions = g_database_client.get_menos_transaction_filtered(device["deviceid"], type, datebegin, dateend)
+            transactions = g_database_client.get_menos_transaction_filtered(device["deviceid"], type, source, datebegin, dateend)
             for transaction in transactions:
                 transaction["devicename"] = device["devicename"]
             histories += transactions

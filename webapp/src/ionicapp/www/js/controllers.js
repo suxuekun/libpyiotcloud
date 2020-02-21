@@ -14524,6 +14524,25 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Device
     ];
     $scope.type = "All types";
 
+    // Filter by peripherals
+    $scope.peripherals = [ 
+        "All peripherals",
+        "UART", 
+        "GPIO1",
+        "GPIO2",
+        "GPIO3",
+        "GPIO4",
+        "I2C1",
+        "I2C2",
+        "I2C3",
+        "I2C4",
+        "ADC1",
+        "ADC2",
+        "1WIRE1",
+        "TPROBE1"
+    ];
+    $scope.peripheral = "All peripherals";
+
     // Filter by date    
     $scope.date = {
         'begin': "",
@@ -14532,7 +14551,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Device
     
     
     
-    $scope.applyFilter = function(deviceidx, type) {
+    $scope.applyFilter = function(deviceidx, type, peripheral) {
 
         var devicename = null;
         var deviceid = null;
@@ -14564,17 +14583,22 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Device
             }
         }
 
-        console.log(devicename);
-        console.log(type);
-        console.log(datebegin);
-        console.log(dateend);
+        //console.log(devicename);
+        //console.log(type);
+        //console.log(peripheral);
+        //console.log(datebegin);
+        //console.log(dateend);
 
 
         var type_use = null;
         if (type !== "All types") {
             type_use = type;
         }
-        Notifications.fetch_filtered($scope.data, devicename, type_use, datebegin, dateend).then(function(res) {
+        var source_use = null;
+        if (peripheral !== "All peripherals") {
+            source_use = peripheral;
+        }
+        Notifications.fetch_filtered($scope.data, devicename, type_use, source_use, datebegin, dateend).then(function(res) {
             $scope.items = res;
             $scope.data.token = User.get_token();
         }); 
