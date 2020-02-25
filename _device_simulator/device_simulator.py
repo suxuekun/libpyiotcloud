@@ -40,7 +40,9 @@ CONFIG_SEND_NOTIFICATION_PERIOD = 3600 # 1 hour
 g_timer_thread_timeout = 5
 g_timer_thread = None
 g_timer_thread_use = True
-g_timer_thread_stop = threading.Event()
+g_timer_thread_stop = None
+
+g_input_thread = None
 
 g_messaging_client = None
 
@@ -268,6 +270,55 @@ def writeConfigToFile(json_config):
     except:
         print("exception")
         pass
+
+def reset_local_configurations():
+    global g_uart_properties, g_gpio_properties
+    global g_i2c_properties, g_i2c_properties_enabled_output
+    global g_adc_properties, g_1wire_properties
+
+    # UART
+    g_uart_properties = { 'baudrate': 7, 'parity': 0, 'flowcontrol': 0, 'stopbits': 0, 'databits': 1 }
+
+    # GPIO
+    g_gpio_properties = [
+        { 'direction': 0, 'mode': 0, 'alert': 0, 'alertperiod':   0,   'polarity': 0, 'width': 0, 'mark': 0, 'space': 0, 'count': 0 },
+        { 'direction': 0, 'mode': 3, 'alert': 1, 'alertperiod':  60,   'polarity': 0, 'width': 0, 'mark': 0, 'space': 0, 'count': 0 },
+        { 'direction': 1, 'mode': 0, 'alert': 0, 'alertperiod':   0,   'polarity': 0, 'width': 0, 'mark': 0, 'space': 0, 'count': 0 },
+        { 'direction': 1, 'mode': 2, 'alert': 1, 'alertperiod': 120,   'polarity': 1, 'width': 0, 'mark': 1, 'space': 2, 'count': 0 } ]
+
+    # I2C
+    g_i2c_properties = [
+        {
+            '0': { 'enabled': 0, 'class': 255, 'attributes': {} },
+        },
+        {
+            '0': { 'enabled': 0, 'class': 255, 'attributes': {} },
+        },
+        {
+            '0': { 'enabled': 0, 'class': 255, 'attributes': {} },
+        },
+        {
+            '0': { 'enabled': 0, 'class': 255, 'attributes': {} },
+        }
+    ]
+    g_i2c_properties_enabled_output = [{},{},{},{}]
+
+    # ADC
+    g_adc_properties = [
+        { 'enabled': 0, 'class': 255, 'attributes': {} },
+        { 'enabled': 0, 'class': 255, 'attributes': {} },
+    ]
+
+    # 1WIRE
+    g_1wire_properties = [
+        { 'enabled': 0, 'class': 255, 'attributes': {} }
+    ]
+
+    # TPROBE
+    g_tprobe_properties = [
+        { 'enabled': 0, 'class': 255, 'attributes': {} }
+    ]
+
 
 def handle_api(api, subtopic, subpayload):
     global g_device_status
@@ -1555,7 +1606,8 @@ class TimerThread(threading.Thread):
             #menos_publish(MENOS_MOBILE)
 
     def run(self):
-        print("")
+        #print("")
+        #print("TimerThread {}".format(g_messaging_client.is_connected()))
         while not self.stopped.wait(self.timeout) and g_messaging_client.is_connected():
             if self.pause == False:
                 self.process_input_devices()
@@ -1567,6 +1619,8 @@ class TimerThread(threading.Thread):
 
             if g_device_status == DEVICE_STATUS_CONFIGURING:
                 req_configuration()
+        #print("")
+        #print("TimerThread exit! {}".format(g_messaging_client.is_connected()))
 
 
 ###################################################################################
@@ -1774,6 +1828,9 @@ UART_ATCOMMANDS = [
 
 def read_kbd_input(inputQueue):
 
+    #print("")
+    #print("read_kbd_input")
+
     while g_messaging_client.is_connected():
         if g_device_status == DEVICE_STATUS_RUNNING:
             break
@@ -1786,7 +1843,10 @@ def read_kbd_input(inputQueue):
             input_str = input()
             inputQueue.put(input_str)
 
-        inputThread = None
+    g_input_thread = None
+
+    #print("")
+    #print("read_kbd_input exit!")
 
 
 ###################################################################################
@@ -1907,14 +1967,15 @@ if __name__ == '__main__':
 
         # Start the timer thread
         if g_timer_thread_use:
+            g_timer_thread_stop = threading.Event()
             g_timer_thread = TimerThread(g_timer_thread_stop, g_timer_thread_timeout)
             g_timer_thread.start()
 
         # Start keyboard input thread
-        if inputThread == None:
+        if g_input_thread == None:
             inputQueue = queue.Queue()
-            inputThread = threading.Thread(target=read_kbd_input, args=(inputQueue,), daemon=True)
-            inputThread.start()
+            g_input_thread = threading.Thread(target=read_kbd_input, args=(inputQueue,), daemon=True)
+            g_input_thread.start()
 
         # Exit when disconnection happens
         while g_messaging_client.is_connected():
@@ -1936,15 +1997,19 @@ if __name__ == '__main__':
                             UART_ATCOMMANDS[idx]["fxn"](idx, cmd)
                             break
 
+        g_messaging_client.subscribe(subtopic, subscribe=False)
         time.sleep(2)
         g_messaging_client.release()
-
-        #inputThread.join()
 
         if g_timer_thread_use:
             g_timer_thread.set_exit()
             g_timer_thread_stop.set()
             g_timer_thread.join()
 
+        # When disconnected, reset the configurations
+        # and pull the configurations during reconnection
+        # This is to prevent synchronization issues with local configuration with backend configuration
+        # When deleting device, configurations will be deleted in the backend, so device shall also clear its local configuration
+        reset_local_configurations()
 
     print("application exits!")
