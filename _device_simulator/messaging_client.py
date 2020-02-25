@@ -153,7 +153,7 @@ class messaging_client:
     def initialize_mqtt(self, timeout, ignore_hostname):
         code = 0
         if self.device_id:
-            client = mqtt.Client(client_id=self.device_id)
+            client = mqtt.Client(client_id=self.device_id, clean_session=True)
         else:
             client = mqtt.Client()
         client.on_connect = self.on_mqtt_connect
@@ -218,6 +218,7 @@ class messaging_client:
 
     def release_mqtt(self, client):
         try:
+            loop_stop(force=True)
             if self.mqtt_connected == True:
                 self.mqtt_connected = False
                 client.disconnect()
@@ -294,6 +295,7 @@ class messaging_client:
             if subscribe:
                 try:
                     client.subscribe(topic, qos=CONFIG_QOS)
+                    print("\nDevice is now ready! Control this device from IoT Portal https://{}".format(self.host))
                 except:
                     return False
             else:
@@ -301,15 +303,17 @@ class messaging_client:
                     client.unsubscribe(topic)
                 except:
                     return False
-        print("\nDevice is now ready! Control this device from IoT Portal https://{}".format(self.host))
         return True
 
     def on_mqtt_connect(self, client, userdata, flags, rc):
-        print("\nMQTT CONNECTED")
-        self.mqtt_connected = True
+        if rc == 0:
+            client.loop_start()
+            print("\nMQTT CONNECTED {}".format(rc))
+            self.mqtt_connected = True
 
     def on_mqtt_disconnect(self, client, userdata, rc):
-        print("\nMQTT DISCONNECTED")
+        print("\nMQTT DISCONNECTED {}".format(rc))
+        client.loop_stop()
         self.mqtt_connected = False
 
     def on_mqtt_message(self, client, userdata, msg):
