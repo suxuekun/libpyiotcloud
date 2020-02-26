@@ -1969,8 +1969,8 @@ def http_recv_response(conn):
         else:
             print("RES: Could not communicate with DEVICE! {}".format(r1.status))
             return 0, None
-    except:
-        print("RES: Could not communicate with DEVICE! {}".format(""))
+    except Exception as e:
+        print("RES: Could not communicate with DEVICE! {}".format(e))
     return 0, None
 
 def http_write_to_file(filename, contents):
