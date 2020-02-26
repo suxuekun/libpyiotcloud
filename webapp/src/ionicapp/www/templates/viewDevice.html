@@ -50,9 +50,9 @@
       </label>
       <div id="viewDevice-markdown118" class="show-list-numbers-and-dots"></div>
       <div id="viewDevice-markdown346" style="text-align:center;" class="show-list-numbers-and-dots">
-        <p style="color:#33CD5F;">{{ newfirmwareavailable ? "New firmware is available" : "" }}</p>
+        <p style="color:#AAAAAA;font-size:12px;">{{ newfirmwareavailable ? "New firmware is available" : "" }}</p>
       </div>
-      <button id="viewDevice-button21" ng-click="upgradeDeviceFirmware()" ng-show="newfirmwareavailable" class="button button-positive button-block button-outline">Upgrade Device Firmware</button>
+      <button id="viewDevice-button21" ng-click="upgradeDeviceFirmware()" ng-show="newfirmwareversion >= data.version" class="button button-positive button-block button-outline">Upgrade Device Firmware</button>
       <button id="viewDevice-button154" ng-click="viewDeviceLocation()" class="button button-positive button-block">Get/set Device Location</button>
     </form>
     <div id="viewDevice-markdown252" class="show-list-numbers-and-dots">

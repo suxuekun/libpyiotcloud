@@ -205,7 +205,7 @@ angular.module('app.routes', [])
     controller: 'viewDeviceLocationCtrl'
   })
 
-  .state('upgradeDeviceFirmware', {
+  .state('oTAFirmwareUpdate', {
     url: '/page_upgrade_device_firmware',
 	params: {
 		username: "",
@@ -218,8 +218,8 @@ angular.module('app.routes', [])
 		version: "",
 		firmware: ""		
 },
-    templateUrl: 'templates/upgradeDeviceFirmware.html',
-    controller: 'upgradeDeviceFirmwareCtrl'
+    templateUrl: 'templates/oTAFirmwareUpdate.html',
+    controller: 'oTAFirmwareUpdateCtrl'
   })
 
   .state('deviceGeneralSettings', {

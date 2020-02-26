@@ -2571,6 +2571,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
     };
 
     $scope.newfirmwareavailable = false;
+    $scope.newfirmwareversion = 0;
     $scope.newfirmwareupdates = null;
     
     $scope.new_devicename = $stateParams.devicename;
@@ -2655,12 +2656,13 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             console.log(result.data.document.ft900.latest);
             if (result.data.document.ft900.latest > $scope.data.version) {
                 $scope.newfirmwareavailable = true;
-                $scope.newfirmwareupdates = result.data.document;
             }
             else {
                 $scope.newfirmwareavailable = false;
-                $scope.newfirmwareupdates = null;
             }
+            
+            $scope.newfirmwareupdates = result.data.document;
+            $scope.newfirmwareversion = result.data.document.ft900.latest;
         })
         .catch(function (error) {
             $scope.handle_error(error);
@@ -2879,7 +2881,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             'firmware'     : $scope.newfirmwareupdates
         };
        
-        $state.go('upgradeDeviceFirmware', device_param);    
+        $state.go('oTAFirmwareUpdate', device_param);    
     };
     
     // VIEW DEVICE LOCATION
@@ -3107,7 +3109,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
     };
 }])
    
-.controller('upgradeDeviceFirmwareCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', 'Devices', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+.controller('oTAFirmwareUpdateCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', 'Devices', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
 // You can include any angular dependencies as parameters for this function
 // TIP: Access Route Parameters for your page via $stateParams.parameterName
 
@@ -3129,6 +3131,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
     };
 
     $scope.online = false;
+    $scope.timer = null;
+    $scope.runtime = 0;
 
     $scope.handle_error = function(error) {
         if (error.data !== null) {
@@ -3227,8 +3231,126 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             $ionicPopup.alert({ title: 'Error', template: 'Device is unreachable!', buttons: [{text: 'OK', type: 'button-assertive'}] });
             return;
         }
+        
+        $ionicPopup.alert({
+            title: 'Upgrade Firmware',
+            template: 'Are you sure you want to upgrade the firmware of this device - ' + devicename + '?',
+            buttons: [
+                { 
+                    text: 'No',
+                    type: 'button-negative',
+                },
+                {
+                    text: 'Yes',
+                    type: 'button-positive',
+                    onTap: function(e) {
+                        $scope.upgrade_firmware(devicename);
+                    }
+                }
+            ]            
+        });            
     };
 
+    $scope.upgrade_firmware = function(devicename) {
+        //
+        // UPGRADE DEVICE FIRMWARE
+        // - Request:
+        //   POST /devices/device/<devicename>/firmware
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string}
+        //   { 'status': 'NG', 'message': string}
+        //        
+        $http({
+            method: 'POST',
+            url: server + '/devices/device/' + devicename + '/firmware',
+            headers: {'Authorization': 'Bearer ' +  $scope.data.token.access}
+        })
+        .then(function (result) {
+            console.log(result.data);
+
+            $scope.runtime = 0;
+            $scope.timer = setInterval($scope.get_upgrade_firmware, 1000);
+        })
+        .catch(function (error) {
+            $scope.handle_error(error);
+        }); 
+    };    
+
+    $scope.get_upgrade_firmware = function() {
+        console.log("get_upgrade_firmware");
+        //
+        // GET UPGRADE DEVICE FIRMWARE
+        // - Request:
+        //   GET /devices/device/<devicename>/firmware
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string}
+        //   { 'status': 'NG', 'message': string}
+        //        
+        $http({
+            method: 'GET',
+            url: server + '/devices/device/' + $scope.data.devicename + '/firmware',
+            headers: {'Authorization': 'Bearer ' +  $scope.data.token.access}
+        })
+        .then(function (result) {
+            console.log(result.data);
+            
+            console.log(result.data.result);
+            if (result.data.result !== "ongoing") {
+                if ($scope.timer !== null) {
+                    clearTimeout($scope.timer);
+                    $scope.timer = null;
+                    $scope.runtime = 0;
+                }
+                
+                $ionicPopup.alert({
+                    title: 'Upgrade Firmware',
+                    template: 'Upgrading the firmware of this device - ' + $scope.data.devicename + ' was ' + result.data.result + '!',
+                    buttons: [
+                        {
+                            text: 'OK',
+                            type: 'button-positive',
+                            onTap: function(e) {
+                                $scope.get_devices();
+                            }
+                        }
+                    ]            
+                });            
+            }
+            else {
+                $scope.runtime += 1;
+                if ($scope.runtime >= 10) {
+                    if ($scope.timer !== null) {
+                        clearTimeout($scope.timer);
+                        $scope.timer = null;
+                        $scope.runtime = 0;
+                    }
+                }
+            }
+        })
+        .catch(function (error) {
+            $scope.handle_error(error);
+            
+            if ($scope.timer !== null) {
+                clearTimeout($scope.timer);
+                $scope.timer = null;
+                $scope.runtime = 0;
+            }
+            
+            $ionicPopup.alert({
+                title: 'Upgrade Firmware',
+                template: 'Upgrading the firmware of this device - ' + $scope.data.devicename + ' failed!',
+                buttons: [
+                    {
+                        text: 'OK',
+                        type: 'button-positive'
+                    }
+                ]            
+            });            
+            
+        }); 
+    };    
 
 
     $scope.$on('$ionicView.enter', function(e) {
@@ -3256,11 +3378,26 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
     
     // EXIT PAGE
     $scope.exitPage = function() {
+        
+        var device_param = {
+            'username': User.get_username(),
+            'token': User.get_token(),
+            'devicename': $scope.data.devicename,
+            'deviceid': $scope.data.deviceid,
+            'serialnumber': $scope.data.serialnumber,
+            'devicestatus': "Last active: " + $scope.data.heartbeat,
+            'deviceversion': $scope.data.version,
+        };
+
+        $state.go('device', device_param, {reload:true} );        
+
+/*        
         var device_param = {
             'username': $scope.data.username,
             'token'   : $scope.data.token
         };
         $state.go('menu.devices', device_param, {reload: true});
+*/
     };
 }])
    

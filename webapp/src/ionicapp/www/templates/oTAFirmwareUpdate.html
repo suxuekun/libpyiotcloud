@@ -1,0 +1,46 @@
+<ion-view title="OTA Firmware Update" hide-back-button="true" nav-transition="none" id="page57" style="background-color:#FFFFFF;" class="page_width">
+  <ion-nav-buttons side="left" class="has-header">
+    <button class="button button-icon icon ion-android-close" ng-click="exitPage()"></button>
+  </ion-nav-buttons>
+  <ion-nav-buttons side="right" class="has-header">
+    <button class="button button-positive icon ion-refresh" ng-click="queryDevice(data.devicename)"></button>
+  </ion-nav-buttons>
+  <ion-content padding="true" class="has-header">
+    <div class="spacer" style="height: 12px;"></div>
+    <div id="oTAFirmwareUpdate-markdown349" style="text-align:center;" class="show-list-numbers-and-dots">
+      <p style="color:#387EF5;font-size:18px;">
+        <strong> {{ data.devicename }} </strong>
+      </p>
+    </div>
+    <div class="spacer" style="height: 12px;"></div>
+    <form id="oTAFirmwareUpdate-form217" class="list">
+      <div id="oTAFirmwareUpdate-markdown351" class="show-list-numbers-and-dots"></div>
+      <label class="item item-select" id="oTAFirmwareUpdate-select105">
+        <span class="input-label">Device</span>
+        <select ng-options="device.devicename as device.devicename for device in devices" ng-model="data.devicename" ng-change="changeDevice(data.devicename)"></select>
+      </label>
+      <label class="item item-input widget_button_half" id="oTAFirmwareUpdate-input170">
+        <span class="input-label">Current Version</span>
+        <input type="text" placeholder="" ng-model="data.version" readonly="">
+      </label>
+      <label class="item item-input widget_button_half" id="oTAFirmwareUpdate-input171">
+        <span class="input-label">Latest Version</span>
+        <input type="text" placeholder="" ng-model="data.firmwares.ft900.latest" readonly="">
+      </label>
+      <button id="oTAFirmwareUpdate-button155" ng-click="upgradeFirmware(data.devicename)" ng-disabled="timer != null" class="button button-positive button-block">Upgrade device firmware</button>
+    </form>
+    <center>
+      <a href="https://ft900-iot-portal.s3.amazonaws.com/latest_firmware_updates.json" target="_blank">
+        <font size="2" color="#AAAAAA">https://ft900-iot-portal.s3.amazonaws.com/latest_firmware_updates.json </font>
+
+      </a>
+    </center>
+    <div id="oTAFirmwareUpdate-markdown236" style="text-align:center;" class="show-list-numbers-and-dots">
+      <p style="color:#AAAAAA;font-size:6px;">...</p>
+    </div>
+    <div id="oTAFirmwareUpdate-markdown156" ng-repeat="firmware in data.firmwares.ft900.firmware" style="text-align:center;" class="show-list-numbers-and-dots">
+      <p style="color:#AAAAAA;font-size:12px;">
+        <strong>{{ firmware.version }}</strong> - {{ firmware.date }} - {{ firmware.location }} - {{ firmware.size }} - {{ firmware.description }}</p>
+    </div>
+  </ion-content>
+</ion-view>
