@@ -10,6 +10,8 @@ import threading
 import random
 import queue
 from messaging_client import messaging_client # common module from parent directory
+import http.client
+import ssl
 
 
 
@@ -43,6 +45,7 @@ g_timer_thread_use = True
 g_timer_thread_stop = None
 
 g_input_thread = None
+g_download_thread = None
 
 g_messaging_client = None
 
@@ -203,6 +206,10 @@ API_REQUEST_CONFIGURATION        = "req_configuration"
 API_DELETE_CONFIGURATION         = "del_configuration"
 API_SET_CONFIGURATION            = "set_configuration"
 
+# ota firmware upgrade
+API_UPGRADE_FIRMWARE             = "beg_ota"
+API_UPGRADE_FIRMWARE_COMPLETION  = "end_ota"
+
 
 
 ###################################################################################
@@ -223,6 +230,9 @@ CONFIG_AMQP_TLS_PORT        = 5671
 
 CONFIG_PREPEND_REPLY_TOPIC  = "server"
 CONFIG_SEPARATOR            = '/'
+
+CONFIG_HTTP_HOST            = "localhost"
+CONFIG_HTTP_TLS_PORT        = 443
 
 
 
@@ -1265,6 +1275,29 @@ def handle_api(api, subtopic, subpayload):
 
 
     ####################################################
+    # FIRMWARE UPGRADE
+    ####################################################
+
+    elif api == API_UPGRADE_FIRMWARE:
+        topic = generate_pubtopic(subtopic)
+        subpayload = json.loads(subpayload)
+
+        # stop the timer thread
+        g_timer_thread.set_pause(True)
+
+        # reply
+        payload = {}
+        publish(topic, payload)
+
+        # start the download thread
+        print("\r\n\r\n\r\nxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
+        print("\r\nDevice is now starting to download the firmware !!!\r\n")
+        g_download_thread = DownloadThread()
+        g_download_thread.set_parameters(subpayload["location"], subpayload["size"], subpayload["version"])
+        g_download_thread.start()
+
+
+    ####################################################
     # UNSUPPORTED
     ####################################################
 
@@ -1615,12 +1648,53 @@ class TimerThread(threading.Thread):
                 if CONFIG_SEND_NOTIFICATION_PERIODICALLY:
                     self.process_trigger_notification()
             else:
-                print("Device is currently stopped! Not sending any sensor data.")
+                #print("Device is currently stopped! Not sending any sensor data.")
+                pass
 
             if g_device_status == DEVICE_STATUS_CONFIGURING:
                 req_configuration()
         #print("")
         #print("TimerThread exit! {}".format(g_messaging_client.is_connected()))
+
+
+class DownloadThread(threading.Thread):
+
+    def __init__(self, event=None, timeout=None):
+        threading.Thread.__init__(self)
+        self.stopped = event
+        self.timeout = timeout
+        self.filename = None
+        self.filesize = None
+        self.fileversion = None
+
+    def set_parameters(self, filename, filesize, fileversion):
+        self.filename = filename
+        self.filesize = filesize
+        self.fileversion = fileversion
+
+    def run(self):
+        topic = "{}{}{}{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_DEVICE_ID, CONFIG_SEPARATOR, API_UPGRADE_FIRMWARE_COMPLETION)
+
+        result = http_get_firmware_binary(self.filename, self.filesize)
+        if result:
+            global g_firmware_version_STR
+            g_firmware_version_STR = self.fileversion
+
+            # send completion status
+            payload = {}
+            payload["value"] = {"result": "successful"}
+            publish(topic, payload)
+            print("The firmware has been downloaded to {} !!!\r\n".format(self.filename))
+            print("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\r\n\r\n\r\n")
+        else:
+            # send completion status
+            payload = {}
+            payload["value"] = {"result": "failed"}
+            publish(topic, payload)
+
+        # start the timer thread
+        time.sleep(g_timer_thread_timeout)
+        g_timer_thread.set_pause(False)
 
 
 ###################################################################################
@@ -1850,6 +1924,83 @@ def read_kbd_input(inputQueue):
 
 
 ###################################################################################
+# HTTPS client
+###################################################################################
+
+def http_initialize_connection():
+    if True:
+        context = ssl._create_unverified_context()
+    else:
+        context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
+        context.verify_mode = ssl.CERT_REQUIRED
+        context.load_cert_chain(config.CONFIG_TLS_CERT, config.CONFIG_TLS_PKEY)
+        #context.load_verify_locations(
+        #    config.CONFIG_TLS_CERT, config.CONFIG_TLS_CERT, config.CONFIG_TLS_PKEY)
+        #context.check_hostname = False
+    conn = http.client.HTTPSConnection(CONFIG_HTTP_HOST, CONFIG_HTTP_TLS_PORT, context=context)
+    return conn
+
+def http_send_request(conn, req_type, req_api, params, headers):
+    try:
+        if headers:
+            conn.request(req_type, req_api, params, headers)
+        else:
+            conn.request(req_type, req_api, params)
+        return True
+    except:
+        print("REQ: Could not communicate with WEBSERVER! {}".format(""))
+    return False
+
+def http_recv_response(conn):
+    try:
+        r1 = conn.getresponse()
+        if r1.status == 200:
+            file_size = r1.length
+            #print("response = {} {} [{}]".format(r1.status, r1.reason, r1.length))
+            if file_size:
+                data = r1.read(file_size)
+            return file_size, data
+        else:
+            print("RES: Could not communicate with DEVICE! {}".format(r1.status))
+            return 0, None
+    except:
+        print("RES: Could not communicate with DEVICE! {}".format(""))
+    return 0, None
+
+def http_write_to_file(filename, contents):
+    index = filename.rindex("/")
+    if index == -1:
+        index = 0
+    else:
+        index += 1
+    new_filename = filename[index:]
+    f = open(new_filename, "wb")
+    f.write(contents)
+    f.close()
+
+def http_get_firmware_binary(filename, filesize):
+    conn = http_initialize_connection()
+    headers = { "Content-type": "application/octet-stream", "Accept-Ranges": "bytes", "Content-Length": filesize }
+
+    api = "/firmware"
+    result = http_send_request(conn, "GET", api + "/" + filename, None, headers)
+    if result:
+        length, response = http_recv_response(conn)
+        if length == 0:
+            print("http_recv_response error")
+            return False
+        if length != filesize:
+            print("error length {} != filesize {}".format(length, filesize))
+            return False
+        try:
+            http_write_to_file(filename, response)
+        except Exception as e:
+            print("exception {}".format(e))
+            return False
+    return result
+
+
+###################################################################################
 # Main entry point
 ###################################################################################
 
@@ -1880,6 +2031,7 @@ if __name__ == '__main__':
     CONFIG_TLS_CERT    = args.USE_DEVICE_CERT
     CONFIG_TLS_PKEY    = args.USE_DEVICE_PKEY
     CONFIG_HOST        = args.USE_HOST
+    CONFIG_HTTP_HOST   = args.USE_HOST
     CONFIG_MQTT_TLS_PORT = int(args.USE_PORT)
     CONFIG_AMQP_TLS_PORT = int(args.USE_PORT)
     CONFIG_USERNAME    = args.USE_USERNAME
