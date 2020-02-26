@@ -1941,6 +1941,160 @@ def set_devicelocation(devicename):
     return response
 
 
+########################################################################################################
+#
+# UPGRADE DEVICE FIRMWARE
+#
+# - Request:
+#   POST /devices/device/<devicename>/firmware
+#   headers: {'Authorization': 'Bearer ' + token.access}
+#
+# - Response:
+#   {'status': 'OK', 'message': string}
+#   {'status': 'NG', 'message': string}
+#
+########################################################################################################
+@app.route('/devices/device/<devicename>/firmware', methods=['POST'])
+def upgrade_devicefirmware(devicename):
+    api = 'beg_ota'
+
+    # get token from Authorization header
+    auth_header_token = get_auth_header_token()
+    if auth_header_token is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
+        print('\r\nERROR Upgrade Device Firmware: Invalid authorization header\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
+
+    # get username from token
+    data = {}
+    data['token'] = {'access': auth_header_token}
+    data['devicename'] = devicename
+    username = g_database_client.get_username_from_token(data['token'])
+    if username is None:
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Upgrade Device Firmware: Token expired\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
+    data['username'] = username
+    print('upgrade_firmware {} devicename={}'.format(data['username'], data['devicename']))
+
+    # check if a parameter is empty
+    result, document = g_storage_client.get_device_firmware_updates()
+    if not result:
+        response = json.dumps({'status': 'NG', 'message': 'Could not retrieve JSON document'})
+        print('\r\nERROR Upgrade Device Firmware: Could not retrieve JSON document [{}]\r\n'.format(username))
+        return response, status.HTTP_500_INTERNAL_SERVER_ERROR
+
+    # get the size and location
+    for firmware in document["ft900"]["firmware"]:
+        if firmware["version"] == document["ft900"]["latest"]:
+            data["size"]     = firmware["size"]
+            data["location"] = firmware["location"]
+            data["version"]  = firmware["version"]
+            break
+
+    return process_request(api, data)
+
+
+########################################################################################################
+#
+# GET UPGRADE DEVICE FIRMWARE
+#
+# - Request:
+#   GET /devices/device/<devicename>/firmware
+#   headers: {'Authorization': 'Bearer ' + token.access}
+#
+# - Response:
+#   {'status': 'OK', 'message': string}
+#   {'status': 'NG', 'message': string}
+#
+########################################################################################################
+@app.route('/devices/device/<devicename>/firmware', methods=['GET'])
+def get_upgrade_devicefirmware(devicename):
+    # get token from Authorization header
+    auth_header_token = get_auth_header_token()
+    if auth_header_token is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
+        print('\r\nERROR Get Upgrade Device Firmware: Invalid authorization header\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
+    token = {'access': auth_header_token}
+
+    # get username from token
+    username = g_database_client.get_username_from_token(token)
+    if username is None:
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Get Upgrade Device Firmware: Token expired\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
+
+    print('get_upgrade_devicefirmware {} devicename={}'.format(username, devicename))
+
+    # check if a parameter is empty
+    if len(username) == 0 or len(token) == 0 or len(devicename) == 0:
+        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+        print('\r\nERROR Get Upgrade Device Firmware: Empty parameter found\r\n')
+        return response, status.HTTP_400_BAD_REQUEST
+
+    # check if username and token is valid
+    verify_ret, new_token = g_database_client.verify_token(username, token)
+    if verify_ret == 2:
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Get Upgrade Device Firmware: Token expired [{}]\r\n'.format(username))
+        return response, status.HTTP_401_UNAUTHORIZED
+    elif verify_ret != 0:
+        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
+        print('\r\nERROR Get Upgrade Device Firmware: Token is invalid [{}]\r\n'.format(username))
+        return response, status.HTTP_401_UNAUTHORIZED
+
+    # check if device is registered
+    device = g_database_client.find_device(username, devicename)
+    if not device:
+        response = json.dumps({'status': 'NG', 'message': 'Device is not registered'})
+        print('\r\nERROR Get Upgrade Device Firmware: Device is not registered [{},{}]\r\n'.format(username, devicename))
+        return response, status.HTTP_404_NOT_FOUND
+
+
+    api = 'end_ota'
+    subtopic = CONFIG_PREPEND_REPLY_TOPIC + CONFIG_SEPARATOR + device["deviceid"] + CONFIG_SEPARATOR + api 
+
+    # subscribe for response
+    response = None
+    ret = g_messaging_client.subscribe(subtopic, subscribe=True, deviceid=device["deviceid"])
+    if not ret:
+        msg = {'status': 'NG', 'message': 'Could not communicate with device'}
+        response = json.dumps(msg)
+        print('\r\nERROR Get Upgrade Device Firmware: Could not communicate with device [{}, {}]\r\n'.format(username, devicename))
+        return response, status.HTTP_500_INTERNAL_SERVER_ERROR
+    else:
+        # use event object to wait for response
+        event_response_available = threading.Event()
+        g_event_dict[subtopic] = event_response_available
+
+        # receive response
+        event_response_available.wait(1)
+
+        # unsubscribe for response
+        g_messaging_client.subscribe(subtopic, subscribe=False)
+
+        if subtopic in g_queue_dict:
+            response = g_queue_dict[subtopic].decode("utf-8")
+            g_queue_dict.pop(subtopic)
+        else:
+            response = None
+
+
+    if response is None:
+        result = "ongoing"
+    else:
+        response = json.loads(response)
+        result = response["value"]["result"]
+
+    msg = {'status': 'OK', 'message': 'Device upgrade queried successfully.', 'result': result}
+    if new_token:
+        msg['new_token'] = new_token
+    response = json.dumps(msg)
+    print('\r\nDevice upgrade queried successful: {}\r\n\r\n'.format(username))
+    return response
+
+
 #########################
 
 
@@ -5627,6 +5781,34 @@ def get_device_firmware_updates():
     response = json.dumps(msg)
     print('\r\nContent queried successfully: {}\r\n{}\r\n'.format(username, response))
     return response
+
+
+########################################################################################################
+#
+# DOWNLOAD FIRMWARE
+#
+# - Request:
+#   GET /firmware/<device>/<filename>
+#   headers: {'Authorization': 'Bearer ' + token.access}
+#
+# - Response:
+#   binary file
+#
+########################################################################################################
+@app.route('/firmware/<device>/<filename>', methods=['GET'])
+def download_firmware_file(device, filename):
+
+    file_path = "firmware/" + device + "/" + filename
+    print('get_device_firmware_updates {}'.format(file_path))
+
+    result, binary = g_storage_client.get_firmware(file_path)
+    if not result:
+        response = json.dumps({'status': 'NG', 'message': 'Could not retrieve JSON document'})
+        print('\r\nERROR Get Device Firmware Updates: Could not retrieve JSON document\r\n')
+        return response, status.HTTP_500_INTERNAL_SERVER_ERROR
+
+    print('get_device_firmware_updates {} OK'.format(file_path))
+    return binary
 
 
 #########################

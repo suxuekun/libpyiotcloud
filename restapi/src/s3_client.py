@@ -25,13 +25,18 @@ class s3_client:
 		return True if response["ResponseMetadata"]["HTTPStatusCode"] == 200 else False
 
 
-	def __get_file(self, filename):
+	def __get_file(self, filename, raw=False):
 		try:
 			response = self.__get_client().get_object(Bucket=self.bucket, Key=filename)
 		except Exception as e:
 			print("exception")
 			print(e)
 			return (False, None)
+
+		if raw:
+			raw_bytes = response['Body'].read()
+			#print(raw_bytes)
+			return (True, raw_bytes)
 
 		json_string = response['Body'].read().decode("utf-8")
 		if json_string is None:
@@ -52,3 +57,5 @@ class s3_client:
 	def get_device_firmware_updates(self):
 		return self.__get_file(self.file_firmwareupdates)
 
+	def get_firmware(self, filename):
+		return self.__get_file(filename, raw=True)
