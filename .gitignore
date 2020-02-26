@@ -16,6 +16,7 @@ _device_simulator/device_simulator.py_localhost.bat
 _device_simulator/localhost/*.cfg
 _device_simulator/*.cfg
 _device_simulator/*.bat
+_device_simulator/*.bin
 _kubernetes/environment_private.yaml
 _kubernetes/environment_private_prod.yaml
 _kubernetes/notes.txt
