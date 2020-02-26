@@ -13,6 +13,7 @@ class s3_client:
 		self.bucket                = config.CONFIG_BUCKET
 		self.file_i2cdevices       = config.CONFIG_FILE_I2C_DEVICES
 		self.file_sensordevices    = config.CONFIG_FILE_SENSOR_DEVICES
+		self.file_firmwareupdates  = config.CONFIG_FILE_FIRMWARE_UPDATES
 
 	def __get_client(self):
 		return boto3.Session(
@@ -24,9 +25,9 @@ class s3_client:
 		return True if response["ResponseMetadata"]["HTTPStatusCode"] == 200 else False
 
 
-	def get_supported_i2c_devices(self):
+	def __get_file(self, filename):
 		try:
-			response = self.__get_client().get_object(Bucket=self.bucket, Key=self.file_i2cdevices)
+			response = self.__get_client().get_object(Bucket=self.bucket, Key=filename)
 		except Exception as e:
 			print("exception")
 			print(e)
@@ -41,20 +42,13 @@ class s3_client:
 
 		return (self.__get_result(response), json_obj)
 
+
+	def get_supported_i2c_devices(self):
+		return self.__get_file(self.file_i2cdevices)
 
 	def get_supported_sensor_devices(self):
-		try:
-			response = self.__get_client().get_object(Bucket=self.bucket, Key=self.file_sensordevices)
-		except Exception as e:
-			print("exception")
-			print(e)
-			return (False, None)
+		return self.__get_file(self.file_sensordevices)
 
-		json_string = response['Body'].read().decode("utf-8")
-		if json_string is None:
-			return (False, None)
-		#print(json_string)
-		json_obj = json.loads(json_string)
-		#print(json_obj)
+	def get_device_firmware_updates(self):
+		return self.__get_file(self.file_firmwareupdates)
 
-		return (self.__get_result(response), json_obj)
