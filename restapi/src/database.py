@@ -1872,28 +1872,20 @@ class database_client_mongodb:
     def add_device_heartbeat(self, deviceid):
         devices = self.get_registered_devices()
         if devices:
-            for device in devices.find({'deviceid': deviceid},{'username': 1, 'devicename': 1, 'deviceid': 1, 'serialnumber':1, 'timestamp': 1, 'heartbeat': 1, 'version': 1}):
-                if device.get('heartbeat'):
-                    device['heartbeat'] = str(int(time.time()))
-                    devices.replace_one({'deviceid': deviceid}, device)
-                else:
-                    #print('add_device_heartbeat no heartbeat')
-                    device['heartbeat'] = str(int(time.time()))
-                    devices.replace_one({'deviceid': deviceid}, device)
+            for device in devices.find({'deviceid': deviceid}):
+                new_device = copy.deepcopy(device)
+                new_device['heartbeat'] = str(int(time.time()))
+                devices.replace_one(device, new_device)
                 return device['heartbeat']
         return None
 
     def save_device_version(self, username, devicename, version):
         devices = self.get_registered_devices()
         if devices:
-            for device in devices.find({'username': username, 'devicename': devicename},{'username': 1, 'devicename': 1, 'deviceid': 1, 'serialnumber':1, 'timestamp': 1, 'heartbeat': 1, 'version': 1}):
-                if device.get('version'):
-                    device['version'] = version
-                    devices.replace_one({'username': username, 'devicename': devicename}, device)
-                else:
-                    #print('save_device_version no version')
-                    device['version'] = version
-                    devices.replace_one({'username': username, 'devicename': devicename}, device)
+            for device in devices.find({'username': username, 'devicename': devicename}):
+                new_device = copy.deepcopy(device)
+                new_device['version'] = version
+                devices.replace_one(device, new_device)
                 return device['version']
         return None
 

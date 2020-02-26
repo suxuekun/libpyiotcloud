@@ -3,6 +3,7 @@ import hmac
 import hashlib
 import datetime
 import random
+import copy
 from history_config import config
 from pymongo import MongoClient
 #from web_server_cognito_client import cognito_client
@@ -680,13 +681,9 @@ class database_client_mongodb:
         devices = self.get_registered_devices()
         if devices:
             for device in devices.find({'deviceid': deviceid}):
-                if device.get('heartbeat'):
-                    device['heartbeat'] = str(int(time.time()))
-                    devices.replace_one({'deviceid': deviceid}, device)
-                else:
-                    #print('add_device_heartbeat no heartbeat')
-                    device['heartbeat'] = str(int(time.time()))
-                    devices.replace_one({'deviceid': deviceid}, device)
+                new_device = copy.deepcopy(device)
+                new_device['heartbeat'] = str(int(time.time()))
+                devices.replace_one(device, new_device)
                 return device['heartbeat']
         return None
 
