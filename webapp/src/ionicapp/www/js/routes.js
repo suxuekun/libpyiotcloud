@@ -205,6 +205,23 @@ angular.module('app.routes', [])
     controller: 'viewDeviceLocationCtrl'
   })
 
+  .state('upgradeDeviceFirmware', {
+    url: '/page_upgrade_device_firmware',
+	params: {
+		username: "",
+		token: "",
+		devicename: "",
+		deviceid: "",
+		serialnumber: "",
+		timestamp: "",
+		heartbeat: "",
+		version: "",
+		firmware: ""		
+},
+    templateUrl: 'templates/upgradeDeviceFirmware.html',
+    controller: 'upgradeDeviceFirmwareCtrl'
+  })
+
   .state('deviceGeneralSettings', {
     url: '/page_device_general_settings',
 	params: {
