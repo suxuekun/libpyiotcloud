@@ -245,6 +245,11 @@ SUMMARY:
 		G. GET DEVICE LOCATION            - GET    /devices/device/DEVICENAME/location
 		H. SET DEVICE LOCATION            - POST   /devices/device/DEVICENAME/location
 
+		//
+		// ota firmware upgrade
+		I. UPGRADE DEVICE FIRMWARE        - POST   /devices/device/DEVICENAME/firmware
+		J. GET UPGRADE DEVICE FIRMWARE    - GET    /devices/device/DEVICENAME/firmware
+
 
 	3. Device access and control APIs (STATUS, UART, GPIO)
 
@@ -400,7 +405,13 @@ SUMMARY:
 		C. GET ABOUT                      - GET    /others/about
 
 
-	13. HTTP error codes
+	13. ESP OTA Firmware Updates
+
+		A. DOWNLOAD FIRMWARE              - GET    /firmware/DEVICE/FILENAME
+		   (WARNING: This API is to be called by ESP device, not by web/mobile apps)
+
+
+	14. HTTP error codes
 
 		A. HTTP_400_BAD_REQUEST           - Invalid input
 		B. HTTP_401_UNAUTHORIZED          - Invalid password or invalid/expired token
@@ -736,6 +747,23 @@ DETAILED:
 		   { 'status': 'OK', 'message': string}
 		   { 'status': 'NG', 'message': string}
 		   // latitude and longitude can be negative values
+
+		I. UPGRADE DEVICE FIRMWARE
+		-  Request:
+		   POST /devices/device/DEVICENAME/firmware
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		-  Response:
+		   { 'status': 'OK', 'message': string}
+		   { 'status': 'NG', 'message': string}
+
+		J. GET UPGRADE DEVICE FIRMWARE
+		-  Request:
+		   GET /devices/device/DEVICENAME/firmware
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		-  Response:
+		   { 'status': 'OK', 'message': string, 'result': string}
+		   { 'status': 'NG', 'message': string}
+		   // result can be ongoing, successful, failed
 
 
 	3. Device access and control APIs (STATUS, UART, GPIO)
@@ -2538,6 +2566,18 @@ DETAILED:
 		-  Response:
 		   {'status': 'OK', 'message': string, 'url': {'terms': string, 'privacy': string, 'license': string} }
 		   {'status': 'NG', 'message': string }
+
+
+	13. ESP OTA Firmware Updates
+
+		A. DOWNLOAD FIRMWARE
+		-  Request:
+		   GET /firmware/<device>/<filename>
+		   headers: { 'Content-type': 'application/octet-stream', 'Accept-Ranges': 'bytes' }
+		-  Response:
+		   binary file
+		   // WARNING: This API is to be called by ESP device, not by web/mobile apps
+		   // device can be ft900 or esp32
 
 
 ## Device Firmware Messaging API Documentation
