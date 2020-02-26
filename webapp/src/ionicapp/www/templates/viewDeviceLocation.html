@@ -1,0 +1,36 @@
+<ion-view title="View Device Location" hide-back-button="true" nav-transition="none" id="page56" style="background-color:#FFFFFF;" class="page_width">
+  <ion-nav-buttons side="left" class="has-header">
+    <button class="button button-icon icon ion-android-close" ng-click="viewDevice()"></button>
+  </ion-nav-buttons>
+  <ion-nav-buttons side="right" class="has-header">
+    <button class="button button-positive icon ion-refresh" ng-click="getDeviceLocation(data.devicename)"></button>
+  </ion-nav-buttons>
+  <ion-content padding="true" class="has-header">
+    <div class="spacer" style="height: 12px;"></div>
+    <div id="viewDeviceLocation-markdown314" style="text-align:center;" class="show-list-numbers-and-dots">
+      <p style="color:#387EF5;font-size:18px;">
+        <strong> {{ data.devicename }} </strong>
+      </p>
+    </div>
+    <div class="spacer" style="height: 12px;"></div>
+    <form id="viewDeviceLocation-form220" class="list">
+      <div id="viewDeviceLocation-markdown350" class="show-list-numbers-and-dots"></div>
+      <div id="viewDeviceLocation-markdown345" class="show-list-numbers-and-dots">
+        <p style="color:#387EF5;">Device location</p>
+      </div>
+      <label class="item item-input" id="viewDeviceLocation-input165">
+        <span class="input-label">Latitude</span>
+        <input type="text" placeholder="" ng-model="data.location.latitude">
+      </label>
+      <label class="item item-input" id="viewDeviceLocation-input166">
+        <span class="input-label">Longitude</span>
+        <input type="text" placeholder="" ng-model="data.location.longitude">
+      </label>
+      <button id="viewDeviceLocation-button152" ng-click="setDeviceLocation(data.devicename)" class="button button-positive button-block">Set device location</button>
+    </form>
+    <ui-gmap-google-map ng-if="map.center" center="map.center" zoom="map.zoom" options="map.options" style="height:300px;">
+      <ui-gmap-layer type="TrafficLayer" show="map.showTraficLayer"></ui-gmap-layer>
+    </ui-gmap-google-map>
+    <div class="spacer" style="width: 300px; height: 50px;"></div>
+  </ion-content>
+</ion-view>

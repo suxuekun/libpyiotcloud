@@ -2825,6 +2825,217 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
     };
     
     
+    // VIEW DEVICE LOCATION
+    $scope.viewDeviceLocation = function() {
+        console.log("viewDeviceLocation= " + $scope.data.devicename);
+        
+        var device_param = {
+            'username'     : $scope.data.username,
+            'token'        : $scope.data.token,
+            'devicename'   : $scope.data.devicename,
+            'deviceid'     : $scope.data.deviceid,
+            'serialnumber' : $scope.data.serialnumber,
+            'timestamp'    : $scope.data.timestamp,
+            'heartbeat'    : $scope.data.heartbeat,
+            'version'      : $scope.data.version,
+        };
+       
+        $state.go('viewDeviceLocation', device_param);    
+    };
+    
+    
+    // EXIT PAGE
+    $scope.exitPage = function() {
+        var device_param = {
+            'username': $scope.data.username,
+            'token'   : $scope.data.token
+        };
+        $state.go('menu.devices', device_param, {reload: true});
+    };
+}])
+   
+.controller('viewDeviceLocationCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', 'uiGmapGoogleMapApi', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+// You can include any angular dependencies as parameters for this function
+// TIP: Access Route Parameters for your page via $stateParams.parameterName
+
+
+function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token, uiGmapGoogleMapApi) {
+
+    var server = Server.rest_api;
+
+    $scope.data = {
+        'username'    : User.get_username(),
+        'token'       : User.get_token(),
+        'devicename'  : $stateParams.devicename,
+        'deviceid'    : $stateParams.deviceid,
+        'serialnumber': $stateParams.serialnumber,
+        'timestamp'   : $stateParams.timestamp,
+        'heartbeat'   : $stateParams.heartbeat,
+        'version'     : $stateParams.version,
+        
+        'location': {
+            'latitude': 0.0,
+            'longitude': 0.0,
+        },
+        'zoom': 17
+    };
+
+
+
+
+    $scope.handle_error = function(error) {
+        if (error.data !== null) {
+            console.log("ERROR: Failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
+
+            if (error.data.message === "Token expired") {
+                Token.refresh({'username': $scope.data.username, 'token': $scope.data.token});
+                $scope.data.token = User.get_token();
+            }
+            
+            if (error.status == 503) {
+                $ionicPopup.alert({ title: 'Error', template: 'Device is unreachable!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+            }
+            else if (error.status >= 400 && error.status < 500) {
+                $ionicPopup.alert({ title: 'Error', template: error.data.message, buttons: [{text: 'OK', type: 'button-assertive'}] });
+            }
+        }
+        else {
+            console.log("ERROR: Server is down!");
+            $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+        }
+    }; 
+
+
+    // GET DEVICE LOCATION
+    $scope.getDeviceLocation = function(devicename) {
+        $scope.get_device_location(devicename);
+    };
+
+    // GET DEVICE LOCATION
+    $scope.get_device_location = function(devicename) {
+        console.log("get_device_location " + devicename);
+        //
+        // GET DEVICE LOCATION
+        // - Request:
+        //   GET /devices/device/DEVICENAME/location
+        //   headers: {'Authorization': 'Bearer ' + token.access}
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string, 'location': {'latitude': float, 'longitude': float} }
+        //   { 'status': 'NG', 'message': string}
+        //        
+        $http({
+            method: 'GET',
+            url: server + '/devices/device/' + devicename + '/location',
+            headers: {'Authorization': 'Bearer ' +  $scope.data.token.access },
+        })
+        .then(function (result) {
+            console.log(result.data);
+            
+            // if no coordinates yet, use SG office as defaut address
+            if ( result.data.location === undefined || 
+                (result.data.location !== undefined && (result.data.location.latitude === 0 && result.data.location.longitude === 0)) ) {
+                    
+                result.data.location = {
+                    'latitude': 1.330022,
+                    'longitude': 103.89004
+                };
+                
+                $ionicPopup.alert({ title: 'No location set yet', template: 'Using Bridgetek office as default location!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+            }            
+            
+            if (result.data.location !== undefined) {
+                $scope.data.location = result.data.location;
+             
+                // uiGmapGoogleMapApi is a promise.
+                // The "then" callback function provides the google.maps object.
+                uiGmapGoogleMapApi.then(function(maps){
+                    // Configuration needed to display the road-map with traffic
+                    // Displaying Ile-de-france (Paris neighbourhood)
+                    $scope.map = {
+                        center: $scope.data.location,
+                        zoom: $scope.data.zoom,
+                        options: {
+                            mapTypeId: google.maps.MapTypeId.ROADMAP, // This is an example of a variable that cannot be placed outside of uiGmapGooogleMapApi without forcing of calling the google.map helper outside of the function
+                            streetViewControl: false,
+                            mapTypeControl: false,
+                            scaleControl: false,
+                            rotateControl: false,
+                            zoomControl: false
+                        }, 
+                        showTraficLayer:false
+                    };
+                });
+                
+            }
+        })
+        .catch(function (error) {
+            $scope.handle_error(error);
+        }); 
+    }; 
+
+
+    // SET DEVICE LOCATION
+    $scope.setDeviceLocation = function(devicename) {
+        
+        console.log("setDeviceLocation " + $scope.data.location);
+        $scope.data.location.latitude = parseFloat($scope.data.location.latitude);
+        $scope.data.location.longitude = parseFloat($scope.data.location.longitude);
+        $scope.set_device_location(devicename);
+    };
+
+    // SET DEVICE LOCATION
+    $scope.set_device_location = function(devicename) {
+        console.log("set_device_location " + devicename);
+        //
+        // SET DEVICE LOCATION
+        // - Request:
+        //   POST /devices/device/DEVICENAME/location
+        //   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
+        //   data: { 'latitude': float, 'longitude': float }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string}
+        //   { 'status': 'NG', 'message': string}
+        //        
+        $http({
+            method: 'POST',
+            url: server + '/devices/device/' + devicename + '/location',
+            headers: {'Authorization': 'Bearer ' +  $scope.data.token.access },
+            data: $scope.data.location
+        })
+        .then(function (result) {
+            console.log(result.data);
+        })
+        .catch(function (error) {
+            $scope.handle_error(error);
+        }); 
+    }; 
+
+
+    $scope.$on('$ionicView.enter', function(e) {
+        $scope.getDeviceLocation($scope.data.devicename);
+    });
+
+    
+    // VIEW DEVICE
+    $scope.viewDevice = function() {
+        console.log("viewDevice= " + $scope.data.devicename);
+        
+        var device_param = {
+            'username'     : $scope.data.username,
+            'token'        : $scope.data.token,
+            'devicename'   : $scope.data.devicename,
+            'deviceid'     : $scope.data.deviceid,
+            'serialnumber' : $scope.data.serialnumber,
+            'timestamp'    : $scope.data.timestamp,
+            'heartbeat'    : $scope.data.heartbeat,
+            'version'      : $scope.data.version,
+        };
+       
+        $state.go('viewDevice', device_param);    
+    };    
+    
     // EXIT PAGE
     $scope.exitPage = function() {
         var device_param = {
@@ -2976,7 +3187,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             'version'      : $scope.data.version,
         };
        
-        $state.go('viewDevice', device_param);    
+        $state.go('viewDeviceLocation', device_param);    
     };
     
     $scope.getSettings($scope.data.devicename);
@@ -3162,6 +3373,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
                 'version': $scope.data.deviceversion
             };
             
+//            $state.go('menu.mapsExample', device_param, {reload:true});
             $state.go('viewDevice', device_param, {reload:true});
         })
         .catch(function (error) {
