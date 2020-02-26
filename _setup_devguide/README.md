@@ -239,6 +239,8 @@ SUMMARY:
 		D. DELETE DEVICE                  - DELETE /devices/device/DEVICENAME
 		E. GET DEVICE                     - GET    /devices/device/DEVICENAME
 		F. UPDATE DEVICE NAME             - POST   /devices/device/DEVICENAME/name
+		G. GET DEVICE LOCATION            - GET    /devices/device/DEVICENAME/location
+		H. SET DEVICE LOCATION            - POST   /devices/device/DEVICENAME/location
 
 
 	3. Device access and control APIs (STATUS, UART, GPIO)
@@ -710,6 +712,25 @@ DETAILED:
 		   { 'status': 'OK', 'message': string}
 		   { 'status': 'NG', 'message': string}
 		   // new_devicename refers to the new name of the device
+
+		G. GET DEVICE LOCATION
+		-  Request:
+		   GET /devices/device/DEVICENAME/location
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		-  Response:
+		   { 'status': 'OK', 'message': string, 'location': {'latitude': float, 'longitude': float} }
+		   { 'status': 'NG', 'message': string}
+		   // latitude and longitude can be negative values
+
+		H. SET DEVICE LOCATION
+		-  Request:
+		   POST /devices/device/DEVICENAME/location
+		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+		   data: {'latitude': float, 'longitude': float}
+		-  Response:
+		   { 'status': 'OK', 'message': string}
+		   { 'status': 'NG', 'message': string}
+		   // latitude and longitude can be negative values
 
 
 	3. Device access and control APIs (STATUS, UART, GPIO)
