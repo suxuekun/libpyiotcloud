@@ -1691,6 +1691,8 @@ class DownloadThread(threading.Thread):
             payload = {}
             payload["value"] = {"result": "failed"}
             publish(topic, payload)
+            print("The firmware failed to download !!!\r\n".format(self.filename))
+            print("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\r\n\r\n\r\n")
 
         # start the timer thread
         time.sleep(g_timer_thread_timeout)
@@ -1937,13 +1939,15 @@ def http_initialize_connection():
         #context.load_verify_locations(
         #    config.CONFIG_TLS_CERT, config.CONFIG_TLS_CERT, config.CONFIG_TLS_PKEY)
         #context.check_hostname = False
-    conn = http.client.HTTPSConnection(CONFIG_HTTP_HOST, CONFIG_HTTP_TLS_PORT, context=context)
+    conn = http.client.HTTPSConnection(CONFIG_HTTP_HOST, CONFIG_HTTP_TLS_PORT, context=context, timeout=5)
     return conn
 
 def http_send_request(conn, req_type, req_api, params, headers):
     try:
         if headers:
+            print("http_send_request")
             conn.request(req_type, req_api, params, headers)
+            print("http_send_request ok")
         else:
             conn.request(req_type, req_api, params)
         return True
@@ -1953,7 +1957,9 @@ def http_send_request(conn, req_type, req_api, params, headers):
 
 def http_recv_response(conn):
     try:
+        print("http_recv_response")
         r1 = conn.getresponse()
+        print("http_recv_response ok")
         if r1.status == 200:
             file_size = r1.length
             #print("response = {} {} [{}]".format(r1.status, r1.reason, r1.length))
