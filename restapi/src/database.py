@@ -420,6 +420,19 @@ class database_client:
 
 
     ##########################################################
+    # device locaton
+    ##########################################################
+
+    def add_device_location(self, username, devicename, location):
+        deviceid = self._devices.get_deviceid(username, devicename)
+        self._devices.add_device_location(deviceid, location)
+
+    def get_device_location(self, username, devicename):
+        deviceid = self._devices.get_deviceid(username, devicename)
+        return self._devices.get_device_location(deviceid)
+
+
+    ##########################################################
     # devices
     ##########################################################
 
@@ -1719,6 +1732,32 @@ class database_client_mongodb:
                 devicetoken.pop('_id')
                 devicetokens_list.append(devicetoken)
         return devicetokens_list
+
+
+    ##########################################################
+    # device location
+    ##########################################################
+
+    def get_device_location_document(self):
+        return self.client[config.CONFIG_MONGODB_TB_DEVICELOCATION]
+
+    def add_device_location(self, deviceid, location):
+        devicelocations = self.get_device_location_document()
+        item = {}
+        item['deviceid'] = deviceid
+        item['location'] = location
+        found = devicelocations.find_one({'deviceid': deviceid})
+        if found is None:
+            devicelocations.insert_one(item)
+        else:
+            devicelocations.replace_one({'deviceid': deviceid}, item)
+
+    def get_device_location(self, deviceid):
+        devicelocations = self.get_device_location_document()
+        if devicelocations:
+            for devicelocation in devicelocations.find({'deviceid': deviceid}):
+                return devicelocation["location"]
+        return None
 
 
     ##########################################################
