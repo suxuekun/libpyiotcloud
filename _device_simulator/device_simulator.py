@@ -233,6 +233,7 @@ CONFIG_SEPARATOR            = '/'
 
 CONFIG_HTTP_HOST            = "localhost"
 CONFIG_HTTP_TLS_PORT        = 443
+CONFIG_HTTP_TIMEOUT         = 10
 
 
 
@@ -1685,14 +1686,14 @@ class DownloadThread(threading.Thread):
             payload["value"] = {"result": "successful"}
             publish(topic, payload)
             print("The firmware has been downloaded to {} !!!\r\n".format(self.filename))
-            print("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\r\n\r\n\r\n")
+            print("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\r\n\r\n\r\n\r\n")
         else:
             # send completion status
             payload = {}
             payload["value"] = {"result": "failed"}
             publish(topic, payload)
             print("The firmware failed to download !!!\r\n".format(self.filename))
-            print("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\r\n\r\n\r\n")
+            print("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\r\n\r\n\r\n\r\n")
 
         # start the timer thread
         time.sleep(g_timer_thread_timeout)
@@ -1935,19 +1936,22 @@ def http_initialize_connection():
     else:
         context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
         context.verify_mode = ssl.CERT_REQUIRED
-        context.load_cert_chain(config.CONFIG_TLS_CERT, config.CONFIG_TLS_PKEY)
+        #context.load_cert_chain(config.CONFIG_TLS_CERT, config.CONFIG_TLS_PKEY)
         #context.load_verify_locations(
         #    config.CONFIG_TLS_CERT, config.CONFIG_TLS_CERT, config.CONFIG_TLS_PKEY)
         #context.check_hostname = False
-    conn = http.client.HTTPSConnection(CONFIG_HTTP_HOST, CONFIG_HTTP_TLS_PORT, context=context, timeout=5)
+    conn = http.client.HTTPSConnection(CONFIG_HTTP_HOST, CONFIG_HTTP_TLS_PORT, context=context, timeout=CONFIG_HTTP_TIMEOUT)
     return conn
 
 def http_send_request(conn, req_type, req_api, params, headers):
     try:
         if headers:
             print("http_send_request")
+            print("  {}:{}".format(CONFIG_HTTP_HOST, CONFIG_HTTP_TLS_PORT))
+            print("  {} {}".format(req_type, req_api))
+            print("  {}".format(headers))
             conn.request(req_type, req_api, params, headers)
-            print("http_send_request ok")
+            print("http_send_request\r\n")
         else:
             conn.request(req_type, req_api, params)
         return True
@@ -1959,7 +1963,8 @@ def http_recv_response(conn):
     try:
         print("http_recv_response")
         r1 = conn.getresponse()
-        print("http_recv_response ok")
+        print("http_recv_response")
+        print("  {} {} {}\r\n".format(r1.status, r1.reason, r1.length))
         if r1.status == 200:
             file_size = r1.length
             #print("response = {} {} [{}]".format(r1.status, r1.reason, r1.length))
@@ -1986,7 +1991,9 @@ def http_write_to_file(filename, contents):
 
 def http_get_firmware_binary(filename, filesize):
     conn = http_initialize_connection()
-    headers = { "Content-type": "application/octet-stream", "Accept-Ranges": "bytes", "Content-Length": filesize }
+    #headers = { "Content-type": "application/octet-stream", "Accept-Ranges": "bytes", "Content-Length": filesize }
+    #headers = { "User-Agent": "PostmanRuntime/7.22.0", "Accept": "*/*", "Host": "ec2-54-166-169-66.compute-1.amazonaws.com", "Accept-Encoding": "gzip, deflate, br", "Connection": "keep-alive" }
+    headers = { "Connection": "keep-alive" }
 
     api = "/firmware"
     result = http_send_request(conn, "GET", api + "/" + filename, None, headers)
