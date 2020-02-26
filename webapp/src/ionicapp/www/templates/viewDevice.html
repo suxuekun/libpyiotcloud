@@ -44,14 +44,15 @@
       <div id="viewDevice-markdown236" class="show-list-numbers-and-dots">
         <p style="color:#444444;font-size:12px;">Last active: {{ data.heartbeat }}</p>
       </div>
+      <button id="viewDevice-button21" ng-click="viewDeviceLocation()" class="button button-positive button-block">Get/set Device Location</button>
     </form>
     <div id="viewDevice-markdown252" class="show-list-numbers-and-dots">
       <p style="color:#387EF5;">Device operations</p>
     </div>
-    <button id="viewDevice-button110" ng-click="setDeviceGeneralSettings()" style="text-align:left;" class="button button-positive button-block icon-right ion-android-arrow-dropright">Set Device General Settings</button>
-    <button id="viewDevice-button21" ng-click="getDevice(data.devicename)" style="text-align:left;" class="button button-positive button-block button-outline icon-right ion-android-arrow-dropright">Query Device</button>
+    <button id="viewDevice-button153" ng-click="getDevice(data.devicename)" style="text-align:left;" class="button button-positive button-block button-outline icon-right ion-android-arrow-dropright">Query Device</button>
     <button id="viewDevice-button56" ng-click="setDevice(data.devicename, &quot;restart&quot;)" style="text-align:left;" class="button button-positive button-block button-outline icon-right ion-android-arrow-dropright">Restart Device</button>
     <button id="viewDevice-button64" ng-click="setDevice(data.devicename, &quot;start&quot;)" style="text-align:left;" class="button button-positive button-block button-outline icon-right ion-android-arrow-dropright">Start Device</button>
     <button id="viewDevice-button57" ng-click="setDevice(data.devicename, &quot;stop&quot;)" style="text-align:left;" class="button button-positive button-block button-outline icon-right ion-android-arrow-dropright">Stop Device</button>
+    <button id="viewDevice-button110" ng-click="setDeviceGeneralSettings()" class="button button-positive button-block">Set Device General Settings</button>
   </ion-content>
 </ion-view>

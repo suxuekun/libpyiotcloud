@@ -51,7 +51,7 @@ The web app is made of Ionic framework so it can be compiled as Android and iOS 
 - <b>Amazon SNS</b> email/SMS messaging platform - https://aws.amazon.com/sns/
 - <b>Twilio</b> SMS messaging platform - https://www.twilio.com/
 - <b>Nexmo</b> SMS messaging platform - https://www.nexmo.com/
-- <b>Paypal</b> payment gateway - https://developer.paypal.com
+- <b>Paypal Payment Platform</b> payment gateway - https://developer.paypal.com
 - <b>Jenkins</b> automation for CI/CD - https://jenkins.io/
 - <b>Kubernetes</b> container orchestration - https://kubernetes.io
 - <b>Minikube</b> local Kubernetes cluster - https://github.com/kubernetes/minikube
@@ -59,6 +59,7 @@ The web app is made of Ionic framework so it can be compiled as Android and iOS 
 - <b>Google Firebase Cloud Messaging (FCM)</b> for Android push notifications
 - <b>Apple Push Notification service (APNs)</b> for IOS push notifications
 - <b>Chart.JS</b> for time-series charts/graphs - https://www.chartjs.org/
+- <b>Google Maps Platform</b> for device location - https://developers.google.com/maps/documentation
 
 An alternative solution is using an AWS serverless solution wherein:
 

@@ -9945,3 +9945,12 @@ a.button {
 .slider-red {
   color: red;
   background-color: red; }
+
+ui-gmap-google-map {
+  height: 100%;
+  width: 100%;
+  display: block; }
+  ui-gmap-google-map .angular-google-map {
+    height: 100%; }
+    ui-gmap-google-map .angular-google-map .angular-google-map-container {
+      height: 100%; }
