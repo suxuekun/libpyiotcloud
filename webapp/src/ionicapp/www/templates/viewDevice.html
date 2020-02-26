@@ -32,19 +32,28 @@
         <span class="input-label">UUID</span>
         <input type="text" placeholder="" ng-model="data.deviceid" readonly="">
       </label>
-      <label class="item item-input" id="viewDevice-input158" name="input-deviceid">
+      <label class="item item-input" id="viewDevice-input158" name="input-serialnumber">
         <span class="input-label">Serial Number</span>
         <input type="text" placeholder="" ng-model="data.serialnumber" readonly="">
       </label>
+      <label class="item item-input" id="viewDevice-input162" name="input-timestamp">
+        <span class="input-label">Registration</span>
+        <input type="text" placeholder="" ng-model="data.timestamp" readonly="">
+      </label>
+      <label class="item item-input" id="viewDevice-input163" name="input-heartbeat">
+        <span class="input-label">Last active</span>
+        <input type="text" placeholder="" ng-model="data.heartbeat" readonly="">
+      </label>
+      <label class="item item-input" id="viewDevice-input164" name="input-version">
+        <span class="input-label">Firmware Version</span>
+        <input type="text" placeholder="" ng-model="data.version" readonly="">
+      </label>
       <div id="viewDevice-markdown118" class="show-list-numbers-and-dots"></div>
-      <div class="spacer" style="width: 300px; height: 10px;"></div>
-      <div id="viewDevice-markdown156" class="show-list-numbers-and-dots">
-        <p style="color:#444444;font-size:12px;">Registration: {{ data.timestamp }}</p>
+      <div id="viewDevice-markdown346" style="text-align:center;" class="show-list-numbers-and-dots">
+        <p style="color:#33CD5F;">{{ newfirmwareavailable ? "New firmware is available" : "" }}</p>
       </div>
-      <div id="viewDevice-markdown236" class="show-list-numbers-and-dots">
-        <p style="color:#444444;font-size:12px;">Last active: {{ data.heartbeat }}</p>
-      </div>
-      <button id="viewDevice-button21" ng-click="viewDeviceLocation()" class="button button-positive button-block">Get/set Device Location</button>
+      <button id="viewDevice-button21" ng-click="upgradeDeviceFirmware()" ng-show="newfirmwareavailable" class="button button-positive button-block button-outline">Upgrade Device Firmware</button>
+      <button id="viewDevice-button154" ng-click="viewDeviceLocation()" class="button button-positive button-block">Get/set Device Location</button>
     </form>
     <div id="viewDevice-markdown252" class="show-list-numbers-and-dots">
       <p style="color:#387EF5;">Device operations</p>
@@ -54,5 +63,6 @@
     <button id="viewDevice-button64" ng-click="setDevice(data.devicename, &quot;start&quot;)" style="text-align:left;" class="button button-positive button-block button-outline icon-right ion-android-arrow-dropright">Start Device</button>
     <button id="viewDevice-button57" ng-click="setDevice(data.devicename, &quot;stop&quot;)" style="text-align:left;" class="button button-positive button-block button-outline icon-right ion-android-arrow-dropright">Stop Device</button>
     <button id="viewDevice-button110" ng-click="setDeviceGeneralSettings()" class="button button-positive button-block">Set Device General Settings</button>
+    <div class="spacer" style="height: 50px;"></div>
   </ion-content>
 </ion-view>

@@ -2570,6 +2570,9 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         'version'     : $stateParams.version
     };
 
+    $scope.newfirmwareavailable = false;
+    $scope.newfirmwareupdates = null;
+    
     $scope.new_devicename = $stateParams.devicename;
     var device_statuses = ["starting", "running", "restart", "restarting", "stop", "stopping", "stopped", "start"];
 
@@ -2627,6 +2630,41 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             console.log("ERROR: Server is down!");
             $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
         }
+    }; 
+
+
+    // GET DEVICE FIRMWARE UPDATES
+    $scope.get_latest_firmware = function() {
+        //
+        // GET STATUS
+        // - Request:
+        //   GET /others/firmwareupdates
+        //   headers: {'Authorization': 'Bearer ' + token.access}
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string, 'document': json_object }
+        //   { 'status': 'NG', 'message': string}
+        //        
+        $http({
+            method: 'GET',
+            url: server + '/others/firmwareupdates',
+            headers: {'Authorization': 'Bearer ' +  $scope.data.token.access}
+        })
+        .then(function (result) {
+            console.log(result.data);
+            console.log(result.data.document.ft900.latest);
+            if (result.data.document.ft900.latest > $scope.data.version) {
+                $scope.newfirmwareavailable = true;
+                $scope.newfirmwareupdates = result.data.document;
+            }
+            else {
+                $scope.newfirmwareavailable = false;
+                $scope.newfirmwareupdates = null;
+            }
+        })
+        .catch(function (error) {
+            $scope.handle_error(error);
+        }); 
     }; 
 
 
@@ -2824,6 +2862,25 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         });    
     };
     
+
+    // UPGRADE DEVICE FIRMWARE
+    $scope.upgradeDeviceFirmware = function() {
+        console.log("upgradeDeviceFirmware= " + $scope.data.devicename);
+        
+        var device_param = {
+            'username'     : $scope.data.username,
+            'token'        : $scope.data.token,
+            'devicename'   : $scope.data.devicename,
+            'deviceid'     : $scope.data.deviceid,
+            'serialnumber' : $scope.data.serialnumber,
+            'timestamp'    : $scope.data.timestamp,
+            'heartbeat'    : $scope.data.heartbeat,
+            'version'      : $scope.data.version,
+            'firmware'     : $scope.newfirmwareupdates
+        };
+       
+        $state.go('upgradeDeviceFirmware', device_param);    
+    };
     
     // VIEW DEVICE LOCATION
     $scope.viewDeviceLocation = function() {
@@ -2842,7 +2899,11 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
        
         $state.go('viewDeviceLocation', device_param);    
     };
+
     
+    $scope.$on('$ionicView.enter', function(e) {
+        $scope.get_latest_firmware();
+    });   
     
     // EXIT PAGE
     $scope.exitPage = function() {
@@ -3015,6 +3076,163 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
 
     $scope.$on('$ionicView.enter', function(e) {
         $scope.getDeviceLocation($scope.data.devicename);
+    });
+
+    
+    // VIEW DEVICE
+    $scope.viewDevice = function() {
+        console.log("viewDevice= " + $scope.data.devicename);
+        
+        var device_param = {
+            'username'     : $scope.data.username,
+            'token'        : $scope.data.token,
+            'devicename'   : $scope.data.devicename,
+            'deviceid'     : $scope.data.deviceid,
+            'serialnumber' : $scope.data.serialnumber,
+            'timestamp'    : $scope.data.timestamp,
+            'heartbeat'    : $scope.data.heartbeat,
+            'version'      : $scope.data.version,
+        };
+       
+        $state.go('viewDevice', device_param);    
+    };    
+    
+    // EXIT PAGE
+    $scope.exitPage = function() {
+        var device_param = {
+            'username': $scope.data.username,
+            'token'   : $scope.data.token
+        };
+        $state.go('menu.devices', device_param, {reload: true});
+    };
+}])
+   
+.controller('upgradeDeviceFirmwareCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', 'Devices', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+// You can include any angular dependencies as parameters for this function
+// TIP: Access Route Parameters for your page via $stateParams.parameterName
+
+
+function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token, Devices) {
+
+    var server = Server.rest_api;
+
+    $scope.data = {
+        'username'    : User.get_username(),
+        'token'       : User.get_token(),
+        'devicename'  : $stateParams.devicename,
+        'deviceid'    : $stateParams.deviceid,
+        'serialnumber': $stateParams.serialnumber,
+        'timestamp'   : $stateParams.timestamp,
+        'heartbeat'   : $stateParams.heartbeat,
+        'version'     : $stateParams.version,
+        'firmwares'   : $stateParams.firmware
+    };
+
+    $scope.online = false;
+
+    $scope.handle_error = function(error) {
+        if (error.data !== null) {
+            console.log("ERROR: Failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
+
+            if (error.data.message === "Token expired") {
+                Token.refresh({'username': $scope.data.username, 'token': $scope.data.token});
+                $scope.data.token = User.get_token();
+            }
+            
+            if (error.status == 503) {
+                $ionicPopup.alert({ title: 'Error', template: 'Device is unreachable!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+            }
+            else if (error.status >= 400 && error.status < 500) {
+                $ionicPopup.alert({ title: 'Error', template: error.data.message, buttons: [{text: 'OK', type: 'button-assertive'}] });
+            }
+        }
+        else {
+            console.log("ERROR: Server is down!");
+            $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+        }
+    }; 
+
+
+    $scope.changeDevice = function(devicename) {
+        for (indexy=0; indexy<$scope.devices.length; indexy++) {
+            if (devicename === $scope.devices[indexy].devicename) {
+                $scope.data.devicename = $scope.devices[indexy].devicename;
+                $scope.data.deviceid = $scope.devices[indexy].deviceid;
+                $scope.data.serialnumber = $scope.devices[indexy].serialnumber;
+                $scope.data.devicestatus = $scope.devices[indexy].devicestatus;
+                $scope.data.version = $scope.devices[indexy].version;
+                $scope.query_device(devicename);
+                break;
+            }
+        }
+    };
+    
+    $scope.get_devices = function() {
+        
+        param = {
+            'username': $scope.data.username,
+            'token': $scope.data.token     
+        };
+        
+        // Fetch devices
+        Devices.fetch(param, "").then(function(res) {
+            $scope.devices = res;
+            
+            let indexy = 0;
+            for (indexy=0; indexy<$scope.devices.length; indexy++) {
+                $scope.devices[indexy].id = indexy;
+            }
+            
+            console.log($scope.devices);
+            $scope.data.token = User.get_token();
+
+            
+            $scope.query_device($scope.data.devicename);
+        });
+    };
+
+
+    $scope.queryDevice = function(devicename) {
+        $scope.query_device(devicename);
+    };
+
+    $scope.query_device = function(devicename) {
+        //
+        // GET STATUS
+        // - Request:
+        //   GET /devices/device/<devicename>/status
+        //   headers: {'Authorization': 'Bearer ' + token.access}
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string, 'value': { "status": string, "version": string } }
+        //   { 'status': 'NG', 'message': string}
+        //        
+        $http({
+            method: 'GET',
+            url: server + '/devices/device/' + devicename + '/status',
+            headers: {'Authorization': 'Bearer ' +  $scope.data.token.access}
+        })
+        .then(function (result) {
+            console.log(result.data);
+            $scope.online = true;
+        })
+        .catch(function (error) {
+            $scope.handle_error(error);
+        }); 
+    };    
+
+
+    $scope.upgradeFirmware = function(devicename) {
+        if ($scope.online === false) {
+            $ionicPopup.alert({ title: 'Error', template: 'Device is unreachable!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+            return;
+        }
+    };
+
+
+
+    $scope.$on('$ionicView.enter', function(e) {
+        $scope.get_devices();
     });
 
     
