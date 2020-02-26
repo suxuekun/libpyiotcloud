@@ -3187,7 +3187,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             'version'      : $scope.data.version,
         };
        
-        $state.go('viewDeviceLocation', device_param);    
+        $state.go('viewDevice', device_param);    
     };
     
     $scope.getSettings($scope.data.devicename);
