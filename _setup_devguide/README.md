@@ -239,6 +239,9 @@ SUMMARY:
 		D. DELETE DEVICE                  - DELETE /devices/device/DEVICENAME
 		E. GET DEVICE                     - GET    /devices/device/DEVICENAME
 		F. UPDATE DEVICE NAME             - POST   /devices/device/DEVICENAME/name
+
+		//
+		// location
 		G. GET DEVICE LOCATION            - GET    /devices/device/DEVICENAME/location
 		H. SET DEVICE LOCATION            - POST   /devices/device/DEVICENAME/location
 
@@ -250,6 +253,7 @@ SUMMARY:
 		A. GET STATUS                     - GET    /devices/device/DEVICENAME/status
 		B. SET STATUS                     - POST   /devices/device/DEVICENAME/status
 
+		//
 		// settings
 		C. GET SETTINGS                   - GET    /devices/device/DEVICENAME/settings
 		D. SET SETTINGS                   - POST   /devices/device/DEVICENAME/settings
@@ -382,10 +386,11 @@ SUMMARY:
 		A. REGISTER DEVICE TOKEN          - POST   /mobile/devicetoken
 
 
-	11. Supported devices
+	11. Supported devices and firmware updates
 
 		A. GET SUPPORTED I2C DEVICES      - GET    /others/i2cdevices [OBSOLETED, use GET SUPPORTED SENSOR DEVICES instead]
 		B. GET SUPPORTED SENSOR DEVICES   - GET    /others/sensordevices
+		C. GET DEVICE FIRMWARE UPDATES    - GET    /others/firmwareupdates
 
 
 	12. Others
@@ -2469,7 +2474,7 @@ DETAILED:
 		   Double check your results here: https://jwt.io/
 
 
-	11. Supported devices
+	11. Supported devices/firmware updates
 
 		A. GET SUPPORTED I2C DEVICES (obsoloted: use GET SUPPORTED SENSOR DEVICES instead)
 		-  Request:
@@ -2492,6 +2497,17 @@ DETAILED:
 		   {'status': 'NG', 'message': string }
 		   // document refers to the JSON document file uploaded in AWS S3
 		   // the file has been temporarily made public at https://ft900-iot-portal.s3.amazonaws.com/supported_sensor_devices.json
+		   // this API provides access to the contents of the JSON file
+
+		C. GET DEVICE FIRMWARE UPDATES
+		-  Request:
+		   GET /others/firmwareupdates
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		-  Response:
+		   {'status': 'OK', 'message': string, 'document': json_object }
+		   {'status': 'NG', 'message': string }
+		   // document refers to the JSON document file uploaded in AWS S3
+		   // the file has been temporarily made public at https://ft900-iot-portal.s3.amazonaws.com/latest_firmware_updates.json
 		   // this API provides access to the contents of the JSON file
 
 
