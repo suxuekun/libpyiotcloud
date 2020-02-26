@@ -3368,8 +3368,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
                 'devicename': result.data.device.devicename,
                 'deviceid': result.data.device.deviceid,
                 'serialnumber': result.data.device.serialnumber,
-                'timestamp': timestamp,
-                'heartbeat': heartbeat,
+                'timestamp': "" + timestamp,
+                'heartbeat': "" + heartbeat,
                 'version': $scope.data.deviceversion
             };
             
