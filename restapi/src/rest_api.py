@@ -1966,7 +1966,7 @@ def upgrade_devicefirmware(devicename):
         return response, status.HTTP_401_UNAUTHORIZED
 
     # get username from token
-    data = {}
+    data = flask.request.get_json()
     data['token'] = {'access': auth_header_token}
     data['devicename'] = devicename
     username = g_database_client.get_username_from_token(data['token'])
@@ -1985,12 +1985,20 @@ def upgrade_devicefirmware(devicename):
         return response, status.HTTP_500_INTERNAL_SERVER_ERROR
 
     # get the size and location
-    for firmware in document["ft900"]["firmware"]:
-        if firmware["version"] == document["ft900"]["latest"]:
-            data["size"]     = firmware["size"]
-            data["location"] = firmware["location"]
-            data["version"]  = firmware["version"]
-            break
+    if data.get("version"):
+        for firmware in document["ft900"]["firmware"]:
+            if firmware["version"] == data["version"]:
+                data["size"]     = firmware["size"]
+                data["location"] = firmware["location"]
+                data["version"]  = firmware["version"]
+                break
+    else:
+        for firmware in document["ft900"]["firmware"]:
+            if firmware["version"] == document["ft900"]["latest"]:
+                data["size"]     = firmware["size"]
+                data["location"] = firmware["location"]
+                data["version"]  = firmware["version"]
+                break
 
     return process_request(api, data)
 

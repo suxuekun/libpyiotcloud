@@ -751,10 +751,13 @@ DETAILED:
 		I. UPGRADE DEVICE FIRMWARE
 		-  Request:
 		   POST /devices/device/DEVICENAME/firmware
-		   headers: {'Authorization': 'Bearer ' + token.access}
+		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+		   data: {'version': string}
 		-  Response:
 		   { 'status': 'OK', 'message': string}
 		   { 'status': 'NG', 'message': string}
+		   // version is the version of the firmware to use
+		   // note that user can select the latest version or the same version (as per Sree)
 
 		J. GET UPGRADE DEVICE FIRMWARE
 		-  Request:
