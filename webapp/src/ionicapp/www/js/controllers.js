@@ -2975,6 +2975,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
     }; 
 
 
+
+
     // GET DEVICE LOCATION
     $scope.getDeviceLocation = function(devicename) {
         $scope.get_device_location(devicename);
@@ -3004,7 +3006,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             // if no coordinates yet, use SG office as defaut address
             if ( result.data.location === undefined || 
                 (result.data.location !== undefined && (result.data.location.latitude === 0 && result.data.location.longitude === 0)) ) {
-                    
+
+                // set SG office as default location
                 result.data.location = {
                     'latitude': 1.330022,
                     'longitude': 103.89004
@@ -3026,16 +3029,44 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                         zoom: $scope.data.zoom,
                         options: {
                             mapTypeId: google.maps.MapTypeId.ROADMAP, // This is an example of a variable that cannot be placed outside of uiGmapGooogleMapApi without forcing of calling the google.map helper outside of the function
-                            streetViewControl: false,
-                            mapTypeControl: false,
-                            scaleControl: false,
-                            rotateControl: false,
-                            zoomControl: false
+                            streetViewControl: false, // streetview
+                            mapTypeControl: false, // satellite
+                            scaleControl: true,
+                            rotateControl: true,
+                            zoomControl: true,
+                            panControl: true
                         }, 
                         showTraficLayer:false
                     };
+                    
+                    // add markers
+                    $scope.markers = [{
+                        id: $scope.data.devicename,
+                        coords: $scope.data.location,
+                        title: $scope.data.devicename
+                    }];
+                    
+
+                    $scope.clickMarker = function(marker, event, markerobj) {
+                        console.log("clickMarker");
+                        console.log(markerobj.coords);
+                        //$scope.markers = [];
+                    };
+
+/*
+                    google.maps.event.addListener($scope.map, "click", (function(map) {
+                      return function(event) {
+                            console.log("addListener");
+                            $scope.markers = [{
+                                id: $scope.data.devicename,
+                                coords: event.latLng
+                            }];
+                            $scope.data.location = event.latLng;    
+                      };
+                    })($scope.map));                    
+*/                    
+
                 });
-                
             }
         })
         .catch(function (error) {
