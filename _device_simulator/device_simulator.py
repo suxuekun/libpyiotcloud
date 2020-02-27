@@ -1681,18 +1681,26 @@ class DownloadThread(threading.Thread):
             global g_firmware_version_STR
             g_firmware_version_STR = self.fileversion
 
+            # get the file only, not including folder
+            index = self.filename.rindex("/")
+            if index == -1:
+                index = 0
+            else:
+                index += 1
+            file_only = self.filename[index:]
+
             # send completion status
             payload = {}
             payload["value"] = {"result": "successful"}
             publish(topic, payload)
-            print("The firmware has been downloaded to {} !!!\r\n".format(self.filename))
+            print("The firmware has been downloaded to {} !!!\r\n".format(file_only))
             print("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\r\n\r\n\r\n\r\n")
         else:
             # send completion status
             payload = {}
             payload["value"] = {"result": "failed"}
             publish(topic, payload)
-            print("The firmware failed to download !!!\r\n".format(self.filename))
+            print("The firmware failed to download !!!\r\n")
             print("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\r\n\r\n\r\n\r\n")
 
         # start the timer thread
