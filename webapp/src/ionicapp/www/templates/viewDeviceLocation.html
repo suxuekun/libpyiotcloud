@@ -29,7 +29,10 @@
       <button id="viewDeviceLocation-button152" ng-click="setDeviceLocation(data.devicename)" class="button button-positive button-block">Set device location</button>
     </form>
     <ui-gmap-google-map ng-if="map.center" center="map.center" zoom="map.zoom" options="map.options" style="height:500px;">
-      <ui-gmap-layer type="TrafficLayer" show="map.showTraficLayer"></ui-gmap-layer>
+
+      <ui-gmap-markers models="markers" coords="map.center" click="clickMarker">
+      </ui-gmap-markers>
+
     </ui-gmap-google-map>
     <div class="spacer" style="width: 300px; height: 50px;"></div>
   </ion-content>
