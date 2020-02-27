@@ -16,18 +16,45 @@
     <form id="oTAFirmwareUpdate-form217" class="list">
       <div id="oTAFirmwareUpdate-markdown351" class="show-list-numbers-and-dots"></div>
       <label class="item item-select" id="oTAFirmwareUpdate-select105">
-        <span class="input-label">Device</span>
-        <select ng-options="device.devicename as device.devicename for device in devices" ng-model="data.devicename" ng-change="changeDevice(data.devicename)"></select>
+        <span class="input-label"> Device to update</span>
+        <select ng-options="device.devicename as device.devicename for device in devices" ng-model="data.devicename" ng-change="changeDevice(data.devicename)" ng-disabled="timer != null"></select>
       </label>
-      <label class="item item-input widget_button_half" id="oTAFirmwareUpdate-input170">
-        <span class="input-label">Current Version</span>
+      <label class="item item-select" id="oTAFirmwareUpdate-select108">
+        <span class="input-label">Version to use</span>
+        <select ng-options="firmware.version as firmware.version for firmware in data.firmwares.ft900.firmware" ng-model="versiontouse" ng-change="changeDescription(versiontouse)" ng-disabled="timer != null"></select>
+      </label>
+    </form>
+    <form id="oTAFirmwareUpdate-form224" class="list">
+      <div id="oTAFirmwareUpdate-markdown357" class="show-list-numbers-and-dots"></div>
+      <div id="oTAFirmwareUpdate-markdown358" class="show-list-numbers-and-dots">
+        <p style="color:#387EF5;">Device Information</p>
+      </div>
+      <label class="item item-input" id="oTAFirmwareUpdate-input169">
+        <span class="input-label">Device Name</span>
+        <input type="text" placeholder="" ng-model="data.devicename" readonly="">
+      </label>
+      <label class="item item-input" id="oTAFirmwareUpdate-input172">
+        <span class="input-label">Firmware Version</span>
         <input type="text" placeholder="" ng-model="data.version" readonly="">
       </label>
-      <label class="item item-input widget_button_half" id="oTAFirmwareUpdate-input171">
-        <span class="input-label">Latest Version</span>
-        <input type="text" placeholder="" ng-model="data.firmwares.ft900.latest" readonly="">
-      </label>
-      <button id="oTAFirmwareUpdate-button155" ng-click="upgradeFirmware(data.devicename)" ng-disabled="timer != null" class="button button-positive button-block">Upgrade device firmware</button>
+    </form>
+    <form id="oTAFirmwareUpdate-form221" class="list">
+      <div id="oTAFirmwareUpdate-markdown353" class="show-list-numbers-and-dots"></div>
+      <div id="oTAFirmwareUpdate-markdown354" class="show-list-numbers-and-dots">
+        <p style="color:#387EF5;">Online Upgrade</p>
+      </div>
+      <div id="oTAFirmwareUpdate-markdown356" class="show-list-numbers-and-dots tab_margin_1">
+        <p style="color:#444444;font-size:16px;">
+          <strong> Version to use: {{ versiontouse }} - {{ datetouse }} </strong>
+        </p>
+      </div>
+      <div id="oTAFirmwareUpdate-markdown237" ng-repeat="description in descriptiontouse" class="show-list-numbers-and-dots tab_margin_1">
+        <p style="color:#444444;font-size:16px;">{{ description }}</p>
+      </div>
+    </form>
+    <form id="oTAFirmwareUpdate-form223" class="list">
+      <div id="oTAFirmwareUpdate-markdown355" class="show-list-numbers-and-dots"></div>
+      <button id="oTAFirmwareUpdate-button158" ng-click="upgradeFirmware(data.devicename, versiontouse)" ng-disabled="timer != null" class="button button-positive button-block">Update</button>
     </form>
     <center>
       <a href="https://ft900-iot-portal.s3.amazonaws.com/latest_firmware_updates.json" target="_blank">
@@ -40,7 +67,7 @@
     </div>
     <div id="oTAFirmwareUpdate-markdown156" ng-repeat="firmware in data.firmwares.ft900.firmware" style="text-align:center;" class="show-list-numbers-and-dots">
       <p style="color:#AAAAAA;font-size:12px;">
-        <strong>{{ firmware.version }}</strong> - {{ firmware.date }} - {{ firmware.location }} - {{ firmware.size }} - {{ firmware.description }}</p>
+        <strong>{{ firmware.version }}</strong> - {{ firmware.date }} - {{ firmware.location }} - {{ firmware.size }}</p>
     </div>
   </ion-content>
 </ion-view>
