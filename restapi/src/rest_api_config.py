@@ -21,6 +21,9 @@ class config:
         CONFIG_HTTP_TLS_CERT    = "cert/server_cert.pem"
         CONFIG_HTTP_TLS_PKEY    = "cert/server_pkey.pem"
 
+    # Social IDP
+    CONFIG_HTTP_OAUTH2_DOMAIN   = os.environ["AWS_COGNITO_OAUTH_DOMAIN"]
+
     # Message broker credentials
     CONFIG_USERNAME             = os.environ["CONFIG_USE_MQTT_DEFAULT_USER"]
     CONFIG_PASSWORD             = os.environ["CONFIG_USE_MQTT_DEFAULT_PASS"]

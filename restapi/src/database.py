@@ -88,6 +88,9 @@ class database_client:
     # users
     ##########################################################
 
+    def get_cognito_client_id(self):
+        return self._users.get_cognito_client_id()
+
     def get_registered_users(self):
         return self._users.get_registered_users()
 
@@ -507,6 +510,9 @@ class database_client_cognito:
     ##########################################################
     # users
     ##########################################################
+
+    def get_cognito_client_id(self):
+        return self.client.get_cognito_client_id()
 
     def get_registered_users(self):
         (result, users) = self.client.admin_list_users()

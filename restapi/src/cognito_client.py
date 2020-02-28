@@ -18,6 +18,9 @@ class cognito_client:
 		self.pool_region           = config.CONFIG_USER_POOL_REGION
 		self.keys, self.keys_iss   = self.__get_userpool_keys()
 
+	def get_cognito_client_id(self):
+		return self.client_id
+	
 	def __get_client(self):
 		#return boto3.Session(region_name=self.pool_region).client('cognito-idp')
 		return boto3.Session(
