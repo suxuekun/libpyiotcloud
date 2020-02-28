@@ -18,6 +18,7 @@ from jose import jwk, jwt
 import http.client
 from s3_client import s3_client
 import threading
+import http
 #import redis
 
 
@@ -75,6 +76,119 @@ I2C_DEVICE_CLASS_FLUID         = 8
 @app.route('/')
 def index():
     return "", status.HTTP_401_UNAUTHORIZED
+
+def http_initialize_connection(host, port, timeout):
+    if True:
+        context = ssl._create_unverified_context()
+    else:
+        context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
+        context.verify_mode = ssl.CERT_REQUIRED
+        #context.load_cert_chain(config.CONFIG_TLS_CERT, config.CONFIG_TLS_PKEY)
+        #context.load_verify_locations(
+        #    config.CONFIG_TLS_CERT, config.CONFIG_TLS_CERT, config.CONFIG_TLS_PKEY)
+        #context.check_hostname = False
+    conn = http.client.HTTPSConnection(host, port, context=context, timeout=timeout)
+    return conn
+
+def http_send_request(conn, req_type, req_api, params, headers):
+    try:
+        if headers:
+            print("http_send_request")
+            #print("  {}:{}".format(CONFIG_HTTP_HOST, CONFIG_HTTP_TLS_PORT))
+            #print("  {} {}".format(req_type, req_api))
+            #print("  {}".format(headers))
+            conn.request(req_type, req_api, params, headers)
+            print("http_send_request\r\n")
+        else:
+            conn.request(req_type, req_api, params)
+        return True
+    except:
+        print("REQ: Could not communicate with WEBSERVER! {}".format(""))
+    return False
+
+def http_recv_response(conn):
+    try:
+        print("http_recv_response")
+        r1 = conn.getresponse()
+        print("http_recv_response")
+        print("  {} {} {}\r\n".format(r1.status, r1.reason, r1.length))
+        if r1.status == 200:
+            file_size = r1.length
+            #print("response = {} {} [{}]".format(r1.status, r1.reason, r1.length))
+            data = None
+            if file_size:
+                data = r1.read(file_size)
+            return file_size, data
+        else:
+            print("RES: Could not communicate with DEVICE! {}".format(r1.status))
+            return 0, None
+    except Exception as e:
+        print("RES: Could not communicate with DEVICE! {}".format(e))
+    return 0, None
+
+def http_get_oauth2_token(client_id, oauthorization_code, redirect_uri):
+    #print(config.CONFIG_HTTP_OAUTH2_DOMAIN)
+    #print(config.CONFIG_HTTP_TLS_PORT)
+
+    conn = http_initialize_connection(config.CONFIG_HTTP_OAUTH2_DOMAIN, config.CONFIG_HTTP_TLS_PORT, 100)
+    headers = { 
+        "Content-Type": "application/x-www-form-urlencoded",
+        "User-Agent": "PostmanRuntime/7.22.0",
+        "Accept": "*/*",
+        "Host": config.CONFIG_HTTP_OAUTH2_DOMAIN,
+        "Accept-Encoding": "gzip, deflate, br",
+        "Connection": "keep-alive",
+        #"Cookie": "XSRF-TOKEN=f0156613-8785-4f39-9fc6-13d3e4328226", 
+    }
+    data = 'grant_type=authorization_code' + '&client_id=' + client_id + '&code=' + oauthorization_code + '&redirect_uri=' + redirect_uri
+
+    api = "/oauth2/token"
+    result = http_send_request(conn, "POST", api, data, headers)
+    if result:
+        length, response = http_recv_response(conn)
+        if length == 0:
+            print("http_recv_response error")
+            return False
+    return result
+
+########################################################################################################
+#
+# LOGIN IDP
+#
+# - Request:
+#   POST /user/login/oauth2/token
+#   headers: {'Content-Type': 'application/json'}
+#   data: {'code': string, 'redirect_uri': string}
+#
+# - Response:
+#   {'status': 'OK', 'message': string, 'token': {'access': string, 'id': string, 'refresh': string}, 'name': string, 'username': string }
+#   {'status': 'NG', 'message': string}
+#
+########################################################################################################
+@app.route('/user/login/oauth2/token', methods=['POST'])
+def login_socialsidp_token():
+
+    data = flask.request.get_json()
+    if data.get("code") is None or data.get("redirect_uri") is None:
+        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+        print('\r\nERROR Login IDP: Empty parameter found [{}]\r\n'.format(username))
+        return response, status.HTTP_400_BAD_REQUEST
+
+    client_id = g_database_client.get_cognito_client_id()
+    print(client_id)
+    print(data['code'])
+    print(data['redirect_uri'])
+
+    result = http_get_oauth2_token(client_id, data['code'], data['redirect_uri'])
+    print(result)
+
+    msg = {'status': 'OK', 'message': "Login successful"} #, 'token': {'access': access, 'refresh': refresh, 'id': id} }
+#    if name is not None:
+#        msg['name'] = name
+    response = json.dumps(msg)
+#    print('\r\nLogin successful: {}\r\n'.format(username))
+    return response
+
 
 ########################################################################################################
 #
@@ -506,11 +620,15 @@ def get_user_info():
     # handle no family name
     if 'given_name' in info:
         info['name'] = info['given_name']
-        info.pop("given_name")
+        info.pop('given_name')
     if 'family_name' in info:
         if info['family_name'] != "NONE":
             info['name'] += " " + info['family_name']
-        info.pop("family_name")
+        info.pop('family_name')
+    if 'identities' in info:
+        identity = json.loads(info['identities'].strip(']['))
+        info['identity'] = { 'providerName': identity['providerName'], 'userId': identity['userId'] }
+        info.pop('identities')
 
     msg = {'status': 'OK', 'message': 'Userinfo queried successfully.', 'info': info}
     if new_token:
