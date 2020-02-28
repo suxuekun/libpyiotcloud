@@ -192,6 +192,58 @@ def login_socialsidp_token():
 
 ########################################################################################################
 #
+# LOGIN IDP STORE TOKEN
+#
+# - Request:
+#   POST /user/login/idp/token/<id>
+#   headers: {'Content-Type': 'application/json'}
+#   data: {'token': json_obj}
+#
+# - Response:
+#   {'status': 'OK', 'message': string}
+#   {'status': 'NG', 'message': string}
+#
+########################################################################################################
+@app.route('/user/login/idp/token/<id>', methods=['POST'])
+def login_idp_storetoken(id):
+    data = flask.request.get_json()
+    if data.get("token") is None:
+        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+        print('\r\nERROR Login IDP STORE TOKEN: Empty parameter found [{}]\r\n'.format(username))
+        return response, status.HTTP_400_BAD_REQUEST
+
+    g_database_client.set_idp_token(id, data["token"])
+
+    response = json.dumps({'status': 'OK', 'message': "Login IDP store token successful"})
+    return response
+
+########################################################################################################
+#
+# LOGIN IDP QUERY TOKEN
+#
+# - Request:
+#   GET /user/login/idp/token/<id>
+#   headers: {'Content-Type': 'application/json'}
+#
+# - Response:
+#   {'status': 'OK', 'message': string, 'token': json_obj}
+#   {'status': 'NG', 'message': string}
+#
+########################################################################################################
+@app.route('/user/login/idp/token/<id>', methods=['GET'])
+def login_idp_querytoken(id):
+    token = g_database_client.get_idp_token(id)
+    if token is None:
+        response = json.dumps({'status': 'NG', 'message': "Login IDP query token not found"})
+        return response
+
+    response = json.dumps({'status': 'OK', 'message': "Login IDP query token successful", 'token': token})
+    return response
+
+
+
+########################################################################################################
+#
 # LOGIN
 #
 # - Request:
