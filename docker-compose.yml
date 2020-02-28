@@ -51,6 +51,7 @@ services:
       - AWS_S3_FILE_I2C_DEVICES
       - AWS_S3_FILE_SENSOR_DEVICES
       - AWS_S3_FILE_FIRMWARE_UPDATES
+      - AWS_COGNITO_OAUTH_DOMAIN
   webapp:
     build: 
       context: ./webapp
@@ -58,6 +59,8 @@ services:
         config_use_apiurl: ${CONFIG_USE_APIURL}
         config_use_jwtkey: ${CONFIG_USE_JWT_SECRET_KEY}
         config_use_googleapikey: ${GOOGLE_API_KEY}
+        config_use_awsoauthdomain: ${AWS_COGNITO_OAUTH_DOMAIN}
+        config_use_awsclientid: ${AWS_COGNITO_CLIENT_ID}
     restart: always
     networks:
       - mydockernet
@@ -69,6 +72,8 @@ services:
       - CONFIG_USE_APIURL
       - CONFIG_USE_JWT_SECRET_KEY
       - GOOGLE_API_KEY
+      - AWS_COGNITO_OAUTH_DOMAIN
+      - AWS_COGNITO_CLIENT_ID
   nginx:
     build: 
       context: ./nginx
