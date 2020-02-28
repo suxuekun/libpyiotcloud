@@ -1381,23 +1381,25 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
 
     // Support for Login via social accounts like Facebook
     function GetURLParameters() {
+        var state_id = GetURLParameter('state');
         var oauthorization_code = GetURLParameter('code');
-        if (oauthorization_code !== null) {
+        if (oauthorization_code !== null && state_id !== null) {
             console.log(oauthorization_code);
 
             // User is logging via social accounts like Facebook
             if (window.__env.apiUrl === "localhost") {
-                $scope.get_tokens_from_oauthcode(oauthorization_code, window.__env.clientId, 'http://localhost:8100');
+                $scope.get_tokens_from_oauthcode(oauthorization_code, state_id, window.__env.clientId, 'http://localhost:8100');
+                //$scope.login_idp(oauthorization_code, 'http://localhost:8100');
             }
             else {
-                $scope.get_tokens_from_oauthcode(oauthorization_code, window.__env.clientId, server);
+                $scope.get_tokens_from_oauthcode(oauthorization_code, state_id, window.__env.clientId, server);
+                //$scope.login_idp(oauthorization_code, server);
             }
-            //$scope.login_idp(oauthorization_code, 'http://localhost:8100');
         }
     }
 
     // GET TOKENS
-    $scope.get_tokens_from_oauthcode = function(oauthorization_code, client_id, redirect_uri) {
+    $scope.get_tokens_from_oauthcode = function(oauthorization_code, state_id, client_id, redirect_uri) {
         //
         // GET TOKENS
         // - Request:
@@ -1425,14 +1427,14 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
             console.log(result.data);
 
             // Set username and tokens
-            var user_data = {
-                'username': 'Facebook',
-                'token': { 'id': result.data.id_token, 'refresh': result.data.refresh_token, 'access': result.data.access_token }
-            };
+            //var user_data = {
+            //    'username': 'Facebook',
+            //    'token': { 'id': result.data.id_token, 'refresh': result.data.refresh_token, 'access': result.data.access_token }
+            //};
+            //User.set(user_data);
+            //$state.go('menu.devices', user_data);
             
-            User.set(user_data);
-        
-            $state.go('menu.devices', user_data);
+            $scope.login_idp_storetoken(state_id, { 'id': result.data.id_token, 'refresh': result.data.refresh_token, 'access': result.data.access_token });
         })
         .catch(function (error) {
             // Handle failed
@@ -1448,12 +1450,41 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
 
 
     $scope.getOAuthCode = function() {
+        
+        var state = Math.floor(Math.random() * 8999999999 + 1000000000);
+        
+        var url = "https://" + window.__env.oauthDomain + "/login";
+        url += "?client_id=" + window.__env.clientId;
+        url += "&response_type=code";
+        url += "&scope=email+openid+phone+aws.cognito.signin.user.admin";
+        url += "&state=" + state;
+        
+        if (window.__env.apiUrl === "localhost") {
+            url += '&redirect_uri=http://localhost:8100';
+        }
+        else {
+            url += '&redirect_uri=' + server;
+        }
+        
+        var win = window.open(url,"_blank",
+            'width=1000,height=475,left=100,top=100,resizable=no,scrollbars=no,toolbar=no,menubar=no,location=no,directories=no,status=no,titlebar=no',replace=false);
+            
+        var timer = setInterval(function() {
+            if (win.closed) {
+                console.log("exited");
+                clearInterval(timer);
+                $scope.login_idp_querytoken(state.toString());
+            }
+        }, 1000);
+        
+/*        
         if (window.__env.apiUrl === "localhost") {
             $scope.get_oauthcode(window.__env.clientId, 'http://localhost:8100');
         }
         else {
             $scope.get_oauthcode(window.__env.clientId, server);
         }
+*/
     };
 
     // GET OAUTH CODE
@@ -1471,13 +1502,13 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
         
         url = 'https://' + window.__env.oauthDomain + '/oauth2/authorize';
         url += '?response_type=code' + '&client_id=' + client_id + '&redirect_uri=' + redirect_uri;// + '&identity_provider=Facebook' + '&scope=email+openid+phone+aws.cognito.signin.user.admin';
-        console.log(url);
+        //console.log(url);
         //console.log(data);
         
         $http({
             method: 'GET',
             url: url,
-            headers: {'Content-Type': 'application/x-www-form-urlencoded'}
+            headers: {'Content-Type': 'application/x-www-form-urlencoded', 'Access-Control-Allow-Origin': true}
         })
         .then(function (result) {
             console.log("get_oauthcode ok");
@@ -1496,6 +1527,89 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
     };
 
 
+
+    // Support for Login via social accounts like Facebook
+    $scope.login_idp_storetoken = function(id, token) {
+        // 
+        // LOGIN IDP STORE TOKEN
+        // 
+        // - Request:
+        //   POST /user/login/idp/token/<id>
+        //   headers: {'Content-Type': 'application/json'}
+        //   data: {'token': json_obj}
+        // 
+        // - Response:
+        //   {'status': 'OK', 'message': string}
+        //   {'status': 'NG', 'message': string}
+        //
+        $http({
+            method: 'POST',
+            url: server + '/user/login/idp/token/' + id,
+            headers: {'Content-Type': 'application/json'},
+            data: {'token': token}
+        })
+        .then(function (result) {
+            console.log(result.data);
+            window.close();
+        })
+        .catch(function (error) {
+            // Handle failed
+            if (error.data !== null) {
+                console.log(error.status + " " + error.statusText);
+                $ionicPopup.alert({ title: 'Login Error', template: error.data.message });
+            }
+            else {
+                $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+            }
+        });
+    };
+
+
+    // Support for Login via social accounts like Facebook
+    $scope.login_idp_querytoken = function(id) {
+        // 
+        // LOGIN IDP QUERY TOKEN
+        // 
+        // - Request:
+        //   GET /user/login/idp/token/<id>
+        //   headers: {'Content-Type': 'application/json'}
+        // 
+        // - Response:
+        //   {'status': 'OK', 'message': string}
+        //   {'status': 'NG', 'message': string}
+        //
+        $http({
+            method: 'GET',
+            url: server + '/user/login/idp/token/' + id,
+            headers: {'Content-Type': 'application/json'},
+        })
+        .then(function (result) {
+            console.log(result.data);
+
+            if (result.data.token !== undefined) {    
+                var user_data = {
+                    'username': $scope.data.username,
+                    'token': result.data.token
+                };
+                
+                User.set(user_data);
+                $state.go('menu.devices', user_data);
+            }
+        })
+        .catch(function (error) {
+            // Handle failed
+            if (error.data !== null) {
+                console.log(error.status + " " + error.statusText);
+                $ionicPopup.alert({ title: 'Login Error', template: error.data.message });
+            }
+            else {
+                $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+            }
+        });
+    };
+
+
+/*
     // Support for Login via social accounts like Facebook
     $scope.login_idp = function(oauthorization_code, redirect_uri) {
         // 
@@ -1539,7 +1653,7 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
             }
         });
     };
-
+*/
 
     // Support for Login via social accounts like Facebook
     $scope.$on('$ionicView.enter', function(e) {

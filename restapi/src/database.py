@@ -49,6 +49,9 @@ class database_client:
         # transactions database
         self._transactions = self._devices
 
+        # idp database
+        self._idp = self._devices
+
 
     def initialize(self):
         self._users.initialize()
@@ -82,6 +85,20 @@ class database_client:
 
     def set_subscription(self, username, credits):
         return self._subscriptions.set_subscription(username, credits)
+
+
+    ##########################################################
+    # idp token
+    ##########################################################
+
+    def get_idp_token(self, id):
+        return self._idp.get_idp_token(id)
+
+    def set_idp_token(self, id, token):
+        self._idp.set_idp_token(id, token)
+
+    def delete_idp_token(self, id):
+        self._idp.delete_idp_token(id)
 
 
     ##########################################################
@@ -822,6 +839,39 @@ class database_client_mongodb:
                     subscription.pop('username')
                     return subscription 
         return None
+
+
+    ##########################################################
+    # idp token
+    ##########################################################
+
+    def get_idp_token_db(self):
+        return self.client[config.CONFIG_MONGODB_TB_IDPTOKEN]
+
+    def get_idp_token(self, id):
+        idptokens = self.get_idp_token_db()
+        token = None
+        if idptokens:
+            for idptoken in idptokens.find({'id': id}):
+                token = idptoken['token']
+                self.delete_idp_token(id)
+                break
+        return token
+
+    def set_idp_token(self, id, token):
+        idptokens = self.get_idp_token_db()
+        item = {}
+        item['id'] = id
+        item['token'] = token
+        item['timestamp'] = int(time.time())
+        idptokens.insert_one(item)
+
+    def delete_idp_token(self, id):
+        idptokens = self.get_idp_token_db()
+        try:
+            idptokens.delete_many({'id': id})
+        except:
+            pass
 
 
     ##########################################################
