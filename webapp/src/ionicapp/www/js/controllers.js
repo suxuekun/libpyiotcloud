@@ -3346,8 +3346,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                         zoom: $scope.data.zoom,
                         options: {
                             mapTypeId: google.maps.MapTypeId.ROADMAP, // This is an example of a variable that cannot be placed outside of uiGmapGooogleMapApi without forcing of calling the google.map helper outside of the function
-                            streetViewControl: false, // streetview
-                            mapTypeControl: false, // satellite
+                            streetViewControl: true, // streetview
+                            mapTypeControl: true, // satellite
                             scaleControl: true,
                             rotateControl: true,
                             zoomControl: true,
