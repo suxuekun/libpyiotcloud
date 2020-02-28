@@ -1470,15 +1470,14 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
         //
         
         url = 'https://' + window.__env.oauthDomain + '/oauth2/authorize';
-        data = 'response_type=code' + '&client_id=' + client_id + '&redirect_uri=' + redirect_uri + '&identity_provider=Facebook' + '&scope=email+openid+phone+aws.cognito.signin.user.admin';
-        //console.log(url);
+        url += '?response_type=code' + '&client_id=' + client_id + '&redirect_uri=' + redirect_uri;// + '&identity_provider=Facebook' + '&scope=email+openid+phone+aws.cognito.signin.user.admin';
+        console.log(url);
         //console.log(data);
         
         $http({
             method: 'GET',
             url: url,
-            headers: {'Content-Type': 'application/x-www-form-urlencoded' },
-            data: data
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'}
         })
         .then(function (result) {
             console.log("get_oauthcode ok");
