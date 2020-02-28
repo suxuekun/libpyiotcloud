@@ -275,6 +275,7 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token)
         'fullname': 'Unknown',
         'email': 'Unknown',
         'phonenumber': 'Unknown',
+        'identityprovider': 'Unknown',
 
         'subscription_type': 'Unknown',
         'subscription_credits': 'Unknown',
@@ -365,6 +366,12 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token)
                 if (result.data.info.phone_number_verified === false) {
                     $scope.data.phonenumber +=  " (Unverified)";
                 }
+            }
+            if (result.data.info.identity !== undefined) {
+                $scope.data.identityprovider = result.data.info.identity.providerName + " (" + result.data.info.identity.userId + ")";
+            }
+            else {
+                $scope.data.identityprovider = "None";
             }
         })
         .catch(function (error) {
@@ -592,6 +599,12 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token)
 
     $scope.submitChangepassword = function() {
         console.log("submitChangepassword");
+        
+        // Cannot change password if login with social accounts
+        if ($scope.data.identityprovider !== "Unknown" && $scope.data.identityprovider !== "None") {
+            return;
+        }
+        
         $state.go('changePassword', {'username': $scope.data.username, 'token': $scope.data.token});
     };
 
@@ -1204,14 +1217,14 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
             $scope.data.username = "";        
             $scope.data.token = "";        
             User.clear();
-            $state.go('login');
+            $state.go('login', {}, {reload: true});
         })
         .catch(function (error) {
             console.log("logout failed!");
             $scope.data.username = "";        
             $scope.data.token = "";        
             User.clear();
-            $state.go('login');
+            $state.go('login', {}, {reload: true});
         });    
     }    
 }
@@ -1342,6 +1355,197 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
             }
         });
     };
+    
+    
+    // Support for Login via social accounts like Facebook
+    function GetURLParameter(sParam) {
+        var sPageURL = window.location.href.substring(1);
+        try {
+            var sPageParameters = sPageURL.split('?');
+            if (sPageParameters !== null) {
+                var sURLVariables = sPageParameters[1].split('&');
+                if (sURLVariables !== null) {
+                    for (var i = 0; i < sURLVariables.length; i++) {
+                        var sParameterName = sURLVariables[i].split('=');
+                        if (sParameterName[0] == sParam) {
+                            return (sParameterName[1].split('#'))[0];
+                        }
+                    }
+                }
+            }
+        }
+        catch(err) {
+        }
+        return null;
+    }
+
+    // Support for Login via social accounts like Facebook
+    function GetURLParameters() {
+        var oauthorization_code = GetURLParameter('code');
+        if (oauthorization_code !== null) {
+            console.log(oauthorization_code);
+
+            // User is logging via social accounts like Facebook
+            if (window.__env.apiUrl === "localhost") {
+                $scope.get_tokens_from_oauthcode(oauthorization_code, window.__env.clientId, 'http://localhost:8100');
+            }
+            else {
+                $scope.get_tokens_from_oauthcode(oauthorization_code, window.__env.clientId, server);
+            }
+            //$scope.login_idp(oauthorization_code, 'http://localhost:8100');
+        }
+    }
+
+    // GET TOKENS
+    $scope.get_tokens_from_oauthcode = function(oauthorization_code, client_id, redirect_uri) {
+        //
+        // GET TOKENS
+        // - Request:
+        //   POST 'https://' + window.__env.oauthDomain + '/oauth2/token'
+        //   headers: {'Content-Type': 'application/x-www-form-urlencoded' }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string }
+        //   { 'status': 'NG', 'message': string}
+        //
+        
+        url = 'https://' + window.__env.oauthDomain + '/oauth2/token';
+        data = 'grant_type=authorization_code' + '&client_id=' + client_id + '&code=' + oauthorization_code + '&redirect_uri=' + redirect_uri;
+        //console.log(url);
+        //console.log(data);
+        
+        $http({
+            method: 'POST',
+            url: url,
+            headers: {'Content-Type': 'application/x-www-form-urlencoded' },
+            data: data
+        })
+        .then(function (result) {
+            console.log("get_tokens_from_oauthcode ok");
+            console.log(result.data);
+
+            // Set username and tokens
+            var user_data = {
+                'username': 'Facebook',
+                'token': { 'id': result.data.id_token, 'refresh': result.data.refresh_token, 'access': result.data.access_token }
+            };
+            
+            User.set(user_data);
+        
+            $state.go('menu.devices', user_data);
+        })
+        .catch(function (error) {
+            // Handle failed
+            if (error.data !== null) {
+                console.log(error.status + " " + error.statusText);
+                $ionicPopup.alert({ title: 'Login Error', template: error.data.message });
+            }
+            else {
+                $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+            }
+        }); 
+    };
+
+
+    $scope.getOAuthCode = function() {
+        if (window.__env.apiUrl === "localhost") {
+            $scope.get_oauthcode(window.__env.clientId, 'http://localhost:8100');
+        }
+        else {
+            $scope.get_oauthcode(window.__env.clientId, server);
+        }
+    };
+
+    // GET OAUTH CODE
+    $scope.get_oauthcode = function(client_id, redirect_uri) {
+        //
+        // GET OAUTH CODE
+        // - Request:
+        //   GET 'https://' + window.__env.oauthDomain + '/oauth2/authorize'
+        //   headers: {'Content-Type': 'application/x-www-form-urlencoded' }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string }
+        //   { 'status': 'NG', 'message': string}
+        //
+        
+        url = 'https://' + window.__env.oauthDomain + '/oauth2/authorize';
+        data = 'response_type=code' + '&client_id=' + client_id + '&redirect_uri=' + redirect_uri + '&identity_provider=Facebook' + '&scope=email+openid+phone+aws.cognito.signin.user.admin';
+        //console.log(url);
+        //console.log(data);
+        
+        $http({
+            method: 'GET',
+            url: url,
+            headers: {'Content-Type': 'application/x-www-form-urlencoded' },
+            data: data
+        })
+        .then(function (result) {
+            console.log("get_oauthcode ok");
+            console.log(result.data);
+        })
+        .catch(function (error) {
+            // Handle failed
+            if (error.data !== null) {
+                console.log(error.status + " " + error.statusText);
+                $ionicPopup.alert({ title: 'Login Error', template: error.data.message });
+            }
+            else {
+                $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+            }
+        }); 
+    };
+
+
+    // Support for Login via social accounts like Facebook
+    $scope.login_idp = function(oauthorization_code, redirect_uri) {
+        // 
+        // LOGIN
+        // 
+        // - Request:
+        //   POST /user/login/oauth2/token
+        //   headers: {'Content-Type': 'application/json'}
+        //   data: {'code': string, 'redirect_uri': string}
+        // 
+        // - Response:
+        //   {'status': 'OK', 'token': {'access': string, 'id': string, 'refresh': string} }
+        //   {'status': 'NG', 'message': string}
+        //
+        $http({
+            method: 'POST',
+            url: server + '/user/login/oauth2/token',
+            headers: {'Content-Type': 'application/json'},
+            data: {'code': oauthorization_code, 'redirect_uri': redirect_uri}
+        })
+        .then(function (result) {
+            console.log(result.data);
+
+            var user_data = {
+                'username': $scope.data.username,
+                'token': result.data.token
+            };
+            
+            User.set(user_data);
+        
+            $state.go('menu.devices', user_data);
+        })
+        .catch(function (error) {
+            // Handle failed
+            if (error.data !== null) {
+                console.log(error.status + " " + error.statusText);
+                $ionicPopup.alert({ title: 'Login Error', template: error.data.message });
+            }
+            else {
+                $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+            }
+        });
+    };
+
+
+    // Support for Login via social accounts like Facebook
+    $scope.$on('$ionicView.enter', function(e) {
+        GetURLParameters();
+    });
 }])
    
 .controller('signupCtrl', ['$scope', '$stateParams', '$state', '$ionicPopup', '$http', 'Server', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller

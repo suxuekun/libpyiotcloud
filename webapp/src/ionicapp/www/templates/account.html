@@ -20,6 +20,10 @@
         <span class="input-label">Mobile Number</span>
         <input type="text" placeholder="" ng-model="data.phonenumber">
       </label>
+      <label class="item item-input" id="account-input170">
+        <span class="input-label">Identity Provider</span>
+        <input type="text" placeholder="" ng-model="data.identityprovider" readonly="">
+      </label>
       <button id="account-button19" ng-click="submitVerifynumber()" ng-show="data.phonenumber.includes(&quot;Unverified&quot;)" class="button button-positive button-block button-outline">Verify mobile number</button>
       <button id="account-button42" ng-click="submitSavechanges()" class="button button-positive button-block">Save changes</button>
       <button id="account-button39" ng-click="submitChangepassword()" class="button button-positive button-block button-outline">Change password</button>
