@@ -1938,6 +1938,17 @@ def read_kbd_input(inputQueue):
 # HTTPS client
 ###################################################################################
 
+def http_write_to_file(filename, contents):
+    index = filename.rindex("/")
+    if index == -1:
+        index = 0
+    else:
+        index += 1
+    new_filename = filename[index:]
+    f = open(new_filename, "wb")
+    f.write(contents)
+    f.close()
+
 def http_initialize_connection():
     if True:
         context = ssl._create_unverified_context()
@@ -1985,17 +1996,6 @@ def http_recv_response(conn):
     except Exception as e:
         print("RES: Could not communicate with DEVICE! {}".format(e))
     return 0, None
-
-def http_write_to_file(filename, contents):
-    index = filename.rindex("/")
-    if index == -1:
-        index = 0
-    else:
-        index += 1
-    new_filename = filename[index:]
-    f = open(new_filename, "wb")
-    f.write(contents)
-    f.close()
 
 def http_get_firmware_binary(filename, filesize):
     conn = http_initialize_connection()
