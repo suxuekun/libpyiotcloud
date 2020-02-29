@@ -174,12 +174,13 @@ Menu, account, history
 
 ### Features
 
-    1. User sign-up/sign-in, Device Registration, Email/SMS Notifications, Payment Gateway
-       A. Amazon Cognito for user sign-up and sign-in
+    1. User sign-up/sign-in, Device Registration, Email/SMS Notifications, Payment Gateway, Google Maps
+       A. Amazon Cognito for user sign-up and sign-in (with support for OTP, MFA, OAuth2 for Facebook/Google login)
        B. MongoDB NoSQL database for storing registered device information and device requests/responses
        C. OpenSSL for generating certificates on-demand for registered devices
-       D. Email/SMS notifications using AmazonPinpoint, Twilio, Nexmo (device-initiated, client-initiated)
+       D. Email/SMS/push notifications using AmazonPinpoint, Twilio, Nexmo (device-initiated, client-initiated)
        E. Payment gateway using Paypal
+       F. Google Maps for setting/viewing device location
     2. Device Access/Control via Flask+GUnicorn+Nginx
        - get/set GPIOs, get/set RTC, get MAC address, reset device
        - get IP/Subnet/Gateway addresses, write UART
@@ -204,6 +205,7 @@ Menu, account, history
        - Sensor data graphing/charting
        - Sensor data forwarding (forward to another IoT Modem device)
        - Sensor data thresholding (triggering MENOS messages - Mobile, Email, Notifications, mOdem, Storage)
+
 
 
 ### REST APIs
