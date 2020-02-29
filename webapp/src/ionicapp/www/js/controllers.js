@@ -1124,8 +1124,9 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
     var server = Server.rest_api;
 
     $scope.data = {
-        'username': User.get_username(), //$stateParams.username,
-        'token': User.get_token()        //$stateParams.token
+        'username': User.get_username(),
+        'token': User.get_token(),
+        'name': User.get_name()
     };
 
     $scope.$on('$ionicView.enter', function(e) {
@@ -1135,6 +1136,9 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
         }
         if ($scope.data.token === "") {
             $scope.data.token = User.get_token();
+        }
+        if ($scope.data.name === "") {
+            $scope.data.name = User.get_name();
         }
     });
 
@@ -1195,6 +1199,7 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
             console.log(result.data);
             $scope.data.username = "";        
             $scope.data.token = "";        
+            $scope.data.name = "";        
             User.clear();
             $state.go('login', {}, {reload: true});
         })
@@ -1202,6 +1207,7 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
             console.log("logout failed!");
             $scope.data.username = "";        
             $scope.data.token = "";        
+            $scope.data.name = "";        
             User.clear();
             $state.go('login', {}, {reload: true});
         });    
@@ -1224,6 +1230,8 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
         'password': $scope.password
     };
     
+    $scope.oauthorization_code = null;
+
     base64Encode = function(str) {
         return window.btoa(str);
     };
@@ -1314,7 +1322,8 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
 
             var user_data = {
                 'username': $scope.data.username,
-                'token': result.data.token
+                'token': result.data.token,
+                'name': result.data.name
             };
             
             User.set(user_data);
@@ -1361,23 +1370,23 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
     // Support for Login via social accounts like Facebook
     function GetURLParameters() {
         var state_id = GetURLParameter('state');
-        var oauthorization_code = GetURLParameter('code');
-        if (oauthorization_code !== null && state_id !== null) {
-            console.log(oauthorization_code);
+        $scope.oauthorization_code = GetURLParameter('code');
+        if ($scope.oauthorization_code !== null && state_id !== null) {
+            console.log($scope.oauthorization_code);
 
             // User is logging via social accounts like Facebook
             if (window.__env.apiUrl === "localhost") {
-                $scope.get_tokens_from_oauthcode(oauthorization_code, state_id, window.__env.clientId, 'http://localhost:8100');
-                //$scope.login_idp(oauthorization_code, 'http://localhost:8100');
+                $scope.get_tokens_from_oauthcode($scope.oauthorization_code, state_id, window.__env.clientId, 'http://localhost:8100');
+                //$scope.login_idp($scope.oauthorization_code, 'http://localhost:8100');
             }
             else {
-                $scope.get_tokens_from_oauthcode(oauthorization_code, state_id, window.__env.clientId, server);
-                //$scope.login_idp(oauthorization_code, server);
+                $scope.get_tokens_from_oauthcode($scope.oauthorization_code, state_id, window.__env.clientId, server);
+                //$scope.login_idp($scope.oauthorization_code, server);
             }
         }
-        else if (oauthorization_code !== null) {
-            console.log(oauthorization_code);
-            $scope.get_tokens_from_oauthcode(oauthorization_code, 0, window.__env.clientId, 'http://localhost:8100');
+        else if ($scope.oauthorization_code !== null) {
+            console.log($scope.oauthorization_code);
+            $scope.get_tokens_from_oauthcode($scope.oauthorization_code, 0, window.__env.clientId, 'http://localhost:8100');
         }
     }
 
@@ -1416,7 +1425,8 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
             else {
                 var user_data = {
                     'username': 'SocialIDPLogin',
-                    'token': { 'id': result.data.id_token, 'refresh': result.data.refresh_token, 'access': result.data.access_token }
+                    'token': { 'id': result.data.id_token, 'refresh': result.data.refresh_token, 'access': result.data.access_token },
+                    'name': 'SocialIDPLogin'
                 };
                 User.set(user_data);
                 $state.go('menu.devices', user_data);
@@ -1577,7 +1587,8 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
             if (result.data.token !== undefined) {    
                 var user_data = {
                     'username': result.data.username,
-                    'token': result.data.token
+                    'token': result.data.token,
+                    'name': result.data.name,
                 };
                 
                 User.set(user_data);

@@ -13,7 +13,8 @@ angular.module('token', [])
                     console.log("New Token exists!");
                     User.set({
                         'username': userdata.username,
-                        'token': result.data.token
+                        'token': result.data.token,
+                        'name': User.get_name(),
                     });
                 }
             }
