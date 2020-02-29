@@ -1434,7 +1434,7 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
         }); 
     };
 
-    $scope.getOAuthCode = function(socialidp) {
+    $scope.getOAuthCode = function(socialidp=null) {
         
         var state = Math.floor(Math.random() * 8999999999 + 1000000000);
         
@@ -1443,7 +1443,9 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
         url += "&response_type=code";
         url += "&scope=email+openid+phone+aws.cognito.signin.user.admin";
         url += "&state=" + state;
-        url += "&identity_provider=" + socialidp;
+        if (socialidp !== null) {
+            url += "&identity_provider=" + socialidp;
+        }
         
         if (window.__env.apiUrl === "localhost") {
             url += '&redirect_uri=http://localhost:8100';
