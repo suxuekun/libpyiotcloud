@@ -12,7 +12,7 @@ angular.module('user', [])
         },
         
         clear: function() {
-            window.localStorage.user_data = JSON.stringify({"username": "", "token": ""});  
+            window.localStorage.user_data = JSON.stringify({"username": "", "token": "", "name": ""});  
         },
         
         get_username: function() {
@@ -21,6 +21,10 @@ angular.module('user', [])
 
         get_token: function() {
             return JSON.parse(window.localStorage.user_data).token;
+        },
+        
+        get_name: function() {
+            return JSON.parse(window.localStorage.user_data).name;
         }
     }
     
