@@ -1,6 +1,6 @@
 <ion-view title="Account" hide-back-button="true" nav-transition="none" id="page3" class="page_width">
   <ion-nav-buttons side="right" class="has-header">
-    <button class="button button-positive icon ion-trash-b" ng-click="submitDeleteaccount()"></button>
+    <button class="button button-positive icon ion-refresh" ng-click="getProfile()"></button>
   </ion-nav-buttons>
   <ion-content padding="true" class="has-header">
     <div id="account-button-bar2" class="button-bar">
@@ -27,6 +27,7 @@
       <button id="account-button19" ng-click="submitVerifynumber()" ng-show="data.phonenumber.includes(&quot;Unverified&quot;)" class="button button-positive button-block button-outline">Verify mobile number</button>
       <button id="account-button42" ng-click="submitSavechanges()" class="button button-positive button-block">Save changes</button>
       <button id="account-button39" ng-click="submitChangepassword()" class="button button-positive button-block button-outline">Change password</button>
+      <button id="account-button149" ng-click="submitDeleteaccount()" class="button button-assertive button-block button-outline">Delete account</button>
     </form>
     <form id="account-form19" class="list" ng-show="data.activeSection==2">
       <label class="item item-input" id="account-input48">
