@@ -241,6 +241,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Device
 
     $scope.$on('$ionicView.enter', function(e) {
         //console.log("DEVICES enter ionicView REFRESH LIST");
+        $scope.devices = [];
+        $scope.devices_counthdr = "No device registered" ;
         $scope.submitRefresh(false);
     });
     
