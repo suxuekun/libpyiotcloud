@@ -677,17 +677,22 @@ def get_user_info():
         info = g_database_client.get_user_info(token['access'])
 
     # handle no family name
+    if 'identities' in info:
+        identity = json.loads(info['identities'].strip(']['))
+        info['identity'] = { 'providerName': identity['providerName'], 'userId': identity['userId'] }
+        info.pop('identities')
     if 'given_name' in info:
         info['name'] = info['given_name']
         info.pop('given_name')
     if 'family_name' in info:
         if info['family_name'] != "NONE":
-            info['name'] += " " + info['family_name']
+            # do not append family name if login with amazon
+            if 'identity' in info:
+                if info['identity']['providerName'] != 'LoginWithAmazon':
+                    info['name'] += " " + info['family_name']
+            else:
+                info['name'] += " " + info['family_name']
         info.pop('family_name')
-    if 'identities' in info:
-        identity = json.loads(info['identities'].strip(']['))
-        info['identity'] = { 'providerName': identity['providerName'], 'userId': identity['userId'] }
-        info.pop('identities')
 
     msg = {'status': 'OK', 'message': 'Userinfo queried successfully.', 'info': info}
     if new_token:
