@@ -175,7 +175,7 @@ Menu, account, history
 ### Features
 
     1. User sign-up/sign-in, Device Registration, Email/SMS Notifications, Payment Gateway, Google Maps
-       A. Amazon Cognito for user sign-up and sign-in (with support for OTP, MFA, OAuth2 for Facebook/Google login)
+       A. Amazon Cognito for user sign-up and sign-in (with support for OTP, MFA, OAuth2 for Facebook/Google/Amazon login)
        B. MongoDB NoSQL database for storing registered device and sensor information
        C. OpenSSL for generating certificates on-demand for registered devices
        D. Email/SMS/push notifications using AmazonPinpoint, Twilio, Nexmo (device-initiated, client-initiated)
