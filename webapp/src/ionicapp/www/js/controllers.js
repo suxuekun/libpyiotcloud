@@ -1393,7 +1393,7 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
         //
         
         url = 'https://' + window.__env.oauthDomain + '/oauth2/token';
-        data = '?grant_type=authorization_code' + '&client_id=' + client_id + '&code=' + oauthorization_code + '&redirect_uri=' + redirect_uri;
+        data = 'grant_type=authorization_code' + '&client_id=' + client_id + '&code=' + oauthorization_code + '&redirect_uri=' + redirect_uri;
         //console.log(url);
         //console.log(data);
         
@@ -1485,7 +1485,7 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
         //
         
         url = 'https://' + window.__env.oauthDomain + '/oauth2/authorize';
-        url += 'response_type=code' + '&client_id=' + client_id + '&redirect_uri=' + redirect_uri + '&identity_provider=Facebook' + '&scope=email+openid+phone+aws.cognito.signin.user.admin';
+        url += '?response_type=code' + '&client_id=' + client_id + '&redirect_uri=' + redirect_uri + '&identity_provider=Facebook' + '&scope=email+openid+phone+aws.cognito.signin.user.admin';
         //console.log(url);
         //console.log(data);
         
