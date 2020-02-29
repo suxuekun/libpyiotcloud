@@ -1446,43 +1446,44 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
 
     $scope.getOAuthCode = function(socialidp=null) {
         
-        var state = Math.floor(Math.random() * 8999999999 + 1000000000);
-        
-        var url = "https://" + window.__env.oauthDomain + "/login";
-        url += "?client_id=" + window.__env.clientId;
-        url += "&response_type=code";
-        url += "&scope=email+openid+phone+aws.cognito.signin.user.admin";
-        url += "&state=" + state;
-        if (socialidp !== null) {
-            url += "&identity_provider=" + socialidp;
-        }
-        
-        if (window.__env.apiUrl === "localhost") {
-            url += '&redirect_uri=http://localhost:8100';
-        }
-        else {
-            url += '&redirect_uri=' + server;
-        }
-        
-        var win = window.open(url,"_blank",
-            'width=1000,height=475,left=100,top=100,resizable=no,scrollbars=no,toolbar=no,menubar=no,location=no,directories=no,status=no,titlebar=no',replace=false);
+        if (true) {
+            var state = Math.floor(Math.random() * 8999999999 + 1000000000);
             
-        var timer = setInterval(function() {
-            if (win.closed) {
-                console.log("exited");
-                clearInterval(timer);
-                $scope.login_idp_querytoken(state.toString());
+            var url = "https://" + window.__env.oauthDomain + "/login";
+            url += "?client_id=" + window.__env.clientId;
+            url += "&response_type=code";
+            url += "&scope=email+openid+phone+aws.cognito.signin.user.admin";
+            url += "&state=" + state;
+            if (socialidp !== null) {
+                url += "&identity_provider=" + socialidp;
             }
-        }, 1000);
-        
-/*        
-        if (window.__env.apiUrl === "localhost") {
-            $scope.get_oauthcode(window.__env.clientId, 'http://localhost:8100');
+            
+            if (window.__env.apiUrl === "localhost") {
+                url += '&redirect_uri=http://localhost:8100';
+            }
+            else {
+                url += '&redirect_uri=' + server;
+            }
+            
+            var win = window.open(url,"_blank",
+                'width=1000,height=475,left=100,top=100,resizable=no,scrollbars=no,toolbar=no,menubar=no,location=no,directories=no,status=no,titlebar=no',replace=false);
+                
+            var timer = setInterval(function() {
+                if (win.closed) {
+                    console.log("exited");
+                    clearInterval(timer);
+                    $scope.login_idp_querytoken(state.toString());
+                }
+            }, 1000);
         }
         else {
-            $scope.get_oauthcode(window.__env.clientId, server);
+            if (window.__env.apiUrl === "localhost") {
+                $scope.get_oauthcode(window.__env.clientId, 'http://localhost:8100');
+            }
+            else {
+                $scope.get_oauthcode(window.__env.clientId, server);
+            }
         }
-*/
     };
 
     // GET OAUTH CODE
@@ -1499,7 +1500,12 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
         //
         
         url = 'https://' + window.__env.oauthDomain + '/oauth2/authorize';
-        url += '?response_type=code' + '&client_id=' + client_id + '&redirect_uri=' + redirect_uri + '&identity_provider=Facebook' + '&scope=email+openid+phone+aws.cognito.signin.user.admin';
+        url += '?identity_provider=Facebook';
+        url += '&redirect_uri=' + redirect_uri;
+        url += '&response_type=CODE'; 
+        url += '&client_id=' + client_id;
+        url += '&scope=aws.cognito.signin.user.admin email openid phone';
+        
         //console.log(url);
         //console.log(data);
         
