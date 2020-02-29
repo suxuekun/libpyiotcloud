@@ -244,7 +244,25 @@ def login_idp_querytoken(id):
         print('\r\nERROR Login IDP query token: Token expired\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
 
-    response = json.dumps({'status': 'OK', 'message': "Login IDP query token successful", 'token': token, 'username': username})
+    name = None
+    info = g_database_client.get_user_info(token["access"])
+    if info:
+        # handle no family name
+        if 'given_name' in info:
+            name = info['given_name']
+        if 'family_name' in info:
+            if info['family_name'] != "NONE":
+                if 'identities' in info:
+                    identity = json.loads(info['identities'].strip(']['))
+                    if identity['providerName'] != 'LoginWithAmazon':
+                        name += " " + info['family_name']
+                else:
+                    name += " " + info['family_name']
+
+    msg = {'status': 'OK', 'message': "Login IDP query token successful", 'token': token, 'username': username}
+    if name:
+        msg["name"] = name
+    response = json.dumps(msg)
     return response
 
 
