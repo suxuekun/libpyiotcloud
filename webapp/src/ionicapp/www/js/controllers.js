@@ -269,8 +269,8 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token)
     var server = Server.rest_api;
 
     $scope.data = {
-        'username': "", //User.get_username(),
-        'token': "",//User.get_token(),
+        'username': User.get_username(),
+        'token': User.get_token(),
 
         'fullname': 'Unknown',
         'email': 'Unknown',
@@ -287,7 +287,7 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token)
         $scope.data.activeSection = s;
     };
     
-    handle_error = function(error) {
+    $scope.handle_error = function(error) {
         // Handle failed login
         if (error.data !== null) {
             console.log("ERROR: Control Device failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
@@ -305,7 +305,7 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token)
         }
     };
 
-    get_subscription = function() {
+    $scope.get_subscription = function() {
         //
         // GET SUBSCRIPTION
         //
@@ -330,11 +330,15 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token)
             $scope.data.subscription_credits = result.data.subscription.credits;
         })
         .catch(function (error) {
-            handle_error(error);
+            $scope.handle_error(error);
         }); 
     };
 
-    get_profile = function() {
+    $scope.getProfile = function() {
+        $scope.get_profile();
+    };
+    
+    $scope.get_profile = function() {
         //        
         // GET USER INFO
         //
@@ -373,13 +377,15 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token)
             else {
                 $scope.data.identityprovider = "None";
             }
+            
+            $scope.get_subscription();
         })
         .catch(function (error) {
-            handle_error(error);
+            $scope.handle_error(error);
         }); 
     };
 
-    delete_account = function() {
+    $scope.delete_account = function() {
         //
         // DELETE USER
         //
@@ -403,46 +409,16 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token)
             }
         })
         .catch(function (error) {
-            handle_error(error);
+            $scope.handle_error(error);
         });        
     };
     
 
     $scope.$on('$ionicView.enter', function(e) {
 
-        $scope.data.username = User.get_username();
-        $scope.data.token = User.get_token();
-
-        console.log("ACCOUNT ionicView get_profile");
-        get_profile({
-            'username': $scope.data.username,
-            'token': $scope.data.token
-        });
-
-
-        if (($scope.data.username === "") || ($scope.data.username === undefined)) {
-
-            $scope.data.username = User.get_username();
-            $scope.data.token = User.get_token();
-
-            console.log("ACCOUNT ionicView get_profile");
-            get_profile({
-                'username': $scope.data.username,
-                'token': $scope.data.token
-            });
-        }
-
-        console.log("ACCOUNT ionicView get_subscription");
-        get_subscription();
-
+        console.log("ACCOUNT ionicView get_profile " + $scope.data.username);
+        $scope.get_profile();
     });
-
-
-//    console.log("ACCOUNT get_profile");
-//    get_profile();
-
-//    console.log("ACCOUNT get_subscription");
-//    get_subscription();
 
 
     $scope.submitBuycredits = function() {
@@ -512,7 +488,7 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token)
             $state.go('confirmPhoneNumber', {'username': $scope.data.username, 'token': $scope.data.token});
         })
         .catch(function (error) {
-            handle_error(error);
+            $scope.handle_error(error);
         });
     };
     
@@ -583,7 +559,7 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token)
                         text: 'OK',
                         type: 'button-positive',
                         onTap: function(e) {
-                            get_profile({
+                            $scope.get_profile({
                                 'username': $scope.data.username,
                                 'token': $scope.data.token
                             });
@@ -593,7 +569,7 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token)
             });
         })
         .catch(function (error) {
-            handle_error(error);
+            $scope.handle_error(error);
         });        
     };
 
@@ -602,6 +578,7 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token)
         
         // Cannot change password if login with social accounts
         if ($scope.data.identityprovider !== "Unknown" && $scope.data.identityprovider !== "None") {
+            $ionicPopup.alert({title: 'Change Password', template: 'Cannot change password if you login via Facebook or Google!'});
             return;
         }
         
@@ -612,7 +589,7 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token)
         console.log("username=" + $scope.data.username);
         console.log("token=" + $scope.data.token);
         
-        delete_account(); 
+        $scope.delete_account(); 
     };
 }
 ])
@@ -1416,7 +1393,7 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
         //
         
         url = 'https://' + window.__env.oauthDomain + '/oauth2/token';
-        data = 'grant_type=authorization_code' + '&client_id=' + client_id + '&code=' + oauthorization_code + '&redirect_uri=' + redirect_uri;
+        data = '?grant_type=authorization_code' + '&client_id=' + client_id + '&code=' + oauthorization_code + '&redirect_uri=' + redirect_uri;
         //console.log(url);
         //console.log(data);
         
@@ -1508,14 +1485,14 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
         //
         
         url = 'https://' + window.__env.oauthDomain + '/oauth2/authorize';
-        url += '?response_type=code' + '&client_id=' + client_id + '&redirect_uri=' + redirect_uri;// + '&identity_provider=Facebook' + '&scope=email+openid+phone+aws.cognito.signin.user.admin';
+        url += 'response_type=code' + '&client_id=' + client_id + '&redirect_uri=' + redirect_uri + '&identity_provider=Facebook' + '&scope=email+openid+phone+aws.cognito.signin.user.admin';
         //console.log(url);
         //console.log(data);
         
         $http({
             method: 'GET',
             url: url,
-            headers: {'Content-Type': 'application/x-www-form-urlencoded', 'Access-Control-Allow-Origin': true}
+            headers: {'Content-Type': 'application/x-www-form-urlencoded' }
         })
         .then(function (result) {
             console.log("get_oauthcode ok");
@@ -1595,7 +1572,7 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
 
             if (result.data.token !== undefined) {    
                 var user_data = {
-                    'username': $scope.data.username,
+                    'username': result.data.username,
                     'token': result.data.token
                 };
                 

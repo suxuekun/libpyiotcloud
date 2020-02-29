@@ -226,7 +226,7 @@ def login_idp_storetoken(id):
 #   headers: {'Content-Type': 'application/json'}
 #
 # - Response:
-#   {'status': 'OK', 'message': string, 'token': json_obj}
+#   {'status': 'OK', 'message': string, 'token': json_obj, 'username': string}
 #   {'status': 'NG', 'message': string}
 #
 ########################################################################################################
@@ -237,7 +237,14 @@ def login_idp_querytoken(id):
         response = json.dumps({'status': 'NG', 'message': "Login IDP query token not found"})
         return response
 
-    response = json.dumps({'status': 'OK', 'message': "Login IDP query token successful", 'token': token})
+    # get username from token
+    username = g_database_client.get_username_from_token(token)
+    if username is None:
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Login IDP query token: Token expired\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
+
+    response = json.dumps({'status': 'OK', 'message': "Login IDP query token successful", 'token': token, 'username': username})
     return response
 
 
