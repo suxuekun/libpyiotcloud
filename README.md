@@ -176,14 +176,13 @@ Menu, account, history
 
     1. User sign-up/sign-in, Device Registration, Email/SMS Notifications, Payment Gateway, Google Maps
        A. Amazon Cognito for user sign-up and sign-in (with support for OTP, MFA, OAuth2 for Facebook/Google login)
-       B. MongoDB NoSQL database for storing registered device information and device requests/responses
+       B. MongoDB NoSQL database for storing registered device and sensor information
        C. OpenSSL for generating certificates on-demand for registered devices
        D. Email/SMS/push notifications using AmazonPinpoint, Twilio, Nexmo (device-initiated, client-initiated)
        E. Payment gateway using Paypal
        F. Google Maps for setting/viewing device location
     2. Device Access/Control via Flask+GUnicorn+Nginx
-       - get/set GPIOs, get/set RTC, get MAC address, reset device
-       - get IP/Subnet/Gateway addresses, write UART
+       - see REST API list
     3. HTTPS/AMQPS/MQTTS Protocol Support
        [client --HTTPS--> webserver <--MQTTS (or AMQPS)--> msgbroker <--MQTTS (and AMQPS)--> device]
        A. HTTP over TLS: client app accessing REST APIs from webserver
