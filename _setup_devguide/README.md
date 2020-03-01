@@ -655,10 +655,31 @@ DETAILED:
 		   {'status': 'OK', 'message': string}
 		   {'status': 'NG', 'message': string}
 		   //
-		   // When user clicks on the login via social accounts,
-		   // a new window is opened which handles getting of the authorization code (OAuth process)
+		   // SUMMARY:
+		   // 
+		   // Login via social identity providers (Facebook/Google/Amazon) consists of two steps:
+		   // 1. Web/mobile app opens a system browser to let user LOGIN with his social account.
+		   //    INPUT: web/mobile CALLBACK URL, etc.
+		   //    OUTPUT: web/mobile callback URL will be called providing authorization CODE, etc
+		   //    https://docs.aws.amazon.com/cognito/latest/developerguide/login-endpoint.html
+		   //    "The /login endpoint only supports HTTPS GET. 
+		   //     The user pool client makes this request through a system browser. 
+		   //     System browsers for JavaScript include Chrome or Firefox. 
+		   //     Android browsers include Custom Chrome Tab. iOS browsers include Safari View Control."
 		   //
-		   // The new window uses the OAuth Domain server https://ft900iotportal.auth.ap-southeast-1.amazoncognito.com
+		   // 2. Web/mobile app requests for TOKENS by providing the authorization CODE
+		   //    INPUT: authorization CODE
+		   //    OUTPUT: TOKENS (access_token, id_token, refresh_token)
+		   //    https://docs.aws.amazon.com/cognito/latest/developerguide/token-endpoint.html
+		   //    "The /oauth2/token endpoint only supports HTTPS POST. 
+		   //     The user pool client makes requests to this endpoint directly and not through the system browser."
+		   //
+		   // DETAILS:
+		   //
+		   // When user clicks on the login via social accounts (on the web/mobile apps),
+		   // a system browser window is opened which handles getting of the OAuth2 authorization code (OAuth process)
+		   //
+		   // The new window uses the OAuth2 Domain server https://ft900iotportal.auth.ap-southeast-1.amazoncognito.com
 		   // with API /login and the following URL parameters
 		   //   client_id=AWS_APP_CLIENT_ID
 		   //   response_type=code
@@ -671,12 +692,6 @@ DETAILED:
 		   //     HOST: https://ft900iotportal.auth.ap-southeast-1.amazoncognito.com
 		   //     GET /login?client_id=AWS_APP_CLIENT_ID&response_type=code&scope=email+openid+phone+aws.cognito.signin.user.admin&state=ID_RANDOM&identity_provider=SOCIAL_ACCOUNT&redirect_uri=APP_CALLBACK_URL
 		   //     headers: {'Content-Type': 'application/x-www-form-urlencoded'}
-		   //
-		   //     Refer to https://docs.aws.amazon.com/cognito/latest/developerguide/login-endpoint.html
-		   //     "The /login endpoint only supports HTTPS GET. 
-		   //      The user pool client makes this request through a system browser. 
-		   //      System browsers for JavaScript include Chrome or Firefox. 
-		   //      Android browsers include Custom Chrome Tab. iOS browsers include Safari View Control."
 		   //
 		   // Once the login operation completed, the callback uri will be called
 		   //   When operation is successful, the URL will be called with 'code' and 'state' parameters
@@ -692,10 +707,6 @@ DETAILED:
 		   //         POST /oauth2/token
 		   //         headers: {'Content-Type': 'application/x-www-form-urlencoded'}
 		   //         data: grant_type=authorization_code&client_id=AWS_APP_CLIENT_ID&code=CODE&redirect_uri=APP_CALLBACK_URL
-		   //
-		   //         https://docs.aws.amazon.com/cognito/latest/developerguide/authorization-endpoint.html
-		   //         "The /oauth2/token endpoint only supports HTTPS POST. 
-		   //          The user pool client makes requests to this endpoint directly and not through the system browser."
 		   //
 		   //     The page shall then call LOGIN IDP STORE TOKEN with ID=state and token={'access': access_token, 'refresh': refresh_token, 'id': id_token}
 		   //   When operation is failed, the URL will be called with 'error' and 'state' parameters
