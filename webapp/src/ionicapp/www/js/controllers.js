@@ -1417,6 +1417,8 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
     }
 
     // Support for Login via social accounts like Facebook, Google, Amazon
+    // "The /oauth2/token endpoint only supports HTTPS POST. 
+    //  The user pool client makes requests to this endpoint directly and not through the system browser."    
     $scope.get_tokens_from_oauthcode = function(oauthorization_code, state_id, client_id, redirect_uri) {
         //
         // GET TOKENS
@@ -1425,7 +1427,7 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
         //   headers: {'Content-Type': 'application/x-www-form-urlencoded' }
         //
         // - Response:
-        //   { 'status': 'OK', 'message': string }
+        //   { 'status': 'OK', 'message': string}
         //   { 'status': 'NG', 'message': string}
         //
         
@@ -1476,6 +1478,10 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
     // Given the authorization code, the app requests for the tokens.
     $scope.getOAuthCode = function(socialidp=null) {
         
+        // "The /login endpoint only supports HTTPS GET. 
+        //  The user pool client makes this request through a system browser. 
+        //  System browsers for JavaScript include Chrome or Firefox. 
+        //  Android browsers include Custom Chrome Tab. iOS browsers include Safari View Control."        
         if (true) {
             var state = Math.floor(Math.random() * 8999999999 + 1000000000);
             
@@ -1510,6 +1516,7 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
                         runtime = 0;
                         clearInterval($scope.timer);
                         $scope.timer = null;
+                        
                         $scope.login_idp_querytoken(spinner, state.toString());
                     }
                     else {
@@ -1518,10 +1525,15 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
                         if (runtime >= $scope.runtime_max) {
                             $scope.win.close();
                             $scope.win = null;
-                            $ionicPopup.alert({ title: 'Error', template: 'Login with social account timed out!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+                            
                             spinner[0].style.visibility = "hidden";
                             $scope.waiting_login = false;
+                            
                             runtime = 0;
+                            clearInterval($scope.timer);
+                            $scope.timer = null;
+                            
+                            $ionicPopup.alert({ title: 'Error', template: 'Login with social account timed out!', buttons: [{text: 'OK', type: 'button-assertive'}] });
                         }
                     }
                 }, 1000);
@@ -1530,36 +1542,43 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
                 $ionicPopup.alert({ title: 'Error', template: 'Cannot open a new window! Check if popup window is blocked!', buttons: [{text: 'OK', type: 'button-assertive'}] });
             }
         }
+        /*
         else {
             if (window.__env.apiUrl === "localhost") {
-                $scope.get_oauthcode(window.__env.clientId, 'http://localhost:8100');
+                $scope.get_oauthcode(socialidp, window.__env.clientId, 'http://localhost:8100');
             }
             else {
-                $scope.get_oauthcode(window.__env.clientId, server);
+                $scope.get_oauthcode(socialidp, window.__env.clientId, server);
             }
         }
+        */
     };
 
+/*
     // Support for Login via social accounts like Facebook, Google, Amazon
-    $scope.get_oauthcode = function(client_id, redirect_uri) {
+    $scope.get_oauthcode = function(socialidp, client_id, redirect_uri) {
         //
         // GET OAUTH CODE
         // - Request:
-        //   GET 'https://' + window.__env.oauthDomain + '/oauth2/authorize'
+        //   GET 'https://' + window.__env.oauthDomain + '/login'
         //   headers: {'Content-Type': 'application/x-www-form-urlencoded' }
         //
         // - Response:
         //   { 'status': 'OK', 'message': string }
         //   { 'status': 'NG', 'message': string}
         //
+        var state = Math.floor(Math.random() * 8999999999 + 1000000000);
         
-        url = 'https://' + window.__env.oauthDomain + '/oauth2/authorize';
-        url += '?identity_provider=Facebook';
+        url = 'https://' + window.__env.oauthDomain + '/login';
+        url += '?client_id=' + client_id;
+        url += '&response_type=code'; 
+        url += '&scope=email+openid+phone+aws.cognito.signin.user.admin';
+        url += '&state=' + state;
+        if (socialidp !== null) {
+            url += "&identity_provider=" + socialidp;
+        }
         url += '&redirect_uri=' + redirect_uri;
-        url += '&response_type=CODE'; 
-        url += '&client_id=' + client_id;
-        url += '&scope=aws.cognito.signin.user.admin email openid phone';
-        
+
         //console.log(url);
         //console.log(data);
         
@@ -1583,7 +1602,7 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
             }
         }); 
     };
-
+*/
 
 
     // Support for Login via social accounts like Facebook, Google, Amazon
