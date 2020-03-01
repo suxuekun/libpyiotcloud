@@ -674,6 +674,19 @@ DETAILED:
 		   //    "The /oauth2/token endpoint only supports HTTPS POST. 
 		   //     The user pool client makes requests to this endpoint directly and not through the system browser."
 		   //
+		   // Two new APIs are available, LOGIN IDP STORE TOKEN and LOGIN IDP QUERY TOKEN
+		   // - WEB app
+		   //   In the case of WEB apps, these 2 new APIs are necessary as a way to pass the tokens between 2 processes).
+		   //   One browser window processes the login process to get the authorization code then the tokens,
+		   //   while the other browser window waits for the other browser window to complete and make the tokens available.
+		   //
+		   // - MOBILE apps
+		   //   In the case of MOBILE apps, these 2 new APIs are NOT necessary.
+		   //   The mobile app CALLBACK URI will be called with the authorization CODE.
+		   //   This callback thread will then retrieve the TOKENs and then pass it to the LOGIN thread.
+		   //   The login thread and the token thread belong to the SAME process, so they pass the TOKENS without needing to call these 2 APIs.
+		   //
+		   //
 		   // DETAILS:
 		   //
 		   // When user clicks on the login via social accounts (on the web/mobile apps),
@@ -726,9 +739,11 @@ DETAILED:
 		   // when token is empty, both name and username will not be available
 		   {'status': 'NG', 'message': string}
 		   //
-		   // When user clicks on the login via social accounts,
-		   // a new window is opened which handles getting of the authorization code (OAuth process)
-		   // This window handles the saving of token to the backend database
+		   // When user clicks on the login via social accounts (on the web/mobile apps),
+		   // a system browser window is opened which handles getting of the OAuth2 authorization code (OAuth process)
+		   // The window will then call the web/mobile apps providing the authorization CODE.
+		   // Using the authorization CODE, the web/mobile app requests for the TOKENS.
+		   // Once the TOKENS are retrieved, the web/mobile app can save it to the backend.
 		   //
 		   // To check if the window is finished with the authentication,
 		   // The app shall call LOGIN IDP QUERY TOKEN
