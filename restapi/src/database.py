@@ -114,9 +114,12 @@ class database_client:
     def find_user(self, username):
         return self._users.find_user(username)
 
+    # find email should be avoided as several users can have the same email
+    # due to the support for login via social accounts (Facebook, Google, Amazon)
     def find_email(self, email):
         return self._users.find_email(email)
 
+    # if login via social account, it shall be treated as verified email
     def is_email_verified(self, username):
         return self._users.is_email_verified(username)
 
@@ -554,7 +557,13 @@ class database_client_cognito:
         if users:
             for user in users:
                 if user["username"] == username:
-                    return user["status"]=="CONFIRMED"
+                    # if login via social account, status is EXTERNAL_PROVIDER
+                    # EXTERNAL_PROVIDER shall be treated as verified email
+                    if user["status"]=="CONFIRMED":
+                        return True
+                    elif user["status"]=="EXTERNAL_PROVIDER":
+                        return True
+                    break
         return False
 
     def find_email(self, email):

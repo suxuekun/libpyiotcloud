@@ -418,11 +418,12 @@ def signup():
             # user already signed up but unverified, so delete the user for signup to proceed
             g_database_client.admin_delete_user(username)
 
+    # Remove for scenario of login with social accounts identity providers
     # check if email is already in database
-    if g_database_client.find_email(email) is not None:
-        response = json.dumps({'status': 'NG', 'message': 'Email already used'})
-        print('\r\nERROR Signup: Email already used [{}]\r\n'.format(email))
-        return response, status.HTTP_409_CONFLICT
+    #if g_database_client.find_email(email) is not None:
+    #    response = json.dumps({'status': 'NG', 'message': 'Email already used'})
+    #    print('\r\nERROR Signup: Email already used [{}]\r\n'.format(email))
+    #    return response, status.HTTP_409_CONFLICT
 
     # add entry in database
     result = g_database_client.add_user(username, password, email, phonenumber, givenname, familyname)
@@ -528,7 +529,7 @@ def resend_confirmation_code():
 def forgot_password():
     data = flask.request.get_json()
     email = data['email']
-    #print('forgot_password email={}'.format(email))
+    print('forgot_password email={}'.format(email))
 
     # check if a parameter is empty
     if len(email) == 0:
@@ -537,20 +538,21 @@ def forgot_password():
         return response, status.HTTP_400_BAD_REQUEST
 
     # check if email is in database
-    username = g_database_client.find_email(email)
-    if username is None:
+    username = g_database_client.find_user(email)
+    if username == False:
         response = json.dumps({'status': 'NG', 'message': 'Email does not exist'})
         print('\r\nERROR Recover Account: Email does not exist [{}]\r\n'.format(email))
         return response, status.HTTP_400_BAD_REQUEST
+    print('forgot_password username={}'.format(username))
 
     # recover account
-    result = g_database_client.forgot_password(username)
+    result = g_database_client.forgot_password(email)
     if not result:
         response = json.dumps({'status': 'NG', 'message': 'Internal server error'})
         print('\r\nERROR Recover Account: Internal server error [{}]\r\n'.format(email))
         return response, status.HTTP_500_INTERNAL_SERVER_ERROR
 
-    response = json.dumps({'status': 'OK', 'message': 'User account recovery successfully. Check email for confirmation code.', 'username': username})
+    response = json.dumps({'status': 'OK', 'message': 'User account recovery successfully. Check email for confirmation code.', 'username': email})
     print('\r\nRecover Account successful: {}\r\n{}\r\n'.format(username, response))
     return response
 
