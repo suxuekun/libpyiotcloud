@@ -198,6 +198,7 @@ def login_socialsidp_token():
 #   POST /user/login/idp/token/<id>
 #   headers: {'Content-Type': 'application/json'}
 #   data: {'token': json_obj}
+#   // token can be empty {} to indicate failed login via idp
 #
 # - Response:
 #   {'status': 'OK', 'message': string}
@@ -226,40 +227,50 @@ def login_idp_storetoken(id):
 #   headers: {'Content-Type': 'application/json'}
 #
 # - Response:
-#   {'status': 'OK', 'message': string, 'token': json_obj, 'username': string}
+#   {'status': 'OK', 'message': string, 'token': json_obj, 'name': string, 'username': string}
 #   {'status': 'NG', 'message': string}
+#   // token can be empty {} to indicate failed login via idp
+#   // when token is empty, both name and username will not be available
 #
 ########################################################################################################
 @app.route('/user/login/idp/token/<id>', methods=['GET'])
 def login_idp_querytoken(id):
+    # check if token is available
+    # note that token can be available but no entry, this means that the login via idp failed
     token = g_database_client.get_idp_token(id)
     if token is None:
         response = json.dumps({'status': 'NG', 'message': "Login IDP query token not found"})
         return response
 
-    # get username from token
-    username = g_database_client.get_username_from_token(token)
-    if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Login IDP query token: Token expired\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-
+    username = None
     name = None
-    info = g_database_client.get_user_info(token["access"])
-    if info:
-        # handle no family name
-        if 'given_name' in info:
-            name = info['given_name']
-        if 'family_name' in info:
-            if info['family_name'] != "NONE":
-                if 'identities' in info:
-                    identity = json.loads(info['identities'].strip(']['))
-                    if identity['providerName'] != 'LoginWithAmazon':
-                        name += " " + info['family_name']
-                else:
-                    name += " " + info['family_name']
 
-    msg = {'status': 'OK', 'message': "Login IDP query token successful", 'token': token, 'username': username}
+    if token.get("access"):
+        # get username from token
+        username = g_database_client.get_username_from_token(token)
+        if username is None:
+            response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+            print('\r\nERROR Login IDP query token: Token expired\r\n')
+            return response, status.HTTP_401_UNAUTHORIZED
+
+        # get user information
+        info = g_database_client.get_user_info(token["access"])
+        if info:
+            # handle no family name
+            if 'given_name' in info:
+                name = info['given_name']
+            if 'family_name' in info:
+                if info['family_name'] != "NONE":
+                    if 'identities' in info:
+                        identity = json.loads(info['identities'].strip(']['))
+                        if identity['providerName'] != 'LoginWithAmazon':
+                            name += " " + info['family_name']
+                    else:
+                        name += " " + info['family_name']
+
+    msg = {'status': 'OK', 'message': "Login IDP query token successful", 'token': token}
+    if username:
+        msg["username"] = username
     if name:
         msg["name"] = name
     response = json.dumps(msg)
