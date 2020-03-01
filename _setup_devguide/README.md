@@ -667,7 +667,7 @@ DETAILED:
 		   //     System browsers for JavaScript include Chrome or Firefox. 
 		   //     Android browsers include Custom Chrome Tab. iOS browsers include Safari View Control."
 		   //
-		   // 2. Web/mobile app requests for TOKENS by providing the authorization CODE
+		   // 2. Web/mobile app requests for TOKENS by providing the authorization CODE (from step 1)
 		   //    INPUT: authorization CODE
 		   //    OUTPUT: TOKENS (access_token, id_token, refresh_token)
 		   //    https://docs.aws.amazon.com/cognito/latest/developerguide/token-endpoint.html
