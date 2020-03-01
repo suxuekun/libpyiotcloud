@@ -1231,6 +1231,7 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
     };
     
     $scope.oauthorization_code = null;
+    $scope.waiting_login = false;
 
     base64Encode = function(str) {
         return window.btoa(str);
@@ -1293,6 +1294,7 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
         // Display spinner
         var spinner = document.getElementsByClassName("spinner");
         spinner[0].style.visibility = "visible";
+        $scope.waiting_login = true;
 
         var start_time = Math.floor(Date.now() / 1000);
         //console.log("login: " + $scope.data.username);
@@ -1315,6 +1317,7 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
         })
         .then(function (result) {
             spinner[0].style.visibility = "hidden";
+            $scope.waiting_login = false;
             
             console.log("login: OK " + (Math.floor(Date.now() / 1000)-start_time) + " secs");
             // Handle successful
@@ -1332,6 +1335,7 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
         })
         .catch(function (error) {
             spinner[0].style.visibility = "hidden";
+            $scope.waiting_login = false;
             
             // Handle failed
             if (error.data !== null) {
@@ -1467,14 +1471,23 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
             
             var win = window.open(url,"_blank",
                 'width=1000,height=475,left=100,top=100,resizable=no,scrollbars=no,toolbar=no,menubar=no,location=no,directories=no,status=no,titlebar=no',replace=false);
-                
-            var timer = setInterval(function() {
-                if (win.closed) {
-                    console.log("exited");
-                    clearInterval(timer);
-                    $scope.login_idp_querytoken(state.toString());
-                }
-            }, 1000);
+            if (win !== null) {
+                // Display spinner
+                var spinner = document.getElementsByClassName("spinner");
+                spinner[0].style.visibility = "visible";
+                $scope.waiting_login = true;
+
+                var timer = setInterval(function() {
+                    if (win.closed) {
+                        console.log("exited");
+                        clearInterval(timer);
+                        $scope.login_idp_querytoken(spinner, state.toString());
+                    }
+                }, 1000);
+            }
+            else {
+                $ionicPopup.alert({ title: 'Error', template: 'Cannot open a new window! Check if popup window is blocked!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+            }
         }
         else {
             if (window.__env.apiUrl === "localhost") {
@@ -1570,7 +1583,7 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
 
 
     // Support for Login via social accounts like Facebook
-    $scope.login_idp_querytoken = function(id) {
+    $scope.login_idp_querytoken = function(spinner, id) {
         // 
         // LOGIN IDP QUERY TOKEN
         // 
@@ -1588,6 +1601,9 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
             headers: {'Content-Type': 'application/json'},
         })
         .then(function (result) {
+            spinner[0].style.visibility = "hidden";
+            $scope.waiting_login = false;
+            
             console.log(result.data);
 
             if (result.data.token !== undefined) {    
@@ -1600,8 +1616,14 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
                 User.set(user_data);
                 $state.go('menu.devices', user_data);
             }
+            else {
+                $ionicPopup.alert({ title: 'Error', template: 'Login with social account failed!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+            }
         })
         .catch(function (error) {
+            spinner[0].style.visibility = "hidden";
+            $scope.waiting_login = false;
+            
             // Handle failed
             if (error.data !== null) {
                 console.log(error.status + " " + error.statusText);
