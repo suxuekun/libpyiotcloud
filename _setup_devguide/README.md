@@ -230,6 +230,11 @@ SUMMARY:
 		M. CONFIRM VERIFY PHONE NUMBER    - POST   /user/confirm_verify_phone_number
 		N. CHANGE PASSWORD                - POST   /user/change_password
 
+		//
+		// idp
+		O. LOGIN IDP STORE TOKEN          - POST   /user/login/idp/token/ID
+		P. LOGIN IDP QUERY TOKEN          - GET    /user/login/idp/token/ID
+
 
 	2. Device registration and management APIs
 
@@ -638,6 +643,64 @@ DETAILED:
 		     )));
 		   JWT = base64UrlEncodedHeader + "." base64UrlEncodedPayload + "." + base64UrlEncodedSignature
 		   Double check your results here: https://jwt.io/
+
+
+		O. LOGIN IDP STORE TOKEN
+		-  Request:
+		   POST /user/login/idp/token/ID
+		   headers: {'Content-Type': 'application/json'}
+		   data: {'token': json_obj}
+		   // token can be empty {} to indicate failed login via idp
+		-  Response:
+		   {'status': 'OK', 'message': string}
+		   {'status': 'NG', 'message': string}
+		   //
+		   // When user clicks on the login via social accounts,
+		   // a new window is opened which handles getting of the authorization code (OAuth process)
+		   //
+		   // The new window uses the OAuth Domain server https://ft900iotportal.auth.ap-southeast-1.amazoncognito.com
+		   // with API /login and the following URL parameters (application/x-www-form-urlencoded)
+		   //   client_id=AWS_APP_CLIENT_ID
+		   //   response_type=code
+		   //   scope=email+openid+phone+aws.cognito.signin.user.admin
+		   //   state=ID_RANDOM
+		   //   identity_provider=Facebook, Google or LoginWithAmazon
+		   //   redirect_uri=APP_CALLBACK_URL
+		   //
+		   // Once the login operation completed, the callback uri will be called
+		   //   When operation is successful, the URL will be called with 'code' and 'state' parameters
+		   //     The page shall continue with the OAuth2 process by calling
+		   //     the API /ouath2/token with the following BODY parameters (application/x-www-form-urlencoded)
+		   //       grant_type=authorization_code
+		   //       client_id=AWS_APP_CLIENT_ID
+		   //       code=<parse from the URL parameter in the callback>
+		   //       redirect_uri=APP_CALLBACK_URL
+		   //     The page shall then call LOGIN IDP STORE TOKEN with ID=state and token={'access': access_token, 'refresh': refresh_token, 'id': id_token}
+		   //   When operation is failed, the URL will be called with 'error' and 'state' parameters
+		   //     The page shall then call LOGIN IDP STORE TOKEN with ID=state and token={} empty json
+		   //
+		   // Notes:
+		   //   1. Request from me the AWS_CLIENT_ID
+		   //   2. Request from me to have your APP_CALLBACK_URL registered in Amazon Cognito
+
+		P. LOGIN IDP QUERY TOKEN
+		-  Request:
+		   GET /user/login/idp/token/ID
+		   headers: {'Content-Type': 'application/json'}
+		-  Response:
+		   {'status': 'OK', 'message': string, 'token': json_obj, 'name': string, 'username': string}
+		   // token can be empty {} to indicate failed login via idp
+		   // when token is empty, both name and username will not be available
+		   {'status': 'NG', 'message': string}
+		   //
+		   // When user clicks on the login via social accounts,
+		   // a new window is opened which handles getting of the authorization code (OAuth process)
+		   // This window handles the saving of token to the backend database
+		   //
+		   // To check if the window is finished with the authentication,
+		   // The app shall call LOGIN IDP QUERY TOKEN
+		   // The API returns successful when login via social account is completed
+		   // To differentiate between successful or failed login, the app shall check if the token returned is not empty 
 
 
 	2. Device registration and management APIs 
