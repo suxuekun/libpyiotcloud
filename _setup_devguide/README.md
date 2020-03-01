@@ -660,31 +660,32 @@ DETAILED:
 		   // Login via social identity providers (Facebook/Google/Amazon) consists of two steps:
 		   // 1. Web/mobile app opens a system browser to let user LOGIN with his social account.
 		   //    INPUT: web/mobile CALLBACK URL, etc.
-		   //    OUTPUT: web/mobile callback URL will be called providing authorization CODE, etc
+		   //    OUTPUT: OAuth2 authorization CODE, etc
 		   //    https://docs.aws.amazon.com/cognito/latest/developerguide/login-endpoint.html
 		   //    "The /login endpoint only supports HTTPS GET. 
 		   //     The user pool client makes this request through a system browser. 
 		   //     System browsers for JavaScript include Chrome or Firefox. 
 		   //     Android browsers include Custom Chrome Tab. iOS browsers include Safari View Control."
 		   //
-		   // 2. Web/mobile app requests for TOKENS by providing the authorization CODE (from step 1)
+		   // 2. Web/mobile app requests for TOKENS by providing the OAuth2 authorization CODE (from step 1)
 		   //    INPUT: authorization CODE
 		   //    OUTPUT: TOKENS (access_token, id_token, refresh_token)
 		   //    https://docs.aws.amazon.com/cognito/latest/developerguide/token-endpoint.html
 		   //    "The /oauth2/token endpoint only supports HTTPS POST. 
 		   //     The user pool client makes requests to this endpoint directly and not through the system browser."
 		   //
-		   // Two new APIs are available, LOGIN IDP STORE TOKEN and LOGIN IDP QUERY TOKEN
+		   // Two new REST APIs are available: LOGIN IDP STORE TOKEN and LOGIN IDP QUERY TOKEN
 		   // - WEB app
-		   //   In the case of WEB apps, these 2 new APIs are necessary as a way to pass the tokens between 2 processes).
-		   //   One browser window processes the login process to get the authorization code then the tokens,
+		   //   In the case of WEB apps, these APIs are necessary as a way to pass the tokens between 2 processes - 2 browser windows.
+		   //   One browser window processes the login process to get the authorization CODE then the TOKENS,
 		   //   while the other browser window waits for the other browser window to complete and make the tokens available.
 		   //
 		   // - MOBILE apps
-		   //   In the case of MOBILE apps, these 2 new APIs are NOT necessary.
+		   //   In the case of MOBILE apps, theseAPIs are NOT necessary.
 		   //   The mobile app CALLBACK URI will be called with the authorization CODE.
 		   //   This callback thread will then retrieve the TOKENs and then pass it to the LOGIN thread.
-		   //   The login thread and the token thread belong to the SAME process, so they pass the TOKENS without needing to call these 2 APIs.
+		   //   The login thread and the token thread belong to the SAME process of the mobile app, 
+		   //   so they pass the TOKENS without needing to call the backend REST APIs.
 		   //
 		   //
 		   // DETAILS:
