@@ -1226,8 +1226,8 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
     var server = Server.rest_api;
     
     $scope.data = {
-        'username': $scope.username,
-        'password': $scope.password
+        'username': '',
+        'password': ''
     };
     
     $scope.oauthorization_code = null;
@@ -1772,12 +1772,12 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server) {
     var server = Server.rest_api;
 
     $scope.data = {
-        'username': $scope.username,
-        'password': $scope.password,
-        'password2': $scope.password2,
-        'name'        : $scope.name,
-        'phonenumber' : $scope.phonenumber,
-        'email'       : $scope.email,
+        'username': '',
+        'password': '',
+        'password2': '',
+        'name'        : '',
+        'phonenumber' : '',
+        'email'       : '',
     };
     
     base64Encode = function(str) {
@@ -1934,7 +1934,7 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server) {
     var server = Server.rest_api;
 
     $scope.data = {
-        'email': $scope.email
+        'email': ''
     };
     
     $scope.submit = function() {
@@ -1945,7 +1945,7 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server) {
             $ionicPopup.alert({title: 'Recovery Error', template: 'Email is empty!'});
             return;
         }          
-        else if ($scope.data.email.trim().length === 0) {
+        else if ($scope.data.email.length === 0) {
             $ionicPopup.alert({title: 'Recovery Error', template: 'Email is empty!'});
             return;
         }
@@ -2014,9 +2014,9 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server) {
 
     $scope.data = {
         'username': $stateParams.username,
-        'confirmationcode': $scope.confirmationcode,
-        'password': $scope.password,
-        'password2': $scope.password2
+        'confirmationcode': '',
+        'password': '',
+        'password2': ''
     };
     
     base64Encode = function(str) {
@@ -2071,7 +2071,7 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server) {
             $ionicPopup.alert({title: 'Recovery Error', template: 'Username is empty!'});
             return;
         }
-        else if ($scope.data.username.trim().length === 0) {
+        else if ($scope.data.username.length === 0) {
             $ionicPopup.alert({title: 'Recovery Error', template: 'Username is empty!'});
             return;
         }
@@ -2079,7 +2079,7 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server) {
             $ionicPopup.alert({title: 'Recovery Error', template: 'Code is empty!'});
             return;
         }
-        else if ($scope.data.confirmationcode.trim().length === 0) {
+        else if ($scope.data.confirmationcode.length === 0) {
             $ionicPopup.alert({title: 'Recovery Error', template: 'Code is empty!'});
             return;
         }
@@ -2087,11 +2087,11 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server) {
             $ionicPopup.alert({title: 'Recovery Error', template: 'Password is empty!'});
             return;
         }
-        else if ($scope.data.password.trim().length === 0) {
+        else if ($scope.data.password.length === 0) {
             $ionicPopup.alert({title: 'Recovery Error', template: 'Password is empty!'});
             return;
         }
-        else if ($scope.data.password.trim().length < 6) {
+        else if ($scope.data.password.length < 6) {
             $ionicPopup.alert({title: 'Recovery Error', template: 'Password should be at least 6 characters!'});
             return;
         } 
@@ -2323,7 +2323,7 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server) {
     
     $scope.data = {
         'username': $stateParams.username,
-        'confirmationcode': $scope.confirmationcode
+        'confirmationcode': ''
     };
     
     $scope.submit = function() {
