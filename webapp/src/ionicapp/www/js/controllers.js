@@ -1232,6 +1232,9 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
     
     $scope.oauthorization_code = null;
     $scope.waiting_login = false;
+    $scope.win = null;
+    $scope.timer = null;
+    $scope.runtime_max = 120;
 
     base64Encode = function(str) {
         return window.btoa(str);
@@ -1349,7 +1352,7 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
     };
     
     
-    // Support for Login via social accounts like Facebook
+    // Support for Login via social accounts like Facebook, Google, Amazon
     function GetURLParameter(sParam) {
         var sPageURL = window.location.href.substring(1);
         try {
@@ -1371,14 +1374,18 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
         return null;
     }
 
-    // Support for Login via social accounts like Facebook
+    // Support for Login via social accounts like Facebook, Google, Amazon
+    // This will be called during the completion of the OAuth authorization code
+    // Once called, it retrieves the code from the url parameters, together with the stateid random number
+    // and then retrieves the tokens using the code
+    // Once the token is retrieved, it saves it to the backend database
+    // and then closes the window
     function GetURLParameters() {
         var state_id = GetURLParameter('state');
         $scope.oauthorization_code = GetURLParameter('code');
-        if ($scope.oauthorization_code !== null && state_id !== null) {
-            console.log($scope.oauthorization_code);
 
-            // User is logging via social accounts like Facebook
+        if ($scope.oauthorization_code !== null && state_id !== null) {
+            // successful login via social idp
             if (window.__env.apiUrl === "localhost") {
                 $scope.get_tokens_from_oauthcode($scope.oauthorization_code, state_id, window.__env.clientId, 'http://localhost:8100');
                 //$scope.login_idp($scope.oauthorization_code, 'http://localhost:8100');
@@ -1389,12 +1396,27 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
             }
         }
         else if ($scope.oauthorization_code !== null) {
-            console.log($scope.oauthorization_code);
-            $scope.get_tokens_from_oauthcode($scope.oauthorization_code, 0, window.__env.clientId, 'http://localhost:8100');
+            // successful login via social idp
+            if (window.__env.apiUrl === "localhost") {
+                $scope.get_tokens_from_oauthcode($scope.oauthorization_code, 0, window.__env.clientId, 'http://localhost:8100');
+            }
+            else {
+                $scope.get_tokens_from_oauthcode($scope.oauthorization_code, 0, window.__env.clientId, server);
+            }
+        }
+        else if (state_id !== null) {
+            // error login via social idp
+            var error = GetURLParameter('error');
+            if (error !== null) {
+                $scope.login_idp_storetoken(state_id, {});
+            }
+        }
+        else {
+            // regular login, do nothing
         }
     }
 
-    // GET TOKENS
+    // Support for Login via social accounts like Facebook, Google, Amazon
     $scope.get_tokens_from_oauthcode = function(oauthorization_code, state_id, client_id, redirect_uri) {
         //
         // GET TOKENS
@@ -1419,7 +1441,6 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
             data: data
         })
         .then(function (result) {
-            console.log("get_tokens_from_oauthcode ok");
             console.log(result.data);
 
             // Set username and tokens
@@ -1448,6 +1469,11 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
         }); 
     };
 
+    // Support for Login via social accounts like Facebook, Google, Amazon
+    // When user clicks on the login via social accounts, 
+    // a new window is opened which handles getting of the authorization code (OAuth process)
+    // The specified callback url will be called containing the authorization.
+    // Given the authorization code, the app requests for the tokens.
     $scope.getOAuthCode = function(socialidp=null) {
         
         if (true) {
@@ -1469,19 +1495,34 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
                 url += '&redirect_uri=' + server;
             }
             
-            var win = window.open(url,"_blank",
+            $scope.win = window.open(url,"_blank",
                 'width=1000,height=475,left=100,top=100,resizable=no,scrollbars=no,toolbar=no,menubar=no,location=no,directories=no,status=no,titlebar=no',replace=false);
-            if (win !== null) {
+            if ($scope.win !== null) {
                 // Display spinner
                 var spinner = document.getElementsByClassName("spinner");
                 spinner[0].style.visibility = "visible";
                 $scope.waiting_login = true;
-
-                var timer = setInterval(function() {
-                    if (win.closed) {
-                        console.log("exited");
-                        clearInterval(timer);
+                var runtime = 0;
+                
+                $scope.timer = setInterval(function() {
+                    if ($scope.win.closed) {
+                        //console.log("exited");
+                        runtime = 0;
+                        clearInterval($scope.timer);
+                        $scope.timer = null;
                         $scope.login_idp_querytoken(spinner, state.toString());
+                    }
+                    else {
+                        runtime += 1;
+                        console.log(runtime);
+                        if (runtime >= $scope.runtime_max) {
+                            $scope.win.close();
+                            $scope.win = null;
+                            $ionicPopup.alert({ title: 'Error', template: 'Login with social account timed out!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+                            spinner[0].style.visibility = "hidden";
+                            $scope.waiting_login = false;
+                            runtime = 0;
+                        }
                     }
                 }, 1000);
             }
@@ -1499,7 +1540,7 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
         }
     };
 
-    // GET OAUTH CODE
+    // Support for Login via social accounts like Facebook, Google, Amazon
     $scope.get_oauthcode = function(client_id, redirect_uri) {
         //
         // GET OAUTH CODE
@@ -1545,7 +1586,7 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
 
 
 
-    // Support for Login via social accounts like Facebook
+    // Support for Login via social accounts like Facebook, Google, Amazon
     $scope.login_idp_storetoken = function(id, token) {
         // 
         // LOGIN IDP STORE TOKEN
@@ -1570,6 +1611,7 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
             window.close();
         })
         .catch(function (error) {
+            window.close();
             // Handle failed
             if (error.data !== null) {
                 console.log(error.status + " " + error.statusText);
@@ -1582,7 +1624,7 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
     };
 
 
-    // Support for Login via social accounts like Facebook
+    // Support for Login via social accounts like Facebook, Google, Amazon
     $scope.login_idp_querytoken = function(spinner, id) {
         // 
         // LOGIN IDP QUERY TOKEN
@@ -1606,7 +1648,12 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
             
             console.log(result.data);
 
-            if (result.data.token !== undefined) {    
+            if (result.data.token !== undefined) {
+                if (result.data.token.access === undefined) {
+                    $ionicPopup.alert({ title: 'Error', template: 'Login with social account failed!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+                    return;
+                }
+                
                 var user_data = {
                     'username': result.data.username,
                     'token': result.data.token,
@@ -1617,7 +1664,7 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
                 $state.go('menu.devices', user_data);
             }
             else {
-                $ionicPopup.alert({ title: 'Error', template: 'Login with social account failed!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+                $ionicPopup.alert({ title: 'Error', template: 'Login with social account failed due to cancellation or timeout!', buttons: [{text: 'OK', type: 'button-assertive'}] });
             }
         })
         .catch(function (error) {
@@ -1684,8 +1731,18 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
 
     // Support for Login via social accounts like Facebook
     $scope.$on('$ionicView.enter', function(e) {
+        console.log("enter");
         GetURLParameters();
     });
+    
+    $scope.$on('$ionicView.beforeLeave', function(e) {
+        console.log("beforeLeave");
+        if ($scope.timer !== null) {
+            clearTimeout($scope.timer);
+            $scope.timer = null;
+        }
+    });
+    
 }])
    
 .controller('signupCtrl', ['$scope', '$stateParams', '$state', '$ionicPopup', '$http', 'Server', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
