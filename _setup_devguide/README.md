@@ -3500,6 +3500,11 @@ GPIO Notification sequence
   <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/notification_sequence_GPIO.png" width="1000"/>
 
 
+OTA Firmwarew Update sequence
+
+  <img src="../_images/ota_firmware_update_sequence_diagram.png" width="1000"/>
+
+
 LOGIN via Social IdP (Facebook, Google, Amazon)
 
   <img src="../_images/login_via_idp_sequence_diagram.png" width="1000"/>
