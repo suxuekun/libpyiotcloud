@@ -137,10 +137,10 @@ An alternative solution is using an AWS serverless solution wherein:
 <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/architecture_livestatus.png" width="800"/>
 
 ### UML Sequence diagram (OTA firmware update):
-<img src="../_images/ota_firmware_update_sequence_diagram.png" width="800"/>
+<img src="./_images/ota_firmware_update_sequence_diagram.png" width="800"/>
 
 ### UML Sequence diagram (login via social idp - Facebook, Google, Amazon):
-<img src="../_images/login_via_idp_sequence_diagram.png" width="800"/>
+<img src="./_images/login_via_idp_sequence_diagram.png" width="800"/>
 
 
 
