@@ -232,8 +232,8 @@ SUMMARY:
 
 		//
 		// idp
-		O. LOGIN IDP STORE TOKEN          - POST   /user/login/idp/token/ID
-		P. LOGIN IDP QUERY TOKEN          - GET    /user/login/idp/token/ID
+		O. LOGIN IDP STORE CODE           - POST   /user/login/idp/code/ID
+		P. LOGIN IDP QUERY CODE           - GET    /user/login/idp/code/ID
 
 
 	2. Device registration and management APIs
@@ -645,12 +645,12 @@ DETAILED:
 		   Double check your results here: https://jwt.io/
 
 
-		O. LOGIN IDP STORE TOKEN
+		O. LOGIN IDP STORE CODE
 		-  Request:
-		   POST /user/login/idp/token/ID
+		   POST /user/login/idp/code/ID
 		   headers: {'Content-Type': 'application/json'}
-		   data: {'token': json_obj}
-		   // token can be empty {} to indicate failed login via idp
+		   data: {'code': string}
+		   // code can be empty string "" to indicate failed login via idp
 		-  Response:
 		   {'status': 'OK', 'message': string}
 		   {'status': 'NG', 'message': string}
@@ -662,36 +662,31 @@ DETAILED:
 		   //    INPUT: web/mobile CALLBACK URL, etc.
 		   //    OUTPUT: OAuth2 authorization CODE, etc
 		   //    https://docs.aws.amazon.com/cognito/latest/developerguide/login-endpoint.html
-		   //    "The /login endpoint only supports HTTPS GET. 
-		   //     The user pool client makes this request through a system browser. 
-		   //     System browsers for JavaScript include Chrome or Firefox. 
-		   //     Android browsers include Custom Chrome Tab. iOS browsers include Safari View Control."
+		   //    "The /login endpoint ... client makes this request through a system browser. 
 		   //
 		   // 2. Web/mobile app requests for TOKENS by providing the OAuth2 authorization CODE (from step 1)
 		   //    INPUT: authorization CODE
 		   //    OUTPUT: TOKENS (access_token, id_token, refresh_token)
 		   //    https://docs.aws.amazon.com/cognito/latest/developerguide/token-endpoint.html
-		   //    "The /oauth2/token endpoint only supports HTTPS POST. 
-		   //     The user pool client makes requests to this endpoint directly and not through the system browser."
+		   //    "The /oauth2/token endpoint ... client makes requests to this endpoint directly and not through the system browser."
 		   //
-		   // Two new REST APIs are available: LOGIN IDP STORE TOKEN and LOGIN IDP QUERY TOKEN
+		   // Two new REST APIs are available: LOGIN IDP STORE CODE and LOGIN IDP QUERY CODE
 		   // - WEB app
-		   //   In the case of WEB apps, these APIs are necessary as a way to pass the tokens between 2 processes - 2 browser windows.
-		   //   One browser window processes the login process to get the authorization CODE then the TOKENS,
-		   //   while the other browser window waits for the other browser window to complete and make the tokens available.
+		   //   In the case of WEB apps, these APIs are necessary as a way to pass the OAuth2 authorization CODE between 2 processes - 2 browser windows.
+		   //   One browser window processes the login process to get the OAuth2 authorization CODE,
+		   //   while the other browser window waits for the other browser window to complete and make the OAuth2 authorization CODE available and then request the TOKENS.
 		   //
 		   // - MOBILE apps
-		   //   In the case of MOBILE apps, theseAPIs are NOT necessary.
-		   //   The mobile app CALLBACK URI will be called with the authorization CODE.
-		   //   This callback thread will then retrieve the TOKENs and then pass it to the LOGIN thread.
-		   //   The login thread and the token thread belong to the SAME process of the mobile app, 
+		   //   In the case of MOBILE apps, these APIs are OPTIONAL, as they are NOT necessary.
+		   //   The mobile app CALLBACK URI will be called with the OAuth2 authorization CODE.
+		   //   The callback thread and the login thread belong to the SAME process of the mobile app, 
 		   //   so they pass the TOKENS without needing to call the backend REST APIs.
 		   //
 		   //
 		   // DETAILS:
 		   //
 		   // When user clicks on the login via social accounts (on the web/mobile apps),
-		   // a system browser window is opened which handles getting of the OAuth2 authorization code (OAuth process)
+		   // a system browser window is opened which handles getting of the OAuth2 authorization code.
 		   //
 		   // The new window uses the OAuth2 Domain server https://ft900iotportal.auth.ap-southeast-1.amazoncognito.com
 		   // with API /login and the following URL parameters
@@ -707,9 +702,11 @@ DETAILED:
 		   //     GET /login?client_id=AWS_APP_CLIENT_ID&response_type=code&scope=email+openid+phone+aws.cognito.signin.user.admin&state=ID_RANDOM&identity_provider=SOCIAL_ACCOUNT&redirect_uri=APP_CALLBACK_URL
 		   //     headers: {'Content-Type': 'application/x-www-form-urlencoded'}
 		   //
-		   // Once the login operation completed, the callback uri will be called
-		   //   When operation is successful, the URL will be called with 'code' and 'state' parameters
-		   //     The page shall continue with the OAuth2 process by calling
+		   // Once the login operation completed, the WEB/MOBILE APP callback uri will be called
+		   //   When operation is successful, the callback URL will be called with 'code' and 'state' parameters
+		   //     The WEB app shall then use LOGIN IDP STORE CODE and LOGIN IDP QUERY CODE to pass the code from 1 browser window to the other browser window
+		   //
+		   //     Given the OAuth2 authorization code, the WEB/MOBILE APP shall continue with the OAuth2 process by calling
 		   //     the API /ouath2/token with the following BODY parameters
 		   //       grant_type=authorization_code
 		   //       client_id=AWS_APP_CLIENT_ID
@@ -722,34 +719,33 @@ DETAILED:
 		   //         headers: {'Content-Type': 'application/x-www-form-urlencoded'}
 		   //         data: grant_type=authorization_code&client_id=AWS_APP_CLIENT_ID&code=CODE&redirect_uri=APP_CALLBACK_URL
 		   //
-		   //     The page shall then call LOGIN IDP STORE TOKEN with ID=state and token={'access': access_token, 'refresh': refresh_token, 'id': id_token}
 		   //   When operation is failed, the URL will be called with 'error' and 'state' parameters
-		   //     The page shall then call LOGIN IDP STORE TOKEN with ID=state and token={} empty json
+		   //     The page shall then call LOGIN IDP STORE CODE with ID=state and code="" empty string
 		   //
 		   // Notes:
 		   //   1. Request from me the AWS_CLIENT_ID
 		   //   2. Request from me to have your APP_CALLBACK_URL registered in Amazon Cognito
 
-		P. LOGIN IDP QUERY TOKEN
+		P. LOGIN IDP QUERY CODE
 		-  Request:
-		   GET /user/login/idp/token/ID
+		   GET /user/login/idp/code/ID
 		   headers: {'Content-Type': 'application/json'}
 		-  Response:
-		   {'status': 'OK', 'message': string, 'token': json_obj, 'name': string, 'username': string}
-		   // token can be empty {} to indicate failed login via idp
-		   // when token is empty, both name and username will not be available
+		   {'status': 'OK', 'message': string, 'code': string}
 		   {'status': 'NG', 'message': string}
+		   // code can be empty string "" to indicate failed login via idp
 		   //
 		   // When user clicks on the login via social accounts (on the web/mobile apps),
 		   // a system browser window is opened which handles getting of the OAuth2 authorization code (OAuth process)
-		   // The window will then call the web/mobile apps providing the authorization CODE.
-		   // Using the authorization CODE, the web/mobile app requests for the TOKENS.
-		   // Once the TOKENS are retrieved, the web/mobile app can save it to the backend.
+		   // The window will then call the web/mobile apps callback URL providing the authorization CODE.
+		   // The web/mobile app will call LOGIN IDP STORE CODE to save the OAuth2 authorization CODE.
 		   //
-		   // To check if the window is finished with the authentication,
-		   // The app shall call LOGIN IDP QUERY TOKEN
+		   // To check if the system browser window has completed its operation,
+		   // The web/mobile app shall call LOGIN IDP QUERY CODE
 		   // The API returns successful when login via social account is completed
-		   // To differentiate between successful or failed login, the app shall check if the token returned is not empty 
+		   // To differentiate between successful or failed login, the app shall check if the code returned is not an empty string
+		   //
+		   // After retrieving the OAuth2 authorization code, the thread shall request for the user TOKENS.
 
 
 	2. Device registration and management APIs 
@@ -3361,16 +3357,6 @@ DETAILED:
 
 
 
-UART Notification sequence
-
-  <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/notification_sequence_UART.png" width="1000"/>
-
-
-GPIO Notification sequence
-
-  <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/notification_sequence_GPIO.png" width="1000"/>
-
-
 ## Demo Setup Documentation
 
 Below contains the 4 demo setups for Embedded World 2020 in Germany. 
@@ -3502,4 +3488,19 @@ Demo setups:
             Type AT+M
             Type AT+E
             Type AT+N (Requires logging in on Android or IOS mobile app)
+
+
+UART Notification sequence
+
+  <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/notification_sequence_UART.png" width="1000"/>
+
+
+GPIO Notification sequence
+
+  <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/notification_sequence_GPIO.png" width="1000"/>
+
+
+LOGIN via Social IdP (Facebook, Google, Amazon)
+
+  <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/login_via_idp_sequence_diagram.png" width="1000"/>
 

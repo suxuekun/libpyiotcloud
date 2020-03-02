@@ -1235,6 +1235,7 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
     $scope.win = null;
     $scope.timer = null;
     $scope.runtime_max = 120;
+    $scope.savetokens = false;
 
     base64Encode = function(str) {
         return window.btoa(str);
@@ -1384,42 +1385,60 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
         var state_id = GetURLParameter('state');
         $scope.oauthorization_code = GetURLParameter('code');
 
-        if ($scope.oauthorization_code !== null && state_id !== null) {
-            // successful login via social idp
-            if (window.__env.apiUrl === "localhost") {
-                $scope.get_tokens_from_oauthcode($scope.oauthorization_code, state_id, window.__env.clientId, 'http://localhost:8100');
-                //$scope.login_idp($scope.oauthorization_code, 'http://localhost:8100');
+        if ($scope.savetokens) {
+            if ($scope.oauthorization_code !== null && state_id !== null) {
+                // successful login via social idp
+                if (window.__env.apiUrl === "localhost") {
+                    $scope.get_tokens_from_oauthcode($scope.oauthorization_code, state_id, window.__env.clientId, 'http://localhost:8100');
+                    //$scope.login_idp($scope.oauthorization_code, 'http://localhost:8100');
+                }
+                else {
+                    $scope.get_tokens_from_oauthcode($scope.oauthorization_code, state_id, window.__env.clientId, server);
+                    //$scope.login_idp($scope.oauthorization_code, server);
+                }
+            }
+            else if ($scope.oauthorization_code !== null) {
+                // successful login via social idp
+                if (window.__env.apiUrl === "localhost") {
+                    $scope.get_tokens_from_oauthcode($scope.oauthorization_code, 0, window.__env.clientId, 'http://localhost:8100');
+                }
+                else {
+                    $scope.get_tokens_from_oauthcode($scope.oauthorization_code, 0, window.__env.clientId, server);
+                }
+            }
+            else if (state_id !== null) {
+                // error login via social idp
+                let error = GetURLParameter('error');
+                if (error !== null) {
+                    $scope.login_idp_storetoken(state_id, {});
+                }
             }
             else {
-                $scope.get_tokens_from_oauthcode($scope.oauthorization_code, state_id, window.__env.clientId, server);
-                //$scope.login_idp($scope.oauthorization_code, server);
-            }
-        }
-        else if ($scope.oauthorization_code !== null) {
-            // successful login via social idp
-            if (window.__env.apiUrl === "localhost") {
-                $scope.get_tokens_from_oauthcode($scope.oauthorization_code, 0, window.__env.clientId, 'http://localhost:8100');
-            }
-            else {
-                $scope.get_tokens_from_oauthcode($scope.oauthorization_code, 0, window.__env.clientId, server);
-            }
-        }
-        else if (state_id !== null) {
-            // error login via social idp
-            var error = GetURLParameter('error');
-            if (error !== null) {
-                $scope.login_idp_storetoken(state_id, {});
+                // regular login, do nothing
             }
         }
         else {
-            // regular login, do nothing
+            if ($scope.oauthorization_code !== null && state_id !== null) {
+                // successful login via social idp
+                $scope.login_idp_storecode(state_id, $scope.oauthorization_code);
+            }
+            else if (state_id !== null) {
+                // failed login via social idp
+                let error = GetURLParameter('error');
+                if (error !== null) {
+                    $scope.login_idp_storecode(state_id, "");
+                }
+            }
+            else {
+                // regular login, do nothing
+            }    
         }
     }
 
     // Support for Login via social accounts like Facebook, Google, Amazon
     // "The /oauth2/token endpoint only supports HTTPS POST. 
     //  The user pool client makes requests to this endpoint directly and not through the system browser."    
-    $scope.get_tokens_from_oauthcode = function(oauthorization_code, state_id, client_id, redirect_uri) {
+    $scope.get_tokens_from_oauthcode = function(oauthorization_code, state_id, client_id, redirect_uri, spinner=null) {
         //
         // GET TOKENS
         // - Request:
@@ -1445,28 +1464,47 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
         .then(function (result) {
             console.log(result.data);
 
-            // Set username and tokens
-            if (state_id !== 0) {
-                $scope.login_idp_storetoken(state_id, { 'id': result.data.id_token, 'refresh': result.data.refresh_token, 'access': result.data.access_token });
+            if ($scope.savetokens) {
+                // Set username and tokens
+                if (state_id !== 0) {
+                    $scope.login_idp_storetoken(state_id, { 'id': result.data.id_token, 'refresh': result.data.refresh_token, 'access': result.data.access_token });
+                }
+                else {
+                    let user_data = {
+                        'username': 'SocialIDPLogin',
+                        'token': { 'id': result.data.id_token, 'refresh': result.data.refresh_token, 'access': result.data.access_token },
+                        'name': 'SocialIDPLogin'
+                    };
+                    User.set(user_data);
+                    $state.go('menu.devices', user_data);
+                }
             }
             else {
-                var user_data = {
-                    'username': 'SocialIDPLogin',
-                    'token': { 'id': result.data.id_token, 'refresh': result.data.refresh_token, 'access': result.data.access_token },
-                    'name': 'SocialIDPLogin'
-                };
-                User.set(user_data);
-                $state.go('menu.devices', user_data);
+                $scope.get_profile({ 'id': result.data.id_token, 'refresh': result.data.refresh_token, 'access': result.data.access_token }, spinner);
             }
         })
         .catch(function (error) {
-            // Handle failed
-            if (error.data !== null) {
-                console.log(error.status + " " + error.statusText);
-                $ionicPopup.alert({ title: 'Login Error', template: error.data.message });
+            if ($scope.savetokens) {
+                // Handle failed
+                if (error.data !== null) {
+                    console.log(error.status + " " + error.statusText);
+                    $ionicPopup.alert({ title: 'Login Error', template: error.data.message });
+                }
+                else {
+                    $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+                }
             }
             else {
-                $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+                spinner[0].style.visibility = "hidden";
+                $scope.waiting_login = false;
+                
+                if (error.data !== null) {
+                    console.log(error.status + " " + error.statusText);
+                    $ionicPopup.alert({ title: 'Login Error', template: error.data.message });
+                }
+                else {
+                    $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+                }
             }
         }); 
     };
@@ -1517,7 +1555,12 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
                         clearInterval($scope.timer);
                         $scope.timer = null;
                         
-                        $scope.login_idp_querytoken(spinner, state.toString());
+                        if ($scope.savetokens) {
+                            $scope.login_idp_querytoken(spinner, state.toString());
+                        }
+                        else {
+                            $scope.login_idp_querycode(spinner, state.toString());
+                        }
                     }
                     else {
                         runtime += 1;
@@ -1542,67 +1585,8 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
                 $ionicPopup.alert({ title: 'Error', template: 'Cannot open a new window! Check if popup window is blocked!', buttons: [{text: 'OK', type: 'button-assertive'}] });
             }
         }
-        /*
-        else {
-            if (window.__env.apiUrl === "localhost") {
-                $scope.get_oauthcode(socialidp, window.__env.clientId, 'http://localhost:8100');
-            }
-            else {
-                $scope.get_oauthcode(socialidp, window.__env.clientId, server);
-            }
-        }
-        */
     };
 
-/*
-    // Support for Login via social accounts like Facebook, Google, Amazon
-    $scope.get_oauthcode = function(socialidp, client_id, redirect_uri) {
-        //
-        // GET OAUTH CODE
-        // - Request:
-        //   GET 'https://' + window.__env.oauthDomain + '/login'
-        //   headers: {'Content-Type': 'application/x-www-form-urlencoded' }
-        //
-        // - Response:
-        //   { 'status': 'OK', 'message': string }
-        //   { 'status': 'NG', 'message': string}
-        //
-        var state = Math.floor(Math.random() * 8999999999 + 1000000000);
-        
-        url = 'https://' + window.__env.oauthDomain + '/login';
-        url += '?client_id=' + client_id;
-        url += '&response_type=code'; 
-        url += '&scope=email+openid+phone+aws.cognito.signin.user.admin';
-        url += '&state=' + state;
-        if (socialidp !== null) {
-            url += "&identity_provider=" + socialidp;
-        }
-        url += '&redirect_uri=' + redirect_uri;
-
-        //console.log(url);
-        //console.log(data);
-        
-        $http({
-            method: 'GET',
-            url: url,
-            headers: {'Content-Type': 'application/x-www-form-urlencoded' }
-        })
-        .then(function (result) {
-            console.log("get_oauthcode ok");
-            console.log(result.data);
-        })
-        .catch(function (error) {
-            // Handle failed
-            if (error.data !== null) {
-                console.log(error.status + " " + error.statusText);
-                $ionicPopup.alert({ title: 'Login Error', template: error.data.message });
-            }
-            else {
-                $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
-            }
-        }); 
-    };
-*/
 
 
     // Support for Login via social accounts like Facebook, Google, Amazon
@@ -1702,40 +1686,36 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
     };
 
 
-/*
-    // Support for Login via social accounts like Facebook
-    $scope.login_idp = function(oauthorization_code, redirect_uri) {
+    // Support for Login via social accounts like Facebook, Google, Amazon
+    $scope.login_idp_storecode = function(id, code) {
         // 
-        // LOGIN
+        // LOGIN IDP STORE CODE
         // 
         // - Request:
-        //   POST /user/login/oauth2/token
+        //   POST /user/login/idp/code/<id>
         //   headers: {'Content-Type': 'application/json'}
-        //   data: {'code': string, 'redirect_uri': string}
+        //   data: {'code': string}
         // 
         // - Response:
-        //   {'status': 'OK', 'token': {'access': string, 'id': string, 'refresh': string} }
+        //   {'status': 'OK', 'message': string}
         //   {'status': 'NG', 'message': string}
         //
         $http({
             method: 'POST',
-            url: server + '/user/login/oauth2/token',
+            url: server + '/user/login/idp/code/' + id,
             headers: {'Content-Type': 'application/json'},
-            data: {'code': oauthorization_code, 'redirect_uri': redirect_uri}
+            data: {'code': code}
         })
         .then(function (result) {
             console.log(result.data);
 
-            var user_data = {
-                'username': $scope.data.username,
-                'token': result.data.token
-            };
-            
-            User.set(user_data);
-        
-            $state.go('menu.devices', user_data);
+            $scope.oauthorization_code = null;
+            window.close();
         })
         .catch(function (error) {
+            $scope.oauthorization_code = null;
+            window.close();
+
             // Handle failed
             if (error.data !== null) {
                 console.log(error.status + " " + error.statusText);
@@ -1746,8 +1726,103 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
             }
         });
     };
-*/
 
+    // Support for Login via social accounts like Facebook, Google, Amazon
+    $scope.login_idp_querycode = function(spinner, id) {
+        // 
+        // LOGIN IDP QUERY CODE
+        // 
+        // - Request:
+        //   GET /user/login/idp/code/<id>
+        //   headers: {'Content-Type': 'application/json'}
+        // 
+        // - Response:
+        //   {'status': 'OK', 'message': string}
+        //   {'status': 'NG', 'message': string}
+        //
+        $http({
+            method: 'GET',
+            url: server + '/user/login/idp/code/' + id,
+            headers: {'Content-Type': 'application/json'},
+        })
+        .then(function (result) {
+            console.log(result.data);
+
+            // Handle failed login
+            if (result.data.code === "") {
+                spinner[0].style.visibility = "hidden";
+                $scope.waiting_login = false;
+                $ionicPopup.alert({ title: 'Error', template: 'Login with social account failed!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+                return;
+            }
+            
+            //$scope.oauthorization_code = result.data.code;
+            if (window.__env.apiUrl === "localhost") {
+                $scope.get_tokens_from_oauthcode(result.data.code, id, window.__env.clientId, 'http://localhost:8100', spinner);
+            }
+            else {
+                $scope.get_tokens_from_oauthcode(result.data.code, id, window.__env.clientId, server, spinner);
+            }
+        })
+        .catch(function (error) {
+            spinner[0].style.visibility = "hidden";
+            $scope.waiting_login = false;
+            
+            // Handle failed
+            if (error.data !== null) {
+                $ionicPopup.alert({ title: 'Error', template: 'Login with social account failed due to cancellation!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+            }
+            else {
+                $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+            }
+        });
+    };
+
+    $scope.get_profile = function(token, spinner) {
+        //        
+        // GET USER INFO
+        //
+        // - Request:
+        //   GET /user
+        //   headers: {'Authorization': 'Bearer ' + token.access}
+        //
+        // - Response:
+        //   {'status': 'OK', 'message': string, 'info': {'email': string, 'phone_number': string, 'name': string} }
+        //   {'status': 'NG', 'message': string}
+        //         
+        $http({
+            method: 'GET',
+            url: server + '/user',
+            headers: {'Authorization': 'Bearer ' + token.access}
+        })
+        .then(function (result) {
+            console.log("ACCOUNT OK");
+            console.log(result.data);
+            
+            spinner[0].style.visibility = "hidden";
+            $scope.waiting_login = false;
+
+            let user_data = {
+                'username': result.data.info.username,
+                'token': token,
+                'name': result.data.info.name
+            };
+            User.set(user_data);
+            $state.go('menu.devices', user_data);
+        })
+        .catch(function (error) {
+            spinner[0].style.visibility = "hidden";
+            $scope.waiting_login = false;
+            
+            if (error.data !== null) {
+                $ionicPopup.alert({ title: 'Error', template: 'Login with social account failed!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+            }
+            else {
+                $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+            }
+        }); 
+    };
+    
     // Support for Login via social accounts like Facebook
     $scope.$on('$ionicView.enter', function(e) {
         console.log("enter");

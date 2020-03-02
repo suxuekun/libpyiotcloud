@@ -101,6 +101,16 @@ class database_client:
         self._idp.delete_idp_token(id)
 
 
+    def get_idp_code(self, id):
+        return self._idp.get_idp_code(id)
+
+    def set_idp_code(self, id, code):
+        self._idp.set_idp_code(id, code)
+
+    def delete_idp_code(self, id):
+        self._idp.delete_idp_code(id)
+
+
     ##########################################################
     # users
     ##########################################################
@@ -855,7 +865,7 @@ class database_client_mongodb:
     ##########################################################
 
     def get_idp_token_db(self):
-        return self.client[config.CONFIG_MONGODB_TB_IDPTOKEN]
+        return self.client[config.CONFIG_MONGODB_TB_IDPTOKENS]
 
     def get_idp_token(self, id):
         idptokens = self.get_idp_token_db()
@@ -879,6 +889,35 @@ class database_client_mongodb:
         idptokens = self.get_idp_token_db()
         try:
             idptokens.delete_many({'id': id})
+        except:
+            pass
+
+
+    def get_idp_code_db(self):
+        return self.client[config.CONFIG_MONGODB_TB_IDPCODES]
+
+    def get_idp_code(self, id):
+        idpcodes = self.get_idp_code_db()
+        code = None
+        if idpcodes:
+            for idpcode in idpcodes.find({'id': id}):
+                code = idpcode['code']
+                self.delete_idp_code(id)
+                break
+        return code
+
+    def set_idp_code(self, id, code):
+        idpcodes = self.get_idp_code_db()
+        item = {}
+        item['id'] = id
+        item['code'] = code
+        item['timestamp'] = int(time.time())
+        idpcodes.insert_one(item)
+
+    def delete_idp_code(self, id):
+        idpcodes = self.get_idp_code_db()
+        try:
+            idpcodes.delete_many({'id': id})
         except:
             pass
 

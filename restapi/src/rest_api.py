@@ -276,6 +276,57 @@ def login_idp_querytoken(id):
     response = json.dumps(msg)
     return response
 
+########################################################################################################
+#
+# LOGIN IDP STORE CODE
+#
+# - Request:
+#   POST /user/login/idp/code/<id>
+#   headers: {'Content-Type': 'application/json'}
+#   data: {'code': string}
+#
+# - Response:
+#   {'status': 'OK', 'message': string}
+#   {'status': 'NG', 'message': string}
+#
+########################################################################################################
+@app.route('/user/login/idp/code/<id>', methods=['POST'])
+def login_idp_storecode(id):
+    data = flask.request.get_json()
+    if data.get("code") is None:
+        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+        print('\r\nERROR Login IDP STORE CODE: Empty parameter found [{}]\r\n'.format(username))
+        return response, status.HTTP_400_BAD_REQUEST
+
+    g_database_client.set_idp_code(id, data["code"])
+
+    response = json.dumps({'status': 'OK', 'message': "Login IDP store code successful"})
+    return response
+
+########################################################################################################
+#
+# LOGIN IDP QUERY CODE
+#
+# - Request:
+#   GET /user/login/idp/code/<id>
+#   headers: {'Content-Type': 'application/json'}
+#
+# - Response:
+#   {'status': 'OK', 'message': string, 'code': string}
+#   {'status': 'NG', 'message': string}
+#
+########################################################################################################
+@app.route('/user/login/idp/code/<id>', methods=['GET'])
+def login_idp_querycode(id):
+    # check if code is available
+    code = g_database_client.get_idp_code(id)
+    if code is None:
+        response = json.dumps({'status': 'NG', 'message': 'Login IDP query code not found'})
+        print('\r\nERROR Login IDP query: Code not found [{}]\r\n'.format(id))
+        return response, status.HTTP_404_NOT_FOUND
+
+    response = json.dumps({'status': 'OK', 'message': "Login IDP query code successful", 'code': code})
+    return response
 
 
 ########################################################################################################
@@ -724,6 +775,9 @@ def get_user_info():
             else:
                 info['name'] += " " + info['family_name']
         info.pop('family_name')
+
+    # add username to info for Login via Social IDP (Facebook, Google, Amazon)
+    info['username'] = username
 
     msg = {'status': 'OK', 'message': 'Userinfo queried successfully.', 'info': info}
     if new_token:
