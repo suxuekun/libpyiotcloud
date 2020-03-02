@@ -70,7 +70,8 @@ class config:
     CONFIG_MONGODB_TB_DEVICETOKENS   = "devicetokens"
     CONFIG_MONGODB_TB_MENOS          = "menos"
     CONFIG_MONGODB_TB_DEVICELOCATION = "devicelocation"
-    CONFIG_MONGODB_TB_IDPTOKEN       = "idptokens"
+    CONFIG_MONGODB_TB_IDPTOKENS      = "idptokens"
+    CONFIG_MONGODB_TB_IDPCODES       = "idpcodes"
 
     # Caching settings
     CONFIG_REDIS_HOST                = "127.0.0.1"
