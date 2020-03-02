@@ -561,7 +561,7 @@ DETAILED:
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
 		   {'status': 'OK', 'message': string, 
-		    'info': {'name': string, 'email': string, 'phone_number': string, 'email_verified': boolean, 'phone_number_verified': boolean, 'identity': {'providerName': string, 'userId': string}} }
+		    'info': {'name': string, 'email': string, 'phone_number': string, 'email_verified': boolean, 'phone_number_verified': boolean, 'identity': {'providerName': string, 'userId': string}, 'username': string} }
 		   // phone_number and phone_number_verified are not included if no phone_number has been added yet
 		   // phone_number can be added using SIGN UP or UPDATE USER INFO
 		   // phone_number_verified will return true once it has been verified using VERIFY PHONE NUMBER and CONFIRM VERIFY PHONE NUMBER
@@ -3502,5 +3502,5 @@ GPIO Notification sequence
 
 LOGIN via Social IdP (Facebook, Google, Amazon)
 
-  <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/login_via_idp_sequence_diagram.png" width="1000"/>
+  <img src="../_images/login_via_idp_sequence_diagram.png" width="1000"/>
 
