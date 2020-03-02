@@ -669,6 +669,44 @@ Note: Using Kubernetes will also change the infrastracture.
        B. AWS_COGNITO_USERPOOL_ID     = Copy from General settings/Pool Id
        C. AWS_COGNITO_CLIENT_ID       = Copy from General settings/App clients/App client id
 
+       // Login via Facebook/Google/Amazon
+       A. App integration > App client settings
+          Enabled Identity Providers: Facebook, Google, LoginWithAmazon
+          Sign in and sign out URLs
+            Callback URL(s)
+          OAuth 2.0
+            Allowed OAuth Flows: Authorization code grant, Implicit grant
+            Allowed OAuth Scopes: phone, email, openid, aws.cognito.signin.user.admin
+       B. Federation > Identity providers
+          Facebook
+            Facebook app ID
+            App secret
+            Authorize scope: public_profile, email
+          Google
+            Google app ID
+            App secret
+            Authorize scope: profile email openid
+          Login with Amazon
+            Amazon app ID
+            App secret
+            Authorize scope: profile
+       C. Federation > Attribute mapping
+          Facebook
+            id: Username
+            email: Email
+            first_name: Given Name
+            last_name: Family Name
+          Google
+            sub: Username
+            email: Email
+            given_name: Given Name
+            family_name: Family Name
+          Amazon
+            user_id: Username
+            email: Email
+            name: Given Name
+            ...: Family Name
+
 
 ### Setup Amazon Pinpoint.
     
