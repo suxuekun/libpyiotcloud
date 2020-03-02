@@ -39,7 +39,7 @@ The web app is made of Ionic framework so it can be compiled as Android and iOS 
 - <b>Redis</b> database caching - https://redis.io/
 - <b>OpenSSL</b> cryptography (X509 certificates) - https://www.openssl.org/
 - <b>Amazon EC2</b> - https://aws.amazon.com/ec2/
-- <b>Amazon Cognito</b> (user sign-up/sign-in) - https://aws.amazon.com/cognito/
+- <b>Amazon Cognito</b> (sign-up/sign-in user authentication with OTP, MFA, OAuth2, IdP) - https://aws.amazon.com/cognito/
 - <b>Docker</b> containerization (dockerfiles, docker-compose) - https://www.docker.com/
 - <b>Ionic</b> mobile/web frontend framework - https://ionicframework.com/
 - <b>Ionic Creator</b> - https://creator.ionic.io
