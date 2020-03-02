@@ -136,6 +136,14 @@ An alternative solution is using an AWS serverless solution wherein:
 ### UML Sequence diagram (sensor live status):
 <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/architecture_livestatus.png" width="800"/>
 
+### UML Sequence diagram (OTA firmware update):
+<img src="../_images/ota_firmware_update_sequence_diagram.png" width="800"/>
+
+### UML Sequence diagram (login via social idp - Facebook, Google, Amazon):
+<img src="../_images/login_via_idp_sequence_diagram.png" width="800"/>
+
+
+
 ### Notes:
 
     1. RabbitMQ supports AMQP and MQTT.
