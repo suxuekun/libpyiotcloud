@@ -3502,10 +3502,10 @@ GPIO Notification sequence
 
 OTA Firmwarew Update sequence
 
-  <img src="../_images/ota_firmware_update_sequence_diagram.png" width="800"/>
+  <img src="_images/ota_firmware_update_sequence_diagram.png" width="800"/>
 
 
 LOGIN via Social IdP (Facebook, Google, Amazon)
 
-  <img src="../_images/login_via_idp_sequence_diagram.png" width="800"/>
+  <img src="_images/login_via_idp_sequence_diagram.png" width="800"/>
 
