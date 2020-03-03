@@ -850,6 +850,7 @@ DETAILED:
 		   { 'status': 'OK', 'message': string, 'locations': [{'devicename': string, location: {'latitude': float, 'longitude': float}}, ...] }
 		   { 'status': 'NG', 'message': string}
 		   // latitude and longitude can be negative values
+		   // locations will not be present if no device location has not yet been set
 
 		H. SET DEVICES LOCATION
 		-  Request:
@@ -877,6 +878,7 @@ DETAILED:
 		   { 'status': 'OK', 'message': string, 'location': {'latitude': float, 'longitude': float} }
 		   { 'status': 'NG', 'message': string}
 		   // latitude and longitude can be negative values
+		   // location will not be present if device location has not yet been set
 
 		K. SET DEVICE LOCATION
 		-  Request:
