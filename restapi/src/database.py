@@ -467,6 +467,13 @@ class database_client:
     def get_devices_location(self, username):
         return self._devices.get_devices_location(username)
 
+    def delete_device_location(self, username, devicename):
+        deviceid = self._devices.get_deviceid(username, devicename)
+        self._devices.delete_device_location(deviceid)
+
+    def delete_devices_location(self, username):
+        self._devices.delete_devices_location(username)
+
 
     ##########################################################
     # devices
@@ -1876,6 +1883,22 @@ class database_client_mongodb:
                 devicelocation.pop('username')
                 location_list.append(devicelocation)
         return location_list
+
+    def delete_device_location(self, deviceid):
+        devicelocations = self.get_device_location_document()
+        if devicelocations:
+            try:
+                devicelocations.delete_one({ 'deviceid': deviceid })
+            except:
+                print("delete_device_location: Exception occurred")
+
+    def delete_devices_location(self, username):
+        devicelocations = self.get_device_location_document()
+        if devicelocations:
+            try:
+                devicelocations.delete_many({ 'username': username })
+            except:
+                print("delete_devices_location: Exception occurred")
 
 
     ##########################################################

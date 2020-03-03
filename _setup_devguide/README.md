@@ -249,13 +249,15 @@ SUMMARY:
 		// location
 		G. GET DEVICES LOCATION           - GET    /devices/location
 		H. SET DEVICES LOCATION           - POST   /devices/location
-		I. GET DEVICE LOCATION            - GET    /devices/device/DEVICENAME/location
-		J. SET DEVICE LOCATION            - POST   /devices/device/DEVICENAME/location
+		I. DELETE DEVICES LOCATION        - DELETE /devices/location
+		J. GET DEVICE LOCATION            - GET    /devices/device/DEVICENAME/location
+		K. SET DEVICE LOCATION            - POST   /devices/device/DEVICENAME/location
+		L. DELETE DEVICE LOCATION         - DELETE /devices/device/DEVICENAME/location
 
 		//
 		// ota firmware upgrade
-		K. UPGRADE DEVICE FIRMWARE        - POST   /devices/device/DEVICENAME/firmware
-		L. GET UPGRADE DEVICE FIRMWARE    - GET    /devices/device/DEVICENAME/firmware
+		M. UPGRADE DEVICE FIRMWARE        - POST   /devices/device/DEVICENAME/firmware
+		N. GET UPGRADE DEVICE FIRMWARE    - GET    /devices/device/DEVICENAME/firmware
 
 
 	3. Device access and control APIs (STATUS, UART, GPIO)
@@ -859,7 +861,15 @@ DETAILED:
 		   { 'status': 'NG', 'message': string}
 		   // latitude and longitude can be negative values
 
-		I. GET DEVICE LOCATION
+		I. DELETE DEVICES LOCATION
+		-  Request:
+		   DELETE /devices/location
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		-  Response:
+		   { 'status': 'OK', 'message': string}
+		   { 'status': 'NG', 'message': string}
+
+		J. GET DEVICE LOCATION
 		-  Request:
 		   GET /devices/device/DEVICENAME/location
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -868,7 +878,7 @@ DETAILED:
 		   { 'status': 'NG', 'message': string}
 		   // latitude and longitude can be negative values
 
-		J. SET DEVICE LOCATION
+		K. SET DEVICE LOCATION
 		-  Request:
 		   POST /devices/device/DEVICENAME/location
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
@@ -878,7 +888,15 @@ DETAILED:
 		   { 'status': 'NG', 'message': string}
 		   // latitude and longitude can be negative values
 
-		K. UPGRADE DEVICE FIRMWARE
+		L. DELETE DEVICE LOCATION
+		-  Request:
+		   DELETE /devices/device/DEVICENAME/location
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		-  Response:
+		   { 'status': 'OK', 'message': string}
+		   { 'status': 'NG', 'message': string}
+
+		M. UPGRADE DEVICE FIRMWARE
 		-  Request:
 		   POST /devices/device/DEVICENAME/firmware
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
@@ -889,7 +907,7 @@ DETAILED:
 		   // version is the version of the firmware to use
 		   // note that user can select the latest version or the same version (as per Sree)
 
-		L. GET UPGRADE DEVICE FIRMWARE
+		N. GET UPGRADE DEVICE FIRMWARE
 		-  Request:
 		   GET /devices/device/DEVICENAME/firmware
 		   headers: {'Authorization': 'Bearer ' + token.access}
