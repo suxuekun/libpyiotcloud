@@ -231,7 +231,7 @@ SUMMARY:
 		N. CHANGE PASSWORD                - POST   /user/change_password
 
 		//
-		// idp
+		// login via social idp (facebook, google, amazon)
 		O. LOGIN IDP STORE CODE           - POST   /user/login/idp/code/ID
 		P. LOGIN IDP QUERY CODE           - GET    /user/login/idp/code/ID
 
