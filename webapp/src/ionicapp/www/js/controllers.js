@@ -4071,6 +4071,36 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
     };    
 
 
+    $scope.cancelFirmware = function() {
+        
+        var prompt = 'Are you sure you want to cancel the firmware update?';
+        
+        $ionicPopup.alert({
+            title: 'OTA Firmware Update',
+            template: prompt,
+            buttons: [
+                { 
+                    text: 'No',
+                    type: 'button-negative',
+                },
+                {
+                    text: 'Yes',
+                    type: 'button-positive',
+                    onTap: function(e) {
+                        
+                        if ($scope.timer !== null) {
+                            clearTimeout($scope.timer);
+                            $scope.timer = null;
+                        }
+                        $scope.runtime = 0;
+                    }
+                }
+            ]            
+        });            
+        
+    };
+
+
     $scope.upgradeFirmware = function(devicename, version) {
         if ($scope.online === false) {
             $ionicPopup.alert({ title: 'Error', template: 'Device is unreachable!', buttons: [{text: 'OK', type: 'button-assertive'}] });
@@ -4166,8 +4196,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                 if ($scope.timer !== null) {
                     clearTimeout($scope.timer);
                     $scope.timer = null;
-                    $scope.runtime = 0;
                 }
+                $scope.runtime = 0;
                 
                 $ionicPopup.alert({
                     title: 'OTA Firmware Update',
@@ -4190,8 +4220,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                     if ($scope.timer !== null) {
                         clearTimeout($scope.timer);
                         $scope.timer = null;
-                        $scope.runtime = 0;
                     }
+                    $scope.runtime = 0;
                 }
             }
         })
@@ -4201,8 +4231,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             if ($scope.timer !== null) {
                 clearTimeout($scope.timer);
                 $scope.timer = null;
-                $scope.runtime = 0;
             }
+            $scope.runtime = 0;
             
             $ionicPopup.alert({
                 title: 'OTA Firmware Update',
