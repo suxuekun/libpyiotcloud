@@ -14,6 +14,10 @@ cd sensor\src\sensor_manager
 START sensor_manager_ecc.bat
 cd ..\..\..\
 
+cd ota\src\ota_manager
+START ota_manager_ecc.bat
+cd ..\..\..\
+
 cd webapp\src
 START run.bat
 cd ..\..\
