@@ -28,8 +28,15 @@ CONFIG_USE_AMQP = False
 ###################################################################################
 
 # ota firmware update
-CONFIG_OTA_DOWNLOAD_FIRMWARE_VIA_MQTTS = False
-CONFIG_OTA_DOWNLOAD_FIRMWARE_MQTTS_CHUNK_SIZE = 128
+CONFIG_OTA_DOWNLOAD_FIRMWARE_VIA_MQTTS = True
+# chunk size: 8192 -   4 seconds
+# chunk size: 4096 -   7 seconds
+# chunk size: 2048 -  12 seconds
+# chunk size: 1024 -  26 seconds
+# chunk size:  512 -  53 seconds
+# chunk size:  256 -  99 seconds
+# chunk size:  128 - 203 seconds
+CONFIG_OTA_DOWNLOAD_FIRMWARE_MQTTS_CHUNK_SIZE = 8192
 
 # device configuration on bootup
 CONFIG_REQUEST_CONFIGURATION = True
@@ -1730,6 +1737,7 @@ class DownloadThread(threading.Thread):
 
 
     def run(self):
+        global g_firmware_version_STR
         topic = "{}{}{}{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_DEVICE_ID, CONFIG_SEPARATOR, API_UPGRADE_FIRMWARE_COMPLETION)
         start_time = time.time()
 
@@ -1737,19 +1745,17 @@ class DownloadThread(threading.Thread):
             print("Downloading firmware via HTTPS ...\r\n")
             result = http_get_firmware_binary(self.filename, self.filesize)
             if result:
-                global g_firmware_version_STR
                 g_firmware_version_STR = self.fileversion
+                time.sleep(1)
 
                 # send completion status
-                payload = {}
-                payload["value"] = {"result": "successful"}
+                payload = {"value": {"result": "successful"}}
                 publish(topic, payload)
-                print("The firmware has been downloaded to {} {} bytes in {} secs !!!\r\n".format(self.use_filename, self.filesize, int(time.time()-start_time)))
+                print("The firmware has been downloaded to {} {} bytes in {} secs !!!\r\n".format(self.use_filename, self.filesize, round(time.time()-start_time)))
                 print("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\r\n\r\n\r\n\r\n")
             else:
                 # send completion status
-                payload = {}
-                payload["value"] = {"result": "failed"}
+                payload = {"value": {"result": "failed"}}
                 publish(topic, payload)
                 print("The firmware failed to download !!!\r\n")
                 print("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\r\n\r\n\r\n\r\n")
@@ -1769,11 +1775,13 @@ class DownloadThread(threading.Thread):
                         payload["size"] = CONFIG_OTA_DOWNLOAD_FIRMWARE_MQTTS_CHUNK_SIZE
                         publish(topic_download, payload, debug=False)
                     else:
+                        g_firmware_version_STR = self.fileversion
+                        time.sleep(1)
+
                         # send completion status
-                        payload = {}
-                        payload["value"] = {"result": "successful"}
+                        payload = {"value": {"result": "successful"}}
                         publish(topic, payload)
-                        print("The firmware has been downloaded to {} {} bytes in {} secs !!! \r\n".format(self.use_filename, self.downloadedsize, int(time.time()-start_time) ))
+                        print("The firmware has been downloaded to {} {} bytes in {} secs !!! \r\n".format(self.use_filename, self.downloadedsize, round(time.time()-start_time) ))
                         print("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\r\n\r\n\r\n\r\n")
                         break
 
