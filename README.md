@@ -232,6 +232,10 @@ Menu, account, history
         L. VERIFY PHONE NUMBER            - POST   /user/verify_phone_number
         M. CONFIRM VERIFY PHONE NUMBER    - POST   /user/confirm_verify_phone_number
         N. CHANGE PASSWORD                - POST   /user/change_password
+        //
+        // idp
+        O. LOGIN IDP STORE CODE           - POST   /user/login/idp/code/ID
+        P. LOGIN IDP QUERY CODE           - GET    /user/login/idp/code/ID
 
     2. Device registration and management APIs
         A. GET DEVICES                    - GET    /devices
@@ -239,6 +243,19 @@ Menu, account, history
         C. ADD DEVICE                     - POST   /devices/device/DEVICENAME
         D. DELETE DEVICE                  - DELETE /devices/device/DEVICENAME
         E. GET DEVICE                     - GET    /devices/device/DEVICENAME
+        F. UPDATE DEVICE NAME             - POST   /devices/device/DEVICENAME/name
+        //
+        // location
+        G. GET DEVICES LOCATION           - GET    /devices/location
+        H. SET DEVICES LOCATION           - POST   /devices/location
+        I. DELETE DEVICES LOCATION        - DELETE /devices/location
+        J. GET DEVICE LOCATION            - GET    /devices/device/DEVICENAME/location
+        K. SET DEVICE LOCATION            - POST   /devices/device/DEVICENAME/location
+        L. DELETE DEVICE LOCATION         - DELETE /devices/device/DEVICENAME/location
+        //
+        // ota firmware upgrade
+        M. UPGRADE DEVICE FIRMWARE        - POST   /devices/device/DEVICENAME/firmware
+        N. GET UPGRADE DEVICE FIRMWARE    - GET    /devices/device/DEVICENAME/firmware
 
     3. Device access and control APIs (STATUS, UART, GPIO)
         // status
@@ -332,6 +349,8 @@ Menu, account, history
         A. GET HISTORIES                  - GET    /devices/histories
         B. GET HISTORIES FILTERED         - POST   /devices/histories
            (filter by device name, direction, topic, date start, date end)
+        C. GET MENOS HISTORIES            - GET    /devices/menos
+        D. GET MENOS HISTORIES FILTERED   - POST   /devices/menos
 
     9. Account subscription and payment APIs
         A. GET SUBSCRIPTION               - GET    /account/subscription
@@ -342,10 +361,11 @@ Menu, account, history
 
     10. Mobile services
         A. REGISTER DEVICE TOKEN          - POST   /mobile/devicetoken
-        
-    11. Supported devices
+
+    11. Supported devices and firmware updates
         A. GET SUPPORTED I2C DEVICES      - GET    /others/i2cdevices [OBSOLETED, use GET SUPPORTED SENSOR DEVICES instead]
         B. GET SUPPORTED SENSOR DEVICES   - GET    /others/sensordevices
+        C. GET DEVICE FIRMWARE UPDATES    - GET    /others/firmwareupdates
 
     12. Others
         A. SEND FEEDBACK                  - POST   /others/feedback
