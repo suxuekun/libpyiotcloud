@@ -3957,6 +3957,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
     $scope.online = false;
     $scope.timer = null;
     $scope.runtime = 0;
+    $scope.runtime_max = 300; // 5 minutes
 
     $scope.versiontouse = $stateParams.firmware.ft900.latest;
     $scope.descriptiontouse = [];
@@ -4185,7 +4186,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             }
             else {
                 $scope.runtime += 1;
-                if ($scope.runtime >= 10) {
+                if ($scope.runtime >= $scope.runtime_max) {
                     if ($scope.timer !== null) {
                         clearTimeout($scope.timer);
                         $scope.timer = null;
