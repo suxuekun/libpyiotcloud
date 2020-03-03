@@ -28,14 +28,30 @@ CONFIG_USE_AMQP = False
 ###################################################################################
 
 # ota firmware update
+# FT900 is advised to use HTTPS to download the firmware (if possible).
+#   If not possible (due to memory constraints), then can use MQTTS.
+#   When using MQTTS to download the firmware, the firmware is downloaded by chunks.
+#   Since its not possible to add binary to a JSON packet, the binary chunks is Base64-encoded.
 CONFIG_OTA_DOWNLOAD_FIRMWARE_VIA_MQTTS = True
-# chunk size: 8192 -   4 seconds
-# chunk size: 4096 -   7 seconds
-# chunk size: 2048 -  12 seconds
-# chunk size: 1024 -  26 seconds
-# chunk size:  512 -  53 seconds
-# chunk size:  256 -  99 seconds
-# chunk size:  128 - 203 seconds
+# Below is the performance when using the device simulator.
+# LIVE
+# via HTTPS: 3 seconds
+# via MQTTS:
+#   chunk size: 8192 -  16 seconds
+#   chunk size: 4096 -  29 seconds
+#   chunk size: 2048 -  55 seconds
+#   chunk size: 1024 - 109 seconds
+#   chunk size:  512 - 266 seconds
+# LOCALHOST
+# via HTTPS: 3 seconds
+# via MQTTS:
+#   chunk size: 8192 -   4 seconds
+#   chunk size: 4096 -   7 seconds
+#   chunk size: 2048 -  12 seconds
+#   chunk size: 1024 -  26 seconds
+#   chunk size:  512 -  53 seconds
+#   chunk size:  256 -  99 seconds
+#   chunk size:  128 - 203 seconds
 CONFIG_OTA_DOWNLOAD_FIRMWARE_MQTTS_CHUNK_SIZE = 8192
 
 # device configuration on bootup
