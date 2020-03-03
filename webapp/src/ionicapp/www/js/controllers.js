@@ -3764,7 +3764,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         })
         .then(function (result) {
             console.log(result.data);
-            $ionicPopup.alert({ title: 'Device location', template: 'Device location has been saved!', buttons: [{text: 'OK', type: 'button-positive'}] });
+            $ionicPopup.alert({ title: 'Device location', template: 'Devices locations have been saved!', buttons: [{text: 'OK', type: 'button-positive'}] });
         })
         .catch(function (error) {
             $scope.handle_error(error);
@@ -3799,6 +3799,95 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             $scope.handle_error(error);
         }); 
     }; 
+
+
+
+    // DELETE DEVICE LOCATION
+    $scope.deleteDeviceLocation = function(devicename) {
+        if (devicename === "All devices") {
+            $scope.delete_devices_location();
+        }
+        else {        
+            $scope.delete_device_location(devicename);
+        }
+    };
+
+    // DELETE DEVICES LOCATION
+    $scope.delete_devices_location = function() {
+        console.log("delete_devices_location ");
+        //
+        // DELETE DEVICES LOCATION
+        // - Request:
+        //   DELETE /devices/location
+        //   headers: { 'Authorization': 'Bearer ' + token.access }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string}
+        //   { 'status': 'NG', 'message': string}
+        //        
+        $http({
+            method: 'DELETE',
+            url: server + '/devices/location',
+            headers: {'Authorization': 'Bearer ' +  $scope.data.token.access }
+        })
+        .then(function (result) {
+            console.log(result.data);
+            $ionicPopup.alert({ 
+                title: 'Device location', 
+                template: 'Devices locations have been deleted!', 
+                buttons: [{
+                    text: 'OK', 
+                    type: 'button-positive', 
+                    onTap: function(e) {
+                        $scope.get_devices_location();
+                    }
+                }] 
+            });
+        })
+        .catch(function (error) {
+            $scope.handle_error(error);
+        }); 
+    }; 
+
+    // DELETE DEVICE LOCATION
+    $scope.delete_device_location = function(devicename) {
+        console.log("delete_device_location " + devicename);
+        //
+        // DELETE DEVICE LOCATION
+        // - Request:
+        //   DELETE /devices/device/DEVICENAME/location
+        //   headers: { 'Authorization': 'Bearer ' + token.access }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string}
+        //   { 'status': 'NG', 'message': string}
+        //        
+        $http({
+            method: 'DELETE',
+            url: server + '/devices/device/' + devicename + '/location',
+            headers: {'Authorization': 'Bearer ' +  $scope.data.token.access }
+        })
+        .then(function (result) {
+            console.log(result.data);
+            $ionicPopup.alert({ 
+                title: 'Device location', 
+                template: 'Device location has been deleted!', 
+                buttons: [{
+                    text: 'OK', 
+                    type: 'button-positive',
+                    onTap: function(e) {
+                        $scope.data.location.latitude = 0;
+                        $scope.data.location.longitude = 0;                        
+                        $scope.get_device_location(devicename);
+                    }
+                }] 
+            });
+        })
+        .catch(function (error) {
+            $scope.handle_error(error);
+        }); 
+    }; 
+
 
 
     $scope.$on('$ionicView.enter', function(e) {
