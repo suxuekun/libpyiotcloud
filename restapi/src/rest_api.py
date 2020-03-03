@@ -2001,7 +2001,6 @@ def get_deviceslocations():
 
     # get the devices location from database
     locations = g_database_client.get_devices_location(username)
-    print(locations)
     for location in locations:
         for device in devices:
             if location["deviceid"] == device["deviceid"]:
@@ -2015,7 +2014,7 @@ def get_deviceslocations():
     if new_token:
         msg['new_token'] = new_token
     response = json.dumps(msg)
-    print('\r\nDevice locations queried successful: {}\r\n{}\r\n'.format(username, response))
+    print('\r\nDevice locations queried successful: {}\r\n'.format(username))
     return response
 
 ########################################################################################################
@@ -2088,7 +2087,7 @@ def set_deviceslocation():
     if new_token:
         msg['new_token'] = new_token
     response = json.dumps(msg)
-    print('\r\nDevices locations updated successful: {}\r\n{}\r\n'.format(username, response))
+    print('\r\nDevices locations updated successful: {}\r\n'.format(username))
     return response
 
 
@@ -2158,7 +2157,7 @@ def get_devicelocation(devicename):
     if new_token:
         msg['new_token'] = new_token
     response = json.dumps(msg)
-    print('\r\nDevice location queried successful: {}\r\n{}\r\n'.format(username, response))
+    print('\r\nDevice location queried successful: {}\r\n'.format(username))
     return response
 
 
@@ -2236,7 +2235,7 @@ def set_devicelocation(devicename):
     if new_token:
         msg['new_token'] = new_token
     response = json.dumps(msg)
-    print('\r\nDevice location updated successful: {}\r\n{}\r\n'.format(username, response))
+    print('\r\nDevice location updated successful: {}\r\n'.format(username))
     return response
 
 
