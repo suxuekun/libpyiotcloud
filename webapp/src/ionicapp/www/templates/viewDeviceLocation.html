@@ -14,23 +14,34 @@
     </div>
     <div class="spacer" style="height: 12px;"></div>
     <form id="viewDeviceLocation-form220" class="list">
-      <div id="viewDeviceLocation-markdown350" class="show-list-numbers-and-dots"></div>
-      <div id="viewDeviceLocation-markdown345" class="show-list-numbers-and-dots">
+      <label class="item item-select" id="viewDeviceLocation-select106">
+        <span class="input-label">Device</span>
+        <select ng-options="device.devicename as device.devicename for device in devices" ng-model="data.devicename" ng-change="changeDevice(data.devicename)"></select>
+      </label>
+    </form>
+    <form id="viewDeviceLocation-form225" class="list" ng-show="data.devicename != &quot;All devices&quot;">
+      <div id="viewDeviceLocation-markdown360" class="show-list-numbers-and-dots">
         <p style="color:#387EF5;">Device location</p>
       </div>
-      <label class="item item-input widget_button_half" id="viewDeviceLocation-input165">
+      <label class="item item-input widget_button_half" id="viewDeviceLocation-input167">
         <span class="input-label">Latitude</span>
         <input type="text" placeholder="" ng-model="data.location.latitude">
       </label>
-      <label class="item item-input widget_button_half" id="viewDeviceLocation-input166">
+      <label class="item item-input widget_button_half" id="viewDeviceLocation-input168">
         <span class="input-label">Longitude</span>
         <input type="text" placeholder="" ng-model="data.location.longitude">
       </label>
+    </form>
+    <form id="viewDeviceLocation-form228" class="list">
       <button id="viewDeviceLocation-button152" ng-click="setDeviceLocation(data.devicename)" class="button button-positive button-block">Set device location</button>
     </form>
     <ui-gmap-google-map ng-if="map.center" center="map.center" zoom="map.zoom" options="map.options" style="height:500px;">
 
-      <ui-gmap-markers models="markers" coords="map.center" click="clickMarker">
+      <ui-gmap-window coords="selectedCoords" show="windowOptions.show" closeclick="onCloseClick()">
+        <div>{{info}}</div>
+      </ui-gmap-window>
+
+      <ui-gmap-markers models="markers" coords="&quot;coords&quot;" options="&quot;options&quot;" click="onClickMarker">
       </ui-gmap-markers>
 
     </ui-gmap-google-map>
