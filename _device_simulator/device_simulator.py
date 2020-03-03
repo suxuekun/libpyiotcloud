@@ -12,6 +12,7 @@ import queue
 from messaging_client import messaging_client # common module from parent directory
 import http.client
 import ssl
+import base64
 
 
 
@@ -25,6 +26,10 @@ CONFIG_USE_AMQP = False
 ###################################################################################
 # global variables
 ###################################################################################
+
+# ota firmware update
+CONFIG_OTA_DOWNLOAD_FIRMWARE_VIA_MQTTS = False
+CONFIG_OTA_DOWNLOAD_FIRMWARE_MQTTS_CHUNK_SIZE = 128
 
 # device configuration on bootup
 CONFIG_REQUEST_CONFIGURATION = True
@@ -41,11 +46,14 @@ CONFIG_SEND_NOTIFICATION_PERIOD = 3600 # 1 hour
 # timer thread for publishing sensor data
 g_timer_thread_timeout = 5
 g_timer_thread = None
-g_timer_thread_use = True
 g_timer_thread_stop = None
+g_timer_thread_use = True
 
 g_input_thread = None
+
+g_download_thread_timeout = 5
 g_download_thread = None
+g_download_thread_stop = None
 
 g_messaging_client = None
 
@@ -209,6 +217,8 @@ API_SET_CONFIGURATION            = "set_configuration"
 # ota firmware upgrade
 API_UPGRADE_FIRMWARE             = "beg_ota"
 API_UPGRADE_FIRMWARE_COMPLETION  = "end_ota"
+API_REQUEST_FIRMWARE             = "req_firmware"
+API_RECEIVE_FIRMWARE             = "rcv_firmware"
 
 
 
@@ -248,9 +258,9 @@ def print_json(json_object, label=None):
     else:
         print("{}\r\n{}".format(label, json_formatted_str))
 
-def publish(topic, payload):
+def publish(topic, payload, debug=True):
     payload = json.dumps(payload)
-    g_messaging_client.publish(topic, payload)
+    g_messaging_client.publish(topic, payload, debug)
 
 def generate_pubtopic(subtopic):
     return CONFIG_PREPEND_REPLY_TOPIC + CONFIG_SEPARATOR + subtopic
@@ -338,6 +348,7 @@ def handle_api(api, subtopic, subpayload):
     global g_i2c_properties
     global g_adc_voltage
     global g_device_settings
+    global g_download_thread, g_download_thread_stop
 
 
 
@@ -1293,9 +1304,35 @@ def handle_api(api, subtopic, subpayload):
         # start the download thread
         print("\r\n\r\n\r\nxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
         print("\r\nDevice is now starting to download the firmware !!!\r\n")
-        g_download_thread = DownloadThread()
+        g_download_thread_stop = threading.Event()
+        g_download_thread_stop.set()
+        g_download_thread = DownloadThread(g_download_thread_stop, g_download_thread_timeout)
         g_download_thread.set_parameters(subpayload["location"], subpayload["size"], subpayload["version"])
         g_download_thread.start()
+
+
+    elif api == API_RECEIVE_FIRMWARE:
+        topic = generate_pubtopic(subtopic)
+        subpayload = json.loads(subpayload)
+
+        # write to file
+        if subpayload["offset"] == 0:
+            f = open(g_download_thread.get_filename(), "wb")
+            bin = subpayload["bin"].encode("utf-8")
+            bin = base64.b64decode(bin)
+            f.write(bin)
+            f.close()
+        else:
+            f = open(g_download_thread.get_filename(), "ab")
+            bin = subpayload["bin"].encode("utf-8")
+            bin = base64.b64decode(bin)
+            f.write(bin)
+            f.close()
+        #print("\r\nReceived {} bytes {} offset.\r\n".format(subpayload["size"], subpayload["offset"]))
+
+        # inform download thread
+        g_download_thread.set_downloaded(subpayload["size"])
+        g_download_thread_stop.set()
 
 
     ####################################################
@@ -1665,43 +1702,80 @@ class DownloadThread(threading.Thread):
         self.stopped = event
         self.timeout = timeout
         self.filename = None
-        self.filesize = None
+        self.filesize = 0
         self.fileversion = None
+        self.use_filename = None
+
+        # for download via MQTT
+        self.downloadedsize = 0
 
     def set_parameters(self, filename, filesize, fileversion):
         self.filename = filename
         self.filesize = filesize
         self.fileversion = fileversion
+        index = filename.rindex("/")
+        if index == -1:
+            index = 0
+        else:
+            index += 1
+        self.use_filename = filename[index:]
+
+    # for download via MQTT
+    def get_filename(self):
+        return self.use_filename
+
+    # for download via MQTT
+    def set_downloaded(self, downloadedsize):
+        self.downloadedsize += downloadedsize
+
 
     def run(self):
         topic = "{}{}{}{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_DEVICE_ID, CONFIG_SEPARATOR, API_UPGRADE_FIRMWARE_COMPLETION)
+        start_time = time.time()
 
-        result = http_get_firmware_binary(self.filename, self.filesize)
-        if result:
-            global g_firmware_version_STR
-            g_firmware_version_STR = self.fileversion
+        if not CONFIG_OTA_DOWNLOAD_FIRMWARE_VIA_MQTTS:
+            print("Downloading firmware via HTTPS ...\r\n")
+            result = http_get_firmware_binary(self.filename, self.filesize)
+            if result:
+                global g_firmware_version_STR
+                g_firmware_version_STR = self.fileversion
 
-            # get the file only, not including folder
-            index = self.filename.rindex("/")
-            if index == -1:
-                index = 0
+                # send completion status
+                payload = {}
+                payload["value"] = {"result": "successful"}
+                publish(topic, payload)
+                print("The firmware has been downloaded to {} {} bytes in {} secs !!!\r\n".format(self.use_filename, self.filesize, int(time.time()-start_time)))
+                print("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\r\n\r\n\r\n\r\n")
             else:
-                index += 1
-            file_only = self.filename[index:]
-
-            # send completion status
-            payload = {}
-            payload["value"] = {"result": "successful"}
-            publish(topic, payload)
-            print("The firmware has been downloaded to {} !!!\r\n".format(file_only))
-            print("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\r\n\r\n\r\n\r\n")
+                # send completion status
+                payload = {}
+                payload["value"] = {"result": "failed"}
+                publish(topic, payload)
+                print("The firmware failed to download !!!\r\n")
+                print("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\r\n\r\n\r\n\r\n")
         else:
-            # send completion status
-            payload = {}
-            payload["value"] = {"result": "failed"}
-            publish(topic, payload)
-            print("The firmware failed to download !!!\r\n")
-            print("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\r\n\r\n\r\n\r\n")
+            print("Downloading firmware via MQTTS ...\r\n")
+            self.downloadedsize = 0
+            while g_messaging_client.is_connected() and self.downloadedsize < self.filesize:
+                while self.stopped.wait(self.timeout):
+                    if self.downloadedsize < self.filesize:
+                        self.stopped.clear()
+                        # download firmware
+                        #print("Requested {} bytes {} offset.\r\n".format(CONFIG_OTA_DOWNLOAD_FIRMWARE_MQTTS_CHUNK_SIZE, self.downloadedsize))
+                        topic_download = "{}{}{}{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_DEVICE_ID, CONFIG_SEPARATOR, API_REQUEST_FIRMWARE)
+                        payload = {}
+                        payload["location"] = self.filename
+                        payload["offset"] = self.downloadedsize
+                        payload["size"] = CONFIG_OTA_DOWNLOAD_FIRMWARE_MQTTS_CHUNK_SIZE
+                        publish(topic_download, payload, debug=False)
+                    else:
+                        # send completion status
+                        payload = {}
+                        payload["value"] = {"result": "successful"}
+                        publish(topic, payload)
+                        print("The firmware has been downloaded to {} {} bytes in {} secs !!! \r\n".format(self.use_filename, self.downloadedsize, int(time.time()-start_time) ))
+                        print("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\r\n\r\n\r\n\r\n")
+                        break
 
         # start the timer thread
         time.sleep(g_timer_thread_timeout)
