@@ -247,13 +247,15 @@ SUMMARY:
 
 		//
 		// location
-		G. GET DEVICE LOCATION            - GET    /devices/device/DEVICENAME/location
-		H. SET DEVICE LOCATION            - POST   /devices/device/DEVICENAME/location
+		G. GET DEVICES LOCATION           - GET    /devices/location
+		H. SET DEVICES LOCATION           - POST   /devices/location
+		I. GET DEVICE LOCATION            - GET    /devices/device/DEVICENAME/location
+		J. SET DEVICE LOCATION            - POST   /devices/device/DEVICENAME/location
 
 		//
 		// ota firmware upgrade
-		I. UPGRADE DEVICE FIRMWARE        - POST   /devices/device/DEVICENAME/firmware
-		J. GET UPGRADE DEVICE FIRMWARE    - GET    /devices/device/DEVICENAME/firmware
+		K. UPGRADE DEVICE FIRMWARE        - POST   /devices/device/DEVICENAME/firmware
+		L. GET UPGRADE DEVICE FIRMWARE    - GET    /devices/device/DEVICENAME/firmware
 
 
 	3. Device access and control APIs (STATUS, UART, GPIO)
@@ -838,7 +840,26 @@ DETAILED:
 		   { 'status': 'NG', 'message': string}
 		   // new_devicename refers to the new name of the device
 
-		G. GET DEVICE LOCATION
+		G. GET DEVICES LOCATION
+		-  Request:
+		   GET /devices/location
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		-  Response:
+		   { 'status': 'OK', 'message': string, 'locations': [{'devicename': string, location: {'latitude': float, 'longitude': float}}, ...] }
+		   { 'status': 'NG', 'message': string}
+		   // latitude and longitude can be negative values
+
+		H. SET DEVICES LOCATION
+		-  Request:
+		   POST /devices/location
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		   data: {'locations': [{'devicename': string, location: {'latitude': float, 'longitude': float}}, ...]}
+		-  Response:
+		   { 'status': 'OK', 'message': string}
+		   { 'status': 'NG', 'message': string}
+		   // latitude and longitude can be negative values
+
+		I. GET DEVICE LOCATION
 		-  Request:
 		   GET /devices/device/DEVICENAME/location
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -847,7 +868,7 @@ DETAILED:
 		   { 'status': 'NG', 'message': string}
 		   // latitude and longitude can be negative values
 
-		H. SET DEVICE LOCATION
+		J. SET DEVICE LOCATION
 		-  Request:
 		   POST /devices/device/DEVICENAME/location
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
@@ -857,7 +878,7 @@ DETAILED:
 		   { 'status': 'NG', 'message': string}
 		   // latitude and longitude can be negative values
 
-		I. UPGRADE DEVICE FIRMWARE
+		K. UPGRADE DEVICE FIRMWARE
 		-  Request:
 		   POST /devices/device/DEVICENAME/firmware
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
@@ -868,7 +889,7 @@ DETAILED:
 		   // version is the version of the firmware to use
 		   // note that user can select the latest version or the same version (as per Sree)
 
-		J. GET UPGRADE DEVICE FIRMWARE
+		L. GET UPGRADE DEVICE FIRMWARE
 		-  Request:
 		   GET /devices/device/DEVICENAME/firmware
 		   headers: {'Authorization': 'Bearer ' + token.access}
