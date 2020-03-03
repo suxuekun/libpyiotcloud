@@ -2030,8 +2030,18 @@ def get_deviceslocations():
 #   {'status': 'OK', 'message': string}
 #   {'status': 'NG', 'message': string}
 #
+# DELETE DEVICES LOCATION 
+#
+# - Request:
+#   DELETE /devices/location
+#   headers: {'Authorization': 'Bearer ' + token.access}
+#
+# - Response:
+#   {'status': 'OK', 'message': string}
+#   {'status': 'NG', 'message': string}
+#
 ########################################################################################################
-@app.route('/devices/location', methods=['POST'])
+@app.route('/devices/location', methods=['POST', 'DELETE'])
 def set_deviceslocation():
     # get token from Authorization header
     auth_header_token = get_auth_header_token()
@@ -2066,29 +2076,39 @@ def set_deviceslocation():
         print('\r\nERROR Set Devices Locations: Token is invalid [{}]\r\n'.format(username))
         return response, status.HTTP_401_UNAUTHORIZED
 
-    # check if new device name is already registered
-    data = flask.request.get_json()
-    if data.get("locations") is None:
-        print(data)
-        response = json.dumps({'status': 'NG', 'message': 'Parameters not included'})
-        print('\r\nERROR Set Devices Locations: Parameters not included [{},{}]\r\n'.format(username, devicename))
-        return response, status.HTTP_400_BAD_REQUEST
+    if flask.request.method == 'POST':
+        # check if new device name is already registered
+        data = flask.request.get_json()
+        if data.get("locations") is None:
+            response = json.dumps({'status': 'NG', 'message': 'Parameters not included'})
+            print('\r\nERROR Set Devices Locations: Parameters not included [{},{}]\r\n'.format(username, devicename))
+            return response, status.HTTP_400_BAD_REQUEST
+
+        # get devices of the user
+        devices = g_database_client.get_devices(username)
+
+        # set the location to database
+        for location in data["locations"]:
+            g_database_client.add_device_location(username, location["devicename"], location["location"])
 
 
-    # get devices of the user
-    devices = g_database_client.get_devices(username)
+        msg = {'status': 'OK', 'message': 'Devices locations updated successfully.'}
+        if new_token:
+            msg['new_token'] = new_token
+        response = json.dumps(msg)
+        print('\r\nDevices locations updated successful: {}\r\n'.format(username))
+        return response
 
-    # set the location to database
-    for location in data["locations"]:
-        g_database_client.add_device_location(username, location["devicename"], location["location"])
+    elif flask.request.method == 'DELETE':
+        # delete devices location for all devices of the user
+        g_database_client.delete_devices_location(username)
 
-
-    msg = {'status': 'OK', 'message': 'Devices locations updated successfully.'}
-    if new_token:
-        msg['new_token'] = new_token
-    response = json.dumps(msg)
-    print('\r\nDevices locations updated successful: {}\r\n'.format(username))
-    return response
+        msg = {'status': 'OK', 'message': 'Devices locations deleted successfully.'}
+        if new_token:
+            msg['new_token'] = new_token
+        response = json.dumps(msg)
+        print('\r\nDevices locations deleted successful: {}\r\n'.format(username))
+        return response
 
 
 ########################################################################################################
@@ -2174,8 +2194,18 @@ def get_devicelocation(devicename):
 #   {'status': 'OK', 'message': string}
 #   {'status': 'NG', 'message': string}
 #
+# DELETE DEVICE LOCATION 
+#
+# - Request:
+#   DELETE /devices/device/<devicename>/location
+#   headers: {'Authorization': 'Bearer ' + token.access}
+#
+# - Response:
+#   {'status': 'OK', 'message': string}
+#   {'status': 'NG', 'message': string}
+#
 ########################################################################################################
-@app.route('/devices/device/<devicename>/location', methods=['POST'])
+@app.route('/devices/device/<devicename>/location', methods=['POST', 'DELETE'])
 def set_devicelocation(devicename):
     # get token from Authorization header
     auth_header_token = get_auth_header_token()
@@ -2218,25 +2248,37 @@ def set_devicelocation(devicename):
         return response, status.HTTP_404_NOT_FOUND
 
 
-    # check if new device name is already registered
-    data = flask.request.get_json()
-    if data.get("latitude") is None or data.get("longitude") is None:
-        print(data)
-        response = json.dumps({'status': 'NG', 'message': 'Parameters not included'})
-        print('\r\nERROR Set Device Location: Parameters not included [{},{}]\r\n'.format(username, devicename))
-        return response, status.HTTP_400_BAD_REQUEST
+    if flask.request.method == 'POST':
+        # check if new device name is already registered
+        data = flask.request.get_json()
+        if data.get("latitude") is None or data.get("longitude") is None:
+            print(data)
+            response = json.dumps({'status': 'NG', 'message': 'Parameters not included'})
+            print('\r\nERROR Set Device Location: Parameters not included [{},{}]\r\n'.format(username, devicename))
+            return response, status.HTTP_400_BAD_REQUEST
 
 
-    # set the location to database
-    g_database_client.add_device_location(username, devicename, data)
+        # set the location to database
+        g_database_client.add_device_location(username, devicename, data)
 
 
-    msg = {'status': 'OK', 'message': 'Device location updated successfully.'}
-    if new_token:
-        msg['new_token'] = new_token
-    response = json.dumps(msg)
-    print('\r\nDevice location updated successful: {}\r\n'.format(username))
-    return response
+        msg = {'status': 'OK', 'message': 'Device location updated successfully.'}
+        if new_token:
+            msg['new_token'] = new_token
+        response = json.dumps(msg)
+        print('\r\nDevice location updated successful: {}\r\n'.format(username))
+        return response
+
+    elif flask.request.method == 'DELETE':
+        # delete the location from database
+        g_database_client.delete_device_location(username, devicename)
+
+        msg = {'status': 'OK', 'message': 'Device location deleted successfully.'}
+        if new_token:
+            msg['new_token'] = new_token
+        response = json.dumps(msg)
+        print('\r\nDevice location deleted successful: {}\r\n'.format(username))
+        return response
 
 
 ########################################################################################################
