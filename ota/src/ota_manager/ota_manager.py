@@ -13,6 +13,7 @@ currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentfram
 parentdir = os.path.dirname(currentdir)
 sys.path.insert(0,parentdir)
 from messaging_client import messaging_client
+from s3_client import s3_client
 
 
 
@@ -34,6 +35,7 @@ CONFIG_DBHOST = ota_config.CONFIG_MONGODB_HOST
 g_messaging_client = None
 g_sensor_client = None
 g_database_client = None
+g_storage_client = None
 
 
 
@@ -77,6 +79,32 @@ def print_json(json_object):
     print(json_formatted_str)
 
 
+def read_file(filename, offset, size):
+    # read segment from file
+    f = open(filename, "rb")
+    f.seek(offset)
+    bin = f.read(size)
+    f.close()
+    return bin
+
+def read_file_chunk(payload):
+    # get file name
+    index = payload["location"].rindex("/")
+    if index == -1:
+        index = 0
+    else:
+        index += 1
+    filename = payload["location"][index:]
+
+    # read segment from file
+    bin = read_file(filename, payload["offset"], payload["size"])
+
+    # convert bin to be JSON compatible
+    actualsize = len(bin)
+    bin = base64.b64encode(bin).decode("utf-8")
+    return bin, actualsize
+
+
 def request_firmware(database_client, deviceid, topic, payload):
 
     #print("{} {}".format(topic, deviceid))
@@ -92,24 +120,12 @@ def request_firmware(database_client, deviceid, topic, payload):
         return
 
     payload = json.loads(payload)
-
     if payload["offset"] == 0:
         print("")
     print("{}: {} {} {}".format(deviceid, payload["location"], payload["size"], payload["offset"]))
-    index = payload["location"].rindex("/")
-    if index == -1:
-        index = 0
-    else:
-        index += 1
-    filename = payload["location"][index:]
 
-    f = open(filename, "rb")
-    f.seek(payload["offset"])
-    bin = f.read(payload["size"])
-    f.close()
-    actualsize = len(bin)
-    bin = base64.b64encode(bin).decode("utf-8")
-    #print(bin)
+    # read segment from file
+    bin, actualsize = read_file_chunk(payload)
 
     # set topic and payload template for the response
     new_topic = "{}{}{}".format(deviceid, CONFIG_SEPARATOR, API_RECEIVE_FIRMWARE)
@@ -167,6 +183,37 @@ def on_amqp_message(ch, method, properties, body):
     except:
         return
 
+
+###################################################################################
+# Download files from Amazon S3
+###################################################################################
+
+def write_to_file(filename, contents):
+    index = filename.rindex("/")
+    if index == -1:
+        index = 0
+    else:
+        index += 1
+    new_filename = filename[index:]
+    f = open(new_filename, "wb")
+    f.write(contents)
+    f.close()
+
+def download_firmware(location):
+    file_path = "firmware/" + location
+    result, binary = g_storage_client.get_firmware(file_path)
+    if result:
+        write_to_file(location, binary)
+    return result
+
+def download_firmwares():
+    result, document = g_storage_client.get_device_firmware_updates()
+    if result:
+        for firmware in document["ft900"]["firmware"]:
+            result = download_firmware(firmware["location"])
+            if result:
+                print("Downloaded {} {} {} {} [{}]".format(firmware["version"], firmware["date"], firmware["location"], firmware["size"], result))
+    return result
 
 
 ###################################################################################
@@ -239,6 +286,16 @@ if __name__ == '__main__':
                 break
         except:
             print("Could not connect to message broker! exception!")
+
+
+    # Initialize S3 client
+    g_storage_client = s3_client()
+    try:
+        print("\r\nDownloading firmwares...")
+        result = download_firmwares()
+        print("Downloading firmwares...done!\r\n")
+    except Exception as e:
+        print(e)
 
 
     # Subscribe to messages sent for this device
