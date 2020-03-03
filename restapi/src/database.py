@@ -458,11 +458,14 @@ class database_client:
 
     def add_device_location(self, username, devicename, location):
         deviceid = self._devices.get_deviceid(username, devicename)
-        self._devices.add_device_location(deviceid, location)
+        self._devices.add_device_location(username, deviceid, location)
 
     def get_device_location(self, username, devicename):
         deviceid = self._devices.get_deviceid(username, devicename)
         return self._devices.get_device_location(deviceid)
+
+    def get_devices_location(self, username):
+        return self._devices.get_devices_location(username)
 
 
     ##########################################################
@@ -1845,9 +1848,10 @@ class database_client_mongodb:
     def get_device_location_document(self):
         return self.client[config.CONFIG_MONGODB_TB_DEVICELOCATION]
 
-    def add_device_location(self, deviceid, location):
+    def add_device_location(self, username, deviceid, location):
         devicelocations = self.get_device_location_document()
         item = {}
+        item['username'] = username
         item['deviceid'] = deviceid
         item['location'] = location
         found = devicelocations.find_one({'deviceid': deviceid})
@@ -1862,6 +1866,16 @@ class database_client_mongodb:
             for devicelocation in devicelocations.find({'deviceid': deviceid}):
                 return devicelocation["location"]
         return None
+
+    def get_devices_location(self, username):
+        location_list = []
+        devicelocations = self.get_device_location_document()
+        if devicelocations:
+            for devicelocation in devicelocations.find({'username': username}):
+                devicelocation.pop('_id')
+                devicelocation.pop('username')
+                location_list.append(devicelocation)
+        return location_list
 
 
     ##########################################################

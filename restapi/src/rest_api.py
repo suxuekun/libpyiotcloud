@@ -1949,6 +1949,151 @@ def update_devicename(devicename):
 
 ########################################################################################################
 #
+# GET DEVICES LOCATION 
+#
+# - Request:
+#   GET /devices/location
+#   headers: {'Authorization': 'Bearer ' + token.access}
+#
+# - Response:
+#   {'status': 'OK', 'message': string, 'locations': [{'devicename': string, 'latitude': float, 'longitude': float}] }
+#   {'status': 'NG', 'message': string}
+#
+########################################################################################################
+@app.route('/devices/location', methods=['GET'])
+def get_deviceslocations():
+    # get token from Authorization header
+    auth_header_token = get_auth_header_token()
+    if auth_header_token is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
+        print('\r\nERROR Get Devices Locations: Invalid authorization header\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
+    token = {'access': auth_header_token}
+
+    # get username from token
+    username = g_database_client.get_username_from_token(token)
+    if username is None:
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Get Devices Locations: Token expired\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
+    print('get_deviceslocations {}'.format(username))
+
+    # check if a parameter is empty
+    if len(username) == 0 or len(token) == 0:
+        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+        print('\r\nERROR Get Devices Locations: Empty parameter found\r\n')
+        return response, status.HTTP_400_BAD_REQUEST
+
+    # check if username and token is valid
+    verify_ret, new_token = g_database_client.verify_token(username, token)
+    if verify_ret == 2:
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Get Devices Locations: Token expired [{}]\r\n'.format(username))
+        return response, status.HTTP_401_UNAUTHORIZED
+    elif verify_ret != 0:
+        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
+        print('\r\nERROR Get Devices Locations: Token is invalid [{}]\r\n'.format(username))
+        return response, status.HTTP_401_UNAUTHORIZED
+
+
+    # get devices of the user
+    devices = g_database_client.get_devices(username)
+
+    # get the devices location from database
+    locations = g_database_client.get_devices_location(username)
+    print(locations)
+    for location in locations:
+        for device in devices:
+            if location["deviceid"] == device["deviceid"]:
+                location["devicename"] = device["devicename"]
+                location.pop("deviceid")
+                break
+
+    msg = {'status': 'OK', 'message': 'Devices locations queried successfully.'}
+    if locations:
+        msg['locations'] = locations
+    if new_token:
+        msg['new_token'] = new_token
+    response = json.dumps(msg)
+    print('\r\nDevice locations queried successful: {}\r\n{}\r\n'.format(username, response))
+    return response
+
+########################################################################################################
+#
+# SET DEVICES LOCATION 
+#
+# - Request:
+#   POST /devices/location
+#   headers: {'Authorization': 'Bearer ' + token.access}
+#   data: { 'locations': [{devicename: string, location: {'latitude': float, 'longitude': float}}, ...] }
+#
+# - Response:
+#   {'status': 'OK', 'message': string}
+#   {'status': 'NG', 'message': string}
+#
+########################################################################################################
+@app.route('/devices/location', methods=['POST'])
+def set_deviceslocation():
+    # get token from Authorization header
+    auth_header_token = get_auth_header_token()
+    if auth_header_token is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
+        print('\r\nERROR Set Devices Locations: Invalid authorization header\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
+    token = {'access': auth_header_token}
+
+    # get username from token
+    username = g_database_client.get_username_from_token(token)
+    if username is None:
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Set Devices Locations: Token expired\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
+    print('set_deviceslocation {}'.format(username))
+
+    # check if a parameter is empty
+    if len(username) == 0 or len(token) == 0:
+        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+        print('\r\nERROR Set Devices Locations: Empty parameter found\r\n')
+        return response, status.HTTP_400_BAD_REQUEST
+
+    # check if username and token is valid
+    verify_ret, new_token = g_database_client.verify_token(username, token)
+    if verify_ret == 2:
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Set Devices Locations: Token expired [{}]\r\n'.format(username))
+        return response, status.HTTP_401_UNAUTHORIZED
+    elif verify_ret != 0:
+        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
+        print('\r\nERROR Set Devices Locations: Token is invalid [{}]\r\n'.format(username))
+        return response, status.HTTP_401_UNAUTHORIZED
+
+    # check if new device name is already registered
+    data = flask.request.get_json()
+    if data.get("locations") is None:
+        print(data)
+        response = json.dumps({'status': 'NG', 'message': 'Parameters not included'})
+        print('\r\nERROR Set Devices Locations: Parameters not included [{},{}]\r\n'.format(username, devicename))
+        return response, status.HTTP_400_BAD_REQUEST
+
+
+    # get devices of the user
+    devices = g_database_client.get_devices(username)
+
+    # set the location to database
+    for location in data["locations"]:
+        g_database_client.add_device_location(username, location["devicename"], location["location"])
+
+
+    msg = {'status': 'OK', 'message': 'Devices locations updated successfully.'}
+    if new_token:
+        msg['new_token'] = new_token
+    response = json.dumps(msg)
+    print('\r\nDevices locations updated successful: {}\r\n{}\r\n'.format(username, response))
+    return response
+
+
+########################################################################################################
+#
 # GET DEVICE LOCATION 
 #
 # - Request:
