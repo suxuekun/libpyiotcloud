@@ -82,6 +82,7 @@ An alternative solution is using an AWS serverless solution wherein:
 7. <b>Historian</b> - handles saving of device requests and responses for each devices of all users
 8. <b>Sensorian</b> - handles saving of sensor readings for each devices of all users
 9. <b>Configuration</b> - handles providing of device configuration for each devices during device bootup
+10. <b>OTAUpdate</b> - handles OTA firmware update by MQTTS
 
 
 
@@ -107,7 +108,8 @@ An alternative solution is using an AWS serverless solution wherein:
 5. <b>Notification service</b> -> RabbitMQ, MongoDB, Pinpoint, Twilio, Nexmo
 6. <b>Sensor service</b> -> RabbitMQ, MongoDB
 7. <b>Configuration service</b> -> RabbitMQ, MongoDB
-8. <b>Programming Languages:</b> Python
+8. <b>OTAUpdate service</b> -> RabbitMQ, MongoDB
+9. <b>Programming Languages:</b> Python
 
 
 
@@ -212,6 +214,8 @@ Menu, account, history
        - Sensor data graphing/charting
        - Sensor data forwarding (forward to another IoT Modem device)
        - Sensor data thresholding (triggering MENOS messages - Mobile, Email, Notifications, mOdem, Storage)
+    8. OTA firmware update
+       - Via HTTPS or MQTTS (depends on the client preference, capability)
 
 
 
