@@ -2331,6 +2331,7 @@ def upgrade_devicefirmware(devicename):
                 data["size"]     = firmware["size"]
                 data["location"] = firmware["location"]
                 data["version"]  = firmware["version"]
+                data["checksum"] = firmware["checksum"]
                 break
     else:
         for firmware in document["ft900"]["firmware"]:
@@ -2338,6 +2339,7 @@ def upgrade_devicefirmware(devicename):
                 data["size"]     = firmware["size"]
                 data["location"] = firmware["location"]
                 data["version"]  = firmware["version"]
+                data["checksum"] = firmware["checksum"]
                 break
 
     return process_request(api, data)
