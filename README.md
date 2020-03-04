@@ -69,7 +69,7 @@ An alternative solution is using an AWS serverless solution wherein:
 
 
 ### High-level architecture diagram:
-<img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/architecture.png" width="1000"/>
+<img src="./_images/architecture.png" width="1000"/>
 
 10 docker containers and microservices
 
@@ -86,7 +86,7 @@ An alternative solution is using an AWS serverless solution wherein:
 
 
 
-<img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/architecture_frontend.png" width="1000"/>
+<img src="./_images/architecture_frontend.png" width="1000"/>
 
 <b>Front-end</b>
 
@@ -97,7 +97,7 @@ An alternative solution is using an AWS serverless solution wherein:
 
 
 
-<img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/architecture_backend.png" width="1000"/>
+<img src="./_images/architecture_backend.png" width="1000"/>
 
 <b>Back-end</b>
 
@@ -113,7 +113,7 @@ An alternative solution is using an AWS serverless solution wherein:
 
 
 
-<img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/architecture_device.png" width="1000"/>
+<img src="./_images/architecture_device.png" width="1000"/>
 
 <b>Device</b>
 
@@ -124,19 +124,19 @@ An alternative solution is using an AWS serverless solution wherein:
 
 
 ### UML Use case diagram:
-<img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/usecase.png" width="800"/>
+<img src="./_images/usecase.png" width="800"/>
 
 ### UML Sequence diagram (user sign-up/sign-in):
-<img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/sequence1.png" width="800"/>
+<img src="./_images/sequence1.png" width="800"/>
 
 ### UML Sequence diagram (device registration):
-<img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/sequence2.png" width="800"/>
+<img src="./_images/sequence2.png" width="800"/>
 
 ### UML Sequence diagram (device access/control):
-<img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/sequence3.png" width="800"/>
+<img src="./_images/sequence3.png" width="800"/>
 
 ### UML Sequence diagram (sensor live status):
-<img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/architecture_livestatus.png" width="800"/>
+<img src="./_images/architecture_livestatus.png" width="800"/>
 
 ### UML Sequence diagram (OTA firmware update):
 <img src="./_images/ota_firmware_update_sequence_diagram.png" width="800"/>
@@ -169,16 +169,16 @@ An alternative solution is using an AWS serverless solution wherein:
 ### User Interface
 
 User signup and login
-<img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/ui_loginsignup.png" width="800"/>
+<img src="./_images/ui_loginsignup.png" width="800"/>
 
 Device registration
-<img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/ui_deviceregistration.png" width="800"/>
+<img src="./_images/ui_deviceregistration.png" width="800"/>
 
 Device access and control
-<img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/ui_deviceaccess.png" width="800"/>
+<img src="./_images/ui_deviceaccess.png" width="800"/>
 
 Menu, account, history
-<img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/ui_menuaccounthistory.png" width="800"/>
+<img src="./_images/ui_menuaccounthistory.png" width="800"/>
 
 
 
