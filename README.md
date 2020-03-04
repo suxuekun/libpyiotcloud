@@ -71,7 +71,7 @@ An alternative solution is using an AWS serverless solution wherein:
 ### High-level architecture diagram:
 <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/architecture.png" width="1000"/>
 
-9 docker containers and microservices
+10 docker containers and microservices
 
 1. <b>Webserver</b> - Nginx (contains SSL certificate; all requests go to NGINX; forwards HTTP requests to webapp or restapi)
 2. <b>Webapp</b> - Ionic (front-end web framework that can also be compiled for Android and iOS)
@@ -82,7 +82,7 @@ An alternative solution is using an AWS serverless solution wherein:
 7. <b>Historian</b> - handles saving of device requests and responses for each devices of all users
 8. <b>Sensorian</b> - handles saving of sensor readings for each devices of all users
 9. <b>Configuration</b> - handles providing of device configuration for each devices during device bootup
-10. <b>OTAUpdate</b> - handles OTA firmware update by MQTTS
+10. <b>OTAUpdate</b> - handles OTA firmware update via MQTTS
 
 
 
@@ -90,9 +90,9 @@ An alternative solution is using an AWS serverless solution wherein:
 
 <b>Front-end</b>
 
-1. <b>Android Mobile</b>: Ionic mobile app -> Backend
-2. <b>IOS Mobile</b>: Ionic mobile app -> Backend
-3. <b>Web</b>: browser -> Ionic web app -> Backend
+1. <b>Web</b>: browser -> Ionic web app -> Backend
+2. <b>Android Mobile</b>: Ionic mobile app -> Backend
+3. <b>IOS Mobile</b>: Ionic mobile app -> Backend
 4. <b>Programming Languages:</b> Javascript and AngularJS
 
 
@@ -215,7 +215,7 @@ Menu, account, history
        - Sensor data forwarding (forward to another IoT Modem device)
        - Sensor data thresholding (triggering MENOS messages - Mobile, Email, Notifications, mOdem, Storage)
     8. OTA firmware update
-       - Via HTTPS or MQTTS (depends on the client preference, capability)
+       - Via HTTPS or MQTTS (depends on the client preference and capability)
 
 
 
