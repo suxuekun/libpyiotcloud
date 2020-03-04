@@ -857,7 +857,7 @@ Note: Using Kubernetes will also change the infrastracture.
        A. Create a t2.micro instance of Amazon Linux (or Ubuntu 16.04 if not using Docker)
        B. Dowload "Private key file for authentication" for SSH access
        C. Copy the "IPv4 Public IP" address
-       D. Enable ports: 22 (SSH), 8883 (MQTTS), 5671 (AMQPS), 443 (HTTPS), 465 (SMTP), 8080 (Jenkins)
+       D. Enable ports: 22 (SSH), 8883 (MQTTS), 5671 (AMQPS), 443 (HTTPS), 8080 (Jenkins)
 
        // PUTTY setup (for SSH console access)
        A. Create PPK file from the PEM file downloaded from EC2 using PuttyGEN
