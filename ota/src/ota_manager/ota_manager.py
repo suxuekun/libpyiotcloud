@@ -212,7 +212,7 @@ def download_firmwares():
         for firmware in document["ft900"]["firmware"]:
             result = download_firmware(firmware["location"])
             if result:
-                print("Downloaded {} {} {} {} [{}]".format(firmware["version"], firmware["date"], firmware["location"], firmware["size"], result))
+                print("Downloaded {} {} {} {} {} [{}]".format(firmware["version"], firmware["date"], firmware["location"], firmware["size"], firmware["checksum"], result))
     return result
 
 
