@@ -205,6 +205,10 @@ Below is the sequence diagrams for sensor dashboard, ota firmware update and log
 
   <img src="../_images/login_via_idp_sequence_diagram.png" width="800"/>
 
+  <img src="../_images/notification_sequence_UART.png" width="1000"/>
+
+  <img src="../_images/notification_sequence_GPIO.png" width="1000"/>
+
 
 There are 3 ways to access the REST APIs.
 
@@ -3535,15 +3539,6 @@ Demo setups:
             Type AT+E
             Type AT+N (Requires logging in on Android or IOS mobile app)
 
-
-UART Notification sequence
-
-  <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/notification_sequence_UART.png" width="1000"/>
-
-
-GPIO Notification sequence
-
-  <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/notification_sequence_GPIO.png" width="1000"/>
 
 
 
