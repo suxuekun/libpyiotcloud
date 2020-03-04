@@ -38,11 +38,11 @@ CONFIG_OTA_DOWNLOAD_FIRMWARE_VIA_MQTTS = True
 # LIVE
 # via HTTPS: 4 seconds
 # via MQTTS:
-#   chunk size: 8192 -  16 seconds
-#   chunk size: 4096 -  29 seconds
+#   chunk size: 8192 -  18 seconds
+#   chunk size: 4096 -  33 seconds
 #   chunk size: 2048 -  55 seconds
-#   chunk size: 1024 - 109 seconds
-#   chunk size:  512 - 266 seconds
+#   chunk size: 1024 - 123 seconds
+#   chunk size:  512 - 237 seconds
 # LOCALHOST
 # via HTTPS: 4 seconds
 # via MQTTS:
