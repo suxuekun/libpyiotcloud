@@ -197,7 +197,7 @@ The REST APIs are the gateway of the frontend (mobile apps, web app) to the back
 
   <img src="../_images/usecase.png" width="800"/>
 
-Below is the sequence diagrams for sensor dashboard, ota firmware update and login via social idp. 
+Below is the sequence diagrams for sensor dashboard, ota firmware update, login via social idp and notification alerts. 
 
   <img src="../_images/architecture_livestatus.png" width="1000"/>
 
