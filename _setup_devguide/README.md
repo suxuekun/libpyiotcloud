@@ -191,14 +191,19 @@ This is for the front-end developers.
 
 The REST APIs are the gateway of the frontend (mobile apps, web app) to the backend (3rd party APIs and services). <b>The frontend will not directly access any 3rd party APIs and services for security reasons.</b> The frontend will only communicate with the REST APIs.
 
-  <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/architecture_frontend.png" width="1000"/>
+  <img src="../_images/architecture_frontend.png" width="1000"/>
 
-  <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/architecture_backend.png" width="1000"/>
+  <img src="../_images/architecture_backend.png" width="1000"/>
 
+  <img src="../_images/usecase.png" width="800"/>
 
-Below is the sequence diagram for live status values for SENSOR aka INPUT devices (I2C INPUT devices, ADC/ONEWIRE/TPROBE devices).
+Below is the sequence diagrams for sensor dashboard, ota firmware update and login via social idp. 
 
-  <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/architecture_livestatus.png" width="1000"/>
+  <img src="../_images/architecture_livestatus.png" width="1000"/>
+
+  <img src="../_images/ota_firmware_update_sequence_diagram.png" width="800"/>
+
+  <img src="../_images/login_via_idp_sequence_diagram.png" width="800"/>
 
 
 There are 3 ways to access the REST APIs.
@@ -3541,12 +3546,5 @@ GPIO Notification sequence
   <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/notification_sequence_GPIO.png" width="1000"/>
 
 
-OTA Firmwarew Update sequence
 
-  <img src="../_images/ota_firmware_update_sequence_diagram.png" width="800"/>
-
-
-LOGIN via Social IdP (Facebook, Google, Amazon)
-
-  <img src="../_images/login_via_idp_sequence_diagram.png" width="800"/>
 
