@@ -628,27 +628,27 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token)
     $scope.credits = [
         {
             "id": "CREDS100USD1", "points": "100", "price": "1",
-            "label": "100 credits - $1",
+            "label": "100 credits - $1 USD",
         },
         {
             "id": "CREDS500USD5", "points": "500", "price": "5",
-            "label": "500 credits - $5",
+            "label": "500 credits - $5 USD",
         },
         {
             "id": "CREDS1000USD10", "points": "1000", "price": "10",
-            "label": "1000 credits - $10",
+            "label": "1000 credits - $10 USD",
         },
         {
             "id": "CREDS2000USD20", "points": "2000", "price": "20",
-            "label": "2000 credits - $20",
+            "label": "2000 credits - $20 USD",
         },
         {
             "id": "CREDS5000USD50", "points": "5000", "price": "50",
-            "label": "5000 credits - $50",
+            "label": "5000 credits - $50 USD",
         },
         {
             "id": "CREDS10000USD100", "points": "10000", "price": "100",
-            "label": "10000 credits - $100",
+            "label": "10000 credits - $100 USD",
         },
     ];
 
