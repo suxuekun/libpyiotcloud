@@ -7,14 +7,14 @@
       <ion-item class="item-divider" id="order-list-item-divider6"> Select</ion-item>
       <label class="item item-select" id="order-select1">
         <span class="input-label">Credits</span>
-        <select ng-model="data.id" ng-options="credit.id as credit.label for credit in credits"></select>
+        <select ng-model="data.id" ng-options="credit.id as credit.label for credit in credits" ng-disabled="timer != null"></select>
       </label>
     </form>
-    <button id="order-button13" ng-click="submitBuycredits()" class="button button-positive button-block">Pay via Paypal</button>
+    <button id="order-button13" ng-click="submitBuycredits()" ng-disabled="timer != null" class="button button-positive button-block">Pay via Paypal</button>
     <div id="order-markdown29" style="text-align:center;" class="show-list-numbers-and-dots">
-      <p style="color:#AAAAAA;font-size:12px;">Paypal Test buyer account</p>
+      <p style="color:#AAAAAA;font-size:12px;">Paypal Test buyer accounts:</p>
 
-      <p style="color:#AAAAAA;font-size:12px;">user: iotportal@bridgetek.com</p>
+      <p style="color:#AAAAAA;font-size:12px;">dev1.sg@brtchip.com, dev1.us@brtchip.com, dev1.uk@brtchip.com </p>
 
       <p style="color:#AAAAAA;font-size:12px;">pass: BrtIoTPortal</p>
     </div>

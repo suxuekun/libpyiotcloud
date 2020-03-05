@@ -66,6 +66,19 @@ class database_client:
     # transactions
     ##########################################################
 
+    def record_paypal_payment(self, username, payment_result, credits, prevcredits, newcredits):
+        return self._transactions.record_paypal_payment(username, payment_result, credits, prevcredits, newcredits)
+
+    def get_paypal_payments(self, username):
+        return self._transactions.get_paypal_payments(username)
+
+    def get_paypal_payment(self, username, payment_id):
+        return self._transactions.get_paypal_payment(username, payment_id)
+
+    def get_paypal_payment_by_transaction_id(self, username, transaction_id):
+        return self._transactions.get_paypal_payment_by_transaction_id(username, transaction_id)
+
+
     def transactions_paypal_set_payment(self, username, token, payment):
         return self._transactions.paypal_set_payment(username, token, payment)
 
@@ -249,10 +262,11 @@ class database_client:
             for device in devices.find(filter_devices):
                 filter['deviceid'] = device['deviceid']
                 histories = self._devices.get_device_history_filter(filter)
-                for history in histories:
-                    #print(history['timestamp'])
-                    history['timestamp'] = datetime.datetime.fromtimestamp(int(history['timestamp'])).strftime('%Y-%m-%d %H:%M:%S')
-                    user_histories.append(history)
+                #for history in histories:
+                #    #print(history['timestamp'])
+                #    #history['timestamp'] = datetime.datetime.fromtimestamp(int(history['timestamp'])).strftime('%Y-%m-%d %H:%M:%S')
+                #    user_histories.append(history)
+                user_histories += histories
                 #print(len(histories))
         #print(len(user_histories))
 
@@ -751,11 +765,81 @@ class database_client_mongodb:
 
 
     ##########################################################
-    # transaction
+    # transactions
     ##########################################################
 
-    def get_subscription_db(self):
-        return self.client[config.CONFIG_MONGODB_TB_TRANSACTIONS]
+    def get_paymenttransactions_db(self):
+        return self.client[config.CONFIG_MONGODB_TB_PAYMENTTRANSACTIONS]
+
+    def record_paypal_payment(self, username, payment_result, value, prevcredits, credits):
+        transactions = self.get_paymenttransactions_db()
+        item = {}
+        item['username']       = username
+        item['payment_id']     = self.paypal.get_payment_id(payment_result)
+        item['payer_id']       = self.paypal.get_payer_id(payment_result)
+        item['state']          = self.paypal.get_transaction_state(payment_result)
+
+        item['id']             = self.paypal.get_transaction_id(payment_result)
+        item['amount']         = self.paypal.get_transaction_amount(payment_result)
+        item['value']          = value
+        item['prevcredits']    = prevcredits
+        item['credits']        = credits
+
+        timestamp = self.paypal.get_transaction_time(payment_result)
+        utc_time = datetime.datetime.strptime(timestamp, "%Y-%m-%dT%H:%M:%SZ")
+        item['timestamp'] = int((utc_time - datetime.datetime(1970, 1, 1)).total_seconds())
+
+        transactions.insert_one(item)
+        return item
+
+    def get_paypal_payments(self, username):
+        transactions_list = []
+        transactions = self.get_paymenttransactions_db()
+        if transactions:
+            for transaction in transactions.find({'username': username}):
+                transaction.pop('_id')
+                #if isinstance(transaction['timestamp'], float)== True:
+                #    transaction['timestamp'] = int(transaction['timestamp'])
+                #    transactions.replace_one({'username': username, 'payment_id': transaction['payment_id']}, transaction)
+                #transaction['value'] = transaction['credits']
+                #if transaction.get('newcredits'):
+                #    transaction['credits'] = transaction['newcredits']
+                #    transaction.pop('newcredits')
+                #else:
+                #    transaction.pop('credits')
+                #transactions.replace_one({'username': username, 'payment_id': transaction['payment_id']}, transaction)
+
+                transaction.pop('username')
+                transaction.pop('payment_id') # paymentid should be kept secret, to be used for accessing Paypal database only for backtracking purposes
+                transaction.pop('payer_id')
+                transaction.pop('state')
+                transactions_list.append(transaction)
+        return transactions_list
+
+    def get_paypal_payment(self, username, payment_id):
+        transactions = self.get_paymenttransactions_db()
+        if transactions:
+            for transaction in transactions.find({'username': username, 'payment_id': payment_id}):
+                transaction.pop('_id')
+                transaction.pop('username')
+                transaction.pop('payment_id') # paymentid should be kept secret, to be used for accessing Paypal database only for backtracking purposes
+                transaction.pop('payer_id')
+                transaction.pop('state')
+                return transaction
+        return None
+
+    def get_paypal_payment_by_transaction_id(self, username, transaction_id):
+        transactions = self.get_paymenttransactions_db()
+        if transactions:
+            for transaction in transactions.find({'username': username, 'transaction_id': transaction_id}):
+                transaction.pop('_id')
+                transaction.pop('username')
+                transaction.pop('payment_id') # paymentid should be kept secret, to be used for accessing Paypal database only for backtracking purposes
+                transaction.pop('payer_id')
+                transaction.pop('state')
+                return transaction
+        return None
+
 
     def paypal_set_payment(self, username, token, payment):
         return_url = payment['return_url']
@@ -793,35 +877,40 @@ class database_client_mongodb:
         result = self.paypal.execute_payment(payment_id, payer_id)
         if not result:
             print("Payment failed!")
-            return False
+            return False, None
 
         payment_result = self.paypal.fetch_payment(payment_id)
         status = self.paypal.get_payment_status(payment_result)
         if status != "approved":
             print("Payment not yet completed! {}".format(status))
-            return False
+            return False, None
 
-        print("Payment completed successfully!")
+        #print("Payment completed successfully!")
         self.paypal.display_payment_result(payment_result)
-        return True
+        return True, payment_result
 
     def paypal_verify_payment(self, username, token, payment):
         payment_id = payment["paymentId"]
         if not payment_id:
-            return False
+            return False, 0
 
         payment_result = self.paypal.fetch_payment(payment_id)
         if not payment_result:
-            return False
+            return False, 0
 
         status = self.paypal.get_payment_status(payment_result)
         if status != "approved":
             print("Payment not yet completed! {}".format(status))
-            return False
+            return False, 0
 
         #print("Payment completed successfully!")
-        self.paypal.display_payment_result(payment_result)
-        return True
+        #self.paypal.display_payment_result(payment_result)
+
+        #print("\r\ninvoice")
+        #invoice = self.paypal.get_invoice(self.paypal.get_cart_id(payment_result))
+        #print(invoice)
+
+        return True, self.paypal.get_transaction_amount(payment_result)
 
 
     ##########################################################
@@ -836,11 +925,16 @@ class database_client_mongodb:
         subscriptions = self.get_subscription_db()
         if subscriptions:
             if True: # For easy reset of default type and credits
-                for subscription in subscriptions.find({'username':username},{'username': 1, 'type': 1, 'credits': 1}):
+                for subscription in subscriptions.find({'username':username}):
                     found = True
                     subscription.pop('_id')
+                    # change credits type from string to int for backward compatibility
+                    if isinstance(subscription['credits'], str) == True:
+                        #print("credits is string")
+                        subscription['credits'] = int(subscription['credits'])
+                        self.client.subscriptions.replace_one({'username':username}, subscription)
                     subscription.pop('username')
-                    return subscription 
+                    return subscription
 
         if not found:
             subscription = {}
@@ -851,18 +945,19 @@ class database_client_mongodb:
             subscription.pop('_id')
             subscription.pop('username')
             return subscription
+
         return None, None
 
     def set_subscription(self, username, credits):
         subscriptions = self.get_subscription_db()
         if subscriptions:
             if True: # For easy reset of default type and credits
-                for subscription in subscriptions.find({'username': username},{'username': 1, 'type': 1, 'credits': 1}):
+                for subscription in subscriptions.find({'username': username}):
                     current_amount = int(subscription['credits'])
                     new_amount = int(subscription['credits']) + int(credits)
                     #print("current_amount={} new_amount={}".format(current_amount, new_amount))
                     subscription['type'] = config.CONFIG_SUBSCRIPTION_PAID_TYPE
-                    subscription['credits'] = str(new_amount)
+                    subscription['credits'] = new_amount
                     self.client.subscriptions.replace_one({'username': username}, subscription)
                     subscription.pop('_id')
                     subscription.pop('username')

@@ -1,0 +1,34 @@
+<ion-view title="Credit Purchases" hide-back-button="true" nav-transition="none" id="page58" class="page_width">
+  <ion-nav-buttons side="left" class="has-header">
+    <button class="button button-icon icon ion-android-close" ng-click="submitCancel()"></button>
+  </ion-nav-buttons>
+  <ion-content padding="true" class="has-header">
+    <div class="spacer" style="height: 15px;"></div>
+    <div id="creditPurchases-markdown398" class="show-list-numbers-and-dots">
+      <p style="color:#AAAAAA;font-size:12px;">Result: {{ items.length }} transactions</p>
+    </div>
+    <ion-list id="creditPurchases-list11">
+      <div class="item item-body" id="creditPurchases-list-item-container9" ng-repeat="item in items">
+        <div id="creditPurchases-markdown350" class="show-list-numbers-and-dots">
+          <p style="margin-top:0px;color:#387EF5;font-size:16px;">
+            <strong> Paypal Transaction ID: {{ item.id }} </strong>
+          </p>
+        </div>
+        <div id="creditPurchases-markdown352" class="show-list-numbers-and-dots">
+          <p style="margin-top:0px;color:#444444;font-size:10px;">{{ item.timestamp }}</p>
+        </div>
+        <div id="creditPurchases-markdown393" style="text-align:right;" class="show-list-numbers-and-dots">
+          <p style="margin-top:0px;color:#444444;font-size:16px;">
+            <strong> {{ item.amount }} USD - {{ item.value }} credits </strong>
+          </p>
+        </div>
+        <div id="creditPurchases-markdown399" style="text-align:right;" class="show-list-numbers-and-dots">
+          <p style="margin-top:0px;color:#444444;font-size:10px;">{{ item.prevcredits ? "Previous credit balance: " + item.prevcredits : "" }}</p>
+        </div>
+        <div id="creditPurchases-markdown400" style="text-align:right;" class="show-list-numbers-and-dots">
+          <p style="margin-top:0px;color:#444444;font-size:10px;">{{ item.credits ? "New credit balance: " + item.credits : "" }}</p>
+        </div>
+      </div>
+    </ion-list>
+  </ion-content>
+</ion-view>

@@ -75,31 +75,98 @@ class paypal_client:
 
 	def get_payment_status(self, payment_result):
 		return payment_result["state"]
-	
+
+	def get_payment_id(self, payment_result):
+		return payment_result["id"]
+
+	def get_transaction_id(self, payment_result):
+		return payment_result["transactions"][0]["related_resources"][0]["sale"]["id"]
+
+	def get_cart_id(self, payment_result):
+		return payment_result["cart"]
+
+	def get_payer_id(self, payment_result):
+		return payment_result["payer"]["payer_info"]["payer_id"]
+
+	def get_transaction_amount(self, payment_result):
+		try:
+			return float(payment_result["transactions"][0]["amount"]["total"])
+		except:
+			return 0
+
+	def get_transaction_time(self, payment_result):
+		try:
+			return payment_result["update_time"]
+		except:
+			return payment_result["create_time"]
+
+	def get_transaction_state(self, payment_result):
+		return payment_result["state"] # created or approved
+
 	def display_payment_result(self, payment_result):
-		print(payment_result)
-		print(payment_result["id"])
-		print(payment_result["intent"])
-		print(payment_result["state"]) # created or approved
-		print(payment_result["cart"])
+		print("\r\nxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\r\n")
+		if False:
+			print(payment_result)
+			print("")
 
-		print(payment_result["payer"]["payment_method"])
-		print(payment_result["payer"]["status"])
-		print(payment_result["payer"]["payer_info"]["email"])
-		print(payment_result["payer"]["payer_info"]["first_name"])
-		print(payment_result["payer"]["payer_info"]["last_name"])
-		print(payment_result["payer"]["payer_info"]["payer_id"])
-		print(payment_result["payer"]["payer_info"]["shipping_address"]["recipient_name"])
-		print(payment_result["payer"]["payer_info"]["shipping_address"]["line1"])
-		print(payment_result["payer"]["payer_info"]["shipping_address"]["city"])
-		print(payment_result["payer"]["payer_info"]["shipping_address"]["state"])
-		print(payment_result["payer"]["payer_info"]["shipping_address"]["postal_code"])
-		print(payment_result["payer"]["payer_info"]["shipping_address"]["country_code"])
-		if payment_result["state"] == "approved":
-			print(payment_result["payer"]["payer_info"]["phone"])
-		print(payment_result["payer"]["payer_info"]["country_code"])
+		try:
+			print("payment id: {}".format(self.get_payment_id(payment_result)))
+		except:
+			pass
 
-	def get_payment_history(self):
-		payment_history = paypalrestsdk.Payment.all()
-		return payment_history
+		try:
+			print("payer id: {}".format(self.get_payer_id(payment_result)))
+		except:
+			pass
+
+		try:
+			print("transaction id: {}".format(self.get_transaction_id(payment_result)))
+		except:
+			pass
+
+		try:
+			print("transaction amount: {}".format(self.get_transaction_amount(payment_result)))
+		except:
+			pass
+
+		try:
+			print("transaction date: {}".format(self.get_transaction_time(payment_result)))
+		except:
+			pass
+
+		try:
+			print("transaction state: {}".format(self.get_transaction_state(payment_result)))
+		except:
+			pass
+
+
+		if False:
+			try:
+				print(payment_result["id"])
+				print(payment_result["state"]) # created or approved
+				print(payment_result["create_time"])
+				print(payment_result["update_time"])
+			except:
+				pass
+
+			try:
+				print(payment_result["payer"]["payment_method"])
+				print(payment_result["payer"]["status"])
+				print(payment_result["payer"]["payer_info"]["email"])
+				print(payment_result["payer"]["payer_info"]["first_name"])
+				print(payment_result["payer"]["payer_info"]["last_name"])
+				print(payment_result["payer"]["payer_info"]["payer_id"])
+				print(payment_result["payer"]["payer_info"]["shipping_address"]["recipient_name"])
+				print(payment_result["payer"]["payer_info"]["shipping_address"]["line1"])
+				print(payment_result["payer"]["payer_info"]["shipping_address"]["city"])
+				print(payment_result["payer"]["payer_info"]["shipping_address"]["state"])
+				print(payment_result["payer"]["payer_info"]["shipping_address"]["postal_code"])
+				print(payment_result["payer"]["payer_info"]["shipping_address"]["country_code"])
+				print(payment_result["payer"]["payer_info"]["country_code"])
+				if payment_result["state"] == "approved":
+					print(payment_result["payer"]["payer_info"]["phone"])
+			except:
+				pass
+
+		print("\r\nxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\r\n")
 

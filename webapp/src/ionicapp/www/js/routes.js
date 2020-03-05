@@ -33,7 +33,8 @@ angular.module('app.routes', [])
     url: '/page_account',
 	params: {
 		username: "",
-		token: ""		
+		token: "",
+		activeSection: ""		
 },
     views: {
       'side-menu21': {
@@ -51,6 +52,16 @@ angular.module('app.routes', [])
 },
     templateUrl: 'templates/order.html',
     controller: 'orderCtrl'
+  })
+
+  .state('creditPurchases', {
+    url: '/page_credit_purchases',
+	params: {
+		username: "",
+		token: ""		
+},
+    templateUrl: 'templates/creditPurchases.html',
+    controller: 'creditPurchasesCtrl'
   })
 
   .state('paymentConfirmation', {
