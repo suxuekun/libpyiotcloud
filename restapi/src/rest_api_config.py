@@ -63,7 +63,6 @@ class config:
     CONFIG_MONGODB_TB_RECIPIENTS     = "recipients"
     CONFIG_MONGODB_TB_I2CSENSORS     = "i2csensors"
     CONFIG_MONGODB_TB_SUBSCRIPTIONS  = "subscriptions"
-    CONFIG_MONGODB_TB_TRANSACTIONS   = "transactions"
     CONFIG_MONGODB_TB_CONFIGURATIONS = "configurations"
     CONFIG_MONGODB_TB_SENSORREADINGS = "sensorreadings"
     CONFIG_MONGODB_TB_SENSORREADINGS_DATASET = "sensorreadingsdataset"
@@ -72,6 +71,7 @@ class config:
     CONFIG_MONGODB_TB_DEVICELOCATION = "devicelocation"
     CONFIG_MONGODB_TB_IDPTOKENS      = "idptokens"
     CONFIG_MONGODB_TB_IDPCODES       = "idpcodes"
+    CONFIG_MONGODB_TB_PAYMENTTRANSACTIONS = "paymenttransactions"
 
     # Caching settings
     CONFIG_REDIS_HOST                = "127.0.0.1"
@@ -80,7 +80,7 @@ class config:
     # Subscription/Payment
     CONFIG_SUBSCRIPTION_TYPE         = "Free"
     CONFIG_SUBSCRIPTION_PAID_TYPE    = "Paid"
-    CONFIG_SUBSCRIPTION_CREDITS      = "1000"
+    CONFIG_SUBSCRIPTION_CREDITS      = 1000
     CONFIG_TRANSACTION_QUANTITY      = 1
     CONFIG_TRANSACTION_CURRENCY      = "USD"
     CONFIG_TRANSACTION_NAME          = "Bridgetek IoT Portal credits"

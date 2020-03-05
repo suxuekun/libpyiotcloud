@@ -38,11 +38,9 @@
         <span class="input-label">Credits</span>
         <input type="text" placeholder="" readonly="" ng-model="data.subscription_credits">
       </label>
-      <button id="account-button10" ng-click="submitBuycredits()" class="button button-positive button-block">Buy credits</button>
-    </form>
-    <form id="account-form15" class="list" ng-show="data.activeSection==2">
-      <button id="account-button53" ng-click="" class="button button-positive button-block button-outline">View credit purchases</button>
-      <button id="account-button54" ng-click="" class="button button-positive button-block button-outline">View credit usage</button>
+      <button id="account-button10" ng-click="submitBuyCredits()" class="button button-positive button-block">Buy credits</button>
+      <button id="account-button53" ng-click="submitViewCreditPurchases()" class="button button-positive button-block button-outline">View credit purchases</button>
+      <button id="account-button54" ng-click="submitViewCreditUsage()" class="button button-positive button-block button-outline">View credit usage</button>
     </form>
   </ion-content>
 </ion-view>

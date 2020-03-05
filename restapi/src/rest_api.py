@@ -1258,61 +1258,64 @@ def get_subscription():
 #  {'status': 'NG', 'message': string}
 #
 ########################################################################################################
-@app.route('/account/subscription', methods=['POST'])
-def set_subscription():
-    data = flask.request.get_json()
-    credits = data['credits']
-
-    # get token from Authorization header
-    auth_header_token = get_auth_header_token()
-    if auth_header_token is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Set Subscription: Invalid authorization header\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    token = {'access': auth_header_token}
-
-    # get username from token
-    username = g_database_client.get_username_from_token(token)
-    if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Set Subscription: Token expired\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    print('set_subscription {}'.format(username))
-
-    # check if a parameter is empty
-    if len(username) == 0 or len(token) == 0:
-        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-        print('\r\nERROR Set Subscription: Empty parameter found\r\n')
-        # NOTE:
-        # No need to return error code status.HTTP_401_UNAUTHORIZED since this is a logout
-        return response, status.HTTP_400_BAD_REQUEST
-
-    # check if username and token is valid
-    verify_ret, new_token = g_database_client.verify_token(username, token)
-    if verify_ret == 2:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Set Subscription: Token expired [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
-    elif verify_ret != 0:
-        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
-        print('\r\nERROR Set Subscription: Token is invalid [{}]\r\n'.format(username))
-        # NOTE:
-        # No need to return error code status.HTTP_401_UNAUTHORIZED since this is a logout
-        return response, status.HTTP_401_UNAUTHORIZED
-
-    subscription = g_database_client.set_subscription(username, credits)
-    #print(subscription)
-    msg = {'status': 'OK', 'message': 'User subscription set successfully.', 'subscription': subscription}
-
-
-    if new_token:
-        msg['new_token'] = new_token
-    response = json.dumps(msg)
-    print('\r\n{}: {}\r\n{}\r\n'.format(msg['message'], username, response))
-    return response
-
+#@app.route('/account/subscription', methods=['POST'])
+#def set_subscription():
+#    data = flask.request.get_json()
+#    credits = data['credits']
+#
+#    # get token from Authorization header
+#    auth_header_token = get_auth_header_token()
+#    if auth_header_token is None:
+#        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
+#        print('\r\nERROR Set Subscription: Invalid authorization header\r\n')
+#        return response, status.HTTP_401_UNAUTHORIZED
+#    token = {'access': auth_header_token}
+#
+#    # get username from token
+#    username = g_database_client.get_username_from_token(token)
+#    if username is None:
+#        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+#        print('\r\nERROR Set Subscription: Token expired\r\n')
+#        return response, status.HTTP_401_UNAUTHORIZED
+#    print('set_subscription {}'.format(username))
+#
+#    # check if a parameter is empty
+#    if len(username) == 0 or len(token) == 0:
+#        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+#        print('\r\nERROR Set Subscription: Empty parameter found\r\n')
+#        # NOTE:
+#        # No need to return error code status.HTTP_401_UNAUTHORIZED since this is a logout
+#        return response, status.HTTP_400_BAD_REQUEST
+#
+#    # check if username and token is valid
+#    verify_ret, new_token = g_database_client.verify_token(username, token)
+#    if verify_ret == 2:
+#        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+#        print('\r\nERROR Set Subscription: Token expired [{}]\r\n'.format(username))
+#        return response, status.HTTP_401_UNAUTHORIZED
+#    elif verify_ret != 0:
+#        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
+#        print('\r\nERROR Set Subscription: Token is invalid [{}]\r\n'.format(username))
+#        # NOTE:
+#        # No need to return error code status.HTTP_401_UNAUTHORIZED since this is a logout
+#        return response, status.HTTP_401_UNAUTHORIZED
+#
+#    subscription = g_database_client.set_subscription(username, credits)
+#    #print(subscription)
+#    msg = {'status': 'OK', 'message': 'User subscription set successfully.', 'subscription': subscription}
+#
+#
+#    if new_token:
+#        msg['new_token'] = new_token
+#    response = json.dumps(msg)
+#    print('\r\n{}: {}\r\n{}\r\n'.format(msg['message'], username, response))
+#    return response
+#
 #########################
 
+
+def compute_credits_by_amount(amount):
+    return int(amount) * 100
 
 ########################################################################################################
 #
@@ -1321,17 +1324,26 @@ def set_subscription():
 # - Request:
 #   POST /account/payment/paypalsetup
 #   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-#   data: { 'return_url': string, 'cancel_url', string, 'item_sku': string, 'item_credits': string, 'item_price': string }
+#   data: { 'returnurl': string, 'cancelurl', string, 'amount': int }
 #
 # - Response:
-#   {'status': 'OK', 'message': string, 'approval_url': string, 'paymentId': string, 'token': string}
+#   {'status': 'OK', 'message': string, 'payment': {'approvalurl': string, 'paymentid': string}}
 #   {'status': 'NG', 'message': string}
 #
 ########################################################################################################
 @app.route('/account/payment/paypalsetup', methods=['POST'])
 def set_payment_paypal_setup():
     data = flask.request.get_json()
-    payment = data
+    if data.get("returnurl") is None or data.get("cancelurl") is None or data.get("amount") is None:
+        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+        print('\r\nERROR Paypal Setup: Empty parameter found\r\n')
+        return response, status.HTTP_400_BAD_REQUEST
+    payment = {}
+    payment["return_url"] = data["returnurl"]
+    payment["cancel_url"] = data["cancelurl"]
+    payment["item_price"] = data["amount"]
+    payment["item_credits"] = compute_credits_by_amount(data["amount"])
+    payment["item_sku"] = 'CREDS{}USD{}'.format(payment["item_credits"], payment["item_price"])
 
     # get token from Authorization header
     auth_header_token = get_auth_header_token()
@@ -1366,14 +1378,16 @@ def set_payment_paypal_setup():
         print('\r\nERROR Paypal Setup: Token is invalid [{}]\r\n'.format(username))
         return response, status.HTTP_401_UNAUTHORIZED
 
+
     #print(payment)
     approval_url, payment_id, token = g_database_client.transactions_paypal_set_payment(username, token, payment)
-    msg = {'status': 'OK', 'message': 'Paypal payment setup successful.', 'approval_url': approval_url, 'paymentId': payment_id, 'token': token}
+    msg = {'status': 'OK', 'message': 'Paypal payment setup successful.', 'payment': {'approvalurl': approval_url, 'paymentid': payment_id}}
+
 
     if new_token:
         msg['new_token'] = new_token
     response = json.dumps(msg)
-    print('\r\n{}: {}\r\n{}\r\n'.format(msg['message'], username, response))
+    print('\r\n{}: {}\r\n'.format(msg['message'], username))
     return response
 
 
@@ -1382,19 +1396,25 @@ def set_payment_paypal_setup():
 # PAYPAL EXECUTE
 #
 # - Request:
-#   POST /account/payment/paypalexecute
+#   POST /account/payment/paypalexecute/<paymentid>
 #   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-#   data: { 'paymentId': string, 'payerId': string, 'token': string }
+#   data: { 'payerid': string, 'token': string }
 #
 # - Response:
-#   {'status': 'OK', 'message': string}
+#   {'status': 'OK', 'message': string, 'subscription': {'type': string, 'credits': int, 'prevcredits': int}}
 #   {'status': 'NG', 'message': string}
 #
 ########################################################################################################
-@app.route('/account/payment/paypalexecute', methods=['POST'])
-def set_payment_paypal_execute():
+@app.route('/account/payment/paypalexecute/<paymentid>', methods=['POST'])
+def set_payment_paypal_execute(paymentid):
     data = flask.request.get_json()
-    payment = data
+    if data.get("payerid") is None or data.get("token") is None:
+        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+        print('\r\nERROR Paypal Execute: Empty parameter found\r\n')
+        return response, status.HTTP_400_BAD_REQUEST
+    payment = {"paymentId": paymentid}
+    payment["PayerID"] = data["payerid"]
+    payment["token"] = data["token"]
 
     # get token from Authorization header
     auth_header_token = get_auth_header_token()
@@ -1430,9 +1450,33 @@ def set_payment_paypal_execute():
         return response, status.HTTP_401_UNAUTHORIZED
 
     #print(payment)
-    status = g_database_client.transactions_paypal_execute_payment(username, token, payment)
+    subscription = None
+    status, payment_result = g_database_client.transactions_paypal_execute_payment(username, token, payment)
     if status:
-        msg = {'status': 'OK', 'message': 'Paypal payment execution successful.'}
+        status, amount = g_database_client.transactions_paypal_verify_payment(username, token, payment)
+        if status:
+            msg = {'status': 'OK', 'message': 'Paypal payment verified successful.'}
+
+            # get the credits
+            credits = compute_credits_by_amount(float(amount))
+            print("amount: {} == credits: {}".format(amount, credits))
+
+            # get the current subscription value
+            subscription_old = g_database_client.get_subscription(username)
+            print("old: {}".format(subscription_old))
+
+            # add the new subscription credits
+            subscription = g_database_client.set_subscription(username, credits)
+            print("new: {}".format(subscription))
+            if subscription:
+                subscription["prevcredits"] = subscription_old["credits"]
+                msg["subscription"] = subscription
+
+            # record the paypal transaction
+            transaction = g_database_client.record_paypal_payment(username, payment_result, credits, subscription["prevcredits"], subscription["credits"])
+            #print(transaction)
+        else:
+            msg = {'status': 'NG', 'message': 'Paypal payment verified failed.'}
     else:
         msg = {'status': 'NG', 'message': 'Paypal payment execution failed.'}
 
@@ -1440,7 +1484,7 @@ def set_payment_paypal_execute():
     if new_token:
         msg['new_token'] = new_token
     response = json.dumps(msg)
-    print('\r\n{}: {}\r\n{}\r\n'.format(msg['message'], username, response))
+    print('\r\n{} {}\r\n'.format(msg["message"], username))
     return response
 
 
@@ -1449,19 +1493,17 @@ def set_payment_paypal_execute():
 # PAYPAL VERIFY
 #
 # - Request:
-#   POST /account/payment/paypalverify
-#   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-#   data: { 'paymentId': string }
+#   GET /account/payment/paypalverify/<paymentid>
+#   headers: {'Authorization': 'Bearer ' + token.access}
 #
 # - Response:
-#   {'status': 'OK', 'message': string}
+#   {'status': 'OK', 'message': string, 'transaction': {'id': string, 'amount': float, 'timestamp': int, 'credits': int, 'prevcredits': int, 'newcredits': int}}
 #   {'status': 'NG', 'message': string}
 #
 ########################################################################################################
-@app.route('/account/payment/paypalverify', methods=['POST'])
-def set_payment_paypal_verify():
-    data = flask.request.get_json()
-    payment = data
+@app.route('/account/payment/paypalverify/<paymentid>', methods=['GET'])
+def set_payment_paypal_verify(paymentid):
+    payment = {"paymentId": paymentid}
 
     # get token from Authorization header
     auth_header_token = get_auth_header_token()
@@ -1483,8 +1525,6 @@ def set_payment_paypal_verify():
     if len(username) == 0 or len(token) == 0:
         response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
         print('\r\nERROR Paypal Verify: Empty parameter found\r\n')
-        # NOTE:
-        # No need to return error code status.HTTP_401_UNAUTHORIZED since this is a logout
         return response, status.HTTP_400_BAD_REQUEST
 
     # check if username and token is valid
@@ -1501,9 +1541,15 @@ def set_payment_paypal_verify():
         return response, status.HTTP_401_UNAUTHORIZED
 
     #print(payment)
-    status = g_database_client.transactions_paypal_verify_payment(username, token, payment)
+    status, amount = g_database_client.transactions_paypal_verify_payment(username, token, payment)
     if status:
         msg = {'status': 'OK', 'message': 'Paypal payment verification successful.'}
+
+        # get record the paypal transaction
+        transaction = g_database_client.get_paypal_payment(username, paymentid)
+        #print(transaction)
+        if transaction:
+            msg["transaction"] = transaction
     else:
         msg = {'status': 'NG', 'message': 'Paypal payment verification failed.'}
 
@@ -1511,7 +1557,75 @@ def set_payment_paypal_verify():
     if new_token:
         msg['new_token'] = new_token
     response = json.dumps(msg)
-    print('\r\n{}: {}\r\n{}\r\n'.format(msg['message'], username, response))
+    print('\r\n{} {}\r\n'.format(msg["message"], username))
+    return response
+
+
+########################################################################################################
+#
+# GET PAYPAL TRANSACTIONS
+#
+# - Request:
+#   GET /account/payment/paypal
+#   headers: {'Authorization': 'Bearer ' + token.access}
+#
+# - Response:
+#   {'status': 'OK', 'message': string, 'transactions': [{'id': string, 'amount': float, 'timestamp': int, 'credits': int}, ...]}
+#   {'status': 'NG', 'message': string}
+#
+########################################################################################################
+@app.route('/account/payment/paypal', methods=['GET'])
+def get_payment_paypal_transactions():
+
+    # get token from Authorization header
+    auth_header_token = get_auth_header_token()
+    if auth_header_token is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
+        print('\r\nERROR Paypal Verify: Invalid authorization header\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
+    token = {'access': auth_header_token}
+
+    # get username from token
+    username = g_database_client.get_username_from_token(token)
+    if username is None:
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Paypal Verify: Token expired\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
+    print('set_payment_paypal_verify {}'.format(username))
+
+    # check if a parameter is empty
+    if len(username) == 0 or len(token) == 0:
+        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+        print('\r\nERROR Paypal Verify: Empty parameter found\r\n')
+        return response, status.HTTP_400_BAD_REQUEST
+
+    # check if username and token is valid
+    verify_ret, new_token = g_database_client.verify_token(username, token)
+    if verify_ret == 2:
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Paypal Verify: Token expired [{}]\r\n'.format(username))
+        return response, status.HTTP_401_UNAUTHORIZED
+    elif verify_ret != 0:
+        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
+        print('\r\nERROR Paypal Verify: Token is invalid [{}]\r\n'.format(username))
+        # NOTE:
+        # No need to return error code status.HTTP_401_UNAUTHORIZED since this is a logout
+        return response, status.HTTP_401_UNAUTHORIZED
+
+
+    # get record the paypal transactions
+    transactions = g_database_client.get_paypal_payments(username)
+    transactions.sort(key=sort_by_timestamp, reverse=True)
+    #print(transactions)
+
+
+    msg = {'status': 'OK', 'message': 'Paypal payment verification successful.'}
+    if transactions:
+        msg["transactions"] = transactions
+    if new_token:
+        msg['new_token'] = new_token
+    response = json.dumps(msg)
+    print('\r\n{} {}\r\n'.format(msg["message"], username))
     return response
 
 #########################

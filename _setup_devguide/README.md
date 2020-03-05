@@ -398,10 +398,10 @@ SUMMARY:
 	9. Account subscription and payment APIs
 
 		A. GET SUBSCRIPTION               - GET    /account/subscription
-		B. SET SUBSCRIPTION               - POST   /account/subscription
-		C. PAYPAL SETUP                   - POST   /account/payment/paypalsetup
-		D. PAYPAL EXECUTE                 - POST   /account/payment/paypalexecute
-		E. PAYPAL VERIFY                  - POST   /account/payment/paypalverify
+		B. PAYPAL SETUP                   - POST   /account/payment/paypalsetup
+		C. PAYPAL EXECUTE                 - POST   /account/payment/paypalexecute/PAYMENTID
+		D. PAYPAL VERIFY                  - GET    /account/payment/paypalverify/PAYMENTID
+		E. GET PAYPAL TRANSACTIONS        - GET    /account/payment/paypal
 
 
 	10. Mobile services
@@ -2492,7 +2492,7 @@ DETAILED:
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
 		   { 'status': 'OK', 'message': string, 
-		     'transactions': array[{'devicename': string, 'deviceid': string, 'direction': string, 'topic': string, 'payload': string, 'timestamp': string}, ...]}
+		     'transactions': array[{'devicename': string, 'deviceid': string, 'direction': string, 'topic': string, 'payload': string, 'timestamp': int}, ...]}
 		   { 'status': 'NG', 'message': string}
 
 		B. GET HISTORIES FILTERED
@@ -2554,7 +2554,7 @@ DETAILED:
 		   // List of directions: "To", "From"
 		-  Response:
 		   { 'status': 'OK', 'message': string, 
-		     'transactions': array[{'devicename': string, 'deviceid': string, 'direction': string, 'topic': string, 'payload': string, 'timestamp': string}, ...]}
+		     'transactions': array[{'devicename': string, 'deviceid': string, 'direction': string, 'topic': string, 'payload': string, 'timestamp': int}, ...]}
 		   { 'status': 'NG', 'message': string}
 
 		C. GET MENOS HISTORIES
@@ -2563,7 +2563,7 @@ DETAILED:
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
 		   { 'status': 'OK', 'message': string, 
-		     'transactions': array[{'devicename': string, 'deviceid': string, 'timestamp': string, 'recipient': string, 'messagelen': int, 'type': string, 'source': string, 'sensorname': string, 'condition': string}, ...]}
+		     'transactions': array[{'devicename': string, 'deviceid': string, 'timestamp': int, 'recipient': string, 'messagelen': int, 'type': string, 'source': string, 'sensorname': string, 'condition': string}, ...]}
 		   { 'status': 'NG', 'message': string}
 		   // sensorname and condition are optional (ex. when source is UART/GPIOX, then both sensorname and condition are not present
 
@@ -2580,7 +2580,7 @@ DETAILED:
 		   // datebegin and dateend are both epoch computed values
 		-  Response:
 		   { 'status': 'OK', 'message': string, 
-		     'transactions': array[{'devicename': string, 'deviceid': string, 'timestamp': string, 'recipient': string, 'messagelen': int, 'type': string, 'source': string, 'sensorname': string, 'condition': string}, ...]}
+		     'transactions': array[{'devicename': string, 'deviceid': string, 'timestamp': int, 'recipient': string, 'messagelen': int, 'type': string, 'source': string, 'sensorname': string, 'condition': string}, ...]}
 		   { 'status': 'NG', 'message': string}
 		   // sensorname and condition are optional (ex. when source is UART/GPIOX, then both sensorname and condition are not present
 
@@ -2592,44 +2592,57 @@ DETAILED:
 		   GET /account/subscription
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
-		   {'status': 'OK', 'message': string, 'subscription': {'credits': string, 'type': string} }
+		   {'status': 'OK', 'message': string, 'subscription': {'type': string, 'credits': int} }
 		   {'status': 'NG', 'message': string}
 
-		B. SET SUBSCRIPTION
-		-  Request:
-		   POST /account/subscription
-		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-		   data: { 'credits': string }
-		-  Response:
-		   {'status': 'OK', 'message': string, 'subscription': {'credits': string, 'type': paid} }
-		   {'status': 'NG', 'message': string}
-
-		C. PAYPAL SETUP
+		B. PAYPAL SETUP
 		-  Request:
 		   POST /account/payment/paypalsetup
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-		   data: { 'return_url': string, 'cancel_url', string, 'item_sku': string, 'item_credits': string, 'item_price': string }
+		   data: { 'returnurl': string, 'cancelurl', string, 'amount': int }
 		-  Response:
-		   {'status': 'OK', 'message': string, , 'approval_url': string, 'paymentId': string, 'token': string}
+		   {'status': 'OK', 'message': string, 'payment': {'approvalurl': string, 'paymentid': string}}
 		   {'status': 'NG', 'message': string}
+		   // amount is in USD
+		   // Web/mobile app shall open a system browser for approvalurl
+		   // Customer logins to their Paypal account on the system browser and approves the transaction.
+		   // Once the transaction is approved, the returnurl callback will be called.
+		   // When the returnurl callback is called, the web/mobile app shall call PAYPAL EXECUTE
 
-		D. PAYPAL EXECUTE
+		C. PAYPAL EXECUTE
 		-  Request:
-		   POST /account/payment/paypalexecute
+		   POST /account/payment/paypalexecute/PAYMENTID
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-		   data: { 'paymentId': string, 'payerId': string, 'token': string }
+		   data: { 'payerid': string, 'token': string }
 		-  Response:
-		   {'status': 'OK', 'message': string}
+		   {'status': 'OK', 'message': string, 'subscription': {'type': string, 'credits': int, 'prevcredits': int}}
 		   {'status': 'NG', 'message': string}
+		   // data["token"] is the Paypal payment token
+		   // When the return_url callback from PAYPAL SETUP is called, the web/mobile app shall call PAYPAL EXECUTE.
+		   // This callback contains the parameters: PayerID, paymentID and token,
+		   //   needed for payerid, PAYMENTID and token, respectively
+		   // When the transaction is completed and verified successfully, the API will return OK, together with the updated subscription details.
+ 
+		D. PAYPAL VERIFY
+		-  Request:
+		   GET /account/payment/paypalverify/PAYMENTID
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		-  Response:
+		   {'status': 'OK', 'message': string, 'transaction': {'id': string, 'timestamp': int, 'amount': float, 'value': int, 'newcredits': int, 'prevcredits': int}}
+		   {'status': 'NG', 'message': string}
+		   // OK is successful, NG if failed
+		   // In the web app scenario, the url_callback is called with the different system browser.
+		   // So in order for the original browser to know if the transaction failed or NOT, this API is used.
+		   // When the transaction is completed and verified successfully, the API will return OK, together with the transaction details.
 
-		E. PAYPAL VERIFY
+		E. GET PAYPAL TRANSACTIONS
 		-  Request:
-		   POST /account/payment/paypalverify
-		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-		   data: { 'paymentId': string }
+		   GET /account/payment/paypal
+		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
-		   {'status': 'OK', 'message': string}
+		   {'status': 'OK', 'message': string, 'transactions': [{'id': string, 'timestamp': int, 'amount': float, 'value': int, 'newcredits': int, 'prevcredits': int}, ...]}
 		   {'status': 'NG', 'message': string}
+		   // This API returns the list of paypal payment transactions
 
 
 	10. Mobile services
