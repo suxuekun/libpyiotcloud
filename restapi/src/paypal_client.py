@@ -1,4 +1,5 @@
 import paypalrestsdk
+import json
 from paypal_config import config as paypal_config
 
 
@@ -103,11 +104,21 @@ class paypal_client:
 	def get_transaction_state(self, payment_result):
 		return payment_result["state"] # created or approved
 
+	def print_json(self, json_object, label=None):
+		json_formatted_str = json.dumps(json_object, indent=2)
+		if label is None:
+			print(json_formatted_str)
+		else:
+			print("{}\r\n{}".format(label, json_formatted_str))
+
 	def display_payment_result(self, payment_result):
 		print("\r\nxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\r\n")
-		if False:
-			print(payment_result)
-			print("")
+		if True:
+			try:
+				self.print_json(json.loads(payment_result))
+			except:
+				print(payment_result)
+				print("")
 
 		try:
 			print("payment id: {}".format(self.get_payment_id(payment_result)))

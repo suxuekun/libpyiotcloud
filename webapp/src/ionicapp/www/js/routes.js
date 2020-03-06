@@ -64,6 +64,17 @@ angular.module('app.routes', [])
     controller: 'creditPurchasesCtrl'
   })
 
+  .state('transactionDetails', {
+    url: '/page_transaction_details',
+	params: {
+		username: "",
+		token: "",
+		id: ""		
+},
+    templateUrl: 'templates/transactionDetails.html',
+    controller: 'transactionDetailsCtrl'
+  })
+
   .state('paymentConfirmation', {
     url: '/page_payment_confirmation',
     templateUrl: 'templates/paymentConfirmation.html',

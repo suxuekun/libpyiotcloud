@@ -79,14 +79,24 @@ class database_client:
         return self._transactions.get_paypal_payment_by_transaction_id(username, transaction_id)
 
 
+    def paypal_set_payerid(self, payment_id, payer_id):
+        self._transactions.paypal_set_payerid(payment_id, payer_id)
+
+    def paypal_get_payerid(self, payment_id):
+        return self._transactions.paypal_get_payerid(payment_id)
+
+
     def transactions_paypal_set_payment(self, username, token, payment):
         return self._transactions.paypal_set_payment(username, token, payment)
 
-    def transactions_paypal_execute_payment(self, username, token, payment):
-        return self._transactions.paypal_execute_payment(username, token, payment)
+    def transactions_paypal_execute_payment(self, username, payment):
+        return self._transactions.paypal_execute_payment(username, payment)
 
-    def transactions_paypal_verify_payment(self, username, token, payment):
-        return self._transactions.paypal_verify_payment(username, token, payment)
+    def transactions_paypal_verify_payment(self, username, payment):
+        return self._transactions.paypal_verify_payment(username, payment)
+
+    def transactions_paypal_get_payment(self, username, payment):
+        return self._transactions.paypal_get_payment(username, payment)
 
 
     ##########################################################
@@ -768,6 +778,30 @@ class database_client_mongodb:
     # transactions
     ##########################################################
 
+    def get_paymentpayerid_db(self):
+        return self.client[config.CONFIG_MONGODB_TB_PAYMENTPAYERIDS]
+
+    def paypal_set_payerid(self, payment_id, payer_id):
+        payerids = self.get_paymentpayerid_db()
+        item = {}
+        item['payment_id']     = payment_id
+        item['payer_id']       = payer_id
+        payerids.insert_one(item)
+
+    def paypal_get_payerid(self, payment_id):
+        payer = None
+        payerids = self.get_paymentpayerid_db()
+        if payerids:
+            for payerid in payerids.find({'payment_id': payment_id}):
+                payer = payerid["payer_id"]
+                try:
+                    payerids.delete_many({'payment_id': payment_id})
+                except:
+                    pass
+                break
+        return payer
+
+
     def get_paymenttransactions_db(self):
         return self.client[config.CONFIG_MONGODB_TB_PAYMENTTRANSACTIONS]
 
@@ -831,13 +865,8 @@ class database_client_mongodb:
     def get_paypal_payment_by_transaction_id(self, username, transaction_id):
         transactions = self.get_paymenttransactions_db()
         if transactions:
-            for transaction in transactions.find({'username': username, 'transaction_id': transaction_id}):
-                transaction.pop('_id')
-                transaction.pop('username')
-                transaction.pop('payment_id') # paymentid should be kept secret, to be used for accessing Paypal database only for backtracking purposes
-                transaction.pop('payer_id')
-                transaction.pop('state')
-                return transaction
+            for transaction in transactions.find({'username': username, 'id': transaction_id}, {'payment_id': 1}):
+                return transaction['payment_id']
         return None
 
 
@@ -869,10 +898,9 @@ class database_client_mongodb:
         #print(data)
         return approval_url, data["paymentId"], data["token"]
 
-    def paypal_execute_payment(self, username, token, payment):
+    def paypal_execute_payment(self, username, payment):
         payment_id = payment["paymentId"]
         payer_id = payment["PayerID"]
-        payment_token = payment["token"]
 
         result = self.paypal.execute_payment(payment_id, payer_id)
         if not result:
@@ -886,10 +914,10 @@ class database_client_mongodb:
             return False, None
 
         #print("Payment completed successfully!")
-        self.paypal.display_payment_result(payment_result)
+        #self.paypal.display_payment_result(payment_result)
         return True, payment_result
 
-    def paypal_verify_payment(self, username, token, payment):
+    def paypal_verify_payment(self, username, payment):
         payment_id = payment["paymentId"]
         if not payment_id:
             return False, 0
@@ -911,6 +939,19 @@ class database_client_mongodb:
         #print(invoice)
 
         return True, self.paypal.get_transaction_amount(payment_result)
+
+    def paypal_get_payment(self, username, payment):
+        payment_id = payment["paymentId"]
+        if not payment_id:
+            print("xxxx")
+            return None
+
+        payment_result = self.paypal.fetch_payment(payment_id)
+        if not payment_result:
+            print("xx")
+            return None
+
+        return payment_result
 
 
     ##########################################################
