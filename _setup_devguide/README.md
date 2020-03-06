@@ -205,6 +205,8 @@ Below is the sequence diagrams for sensor dashboard, ota firmware update, login 
 
   <img src="../_images/login_via_idp_sequence_diagram.png" width="800"/>
 
+  <img src="../_images/paypal_sequence_diagram.png" width="800"/>
+
   <img src="../_images/notification_sequence_UART.png" width="1000"/>
 
   <img src="../_images/notification_sequence_GPIO.png" width="1000"/>
