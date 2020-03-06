@@ -145,7 +145,7 @@ An alternative solution is using an AWS serverless solution wherein:
 <img src="./_images/login_via_idp_sequence_diagram.png" width="800"/>
 
 ### UML Sequence diagram (paypal payment):
-<img src="../_images/paypal_sequence_diagram.png" width="800"/>
+<img src="./_images/paypal_sequence_diagram.png" width="800"/>
 
 
 ### Notes:
