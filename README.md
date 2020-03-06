@@ -141,9 +141,11 @@ An alternative solution is using an AWS serverless solution wherein:
 ### UML Sequence diagram (OTA firmware update):
 <img src="./_images/ota_firmware_update_sequence_diagram.png" width="800"/>
 
-### UML Sequence diagram (login via social idp - Facebook, Google, Amazon):
+### UML Sequence diagram (login via social idp - facebook, google, amazon):
 <img src="./_images/login_via_idp_sequence_diagram.png" width="800"/>
 
+### UML Sequence diagram (paypal payment):
+<img src="../_images/paypal_sequence_diagram.png" width="800"/>
 
 
 ### Notes:
