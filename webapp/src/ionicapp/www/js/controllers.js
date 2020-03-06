@@ -664,6 +664,7 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token)
     };
 
     $scope.timer = null;
+    $scope.notice = "";
     
     
     $scope.submitCancel = function() {
@@ -678,6 +679,7 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token)
     
     $scope.submitBuycredits = function() {
         
+        $scope.notice = "";
         //var spinner = document.getElementsByClassName("spinner");
         //spinner[0].style.visibility = "visible";
         
@@ -725,21 +727,14 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token)
         else {
             host_url = server;
         }
-        var return_url = host_url + '/#/page_payment_confirmation?' + '&access=' + $scope.data.token.access;
-        var cancel_url = host_url + '/#/page_payment_confirmation?' + '&access=' + $scope.data.token.access;
-
-        //console.log(return_url);
-        //console.log(cancel_url);
-
         var paypal_param = {
-            'returnurl': return_url,
-            'cancelurl': cancel_url,
+            'returnurl': host_url + '/#/page_payment_confirmation',
+            'cancelurl': host_url + '/#/page_payment_confirmation',
             //'item_sku': $scope.data.id,
             //'item_credits': $scope.data.points,
             'amount': parseInt($scope.data.price, 10),
         };
-        //console.log(paypal_param);
-        
+
 
 
         //       
@@ -762,38 +757,34 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token)
         })
         .then(function (result) {
             console.log(result.data);
-            //console.log(result.data.payment.approvalurl);
-            //console.log(result.data.payment.paymentid);
-            //console.log(result.data.token);
 
             var win = window.open(result.data.payment.approvalurl,"_blank",
                 'height=600,width=800,left=100,top=100,resizable=yes,scrollbars=yes,toolbar=no,menubar=no,location=no,directories=no,status=no',replace=false);
-
-            $scope.timer = setInterval(function() {
-                if (win.closed) {
-                    clearInterval($scope.timer);
-                    $scope.timer = null;
-                    verifyPayment(result.data.payment.paymentid);
-                }
-            }, 1000);
-
-            //window.open(result.data.approval_url);
+            if (win !== null) {
+                $scope.notice = "Waiting for user to approve the Paypal transaction ...";
+                $scope.timer = setInterval(function() {
+                    if (win.closed) {
+                        clearInterval($scope.timer);
+                        //$scope.timer = null; // NOTE: delay the setting to null inside executePayment
+                        
+                        $scope.notice = "Please wait while we verify the Paypal transaction ...";
+                        executePayment(result.data.payment.paymentid);
+                        //verifyPayment(result.data.payment.paymentid);
+                    }
+                }, 1000);
+            }
         })
         .catch(function (error) {
             if (error.data !== null) {
-                console.log("ERROR: Paypal Setup failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
-                // TODO: replace alert with ionic alert
-                alert("ERROR: Paypal Setup failed with " + error.status + " " + error.statusText +"! " + error.data.message); 
-                
+                $ionicPopup.alert({ title: 'Error', template: "Paypal Setup failed with " + error.status + " " + error.statusText + "! " + error.data.message, buttons: [{text: 'OK', type: 'button-assertive'}] });
+
                 if (error.data.message === "Token expired") {
                     Token.refresh({'username': $scope.data.username, 'token': $scope.data.token});
                     $scope.data.token = User.get_token();
                 }
             }
             else {
-                console.log("ERROR: Server is down!"); 
-                // TODO: replace alert with ionic alert
-                alert("ERROR: Server is down!");
+                $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
             }
         });
         
@@ -841,24 +832,20 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token)
         })
         .catch(function (error) {
             if (error.data !== null) {
-                console.log("ERROR: Get Subscription failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
-                // TODO: replace alert with ionic alert
-                alert("ERROR: Get Subscription failed with " + error.status + " " + error.statusText +"! " + error.data.message); 
-                
+                $ionicPopup.alert({ title: 'Error', template: "Get Subscription failed with " + error.status + " " + error.statusText + "! " + error.data.message, buttons: [{text: 'OK', type: 'button-assertive'}] });
+
                 if (error.data.message === "Token expired") {
                     Token.refresh({'username': $scope.data.username, 'token': $scope.data.token});
                     $scope.data.token = User.get_token();
                 }
             }
             else {
-                console.log("ERROR: Server is down!"); 
-                // TODO: replace alert with ionic alert
-                alert("ERROR: Server is down!");
+                $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
             }
         }); 
     };
 
-    verifyPayment = function(payment_id) {
+    verifyPayment = function(paymentid) {
         //
         // PAYPAL VERIFY
         //
@@ -870,10 +857,10 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token)
         //   {'status': 'OK', 'message': string}
         //   {'status': 'NG', 'message': string}
         //
-        //console.log("paypalverify " + payment_id);
+        //console.log("paypalverify " + paymentid);
         $http({
             method: 'GET',
-            url: server + '/account/payment/paypalverify/' + payment_id,
+            url: server + '/account/payment/paypalverify/' + paymentid,
             headers: {'Authorization': 'Bearer ' + $scope.data.token.access}
         })
         .then(function (result) {
@@ -899,23 +886,112 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token)
         .catch(function (error) {
             // Handle failed
             if (error.data !== null) {
-                console.log("ERROR: Paypal Verification failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
-                // TODO: replace alert with ionic alert
-                alert("ERROR: Paypal Setup Verification with " + error.status + " " + error.statusText +"! " + error.data.message); 
-                
+                $ionicPopup.alert({ title: 'Error', template: "Paypal Verify failed with " + error.status + " " + error.statusText + "! " + error.data.message, buttons: [{text: 'OK', type: 'button-assertive'}] });
+
                 if (error.data.message === "Token expired") {
                     Token.refresh({'username': $scope.data.username, 'token': $scope.data.token});
                     $scope.data.token = User.get_token();
                 }
             }
             else {
-                console.log("ERROR: Server is down!"); 
-                // TODO: replace alert with ionic alert
-                alert("ERROR: Server is down!");
+                $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
             }
             window.close();
         });
     };
+    
+    executePayment = function(paymentid) {
+        //
+        // PAYPAL EXECUTE
+        //
+        // - Request:
+        //   POST /account/payment/paypalexecute/PAYMENTID
+        //   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+        //
+        // - Response:
+        //   {'status': 'OK', 'message': string, 'subscription': {'type': string, 'credits': int, 'prevcredits': int}}
+        //   {'status': 'NG', 'message': string}
+        //  
+        //console.log("paypalexecute " + paymentid);
+        //console.log(paypal_param);
+        $http({
+            method: 'POST',
+            url: server + '/account/payment/paypalexecute/' + paymentid,
+            headers: {'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json'},
+        })
+        .then(function (result) {
+            console.log(result.data);
+            $scope.notice = "";
+            $scope.timer = null;
+            
+            if (result.data.status === "OK") {
+                var added_credits = result.data.subscription.credits - result.data.subscription.prevcredits;
+                $ionicPopup.alert({
+                    title: 'Payment Confirmation',
+                    template: 'The payment transaction has been verified. ' + 
+                        added_credits + ' credits has been successfully added to your account! ' + 
+                        'Your new credit balance is ' + result.data.subscription.credits + '.',
+                    buttons: [
+                        {
+                            text: 'OK',
+                            type: 'button-positive',
+                            onTap: function(e) {
+                                param = {
+                                    'username': $scope.data.username,
+                                    'token': $scope.data.token
+                                };
+                                $state.go('creditPurchases', param, {reload: true});   
+                            }
+                        }
+                    ]
+                });
+            }
+            else {
+                 $ionicPopup.alert({
+                    title: 'Payment Confirmation',
+                    template: 'Payment transaction was not successful. Please try again!',
+                    buttons: [
+                        {
+                            text: 'OK',
+                            type: 'button-positive',
+                            onTap: function(e) {
+                            }
+                        }
+                    ]
+                });
+            }
+        })
+        .catch(function (error) {
+            $scope.timer = null;
+            $scope.notice = "";
+            
+            // Handle failed
+            if (error.data !== null) {
+                $ionicPopup.alert({ title: 'Error', template: "Paypal Verify failed with " + error.status + " " + error.statusText + "! " + error.data.message, buttons: [{text: 'OK', type: 'button-assertive'}] });
+
+                if (error.data.message === "Token expired") {
+                    Token.refresh({'username': $scope.data.username, 'token': $scope.data.token});
+                    $scope.data.token = User.get_token();
+                }
+            }
+            else {
+                $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+            }
+        });
+    };
+    
+    $scope.$on('$ionicView.enter', function(e) {
+        $scope.timer = null;
+        $scope.notice = "";
+    });    
+    
+    $scope.$on('$ionicView.beforeLeave', function(e) {
+        if ($scope.timer !== null) {
+            clearTimeout($scope.timer);
+            $scope.timer = null;
+        }
+        $scope.notice = "";
+    });    
 }])
    
 .controller('creditPurchasesCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Payments', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
@@ -933,9 +1009,16 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Paymen
     $scope.items = []; // items to be shown
 
     
+    $scope.getTransactionDetails = function(item) {
+        device_param = {
+            'username': $scope.data.username,
+            'token': $scope.data.token,
+            'id': item.id
+        };
+        $state.go('transactionDetails', device_param, {reload: true});   
+    };  
+    
     $scope.submitRefresh = function() {
-        console.log("submitRefresh");
-        
         $scope.items = [];
         Payments.fetch_paypal_payments($scope.data).then(function(res) {
             $scope.items = res;
@@ -950,14 +1033,83 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Paymen
             'token': $scope.data.token,
             'activeSection': 2
         };
-        console.log("submitCancel");
-        console.log(device_param);
         $state.go('menu.account', device_param, {reload: true});   
     };    
     
     $scope.$on('$ionicView.enter', function(e) {
         $scope.submitRefresh();
-    });    
+    });
+}])
+   
+.controller('transactionDetailsCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Payments', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+// You can include any angular dependencies as parameters for this function
+// TIP: Access Route Parameters for your page via $stateParams.parameterName
+function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Payments) {
+
+    var server = Server.rest_api;
+    
+    $scope.data = {
+        'username': User.get_username(),
+        'token': User.get_token(),
+        'id': $stateParams.id,
+    };
+    
+    $scope.paypal = {};
+
+    $scope.submitRefresh = function() {
+        //console.log("retrievePaypalTransaction " + $scope.data.id);
+        //retrievePaypalTransaction($scope.data.id);
+    };
+   
+    retrievePaypalTransaction = function(id) {
+        //
+        // RETRIEVE PAYPAL TRANSACTION
+        //
+        // - Request:
+        //   GET /account/payment/paypal/TRANSACTIONID
+        //   headers: {'Authorization': 'Bearer ' + token.access}
+        //
+        // - Response:
+        //   {'status': 'OK', 'message': string}
+        //   {'status': 'NG', 'message': string}
+        //
+        $http({
+            method: 'GET',
+            url: server + '/account/payment/paypal/' + id,
+            headers: {'Authorization': 'Bearer ' + $scope.data.token.access}
+        })
+        .then(function (result) {
+            console.log(result.data);
+        })
+        .catch(function (error) {
+            // Handle failed
+            if (error.data !== null) {
+                $ionicPopup.alert({ title: 'Error', template: "Retrieve Paypal Transaction failed with " + error.status + " " + error.statusText + "! " + error.data.message, buttons: [{text: 'OK', type: 'button-assertive'}] });
+
+                if (error.data.message === "Token expired") {
+                    Token.refresh({'username': $scope.data.username, 'token': $scope.data.token});
+                    $scope.data.token = User.get_token();
+                }
+            }
+            else {
+                $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+            }
+            window.close();
+        });
+    };
+       
+    
+    $scope.submitCancel = function() {
+        device_param = {
+            'username': $scope.data.username,
+            'token': $scope.data.token,
+        };
+        $state.go('creditPurchases', device_param, {reload: true});   
+    };    
+    
+    $scope.$on('$ionicView.enter', function(e) {
+        $scope.submitRefresh();
+    });
 }])
    
 .controller('paymentConfirmationCtrl', ['$scope', '$stateParams', '$ionicPopup', '$http', 'Server', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
@@ -968,10 +1120,7 @@ function ($scope, $stateParams, $ionicPopup, $http, Server) {
     var server = Server.rest_api;
     var spinner = document.getElementsByClassName("spinner2");
     
-    $scope.data = {
-        'token': {'access': ''},
-    };
-        
+
     function GetURLParameter(sParam) {
         var sPageURL = window.location.href.substring(1);
         try {
@@ -994,108 +1143,73 @@ function ($scope, $stateParams, $ionicPopup, $http, Server) {
     }
 
     function GetURLParameters() {
-        var access = GetURLParameter('access');
-        var payment_id = GetURLParameter('paymentId');
-        var token = GetURLParameter('token');
-        var payer_id = GetURLParameter('PayerID');
-
-        if (access !== null) {
-            $scope.data.token.access = access;
-            
-            params = {};
-            if (token !== null) {
-                params.token = token;
-            }
-            if (payment_id !== null) {
-                params.payment_id = payment_id;
-            }
-            if (payer_id !== null) {
-                params.payer_id = payer_id;
-            }
-            return params;
+        var paymentid = GetURLParameter('paymentId');
+        var payerid = GetURLParameter('PayerID');
+        var params = {};
+        if (paymentid !== null) {
+            params.paymentid = paymentid;
         }
-        return null;
+        if (payerid !== null) {
+            params.payerid = payerid;
+        }
+        return params;
     }
 
 
-    function executePayment(paypal_param) {
+    function storePaymentPayerID(paypal_param) {
         //
-        // PAYPAL EXECUTE
+        // PAYPAL STORE PAYERID
         //
         // - Request:
-        //   POST /account/payment/paypalexecute/PAYMENTID
-        //   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-        //   data: { 'payerid': string, 'token': string }
+        //   POST /account/payment/paypalpayerid/PAYMENTID
+        //   headers: {'Content-Type': 'application/json'}
+        //   data: { 'payerid': string }
         //
         // - Response:
-        //   {'status': 'OK', 'message': string, 'subscription': {'type': string, 'credits': int, 'prevcredits': int}}
+        //   {'status': 'OK', 'message': string}
         //   {'status': 'NG', 'message': string}
         //  
-        //console.log("paypalexecute " + paypal_param.payment_id);
+        //console.log("paypalexecute " + paypal_param.paymentid);
         //console.log(paypal_param);
         $http({
             method: 'POST',
-            url: server + '/account/payment/paypalexecute/' + paypal_param.payment_id,
-            headers: {'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json'},
-            data: {'payerid': paypal_param.payer_id, 'token': paypal_param.token}
+            url: server + '/account/payment/paypalpayerid/' + paypal_param.paymentid,
+            headers: {'Content-Type': 'application/json'},
+            data: {'payerid': paypal_param.payerid}
         })
         .then(function (result) {
             console.log(result.data);
-            if (result.data.status === "OK") {
-                //verifyPayment(paypal_param);
-                spinner[0].style.visibility = "hidden";
-                
-                var added_credits = result.data.subscription.credits - result.data.subscription.prevcredits;
-                $ionicPopup.alert({
-                    title: 'Payment Confirmation',
-                    template: 'The payment transaction has been verified. ' + 
-                        added_credits + ' credits has been successfully added to your account! ' + 
-                        'Your new credit balance is ' + result.data.subscription.credits + '.',
-                    buttons: [
-                        {
-                            text: 'OK',
-                            type: 'button-positive',
-                            onTap: function(e) {
-                                window.close();
-                            }
-                        }
-                    ]
-                });
-            }
-            else {
-                spinner[0].style.visibility = "hidden";
-                window.close();
-            }
+            spinner[0].style.visibility = "hidden";
+            window.close();
         })
         .catch(function (error) {
             // Handle failed
             if (error.data !== null) {
-                console.log("ERROR: Paypal Execution failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
-                // TODO: replace alert with ionic alert
-                alert("ERROR: Paypal Setup Execution with " + error.status + " " + error.statusText +"! " + error.data.message); 
+                $ionicPopup.alert({ title: 'Error', template: "Paypal Store Token failed with " + error.status + " " + error.statusText + "! " + error.data.message, buttons: [{text: 'OK', type: 'button-assertive'}] });
             }
             else {
-                console.log("ERROR: Server is down!"); 
-                // TODO: replace alert with ionic alert
-                alert("ERROR: Server is down!");
+                $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
             }
             spinner[0].style.visibility = "hidden";
             window.close();
         });
     }
 
+
     spinner[0].style.visibility = "visible";
     paypal_param = GetURLParameters();
     if (paypal_param !== null) {
         //console.log("GetURLParameters: ");
-        //console.log(paypal_param);
+        console.log(paypal_param);
 
-        if (paypal_param.payer_id !== undefined) {
-            //console.log("Customer approved the transaction!");
-            executePayment(paypal_param);
+        if (paypal_param.payerid !== undefined) {
+            console.log("Customer approved the transaction!");
+            //executePayment(paypal_param);
+            storePaymentPayerID(paypal_param);
         }
         else {
-            //console.log("Customer cancelled the transaction! token=" + paypal_param.token);
+            console.log("Customer cancelled the transaction!");
+            spinner[0].style.visibility = "hidden";
             window.close();
         }
     }

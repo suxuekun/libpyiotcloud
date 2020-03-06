@@ -8,7 +8,7 @@
       <p style="color:#AAAAAA;font-size:12px;">Result: {{ items.length }} transactions</p>
     </div>
     <ion-list id="creditPurchases-list11">
-      <div class="item item-body" id="creditPurchases-list-item-container9" ng-repeat="item in items">
+      <div class="item item-body" id="creditPurchases-list-item-container9" ng-repeat="item in items" ng-click="getTransactionDetails(item)">
         <div id="creditPurchases-markdown350" class="show-list-numbers-and-dots">
           <p style="margin-top:0px;color:#387EF5;font-size:16px;">
             <strong> Paypal Transaction ID: {{ item.id }} </strong>

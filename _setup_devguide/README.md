@@ -399,9 +399,10 @@ SUMMARY:
 
 		A. GET SUBSCRIPTION               - GET    /account/subscription
 		B. PAYPAL SETUP                   - POST   /account/payment/paypalsetup
-		C. PAYPAL EXECUTE                 - POST   /account/payment/paypalexecute/PAYMENTID
-		D. PAYPAL VERIFY                  - GET    /account/payment/paypalverify/PAYMENTID
-		E. GET PAYPAL TRANSACTIONS        - GET    /account/payment/paypal
+		C. PAYPAL STORE PAYERID           - POST   /account/payment/paypalpayerid/PAYMENTID
+		D. PAYPAL EXECUTE                 - POST   /account/payment/paypalexecute/PAYMENTID
+		E. PAYPAL VERIFY                  - GET    /account/payment/paypalverify/PAYMENTID
+		F. GET PAYPAL TRANSACTIONS        - GET    /account/payment/paypal
 
 
 	10. Mobile services
@@ -2609,21 +2610,32 @@ DETAILED:
 		   // Once the transaction is approved, the returnurl callback will be called.
 		   // When the returnurl callback is called, the web/mobile app shall call PAYPAL EXECUTE
 
-		C. PAYPAL EXECUTE
+		C. PAYPAL STORE PAYERID
+		-  Request:
+		   POST /account/payment/paypalpayerid/PAYMENTID
+		   headers: {'Content-Type': 'application/json'}
+		   data: { 'payerid': string }
+		-  Response:
+		   {'status': 'OK', 'message': string}
+		   {'status': 'NG', 'message': string}
+		   // When the returnurl callback from PAYPAL SETUP is called, the web app shall call PAYPAL STORE PAYERID.
+		   // This callback contains the parameters: PayerID and paymentID,
+		   //   needed for payerid and PAYMENTID, respectively
+		   // These parameters should then be stored 
+
+		D. PAYPAL EXECUTE
 		-  Request:
 		   POST /account/payment/paypalexecute/PAYMENTID
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-		   data: { 'payerid': string, 'token': string }
 		-  Response:
 		   {'status': 'OK', 'message': string, 'subscription': {'type': string, 'credits': int, 'prevcredits': int}}
 		   {'status': 'NG', 'message': string}
-		   // data["token"] is the Paypal payment token
-		   // When the return_url callback from PAYPAL SETUP is called, the web/mobile app shall call PAYPAL EXECUTE.
-		   // This callback contains the parameters: PayerID, paymentID and token,
-		   //   needed for payerid, PAYMENTID and token, respectively
-		   // When the transaction is completed and verified successfully, the API will return OK, together with the updated subscription details.
+		   // When the callback window completes and exits, the web/mobile app shall call PAYPAL EXECUTE
+		   // This API will internally read the QUERY PAYERID given the PAYMENTID
+		   // and then proceed with execution of the payment transaction
+		   // NG is returned when transaction fails (due to user cancelled or closed the window, etc)
  
-		D. PAYPAL VERIFY
+		E. PAYPAL VERIFY
 		-  Request:
 		   GET /account/payment/paypalverify/PAYMENTID
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -2635,14 +2647,14 @@ DETAILED:
 		   // So in order for the original browser to know if the transaction failed or NOT, this API is used.
 		   // When the transaction is completed and verified successfully, the API will return OK, together with the transaction details.
 
-		E. GET PAYPAL TRANSACTIONS
+		F. GET PAYPAL TRANSACTIONS
 		-  Request:
 		   GET /account/payment/paypal
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
 		   {'status': 'OK', 'message': string, 'transactions': [{'id': string, 'timestamp': int, 'amount': float, 'value': int, 'newcredits': int, 'prevcredits': int}, ...]}
 		   {'status': 'NG', 'message': string}
-		   // This API returns the list of paypal payment transactions
+		   // This API returns the list of paypal payment transactions from backend database
 
 
 	10. Mobile services
