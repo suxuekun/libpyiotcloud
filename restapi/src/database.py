@@ -147,6 +147,9 @@ class database_client:
     def find_user(self, username):
         return self._users.find_user(username)
 
+    def get_username_by_phonenumber(self, phone_number):
+        return self._users.get_username_by_phonenumber(phone_number)
+
     # find email should be avoided as several users can have the same email
     # due to the support for login via social accounts (Facebook, Google, Amazon)
     def find_email(self, email):
@@ -593,6 +596,19 @@ class database_client_cognito:
                 if user["username"] == username:
                     return True
         return False
+
+    def get_username_by_phonenumber(self, phone_number):
+        (result, users) = self.client.admin_list_users()
+        if result == False:
+            return None
+        if users:
+            for user in users:
+                if user.get("phone_number"):
+                    # phone number must be verified
+                    if user["phone_number"] == phone_number:
+                        if user["phone_number_verified"]:
+                            return user["username"]
+        return None
 
     def is_email_verified(self, username):
         (result, users) = self.client.admin_list_users()

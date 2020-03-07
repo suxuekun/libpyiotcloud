@@ -386,10 +386,10 @@ class cognito_client:
 
 
 	def admin_list_users(self):
-		attributes = ["email", "given_name", "family_name", "email"]
+		#attributes = ["email", "given_name", "family_name", "email"]
 		params = {
 			'UserPoolId'      : self.pool_id,
-			'AttributesToGet' : attributes
+			#'AttributesToGet' : attributes
 		}
 		try:
 			response = self.__get_client().list_users(**params)
@@ -408,7 +408,8 @@ class cognito_client:
 				user_attributes["enabled"] = user["Enabled"]
 				user_attributes["status"] = user["UserStatus"]
 				user_list.append(user_attributes)
-		except:
+		except Exception as e:
+			print(e)
 			return (False, None)
 		return (self.__get_result(response), user_list)
 
@@ -424,6 +425,8 @@ class cognito_client:
 				print("  modifieddate : {}".format(user["modifieddate"]))
 				print("  enabled      : {}".format(user["enabled"]))
 				print("  status       : {}".format(user["status"]))
+				if user.get("phone_number"):
+					print("  phone_number : {}".format(user["phone_number"]))
 				print()
 
 	def admin_disable_user(self, username):
