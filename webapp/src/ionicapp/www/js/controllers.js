@@ -292,9 +292,7 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token)
     $scope.handle_error = function(error) {
         // Handle failed login
         if (error.data !== null) {
-            console.log("ERROR: Control Device failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
-            // TODO: replace alert with ionic alert
-            alert("ERROR: Control Device failed with " + error.status + " " + error.statusText +"! " + error.data.message); 
+            $ionicPopup.alert({title: 'Error', template: error.data.message});
             
             if (error.data.message === "Token expired") {
                 Token.refresh({'username': $scope.data.username, 'token': $scope.data.token});
@@ -593,6 +591,7 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token)
             });
         })
         .catch(function (error) {
+            $scope.data.phonenumber = "Unknown";
             $scope.handle_error(error);
         });        
     };
@@ -2116,11 +2115,11 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server) {
 
         // Handle invalid input
         if ($scope.data.email === undefined) {
-            $ionicPopup.alert({title: 'Recovery Error', template: 'Email is empty!'});
+            $ionicPopup.alert({title: 'Recovery Error', template: 'Field is empty!'});
             return;
         }          
         else if ($scope.data.email.length === 0) {
-            $ionicPopup.alert({title: 'Recovery Error', template: 'Email is empty!'});
+            $ionicPopup.alert({title: 'Recovery Error', template: 'Field is empty!'});
             return;
         }
 
@@ -2129,7 +2128,6 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server) {
         var spinner = document.getElementsByClassName("spinner5");
         spinner[0].style.visibility = "visible";
         
-
         //
         // FORGOT PASSWORD
         //

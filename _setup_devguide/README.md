@@ -455,6 +455,7 @@ DETAILED:
 		   // email is treated as username in all succeeding APIs
 		   // phone_number is optional
 		   // phone number should begin with "+" followed by country code then the number (ex. SG number +6512341234)
+		   // phone number must be unique for all users (since LOGIN via phone number is now supported)
 		   // name can be 1 or multiple words
 		   // password length is 6 characters minimum as set in Cognito
 		   // OTP will be sent in the registered email
@@ -539,6 +540,14 @@ DETAILED:
 		-  Request:
 		   POST /user/login
 		   headers: {'Authorization': 'Bearer ' + jwtEncode(username, password)}
+		   // User can now login using email or phone_number so the username parameter can be either an email or phone_number
+		   // When username is a phone_number,
+		   //   It must be unique for all users
+		   //     Signing up with an already registered phone number will now fail
+		   //     Saving user info using an already registered phone number will now fail
+		   //     Verifying a phone number with an already registered phone number will now fail
+		   //   It must start with '+'
+		   //   It must be verified first via OTP
 		-  Response:
 		   {'status': 'OK', 'message': string, 
 		    'token': {'access': string, 'id': string, 'refresh': string}, 'name': string }
@@ -591,6 +600,7 @@ DETAILED:
 		   data: {'name': string, 'phone_number': string}
 		   // phone_number is optional
 		   // phone_number should begin with "+" followed by country code then the number (ex. SG number +6512341234)
+		   // phone number must be unique for all users (since LOGIN via phone number is now supported)
 		   // When user changes or adds phone_number, phone_number_verified returned by GET USER INFO will always return false
 		-  Response:
 		   {'status': 'OK', 'message': string}
@@ -618,6 +628,7 @@ DETAILED:
 		   POST /user/verify_phone_number
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		   // OTP will be sent via SMS in the registered phone_number
+		   // phone number must be unique for all users (since LOGIN via phone number is now supported)
 		-  Response:
 		   {'status': 'OK', 'message': string}
 		   {'status': 'NG', 'message': string}

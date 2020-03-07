@@ -32,8 +32,16 @@ CONFIG_USE_ECC              = True if int(os.environ["CONFIG_USE_ECC"]) == 1 els
 CONFIG_SEPARATOR            = '/'
 CONFIG_PREPEND_REPLY_TOPIC  = "server"
 
+
+
+###################################################################################
+# feature configurables
+###################################################################################
+
 CONFIG_WAIT_DEVICE_RESPONSE_TIMEOUT_SEC = 3
 CONFIG_WAIT_DEVICE_RESPONSE_FREQUENCY_MS = 250
+
+CONFIG_ALLOW_LOGIN_VIA_PHONE_NUMBER = True
 
 
 
@@ -238,7 +246,9 @@ def login_idp_querycode(id):
 # - Request:
 #   POST /user/login
 #   headers: {'Authorization': 'Basic ' + jwtEncode(username, password)}
-#
+#   User can login using email or phone_number so the username parameter can be either an email or phone_number
+#   When username is a phone_number, it must start with '+'.
+#   When username is a phone_number, it must be verified first via OTP
 # - Response:
 #   {'status': 'OK', 'message': string, 'token': {'access': string, 'id': string, 'refresh': string}, 'name': string }
 #   {'status': 'NG', 'message': string}
@@ -260,14 +270,39 @@ def login():
         print('\r\nERROR Login: Empty parameter found [{}]\r\n'.format(username))
         return response, status.HTTP_400_BAD_REQUEST
 
-    # check if username does not exist
-    if not g_database_client.find_user(username):
-        # NOTE:
-        # its not good to provide a specific error message for LOGIN
-        # because it provides additional info for hackers
-        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
-        print('\r\nERROR Login: Username does not exist [{}]\r\n'.format(username))
-        return response, status.HTTP_404_NOT_FOUND
+
+    if CONFIG_ALLOW_LOGIN_VIA_PHONE_NUMBER:
+        # support login via phonenumber
+        # check if username is a phonenumber (starts with '+'), email (has '@') or string(login via idp)
+        # since login via phone_number is now allowed,
+        # the phone_number must be unique
+        if username.startswith('+'):
+            # username is a phone number
+            # get the username given the phone number
+            username = g_database_client.get_username_by_phonenumber(username)
+            if username is None:
+                response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
+                print('\r\nERROR Login: Phone number does not exist [{}]\r\n'.format(username))
+                return response, status.HTTP_404_NOT_FOUND
+        else:
+            # check if username does not exist
+            if not g_database_client.find_user(username):
+                # NOTE:
+                # its not good to provide a specific error message for LOGIN
+                # because it provides additional info for hackers
+                response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
+                print('\r\nERROR Login: Username does not exist [{}]\r\n'.format(username))
+                return response, status.HTTP_404_NOT_FOUND
+    else:
+        # check if username does not exist
+        if not g_database_client.find_user(username):
+            # NOTE:
+            # its not good to provide a specific error message for LOGIN
+            # because it provides additional info for hackers
+            response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
+            print('\r\nERROR Login: Username does not exist [{}]\r\n'.format(username))
+            return response, status.HTTP_404_NOT_FOUND
+
 
     # check if password is valid
     access, refresh, id = g_database_client.login(username, password)
@@ -354,6 +389,17 @@ def signup():
             response = json.dumps({'status': 'NG', 'message': 'Phone number format is invalid'})
             print('\r\nERROR Signup: Phone number format is invalid [{}]\r\n'.format(phonenumber))
             return response, status.HTTP_400_BAD_REQUEST
+
+
+        if CONFIG_ALLOW_LOGIN_VIA_PHONE_NUMBER:
+            # since login via phone_number is now allowed,
+            # the phone_number must be unique,
+            # so check if phone_number is already taken or not
+            if g_database_client.get_username_by_phonenumber(phonenumber) is not None:
+                response = json.dumps({'status': 'NG', 'message': 'Phone number is already registered to another user'})
+                print('\r\nERROR Signup: Phone number is already registered to another user [{}]\r\n'.format(phonenumber))
+                return response, status.HTTP_400_BAD_REQUEST
+
 
     # check length of password
     if len(password) < 6:
@@ -481,31 +527,71 @@ def resend_confirmation_code():
 @app.route('/user/forgot_password', methods=['POST'])
 def forgot_password():
     data = flask.request.get_json()
-    email = data['email']
-    print('forgot_password email={}'.format(email))
 
-    # check if a parameter is empty
-    if len(email) == 0:
-        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-        print('\r\nERROR Recover Account: Empty parameter found\r\n')
-        return response, status.HTTP_400_BAD_REQUEST
 
-    # check if email is in database
-    username = g_database_client.find_user(email)
-    if username == False:
-        response = json.dumps({'status': 'NG', 'message': 'Email does not exist'})
-        print('\r\nERROR Recover Account: Email does not exist [{}]\r\n'.format(email))
-        return response, status.HTTP_400_BAD_REQUEST
-    print('forgot_password username={}'.format(username))
+    if CONFIG_ALLOW_LOGIN_VIA_PHONE_NUMBER:
+        if data.get("email") is None and data.get("phone_number") is None:
+            response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+            print('\r\nERROR Recover Account: Empty parameter found\r\n')
+            return response, status.HTTP_400_BAD_REQUEST
+    else:
+        if data.get("email") is None:
+            response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+            print('\r\nERROR Recover Account: Empty parameter found\r\n')
+            return response, status.HTTP_400_BAD_REQUEST
+
+
+    email = None
+    if data.get("email") is not None:
+        email = data['email']
+
+        # check if a parameter is empty
+        if len(email) == 0:
+            response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+            print('\r\nERROR Recover Account: Empty parameter found\r\n')
+            return response, status.HTTP_400_BAD_REQUEST
+
+        # check if email is in database
+        username = g_database_client.find_user(email)
+        if username == False:
+            response = json.dumps({'status': 'NG', 'message': 'Email does not exist'})
+            print('\r\nERROR Recover Account: Email does not exist [{}]\r\n'.format(email))
+            return response, status.HTTP_400_BAD_REQUEST
+
+        username = email
+        response = json.dumps({'status': 'OK', 'message': 'User account recovery successfully. Check email for confirmation code.', 'username': username})
+        print('forgot_password email={}'.format(username))
+
+
+    if CONFIG_ALLOW_LOGIN_VIA_PHONE_NUMBER:
+        phone_number = None
+        if data.get("phone_number") is not None:
+            phone_number = data['phone_number']
+
+            # check if a parameter is empty
+            if len(phone_number) == 0:
+                response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+                print('\r\nERROR Recover Account: Empty parameter found\r\n')
+                return response, status.HTTP_400_BAD_REQUEST
+
+            # check if email is in database
+            username = g_database_client.get_username_by_phonenumber(phone_number)
+            if username is None:
+                response = json.dumps({'status': 'NG', 'message': 'Email does not exist'})
+                print('\r\nERROR Recover Account: Email does not exist [{}]\r\n'.format(email))
+                return response, status.HTTP_400_BAD_REQUEST
+
+            response = json.dumps({'status': 'OK', 'message': 'User account recovery successfully. Check mobile number for confirmation code.', 'username': username})
+            print('forgot_password phone_number={}'.format(phone_number))
+
 
     # recover account
-    result = g_database_client.forgot_password(email)
+    result = g_database_client.forgot_password(username)
     if not result:
         response = json.dumps({'status': 'NG', 'message': 'Internal server error'})
-        print('\r\nERROR Recover Account: Internal server error [{}]\r\n'.format(email))
+        print('\r\nERROR Recover Account: Internal server error [{}]\r\n'.format(username))
         return response, status.HTTP_500_INTERNAL_SERVER_ERROR
 
-    response = json.dumps({'status': 'OK', 'message': 'User account recovery successfully. Check email for confirmation code.', 'username': email})
     print('\r\nRecover Account successful: {}\r\n{}\r\n'.format(username, response))
     return response
 
@@ -851,7 +937,7 @@ def verify_phone_number():
         response = json.dumps({'status': 'NG', 'message': 'Token expired'})
         print('\r\nERROR Verify phone: Token expired\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
-    print('refresh_user_token username={}'.format(username))
+    print('verify_phone_number username={}'.format(username))
 
     # check if a parameter is empty
     if len(username) == 0 or len(token) == 0:
@@ -869,6 +955,19 @@ def verify_phone_number():
         response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
         print('\r\nERROR Verify phone: Token is invalid [{}]\r\n'.format(username))
         return response, status.HTTP_401_UNAUTHORIZED
+
+
+    if CONFIG_ALLOW_LOGIN_VIA_PHONE_NUMBER:
+        info = g_database_client.get_user_info(token['access'])
+        if info is not None:
+            # since login via phone_number is now allowed,
+            # the phone_number must be unique,
+            # so check if phone_number is already taken or not
+            if g_database_client.get_username_by_phonenumber(info["phone_number"]) is not None:
+                response = json.dumps({'status': 'NG', 'message': 'Phone number is already registered to another user'})
+                print('\r\nERROR Signup: Phone number is already registered to another user [{}]\r\n'.format(info["phone_number"]))
+                return response, status.HTTP_400_BAD_REQUEST
+
 
     # verify phone number
     result = g_database_client.request_verify_phone_number(token["access"])
@@ -1069,7 +1168,7 @@ def update_user_info():
         response = json.dumps({'status': 'NG', 'message': 'Token expired'})
         print('\r\nERROR Update user: Token expired\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
-    print('refresh_user_token username={}'.format(username))
+    print('update_user_info username={}'.format(username))
 
     # check if a parameter is empty
     if len(username) == 0 or len(token) == 0:
@@ -1094,6 +1193,18 @@ def update_user_info():
         phonenumber = data['phone_number']
     else:
         phonenumber = None
+
+
+    if CONFIG_ALLOW_LOGIN_VIA_PHONE_NUMBER:
+        # since login via phone_number is now allowed,
+        # the phone_number must be unique,
+        # so check if phone_number is already taken or not
+        if g_database_client.get_username_by_phonenumber(phonenumber) is not None:
+            response = json.dumps({'status': 'NG', 'message': 'Phone number is already registered to another user'})
+            print('\r\nERROR Signup: Phone number is already registered to another user [{}]\r\n'.format(phonenumber))
+            return response, status.HTTP_400_BAD_REQUEST
+
+
     #print(phonenumber)
     name = data['name']
     names = name.split(" ")
