@@ -1562,7 +1562,7 @@ def store_payment_paypal_payerid(paymentid):
 def set_payment_paypal_execute(paymentid):
     payment = {"paymentId": paymentid}
     data = flask.request.get_json()
-    if data.get("PayerID"):
+    if data.get("payerid"):
         payment["PayerID"] = data["payerid"]
     else:
         payment["PayerID"] = g_database_client.paypal_get_payerid(paymentid)
