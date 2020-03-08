@@ -1563,8 +1563,10 @@ def set_payment_paypal_execute(paymentid):
     payment = {"paymentId": paymentid}
     data = flask.request.get_json()
     if data.get("payerid"):
+        # mobile app case
         payment["PayerID"] = data["payerid"]
     else:
+        # web app case
         payment["PayerID"] = g_database_client.paypal_get_payerid(paymentid)
     if payment["PayerID"] is None or payment["PayerID"] == "":
         response = json.dumps({'status': 'NG', 'message': 'Paypal payment execution failed.'})
