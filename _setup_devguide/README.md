@@ -2640,6 +2640,8 @@ DETAILED:
 		-  Request:
 		   POST /account/payment/paypalexecute/PAYMENTID
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+                   data: {'payerid': string}
+                   // payerid is optional (only applicable for mobile app scenario; not for web app scenario; see UML sequence diagram)
 		-  Response:
 		   {'status': 'OK', 'message': string, 'subscription': {'type': string, 'credits': int, 'prevcredits': int}}
 		   {'status': 'NG', 'message': string}
