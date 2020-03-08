@@ -1550,6 +1550,8 @@ def store_payment_paypal_payerid(paymentid):
 # - Request:
 #   POST /account/payment/paypalexecute/<paymentid>
 #   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+#   data: {'payerid': payerid}
+#   // payerid is optional (available for mobile app scenario)
 #
 # - Response:
 #   {'status': 'OK', 'message': string, 'subscription': {'type': string, 'credits': int, 'prevcredits': int}}
@@ -1559,7 +1561,11 @@ def store_payment_paypal_payerid(paymentid):
 @app.route('/account/payment/paypalexecute/<paymentid>', methods=['POST'])
 def set_payment_paypal_execute(paymentid):
     payment = {"paymentId": paymentid}
-    payment["PayerID"] = g_database_client.paypal_get_payerid(paymentid)
+    data = flask.request.get_json()
+    if data.get("PayerID"):
+        payment["PayerID"] = data["payerid"]
+    else:
+        payment["PayerID"] = g_database_client.paypal_get_payerid(paymentid)
     if payment["PayerID"] is None or payment["PayerID"] == "":
         response = json.dumps({'status': 'NG', 'message': 'Paypal payment execution failed.'})
         return response
