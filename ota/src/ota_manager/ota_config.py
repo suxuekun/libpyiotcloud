@@ -16,6 +16,7 @@ class config:
     CONFIG_MONGODB_TB_NOTIFICATIONS  = "notifications"
     CONFIG_MONGODB_TB_SENSORREADINGS = "sensorreadings"
     CONFIG_MONGODB_TB_CONFIGURATIONS = "configurations"
+    CONFIG_MONGODB_TB_OTAUPDATES  = "otaupdates"
 
     # RabbitMQ settings
     CONFIG_MQTT_DEFAULT_USER      = os.environ["CONFIG_USE_MQTT_DEFAULT_USER"]
