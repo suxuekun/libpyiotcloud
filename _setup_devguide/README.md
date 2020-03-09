@@ -270,8 +270,8 @@ SUMMARY:
 		M. UPDATE FIRMWARE                - POST   /devices/device/DEVICENAME/firmware
 		N. UPDATE FIRMWARES               - POST   /devices/firmware
 		O. GET UPDATE FIRMWARE            - GET    /devices/device/DEVICENAME/firmware
-		P. GET OTA STATUSES               - GET    /devices/ota
-		Q. GET OTA STATUS                 - GET    /devices/device/DEVICENAME/ota
+		P. GET OTA STATUS                 - GET    /devices/device/DEVICENAME/ota
+		Q. GET OTA STATUSES               - GET    /devices/ota
 
 
 	3. Device access and control APIs (STATUS, UART, GPIO)
