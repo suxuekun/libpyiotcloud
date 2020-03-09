@@ -37,6 +37,8 @@ g_sensor_client = None
 g_database_client = None
 g_storage_client = None
 
+g_document_firmwares = None
+
 
 
 ###################################################################################
@@ -64,8 +66,12 @@ CONFIG_AMQP_TLS_PORT        = 5671
 CONFIG_PREPEND_REPLY_TOPIC  = "server"
 CONFIG_SEPARATOR            = '/'
 
-API_REQUEST_FIRMWARE        = "req_firmware"
-API_RECEIVE_FIRMWARE        = "rcv_firmware"
+# download firmware via MQTT
+API_UPGRADE_FIRMWARE             = "beg_ota"
+API_UPGRADE_FIRMWARE_COMPLETION  = "end_ota"
+API_REQUEST_FIRMWARE             = "req_firmware"
+API_RECEIVE_FIRMWARE             = "rcv_firmware"
+API_REQUEST_OTASTATUS            = "req_otastatus"
 
 
 
@@ -107,6 +113,7 @@ def read_file_chunk(payload):
 
 def request_firmware(database_client, deviceid, topic, payload):
 
+    new_topic = "{}{}{}".format(deviceid, CONFIG_SEPARATOR, API_RECEIVE_FIRMWARE)
     #print("{} {}".format(topic, deviceid))
     #print("{}".format(payload))
 
@@ -128,7 +135,6 @@ def request_firmware(database_client, deviceid, topic, payload):
     bin, actualsize = read_file_chunk(payload)
 
     # set topic and payload template for the response
-    new_topic = "{}{}{}".format(deviceid, CONFIG_SEPARATOR, API_RECEIVE_FIRMWARE)
     new_payload = {
         "location": payload["location"],
         "size"    : actualsize,
@@ -140,6 +146,75 @@ def request_firmware(database_client, deviceid, topic, payload):
     #print_json(new_payload)
     new_payload = json.dumps(new_payload)
     g_messaging_client.publish(new_topic, new_payload, debug=False) # NOTE: enable to DEBUG
+
+
+def request_otastatus(database_client, deviceid, topic, payload):
+
+    new_topic = "{}{}{}".format(deviceid, CONFIG_SEPARATOR, API_REQUEST_OTASTATUS)
+
+    # find if deviceid exists
+    devicename = database_client.get_devicename(deviceid)
+    if devicename is None:
+        # if no entry found, just send an empty json
+        new_payload = {}
+        new_payload = json.dumps(new_payload)
+        g_messaging_client.publish(new_topic, new_payload, debug=False) # NOTE: enable to DEBUG
+        return
+
+    ota_status = database_client.get_ota_status_by_deviceid(deviceid)
+    #print_json(ota_status)
+    if ota_status is None:
+        # if no entry found, just send an empty json
+        new_payload = {}
+        new_payload = json.dumps(new_payload)
+        g_messaging_client.publish(new_topic, new_payload, debug=False) # NOTE: enable to DEBUG
+        return
+    #print(ota_status["status"])
+    if ota_status["status"] == "completed" or ota_status["status"] == "failed":
+        # if no entry found, just send an empty json
+        new_payload = {}
+        new_payload = json.dumps(new_payload)
+        g_messaging_client.publish(new_topic, new_payload, debug=False) # NOTE: enable to DEBUG
+        return
+
+
+    firmware = get_firmware_object(ota_status["version"])
+    #print_json(firmware)
+
+    new_topic = "{}{}{}".format(deviceid, CONFIG_SEPARATOR, API_UPGRADE_FIRMWARE)
+    new_payload = {
+        "size"     : firmware["size"],
+        "location" : firmware["location"],
+        "version"  : firmware["version"],
+        "checksum" : firmware["checksum"],
+    }
+
+    # publish packet response to device
+    #print_json(new_payload)
+    new_payload = json.dumps(new_payload)
+    g_messaging_client.publish(new_topic, new_payload, debug=False) # NOTE: enable to DEBUG
+
+
+def upgrade_firmware_completion(database_client, deviceid, topic, payload):
+
+    # find if deviceid exists
+    devicename = database_client.get_devicename(deviceid)
+    if devicename is None:
+        return
+
+    payload = json.loads(payload)
+    result = payload["value"]["result"]
+
+    ota_status = database_client.get_ota_status_by_deviceid(deviceid)
+    #print_json(ota_status)
+    if ota_status["status"] != "completed":
+        if result == "completed":
+            database_client.set_ota_status_completed_by_deviceid(deviceid, "completed")
+        else:
+            database_client.set_ota_status_completed_by_deviceid(deviceid, "failed")
+
+    #ota_status = database_client.get_ota_status_by_deviceid(deviceid)
+    #print_json(ota_status)
 
 
 def on_message(subtopic, subpayload):
@@ -158,6 +233,22 @@ def on_message(subtopic, subpayload):
     if topic == API_REQUEST_FIRMWARE:
         try:
             thr = threading.Thread(target = request_firmware, args = (g_database_client, deviceid, topic, payload ))
+            thr.start()
+        except Exception as e:
+            print("exception API_DOWNLOAD_FIRMWARE")
+            print(e)
+            return
+    elif topic == API_REQUEST_OTASTATUS:
+        try:
+            thr = threading.Thread(target = request_otastatus, args = (g_database_client, deviceid, topic, payload ))
+            thr.start()
+        except Exception as e:
+            print("exception API_DOWNLOAD_FIRMWARE")
+            print(e)
+            return
+    elif topic == API_UPGRADE_FIRMWARE_COMPLETION:
+        try:
+            thr = threading.Thread(target = upgrade_firmware_completion, args = (g_database_client, deviceid, topic, payload ))
             thr.start()
         except Exception as e:
             print("exception API_DOWNLOAD_FIRMWARE")
@@ -188,6 +279,13 @@ def on_amqp_message(ch, method, properties, body):
 # Download files from Amazon S3
 ###################################################################################
 
+def get_firmware_object(version):
+    global g_document_firmwares
+    for firmware in g_document_firmwares["ft900"]["firmware"]:
+        if version == firmware["version"]:
+            return firmware
+    return None
+
 def write_to_file(filename, contents):
     index = filename.rindex("/")
     if index == -1:
@@ -207,9 +305,10 @@ def download_firmware(location):
     return result
 
 def download_firmwares():
-    result, document = g_storage_client.get_device_firmware_updates()
+    global g_document_firmwares
+    result, g_document_firmwares = g_storage_client.get_device_firmware_updates()
     if result:
-        for firmware in document["ft900"]["firmware"]:
+        for firmware in g_document_firmwares["ft900"]["firmware"]:
             result = download_firmware(firmware["location"])
             if result:
                 print("Downloaded {} {} {} {} {} [{}]".format(firmware["version"], firmware["date"], firmware["location"], firmware["size"], firmware["checksum"], result))
@@ -300,8 +399,12 @@ if __name__ == '__main__':
 
     # Subscribe to messages sent for this device
     time.sleep(1)
-    subtopic = "{}{}+{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_SEPARATOR, API_REQUEST_FIRMWARE)
-    g_messaging_client.subscribe(subtopic, subscribe=True, declare=True, consume_continuously=True)
+    subtopic  = "{}{}+{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_SEPARATOR, API_REQUEST_FIRMWARE)
+    subtopic2 = "{}{}+{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_SEPARATOR, API_REQUEST_OTASTATUS)
+    subtopic3 = "{}{}+{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_SEPARATOR, API_UPGRADE_FIRMWARE_COMPLETION)
+    g_messaging_client.subscribe(subtopic,  subscribe=True, declare=True, consume_continuously=True)
+    g_messaging_client.subscribe(subtopic2, subscribe=True, declare=True, consume_continuously=True)
+    g_messaging_client.subscribe(subtopic3, subscribe=True, declare=True, consume_continuously=True)
 
 
     while g_messaging_client.is_connected():
