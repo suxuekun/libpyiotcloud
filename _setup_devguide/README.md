@@ -2600,6 +2600,12 @@ DETAILED:
 
 	9. Account subscription and payment APIs
 
+		// Use any of the following Paypal Sandbox accounts: (https://sandbox.paypal.com)
+		   dev1.sg@brtchip.com (personal) - buyer
+		   dev1.us@brtchip.com (personal) - buyer 
+		   dev1.uk@brtchip.com (personal) - buyer
+		   The account that receives the payments is iotportal@brtchip.com (business)
+
 		A. GET SUBSCRIPTION
 		-  Request:
 		   GET /account/subscription
