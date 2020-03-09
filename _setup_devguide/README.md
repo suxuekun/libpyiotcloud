@@ -2622,10 +2622,15 @@ DETAILED:
 		-  Response:
 		   {'status': 'OK', 'message': string, 'payment': {'approvalurl': string, 'paymentid': string}}
 		   {'status': 'NG', 'message': string}
+		   // returnurl is your web/mobile callback URL for cancellation
+		   // cancelurl is your web/mobile callback URL for cancellation
+		   // " For a web app, the urls should start with https://, such as https://www.example.com.
+		   //   For an iOS or Android app, you can use a callback URL such as myapp://. "
 		   // amount is in USD
-		   // Web/mobile app shall open a system browser for approvalurl
-		   // Customer logins to their Paypal account on the system browser and approves the transaction.
-		   // Once the transaction is approved, the returnurl callback will be called.
+		   // Web/mobile app shall open a system browser (Android: Google Chrome, IOS: Safari) for approvalurl
+		   // Customer logins to their Paypal account on the system browser and approves the payment transaction.
+		   // Once the payment transaction is approved by the customer, the returnurl callback will be called.
+		   //   Paypal will make the browser invoke the mobile app callback.
 		   // When the returnurl callback is called, the web/mobile app shall call PAYPAL EXECUTE
 
 		C. PAYPAL STORE PAYERID
