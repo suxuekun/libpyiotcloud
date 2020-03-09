@@ -64,8 +64,8 @@
     </form>
     <form id="oTAFirmwareUpdate-form223" class="list">
       <div id="oTAFirmwareUpdate-markdown355" class="show-list-numbers-and-dots"></div>
-      <button id="oTAFirmwareUpdate-button158" ng-click="upgradeFirmware(versiontouse, data.devicename)" ng-disabled="timer != null" class="button button-positive button-block">Update</button>
-      <button id="oTAFirmwareUpdate-button159" ng-click="cancelFirmware()" ng-show="timer != null" class="button button-positive button-block button-outline">Cancel</button>
+      <button id="oTAFirmwareUpdate-button158" ng-click="upgradeFirmware(versiontouse, data.devicename)" ng-disabled="disable == true" class="button button-positive button-block">Update</button>
+      <button id="oTAFirmwareUpdate-button159" ng-click="cancelFirmware()" ng-show="disable == true" class="button button-positive button-block button-outline">Cancel</button>
     </form>
     <center>
       <a href="https://ft900-iot-portal.s3.amazonaws.com/latest_firmware_updates.json" target="_blank">
