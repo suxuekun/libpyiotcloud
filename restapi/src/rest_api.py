@@ -1562,7 +1562,7 @@ def store_payment_paypal_payerid(paymentid):
 def set_payment_paypal_execute(paymentid):
     payment = {"paymentId": paymentid}
     data = flask.request.get_json()
-    if data.get("payerid"):
+    if data is not None and data.get("payerid"):
         # mobile app case
         payment["PayerID"] = data["payerid"]
     else:
