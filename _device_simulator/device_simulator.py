@@ -29,11 +29,12 @@ CONFIG_USE_AMQP = False
 ###################################################################################
 
 # ota firmware update
+CONFIG_OTA_AT_BOOTUP = True
 # FT900 is advised to use HTTPS to download the firmware (if possible).
 #   If not possible (due to memory constraints), then can use MQTTS.
 #   When using MQTTS to download the firmware, the firmware is downloaded by chunks.
 #   Since its not possible to add binary to a JSON packet, the binary chunks is Base64-encoded.
-CONFIG_OTA_DOWNLOAD_FIRMWARE_VIA_MQTTS = True
+CONFIG_OTA_DOWNLOAD_FIRMWARE_VIA_MQTTS = False
 # Below is the performance when using the device simulator.
 # LIVE
 # via HTTPS: 4 seconds
@@ -243,6 +244,7 @@ API_UPGRADE_FIRMWARE             = "beg_ota"
 API_UPGRADE_FIRMWARE_COMPLETION  = "end_ota"
 API_REQUEST_FIRMWARE             = "req_firmware"
 API_RECEIVE_FIRMWARE             = "rcv_firmware"
+API_REQUEST_OTASTATUS            = "req_otastatus"
 
 
 
@@ -1314,6 +1316,11 @@ def handle_api(api, subtopic, subpayload):
     # FIRMWARE UPGRADE
     ####################################################
 
+    elif api == API_REQUEST_OTASTATUS:
+        topic = generate_pubtopic(subtopic)
+        subpayload = json.loads(subpayload)
+
+
     elif api == API_UPGRADE_FIRMWARE:
         topic = generate_pubtopic(subtopic)
         subpayload = json.loads(subpayload)
@@ -1483,6 +1490,13 @@ def set_configuration(filename = None):
     payload = json.loads(config)
     #print_json(payload)
     f.close()
+    publish(topic, payload)
+
+
+def req_otastatus(ver):
+    print("\r\n\r\nRequest OTA status")
+    topic = "{}{}{}{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_DEVICE_ID, CONFIG_SEPARATOR, API_REQUEST_OTASTATUS)
+    payload = {"version": ver}
     publish(topic, payload)
 
 
@@ -1765,7 +1779,7 @@ class DownloadThread(threading.Thread):
 
     def send_completion_status(self, status):
         time.sleep(1)
-        result = "successful" if status == True else "failed" 
+        result = "completed" if status == True else "failed" 
 
         # send completion status
         topic = "{}{}{}{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_DEVICE_ID, CONFIG_SEPARATOR, API_UPGRADE_FIRMWARE_COMPLETION)
@@ -2324,6 +2338,12 @@ if __name__ == '__main__':
             inputQueue = queue.Queue()
             g_input_thread = threading.Thread(target=read_kbd_input, args=(inputQueue,), daemon=True)
             g_input_thread.start()
+
+
+        # Check OTA status at bootup
+        if CONFIG_OTA_AT_BOOTUP:
+            req_otastatus(g_firmware_version_STR)
+
 
         # Exit when disconnection happens
         while g_messaging_client.is_connected():
