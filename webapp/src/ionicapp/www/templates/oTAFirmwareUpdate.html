@@ -24,7 +24,7 @@
         <select ng-options="firmware.version as firmware.version for firmware in data.firmwares.ft900.firmware" ng-model="versiontouse" ng-change="changeDescription(versiontouse)" ng-disabled="timer != null"></select>
       </label>
     </form>
-    <form id="oTAFirmwareUpdate-form224" class="list">
+    <form id="oTAFirmwareUpdate-form224" class="list" ng-show="data.devicename != &quot;All devices&quot;">
       <div id="oTAFirmwareUpdate-markdown357" class="show-list-numbers-and-dots"></div>
       <div id="oTAFirmwareUpdate-markdown358" class="show-list-numbers-and-dots">
         <p style="color:#387EF5;">Device Information</p>
@@ -37,6 +37,16 @@
         <span class="input-label">Firmware Version</span>
         <input type="text" placeholder="" ng-model="data.version" readonly="">
       </label>
+    </form>
+    <form id="oTAFirmwareUpdate-form229" class="list" ng-show="data.devicename == &quot;All devices&quot;">
+      <div id="oTAFirmwareUpdate-markdown403" class="show-list-numbers-and-dots"></div>
+      <div id="oTAFirmwareUpdate-markdown409" class="show-list-numbers-and-dots">
+        <p style="color:#387EF5;">Device Information</p>
+      </div>
+      <div id="oTAFirmwareUpdate-markdown413" ng-repeat="device in devices_ota" class="show-list-numbers-and-dots tab_margin_1">
+        <p style="color:#444444;font-size:16px;">
+          <strong> {{ device.devicename }} </strong> - version {{ device.version }} - status {{ device.status }}</p>
+      </div>
     </form>
     <form id="oTAFirmwareUpdate-form221" class="list">
       <div id="oTAFirmwareUpdate-markdown353" class="show-list-numbers-and-dots"></div>
@@ -54,7 +64,7 @@
     </form>
     <form id="oTAFirmwareUpdate-form223" class="list">
       <div id="oTAFirmwareUpdate-markdown355" class="show-list-numbers-and-dots"></div>
-      <button id="oTAFirmwareUpdate-button158" ng-click="upgradeFirmware(data.devicename, versiontouse)" ng-disabled="timer != null" class="button button-positive button-block">Update</button>
+      <button id="oTAFirmwareUpdate-button158" ng-click="upgradeFirmware(versiontouse, data.devicename)" ng-disabled="timer != null" class="button button-positive button-block">Update</button>
       <button id="oTAFirmwareUpdate-button159" ng-click="cancelFirmware()" ng-show="timer != null" class="button button-positive button-block button-outline">Cancel</button>
     </form>
     <center>
