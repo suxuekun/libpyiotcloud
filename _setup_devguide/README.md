@@ -266,9 +266,12 @@ SUMMARY:
 		L. DELETE DEVICE LOCATION         - DELETE /devices/device/DEVICENAME/location
 
 		//
-		// ota firmware upgrade
-		M. UPGRADE DEVICE FIRMWARE        - POST   /devices/device/DEVICENAME/firmware
-		N. GET UPGRADE DEVICE FIRMWARE    - GET    /devices/device/DEVICENAME/firmware
+		// ota firmware update
+		M. UPDATE FIRMWARE                - POST   /devices/device/DEVICENAME/firmware
+		N. UPDATE FIRMWARES               - POST   /devices/firmware
+		O. GET UPDATE FIRMWARE            - GET    /devices/device/DEVICENAME/firmware
+		P. GET OTA STATUSES               - GET    /devices/ota
+		Q. GET OTA STATUS                 - GET    /devices/device/DEVICENAME/ota
 
 
 	3. Device access and control APIs (STATUS, UART, GPIO)
@@ -920,7 +923,7 @@ DETAILED:
 		   { 'status': 'OK', 'message': string}
 		   { 'status': 'NG', 'message': string}
 
-		M. UPGRADE DEVICE FIRMWARE
+		M. UPDATE FIRMWARE
 		-  Request:
 		   POST /devices/device/DEVICENAME/firmware
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
@@ -931,7 +934,7 @@ DETAILED:
 		   // version is the version of the firmware to use
 		   // note that user can select the latest version or the same version (as per Sree)
 
-		N. GET UPGRADE DEVICE FIRMWARE
+		N. GET UPDATE FIRMWARE
 		-  Request:
 		   GET /devices/device/DEVICENAME/firmware
 		   headers: {'Authorization': 'Bearer ' + token.access}
