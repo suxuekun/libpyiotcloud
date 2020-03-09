@@ -4211,11 +4211,12 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
 
 
     $scope.upgradeFirmware = function(devicename, version) {
+/*        
         if ($scope.online === false) {
             $ionicPopup.alert({ title: 'Error', template: 'Device is unreachable!', buttons: [{text: 'OK', type: 'button-assertive'}] });
             return;
         }
-        
+*/        
         var prompt = '';
         if ($scope.data.version > version) {
             prompt = 'Are you sure you want to downgrade the firmware of this device - ' + devicename + ' - to version ' + version + '?';
@@ -4268,13 +4269,18 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         .then(function (result) {
             console.log(result.data);
 
-            if ($scope.timer !== null) {
-                clearTimeout($scope.timer);
-                $scope.timer = null;
+            if (result.data.status === "OK") {
+                if ($scope.timer !== null) {
+                    clearTimeout($scope.timer);
+                    $scope.timer = null;
+                }
+    
+                $scope.runtime = 0;
+                $scope.timer = setInterval($scope.get_upgrade_firmware, 1000, version);
             }
-
-            $scope.runtime = 0;
-            $scope.timer = setInterval($scope.get_upgrade_firmware, 1000, version);
+            else {
+                $ionicPopup.alert({ title: 'Error', template: result.data.message, buttons: [{text: 'OK', type: 'button-positive'}] });
+            }
         })
         .catch(function (error) {
             $scope.handle_error(error);
