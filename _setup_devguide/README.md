@@ -2631,6 +2631,7 @@ DETAILED:
 		   // Customer logins to their Paypal account on the system browser and approves the payment transaction.
 		   // Once the payment transaction is approved by the customer, the returnurl callback will be called.
 		   //   Paypal will make the browser invoke the mobile app callback.
+		   //   When the callback is called, the paymentID and PayerID is appended to the URL, in ?&= notation.
 		   // When the returnurl callback is called, the web/mobile app shall call PAYPAL EXECUTE
 
 		C. PAYPAL STORE PAYERID
