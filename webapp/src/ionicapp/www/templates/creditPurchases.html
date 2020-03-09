@@ -3,7 +3,20 @@
     <button class="button button-icon icon ion-android-close" ng-click="submitCancel()"></button>
   </ion-nav-buttons>
   <ion-content padding="true" class="has-header">
-    <div class="spacer" style="height: 15px;"></div>
+    <form id="creditPurchases-form230" class="list">
+      <div class="spacer" style="height: 15px;"></div>
+      <div id="creditPurchases-markdown414" style="text-align:right;" class="show-list-numbers-and-dots">
+        <p style="color:#000000;">Available Credits</p>
+      </div>
+      <div id="creditPurchases-markdown433" style="text-align:right;" class="show-list-numbers-and-dots">
+        <p style="color:#387EF5;font-size:24px;">
+          <strong> {{ data.credits }} </strong>
+        </p>
+      </div>
+    </form>
+    <div id="creditPurchases-markdown425" class="show-list-numbers-and-dots">
+      <p style="color:#000000;">Credit Purchase History</p>
+    </div>
     <div id="creditPurchases-markdown398" class="show-list-numbers-and-dots">
       <p style="color:#AAAAAA;font-size:12px;">Result: {{ items.length }} transactions</p>
     </div>

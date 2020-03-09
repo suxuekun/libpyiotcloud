@@ -4,13 +4,25 @@
   </ion-nav-buttons>
   <ion-content padding="true" class="has-header">
     <form id="order-form25" class="list">
-      <ion-item class="item-divider" id="order-list-item-divider6"> Select</ion-item>
-      <label class="item item-select" id="order-select1">
+      <div class="spacer" style="width: 747.778px; height: 15px;"></div>
+      <div id="order-markdown437" style="text-align:right;" class="show-list-numbers-and-dots">
+        <p style="color:#000000;">Available Credits</p>
+      </div>
+      <div id="order-markdown442" style="text-align:right;" class="show-list-numbers-and-dots">
+        <p style="color:#387EF5;font-size:24px;">
+          <strong> {{ data.credits }} </strong>
+        </p>
+      </div>
+    </form>
+    <form id="order-form231" class="list">
+      <ion-item class="item-divider" id="order-list-item-divider7"> Top Up Credits</ion-item>
+      <label class="item item-select" id="order-select107">
         <span class="input-label">Credits</span>
         <select ng-model="data.id" ng-options="credit.id as credit.label for credit in credits" ng-disabled="timer != null"></select>
       </label>
     </form>
     <button id="order-button13" ng-click="submitBuycredits()" ng-disabled="timer != null" class="button button-positive button-block">Pay via Paypal</button>
+    <div class="spacer" style="width: 747.778px; height: 30px;"></div>
     <div id="order-markdown29" style="text-align:center;" class="show-list-numbers-and-dots">
       <p style="color:#AAAAAA;font-size:12px;">Paypal Test buyer accounts:</p>
 

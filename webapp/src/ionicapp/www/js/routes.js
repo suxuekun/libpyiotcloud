@@ -48,7 +48,8 @@ angular.module('app.routes', [])
     url: '/page_order',
 	params: {
 		username: "",
-		token: ""		
+		token: "",
+		credits: ""		
 },
     templateUrl: 'templates/order.html',
     controller: 'orderCtrl'
@@ -58,7 +59,8 @@ angular.module('app.routes', [])
     url: '/page_credit_purchases',
 	params: {
 		username: "",
-		token: ""		
+		token: "",
+		credits: ""		
 },
     templateUrl: 'templates/creditPurchases.html',
     controller: 'creditPurchasesCtrl'
@@ -69,6 +71,7 @@ angular.module('app.routes', [])
 	params: {
 		username: "",
 		token: "",
+		credits: "",
 		id: ""		
 },
     templateUrl: 'templates/transactionDetails.html',
