@@ -432,7 +432,8 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token)
     $scope.submitBuyCredits = function() {
         device_param = {
             'username': $scope.data.username,
-            'token': $scope.data.token
+            'token': $scope.data.token,
+            'credits': $scope.data.subscription_credits
         };
         $state.go('order', device_param, {reload: true});   
     };
@@ -440,7 +441,8 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token)
     $scope.submitViewCreditPurchases = function() {
         device_param = {
             'username': $scope.data.username,
-            'token': $scope.data.token
+            'token': $scope.data.token,
+            'credits': $scope.data.subscription_credits
         };
         $state.go('creditPurchases', device_param, {reload: true});   
     };
@@ -655,6 +657,7 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token)
     $scope.data = {
         'username': User.get_username(),
         'token': User.get_token(),
+        'credits': $stateParams.credits,
         
         'id': $scope.credits[0].id,
         'price': $scope.credits[0].price,
@@ -790,6 +793,7 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token)
         // TODO Update database credits
     };
 
+/*
     getSubscription = function() {
         //
         // GET SUBSCRIPTION
@@ -821,7 +825,8 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token)
                         onTap: function(e) {
                             param = {
                                 'username': $scope.data.username,
-                                'token': $scope.data.token
+                                'token': $scope.data.token,
+                                'credits': result.data.subscription.credits
                             };
                             $state.go('creditPurchases', param, {reload: true});   
                         }
@@ -898,7 +903,8 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token)
             window.close();
         });
     };
-    
+*/
+
     executePayment = function(paymentid) {
         //
         // PAYPAL EXECUTE
@@ -924,6 +930,7 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token)
             $scope.timer = null;
             
             if (result.data.status === "OK") {
+                $scope.data.credits = result.data.subscription.credits;
                 var added_credits = result.data.subscription.credits - result.data.subscription.prevcredits;
                 $ionicPopup.alert({
                     title: 'Payment Confirmation',
@@ -937,7 +944,8 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token)
                             onTap: function(e) {
                                 param = {
                                     'username': $scope.data.username,
-                                    'token': $scope.data.token
+                                    'token': $scope.data.token,
+                                    'credits': result.data.subscription.credits
                                 };
                                 $state.go('creditPurchases', param, {reload: true});   
                             }
@@ -1003,6 +1011,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Paymen
     $scope.data = {
         'username': User.get_username(),
         'token': User.get_token(),
+        'credits': $stateParams.credits
     };
     
     $scope.items = []; // items to be shown
@@ -1012,6 +1021,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Paymen
         device_param = {
             'username': $scope.data.username,
             'token': $scope.data.token,
+            'credits': $scope.data.credits,
             'id': item.id
         };
         $state.go('transactionDetails', device_param, {reload: true});   
@@ -1050,6 +1060,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Paymen
     $scope.data = {
         'username': User.get_username(),
         'token': User.get_token(),
+        'credits': $stateParams.credits,
         'id': $stateParams.id,
     };
     
@@ -1102,6 +1113,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Paymen
         device_param = {
             'username': $scope.data.username,
             'token': $scope.data.token,
+            'credits': $scope.data.credits,
         };
         $state.go('creditPurchases', device_param, {reload: true});   
     };    
