@@ -1776,8 +1776,6 @@ class DownloadThread(threading.Thread):
         # display status
         if status == True:
             print("Downloaded firmware to {} {} bytes in {} secs !!!\r\n".format(self.use_filename, self.filesize, round(time.time()-self.start_time) ))
-            global g_firmware_version_STR
-            g_firmware_version_STR = self.fileversion
         else:
             print("The firmware failed to download !!!\r\n")
         print("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\r\n\r\n\r\n\r\n")
@@ -1815,6 +1813,7 @@ class DownloadThread(threading.Thread):
     def run(self):
         self.start_time = time.time()
 
+        result = False
         if not CONFIG_OTA_DOWNLOAD_FIRMWARE_VIA_MQTTS:
             print("Downloading firmware via HTTPS ...\r\n")
             result, self.downloadedsize = http_get_firmware_binary(self.filename, self.filesize)
@@ -1824,7 +1823,6 @@ class DownloadThread(threading.Thread):
         else:
             print("Downloading firmware via MQTTS ...\r\n")
             self.downloadedsize = 0
-            result = True
             while g_messaging_client.is_connected() and self.downloadedsize < self.filesize:
                 while self.stopped.wait(self.timeout):
                     if self.downloadedsize < self.filesize:
@@ -1834,6 +1832,12 @@ class DownloadThread(threading.Thread):
                         result = self.process_result()
                         self.send_completion_status(result)
                         break
+
+        # set the version number
+        if result:
+            global g_firmware_version_STR
+            g_firmware_version_STR = self.fileversion
+            write_file_version(g_firmware_version_STR)
 
         # start the timer thread
         time.sleep(g_timer_thread_timeout)
@@ -2154,6 +2158,41 @@ def http_get_firmware_binary(filename, filesize):
 
 
 ###################################################################################
+# File version
+###################################################################################
+
+# Write version to file (for OTA feature)
+def write_file_version(ver):
+
+    filename = CONFIG_DEVICE_ID + ".ver"
+
+    try:
+        json_obj = { "version": ver }
+        f = open(filename, "w")
+        f.write(json.dumps(json_obj))
+        f.close()
+    except:
+        pass
+
+# Read version from file (for OTA feature)
+def read_file_version(ver):
+
+    version = ver
+    filename = CONFIG_DEVICE_ID + ".ver"
+
+    try:
+        f = open(filename, "r")
+        json_obj = f.read()
+        f.close()
+        json_obj = json.loads(json_obj)
+        version = json_obj["version"]
+    except:
+        write_file_version(ver)
+
+    return version
+
+
+###################################################################################
 # Main entry point
 ###################################################################################
 
@@ -2197,7 +2236,11 @@ if __name__ == '__main__':
     print("Demonstrate remote access of FT900 via Bridgetek IoT Cloud")
     print("-------------------------------------------------------")
 
-    print("\nFIRMWARE VERSION = {} ({})".format(g_firmware_version_STR, g_firmware_version))
+
+    # Read file version from file (for OTA feature)
+    g_firmware_version_STR = read_file_version(g_firmware_version_STR)
+    print("\nFIRMWARE VERSION = {}".format(g_firmware_version_STR))
+
 
     print("\nTLS CERTIFICATES")
     print("ca:   {}".format(args.USE_DEVICE_CA))
