@@ -2673,6 +2673,7 @@ DETAILED:
 		      New credit balance
 		      Previous credit balance
 		   // Paypal will store the transaction details for 7 years, as mandated by law. To retrieve a transaction, the PaymentID from the database shall be used. 
+		   // The Paypal website seems to be only be able to query up to 3 years. But invoices can be requested up to 7 years.
 
 
 	10. Mobile services
