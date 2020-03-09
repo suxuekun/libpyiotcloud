@@ -403,8 +403,7 @@ SUMMARY:
 		B. PAYPAL SETUP                   - POST   /account/payment/paypalsetup
 		C. PAYPAL STORE PAYERID           - POST   /account/payment/paypalpayerid/PAYMENTID
 		D. PAYPAL EXECUTE                 - POST   /account/payment/paypalexecute/PAYMENTID
-		E. PAYPAL VERIFY                  - GET    /account/payment/paypalverify/PAYMENTID
-		F. GET PAYPAL TRANSACTIONS        - GET    /account/payment/paypal
+		E. GET PAYPAL TRANSACTIONS        - GET    /account/payment/paypal
 
 
 	10. Mobile services
@@ -2648,20 +2647,8 @@ DETAILED:
 		   // This API will internally read the QUERY PAYERID given the PAYMENTID
 		   // and then proceed with execution of the payment transaction
 		   // NG is returned when transaction fails (due to user cancelled or closed the window, etc)
- 
-		E. PAYPAL VERIFY
-		-  Request:
-		   GET /account/payment/paypalverify/PAYMENTID
-		   headers: {'Authorization': 'Bearer ' + token.access}
-		-  Response:
-		   {'status': 'OK', 'message': string, 'transaction': {'id': string, 'timestamp': int, 'amount': float, 'value': int, 'newcredits': int, 'prevcredits': int}}
-		   {'status': 'NG', 'message': string}
-		   // OK is successful, NG if failed
-		   // In the web app scenario, the url_callback is called with the different system browser.
-		   // So in order for the original browser to know if the transaction failed or NOT, this API is used.
-		   // When the transaction is completed and verified successfully, the API will return OK, together with the transaction details.
 
-		F. GET PAYPAL TRANSACTIONS
+		E. GET PAYPAL TRANSACTIONS
 		-  Request:
 		   GET /account/payment/paypal
 		   headers: {'Authorization': 'Bearer ' + token.access}
