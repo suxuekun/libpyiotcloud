@@ -2632,16 +2632,15 @@ DETAILED:
 		   {'status': 'OK', 'message': string}
 		   {'status': 'NG', 'message': string}
 		   // When the returnurl callback from PAYPAL SETUP is called, the web app shall call PAYPAL STORE PAYERID.
-		   // This callback contains the parameters: PayerID and paymentID,
-		   //   needed for payerid and PAYMENTID, respectively
+		   // This callback contains the parameters: PayerID and paymentID, needed for payerid and PAYMENTID, respectively
 		   // These parameters should then be stored 
 
 		D. PAYPAL EXECUTE
 		-  Request:
 		   POST /account/payment/paypalexecute/PAYMENTID
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-                   data: {'payerid': string}
-                   // payerid is optional (only applicable for mobile app scenario; not for web app scenario; see UML sequence diagram)
+		   data: {'payerid': string}
+		   // payerid is optional (only applicable for mobile app scenario; not for web app scenario; see UML sequence diagram)
 		-  Response:
 		   {'status': 'OK', 'message': string, 'subscription': {'type': string, 'credits': int, 'prevcredits': int}}
 		   {'status': 'NG', 'message': string}
