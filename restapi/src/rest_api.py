@@ -1529,6 +1529,9 @@ def set_payment_paypal_setup():
 # - Response:
 #   {'status': 'OK', 'message': string}
 #   {'status': 'NG', 'message': string}
+#   // When the returnurl callback from PAYPAL SETUP is called, the web app shall call PAYPAL STORE PAYERID.
+#   // This callback contains the parameters: PayerID and paymentID, needed for payerid and PAYMENTID, respectively
+#   // These parameters should then be stored 
 #
 ########################################################################################################
 @app.route('/account/payment/paypalpayerid/<paymentid>', methods=['POST'])
@@ -1556,6 +1559,10 @@ def store_payment_paypal_payerid(paymentid):
 # - Response:
 #   {'status': 'OK', 'message': string, 'subscription': {'type': string, 'credits': int, 'prevcredits': int}}
 #   {'status': 'NG', 'message': string}
+#   // When the callback window completes and exits, the web/mobile app shall call PAYPAL EXECUTE
+#   // This API will internally read the QUERY PAYERID given the PAYMENTID
+#   // and then proceed with execution of the payment transaction
+#   // NG is returned when transaction fails (due to user cancelled or closed the window, etc)
 #
 ########################################################################################################
 @app.route('/account/payment/paypalexecute/<paymentid>', methods=['POST'])
@@ -1655,6 +1662,10 @@ def set_payment_paypal_execute(paymentid):
 # - Response:
 #   {'status': 'OK', 'message': string, 'transaction': {'id': string, 'amount': float, 'timestamp': int, 'credits': int, 'prevcredits': int, 'newcredits': int}}
 #   {'status': 'NG', 'message': string}
+#   // OK is successful, NG if failed
+#   // In the web app scenario, the url_callback is called with the different system browser.
+#   // So in order for the original browser to know if the transaction failed or NOT, this API is used.
+#   // When the transaction is completed and verified successfully, the API will return OK, together with the transaction details.
 #
 ########################################################################################################
 @app.route('/account/payment/paypalverify/<paymentid>', methods=['GET'])
