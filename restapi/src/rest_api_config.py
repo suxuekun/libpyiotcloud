@@ -73,6 +73,7 @@ class config:
     CONFIG_MONGODB_TB_IDPCODES       = "idpcodes"
     CONFIG_MONGODB_TB_PAYMENTTRANSACTIONS = "paymenttransactions"
     CONFIG_MONGODB_TB_PAYMENTPAYERIDS     = "paymentpayerids"
+    CONFIG_MONGODB_TB_OTAUPDATES     = "otaupdates"
 
     # Caching settings
     CONFIG_REDIS_HOST                = "127.0.0.1"

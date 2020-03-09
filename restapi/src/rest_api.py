@@ -2726,7 +2726,26 @@ def upgrade_devicefirmware(devicename):
                 data["checksum"] = firmware["checksum"]
                 break
 
-    return process_request(api, data)
+    # trigger device to update firmware
+    response, status_return = process_request(api, data)
+    if status_return != 200:
+        # save ota firmware update status in database
+        g_database_client.set_ota_status_pending(username, devicename, data["version"])
+        msg = {'status': 'NG', 'message': 'Device is offline. Device has been scheduled for update on device bootup.'}
+        response = json.dumps(msg)
+        return response
+
+
+    # save ota firmware update status in database
+    g_database_client.set_ota_status_ongoing(username, devicename, data["version"])
+    #ota_status = g_database_client.get_ota_status(username, devicename)
+    #print(ota_status)
+
+
+    msg = {'status': 'OK', 'message': 'Upgrade Device Firmware successful.'}
+    response = json.dumps(msg)
+    print('\r\nUpgrade Device Firmware successful: {} {}\r\n'.format(username, devicename))
+    return response
 
 
 ########################################################################################################
@@ -2786,40 +2805,18 @@ def get_upgrade_devicefirmware(devicename):
         return response, status.HTTP_404_NOT_FOUND
 
 
-    api = 'end_ota'
-    subtopic = CONFIG_PREPEND_REPLY_TOPIC + CONFIG_SEPARATOR + device["deviceid"] + CONFIG_SEPARATOR + api 
+    # check database for ota status
+    ota_status = g_database_client.get_ota_status(username, devicename)
+    if ota_status is None:
+        response = json.dumps({'status': 'NG', 'message': 'OTA not started'})
+        print('\r\nERROR Get Upgrade Device Firmware: OTA not started\r\n')
+        return response, status.HTTP_400_BAD_REQUEST
 
-    # subscribe for response
-    response = None
-    ret = g_messaging_client.subscribe(subtopic, subscribe=True, deviceid=device["deviceid"])
-    if not ret:
-        msg = {'status': 'NG', 'message': 'Could not communicate with device'}
-        response = json.dumps(msg)
-        print('\r\nERROR Get Upgrade Device Firmware: Could not communicate with device [{}, {}]\r\n'.format(username, devicename))
-        return response, status.HTTP_500_INTERNAL_SERVER_ERROR
-    else:
-        # use event object to wait for response
-        event_response_available = threading.Event()
-        g_event_dict[subtopic] = event_response_available
+    result = "ongoing"
+    if ota_status["status"] != "ongoing":
+        result = ota_status["status"]
+        print(ota_status)
 
-        # receive response
-        event_response_available.wait(1)
-
-        # unsubscribe for response
-        g_messaging_client.subscribe(subtopic, subscribe=False)
-
-        if subtopic in g_queue_dict:
-            response = g_queue_dict[subtopic].decode("utf-8")
-            g_queue_dict.pop(subtopic)
-        else:
-            response = None
-
-
-    if response is None:
-        result = "ongoing"
-    else:
-        response = json.loads(response)
-        result = response["value"]["result"]
 
     msg = {'status': 'OK', 'message': 'Device upgrade queried successfully.', 'result': result}
     if new_token:
