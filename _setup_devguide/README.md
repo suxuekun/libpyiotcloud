@@ -2664,7 +2664,7 @@ DETAILED:
 		   // id refers to the transaction id, which appears on both the buyer and seller invoices on Paypal website
 		   {'status': 'NG', 'message': string}
 		   // This API returns the list of paypal payment transactions from backend database
-		   // The PaymentID and PayerID are not included in the returned structure as they will only be needed for retrieving detail info from PAYPAL
+		   // The PaymentID and PayerID are not included in the returned structure as they will only be needed for retrieving detailed info from PAYPAL
 		      Paypal Payment ID // abstracted from both buyer and seller
 		      Paypal Payer ID // no need to store the Paypal email, first name, last name, address, phone, country
 		      Paypal Transaction ID // this is what appears on both the buyer and seller invoices on Paypal website
