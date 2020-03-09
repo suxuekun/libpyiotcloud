@@ -63,6 +63,39 @@ class database_client:
 
 
     ##########################################################
+    # ota firmware update
+    ##########################################################
+
+    def set_ota_status_ongoing(self, username, devicename, version):
+        self.set_ota_status(username, devicename, version, "ongoing")
+
+    def set_ota_status_pending(self, username, devicename, version):
+        self.set_ota_status(username, devicename, version, "pending")
+
+    def set_ota_status(self, username, devicename, version, status):
+        deviceid = self._devices.get_deviceid(username, devicename)
+        self._devices.set_ota_status(username, deviceid, version, status)
+
+    def set_ota_status_completed(self, username, devicename):
+        deviceid = self._devices.get_deviceid(username, devicename)
+        self._devices.set_ota_status_completed(deviceid)
+
+    def set_ota_status_completed_by_deviceid(self, deviceid):
+        self._devices.set_ota_status_completed(deviceid)
+
+
+    def get_ota_statuses(self, username):
+        return self._devices.get_ota_statuses(username)
+
+    def get_ota_status(self, username, devicename):
+        deviceid = self._devices.get_deviceid(username, devicename)
+        return self._devices.get_ota_status(deviceid)
+
+    def get_ota_status_by_deviceid(self, deviceid):
+        return self._devices.get_ota_status(deviceid)
+
+
+    ##########################################################
     # transactions
     ##########################################################
 
@@ -788,6 +821,61 @@ class database_client_mongodb:
         self.client = mongo_client[config.CONFIG_MONGODB_DB]
         self.paypal = paypal_client()
         self.paypal.initialize()
+
+
+    ##########################################################
+    # ota firmware update
+    ##########################################################
+
+    def get_otaupdates_db(self):
+        return self.client[config.CONFIG_MONGODB_TB_OTAUPDATES]
+
+    def set_ota_status(self, username, deviceid, version, status):
+        otaupdates = self.get_otaupdates_db();
+        item = {}
+        item['username'] = username
+        item['deviceid'] = deviceid
+        item['status']   = status
+        item['version']  = version
+        found = otaupdates.find_one({'deviceid': deviceid})
+        if found is None:
+            otaupdates.insert_one(item)
+        else:
+            otaupdates.replace_one({'deviceid': deviceid}, item)
+        return item
+
+    def set_ota_status_completed(self, deviceid):
+        otaupdates = self.get_otaupdates_db();
+        item = {}
+        item['deviceid'] = deviceid
+        item['status']   = "completed"
+        found = otaupdates.find_one({'deviceid': deviceid})
+        if found is None:
+            otaupdates.insert_one(item)
+        else:
+            item['username'] = found["username"]
+            item['version'] = found["version"]
+            otaupdates.replace_one({'deviceid': deviceid}, item)
+        return item
+
+
+    def get_ota_status(self, deviceid):
+        otaupdates = self.get_otaupdates_db();
+        if otaupdates:
+            for otaupdate in otaupdates.find({'deviceid': deviceid}):
+                otaupdate.pop('_id')
+                otaupdate.pop('username')
+                return otaupdate
+        return None
+
+    def get_ota_statuses(self, username):
+        otaupdates_list = []
+        otaupdates = self.get_otaupdates_db();
+        if otaupdates:
+            for otaupdate in otaupdates.find({'username': username}):
+                otaupdate.pop('_id')
+                otaupdates_list.append(otaupdate)
+        return otaupdates_list
 
 
     ##########################################################
