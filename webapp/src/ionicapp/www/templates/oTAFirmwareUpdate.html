@@ -33,9 +33,25 @@
         <span class="input-label">Device Name</span>
         <input type="text" placeholder="" ng-model="data.devicename" readonly="">
       </label>
-      <label class="item item-input" id="oTAFirmwareUpdate-input172">
-        <span class="input-label">Firmware Version</span>
+      <label class="item item-input" id="oTAFirmwareUpdate-input173">
+        <span class="input-label">Device Version</span>
         <input type="text" placeholder="" ng-model="data.version" readonly="">
+      </label>
+      <label class="item item-input" id="oTAFirmwareUpdate-input172">
+        <span class="input-label">Update Version</span>
+        <input type="text" placeholder="" ng-model="ota_status.version" readonly="">
+      </label>
+      <label class="item item-input" id="oTAFirmwareUpdate-input165">
+        <span class="input-label">Update Status</span>
+        <input type="text" placeholder="" ng-model="ota_status.status" readonly="">
+      </label>
+      <label class="item item-input" id="oTAFirmwareUpdate-input166">
+        <span class="input-label">Update Time</span>
+        <input type="text" placeholder="" ng-model="ota_status.time" readonly="">
+      </label>
+      <label class="item item-input" id="oTAFirmwareUpdate-input171">
+        <span class="input-label">Update Timestamp</span>
+        <input type="text" placeholder="" ng-model="ota_status.timestamp" readonly="">
       </label>
     </form>
     <form id="oTAFirmwareUpdate-form229" class="list" ng-show="data.devicename == &quot;All devices&quot;">
@@ -47,9 +63,7 @@
         <table style="width:100%" bordercolor="#444444">
           <tbody>
             <tr>
-              <th style="width:4%">
-                <input type="checkbox">
-              </th>
+              <th style="width:4%">&nbsp;</th>
               <th style="width:23%">
                 <b>Device ID</b>
               </th>
@@ -74,7 +88,7 @@
           <tbody>
             <tr>
               <td style="width:4%">
-                <input type="checkbox">
+                <input type="checkbox" id="{{" device.devicename="" }}="" ng-click="onChecked(device)" ng-model="device.checked">
               </td>
               <td style="width:23%">{{ device.deviceid }}</td>
               <td style="width:19%">{{ device.devicename }}</td>

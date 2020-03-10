@@ -3264,11 +3264,17 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         .then(function (result) {
             console.log(result.data);
             console.log(result.data.document.ft900.latest);
-            if (result.data.document.ft900.latest > $scope.data.version) {
-                $scope.newfirmwareavailable = true;
+            
+            if ($scope.data.version !== "UNKNOWN") {
+                if (result.data.document.ft900.latest > $scope.data.version) {
+                    $scope.newfirmwareavailable = true;
+                }
+                else {
+                    $scope.newfirmwareavailable = false;
+                }
             }
             else {
-                $scope.newfirmwareavailable = false;
+                $scope.newfirmwareavailable = true;
             }
             
             $scope.newfirmwareupdates = result.data.document;
@@ -4063,6 +4069,13 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         'firmwares'   : $stateParams.firmware
     };
 
+    $scope.ota_status = {
+        'version': '',
+        'status': '',
+        'time': '',
+        'timestamp': '',
+    };
+    
     $scope.disable = false;
     $scope.timer = null;
     $scope.runtime = 0;
@@ -4111,6 +4124,9 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         }
     }; 
 
+    $scope.onChecked = function(device) {
+        console.log("onChecked " + device.devicename + " " + device.checked);
+    };
 
     $scope.changeDevice = function(devicename) {
         for (indexy=0; indexy<$scope.devices.length; indexy++) {
@@ -4120,8 +4136,14 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                     $scope.data.deviceid = $scope.devices[indexy].deviceid;
                     $scope.data.serialnumber = $scope.devices[indexy].serialnumber;
                     $scope.data.devicestatus = $scope.devices[indexy].devicestatus;
-                    $scope.data.version = $scope.devices[indexy].version;
+                    if ($scope.devices[indexy].version === undefined) {
+                        $scope.data.version = "UNKNOWN";
+                    }
+                    else {
+                        $scope.data.version = $scope.devices[indexy].version;
+                    }
                     //$scope.query_device(devicename);
+                    $scope.get_ota_status($scope.versiontouse, $scope.data.devicename);
                 }
                 else {
                     $scope.get_ota_statuses($scope.versiontouse);
@@ -4148,7 +4170,13 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             
             $scope.changeDescription($scope.versiontouse);
 
-            //$scope.query_device($scope.data.devicename);
+            console.log($scope.data.devicename);
+            if ($scope.data.devicename !== "All devices") {
+                $scope.get_ota_status($scope.versiontouse, $scope.data.devicename);
+            }
+            else {
+                $scope.get_ota_statuses($scope.versiontouse);                
+            }
         });
     };
 
@@ -4176,10 +4204,14 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             
             if ($scope.timer !== null) {
             
+                for (let device in $scope.devices_ota) {
+                    $scope.devices_ota[device].checked = false;
+                }
+            
                 var has_ongoing = false;
                 var has_pending = false;
                 var has_completed = false;
-                for (var device in $scope.devices_ota) {
+                for (let device in $scope.devices_ota) {
                     console.log($scope.devices_ota[device]);
                     if ($scope.devices_ota[device].status === "pending") {
                         has_pending = true;
@@ -4203,7 +4235,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                     
                     var template = '';
                     if (has_completed === true && has_pending === true) {
-                        template = 'Updating the firmware of online devices to version ' + version + ' was completed! Offline devices have been scheduled for update upon device bootup.';
+                        template = 'Updating the firmware of selected online devices to version ' + version + ' was completed! All selected devices that are offline have been scheduled for update upon device bootup.';
                     }
                     else if (has_completed === false && has_pending === true) {
                         template = 'Updating the firmware of all devices to version ' + version + ' was pended! All devices are offline and have been scheduled for update upon device bootup.';
@@ -4226,6 +4258,11 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                         $scope.runtime = 0;
                         $scope.disable = false;
                     }
+                }
+            }
+            else {
+                for (let device in $scope.devices_ota) {
+                    $scope.devices_ota[device].checked = true;
                 }
             }
         })
@@ -4254,38 +4291,46 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         .then(function (result) {
             console.log(result.data);
             
-            if (result.data.ota.status !== "ongoing") {
-                if ($scope.timer !== null) {
-                    clearTimeout($scope.timer);
-                    $scope.timer = null;
-                }
-                $scope.runtime = 0;
-                $scope.disable = false;
-                
-                $ionicPopup.alert({
-                    title: 'OTA Firmware Update',
-                    template: 'Updating the firmware of this device - ' + $scope.data.devicename + ' - to version ' + version + ' was ' + result.data.ota.status + '!',
-                    buttons: [
-                        {
-                            text: 'OK',
-                            type: 'button-positive',
-                            onTap: function(e) {
-                                $scope.data.version = version;
-                                //$scope.get_devices();
-                            }
-                        }
-                    ]            
-                });            
+            $scope.ota_status = result.data.ota;
+            if ($scope.ota_status.timestamp !== "n/a") {
+                let timestamp = new Date($scope.ota_status.timestamp * 1000); 
+                $scope.ota_status.timestamp = "" + timestamp;
             }
-            else {
-                $scope.runtime += 1;
-                if ($scope.runtime >= $scope.runtime_max) {
+            
+            if ($scope.disable) {
+                if (result.data.ota.status !== "ongoing") {
                     if ($scope.timer !== null) {
                         clearTimeout($scope.timer);
                         $scope.timer = null;
                     }
                     $scope.runtime = 0;
                     $scope.disable = false;
+                    
+                    $ionicPopup.alert({
+                        title: 'OTA Firmware Update',
+                        template: 'Updating the firmware of this device - ' + $scope.data.devicename + ' - to version ' + version + ' was ' + result.data.ota.status + '!',
+                        buttons: [
+                            {
+                                text: 'OK',
+                                type: 'button-positive',
+                                onTap: function(e) {
+                                    $scope.data.version = version;
+                                    //$scope.get_devices();
+                                }
+                            }
+                        ]            
+                    });            
+                }
+                else {
+                    $scope.runtime += 1;
+                    if ($scope.runtime >= $scope.runtime_max) {
+                        if ($scope.timer !== null) {
+                            clearTimeout($scope.timer);
+                            $scope.timer = null;
+                        }
+                        $scope.runtime = 0;
+                        $scope.disable = false;
+                    }
                 }
             }
         })
@@ -4385,7 +4430,24 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         var prompt = '';
         
         if (devicename === "All devices") {
-            prompt = 'Are you sure you want to update the firmware of all devices to version ' + version + '?';
+            
+            var devices = [];
+            for (let device in $scope.devices_ota) {
+                if ($scope.devices_ota[device].checked) {
+                    devices.push($scope.devices_ota[device].devicename);
+                }
+            }
+    
+            if (devices.length === 0) {
+                prompt = 'No device is selected. Please select 1 or more devices.';
+                $ionicPopup.alert({
+                    title: 'Error',
+                    template: prompt
+                });
+                return;
+            }
+
+            prompt = 'Are you sure you want to update the firmware of selected devices to version ' + version + '?';
             $ionicPopup.alert({
                 title: 'OTA Firmware Update',
                 template: prompt,
@@ -4399,7 +4461,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                         type: 'button-positive',
                         onTap: function(e) {
                             $scope.disable = true;
-                            $scope.upgrade_firmwares(version);
+                            $scope.upgrade_firmwares(version, devices);
                         }
                     }
                 ]            
@@ -4480,7 +4542,13 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         }); 
     };    
 
-    $scope.upgrade_firmwares = function(version) {
+    $scope.upgrade_firmwares = function(version, devices_list) {
+        
+        var param = { 'version': version };
+        if (devices_list.length > 0) {
+            param.devices = devices_list;
+        }
+        
         //
         // UPGRADE FIRMWARES
         // - Request:
@@ -4494,7 +4562,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             method: 'POST',
             url: server + '/devices/firmware',
             headers: {'Authorization': 'Bearer ' +  $scope.data.token.access, 'Content-Type': 'application/json'},
-            data: { 'version': version }
+            data: param
         })
         .then(function (result) {
             console.log(result.data);
@@ -4602,6 +4670,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         $scope.devices_ota = [];
         $scope.disable = false;
         $scope.timer = null;
+        console.log("xxxxxxxxxx " + $scope.data.version);
         $scope.get_devices();
     });
 
