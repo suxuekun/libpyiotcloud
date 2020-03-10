@@ -934,7 +934,18 @@ DETAILED:
 		   // version is the version of the firmware to use
 		   // note that user can select the latest version or the same version (as per Sree)
 
-		N. GET UPDATE FIRMWARE
+		N. UPDATE FIRMWARES
+		-  Request:
+		   POST /devices/firmware
+		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+		   data: {'version': string, 'devices': ["devicename", ...]}
+		-  Response:
+		   { 'status': 'OK', 'message': string}
+		   { 'status': 'NG', 'message': string}
+		   // version is the version of the firmware to use
+		   // note that user can select the latest version or the same version (as per Sree)
+
+		O. GET UPDATE FIRMWARE
 		-  Request:
 		   GET /devices/device/DEVICENAME/firmware
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -942,6 +953,22 @@ DETAILED:
 		   { 'status': 'OK', 'message': string, 'result': string}
 		   { 'status': 'NG', 'message': string}
 		   // result can be ongoing, successful, failed
+
+		P. GET OTA STATUS
+		-  Request:
+		   GET /devices/device/DEVICENAME/ota
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		-  Response:
+		   { 'status': 'OK', 'message': string, 'ota': {"version": string, "status":string, "time": string, "timestamp": int} }
+		   { 'status': 'NG', 'message': string}
+
+		Q. GET OTA STATUSES
+		-  Request:
+		   GET /devices/ota
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		-  Response:
+		   { 'status': 'OK', 'message': string, 'ota': [{"devicename": string, "deviceid", string, "version": string, "status":string, "time": string, "timestamp": int}, ...] }
+		   { 'status': 'NG', 'message': string}
 
 
 	3. Device access and control APIs (STATUS, UART, GPIO)
