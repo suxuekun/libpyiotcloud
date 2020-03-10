@@ -124,7 +124,8 @@ class database_client:
 
     def set_ota_status_completed(self, username, devicename):
         deviceid = self._devices.get_deviceid(username, devicename)
-        self._devices.set_ota_status_completed(deviceid)
+        item = self._devices.set_ota_status_completed(deviceid)
+        self._devices.save_device_version_by_deviceid(deviceid, item["version"])
 
     def set_ota_status_completed_by_deviceid(self, deviceid, status):
         self._devices.set_ota_status_completed(deviceid, status)
@@ -278,6 +279,9 @@ class database_client:
 
     def get_username(self, deviceid):
         return self._devices.get_username(deviceid)
+
+    def save_device_version_by_deviceid(self, deviceid, version):
+        return self._devices.save_device_version_by_deviceid(deviceid, version)
 
 
 class database_utils:
@@ -911,6 +915,16 @@ class database_client_mongodb:
         if devices:
             for device in devices.find({'deviceid': deviceid},{'username': 1}):
                 return device['username']
+        return None
+
+    def save_device_version_by_deviceid(self, deviceid, version):
+        devices = self.get_registered_devices()
+        if devices:
+            for device in devices.find({'deviceid': deviceid}):
+                new_device = copy.deepcopy(device)
+                new_device['version'] = version
+                devices.replace_one(device, new_device)
+                return device['version']
         return None
 
 
