@@ -2772,7 +2772,7 @@ def update_firmwares_thread(api, data, username, devicename, version):
 # - Request:
 #   POST /devices/firmware
 #   headers: {'Authorization': 'Bearer ' + token.access}
-#   data: {'version': string}
+#   data: {'version': string, 'devices': ['devicename', ...]}
 #
 # - Response:
 #   {'status': 'OK', 'message': string}
@@ -2826,11 +2826,17 @@ def update_firmwares():
                 data["checksum"] = firmware["checksum"]
                 break
 
+    #if data.get("devices"):
+    #    print(data["devices"])
 
-    devices = g_database_client.get_devices(username)
+    device_list = g_database_client.get_devices(username)
     thread_list = []
 
-    for device in devices:
+    for device in device_list:
+        if data.get("devices"):
+            if device["devicename"] not in data["devices"]:
+                continue
+        #print(device["devicename"])
         data_thr = copy.deepcopy(data)
         data_thr["devicename"] = device["devicename"]
         thr = threading.Thread(target = update_firmwares_thread, args = (api, data_thr, username, device["devicename"], data["version"], ))
@@ -2934,7 +2940,7 @@ def get_update_firmware(devicename):
 #   headers: {'Authorization': 'Bearer ' + token.access}
 #
 # - Response:
-#   {'status': 'OK', 'message': string. 'ota': json_obj}
+#   {'status': 'OK', 'message': string. 'ota': [{"devicename": string, "deviceid", string, "version": string, "status":string, "time": string, "timestamp": int}, ...]}
 #   {'status': 'NG', 'message': string}
 #
 ########################################################################################################
@@ -3033,7 +3039,7 @@ def get_ota_statuses():
 #   headers: {'Authorization': 'Bearer ' + token.access}
 #
 # - Response:
-#   {'status': 'OK', 'message': string}
+#   {'status': 'OK', 'message': string, 'ota': {"version": string, "status":string, "time": string, "timestamp": int} }
 #   {'status': 'NG', 'message': string}
 #
 ########################################################################################################
@@ -3084,9 +3090,18 @@ def get_ota_status(devicename):
     # check database for ota status
     ota_status = g_database_client.get_ota_status(username, devicename)
     if ota_status is None:
-        response = json.dumps({'status': 'NG', 'message': 'OTA not started'})
-        print('\r\nERROR Get OTA status: OTA not started\r\n')
-        return response, status.HTTP_400_BAD_REQUEST
+        ota_status = {}
+        if device.get("version"):
+            ota_status["version"] = device["version"]
+        else:
+            ota_status["version"] = "0.1"
+        ota_status["status"] = "n/a"
+        ota_status["time"] = "n/a"
+        ota_status["timestamp"] = "n/a"
+    elif ota_status.get("timestamp") and ota_status.get("timestart"):
+        ota_status["time"] = "{} seconds".format(ota_status["timestamp"] - ota_status["timestart"])
+        ota_status.pop("timestart")
+        ota_status.pop("deviceid")
 
 
     msg = {'status': 'OK', 'message': 'Get OTA status successful.', 'ota': ota_status}

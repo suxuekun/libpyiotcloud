@@ -889,6 +889,7 @@ class database_client_mongodb:
         if otaupdates:
             for otaupdate in otaupdates.find({'username': username}):
                 otaupdate.pop('_id')
+                otaupdate.pop('username')
                 otaupdates_list.append(otaupdate)
         return otaupdates_list
 
