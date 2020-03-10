@@ -688,6 +688,7 @@ def logout():
     except:
         print('\r\nERROR Logout: exception\r\n')
 
+    g_database_client.delete_ota_statuses(username)
     return json.dumps({'status': 'OK', 'message': 'User logout successfully.'})
 
 
@@ -2985,13 +2986,27 @@ def get_ota_statuses():
         for ota_status in ota_statuses:
             if device["deviceid"] == ota_status["deviceid"]:
                 ota_status["devicename"] = device["devicename"]
-                found = True
-                break
+                if ota_status["status"] == "completed":
+                    #print(ota_status)
+                    if ota_status.get("timestamp") and ota_status.get("timestart"):
+                        ota_status["time"] = "{} seconds".format(ota_status["timestamp"] - ota_status["timestart"])
+                        ota_status.pop("timestart")
+                        found = True
+                        break
+                elif ota_status["status"] == "pending":
+                    ota_status["time"] = "n/a"
+                    ota_status["timestamp"] = "n/a"
+                    if ota_status.get("timestart"):
+                        ota_status.pop("timestart")
+                    found = True
+                    break
         if found == False:
             ota_status = {
                 "deviceid"   : device["deviceid"],
                 "devicename" : device["devicename"],
                 "status"     : "n/a",
+                "time"       : "n/a",
+                "timestamp"  : "n/a",
             }
             if device.get("version"):
                 ota_status["version"] = device["version"]

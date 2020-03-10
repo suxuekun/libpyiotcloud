@@ -108,6 +108,10 @@ class database_client:
     # ota firmware update
     ##########################################################
 
+    def set_ota_status_ongoing_by_deviceid(self, deviceid, version):
+        username = self._devices.get_username(deviceid)
+        self._devices.set_ota_status(username, deviceid, version, "ongoing")
+
     def set_ota_status_ongoing(self, username, devicename, version):
         self.set_ota_status(username, devicename, version, "ongoing")
 
@@ -271,6 +275,9 @@ class database_client:
 
     def get_devicename(self, deviceid):
         return self._devices.get_devicename(deviceid)
+
+    def get_username(self, deviceid):
+        return self._devices.get_username(deviceid)
 
 
 class database_utils:
@@ -536,6 +543,9 @@ class database_client_mongodb:
         item['deviceid'] = deviceid
         item['status']   = status
         item['version']  = version
+        if status == "ongoing":
+            item['timestart'] = int(time.time())
+            item['timestamp'] = item['timestart']
         found = otaupdates.find_one({'deviceid': deviceid})
         if found is None:
             otaupdates.insert_one(item)
@@ -548,12 +558,14 @@ class database_client_mongodb:
         item = {}
         item['deviceid'] = deviceid
         item['status']   = status
+        item['timestamp']  = int(time.time())
         found = otaupdates.find_one({'deviceid': deviceid})
         if found is None:
             otaupdates.insert_one(item)
         else:
             item['username'] = found["username"]
             item['version'] = found["version"]
+            item['timestart'] = found["timestart"]
             otaupdates.replace_one({'deviceid': deviceid}, item)
         return item
 
@@ -892,6 +904,13 @@ class database_client_mongodb:
         if devices:
             for device in devices.find({'deviceid': deviceid},{'devicename': 1}):
                 return device['devicename']
+        return None
+
+    def get_username(self, deviceid):
+        devices = self.get_registered_devices()
+        if devices:
+            for device in devices.find({'deviceid': deviceid},{'username': 1}):
+                return device['username']
         return None
 
 
