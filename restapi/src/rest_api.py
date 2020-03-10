@@ -2991,9 +2991,12 @@ def get_ota_statuses():
             ota_status = {
                 "deviceid"   : device["deviceid"],
                 "devicename" : device["devicename"],
-                "version"    : device["version"],
                 "status"     : "n/a",
             }
+            if device.get("version"):
+                ota_status["version"] = device["version"]
+            else:
+                ota_status["version"] = "0.1"
             ota_statuses.append(ota_status)
     ota_statuses.sort(key=sort_by_devicename)
 
