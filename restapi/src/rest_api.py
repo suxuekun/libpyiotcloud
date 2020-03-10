@@ -688,7 +688,7 @@ def logout():
     except:
         print('\r\nERROR Logout: exception\r\n')
 
-    g_database_client.delete_ota_statuses(username)
+    #g_database_client.delete_ota_statuses(username)
     return json.dumps({'status': 'OK', 'message': 'User logout successfully.'})
 
 
@@ -2993,7 +2993,7 @@ def get_ota_statuses():
                         ota_status.pop("timestart")
                         found = True
                         break
-                elif ota_status["status"] == "pending":
+                elif ota_status["status"] == "pending" or ota_status["status"] == "ongoing":
                     ota_status["time"] = "n/a"
                     ota_status["timestamp"] = "n/a"
                     if ota_status.get("timestart"):

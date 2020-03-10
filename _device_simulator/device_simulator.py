@@ -1771,7 +1771,7 @@ class DownloadThread(threading.Thread):
 
     # compute check using crc32
     def compute_checksum(self):
-        f = open("iotmodem_0.3.bin", "rb")
+        f = open(self.use_filename, "rb")
         bin = f.read()
         f.close()
         checksum = binascii.crc32(bin)
