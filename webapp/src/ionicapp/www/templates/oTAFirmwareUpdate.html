@@ -43,9 +43,47 @@
       <div id="oTAFirmwareUpdate-markdown409" class="show-list-numbers-and-dots">
         <p style="color:#387EF5;">Device Information</p>
       </div>
-      <div id="oTAFirmwareUpdate-markdown413" ng-repeat="device in devices_ota" class="show-list-numbers-and-dots tab_margin_1">
-        <p style="color:#444444;font-size:16px;">
-          <strong> {{ device.devicename }} </strong> - version {{ device.version }} - status {{ device.status }}</p>
+      <div id="oTAFirmwareUpdate-container11" class="tab_margin_1">
+        <table style="width:100%" bordercolor="#444444">
+          <tbody>
+            <tr>
+              <th style="width:4%">
+                <input type="checkbox">
+              </th>
+              <th style="width:23%">
+                <b>Device ID</b>
+              </th>
+              <th style="width:19%">
+                <b>Device Name</b>
+              </th>
+              <th style="width:19%">
+                <b>Update Version</b>
+              </th>
+              <th style="width:18%">
+                <b>Update Status</b>
+              </th>
+              <th style="width:17%">
+                <b>Update Time</b>
+              </th>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div id="oTAFirmwareUpdate-container10" ng-repeat="device in devices_ota" class="tab_margin_1">
+        <table style="width:100%">
+          <tbody>
+            <tr>
+              <td style="width:4%">
+                <input type="checkbox">
+              </td>
+              <td style="width:23%">{{ device.deviceid }}</td>
+              <td style="width:19%">{{ device.devicename }}</td>
+              <td style="width:19%">Version {{ device.version }}</td>
+              <td style="width:18%">{{ device.status }}</td>
+              <td style="width:17%">{{ device.time }}</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </form>
     <form id="oTAFirmwareUpdate-form221" class="list">

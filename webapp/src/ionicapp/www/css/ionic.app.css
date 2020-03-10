@@ -9799,6 +9799,14 @@ a.button {
   -webkit-transition-duration: 0s;
   transition-duration: 0s; }
 
+table, th, td {
+  border-collapse: collapse;
+  padding: 12px;
+  text-align: center;
+  border-bottom: 1px solid #ddd;
+  color: #444444;
+  font-size: 16px; }
+
 .img_logo {
   top: 35%; }
 
