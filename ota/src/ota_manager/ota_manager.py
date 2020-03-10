@@ -194,6 +194,8 @@ def request_otastatus(database_client, deviceid, topic, payload):
     new_payload = json.dumps(new_payload)
     g_messaging_client.publish(new_topic, new_payload, debug=False) # NOTE: enable to DEBUG
 
+    database_client.set_ota_status_ongoing_by_deviceid(deviceid, firmware["version"])
+
 
 def upgrade_firmware_completion(database_client, deviceid, topic, payload):
 

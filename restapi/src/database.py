@@ -95,6 +95,10 @@ class database_client:
         return self._devices.get_ota_status(deviceid)
 
 
+    def delete_ota_statuses(self, username):
+        self._devices.delete_ota_statuses(username)
+
+
     ##########################################################
     # transactions
     ##########################################################
@@ -837,10 +841,15 @@ class database_client_mongodb:
         item['deviceid'] = deviceid
         item['status']   = status
         item['version']  = version
+        if status == "ongoing":
+            item['timestart'] = int(time.time())
+            item['timestamp'] = item['timestart']
         found = otaupdates.find_one({'deviceid': deviceid})
         if found is None:
             otaupdates.insert_one(item)
         else:
+            #print("set_ota_status {}".format(status))
+            #print(item)
             otaupdates.replace_one({'deviceid': deviceid}, item)
         return item
 
@@ -849,12 +858,18 @@ class database_client_mongodb:
         item = {}
         item['deviceid'] = deviceid
         item['status']   = "completed"
+        item['timestamp']  = int(time.time())
         found = otaupdates.find_one({'deviceid': deviceid})
         if found is None:
+            #print("set_ota_status_completed xxx")
+            #print(found)
             otaupdates.insert_one(item)
         else:
+            #print("set_ota_status_completed")
+            #print(found)
             item['username'] = found["username"]
             item['version'] = found["version"]
+            item['timestart'] = found["timestart"]
             otaupdates.replace_one({'deviceid': deviceid}, item)
         return item
 
@@ -876,6 +891,13 @@ class database_client_mongodb:
                 otaupdate.pop('_id')
                 otaupdates_list.append(otaupdate)
         return otaupdates_list
+
+    def delete_ota_statuses(self, username):
+        otaupdates = self.get_otaupdates_db()
+        try:
+            otaupdates.delete_many({'username': username})
+        except:
+            pass
 
 
     ##########################################################
