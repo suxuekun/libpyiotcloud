@@ -71,7 +71,20 @@
         <span class="input-label"></span>
         <select ng-options="device.id as device.devicename for device in devices" ng-model="data.hardware_devicename"></select>
       </label>
+      <ion-checkbox id="deviceUART-checkbox48" ng-model="data.uart.notification.endpoints.storage.enable">Send to Storage</ion-checkbox>
+      <div id="deviceUART-container12" ng-show="data.uart.notification.endpoints.storage.recipients != &quot;&quot;" class="tab_margin_1">
+        <div>
+          <br>
+          <p>
+            <a href="https://ft900-iot-portal.s3.amazonaws.com/{{ data.uart.notification.endpoints.storage.recipients }}">
+              Storage URL
+            </a>
+          </p>
+          <br>
+        </div>
+      </div>
     </form>
     <button id="deviceUART-button28" ng-click="submit()" class="button button-positive button-block">SAVE</button>
+    <div class="spacer" style="height: 100px;"></div>
   </ion-content>
 </ion-view>

@@ -123,7 +123,20 @@
         <span class="input-label"></span>
         <select ng-options="device.id as device.devicename for device in devices" ng-model="data.hardware_devicename"></select>
       </label>
+      <ion-checkbox id="deviceGPIO-checkbox49" ng-model="data.gpio.notification.endpoints.storage.enable">Send to storage</ion-checkbox>
+      <div id="deviceGPIO-container13" ng-show="data.gpio.notification.endpoints.storage.recipients != &quot;&quot;" class="tab_margin_1">
+        <div>
+          <br>
+          <p>
+            <a href="https://ft900-iot-portal.s3.amazonaws.com/{{ data.gpio.notification.endpoints.storage.recipients }}">
+              Storage URL
+            </a>
+          </p>
+          <br>
+        </div>
+      </div>
     </form>
     <button id="deviceGPIO-button138" ng-click="submit()" class="button button-positive button-block">SAVE</button>
+    <div class="spacer" style="height: 100px;"></div>
   </ion-content>
 </ion-view>
