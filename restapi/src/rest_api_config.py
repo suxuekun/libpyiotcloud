@@ -76,7 +76,10 @@ class config:
     CONFIG_MONGODB_TB_OTAUPDATES     = "otaupdates"
 
     # Caching settings
-    CONFIG_REDIS_HOST                = "127.0.0.1"
+    if os.name == 'nt':
+        CONFIG_REDIS_HOST            = "127.0.0.1"
+    else:
+        CONFIG_REDIS_HOST            = "redis"
     CONFIG_REDIS_PORT                = 6379
 
     # Subscription/Payment
