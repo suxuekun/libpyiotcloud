@@ -18,8 +18,12 @@ cd ota\src\ota_manager
 START ota_manager_ecc.bat
 cd ..\..\..\
 
+cd redis\src
+START redis.bat
+cd ..\..\
+
 cd webapp\src
-START run.bat
+START webapp.bat
 cd ..\..\
 
 cd restapi\src
