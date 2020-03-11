@@ -71,18 +71,19 @@ An alternative solution is using an AWS serverless solution wherein:
 ### High-level architecture diagram:
 <img src="./_images/architecture.png" width="1000"/>
 
-10 docker containers and microservices
+11 docker containers and microservices
 
 1. <b>Webserver</b> - Nginx (contains SSL certificate; all requests go to NGINX; forwards HTTP requests to webapp or restapi)
 2. <b>Webapp</b> - Ionic (front-end web framework that can also be compiled for Android and iOS)
 3. <b>Restapi</b> - Flask with Gunicorn (back-end API called by web app and mobile apps)
 4. <b>Messaging</b> - RabbitMQ (device communicates w/RabbitMQ; web/mobile apps communicates to device via RabbitMQ)
 5. <b>Database</b> - MongoDB (database for storing device information for registered devices)
-6. <b>Notification</b> - handles sending of email, SMS and mobile push notifications
-7. <b>Historian</b> - handles saving of device requests and responses for each devices of all users
-8. <b>Sensorian</b> - handles saving of sensor readings for each devices of all users
-9. <b>Configuration</b> - handles providing of device configuration for each devices during device bootup
-10. <b>OTAUpdate</b> - handles OTA firmware update via MQTTS
+6. <b>Cache</b> - Redis (fast key value data store used for caching information / recording temporary information)
+7. <b>Notification</b> - handles sending of email, SMS and mobile push notifications
+8. <b>Historian</b> - handles saving of device requests and responses for each devices of all users
+9. <b>Sensorian</b> - handles saving of sensor readings for each devices of all users
+10. <b>Configuration</b> - handles providing of device configuration for each devices during device bootup
+11. <b>OTAUpdate</b> - handles OTA firmware update via MQTTS
 
 
 
@@ -104,12 +105,14 @@ An alternative solution is using an AWS serverless solution wherein:
 1. <b>Nginx</b> -> called by frontend, will call RestAPI or Webapp
 2. <b>RestAPI</b> (Flask) -> Cognito, MongoDB, Paypal, RabbitMQ
 3. <b>RabbitMQ</b>: accessed by restapi, device, notification service and history service
-4. <b>History service</b> -> RabbitMQ, MongoDB
-5. <b>Notification service</b> -> RabbitMQ, MongoDB, Pinpoint, Twilio, Nexmo
-6. <b>Sensor service</b> -> RabbitMQ, MongoDB
-7. <b>Configuration service</b> -> RabbitMQ, MongoDB
-8. <b>OTAUpdate service</b> -> RabbitMQ, MongoDB
-9. <b>Programming Languages:</b> Python
+4. <b>MongoDB</b>: accessed by restapi, history, notification, sensor, configuration, otaupdate
+5. <b>Redis</b>: accessed by restapi
+6. <b>History service</b> -> RabbitMQ, MongoDB
+7. <b>Notification service</b> -> RabbitMQ, MongoDB, Pinpoint, Twilio, Nexmo
+8. <b>Sensor service</b> -> RabbitMQ, MongoDB
+9. <b>Configuration service</b> -> RabbitMQ, MongoDB
+10. <b>OTAUpdate service</b> -> RabbitMQ, MongoDB
+11. <b>Programming Languages:</b> Python
 
 
 
@@ -189,10 +192,11 @@ Menu, account, history
     1. User sign-up/sign-in, Device Registration, Email/SMS Notifications, Payment Gateway, Google Maps
        A. Amazon Cognito for user sign-up and sign-in (with support for OTP, MFA, OAuth2 for Facebook/Google/Amazon login)
        B. MongoDB NoSQL database for storing registered device and sensor information
-       C. OpenSSL for generating certificates on-demand for registered devices
-       D. Email/SMS/push notifications using AmazonPinpoint, Twilio, Nexmo (device-initiated, client-initiated)
-       E. Payment gateway using Paypal
-       F. Google Maps for setting/viewing device location
+       C. Redis key value store database for storing cacheable information and temporary information
+       D. OpenSSL for generating certificates on-demand for registered devices
+       E. Email/SMS/push notifications using AmazonPinpoint, Twilio, Nexmo (device-initiated, client-initiated)
+       F. Payment gateway using Paypal
+       G. Google Maps for setting/viewing device location
     2. Device Access/Control via Flask+GUnicorn+Nginx
        - see REST API list
     3. HTTPS/AMQPS/MQTTS Protocol Support
