@@ -102,17 +102,17 @@ An alternative solution is using an AWS serverless solution wherein:
 
 <b>Back-end</b>
 
-1. <b>Nginx</b> -> called by frontend, will call RestAPI or Webapp
-2. <b>RestAPI</b> (Flask) -> Cognito, MongoDB, Paypal, RabbitMQ
-3. <b>RabbitMQ</b>: accessed by restapi, device, notification service and history service
+1. <b>Programming Languages:</b> Python
+2. <b>Nginx</b> -> called by frontend, will call RestAPI or Webapp
+3. <b>RestAPI</b> (Flask) -> Cognito, MongoDB, Paypal, RabbitMQ
 4. <b>MongoDB</b>: accessed by restapi, history, notification, sensor, configuration, otaupdate
 5. <b>Redis</b>: accessed by restapi
-6. <b>History service</b> -> RabbitMQ, MongoDB
-7. <b>Notification service</b> -> RabbitMQ, MongoDB, Pinpoint, Twilio, Nexmo
-8. <b>Sensor service</b> -> RabbitMQ, MongoDB
-9. <b>Configuration service</b> -> RabbitMQ, MongoDB
-10. <b>OTAUpdate service</b> -> RabbitMQ, MongoDB
-11. <b>Programming Languages:</b> Python
+6. <b>Notification service</b> -> RabbitMQ, MongoDB, Pinpoint, Twilio, Nexmo
+7. <b>History service</b> -> RabbitMQ, MongoDB
+8. <b>RabbitMQ</b>: accessed by restapi, device, notification service and history service
+9. <b>OTAUpdate service</b> -> RabbitMQ, MongoDB
+10. <b>Configuration service</b> -> RabbitMQ, MongoDB
+11. <b>Sensor service</b> -> RabbitMQ, MongoDB
 
 
 
