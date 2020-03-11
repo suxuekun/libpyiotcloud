@@ -190,3 +190,5 @@ volumes:
     driver: local
   mongodb-data:
     driver: local
+  redis-data:
+    driver: local
