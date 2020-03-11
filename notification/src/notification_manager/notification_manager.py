@@ -17,6 +17,7 @@ currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentfram
 parentdir = os.path.dirname(currentdir)
 sys.path.insert(0,parentdir)
 from messaging_client import messaging_client
+from s3_client import s3_client
 
 
 
@@ -38,6 +39,7 @@ CONFIG_DBHOST = notification_config.CONFIG_MONGODB_HOST
 g_messaging_client = None
 g_notification_client = None
 g_database_client = None
+g_storage_client = None
 
 
 
@@ -76,8 +78,12 @@ CONFIG_MODEL_PUSH_NOTIFICATION  = int(notification_config.CONFIG_USE_PUSH_NOTIFI
 ###################################################################################
 
 CONFIG_MENOS_PREVENT_SPAMMING   = False
-
-
+MENOS_MOBILE       = "mobile"
+MENOS_EMAIL        = "email"
+MENOS_NOTIFICATION = "notification"
+MENOS_MODEM        = "modem"
+MENOS_STORAGE      = "storage"
+MENOS_DEFAULT      = "default"
 
 
 
@@ -106,7 +112,7 @@ def send_notification_device(messaging_client, deviceid, recipient, message):
     payload = json.dumps(payload)
     #print("payload={}".format(payload))
     try:
-        messaging_client.publish(topic, payload)
+        messaging_client.publish(topic, payload, debug=False)
         #print("\r\nSending message='{}' to recipient='{}' done.\r\n\r\n".format(message, recipient))
         send_notification_status(messaging_client, deviceid, "OK. message sent to {}.".format(recipient))
     except:
@@ -115,7 +121,38 @@ def send_notification_device(messaging_client, deviceid, recipient, message):
         return False
     return True
 
-def construct_message(messaging_client, deviceid, recipient, message, subject, type, options, source, sensorname, timestamp, condition):
+def send_notification_storage(messaging_client, deviceid, recipient, message, source, sensorname, date_time, condition):
+    contents = date_time + ": " + message + " - " + source.upper()
+    if sensorname:
+        contents += ":" + sensorname
+    if condition:
+        contents += " (" + condition + ")"
+
+    try:
+        result = g_storage_client.append_to_file(recipient, deviceid, contents)
+        if result:
+            send_notification_status(messaging_client, deviceid, "OK. message sent to storage.")
+            try: 
+                source_new = source
+                if sensorname:
+                    source_new = "{}{}".format(source, sensorname)
+                notification = g_database_client.get_device_notification_by_deviceid(deviceid, source_new)
+                if notification:
+                    if notification["endpoints"][MENOS_STORAGE]["recipients"] == "":
+                        notification["endpoints"][MENOS_STORAGE]["recipients"] = result
+                        g_database_client.update_device_notification_by_deviceid(deviceid, source_new, notification)
+            except:
+                print("exception")
+                pass
+        else:
+            send_notification_status(messaging_client, deviceid, "NG")
+            return False, None
+    except:
+        send_notification_status(messaging_client, deviceid, "NG")
+        return False, None
+    return True, contents
+
+def construct_message(deviceid, message, source, sensorname, date_time, condition):
 
     new_message = message
 
@@ -128,21 +165,24 @@ def construct_message(messaging_client, deviceid, recipient, message, subject, t
     if devicename is None:
         return None
     source = source.upper()
+    from_source = ""
     if sensorname is None:
-        new_message += "\r\n- from {}:{}".format(devicename, source)
+        from_source += "- from {}:{}".format(devicename, source)
     else:
-        new_message += "\r\n- from {}:{}:{}".format(devicename, source, sensorname)
+        from_source += "- from {}:{}:{}".format(devicename, source, sensorname)
+    new_message += "\r\n" + from_source
 
     # append timestamp on the message
-    new_message += " [" + datetime.datetime.utcfromtimestamp(timestamp).strftime("%Y-%m-%d %H:%M:%S") + " UTC]"
+    new_message += " " + date_time
 
-    return new_message
+    return new_message, date_time
 
 
 def notification_thread(messaging_client, deviceid, recipient, message, subject, type, options, source, sensor, payload):
 
     # generate information to append to the message
     timestamp = int(time.time())
+    date_time = "[" + datetime.datetime.utcfromtimestamp(timestamp).strftime("%Y-%m-%d %H:%M:%S") + " UTC]"
     condition = None
     if payload.get("condition"):
         condition = payload["condition"]
@@ -152,7 +192,7 @@ def notification_thread(messaging_client, deviceid, recipient, message, subject,
     type_str = g_notification_client.get_notification_types_string(type)
 
     # append information to the message
-    message_updated = construct_message(messaging_client, deviceid, recipient, message, subject, type, options, source, sensorname, timestamp, condition)
+    message_updated, date_time = construct_message(deviceid, message, source, sensorname, date_time, condition)
     if message_updated is None:
         send_notification_status(messaging_client, deviceid, "NG")
         return
@@ -162,6 +202,10 @@ def notification_thread(messaging_client, deviceid, recipient, message, subject,
     if type == notification_types.DEVICE:
         # Send to another device
         result = send_notification_device(messaging_client, deviceid, recipient, message_updated)
+        print("{}: {} [{} {}] {}".format(deviceid, type_str, len(recipient), len(message_updated), result ))
+    elif type == notification_types.STORAGE:
+        result, contents = send_notification_storage(messaging_client, deviceid, recipient, message, source, sensorname, date_time, condition)
+        print("{}: {} [{}] {}".format(deviceid, type_str, len(contents), result ))
     else:
         # Send to Mobile (sms) or Email or Notification (push notification)
         if options >= 0:
@@ -282,6 +326,13 @@ def send_notification_modem_threaded(messaging_client, deviceid, recipient, mess
     thr.start()
     return thr
 
+def send_notification_storage_threaded(messaging_client, deviceid, recipient, message, source, sensor, payload):
+    #print("modem")
+    #print("recipient={} message={}".format(recipient, message))
+    thr = threading.Thread(target = notification_thread, args = (messaging_client, deviceid, recipient, message, None, notification_types.STORAGE, -1, source, sensor, payload, ))
+    thr.start()
+    return thr
+
 def send_notification_default_threaded(username, messaging_client, deviceid, notification, message, source, sensor, payload):
     #print("default")
     if notification is not None:
@@ -289,65 +340,66 @@ def send_notification_default_threaded(username, messaging_client, deviceid, not
             # Prevent spamming for unreasonable threshold values
             # Temporarily enable EMAIL only for AT+D for I2C/ADC/1WIRE/TPROBE
             if source.startswith("uart") or source.startswith("gpio"):
-                if notification["endpoints"]["mobile"]["enable"] == True:
-                    recipients = notification["endpoints"]["mobile"]["recipients"]
+                if notification["endpoints"][MENOS_MOBILE]["enable"] == True:
+                    recipients = notification["endpoints"][MENOS_MOBILE]["recipients"]
                     thr = send_notification_mobile_threaded(messaging_client, deviceid, recipients, message, source, sensor, payload)
                     thr.join()
-                if notification["endpoints"]["email"]["enable"] == True:
-                    recipients = notification["endpoints"]["email"]["recipients"]
+                if notification["endpoints"][MENOS_EMAIL]["enable"] == True:
+                    recipients = notification["endpoints"][MENOS_EMAIL]["recipients"]
                     thr = send_notification_email_threaded(messaging_client, deviceid, recipients, message, source, sensor, payload)
                     thr.join()
-                if notification["endpoints"]["notification"]["enable"] == True:
+                if notification["endpoints"][MENOS_NOTIFICATION]["enable"] == True:
                     recipients = g_database_client.get_mobile_device_token_by_deviceid(deviceid)
                     thr = send_notification_notification_threaded(messaging_client, deviceid, recipients, message, source, sensor, payload)
                     thr.join()
-                if notification["endpoints"]["modem"]["enable"] == True:
-                    recipients = g_database_client.get_deviceid(username, notification["endpoints"]["modem"]["recipients"])
+                if notification["endpoints"][MENOS_MODEM]["enable"] == True:
+                    recipients = g_database_client.get_deviceid(username, notification["endpoints"][MENOS_MODEM]["recipients"])
                     thr = send_notification_modem_threaded(messaging_client, deviceid, recipients, message, source, sensor, payload)
                     thr.join()
-                if notification["endpoints"]["storage"]["enable"] == True:
-                    pass
+                if notification["endpoints"][MENOS_STORAGE]["enable"] == True:
+                    thr = send_notification_storage_threaded(messaging_client, deviceid, username, message, source, sensor, payload)
+                    thr.join()
             else:
                 # TODO: temporarily send only email for AT+D for I2C/ADC/1WIRE/TPROBE
-                if notification["endpoints"]["email"]["enable"] == True:
-                    recipients = notification["endpoints"]["email"]["recipients"]
+                if notification["endpoints"][MENOS_EMAIL]["enable"] == True:
+                    recipients = notification["endpoints"][MENOS_EMAIL]["recipients"]
                     thr = send_notification_email_threaded(messaging_client, deviceid, recipients, message, source, sensor, payload)
                     thr.join()
         else:
-            if notification["endpoints"]["mobile"]["enable"] == True:
-                recipients = notification["endpoints"]["mobile"]["recipients"]
+            if notification["endpoints"][MENOS_MOBILE]["enable"] == True:
+                recipients = notification["endpoints"][MENOS_MOBILE]["recipients"]
                 thr = send_notification_mobile_threaded(messaging_client, deviceid, recipients, message, source, sensor, payload)
                 thr.join()
-            if notification["endpoints"]["email"]["enable"] == True:
-                recipients = notification["endpoints"]["email"]["recipients"]
+            if notification["endpoints"][MENOS_EMAIL]["enable"] == True:
+                recipients = notification["endpoints"][MENOS_EMAIL]["recipients"]
                 thr = send_notification_email_threaded(messaging_client, deviceid, recipients, message, source, sensor, payload)
                 thr.join()
-            if notification["endpoints"]["notification"]["enable"] == True:
+            if notification["endpoints"][MENOS_NOTIFICATION]["enable"] == True:
                 recipients = g_database_client.get_mobile_device_token_by_deviceid(deviceid)
                 thr = send_notification_notification_threaded(messaging_client, deviceid, recipients, message, source, sensor, payload)
                 thr.join()
-            if notification["endpoints"]["modem"]["enable"] == True:
-                recipients = g_database_client.get_deviceid(username, notification["endpoints"]["modem"]["recipients"])
+            if notification["endpoints"][MENOS_MODEM]["enable"] == True:
+                recipients = g_database_client.get_deviceid(username, notification["endpoints"][MENOS_MODEM]["recipients"])
                 thr = send_notification_modem_threaded(messaging_client, deviceid, recipients, message, source, sensor, payload)
                 thr.join()
-            if notification["endpoints"]["storage"]["enable"] == True:
-                pass
+            if notification["endpoints"][MENOS_STORAGE]["enable"] == True:
+                thr = send_notification_storage_threaded(messaging_client, deviceid, username, message, source, sensor, payload)
+                thr.join()
     else:
         send_notification_status(messaging_client, deviceid, "NG. database entry not found.")
 
 def send_notification_menos(username, messaging_client, deviceid, payload, notification, menos, source, sensor):
-    if menos == "mobile":
+    if menos == MENOS_MOBILE:
         send_notification_mobile_threaded(messaging_client, deviceid, payload["recipient"], payload["message"], source, sensor, payload)
-    elif menos == "email":
+    elif menos == MENOS_EMAIL:
         send_notification_email_threaded(messaging_client, deviceid, payload["recipient"], payload["message"], source, sensor, payload)
-    elif menos == "notification":
+    elif menos == MENOS_NOTIFICATION:
         send_notification_notification_threaded(messaging_client, deviceid, payload["recipient"], payload["message"], source, sensor, payload)
-    elif menos == "modem":
+    elif menos == MENOS_MODEM:
         send_notification_modem_threaded(messaging_client, deviceid, payload["recipient"], payload["message"], source, sensor, payload)
-    elif menos == "storage":
-        # TODO
-        pass
-    elif menos == "default":
+    elif menos == MENOS_STORAGE:
+        send_notification_storage_threaded(messaging_client, deviceid, username, payload["message"], source, sensor, payload)
+    elif menos == MENOS_DEFAULT:
         send_notification_default_threaded(username, messaging_client, deviceid, notification, payload["message"], source, sensor, payload)
     else:
         print("UNSUPPORTED {}".format(menos))
@@ -567,6 +619,10 @@ if __name__ == '__main__':
     print("USE_USERNAME={}".format(args.USE_USERNAME))
     print("USE_PASSWORD={}".format(args.USE_PASSWORD))
     print("")
+
+
+    # Initialize S3 client
+    g_storage_client = s3_client()
 
 
     # Initialize MongoDB

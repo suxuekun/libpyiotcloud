@@ -161,6 +161,9 @@ class database_client:
         deviceid = self._devices.get_deviceid(username, devicename)
         return self._devices.update_device_notification(username, devicename, deviceid, source, notification)
 
+    def update_device_notification_by_deviceid(self, deviceid, source, notification):
+        return self._devices.update_device_notification_by_deviceid(deviceid, source, notification)
+
     def delete_device_notification(self, username, devicename):
         return self._devices.delete_device_notification(username, devicename)
 
@@ -567,6 +570,14 @@ class database_client_mongodb:
         else:
             #print("update_device_notification replace_one")
             notifications.replace_one({'username': username, 'devicename': devicename, 'deviceid': deviceid, 'source': source}, item)
+
+    def update_device_notification_by_deviceid(self, deviceid, source, notification):
+        notifications = self.get_notifications_document()
+        if notifications:
+            found = notifications.find_one({'deviceid': deviceid, 'source': source})
+            if found:
+                found["notification"] = notification
+                notifications.replace_one({'deviceid': deviceid, 'source': source}, found)
 
     def delete_device_notification(self, username, devicename):
         notifications = self.get_notifications_document();
