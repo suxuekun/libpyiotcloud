@@ -9,6 +9,7 @@ import sys
 import os
 import inspect
 import base64
+import binascii
 currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 parentdir = os.path.dirname(currentdir)
 sys.path.insert(0,parentdir)
@@ -288,22 +289,51 @@ def get_firmware_object(version):
             return firmware
     return None
 
-def write_to_file(filename, contents):
+def get_filename(filename):
     index = filename.rindex("/")
     if index == -1:
         index = 0
     else:
         index += 1
     new_filename = filename[index:]
-    f = open(new_filename, "wb")
+    return new_filename
+
+def write_to_file(filename, contents):
+    f = open(filename, "wb")
     f.write(contents)
     f.close()
 
-def download_firmware(location):
+def read_file(filename):
+    try:
+        f = open(filename, "rb")
+        contents = f.read()
+        f.close()
+        return contents
+    except:
+        pass
+    return None
+
+def compute_checksum(contents):
+    return binascii.crc32(contents)
+
+def download_firmware(location, checksum):
+    filename = get_filename(location)
+
+    # dont download file from S3 if existing file already exists
+    contents = read_file(filename)
+    if contents is not None:
+        # check if file is the same using checksum
+        if compute_checksum(contents) == checksum:
+            return True
+
+    # download the file from S3
+    print("{} does not exist (or checksum not same). Proceeding to download from S3.".format(filename))
     file_path = "firmware/" + location
     result, binary = g_storage_client.get_firmware(file_path)
     if result:
-        write_to_file(location, binary)
+        # save contents to file
+        write_to_file(filename, binary)
+
     return result
 
 def download_firmwares():
@@ -311,7 +341,7 @@ def download_firmwares():
     result, g_document_firmwares = g_storage_client.get_device_firmware_updates()
     if result:
         for firmware in g_document_firmwares["ft900"]["firmware"]:
-            result = download_firmware(firmware["location"])
+            result = download_firmware(firmware["location"], firmware["checksum"])
             if result:
                 print("Downloaded {} {} {} {} {} [{}]".format(firmware["version"], firmware["date"], firmware["location"], firmware["size"], firmware["checksum"], result))
     return result
