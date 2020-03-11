@@ -14,3 +14,7 @@ class config:
 
     CONFIG_SNS_TOPIC_ARN                        = ""
     CONFIG_SNS_REGION                           = ""
+
+    CONFIG_S3_REGION                            = os.environ["AWS_S3_REGION"]
+    CONFIG_S3_BUCKET                            = os.environ["AWS_S3_BUCKET"]
+
