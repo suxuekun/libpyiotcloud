@@ -19,7 +19,7 @@ import http.client
 from s3_client import s3_client
 import threading
 import copy
-#import redis
+from redis_client import redis_client
 
 
 
@@ -44,6 +44,9 @@ CONFIG_WAIT_DEVICE_RESPONSE_FREQUENCY_MS = 250
 
 CONFIG_ALLOW_LOGIN_VIA_PHONE_NUMBER = True
 
+CONFIG_USE_REDIS_FOR_PAYPAL = True
+CONFIG_USE_REDIS_FOR_IDP    = True
+
 
 
 ###################################################################################
@@ -53,7 +56,7 @@ CONFIG_ALLOW_LOGIN_VIA_PHONE_NUMBER = True
 g_messaging_client = None
 g_database_client = None
 g_storage_client = None
-#g_redis_client = None
+g_redis_client = None
 g_queue_dict  = {}
 g_event_dict  = {}
 app = flask.Flask(__name__)
@@ -209,7 +212,13 @@ def login_idp_storecode(id):
         print('\r\nERROR Login IDP STORE CODE: Empty parameter found [{}]\r\n'.format(username))
         return response, status.HTTP_400_BAD_REQUEST
 
-    g_database_client.set_idp_code(id, data["code"])
+    if CONFIG_USE_REDIS_FOR_IDP:
+        # redis
+        print("xxxxx idp {}:{}".format(id, data["code"]))
+        g_redis_client.idp_set_code(id, data["code"])
+        print("yyyyy idp {}:{}".format(id, data["code"]))
+    else:
+        g_database_client.set_idp_code(id, data["code"])
 
     response = json.dumps({'status': 'OK', 'message': "Login IDP store code successful"})
     return response
@@ -230,7 +239,14 @@ def login_idp_storecode(id):
 @app.route('/user/login/idp/code/<id>', methods=['GET'])
 def login_idp_querycode(id):
     # check if code is available
-    code = g_database_client.get_idp_code(id)
+    if CONFIG_USE_REDIS_FOR_IDP:
+        # redis
+        code = g_redis_client.idp_get_code(id)
+        if code:
+            g_redis_client.idp_del_code(id)
+    else:
+        code = g_database_client.get_idp_code(id)
+
     if code is None:
         response = json.dumps({'status': 'NG', 'message': 'Login IDP query code not found'})
         print('\r\nERROR Login IDP query: Code not found [{}]\r\n'.format(id))
@@ -1544,7 +1560,12 @@ def store_payment_paypal_payerid(paymentid):
     if data.get("payerid"):
         payerid = data["payerid"]
 
-    g_database_client.paypal_set_payerid(paymentid, payerid)
+    if CONFIG_USE_REDIS_FOR_PAYPAL:
+        # redis
+        g_redis_client.paypal_set_payerid(paymentid, payerid)
+    else:
+        g_database_client.paypal_set_payerid(paymentid, payerid)
+
     return json.dumps({'status': 'OK', 'message': "Paypal Store PayerID successful."})
 
 
@@ -1576,7 +1597,13 @@ def set_payment_paypal_execute(paymentid):
         payment["PayerID"] = data["payerid"]
     else:
         # web app case
-        payment["PayerID"] = g_database_client.paypal_get_payerid(paymentid)
+        if CONFIG_USE_REDIS_FOR_PAYPAL:
+            # redis
+            payment["PayerID"] = g_redis_client.paypal_get_payerid(paymentid)
+            if payment["PayerID"]:
+                g_redis_client.paypal_del_payerid(paymentid)
+        else:
+            payment["PayerID"] = g_database_client.paypal_get_payerid(paymentid)
     if payment["PayerID"] is None or payment["PayerID"] == "":
         response = json.dumps({'status': 'NG', 'message': 'Paypal payment execution failed.'})
         return response
@@ -7205,6 +7232,7 @@ def initialize():
     global g_messaging_client
     global g_database_client
     global g_storage_client
+    global g_redis_client
 
     CONFIG_SEPARATOR = "." if config.CONFIG_USE_AMQP==1 else "/"
 
@@ -7237,7 +7265,8 @@ def initialize():
     g_storage_client = s3_client()
 
     # Initialize Redis client
-    #g_redis_client = redis.Redis(config.CONFIG_REDIS_HOST, config.CONFIG_REDIS_PORT, 0)
+    g_redis_client = redis_client()
+    g_redis_client.initialize()
 
 
 # Initialize globally so that no issue with GUnicorn integration
