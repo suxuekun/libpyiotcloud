@@ -71,7 +71,7 @@ An alternative solution is using an AWS serverless solution wherein:
 ### High-level architecture diagram:
 <img src="./_images/architecture.png" width="1000"/>
 
-11 docker containers and microservices
+11 docker containerized microservices
 
 1. <b>Webserver</b> - Nginx (contains SSL certificate; all requests go to NGINX; forwards HTTP requests to webapp or restapi)
 2. <b>Webapp</b> - Ionic (front-end web framework that can also be compiled for Android and iOS)
