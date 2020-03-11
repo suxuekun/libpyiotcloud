@@ -282,7 +282,7 @@ def send_notification_modem_threaded(messaging_client, deviceid, recipient, mess
     thr.start()
     return thr
 
-def send_notification_default_threaded(messaging_client, deviceid, notification, message, source, sensor, payload):
+def send_notification_default_threaded(username, messaging_client, deviceid, notification, message, source, sensor, payload):
     #print("default")
     if notification is not None:
         if CONFIG_MENOS_PREVENT_SPAMMING:
@@ -302,7 +302,7 @@ def send_notification_default_threaded(messaging_client, deviceid, notification,
                     thr = send_notification_notification_threaded(messaging_client, deviceid, recipients, message, source, sensor, payload)
                     thr.join()
                 if notification["endpoints"]["modem"]["enable"] == True:
-                    recipients = notification["endpoints"]["modem"]["recipients_id"]
+                    recipients = g_database_client.get_deviceid(username, notification["endpoints"]["modem"]["recipients"])
                     thr = send_notification_modem_threaded(messaging_client, deviceid, recipients, message, source, sensor, payload)
                     thr.join()
                 if notification["endpoints"]["storage"]["enable"] == True:
@@ -327,7 +327,7 @@ def send_notification_default_threaded(messaging_client, deviceid, notification,
                 thr = send_notification_notification_threaded(messaging_client, deviceid, recipients, message, source, sensor, payload)
                 thr.join()
             if notification["endpoints"]["modem"]["enable"] == True:
-                recipients = notification["endpoints"]["modem"]["recipients_id"]
+                recipients = g_database_client.get_deviceid(username, notification["endpoints"]["modem"]["recipients"])
                 thr = send_notification_modem_threaded(messaging_client, deviceid, recipients, message, source, sensor, payload)
                 thr.join()
             if notification["endpoints"]["storage"]["enable"] == True:
@@ -335,7 +335,7 @@ def send_notification_default_threaded(messaging_client, deviceid, notification,
     else:
         send_notification_status(messaging_client, deviceid, "NG. database entry not found.")
 
-def send_notification_menos(messaging_client, deviceid, payload, notification, menos, source, sensor):
+def send_notification_menos(username, messaging_client, deviceid, payload, notification, menos, source, sensor):
     if menos == "mobile":
         send_notification_mobile_threaded(messaging_client, deviceid, payload["recipient"], payload["message"], source, sensor, payload)
     elif menos == "email":
@@ -348,7 +348,7 @@ def send_notification_menos(messaging_client, deviceid, payload, notification, m
         # TODO
         pass
     elif menos == "default":
-        send_notification_default_threaded(messaging_client, deviceid, notification, payload["message"], source, sensor, payload)
+        send_notification_default_threaded(username, messaging_client, deviceid, notification, payload["message"], source, sensor, payload)
     else:
         print("UNSUPPORTED {}".format(menos))
 
@@ -408,8 +408,10 @@ def on_message(subtopic, subpayload):
                 #print("no recipient")
                 if notification is not None:
                     if menos == "modem":
+                        #print("modem")
+                        #print(notification["endpoints"][menos])
                         if notification["endpoints"][menos]["enable"] == True:
-                            payload["recipient"] = notification["endpoints"][menos]["recipients_id"]
+                            payload["recipient"] = g_database_client.get_deviceid(username, notification["endpoints"][menos]["recipients"])
                         else:
                             send_notification_status(g_messaging_client, deviceid, "NG. {} recipient is not enabled.".format(menos))
                             return
@@ -466,7 +468,7 @@ def on_message(subtopic, subpayload):
                     send_notification_status(g_messaging_client, deviceid, "NG. database entry not found.")
                     return
 
-            send_notification_menos(g_messaging_client, deviceid, payload, notification, menos, source, sensor)
+            send_notification_menos(username, g_messaging_client, deviceid, payload, notification, menos, source, sensor)
 
         #elif len(topicarr) == 3:
         #    print("path 2")

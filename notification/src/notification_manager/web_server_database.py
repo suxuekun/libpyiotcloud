@@ -777,7 +777,7 @@ class database_client_mongodb:
     def get_deviceid(self, username, devicename):
         devices = self.get_registered_devices()
         if devices:
-            for device in devices.find({'username': username, 'devicename': devicename},{'username': 1, 'devicename': 1, 'deviceid': 1}):
+            for device in devices.find({'username': username, 'devicename': devicename},{'deviceid': 1}):
                 return device['deviceid']
         return None
 
