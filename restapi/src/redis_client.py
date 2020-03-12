@@ -9,11 +9,15 @@ from rest_api_config import config
 # Some configurations
 ###################################################################################
 
-IDP_CODE              = "idp:id:code"
-IDP_CODE_EXPIRY       = 3600
+IDP_CODE                     = "idp:id:code"
+IDP_CODE_EXPIRY              = 3600
 
-PAYPAL_PAYERID        = "paypal:paymentid:payerid"
-PAYPAL_PAYERID_EXPIRY = 3600
+PAYPAL_PAYERID               = "paypal:paymentid:payerid"
+PAYPAL_PAYERID_EXPIRY        = 3600
+
+MQTT_RESPONSE_PAYLOAD        = "mqtt:response:topic:payload"
+MQTT_RESPONSE_PAYLOAD_EXPIRY = 60
+
 
 
 
@@ -56,6 +60,20 @@ class redis_client:
 
 	def paypal_del_payerid(self, paymentid):
 		self.client.delete("{}:{}".format(PAYPAL_PAYERID, paymentid))
+
+
+	#
+	# mqtt response payload
+	#
+
+	def mqtt_response_set_payload(self, topic, payload):
+		self.client.setex("{}:{}".format(MQTT_RESPONSE_PAYLOAD, topic), MQTT_RESPONSE_PAYLOAD_EXPIRY, payload)
+
+	def mqtt_response_get_payload(self, topic):
+		return self.client.get("{}:{}".format(MQTT_RESPONSE_PAYLOAD, topic))
+
+	def mqtt_response_del_payload(self, topic):
+		self.client.delete("{}:{}".format(MQTT_RESPONSE_PAYLOAD, topic))
 
 
 	#

@@ -39,13 +39,14 @@ CONFIG_PREPEND_REPLY_TOPIC  = "server"
 # feature configurables
 ###################################################################################
 
-CONFIG_WAIT_DEVICE_RESPONSE_TIMEOUT_SEC = 3
+CONFIG_WAIT_DEVICE_RESPONSE_TIMEOUT_SEC  = 3
 CONFIG_WAIT_DEVICE_RESPONSE_FREQUENCY_MS = 250
 
 CONFIG_ALLOW_LOGIN_VIA_PHONE_NUMBER = True
 
-CONFIG_USE_REDIS_FOR_PAYPAL = True
-CONFIG_USE_REDIS_FOR_IDP    = True
+CONFIG_USE_REDIS_FOR_PAYPAL         = True
+CONFIG_USE_REDIS_FOR_IDP            = True
+CONFIG_USE_REDIS_FOR_MQTT_RESPONSE  = True
 
 
 
@@ -54,11 +55,11 @@ CONFIG_USE_REDIS_FOR_IDP    = True
 ###################################################################################
 
 g_messaging_client = None
-g_database_client = None
-g_storage_client = None
-g_redis_client = None
-g_queue_dict  = {}
-g_event_dict  = {}
+g_database_client  = None
+g_storage_client   = None
+g_redis_client     = None
+g_queue_dict  = {} # no longer used; replaced by redis
+g_event_dict  = {} # still used to trigger event from callback thread to rest api thread
 app = flask.Flask(__name__)
 CORS(app)
 
@@ -6929,11 +6930,16 @@ def process_request(api, data, timeout=CONFIG_WAIT_DEVICE_RESPONSE_TIMEOUT_SEC):
             #start = time.time()
             event_response_available.wait(timeout)
             #print("{}".format(time.time()-start))
-            if subtopic in g_queue_dict:
-                response = g_queue_dict[subtopic].decode("utf-8")
-                g_queue_dict.pop(subtopic)
+            if CONFIG_USE_REDIS_FOR_MQTT_RESPONSE:
+                response = g_redis_client.mqtt_response_get_payload(subtopic)
+                if response:
+                    g_redis_client.mqtt_response_del_payload(subtopic)
             else:
-                response = None
+                if subtopic in g_queue_dict:
+                    response = g_queue_dict[subtopic].decode("utf-8")
+                    g_queue_dict.pop(subtopic)
+                else:
+                    response = None
             #response = receive_message(subtopic, timeout)
 
             # unsubscribe for response
@@ -7178,48 +7184,57 @@ def message_broker_unregister(deviceid):
 def on_mqtt_message(client, userdata, msg):
     #global g_event_dict, g_queue_dict
 
-    if CONFIG_PREPEND_REPLY_TOPIC == '':
-        g_queue_dict[msg.topic] = msg.payload
-        #print("RCV: {}".format(g_queue_dict))
-    else:
+    if CONFIG_PREPEND_REPLY_TOPIC != '':
         index = msg.topic.find(CONFIG_PREPEND_REPLY_TOPIC)
         if index == 0:
             try:
                 #print("on_mqtt_message {}".format(msg.topic))
                 event_response_available = g_event_dict[msg.topic]
                 g_event_dict.pop(msg.topic)
-                g_queue_dict[msg.topic] = msg.payload
+                if CONFIG_USE_REDIS_FOR_MQTT_RESPONSE:
+                    g_redis_client.mqtt_response_set_payload(msg.topic, msg.payload)
+                else:
+                    g_queue_dict[msg.topic] = msg.payload
                 event_response_available.set()
             except:
-                g_queue_dict[msg.topic] = msg.payload
+                if CONFIG_USE_REDIS_FOR_MQTT_RESPONSE:
+                    g_redis_client.mqtt_response_set_payload(msg.topic, msg.payload)
+                else:
+                    g_queue_dict[msg.topic] = msg.payload
                 print("on_mqtt_message exception !!!")
             #print("RCV: {}".format(g_queue_dict))
+    else:
+        if CONFIG_USE_REDIS_FOR_MQTT_RESPONSE:
+            g_redis_client.mqtt_response_set_payload(msg.topic, msg.payload)
+        else:
+            g_queue_dict[msg.topic] = msg.payload
+        #print("RCV: {}".format(g_queue_dict))
 
 def on_amqp_message(ch, method, properties, body):
     #print("RCV: {} {}".format(method.routing_key, body))
     g_queue_dict[method.routing_key] = body
     #print("RCV: {}".format(g_queue_dict))
 
-def receive_message(topic, timeout):
-    # this is now obsoleted, now using eventing instead of polling
-    divisor = 1000/CONFIG_WAIT_DEVICE_RESPONSE_FREQUENCY_MS
-    iteration = timeout*divisor-1
-    sleeptime = 1/divisor
-    i = 0
-    while True:
-        try:
-            data = g_queue_dict[topic].decode("utf-8")
-            g_queue_dict.pop(topic)
-            #print("API: response={}\r\n".format(data))
-            return data
-        except:
-            #print("x")
-            time.sleep(sleeptime)
-            i += 1
-        if i > iteration:
-            #print("receive_message timed_out")
-            break
-    return None
+#def receive_message(topic, timeout):
+#    # this is now obsoleted, now using eventing instead of polling
+#    divisor = 1000/CONFIG_WAIT_DEVICE_RESPONSE_FREQUENCY_MS
+#    iteration = timeout*divisor-1
+#    sleeptime = 1/divisor
+#    i = 0
+#    while True:
+#        try:
+#            data = g_queue_dict[topic].decode("utf-8")
+#            g_queue_dict.pop(topic)
+#            #print("API: response={}\r\n".format(data))
+#            return data
+#        except:
+#            #print("x")
+#            time.sleep(sleeptime)
+#            i += 1
+#        if i > iteration:
+#            #print("receive_message timed_out")
+#            break
+#    return None
 
 
 
