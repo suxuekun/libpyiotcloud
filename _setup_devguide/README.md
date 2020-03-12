@@ -2657,12 +2657,15 @@ DETAILED:
 		   // " For a web app, the urls should start with https://, such as https://www.example.com.
 		   //   For an iOS or Android app, you can use a callback URL such as myapp://. "
 		   // amount is in USD
-		   // Web/mobile app shall open a system browser (Android: Google Chrome, IOS: Safari) for approvalurl
+		   // Web/mobile app shall open a system browser (Android: Google Chrome, IOS: Safari) for approvalurl.
+                   //   Mobile apps can open a webview instead of a system browser to open the approvalurl.
+                   //   So it doesn't matter if its a system browser or a webview.
 		   // Customer logins to their Paypal account on the system browser and approves the payment transaction.
 		   // Once the payment transaction is approved by the customer, the returnurl callback will be called.
-		   //   Paypal will make the browser invoke the mobile app callback.
-		   //   When the callback is called, the paymentID and PayerID is appended to the URL, in ?&= notation.
-		   // When the URL callback URL is called, the web app shall call PAYPAL STORE PAYERID, while the mobile app shall call PAYPAL EXECUTE.
+		   //   Paypal will make the browser invoke the mobile app callback (from the system browser or webview).
+		   //   When the callback is called, the paymentID and PayerID is appended to the URL, in url encoded ?&= notation.
+		   // When the URL callback URL is called, the web app shall call PAYPAL STORE PAYERID, while the mobile app can already call PAYPAL EXECUTE 
+                   //   (since it can pass the paymentID and PayerID from one thread to another thread. In the web app case, it has to pass from 1 browser to another browser so PAYPAL STORE PAYERID is necessary.)
 
 		C. PAYPAL STORE PAYERID
 		-  Request:
