@@ -5,7 +5,7 @@ import netifaces
 import argparse
 import sys
 import os
-import psutil
+import psutil # for dynamic app restart
 import threading
 import random
 import queue
