@@ -406,8 +406,8 @@ class database_client:
     def get_all_device_sensors(self, username, devicename):
         return self._devices.get_all_device_sensors(self._devices.get_deviceid(username, devicename))
 
-    def get_all_device_sensors_enabled_input(self, username, devicename):
-        return self._devices.get_all_device_sensors_enabled_input(self._devices.get_deviceid(username, devicename))
+    def get_all_device_sensors_enabled_input(self, username, devicename, source=None, number=None, sensorclass=None):
+        return self._devices.get_all_device_sensors_enabled_input(self._devices.get_deviceid(username, devicename), source, number, sensorclass)
 
     def get_all_device_sensors_input(self, username, devicename):
         return self._devices.get_all_device_sensors_input(self._devices.get_deviceid(username, devicename))
@@ -1638,19 +1638,106 @@ class database_client_mongodb:
                 sensor_list.append(i2csensor)
         return sensor_list
 
-    def get_all_device_sensors_enabled_input(self, deviceid):
+    def get_all_device_sensors_enabled_input(self, deviceid, source, number, sensorclass):
         sensor_list = []
         i2csensors = self.get_sensors_document();
         if i2csensors:
-            for i2csensor in i2csensors.find({'deviceid': deviceid, 'enabled': 1, 'type': 'input'}):
-                i2csensor.pop('_id')
-                if i2csensor.get('username'):
-                    i2csensor.pop('username')
-                if i2csensor.get('devicename'):
-                    i2csensor.pop('devicename')
-                if i2csensor.get('deviceid'):
-                    i2csensor.pop('deviceid')
-                sensor_list.append(i2csensor)
+            if deviceid and source and sensorclass:
+                print("1 2 3")
+                # 1, 2, 3
+                for i2csensor in i2csensors.find({'deviceid': deviceid, 'enabled': 1, 'type': 'input', 'source': source, 'number': number, 'class': sensorclass}):
+                    i2csensor.pop('_id')
+                    if i2csensor.get('username'):
+                        i2csensor.pop('username')
+                    #if i2csensor.get('devicename'):
+                    #    i2csensor.pop('devicename')
+                    #if i2csensor.get('deviceid'):
+                    #    i2csensor.pop('deviceid')
+                    sensor_list.append(i2csensor)
+            elif deviceid and source:
+                print("1 2")
+                # 1, 2
+                for i2csensor in i2csensors.find({'deviceid': deviceid, 'enabled': 1, 'type': 'input', 'source': source, 'number': number}):
+                    i2csensor.pop('_id')
+                    if i2csensor.get('username'):
+                        i2csensor.pop('username')
+                    #if i2csensor.get('devicename'):
+                    #    i2csensor.pop('devicename')
+                    #if i2csensor.get('deviceid'):
+                    #    i2csensor.pop('deviceid')
+                    sensor_list.append(i2csensor)
+            elif deviceid and sensorclass:
+                print("1 3")
+                # 1, 3
+                for i2csensor in i2csensors.find({'deviceid': deviceid, 'enabled': 1, 'type': 'input', 'class': sensorclass}):
+                    i2csensor.pop('_id')
+                    if i2csensor.get('username'):
+                        i2csensor.pop('username')
+                    #if i2csensor.get('devicename'):
+                    #    i2csensor.pop('devicename')
+                    #if i2csensor.get('deviceid'):
+                    #    i2csensor.pop('deviceid')
+                    sensor_list.append(i2csensor)
+            elif source and sensorclass:
+                print("2 3")
+                # 2, 3
+                for i2csensor in i2csensors.find({'enabled': 1, 'type': 'input', 'source': source, 'number': number, 'class': sensorclass}):
+                    i2csensor.pop('_id')
+                    if i2csensor.get('username'):
+                        i2csensor.pop('username')
+                    #if i2csensor.get('devicename'):
+                    #    i2csensor.pop('devicename')
+                    #if i2csensor.get('deviceid'):
+                    #    i2csensor.pop('deviceid')
+                    sensor_list.append(i2csensor)
+            elif deviceid:
+                print("1")
+                # 1
+                for i2csensor in i2csensors.find({'deviceid': deviceid, 'enabled': 1, 'type': 'input'}):
+                    i2csensor.pop('_id')
+                    if i2csensor.get('username'):
+                        i2csensor.pop('username')
+                    #if i2csensor.get('devicename'):
+                    #    i2csensor.pop('devicename')
+                    #if i2csensor.get('deviceid'):
+                    #    i2csensor.pop('deviceid')
+                    sensor_list.append(i2csensor)
+            elif source:
+                print("2")
+                # 2
+                for i2csensor in i2csensors.find({'enabled': 1, 'type': 'input', 'source': source, 'number': number}):
+                    i2csensor.pop('_id')
+                    if i2csensor.get('username'):
+                        i2csensor.pop('username')
+                    #if i2csensor.get('devicename'):
+                    #    i2csensor.pop('devicename')
+                    #if i2csensor.get('deviceid'):
+                    #    i2csensor.pop('deviceid')
+                    sensor_list.append(i2csensor)
+            elif sensorclass:
+                print("3")
+                # 3
+                for i2csensor in i2csensors.find({'enabled': 1, 'type': 'input', 'class': sensorclass}):
+                    i2csensor.pop('_id')
+                    if i2csensor.get('username'):
+                        i2csensor.pop('username')
+                    #if i2csensor.get('devicename'):
+                    #    i2csensor.pop('devicename')
+                    #if i2csensor.get('deviceid'):
+                    #    i2csensor.pop('deviceid')
+                    sensor_list.append(i2csensor)
+            else:
+                print("X")
+                # 3
+                for i2csensor in i2csensors.find({'enabled': 1, 'type': 'input'}):
+                    i2csensor.pop('_id')
+                    if i2csensor.get('username'):
+                        i2csensor.pop('username')
+                    #if i2csensor.get('devicename'):
+                    #    i2csensor.pop('devicename')
+                    #if i2csensor.get('deviceid'):
+                    #    i2csensor.pop('deviceid')
+                    sensor_list.append(i2csensor)
         return sensor_list
 
     def get_all_device_sensors_input(self, deviceid):
