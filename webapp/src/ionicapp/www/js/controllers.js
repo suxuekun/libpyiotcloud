@@ -5108,26 +5108,43 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         'devicestatus': $stateParams.devicestatus,
         'deviceid': $stateParams.deviceid,
         'serialnumber': $stateParams.serialnumber,
-        
-        'activeSection': 2,
     };
 
     $scope.timer = null;
+        
+    $scope.devices = [{"devicename": "All devices"}];
 
-    $scope.changeSection = function(s) {
-        $scope.data.activeSection = s;
-        
-        if ($scope.timer !== null) {
-            clearTimeout($scope.timer);
-            console.log("clearTimeout");
-            $scope.timer = null;
-            $scope.run_time = 0;
-            $scope.refresh_automatically = false;
-        }
-        
-        $scope.sensors = [];
-        $scope.submitQuery();
-    };
+    // Filter by peripherals
+    $scope.peripherals = [ 
+        "All peripherals",
+        "I2C1",
+        "I2C2",
+        "I2C3",
+        "I2C4",
+        "ADC1",
+        "ADC2",
+        "1WIRE1",
+        "TPROBE1"
+    ];
+    $scope.peripheral = $scope.peripherals[0];
+    
+    // Filter by sensor class
+    $scope.sensorclasses = [ 
+        "All classes",
+        //"speaker", 
+        //"display",
+        //"light",
+        "potentiometer",
+        "temperature",
+        "humidity",
+        "anemometer",
+        "battery",
+        "fluid",
+    ];
+    $scope.sensorclass = $scope.sensorclasses[0];
+    
+    
+
 
     $scope.changeHideSettings = function(s) {
         $scope.hide_settings = s;
@@ -5182,6 +5199,9 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
     };
 
     get_all_device_sensors_enabled_input_dataset = function() {
+        //console.log($scope.peripheral);
+        //console.log($scope.sensorclass);
+        
         //
         // GET ALL ENABLED DEVICE SENSORS (enabled input) DATASETS
         //
@@ -5189,18 +5209,28 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         //   GET /devices/device/DEVICENAME/sensors/readings/dataset
         //   headers: { 'Authorization': 'Bearer ' + token.access }
         //
+        // - Request:
+        //   POST /devices/sensors/readings/dataset
+        //   headers: { 'Authorization': 'Bearer ' + token.access }
+        //   data: {'devicename': string, 'peripheral': string, 'class': string}
+        //
         // - Response:
         //   { 'status': 'OK', 'message': string }
         //   { 'status': 'NG', 'message': string }        
         //
+        //$http({
+        //    method: 'GET',
+        //    url: server + '/devices/device/' + $scope.data.devicename + '/sensors/readings/dataset',
+        //    headers: { 'Authorization': 'Bearer ' + $scope.data.token.access },
+        //})
         $http({
-            method: 'GET',
-            url: server + '/devices/device/' + $scope.data.devicename + '/sensors/readings/dataset',
+            method: 'POST',
+            url: server + '/devices/sensors/readings/dataset',
             headers: { 'Authorization': 'Bearer ' + $scope.data.token.access },
+            data: {'devicename': $scope.data.devicename, 'peripheral': $scope.peripheral, 'class': $scope.sensorclass }
         })
         .then(function (result) {
             //console.log(result.data);
-            
             
             if (result.data.sensors.length === 0) {
                 $scope.sensors_counthdr = "No sensor enabled";
@@ -5227,31 +5257,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                         var timestamp = new Date($scope.sensors[indexy].dataset.labels[indexz] * 1000);
                         var timestamp_str = timestamp.getHours() + ":" + timestamp.getMinutes() + ":" + timestamp.getSeconds();
                         $scope.sensors[indexy].dataset.labels[indexz] = timestamp_str;
-                    }    
-/*                
-                    if ($scope.sensors[indexy].subclass === undefined) {
-                        $scope.sensors_datachart.push( { "labels": [], "data": []});
                     }
-                    else {
-                        $scope.sensors_datachart.push({ "labels": [], "data": [[],[]]});
-                    }
-                    
-                    var readings = $scope.sensors[indexy].readings;
-                    for (var reading in readings) {
-                        var timestamp = new Date(readings[reading].timestamp * 1000);
-                        var timestamp_str = timestamp.getHours() + ":" + timestamp.getMinutes() + ":" + timestamp.getSeconds();
-                        
-                        if ($scope.sensors[indexy].subclass === undefined) {
-                            $scope.sensors_datachart[indexy].data.push(readings[reading].sensor_readings.value);
-                        }
-                        else {
-                            $scope.sensors_datachart[indexy].data[0].push(readings[reading].sensor_readings.value);
-                            $scope.sensors_datachart[indexy].data[1].push(readings[reading].sensor_readings.subclass.value);
-                        }
-                        
-                        $scope.sensors_datachart[indexy].labels.push(timestamp_str);
-                    }
-*/                    
                 }
                 //console.log($scope.sensors_datachart);
             }
@@ -5291,23 +5297,26 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
     };
 
 
+    $scope.changePeripheral = function(peripheral) {
+        $scope.peripheral = peripheral;
+        $scope.submitQuery();
+    };
+
+    $scope.changeSensorClass = function(sensorclass) {
+        $scope.sensorclass = sensorclass;
+        $scope.submitQuery();
+    };
+
     $scope.changeDevice = function(devicename) {
         for (indexy=0; indexy<$scope.devices.length; indexy++) {
             if (devicename === $scope.devices[indexy].devicename) {
                 $scope.data.devicename = $scope.devices[indexy].devicename;
-                $scope.data.deviceid = $scope.devices[indexy].deviceid;
-                $scope.data.serialnumber = $scope.devices[indexy].serialnumber;
-                $scope.data.devicestatus = $scope.devices[indexy].devicestatus;
-                
-                if ($scope.timer !== null) {
-                    clearTimeout($scope.timer);
-                    console.log("clearTimeout");
-                    $scope.timer = null;
-                    $scope.run_time = 0;
-                    $scope.refresh_automatically = false;
+                if ($scope.data.devicename == "All devices") {
+                    $scope.data.deviceid = $scope.devices[indexy].deviceid;
+                    $scope.data.serialnumber = $scope.devices[indexy].serialnumber;
+                    $scope.data.devicestatus = $scope.devices[indexy].devicestatus;
                 }
                 
-                $scope.sensors = [];
                 $scope.submitQuery();
                 break;
             }
@@ -5323,18 +5332,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         
         // Fetch devices
         Devices.fetch(param, "").then(function(res) {
-            $scope.devices = res;
-            
-            let indexy = 0;
-            for (indexy=0; indexy<$scope.devices.length; indexy++) {
-                $scope.devices[indexy].id = indexy;
-            }
-            
-            console.log($scope.devices);
+            $scope.devices = $scope.devices.concat(res);
             $scope.data.token = User.get_token();
-            
-            
-            //delete_all_device_sensors_enabled_input(true);            
             $scope.submitQuery();
         });
     };
@@ -5419,6 +5418,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                         type: 'button-positive',
                         onTap: function(e) {
                             $scope.timer = setInterval($scope.pollSensorData, $scope.refresh_time * 1000);
+                            $scope.submitQuery(clear=false);
                         }
                     }
                 ]            
@@ -5460,10 +5460,15 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             });            
             return;
         }
-        $scope.submitQuery();
+        $scope.submitQuery(clear=false);
     };
 
     $scope.submitDelete = function() {
+        
+        if ($scope.data.devicename === "All devices") {
+            return;
+        }
+        
         $ionicPopup.alert({
             title: 'Reset Sensor Readings',
             template: 'Are you sure you want to clear database values for sensor readings of all sensors?',
@@ -5487,13 +5492,30 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         delete_all_device_sensors_enabled_input();
     };
 
-    $scope.submitQuery = function() {
-        if ($scope.data.activeSection === 1) {
-            get_all_device_sensors_enabled_input();
+    $scope.submitRefresh = function() {
+        if ($scope.refresh_automatically) {
+            console.log("Its already running!");
+            return;
         }
-        else {
-            get_all_device_sensors_enabled_input_dataset();
+        $scope.submitQuery();
+    };
+
+    $scope.submitQuery = function(clear=true) {
+        
+        if (clear) {
+            if ($scope.timer !== null) {
+                clearTimeout($scope.timer);
+                console.log("clearTimeout");
+                $scope.timer = null;
+            }
+            $scope.run_time = 0;
+            $scope.refresh_automatically = false;
+            
+            $scope.sensors = [];
+            $scope.sensors_counthdr = "No sensor enabled";
         }
+        
+        get_all_device_sensors_enabled_input_dataset();
     };
 
     $scope.submitViewSensorChart = function(sensor) {
@@ -5515,20 +5537,36 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
 
     $scope.submitExit = function() {
         console.log("hello");
-        var device_param = {
-            'username': $scope.data.username,
-            'token': $scope.data.token,
-            'devicename': $scope.data.devicename,
-            'devicestatus': $scope.data.devicestatus,
-            'deviceid': $scope.data.deviceid,
-            'serialnumber': $scope.data.serialnumber,
-        };
-        $state.go('device', device_param);
+        
+        if ($scope.data.devicename !== "All devices") {
+            let device_param = {
+                'username': $scope.data.username,
+                'token': $scope.data.token,
+                'devicename': $scope.data.devicename,
+                'devicestatus': $scope.data.devicestatus,
+                'deviceid': $scope.data.deviceid,
+                'serialnumber': $scope.data.serialnumber,
+            };
+            $state.go('device', device_param);
+        }
+        else {
+            let device_param = {
+                'username': $scope.data.username,
+                'token': $scope.data.token,
+            };
+            $state.go('menu.devices', device_param);
+        }
     };
     
     $scope.$on('$ionicView.enter', function(e) {
+        $scope.devices = [{"devicename": "All devices"}];
+        $scope.sensors = [];
+        $scope.sensors_counthdr = "No sensor enabled";
+        $scope.timer = null;
+        $scope.run_time = 0;
+        $scope.peripheral = $scope.peripherals[0];
+        $scope.sensorclass = $scope.sensorclasses[0];
         get_devices();
-        //$scope.submitQuery();
     });
     
     $scope.$on('$ionicView.beforeLeave', function(e) {
@@ -5537,8 +5575,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             clearTimeout($scope.timer);
             console.log("clearTimeout");
             $scope.timer = null;
-            $scope.run_time = 0;
         }
+        $scope.run_time = 0;
     });
 }])
    
