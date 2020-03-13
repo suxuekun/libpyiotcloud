@@ -2652,8 +2652,8 @@ DETAILED:
 		-  Response:
 		   {'status': 'OK', 'message': string, 'payment': {'approvalurl': string, 'paymentid': string}}
 		   {'status': 'NG', 'message': string}
-		   // returnurl is your web/mobile callback URL for cancellation
-		   // cancelurl is your web/mobile callback URL for cancellation
+		   // returnurl is your web/mobile callback URL for approval
+		   // cancelurl is your web/mobile callback URL for cancellation (user does not proceed to approving the payment)
 		   // " For a web app, the urls should start with https://, such as https://www.example.com.
 		   //   For an iOS or Android app, you can use a callback URL such as myapp://. "
 		   // amount is in USD
