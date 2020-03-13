@@ -305,13 +305,14 @@ SUMMARY:
 
 		//
 		// sensor readings (for dashboard)
-		O. GET PERIPHERAL SENSOR READINGS         - GET    /devices/device/DEVICENAME/sensors/readings
-		P. GET PERIPHERAL SENSOR READINGS DATASET - GET    /devices/device/DEVICENAME/sensors/readings/dataset
-		Q. DELETE PERIPHERAL SENSOR READINGS      - DELETE /devices/device/DEVICENAME/sensors/readings
+		O. GET PERIPHERAL SENSOR READINGS                  - GET    /devices/device/DEVICENAME/sensors/readings
+		P. GET PERIPHERAL SENSOR READINGS DATASET          - GET    /devices/device/DEVICENAME/sensors/readings/dataset
+		Q. GET PERIPHERAL SENSOR READINGS DATASET FILTERED - POST   /devices/sensors/readings/dataset
+		R. DELETE PERIPHERAL SENSOR READINGS               - DELETE /devices/device/DEVICENAME/sensors/readings
 
 		//
 		// sensor properties
-		R. DELETE PERIPHERAL SENSOR PROPERTIES    - DELETE /devices/device/DEVICENAME/sensors/properties
+		S. DELETE PERIPHERAL SENSOR PROPERTIES - DELETE /devices/device/DEVICENAME/sensors/properties
 
 
 	4. Device access and control APIs (I2C)
@@ -1432,7 +1433,24 @@ DETAILED:
 		      if sensor has no subclass: 'dataset': {'labels': [], 'data': []}
 		      this make the dataset object directly useable by Chart.JS 
 
-		Q. DELETE PERIPHERAL SENSOR READINGS
+		Q. GET PERIPHERAL SENSOR READINGS DATASET FILTERED
+		-  Request:
+		   POST /devices/sensors/readings/dataset
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		   data: {'devicename': string, 'peripheral': string, 'class': string}
+		   // devicename can be "All devices" or the devicename of specific device
+		   // peripheral can be ["All peripherals", "I2C1", "I2C2", "I2C3", "I2C4", "ADC1", "ADC2", "1WIRE1", "TPROBE1"]
+		   // class can be ["All classes", "potentiometer", "temperature", "humidity", "anemometer", "battery", "fluid"]
+		-  Response:
+		   { 'status': 'OK', 'message': string, 
+		     'sensor': {'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': string, 'enabled': int, 'configured': int, 'units': [], 'formats': [], 'attributes': [], 'dataset': {'labels': [], 'data': []}, 'readings': {'value': float, 'lowest': float, 'highest': float, 'subclass': {'value': float, 'lowest': float, 'highest': float}} }
+		   { 'status': 'NG', 'message': string}
+		   // the subclass parameter of readings parameter will only appear if the sensor has a subclass
+		   // if sensor has a subclass: 'dataset':  {'labels': [], 'data': [[],[]]}
+		      if sensor has no subclass: 'dataset': {'labels': [], 'data': []}
+		      this make the dataset object directly usable by Chart.JS 
+
+		R. DELETE PERIPHERAL SENSOR READINGS
 		-  Request:
 		   DELETE /devices/device/DEVICENAME/sensors/readings
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -1440,7 +1458,7 @@ DETAILED:
 		   { 'status': 'OK', 'message': string}
 		   { 'status': 'NG', 'message': string}
 
-		R. DELETE PERIPHERAL SENSOR PROPERTIES
+		S. DELETE PERIPHERAL SENSOR PROPERTIES
 		-  Request:
 		   DELETE /devices/device/DEVICENAME/sensors/properties
 		   headers: {'Authorization': 'Bearer ' + token.access}
