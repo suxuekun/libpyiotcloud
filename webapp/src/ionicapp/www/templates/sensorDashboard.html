@@ -46,8 +46,8 @@
     <div id="sensorDashboard-markdown311" class="show-list-numbers-and-dots">
       <p style="color:#AAAAAA;font-size:12px;">{{ sensors_counthdr }}</p>
     </div>
-    <div class="list card" id="sensorDashboard-card28" ng-repeat="sensor in sensors" ng-click="submitQuery()">
-      <div class="item item-body card_top" id="sensorDashboard-list-item-container19">
+    <div class="list card" id="sensorDashboard-card28" ng-repeat="sensor in sensors">
+      <div class="item item-body card_top" id="sensorDashboard-list-item-container19" ng-click="changeSensorHide(sensor)">
         <div id="sensorDashboard-markdown295" class="show-list-numbers-and-dots">
           <p style="margin-top:0px;color:#FFFFFF;font-size:18px;">
             <strong>{{ sensor.sensorname }}</strong>
@@ -57,29 +57,31 @@
           <p style="margin-top:0px;color:#FFFFFF;font-size:10px;">{{ sensor.manufacturer }} - {{ sensor.model }}</p>
         </div>
         <div id="sensorDashboard-markdown459" style="text-align:right;" class="show-list-numbers-and-dots widget_button_half">
-          <p style="margin-top:0px;color:#FFFFFF;font-size:32px;">
+          <p style="margin-top:0px;color:#FFFFFF;font-size:28px;">
             <strong> {{ sensor.subclass ? sensor.readings.value + " " + sensor.units[0] + " | " + sensor.readings.subclass.value + " " + sensor.units[1] : sensor.readings.value + " " + sensor.units[0] }} </strong>
           </p>
         </div>
         <div id="sensorDashboard-markdown310" class="show-list-numbers-and-dots widget_button_half">
-          <p style="margin-top:0px;color:#FFFFFF;font-size:10px;">{{ sensor.subclass ? sensor.devicename + " - " + sensor.source.toUpperCase() + "" + sensor.number + " " + sensor.class.toUpperCase() + " | " + sensor.subclass.toUpperCase() : sensor.devicename + " - " + sensor.source.toUpperCase() + "" + sensor.number
-            + " " + sensor.class.toUpperCase() }}</p>
+          <p style="margin-top:0px;color:#FFFFFF;font-size:10px;">{{ sensor.subclass ? sensor.devicename + " - " + sensor.source.toUpperCase() + "" + sensor.number + " - " + sensor.class.toUpperCase() + " | " + sensor.subclass.toUpperCase() : sensor.devicename + " - " + sensor.source.toUpperCase() + "" + sensor.number
+            + " - " + sensor.class.toUpperCase() }}</p>
         </div>
         <div id="sensorDashboard-markdown458" style="text-align:right;" class="show-list-numbers-and-dots widget_button_half">
           <p style="margin-top:0px;color:#FFFFFF;font-size:10px;">{{ sensor.subclass ? "Low: " + sensor.readings.lowest + " " + sensor.units[0] + " High: " + sensor.readings.highest + " " + sensor.units[0] + " | " + "Low: " + sensor.readings.subclass.lowest + " " + sensor.units[1] + " High: " + sensor.readings.subclass.highest
             + " " + sensor.units[1] : "Low: " + sensor.readings.lowest + " " + sensor.units[0] + " High: " + sensor.readings.highest + " " + sensor.units[0] }}</p>
         </div>
       </div>
-      <div id="canvas-holder" style="width:97%; margin:0px 0px 0px 3%;">
+      <div id="sensorDashboard-container20" ng-show="sensor.show">
+        <div id="canvas-holder" style="width:97%; margin:0px 0px 0px 3%;">
 
-        <br>
+          <br>
 
-        <canvas id="line" class="chart chart-line" chart-colors="sensors_datachart_colors" chart-data="chartData(sensor)" chart-labels="chartLabels(sensor)" chart-options="sensors_datachart_options">
-        </canvas>
+          <canvas id="{{sensor.devicename}}.{{sensor.sensorname}}" class="chart chart-line" chart-colors="chartColors(sensor)" chart-data="chartData(sensor)" chart-labels="chartLabels(sensor)" chart-series="chartSeries(sensor)" chart-options="sensors_datachart_options">
+          </canvas>
 
-        <p>
-        </p>
+          <p>
+          </p>
 
+        </div>
       </div>
     </div>
   </ion-content>
