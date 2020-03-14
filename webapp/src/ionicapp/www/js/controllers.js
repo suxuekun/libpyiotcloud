@@ -5096,10 +5096,42 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
     $scope.refresh_time = 5;
     $scope.run_time = 0;
     
-    $scope.sensors_datachart_colors = ['#387EF5', '#EF473A'];
-    $scope.sensors_datachart = [{"labels": [], "data": []}];
-    $scope.sensors_datachart_empty = {"labels": [], "data": []};
-    $scope.sensors_datachart_options = {"animation": false};
+    $scope.sensors_datachart_colors_options = ['#11C1F3', '#33CD5F', '#FFC900', '#F38124', '#F58CF6', '#886AEA'];
+    $scope.sensors_datachart = [{"labels": [], "data": [], "series": [], "colors": []}];
+    $scope.sensors_datachart_empty = {"labels": [], "data": [], "series": [], "colors": []};
+    $scope.sensors_datachart_options = {
+        "animation": false, 
+        // legends
+        "legend": {
+            "display": true,
+            "position": 'bottom'
+        },
+/*        
+        // line fill
+        "elements": {
+            "line": {
+                "fill": false
+            }
+        },
+*/        
+/*        
+        "onClick": function(e) {
+            //console.log(e);
+            console.log(e.srcElement.id);
+            var element = this.getElementAtEvent(e);
+            if (element.length) {
+                //console.log(element[0]);
+                console.log(element[0]._index);
+            }
+        },
+*/      
+        "tooltips": {
+            "enabled": true,
+            //"mode": 'index',
+			//"position": 'nearest',
+            //"custom": $scope.customTooltips
+        },
+    };
 
     $scope.data = {
         'username': User.get_username(),
@@ -5198,6 +5230,12 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         }); 
     };
 
+
+    $scope.changeSensorHide = function(sensor) {
+        sensor.show = !sensor.show;
+    };
+
+
     get_all_device_sensors_enabled_input_dataset = function() {
         //console.log($scope.peripheral);
         //console.log($scope.sensorclass);
@@ -5230,7 +5268,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             data: {'devicename': $scope.data.devicename, 'peripheral': $scope.peripheral, 'class': $scope.sensorclass }
         })
         .then(function (result) {
-            //console.log(result.data);
+            console.log(result.data);
             
             if (result.data.sensors.length === 0) {
                 $scope.sensors_counthdr = "No sensor enabled";
@@ -5243,23 +5281,55 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                 $scope.sensors_counthdr = result.data.sensors.length.toString() + " sensors enabled";
             }
 
+            for (var indexy=0; indexy<result.data.sensors.length; indexy++) {
+                let found = false;
+                for (var indexz=0; indexz<$scope.sensors.length; indexz++) {
+                    if ($scope.sensors[indexz].devicename === result.data.sensors[indexy].devicename &&
+                        $scope.sensors[indexz].sensorname === result.data.sensors[indexy].sensorname) {
+                            if ($scope.sensors[indexz].show === undefined) {
+                                result.data.sensors[indexy].show = true;
+                            }
+                            else {
+                                result.data.sensors[indexy].show = $scope.sensors[indexz].show;
+                            }
+                            found = true;
+                            break;
+                        }
+                }
+                if (found === false) {
+                    result.data.sensors[indexy].show = true;
+                }
+            }
             $scope.sensors = result.data.sensors;
-            
+
             if ($scope.sensors.length > 0) {
                 
                 // set default labels and data
                 $scope.sensors_datachart = [];
+                let color_index = 0;
                 for (var indexy=0; indexy<$scope.sensors.length; indexy++) {
                 
-                    $scope.sensors_datachart.push( $scope.sensors[indexy].dataset );
-
                     for (var indexz=0; indexz<$scope.sensors[indexy].dataset.labels.length; indexz++) {
                         var timestamp = new Date($scope.sensors[indexy].dataset.labels[indexz] * 1000);
                         var timestamp_str = timestamp.getHours() + ":" + timestamp.getMinutes() + ":" + timestamp.getSeconds();
                         $scope.sensors[indexy].dataset.labels[indexz] = timestamp_str;
                     }
+
+                    $scope.sensors[indexy].dataset.colors = [];
+                    if (color_index >= $scope.sensors_datachart_colors_options.length) {
+                        color_index = 0;
+                    }
+                    $scope.sensors[indexy].dataset.colors.push($scope.sensors_datachart_colors_options[color_index++]);
+                    $scope.sensors[indexy].dataset.series = [];
+                    $scope.sensors[indexy].dataset.series.push($scope.sensors[indexy].class);
+                    if ($scope.sensors[indexy].subclass) {
+                        $scope.sensors[indexy].dataset.series.push($scope.sensors[indexy].subclass);
+                        $scope.sensors[indexy].dataset.colors.push($scope.sensors_datachart_colors_options[color_index++]);
+                    }
+                    
+                    $scope.sensors_datachart.push( $scope.sensors[indexy].dataset );
                 }
-                //console.log($scope.sensors_datachart);
+                console.log($scope.sensors_datachart);
             }
         })
         .catch(function (error) {
@@ -5267,6 +5337,18 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         }); 
     };
 
+/*
+    $scope.chartOnClick = function(evt, sensor) {
+        console.log("chartOnClick");
+        console.log(evt);
+        console.log(sensor);
+        
+        var element = evt.getPointsAtEvent();
+        if (element.length) {
+            console.log(element[0]);
+        }        
+    };
+*/
     delete_all_device_sensors_enabled_input = function(flag=false) {
         //
         // DELETE ALL ENABLED DEVICE SENSORS (enabled input)
@@ -5334,10 +5416,9 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         Devices.fetch(param, "").then(function(res) {
             $scope.devices = $scope.devices.concat(res);
             $scope.data.token = User.get_token();
-            $scope.submitQuery();
+            $scope.submitQuery(refresh=true);
         });
     };
-
 
     $scope.chartLabels = function(sensor) {
         //console.log("chartLabels " + sensor.sensorname);  
@@ -5386,7 +5467,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         //console.log("chartData " + sensor.sensorname);
 
         if ($scope.sensors.length === 0) {
-            return $scope.sensors_datachart_empty.data;
+            return $scope.sensors_datachart_empty.series;
         }
         
         let indexy = 0;
@@ -5395,9 +5476,34 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                 break;
             }
         }
+
+        if (indexy >= $scope.sensors_datachart.length) {
+            return $scope.sensors_datachart_empty.series;
+        }
         
         return $scope.sensors_datachart[indexy].series;
     };
+    
+    $scope.chartColors = function(sensor) {
+        //console.log("chartData " + sensor.sensorname);
+
+        if ($scope.sensors.length === 0) {
+            return $scope.sensors_datachart_empty.colors;
+        }
+        
+        let indexy = 0;
+        for (indexy=0; indexy<$scope.sensors.length; indexy++) {
+            if ($scope.sensors[indexy].sensorname === sensor.sensorname) {
+                break;
+            }
+        }
+
+        if (indexy >= $scope.sensors_datachart.length) {
+            return $scope.sensors_datachart_empty.colors;
+        }
+        
+        return $scope.sensors_datachart[indexy].colors;
+    };    
 
     $scope.changeRefresh = function(refresh, timeout) {
         $scope.refresh_automatically = refresh;
@@ -5430,6 +5536,78 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             $scope.run_time = 0;
         }
     };
+
+/*
+    Chart.defaults.global.tooltips.custom = function(tooltip) {
+        console.log("Custom tool tips!!!");
+		// Tooltip Element
+        var tooltipEl = document.getElementById('chartjs-tooltip');
+
+		if (!tooltipEl) {
+			tooltipEl = document.createElement('div');
+			tooltipEl.id = 'chartjs-tooltip';
+			tooltipEl.innerHTML = '<table></table>';
+			this._chart.canvas.parentNode.appendChild(tooltipEl);
+		}
+
+		// Hide if no tooltip
+		if (tooltip.opacity === 0) {
+			tooltipEl.style.opacity = 0;
+			return;
+		}
+
+		// Set caret Position
+		tooltipEl.classList.remove('above', 'below', 'no-transform');
+		if (tooltip.yAlign) {
+			tooltipEl.classList.add(tooltip.yAlign);
+		} else {
+			tooltipEl.classList.add('no-transform');
+		}
+
+		function getBody(bodyItem) {
+			return bodyItem.lines;
+		}
+
+		// Set Text
+		if (tooltip.body) {
+			var titleLines = tooltip.title || [];
+			var bodyLines = tooltip.body.map(getBody);
+
+			var innerHtml = '<thead>';
+
+			titleLines.forEach(function(title) {
+				innerHtml += '<tr><th>' + title + '</th></tr>';
+			});
+			innerHtml += '</thead><tbody>';
+
+			bodyLines.forEach(function(body, i) {
+				var colors = tooltip.labelColors[i];
+				var style = 'background:' + colors.backgroundColor;
+				style += '; border-color:' + colors.borderColor;
+				//style += '; border-width: 2px';
+				var span = '<span class="chartjs-tooltip-key" style="' + style + '"></span>';
+				innerHtml += '<tr><td>' + span + body + '</td></tr>';
+			});
+			innerHtml += '</tbody>';
+
+			var tableRoot = tooltipEl.querySelector('table');
+			tableRoot.innerHTML = innerHtml;
+		}
+
+        console.log(this._chart);
+		var positionY = this._chart.canvas.offsetTop;
+		var positionX = this._chart.canvas.offsetLeft;
+
+		// Display, position, and set styles for font
+		tooltipEl.style.opacity = 1;
+		tooltipEl.style.left = positionX + tooltip.caretX + 'px';
+		tooltipEl.style.top = positionY + tooltip.caretY + 'px';
+		//tooltipEl.style.fontFamily = tooltip._bodyFontFamily;
+		//tooltipEl.style.fontSize = tooltip.bodyFontSize + 'px';
+		//tooltipEl.style.fontStyle = tooltip._bodyFontStyle;
+		//tooltipEl.style.padding = tooltip.yPadding + 'px ' + tooltip.xPadding + 'px';
+    };
+*/
 
     $scope.pollSensorData = function() {
         $scope.run_time += 1;
@@ -5500,7 +5678,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         $scope.submitQuery();
     };
 
-    $scope.submitQuery = function(clear=true) {
+    $scope.submitQuery = function(clear=true, refresh=false) {
         
         if (clear) {
             if ($scope.timer !== null) {
@@ -5511,8 +5689,10 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             $scope.run_time = 0;
             $scope.refresh_automatically = false;
             
-            $scope.sensors = [];
-            $scope.sensors_counthdr = "No sensor enabled";
+            if (refresh) {
+                $scope.sensors = [];
+                $scope.sensors_counthdr = "No sensor enabled";
+            }
         }
         
         get_all_device_sensors_enabled_input_dataset();
@@ -5566,6 +5746,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         $scope.run_time = 0;
         $scope.peripheral = $scope.peripherals[0];
         $scope.sensorclass = $scope.sensorclasses[0];
+        $scope.sensors_datachart = [{"labels": [], "data": [], "series": [], "colors": []}];
         get_devices();
     });
     

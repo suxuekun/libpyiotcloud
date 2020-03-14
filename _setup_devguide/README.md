@@ -1426,11 +1426,11 @@ DETAILED:
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
 		   { 'status': 'OK', 'message': string, 
-		     'sensor': {'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': string, 'enabled': int, 'configured': int, 'units': [], 'formats': [], 'attributes': [], 'dataset': {'labels': [], 'data': []} }
+		     'sensor': {'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': string, 'enabled': int, 'configured': int, 'units': [], 'formats': [], 'attributes': [], 'dataset': {'labels': [], 'data': [[],...]} }
 		   { 'status': 'NG', 'message': string}
 		   // the subclass parameter of readings parameter will only appear if the sensor has a subclass
-		   // if sensor has a subclass: 'dataset':  {'labels': [], 'data': [[],[]]}
-		      if sensor has no subclass: 'dataset': {'labels': [], 'data': []}
+		   // if sensor has a subclass:  'dataset': {'labels': [], 'data': [[],[]]}
+		      if sensor has no subclass: 'dataset': {'labels': [], 'data': [[]]}
 		      this make the dataset object directly useable by Chart.JS 
 
 		Q. GET PERIPHERAL SENSOR READINGS DATASET FILTERED
@@ -1443,11 +1443,11 @@ DETAILED:
 		   // class can be ["All classes", "potentiometer", "temperature", "humidity", "anemometer", "battery", "fluid"]
 		-  Response:
 		   { 'status': 'OK', 'message': string, 
-		     'sensor': {'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': string, 'enabled': int, 'configured': int, 'units': [], 'formats': [], 'attributes': [], 'dataset': {'labels': [], 'data': []}, 'readings': {'value': float, 'lowest': float, 'highest': float, 'subclass': {'value': float, 'lowest': float, 'highest': float}} }
+		     'sensor': {'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': string, 'enabled': int, 'configured': int, 'units': [], 'formats': [], 'attributes': [], 'dataset': {'labels': [], 'data': [[],...]}, 'readings': {'value': float, 'lowest': float, 'highest': float, 'subclass': {'value': float, 'lowest': float, 'highest': float}} }
 		   { 'status': 'NG', 'message': string}
 		   // the subclass parameter of readings parameter will only appear if the sensor has a subclass
-		   // if sensor has a subclass: 'dataset':  {'labels': [], 'data': [[],[]]}
-		      if sensor has no subclass: 'dataset': {'labels': [], 'data': []}
+		   // if sensor has a subclass:  'dataset': {'labels': [], 'data': [[],[]]}
+		      if sensor has no subclass: 'dataset': {'labels': [], 'data': [[]]}
 		      this make the dataset object directly usable by Chart.JS 
 
 		R. DELETE PERIPHERAL SENSOR READINGS

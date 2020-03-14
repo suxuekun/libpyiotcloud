@@ -2080,8 +2080,9 @@ class database_client_mongodb:
         #print("add_sensor_reading_dataset")
 
     def get_sensor_reading_dataset_by_deviceid(self, deviceid, source, address):
-        dataset = {"labels": [], "data": []}
-        dataset2 = {"labels": [], "data": [[],[]]}
+        # if sensor has a subclass data becomes  [[], [], ...]
+        # if sensor has no subclass data becomes [[]]
+        dataset  = {"labels": [], "data": []}
         sensorreadings = self.get_sensorreadings_dataset_document()
         if sensorreadings:
             if address is None:
@@ -2090,25 +2091,33 @@ class database_client_mongodb:
                     #print(sensorreading)
                     if sensorreading.get("value"):
                         if sensorreading.get("subclass_value"):
-                            dataset2["labels"].append(sensorreading["timestamp"])
-                            dataset2["data"][0].append(sensorreading["value"])
-                            dataset2["data"][1].append(sensorreading["subclass_value"])
+                            dataset["labels"].append(sensorreading["timestamp"])
+                            if len(dataset["data"]) == 0:
+                                dataset["data"].append([])
+                                dataset["data"].append([])
+                            dataset["data"][0].append(sensorreading["value"])
+                            dataset["data"][1].append(sensorreading["subclass_value"])
                         else:
                             dataset["labels"].append(sensorreading["timestamp"])
-                            dataset["data"].append(sensorreading["value"])
+                            if len(dataset["data"]) == 0:
+                                dataset["data"].append([])
+                            dataset["data"][0].append(sensorreading["value"])
             else:
                 readings = sensorreadings.find({'deviceid': deviceid, 'source': source, 'address': address})
                 for sensorreading in readings:
                     if sensorreading.get("value"):
                         if sensorreading.get("subclass_value"):
-                            dataset2["labels"].append(sensorreading["timestamp"])
-                            dataset2["data"][0].append(sensorreading["value"])
-                            dataset2["data"][1].append(sensorreading["subclass_value"])
+                            dataset["labels"].append(sensorreading["timestamp"])
+                            if len(dataset["data"]) == 0:
+                                dataset["data"].append([])
+                                dataset["data"].append([])
+                            dataset["data"][0].append(sensorreading["value"])
+                            dataset["data"][1].append(sensorreading["subclass_value"])
                         else:
                             dataset["labels"].append(sensorreading["timestamp"])
-                            dataset["data"].append(sensorreading["value"])
-        if len(dataset2["labels"]) > 0:
-            return dataset2
+                            if len(dataset["data"]) == 0:
+                                dataset["data"].append([])
+                            dataset["data"][0].append(sensorreading["value"])
         #print(dataset)
         return dataset
 
