@@ -5209,8 +5209,8 @@ def get_all_device_sensors_enabled_input_readings_dataset_filtered():
                 else:
                     # cannot communicate with device so set database record to unconfigured and disabled
                     g_database_client.disable_unconfigure_sensors(username, devicename)
-                    print('\r\nERROR Get All Device Sensors Dataset: Device is offline\r\n')
-                    return response, status_return
+                    #print('\r\nERROR Get All Device Sensors Dataset: Device is offline\r\n')
+                    #return response, status_return
 
 
         # query database
