@@ -5106,6 +5106,12 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             "display": true,
             "position": 'bottom'
         },
+/*
+        "title": {
+            "display": true,
+            "position": 'bottom'
+        },
+*/        
 /*        
         // line fill
         "elements": {
@@ -5127,6 +5133,41 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
 */      
         "tooltips": {
             "enabled": true,
+            "callbacks": {
+                "beforeTitle": function(tooltipItem, data) {
+                    //console.log(data);
+                    //console.log(data.datasets[0]._meta);
+                    var key = Object.keys(data.datasets[0]._meta)[0];
+                    var canvasid = data.datasets[0]._meta[key].controller.chart.ctx.canvas.id;
+                    return canvasid + "\r\n";
+                },
+                "title": function(tooltipItem, data) {
+                    //console.log(tooltipItem);
+                    //console.log(data);
+                    var key = Object.keys(data.datasets[0]._meta)[0];
+                    var canvasid = data.datasets[0]._meta[key].controller.chart.ctx.canvas.id;
+                    var devicename = canvasid.split(".")[0];
+                    var sensorname = canvasid.split(".")[1];
+                    //console.log(devicename);
+                    //console.log(sensorname);
+                    var date = "";
+                    for (var sensor in $scope.sensors_datachart) {
+                        if ($scope.sensors_datachart[sensor].devicename === devicename && 
+                            $scope.sensors_datachart[sensor].sensorname === sensorname) {
+                                key = tooltipItem[0].index;
+                                //console.log(key);
+                                date = $scope.sensors_datachart[sensor].labels_date[key];
+                                break;
+                            }
+                    }
+                    
+                    return "Timestamp: " + date + " " + tooltipItem[0].label;
+                },
+                "afterBody": function(tooltipItem, data) {
+                    // TODO
+                    return "\r\n\r\nAdd more data here...";
+                },
+            }            
             //"mode": 'index',
 			//"position": 'nearest',
             //"custom": $scope.customTooltips
@@ -5175,6 +5216,14 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
     ];
     $scope.sensorclass = $scope.sensorclasses[0];
     
+    // Filter by sensor status
+    $scope.sensorstatuses = [ 
+        "All online/offline",
+        "online",
+        "offline",
+    ];
+    $scope.sensorstatus = $scope.sensorstatuses[1];
+
     
 
 
@@ -5272,6 +5321,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             
             if (result.data.sensors.length === 0) {
                 $scope.sensors_counthdr = "No sensor enabled";
+                $scope.sensors = [];
                 return;
             }
             else if ($scope.sensors.length === 1) {
@@ -5281,9 +5331,9 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                 $scope.sensors_counthdr = result.data.sensors.length.toString() + " sensors enabled";
             }
 
-            for (var indexy=0; indexy<result.data.sensors.length; indexy++) {
+            for (let indexy=0; indexy<result.data.sensors.length; indexy++) {
                 let found = false;
-                for (var indexz=0; indexz<$scope.sensors.length; indexz++) {
+                for (let indexz=0; indexz<$scope.sensors.length; indexz++) {
                     if ($scope.sensors[indexz].devicename === result.data.sensors[indexy].devicename &&
                         $scope.sensors[indexz].sensorname === result.data.sensors[indexy].sensorname) {
                             if ($scope.sensors[indexz].show === undefined) {
@@ -5307,12 +5357,25 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                 // set default labels and data
                 $scope.sensors_datachart = [];
                 let color_index = 0;
-                for (var indexy=0; indexy<$scope.sensors.length; indexy++) {
+                for (let indexy=0; indexy<$scope.sensors.length; indexy++) {
+                    $scope.sensors[indexy].dataset.labels_time = [];
+                    $scope.sensors[indexy].dataset.labels_date = [];
                 
-                    for (var indexz=0; indexz<$scope.sensors[indexy].dataset.labels.length; indexz++) {
+                    for (let indexz=0; indexz<$scope.sensors[indexy].dataset.labels.length; indexz++) {
                         var timestamp = new Date($scope.sensors[indexy].dataset.labels[indexz] * 1000);
-                        var timestamp_str = timestamp.getHours() + ":" + timestamp.getMinutes() + ":" + timestamp.getSeconds();
-                        $scope.sensors[indexy].dataset.labels[indexz] = timestamp_str;
+                        //console.log(timestamp);
+                        var timestamp_time = 
+                            ('0'+timestamp.getHours()).slice(-2) + ":" + 
+                            ('0'+timestamp.getMinutes()).slice(-2) + ":" + 
+                            ('0'+timestamp.getSeconds()).slice(-2);
+                        //console.log(timestamp_time);
+                        var timestamp_date = 
+                            timestamp.getFullYear() + "/" + 
+                            ('0'+(timestamp.getMonth()+1)).slice(-2) + "/" + 
+                            ('0'+timestamp.getDate()).slice(-2);
+                        //console.log(timestamp_date);
+                        $scope.sensors[indexy].dataset.labels_time.push(timestamp_time);
+                        $scope.sensors[indexy].dataset.labels_date.push(timestamp_date);
                     }
 
                     $scope.sensors[indexy].dataset.colors = [];
@@ -5327,12 +5390,17 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                         $scope.sensors[indexy].dataset.colors.push($scope.sensors_datachart_colors_options[color_index++]);
                     }
                     
+                    $scope.sensors[indexy].dataset.devicename = $scope.sensors[indexy].devicename;
+                    $scope.sensors[indexy].dataset.sensorname = $scope.sensors[indexy].sensorname;
+                    
                     $scope.sensors_datachart.push( $scope.sensors[indexy].dataset );
                 }
-                console.log($scope.sensors_datachart);
+                //console.log($scope.sensors_datachart);
             }
         })
         .catch(function (error) {
+            $scope.sensors_counthdr = "No sensor enabled";
+            $scope.sensors = [];
             handle_error(error);
         }); 
     };
@@ -5389,6 +5457,11 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         $scope.submitQuery();
     };
 
+    $scope.changeSensorStatus = function(sensorstatus) {
+        $scope.sensorstatus = sensorstatus;
+        $scope.submitQuery();
+    };
+
     $scope.changeDevice = function(devicename) {
         for (indexy=0; indexy<$scope.devices.length; indexy++) {
             if (devicename === $scope.devices[indexy].devicename) {
@@ -5438,7 +5511,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             return $scope.sensors_datachart_empty.labels;
         }
         
-        return $scope.sensors_datachart[indexy].labels;
+        return $scope.sensors_datachart[indexy].labels_time;
     };
 
     $scope.chartData = function(sensor) {
@@ -5746,6 +5819,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         $scope.run_time = 0;
         $scope.peripheral = $scope.peripherals[0];
         $scope.sensorclass = $scope.sensorclasses[0];
+        $scope.sensorstatus = $scope.sensorstatuses[1];
         $scope.sensors_datachart = [{"labels": [], "data": [], "series": [], "colors": []}];
         get_devices();
     });

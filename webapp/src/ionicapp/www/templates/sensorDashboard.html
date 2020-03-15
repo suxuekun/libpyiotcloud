@@ -17,31 +17,35 @@
       <ion-toggle toggle-class="toggle-positive" id="sensorDashboard-toggle35" ng-model="hide_settings" ng-change="changeHideSettings(hide_settings)">.</ion-toggle>
     </form>
     <form id="sensorDashboard-form168" class="list" ng-show="!hide_settings">
-      <div id="sensorDashboard-markdown413" class="show-list-numbers-and-dots">
+      <div id="sensorDashboard-markdown413" class="show-list-numbers-and-dots widget_title_half_50">
         <p style="color:#387EF5;">Sensor Filter</p>
       </div>
-      <label class="item item-select widget_button_third" id="sensorDashboard-select98">
+      <div id="sensorDashboard-markdown434" class="show-list-numbers-and-dots widget_title_half_50">
+        <p style="color:#387EF5;">Dashboard Settings</p>
+      </div>
+      <label class="item item-select widget_button_half_50" id="sensorDashboard-select98">
         <span class="input-label">Device</span>
         <select ng-options="device.devicename as device.devicename for device in devices" ng-model="data.devicename" ng-change="changeDevice(data.devicename)" ng-disabled="refresh_automatically"></select>
       </label>
-      <label class="item item-select widget_button_third" id="sensorDashboard-select109">
-        <span class="input-label">Peripheral</span>
-        <select ng-options="peripheral for peripheral in peripherals" ng-model="peripheral" ng-change="changePeripheral(peripheral)" ng-disabled="refresh_automatically"></select>
-      </label>
-      <label class="item item-select widget_button_third" id="sensorDashboard-select110">
-        <span class="input-label">Sensor Class</span>
-        <select ng-options="sensorclass for sensorclass in sensorclasses" ng-model="sensorclass" ng-change="changeSensorClass(sensorclass)" ng-disabled="refresh_automatically"></select>
-      </label>
-      <div class="spacer" style="width: 747.778px; height: 15px;"></div>
-      <div id="sensorDashboard-markdown443" class="show-list-numbers-and-dots">
-        <p style="color:#387EF5;">Dashboard Settings</p>
-      </div>
       <label class="item item-input item-stacked-label widget_button_half_50" id="sensorDashboard-input144">
         <span class="input-label">Refresh time (sec)</span>
         <input type="number" placeholder="" ng-model="refresh_time" ng-disabled="refresh_automatically">
       </label>
+      <label class="item item-select widget_button_half_50" id="sensorDashboard-select109">
+        <span class="input-label">Peripheral</span>
+        <select ng-options="peripheral for peripheral in peripherals" ng-model="peripheral" ng-change="changePeripheral(peripheral)" ng-disabled="refresh_automatically"></select>
+      </label>
       <ion-toggle toggle-class="toggle-positive" id="sensorDashboard-toggle14" ng-model="refresh_automatically" ng-change="changeRefresh(refresh_automatically, refresh_time)" class="widget_button_half_50">Refresh automatically</ion-toggle>
-      <button id="sensorDashboard-button126" ng-click="submitDelete()" ng-disabled="refresh_automatically" class="button button-positive button-block button-outline">Reset values</button>
+      <label class="item item-select widget_title_half_50_noninline" id="sensorDashboard-select110">
+        <span class="input-label">Sensor Class</span>
+        <select ng-options="sensorclass for sensorclass in sensorclasses" ng-model="sensorclass" ng-change="changeSensorClass(sensorclass)" ng-disabled="refresh_automatically"></select>
+      </label>
+      <div class="spacer" style="width: 747.778px; height: 5px;"></div>
+      <label class="item item-select widget_title_half_50_noninline" id="sensorDashboard-select111">
+        <span class="input-label">Sensor Status</span>
+        <select ng-options="sensorstatus for sensorstatus in sensorstatuses" ng-model="sensorstatus" ng-change="changeSensorStatus(sensorclass)" ng-disabled="refresh_automatically"></select>
+      </label>
+      <button id="sensorDashboard-button126" ng-click="submitDelete()" ng-disabled="refresh_automatically" class="button button-positive button-block">Reset values</button>
     </form>
     <div id="sensorDashboard-markdown311" class="show-list-numbers-and-dots">
       <p style="color:#AAAAAA;font-size:12px;">{{ sensors_counthdr }}</p>
@@ -50,7 +54,7 @@
       <div class="item item-body card_top" id="sensorDashboard-list-item-container19" ng-click="changeSensorHide(sensor)">
         <div id="sensorDashboard-markdown295" class="show-list-numbers-and-dots">
           <p style="margin-top:0px;color:#FFFFFF;font-size:18px;">
-            <strong>{{ sensor.sensorname }}</strong>
+            <strong>{{ sensor.devicename + " - " + sensor.sensorname }}</strong>
           </p>
         </div>
         <div id="sensorDashboard-markdown305" class="show-list-numbers-and-dots widget_button_half">
@@ -62,8 +66,7 @@
           </p>
         </div>
         <div id="sensorDashboard-markdown310" class="show-list-numbers-and-dots widget_button_half">
-          <p style="margin-top:0px;color:#FFFFFF;font-size:10px;">{{ sensor.subclass ? sensor.devicename + " - " + sensor.source.toUpperCase() + "" + sensor.number + " - " + sensor.class.toUpperCase() + " | " + sensor.subclass.toUpperCase() : sensor.devicename + " - " + sensor.source.toUpperCase() + "" + sensor.number
-            + " - " + sensor.class.toUpperCase() }}</p>
+          <p style="margin-top:0px;color:#FFFFFF;font-size:10px;">{{ sensor.subclass ? sensor.source.toUpperCase() + "" + sensor.number + " - " + sensor.class.toUpperCase() + " | " + sensor.subclass.toUpperCase() : sensor.source.toUpperCase() + "" + sensor.number + " - " + sensor.class.toUpperCase() }}</p>
         </div>
         <div id="sensorDashboard-markdown458" style="text-align:right;" class="show-list-numbers-and-dots widget_button_half">
           <p style="margin-top:0px;color:#FFFFFF;font-size:10px;">{{ sensor.subclass ? "Low: " + sensor.readings.lowest + " " + sensor.units[0] + " High: " + sensor.readings.highest + " " + sensor.units[0] + " | " + "Low: " + sensor.readings.subclass.lowest + " " + sensor.units[1] + " High: " + sensor.readings.subclass.highest
@@ -75,7 +78,8 @@
 
           <br>
 
-          <canvas id="{{sensor.devicename}}.{{sensor.sensorname}}" class="chart chart-line" chart-colors="chartColors(sensor)" chart-data="chartData(sensor)" chart-labels="chartLabels(sensor)" chart-series="chartSeries(sensor)" chart-options="sensors_datachart_options">
+          <canvas id="{{sensor.devicename}}.{{sensor.sensorname}}" title="{{sensor.devicename}}.{{sensor.sensorname}}" class="chart chart-line" chart-colors="chartColors(sensor)" chart-data="chartData(sensor)" chart-labels="chartLabels(sensor)" chart-series="chartSeries(sensor)"
+            chart-options="sensors_datachart_options">
           </canvas>
 
           <p>

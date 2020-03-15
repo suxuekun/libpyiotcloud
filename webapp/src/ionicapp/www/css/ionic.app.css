@@ -9847,6 +9847,13 @@ table, th, td {
   max-width: 500px;
   margin: 0% auto; }
 
+.widget_title_half_50 {
+  width: 49% !important;
+  display: inline-block; }
+
+.widget_title_half_50_noninline {
+  width: 49% !important; }
+
 .widget_button {
   width: 48% !important;
   height: 65px; }
