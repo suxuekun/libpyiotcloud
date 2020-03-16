@@ -36,10 +36,11 @@
         <select ng-options="peripheral for peripheral in peripherals" ng-model="peripheral" ng-change="changePeripheral(peripheral)" ng-disabled="refresh_automatically"></select>
       </label>
       <ion-toggle toggle-class="toggle-positive" id="sensorDashboard-toggle14" ng-model="refresh_automatically" ng-change="changeRefresh(refresh_automatically, refresh_time)" class="widget_button_half_50">Refresh automatically</ion-toggle>
-      <label class="item item-select widget_title_half_50_noninline" id="sensorDashboard-select110">
+      <label class="item item-select widget_button_half_50" id="sensorDashboard-select110">
         <span class="input-label">Sensor Class</span>
         <select ng-options="sensorclass for sensorclass in sensorclasses" ng-model="sensorclass" ng-change="changeSensorClass(sensorclass)" ng-disabled="refresh_automatically"></select>
       </label>
+      <ion-toggle toggle-class="toggle-positive" id="sensorDashboard-toggle24" ng-model="big_charts" ng-change="changeBigChart(big_charts)" class="widget_button_half_50">Big charts</ion-toggle>
       <div class="spacer" style="width: 747.778px; height: 5px;"></div>
       <label class="item item-select widget_title_half_50_noninline" id="sensorDashboard-select111">
         <span class="input-label">Sensor Status</span>
@@ -47,13 +48,15 @@
       </label>
       <button id="sensorDashboard-button126" ng-click="submitDelete()" ng-disabled="refresh_automatically" class="button button-positive button-block">Reset values</button>
     </form>
-    <div id="sensorDashboard-markdown311" class="show-list-numbers-and-dots">
-      <p style="color:#AAAAAA;font-size:12px;">{{ sensors_counthdr }}</p>
+    <div id="sensorDashboard-container22">
+      <div id="sensorDashboard-markdown441" class="show-list-numbers-and-dots">
+        <p style="color:#AAAAAA;font-size:12px;">{{ sensors_counthdr }}</p>
+      </div>
     </div>
-    <div class="list card" id="sensorDashboard-card28" ng-repeat="sensor in sensors">
+    <div class="list card widget_half" id="sensorDashboard-card28" ng-repeat="sensor in sensors" ng-show="!big_charts">
       <div class="item item-body card_top" id="sensorDashboard-list-item-container19" ng-click="changeSensorHide(sensor)">
         <div id="sensorDashboard-markdown295" class="show-list-numbers-and-dots">
-          <p style="margin-top:0px;color:#FFFFFF;font-size:18px;">
+          <p style="margin-top:0px;color:#FFFFFF;font-size:16px;">
             <strong>{{ sensor.devicename + " - " + sensor.sensorname }}</strong>
           </p>
         </div>
@@ -61,7 +64,7 @@
           <p style="margin-top:0px;color:#FFFFFF;font-size:10px;">{{ sensor.manufacturer }} - {{ sensor.model }}</p>
         </div>
         <div id="sensorDashboard-markdown459" style="text-align:right;" class="show-list-numbers-and-dots widget_button_half">
-          <p style="margin-top:0px;color:#FFFFFF;font-size:28px;">
+          <p style="margin-top:0px;color:#FFFFFF;font-size:16px;">
             <strong> {{ sensor.subclass ? sensor.readings.value + " " + sensor.units[0] + " | " + sensor.readings.subclass.value + " " + sensor.units[1] : sensor.readings.value + " " + sensor.units[0] }} </strong>
           </p>
         </div>
@@ -74,6 +77,44 @@
         </div>
       </div>
       <div id="sensorDashboard-container20" ng-show="sensor.show">
+        <div id="canvas-holder" style="width:97%; margin:0px 0px 0px 3%;">
+
+          <br>
+
+          <canvas id="{{sensor.devicename}}.{{sensor.sensorname}}" title="{{sensor.devicename}}.{{sensor.sensorname}}" class="chart chart-line" chart-colors="chartColors(sensor)" chart-data="chartData(sensor)" chart-labels="chartLabels(sensor)" chart-series="chartSeries(sensor)"
+            chart-options="sensors_datachart_options">
+          </canvas>
+
+          <p>
+          </p>
+
+        </div>
+      </div>
+    </div>
+    <div class="list card" id="sensorDashboard-card25" ng-repeat="sensor in sensors" ng-show="big_charts">
+      <div class="item item-body card_top" id="sensorDashboard-list-item-container22" ng-click="changeSensorHide(sensor)">
+        <div id="sensorDashboard-markdown435" class="show-list-numbers-and-dots">
+          <p style="margin-top:0px;color:#FFFFFF;font-size:18px;">
+            <strong>{{ sensor.devicename + " - " + sensor.sensorname }}</strong>
+          </p>
+        </div>
+        <div id="sensorDashboard-markdown436" class="show-list-numbers-and-dots widget_button_half">
+          <p style="margin-top:0px;color:#FFFFFF;font-size:10px;">{{ sensor.manufacturer }} - {{ sensor.model }}</p>
+        </div>
+        <div id="sensorDashboard-markdown438" style="text-align:right;" class="show-list-numbers-and-dots widget_button_half">
+          <p style="margin-top:0px;color:#FFFFFF;font-size:28px;">
+            <strong> {{ sensor.subclass ? sensor.readings.value + " " + sensor.units[0] + " | " + sensor.readings.subclass.value + " " + sensor.units[1] : sensor.readings.value + " " + sensor.units[0] }} </strong>
+          </p>
+        </div>
+        <div id="sensorDashboard-markdown439" class="show-list-numbers-and-dots widget_button_half">
+          <p style="margin-top:0px;color:#FFFFFF;font-size:10px;">{{ sensor.subclass ? sensor.source.toUpperCase() + "" + sensor.number + " - " + sensor.class.toUpperCase() + " | " + sensor.subclass.toUpperCase() : sensor.source.toUpperCase() + "" + sensor.number + " - " + sensor.class.toUpperCase() }}</p>
+        </div>
+        <div id="sensorDashboard-markdown440" style="text-align:right;" class="show-list-numbers-and-dots widget_button_half">
+          <p style="margin-top:0px;color:#FFFFFF;font-size:10px;">{{ sensor.subclass ? "Low: " + sensor.readings.lowest + " " + sensor.units[0] + " High: " + sensor.readings.highest + " " + sensor.units[0] + " | " + "Low: " + sensor.readings.subclass.lowest + " " + sensor.units[1] + " High: " + sensor.readings.subclass.highest
+            + " " + sensor.units[1] : "Low: " + sensor.readings.lowest + " " + sensor.units[0] + " High: " + sensor.readings.highest + " " + sensor.units[0] }}</p>
+        </div>
+      </div>
+      <div id="sensorDashboard-container21" ng-show="sensor.show">
         <div id="canvas-holder" style="width:97%; margin:0px 0px 0px 3%;">
 
           <br>

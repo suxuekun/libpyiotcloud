@@ -9851,6 +9851,14 @@ table, th, td {
   width: 49% !important;
   display: inline-block; }
 
+.widget_half {
+  width: 49% !important;
+  display: inline-block; }
+
+.widget_third {
+  width: 33% !important;
+  display: inline-block; }
+
 .widget_title_half_50_noninline {
   width: 49% !important; }
 
