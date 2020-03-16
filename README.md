@@ -36,6 +36,7 @@ The web app is made of Ionic framework so it can be compiled as Android and iOS 
 - <b>Flask</b> web framework (REST API) - http://flask.pocoo.org/
 - <b>RabbitMQ</b> message broker (MQTT, AMQP) - https://www.rabbitmq.com/
 - <b>MongoDB</b> NoSQL database - https://www.mongodb.com/
+- <b>MongoDB Compass</b> GUI for MongoDB - https://www.mongodb.com/products/compass
 - <b>Redis</b> fast key-value data store (flexible: database, caching, mq) - https://redis.io/
 - <b>OpenSSL</b> cryptography (X509 certificates) - https://www.openssl.org/
 - <b>Amazon EC2</b> - https://aws.amazon.com/ec2/
@@ -683,8 +684,19 @@ Note: Using Kubernetes will also change the infrastracture.
        sudo service mongod start
        sudo nano /var/log/mongodb/mongod.log
 
+
        WINDOWS: [https://www.mongodb.com/download-center/community?jmp=docs]
        Download and run MSI installer from the link above
+       Update C:\Program Files\MongoDB\Server\4.0\bin\mongod.cfg
+         security:
+           authorization: "enabled"
+       Run C:\Program Files\MongoDB\Server\4.0\bin\mongo.exe
+         Create a user using db.createUser() as specified in https://docs.mongodb.com/guides/server/auth/
+       Restart MongoDB service by opening services.msc
+
+       Download MongoDB Compass from https://www.mongodb.com/download-center/compass
+         and run MongoDBCompass.exe
+         Change Authentication to Username/Password and specify both username and password fields
 
 
 ### Setup Amazon Cognito.
@@ -1582,6 +1594,8 @@ Notes:
         - docker image ls
 
         https://stackoverflow.com/questions/31909979/docker-machine-no-space-left-on-device
+        - docker ps --size
+        - docker system df --verbose
         - docker network ls
         - docker network prune
         - docker volume ls
@@ -1596,6 +1610,10 @@ Notes:
 
         Jenkins: // if jenkins URL is not accessible
         - sudo service jenkins start
+
+        https://stackoverflow.com/questions/51493978/how-to-migrate-a-mongodb-database-between-docker-containers
+        https://forums.docker.com/t/mongodb-migrating-container-to-a-different-server/72328
+        - migrating mongodb database
 
 
 # Performance
