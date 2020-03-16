@@ -1437,10 +1437,11 @@ DETAILED:
 		-  Request:
 		   POST /devices/sensors/readings/dataset
 		   headers: {'Authorization': 'Bearer ' + token.access}
-		   data: {'devicename': string, 'peripheral': string, 'class': string}
+		   data: {'devicename': string, 'peripheral': string, 'class': string, 'status': string}
 		   // devicename can be "All devices" or the devicename of specific device
 		   // peripheral can be ["All peripherals", "I2C1", "I2C2", "I2C3", "I2C4", "ADC1", "ADC2", "1WIRE1", "TPROBE1"]
 		   // class can be ["All classes", "potentiometer", "temperature", "humidity", "anemometer", "battery", "fluid"]
+		   // status can be ["All online/offline", "online", "offline"]
 		-  Response:
 		   { 'status': 'OK', 'message': string, 
 		     'sensor': {'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': string, 'enabled': int, 'configured': int, 'units': [], 'formats': [], 'attributes': [], 'dataset': {'labels': [], 'data': [[],...]}, 'readings': {'value': float, 'lowest': float, 'highest': float, 'subclass': {'value': float, 'lowest': float, 'highest': float}} }

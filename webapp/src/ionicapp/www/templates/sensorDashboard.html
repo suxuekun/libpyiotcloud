@@ -43,7 +43,7 @@
       <div class="spacer" style="width: 747.778px; height: 5px;"></div>
       <label class="item item-select widget_title_half_50_noninline" id="sensorDashboard-select111">
         <span class="input-label">Sensor Status</span>
-        <select ng-options="sensorstatus for sensorstatus in sensorstatuses" ng-model="sensorstatus" ng-change="changeSensorStatus(sensorclass)" ng-disabled="refresh_automatically"></select>
+        <select ng-options="sensorstatus for sensorstatus in sensorstatuses" ng-model="sensorstatus" ng-change="changeSensorStatus(sensorstatus)" ng-disabled="refresh_automatically"></select>
       </label>
       <button id="sensorDashboard-button126" ng-click="submitDelete()" ng-disabled="refresh_automatically" class="button button-positive button-block">Reset values</button>
     </form>

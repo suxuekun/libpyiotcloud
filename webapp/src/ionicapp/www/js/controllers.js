@@ -5096,7 +5096,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
     $scope.refresh_time = 5;
     $scope.run_time = 0;
     
-    $scope.sensors_datachart_colors_options = ['#11C1F3', '#33CD5F', '#FFC900', '#F38124', '#F58CF6', '#886AEA'];
+    $scope.sensors_datachart_colors_options = ['#11C1F3', '#33CD5F', '#FFC900', '#F38124', '#F58CF6', '#B6A2FC'];
     $scope.sensors_datachart = [{"labels": [], "data": [], "series": [], "colors": []}];
     $scope.sensors_datachart_empty = {"labels": [], "data": [], "series": [], "colors": []};
     $scope.sensors_datachart_options = {
@@ -5299,7 +5299,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         // - Request:
         //   POST /devices/sensors/readings/dataset
         //   headers: { 'Authorization': 'Bearer ' + token.access }
-        //   data: {'devicename': string, 'peripheral': string, 'class': string}
+        //   data: {'devicename': string, 'peripheral': string, 'class': string, 'status': string}
         //
         // - Response:
         //   { 'status': 'OK', 'message': string }
@@ -5314,7 +5314,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             method: 'POST',
             url: server + '/devices/sensors/readings/dataset',
             headers: { 'Authorization': 'Bearer ' + $scope.data.token.access },
-            data: {'devicename': $scope.data.devicename, 'peripheral': $scope.peripheral, 'class': $scope.sensorclass }
+            data: {'devicename': $scope.data.devicename, 'peripheral': $scope.peripheral, 'class': $scope.sensorclass, 'status': $scope.sensorstatus }
         })
         .then(function (result) {
             console.log(result.data);
@@ -5324,7 +5324,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                 $scope.sensors = [];
                 return;
             }
-            else if ($scope.sensors.length === 1) {
+            else if (result.data.sensors.length === 1) {
                 $scope.sensors_counthdr = "1 sensor enabled";
             }
             else {
@@ -5358,6 +5358,25 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                 $scope.sensors_datachart = [];
                 let color_index = 0;
                 for (let indexy=0; indexy<$scope.sensors.length; indexy++) {
+                    // colors, series
+                    $scope.sensors[indexy].dataset.colors = [];
+                    if (color_index >= $scope.sensors_datachart_colors_options.length) {
+                        color_index = 0;
+                    }
+                    $scope.sensors[indexy].dataset.colors.push($scope.sensors_datachart_colors_options[color_index++]);
+                    $scope.sensors[indexy].dataset.series = [];
+                    $scope.sensors[indexy].dataset.series.push($scope.sensors[indexy].class);
+                    if ($scope.sensors[indexy].subclass) {
+                        $scope.sensors[indexy].dataset.series.push($scope.sensors[indexy].subclass);
+                        $scope.sensors[indexy].dataset.colors.push($scope.sensors_datachart_colors_options[color_index++]);
+                    }
+                    console.log("xxxxxxx" + indexy + " " + color_index + " " + $scope.sensors[indexy].dataset.colors);
+
+                    // devicename, sensorname    
+                    $scope.sensors[indexy].dataset.devicename = $scope.sensors[indexy].devicename;
+                    $scope.sensors[indexy].dataset.sensorname = $scope.sensors[indexy].sensorname;
+                    
+                    // labels
                     $scope.sensors[indexy].dataset.labels_time = [];
                     $scope.sensors[indexy].dataset.labels_date = [];
                 
@@ -5378,21 +5397,6 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                         $scope.sensors[indexy].dataset.labels_date.push(timestamp_date);
                     }
 
-                    $scope.sensors[indexy].dataset.colors = [];
-                    if (color_index >= $scope.sensors_datachart_colors_options.length) {
-                        color_index = 0;
-                    }
-                    $scope.sensors[indexy].dataset.colors.push($scope.sensors_datachart_colors_options[color_index++]);
-                    $scope.sensors[indexy].dataset.series = [];
-                    $scope.sensors[indexy].dataset.series.push($scope.sensors[indexy].class);
-                    if ($scope.sensors[indexy].subclass) {
-                        $scope.sensors[indexy].dataset.series.push($scope.sensors[indexy].subclass);
-                        $scope.sensors[indexy].dataset.colors.push($scope.sensors_datachart_colors_options[color_index++]);
-                    }
-                    
-                    $scope.sensors[indexy].dataset.devicename = $scope.sensors[indexy].devicename;
-                    $scope.sensors[indexy].dataset.sensorname = $scope.sensors[indexy].sensorname;
-                    
                     $scope.sensors_datachart.push( $scope.sensors[indexy].dataset );
                 }
                 //console.log($scope.sensors_datachart);
@@ -5502,7 +5506,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         
         let indexy = 0;
         for (indexy=0; indexy<$scope.sensors.length; indexy++) {
-            if ($scope.sensors[indexy].sensorname === sensor.sensorname) {
+            if ($scope.sensors[indexy].sensorname === sensor.sensorname &&
+                $scope.sensors[indexy].devicename === sensor.devicename) {
                 break;
             }
         }
@@ -5523,7 +5528,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         
         let indexy = 0;
         for (indexy=0; indexy<$scope.sensors.length; indexy++) {
-            if ($scope.sensors[indexy].sensorname === sensor.sensorname) {
+            if ($scope.sensors[indexy].sensorname === sensor.sensorname &&
+                $scope.sensors[indexy].devicename === sensor.devicename) {
                 break;
             }
         }
@@ -5545,7 +5551,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         
         let indexy = 0;
         for (indexy=0; indexy<$scope.sensors.length; indexy++) {
-            if ($scope.sensors[indexy].sensorname === sensor.sensorname) {
+            if ($scope.sensors[indexy].sensorname === sensor.sensorname &&
+                $scope.sensors[indexy].devicename === sensor.devicename) {
                 break;
             }
         }
@@ -5566,7 +5573,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         
         let indexy = 0;
         for (indexy=0; indexy<$scope.sensors.length; indexy++) {
-            if ($scope.sensors[indexy].sensorname === sensor.sensorname) {
+            if ($scope.sensors[indexy].sensorname === sensor.sensorname &&
+                $scope.sensors[indexy].devicename === sensor.devicename) {
                 break;
             }
         }
