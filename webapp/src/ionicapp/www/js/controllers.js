@@ -5095,6 +5095,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
     $scope.refresh_automatically = false;
     $scope.refresh_time = 5;
     $scope.run_time = 0;
+    $scope.big_charts = true;
     
     $scope.sensors_datachart_colors_options = ['#11C1F3', '#33CD5F', '#FFC900', '#F38124', '#F58CF6', '#B6A2FC'];
     $scope.sensors_datachart = [{"labels": [], "data": [], "series": [], "colors": []}];
@@ -5226,6 +5227,10 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
 
     
 
+    $scope.changeBigChart = function(s) {
+        $scope.big_charts = s;
+        console.log($scope.big_charts);
+    };
 
     $scope.changeHideSettings = function(s) {
         $scope.hide_settings = s;
