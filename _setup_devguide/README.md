@@ -962,6 +962,10 @@ DETAILED:
 		-  Response:
 		   { 'status': 'OK', 'message': string, 'ota': {"version": string, "status":string, "time": string, "timestamp": int} }
 		   { 'status': 'NG', 'message': string}
+		   // version is the update version 
+		   // status is the update status 
+		   // time is the duration for the update
+		   // timestamp is the completion datetime in epoch of the update
 
 		Q. GET OTA STATUSES
 		-  Request:
@@ -970,6 +974,10 @@ DETAILED:
 		-  Response:
 		   { 'status': 'OK', 'message': string, 'ota': [{"devicename": string, "deviceid", string, "version": string, "status":string, "time": string, "timestamp": int}, ...] }
 		   { 'status': 'NG', 'message': string}
+		   // version is the update version 
+		   // status is the update status 
+		   // time is the duration for the update
+		   // timestamp is the completion datetime in epoch of the update
 
 
 	3. Device access and control APIs (STATUS, UART, GPIO)
