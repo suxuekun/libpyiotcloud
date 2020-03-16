@@ -351,7 +351,8 @@ class database_client_mongodb:
         self.port = port
 
     def initialize(self):
-        mongo_client = MongoClient(self.host, self.port)
+        mongo_client = MongoClient(self.host, self.port, username=config.CONFIG_MONGODB_USERNAME, password=config.CONFIG_MONGODB_PASSWORD)
+        #mongo_client = MongoClient(self.host, self.port)
         self.client = mongo_client[config.CONFIG_MONGODB_DB]
 
 

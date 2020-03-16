@@ -50,6 +50,8 @@ class config:
     CONFIG_ENABLE_MQ_SECURITY   = True
 
     # Database settings
+    CONFIG_MONGODB_USERNAME          = os.environ["CONFIG_USE_MONGODB_USER"]
+    CONFIG_MONGODB_PASSWORD          = os.environ["CONFIG_USE_MONGODB_PASS"]
     if os.name == 'nt':
         CONFIG_MONGODB_HOST          = "127.0.0.1"
     else:

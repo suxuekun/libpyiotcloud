@@ -18,6 +18,9 @@ services:
   mongodb:
     build: ./mongodb
     restart: always
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=CONFIG_USE_MONGODB_USER
+      - MONGO_INITDB_ROOT_PASSWORD=CONFIG_USE_MONGODB_PASS
     networks:
       - mydockernet
     ports:
@@ -62,6 +65,8 @@ services:
       - AWS_S3_FILE_SENSOR_DEVICES
       - AWS_S3_FILE_FIRMWARE_UPDATES
       - AWS_COGNITO_OAUTH_DOMAIN
+      - CONFIG_USE_MONGODB_USER
+      - CONFIG_USE_MONGODB_PASS
   webapp:
     build: 
       context: ./webapp
@@ -127,6 +132,8 @@ services:
       - CONFIG_USE_MQTT_DEFAULT_PASS
       - AWS_S3_REGION
       - AWS_S3_BUCKET
+      - CONFIG_USE_MONGODB_USER
+      - CONFIG_USE_MONGODB_PASS
   history:
     build: ./history
     restart: always
@@ -139,6 +146,8 @@ services:
       - CONFIG_USE_ECC
       - CONFIG_USE_MQTT_DEFAULT_USER
       - CONFIG_USE_MQTT_DEFAULT_PASS
+      - CONFIG_USE_MONGODB_USER
+      - CONFIG_USE_MONGODB_PASS
   sensor:
     build: ./sensor
     restart: always
@@ -151,6 +160,8 @@ services:
       - CONFIG_USE_ECC
       - CONFIG_USE_MQTT_DEFAULT_USER
       - CONFIG_USE_MQTT_DEFAULT_PASS
+      - CONFIG_USE_MONGODB_USER
+      - CONFIG_USE_MONGODB_PASS
   configuration:
     build: ./configuration
     restart: always
@@ -163,6 +174,8 @@ services:
       - CONFIG_USE_ECC
       - CONFIG_USE_MQTT_DEFAULT_USER
       - CONFIG_USE_MQTT_DEFAULT_PASS
+      - CONFIG_USE_MONGODB_USER
+      - CONFIG_USE_MONGODB_PASS
   ota:
     build: ./ota
     restart: always
@@ -182,6 +195,8 @@ services:
       - AWS_S3_FILE_I2C_DEVICES
       - AWS_S3_FILE_SENSOR_DEVICES
       - AWS_S3_FILE_FIRMWARE_UPDATES
+      - CONFIG_USE_MONGODB_USER
+      - CONFIG_USE_MONGODB_PASS
 networks:
   mydockernet:
     driver: bridge
