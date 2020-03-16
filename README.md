@@ -698,6 +698,11 @@ Note: Using Kubernetes will also change the infrastracture.
          and run MongoDBCompass.exe
          Change Authentication to Username/Password and specify both username and password fields
 
+       MongoDB Compass is a desktop application that can connect to AWS EC2 MongoDB container via SSH to 
+         This is useful for easily debugging/troubleshooting data-related issues.
+       MongoDB Compass access the database via SSH, not the MongoDB port 27017,
+         so exposing port 27017 in AWS EC2 security firewall was NOT necessary.
+
 
 ### Setup Amazon Cognito.
     
@@ -1577,6 +1582,12 @@ Notes:
         3. Run "ionic serve" in webapp\src\ionicapp
 
 ### Troubleshooting
+
+        RabbitMQ message queue
+        - Use the Web interface (via HTTP)
+
+        MongoDB database
+        - Use the MongoDB Compass desktop app (via SSH)
 
         IP:
         - docker-machine ip
