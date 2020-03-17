@@ -827,6 +827,15 @@ class database_client_mongodb:
         #mongo_client = MongoClient(config.CONFIG_MONGODB_HOST, config.CONFIG_MONGODB_PORT, username=config.CONFIG_MONGODB_USERNAME, password=config.CONFIG_MONGODB_PASSWORD)
         mongo_client = MongoClient(config.CONFIG_MONGODB_HOST, config.CONFIG_MONGODB_PORT)
         self.client = mongo_client[config.CONFIG_MONGODB_DB]
+
+        # different database for sensor dashboarding
+        if "mongodb.net" in config.CONFIG_MONGODB_HOST2: 
+            connection_string = "mongodb+srv://" + config.CONFIG_MONGODB_USERNAME + ":" + config.CONFIG_MONGODB_PASSWORD + "@" + config.CONFIG_MONGODB_HOST2 + "/" + config.CONFIG_MONGODB_DB + "?retryWrites=true&w=majority"
+            mongo_client_sensor = MongoClient(connection_string)
+            self.client_sensor = mongo_client_sensor[config.CONFIG_MONGODB_DB]
+        else:
+            self.client_sensor = self.client
+
         self.paypal = paypal_client()
         self.paypal.initialize()
 
@@ -1647,7 +1656,7 @@ class database_client_mongodb:
         i2csensors = self.get_sensors_document();
         if i2csensors:
             if deviceid and source and sensorclass and sensorstatus is not None:
-                print("1 2 3 4")
+                #print("1 2 3 4")
                 # 1, 2, 3, 4
                 for i2csensor in i2csensors.find({'type': 'input', 'deviceid': deviceid, 'source': source, 'number': number, 'class': sensorclass, 'enabled': sensorstatus}):
                     i2csensor.pop('_id')
@@ -1664,7 +1673,7 @@ class database_client_mongodb:
                     pass
 
             elif deviceid and source and sensorclass:
-                print("1 2 3")
+                #print("1 2 3")
                 # 1, 2, 3
                 for i2csensor in i2csensors.find({'type': 'input', 'deviceid': deviceid, 'source': source, 'number': number, 'class': sensorclass}):
                     i2csensor.pop('_id')
@@ -1680,7 +1689,7 @@ class database_client_mongodb:
                 except:
                     pass
             elif deviceid and source and sensorstatus is not None:
-                print("1 2 4")
+                #print("1 2 4")
                 # 1, 2, 4
                 for i2csensor in i2csensors.find({'type': 'input', 'deviceid': deviceid, 'source': source, 'number': number, 'enabled': sensorstatus}):
                     i2csensor.pop('_id')
@@ -1688,7 +1697,7 @@ class database_client_mongodb:
                         i2csensor.pop('username')
                     sensor_list.append(i2csensor)
             elif deviceid and sensorclass and sensorstatus is not None:
-                print("1 3 4")
+                #print("1 3 4")
                 # 1, 3, 4
                 for i2csensor in i2csensors.find({'type': 'input', 'deviceid': deviceid, 'class': sensorclass, 'enabled': sensorstatus}):
                     i2csensor.pop('_id')
@@ -1704,7 +1713,7 @@ class database_client_mongodb:
                 except:
                     pass
             elif source and sensorclass and sensorstatus is not None:
-                print("2 3 4")
+                #print("2 3 4")
                 # 2, 3, 4
                 for i2csensor in i2csensors.find({'type': 'input', 'source': source, 'number': number, 'class': sensorclass, 'enabled': sensorstatus}):
                     i2csensor.pop('_id')
@@ -1721,7 +1730,7 @@ class database_client_mongodb:
                     pass
 
             elif deviceid and source:
-                print("1 2")
+                #print("1 2")
                 # 1, 2
                 for i2csensor in i2csensors.find({'type': 'input', 'deviceid': deviceid, 'source': source, 'number': number}):
                     i2csensor.pop('_id')
@@ -1729,7 +1738,7 @@ class database_client_mongodb:
                         i2csensor.pop('username')
                     sensor_list.append(i2csensor)
             elif deviceid and sensorclass:
-                print("1 3")
+                #print("1 3")
                 # 1, 3
                 for i2csensor in i2csensors.find({'type': 'input', 'deviceid': deviceid, 'class': sensorclass}):
                     i2csensor.pop('_id')
@@ -1745,7 +1754,7 @@ class database_client_mongodb:
                 except:
                     pass
             elif deviceid and sensorstatus is not None:
-                print("1 4")
+                #print("1 4")
                 # 1, 4
                 for i2csensor in i2csensors.find({'type': 'input', 'deviceid': deviceid, 'enabled': sensorstatus}):
                     i2csensor.pop('_id')
@@ -1753,7 +1762,7 @@ class database_client_mongodb:
                         i2csensor.pop('username')
                     sensor_list.append(i2csensor)
             elif source and sensorclass:
-                print("2 3")
+                #print("2 3")
                 # 2, 3
                 for i2csensor in i2csensors.find({'type': 'input', 'source': source, 'number': number, 'class': sensorclass}):
                     i2csensor.pop('_id')
@@ -1769,7 +1778,7 @@ class database_client_mongodb:
                 except:
                     pass
             elif source and sensorstatus is not None:
-                print("2 4")
+                #print("2 4")
                 # 2, 4
                 for i2csensor in i2csensors.find({'type': 'input', 'source': source, 'number': number, 'enabled': sensorstatus}):
                     i2csensor.pop('_id')
@@ -1777,7 +1786,7 @@ class database_client_mongodb:
                         i2csensor.pop('username')
                     sensor_list.append(i2csensor)
             elif sensorclass and sensorstatus:
-                print("3 4")
+                #print("3 4")
                 # 3, 4
                 for i2csensor in i2csensors.find({'type': 'input', 'class': sensorclass, 'enabled': sensorstatus}):
                     i2csensor.pop('_id')
@@ -1793,9 +1802,8 @@ class database_client_mongodb:
                 except:
                     pass
 
-
             elif deviceid is not None:
-                print("1")
+                #print("1")
                 # 1
                 for i2csensor in i2csensors.find({'type': 'input', 'deviceid': deviceid}):
                     i2csensor.pop('_id')
@@ -1803,7 +1811,7 @@ class database_client_mongodb:
                         i2csensor.pop('username')
                     sensor_list.append(i2csensor)
             elif source is not None:
-                print("2")
+                #print("2")
                 # 2
                 for i2csensor in i2csensors.find({'type': 'input', 'source': source, 'number': number}):
                     i2csensor.pop('_id')
@@ -1811,7 +1819,7 @@ class database_client_mongodb:
                         i2csensor.pop('username')
                     sensor_list.append(i2csensor)
             elif sensorclass is not None:
-                print("3")
+                #print("3")
                 # 3
                 for i2csensor in i2csensors.find({'type': 'input', 'class': sensorclass}):
                     i2csensor.pop('_id')
@@ -1827,7 +1835,7 @@ class database_client_mongodb:
                 except:
                     pass
             elif sensorstatus is not None:
-                print("4")
+                #print("4")
                 # 4
                 for i2csensor in i2csensors.find({'type': 'input', 'enabled': sensorstatus}):
                     i2csensor.pop('_id')
@@ -1836,7 +1844,7 @@ class database_client_mongodb:
                     sensor_list.append(i2csensor)
 
             else:
-                print("X")
+                #print("X")
                 # X
                 for i2csensor in i2csensors.find({'type': 'input'}):
                     i2csensor.pop('_id')
@@ -2088,7 +2096,8 @@ class database_client_mongodb:
     ##########################################################
 
     def get_sensorreadings_document(self):
-        return self.client[config.CONFIG_MONGODB_TB_SENSORREADINGS]
+        #return self.client[config.CONFIG_MONGODB_TB_SENSORREADINGS]
+        return self.client_sensor[config.CONFIG_MONGODB_TB_SENSORREADINGS]
 
     def update_sensor_reading(self, deviceid, source, address, sensor_readings):
         sensorreadings = self.get_sensorreadings_document();
@@ -2168,7 +2177,8 @@ class database_client_mongodb:
     ##########################################################
 
     def get_sensorreadings_dataset_document(self):
-        return self.client[config.CONFIG_MONGODB_TB_SENSORREADINGS_DATASET]
+        #return self.client[config.CONFIG_MONGODB_TB_SENSORREADINGS_DATASET]
+        return self.client_sensor[config.CONFIG_MONGODB_TB_SENSORREADINGS_DATASET]
 
     def add_sensor_reading_dataset(self, deviceid, source, address, value, subclass_value):
         timestamp = str(int(time.time()))

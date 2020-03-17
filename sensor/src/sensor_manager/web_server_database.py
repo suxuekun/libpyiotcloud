@@ -394,6 +394,14 @@ class database_client_mongodb:
         mongo_client = MongoClient(self.host, self.port)
         self.client = mongo_client[config.CONFIG_MONGODB_DB]
 
+        # different database for sensor dashboarding
+        if "mongodb.net" in config.CONFIG_MONGODB_HOST2: 
+            connection_string = "mongodb+srv://" + config.CONFIG_MONGODB_USERNAME + ":" + config.CONFIG_MONGODB_PASSWORD + "@" + config.CONFIG_MONGODB_HOST2 + "/" + config.CONFIG_MONGODB_DB + "?retryWrites=true&w=majority"
+            mongo_client_sensor = MongoClient(connection_string)
+            self.client_sensor = mongo_client_sensor[config.CONFIG_MONGODB_DB]
+        else:
+            self.client_sensor = self.client
+
 
     ##########################################################
     # users
@@ -625,7 +633,8 @@ class database_client_mongodb:
     ##########################################################
 
     def get_sensorreadings_document(self):
-        return self.client[config.CONFIG_MONGODB_TB_SENSORREADINGS]
+        #return self.client[config.CONFIG_MONGODB_TB_SENSORREADINGS]
+        return self.client_sensor[config.CONFIG_MONGODB_TB_SENSORREADINGS]
 
     def update_sensor_reading(self, deviceid, source, address, sensor_readings):
         sensorreadings = self.get_sensorreadings_document();
@@ -705,7 +714,8 @@ class database_client_mongodb:
     ##########################################################
 
     def get_sensorreadings_dataset_document(self):
-        return self.client[config.CONFIG_MONGODB_TB_SENSORREADINGS_DATASET]
+        #return self.client[config.CONFIG_MONGODB_TB_SENSORREADINGS_DATASET]
+        return self.client_sensor[config.CONFIG_MONGODB_TB_SENSORREADINGS_DATASET]
 
     def add_sensor_reading_dataset(self, deviceid, source, address, value, subclass_value):
         timestamp = str(int(time.time()))

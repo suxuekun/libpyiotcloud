@@ -54,8 +54,14 @@ class config:
     CONFIG_MONGODB_PASSWORD          = os.environ["CONFIG_USE_MONGODB_PASS"]
     if os.name == 'nt':
         CONFIG_MONGODB_HOST          = "127.0.0.1"
+        # MongoDB Atlas is used for sensor-data database
+        # to revert to containerized MongoDB, just set this to 127.0.0.1
+        CONFIG_MONGODB_HOST2         = os.environ["CONFIG_USE_MONGODB_ATLAS"]
     else:
         CONFIG_MONGODB_HOST          = "mongodb"
+        # MongoDB Atlas is used for sensor-data database
+        # to revert to containerized MongoDB, just set this to mongodb
+        CONFIG_MONGODB_HOST2         = os.environ["CONFIG_USE_MONGODB_ATLAS"]
     CONFIG_MONGODB_PORT              = 27017
     CONFIG_MONGODB_DB                = "iotcloud-database"
     CONFIG_MONGODB_TB_PROFILES       = "profiles"
