@@ -5,3 +5,4 @@ argparse==1.4.0
 twilio==6.32.0
 nexmo==2.4.0
 pymongo==3.8.0
+dnspython==1.16.0

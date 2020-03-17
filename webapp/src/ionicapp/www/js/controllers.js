@@ -5106,6 +5106,16 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             "display": true,
             "position": 'bottom'
         },
+        // labels on x-axis to be vertical, not diagonal
+        "scales": {
+            "xAxes": [{
+                "ticks": {
+                    "autoSkip": false,
+                    "maxRotation": 90,
+                    "minRotation": 90
+                }
+            }]
+        },
 /*
         "title": {
             "display": true,
