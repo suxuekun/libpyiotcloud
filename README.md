@@ -696,6 +696,8 @@ Note: Using Kubernetes will also change the infrastracture.
          Create a user using db.createUser() as specified in https://docs.mongodb.com/guides/server/auth/
        Restart MongoDB service by opening services.msc
 
+
+       MONGODB COMPASS:
        Download MongoDB Compass from https://www.mongodb.com/download-center/compass
          and run MongoDBCompass.exe
          Change Authentication to Username/Password and specify both username and password fields
