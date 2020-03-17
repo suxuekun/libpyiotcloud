@@ -702,8 +702,26 @@ Note: Using Kubernetes will also change the infrastracture.
 
        MongoDB Compass is a desktop application that can connect to AWS EC2 MongoDB container via SSH to 
          This is useful for easily debugging/troubleshooting data-related issues.
-       MongoDB Compass access the database via SSH, not the MongoDB port 27017,
+         MongoDB Compass access the database via SSH, not the MongoDB port 27017,
          so exposing port 27017 in AWS EC2 security firewall was NOT necessary.
+         Settings:
+           AWS EC2 MongoDB container microservice
+             Hostname: 127.0.0.1
+             Port: 27017
+             SSH Hostname: <AWS EC2 URL or IP>
+             SSH Tunnel Port: <AWS EC2 SSH PORT>
+             SSH Username: <AWS EC2 SSH Username>
+             SSH Identity File: <AWS EC2 SSH Identity File .ppk>
+           MongoDB Atlas
+             Hostname: clusterX-XXXXX.mongodb.net
+             Authentication: Username/Password
+             Username: <username>
+             Password: <password>
+             More Options:
+               Replica Set Name: Cluster-shard-0
+               Read Preference: Primary
+               SSL: Syatem CA/Atlas Deployment
+               SSH Tunnel: None
 
 
 ### Setup Amazon Cognito.
@@ -1666,23 +1684,6 @@ Current security implementation for device connectivity:
 
     1. TODO
 
-
-
-# Action Items
-
-1.  Fix browser reload issue.
-2.  Add payment transaction history
-3.  Add credit card payment (Currently only Paypal is supported).
-4.  Add signup/login using Facebook account.
-5.  Add feature to enable MFA (Multi factor authentication via email/SMS).
-6.  Add message counter for free-tier subscription.
-7.  [Low] Add mobile app push notification integration to notification manager.
-8.  [Low] Add Twitter integration to notification manager.
-9.  [Low] Add file logging of microservices for easier debugging/troubleshooting
-10. [Low] Add manager/admin page in Web client (see all users and devices registered by each user)
-11. [Low] Support an online device emulator. (Each user can run 1 online device emulator.)
-12. [Low] Optimize Kubernetes support on AWS EKS. (currently using 5 EC2 instances as worker nodes.)
-13. [Low] Move Jenkins server to another AWS EC2 instance (Currently, running on same EC2 instance.)
 
 
 # Reminders
