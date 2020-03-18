@@ -1668,6 +1668,15 @@ def set_payment_paypal_execute(paymentid):
             # record the paypal transaction
             transaction = g_database_client.record_paypal_payment(username, payment_result, credits, subscription["prevcredits"], subscription["credits"])
             #print(transaction)
+
+            # send invoice
+            try:
+                pubtopic = CONFIG_PREPEND_REPLY_TOPIC + CONFIG_SEPARATOR + paymentid + CONFIG_SEPARATOR + "send_invoice"
+                payload  = json.dumps({})
+                g_messaging_client.publish(pubtopic, payload)
+                #print("publish xxxxxxxxxxxxx")
+            except:
+                pass
         else:
             msg = {'status': 'NG', 'message': 'Paypal payment verified failed.'}
     else:
@@ -1883,6 +1892,11 @@ def get_payment_paypal_transactions_detailed(transactionid):
     paymentid = g_database_client.get_paypal_payment_by_transaction_id(username, transactionid)
     #print(paymentid)
     if paymentid:
+        #pubtopic = CONFIG_PREPEND_REPLY_TOPIC + CONFIG_SEPARATOR + paymentid + CONFIG_SEPARATOR + "send_invoice"
+        #payload  = json.dumps({})
+        #g_messaging_client.publish(pubtopic, payload)
+        #print("publish xxxxxxxxxxxxx")
+
         # get record the paypal transactions
         paypal_param = g_database_client.transactions_paypal_get_payment(username, {'paymentId': paymentid})
         print(paypal_param)
@@ -1942,7 +1956,7 @@ def get_payment_paypal_transactions_detailed(transactionid):
 #   headers: {'Authorization': 'Bearer ' + token.access}
 #
 # - Response:
-#   {'status': 'OK', 'message': string, 'devices': array[{'devicename': string, 'deviceid': string, 'serialnumber': string, 'timestamp': string, 'heartbeat': string, 'version': string}, ...]}
+#   {'status': 'OK', 'message': string, 'devices': array[{'devicename': string, 'deviceid': string, 'serialnumber': string, 'timestamp': string, 'heartbeat': string, 'version': string, location: {'latitude': float, 'longitude': float}}, ...]}
 #   {'status': 'NG', 'message': string}
 #
 ########################################################################################################
@@ -1984,6 +1998,12 @@ def get_device_list():
 
     devices = g_database_client.get_devices(username)
 
+    # get the location from database
+    #for device in devices:
+    #    location  = g_database_client.get_device_location(username, device["devicename"])
+    #    if location:
+    #        device["location"] = location
+
 
     msg = {'status': 'OK', 'message': 'Devices queried successfully.', 'devices': devices}
     if new_token:
@@ -2001,7 +2021,7 @@ def get_device_list():
 #   headers: {'Authorization': 'Bearer ' + token.access}
 #
 # - Response:
-#   {'status': 'OK', 'message': string, 'devices': array[{'devicename': string, 'deviceid': string, 'serialnumber': string, 'timestamp': string, 'heartbeat': string, 'version': string}, ...]}
+#   {'status': 'OK', 'message': string, 'devices': array[{'devicename': string, 'deviceid': string, 'serialnumber': string, 'timestamp': string, 'heartbeat': string, 'version': string, location: {'latitude': float, 'longitude': float}}, ...]}
 #   {'status': 'NG', 'message': string}
 #
 ########################################################################################################
@@ -2042,6 +2062,12 @@ def get_device_list_filtered(filter):
 
 
     devices = g_database_client.get_devices_with_filter(username, filter)
+
+    # get the location from database
+    #for device in devices:
+    #    location  = g_database_client.get_device_location(username, device["devicename"])
+    #    if location:
+    #        device["location"] = location
 
 
     msg = {'status': 'OK', 'message': 'Devices queried successfully.', 'devices': devices}
@@ -2220,7 +2246,7 @@ def register_device(devicename):
 #   headers: {'Authorization': 'Bearer ' + token.access}
 #
 # - Response:
-#   {'status': 'OK', 'message': string, 'device': {'devicename': string, 'deviceid': string, 'serialnumber': string, 'timestamp': string, 'heartbeat': string, 'version': string}}
+#   {'status': 'OK', 'message': string, 'device': {'devicename': string, 'deviceid': string, 'serialnumber': string, 'timestamp': string, 'heartbeat': string, 'version': string, location: {'latitude': float, 'longitude': float} }}
 #   {'status': 'NG', 'message': string}
 #
 ########################################################################################################
@@ -2265,6 +2291,10 @@ def get_device(devicename):
         response = json.dumps({'status': 'NG', 'message': 'Device is not registered'})
         print('\r\nERROR Get Device: Device is not registered [{},{}]\r\n'.format(username, devicename))
         return response, status.HTTP_404_NOT_FOUND
+
+    #location  = g_database_client.get_device_location(username, devicename)
+    #if location:
+    #    device["location"] = location
 
 
     msg = {'status': 'OK', 'message': 'Devices queried successfully.', 'device': device}

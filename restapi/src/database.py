@@ -115,6 +115,10 @@ class database_client:
     def get_paypal_payment_by_transaction_id(self, username, transaction_id):
         return self._transactions.get_paypal_payment_by_transaction_id(username, transaction_id)
 
+    def get_paypal_payment_by_paymentid(self, payment_id):
+        return self._transactions.get_paypal_payment_by_paymentid(payment_id)
+
+
 
     def paypal_set_payerid(self, payment_id, payer_id):
         self._transactions.paypal_set_payerid(payment_id, payer_id)
@@ -998,6 +1002,16 @@ class database_client_mongodb:
                 transaction.pop('username')
                 transaction.pop('payment_id') # paymentid should be kept secret, to be used for accessing Paypal database only for backtracking purposes
                 transaction.pop('payer_id')
+                transaction.pop('state')
+                return transaction
+        return None
+
+    def get_paypal_payment_by_paymentid(self, payment_id):
+        transactions = self.get_paymenttransactions_db()
+        if transactions:
+            for transaction in transactions.find({'payment_id': payment_id}):
+                transaction.pop('_id')
+                transaction.pop('payment_id') # paymentid should be kept secret, to be used for accessing Paypal database only for backtracking purposes
                 transaction.pop('state')
                 return transaction
         return None

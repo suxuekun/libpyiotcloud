@@ -132,6 +132,29 @@ services:
       - AWS_S3_BUCKET
       - CONFIG_USE_MONGODB_USER
       - CONFIG_USE_MONGODB_PASS
+  invoice:
+    build: ./invoice
+    restart: always
+    networks:
+      - mydockernet
+    depends_on:
+      - rabbitmq
+      - mongodb
+    environment:
+      - AWS_ACCESS_KEY_ID
+      - AWS_SECRET_ACCESS_KEY
+      - AWS_PINPOINT_ID
+      - AWS_PINPOINT_REGION
+      - AWS_PINPOINT_EMAIL
+      - CONFIG_USE_ECC
+      - CONFIG_USE_EMAIL_MODEL
+      - CONFIG_USE_MQTT_DEFAULT_USER
+      - CONFIG_USE_MQTT_DEFAULT_PASS
+      - CONFIG_USE_MONGODB_USER
+      - CONFIG_USE_MONGODB_PASS
+      - AWS_COGNITO_CLIENT_ID
+      - AWS_COGNITO_USERPOOL_ID
+      - AWS_COGNITO_USERPOOL_REGION
   history:
     build: ./history
     restart: always
