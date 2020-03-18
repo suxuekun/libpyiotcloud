@@ -73,7 +73,7 @@ An alternative solution is using an AWS serverless solution wherein:
 ### High-level architecture diagram:
 <img src="./_images/architecture.png" width="1000"/>
 
-11 docker containerized microservices
+12 docker containerized microservices
 
 1. <b>Webserver</b> - Nginx (contains SSL certificate; all requests go to NGINX; forwards HTTP requests to webapp or restapi)
 2. <b>Webapp</b> - Ionic (front-end web framework that can also be compiled for Android and iOS)
@@ -86,6 +86,7 @@ An alternative solution is using an AWS serverless solution wherein:
 9. <b>Sensorian</b> - handles saving of sensor readings for each devices of all users
 10. <b>Configuration</b> - handles providing of device configuration for each devices during device bootup
 11. <b>OTAUpdate</b> - handles OTA firmware update via MQTTS
+12. <b>Invoicing</b> - handles sending of payment invoice
 
 
 
@@ -115,6 +116,7 @@ An alternative solution is using an AWS serverless solution wherein:
 9. <b>OTAUpdate service</b> -> RabbitMQ, MongoDB
 10. <b>Configuration service</b> -> RabbitMQ, MongoDB
 11. <b>Sensor service</b> -> RabbitMQ, MongoDB
+12. <b>Invoice service</b> -> RabbitMQ, MongoDB
 
 
 
@@ -198,7 +200,7 @@ Menu, account, history
        D. Redis key value store database for storing cacheable information and temporary information
        E. OpenSSL for generating certificates on-demand for registered devices
        F. Email/SMS/push notifications using AmazonPinpoint, Twilio, Nexmo (device-initiated, client-initiated)
-       G. Payment gateway using Paypal
+       G. Payment gateway using Paypal with invoice sent to email
        H. Google Maps for setting/viewing device location
     2. Device Access/Control via Flask+GUnicorn+Nginx
        - see REST API list
