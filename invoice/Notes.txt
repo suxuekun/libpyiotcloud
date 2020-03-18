@@ -1,0 +1,8 @@
+docker build -t inv .
+docker run -d --name inv inv
+
+	docker ps -a
+	docker-machine ls // get the ip address for testing with MQTT.FX
+
+docker stop inv
+docker rm inv
