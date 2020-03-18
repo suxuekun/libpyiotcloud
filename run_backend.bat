@@ -10,6 +10,10 @@ cd notification\src\notification_manager
 START notification_manager_ecc.bat
 cd ..\..\..\
 
+cd invoice\src\invoice_manager
+START invoice_manager_ecc.bat
+cd ..\..\..\
+
 cd sensor\src\sensor_manager
 START sensor_manager_ecc.bat
 cd ..\..\..\
