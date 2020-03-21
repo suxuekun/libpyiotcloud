@@ -72,7 +72,7 @@ An alternative solution is using an AWS serverless solution wherein:
 
 ### Features
 
-    1. User sign-up/sign-in, Device Registration
+    1. User sign-up/sign-in
        A. Amazon Cognito for user sign-up and sign-in (with support for OTP, MFA, OAuth2 for Facebook/Google/Amazon login)
     2. Device Registration
        A. MongoDB NoSQL database for storing registered device and sensor information
