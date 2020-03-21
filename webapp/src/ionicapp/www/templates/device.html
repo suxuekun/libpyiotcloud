@@ -7,7 +7,7 @@
   </ion-nav-buttons>
   <ion-content padding="true" class="has-header">
     <button id="device-button43" ng-click="getDevice(data.devicename)" style="font-weight:600;font-size:18px;" class="button button-positive button-block button-clear icon-right ion-android-settings">{{ data.devicename }}</button>
-    <div id="device-markdown30" style="text-align:center;" class="show-list-numbers-and-dots line_spacing">
+    <div id="device-markdown30" ng-click="viewDeviceLocation(data)" style="text-align:center;" class="show-list-numbers-and-dots line_spacing">
       <p style="color:#444444;font-size:12px;">UUID: {{ data.deviceid }}</p>
 
       <p style="color:#444444;font-size:12px;">Serial Number: {{ data.serialnumber }}</p>
@@ -15,6 +15,8 @@
       <p style="color:#444444;font-size:12px;">Firmware Version: {{ data.deviceversion }}</p>
 
       <p style="color:#444444;font-size:12px;">Status: {{ data.status }}</p>
+
+      <p style="color:#444444;font-size:12px;">Location: {{ data.devicelocation }}</p>
     </div>
     <div class="spacer" style="height: 15px;"></div>
     <div id="device-markdown297" class="show-list-numbers-and-dots line_spacing">

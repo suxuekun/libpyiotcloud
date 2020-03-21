@@ -70,6 +70,49 @@ An alternative solution is using an AWS serverless solution wherein:
 - <b>AWS IoT</b> or <b>AmazonMQ</b> will replace RabbitMQ
 
 
+### Features
+
+    1. User sign-up/sign-in, Device Registration
+       A. Amazon Cognito for user sign-up and sign-in (with support for OTP, MFA, OAuth2 for Facebook/Google/Amazon login)
+    2. Device Registration
+       A. MongoDB NoSQL database for storing registered device and sensor information
+       B. MongoDB Atlas cloud database service for storing sensor-data for dashboard charts
+       C. Redis key value store database for storing cacheable information and temporary information
+    3. Device Access/Control via Flask+GUnicorn+Nginx
+       - see REST API list
+    4. HTTPS/AMQPS/MQTTS Protocol Support
+       [client --HTTPS--> webserver <--MQTTS (or AMQPS)--> msgbroker <--MQTTS (and AMQPS)--> device]
+       A. HTTP over TLS: client app accessing REST APIs from webserver
+       B. AMQP over TLS: webserver and messagebroker communication
+       C. MQTT over TLS: messagebroker and device communication
+    5. Device examples and simulators
+       A. FT900 MCU device (LWIP-MQTT client)
+       B. MQTT device simulators (Python Paho-MQTT and NodeJS)
+       C. AMQP device simulator (Python Pika-AMQP)
+    6. Deployment to AWS EC2 as microservices using Docker, Kubernetes and Jenkins
+       - 9 microservices/docker containers [rabbitmq, mongodb, webapp, restapi, nginx, notification, historian, sensorian, configuration]
+       - with Dockerfiles, Docker-compose file, Kubernetes files and Jenkinsfile
+       - Kubernetes files tested on Minikube
+       - Jenkinsfile for automated building and testing of docker images
+    7. Ionic web app can be compiled as iOS/Android mobile apps
+       - SSL certificate bought from GoDaddy.com registered on NGINX.
+       - Webapp compiled for Android using Ionic but requiring Android Studio/SDK 
+    8. MENOS messaging (Mobile, Email, push Notification, mOdem, Storage)
+       - Mobile, Email, push Notification via Amazon Pinpoint
+       - mOdem - sending message to another device
+       - Storage via Amazon S3
+    9. Paypal payment processing
+       - Payment using Paypal gateway with confirmation email/receipt
+    10. Sensor data processing
+       - Sensor data graphing/charting using ChartJS
+       - Sensor data forwarding (forward to another IoT Modem device)
+       - Sensor data thresholding (triggering MENOS messages - Mobile, Email, Notifications, mOdem, Storage)
+    11. OTA firmware update
+       - Via HTTPS or MQTTS (depends on the client preference and capability)
+    12. Device location with Google Maps
+       - Set and view device location via Google Maps
+
+
 ### High-level architecture diagram:
 <img src="./_images/architecture.png" width="1000"/>
 
@@ -86,7 +129,7 @@ An alternative solution is using an AWS serverless solution wherein:
 9. <b>Sensorian</b> - handles saving of sensor readings for each devices of all users
 10. <b>Configuration</b> - handles providing of device configuration for each devices during device bootup
 11. <b>OTAUpdate</b> - handles OTA firmware update via MQTTS
-12. <b>Invoicing</b> - handles sending of payment invoice
+12. <b>Invoicing</b> - handles sending of payment receipts
 
 
 
@@ -188,45 +231,6 @@ Device access and control
 
 Menu, account, history
 <img src="./_images/ui_menuaccounthistory.png" width="800"/>
-
-
-
-### Features
-
-    1. User sign-up/sign-in, Device Registration, Email/SMS Notifications, Payment Gateway, Google Maps
-       A. Amazon Cognito for user sign-up and sign-in (with support for OTP, MFA, OAuth2 for Facebook/Google/Amazon login)
-       B. MongoDB NoSQL database for storing registered device and sensor information
-       C. MongoDB Atlas cloud database service for storing sensor-data for dashboard charts
-       D. Redis key value store database for storing cacheable information and temporary information
-       E. OpenSSL for generating certificates on-demand for registered devices
-       F. Email/SMS/push notifications using AmazonPinpoint, Twilio, Nexmo (device-initiated, client-initiated)
-       G. Payment gateway using Paypal with invoice sent to email
-       H. Google Maps for setting/viewing device location
-    2. Device Access/Control via Flask+GUnicorn+Nginx
-       - see REST API list
-    3. HTTPS/AMQPS/MQTTS Protocol Support
-       [client --HTTPS--> webserver <--MQTTS (or AMQPS)--> msgbroker <--MQTTS (and AMQPS)--> device]
-       A. HTTP over TLS: client app accessing REST APIs from webserver
-       B. AMQP over TLS: webserver and messagebroker communication
-       C. MQTT over TLS: messagebroker and device communication
-    4. Device examples and simulators
-       A. FT900 MCU device (LWIP-MQTT client)
-       B. MQTT device simulators (Python Paho-MQTT and NodeJS)
-       C. AMQP device simulator (Python Pika-AMQP)
-    5. Deployment to AWS EC2 as microservices using Docker, Kubernetes and Jenkins
-       - 9 microservices/docker containers [rabbitmq, mongodb, webapp, restapi, nginx, notification, historian, sensorian, configuration]
-       - with Dockerfiles, Docker-compose file, Kubernetes files and Jenkinsfile
-       - Kubernetes files tested on Minikube
-       - Jenkinsfile for automated building and testing of docker images
-    6. Ionic web app can be compiled as iOS/Android mobile apps
-       - SSL certificate bought from GoDaddy.com registered on NGINX.
-       - Webapp compiled for Android using Ionic but requiring Android Studio/SDK 
-    7. Sensor data processing
-       - Sensor data graphing/charting
-       - Sensor data forwarding (forward to another IoT Modem device)
-       - Sensor data thresholding (triggering MENOS messages - Mobile, Email, Notifications, mOdem, Storage)
-    8. OTA firmware update
-       - Via HTTPS or MQTTS (depends on the client preference and capability)
 
 
 

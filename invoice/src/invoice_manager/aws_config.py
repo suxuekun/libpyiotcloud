@@ -9,4 +9,4 @@ class config:
     CONFIG_PINPOINT_ID                          = os.environ["AWS_PINPOINT_ID"]
     CONFIG_PINPOINT_REGION                      = os.environ["AWS_PINPOINT_REGION"]
     CONFIG_PINPOINT_EMAIL                       = os.environ["AWS_PINPOINT_EMAIL"]
-    CONFIG_PINPOINT_EMAIL_SUBJECT               = "Bridgetek IoT Modem invoice"
+    CONFIG_PINPOINT_EMAIL_SUBJECT               = "Bridgetek IoT Modem receipt"

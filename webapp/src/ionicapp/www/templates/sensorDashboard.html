@@ -41,10 +41,14 @@
         <select ng-options="sensorclass for sensorclass in sensorclasses" ng-model="sensorclass" ng-change="changeSensorClass(sensorclass)" ng-disabled="refresh_automatically"></select>
       </label>
       <ion-toggle toggle-class="toggle-positive" id="sensorDashboard-toggle24" ng-model="big_charts" ng-change="changeBigChart(big_charts)" class="widget_button_half_50">Big charts</ion-toggle>
-      <div class="spacer" style="width: 747.778px; height: 5px;"></div>
       <label class="item item-select widget_title_half_50_noninline" id="sensorDashboard-select111">
         <span class="input-label">Sensor Status</span>
         <select ng-options="sensorstatus for sensorstatus in sensorstatuses" ng-model="sensorstatus" ng-change="changeSensorStatus(sensorstatus)" ng-disabled="refresh_automatically"></select>
+      </label>
+      <div class="spacer" style="width: 747.778px; height: 5px;"></div>
+      <label class="item item-select widget_title_half_50_noninline" id="sensorDashboard-select112">
+        <span class="input-label">Showing data for</span>
+        <select ng-options="timerange for timerange in timeranges" ng-model="timerange" ng-change="changeTimeRange(timerange)" ng-disabled="refresh_automatically"></select>
       </label>
       <button id="sensorDashboard-button126" ng-click="submitDelete()" ng-disabled="refresh_automatically" class="button button-positive button-block">Reset values</button>
     </form>
@@ -76,7 +80,7 @@
             + " " + sensor.units[1] : "Low: " + sensor.readings.lowest + " " + sensor.units[0] + " High: " + sensor.readings.highest + " " + sensor.units[0] }}</p>
         </div>
       </div>
-      <div id="sensorDashboard-container20" ng-show="sensor.show">
+      <div id="sensorDashboard-container20" ng-show="sensor.show" ng-click="submitViewSensorChart(sensor)">
         <div id="canvas-holder" style="width:97%; margin:0px 0px 0px 3%;">
 
           <br>
@@ -114,7 +118,12 @@
             + " " + sensor.units[1] : "Low: " + sensor.readings.lowest + " " + sensor.units[0] + " High: " + sensor.readings.highest + " " + sensor.units[0] }}</p>
         </div>
       </div>
-      <div id="sensorDashboard-container21" ng-show="sensor.show">
+      <div id="sensorDashboard-container21" ng-show="sensor.show" ng-click="submitViewSensorChart(sensor)">
+        <div id="sensorDashboard-container23" class="widget_button_backward_forward_container">
+          <button id="sensorDashboard-button101" ng-click="changeTimeRangeIndexBackward()" class="button button-positive button-small button-block button-clear icon ion-arrow-left-b widget_button_backward_forward"></button>
+          <button id="sensorDashboard-button114" class="button button-light button-small button-block widget_button_backward_forward_filler"></button>
+          <button id="sensorDashboard-button154" ng-disabled="timerangeindex==0" ng-click="changeTimeRangeIndexForward()" class="button button-positive button-small button-block button-clear icon ion-arrow-right-b widget_button_backward_forward"></button>
+        </div>
         <div id="canvas-holder" style="width:97%; margin:0px 0px 0px 3%;">
 
           <br>

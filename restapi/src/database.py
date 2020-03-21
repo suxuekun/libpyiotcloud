@@ -9,6 +9,7 @@ from pymongo import MongoClient # MongoDB
 #import psycopg2                # PostgreSQL
 from cognito_client import cognito_client
 from paypal_client import paypal_client
+import statistics
 
 
 
@@ -498,6 +499,9 @@ class database_client:
 
     def get_sensor_reading_dataset(self, username, devicename, source, address):
         return self._devices.get_sensor_reading_dataset_by_deviceid(self._devices.get_deviceid(username, devicename), source, address)
+
+    def get_sensor_reading_dataset_timebound(self, username, devicename, source, address, datebegin, dateend, period, maxpoints):
+        return self._devices.get_sensor_reading_dataset_by_deviceid_timebound(self._devices.get_deviceid(username, devicename), source, address, datebegin, dateend, period, maxpoints)
 
 
     ##########################################################
@@ -2256,6 +2260,136 @@ class database_client_mongodb:
                                 dataset["data"].append([])
                             dataset["data"][0].append(sensorreading["value"])
         #print(dataset)
+        return dataset
+
+    def get_sensor_reading_dataset_by_deviceid_timebound(self, deviceid, source, address, datebegin, dateend, period, maxpoints):
+        # if sensor has a subclass data becomes  [[], [], ...]
+        # if sensor has no subclass data becomes [[]]
+        dataset  = {"labels": [], "data": []}
+        sensorreadings = self.get_sensorreadings_dataset_document()
+        if sensorreadings:
+            #print("begin:{} end:{}".format(datebegin, dateend))
+            filter = {'deviceid': deviceid, 'source': source}
+            filter['timestamp'] = {'$gte': datebegin, '$lte': dateend}
+            if address is not None:
+                filter['address'] = address
+            readings = sensorreadings.find(filter)
+
+            if period == 5:
+                for reading in readings:
+                    if reading.get("value"):
+                        #print(reading["timestamp"])
+                        #print(type(reading["timestamp"]))
+                        if reading.get("subclass_value"):
+                            dataset["labels"].append(reading["timestamp"])
+                            if len(dataset["data"]) == 0:
+                                dataset["data"].append([])
+                                dataset["data"].append([])
+                            dataset["data"][0].append(reading["value"])
+                            dataset["data"][1].append(reading["subclass_value"])
+                        else:
+                            dataset["labels"].append(reading["timestamp"])
+                            if len(dataset["data"]) == 0:
+                                dataset["data"].append([])
+                            dataset["data"][0].append(reading["value"])
+            else:
+                #dataset["labels_actual"] = []
+                #dataset["data_actual"] = []
+                dataset["low"] = []
+                dataset["high"] = []
+                points = []
+                points2 = []
+                begin = datebegin
+                end = begin+period
+                for reading in readings:
+                    if reading.get("value"):
+                        #print(reading["timestamp"])
+                        #print(type(reading["timestamp"]))
+                        if reading.get("subclass_value"):
+                            #dataset["labels_actual"].append(reading["timestamp"])
+                            #if len(dataset["data_actual"]) == 0:
+                            #    dataset["data_actual"].append([])
+                            #    dataset["data_actual"].append([])
+                            #dataset["data_actual"][0].append(reading["value"])
+                            #dataset["data_actual"][1].append(reading["subclass_value"])
+
+                            if reading["timestamp"] < end:
+                                points.append(reading["value"])
+                                points2.append(reading["subclass_value"])
+                            else:
+                                if len(points):
+                                    dataset["labels"].append(begin)
+                                    if len(dataset["data"]) == 0:
+                                        dataset["data"].append([])
+                                        dataset["low"].append([])
+                                        dataset["high"].append([])
+                                        dataset["data"].append([])
+                                        dataset["low"].append([])
+                                        dataset["high"].append([])
+                                    dataset["data"][0].append(round(statistics.mean(points), 1))
+                                    dataset["low"][0].append(min(points))
+                                    dataset["high"][0].append(max(points))
+                                    points.clear()
+                                    dataset["data"][1].append(round(statistics.mean(points2), 1))
+                                    dataset["low"][1].append(min(points2))
+                                    dataset["high"][1].append(max(points2))
+                                    points2.clear()
+                                begin = end
+                                end += period
+                                if reading["timestamp"] < end:
+                                    points.append(reading["value"])
+                                    points2.append(reading["subclass_value"])
+
+                        else:
+                            #dataset["labels_actual"].append(reading["timestamp"])
+                            #if len(dataset["data_actual"]) == 0:
+                            #    dataset["data_actual"].append([])
+                            #dataset["data_actual"][0].append(reading["value"])
+
+                            if reading["timestamp"] < end:
+                                points.append(reading["value"])
+                            else:
+                                if len(points):
+                                    # average
+                                    dataset["labels"].append(begin)
+                                    #print(points)
+                                    #print(round(statistics.mean(points)), 1)
+                                    #print(min(points))
+                                    #print(max(points))
+                                    if len(dataset["data"]) == 0:
+                                        dataset["data"].append([])
+                                        dataset["low"].append([])
+                                        dataset["high"].append([])
+                                    dataset["data"][0].append(round(statistics.mean(points), 1))
+                                    dataset["low"][0].append(min(points))
+                                    dataset["high"][0].append(max(points))
+                                    points.clear()
+                                begin = end
+                                end += period
+                                if reading["timestamp"] < end:
+                                    points.append(reading["value"])
+
+                # handle last element
+                if len(points):
+                    dataset["labels"].append(begin)
+                    dataset["data"][0].append(round(statistics.mean(points), 1))
+                    dataset["low"][0].append(min(points))
+                    dataset["high"][0].append(max(points))
+                if len(points2):
+                    dataset["data"][0].append(round(statistics.mean(points2), 1))
+                    dataset["low"][0].append(min(points2))
+                    dataset["high"][0].append(max(points2))
+
+#        print(dataset["data_actual"][0][:9])
+#        print(dataset["data"][0][:3])
+#        print(dataset["low"][0][:3])
+#        print(dataset["high"][0][:3])
+
+#        print(len(dataset["data_actual"][0]))
+#        print(len(dataset["labels_actual"]))
+#        print(len(dataset["data"][0]))
+#        print(len(dataset["low"][0]))
+#        print(len(dataset["high"][0]))
         return dataset
 
     def delete_sensor_reading_dataset(self, deviceid, source, address):
