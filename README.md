@@ -74,7 +74,7 @@ An alternative solution is using an AWS serverless solution wherein:
 
     1. User sign-up/sign-in
        A. Amazon Cognito for user sign-up and sign-in (with support for OTP, MFA, OAuth2 for Facebook/Google/Amazon login)
-    2. Device Registration
+    2. Device and sensor management
        A. MongoDB NoSQL database for storing registered device and sensor information
        B. MongoDB Atlas cloud database service for storing sensor-data for dashboard charts
        C. Redis key value store database for storing cacheable information and temporary information
