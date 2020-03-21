@@ -2449,7 +2449,7 @@ class database_client_mongodb:
 #        print(dataset["high"][0][:3])
 
 #        print(len(dataset["data_actual"][0]))
-        print(len(dataset["labels"]))
+#        print(len(dataset["labels"]))
 #        print(len(dataset["data"][0]))
 #        print(len(dataset["low"][0]))
 #        print(len(dataset["high"][0]))
