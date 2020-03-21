@@ -2276,90 +2276,72 @@ class database_client_mongodb:
             readings = sensorreadings.find(filter)
             #print(readings.count())
 
-            if period == 5:
-                for reading in readings:
-                    if reading.get("value"):
-                        #print(reading["timestamp"])
-                        #print(type(reading["timestamp"]))
-                        if reading.get("subclass_value"):
-                            dataset["labels"].append(reading["timestamp"])
-                            if len(dataset["data"]) == 0:
-                                dataset["data"].append([])
-                                dataset["data"].append([])
-                            dataset["data"][0].append(reading["value"])
-                            dataset["data"][1].append(reading["subclass_value"])
-                        else:
-                            dataset["labels"].append(reading["timestamp"])
-                            if len(dataset["data"]) == 0:
-                                dataset["data"].append([])
-                            dataset["data"][0].append(reading["value"])
-            else:
-                #dataset["labels_actual"] = []
-                #dataset["data_actual"] = []
-                dataset["low"] = []
-                dataset["high"] = []
-                points = []
-                points2 = []
-                begin = datebegin
-                end = begin+period
-                for reading in readings:
-                    if reading.get("value"):
-                        if reading.get("subclass_value"):
-                            #dataset["labels_actual"].append(reading["timestamp"])
-                            #if len(dataset["data_actual"]) == 0:
-                            #    dataset["data_actual"].append([])
-                            #    dataset["data_actual"].append([])
-                            #dataset["data_actual"][0].append(reading["value"])
-                            #dataset["data_actual"][1].append(reading["subclass_value"])
-
-                            if reading["timestamp"] < end:
-                                # add data to temporary array for averaging
-                                points.append(reading["value"])
-                                points2.append(reading["subclass_value"])
-                            else:
+            if readings.count():
+                if period == 5:
+                    for reading in readings:
+                        if reading.get("value"):
+                            #print(reading["timestamp"])
+                            #print(type(reading["timestamp"]))
+                            if reading.get("subclass_value"):
+                                dataset["labels"].append(reading["timestamp"])
                                 if len(dataset["data"]) == 0:
                                     dataset["data"].append([])
-                                    dataset["low"].append([])
-                                    dataset["high"].append([])
                                     dataset["data"].append([])
-                                    dataset["low"].append([])
-                                    dataset["high"].append([])
+                                dataset["data"][0].append(reading["value"])
+                                dataset["data"][1].append(reading["subclass_value"])
+                            else:
+                                dataset["labels"].append(reading["timestamp"])
+                                if len(dataset["data"]) == 0:
+                                    dataset["data"].append([])
+                                dataset["data"][0].append(reading["value"])
+                else:
+                    #dataset["labels_actual"] = []
+                    #dataset["data_actual"] = []
+                    dataset["low"] = []
+                    dataset["high"] = []
+                    points = []
+                    points2 = []
+                    begin = datebegin
+                    end = begin+period
+                    for reading in readings:
+                        if reading.get("value"):
+                            if reading.get("subclass_value"):
+                                #dataset["labels_actual"].append(reading["timestamp"])
+                                #if len(dataset["data_actual"]) == 0:
+                                #    dataset["data_actual"].append([])
+                                #    dataset["data_actual"].append([])
+                                #dataset["data_actual"][0].append(reading["value"])
+                                #dataset["data_actual"][1].append(reading["subclass_value"])
 
-                                # add label timestamp
-                                dataset["labels"].append(begin)
-
-                                # add data
-                                if len(points):
-                                    # process data in temporary array for averaging, minum and maximum
-                                    dataset["data"][0].append(round(statistics.mean(points), 1))
-                                    dataset["low"][0].append(min(points))
-                                    dataset["high"][0].append(max(points))
-                                    points.clear()
-                                    if len(points2):
-                                        dataset["data"][1].append(round(statistics.mean(points2), 1))
-                                        dataset["low"][1].append(min(points2))
-                                        dataset["high"][1].append(max(points2))
-                                        points2.clear()
+                                if reading["timestamp"] < end:
+                                    # add data to temporary array for averaging
+                                    points.append(reading["value"])
+                                    points2.append(reading["subclass_value"])
                                 else:
-                                    # handle no data
-                                    dataset["data"][0].append(None)
-                                    dataset["low"][0].append(None)
-                                    dataset["high"][0].append(None)
-                                    dataset["data"][1].append(None)
-                                    dataset["low"][1].append(None)
-                                    dataset["high"][1].append(None)
+                                    if len(dataset["data"]) == 0:
+                                        dataset["data"].append([])
+                                        dataset["low"].append([])
+                                        dataset["high"].append([])
+                                        dataset["data"].append([])
+                                        dataset["low"].append([])
+                                        dataset["high"].append([])
 
-                                begin = end
-                                end += period
-                                while end < dateend:
-                                    if reading["timestamp"] < end:
-                                        # add data to temporary array for averaging
-                                        points.append(reading["value"])
-                                        points2.append(reading["subclass_value"])
-                                        break
+                                    # add label timestamp
+                                    dataset["labels"].append(begin)
+
+                                    # add data
+                                    if len(points):
+                                        # process data in temporary array for averaging, minum and maximum
+                                        dataset["data"][0].append(round(statistics.mean(points), 1))
+                                        dataset["low"][0].append(min(points))
+                                        dataset["high"][0].append(max(points))
+                                        points.clear()
+                                        if len(points2):
+                                            dataset["data"][1].append(round(statistics.mean(points2), 1))
+                                            dataset["low"][1].append(min(points2))
+                                            dataset["high"][1].append(max(points2))
+                                            points2.clear()
                                     else:
-                                        # add label timestamp
-                                        dataset["labels"].append(begin)
                                         # handle no data
                                         dataset["data"][0].append(None)
                                         dataset["low"][0].append(None)
@@ -2367,69 +2349,99 @@ class database_client_mongodb:
                                         dataset["data"][1].append(None)
                                         dataset["low"][1].append(None)
                                         dataset["high"][1].append(None)
-                                        # get the next period
-                                        begin = end
-                                        end += period
 
-                        else:
-                            #dataset["labels_actual"].append(reading["timestamp"])
-                            #if len(dataset["data_actual"]) == 0:
-                            #    dataset["data_actual"].append([])
-                            #dataset["data_actual"][0].append(reading["value"])
+                                    begin = end
+                                    end += period
+                                    while end < dateend:
+                                        if reading["timestamp"] < end:
+                                            # add data to temporary array for averaging
+                                            points.append(reading["value"])
+                                            points2.append(reading["subclass_value"])
+                                            break
+                                        else:
+                                            # add label timestamp
+                                            dataset["labels"].append(begin)
+                                            # handle no data
+                                            dataset["data"][0].append(None)
+                                            dataset["low"][0].append(None)
+                                            dataset["high"][0].append(None)
+                                            dataset["data"][1].append(None)
+                                            dataset["low"][1].append(None)
+                                            dataset["high"][1].append(None)
+                                            # get the next period
+                                            begin = end
+                                            end += period
 
-                            if reading["timestamp"] < end:
-                                # add data to array for averaging
-                                points.append(reading["value"])
                             else:
-                                if len(dataset["data"]) == 0:
-                                    dataset["data"].append([])
-                                    dataset["low"].append([])
-                                    dataset["high"].append([])
+                                #dataset["labels_actual"].append(reading["timestamp"])
+                                #if len(dataset["data_actual"]) == 0:
+                                #    dataset["data_actual"].append([])
+                                #dataset["data_actual"][0].append(reading["value"])
 
-                                # add label timestamp
-                                dataset["labels"].append(begin)
-
-                                # add data
-                                if len(points):
-                                    # process data in temporary array for averaging, minum and maximum
-                                    dataset["data"][0].append(round(statistics.mean(points), 1))
-                                    dataset["low"][0].append(min(points))
-                                    dataset["high"][0].append(max(points))
-                                    points.clear()
+                                if reading["timestamp"] < end:
+                                    # add data to array for averaging
+                                    points.append(reading["value"])
                                 else:
-                                    # handle no data
-                                    dataset["data"][0].append(None)
-                                    dataset["low"][0].append(None)
-                                    dataset["high"][0].append(None)
+                                    if len(dataset["data"]) == 0:
+                                        dataset["data"].append([])
+                                        dataset["low"].append([])
+                                        dataset["high"].append([])
 
-                                begin = end
-                                end += period
-                                while end < dateend:
-                                    if reading["timestamp"] < end:
-                                        # add data to temporary array for averaging
-                                        points.append(reading["value"])
-                                        break
+                                    # add label timestamp
+                                    dataset["labels"].append(begin)
+
+                                    # add data
+                                    if len(points):
+                                        # process data in temporary array for averaging, minum and maximum
+                                        dataset["data"][0].append(round(statistics.mean(points), 1))
+                                        dataset["low"][0].append(min(points))
+                                        dataset["high"][0].append(max(points))
+                                        points.clear()
                                     else:
-                                        # add label timestamp
-                                        dataset["labels"].append(begin)
                                         # handle no data
                                         dataset["data"][0].append(None)
                                         dataset["low"][0].append(None)
                                         dataset["high"][0].append(None)
-                                        # get the next period
-                                        begin = end
-                                        end += period
 
-                # handle last element
-                if len(points):
+                                    begin = end
+                                    end += period
+                                    while end < dateend:
+                                        if reading["timestamp"] < end:
+                                            # add data to temporary array for averaging
+                                            points.append(reading["value"])
+                                            break
+                                        else:
+                                            # add label timestamp
+                                            dataset["labels"].append(begin)
+                                            # handle no data
+                                            dataset["data"][0].append(None)
+                                            dataset["low"][0].append(None)
+                                            dataset["high"][0].append(None)
+                                            # get the next period
+                                            begin = end
+                                            end += period
+
+                    # handle last element
+                    if len(points):
+                        dataset["labels"].append(begin)
+                        dataset["data"][0].append(round(statistics.mean(points), 1))
+                        dataset["low"][0].append(min(points))
+                        dataset["high"][0].append(max(points))
+                    if len(points2):
+                        dataset["data"][0].append(round(statistics.mean(points2), 1))
+                        dataset["low"][0].append(min(points2))
+                        dataset["high"][0].append(max(points2))
+            else:
+                # handle no data
+                begin = datebegin
+                end = begin+period
+                if len(dataset["data"]) == 0:
+                    dataset["data"].append([])
+                while end < dateend:
                     dataset["labels"].append(begin)
-                    dataset["data"][0].append(round(statistics.mean(points), 1))
-                    dataset["low"][0].append(min(points))
-                    dataset["high"][0].append(max(points))
-                if len(points2):
-                    dataset["data"][0].append(round(statistics.mean(points2), 1))
-                    dataset["low"][0].append(min(points2))
-                    dataset["high"][0].append(max(points2))
+                    dataset["data"][0].append(None)
+                    begin = end
+                    end += period
 
 #        print(dataset["data_actual"][0][:9])
 #        print(dataset["data"][0][:3])
@@ -2437,7 +2449,7 @@ class database_client_mongodb:
 #        print(dataset["high"][0][:3])
 
 #        print(len(dataset["data_actual"][0]))
-#        print(len(dataset["labels"]))
+        print(len(dataset["labels"]))
 #        print(len(dataset["data"][0]))
 #        print(len(dataset["low"][0]))
 #        print(len(dataset["high"][0]))
