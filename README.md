@@ -78,9 +78,9 @@ An alternative solution is using an AWS serverless solution wherein:
        A. MongoDB NoSQL database for storing registered device and sensor information
        B. MongoDB Atlas cloud database service for storing sensor-data for dashboard charts
        C. Redis key value store database for storing cacheable information and temporary information
-    3. Device Access/Control via Flask+GUnicorn+Nginx
+    3. Device and sensor control and access
        - see REST API list
-    4. HTTPS/AMQPS/MQTTS Protocol Support
+    4. Device connectivity and web/mobile connectivity via MQTTS and HTTPS
        [client --HTTPS--> webserver <--MQTTS (or AMQPS)--> msgbroker <--MQTTS (and AMQPS)--> device]
        A. HTTP over TLS: client app accessing REST APIs from webserver
        B. AMQP over TLS: webserver and messagebroker communication
