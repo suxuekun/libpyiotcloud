@@ -2270,10 +2270,11 @@ class database_client_mongodb:
         if sensorreadings:
             #print("begin:{} end:{}".format(datebegin, dateend))
             filter = {'deviceid': deviceid, 'source': source}
-            filter['timestamp'] = {'$gte': datebegin, '$lte': dateend}
+            filter['timestamp'] = {'$gte': datebegin, '$lt': dateend}
             if address is not None:
                 filter['address'] = address
             readings = sensorreadings.find(filter)
+            #print(readings.count())
 
             if period == 5:
                 for reading in readings:
@@ -2303,8 +2304,6 @@ class database_client_mongodb:
                 end = begin+period
                 for reading in readings:
                     if reading.get("value"):
-                        #print(reading["timestamp"])
-                        #print(type(reading["timestamp"]))
                         if reading.get("subclass_value"):
                             #dataset["labels_actual"].append(reading["timestamp"])
                             #if len(dataset["data_actual"]) == 0:
@@ -2314,31 +2313,63 @@ class database_client_mongodb:
                             #dataset["data_actual"][1].append(reading["subclass_value"])
 
                             if reading["timestamp"] < end:
+                                # add data to temporary array for averaging
                                 points.append(reading["value"])
                                 points2.append(reading["subclass_value"])
                             else:
+                                if len(dataset["data"]) == 0:
+                                    dataset["data"].append([])
+                                    dataset["low"].append([])
+                                    dataset["high"].append([])
+                                    dataset["data"].append([])
+                                    dataset["low"].append([])
+                                    dataset["high"].append([])
+
+                                # add label timestamp
+                                dataset["labels"].append(begin)
+
+                                # add data
                                 if len(points):
-                                    dataset["labels"].append(begin)
-                                    if len(dataset["data"]) == 0:
-                                        dataset["data"].append([])
-                                        dataset["low"].append([])
-                                        dataset["high"].append([])
-                                        dataset["data"].append([])
-                                        dataset["low"].append([])
-                                        dataset["high"].append([])
+                                    # process data in temporary array for averaging, minum and maximum
                                     dataset["data"][0].append(round(statistics.mean(points), 1))
                                     dataset["low"][0].append(min(points))
                                     dataset["high"][0].append(max(points))
                                     points.clear()
-                                    dataset["data"][1].append(round(statistics.mean(points2), 1))
-                                    dataset["low"][1].append(min(points2))
-                                    dataset["high"][1].append(max(points2))
-                                    points2.clear()
+                                    if len(points2):
+                                        dataset["data"][1].append(round(statistics.mean(points2), 1))
+                                        dataset["low"][1].append(min(points2))
+                                        dataset["high"][1].append(max(points2))
+                                        points2.clear()
+                                else:
+                                    # handle no data
+                                    dataset["data"][0].append(None)
+                                    dataset["low"][0].append(None)
+                                    dataset["high"][0].append(None)
+                                    dataset["data"][1].append(None)
+                                    dataset["low"][1].append(None)
+                                    dataset["high"][1].append(None)
+
                                 begin = end
                                 end += period
-                                if reading["timestamp"] < end:
-                                    points.append(reading["value"])
-                                    points2.append(reading["subclass_value"])
+                                while end < dateend:
+                                    if reading["timestamp"] < end:
+                                        # add data to temporary array for averaging
+                                        points.append(reading["value"])
+                                        points2.append(reading["subclass_value"])
+                                        break
+                                    else:
+                                        # add label timestamp
+                                        dataset["labels"].append(begin)
+                                        # handle no data
+                                        dataset["data"][0].append(None)
+                                        dataset["low"][0].append(None)
+                                        dataset["high"][0].append(None)
+                                        dataset["data"][1].append(None)
+                                        dataset["low"][1].append(None)
+                                        dataset["high"][1].append(None)
+                                        # get the next period
+                                        begin = end
+                                        end += period
 
                         else:
                             #dataset["labels_actual"].append(reading["timestamp"])
@@ -2347,27 +2378,47 @@ class database_client_mongodb:
                             #dataset["data_actual"][0].append(reading["value"])
 
                             if reading["timestamp"] < end:
+                                # add data to array for averaging
                                 points.append(reading["value"])
                             else:
+                                if len(dataset["data"]) == 0:
+                                    dataset["data"].append([])
+                                    dataset["low"].append([])
+                                    dataset["high"].append([])
+
+                                # add label timestamp
+                                dataset["labels"].append(begin)
+
+                                # add data
                                 if len(points):
-                                    # average
-                                    dataset["labels"].append(begin)
-                                    #print(points)
-                                    #print(round(statistics.mean(points)), 1)
-                                    #print(min(points))
-                                    #print(max(points))
-                                    if len(dataset["data"]) == 0:
-                                        dataset["data"].append([])
-                                        dataset["low"].append([])
-                                        dataset["high"].append([])
+                                    # process data in temporary array for averaging, minum and maximum
                                     dataset["data"][0].append(round(statistics.mean(points), 1))
                                     dataset["low"][0].append(min(points))
                                     dataset["high"][0].append(max(points))
                                     points.clear()
+                                else:
+                                    # handle no data
+                                    dataset["data"][0].append(None)
+                                    dataset["low"][0].append(None)
+                                    dataset["high"][0].append(None)
+
                                 begin = end
                                 end += period
-                                if reading["timestamp"] < end:
-                                    points.append(reading["value"])
+                                while end < dateend:
+                                    if reading["timestamp"] < end:
+                                        # add data to temporary array for averaging
+                                        points.append(reading["value"])
+                                        break
+                                    else:
+                                        # add label timestamp
+                                        dataset["labels"].append(begin)
+                                        # handle no data
+                                        dataset["data"][0].append(None)
+                                        dataset["low"][0].append(None)
+                                        dataset["high"][0].append(None)
+                                        # get the next period
+                                        begin = end
+                                        end += period
 
                 # handle last element
                 if len(points):
@@ -2386,7 +2437,7 @@ class database_client_mongodb:
 #        print(dataset["high"][0][:3])
 
 #        print(len(dataset["data_actual"][0]))
-#        print(len(dataset["labels_actual"]))
+#        print(len(dataset["labels"]))
 #        print(len(dataset["data"][0]))
 #        print(len(dataset["low"][0]))
 #        print(len(dataset["high"][0]))
