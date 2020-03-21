@@ -214,7 +214,7 @@ angular.module('app.routes', [])
     controller: 'viewDeviceCtrl'
   })
 
-  .state('viewDeviceLocation', {
+  .state('deviceLocation', {
     url: '/page_view_device_location',
 	params: {
 		username: "",
@@ -222,12 +222,12 @@ angular.module('app.routes', [])
 		devicename: "",
 		deviceid: "",
 		serialnumber: "",
-		timestamp: "",
-		heartbeat: "",
-		version: ""		
+		devicestatus: "",
+		deviceversion: "",
+		location: ""		
 },
-    templateUrl: 'templates/viewDeviceLocation.html',
-    controller: 'viewDeviceLocationCtrl'
+    templateUrl: 'templates/deviceLocation.html',
+    controller: 'deviceLocationCtrl'
   })
 
   .state('oTAFirmwareUpdate', {
@@ -272,7 +272,8 @@ angular.module('app.routes', [])
 		deviceid: "",
 		serialnumber: "",
 		deviceversion: "",
-		devicestatus: ""		
+		devicestatus: "",
+		location: ""		
 },
     templateUrl: 'templates/device.html',
     controller: 'deviceCtrl'
@@ -286,7 +287,8 @@ angular.module('app.routes', [])
 		token: "",
 		devicestatus: "",
 		deviceid: "",
-		serialnumber: ""		
+		serialnumber: "",
+		location: ""		
 },
     templateUrl: 'templates/sensorDashboard.html',
     controller: 'sensorDashboardCtrl'
@@ -301,6 +303,7 @@ angular.module('app.routes', [])
 		devicestatus: "",
 		deviceid: "",
 		serialnumber: "",
+		location: "",
 		sensor: ""		
 },
     templateUrl: 'templates/sensorChart.html',
@@ -315,7 +318,8 @@ angular.module('app.routes', [])
 		token: "",
 		devicestatus: "",
 		deviceid: "",
-		serialnumber: ""		
+		serialnumber: "",
+		location: ""		
 },
     templateUrl: 'templates/deviceGPIO.html',
     controller: 'deviceGPIOCtrl'
@@ -329,7 +333,8 @@ angular.module('app.routes', [])
 		token: "",
 		devicestatus: "",
 		deviceid: "",
-		serialnumber: ""		
+		serialnumber: "",
+		location: ""		
 },
     templateUrl: 'templates/deviceUART.html',
     controller: 'deviceUARTCtrl'
@@ -343,7 +348,8 @@ angular.module('app.routes', [])
 		token: "",
 		devicestatus: "",
 		deviceid: "",
-		serialnumber: ""		
+		serialnumber: "",
+		location: ""		
 },
     templateUrl: 'templates/deviceI2C.html',
     controller: 'deviceI2CCtrl'
@@ -357,7 +363,8 @@ angular.module('app.routes', [])
 		token: "",
 		devicestatus: "",
 		deviceid: "",
-		serialnumber: ""		
+		serialnumber: "",
+		location: ""		
 },
     templateUrl: 'templates/deviceADC.html',
     controller: 'deviceADCCtrl'
@@ -371,7 +378,8 @@ angular.module('app.routes', [])
 		token: "",
 		devicestatus: "",
 		deviceid: "",
-		serialnumber: ""		
+		serialnumber: "",
+		location: ""		
 },
     templateUrl: 'templates/deviceTPROBE.html',
     controller: 'deviceTPROBECtrl'
@@ -385,7 +393,8 @@ angular.module('app.routes', [])
 		token: "",
 		devicestatus: "",
 		deviceid: "",
-		serialnumber: ""		
+		serialnumber: "",
+		location: ""		
 },
     templateUrl: 'templates/device1WIRE.html',
     controller: 'device1WIRECtrl'

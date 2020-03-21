@@ -1,4 +1,4 @@
-<ion-view title="View Device Location" hide-back-button="true" nav-transition="none" id="page56" style="background-color:#FFFFFF;" class="page_width">
+<ion-view title="Device Location" hide-back-button="true" nav-transition="none" id="page56" style="background-color:#FFFFFF;" class="page_width">
   <ion-nav-buttons side="left" class="has-header">
     <button class="button button-icon icon ion-android-close" ng-click="viewDevice()"></button>
   </ion-nav-buttons>
@@ -7,34 +7,34 @@
   </ion-nav-buttons>
   <ion-content padding="true" class="has-header" has-bouncing=“false”>
     <div class="spacer" style="height: 12px;"></div>
-    <div id="viewDeviceLocation-markdown314" style="text-align:center;" class="show-list-numbers-and-dots">
+    <div id="deviceLocation-markdown314" style="text-align:center;" class="show-list-numbers-and-dots">
       <p style="color:#387EF5;font-size:18px;">
         <strong> {{ data.devicename }} </strong>
       </p>
     </div>
     <div class="spacer" style="height: 12px;"></div>
-    <form id="viewDeviceLocation-form220" class="list">
-      <label class="item item-select" id="viewDeviceLocation-select106">
+    <form id="deviceLocation-form220" class="list">
+      <label class="item item-select" id="deviceLocation-select106">
         <span class="input-label">Device</span>
         <select ng-options="device.devicename as device.devicename for device in devices" ng-model="data.devicename" ng-change="changeDevice(data.devicename)"></select>
       </label>
     </form>
-    <form id="viewDeviceLocation-form225" class="list" ng-show="data.devicename != &quot;All devices&quot;">
-      <div id="viewDeviceLocation-markdown360" class="show-list-numbers-and-dots">
+    <form id="deviceLocation-form225" class="list" ng-show="data.devicename != &quot;All devices&quot;">
+      <div id="deviceLocation-markdown360" class="show-list-numbers-and-dots">
         <p style="color:#387EF5;">Device location</p>
       </div>
-      <label class="item item-input widget_button_half" id="viewDeviceLocation-input167">
+      <label class="item item-input widget_button_half" id="deviceLocation-input167">
         <span class="input-label">Latitude</span>
         <input type="text" placeholder="" ng-model="data.location.latitude">
       </label>
-      <label class="item item-input widget_button_half" id="viewDeviceLocation-input168">
+      <label class="item item-input widget_button_half" id="deviceLocation-input168">
         <span class="input-label">Longitude</span>
         <input type="text" placeholder="" ng-model="data.location.longitude">
       </label>
     </form>
-    <form id="viewDeviceLocation-form228" class="list">
-      <button id="viewDeviceLocation-button152" ng-click="setDeviceLocation(data.devicename)" class="button button-positive button-block">Set device location</button>
-      <button id="viewDeviceLocation-button155" ng-click="deleteDeviceLocation(data.devicename)" class="button button-positive button-block button-outline">Delete device location</button>
+    <form id="deviceLocation-form228" class="list">
+      <button id="deviceLocation-button152" ng-click="setDeviceLocation(data.devicename)" class="button button-positive button-block">Set device location</button>
+      <button id="deviceLocation-button155" ng-click="deleteDeviceLocation(data.devicename)" class="button button-positive button-block button-outline">Delete device location</button>
     </form>
     <ui-gmap-google-map ng-if="map.center" center="map.center" zoom="map.zoom" options="map.options" style="height:400px;">
 

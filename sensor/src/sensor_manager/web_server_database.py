@@ -718,7 +718,7 @@ class database_client_mongodb:
         return self.client_sensor[config.CONFIG_MONGODB_TB_SENSORREADINGS_DATASET]
 
     def add_sensor_reading_dataset(self, deviceid, source, address, value, subclass_value):
-        timestamp = str(int(time.time()))
+        timestamp = int(time.time())
         sensorreadings = self.get_sensorreadings_dataset_document();
         item = {}
         item['deviceid'] = deviceid

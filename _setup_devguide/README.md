@@ -795,7 +795,7 @@ DETAILED:
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
 		   { 'status': 'OK', 'message': string, 
-		     'devices': array[{'devicename': string, 'deviceid': string, 'serialnumber': string, 'timestamp': string, 'heartbeat': string, 'version': string}, ...]}
+		     'devices': array[{'devicename': string, 'deviceid': string, 'serialnumber': string, 'timestamp': string, 'heartbeat': string, 'version': string, location: {'latitude': float, 'longitude': float}}, ...]}
 		   { 'status': 'NG', 'message': string}
 		   // deviceid refers to UUID
 		   // timestamp refers to the epoch time (in seconds) the device was registered/added
@@ -804,6 +804,7 @@ DETAILED:
 		   // In Javascript, heartbeat can be converted to a readable date using "new Date(heartbeat* 1000)"
 		   // version will only appear if device has previously been queried already
 		   // heartbeat and version are cached values
+		   // location will only appear if location has been set already
 
 		B. GET DEVICES FILTERED
 		-  Request:
@@ -811,10 +812,11 @@ DETAILED:
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
 		   { 'status': 'OK', 'message': string, 
-		     'devices': array[{'devicename': string, 'deviceid': string, 'serialnumber': string, 'timestamp': string, 'heartbeat': string, 'version': string}, ...]}
+		     'devices': array[{'devicename': string, 'deviceid': string, 'serialnumber': string, 'timestamp': string, 'heartbeat': string, 'version': string, location: {'latitude': float, 'longitude': float}}, ...]}
 		   { 'status': 'NG', 'message': string}
 		   // filter will be applied to devicename and deviceid
 		   // if devicename or deviceid contains the filter string, the device will be returned
+		   // location will only appear if location has been set already
 
 		C. ADD DEVICE
 		-  Request:
@@ -848,7 +850,7 @@ DETAILED:
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
 		   { 'status': 'OK', 'message': string, 
-		     'device': {'devicename': string, 'deviceid': string, 'serialnumber': string, 'timestamp': string, 'heartbeat': string, 'version': string}}
+		     'device': {'devicename': string, 'deviceid': string, 'serialnumber': string, 'timestamp': string, 'heartbeat': string, 'version': string, location: {'latitude': float, 'longitude': float} }}
 		   { 'status': 'NG', 'message': string}
 		   // deviceid refers to UUID
 		   // timestamp refers to the epoch time (in seconds) the device was registered/added
@@ -857,6 +859,7 @@ DETAILED:
 		   // In Javascript, heartbeat can be converted to a readable date using "new Date(heartbeat* 1000)"
 		   // version will only appear if device has previously been queried already
 		   // heartbeat and version are cached values
+		   // location will only appear if location has been set already
 
 		F. UPDATE DEVICE NAME
 		-  Request:
@@ -1424,7 +1427,7 @@ DETAILED:
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
 		   { 'status': 'OK', 'message': string, 
-		     'sensor': {'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': string, 'enabled': int, 'configured': int, 'units': [], 'formats': [], 'attributes': [], 'readings': {'value': float, 'lowest': float, 'highest': float, 'subclass': {'value': float, 'lowest': float, 'highest': float}} }
+		     'sensors': [{'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': string, 'enabled': int, 'configured': int, 'units': [], 'formats': [], 'attributes': [], 'readings': {'value': float, 'lowest': float, 'highest': float, 'subclass': {'value': float, 'lowest': float, 'highest': float}}] }
 		   { 'status': 'NG', 'message': string}
 		   // the subclass parameter of readings parameter will only appear if the sensor has a subclass
 
@@ -1434,7 +1437,7 @@ DETAILED:
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
 		   { 'status': 'OK', 'message': string, 
-		     'sensor': {'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': string, 'enabled': int, 'configured': int, 'units': [], 'formats': [], 'attributes': [], 'dataset': {'labels': [], 'data': [[],...]} }
+		     'sensors': [{'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': string, 'enabled': int, 'configured': int, 'units': [], 'formats': [], 'attributes': [], 'dataset': {'labels': [], 'data': [[],...]}] }
 		   { 'status': 'NG', 'message': string}
 		   // the subclass parameter of readings parameter will only appear if the sensor has a subclass
 		   // if sensor has a subclass:  'dataset': {'labels': [], 'data': [[],[]]}
@@ -1445,14 +1448,31 @@ DETAILED:
 		-  Request:
 		   POST /devices/sensors/readings/dataset
 		   headers: {'Authorization': 'Bearer ' + token.access}
-		   data: {'devicename': string, 'peripheral': string, 'class': string, 'status': string}
+		   data: {'devicename': string, 'peripheral': string, 'class': string, 'status': string, 'timerange': string, 'points': int}
 		   // devicename can be "All devices" or the devicename of specific device
 		   // peripheral can be ["All peripherals", "I2C1", "I2C2", "I2C3", "I2C4", "ADC1", "ADC2", "1WIRE1", "TPROBE1"]
 		   // class can be ["All classes", "potentiometer", "temperature", "humidity", "anemometer", "battery", "fluid"]
 		   // status can be ["All online/offline", "online", "offline"]
+		   // timerange can be:
+		        Last 5 minutes
+		        Last 15 minutes
+		        Last 30 minutes
+		        Last 60 minutes
+		        Last 3 hours
+		        Last 6 hours
+		        Last 12 hours
+		        Last 24 hours
+		        Last 3 days
+		        Last 7 days
+		        Last 2 weeks
+		        Last 4 weeks
+		        Last 3 months
+		        Last 6 months
+		        Last 12 months
+		   // points can be 60 points or 30 points (for mobile, since screen is small, should use 30 instead of 60)
 		-  Response:
 		   { 'status': 'OK', 'message': string, 
-		     'sensor': {'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': string, 'enabled': int, 'configured': int, 'units': [], 'formats': [], 'attributes': [], 'dataset': {'labels': [], 'data': [[],...]}, 'readings': {'value': float, 'lowest': float, 'highest': float, 'subclass': {'value': float, 'lowest': float, 'highest': float}} }
+		     'sensors': [{'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': string, 'enabled': int, 'configured': int, 'units': [], 'formats': [], 'attributes': [], 'dataset': {'labels': [], 'data': [[],...]}, 'readings': {'value': float, 'lowest': float, 'highest': float, 'subclass': {'value': float, 'lowest': float, 'highest': float}}] }
 		   { 'status': 'NG', 'message': string}
 		   // the subclass parameter of readings parameter will only appear if the sensor has a subclass
 		   // if sensor has a subclass:  'dataset': {'labels': [], 'data': [[],[]]}

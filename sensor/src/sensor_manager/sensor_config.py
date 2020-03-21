@@ -7,7 +7,7 @@ class config:
     CONFIG_DEBUG_SENSOR_READING   = False
 
     CONFIG_ENABLE_DATASET         = True
-    CONFIG_MAX_DATASET            = 25
+    CONFIG_MAX_DATASET            = 17280 # 24 hours = 86400 seconds; 86400/5=17280
 
     # Database settings
     CONFIG_MONGODB_USERNAME          = os.environ["CONFIG_USE_MONGODB_USER"]

@@ -4980,6 +4980,8 @@ def get_all_device_sensors_enabled_input_readings(devicename):
             if sensor.get("address"):
                 address = sensor["address"]
             source = "{}{}".format(sensor["source"], sensor["number"])
+            #sensor["devicename"] = devicename
+            sensor.pop("deviceid")
             sensor_reading = g_database_client.get_sensor_reading(username, devicename, source, address)
             if sensor_reading is not None:
                 sensor['readings'] = sensor_reading
@@ -5107,6 +5109,7 @@ def get_all_device_sensors_enabled_input_readings_dataset(devicename):
             if sensor.get("address"):
                 address = sensor["address"]
             source = "{}{}".format(sensor["source"], sensor["number"])
+            sensor.pop("deviceid")
             sensor_reading = g_database_client.get_sensor_reading_dataset(username, devicename, source, address)
             if sensor_reading is not None:
                 sensor['dataset'] = sensor_reading
@@ -5174,6 +5177,38 @@ def get_running_sensors(token, username, devicename):
         return response, status_return
     return response, 200
 
+def get_sensor_data_threaded(sensor, username, datebegin, dateend, period, maxpoints, filter):
+    address = None
+    if sensor.get("address"):
+        address = sensor["address"]
+    source = "{}{}".format(sensor["source"], sensor["number"])
+    sensor["devicename"] = filter["devicename"]
+    dataset = g_database_client.get_sensor_reading_dataset_timebound(username, sensor["devicename"], source, address, datebegin, dateend, period, maxpoints)
+    if dataset is not None:
+        sensor['dataset'] = dataset
+        #print(len(dataset["labels"]))
+    readings = g_database_client.get_sensor_reading(username, sensor["devicename"], source, address)
+    if readings is not None:
+        sensor['readings'] = readings
+
+def get_sensor_data_threaded_ex(sensor, username, datebegin, dateend, period, maxpoints, devices):
+    address = None
+    if sensor.get("address"):
+        address = sensor["address"]
+    source = "{}{}".format(sensor["source"], sensor["number"])
+    for device in devices:
+        if device["deviceid"] == sensor["deviceid"]:
+            sensor.pop("deviceid")
+            sensor["devicename"] = device["devicename"]
+            break
+    dataset = g_database_client.get_sensor_reading_dataset_timebound(username, sensor["devicename"], source, address, datebegin, dateend, period, maxpoints)
+    if dataset is not None:
+        sensor['dataset'] = dataset
+        #print(len(dataset))
+    readings = g_database_client.get_sensor_reading(username, sensor["devicename"], source, address)
+    if readings is not None:
+        sensor['readings'] = readings
+
 
 ########################################################################################################
 #
@@ -5182,14 +5217,35 @@ def get_running_sensors(token, username, devicename):
 # - Request:
 #   POST /devices/sensors/readings/dataset
 #   headers: { 'Authorization': 'Bearer ' + token.access }
-#   data: {'devicename': string, 'peripheral': string, 'class': string}
+#   data: {'devicename': string, 'peripheral': string, 'class': string, 'status': string, 'timerange': string, 'points': int, 'index': int}
 #   // devicename can be "All devices" or the devicename of specific device
 #   // peripheral can be ["All peripherals", "I2C1", "I2C2", "I2C3", "I2C4", "ADC1", "ADC2", "1WIRE1", "TPROBE1"]
 #   // class can be ["All classes", "potentiometer", "temperature", "humidity", "anemometer", "battery", "fluid"]
 #   // status can be ["All online/offline", "online", "offline"]
+#   // timerange can be:
+#        Last 5 minutes
+#        Last 15 minutes
+#        Last 30 minutes
+#        Last 60 minutes
+#        Last 3 hours
+#        Last 6 hours
+#        Last 12 hours
+#        Last 24 hours
+#        Last 3 days
+#        Last 7 days
+#        Last 2 weeks
+#        Last 4 weeks
+#        Last 3 months
+#        Last 6 months
+#        Last 12 months
+#   // points can be 60 points or 30 points (for mobile, since screen is small, should use 30 instead of 60)
+#   // index is 0 by default. 
+#        To view the timeranges above, index is 0
+#        To view the next timerange, ex. "Last Last 5 minutes", the previous instance, index is 1. and so on...
 #
 # - Response:
-#   { 'status': 'OK', 'message': string, 'sensors': array[{'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'timestamp': string, 'readings': [{'timestamp': float, 'value': float, 'subclass': {'value': float}}], 'enabled': int}, ...] }
+#   { 'status': 'OK', 'message': string, 
+#     'sensors': array[{'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'timestamp': string, 'readings': [{'timestamp': float, 'value': float, 'subclass': {'value': float}}], 'enabled': int}, ...] }
 #   { 'status': 'NG', 'message': string }
 #
 ########################################################################################################
@@ -5233,10 +5289,26 @@ def get_all_device_sensors_enabled_input_readings_dataset_filtered():
     if flask.request.method == 'POST':
         # get filter parameters
         filter = flask.request.get_json()
-        if filter.get("devicename") is None or filter.get("peripheral") is None or filter.get("class") is None or filter.get("status") is None:
+        if filter.get("devicename") is None or filter.get("peripheral") is None or filter.get("class") is None or filter.get("status") is None or filter.get("timerange") is None or filter.get("points") is None or filter.get("index") is None:
             response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
             print('\r\nERROR Get All Device Sensors Dataset: Empty parameter found\r\n')
             return response, status.HTTP_400_BAD_REQUEST
+
+        #print(filter["timerange"])
+        timerange = [int(s) for s in filter["timerange"].split() if s.isdigit()][0]
+        if "minute" in filter["timerange"]:
+            timerange *= 60
+        elif "hour" in filter["timerange"]:
+            timerange *= 3600
+        elif "day" in filter["timerange"]:
+            timerange *= 86400
+        elif "week" in filter["timerange"]:
+            timerange *= 604800
+        elif "month" in filter["timerange"]:
+            timerange *= 2592000
+        elif "year" in filter["timerange"]:
+            timerange *= 31536000
+        #print(timerange)
 
         devices = []
         if filter["devicename"] == "All devices":
@@ -5272,37 +5344,38 @@ def get_all_device_sensors_enabled_input_readings_dataset_filtered():
             sensorstatus = 1 if filter["status"] == "online" else 0
         sensors_list = g_database_client.get_all_device_sensors_enabled_input(username, sensordevicename, source, number, sensorclass, sensorstatus)
 
+        # get time bound
+        maxpoints = filter["points"] # tested with 60 points
+        if (maxpoints != 60 and maxpoints != 30):
+            maxpoints = 60
+        period = int(timerange/maxpoints)
+        maxpoints += 1
+        dateend = int(time.time())
+        #print(dateend)
+        # adjust for adaptive begin and end "shift to left"
+        dateend = int(dateend/period) * period# + period
+        # adjust based on specified index
+        if filter["index"] != 0:
+            dateend -= filter["index"] * timerange
+        #print(dateend)
+        # add - period since we added 1 point
+        datebegin = dateend - timerange - period 
+        #print("datebegin={} dateend={} period={} maxpoints={}".format(datebegin, dateend, period, maxpoints))
+
         # add sensor properties to the result filtered sensors
+        thread_list = []
         if filter["devicename"] != "All devices":
             for sensor in sensors_list:
-                address = None
-                if sensor.get("address"):
-                    address = sensor["address"]
-                source = "{}{}".format(sensor["source"], sensor["number"])
-                sensor["devicename"] = filter["devicename"]
-                dataset = g_database_client.get_sensor_reading_dataset(username, sensor["devicename"], source, address)
-                if dataset is not None:
-                    sensor['dataset'] = dataset
-                readings = g_database_client.get_sensor_reading(username, sensor["devicename"], source, address)
-                if readings is not None:
-                    sensor['readings'] = readings
+                thr = threading.Thread(target = get_sensor_data_threaded, args = (sensor, username, datebegin, dateend, period, maxpoints, filter, ))
+                thread_list.append(thr) 
+                thr.start()
         else:
             for sensor in sensors_list:
-                address = None
-                if sensor.get("address"):
-                    address = sensor["address"]
-                source = "{}{}".format(sensor["source"], sensor["number"])
-                for device in devices:
-                    if device["deviceid"] == sensor["deviceid"]:
-                        sensor.pop("deviceid")
-                        sensor["devicename"] = device["devicename"]
-                        break
-                dataset = g_database_client.get_sensor_reading_dataset(username, sensor["devicename"], source, address)
-                if dataset is not None:
-                    sensor['dataset'] = dataset
-                readings = g_database_client.get_sensor_reading(username, sensor["devicename"], source, address)
-                if readings is not None:
-                    sensor['readings'] = readings
+                thr = threading.Thread(target = get_sensor_data_threaded_ex, args = (sensor, username, datebegin, dateend, period, maxpoints, devices, ))
+                thread_list.append(thr) 
+                thr.start()
+        for thr in thread_list:
+            thr.join()
 
     sensors_list.sort(key=sort_by_devicename)
     msg = {'status': 'OK', 'message': 'Get All Device Sensors Dataset queried successfully.', 'sensors': sensors_list}
