@@ -90,7 +90,8 @@ An alternative solution is using an AWS serverless solution wherein:
        B. MQTT device simulators (Python Paho-MQTT and NodeJS)
        C. AMQP device simulator (Python Pika-AMQP)
     6. Deployment to AWS EC2 as microservices using Docker, Kubernetes and Jenkins
-       - 9 microservices/docker containers [rabbitmq, mongodb, webapp, restapi, nginx, notification, historian, sensorian, configuration]
+       - 12 microservices/docker containers 
+         [rabbitmq, mongodb, redis, webapp, restapi, nginx, notification, historian, sensorian, configuration, ota, invoicing]
        - with Dockerfiles, Docker-compose file, Kubernetes files and Jenkinsfile
        - Kubernetes files tested on Minikube
        - Jenkinsfile for automated building and testing of docker images
@@ -98,9 +99,9 @@ An alternative solution is using an AWS serverless solution wherein:
        - SSL certificate bought from GoDaddy.com registered on NGINX.
        - Webapp compiled for Android using Ionic but requiring Android Studio/SDK 
     8. MENOS messaging (Mobile, Email, push Notification, mOdem, Storage)
-       - Mobile, Email, push Notification via Amazon Pinpoint
+       - Mobile, Email, push Notification - via Amazon Pinpoint
        - mOdem - sending message to another device
-       - Storage via Amazon S3
+       - Storage - via Amazon S3
     9. Paypal payment processing
        - Payment using Paypal gateway with confirmation email/receipt
     10. Sensor data processing
@@ -108,7 +109,9 @@ An alternative solution is using an AWS serverless solution wherein:
        - Sensor data forwarding (forward to another IoT Modem device)
        - Sensor data thresholding (triggering MENOS messages - Mobile, Email, Notifications, mOdem, Storage)
     11. OTA firmware update
-       - Via HTTPS or MQTTS (depends on the client preference and capability)
+       - Fleet of devices
+       - Offline update (scheduled on device bootup)
+       - Via HTTPS or MQTT (depends on the client preference and capability)
     12. Device location with Google Maps
        - Set and view device location via Google Maps
 
