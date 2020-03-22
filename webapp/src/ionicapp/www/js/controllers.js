@@ -5707,6 +5707,12 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                 // set default labels and data
                 $scope.sensors_datachart = [];
                 let color_index = 0;
+                
+                let show_seconds = false;
+                if ($scope.timerange.includes("minutes") && $scope.timerange !== "Last 60 minutes") {
+                    show_seconds = true;
+                }
+                
                 for (let indexy=0; indexy<$scope.sensors.length; indexy++) {
                     // colors, series
                     $scope.sensors[indexy].dataset.colors = [];
@@ -5732,13 +5738,16 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                     $scope.sensors[indexy].dataset.labels_time = [];
                     $scope.sensors[indexy].dataset.labels_date = [];
                 
+                    
                     for (let indexz=0; indexz<$scope.sensors[indexy].dataset.labels.length; indexz++) {
                         var timestamp = new Date($scope.sensors[indexy].dataset.labels[indexz] * 1000);
                         //console.log(timestamp);
                         var timestamp_time = 
                             ('0'+timestamp.getHours()).slice(-2) + ":" + 
-                            ('0'+timestamp.getMinutes()).slice(-2) + ":" + 
-                            ('0'+timestamp.getSeconds()).slice(-2);
+                            ('0'+timestamp.getMinutes()).slice(-2);
+                        if (show_seconds) {    
+                            timestamp_time += ":" + ('0'+timestamp.getSeconds()).slice(-2);
+                        }
                         //console.log(timestamp_time);
                         var timestamp_date = 
                             timestamp.getFullYear() + "/" + 
