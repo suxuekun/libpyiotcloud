@@ -1470,6 +1470,9 @@ DETAILED:
 		        Last 6 months
 		        Last 12 months
 		   // points can be 60 points or 30 points (for mobile, since screen is small, should use 30 instead of 60)
+		   // index is 0 by default. 
+		      To view the timeranges above, index is 0
+		      To view the next timerange, ex. "Last Last 5 minutes", the previous instance, index is 1. and so on...
 		-  Response:
 		   { 'status': 'OK', 'message': string, 
 		     'sensors': [{'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': string, 'enabled': int, 'configured': int, 'units': [], 'formats': [], 'attributes': [], 'dataset': {'labels': [], 'data': [[],...]}, 'readings': {'value': float, 'lowest': float, 'highest': float, 'subclass': {'value': float, 'lowest': float, 'highest': float}}] }
