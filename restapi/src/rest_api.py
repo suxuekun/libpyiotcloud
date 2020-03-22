@@ -5357,6 +5357,8 @@ def get_all_device_sensors_enabled_input_readings_dataset_filtered():
         if filter["status"] != "All online/offline":
             sensorstatus = 1 if filter["status"] == "online" else 0
         sensors_list = g_database_client.get_all_device_sensors_enabled_input(username, sensordevicename, source, number, sensorclass, sensorstatus)
+        if len(sensors_list):
+            sensors_list.sort(key=sort_by_sensorname)
 
         # get time bound
         maxpoints = filter["points"] # tested with 60 points
