@@ -5238,7 +5238,7 @@ def get_sensor_data_threaded_ex(sensor, username, datebegin, dateend, period, ma
 # - Request:
 #   POST /devices/sensors/readings/dataset
 #   headers: { 'Authorization': 'Bearer ' + token.access }
-#   data: {'devicename': string, 'peripheral': string, 'class': string, 'status': string, 'timerange': string, 'points': int, 'index': int}
+#   data: {'devicename': string, 'peripheral': string, 'class': string, 'status': string, 'timerange': string, 'points': int, 'index': int, 'checkdevice': int}
 #   // devicename can be "All devices" or the devicename of specific device
 #   // peripheral can be ["All peripherals", "I2C1", "I2C2", "I2C3", "I2C4", "ADC1", "ADC2", "1WIRE1", "TPROBE1"]
 #   // class can be ["All classes", "potentiometer", "temperature", "humidity", "anemometer", "battery", "fluid"]
@@ -5263,6 +5263,7 @@ def get_sensor_data_threaded_ex(sensor, username, datebegin, dateend, period, ma
 #   // index is 0 by default. 
 #        To view the timeranges above, index is 0
 #        To view the next timerange, ex. "Last Last 5 minutes", the previous instance, index is 1. and so on...
+#   // checkdevice is 1 or 0. 1 if device status needs to be check if device is online and if sensor is active
 #
 # - Response:
 #   { 'status': 'OK', 'message': string, 
@@ -5272,6 +5273,8 @@ def get_sensor_data_threaded_ex(sensor, username, datebegin, dateend, period, ma
 ########################################################################################################
 @app.route('/devices/sensors/readings/dataset', methods=['POST'])
 def get_all_device_sensors_enabled_input_readings_dataset_filtered():
+
+    #start_time = time.time()
 
     # get token from Authorization header
     auth_header_token = get_auth_header_token()
@@ -5331,14 +5334,19 @@ def get_all_device_sensors_enabled_input_readings_dataset_filtered():
             devices.append({"devicename": filter["devicename"]})
 
         # get active sensors for each device
-        thread_list = []
-        for device in devices:
-            devicename = device["devicename"]
-            thr = threading.Thread(target = get_running_sensors, args = (token, username, devicename, ))
-            thread_list.append(thr) 
-            thr.start()
-        for thr in thread_list:
-            thr.join()
+        checkdevice = 1
+        if filter.get("checkdevice") is not None:
+            checkdevice = filter["checkdevice"]
+        #print(checkdevice)
+        if checkdevice != 0:
+            thread_list = []
+            for device in devices:
+                devicename = device["devicename"]
+                thr = threading.Thread(target = get_running_sensors, args = (token, username, devicename, ))
+                thread_list.append(thr) 
+                thr.start()
+            for thr in thread_list:
+                thr.join()
 
         # get all sensors based on specified filter
         sensors_list = []
@@ -5400,6 +5408,8 @@ def get_all_device_sensors_enabled_input_readings_dataset_filtered():
             thr.join()
 
     sensors_list.sort(key=sort_by_devicename)
+    #print(time.time()-start_time)
+
     msg = {'status': 'OK', 'message': 'Get All Device Sensors Dataset queried successfully.', 'sensors': sensors_list}
     if new_token:
         msg['new_token'] = new_token
