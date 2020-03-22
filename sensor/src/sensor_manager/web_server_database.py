@@ -178,8 +178,8 @@ class database_client:
     # sensor readings
     ##########################################################
 
-    def add_sensor_reading(self, deviceid, source, address, sensor_readings):
-        self._devices.update_sensor_reading(deviceid, source, address, sensor_readings)
+    def add_sensor_reading(self, username, deviceid, source, address, sensor_readings):
+        self._devices.update_sensor_reading(username, deviceid, source, address, sensor_readings)
 
     def delete_sensor_reading(self, username, devicename, source, address):
         deviceid = self._devices.get_deviceid(username, devicename)
@@ -202,8 +202,8 @@ class database_client:
 
     # sensor readings datasets
 
-    def add_sensor_reading_dataset(self, deviceid, source, address, value, subclass_value):
-        self._devices.add_sensor_reading_dataset(deviceid, source, address, value, subclass_value)
+    def add_sensor_reading_dataset(self, username, deviceid, source, address, value, subclass_value):
+        self._devices.add_sensor_reading_dataset(username, deviceid, source, address, value, subclass_value)
 
     def get_sensor_reading_dataset(self, username, devicename, source, address):
         return self._devices.get_sensor_reading_dataset_by_deviceid(self._devices.get_deviceid(username, devicename), source, address)
@@ -636,9 +636,11 @@ class database_client_mongodb:
         #return self.client[config.CONFIG_MONGODB_TB_SENSORREADINGS]
         return self.client_sensor[config.CONFIG_MONGODB_TB_SENSORREADINGS]
 
-    def update_sensor_reading(self, deviceid, source, address, sensor_readings):
+    def update_sensor_reading(self, username, deviceid, source, address, sensor_readings):
         sensorreadings = self.get_sensorreadings_document();
         item = {}
+        # add username in order to optimize querying of all sensors of a user
+        item['username'] = username
         item['deviceid'] = deviceid
         item['source'] = source
         if address is not None:
@@ -717,10 +719,12 @@ class database_client_mongodb:
         #return self.client[config.CONFIG_MONGODB_TB_SENSORREADINGS_DATASET]
         return self.client_sensor[config.CONFIG_MONGODB_TB_SENSORREADINGS_DATASET]
 
-    def add_sensor_reading_dataset(self, deviceid, source, address, value, subclass_value):
+    def add_sensor_reading_dataset(self, username, deviceid, source, address, value, subclass_value):
         timestamp = int(time.time())
         sensorreadings = self.get_sensorreadings_dataset_document();
         item = {}
+        # add username in order to optimize querying of all sensors of a user
+        item['username'] = username
         item['deviceid'] = deviceid
         item['source'] = source
         if address is not None:

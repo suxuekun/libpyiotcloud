@@ -470,8 +470,8 @@ class database_client:
     # sensor readings
     ##########################################################
 
-    def add_sensor_reading(self, deviceid, source, address, sensor_readings):
-        self._devices.update_sensor_reading(deviceid, source, address, sensor_readings)
+    def add_sensor_reading(self, username, deviceid, source, address, sensor_readings):
+        self._devices.update_sensor_reading(username, deviceid, source, address, sensor_readings)
 
     def delete_sensor_reading(self, username, devicename, source, address):
         deviceid = self._devices.get_deviceid(username, devicename)
@@ -489,13 +489,19 @@ class database_client:
     def get_sensors_readings(self, username, devicename, source):
         return self._devices.get_sensors_readings_by_deviceid(self._devices.get_deviceid(username, devicename), source)
 
+    def get_device_sensors_readings(self, username, devicename):
+        return self._devices.get_device_sensors_readings_by_deviceid(self._devices.get_deviceid(username, devicename))
+
+    def get_user_sensors_readings(self, username):
+        return self._devices.get_user_sensors_readings(username)
+
     def get_sensor_reading_by_deviceid(self, deviceid, source, address):
         return self._devices.get_sensor_reading_by_deviceid(deviceid, source, address)
 
     # sensor readings datasets
 
-    def add_sensor_reading_dataset(self, deviceid, source, address, value, subclass_value):
-        self._devices.add_sensor_reading_dataset(deviceid, source, address, value, subclass_value)
+    def add_sensor_reading_dataset(self, username, deviceid, source, address, value, subclass_value):
+        self._devices.add_sensor_reading_dataset(username, deviceid, source, address, value, subclass_value)
 
     def get_sensor_reading_dataset(self, username, devicename, source, address):
         return self._devices.get_sensor_reading_dataset_by_deviceid(self._devices.get_deviceid(username, devicename), source, address)
@@ -2117,9 +2123,10 @@ class database_client_mongodb:
         #return self.client[config.CONFIG_MONGODB_TB_SENSORREADINGS]
         return self.client_sensor[config.CONFIG_MONGODB_TB_SENSORREADINGS]
 
-    def update_sensor_reading(self, deviceid, source, address, sensor_readings):
+    def update_sensor_reading(self, username, deviceid, source, address, sensor_readings):
         sensorreadings = self.get_sensorreadings_document();
         item = {}
+        item['username'] = username
         item['deviceid'] = deviceid
         item['source'] = source
         if address is not None:
@@ -2171,11 +2178,13 @@ class database_client_mongodb:
             if address is None:
                 for sensorreading in sensorreadings.find({'deviceid': deviceid, 'source': source}):
                     sensorreading.pop('_id')
+                    sensorreading.pop('username')
                     #print(sensorreading['sensor_readings'])
                     return sensorreading['sensor_readings']
             else:
                 for sensorreading in sensorreadings.find({'deviceid': deviceid, 'source': source, 'address': address}):
                     sensorreading.pop('_id')
+                    sensorreading.pop('username')
                     #print(sensorreading['sensor_readings'])
                     return sensorreading['sensor_readings']
         return None
@@ -2186,7 +2195,28 @@ class database_client_mongodb:
         if sensorreadings:
             for sensorreading in sensorreadings.find({'deviceid': deviceid, 'source': source}):
                 sensorreading.pop('_id')
+                sensorreading.pop('username')
                 sensorreadings_list.append(sensorreading['sensor_readings'])
+        return sensorreadings_list
+
+    def get_device_sensors_readings_by_deviceid(self, deviceid):
+        sensorreadings_list = []
+        sensorreadings = self.get_sensorreadings_document();
+        if sensorreadings:
+            for sensorreading in sensorreadings.find({'deviceid': deviceid}):
+                sensorreading.pop('_id')
+                sensorreading.pop('username')
+                sensorreadings_list.append(sensorreading)
+        return sensorreadings_list
+
+    def get_user_sensors_readings(self, username):
+        sensorreadings_list = []
+        sensorreadings = self.get_sensorreadings_document();
+        if sensorreadings:
+            for sensorreading in sensorreadings.find({'username': username}):
+                sensorreading.pop('_id')
+                sensorreading.pop('username')
+                sensorreadings_list.append(sensorreading)
         return sensorreadings_list
 
 
@@ -2198,10 +2228,11 @@ class database_client_mongodb:
         #return self.client[config.CONFIG_MONGODB_TB_SENSORREADINGS_DATASET]
         return self.client_sensor[config.CONFIG_MONGODB_TB_SENSORREADINGS_DATASET]
 
-    def add_sensor_reading_dataset(self, deviceid, source, address, value, subclass_value):
+    def add_sensor_reading_dataset(self, username, deviceid, source, address, value, subclass_value):
         timestamp = str(int(time.time()))
         sensorreadings = self.get_sensorreadings_dataset_document();
         item = {}
+        item['username'] = username
         item['deviceid'] = deviceid
         item['source'] = source
         if address is not None:

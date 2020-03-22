@@ -102,7 +102,7 @@ def print_json(json_object):
     print(json_formatted_str)
 
 
-def store_sensor_reading(database_client, deviceid, source, address, value, subclass_value):
+def store_sensor_reading(database_client, username, devicename, deviceid, source, address, value, subclass_value):
 
     try:
         #
@@ -149,12 +149,12 @@ def store_sensor_reading(database_client, deviceid, source, address, value, subc
             sensor_readings["subclass"]["value"] = float(sensor_readings["subclass"]["value"])
             sensor_readings["subclass"]["lowest"] = float(sensor_readings["subclass"]["lowest"])
             sensor_readings["subclass"]["highest"] = float(sensor_readings["subclass"]["highest"])
-        database_client.add_sensor_reading(deviceid, source, address, sensor_readings)
+        database_client.add_sensor_reading(username, deviceid, source, address, sensor_readings)
 
         #
         # update sensor reading with timestamp for charting/graphing
         if sensor_config.CONFIG_ENABLE_DATASET:
-            database_client.add_sensor_reading_dataset(deviceid, source, address, value, subclass_value)
+            database_client.add_sensor_reading_dataset(username, deviceid, source, address, value, subclass_value)
     except:
         print("exception store_sensor_reading")
         pass
@@ -290,7 +290,7 @@ def process_thresholding_notification(attributes, value, classname, sensor, sour
                     menos_publish(MENOS_DEFAULT, deviceid, None, None, peripheral, number, address, 0, value)
 
 
-def forward_sensor_reading(database_client, deviceid, source, address, value, subclass_value):
+def forward_sensor_reading(database_client, username, devicename, deviceid, source, address, value, subclass_value):
 
     #
     # forward the packet to the specified recipient in the properties
@@ -311,9 +311,6 @@ def forward_sensor_reading(database_client, deviceid, source, address, value, su
                     #print(dest_devicename)
                     sensor = database_client.get_sensor_by_deviceid(deviceid, peripheral, number, address)
                     if sensor is not None:
-                        username, devicename = database_client.get_username_devicename(deviceid)
-                        if username is None or devicename is None:
-                            return
                         #print_json(sensor)
                         #print("")
                         dest_deviceid = database_client.get_deviceid(username, dest_devicename)
@@ -377,6 +374,10 @@ def forward_sensor_reading(database_client, deviceid, source, address, value, su
 
 def process_sensor_reading(database_client, deviceid, source, sensor):
 
+    username, devicename = database_client.get_username_devicename(deviceid)
+    if username is None or devicename is None:
+        return
+
     #
     # get address
     address = None
@@ -393,13 +394,13 @@ def process_sensor_reading(database_client, deviceid, source, sensor):
 
     #
     # store sensor reading
-    thr1 = threading.Thread(target = store_sensor_reading, args = (database_client, deviceid, source, address, value, subclass_value, ))
+    thr1 = threading.Thread(target = store_sensor_reading, args = (database_client, username, devicename, deviceid, source, address, value, subclass_value, ))
     thr1.start()
     #store_sensor_reading(database_client, deviceid, source, address, value, subclass_value)
 
     #
     # forward sensor reading (if applicable)
-    thr2 = threading.Thread(target = forward_sensor_reading, args = (database_client, deviceid, source, address, value, subclass_value, ))
+    thr2 = threading.Thread(target = forward_sensor_reading, args = (database_client, username, devicename, deviceid, source, address, value, subclass_value, ))
     thr2.start()
     #forward_sensor_reading(database_client, deviceid, source, address, value, subclass_value)
 
