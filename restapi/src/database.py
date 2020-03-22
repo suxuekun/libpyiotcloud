@@ -2312,6 +2312,7 @@ class database_client_mongodb:
             if readings.count():
                 if period == 5:
                     for reading in readings:
+                        # handle case that device has no initial data or has gaps in between
                         while end < dateend:
                             if reading["timestamp"] < end:
                                 break
@@ -2345,6 +2346,21 @@ class database_client_mongodb:
                                 dataset["data"][0].append(reading["value"])
                                 begin = end
                                 end += period
+                    # handle case that device got disconnected, no more data
+                    while end < dateend:
+                        dataset["labels"].append(begin)
+                        if len(dataset["data"]) == 2:
+                            if len(dataset["data"]) == 0:
+                                dataset["data"].append([])
+                                dataset["data"].append([])
+                            dataset["data"][0].append(None)
+                            dataset["data"][1].append(None)
+                        else:
+                            if len(dataset["data"]) == 0:
+                                dataset["data"].append([])
+                            dataset["data"][0].append(None)
+                        begin = end
+                        end += period
                 else:
                     #dataset["labels_actual"] = []
                     #dataset["data_actual"] = []
@@ -2480,6 +2496,19 @@ class database_client_mongodb:
                         dataset["data"][0].append(round(statistics.mean(points2), 1))
                         dataset["low"][0].append(min(points2))
                         dataset["high"][0].append(max(points2))
+                    # handle case that device got disconnected, no more data
+                    while end < dateend:
+                        dataset["labels"].append(begin)
+                        dataset["data"][0].append(None)
+                        dataset["low"][0].append(None)
+                        dataset["high"][0].append(None)
+                        if len(dataset["data"]) == 2:
+                            dataset["data"][0].append(None)
+                            dataset["low"][0].append(None)
+                            dataset["high"][0].append(None)
+                        begin = end
+                        end += period
+
             else:
                 # handle no data
                 if len(dataset["data"]) == 0:
