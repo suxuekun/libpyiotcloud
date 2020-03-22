@@ -506,14 +506,14 @@ def on_message(subtopic, subpayload):
             print("exception API_PUBLISH_SENSOR_READING")
             print(e)
             return
-    elif topic == API_REQUEST_SENSOR_READING:
-        try:
-            thr = threading.Thread(target = get_sensor_reading, args = (g_database_client, deviceid, topic, payload ))
-            thr.start()
-        except Exception as e:
-            print("exception API_REQUEST_SENSOR_READING")
-            print(e)
-            return
+    #elif topic == API_REQUEST_SENSOR_READING:
+    #    try:
+    #        thr = threading.Thread(target = get_sensor_reading, args = (g_database_client, deviceid, topic, payload ))
+    #        thr.start()
+    #    except Exception as e:
+    #        print("exception API_REQUEST_SENSOR_READING")
+    #        print(e)
+    #        return
 
 
 def on_mqtt_message(client, userdata, msg):
