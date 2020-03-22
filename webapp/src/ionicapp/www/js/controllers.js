@@ -5340,6 +5340,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
     ];
     $scope.timerange = $scope.timeranges[0];
     $scope.timerangeindex = 0;
+    $scope.checkdevice = 1;
     
     
     $scope.hide_settings = false;
@@ -5664,6 +5665,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                 'timerange': $scope.timerange, 
                 'points': 60,
                 'index': $scope.timerangeindex,
+                'checkdevice': $scope.checkdevice,
             }
         })
         .then(function (result) {
@@ -5679,6 +5681,12 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             }
             else {
                 $scope.sensors_counthdr = result.data.sensors.length.toString() + " sensors enabled";
+            }
+
+            if ($scope.timer !== null /* && $scope.data.devicename === "All devices" */) {
+                if ($scope.checkdevice === 1) {
+                    $scope.checkdevice = 0;
+                }
             }
 
             for (let indexy=0; indexy<result.data.sensors.length; indexy++) {
@@ -5971,6 +5979,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                         type: 'button-positive',
                         onTap: function(e) {
                             $scope.timerangeindex = 0;
+                            $scope.checkdevice = 1;
                             $scope.timer = setInterval($scope.pollSensorData, $scope.refresh_time * 1000);
                             $scope.submitQuery(clear=false);
                         }
@@ -5997,6 +6006,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             console.log("clearTimeout");
             $scope.timer = null;
             $scope.run_time = 0;
+            $scope.checkdevice = 1;
             $scope.refresh_automatically = !$scope.refresh_automatically;
             
             $ionicPopup.alert({
@@ -6136,6 +6146,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         $scope.sensorstatus = $scope.sensorstatuses[1];
         $scope.timerange = $scope.timeranges[0];
         $scope.timerangeindex = 0;
+        $scope.checkdevice = 1;
         
         $scope.sensors_datachart = [{"labels": [], "data": [], "series": [], "colors": []}];
         get_devices();
@@ -6150,6 +6161,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         }
         $scope.run_time = 0;
         $scope.timerangeindex = 0;
+        $scope.checkdevice = 1;
     });
 }])
    
