@@ -2276,12 +2276,28 @@ class database_client_mongodb:
             readings = sensorreadings.find(filter)
             #print(readings.count())
 
+            begin = datebegin
+            end = begin+period
             if readings.count():
                 if period == 5:
                     for reading in readings:
+                        while end < dateend:
+                            if reading["timestamp"] < end:
+                                break
+                            dataset["labels"].append(begin)
+                            if reading.get("subclass_value"):
+                                if len(dataset["data"]) == 0:
+                                    dataset["data"].append([])
+                                    dataset["data"].append([])
+                                dataset["data"][0].append(None)
+                                dataset["data"][1].append(None)
+                            else:
+                                if len(dataset["data"]) == 0:
+                                    dataset["data"].append([])
+                                dataset["data"][0].append(None)
+                            begin = end
+                            end += period
                         if reading.get("value"):
-                            #print(reading["timestamp"])
-                            #print(type(reading["timestamp"]))
                             if reading.get("subclass_value"):
                                 dataset["labels"].append(reading["timestamp"])
                                 if len(dataset["data"]) == 0:
@@ -2289,11 +2305,15 @@ class database_client_mongodb:
                                     dataset["data"].append([])
                                 dataset["data"][0].append(reading["value"])
                                 dataset["data"][1].append(reading["subclass_value"])
+                                begin = end
+                                end += period
                             else:
                                 dataset["labels"].append(reading["timestamp"])
                                 if len(dataset["data"]) == 0:
                                     dataset["data"].append([])
                                 dataset["data"][0].append(reading["value"])
+                                begin = end
+                                end += period
                 else:
                     #dataset["labels_actual"] = []
                     #dataset["data_actual"] = []
@@ -2301,8 +2321,6 @@ class database_client_mongodb:
                     dataset["high"] = []
                     points = []
                     points2 = []
-                    begin = datebegin
-                    end = begin+period
                     for reading in readings:
                         if reading.get("value"):
                             if reading.get("subclass_value"):
@@ -2433,8 +2451,6 @@ class database_client_mongodb:
                         dataset["high"][0].append(max(points2))
             else:
                 # handle no data
-                begin = datebegin
-                end = begin+period
                 if len(dataset["data"]) == 0:
                     dataset["data"].append([])
                 while end < dateend:
@@ -2447,7 +2463,6 @@ class database_client_mongodb:
 #        print(dataset["data"][0][:3])
 #        print(dataset["low"][0][:3])
 #        print(dataset["high"][0][:3])
-
 #        print(len(dataset["data_actual"][0]))
 #        print(len(dataset["labels"]))
 #        print(len(dataset["data"][0]))
