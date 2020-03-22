@@ -372,11 +372,7 @@ def forward_sensor_reading(database_client, username, devicename, deviceid, sour
         pass
 
 
-def process_sensor_reading(database_client, deviceid, source, sensor):
-
-    username, devicename = database_client.get_username_devicename(deviceid)
-    if username is None or devicename is None:
-        return
+def process_sensor_reading(database_client, username, devicename, deviceid, source, sensor):
 
     #
     # get address
@@ -417,12 +413,15 @@ def add_sensor_reading(database_client, deviceid, topic, payload):
     #print(topic)
     payload = json.loads(payload)
 
+    username, devicename = database_client.get_username_devicename(deviceid)
+    if username is None or devicename is None:
+        return
 
     thr_list = []
 
     for source in payload["sensors"]:
         for sensor in payload["sensors"][source]:
-            thr = threading.Thread(target = process_sensor_reading, args = (database_client, deviceid, source, sensor, ))
+            thr = threading.Thread(target = process_sensor_reading, args = (database_client, username, devicename, deviceid, source, sensor, ))
             thr.start()
             thr_list.append(thr)
             #process_sensor_reading(database_client, deviceid, source, sensor)
