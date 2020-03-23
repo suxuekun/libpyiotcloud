@@ -141,8 +141,14 @@ class cognito_client:
 				response = self.__get_client().initiate_auth(**params)
 				#print(time.time()-start_time)
 			except Exception as e:
-				print(e)
-				return (False, None)
+				error_code = e.response.get("Error", {}).get("Code")
+				if error_code == "PasswordResetRequiredException":
+					print("Password reset required")
+				elif error_code == "NotAuthorizedException":
+					print("Incorrect password")
+				else:
+					print(error_code)
+				return (False, error_code)
 			return (self.__get_result(response), response)
 		else:
 			client = self.__get_client()
@@ -428,6 +434,17 @@ class cognito_client:
 				if user.get("phone_number"):
 					print("  phone_number : {}".format(user["phone_number"]))
 				print()
+
+	def admin_reset_user_password(self, username):
+		params = {
+			'UserPoolId' : self.pool_id,
+			'Username'   : username
+		}
+		try:
+			response = self.__get_client().admin_reset_user_password(**params)
+		except:
+			return (False, None)
+		return (self.__get_result(response), response)
 
 	def admin_disable_user(self, username):
 		params = {

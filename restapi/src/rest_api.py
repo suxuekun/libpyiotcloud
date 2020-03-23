@@ -270,6 +270,10 @@ def login_idp_querycode(id):
 # - Response:
 #   {'status': 'OK', 'message': string, 'token': {'access': string, 'id': string, 'refresh': string}, 'name': string }
 #   {'status': 'NG', 'message': string}
+#   // When user logins with incorrect password for 5 consecutive times, user needs to reset the password
+#   // When error is HTTP_401_UNAUTHORIZED, web/mobile app should check message
+#   // If message is PasswordResetRequiredException, the web/mobile app should redirect user to the CONFIRM FORGOT PASSWORD page
+#   // User should input the OTP code sent in email and the new password to be used
 #
 ########################################################################################################
 @app.route('/user/login', methods=['POST'])
@@ -324,13 +328,37 @@ def login():
 
     # check if password is valid
     access, refresh, id = g_database_client.login(username, password)
-    if not access:
+    if access is None:
+        print(username)
         # NOTE:
         # its not good to provide a specific error message for LOGIN
         # because it provides additional info for hackers
-        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
-        print('\r\nERROR Login: Password is incorrect [{}]\r\n'.format(username))
+        if id == "PasswordResetRequiredException":
+            response = json.dumps({'status': 'NG', 'message': 'PasswordResetRequiredException', 'username': username})
+            # trigger to send OTP to email
+            result = g_database_client.forgot_password(username)
+            #print(result)
+        elif id == "NotAuthorizedException":
+            # increment failed attempts
+            g_redis_client.login_failed_set_attempts(username)
+            attempts = g_redis_client.login_failed_get_attempts(username)
+            # force password reset on 5 consecutive failed attempts
+            if int(attempts) >= 5:
+                response = json.dumps({'status': 'NG', 'message': 'PasswordResetRequiredException', 'username': username})
+                g_database_client.reset_user_password(username)
+                #g_redis_client.login_failed_del_attempts(username)
+            else:
+                response = json.dumps({'status': 'NG', 'message': 'NotAuthorizedException'})
+        else:
+            response = json.dumps({'status': 'NG', 'message': 'NotAuthorizedException'})
+        print('\r\nERROR Login: Password is incorrect [{}] {}\r\n'.format(username, id))
         return response, status.HTTP_401_UNAUTHORIZED
+
+
+    # delete the couter for failed logins
+    attempts = g_redis_client.login_failed_get_attempts(username)
+    if attempts is not None:
+        g_redis_client.login_failed_del_attempts(username)
 
     # return name during login as per special request
     name = None
@@ -342,6 +370,7 @@ def login():
         if 'family_name' in info:
             if info['family_name'] != "NONE":
                 name += " " + info['family_name']
+
 
     msg = {'status': 'OK', 'message': "Login successful", 'token': {'access': access, 'refresh': refresh, 'id': id} }
     if name is not None:
@@ -653,6 +682,11 @@ def confirm_forgot_password():
         response = json.dumps({'status': 'NG', 'message': 'Invalid code'})
         print('\r\nERROR Reset Password: Invalid code [{}]\r\n'.format(username))
         return response, status.HTTP_500_INTERNAL_SERVER_ERROR
+
+    # delete the couter for failed logins
+    attempts = g_redis_client.login_failed_get_attempts(username)
+    if attempts is not None:
+        g_redis_client.login_failed_del_attempts(username)
 
     response = json.dumps({'status': 'OK', 'message': 'User account recovery confirmed successfully.'})
     print('\r\nReset Password successful: {}\r\n{}\r\n'.format(username, response))

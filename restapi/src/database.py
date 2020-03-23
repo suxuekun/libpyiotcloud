@@ -264,6 +264,9 @@ class database_client:
     def change_password(self, access_token, password, new_password):
         return self._users.change_password(access_token, password, new_password)
 
+    def reset_user_password(self, username):
+        return self._users.reset_user_password(username)
+
 
     ##########################################################
     # history
@@ -716,7 +719,7 @@ class database_client_cognito:
     def login(self, username, password):
         (result, response) = self.client.login(username, password)
         if not result:
-            return None, None, None
+            return None, None, response
         access_token = response['AuthenticationResult']['AccessToken']
         refresh_token = response['AuthenticationResult']['RefreshToken']
         id_token = response['AuthenticationResult']['IdToken']
@@ -838,6 +841,10 @@ class database_client_cognito:
 
     def change_password(self, access_token, password, new_password):
         (result, response) = self.client.change_password(access_token, password, new_password)
+        return result
+
+    def reset_user_password(self, username):
+        (result, response) = self.client.admin_reset_user_password(username)
         return result
 
 

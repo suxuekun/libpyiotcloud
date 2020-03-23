@@ -1456,8 +1456,22 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
             
             // Handle failed
             if (error.data !== null) {
-                console.log(error.status + " " + error.statusText);
-                $ionicPopup.alert({ title: 'Login Error', template: error.data.message });
+                if (error.status == 401) {
+                    if (error.data.message === "PasswordResetRequiredException") {
+                        var data = {
+                            'username': error.data.username
+                        };
+                        $state.go('resetPassword', data); 
+                    }
+                    else {
+                        console.log(error.status + " " + error.statusText);
+                        $ionicPopup.alert({ title: 'Login Error', template: error.data.message });
+                    }
+                }
+                else {
+                    console.log(error.status + " " + error.statusText);
+                    $ionicPopup.alert({ title: 'Login Error', template: error.data.message });
+                }
             }
             else {
                 $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
