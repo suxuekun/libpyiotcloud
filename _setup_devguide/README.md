@@ -3570,6 +3570,8 @@ On the AWS EC2 side, the CPU usage is as follows:
 
 Demo setups:
 
+Note: MENOS stands for Mobile, Email, (push) Notification, mOdem, Storage
+
 1.  Demo1 - demonstrates <b>sensor graphing</b> and <b>sensor thresholding (w/MENOS triggering)</b> of ADC/Onewire/TProbe sensors
 
         Dev1
