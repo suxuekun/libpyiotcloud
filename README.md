@@ -335,6 +335,9 @@ Menu, account, history
         P. GET PERIPHERAL SENSOR READINGS DATASET          - GET    /devices/device/DEVICENAME/sensors/readings/dataset
         Q. GET PERIPHERAL SENSOR READINGS DATASET FILTERED - POST   /devices/sensors/readings/dataset
         R. DELETE PERIPHERAL SENSOR READINGS               - DELETE /devices/device/DEVICENAME/sensors/readings
+        S. DELETE PERIPHERAL SENSOR READINGS DATASET       - DELETE /devices/sensors/readings/dataset
+        // sensor properties
+        T. DELETE PERIPHERAL SENSOR PROPERTIES             - DELETE /devices/device/DEVICENAME/sensors/properties
 
     4. Device access and control APIs (I2C)
         A. ADD I2C DEVICE                 - POST   /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME

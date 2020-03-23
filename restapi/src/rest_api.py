@@ -4985,18 +4985,20 @@ def get_all_device_sensors_enabled_input_readings(devicename):
             sensor_reading = g_database_client.get_sensor_reading(username, devicename, source, address)
             if sensor_reading is not None:
                 sensor['readings'] = sensor_reading
+        msg = {'status': 'OK', 'message': 'Get All Device Sensors queried successfully.', 'sensors': sensors}
 
     elif flask.request.method == 'DELETE':
-        sensors = g_database_client.get_all_device_sensors_input(username, devicename)
-        for sensor in sensors:
-            address = None
-            if sensor.get("address"):
-                address = sensor["address"]
-            source = "{}{}".format(sensor["source"], sensor["number"])
-            g_database_client.delete_sensor_reading(username, devicename, source, address)
+        #sensors = g_database_client.get_all_device_sensors_input(username, devicename)
+        #for sensor in sensors:
+        #    address = None
+        #    if sensor.get("address"):
+        #        address = sensor["address"]
+        #    source = "{}{}".format(sensor["source"], sensor["number"])
+        #    g_database_client.delete_sensor_reading(username, devicename, source, address)
+        g_database_client.delete_device_sensor_reading(username, devicename)
+        msg = {'status': 'OK', 'message': 'Delete All Device Sensors queried successfully.'}
 
 
-    msg = {'status': 'OK', 'message': 'Get All Device Sensors queried successfully.', 'sensors': sensors}
     if new_token:
         msg['new_token'] = new_token
     response = json.dumps(msg)
@@ -5270,8 +5272,22 @@ def get_sensor_data_threaded_ex(sensor, username, datebegin, dateend, period, ma
 #     'sensors': array[{'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'timestamp': string, 'readings': [{'timestamp': float, 'value': float, 'subclass': {'value': float}}], 'enabled': int}, ...] }
 #   { 'status': 'NG', 'message': string }
 #
+#
+# DELETE PERIPHERAL SENSOR READINGS DATASET (FILTERED)
+#
+# - Request:
+#   POST /devices/sensors/readings/dataset
+#   headers: { 'Authorization': 'Bearer ' + token.access }
+#   data: {'devicename': string}
+#   // devicename can be "All devices" or the devicename of specific device
+#
+# - Response:
+#   { 'status': 'OK', 'message': string, 
+#     'sensors': array[{'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'timestamp': string, 'readings': [{'timestamp': float, 'value': float, 'subclass': {'value': float}}], 'enabled': int}, ...] }
+#   { 'status': 'NG', 'message': string }
+#
 ########################################################################################################
-@app.route('/devices/sensors/readings/dataset', methods=['POST'])
+@app.route('/devices/sensors/readings/dataset', methods=['POST', 'DELETE'])
 def get_all_device_sensors_enabled_input_readings_dataset_filtered():
 
     #start_time = time.time()
@@ -5407,10 +5423,26 @@ def get_all_device_sensors_enabled_input_readings_dataset_filtered():
         for thr in thread_list:
             thr.join()
 
-    sensors_list.sort(key=sort_by_devicename)
-    #print(time.time()-start_time)
+        sensors_list.sort(key=sort_by_devicename)
+        #print(time.time()-start_time)
+        msg = {'status': 'OK', 'message': 'Get All Device Sensors Dataset queried successfully.', 'sensors': sensors_list}
 
-    msg = {'status': 'OK', 'message': 'Get All Device Sensors Dataset queried successfully.', 'sensors': sensors_list}
+    elif flask.request.method == 'DELETE':
+
+        filter = flask.request.get_json()
+        if filter.get("devicename") is None:
+            response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+            print('\r\nERROR Get All Device Sensors Dataset: Empty parameter found\r\n')
+            return response, status.HTTP_400_BAD_REQUEST
+
+        if filter["devicename"] == "All devices":
+            g_database_client.delete_user_sensor_reading(username)
+        else:
+            g_database_client.delete_device_sensor_reading(username, filter["devicename"])
+
+        msg = {'status': 'OK', 'message': 'Delete All Device Sensors Dataset queried successfully.'}
+
+
     if new_token:
         msg['new_token'] = new_token
     response = json.dumps(msg)
