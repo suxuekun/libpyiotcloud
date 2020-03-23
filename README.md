@@ -81,9 +81,10 @@ Below are tools and utilities being used:
 ### Features
 
     1. User sign-up/sign-in
-       A. Amazon Cognito for user sign-up and sign-in (with support for OTP)
+       A. Amazon Cognito for user sign-up and sign-in
        B. Login with email or phone number
        C. Login via social IDP - Facebook/Google/Amazon (OAuth2)
+       D. OTP sent via email or phone number
     2. Device and sensor management
        A. Register device and sensors (uses MongoDB NoSQL database)
        B. Configure device and sensors 
@@ -123,9 +124,11 @@ Below are tools and utilities being used:
        - SSL certificate bought from GoDaddy.com registered on NGINX.
        - Webapp compiled for Android using Ionic but requiring Android Studio/SDK 
     8. MENOS messaging (Mobile, Email, push Notification, mOdem, Storage)
-       - Mobile, Email, push Notification - sending message via Amazon Pinpoint
+       - Mobile - sending SMS message via Amazon Pinpoint
+       - Email - sending email message via Amazon Pinpoint
+       - push Notification - sending message as push notifications to Android/IOS mobile phones via Amazon Pinpoint
        - mOdem - sending message to another device
-       - Storage - sending message to Amazon S3 for file storage
+       - Storage - sending message to Amazon S3 for file storage (user can download the file for later viewing and analysis)
     9. Paypal payment processing
        - Payment using Paypal gateway 
        - Confirmation receipt is sent to email
