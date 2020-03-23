@@ -2337,15 +2337,13 @@ class database_client_mongodb:
                                     dataset["data"].append([])
                                 dataset["data"][0].append(reading["value"])
                                 dataset["data"][1].append(reading["subclass_value"])
-                                begin = end
-                                end += period
                             else:
                                 dataset["labels"].append(reading["timestamp"])
                                 if len(dataset["data"]) == 0:
                                     dataset["data"].append([])
                                 dataset["data"][0].append(reading["value"])
-                                begin = end
-                                end += period
+                            begin = end
+                            end += period
                     # handle case that device got disconnected, no more data
                     while end < dateend:
                         dataset["labels"].append(begin)
@@ -2492,6 +2490,8 @@ class database_client_mongodb:
                         dataset["data"][0].append(round(statistics.mean(points), 1))
                         dataset["low"][0].append(min(points))
                         dataset["high"][0].append(max(points))
+                        begin = end
+                        end += period
                     if len(points2):
                         dataset["data"][0].append(round(statistics.mean(points2), 1))
                         dataset["low"][0].append(min(points2))
