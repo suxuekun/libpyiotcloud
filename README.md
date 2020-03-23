@@ -143,7 +143,7 @@ Below are tools and utilities being used:
 9. <b>Sensorian</b> - handles saving of sensor readings for each devices of all users
 10. <b>Configuration</b> - handles providing of device configuration for each devices during device bootup
 11. <b>OTAUpdate</b> - handles OTA firmware update via MQTTS
-12. <b>Invoicing</b> - handles sending of payment receipts
+12. <b>Invoicing</b> - handles sending of payment receipts via email
 
 
 
