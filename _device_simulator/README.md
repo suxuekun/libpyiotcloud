@@ -268,10 +268,10 @@ This page contains a step-by-step tutorial on <b>how to use the IoT Portal</b> i
 
     <b> NOTE: After implementing additional security measures in the backend, device also needs to provide the MQTT username and MQTT password with the UUID and SerialNumber, respectively. </b>
 
-    - DEVICE_ID = <UUID>
-    - USER = <UUID>
-    - PASS = <Serial Number>
-    - HOST = Use richmondu.com if PROD or ec2-54-88-41-145.compute-1.amazonaws.com if DEV
+    - DEVICE_ID = UUID
+    - USER = UUID
+    - PASS = Serial Number
+    - HOST = Use prod or dev hostname
 
 3. Run <b>device_simulator.py.bat</b> (or device_simulator.py.sh for Linux/MacOS)
 
@@ -312,10 +312,10 @@ This page contains a step-by-step tutorial on <b>how to use the IoT Portal</b> i
 
     <b> NOTE: After implementing additional security measures in the backend, device also needs to provide the MQTT username and MQTT password with the UUID and SerialNumber, respectively. </b>
 
-    - DEVICE_ID = <UUID>
-    - USER = <UUID>
-    - PASS = <Serial Number>
-    - HOST = Use richmondu.com if PROD or ec2-54-88-41-145.compute-1.amazonaws.com if DEV
+    - DEVICE_ID = UUID
+    - USER = UUID
+    - PASS = Serial Number
+    - HOST = Use prod or dev hostname
 
 3. Run <b>device_simulator.js.bat</b> (or device_simulator.js.sh for Linux/MacOS)
 
@@ -340,10 +340,10 @@ This page contains a step-by-step tutorial on <b>how to use the IoT Portal</b> i
 
     <b> NOTE: After implementing additional security measures in the backend, device also needs to provide the MQTT username and MQTT password with the UUID and SerialNumber, respectively. </b>
 
-    - DEVICE_ID = <UUID>
-    - USER = <UUID>
-    - PASS = <Serial Number>
-    - HOST = Use richmondu.com if PROD or ec2-54-88-41-145.compute-1.amazonaws.com if DEV
+    - DEVICE_ID = UUID
+    - USER = UUID
+    - PASS = Serial Number
+    - HOST = Use prod or dev hostname
 
 3. Compile code and load the binary.
 
