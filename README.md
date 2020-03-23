@@ -91,7 +91,11 @@ Below are tools and utilities being used:
        D. MongoDB Atlas cloud database service for storing sensor-data for dashboard charts
        E. Redis key value store database for storing cacheable information and temporary information
     3. Device and sensor control and access
-       A. Access sensors connected via peripherals: UART, GPIO, I2C, ADC, OneWire, TPROBE
+       A. Access sensors connected via peripherals: I2C, ADC, OneWire, TPROBE
+       B. Trigger MENOS messaging via UART
+       C. Trigger MENOS messaging on GPIO input
+       D. Drive GPIO pins
+       E. Trigger MENOS messaging on sensor threshold for sensors connected via I2C, ADC, OneWire, TPROBE
     4. Device connectivity and web/mobile connectivity via MQTTS and HTTPS
        [client --HTTPS--> webserver <--MQTTS (or AMQPS)--> msgbroker <--MQTTS (and AMQPS)--> device]
        A. HTTP over TLS: client app accessing REST APIs from webserver
