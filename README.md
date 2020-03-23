@@ -134,7 +134,7 @@ Below are tools and utilities being used:
        - Confirmation receipt is sent to email
     10. Sensor data processing
        - Sensor data graphing/charting using ChartJS (can filter devicename, sensor class, time range, etc)
-       - Sensor data forwarding (forward to another IoT Modem device sensor)
+       - Sensor data forwarding (forward INPUT sensor data to another OUTPUT sensor from same or different device)
        - Sensor data thresholding (triggering MENOS messages - Mobile, Email, Notifications, mOdem, Storage)
     11. OTA firmware update
        - Fleet of devices
