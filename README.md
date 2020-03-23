@@ -98,9 +98,17 @@ Below are tools and utilities being used:
        E. Trigger MENOS messaging on sensor threshold for sensors connected via I2C, ADC, OneWire, TPROBE
     4. Device connectivity and web/mobile connectivity via MQTTS and HTTPS
        [client --HTTPS--> webserver <--MQTTS (or AMQPS)--> msgbroker <--MQTTS (and AMQPS)--> device]
-       A. HTTP over TLS: client app accessing REST APIs from webserver
-       B. AMQP over TLS: webserver and messagebroker communication
-       C. MQTT over TLS: messagebroker and device communication
+       A. Web/mobile connectivity
+       -  web/mobile app and backend communication via REST APIs
+       -  HTTP over TLS connection
+       B. Device connectivity
+       -  device and backend communication via Message Broker
+       -  MQTT over TLS connection 
+       -  ECC-based (Elliptic Curve Cryptography ECC) PKI and X.509 certificates
+       -  Enforcement of mutual authentication on both MQTT broker and MQTT client configurations
+       -  Unique MQTT credentials (username and password) per device
+       -  Strict restrictions for MQTT topic permission (subscribe and publish) per device
+       -  [TODO] ECC certificates stored in 3rd-party ATECC hardware chip 
     5. Device examples and simulators
        A. FT900 MCU device (LWIP-MQTT client)
        B. MQTT device simulators (Python Paho-MQTT and NodeJS)
