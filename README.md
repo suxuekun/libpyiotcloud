@@ -81,7 +81,9 @@ Below are tools and utilities being used:
 ### Features
 
     1. User sign-up/sign-in
-       A. Amazon Cognito for user sign-up and sign-in (with support for OTP, MFA, OAuth2 for Facebook/Google/Amazon login)
+       A. Amazon Cognito for user sign-up and sign-in (with support for OTP)
+       B. Login with email or phone number
+       C. Login via social IDP - Facebook/Google/Amazon (OAuth2)
     2. Device and sensor management
        A. MongoDB NoSQL database for storing registered device and sensor information
        B. MongoDB Atlas cloud database service for storing sensor-data for dashboard charts
@@ -97,9 +99,9 @@ Below are tools and utilities being used:
        A. FT900 MCU device (LWIP-MQTT client)
        B. MQTT device simulators (Python Paho-MQTT and NodeJS)
        C. AMQP device simulator (Python Pika-AMQP)
-    6. Deployment to AWS EC2 as microservices using Docker, Kubernetes and Jenkins
-       - 12 microservices/docker containers 
-         [rabbitmq, mongodb, redis, webapp, restapi, nginx, notification, historian, sensorian, configuration, ota, invoicing]
+    6. Deployment to AWS EC2 as docker-containerized microservices
+       - 12 microservices running as Docker containers 
+         [webapp, nginx, rabbitmq, mongodb, redis, restapi, notification, historian, sensorian, configuration, ota, invoicing]
        - with Dockerfiles, Docker-compose file, Kubernetes files and Jenkinsfile
        - Kubernetes files tested on Minikube
        - Jenkinsfile for automated building and testing of docker images
@@ -107,18 +109,19 @@ Below are tools and utilities being used:
        - SSL certificate bought from GoDaddy.com registered on NGINX.
        - Webapp compiled for Android using Ionic but requiring Android Studio/SDK 
     8. MENOS messaging (Mobile, Email, push Notification, mOdem, Storage)
-       - Mobile, Email, push Notification - via Amazon Pinpoint
+       - Mobile, Email, push Notification - sending message via Amazon Pinpoint
        - mOdem - sending message to another device
-       - Storage - via Amazon S3
+       - Storage - sending message to Amazon S3 for file storage
     9. Paypal payment processing
-       - Payment using Paypal gateway with confirmation email/receipt
+       - Payment using Paypal gateway 
+       - Confirmation receipt is sent to email
     10. Sensor data processing
-       - Sensor data graphing/charting using ChartJS
-       - Sensor data forwarding (forward to another IoT Modem device)
+       - Sensor data graphing/charting using ChartJS (can filter devicename, sensor class, time range, etc)
+       - Sensor data forwarding (forward to another IoT Modem device sensor)
        - Sensor data thresholding (triggering MENOS messages - Mobile, Email, Notifications, mOdem, Storage)
     11. OTA firmware update
        - Fleet of devices
-       - Offline update (scheduled on device bootup)
+       - Online and offline devices (offline devices are scheduled on device bootup)
        - Via HTTPS or MQTT (depends on the client preference and capability)
     12. Device location with Google Maps
        - Set and view device location via Google Maps
