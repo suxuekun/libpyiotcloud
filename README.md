@@ -92,11 +92,12 @@ Below are tools and utilities being used:
        D. MongoDB Atlas cloud database service for storing sensor-data for dashboard charts
        E. Redis key value store database for storing cacheable information and temporary information
     3. Device and sensor control and access
-       A. Access sensors connected via peripherals: I2C, ADC, OneWire, TPROBE
-       B. Trigger MENOS messaging via UART
-       C. Trigger MENOS messaging on GPIO input
-       D. Drive GPIO pins
-       E. Trigger MENOS messaging on sensor threshold for sensors connected via I2C, ADC, OneWire, TPROBE
+       A. Configure UART for MENOS messaging
+       B. Configure GPIO for MENOS messaging
+       C. Configure GPIO for driving pins
+       D. Configure sensors connected via peripherals: I2C, ADC, OneWire, TPROBE
+       E. Configure sensors for data thresholding
+       F. Configure sensors for data forwarding
     4. Device connectivity and web/mobile connectivity via MQTTS and HTTPS
        [client --HTTPS--> webserver <--MQTTS (or AMQPS)--> msgbroker <--MQTTS (and AMQPS)--> device]
        A. Web/mobile connectivity
@@ -133,9 +134,10 @@ Below are tools and utilities being used:
        - Payment using Paypal gateway 
        - Confirmation receipt is sent to email
     10. Sensor data processing
+       - Sensor connected via I2C, ADC, Onewire, TPROBE
        - Sensor data graphing/charting using ChartJS (can filter devicename, sensor class, time range, etc)
        - Sensor data forwarding (forward INPUT sensor data to another OUTPUT sensor from same or different device)
-       - Sensor data thresholding (triggering MENOS messages - Mobile, Email, Notifications, mOdem, Storage)
+       - Sensor data thresholding (triggering MENOS messages when threshold limits are met)
     11. OTA firmware update
        - Fleet of devices
        - Online and offline devices (offline devices are scheduled on device bootup)
