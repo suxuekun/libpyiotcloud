@@ -483,6 +483,15 @@ class database_client:
         self._devices.delete_sensors_readings(deviceid, source)
         self._devices.delete_sensors_readings_dataset(deviceid, source)
 
+    def delete_device_sensor_reading(self, username, devicename):
+        deviceid = self._devices.get_deviceid(username, devicename)
+        self._devices.delete_device_sensor_reading(deviceid)
+        self._devices.delete_device_sensor_reading_dataset(deviceid)
+
+    def delete_user_sensor_reading(self, username):
+        self._devices.delete_user_sensor_reading(username)
+        self._devices.delete_user_sensor_reading_dataset(username)
+
     def get_sensor_reading(self, username, devicename, source, address):
         return self._devices.get_sensor_reading_by_deviceid(self._devices.get_deviceid(username, devicename), source, address)
 
@@ -2164,6 +2173,22 @@ class database_client_mongodb:
             print("delete_sensor_reading: Exception occurred")
             pass
 
+    def delete_device_sensor_reading(self, deviceid):
+        sensorreadings = self.get_sensorreadings_document();
+        try:
+            sensorreadings.delete_many({'deviceid': deviceid})
+        except:
+            print("delete_device_sensor_reading: Exception occurred")
+            pass
+
+    def delete_user_sensor_reading(self, username):
+        sensorreadings = self.get_sensorreadings_document();
+        try:
+            sensorreadings.delete_many({'username': username})
+        except:
+            print("delete_user_sensor_reading: Exception occurred")
+            pass
+
     def delete_sensors_readings(self, deviceid, source):
         sensorreadings = self.get_sensorreadings_document();
         try:
@@ -2541,6 +2566,22 @@ class database_client_mongodb:
             print("delete_sensor_reading_dataset: Exception occurred")
             pass
 
+    def delete_device_sensor_reading_dataset(self, deviceid):
+        sensorreadings = self.get_sensorreadings_dataset_document()
+        try:
+            sensorreadings.delete_many({'deviceid': deviceid})
+        except:
+            print("delete_device_sensor_reading_dataset: Exception occurred")
+            pass
+
+    def delete_user_sensor_reading_dataset(self, username):
+        sensorreadings = self.get_sensorreadings_dataset_document()
+        try:
+            sensorreadings.delete_many({'username': username})
+        except:
+            print("delete_user_sensor_reading_dataset: Exception occurred")
+            pass
+
     def delete_sensors_readings_dataset(self, deviceid, source):
         sensorreadings = self.get_sensorreadings_dataset_document()
         try:
@@ -2548,6 +2589,7 @@ class database_client_mongodb:
         except:
             print("delete_sensors_readings_dataset: Exception occurred")
             pass
+
 
 
     ##########################################################

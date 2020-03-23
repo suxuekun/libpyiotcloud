@@ -306,13 +306,14 @@ SUMMARY:
 		//
 		// sensor readings (for dashboard)
 		O. GET PERIPHERAL SENSOR READINGS                  - GET    /devices/device/DEVICENAME/sensors/readings
-		P. GET PERIPHERAL SENSOR READINGS DATASET          - GET    /devices/device/DEVICENAME/sensors/readings/dataset
-		Q. GET PERIPHERAL SENSOR READINGS DATASET FILTERED - POST   /devices/sensors/readings/dataset
-		R. DELETE PERIPHERAL SENSOR READINGS               - DELETE /devices/device/DEVICENAME/sensors/readings
+		P. DELETE PERIPHERAL SENSOR READINGS               - DELETE /devices/device/DEVICENAME/sensors/readings
+		Q. GET PERIPHERAL SENSOR READINGS DATASET          - GET    /devices/device/DEVICENAME/sensors/readings/dataset
+		R. GET PERIPHERAL SENSOR READINGS DATASET FILTERED - POST   /devices/sensors/readings/dataset
+		S. DELETE PERIPHERAL SENSOR READINGS DATASET       - DELETE /devices/sensors/readings/dataset
 
 		//
 		// sensor properties
-		S. DELETE PERIPHERAL SENSOR PROPERTIES - DELETE /devices/device/DEVICENAME/sensors/properties
+		T. DELETE PERIPHERAL SENSOR PROPERTIES - DELETE /devices/device/DEVICENAME/sensors/properties
 
 
 	4. Device access and control APIs (I2C)
@@ -1447,7 +1448,7 @@ DETAILED:
 		Q. GET PERIPHERAL SENSOR READINGS DATASET FILTERED
 		-  Request:
 		   POST /devices/sensors/readings/dataset
-		   headers: {'Authorization': 'Bearer ' + token.access}
+		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
 		   data: {'devicename': string, 'peripheral': string, 'class': string, 'status': string, 'timerange': string, 'points': int, 'checkdevice': int}
 		   // devicename can be "All devices" or the devicename of specific device
 		   // peripheral can be ["All peripherals", "I2C1", "I2C2", "I2C3", "I2C4", "ADC1", "ADC2", "1WIRE1", "TPROBE1"]
@@ -1491,7 +1492,17 @@ DETAILED:
 		   { 'status': 'OK', 'message': string}
 		   { 'status': 'NG', 'message': string}
 
-		S. DELETE PERIPHERAL SENSOR PROPERTIES
+		S. DELETE PERIPHERAL SENSOR READINGS DATASET
+		-  Request:
+		   DELETE /devices/sensors/readings/dataset
+		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+		   data: {'devicename': string}
+		   // devicename can be "All devices" or the devicename of specific device
+		-  Response:
+		   { 'status': 'OK', 'message': string}
+		   { 'status': 'NG', 'message': string}
+
+		T. DELETE PERIPHERAL SENSOR PROPERTIES
 		-  Request:
 		   DELETE /devices/device/DEVICENAME/sensors/properties
 		   headers: {'Authorization': 'Bearer ' + token.access}
