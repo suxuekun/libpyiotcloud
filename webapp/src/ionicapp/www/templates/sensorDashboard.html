@@ -121,7 +121,7 @@
       <div id="sensorDashboard-container21" ng-show="sensor.show" ng-click="submitViewSensorChart(sensor)">
         <div id="sensorDashboard-container23" class="widget_button_backward_forward_container">
           <button id="sensorDashboard-button101" ng-click="changeTimeRangeIndexBackward()" class="button button-positive button-small button-block button-clear icon ion-arrow-left-b widget_button_backward_forward"></button>
-          <button id="sensorDashboard-button114" class="button button-light button-small button-block widget_button_backward_forward_filler"></button>
+          <button id="sensorDashboard-button114" ng-disabled="true" class="button button-light button-small button-block widget_button_backward_forward_filler"></button>
           <button id="sensorDashboard-button154" ng-disabled="timerangeindex==0" ng-click="changeTimeRangeIndexForward()" class="button button-positive button-small button-block button-clear icon ion-arrow-right-b widget_button_backward_forward"></button>
         </div>
         <div id="canvas-holder" style="width:97%; margin:0px 0px 0px 3%;">
@@ -129,7 +129,7 @@
           <br>
 
           <canvas id="{{sensor.devicename}}.{{sensor.sensorname}}" title="{{sensor.devicename}}.{{sensor.sensorname}}" class="chart chart-line" chart-colors="chartColors(sensor)" chart-data="chartData(sensor)" chart-labels="chartLabels(sensor)" chart-series="chartSeries(sensor)"
-            chart-options="sensors_datachart_options">
+            chart-options="chartOptions(sensor)">
           </canvas>
 
           <p>
