@@ -5370,7 +5370,9 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             }],
             "yAxes": [{
                 "ticks": {
-                    "beginAtZero": true
+                    "beginAtZero": true,
+                    "max": 100,
+                    "min": 0,
                 }
             }],
         },
@@ -5641,7 +5643,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         //
         // - Request:
         //   POST /devices/sensors/readings/dataset
-        //   headers: { 'Authorization': 'Bearer ' + token.access }
+        //   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
         //   data: {'devicename': string, 'peripheral': string, 'class': string, 'status': string, 'timerange': string, 'points': int, 'index': int}
         //
         // - Response:
@@ -5656,7 +5658,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         $http({
             method: 'POST',
             url: server + '/devices/sensors/readings/dataset',
-            headers: { 'Authorization': 'Bearer ' + $scope.data.token.access },
+            headers: { 'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json' },
             data: {
                 'devicename': $scope.data.devicename, 
                 'peripheral': $scope.peripheral, 
@@ -5796,7 +5798,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         //
         // - Request:
         //   DELETE /devices/device/DEVICENAME/sensors/readings
-        //   headers: { 'Authorization': 'Bearer ' + token.access }
+        //   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
         //
         // - Response:
         //   { 'status': 'OK', 'message': string }
@@ -5805,7 +5807,38 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         $http({
             method: 'DELETE',
             url: server + '/devices/device/' + $scope.data.devicename + '/sensors/readings',
-            headers: { 'Authorization': 'Bearer ' + $scope.data.token.access },
+            headers: { 'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json' },
+        })
+        .then(function (result) {
+            console.log(result.data);
+            
+            if (flag === true) {
+                $scope.submitQuery();
+            }
+        })
+        .catch(function (error) {
+            handle_error(error);
+        }); 
+    };
+    
+    delete_all_device_sensors = function(flag=false) {
+        //
+        // DELETE ALL ENABLED DEVICE SENSORS (enabled input)
+        //
+        // - Request:
+        //   DELETE /devices/sensors/readings/dataset
+        //   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
+        //   data: {'devicename': string}
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string }
+        //   { 'status': 'NG', 'message': string }        
+        //
+        $http({
+            method: 'DELETE',
+            url: server + '/devices/sensors/readings/dataset',
+            headers: { 'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json' },
+            data: {'devicename': $scope.data.devicename}
         })
         .then(function (result) {
             console.log(result.data);
@@ -5960,6 +5993,53 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         return $scope.sensors_datachart[indexy].colors;
     };    
 
+
+    $scope.getMax = function(sensorclass) {
+        let max = 0;
+        if (sensorclass !== undefined) {
+            if (sensorclass === "potentiometer") {
+                max = 255;
+            }
+            else if (sensorclass === "temperature") {
+                max = 40;
+            }
+            else {
+                max = 100;
+            }
+        }
+        return max;
+    };
+
+    $scope.chartOptions = function(sensor) {
+        //console.log("chartOptions " + sensor.sensorname);
+        //console.log(sensor);
+
+        if ($scope.sensors.length === 0) {
+            return $scope.sensors_datachart_options;
+        }
+        
+        let found = false;
+        for (indexy=0; indexy<$scope.sensors.length; indexy++) {
+            if ($scope.sensors[indexy].sensorname === sensor.sensorname &&
+                $scope.sensors[indexy].devicename === sensor.devicename) {
+
+                let class_max = $scope.getMax(sensor.class);
+                let subclass_max = $scope.getMax(sensor.subclass);
+                $scope.sensors_datachart_options.scales.yAxes[0].ticks.max = Math.max(class_max, subclass_max);
+                found = true;
+                break;
+            }
+        }
+
+        if (found === false) {
+            $scope.sensors_datachart_options.scales.yAxes[0].ticks.max = 100;
+        }
+        
+        return $scope.sensors_datachart_options;
+    };    
+
+
+
     $scope.changeRefresh = function(refresh, timeout) {
         $scope.refresh_automatically = refresh;
         $scope.refresh_time = timeout;
@@ -6028,14 +6108,19 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
     };
 
     $scope.submitDelete = function() {
-        
+
+        var template;
+                
         if ($scope.data.devicename === "All devices") {
-            return;
+            template = 'Are you sure you want to clear database values for sensor readings of all sensors for all devices?';
+        }
+        else {
+            template = 'Are you sure you want to clear database values for sensor readings of all sensors for ' + $scope.data.devicename + ' ?';
         }
         
         $ionicPopup.alert({
             title: 'Reset Sensor Readings',
-            template: 'Are you sure you want to clear database values for sensor readings of all sensors?',
+            template: template,
             buttons: [
                 { 
                     text: 'No',
@@ -6053,7 +6138,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
     };
 
     $scope.submitDeleteAction = function() {
-        delete_all_device_sensors_enabled_input();
+        //delete_all_device_sensors_enabled_input();
+        delete_all_device_sensors(flag=true);
     };
 
     $scope.submitRefresh = function() {
