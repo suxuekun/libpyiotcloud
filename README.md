@@ -82,9 +82,10 @@ Below are tools and utilities being used:
 
     1. User sign-up/sign-in
        A. Amazon Cognito for user sign-up and sign-in
-       B. Login with email or phone number
-       C. Login via social IDP - Facebook/Google/Amazon (OAuth2)
-       D. OTP sent via email or phone number
+       B. Login with email
+       C. Login with phone number
+       D. Login via social IDP - Facebook/Google/Amazon (OAuth2)
+       E. OTP sent via email or phone number
     2. Device and sensor management
        A. Register device and sensors (uses MongoDB NoSQL database)
        B. Configure device and sensors 
@@ -1737,3 +1738,35 @@ Current security implementation for device connectivity:
    - RABBITMQ: Uses the self-signed rootca; for MQTTS/AMQPS device connectivity
    - NGINX: Uses the trusted certificate bought from GoDaddy; for HTTPS web/mobile connectivity; currently tied up to richmondu.com
 
+
+
+# Action Items (Post EW2020 Demo and new requirements)
+
+1. [DONE] API for changing devicename 
+2. [DONE] Optimized output format for sensor charting APIs ( x[], y[] arrays instead of [(x,y), ...] )
+2. [DONE] OTA firmware update (HTTPS or MQTTS, CRC32)
+3. [DONE] Google Maps Platform location (drag and drop markers to change device location)
+4. [DONE] Login via social accounts (Facebook, Google, Amazon)
+5. [DONE] Record Paypal transactions, Paypal API cleanup
+6. [DONE] Login via (an OTP-verified) phone number
+7. [DONE] OTA firmware update for an OFFLINE device
+8. [DONE] OTA firmware update for a FLEET of devices
+9. [DONE] "S"torage for MENOS messaging using Amazon S3
+10. [DONE] Utilize REDIS for key value store, caching and message passing
+11. [DONE] Custom filtering of sensors in dashboard (filter by devicename, peripheral, class, status)
+12. [DONE] Dedicated database for BIG DATA (days, weeks, months, years) sensor data dashboards using MongDB Atlas 
+13. [DONE] Email confirmation for payment receipt/invoice
+14. [DONE] Sensor dashboarding for days, weeks, months, years (with aggregation like financial stocks)
+15. GET/SET PROPERTIES cache
+16. Sensor scanning
+17. Modem groups
+18. User groups/organization (with AWS-style login for organizations)
+19. CASBIN - Permissions Engine (for user groups/organization)
+20. Creating Jenkins pipelines for Android/IOS mobile apps (for automated build and deployment) 
+21. Clustering of RabbitMQ and REST APIs... (study federation/shovel, clustering is for LAN, federation/shovel is for WAN)
+22. Optimize MongoDB calls (utilize Redis, query by username or deviceid instead of by sensors if possible)
+23. Utilize Swagger REST API documentation.
+24. Microservices documentation
+25. "L"ambda function integration for MENLOS for custom messaging/notifications (support both Python 3, NodeJS)
+26. IFTTT integration. (requires OAuth2 server and APIs implemented for triggers "if this" and actions "then-that" )
+27. Update the Kubernetes support (lots of microservices has been added since then).
