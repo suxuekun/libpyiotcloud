@@ -85,11 +85,13 @@ Below are tools and utilities being used:
        B. Login with email or phone number
        C. Login via social IDP - Facebook/Google/Amazon (OAuth2)
     2. Device and sensor management
-       A. MongoDB NoSQL database for storing registered device and sensor information
-       B. MongoDB Atlas cloud database service for storing sensor-data for dashboard charts
-       C. Redis key value store database for storing cacheable information and temporary information
+       A. Register device and sensors (uses MongoDB NoSQL database)
+       B. Configure device and sensors 
+       C. MongoDB (containerized microservices) to store device and sensor configuration
+       D. MongoDB Atlas cloud database service for storing sensor-data for dashboard charts
+       E. Redis key value store database for storing cacheable information and temporary information
     3. Device and sensor control and access
-       - see REST API list
+       A. Access sensors connected via peripherals: UART, GPIO, I2C, ADC, OneWire, TPROBE
     4. Device connectivity and web/mobile connectivity via MQTTS and HTTPS
        [client --HTTPS--> webserver <--MQTTS (or AMQPS)--> msgbroker <--MQTTS (and AMQPS)--> device]
        A. HTTP over TLS: client app accessing REST APIs from webserver
