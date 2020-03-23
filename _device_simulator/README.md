@@ -7,7 +7,7 @@ This page contains a step-by-step tutorial on <b>how to use the IoT Portal</b> i
     A. Detailed step-by-step guide with screenshots
         0. Access the IoT portal.
            a. Via web app https://richmondu.com
-           b. Via Android mobile app - Install APK: https://github.com/richmondu/libpyiotcloud/tree/master/_android_app
+           b. Via Ionic-based Android mobile app - Install APK: https://github.com/richmondu/libpyiotcloud/tree/master/_android_app
            c. Via Ionic Creator mobile app simulators https://creator.ionic.io/share/8f86e2005ba5
            d. Via Ionic Creator mobile app from Apple App Store or Google Play - Use code: <b>B26EB3</b>
         1. Create an account and login.
