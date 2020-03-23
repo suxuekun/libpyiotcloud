@@ -18,6 +18,8 @@ PAYPAL_PAYERID_EXPIRY        = 3600
 MQTT_RESPONSE_PAYLOAD        = "mqtt:response:topic:payload"
 MQTT_RESPONSE_PAYLOAD_EXPIRY = 60
 
+LOGIN_FAILED_ATTEMPTS        = "login:failed:username:attempts"
+LOGIN_FAILED_ATTEMPTS_EXPIRY = 0
 
 
 
@@ -77,8 +79,22 @@ class redis_client:
 
 
 	#
-	# tester
+	# login failed attempts
 	#
+
+	def login_failed_set_attempts(self, username):
+		if self.client.get("{}:{}".format(LOGIN_FAILED_ATTEMPTS, username)) == None:
+			self.client.set("{}:{}".format(LOGIN_FAILED_ATTEMPTS, username), 1)
+		else:
+			self.client.incr("{}:{}".format(LOGIN_FAILED_ATTEMPTS, username))
+
+	def login_failed_get_attempts(self, username):
+		return self.client.get("{}:{}".format(LOGIN_FAILED_ATTEMPTS, username))
+
+	def login_failed_del_attempts(self, username):
+		self.client.delete("{}:{}".format(LOGIN_FAILED_ATTEMPTS, username))
+
+
 
 	def test(self):
 		print(self.idp_get_code("1234"))

@@ -555,8 +555,13 @@ DETAILED:
 		-  Response:
 		   {'status': 'OK', 'message': string, 
 		    'token': {'access': string, 'id': string, 'refresh': string}, 'name': string }
-		   {'status': 'NG', 'message': string}
 		   // name is now included in the response as per special UX requirement
+		   {'status': 'NG', 'message': string}
+		   // When user logins with incorrect password for 5 consecutive times, user needs to reset the password
+		   //   When this happens, the error HTTP_401_UNAUTHORIZED is returned.
+		   //   The web/mobile app should check message parameter.
+		   //   If message is PasswordResetRequiredException, the web/mobile app should redirect user to the CONFIRM FORGOT PASSWORD/RESET PASSWORD page.
+		   //   where user should input the OTP code sent in email and the new password to be used.
 		-  Details:
 		   How to compute the JWT token using Javascript
 		   base64UrlEncodedHeader = urlEncode(base64Encode(JSON.stringify({
