@@ -245,7 +245,8 @@ This page contains a step-by-step tutorial on <b>how to use the IoT Portal</b> i
     <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/device_simulator_py.png" width="600"/>
 
     After installation, open a command prompt and type "Python". You should see the version of the "Python" installed.
-    
+    Note that I'm using Python 3.6.6.
+
 
 2. Install the required python libraries of the application:
 
@@ -266,6 +267,11 @@ This page contains a step-by-step tutorial on <b>how to use the IoT Portal</b> i
 2. Update USER and PASS in <b>device_simulator.py.bat</b> (or device_simulator.py.sh for Linux/MacOS)
 
     <b> NOTE: After implementing additional security measures in the backend, device also needs to provide the MQTT username and MQTT password with the UUID and SerialNumber, respectively. </b>
+
+    - DEVICE_ID = <UUID>
+    - USER = <UUID>
+    - PASS = <Serial Number>
+    - HOST = Use richmondu.com if PROD or ec2-54-88-41-145.compute-1.amazonaws.com if DEV
 
 3. Run <b>device_simulator.py.bat</b> (or device_simulator.py.sh for Linux/MacOS)
 
@@ -306,6 +312,11 @@ This page contains a step-by-step tutorial on <b>how to use the IoT Portal</b> i
 
     <b> NOTE: After implementing additional security measures in the backend, device also needs to provide the MQTT username and MQTT password with the UUID and SerialNumber, respectively. </b>
 
+    - DEVICE_ID = <UUID>
+    - USER = <UUID>
+    - PASS = <Serial Number>
+    - HOST = Use richmondu.com if PROD or ec2-54-88-41-145.compute-1.amazonaws.com if DEV
+
 3. Run <b>device_simulator.js.bat</b> (or device_simulator.js.sh for Linux/MacOS)
 
     <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/device_simulator_bootup_js.png" width="600"/>
@@ -328,7 +339,12 @@ This page contains a step-by-step tutorial on <b>how to use the IoT Portal</b> i
 2. Update MQTT_CLIENT_USER and MQTT_CLIENT_PASS in <b>iot_config.h</b>
 
     <b> NOTE: After implementing additional security measures in the backend, device also needs to provide the MQTT username and MQTT password with the UUID and SerialNumber, respectively. </b>
-    
+
+    - DEVICE_ID = <UUID>
+    - USER = <UUID>
+    - PASS = <Serial Number>
+    - HOST = Use richmondu.com if PROD or ec2-54-88-41-145.compute-1.amazonaws.com if DEV
+
 3. Compile code and load the binary.
 
     <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/device_bootup.png" width="700"/>
