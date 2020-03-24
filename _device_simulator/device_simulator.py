@@ -28,6 +28,9 @@ CONFIG_USE_AMQP = False
 # global variables
 ###################################################################################
 
+# scan sensor for automatic registration
+CONFIG_SCAN_SENSORS_AT_BOOTUP = True
+
 # ota firmware update
 CONFIG_OTA_AT_BOOTUP = True
 # FT900 is advised to use HTTPS to download the firmware (if possible).
@@ -245,6 +248,9 @@ API_UPGRADE_FIRMWARE_COMPLETION  = "end_ota"
 API_REQUEST_FIRMWARE             = "req_firmware"
 API_RECEIVE_FIRMWARE             = "rcv_firmware"
 API_REQUEST_OTASTATUS            = "req_otastatus"
+
+# sensor registration 
+API_SET_REGISTRATION             = "set_registration"
 
 
 
@@ -2207,6 +2213,36 @@ def read_file_version(ver):
 
 
 ###################################################################################
+# Registration of sensors
+###################################################################################
+
+# Read registered sensors from .sns file
+def read_registered_sensors_eeprom():
+
+    filename = CONFIG_DEVICE_ID + ".sns"
+
+    try:
+        f = open(filename, "r")
+        json_obj = f.read()
+        f.close()
+        json_obj = json.loads(json_obj)
+        sensors = json_obj["sensors"]
+    except Exception as e:
+        print(e)
+        sensors = []
+
+    return sensors
+
+# Send registered sensors from .sns file
+def set_registration(sensors):
+    topic = "{}{}{}{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_DEVICE_ID, CONFIG_SEPARATOR, API_SET_REGISTRATION)
+    payload = {"sensors": sensors}
+    #payload = json.dumps(payload)
+    publish(topic, payload)
+
+
+
+###################################################################################
 # Main entry point
 ###################################################################################
 
@@ -2306,6 +2342,14 @@ if __name__ == '__main__':
         #subtopic2 = "{}{}{}{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_DEVICE_ID, CONFIG_SEPARATOR, API_PUBLISH_SENSOR_READING)
         #g_messaging_client.subscribe(subtopic2, subscribe=True, declare=True, consume_continuously=True)
 
+
+        # Scan sensor for configuration
+        if CONFIG_SCAN_SENSORS_AT_BOOTUP:
+            print("Read registered sensors")
+            sensors = read_registered_sensors_eeprom()
+            if len(sensors):
+                print_json(sensors)
+                set_registration(sensors)
 
         # Delete device configuration
         if CONFIG_DELETE_CONFIGURATION:
