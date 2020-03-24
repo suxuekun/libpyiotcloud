@@ -144,6 +144,7 @@ Below are tools and utilities being used:
         C. push Notification: sending message as push notifications to Android/IOS mobile phones via Amazon Pinpoint
         D. mOdem: sending message to another device
         E. Storage: sending message to Amazon S3 for file storage (user can download the file for later viewing and analysis)
+        *  IFTTT integration, Lambda functions integration
     12. OTA firmware update
         A. Update firmware of an online device
         B. Update firmware of an offline device (scheduled on device bootup)
