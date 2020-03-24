@@ -130,6 +130,8 @@ Below are tools and utilities being used:
        D. Configure sensors connected via peripherals: I2C, ADC, OneWire, TPROBE
        E. Configure sensors for data thresholding
        F. Configure sensors for data forwarding
+       G. Sensor classes (INPUT): potentiometer, temperature, humidity, anemometer, battery, fluid
+       H. Sensor classes (OUTPUT): speaker, display, light
     10. MENOS messaging (Mobile, Email, push Notification, mOdem, Storage)
         A. Mobile - sending SMS message via Amazon Pinpoint
         B. Email - sending email message via Amazon Pinpoint
