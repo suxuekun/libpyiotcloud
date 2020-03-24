@@ -441,6 +441,9 @@ class database_client:
     def add_sensor(self, username, devicename, source, number, sensorname, data):
         return self._devices.add_sensor(self._devices.get_deviceid(username, devicename), source, number, sensorname, data)
 
+    def add_sensor_by_deviceid(self, deviceid, source, number, sensorname, data):
+        return self._devices.add_sensor(deviceid, source, number, sensorname, data)
+
     def delete_device_sensors(self, username, devicename):
         self._devices.delete_device_sensors(self._devices.get_deviceid(username, devicename))
 
@@ -452,6 +455,9 @@ class database_client:
 
     def check_sensor(self, username, devicename, sensorname):
         return self._devices.check_sensor(self._devices.get_deviceid(username, devicename), sensorname)
+
+    def check_sensor_by_deviceid(self, deviceid, sensorname):
+        return self._devices.check_sensor(deviceid, sensorname)
 
     def get_sensor(self, username, devicename, source, number, sensorname):
         return self._devices.get_sensor(self._devices.get_deviceid(username, devicename), source, number, sensorname)
