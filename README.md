@@ -133,17 +133,17 @@ Below are tools and utilities being used:
        F. Configure sensors for data forwarding
        G. Sensor classes (INPUT): potentiometer, temperature, humidity, anemometer, battery, fluid
        H. Sensor classes (OUTPUT): speaker, display, light
-    10. MENOS messaging (Mobile, Email, push Notification, mOdem, Storage)
-        A. Mobile - sending SMS message via Amazon Pinpoint
-        B. Email - sending email message via Amazon Pinpoint
-        C. push Notification - sending message as push notifications to Android/IOS mobile phones via Amazon Pinpoint
-        D. mOdem - sending message to another device
-        E. Storage - sending message to Amazon S3 for file storage (user can download the file for later viewing and analysis)
-    11. Sensor data processing
+    10. Sensor data processing
         A. Connect sensors to device via peripherals: I2C, ADC, Onewire, TPROBE
         B. Sensor data graphing/charting using ChartJS (specify sensors to display via filters, specify time range to view)
         C. Sensor data forwarding (forward INPUT sensor data to another OUTPUT sensor from same or different device)
         D. Sensor data thresholding (triggering MENOS messages when threshold limits are met)
+    11. MENOS messaging
+        A. Mobile: sending SMS message via Amazon Pinpoint
+        B. Email: sending email message via Amazon Pinpoint
+        C. push Notification: sending message as push notifications to Android/IOS mobile phones via Amazon Pinpoint
+        D. mOdem: sending message to another device
+        E. Storage: sending message to Amazon S3 for file storage (user can download the file for later viewing and analysis)
     12. OTA firmware update
         A. Update firmware of an online device
         B. Update firmware of an offline device (scheduled on device bootup)
