@@ -86,6 +86,7 @@ Below are tools and utilities being used:
        C. Login with phone number
        D. Login via social IDP - Facebook/Google/Amazon (OAuth2)
        E. OTP sent via email or phone number
+       F. User lockout on consecutive failed attempts
     2. Device and sensor management
        A. Register device and sensors (uses MongoDB NoSQL database)
        B. Configure device and sensors 
