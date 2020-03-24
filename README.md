@@ -80,27 +80,7 @@ Below are tools and utilities being used:
 
 ### Features
 
-    1. User sign-up/sign-in
-       A. Amazon Cognito for user sign-up and sign-in
-       B. Login with email
-       C. Login with phone number
-       D. Login via social IDP - Facebook/Google/Amazon (OAuth2)
-       E. OTP sent via email or phone number
-       F. User lockout on consecutive failed attempts
-    2. Device and sensor management
-       A. Register device and sensors (uses MongoDB NoSQL database)
-       B. Configure device and sensors 
-       C. MongoDB (containerized microservices) to store device and sensor configuration
-       D. MongoDB Atlas cloud database service for storing sensor-data for dashboard charts
-       E. Redis key value store database for storing cacheable information and temporary information
-    3. Device and sensor control and access
-       A. Configure UART for MENOS messaging
-       B. Configure GPIO for MENOS messaging
-       C. Configure GPIO for driving pins
-       D. Configure sensors connected via peripherals: I2C, ADC, OneWire, TPROBE
-       E. Configure sensors for data thresholding
-       F. Configure sensors for data forwarding
-    4. Device connectivity and web/mobile connectivity via MQTTS and HTTPS
+    1. Device connectivity and web/mobile connectivity
        [client --HTTPS--> webserver <--MQTTS (or AMQPS)--> msgbroker <--MQTTS (and AMQPS)--> device]
        A. Web/mobile connectivity
        -  web/mobile app and backend communication via REST APIs
@@ -113,39 +93,66 @@ Below are tools and utilities being used:
        -  Unique MQTT credentials (username and password) per device
        -  Strict restrictions for MQTT topic permission (subscribe and publish) per device
        -  [TODO] ECC certificates stored in 3rd-party ATECC hardware chip 
-    5. Device examples and simulators
-       A. FT900 MCU device (LWIP-MQTT client)
+    2. Device examples and simulators
+       A. FT900 MCU device (mbedTLS client, LWIP-MQTT client)
        B. MQTT device simulators (Python Paho-MQTT and NodeJS)
-       C. AMQP device simulator (Python Pika-AMQP)
-    6. Deployment to AWS EC2 as docker-containerized microservices
-       - 12 microservices running as Docker containers 
-         [webapp, nginx, rabbitmq, mongodb, redis, restapi, notification, historian, sensorian, configuration, ota, invoicing]
-       - with Dockerfiles, Docker-compose file, Kubernetes files and Jenkinsfile
-       - Kubernetes files tested on Minikube
-       - Jenkinsfile for automated building and testing of docker images
-    7. Ionic web app can be compiled as iOS/Android mobile apps
-       - SSL certificate bought from GoDaddy.com registered on NGINX.
-       - Webapp compiled for Android using Ionic but requiring Android Studio/SDK 
-    8. MENOS messaging (Mobile, Email, push Notification, mOdem, Storage)
-       - Mobile - sending SMS message via Amazon Pinpoint
-       - Email - sending email message via Amazon Pinpoint
-       - push Notification - sending message as push notifications to Android/IOS mobile phones via Amazon Pinpoint
-       - mOdem - sending message to another device
-       - Storage - sending message to Amazon S3 for file storage (user can download the file for later viewing and analysis)
-    9. Paypal payment processing
-       - Payment using Paypal gateway 
-       - Confirmation receipt is sent to email
-    10. Sensor data processing
-       - Sensor connected via I2C, ADC, Onewire, TPROBE
-       - Sensor data graphing/charting using ChartJS (can filter devicename, sensor class, time range, etc)
-       - Sensor data forwarding (forward INPUT sensor data to another OUTPUT sensor from same or different device)
-       - Sensor data thresholding (triggering MENOS messages when threshold limits are met)
-    11. OTA firmware update
-       - Fleet of devices
-       - Online and offline devices (offline devices are scheduled on device bootup)
-       - Via HTTPS or MQTT (depends on the client preference and capability)
-    12. Device location with Google Maps
-       - Set and view device location via Google Maps
+    3. Feature-rich RESTful APIs
+       A. See API list
+    4. Docker-containerized microservices
+       A. 12 microservices running as Docker containers 
+          [webapp, nginx, rabbitmq, mongodb, redis, restapi, notification, historian, sensorian, configuration, ota, invoicing]
+       B. Orchestration using Docker-compose file and Kubernetes files and Jenkinsfile
+       -  Kubernetes files tested on Minikube
+    5. Web app using Ionic framework
+       A. Can be compiled as iOS/Android mobile apps
+       B. SSL certificate bought from GoDaddy.com registered on NGINX.
+       C. Webapp compiled for Android using Ionic but requiring Android Studio/SDK 
+    6. CI/CD using Jenkins
+       A. Automated build/deployment from Github to AWS EC2
+
+    7. User sign-up/sign-in
+       A. Amazon Cognito for user sign-up and sign-in
+       B. OTP sent to email on signup
+       C. Login with email
+       D. Login with (verified) phone number
+       E. Login via social IDP - Facebook/Google/Amazon (OAuth2)
+       F. User lockout on consecutive failed attempts
+    8. Device and sensor management
+       A. Register device and sensors (uses MongoDB NoSQL database)
+       B. Configure device and sensors 
+       C. MongoDB (containerized microservices) to store device and sensor configuration
+       D. MongoDB Atlas cloud database service for storing sensor-data for dashboard charts
+       E. Redis key value store database for storing cacheable information and temporary information
+    9. Device and sensor control and access
+       A. Configure UART for MENOS messaging
+       B. Configure GPIO for MENOS messaging
+       C. Configure GPIO for driving pins
+       D. Configure sensors connected via peripherals: I2C, ADC, OneWire, TPROBE
+       E. Configure sensors for data thresholding
+       F. Configure sensors for data forwarding
+    10. MENOS messaging (Mobile, Email, push Notification, mOdem, Storage)
+        A. Mobile - sending SMS message via Amazon Pinpoint
+        B. Email - sending email message via Amazon Pinpoint
+        C. push Notification - sending message as push notifications to Android/IOS mobile phones via Amazon Pinpoint
+        D. mOdem - sending message to another device
+        E. Storage - sending message to Amazon S3 for file storage (user can download the file for later viewing and analysis)
+    11. Sensor data processing
+        A. Connect sensors to device via peripherals: I2C, ADC, Onewire, TPROBE
+        B. Sensor data graphing/charting using ChartJS (specify sensors to display via filters, specify time range to view)
+        C. Sensor data forwarding (forward INPUT sensor data to another OUTPUT sensor from same or different device)
+        D. Sensor data thresholding (triggering MENOS messages when threshold limits are met)
+    12. OTA firmware update
+        A. Update firmware of an online device
+        B. Update firmware of an offline device (scheduled on device bootup)
+        C. Update firmware of a fleet of devices (can be a mixed of online or offline devices)
+        D. Via HTTPS or MQTT (depends on the client preference and capability)
+    13. Device location
+        A. Access and configure location of a device via Google Maps (latitude, longitude)
+        B. Access and configure location of a fleet of devices via Google Maps
+    14. Paypal payment
+        A. Buy credits/tokens using Paypal gateway
+        B. Confirmation receipt is sent to email
+        C. View payment history
 
 
 ### High-level architecture diagram:
