@@ -2231,6 +2231,7 @@ def read_registered_sensors_eeprom():
         print(e)
         sensors = []
 
+    print("Read registered sensors {}".format(len(sensors)))
     return sensors
 
 # Send registered sensors from .sns file
@@ -2345,10 +2346,8 @@ if __name__ == '__main__':
 
         # Scan sensor for configuration
         if CONFIG_SCAN_SENSORS_AT_BOOTUP:
-            print("Read registered sensors")
             sensors = read_registered_sensors_eeprom()
             if len(sensors):
-                print_json(sensors)
                 set_registration(sensors)
 
         # Delete device configuration
