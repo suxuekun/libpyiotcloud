@@ -99,8 +99,8 @@ Below are tools and utilities being used:
     3. Feature-rich RESTful APIs
        A. See API list
     4. Docker-containerized microservices
-       A. 12 microservices running as Docker containers 
-          [webapp, nginx, rabbitmq, mongodb, redis, restapi, notification, historian, sensorian, configuration, ota, invoicing]
+       A. 13 microservices running as Docker containers 
+          [webapp, nginx, rabbitmq, mongodb, redis, restapi, notification, historian, sensorian, configuration, ota, invoicing, registration]
        B. Docker-compose files to build and run Docker containers
        C. Kubernetes file to orchestrate Docker containers
        -  Kubernetes support tested using Minikube and AWS EKS
@@ -163,7 +163,7 @@ Below are tools and utilities being used:
 ### High-level architecture diagram:
 <img src="./_images/architecture.png" width="1000"/>
 
-12 docker containerized microservices
+13 docker containerized microservices
 
 1. <b>Webserver</b> - Nginx (contains SSL certificate; all requests go to NGINX; forwards HTTP requests to webapp or restapi)
 2. <b>Webapp</b> - Ionic (front-end web framework that can also be compiled for Android and iOS)
@@ -177,6 +177,7 @@ Below are tools and utilities being used:
 10. <b>Configuration</b> - handles providing of device configuration for each devices during device bootup
 11. <b>OTAUpdate</b> - handles OTA firmware update via MQTTS
 12. <b>Invoicing</b> - handles sending of payment receipts via email
+13. <b>Registration</b> - handles processing of sensor registration by device on bootup
 
 
 
@@ -207,6 +208,7 @@ Below are tools and utilities being used:
 10. <b>Configuration service</b> -> RabbitMQ, MongoDB
 11. <b>Sensor service</b> -> RabbitMQ, MongoDB
 12. <b>Invoice service</b> -> RabbitMQ, MongoDB
+13. <b>Registration service</b> -> RabbitMQ, MongoDB
 
 
 

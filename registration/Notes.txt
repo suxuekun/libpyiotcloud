@@ -1,0 +1,8 @@
+docker build -t reg .
+docker run -d --name reg reg
+
+	docker ps -a
+	docker-machine ls // get the ip address for testing with MQTT.FX
+
+docker stop reg
+docker rm reg
