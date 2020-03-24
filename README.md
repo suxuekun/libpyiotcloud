@@ -120,11 +120,11 @@ Below are tools and utilities being used:
        E. Login via social IDP - Facebook/Google/Amazon (OAuth2)
        F. User lockout on consecutive failed attempts
     8. Device and sensor management
-       A. Register device and sensors (uses MongoDB NoSQL database)
-       B. Configure device and sensors 
-       C. MongoDB (containerized microservices) to store device and sensor configuration
+       A. Register and configure device
+       B. Register and configure sensors 
+       C. MongoDB database (containerized microservices) to store device and sensor configuration
        D. MongoDB Atlas cloud database service for storing sensor-data for dashboard charts
-       E. Redis key value store database for storing cacheable information and temporary information
+       E. Redis database for storing cacheable information and temporary information
     9. Device and sensor control and access
        A. Configure UART for MENOS messaging
        B. Configure GPIO for MENOS messaging
