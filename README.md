@@ -110,6 +110,7 @@ Below are tools and utilities being used:
        C. Webapp compiled for Android using Ionic but requiring Android Studio/SDK 
     6. CI/CD using Jenkins
        A. Automated build/deployment from Github to AWS EC2
+       B. Separated pipelines for DEV and PROD
 
     7. User sign-up/sign-in
        A. Amazon Cognito for user sign-up and sign-in
