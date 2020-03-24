@@ -18,6 +18,7 @@ _device_simulator/*.cfg
 _device_simulator/*.bat
 _device_simulator/*.bin
 _device_simulator/*.ver
+_device_simulator/*.sns
 _kubernetes/environment_private.yaml
 _kubernetes/environment_private_prod.yaml
 _kubernetes/notes.txt
