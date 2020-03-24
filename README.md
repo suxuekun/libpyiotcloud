@@ -101,8 +101,9 @@ Below are tools and utilities being used:
     4. Docker-containerized microservices
        A. 12 microservices running as Docker containers 
           [webapp, nginx, rabbitmq, mongodb, redis, restapi, notification, historian, sensorian, configuration, ota, invoicing]
-       B. Orchestration using Docker-compose file and Kubernetes files and Jenkinsfile
-       -  Kubernetes files tested on Minikube
+       B. Docker-compose files to build and run Docker containers
+       C. Kubernetes file to orchestrate Docker containers
+       -  Kubernetes support tested using Minikube and AWS EKS
     5. Web app using Ionic framework
        A. Can be compiled as iOS/Android mobile apps
        B. SSL certificate bought from GoDaddy.com registered on NGINX.
