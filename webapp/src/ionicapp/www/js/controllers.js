@@ -8045,10 +8045,17 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
 
 
     $scope.$on('$ionicView.enter', function(e) {
+        $scope.sensors = [];
+        $scope.sensors_counthdr = "No I2C device registered for I2C " + $scope.data.activeSection.toString();        
         $scope.getI2CSensors();
     });
 
-
+    $scope.$on('$ionicView.beforeLeave', function(e) {
+        $scope.sensors = [];
+        $scope.sensors_counthdr = "No I2C device registered for I2C " + $scope.data.activeSection.toString();        
+    });
+    
+    
     // EXIT PAGE
     $scope.submitDeviceList = function() {
         console.log("submitDeviceList");
