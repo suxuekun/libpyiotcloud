@@ -85,7 +85,7 @@ Below are the features of this IoT platform:
        C. Visualize sensor data using charts/graphs (sensor filters, time range filter)
        D. Forward sensor data (forward INPUT sensor data to another OUTPUT sensor from same or different device)
        E. Threshold sensor data (triggering MENOS alerts when threshold limits are met)
-       *  3rd-party analytics integration using popular Business Intellegence (BI) tools (Power BI, Tableau, Qlik)
+       *  3rd-party analytics integration using Business Intellegence (BI) tools (Power BI, Tableau, Qlik)
 
     8. Messaging/alerting services
        A. Mobile: sending SMS message alerts via Amazon Pinpoint
