@@ -66,12 +66,9 @@ Below are the features of this IoT platform:
        F. User lockout security on consecutive failed attempts
 
     5. Device management services
-       A. Register and configure device
+       A. Register and configure device (using MongoDB and Redis databases)
        B. Access and configure location of a device (or a fleet of devices) via Google Maps (latitude, longitude)
        C. Update firmware (OTA) of a device (or a fleet of devices, can be a mixed of online or offline devices)
-       D. MongoDB database (containerized microservices) to store device and sensor configuration
-       E. MongoDB Atlas cloud database service for storing sensor-data for dashboard charts
-       F. Redis database for storing cacheable information and temporary information
 
     6. Sensor management services
        A. Configure UART parameters
