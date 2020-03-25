@@ -25,6 +25,13 @@ This IoT platform is generic for all smart devices and IoT devices that can be b
 
 # Architecture
 
+This IoT Portal is the heart of the system. 
+It is the main service attachment point for the IoT Portal client and IoT device and acts as the bridge to connect clients and modems together.
+It acts as the central messaging broker that supports client to device and device to device communication.
+It maintains the state of the entire system. It stores device information and all manner of device configurations and their routing information. 
+It also stores the received sensor readings from the modems for graphing and off-line analysis. 
+It also keeps track of user details and user credit details and interfaces to 3rd party cloud systems such as identity services, messaging services, payment merchants and additional services.
+
 This IoT platform is a container-based IoT cloud platform that leverages 
 Flask, GUnicorn, Nginx, RabbitMQ, MongoDB, Ionic, Amazon Cognito, Amazon Pinpoint, Twilio, Nexmo, Paypal, Docker, Kubernetes, Jenkins and many more.
 It can be deployed in a local PC or in the cloud - AWS EC2, Linode, Heroku, Rackspace, DigitalOcean or etc.
