@@ -41,12 +41,12 @@ Below are the features of this IoT platform:
        D. Jenkins CI/CD pipelines to automate build and deployment from Github to AWS EC2
 
     2. Device connectivity services
-       A. Device and backend communication via Message Broker using MQTT
+       A. Device and backend communication via Message Broker using MQTT protocol
        B. Secure communication using TLS, ECC-based X.509 SSL certificates, mutual authentication, MQTT topic permissions
        C. Device simulator (Python) as reference implementation for actual IoT device
 
     3. Web/mobile connectivity services
-       A. Web/mobile app and backend communication via RESTful APIs using HTTP
+       A. Web/mobile app and backend communication via RESTful APIs using HTTP protocol
        B. Secure communication using TLS, trusted SSL certificates, JWT authorization headers
        C. Hybrid web/mobile apps (using Ionic framework) as reference implementation for actual web/mobile clients
 
