@@ -1754,7 +1754,9 @@ Current security implementation for device connectivity:
 
 
 
-# Action Items (Post EW2020 Demo and new requirements)
+# Action Items
+
+Below are the Post EW2020 Demo and new requirements:
 
 1. [DONE] API for changing devicename 
 2. [DONE] Optimized output format for sensor charting APIs ( x[], y[] arrays instead of [(x,y), ...] )
