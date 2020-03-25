@@ -133,14 +133,13 @@ Below are tools and utilities being used:
        D. MongoDB Atlas cloud database service for storing sensor-data for dashboard charts
        E. Redis database for storing cacheable information and temporary information
     9. Device and sensor control and access
-       A. Configure UART for MENOS messaging
-       B. Configure GPIO for MENOS messaging
-       C. Configure GPIO for driving pins
-       D. Configure sensors connected via peripherals: I2C, ADC, OneWire, TPROBE
-       E. Configure sensors for data thresholding
-       F. Configure sensors for data forwarding
-       G. Sensor classes (INPUT): potentiometer, temperature, humidity, anemometer, battery, fluid
-       H. Sensor classes (OUTPUT): speaker, display, light
+       A. Configure UART parameters
+       B. Configure GPIO pins
+       C. Configure sensors connected via peripherals: I2C, ADC, OneWire, TPROBE
+       D. Configure sensors for data thresholding
+       E. Configure sensors for data forwarding
+       F. Sensor classes (INPUT): potentiometer, temperature, humidity, anemometer, battery, fluid
+       G. Sensor classes (OUTPUT): speaker, display, light
     10. Sensor data processing
         A. Connect sensors to device via peripherals: I2C, ADC, Onewire, TPROBE
         B. Sensor data graphing/charting using ChartJS (specify sensors to display via filters, specify time range to view)
