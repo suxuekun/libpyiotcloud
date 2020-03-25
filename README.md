@@ -90,7 +90,7 @@ Below are the features of this IoT platform:
     8. MENOS messaging/alerting services
        A. sMs: sending mobile SMS alerts via Amazon Pinpoint
        B. Email: sending email alerts via Amazon Pinpoint
-       C. push Notification: sending alerts as push notifications to Android/IOS mobile via Amazon Pinpoint
+       C. push Notification: sending mobile push notifications alerts to Android/IOS mobile via Amazon Pinpoint
        D. mOdem: sending alerts to another device
        E. Storage: sending alerts to Amazon S3 for file storage (user can download file for later analysis)
        *  IFTTT: trigger a 3rd-party application (like, Twitter, Facebook, Alexa, etc) via IFTTT
