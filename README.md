@@ -35,7 +35,7 @@ It also keeps track of user details and user credit details and interfaces to 3r
 Below are the features of this IoT platform:
 
     1. Microservices architecture
-       A. Backend designed using microservices architecture leveraging on containers and message brokers 
+       A. Backend designed using modern microservices architecture leveraging on containers and message brokers 
        B. Docker-compose files to build and run Docker containers
        C. Kubernetes file to orchestrate clusterization of Docker containers (tested on Minikube and AWS EKS)
        D. Jenkins CI/CD pipelines to automate build and deployment from Github to AWS EC2
@@ -51,12 +51,12 @@ Below are the features of this IoT platform:
        C. Hybrid web/mobile apps (using Ionic framework) as reference implementation for actual web/mobile clients
 
     4. Identity management services
-       A. Amazon Cognito for user sign-up and sign-in
-       B. OTP sent to email on signup
+       A. User sign-up and sign-in using Amazon Cognito
+       B. Signup with secure OTP (one-time password) sent to email or mobile number
        C. Login with email
-       D. Login with (verified) phone number
+       D. Login with (verified) mobile number
        E. Login via social IDP - Facebook/Google/Amazon (OAuth2)
-       F. User lockout on consecutive failed attempts
+       F. User lockout security on consecutive failed attempts
 
     5. Device management services
        A. Register and configure device
