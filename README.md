@@ -60,7 +60,7 @@ Below are the features of this IoT platform:
     4. Identity management services
        A. User sign-up and sign-in using Amazon Cognito with secure OTP (one-time password) sent to email/mobile number
        B. Login with email or with (verified) mobile number
-       C. Login via social IDP - Facebook/Google/Amazon (OAuth2)
+       C. Login via social IDP (Facebook/Google/Amazon) via OAuth2 security
        D. User lockout security on consecutive failed attempts
 
     5. Device management services
