@@ -35,7 +35,7 @@ It also keeps track of user details and user credit details and interfaces to 3r
 Below are the features of this IoT platform:
 
     1. Microservices architecture
-       A. Backend designed using modern microservices architecture leveraging on containers and message brokers 
+       A. Modern backend design using microservices architecture leveraging on containers and message brokers 
        B. Docker-compose files to build and run Docker containers
        C. Kubernetes file to orchestrate clusterization of Docker containers (tested on Minikube and AWS EKS)
        D. Jenkins CI/CD pipelines to automate build and deployment from Github to AWS EC2
