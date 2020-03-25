@@ -90,9 +90,10 @@ Below are the features of this IoT platform:
        E. Storage: sending message to Amazon S3 for file storage (user can download the file for later viewing and analysis)
        *  IFTTT integration, Lambda functions integration
 
-    9. Payment services
+    9. Credits and payment services
        A. Buy credits using Paypal gateway (with confirmation receipt sent to email)
-       B. View payment transactions and credits usage histories
+       B. Use credits to be able to use messaging services and sensor data services
+       C. View payment transactions and credits usage histories
 
 
 This IoT platform is a container-based IoT cloud platform that leverages 
