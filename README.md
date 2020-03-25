@@ -32,60 +32,7 @@ It maintains the state of the entire system. It stores device information and al
 It also stores the received sensor readings from the devices for graphing and off-line analysis. 
 It also keeps track of user details and user credit details and interfaces to 3rd party cloud systems such as identity services, messaging services, payment merchants and additional services.
 
-This IoT platform is a container-based IoT cloud platform that leverages 
-Flask, GUnicorn, Nginx, RabbitMQ, MongoDB, Ionic, Amazon Cognito, Amazon Pinpoint, Twilio, Nexmo, Paypal, Docker, Kubernetes, Jenkins and many more.
-It can be deployed in a local PC or in the cloud - AWS EC2, Linode, Heroku, Rackspace, DigitalOcean or etc.
-The web app is made of Ionic framework so it can be compiled as Android and iOS mobile apps using one code base.
-
-- <b>Nginx</b> web server - https://www.nginx.com/
-- <b>GUnicorn</b> WSGI server - https://gunicorn.org/
-- <b>Flask</b> web framework (REST API) - http://flask.pocoo.org/
-- <b>RabbitMQ</b> message broker (AMQP, MQTT plugin, Management plugin) - https://www.rabbitmq.com/
-- <b>MongoDB</b> NoSQL database - https://www.mongodb.com/
-- <b>MongoDB Atlas</b> cloud database service - https://www.mongodb.com/cloud/atlas
-- <b>Redis</b> fast key-value data store (flexible: database, caching, mq) - https://redis.io/
-- <b>Amazon EC2</b> - https://aws.amazon.com/ec2/
-- <b>Amazon Cognito</b> (sign-up/sign-in user authentication with OTP, MFA, OAuth2, IdP) - https://aws.amazon.com/cognito/
-- <b>Docker</b> containerization (dockerfiles, docker-compose) - https://www.docker.com/
-- <b>Ionic</b> mobile/web frontend framework - https://ionicframework.com/
-- <b>GoDaddy</b> domain and SSL certificate - https://godaddy.com
-- <b>Amazon Route 53</b> DNS domain resolution - https://aws.amazon.com/route53
-- <b>Amazon Pinpoint</b> email/SMS/push notification messaging platform - https://aws.amazon.com/pinpoint/
-- <b>Amazon SNS</b> email/SMS messaging platform - https://aws.amazon.com/sns/
-- <b>Twilio</b> SMS messaging platform - https://www.twilio.com/
-- <b>Nexmo</b> SMS messaging platform - https://www.nexmo.com/
-- <b>Paypal Payment Platform</b> payment gateway - https://developer.paypal.com
-- <b>Kubernetes</b> container orchestration - https://kubernetes.io
-- <b>Minikube</b> local Kubernetes cluster - https://github.com/kubernetes/minikube
-- <b>Amazon EKS</b> Kubernetes service - https://aws.amazon.com/eks
-- <b>Google Firebase Cloud Messaging (FCM)</b> for Android push notifications
-- <b>Apple Push Notification service (APNs)</b> for IOS push notifications
-- <b>Chart.JS</b> for time-series charts/graphs - https://www.chartjs.org/
-- <b>Google Maps Platform</b> for device location - https://developers.google.com/maps/documentation
-
-
-An alternative solution is using an AWS serverless solution wherein:
-
-- <b>AWS API Gateway+AWS Lambda</b> will replace Flask+Gunicorn+Nginx
-- <b>AWS DynamoDB</b> will replace MongoDB
-- <b>AWS IoT</b> or <b>AmazonMQ</b> will replace RabbitMQ
-
-
-Below are tools and utilities being used:
-
-- <b>LucidChart</b> UML design diagrams - https://www.lucidchart.com/
-- <b>Jenkins</b> automation for CI/CD - https://jenkins.io/
-- <b>Github Desktop</b> Git application - https://desktop.github.com/
-- <b>Putty</b> SSH application to access AWS EC2 - https://www.putty.org/
-- <b>WinSCP</b> SSH gui application to access AWS EC2 - https://winscp.net/eng/index.php
-- <b>Postman</b> (API testing tool) - https://www.getpostman.com/
-- <b>MongoDB Compass</b> GUI for MongoDB - https://www.mongodb.com/products/compass
-- <b>Ionic Creator</b> - https://creator.ionic.io
-- <b>Android Studio</b> (Building Ionic webapp to Androidapp) - https://developer.android.com/studio
-- <b>OpenSSL</b> cryptography (X509 certificates) - https://www.openssl.org/
-
-
-### Features
+Below are features of this IoT platform:
 
     1. Microservices architecture
        A. Backend designed using microservices architecture leveraging on containers and message brokers 
@@ -146,6 +93,59 @@ Below are tools and utilities being used:
     9. Payment services
        A. Buy credits using Paypal gateway (with confirmation receipt sent to email)
        B. View payment transactions and credits usage histories
+
+
+This IoT platform is a container-based IoT cloud platform that leverages 
+Flask, GUnicorn, Nginx, RabbitMQ, MongoDB, Ionic, Amazon Cognito, Amazon Pinpoint, Twilio, Nexmo, Paypal, Docker, Kubernetes, Jenkins and many more.
+It can be deployed in a local PC or in the cloud - AWS EC2, Linode, Heroku, Rackspace, DigitalOcean or etc.
+The web app is made of Ionic framework so it can be compiled as Android and iOS mobile apps using one code base.
+
+- <b>Nginx</b> web server - https://www.nginx.com/
+- <b>GUnicorn</b> WSGI server - https://gunicorn.org/
+- <b>Flask</b> web framework (REST API) - http://flask.pocoo.org/
+- <b>RabbitMQ</b> message broker (AMQP, MQTT plugin, Management plugin) - https://www.rabbitmq.com/
+- <b>MongoDB</b> NoSQL database - https://www.mongodb.com/
+- <b>MongoDB Atlas</b> cloud database service - https://www.mongodb.com/cloud/atlas
+- <b>Redis</b> fast key-value data store (flexible: database, caching, mq) - https://redis.io/
+- <b>Amazon EC2</b> - https://aws.amazon.com/ec2/
+- <b>Amazon Cognito</b> (sign-up/sign-in user authentication with OTP, MFA, OAuth2, IdP) - https://aws.amazon.com/cognito/
+- <b>Docker</b> containerization (dockerfiles, docker-compose) - https://www.docker.com/
+- <b>Ionic</b> mobile/web frontend framework - https://ionicframework.com/
+- <b>GoDaddy</b> domain and SSL certificate - https://godaddy.com
+- <b>Amazon Route 53</b> DNS domain resolution - https://aws.amazon.com/route53
+- <b>Amazon Pinpoint</b> email/SMS/push notification messaging platform - https://aws.amazon.com/pinpoint/
+- <b>Amazon SNS</b> email/SMS messaging platform - https://aws.amazon.com/sns/
+- <b>Twilio</b> SMS messaging platform - https://www.twilio.com/
+- <b>Nexmo</b> SMS messaging platform - https://www.nexmo.com/
+- <b>Paypal Payment Platform</b> payment gateway - https://developer.paypal.com
+- <b>Kubernetes</b> container orchestration - https://kubernetes.io
+- <b>Minikube</b> local Kubernetes cluster - https://github.com/kubernetes/minikube
+- <b>Amazon EKS</b> Kubernetes service - https://aws.amazon.com/eks
+- <b>Google Firebase Cloud Messaging (FCM)</b> for Android push notifications
+- <b>Apple Push Notification service (APNs)</b> for IOS push notifications
+- <b>Chart.JS</b> for time-series charts/graphs - https://www.chartjs.org/
+- <b>Google Maps Platform</b> for device location - https://developers.google.com/maps/documentation
+
+
+An alternative solution is using an AWS serverless solution wherein:
+
+- <b>AWS API Gateway+AWS Lambda</b> will replace Flask+Gunicorn+Nginx
+- <b>AWS DynamoDB</b> will replace MongoDB
+- <b>AWS IoT</b> or <b>AmazonMQ</b> will replace RabbitMQ
+
+
+Below are tools and utilities being used:
+
+- <b>LucidChart</b> UML design diagrams - https://www.lucidchart.com/
+- <b>Jenkins</b> automation for CI/CD - https://jenkins.io/
+- <b>Github Desktop</b> Git application - https://desktop.github.com/
+- <b>Putty</b> SSH application to access AWS EC2 - https://www.putty.org/
+- <b>WinSCP</b> SSH gui application to access AWS EC2 - https://winscp.net/eng/index.php
+- <b>Postman</b> (API testing tool) - https://www.getpostman.com/
+- <b>MongoDB Compass</b> GUI for MongoDB - https://www.mongodb.com/products/compass
+- <b>Ionic Creator</b> - https://creator.ionic.io
+- <b>Android Studio</b> (Building Ionic webapp to Androidapp) - https://developer.android.com/studio
+- <b>OpenSSL</b> cryptography (X509 certificates) - https://www.openssl.org/
 
 
 ### High-level architecture diagram:
