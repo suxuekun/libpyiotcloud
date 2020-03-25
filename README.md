@@ -58,12 +58,10 @@ Below are the features of this IoT platform:
        C. Hybrid web/mobile apps (using Ionic framework) as reference implementation for actual web/mobile clients
 
     4. Identity management services
-       A. User sign-up and sign-in using Amazon Cognito
-       B. Signup with secure OTP (one-time password) sent to email or mobile number
-       C. Login with email
-       D. Login with (verified) mobile number
-       E. Login via social IDP - Facebook/Google/Amazon (OAuth2)
-       F. User lockout security on consecutive failed attempts
+       A. User sign-up and sign-in using Amazon Cognito with secure OTP (one-time password) sent to email/mobile number
+       B. Login with email or with (verified) mobile number
+       C. Login via social IDP - Facebook/Google/Amazon (OAuth2)
+       D. User lockout security on consecutive failed attempts
 
     5. Device management services
        A. Register and configure device (using MongoDB and Redis databases)
