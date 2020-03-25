@@ -32,7 +32,7 @@ It maintains the state of the entire system. It stores device information and al
 It also stores the received sensor readings from the devices for graphing and off-line analysis. 
 It also keeps track of user details and user credit details and interfaces to 3rd party cloud systems such as identity services, messaging services, payment merchants and additional services.
 
-Below are features of this IoT platform:
+Below are the features of this IoT platform:
 
     1. Microservices architecture
        A. Backend designed using microservices architecture leveraging on containers and message brokers 
