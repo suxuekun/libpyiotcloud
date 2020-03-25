@@ -88,12 +88,13 @@ Below are the features of this IoT platform:
        *  Analyze sensor data using 3rd-party Business Intellegence / Analytics tools (PowerBI, Tableau, Qlik)
 
     8. Messaging/alerting services
-       A. sMs: sending mobile SMS message alerts via Amazon Pinpoint
-       B. Email: sending email message alerts via Amazon Pinpoint
-       C. push Notification: sending message alerts as push notifications to Android/IOS mobile via Amazon Pinpoint
-       D. mOdem: sending message alerts to another device
-       E. Storage: sending message alerts to Amazon S3 for file storage (user can download file for later analysis)
-       *  IFTTT integration, Lambda function integration
+       A. sMs: sending mobile SMS alerts via Amazon Pinpoint
+       B. Email: sending email alerts via Amazon Pinpoint
+       C. push Notification: sending alerts as push notifications to Android/IOS mobile via Amazon Pinpoint
+       D. mOdem: sending alerts to another device
+       E. Storage: sending alerts to Amazon S3 for file storage (user can download file for later analysis)
+       *  IFTTT: trigger a 3rd-party application (like, Twitter, Facebook, Alexa, etc) via IFTTT
+       *  Lambda: trigger a user-defined Python/NodeJS function for highly customized alerting
 
     9. Credits and payment services
        A. Buy credits using Paypal gateway (with confirmation receipt sent to email)
