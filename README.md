@@ -97,6 +97,7 @@ Below are tools and utilities being used:
        A. Device and backend communication via Message Broker using MQTT
        B. Secure communication using TLS, ECC-based X.509 SSL certificates, mutual authentication, MQTT topic permissions
        B. Device simulator (Python) as reference implementation for actual IoT device
+
     3. Web/mobile connectivity services
        A. Web/mobile app and backend communication via RESTful APIs using HTTP over TLS connection
        B. Trusted SSL certificates registered on NGINX bought from GoDaddy.
@@ -109,6 +110,7 @@ Below are tools and utilities being used:
        D. Login with (verified) phone number
        E. Login via social IDP - Facebook/Google/Amazon (OAuth2)
        F. User lockout on consecutive failed attempts
+
     5. Device management services
        A. Register and configure device
        B. Access and configure location of a device (or a fleet of devices) via Google Maps (latitude, longitude)
@@ -125,6 +127,7 @@ Below are tools and utilities being used:
        E. Configure sensors for data forwarding
        F. Sensor classes (INPUT): potentiometer, temperature, humidity, anemometer, battery, fluid
        G. Sensor classes (OUTPUT): speaker, display, light
+
     7. Sensor data services
        A. Sensor data ingestion from sensors connected via peripherals: I2C, ADC, Onewire, TPROBE
        B. Sensor data storage to a Big Data database using MongoDB Atlas
@@ -139,6 +142,7 @@ Below are tools and utilities being used:
        D. mOdem: sending message to another device
        E. Storage: sending message to Amazon S3 for file storage (user can download the file for later viewing and analysis)
        *  IFTTT integration, Lambda functions integration
+
     9. Payment services
        A. Buy credits using Paypal gateway (with confirmation receipt sent to email)
        B. View payment transactions and credits usage histories
