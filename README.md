@@ -87,53 +87,37 @@ Below are tools and utilities being used:
 
 ### Features
 
-    1. Device connectivity and web/mobile connectivity
-       [client --HTTPS--> webserver <--MQTTS (or AMQPS)--> msgbroker <--MQTTS (and AMQPS)--> device]
-       A. Web/mobile connectivity
-       -  web/mobile app and backend communication via REST APIs
-       -  HTTP over TLS connection
-       B. Device connectivity
-       -  device and backend communication via Message Broker
-       -  MQTT over TLS connection 
-       -  ECC-based (Elliptic Curve Cryptography ECC) PKI and X.509 certificates
-       -  Enforcement of mutual authentication on both MQTT broker and MQTT client configurations
-       -  Unique MQTT credentials (username and password) per device
-       -  Strict restrictions for MQTT topic permission (subscribe and publish) per device
-       -  [TODO] ECC certificates stored in 3rd-party ATECC hardware chip 
-    2. Device examples and simulators
-       A. FT900 MCU device (mbedTLS client, LWIP-MQTT client)
-       B. MQTT device simulators (Python Paho-MQTT and NodeJS)
-    3. Feature-rich RESTful APIs
-       A. See API list
-    4. Docker-containerized microservices
-       A. 13 microservices running as Docker containers 
-          [webapp, nginx, rabbitmq, mongodb, redis, restapi, notification, historian, sensorian, configuration, ota, invoicing, registration]
+    1. Microservices architecture
+       A. Backend designed using microservices architecture leveraging on containers and message brokers 
        B. Docker-compose files to build and run Docker containers
-       C. Kubernetes file to orchestrate Docker containers
-       -  Kubernetes support tested using Minikube and AWS EKS
-    5. Web app using Ionic framework
-       A. Can be compiled as iOS/Android mobile apps
-       B. SSL certificate bought from GoDaddy.com registered on NGINX.
-       C. Webapp compiled for Android using Ionic but requiring Android Studio/SDK 
-    6. CI/CD using Jenkins
-       A. Automated build/deployment from Github to AWS EC2
-       B. Separated pipelines for DEV and PROD
+       C. Kubernetes file to orchestrate clusterization of Docker containers (tested on Minikube and AWS EKS)
+       D. Automated build/deployment from Github to AWS EC2 using Jenkins CI/CD
 
-    7. Identity management
+    2. Device connectivity services
+       A. Device and backend communication via Message Broker using MQTT
+       B. Secure communication using TLS, ECC-based X.509 SSL certificates, mutual authentication, MQTT topic permissions
+       B. Device simulator (Python) as reference implementation for actual IoT device
+    3. Web/mobile connectivity services
+       A. Web/mobile app and backend communication via RESTful APIs using HTTP over TLS connection
+       B. Trusted SSL certificates registered on NGINX bought from GoDaddy.
+       C. Hybrid web/mobile apps (using Ionic framework) as reference implementation for actual web/mobile clients
+
+    4. Identity management services
        A. Amazon Cognito for user sign-up and sign-in
        B. OTP sent to email on signup
        C. Login with email
        D. Login with (verified) phone number
        E. Login via social IDP - Facebook/Google/Amazon (OAuth2)
        F. User lockout on consecutive failed attempts
-    8. Device management services
+    5. Device management services
        A. Register and configure device
        B. Access and configure location of a device (or a fleet of devices) via Google Maps (latitude, longitude)
        C. Update firmware (OTA) of a device (or a fleet of devices, can be a mixed of online or offline devices)
        D. MongoDB database (containerized microservices) to store device and sensor configuration
        E. MongoDB Atlas cloud database service for storing sensor-data for dashboard charts
        F. Redis database for storing cacheable information and temporary information
-    9. Sensor management services
+
+    6. Sensor management services
        A. Configure UART parameters
        B. Configure GPIO pins
        C. Register sensors connected via peripherals: I2C, ADC, OneWire, TPROBE
@@ -141,24 +125,23 @@ Below are tools and utilities being used:
        E. Configure sensors for data forwarding
        F. Sensor classes (INPUT): potentiometer, temperature, humidity, anemometer, battery, fluid
        G. Sensor classes (OUTPUT): speaker, display, light
-    10. Sensor data services
-        A. Sensor data ingestion from sensors connected via peripherals: I2C, ADC, Onewire, TPROBE
-        B. Sensor data storage to a Big Data database using MongoDB Atlas
-        C. Sensor data visualization using ChartJS charts/graphs (specify sensors to display via filters, specify time range to view)
-        D. Sensor data forwarding (forward INPUT sensor data to another OUTPUT sensor from same or different device)
-        E. Sensor data thresholding (triggering MENOS messages when threshold limits are met)
-    11. Messaging services
-        A. Mobile: sending SMS message via Amazon Pinpoint
-        B. Email: sending email message via Amazon Pinpoint
-        C. push Notification: sending message as push notifications to Android/IOS mobile phones via Amazon Pinpoint
-        D. mOdem: sending message to another device
-        E. Storage: sending message to Amazon S3 for file storage (user can download the file for later viewing and analysis)
-        *  IFTTT integration, Lambda functions integration
-    14. Payment services
-        A. Buy credits/tokens using Paypal gateway
-        B. Confirmation receipt is sent to email
-        C. View payment transactions
-        D. View credit usage histories
+    7. Sensor data services
+       A. Sensor data ingestion from sensors connected via peripherals: I2C, ADC, Onewire, TPROBE
+       B. Sensor data storage to a Big Data database using MongoDB Atlas
+       C. Sensor data visualization using ChartJS charts/graphs (specify sensors to display via filters, specify time range to view)
+       D. Sensor data forwarding (forward INPUT sensor data to another OUTPUT sensor from same or different device)
+       E. Sensor data thresholding (triggering MENOS messages when threshold limits are met)
+
+    8. Messaging services
+       A. Mobile: sending SMS message via Amazon Pinpoint
+       B. Email: sending email message via Amazon Pinpoint
+       C. push Notification: sending message as push notifications to Android/IOS mobile phones via Amazon Pinpoint
+       D. mOdem: sending message to another device
+       E. Storage: sending message to Amazon S3 for file storage (user can download the file for later viewing and analysis)
+       *  IFTTT integration, Lambda functions integration
+    9. Payment services
+       A. Buy credits using Paypal gateway (with confirmation receipt sent to email)
+       B. View payment transactions and credits usage histories
 
 
 ### High-level architecture diagram:
