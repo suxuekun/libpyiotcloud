@@ -1482,12 +1482,16 @@ DETAILED:
 		   // checkdevice is 1 or 0. 1 if device status needs to be check if device is online and if sensor is active
 		-  Response:
 		   { 'status': 'OK', 'message': string, 
-		     'sensors': [{'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': string, 'enabled': int, 'configured': int, 'units': [], 'formats': [], 'attributes': [], 'dataset': {'labels': [], 'data': [[],...]}, 'readings': {'value': float, 'lowest': float, 'highest': float, 'subclass': {'value': float, 'lowest': float, 'highest': float}}] }
+		     'sensors': [{'devicename': string, 'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': string, 'enabled': int, 'configured': int, 'units': [], 'formats': [], 'attributes': [], 
+		                  'dataset':  {'labels': [], 'data': [[],...], 'low': [[],...], 'high': [[],...]}, 
+		                  'readings': {'value': float, 'lowest': float, 'highest': float, 'subclass': {'value': float, 'lowest': float, 'highest': float}}
+		                ]}
 		   { 'status': 'NG', 'message': string}
 		   // the subclass parameter of readings parameter will only appear if the sensor has a subclass
 		   // if sensor has a subclass:  'dataset': {'labels': [], 'data': [[],[]]}
 		      if sensor has no subclass: 'dataset': {'labels': [], 'data': [[]]}
 		      this make the dataset object directly usable by Chart.JS 
+		   // low and high does NOT appear when "Last 5 minutes" timerange is selected.
 
 		R. DELETE PERIPHERAL SENSOR READINGS
 		-  Request:
