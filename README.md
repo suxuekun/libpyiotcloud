@@ -91,7 +91,7 @@ Below are the features of this IoT platform:
        B. Email: sending email message alerts via Amazon Pinpoint
        C. push Notification: sending message alerts as push notifications to Android/IOS mobile phones via Amazon Pinpoint
        D. mOdem: sending message alerts to another device
-       E. Storage: sending message alerts to Amazon S3 for file storage (user can download the file for later viewing and analysis)
+       E. Storage: sending message alerts to Amazon S3 for file storage (user can download file for later analysis)
        *  IFTTT integration, Lambda functions integration
 
     9. Credits and payment services
