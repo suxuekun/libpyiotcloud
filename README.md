@@ -79,12 +79,13 @@ Below are the features of this IoT platform:
        D. Configure sensors for data thresholding (for MENOS alerts)
        E. Configure sensors for data forwarding
 
-    7. Sensor data services
-       A. Sensor data ingestion from sensors connected via peripherals: I2C, ADC, Onewire, TPROBE
-       B. Sensor data storage to a Big Data database using MongoDB Atlas
-       C. Sensor data visualization using ChartJS charts/graphs (sensor filters, time range filter)
-       D. Sensor data forwarding (forward INPUT sensor data to another OUTPUT sensor from same or different device)
-       E. Sensor data thresholding (triggering MENOS messages when threshold limits are met)
+    7. Sensor data pipeline services
+       A. Ingest sensor data from sensors connected via peripherals: I2C, ADC, Onewire, TPROBE
+       B. Store sensor data to a Big Data database using MongoDB Atlas
+       C. Visualize sensor data using charts/graphs (sensor filters, time range filter)
+       D. Forward sensor data (forward INPUT sensor data to another OUTPUT sensor from same or different device)
+       E. Threshold sensor data (triggering MENOS alerts when threshold limits are met)
+       *  3rd-party analytics integration using popular Business Intellegence (BI) tools (Power BI, Tableau, Qlik)
 
     8. Messaging/alerting services
        A. Mobile: sending SMS message alerts via Amazon Pinpoint
