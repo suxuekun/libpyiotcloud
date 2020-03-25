@@ -26,10 +26,10 @@ This IoT platform is generic for all smart devices and IoT devices that can be b
 # Architecture
 
 This IoT platform is the heart of the system. 
-It is the main service attachment point for the IoT platform client and IoT device and acts as the bridge to connect clients and modems together.
+It is the main service attachment point for the IoT platform client and IoT device and acts as the bridge to connect clients and devices together.
 It acts as the central messaging broker that supports client to device and device to device communication.
 It maintains the state of the entire system. It stores device information and all manner of device configurations and their routing information. 
-It also stores the received sensor readings from the modems for graphing and off-line analysis. 
+It also stores the received sensor readings from the devices for graphing and off-line analysis. 
 It also keeps track of user details and user credit details and interfaces to 3rd party cloud systems such as identity services, messaging services, payment merchants and additional services.
 
 This IoT platform is a container-based IoT cloud platform that leverages 
