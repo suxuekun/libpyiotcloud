@@ -70,7 +70,7 @@ Below are the features of this IoT platform:
        C. Update firmware (OTA) of a device (or a fleet of devices, can be a mixed of online or offline devices)
        *  User-owned devices, Group-owned devices, organization-owned devices
 
-    6. Sensor management services
+    6. Peripheral and sensor management services
        A. Configure UART parameters and GPIO pins
        B. Register 3rd-party sensors connected via peripherals: I2C, ADC, OneWire, TPROBE
           potentiometer, temperature, humidity, anemometer, battery, fluid, speaker, display, light
