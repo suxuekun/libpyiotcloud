@@ -22,6 +22,8 @@ Comparable IoT platforms for our use-case of remote device access and control in
 However, these IoT platforms are tied up to their smart devices.
 This IoT platform is generic for all smart devices and IoT devices that can be build on top of any MCU, but preferably using FT9XX MCUs.
 
+<b> Warning: This github documentation is highly technical. It requires necessary technical skills in the IoT domain, networking and security to fully grasp the information. </b>
+
 
 # Architecture
 
