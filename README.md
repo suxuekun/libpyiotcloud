@@ -84,7 +84,7 @@ Below are the features of this IoT platform:
        B. Store sensor data to a Big Data database using MongoDB Atlas
        C. Visualize sensor data in real-time using time-series dashboard charts (sensor filters, time range filter)
        D. Forward sensor data (forward INPUT sensor data to another OUTPUT sensor from same or different device)
-       E. Threshold sensor data (triggering MENOS alerts when threshold limits are met)
+       E. Threshold sensor data (trigger MENOS alerts when threshold limits are met)
        *  Analyze sensor data using 3rd-party Business Intellegence / Analytics tools (PowerBI, Tableau, Qlik)
 
     8. Messaging/alerting services
