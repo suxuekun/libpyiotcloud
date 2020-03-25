@@ -126,44 +126,39 @@ Below are tools and utilities being used:
        D. Login with (verified) phone number
        E. Login via social IDP - Facebook/Google/Amazon (OAuth2)
        F. User lockout on consecutive failed attempts
-    8. Device and sensor management
+    8. Device management services
        A. Register and configure device
-       B. Register and configure sensors 
-       C. MongoDB database (containerized microservices) to store device and sensor configuration
-       D. MongoDB Atlas cloud database service for storing sensor-data for dashboard charts
-       E. Redis database for storing cacheable information and temporary information
-    9. Device and sensor control and access
+       B. Access and configure location of a device (or a fleet of devices) via Google Maps (latitude, longitude)
+       C. Update firmware (OTA) of a device (or a fleet of devices, can be a mixed of online or offline devices)
+       D. MongoDB database (containerized microservices) to store device and sensor configuration
+       E. MongoDB Atlas cloud database service for storing sensor-data for dashboard charts
+       F. Redis database for storing cacheable information and temporary information
+    9. Sensor management services
        A. Configure UART parameters
        B. Configure GPIO pins
-       C. Configure sensors connected via peripherals: I2C, ADC, OneWire, TPROBE
+       C. Register sensors connected via peripherals: I2C, ADC, OneWire, TPROBE
        D. Configure sensors for data thresholding
        E. Configure sensors for data forwarding
        F. Sensor classes (INPUT): potentiometer, temperature, humidity, anemometer, battery, fluid
        G. Sensor classes (OUTPUT): speaker, display, light
-    10. Sensor data processing
-        A. Connect sensors to device via peripherals: I2C, ADC, Onewire, TPROBE
-        B. Sensor data graphing/charting using ChartJS (specify sensors to display via filters, specify time range to view)
-        C. Sensor data forwarding (forward INPUT sensor data to another OUTPUT sensor from same or different device)
-        D. Sensor data thresholding (triggering MENOS messages when threshold limits are met)
-    11. MENOS messaging
+    10. Sensor data services
+        A. Sensor data ingestion from sensors connected via peripherals: I2C, ADC, Onewire, TPROBE
+        B. Sensor data storage to a Big Data database using MongoDB Atlas
+        C. Sensor data visualization using ChartJS charts/graphs (specify sensors to display via filters, specify time range to view)
+        D. Sensor data forwarding (forward INPUT sensor data to another OUTPUT sensor from same or different device)
+        E. Sensor data thresholding (triggering MENOS messages when threshold limits are met)
+    11. Messaging services
         A. Mobile: sending SMS message via Amazon Pinpoint
         B. Email: sending email message via Amazon Pinpoint
         C. push Notification: sending message as push notifications to Android/IOS mobile phones via Amazon Pinpoint
         D. mOdem: sending message to another device
         E. Storage: sending message to Amazon S3 for file storage (user can download the file for later viewing and analysis)
         *  IFTTT integration, Lambda functions integration
-    12. OTA firmware update
-        A. Update firmware of an online device
-        B. Update firmware of an offline device (scheduled on device bootup)
-        C. Update firmware of a fleet of devices (can be a mixed of online or offline devices)
-        D. Via HTTPS or MQTT (depends on the client preference and capability)
-    13. Device location
-        A. Access and configure location of a device via Google Maps (latitude, longitude)
-        B. Access and configure location of a fleet of devices via Google Maps
-    14. Paypal payment
+    14. Payment services
         A. Buy credits/tokens using Paypal gateway
         B. Confirmation receipt is sent to email
-        C. View payment history
+        C. View payment transactions
+        D. View credit usage histories
 
 
 ### High-level architecture diagram:
