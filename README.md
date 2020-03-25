@@ -71,7 +71,7 @@ Below are the features of this IoT platform:
     6. Sensor management services
        A. Configure UART parameters
        B. Configure GPIO pins
-       C. Register sensors connected via peripherals: I2C, ADC, OneWire, TPROBE
+       C. Register 3rd-party sensors connected via peripherals: I2C, ADC, OneWire, TPROBE
           INPUT: potentiometer, temperature, humidity, anemometer, battery, fluid
           OUTPUT: speaker, display, light
           User MANUALLY registers sensors connected
@@ -93,7 +93,7 @@ Below are the features of this IoT platform:
        C. push Notification: sending message alerts as push notifications to Android/IOS mobile via Amazon Pinpoint
        D. mOdem: sending message alerts to another device
        E. Storage: sending message alerts to Amazon S3 for file storage (user can download file for later analysis)
-       *  IFTTT integration, Lambda functions integration
+       *  IFTTT integration, Lambda function integration
 
     9. Credits and payment services
        A. Buy credits using Paypal gateway (with confirmation receipt sent to email)
