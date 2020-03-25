@@ -38,7 +38,7 @@ Below are the features of this IoT platform:
        A. Backend designed using microservices architecture leveraging on containers and message brokers 
        B. Docker-compose files to build and run Docker containers
        C. Kubernetes file to orchestrate clusterization of Docker containers (tested on Minikube and AWS EKS)
-       D. Automated build/deployment from Github to AWS EC2 using Jenkins CI/CD
+       D. Jenkins CI/CD pipelines to automate build and deployment from Github to AWS EC2
 
     2. Device connectivity services
        A. Device and backend communication via Message Broker using MQTT
