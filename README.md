@@ -87,7 +87,7 @@ Below are the features of this IoT platform:
     7. Sensor data services
        A. Sensor data ingestion from sensors connected via peripherals: I2C, ADC, Onewire, TPROBE
        B. Sensor data storage to a Big Data database using MongoDB Atlas
-       C. Sensor data visualization using ChartJS charts/graphs (specify sensors to display via filters, specify time range to view)
+       C. Sensor data visualization using ChartJS charts/graphs (sensor filters, time range filter)
        D. Sensor data forwarding (forward INPUT sensor data to another OUTPUT sensor from same or different device)
        E. Sensor data thresholding (triggering MENOS messages when threshold limits are met)
 
