@@ -62,22 +62,22 @@ Below are the features of this IoT platform:
        B. Login with email or with (verified) mobile number
        C. Login via social IDP (Facebook/Google/Amazon) via OAuth2 security
        D. User lockout security on consecutive failed attempts
+       *  User groups and organizations
 
     5. Device management services
        A. Register and configure device (using MongoDB and Redis databases)
        B. Access and configure location of a device (or a fleet of devices) via Google Maps (latitude, longitude)
        C. Update firmware (OTA) of a device (or a fleet of devices, can be a mixed of online or offline devices)
+       *  User-owned devices, Group-owned devices, organization-owned devices
 
     6. Sensor management services
-       A. Configure UART parameters
-       B. Configure GPIO pins
-       C. Register 3rd-party sensors connected via peripherals: I2C, ADC, OneWire, TPROBE
-          INPUT: potentiometer, temperature, humidity, anemometer, battery, fluid
-          OUTPUT: speaker, display, light
+       A. Configure UART parameters and GPIO pins
+       B. Register 3rd-party sensors connected via peripherals: I2C, ADC, OneWire, TPROBE
+          potentiometer, temperature, humidity, anemometer, battery, fluid, speaker, display, light
           User MANUALLY registers sensors connected
           Device AUTOMATICALLY registers sensors connected
-       D. Configure sensors for data thresholding (for MENOS alerts)
-       E. Configure sensors for data forwarding
+       C. Configure sensors for data thresholding (for MENOS alerts)
+       D. Configure sensors for data forwarding
 
     7. Sensor data pipeline services
        A. Ingest sensor data from sensors connected via peripherals: I2C, ADC, Onewire, TPROBE
