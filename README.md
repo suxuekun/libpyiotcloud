@@ -87,7 +87,7 @@ Below are the features of this IoT platform:
        E. Threshold sensor data (trigger MENOS alerts when threshold limits are met)
        *  Analyze sensor data using 3rd-party Business Intellegence / Analytics tools (PowerBI, Tableau, Qlik)
 
-    8. Messaging/alerting services
+    8. MENOS messaging/alerting services
        A. sMs: sending mobile SMS alerts via Amazon Pinpoint
        B. Email: sending email alerts via Amazon Pinpoint
        C. push Notification: sending alerts as push notifications to Android/IOS mobile via Amazon Pinpoint
