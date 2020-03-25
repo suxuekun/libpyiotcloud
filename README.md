@@ -2,6 +2,8 @@
 
 libpyiotcloud is a dockerized IoT platform for secure remote access, control and management of microcontroller-based smart devices via Android/iOS hybrid mobile apps and web app with backend RESTful APIs accessing 3rd party APIs (Cognito user signup/login, Twilio SMS messaging, Nexmo SMS messaging, Pinpoint email/SMS messaging, Paypal payment gateway), integrated to containerized microservices (RabbitMQ message broker, Nginx web server, MongoDB database) and deployed to Amazon AWS EC2 utilizing Docker containerization, Kubernetes orchestration and Jenkins CI/CD automation.
 
+<b> Warning: This github documentation is highly technical. It requires necessary technical skills in the IoT domain, networking and security to fully grasp the information. </b>
+
 
 # Background
 
@@ -21,8 +23,6 @@ Comparable IoT platforms for our use-case of remote device access and control in
 
 However, these IoT platforms are tied up to their smart devices.
 This IoT platform is generic for all smart devices and IoT devices that can be build on top of any MCU, but preferably using FT9XX MCUs.
-
-<b> Warning: This github documentation is highly technical. It requires necessary technical skills in the IoT domain, networking and security to fully grasp the information. </b>
 
 
 # Architecture
