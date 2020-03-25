@@ -79,6 +79,8 @@ Below are the features of this IoT platform:
        C. Register sensors connected via peripherals: I2C, ADC, OneWire, TPROBE
           INPUT: potentiometer, temperature, humidity, anemometer, battery, fluid
           OUTPUT: speaker, display, light
+          User MANUALLY registers sensors connected
+          Device AUTOMATICALLY registers sensors connected
        D. Configure sensors for data thresholding
        E. Configure sensors for data forwarding
 
