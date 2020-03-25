@@ -35,8 +35,8 @@ This IoT platform is generic for all smart devices and IoT devices that can be b
 This IoT platform is the heart of the system. 
 It is the main service attachment point for the IoT platform clients and IoT devices and acts as the bridge to connect clients and devices together.
 It acts as the central messaging broker that supports client to device and device to device communication.
-It maintains the state of the entire system. It stores device information and all manner of device configurations and their routing information. 
-It also stores the received sensor readings from the devices for graphing and off-line analysis. 
+It maintains the state of the entire system. It stores device and sensor information and all manner of device and sensor configurations and their routing information. 
+It also ingests and stores the received sensor readings from the devices for real-time dashboard visualization and off-line analysis. 
 It also keeps track of user details and user credit details and interfaces to 3rd party cloud systems such as identity services, alerting services, payment merchants and additional services.
 
 Below are the features of this IoT platform:
@@ -82,10 +82,10 @@ Below are the features of this IoT platform:
     7. Sensor data pipeline services
        A. Ingest sensor data from sensors connected via peripherals: I2C, ADC, Onewire, TPROBE
        B. Store sensor data to a Big Data database using MongoDB Atlas
-       C. Visualize sensor data using charts/graphs (sensor filters, time range filter)
+       C. Visualize sensor data in real-time using time-series dashboard charts (sensor filters, time range filter)
        D. Forward sensor data (forward INPUT sensor data to another OUTPUT sensor from same or different device)
        E. Threshold sensor data (triggering MENOS alerts when threshold limits are met)
-       *  3rd-party analytics integration using Business Intellegence (BI) tools (Power BI, Tableau, Qlik)
+       *  Analyze sensor data using 3rd-party Business Intellegence / Analytics tools (PowerBI, Tableau, Qlik)
 
     8. Messaging/alerting services
        A. sMs: sending mobile SMS message alerts via Amazon Pinpoint
