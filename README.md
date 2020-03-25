@@ -77,10 +77,10 @@ Below are the features of this IoT platform:
        A. Configure UART parameters
        B. Configure GPIO pins
        C. Register sensors connected via peripherals: I2C, ADC, OneWire, TPROBE
+          Sensor classes (INPUT): potentiometer, temperature, humidity, anemometer, battery, fluid
+          Sensor classes (OUTPUT): speaker, display, light
        D. Configure sensors for data thresholding
        E. Configure sensors for data forwarding
-       F. Sensor classes (INPUT): potentiometer, temperature, humidity, anemometer, battery, fluid
-       G. Sensor classes (OUTPUT): speaker, display, light
 
     7. Sensor data services
        A. Sensor data ingestion from sensors connected via peripherals: I2C, ADC, Onewire, TPROBE
