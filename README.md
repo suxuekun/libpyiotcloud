@@ -25,8 +25,8 @@ This IoT platform is generic for all smart devices and IoT devices that can be b
 
 # Architecture
 
-This IoT Portal is the heart of the system. 
-It is the main service attachment point for the IoT Portal client and IoT device and acts as the bridge to connect clients and modems together.
+This IoT platform is the heart of the system. 
+It is the main service attachment point for the IoT platform client and IoT device and acts as the bridge to connect clients and modems together.
 It acts as the central messaging broker that supports client to device and device to device communication.
 It maintains the state of the entire system. It stores device information and all manner of device configurations and their routing information. 
 It also stores the received sensor readings from the modems for graphing and off-line analysis. 
