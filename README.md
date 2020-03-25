@@ -88,7 +88,7 @@ Below are the features of this IoT platform:
        *  3rd-party analytics integration using Business Intellegence (BI) tools (Power BI, Tableau, Qlik)
 
     8. Messaging/alerting services
-       A. Mobile: sending SMS message alerts via Amazon Pinpoint
+       A. sMs: sending mobile SMS message alerts via Amazon Pinpoint
        B. Email: sending email message alerts via Amazon Pinpoint
        C. push Notification: sending message alerts as push notifications to Android/IOS mobile via Amazon Pinpoint
        D. mOdem: sending message alerts to another device
