@@ -1771,18 +1771,20 @@ Below are the Post EW2020 Demo and new requirements:
 10. [DONE] Utilize REDIS for key value store, caching and message passing
 11. [DONE] Custom filtering of sensors in dashboard (filter by devicename, peripheral, class, status)
 12. [DONE] Dedicated database for BIG DATA (days, weeks, months, years) sensor data dashboards using MongDB Atlas 
-13. [DONE] Email confirmation for payment receipt/invoice
-14. [DONE] Sensor dashboarding for days, weeks, months, years (with aggregation like financial stocks)
-15. GET/SET PROPERTIES cache
-16. Sensor scanning
-17. Modem groups
-18. User groups/organization (with AWS-style login for organizations)
-19. CASBIN - Permissions Engine (for user groups/organization)
-20. Creating Jenkins pipelines for Android/IOS mobile apps (for automated build and deployment) 
-21. Clustering of RabbitMQ and REST APIs... (study federation/shovel, clustering is for LAN, federation/shovel is for WAN)
-22. Optimize MongoDB calls (utilize Redis, query by username or deviceid instead of by sensors if possible)
-23. Utilize Swagger REST API documentation.
-24. Microservices documentation
-25. "L"ambda function integration for MENLOS for custom messaging/notifications (support both Python 3, NodeJS)
-26. IFTTT integration. (requires OAuth2 server and APIs implemented for triggers "if this" and actions "then-that" )
-27. Update the Kubernetes support (lots of microservices has been added since then).
+13. [DONE] Sensor dashboarding for days, weeks, months, years (with aggregation like financial stocks)
+14. [DONE] User lockdown security for consecutive failed login attempts (prevent brute force hacking)
+15. [DONE] Email confirmation for payment receipt/invoice
+16. [DONE] Automated sensor registration on device bootiup (for sensor scanning feature)
+17. GET/SET PROPERTIES cache
+18. Sensor scanning
+19. Modem groups
+20. User groups/organization (with AWS-style login for organizations)
+21. CASBIN - Permissions Engine (for user groups/organization)
+22. Creating Jenkins pipelines for Android/IOS mobile apps (for automated build and deployment) 
+23. Clustering of RabbitMQ and REST APIs... (study federation/shovel, clustering is for LAN, federation/shovel is for WAN)
+24. Optimize MongoDB calls (utilize Redis, query by username or deviceid instead of by sensors if possible)
+25. Utilize Swagger REST API documentation.
+26. Microservices documentation
+27. "L"ambda function integration for MENLOS for custom messaging/notifications (support both Python 3, NodeJS)
+28. IFTTT integration. (requires OAuth2 server and APIs implemented for triggers "if this" and actions "then-that" )
+29. Update the Kubernetes support (lots of microservices has been added since then).
