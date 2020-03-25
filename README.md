@@ -119,7 +119,7 @@ Below are tools and utilities being used:
        A. Automated build/deployment from Github to AWS EC2
        B. Separated pipelines for DEV and PROD
 
-    7. User sign-up/sign-in
+    7. Identity management
        A. Amazon Cognito for user sign-up and sign-in
        B. OTP sent to email on signup
        C. Login with email
