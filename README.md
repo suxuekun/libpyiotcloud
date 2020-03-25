@@ -81,7 +81,7 @@ Below are the features of this IoT platform:
           OUTPUT: speaker, display, light
           User MANUALLY registers sensors connected
           Device AUTOMATICALLY registers sensors connected
-       D. Configure sensors for data thresholding
+       D. Configure sensors for data thresholding (for MENOS alerts)
        E. Configure sensors for data forwarding
 
     7. Sensor data services
@@ -91,12 +91,12 @@ Below are the features of this IoT platform:
        D. Sensor data forwarding (forward INPUT sensor data to another OUTPUT sensor from same or different device)
        E. Sensor data thresholding (triggering MENOS messages when threshold limits are met)
 
-    8. Messaging services
-       A. Mobile: sending SMS message via Amazon Pinpoint
-       B. Email: sending email message via Amazon Pinpoint
-       C. push Notification: sending message as push notifications to Android/IOS mobile phones via Amazon Pinpoint
-       D. mOdem: sending message to another device
-       E. Storage: sending message to Amazon S3 for file storage (user can download the file for later viewing and analysis)
+    8. Messaging/alerting services
+       A. Mobile: sending SMS message alerts via Amazon Pinpoint
+       B. Email: sending email message alerts via Amazon Pinpoint
+       C. push Notification: sending message alerts as push notifications to Android/IOS mobile phones via Amazon Pinpoint
+       D. mOdem: sending message alerts to another device
+       E. Storage: sending message alerts to Amazon S3 for file storage (user can download the file for later viewing and analysis)
        *  IFTTT integration, Lambda functions integration
 
     9. Credits and payment services
