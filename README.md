@@ -43,11 +43,11 @@ Below are the features of this IoT platform:
     2. Device connectivity services
        A. Device and backend communication via Message Broker using MQTT
        B. Secure communication using TLS, ECC-based X.509 SSL certificates, mutual authentication, MQTT topic permissions
-       B. Device simulator (Python) as reference implementation for actual IoT device
+       C. Device simulator (Python) as reference implementation for actual IoT device
 
     3. Web/mobile connectivity services
-       A. Web/mobile app and backend communication via RESTful APIs using HTTP over TLS connection
-       B. Trusted SSL certificates registered on NGINX bought from GoDaddy.
+       A. Web/mobile app and backend communication via RESTful APIs using HTTP
+       B. Secure communication using TLS, trusted SSL certificates, JWT authorization headers
        C. Hybrid web/mobile apps (using Ionic framework) as reference implementation for actual web/mobile clients
 
     4. Identity management services
