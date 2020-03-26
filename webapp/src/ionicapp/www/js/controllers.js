@@ -3614,6 +3614,9 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                     $scope.data.devicestatus = $scope.devices[indexy].devicestatus;
                     $scope.data.version = $scope.devices[indexy].version;
                 }
+                //$scope.map = null;
+                $scope.markers = [];
+                
                 $scope.getDeviceLocation($scope.data.devicename);
                 break;
             }
@@ -3684,6 +3687,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             headers: {'Authorization': 'Bearer ' +  $scope.data.token.access },
         })
         .then(function (result) {
+            console.log("xxx");
             console.log(result.data);
             
             if ( result.data.locations === undefined ) {
@@ -3712,7 +3716,18 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             }           
 
             if (result.data.locations !== undefined) {
-                $scope.data.locations = result.data.locations;
+                ///$scope.data.locations = result.data.locations;
+                //console.log("xxx");
+                //console.log($scope.data.locations);
+                for (var location in result.data.locations) {
+                    $scope.data.locations.push({
+                        'devicename': result.data.locations[location].devicename,
+                        'location': {
+                            "latitude": result.data.locations[location].location.latitude, 
+                            "longitude": result.data.locations[location].location.longitude
+                        }
+                    });
+                }
                 //console.log($scope.data.locations);
              
                 // find the center
@@ -3761,7 +3776,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                             id: $scope.data.locations[indexy].devicename,
                             coords: $scope.data.locations[indexy].location,
                             data: $scope.data.locations[indexy].devicename,
-                            options: { draggable: true, animation: google.maps.Animation.DROP },
+                            options: { draggable: false, animation: google.maps.Animation.DROP },
                             icon: "https://maps.google.com/mapfiles/ms/icons/red-dot.png",
                             //draggable: true
                         });
@@ -3826,17 +3841,16 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                 $ionicPopup.alert({ title: 'No location set yet', template: 'Using Bridgetek office as default location!', buttons: [{text: 'OK', type: 'button-assertive'}] });
             }
             else {
-                $scope.data.devicelocation = result.data.location;
+                $scope.data.devicelocation.latitude = result.data.location.latitude;
+                $scope.data.devicelocation.longitude = result.data.location.longitude;
             }
             
             if (result.data.location !== undefined) {
-                $scope.data.location = result.data.location;
+                $scope.data.location.latitude = result.data.location.latitude;
+                $scope.data.location.longitude = result.data.location.longitude;
              
-                // uiGmapGoogleMapApi is a promise.
-                // The "then" callback function provides the google.maps object.
+                
                 uiGmapGoogleMapApi.then(function(maps){
-                    // Configuration needed to display the road-map with traffic
-                    // Displaying Ile-de-france (Paris neighbourhood)
                     $scope.map = {
                         center: $scope.data.location,
                         zoom: $scope.data.zoom,
@@ -3866,43 +3880,23 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                     }];
                     
                     $scope.getFit = function() {
-                        //console.log("getfit");
                         return false;  
                     };
 
                     $scope.onClickMarker = function(marker, eventName, markerobj) {
-                        //console.log("onClickMarker");
-                        //alert(markerobj.data);
                         $scope.windowOptions.show = !$scope.windowOptions.show;
                         $scope.selectedCoords = markerobj.coords;
-                        $scope.info = "<div>" + markerobj.id + "<br>" + "Hello world!" + "</div>";
-                        //$scope.tooltips = markerobj.data;
-                        //console.log(markerobj.data);
+                        $scope.info = markerobj.id;
                     };
 
                     $scope.onCloseClick = function () {
                         $scope.windowOptions.show = false;
                     };
                     
-                    var searchBoxEvents = {
-                        places_changed: function (searchBox) {
-                            console.log("places_changed");
-                            
-                            var place = searchBox.getPlaces();
-                            if (!place || place === 'undefined' || place.length === 0) {
-                                console.log('no place data :(');
-                                return;
-                            }
-                    
-                            console.log(place[0].geometry.location.lat());
-                            console.log(place[0].geometry.location.lng());
-                        }
-                    };
-                    $scope.searchBox = { template: 'searchBox.template.html', events: searchBoxEvents, parentdiv: 'searchBoxParent' };                        });
+                });
             }
             
             $scope.get_status($scope.data.devicename);
-            //$scope.timer = setInterval(get_all_device_sensors_enabled_input, $scope.refresh_time * 1000);
         })
         .catch(function (error) {
             $scope.handle_error(error);
@@ -3988,9 +3982,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         if (devicename === "All devices") {
             $scope.set_devices_location();
         }
-        else {        
-            $scope.data.location.latitude = parseFloat($scope.data.location.latitude);
-            $scope.data.location.longitude = parseFloat($scope.data.location.longitude);
+        else {
             $scope.set_device_location(devicename);
         }
     };
@@ -4046,9 +4038,11 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         })
         .then(function (result) {
             console.log(result.data);
-            $ionicPopup.alert({ title: 'Device location', template: 'Device location has been saved!', buttons: [{text: 'OK', type: 'button-positive'}] });
-            $scope.data.devicelocation = $scope.data.location;
+            console.log($scope.data.location);
             console.log($scope.data.devicelocation);
+            $scope.data.devicelocation.latitude = $scope.data.location.latitude;
+            $scope.data.devicelocation.longitude = $scope.data.location.longitude;
+            $ionicPopup.alert({ title: 'Device location', template: 'Device location has been saved!', buttons: [{text: 'OK', type: 'button-positive'}] });
         })
         .catch(function (error) {
             $scope.handle_error(error);
