@@ -15,6 +15,12 @@ angular.module('app.routes', [])
     controller: 'homeCtrl'
   })
 
+  .state('home2', {
+    url: '/page60',
+    templateUrl: 'templates/home2.html',
+    controller: 'home2Ctrl'
+  })
+
   .state('menu.devices', {
     url: '/page_devices',
 	params: {
@@ -25,6 +31,21 @@ angular.module('app.routes', [])
       'side-menu21': {
         templateUrl: 'templates/devices.html',
         controller: 'devicesCtrl'
+      }
+    }
+  })
+
+  .state('menu.profile', {
+    url: '/page_profile',
+	params: {
+		username: "",
+		token: "",
+		activeSection: ""		
+},
+    views: {
+      'side-menu21': {
+        templateUrl: 'templates/profile.html',
+        controller: 'profileCtrl'
       }
     }
   })
@@ -279,7 +300,7 @@ angular.module('app.routes', [])
     controller: 'deviceCtrl'
   })
 
-  .state('sensorDashboard', {
+  .state('menu.sensorDashboard', {
     url: '/page_sensor_dashboard',
 	params: {
 		devicename: "",
@@ -290,8 +311,12 @@ angular.module('app.routes', [])
 		serialnumber: "",
 		location: ""		
 },
-    templateUrl: 'templates/sensorDashboard.html',
-    controller: 'sensorDashboardCtrl'
+    views: {
+      'side-menu21': {
+        templateUrl: 'templates/sensorDashboard.html',
+        controller: 'sensorDashboardCtrl'
+      }
+    }
   })
 
   .state('sensorChart', {
@@ -834,7 +859,7 @@ angular.module('app.routes', [])
     }
   })
 
-$urlRouterProvider.otherwise('/page_login')
+$urlRouterProvider.otherwise('/page_home')
 
 
 });

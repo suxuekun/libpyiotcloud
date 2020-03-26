@@ -11,23 +11,26 @@
     <div id="devices-markdown36" class="show-list-numbers-and-dots">
       <p style="color:#AAAAAA;font-size:12px;">{{ devices_counthdr }}</p>
     </div>
+    <div id="devices-button-bar11" ng-show="devices.length" class="button-bar">
+      <button id="devices-button164" style="font-weight:300;font-size:10px;border-radius:100px 100px 100px 100px;" class="button button-stable button-small button-block">Device Name</button>
+      <button id="devices-button165" style="font-weight:300;font-size:10px;border-radius:100px 100px 100px 100px;" class="button button-stable button-small button-block">Device ID</button>
+      <button id="devices-button166" style="font-weight:300;font-size:10px;border-radius:100px 100px 100px 100px;" class="button button-stable button-small button-block">Last active</button>
+    </div>
     <div class="list card" id="devices-card27" ng-repeat="device in devices">
-      <div class="item item-body card_top" id="devices-list-item-container6" ng-click="submitTest(device)">
+      <div class="item item-body card_top_devices" id="devices-list-item-container6" ng-click="submitTest(device)">
         <div id="devices-markdown127" class="show-list-numbers-and-dots">
-          <p style="margin-top:0px;color:#FFFFFF;font-size:18px;">
+          <p style="margin-top:0px;color:#3C5A99;font-size:16px;">
             <strong>{{ device.devicename }}</strong>
           </p>
         </div>
         <div id="devices-markdown153" class="show-list-numbers-and-dots">
-          <p style="margin-top:0px;color:#FFFFFF;font-size:10px;">UUID: {{ device.deviceid }}</p>
+          <p style="margin-top:0px;color:#888888;font-size:12px;">{{ device.deviceid }}</p>
         </div>
-      </div>
-      <div class="item item-body" id="devices-list-item-container7">
-        <div id="devices-markdown154" class="show-list-numbers-and-dots">
-          <p style="margin-top:0px;color:#444444;font-size:10px;"> {{ device.devicestatus }}</p>
+        <div id="devices-markdown443" class="show-list-numbers-and-dots">
+          <hr>
         </div>
-        <div id="devices-markdown155" class="show-list-numbers-and-dots">
-          <p style="margin-top:0px;color:#FFFFFF;font-size:10px;">UUID: {{ device.deviceid }}</p>
+        <div id="devices-markdown452" class="show-list-numbers-and-dots">
+          <p style="margin-top:0px;color:#888888;font-size:10px;">{{ device.devicestatus }}</p>
         </div>
       </div>
     </div>

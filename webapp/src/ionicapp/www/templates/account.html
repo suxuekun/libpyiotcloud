@@ -1,46 +1,20 @@
-<ion-view title="Account" hide-back-button="true" nav-transition="none" id="page3" class="page_width">
+<ion-view title="Account" hide-back-button="true" nav-transition="none" id="page61" class="page_width">
   <ion-nav-buttons side="right" class="has-header">
     <button class="button button-positive icon ion-refresh" ng-click="getProfile()"></button>
   </ion-nav-buttons>
   <ion-content padding="true" class="has-header">
-    <div id="account-button-bar2" class="button-bar">
-      <button id="account-button50" ng-class="{'active': data.activeSection==1}" ng-click="changeSection(1)" class="button button-positive button-small button-block">Profile</button>
-      <button id="account-button51" ng-class="{'active': data.activeSection==2}" ng-click="changeSection(2)" class="button button-positive button-small button-block">Subscription</button>
-    </div>
-    <form id="account-form16" class="list" ng-show="data.activeSection==1">
-      <label class="item item-input" id="account-input43">
-        <span class="input-label">Name</span>
-        <input type="text" placeholder="" ng-model="data.fullname">
-      </label>
-      <label class="item item-input" id="account-input44">
-        <span class="input-label">Email</span>
-        <input type="email" placeholder="" readonly="" ng-model="data.email">
-      </label>
-      <label class="item item-input" id="account-input54">
-        <span class="input-label">Mobile Number</span>
-        <input type="text" placeholder="" ng-model="data.phonenumber">
-      </label>
-      <label class="item item-input" id="account-input170">
-        <span class="input-label">Identity Provider</span>
-        <input type="text" placeholder="" ng-model="data.identityprovider" readonly="">
-      </label>
-      <button id="account-button19" ng-click="submitVerifynumber()" ng-show="data.phonenumber.includes(&quot;Unverified&quot;)" class="button button-positive button-block button-outline">Verify mobile number</button>
-      <button id="account-button42" ng-click="submitSavechanges()" class="button button-positive button-block">Save changes</button>
-      <button id="account-button39" ng-click="submitChangepassword()" class="button button-positive button-block button-outline">Change password</button>
-      <button id="account-button149" ng-click="submitDeleteaccount()" class="button button-assertive button-block button-outline">Delete account</button>
-    </form>
-    <form id="account-form19" class="list" ng-show="data.activeSection==2">
-      <label class="item item-input" id="account-input48">
+    <form id="account-form232" class="list">
+      <label class="item item-input" id="account-input176">
         <span class="input-label">Type</span>
         <input type="text" placeholder="" readonly="" ng-model="data.subscription_type">
       </label>
-      <label class="item item-input" id="account-input49">
+      <label class="item item-input" id="account-input177">
         <span class="input-label">Credits</span>
         <input type="text" placeholder="" readonly="" ng-model="data.subscription_credits">
       </label>
-      <button id="account-button10" ng-click="submitBuyCredits()" class="button button-positive button-block">Buy credits</button>
-      <button id="account-button53" ng-click="submitViewCreditPurchases()" class="button button-positive button-block button-outline">View credit purchases</button>
-      <button id="account-button54" ng-click="submitViewCreditUsage()" class="button button-positive button-block button-outline">View credit usage</button>
+      <button id="account-button167" ng-click="submitBuyCredits()" class="button button-positive button-block">Buy credits</button>
+      <button id="account-button168" ng-click="submitViewCreditPurchases()" class="button button-positive button-block button-outline">View credit purchases</button>
+      <button id="account-button169" ng-click="submitViewCreditUsage()" class="button button-positive button-block button-outline">View credit usage</button>
     </form>
   </ion-content>
 </ion-view>
