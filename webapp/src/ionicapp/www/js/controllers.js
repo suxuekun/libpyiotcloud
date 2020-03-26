@@ -3569,12 +3569,6 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         'deviceversion' : $stateParams.deviceversion,
         'location'      : $stateParams.location,
         'devicelocation': $stateParams.location,
-        /*
-        'location': {
-            'latitude': 0.0,
-            'longitude': 0.0,
-        },
-        */
         'zoom': 18,
         
         'locations': []
@@ -3673,7 +3667,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
 
     // GET DEVICES LOCATION
     $scope.get_devices_location = function() {
-        console.log("get_devices_location ");
+        //console.log("get_devices_location ");
         //
         // GET DEVICES LOCATION
         // - Request:
@@ -3692,9 +3686,11 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         .then(function (result) {
             console.log(result.data);
             
-            
             if ( result.data.locations === undefined ) {
-                $ionicPopup.alert({ title: 'No location set yet', template: 'Using Bridgetek office as default location!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+                $ionicPopup.alert({ 
+                    title: 'No location set yet', 
+                    template: 'Using Bridgetek office as default location!', 
+                    buttons: [{text: 'OK', type: 'button-assertive'}] });
 
                 // set SG office as default location
                 result.data.locations = [];
@@ -3730,7 +3726,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                 center.longitude /= $scope.data.locations.length;
                 //console.log(center);
              
-                $scope.infowindow = new google.maps.InfoWindow();
+                //$scope.infowindow = new google.maps.InfoWindow();
                 
                 // uiGmapGoogleMapApi is a promise.
                 // The "then" callback function provides the google.maps object.
@@ -3762,14 +3758,19 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                     for (var indexy=0; indexy<$scope.data.locations.length; indexy++)
                     {
                         $scope.markers.push({
-                            id: indexy,
+                            id: $scope.data.locations[indexy].devicename,
                             coords: $scope.data.locations[indexy].location,
                             data: $scope.data.locations[indexy].devicename,
-                            options: { draggable: true }
+                            options: { draggable: true, animation: google.maps.Animation.DROP },
+                            icon: "https://maps.google.com/mapfiles/ms/icons/red-dot.png",
                             //draggable: true
                         });
                     }
 
+                    $scope.getFit = function() {
+                      return true;  
+                    };
+                    
                     $scope.onClickMarker = function(marker, eventName, markerobj) {
                         console.log("onClickMarker");
                         //alert(markerobj.data);
@@ -3783,6 +3784,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                     };                    
                 });
             }
+            
+            $scope.get_statuses();
         })
         .catch(function (error) {
             $scope.handle_error(error);
@@ -3791,7 +3794,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
 
     // GET DEVICE LOCATION
     $scope.get_device_location = function(devicename) {
-        console.log("get_device_location " + devicename);
+        //console.log("get_device_location " + devicename);
         //
         // GET DEVICE LOCATION
         // - Request:
@@ -3858,26 +3861,47 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                         id: $scope.data.devicename,
                         coords: $scope.data.location,
                         data: [],
-                        options: { draggable: true }
+                        options: { draggable: true, animation: google.maps.Animation.DROP },
+                        icon: "https://maps.google.com/mapfiles/ms/icons/red-dot.png",
                     }];
                     
+                    $scope.getFit = function() {
+                        //console.log("getfit");
+                        return false;  
+                    };
 
                     $scope.onClickMarker = function(marker, eventName, markerobj) {
-                        console.log("onClickMarker");
+                        //console.log("onClickMarker");
                         //alert(markerobj.data);
                         $scope.windowOptions.show = !$scope.windowOptions.show;
                         $scope.selectedCoords = markerobj.coords;
-                        $scope.info = markerobj.id;
-                        $scope.tooltips = markerobj.data;
-                        console.log(markerobj.data);
+                        $scope.info = "<div>" + markerobj.id + "<br>" + "Hello world!" + "</div>";
+                        //$scope.tooltips = markerobj.data;
+                        //console.log(markerobj.data);
                     };
 
                     $scope.onCloseClick = function () {
                         $scope.windowOptions.show = false;
-                    };                    
-                });
+                    };
+                    
+                    var searchBoxEvents = {
+                        places_changed: function (searchBox) {
+                            console.log("places_changed");
+                            
+                            var place = searchBox.getPlaces();
+                            if (!place || place === 'undefined' || place.length === 0) {
+                                console.log('no place data :(');
+                                return;
+                            }
+                    
+                            console.log(place[0].geometry.location.lat());
+                            console.log(place[0].geometry.location.lng());
+                        }
+                    };
+                    $scope.searchBox = { template: 'searchBox.template.html', events: searchBoxEvents, parentdiv: 'searchBoxParent' };                        });
             }
             
+            $scope.get_status($scope.data.devicename);
             //$scope.timer = setInterval(get_all_device_sensors_enabled_input, $scope.refresh_time * 1000);
         })
         .catch(function (error) {
@@ -3886,6 +3910,79 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
     }; 
 
 
+    $scope.get_status = function(devicename) {
+        //$scope.data.devicestatus = 'Status: Detecting...';
+        //
+        // GET STATUS
+        // - Request:
+        //   GET /devices/device/<devicename>/status
+        //   headers: {'Authorization': 'Bearer ' + token.access}
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string, 'value': { "status": string, "version": string } }
+        //   { 'status': 'NG', 'message': string}
+        //        
+        $http({
+            method: 'GET',
+            url: server + '/devices/device/' + devicename + '/status',
+            headers: {'Authorization': 'Bearer ' +  $scope.data.token.access}
+        })
+        .then(function (result) {
+            //console.log(result.data.status === "OK");
+            for (var marker in $scope.markers) {
+                if ($scope.markers[marker].id === devicename) {
+                    $scope.markers[marker].icon = "https://maps.google.com/mapfiles/ms/icons/green-dot.png";
+                    break;
+                }
+            }
+        })
+        .catch(function (error) {
+        }); 
+    };
+    
+    $scope.get_statuses = function() {
+        //$scope.data.devicestatus = 'Status: Detecting...';
+        //
+        // GET STATUS
+        // - Request:
+        //   GET /devices/device/<devicename>/status
+        //   headers: {'Authorization': 'Bearer ' + token.access}
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string, 'value': { "status": string, "version": string } }
+        //   { 'status': 'NG', 'message': string}
+        //        
+        $http({
+            method: 'GET',
+            url: server + '/devices/status',
+            headers: {'Authorization': 'Bearer ' +  $scope.data.token.access}
+        })
+        .then(function (result) {
+            //console.log(result.data.devices);
+            
+            for (var marker in $scope.markers) {
+                //console.log($scope.markers[marker].id);
+                
+                for (var device in result.data.devices) {
+                    if ($scope.markers[marker].id === result.data.devices[device].devicename) {
+                        //console.log(result.data.devices[device].devicename);
+                        if (result.data.devices[device].status !== undefined) {
+                            $scope.markers[marker].icon = "https://maps.google.com/mapfiles/ms/icons/green-dot.png";
+                            //console.log(true);
+                        }
+                        else {
+                            $scope.markers[marker].icon = "https://maps.google.com/mapfiles/ms/icons/red-dot.png";
+                            //console.log(false);
+                        }
+                        break;
+                    }
+                }
+            }
+        })
+        .catch(function (error) {
+        }); 
+    };
+    
     // SET DEVICE LOCATION
     $scope.setDeviceLocation = function(devicename) {
         if (devicename === "All devices") {
@@ -5365,7 +5462,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
     $scope.run_time = 0;
     $scope.big_charts = true;
     
-    $scope.sensors_datachart_colors_options = ['#11C1F3', '#33CD5F', '#FFC900', '#F38124', '#F58CF6', '#B6A2FC'];
+    $scope.sensors_datachart_colors_options = ['#11C1F3', '#33CD5F', '#FFC900', '#F38124', '#EF473A', '#F58CF6', '#B6A2FC', '#BE9B7B', '#AAAAAA'];
     $scope.sensors_datachart = [{"labels": [], "data": [], "series": [], "colors": []}];
     $scope.sensors_datachart_empty = {"labels": [], "data": [], "series": [], "colors": []};
     $scope.sensors_datachart_options = {
@@ -5647,6 +5744,10 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
     get_all_device_sensors_enabled_input_dataset = function() {
         //console.log($scope.peripheral);
         //console.log($scope.sensorclass);
+        var points = 60;
+        if ($scope.big_charts === false) {
+            points = 30;   
+        }
         
         //
         // GET ALL ENABLED DEVICE SENSORS (enabled input) DATASETS
@@ -5679,7 +5780,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                 'class': $scope.sensorclass, 
                 'status': $scope.sensorstatus, 
                 'timerange': $scope.timerange, 
-                'points': 60,
+                'points': points,
                 'index': $scope.timerangeindex,
                 'checkdevice': $scope.checkdevice,
             }

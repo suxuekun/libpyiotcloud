@@ -279,41 +279,42 @@ SUMMARY:
 		//
 		// status
 		A. GET STATUS                     - GET    /devices/device/DEVICENAME/status
-		B. SET STATUS                     - POST   /devices/device/DEVICENAME/status
+		B. GET STATUSES                   - GET    /devices/status
+		C. SET STATUS                     - POST   /devices/device/DEVICENAME/status
 
 		//
 		// settings
-		C. GET SETTINGS                   - GET    /devices/device/DEVICENAME/settings
-		D. SET SETTINGS                   - POST   /devices/device/DEVICENAME/settings
+		D. GET SETTINGS                   - GET    /devices/device/DEVICENAME/settings
+		E. SET SETTINGS                   - POST   /devices/device/DEVICENAME/settings
 
 		//
 		// uart
-		E. GET UARTS                      - GET    /devices/device/DEVICENAME/uarts
-		F. GET UART PROPERTIES            - GET    /devices/device/DEVICENAME/uart/properties
-		G. SET UART PROPERTIES            - POST   /devices/device/DEVICENAME/uart/properties
-		H. ENABLE/DISABLE UART            - POST   /devices/device/DEVICENAME/uart/enable
+		F. GET UARTS                      - GET    /devices/device/DEVICENAME/uarts
+		G. GET UART PROPERTIES            - GET    /devices/device/DEVICENAME/uart/properties
+		H. SET UART PROPERTIES            - POST   /devices/device/DEVICENAME/uart/properties
+		I. ENABLE/DISABLE UART            - POST   /devices/device/DEVICENAME/uart/enable
 
 		//
 		// gpio
-		I. GET GPIOS                      - GET    /devices/device/DEVICENAME/gpios
-		J. GET GPIO PROPERTIES            - GET    /devices/device/DEVICENAME/gpio/NUMBER/properties
-		K. SET GPIO PROPERTIES            - POST   /devices/device/DEVICENAME/gpio/NUMBER/properties
-		L. ENABLE/DISABLE GPIO            - POST   /devices/device/DEVICENAME/gpio/NUMBER/enable
-		M. GET GPIO VOLTAGE               - GET    /devices/device/DEVICENAME/gpio/voltage
-		N. SET GPIO VOLTAGE               - POST   /devices/device/DEVICENAME/gpio/voltage
+		J. GET GPIOS                      - GET    /devices/device/DEVICENAME/gpios
+		K. GET GPIO PROPERTIES            - GET    /devices/device/DEVICENAME/gpio/NUMBER/properties
+		L. SET GPIO PROPERTIES            - POST   /devices/device/DEVICENAME/gpio/NUMBER/properties
+		M. ENABLE/DISABLE GPIO            - POST   /devices/device/DEVICENAME/gpio/NUMBER/enable
+		N. GET GPIO VOLTAGE               - GET    /devices/device/DEVICENAME/gpio/voltage
+		O. SET GPIO VOLTAGE               - POST   /devices/device/DEVICENAME/gpio/voltage
 		   (NUMBER can be 1-4 only and corresponds to GPIO1,GPIO2,GPIO3,GPIO4)
 
 		//
 		// sensor readings (for dashboard)
-		O. GET PERIPHERAL SENSOR READINGS                  - GET    /devices/device/DEVICENAME/sensors/readings
-		P. DELETE PERIPHERAL SENSOR READINGS               - DELETE /devices/device/DEVICENAME/sensors/readings
-		Q. GET PERIPHERAL SENSOR READINGS DATASET          - GET    /devices/device/DEVICENAME/sensors/readings/dataset
-		R. GET PERIPHERAL SENSOR READINGS DATASET FILTERED - POST   /devices/sensors/readings/dataset
-		S. DELETE PERIPHERAL SENSOR READINGS DATASET       - DELETE /devices/sensors/readings/dataset
+		P. GET PERIPHERAL SENSOR READINGS                  - GET    /devices/device/DEVICENAME/sensors/readings
+		Q. DELETE PERIPHERAL SENSOR READINGS               - DELETE /devices/device/DEVICENAME/sensors/readings
+		R. GET PERIPHERAL SENSOR READINGS DATASET          - GET    /devices/device/DEVICENAME/sensors/readings/dataset
+		S. GET PERIPHERAL SENSOR READINGS DATASET FILTERED - POST   /devices/sensors/readings/dataset
+		T. DELETE PERIPHERAL SENSOR READINGS DATASET       - DELETE /devices/sensors/readings/dataset
 
 		//
 		// sensor properties
-		T. DELETE PERIPHERAL SENSOR PROPERTIES - DELETE /devices/device/DEVICENAME/sensors/properties
+		U. DELETE PERIPHERAL SENSOR PROPERTIES - DELETE /devices/device/DEVICENAME/sensors/properties
 
 
 	4. Device access and control APIs (I2C)
@@ -409,6 +410,8 @@ SUMMARY:
 		C. PAYPAL STORE PAYERID           - POST   /account/payment/paypalpayerid/PAYMENTID
 		D. PAYPAL EXECUTE                 - POST   /account/payment/paypalexecute/PAYMENTID
 		E. GET PAYPAL TRANSACTIONS        - GET    /account/payment/paypal
+		F. GET CREDIT CONVERSION          - GET    /account/conversion/credits/CREDITS
+		G. GET AMOUNT CONVERSION          - GET    /account/conversion/amount/AMOUNT
 
 
 	10. Mobile services
@@ -801,7 +804,7 @@ DETAILED:
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
 		   { 'status': 'OK', 'message': string, 
-		     'devices': array[{'devicename': string, 'deviceid': string, 'serialnumber': string, 'timestamp': string, 'heartbeat': string, 'version': string, location: {'latitude': float, 'longitude': float}}, ...]}
+		     'devices': array[{'devicename': string, 'deviceid': string, 'serialnumber': string, 'timestamp': string, 'heartbeat': string, 'version': string}, ...]}
 		   { 'status': 'NG', 'message': string}
 		   // deviceid refers to UUID
 		   // timestamp refers to the epoch time (in seconds) the device was registered/added
@@ -818,7 +821,7 @@ DETAILED:
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
 		   { 'status': 'OK', 'message': string, 
-		     'devices': array[{'devicename': string, 'deviceid': string, 'serialnumber': string, 'timestamp': string, 'heartbeat': string, 'version': string, location: {'latitude': float, 'longitude': float}}, ...]}
+		     'devices': array[{'devicename': string, 'deviceid': string, 'serialnumber': string, 'timestamp': string, 'heartbeat': string, 'version': string}, ...]}
 		   { 'status': 'NG', 'message': string}
 		   // filter will be applied to devicename and deviceid
 		   // if devicename or deviceid contains the filter string, the device will be returned
@@ -856,7 +859,7 @@ DETAILED:
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
 		   { 'status': 'OK', 'message': string, 
-		     'device': {'devicename': string, 'deviceid': string, 'serialnumber': string, 'timestamp': string, 'heartbeat': string, 'version': string, location: {'latitude': float, 'longitude': float} }}
+		     'device': {'devicename': string, 'deviceid': string, 'serialnumber': string, 'timestamp': string, 'heartbeat': string, 'version': string }}
 		   { 'status': 'NG', 'message': string}
 		   // deviceid refers to UUID
 		   // timestamp refers to the epoch time (in seconds) the device was registered/added
@@ -1021,7 +1024,25 @@ DETAILED:
 		   // heartbeat will only appear if device has published an MQTT packet
 		   // In Javascript, heartbeat can be converted to a readable date using "new Date(heartbeat* 1000)"
 
-		B. SET STATUS
+		B. GET STATUSES
+		-  Request:
+		   GET /devices/status
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		-  Response:
+		   { 'status': 'OK', 'message': string, 'value': [{ "devicename": string, "status": int, "version": string }] }
+		   { 'status': 'NG', 'message': string, 'value': [{ "devicename": string, "heartbeat": string, "version": string}] }
+		   // status is an index of the value in the list of statuses
+		   //   ["starting", "running", "restart", "restarting", "stop", "stopping", "stopped", "start"]
+		   //      restart->restarting->running
+		   //      stop->stopping->stopped
+		   //      start->starting->running
+		   // version is the firmware version in the string format of "major_version.minor_version"
+		   // if HTTP ERROR CODE is HTTP_503_SERVICE_UNAVAILABLE, cached value containing heartbeat and version will be included in the error message
+		   // heartbeat refers to the epoch time (in seconds) of the last publish packet sent by the device
+		   // heartbeat will only appear if device has published an MQTT packet
+		   // In Javascript, heartbeat can be converted to a readable date using "new Date(heartbeat* 1000)"
+
+		C. SET STATUS
 		-  Request:
 		   POST /devices/device/DEVICENAME/status
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
@@ -1034,7 +1055,7 @@ DETAILED:
 		   { 'status': 'NG', 'message': string }
 
 
-		C. GET SETTINGS
+		D. GET SETTINGS
 		-  Request:
 		   GET /devices/device/DEVICENAME/settings
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -1043,7 +1064,7 @@ DETAILED:
 		   { 'status': 'NG', 'message': string }
 		   // sensorrate is the time in seconds the device publishes sensor data for ENABLED devices
 
-		D. SET SETTINGS
+		E. SET SETTINGS
 		-  Request:
 		   POST /devices/device/DEVICENAME/settings
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
@@ -1054,7 +1075,7 @@ DETAILED:
 		   { 'status': 'NG', 'message': string }
 
 
-		E. GET UARTS
+		F. GET UARTS
 		-  Request:
 		   GET /devices/device/DEVICENAME/uarts
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -1068,7 +1089,7 @@ DETAILED:
 		   }
 		   // enabled is an int indicating if disabled (0) or enabled (1)
 
-		F. GET UART PROPERTIES
+		G. GET UART PROPERTIES
 		-  Request:
 		   GET /devices/device/DEVICENAME/uart/properties
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -1135,7 +1156,7 @@ DETAILED:
 		   //      default = 1 (8)
 		   // sending only the index saves memory on the device and computation on frontend
 
-		G. SET UART PROPERTIES
+		H. SET UART PROPERTIES
 		-  Request:
 		   POST /devices/device/DEVICENAME/uart/properties
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
@@ -1203,7 +1224,7 @@ DETAILED:
 		   { 'status': 'OK', 'message': string }
 		   { 'status': 'NG', 'message': string }
 
-		H. ENABLE/DISABLE UART
+		I. ENABLE/DISABLE UART
 		-  Request:
 		   POST /devices/device/DEVICENAME/uart/enable
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
@@ -1215,7 +1236,7 @@ DETAILED:
 
 
 
-		I. GET GPIOS
+		J. GET GPIOS
 		-  Request:
 		   GET /devices/device/DEVICENAME/gpios
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -1240,7 +1261,7 @@ DETAILED:
 		   // status is an index of the value in the list of livestatuses
 		   //   ["Low", "High"]
 
-		J. GET GPIO PROPERTIES
+		K. GET GPIO PROPERTIES
 		-  Request:
 		   GET /devices/device/DEVICENAME/gpio/NUMBER/properties
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -1316,7 +1337,7 @@ DETAILED:
 		   // count is optional and is valid only when direction points to Output and mode points to Clock (count should be > 0)
 		   // sending only the index saves memory on the device and computation on frontend
 
-		K. SET GPIO PROPERTIES
+		L. SET GPIO PROPERTIES
 		-  Request:
 		   POST /devices/device/DEVICENAME/gpio/NUMBER/properties
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
@@ -1393,7 +1414,7 @@ DETAILED:
 		   { 'status': 'OK', 'message': string }
 		   { 'status': 'NG', 'message': string }
 
-		L. ENABLE/DISABLE GPIO
+		M. ENABLE/DISABLE GPIO
 		-  Request:
 		   POST /devices/device/DEVICENAME/gpio/NUMBER/enable
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
@@ -1403,7 +1424,7 @@ DETAILED:
 		   { 'status': 'OK', 'message': string }
 		   { 'status': 'NG', 'message': string }
 
-		M. GET GPIO VOLTAGE
+		N. GET GPIO VOLTAGE
 		-  Request:
 		   GET /devices/device/DEVICENAME/gpio/voltage
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -1414,7 +1435,7 @@ DETAILED:
 		   // voltage is an index of the value in the list of voltages
 		   //   ["3.3 V", "5 V"]
 
-		N. SET GPIO VOLTAGE
+		O. SET GPIO VOLTAGE
 		-  Request:
 		   POST /devices/device/DEVICENAME/gpio/voltage
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
@@ -1427,7 +1448,7 @@ DETAILED:
 		   { 'status': 'NG', 'message': string }
 
 
-		O. GET PERIPHERAL SENSOR READINGS
+		P. GET PERIPHERAL SENSOR READINGS
 		-  Request:
 		   GET /devices/device/DEVICENAME/sensors/readings
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -1437,7 +1458,7 @@ DETAILED:
 		   { 'status': 'NG', 'message': string}
 		   // the subclass parameter of readings parameter will only appear if the sensor has a subclass
 
-		P. GET PERIPHERAL SENSOR READINGS DATASET
+		Q. GET PERIPHERAL SENSOR READINGS DATASET
 		-  Request:
 		   GET /devices/device/DEVICENAME/sensors/readings/dataset
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -1450,7 +1471,7 @@ DETAILED:
 		      if sensor has no subclass: 'dataset': {'labels': [], 'data': [[]]}
 		      this make the dataset object directly useable by Chart.JS 
 
-		Q. GET PERIPHERAL SENSOR READINGS DATASET FILTERED
+		R. GET PERIPHERAL SENSOR READINGS DATASET FILTERED
 		-  Request:
 		   POST /devices/sensors/readings/dataset
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
@@ -1493,7 +1514,7 @@ DETAILED:
 		      this make the dataset object directly usable by Chart.JS 
 		   // low and high does NOT appear when "Last 5 minutes" timerange is selected.
 
-		R. DELETE PERIPHERAL SENSOR READINGS
+		S. DELETE PERIPHERAL SENSOR READINGS
 		-  Request:
 		   DELETE /devices/device/DEVICENAME/sensors/readings
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -1501,7 +1522,7 @@ DETAILED:
 		   { 'status': 'OK', 'message': string}
 		   { 'status': 'NG', 'message': string}
 
-		S. DELETE PERIPHERAL SENSOR READINGS DATASET
+		T. DELETE PERIPHERAL SENSOR READINGS DATASET
 		-  Request:
 		   DELETE /devices/sensors/readings/dataset
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
@@ -1511,7 +1532,7 @@ DETAILED:
 		   { 'status': 'OK', 'message': string}
 		   { 'status': 'NG', 'message': string}
 
-		T. DELETE PERIPHERAL SENSOR PROPERTIES
+		U. DELETE PERIPHERAL SENSOR PROPERTIES
 		-  Request:
 		   DELETE /devices/device/DEVICENAME/sensors/properties
 		   headers: {'Authorization': 'Bearer ' + token.access}
