@@ -5,7 +5,7 @@
   <ion-content padding="true" class="has-header">
     <div class="spacer" style="width: 300px; height: 12px;"></div>
     <div id="deviceNotifications-markdown24" style="text-align:center;" class="show-list-numbers-and-dots">
-      <p style="color:#387EF5;font-size:18px;">
+      <p style="color:#3C5A99;font-size:18px;">
         <strong> {{ data.devicename }} </strong>
       </p>
     </div>
@@ -33,12 +33,12 @@
       </label>
     </form>
     <form id="deviceNotifications-form33" class="list">
-      <h5 id="deviceNotifications-heading14" style="color:#444444;">Message</h5>
+      <h5 id="deviceNotifications-heading14" style="color:#3C5A99;">Message</h5>
       <label class="item item-input" id="deviceNotifications-textarea3">
         <span class="input-label"></span><textarea placeholder="Message" ng-model="data.message"></textarea></label>
     </form>
     <form id="deviceNotifications-form28" class="list" ng-show="data.activeSection==2">
-      <h5 id="deviceNotifications-heading24" ng-show="data.activeSection==2" style="color:#444444;">SMS Options</h5>
+      <h5 id="deviceNotifications-heading24" ng-show="data.activeSection==2" style="color:#3C5A99;">SMS Options</h5>
       <label class="item item-select" id="deviceNotifications-select5">
         <span class="input-label">Source</span>
         <select ng-options="cc.code as cc.id for cc in smsoptions" ng-model="data.smsoptionsid"></select>

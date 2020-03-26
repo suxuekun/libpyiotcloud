@@ -8,7 +8,7 @@
   <ion-content padding="true" class="has-header">
     <div class="spacer" style="width: 300px; height: 12px;"></div>
     <div id="deviceI2C-markdown73" style="text-align:center;" class="show-list-numbers-and-dots">
-      <p style="color:#387EF5;font-size:18px;">
+      <p style="color:#3C5A99;font-size:18px;">
         <strong> {{ data.devicename }} </strong>
       </p>
     </div>
@@ -40,12 +40,12 @@
           <p style="margin-top:0px;color:#FFFFFF;font-size:10px;">{{ sensor.readings ? "." : "" }}</p>
         </div>
         <div id="deviceI2C-markdown402" style="text-align:center;" class="show-list-numbers-and-dots">
-          <p style="margin-top:0px;color:#387EF5;font-size:35px;">
+          <p style="margin-top:0px;color:#3C5A99;font-size:35px;">
             <strong> {{ sensor.readings ? sensor.subclass ? sensor.readings.value + " " + sensor.units[0] + " | " + sensor.readings.subclass.value + " " + sensor.units[1] : sensor.readings.value + " " + sensor.units[0] : "" }} </strong>
           </p>
         </div>
         <div id="deviceI2C-markdown401" style="text-align:center;" class="show-list-numbers-and-dots">
-          <p style="margin-top:0px;color:#387EF5;font-size:10px;">{{ sensor.readings ? sensor.subclass ? "Low: " + sensor.readings.lowest + " " + sensor.units[0] + " High: " + sensor.readings.highest + " " + sensor.units[0] + " | " + "Low: " + sensor.readings.subclass.lowest + " " + sensor.units[1] + " High:
+          <p style="margin-top:0px;color:#3C5A99;font-size:10px;">{{ sensor.readings ? sensor.subclass ? "Low: " + sensor.readings.lowest + " " + sensor.units[0] + " High: " + sensor.readings.highest + " " + sensor.units[0] + " | " + "Low: " + sensor.readings.subclass.lowest + " " + sensor.units[1] + " High:
             " + sensor.readings.subclass.highest + " " + sensor.units[1] : "Low: " + sensor.readings.lowest + " " + sensor.units[0] + " High: " + sensor.readings.highest + " " + sensor.units[0] : "" }}</p>
         </div>
       </form>
