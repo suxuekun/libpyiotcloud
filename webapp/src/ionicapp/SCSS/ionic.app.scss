@@ -1,4 +1,5 @@
 $positive: #3C5A99;
+$balanced: #00CBAF;
 $dark: #444444;
 $link-color: $dark;
 $ionicons-font-path: "../lib/ionic/fonts" !default;
@@ -36,6 +37,39 @@ table, th, td {
 
 .img_logo {
 	top: 35%;
+}
+
+.menu_margin {
+	margin-left: 15px;
+	margin-right: 15px;
+}
+
+.card_top_devices {
+	background-color: #FFFFFF;
+}
+
+.device_info_top_back {
+	background-color: #3C5A99;
+}
+
+.device_info_top {
+	width: 34% !important;
+	display: inline-block;
+	padding-top: 0px;
+	padding-bottom: 0px;
+	margin-top: 0px;
+	margin-bottom: 0px;
+	height: 10px;
+}
+
+.device_info_top_ex {
+	width: 64% !important;
+	display: inline-block;
+	padding-top: 0px;
+	padding-bottom: 0px;
+	margin-top: 0px;
+	margin-bottom: 0px;
+	height: 10px;
 }
 
 .card_top {
@@ -107,12 +141,12 @@ table, th, td {
 
 .widget_button {
 	width: 48% !important;
-	height: 65px;
+	height: 60px;
 }
 
 .widget_button_ex {
 	width: 96% !important;
-	height: 65px;
+	height: 60px;
 }
 
 .widget_button_20 {

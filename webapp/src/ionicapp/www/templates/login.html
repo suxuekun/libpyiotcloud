@@ -1,7 +1,7 @@
-<ion-view title="Login" hide-nav-bar="true" hide-back-button="true" nav-transition="none" id="page5" class="page_width_small">
+<ion-view title="Login" hide-nav-bar="true" hide-back-button="true" nav-transition="none" id="page5" style="background-color:#FFFFFF;" class="page_width_small">
   <ion-content padding="true" class="manual-ios-statusbar-padding">
     <div class="spacer" style="height: 20px;"></div>
-    <h3 id="login-heading5" style="color:#444444;">Sign In</h3>
+    <h3 id="login-heading5" style="color:#3C5A99;">Sign In</h3>
     <div class="spacer" style="height: 10px;"></div>
     <form id="login-form8" class="list">
       <ion-list id="login-list3">
@@ -14,22 +14,18 @@
           <input type="password" placeholder="" ng-model="data.password">
         </label>
       </ion-list>
-      <button id="login-button5" ng-click="submit()" ng-disabled="oauthorization_code != null || waiting_login" class="button button-positive button-block">Login</button>
-      <div class="spacer" style="width: 300px; height: 5px;"></div>
-      <a ui-sref="signup()" id="login-button6" ng-disabled="oauthorization_code != null || waiting_login" class="button button-dark button-small button-block button-clear">Don't have an account? Sign Up</a>
+      <button id="login-button5" ng-click="submit()" ng-disabled="oauthorization_code != null || waiting_login" class="button button-positive button-block">SIGN IN</button>
+      <div id="login-markdown359" style="text-align:center;" class="show-list-numbers-and-dots">
+        <p style="color:#AAAAAA;font-size:11px;">By signing into an account, you are agreeing with our Terms and Conditions and Privacy Policy</p>
+      </div>
       <a ui-sref="recover()" id="login-button8" ng-disabled="oauthorization_code != null || waiting_login" class="button button-dark button-small button-block button-clear">Forgot your password?</a>
     </form>
     <form id="login-form227" class="list">
-      <button id="login-button157" ng-click="getOAuthCode()" ng-disabled="oauthorization_code != null || waiting_login" class="button button-positive button-block button-outline icon-left ion-cloud">Login with your social account</button>
-      <div class="spacer" style="width: 480px; height: 10px;"></div>
-    </form>
-    <form id="login-form226" class="list">
-      <div id="login-markdown359" style="text-align:center;" class="show-list-numbers-and-dots">
-        <p style="color:#AAAAAA;font-size:11px;">By logging into an account, you are agreeing with our
-          <strong>Terms and Conditions</strong> and
-          <strong>Privacy Policy</strong>
-        </p>
+      <div id="login-markdown311" style="text-align:center;" class="show-list-numbers-and-dots">
+        <p style="color:#AAAAAA;font-size:12px;">Don't have an account?</p>
       </div>
+      <a ui-sref="signup()" id="login-button6" ng-disabled="oauthorization_code != null || waiting_login" class="button button-positive button-block button-outline">SIGN UP</a>
+      <button id="login-button157" ng-click="getOAuthCode()" ng-disabled="oauthorization_code != null || waiting_login" class="button button-positive button-block button-outline">Login with social account</button>
     </form>
     <div id="login-container2" class="spinner creator-container"></div>
   </ion-content>
