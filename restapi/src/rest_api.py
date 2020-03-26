@@ -3583,6 +3583,74 @@ def get_status(devicename):
 
     return response
 
+def get_status_threaded(username, api, data, device):
+    response, status_return = process_request(api, data)
+    if status_return == 503: # HTTP_503_SERVICE_UNAVAILABLE
+        # if device is unreachable, get the cached heartbeat and version
+        cached_value = g_database_client.get_device_cached_values(username, device["devicename"])
+        if cached_value:
+            if cached_value.get("heartbeat"):
+                device["heartbeat"] = cached_value["heartbeat"]
+            if cached_value.get("version"):
+                device["version"] = cached_value["version"]
+
+    if status_return == 200:
+        response = json.loads(response)
+        version = response["value"]["version"]
+        status = response["value"]["status"]
+        response = json.dumps(response)
+        g_database_client.save_device_version(username, device["devicename"], version)
+        device["version"] = version
+        device["status"] = status
+
+#
+# GET STATUSES
+# - Request:
+#   GET /devices/status
+#   headers: {'Authorization': 'Bearer ' + token.access}
+#
+# - Response:
+#   { 'status': 'OK', 'message': string, 'value': [{ "devicename": string, 'status': int, 'version': string }] }
+#   { 'status': 'NG', 'message': string, 'value': [{ "devicename": string, 'heartbeat': string, 'version': string}] }
+#
+@app.route('/devices/status', methods=['GET'])
+def get_statuses():
+    api = 'get_status'
+
+    # get token from Authorization header
+    auth_header_token = get_auth_header_token()
+    if auth_header_token is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
+        print('\r\nERROR Invalid authorization header\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
+
+    # get username from token
+    token = {'access': auth_header_token}
+    username = g_database_client.get_username_from_token(token)
+    if username is None:
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Token expired\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
+    #print('get_status {} devicename={}'.format(data['username'], data['devicename']))
+
+    thread_list = []
+    devices = g_database_client.get_devicenames(username)
+    for device in devices:
+        data = {}
+        data['token'] = token
+        data['devicename'] = device["devicename"]
+        data['username'] = username
+        thr = threading.Thread(target = get_status_threaded, args = (username, api, data, device, ))
+        thread_list.append(thr) 
+        thr.start()
+    for thr in thread_list:
+        thr.join()
+    #print(devices)
+
+    msg = {'status': 'OK', 'message': 'Device statuses queried successfully.', 'devices': devices}
+    response = json.dumps(msg)
+    return response
+
 #
 # SET STATUS
 # - Request:

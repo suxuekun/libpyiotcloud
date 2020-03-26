@@ -587,6 +587,9 @@ class database_client:
     def get_devices(self, username):
         return self._devices.get_devices(username)
 
+    def get_devicenames(self, username):
+        return self._devices.get_devicenames(username)
+
     def get_devices_with_filter(self, username, filter):
         return self._devices.get_devices_with_filter(username, filter)
 
@@ -2743,6 +2746,17 @@ class database_client_mongodb:
         devices = self.get_registered_devices()
         if devices and devices.count():
             for device in devices.find({'username': username},{'devicename':1, 'deviceid': 1, 'serialnumber':1, 'timestamp':1, 'heartbeat':1, 'version': 1}):
+                device.pop('_id')
+                device_list.append(device)
+        return device_list
+        #devices = self.get_registered_devices()
+        #return list(devices.find({'username': username},{'devicename':1, 'deviceid': 1, 'serialnumber':1, 'timestamp':1, 'heartbeat':1, 'version': 1}))
+
+    def get_devicenames(self, username):
+        device_list = []
+        devices = self.get_registered_devices()
+        if devices and devices.count():
+            for device in devices.find({'username': username},{'devicename':1}):
                 device.pop('_id')
                 device_list.append(device)
         return device_list

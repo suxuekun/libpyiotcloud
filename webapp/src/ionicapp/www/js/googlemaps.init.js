@@ -3,7 +3,7 @@ angular.module('googlemaps.init', ['uiGmapgoogle-maps'])
 .config(['uiGmapGoogleMapApiProvider', function(uiGmapGoogleMapApiProvider) {
     uiGmapGoogleMapApiProvider.configure({
         key: window.__env.googleApiKey,
-        libraries: 'weather,geometry,visualization'
+        libraries: 'visualization,places'
     });
 }])
 
