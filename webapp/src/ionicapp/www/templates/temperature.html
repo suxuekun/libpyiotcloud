@@ -8,7 +8,7 @@
   <ion-content padding="true" class="has-header">
     <div class="spacer" style="width: 300px; height: 12px;"></div>
     <div id="temperature-markdown72" style="text-align:center;" class="show-list-numbers-and-dots">
-      <p style="color:#387EF5;font-size:18px;">
+      <p style="color:#3C5A99;font-size:18px;">
         <strong> {{ data.devicename }} </strong>
       </p>
     </div>
@@ -16,7 +16,7 @@
     <div class="spacer" style="width: 300px; height: 20px;"></div>
     <form id="temperature-form83" class="list">
       <div id="temperature-markdown111" class="show-list-numbers-and-dots">
-        <p style="color:#387EF5;">Mode</p>
+        <p style="color:#3C5A99;">Mode</p>
       </div>
       <label class="item item-select" id="temperature-select37">
         <span class="input-label"></span>
@@ -25,7 +25,7 @@
     </form>
     <form id="temperature-form109" class="list" ng-show="data.attributes.mode==0">
       <div id="temperature-markdown131" class="show-list-numbers-and-dots">
-        <p style="color:#387EF5;">Threshold</p>
+        <p style="color:#3C5A99;">Threshold</p>
       </div>
       <label class="item item-input" id="temperature-input102">
         <span class="input-label">Value</span>
@@ -34,7 +34,7 @@
     </form>
     <form id="temperature-form110" class="list" ng-show="data.attributes.mode==1">
       <div id="temperature-markdown141" class="show-list-numbers-and-dots">
-        <p style="color:#387EF5;">Threshold</p>
+        <p style="color:#3C5A99;">Threshold</p>
       </div>
       <label class="item item-input" id="temperature-input106">
         <span class="input-label">Minimum Limit</span>
@@ -51,7 +51,7 @@
     </form>
     <form id="temperature-form84" class="list">
       <div id="temperature-markdown112" class="show-list-numbers-and-dots">
-        <p style="color:#387EF5;">Alert</p>
+        <p style="color:#3C5A99;">Alert</p>
       </div>
       <label class="item item-select" id="temperature-select38">
         <span class="input-label">Type</span>
@@ -64,7 +64,7 @@
     </form>
     <form id="temperature-form111" class="list" ng-show="data.attributes.mode==2">
       <div id="temperature-markdown142" class="show-list-numbers-and-dots">
-        <p style="color:#387EF5;">Hardware</p>
+        <p style="color:#3C5A99;">Hardware</p>
       </div>
       <label class="item item-select" id="temperature-select44">
         <span class="input-label">IoT Modem</span>
@@ -73,13 +73,13 @@
     </form>
     <form id="temperature-form85" class="list" ng-show="data.attributes.mode!=2">
       <div id="temperature-markdown113" class="show-list-numbers-and-dots">
-        <p style="color:#387EF5;">Notification settings</p>
+        <p style="color:#3C5A99;">Notification settings</p>
       </div>
       <ion-toggle toggle-class="toggle-positive" id="temperature-toggle25" ng-change="changeNotification(data.showNotification)" ng-model="data.showNotification">Show</ion-toggle>
     </form>
     <form id="temperature-form86" class="list" ng-show="data.showNotification==1 &amp;&amp; data.attributes.mode!=2">
       <div id="temperature-markdown109" class="show-list-numbers-and-dots">
-        <p style="color:#387EF5;">Messages</p>
+        <p style="color:#3C5A99;">Messages</p>
       </div>
       <ion-checkbox id="temperature-checkbox20" ng-model="data.attributes.notification.messages[0].enable">Message on activation</ion-checkbox>
       <label class="item item-input" id="temperature-textarea12">
@@ -90,7 +90,7 @@
     </form>
     <form id="temperature-form87" class="list" ng-show="data.showNotification==1 &amp;&amp; data.attributes.mode!=2">
       <div id="temperature-markdown110" class="show-list-numbers-and-dots">
-        <p style="color:#387EF5;">Recipients</p>
+        <p style="color:#3C5A99;">Recipients</p>
       </div>
       <ion-checkbox id="temperature-checkbox21" ng-model="data.attributes.notification.endpoints.email.enable">Send email to</ion-checkbox>
       <label class="item item-input" id="temperature-input129">
