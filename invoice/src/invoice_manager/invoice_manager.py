@@ -82,12 +82,12 @@ print("MODEL_EMAIL {}".format(CONFIG_MODEL_EMAIL))
 def construct_message(name, payment):
 
     message =  "Hi {},\r\n\r\n\r\n".format(name)
-    message += "Thank you for purchasing {} credits for {} USD.\r\n".format(payment["value"], payment["amount"])
-    message += "Transaction ID: {}.\r\n\r\n".format(payment["id"])
+    message += "A Paypal payment of {} USD for {} credits was processed successfully.\r\n".format(payment["amount"], payment["value"])
+    message += "To confirm your Paypal transaction, visit the Paypal website and check the transaction ID: {}.\r\n\r\n".format(payment["id"])
 
-    message += "For any issues, please email customer support.\r\n\r\n"
+    message += "If unauthorised, please contact customer support.\r\n\r\n"
     message += "\r\nBest Regards,\r\n"
-    message += "Bridgetek\r\n"
+    message += "Bridgetek Pte. Ltd.\r\n"
     return message
 
 
