@@ -1,0 +1,26 @@
+<ion-view title="Purchase Details" hide-back-button="true" nav-transition="none" id="page59" class="page_width">
+  <ion-nav-buttons side="left" class="has-header">
+    <button class="button button-icon icon ion-android-close" ng-click="submitCancel()"></button>
+  </ion-nav-buttons>
+  <ion-content padding="true" class="has-header">
+    <div class="spacer" style="height: 15px;"></div>
+    <ion-list id="purchaseDetails-list12">
+      <div class="item item-body" id="purchaseDetails-list-item-container15">
+        <div id="purchaseDetails-markdown407" class="show-list-numbers-and-dots">
+          <p style="margin-top:0px;color:#3C5A99;font-size:16px;">
+            <strong> Paypal Transaction ID: {{ data.id }} </strong>
+          </p>
+        </div>
+        <div id="purchaseDetails-markdown408" class="show-list-numbers-and-dots">
+          <p style="margin-top:0px;color:#444444;font-size:10px;">{{ item.timestamp }}</p>
+        </div>
+        <div id="purchaseDetails-markdown410" class="show-list-numbers-and-dots">
+          <p style="margin-top:0px;color:#444444;font-size:10px;">{{ item.prevcredits ? "Previous credit balance: " + item.prevcredits : "" }}</p>
+        </div>
+        <div id="purchaseDetails-markdown412" class="show-list-numbers-and-dots">
+          <p style="margin-top:0px;color:#444444;font-size:10px;">{{ item.credits ? "New credit balance: " + item.credits : "" }}</p>
+        </div>
+      </div>
+    </ion-list>
+  </ion-content>
+</ion-view>
