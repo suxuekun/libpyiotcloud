@@ -1494,7 +1494,7 @@ def get_subscription():
 
 
 def compute_credits_by_amount(amount):
-    return int(amount) * 100
+    return int(amount * 100)
 
 ########################################################################################################
 #
