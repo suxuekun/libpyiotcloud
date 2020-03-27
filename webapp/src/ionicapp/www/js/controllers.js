@@ -1274,6 +1274,7 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token,
 
     $scope.submitViewTransactionTopup = function(topup) {
         
+        console.log(topup);
         param = {
             'username': $scope.data.username,
             'token': $scope.data.token,
@@ -1570,8 +1571,8 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token)
     };
 
     $scope.topup = {
-        'credits': 1000,
-        'amount': 10,
+        'credits': 100,
+        'amount': 1,
     };
 
     $scope.timer = null;
@@ -1594,7 +1595,7 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token)
     $scope.submitBuycredits = function() {
 
         // Check if atleast minimum value
-        let minimum = 1000;
+        let minimum = 100;
         if ($scope.topup.credits < minimum) {
             $ionicPopup.alert({
                 title: 'Error',
@@ -1782,8 +1783,8 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token)
     
     $scope.$on('$ionicView.enter', function(e) {
         $scope.topup = {
-            'credits': 1000,
-            'amount': 10,
+            'credits': 100,
+            'amount': 1,
         };
         $scope.timer = null;
         $scope.notice = "";
@@ -1933,7 +1934,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Paymen
         'username': User.get_username(),
         'token': User.get_token(),
         
-        'transaction': $stateParams.transaction,
+        'transaction': $state.params.transaction,
     };
 
     $scope.submitCancel = function() {
@@ -1945,7 +1946,11 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Paymen
     };    
     
     $scope.$on('$ionicView.enter', function(e) {
-        console.log($scope.data.transaction);
+        console.log("enter");
+        $scope.data.transaction = $state.params.transaction;
+        //console.log($stateParams.transaction);
+        //console.log($state.params.transaction);
+        //console.log($scope.data.transaction);
     });
 }])
    
