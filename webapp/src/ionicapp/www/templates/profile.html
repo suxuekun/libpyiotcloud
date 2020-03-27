@@ -3,27 +3,23 @@
     <button class="button button-positive icon ion-refresh" ng-click="getProfile()"></button>
   </ion-nav-buttons>
   <ion-content padding="true" class="has-header">
+    <div class="spacer" style="height: 20px;"></div>
     <div id="profile-button-bar2" class="button-bar"></div>
+    <button id="profile-button132" ng-click="submitChangepassword()" style="font-weight:600;font-size:18px;text-align:left;" class="button button-positive button-block button-clear icon-right ion-android-settings">{{ data.fullname }}</button>
     <form id="profile-form16" class="list">
-      <label class="item item-input" id="profile-input43">
-        <span class="input-label">Name</span>
-        <input type="text" placeholder="" ng-model="data.fullname">
-      </label>
+      <ion-item class="item-divider" id="profile-list-item-divider9"> Email</ion-item>
       <label class="item item-input" id="profile-input44">
-        <span class="input-label">Email</span>
         <input type="email" placeholder="" readonly="" ng-model="data.email">
       </label>
+      <ion-item class="item-divider" id="profile-list-item-divider10"> Mobile Number</ion-item>
       <label class="item item-input" id="profile-input54">
-        <span class="input-label">Mobile Number</span>
-        <input type="text" placeholder="" ng-model="data.phonenumber">
+        <input type="text" placeholder="" ng-model="data.phonenumber" ng-click="submitVerifynumber()">
       </label>
+      <ion-item class="item-divider" id="profile-list-item-divider11"> Identity Provider</ion-item>
       <label class="item item-input" id="profile-input170">
-        <span class="input-label">Identity Provider</span>
         <input type="text" placeholder="" ng-model="data.identityprovider" readonly="">
       </label>
-      <button id="profile-button42" ng-click="submitSavechanges()" class="button button-positive button-block">Save changes</button>
-      <button id="profile-button19" ng-click="submitVerifynumber()" ng-show="data.phonenumber.includes(&quot;Unverified&quot;)" class="button button-positive button-block button-outline">Verify mobile number</button>
-      <button id="profile-button39" ng-click="submitChangepassword()" class="button button-positive button-block button-outline">Change password</button>
+      <button id="profile-button42" ng-click="submitSavechanges()" class="button button-positive button-block">SAVE</button>
       <button id="profile-button149" ng-click="submitDeleteaccount()" class="button button-assertive button-block button-outline">Delete account</button>
     </form>
   </ion-content>

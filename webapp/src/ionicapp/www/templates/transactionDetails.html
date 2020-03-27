@@ -1,24 +1,62 @@
-<ion-view title="Transaction Details" hide-back-button="true" nav-transition="none" id="page59" class="page_width">
+<ion-view title="Transaction Details" hide-back-button="true" nav-transition="none" id="page62" class="page_width">
   <ion-nav-buttons side="left" class="has-header">
     <button class="button button-icon icon ion-android-close" ng-click="submitCancel()"></button>
   </ion-nav-buttons>
   <ion-content padding="true" class="has-header">
     <div class="spacer" style="height: 15px;"></div>
-    <ion-list id="transactionDetails-list12">
-      <div class="item item-body" id="transactionDetails-list-item-container15">
-        <div id="transactionDetails-markdown407" class="show-list-numbers-and-dots">
+    <ion-list id="transactionDetails-list13">
+      <div class="item item-body" id="transactionDetails-list-item-container25">
+        <div id="transactionDetails-markdown437" class="show-list-numbers-and-dots topup_left">
           <p style="margin-top:0px;color:#3C5A99;font-size:16px;">
-            <strong> Paypal Transaction ID: {{ data.id }} </strong>
+            <strong> Credits </strong>
           </p>
         </div>
-        <div id="transactionDetails-markdown408" class="show-list-numbers-and-dots">
-          <p style="margin-top:0px;color:#444444;font-size:10px;">{{ item.timestamp }}</p>
+        <div id="transactionDetails-markdown468" style="text-align:right;" class="show-list-numbers-and-dots topup_right">
+          <p style="margin-top:0px;color:#3C5A99;font-size:16px;">
+            <strong> {{ "+ " + data.transaction.value }} </strong>
+          </p>
         </div>
-        <div id="transactionDetails-markdown410" class="show-list-numbers-and-dots">
-          <p style="margin-top:0px;color:#444444;font-size:10px;">{{ item.prevcredits ? "Previous credit balance: " + item.prevcredits : "" }}</p>
+      </div>
+      <div class="item item-body" id="transactionDetails-list-item-container28">
+        <div id="transactionDetails-markdown481" class="show-list-numbers-and-dots">
+          <p style="margin-top:0px;color:#444444;font-size:14px;">
+            <strong> Paypal transaction ID </strong>
+          </p>
         </div>
-        <div id="transactionDetails-markdown412" class="show-list-numbers-and-dots">
-          <p style="margin-top:0px;color:#444444;font-size:10px;">{{ item.credits ? "New credit balance: " + item.credits : "" }}</p>
+        <div id="transactionDetails-markdown482" class="show-list-numbers-and-dots">
+          <p style="margin-top:0px;color:#444444;font-size:14px;">{{ data.transaction.id }}</p>
+        </div>
+        <div id="transactionDetails-markdown483" class="show-list-numbers-and-dots">
+          <p style="margin-top:0px;color:#444444;font-size:14px;">
+            <strong> Date time </strong>
+          </p>
+        </div>
+        <div id="transactionDetails-markdown484" class="show-list-numbers-and-dots">
+          <p style="margin-top:0px;color:#444444;font-size:14px;">{{ data.transaction.timestamp }}</p>
+        </div>
+        <div id="transactionDetails-markdown485" class="show-list-numbers-and-dots">
+          <p style="margin-top:0px;color:#444444;font-size:14px;">
+            <strong> Amount paid (USD) </strong>
+          </p>
+        </div>
+        <div id="transactionDetails-markdown486" class="show-list-numbers-and-dots">
+          <p style="margin-top:0px;color:#444444;font-size:14px;">{{ data.transaction.amount }}</p>
+        </div>
+        <div id="transactionDetails-markdown487" class="show-list-numbers-and-dots">
+          <p style="margin-top:0px;color:#444444;font-size:14px;">
+            <strong> Credits before payment </strong>
+          </p>
+        </div>
+        <div id="transactionDetails-markdown488" class="show-list-numbers-and-dots">
+          <p style="margin-top:0px;color:#444444;font-size:14px;">{{ data.transaction.prevcredits }}</p>
+        </div>
+        <div id="transactionDetails-markdown489" class="show-list-numbers-and-dots">
+          <p style="margin-top:0px;color:#444444;font-size:14px;">
+            <strong> Credits after payment </strong>
+          </p>
+        </div>
+        <div id="transactionDetails-markdown490" class="show-list-numbers-and-dots">
+          <p style="margin-top:0px;color:#444444;font-size:14px;">{{ data.transaction.credits }}</p>
         </div>
       </div>
     </ion-list>

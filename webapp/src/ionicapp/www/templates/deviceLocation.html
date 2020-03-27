@@ -30,7 +30,7 @@
 
     </ui-gmap-google-map>
     <div id="deviceLocation-markdown360" ng-show="data.devicename != &quot;All devices&quot;" style="text-align:center;" class="show-list-numbers-and-dots">
-      <p style="color:#AAAAAA;font-size:12px;">(Latitude: {{ data.location.latitude }}, Longitude: {{ data.location.longitude }})</p>
+      <p style="color:#AAAAAA;font-size:12px;">{{ data.location != "UNKNOWN" &amp;&amp; data.location != "" ? "(Latitude: " + data.location.latitude + " ," + "Longitude: " + data.location.longitude + ")" : "" }}</p>
     </div>
     <form id="deviceLocation-form228" class="list" ng-show="data.devicename != &quot;All devices&quot;">
       <button id="deviceLocation-button152" ng-click="setDeviceLocation(data.devicename)" class="button button-positive button-block">Set device location</button>

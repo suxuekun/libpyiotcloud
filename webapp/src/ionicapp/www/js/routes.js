@@ -54,8 +54,7 @@ angular.module('app.routes', [])
     url: '/page_account',
 	params: {
 		username: "",
-		token: "",
-		activeSection: ""		
+		token: ""		
 },
     views: {
       'side-menu21': {
@@ -65,15 +64,15 @@ angular.module('app.routes', [])
     }
   })
 
-  .state('order', {
-    url: '/page_order',
+  .state('topUpCredits', {
+    url: '/page_topup',
 	params: {
 		username: "",
 		token: "",
 		credits: ""		
 },
-    templateUrl: 'templates/order.html',
-    controller: 'orderCtrl'
+    templateUrl: 'templates/topUpCredits.html',
+    controller: 'topUpCreditsCtrl'
   })
 
   .state('creditPurchases', {
@@ -87,13 +86,24 @@ angular.module('app.routes', [])
     controller: 'creditPurchasesCtrl'
   })
 
-  .state('transactionDetails', {
-    url: '/page_transaction_details',
+  .state('purchaseDetails', {
+    url: '/page_purchase_details',
 	params: {
 		username: "",
 		token: "",
 		credits: "",
 		id: ""		
+},
+    templateUrl: 'templates/purchaseDetails.html',
+    controller: 'purchaseDetailsCtrl'
+  })
+
+  .state('transactionDetails', {
+    url: '/page62',
+	params: {
+		username: "",
+		token: "",
+		transaction: ""		
 },
     templateUrl: 'templates/transactionDetails.html',
     controller: 'transactionDetailsCtrl'
@@ -831,30 +841,30 @@ angular.module('app.routes', [])
     controller: 'deviceNotificationsCtrl'
   })
 
-  .state('menu.history', {
-    url: '/page_history',
+  .state('menu.troubleshooting', {
+    url: '/page_troubleshooting',
 	params: {
 		username: "",
 		token: ""		
 },
     views: {
       'side-menu21': {
-        templateUrl: 'templates/history.html',
-        controller: 'historyCtrl'
+        templateUrl: 'templates/troubleshooting.html',
+        controller: 'troubleshootingCtrl'
       }
     }
   })
 
-  .state('menu.notification', {
-    url: '/page_notification',
+  .state('menu.alerts', {
+    url: '/page_alerts',
 	params: {
 		username: "",
 		token: ""		
 },
     views: {
       'side-menu21': {
-        templateUrl: 'templates/notification.html',
-        controller: 'notificationCtrl'
+        templateUrl: 'templates/alerts.html',
+        controller: 'alertsCtrl'
       }
     }
   })

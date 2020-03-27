@@ -936,7 +936,7 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token)
             }
             if (result.data.info.phone_number_verified !== undefined) {
                 if (result.data.info.phone_number_verified === false) {
-                    $scope.data.phonenumber +=  " (Unverified)";
+                    $scope.data.phonenumber +=  " (Click to VERIFY)";
                 }
             }
             if (result.data.info.identity !== undefined) {
@@ -1056,6 +1056,12 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token)
             return;
         }
 
+        if ($scope.data.phonenumber === "Unknown") {
+            return;
+        }
+        if ($scope.data.phonenumber.includes("Click to VERIFY") === false) {
+            return;
+        }
         
         // 
         // VERIFY PHONE NUMBER
@@ -1185,10 +1191,10 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token)
 }
 ])
    
-.controller('accountCtrl', ['$scope', '$stateParams', '$state', '$ionicPopup', '$http', 'Server', 'User', 'Token', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+.controller('accountCtrl', ['$scope', '$stateParams', '$state', '$ionicPopup', '$http', 'Server', 'User', 'Token', 'Payments', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
 // You can include any angular dependencies as parameters for this function
 // TIP: Access Route Parameters for your page via $stateParams.parameterName
-function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token) {
+function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token, Payments) {
 
     var server = Server.rest_api;
 
@@ -1196,15 +1202,14 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token)
         'username': User.get_username(),
         'token': User.get_token(),
 
-        'fullname': 'Unknown',
-        'email': 'Unknown',
-        'phonenumber': 'Unknown',
-        'identityprovider': 'Unknown',
-
         'subscription_type': 'Unknown',
         'subscription_credits': 'Unknown',
     };
 
+    $scope.topups = [];
+    $scope.usages = [];
+    
+    
     $scope.handle_error = function(error) {
         // Handle failed login
         if (error.data !== null) {
@@ -1244,12 +1249,69 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token)
 
             $scope.data.subscription_type = result.data.subscription.type;
             $scope.data.subscription_credits = result.data.subscription.credits;
+            $scope.getTopups();
         })
         .catch(function (error) {
             $scope.handle_error(error);
         }); 
     };
 
+    $scope.getTopups = function() {
+        $scope.topups = [];
+        $scope.usages = [];
+        Payments.fetch_paypal_payments($scope.data).then(function(res) {
+            $scope.topups = res;
+            $scope.data.token = User.get_token();
+        });        
+    };
+    
+    $scope.$on('$ionicView.enter', function(e) {
+        $scope.topups = [];
+        $scope.usages = [];
+        $scope.get_subscription();
+    });
+
+
+    $scope.submitViewTransactionTopup = function(topup) {
+        
+        param = {
+            'username': $scope.data.username,
+            'token': $scope.data.token,
+            'transaction': topup
+        };
+        $state.go('transactionDetails', param, {reload: true});
+    };
+
+
+
+    $scope.submitBuyCredits = function() {
+        param = {
+            'username': $scope.data.username,
+            'token': $scope.data.token,
+            'credits': $scope.data.subscription_credits
+        };
+        $state.go('topUpCredits', param, {reload: true});   
+    };
+    
+    $scope.submitViewCreditPurchases = function() {
+        
+        param = {
+            'username': $scope.data.username,
+            'token': $scope.data.token,
+            'credits': $scope.data.subscription_credits
+        };
+        $state.go('creditPurchases', param, {reload: true});
+    };
+
+    $scope.submitViewCreditUsage = function() {
+        param = {
+            'username': $scope.data.username,
+            'token': $scope.data.token
+        };
+        //$state.go('creditUsage', param, {reload: true});   
+    };
+
+/*
     $scope.getProfile = function() {
         $scope.get_profile();
     };
@@ -1328,42 +1390,7 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token)
             $scope.handle_error(error);
         });        
     };
-    
-
-    $scope.$on('$ionicView.enter', function(e) {
-
-        $scope.get_subscription();
-    });
-
-
-
-    $scope.submitBuyCredits = function() {
-        device_param = {
-            'username': $scope.data.username,
-            'token': $scope.data.token,
-            'credits': $scope.data.subscription_credits
-        };
-        $state.go('order', device_param, {reload: true});   
-    };
-    
-    $scope.submitViewCreditPurchases = function() {
-        device_param = {
-            'username': $scope.data.username,
-            'token': $scope.data.token,
-            'credits': $scope.data.subscription_credits
-        };
-        $state.go('creditPurchases', device_param, {reload: true});   
-    };
-
-    $scope.submitViewCreditUsage = function() {
-        device_param = {
-            'username': $scope.data.username,
-            'token': $scope.data.token
-        };
-        //$state.go('creditUsage', device_param, {reload: true});   
-    };
-
-    
+   
     $scope.submitDeleteaccount = function() {
         $ionicPopup.alert({
             title: 'Delete Account',
@@ -1524,89 +1551,64 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token)
         
         $scope.delete_account(); 
     };
+*/
+
 }
 ])
    
-.controller('orderCtrl', ['$scope', '$stateParams', '$state', '$ionicPopup', '$http', 'Server', 'User', 'Token', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+.controller('topUpCreditsCtrl', ['$scope', '$stateParams', '$state', '$ionicPopup', '$http', 'Server', 'User', 'Token', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
 // You can include any angular dependencies as parameters for this function
 // TIP: Access Route Parameters for your page via $stateParams.parameterName
 function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token) {
 
     var server = Server.rest_api;
 
-    $scope.credits = [
-        {
-            "id": "CREDS100USD1", "points": "100", "price": "1",
-            "label": "100 credits - $1 USD",
-        },
-        {
-            "id": "CREDS500USD5", "points": "500", "price": "5",
-            "label": "500 credits - $5 USD",
-        },
-        {
-            "id": "CREDS1000USD10", "points": "1000", "price": "10",
-            "label": "1000 credits - $10 USD",
-        },
-        {
-            "id": "CREDS2000USD20", "points": "2000", "price": "20",
-            "label": "2000 credits - $20 USD",
-        },
-        {
-            "id": "CREDS5000USD50", "points": "5000", "price": "50",
-            "label": "5000 credits - $50 USD",
-        },
-        {
-            "id": "CREDS10000USD100", "points": "10000", "price": "100",
-            "label": "10000 credits - $100 USD",
-        },
-    ];
-
-
     $scope.data = {
         'username': User.get_username(),
         'token': User.get_token(),
         'credits': $stateParams.credits,
-        
-        'id': $scope.credits[0].id,
-        'price': $scope.credits[0].price,
-        'label': $scope.credits[0].label,
-        'points': $scope.credits[0].points,
+    };
+
+    $scope.topup = {
+        'credits': 1000,
+        'amount': 10,
     };
 
     $scope.timer = null;
     $scope.notice = "";
     
     
+    $scope.computeAmount = function(credits) {
+        $scope.topup.amount = credits/100;
+    };
+    
     $scope.submitCancel = function() {
         device_param = {
             'username': $scope.data.username,
-            'token': $scope.data.token,
-            'activeSection': 2
+            'token': $scope.data.token
         };
         $state.go('menu.account', device_param, {reload: true});   
     };
     
     
     $scope.submitBuycredits = function() {
+
+        // Check if atleast minimum value
+        let minimum = 1000;
+        if ($scope.topup.credits < minimum) {
+            $ionicPopup.alert({
+                title: 'Error',
+                template: 'Minimum allowed topup is ' + minimum + ' credits!',
+            });
+            return;
+        }   
         
         $scope.notice = "";
-        //var spinner = document.getElementsByClassName("spinner");
-        //spinner[0].style.visibility = "visible";
-        
-        for (var i=0; i<$scope.credits.length; i++) {
-            if ($scope.data.id === $scope.credits[i].id) {
-                $scope.data.price = $scope.credits[i].price;
-                $scope.data.label = $scope.credits[i].label;
-                $scope.data.points = $scope.credits[i].points;
-                break;
-            }
-        }
-        //console.log("id=" + $scope.data.id + " " + "points=" + $scope.data.points + " " + "price=" + $scope.data.price);
-        
+
         $ionicPopup.alert({
             title: 'Subscription',
             template: 'You have selected to buy ' + 
-                $scope.data.points + ' credits at $' + $scope.data.price + ' USD. ' +
+                $scope.topup.credits + ' credits at $' + $scope.topup.amount + ' USD. ' +
                 'Would you like to proceed payment via Paypal?',
                 
             buttons: [
@@ -1640,9 +1642,7 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token)
         var paypal_param = {
             'returnurl': host_url + '/#/page_payment_confirmation',
             'cancelurl': host_url + '/#/page_payment_confirmation',
-            //'item_sku': $scope.data.id,
-            //'item_credits': $scope.data.points,
-            'amount': parseInt($scope.data.price, 10),
+            'amount': $scope.topup.amount,
         };
 
 
@@ -1697,121 +1697,7 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token)
                 $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
             }
         });
-        
-        // TODO Update database credits
     };
-
-/*
-    getSubscription = function() {
-        //
-        // GET SUBSCRIPTION
-        //
-        // - Request:
-        //   GET /account/subscription
-        //   headers: {'Authorization': 'Bearer ' + token.access}
-        //
-        // - Response:
-        //   {'status': 'OK', 'message': string, 'subscription': {'credits': string, 'type': paid} }
-        //   {'status': 'NG', 'message': string}
-        //  
-        $http({
-            method: 'GET',
-            url: server + '/account/subscription',
-            headers: {'Authorization': 'Bearer ' + $scope.data.token.access}
-        })
-        .then(function (result) {
-            //console.log("get_subscription");
-            console.log(result.data);
-
-            $ionicPopup.alert({
-                title: 'Payment Confirmation',
-                template: 'Payment transaction was successful. Your new credit balance is ' + result.data.subscription.credits + '.',
-                buttons: [
-                    {
-                        text: 'OK',
-                        type: 'button-positive',
-                        onTap: function(e) {
-                            param = {
-                                'username': $scope.data.username,
-                                'token': $scope.data.token,
-                                'credits': result.data.subscription.credits
-                            };
-                            $state.go('creditPurchases', param, {reload: true});   
-                        }
-                    }
-                ]
-            });
-        })
-        .catch(function (error) {
-            if (error.data !== null) {
-                $ionicPopup.alert({ title: 'Error', template: "Get Subscription failed with " + error.status + " " + error.statusText + "! " + error.data.message, buttons: [{text: 'OK', type: 'button-assertive'}] });
-
-                if (error.data.message === "Token expired") {
-                    Token.refresh({'username': $scope.data.username, 'token': $scope.data.token});
-                    $scope.data.token = User.get_token();
-                }
-            }
-            else {
-                $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
-            }
-        }); 
-    };
-
-    verifyPayment = function(paymentid) {
-        //
-        // PAYPAL VERIFY
-        //
-        // - Request:
-        //   GET /account/payment/paypalverify/PAYMENTID
-        //   headers: {'Authorization': 'Bearer ' + token.access}
-        //
-        // - Response:
-        //   {'status': 'OK', 'message': string}
-        //   {'status': 'NG', 'message': string}
-        //
-        //console.log("paypalverify " + paymentid);
-        $http({
-            method: 'GET',
-            url: server + '/account/payment/paypalverify/' + paymentid,
-            headers: {'Authorization': 'Bearer ' + $scope.data.token.access}
-        })
-        .then(function (result) {
-            console.log(result.data);
-            if (result.data.status === "OK") {
-                getSubscription();
-            }
-            else {
-                $ionicPopup.alert({
-                    title: 'Payment Confirmation',
-                    template: 'Payment transaction was not successful. Please try again!',
-                    buttons: [
-                        {
-                            text: 'OK',
-                            type: 'button-positive',
-                            onTap: function(e) {
-                            }
-                        }
-                    ]
-                });
-            }
-        })
-        .catch(function (error) {
-            // Handle failed
-            if (error.data !== null) {
-                $ionicPopup.alert({ title: 'Error', template: "Paypal Verify failed with " + error.status + " " + error.statusText + "! " + error.data.message, buttons: [{text: 'OK', type: 'button-assertive'}] });
-
-                if (error.data.message === "Token expired") {
-                    Token.refresh({'username': $scope.data.username, 'token': $scope.data.token});
-                    $scope.data.token = User.get_token();
-                }
-            }
-            else {
-                $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
-            }
-            window.close();
-        });
-    };
-*/
 
     executePayment = function(paymentid) {
         //
@@ -1852,10 +1738,9 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token)
                             onTap: function(e) {
                                 param = {
                                     'username': $scope.data.username,
-                                    'token': $scope.data.token,
-                                    'credits': result.data.subscription.credits
+                                    'token': $scope.data.token
                                 };
-                                $state.go('creditPurchases', param, {reload: true});   
+                                $state.go('menu.account', param, {reload: true});   
                             }
                         }
                     ]
@@ -1896,6 +1781,10 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token)
     };
     
     $scope.$on('$ionicView.enter', function(e) {
+        $scope.topup = {
+            'credits': 1000,
+            'amount': 10,
+        };
         $scope.timer = null;
         $scope.notice = "";
     });    
@@ -1958,7 +1847,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Paymen
     });
 }])
    
-.controller('transactionDetailsCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Payments', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+.controller('purchaseDetailsCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Payments', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
 // You can include any angular dependencies as parameters for this function
 // TIP: Access Route Parameters for your page via $stateParams.parameterName
 function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Payments) {
@@ -1968,6 +1857,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Paymen
     $scope.data = {
         'username': User.get_username(),
         'token': User.get_token(),
+        
+        
         'credits': $stateParams.credits,
         'id': $stateParams.id,
     };
@@ -2028,6 +1919,33 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Paymen
     
     $scope.$on('$ionicView.enter', function(e) {
         $scope.submitRefresh();
+    });
+}])
+   
+.controller('transactionDetailsCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Payments', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+// You can include any angular dependencies as parameters for this function
+// TIP: Access Route Parameters for your page via $stateParams.parameterName
+function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Payments) {
+
+    var server = Server.rest_api;
+    
+    $scope.data = {
+        'username': User.get_username(),
+        'token': User.get_token(),
+        
+        'transaction': $stateParams.transaction,
+    };
+
+    $scope.submitCancel = function() {
+        param = {
+            'username': $scope.data.username,
+            'token': $scope.data.token,
+        };
+        $state.go('menu.account', param, {reload: true});   
+    };    
+    
+    $scope.$on('$ionicView.enter', function(e) {
+        console.log($scope.data.transaction);
     });
 }])
    
@@ -4346,9 +4264,10 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             'deviceid'     : $scope.data.deviceid,
             'serialnumber' : $scope.data.serialnumber,
             'deviceversion': $scope.data.version,
-            'devicestatus' : "Last active: " + $scope.data.heartbeat
+            'devicestatus' : "Last active: " + $scope.data.heartbeat,
+            'location'     : "UNKNOWN",
         };
-       
+
         $state.go('device', device_param);    
     };
 
@@ -4714,7 +4633,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
 
     // GET DEVICE LOCATION
     $scope.get_device_location = function(devicename) {
-        //console.log("get_device_location " + devicename);
+        console.log("get_device_location " + devicename);
         //
         // GET DEVICE LOCATION
         // - Request:
@@ -4734,7 +4653,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             console.log(result.data);
             
             // if no coordinates yet, use SG office as defaut address
-            if ( result.data.location === undefined || 
+            if ( result.data.location === undefined ||
                 (result.data.location !== undefined && (result.data.location.latitude === 0 && result.data.location.longitude === 0)) ) {
 
                 // set SG office as default location
@@ -4751,6 +4670,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             }
             
             if (result.data.location !== undefined) {
+                $scope.data.location = {};
                 $scope.data.location.latitude = result.data.location.latitude;
                 $scope.data.location.longitude = result.data.location.longitude;
              
@@ -6017,7 +5937,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         'devicestatus': $stateParams.devicestatus,
         'deviceversion': $stateParams.deviceversion,
         'location': $stateParams.location,
-        'devicelocation': $stateParams.location !== "UNKNOWN" ? $stateParams.location.latitude.toFixed(2) + "... , " + $stateParams.location.longitude.toFixed(2) + "..." : "UNKNOWN",
+        'devicelocation': $stateParams.location !== "UNKNOWN" && $stateParams.location !== undefined ? $stateParams.location.latitude.toFixed(2) + "... , " + $stateParams.location.longitude.toFixed(2) + "..." : "UNKNOWN",
         'status': $stateParams.devicestatus,
     };
 
@@ -6211,9 +6131,11 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         })
         .then(function (result) {
             console.log(result.data);
-            $scope.data.location = result.data.location;
-            $scope.data.devicelocation = result.data.location !== "UNKNOWN" ? result.data.location.latitude.toFixed(2) + "..., " + result.data.location.longitude.toFixed(2) + "..." : "UNKNOWN";
-            $scope.getStatus($scope.data.devicename);
+            if (result.data.location !== undefined) {
+                $scope.data.location = result.data.location;
+                $scope.data.devicelocation = result.data.location !== "UNKNOWN" ? result.data.location.latitude.toFixed(2) + "..., " + result.data.location.longitude.toFixed(2) + "..." : "UNKNOWN";
+                $scope.getStatus($scope.data.devicename);
+            }
         })
         .catch(function (error) {
             $scope.handle_error(error);
@@ -6239,6 +6161,9 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         if ($stateParams.devicelocation !== undefined) {
             device_param.location = $stateParams.devicelocation;
         }
+        else if ($stateParams.devicelocation === "UKNOWN") {
+            device_param.location = null;
+        }
         $state.go('deviceLocation', device_param, {reload: true});    
     };
     
@@ -6253,17 +6178,22 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
    
     $scope.$on('$ionicView.enter', function(e) {
         console.log("enter");
-        if ($state.params.location === "" || $state.params.location === "UNKNOWN") {
+        //console.log($stateParams.location);
+        //console.log($stateParams.location.latitude);
+        //console.log($stateParams.location.longitude);
+        //console.log($state.params.location.latitude);
+        //console.log($state.params.location.longitude);
+        
+        if ($state.params.location === "" || $state.params.location === "UNKNOWN" || $state.params.location === undefined) {
+            $scope.data.devicelocation = "UNKNOWN";
+            $scope.get_device_location($scope.data.devicename);
+        }
+        else if ($stateParams.location === "" || $stateParams.location === "UNKNOWN" || $stateParams.location === undefined) {
             $scope.data.devicelocation = "UNKNOWN";
             $scope.get_device_location($scope.data.devicename);
         }
         else {
             $stateParams.location = $state.params.location;
-            console.log($stateParams.location);
-            console.log($stateParams.location.latitude);
-            console.log($stateParams.location.longitude);
-            console.log($state.params.location.latitude);
-            console.log($state.params.location.longitude);
             $scope.data.location = $state.params.location;
             $scope.data.devicelocation = $stateParams.location !== "UNKNOWN" ? $stateParams.location.latitude.toFixed(2) + "..., " + $stateParams.location.longitude.toFixed(2) + "..." : "UNKNOWN";
             $scope.getStatus($scope.data.devicename);
@@ -17943,7 +17873,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
     
 }])
    
-.controller('historyCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Devices', 'Histories', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+.controller('troubleshootingCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Devices', 'Histories', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
 // You can include any angular dependencies as parameters for this function
 // TIP: Access Route Parameters for your page via $stateParams.parameterName
 function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Devices, Histories) {
@@ -18130,7 +18060,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Device
     });    
 }])
    
-.controller('notificationCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Devices', 'Notifications', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+.controller('alertsCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Devices', 'Notifications', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
 // You can include any angular dependencies as parameters for this function
 // TIP: Access Route Parameters for your page via $stateParams.parameterName
 function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Devices, Notifications) {

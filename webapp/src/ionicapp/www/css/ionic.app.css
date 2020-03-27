@@ -9834,8 +9834,33 @@ table, th, td {
   margin-left: 15px;
   margin-right: 15px; }
 
+.topup_left {
+  width: 69%;
+  display: inline-block; }
+
+.topup_right {
+  width: 29%;
+  display: inline-block; }
+
+.topup_credits_left {
+  width: 69%;
+  display: inline-block; }
+
+.topup_credits_right {
+  width: 29%;
+  display: inline-block; }
+
 .card_top_devices {
   background-color: #FFFFFF; }
+
+.card_image_devices {
+  vertical-align: text-bottom;
+  margin-left: 15px;
+  display: inline-block; }
+
+.card_label_devices {
+  display: inline-block;
+  height: 16px; }
 
 .device_info_top_back {
   background-color: #3C5A99; }
