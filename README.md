@@ -120,6 +120,7 @@ The web app is made of Ionic framework so it can be compiled as Android and iOS 
 - <b>Ionic</b> mobile/web frontend framework - https://ionicframework.com/
 - <b>GoDaddy</b> domain and SSL certificate - https://godaddy.com
 - <b>Amazon Route 53</b> DNS domain resolution - https://aws.amazon.com/route53
+- <b>Amazon S3</b> File data storage - https://aws.amazon.com/s3
 - <b>Amazon Pinpoint</b> email/SMS/push notification messaging platform - https://aws.amazon.com/pinpoint/
 - <b>Amazon SNS</b> email/SMS messaging platform - https://aws.amazon.com/sns/
 - <b>Twilio</b> SMS messaging platform - https://www.twilio.com/
