@@ -9,34 +9,44 @@
     <button id="device-button43" ng-click="getDevice(data.devicename)" style="font-weight:600;font-size:18px;" class="button button-positive button-block button-clear icon-right ion-android-settings">{{ data.devicename }}</button>
     <div id="device-container24">
       <div id="device-markdown454" class="show-list-numbers-and-dots device_info_top">
-        <p style="color:#444444;font-size:12px;">UUID</p>
+        <p style="color:#AAAAAA;font-size:14px;">
+          <strong>UUID</strong>
+        </p>
       </div>
       <div id="device-markdown455" class="show-list-numbers-and-dots device_info_top_ex">
-        <p style="color:#444444;font-size:12px;">{{ data.deviceid }}</p>
+        <p style="color:#444444;font-size:14px;">{{ data.deviceid }}</p>
       </div>
       <div id="device-markdown456" class="show-list-numbers-and-dots device_info_top">
-        <p style="color:#444444;font-size:12px;">Serial Number</p>
+        <p style="color:#AAAAAA;font-size:14px;">
+          <strong>Serial Number</strong>
+        </p>
       </div>
       <div id="device-markdown457" class="show-list-numbers-and-dots device_info_top_ex">
-        <p style="color:#444444;font-size:12px;">{{ data.serialnumber }}</p>
+        <p style="color:#444444;font-size:14px;">{{ data.serialnumber }}</p>
       </div>
       <div id="device-markdown460" class="show-list-numbers-and-dots device_info_top">
-        <p style="color:#444444;font-size:12px;">Firmware Version</p>
+        <p style="color:#AAAAAA;font-size:14px;">
+          <strong>Firmware Version</strong>
+        </p>
       </div>
       <div id="device-markdown461" class="show-list-numbers-and-dots device_info_top_ex">
-        <p style="color:#444444;font-size:12px;">{{ data.deviceversion }}</p>
+        <p style="color:#444444;font-size:14px;">{{ data.deviceversion }}</p>
       </div>
       <div id="device-markdown462" class="show-list-numbers-and-dots device_info_top">
-        <p style="color:#444444;font-size:12px;">Status</p>
+        <p style="color:#AAAAAA;font-size:14px;">
+          <strong>Status</strong>
+        </p>
       </div>
       <div id="device-markdown463" class="show-list-numbers-and-dots device_info_top_ex">
-        <p style="color:#444444;font-size:12px;">{{ data.status != "Online" &amp;&amp; data.status != "Offline" ? "Please wait..." : data.status }}</p>
+        <p style="color:#444444;font-size:14px;">{{ data.status != "Online" &amp;&amp; data.status != "Offline" ? "Please wait..." : data.status }}</p>
       </div>
       <div id="device-markdown464" ng-click="viewDeviceLocation(data)" class="show-list-numbers-and-dots device_info_top">
-        <p style="color:#444444;font-size:12px;">Location</p>
+        <p style="color:#AAAAAA;font-size:14px;">
+          <strong>Location</strong>
+        </p>
       </div>
       <div id="device-markdown465" ng-click="viewDeviceLocation(data)" class="show-list-numbers-and-dots device_info_top_ex">
-        <p style="color:#444444;font-size:12px;">{{ data.devicelocation }}</p>
+        <p style="color:#444444;font-size:14px;">{{ data.devicelocation }}</p>
       </div>
     </div>
     <div class="spacer" style="height: 20px;"></div>
