@@ -910,6 +910,14 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token)
         'subscription_credits': 'Unknown',
     };
 
+    $scope.enable_2fa = false;
+    
+    $scope.enable2FA = function(flag) {
+        $scope.enable_2fa = flag;
+        console.log($scope.enable_2fa);
+        $scope.enable_mfa($scope.enable_2fa);
+    };
+    
     $scope.handle_error = function(error) {
         // Handle failed login
         if (error.data !== null) {
@@ -924,6 +932,38 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token)
             console.log("ERROR: Server is down!"); 
             $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
         }
+    };
+
+    $scope.enable_mfa = function(enable) {
+        //
+        // ENABLE MFA
+        //
+        // - Request:
+        //   POST /user/mfa
+        //   headers: {'Authorization': 'Bearer ' + token.access}
+        //
+        // - Response:
+        //   {'status': 'OK', 'message': string}
+        //   {'status': 'NG', 'message': string}
+        //  
+        $http({
+            method: 'POST',
+            url: server + '/user/mfa',
+            headers: {'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json'},
+            data: {'enable': enable }
+        })
+        .then(function (result) {
+            console.log(result.data);
+            if (enable === true) {
+                $ionicPopup.alert({ title: 'MFA', template: 'MFA was enabled successfully!', buttons: [{text: 'OK', type: 'button-positive'}] });
+            }
+            else {
+                $ionicPopup.alert({ title: 'MFA', template: 'MFA was disabled successfully!', buttons: [{text: 'OK', type: 'button-positive'}] });
+            }
+        })
+        .catch(function (error) {
+            $scope.handle_error(error);
+        }); 
     };
 
     $scope.get_subscription = function() {
@@ -2339,10 +2379,16 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
             if (error.data !== null) {
                 if (error.status == 401) {
                     if (error.data.message === "PasswordResetRequiredException") {
-                        var data = {
+                        let data = {
                             'username': error.data.username
                         };
                         $state.go('resetPassword', data); 
+                    }
+                    else if (error.data.message === "MFARequiredException") {
+                        let data = {
+                            'username': error.data.username
+                        };
+                        $state.go('confirmMFA', data); 
                     }
                     else {
                         console.log(error.status + " " + error.statusText);
@@ -3523,6 +3569,93 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server) {
     
     $scope.submitCancel = function() {
         $state.go('signup');
+    };
+    
+}])
+   
+.controller('confirmMFACtrl', ['$scope', '$stateParams', '$state', '$ionicPopup', '$http', 'Server', 'User', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+// You can include any angular dependencies as parameters for this function
+// TIP: Access Route Parameters for your page via $stateParams.parameterName
+function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
+
+    var server = Server.rest_api;
+    
+    $scope.data = {
+        'username': $stateParams.username,
+        'confirmationcode': ''
+    };
+    
+    $scope.submit = function() {
+        console.log("username=" + $scope.data.username);
+        console.log("confirmationcode=" + $scope.data.confirmationcode);
+        
+        // Handle invalid input        
+        if ($scope.data.confirmationcode === undefined) {
+            $ionicPopup.alert({title: 'MFA Error', template: 'Code is empty!'});
+            return;
+        }
+        else if ($scope.data.confirmationcode.length === 0) {
+            $ionicPopup.alert({title: 'MFA Error', template: 'Code is empty!'});
+            return;
+        }
+
+
+        // Display spinner
+        var spinner = document.getElementsByClassName("spinner4");
+        spinner[0].style.visibility = "visible";
+
+
+        //
+        // LOGIN MFA
+        //
+        // - Request:
+        //   POST /user/login/mfa
+        //   { 'username': string, 'confirmationcode': string }
+        //
+        // - Response:
+        //   {'status': 'OK', 'message': string}
+        //   {'status': 'NG', 'message': string}
+        //
+        $http({
+            method: 'POST',
+            url: server + '/user/login/mfa',
+            headers: {'Content-Type': 'application/json'},
+            data: $scope.data
+        })
+        .then(function (result) {
+            spinner[0].style.visibility = "hidden";
+            
+            // Handle successful
+            console.log(result.data);
+
+            var user_data = {
+                'username': $scope.data.username,
+                'token': result.data.token,
+                'name': result.data.name
+            };
+            
+            User.set(user_data);
+        
+            $state.go('menu.devices', user_data);
+        })
+        .catch(function (error) {
+            spinner[0].style.visibility = "hidden";
+            
+            // Handle failed
+            console.log(error);
+            if (error.data !== null) {
+                console.log(error.status + " " + error.statusText);
+                $ionicPopup.alert({title: 'MFA Error', template: error.data.message});
+            }
+            else {
+                $ionicPopup.alert({title: 'MFA Error', template: 'Server is down!'});
+            }
+            return;
+        });       
+    };
+
+    $scope.submitCancel = function() {
+        $state.go('login');
     };
     
 }])

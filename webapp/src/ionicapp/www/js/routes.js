@@ -168,6 +168,15 @@ angular.module('app.routes', [])
     controller: 'confirmRegistrationCtrl'
   })
 
+  .state('confirmMFA', {
+    url: '/page_confirm_mfa',
+	params: {
+		username: ""		
+},
+    templateUrl: 'templates/confirmMFA.html',
+    controller: 'confirmMFACtrl'
+  })
+
   .state('confirmPhoneNumber', {
     url: '/page_confirm_phone_number',
 	params: {
