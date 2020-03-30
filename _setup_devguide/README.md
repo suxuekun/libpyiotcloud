@@ -246,6 +246,11 @@ SUMMARY:
 		O. LOGIN IDP STORE CODE           - POST   /user/login/idp/code/ID
 		P. LOGIN IDP QUERY CODE           - GET    /user/login/idp/code/ID
 
+		//
+		// mfa (multi-factor authentication)
+		Q. ENABLE MFA                     - POST   /user/mfa
+		R. LOGIN MFA                      - POST   /user/login/mfa
+
 
 	2. Device registration and management APIs
 
@@ -572,11 +577,17 @@ DETAILED:
 		    'token': {'access': string, 'id': string, 'refresh': string}, 'name': string }
 		   // name is now included in the response as per special UX requirement
 		   {'status': 'NG', 'message': string}
-		   // When user logins with incorrect password for 5 consecutive times, user needs to reset the password
+		   // LOCKOUT SECURITY. When user logins with incorrect password for 5 consecutive times, user needs to reset the password
 		   //   When this happens, the error HTTP_401_UNAUTHORIZED is returned.
 		   //   The web/mobile app should check message parameter.
-		   //   If message is PasswordResetRequiredException, the web/mobile app should redirect user to the CONFIRM FORGOT PASSWORD/RESET PASSWORD page.
+		   //   If message is "PasswordResetRequiredException", the web/mobile app should redirect user to the CONFIRM FORGOT PASSWORD/RESET PASSWORD page.
 		   //   where user should input the OTP code sent in email and the new password to be used.
+		   // MFA SECURITY. When user enables Multi-Factor Authentication (MFA), user needs to input the MFA code sent to mobile phone.
+		   //   MFA only works when user sets his phone number and MFA is manually enabled.
+		   //   When user logins, the error HTTP_401_UNAUTHORIZED is returned.
+		   //   The web/mobile app should check message parameter.
+		   //   If message is "MFARequiredException", the web/mobile app should redirect user to the CONFIRM MFA page.
+		   //   where user should input the OTP code sent in SMS.
 		-  Details:
 		   How to compute the JWT token using Javascript
 		   base64UrlEncodedHeader = urlEncode(base64Encode(JSON.stringify({
@@ -797,6 +808,26 @@ DETAILED:
 		   // To differentiate between successful or failed login, the app shall check if the code returned is not an empty string
 		   //
 		   // After retrieving the OAuth2 authorization code, the thread shall request for the user TOKENS.
+
+		Q. ENABLE MFA
+		-  Request:
+		   POST /user/mfa
+		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+		   data: {'enable': boolean }
+		-  Response:
+		   {'status': 'OK', 'message': string}
+		   {'status': 'NG', 'message': string}
+
+		R. LOGIN MFA
+		-  Request:
+		   POST /user/login/mfa
+		   headers: {'Content-Type': 'application/json'}
+		   data: { 'username': string, 'confirmationcode': string }
+		-  Response:
+		   {'status': 'OK', 'message': string, 'token': {'access': string, 'id': string, 'refresh': string}, 'name': string }
+		   // output is the same as Login API
+		   {'status': 'NG', 'message': string}
+		   MFA must be manually enabled before Login within MFA
 
 
 	2. Device registration and management APIs 
