@@ -140,7 +140,9 @@ class cognito_client:
 				#start_time = time.time()
 				response = self.__get_client().initiate_auth(**params)
 				#print(time.time()-start_time)
+				#print(response)
 			except Exception as e:
+				#print("exception")
 				error_code = e.response.get("Error", {}).get("Code")
 				if error_code == "PasswordResetRequiredException":
 					print("Password reset required")
@@ -168,6 +170,24 @@ class cognito_client:
 				return (False, None)
 			return (self.__get_result(response), response)
 
+	def login_mfa(self, username, sessionkey, mfacode):
+		params = {
+			'ClientId' : self.client_id,
+			'ChallengeName' : 'SMS_MFA',
+			'Session'  : sessionkey,
+			'ChallengeResponses' : {
+				'SMS_MFA_CODE': mfacode,
+				'USERNAME': username
+			}
+		}
+		try:
+			response = self.__get_client().respond_to_auth_challenge(**params)
+			#print(response)
+		except Exception as e:
+			print(e)
+			return (False, None)
+		return (self.__get_result(response), response)
+
 	def logout(self, access_token):
 		params = {
 			'AccessToken': access_token
@@ -179,12 +199,14 @@ class cognito_client:
 		return (self.__get_result(response), response)
 
 	def get_user(self, access_token):
+		#print("get_user")
 		params = {
 			'AccessToken': access_token
 		}
 		try:
 			response = self.__get_client().get_user(**params)
 			user_attributes = self.__cognito_to_dict(response["UserAttributes"])
+			#print(user_attributes)
 			if 'sub' in user_attributes:
 				user_attributes.pop("sub")
 			#if 'email_verified' in user_attributes:
@@ -268,7 +290,36 @@ class cognito_client:
 			return (False, None)
 		return (self.__get_result(response), response)
 
+	def enable_mfa(self, access_token, enable):
+		params = {
+			'AccessToken'     : access_token,
+			'SMSMfaSettings'  : {
+				'Enabled'     : enable,
+				'PreferredMfa': enable
+			},
+		}
+		try:
+			response = self.__get_client().set_user_mfa_preference(**params)
+		except Exception as e:
+			print(e)
+			return (False, None)
+		return (self.__get_result(response), response)
 
+	def admin_enable_mfa(self, username, enable):
+		params = {
+			'Username'        : username,
+			'UserPoolId'      : self.pool_id,
+			'SMSMfaSettings'  : {
+				'Enabled'     : enable,
+				'PreferredMfa': enable
+			},
+		}
+		try:
+			response = self.__get_client().admin_set_user_mfa_preference(**params)
+		except Exception as e:
+			print(e)
+			return (False, None)
+		return (self.__get_result(response), response)
 
 	def admin_refresh_token(self, refresh_token):
 		params = {

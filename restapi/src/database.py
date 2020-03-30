@@ -213,6 +213,9 @@ class database_client:
     def login(self, username, password):
         return self._users.login(username, password)
 
+    def login_mfa(self, username, sessionkey, mfacode):
+        return self._users.login_mfa(username, sessionkey, mfacode)
+
     def logout(self, token):
         return self._users.logout(token)
 
@@ -266,6 +269,12 @@ class database_client:
 
     def reset_user_password(self, username):
         return self._users.reset_user_password(username)
+
+    def enable_mfa(self, access_token, enable):
+        return self._users.enable_mfa(access_token, enable)
+
+    def admin_enable_mfa(self, username, enable):
+        return self._users.admin_enable_mfa(username, enable)
 
 
     ##########################################################
@@ -764,6 +773,24 @@ class database_client_cognito:
         (result, response) = self.client.login(username, password)
         if not result:
             return None, None, response
+        if response.get('AuthenticationResult'):
+            access_token = response['AuthenticationResult']['AccessToken']
+            refresh_token = response['AuthenticationResult']['RefreshToken']
+            id_token = response['AuthenticationResult']['IdToken']
+        else:
+            if response.get('ChallengeName'):
+                #print(response)
+                if response['ChallengeName'] == 'SMS_MFA':
+                    refresh_token = response['Session']
+                    id_token = 'MFARequiredException'
+                    return None, refresh_token, id_token
+            return None, None, None
+        return access_token, refresh_token, id_token
+
+    def login_mfa(self, username, sessionkey, mfacode):
+        (result, response) = self.client.login_mfa(username, sessionkey, mfacode)
+        if not result:
+            return None, None, None
         access_token = response['AuthenticationResult']['AccessToken']
         refresh_token = response['AuthenticationResult']['RefreshToken']
         id_token = response['AuthenticationResult']['IdToken']
@@ -889,6 +916,14 @@ class database_client_cognito:
 
     def reset_user_password(self, username):
         (result, response) = self.client.admin_reset_user_password(username)
+        return result
+
+    def enable_mfa(self, access_token, enable):
+        (result, response) = self.client.enable_mfa(access_token, enable)
+        return result
+
+    def admin_enable_mfa(self, username, enable):
+        (result, response) = self.client.admin_enable_mfa(username, enable)
         return result
 
 

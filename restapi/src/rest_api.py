@@ -48,6 +48,8 @@ CONFIG_USE_REDIS_FOR_PAYPAL         = True
 CONFIG_USE_REDIS_FOR_IDP            = True
 CONFIG_USE_REDIS_FOR_MQTT_RESPONSE  = True
 
+CONFIG_SUPPORT_MFA                  = True
+
 
 
 ###################################################################################
@@ -326,6 +328,10 @@ def login():
             return response, status.HTTP_404_NOT_FOUND
 
 
+    # RESOLVE MFA ISSUES
+    #g_database_client.admin_enable_mfa(username, False)
+
+
     # check if password is valid
     access, refresh, id = g_database_client.login(username, password)
     if access is None:
@@ -347,6 +353,15 @@ def login():
                 response = json.dumps({'status': 'NG', 'message': 'PasswordResetRequiredException', 'username': username})
                 g_database_client.reset_user_password(username)
                 #g_redis_client.login_failed_del_attempts(username)
+            else:
+                response = json.dumps({'status': 'NG', 'message': 'NotAuthorizedException'})
+        elif id == "MFARequiredException":
+            if CONFIG_SUPPORT_MFA:
+                response = json.dumps({'status': 'NG', 'message': 'MFARequiredException', 'username': username})
+                # save the sessionkey saved in refresh username, session key
+                if g_redis_client.mfa_get_session(username) is not None:
+                    g_redis_client.mfa_del_session(username)
+                g_redis_client.mfa_set_session(username, refresh)
             else:
                 response = json.dumps({'status': 'NG', 'message': 'NotAuthorizedException'})
         else:
@@ -1187,6 +1202,160 @@ def change_password():
 
     response = json.dumps({'status': 'OK', 'message': 'Change password successful'})
     print('\r\nChange password successful: {}\r\n{}\r\n'.format(username, response))
+    return response
+
+
+########################################################################################################
+#
+# ENABLE MFA
+#
+# - Request:
+#   POST /user/mfa
+#   headers: {'Authorization': 'Bearer ' + token.access}
+#   data: {'enable': boolean}
+#
+# - Response:
+#   {'status': 'OK', 'message': string}
+#   {'status': 'NG', 'message': string}
+#
+########################################################################################################
+@app.route('/user/mfa', methods=['POST'])
+def enable_mfa():
+    # get token from Authorization header
+    auth_header_token = get_auth_header_token()
+    if auth_header_token is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
+        print('\r\nERROR Enable MFA: Invalid authorization header\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
+    token = {'access': auth_header_token}
+
+    # get username from token
+    username = g_database_client.get_username_from_token(token)
+    if username is None:
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Enable MFA: Token expired\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
+    print('enable_mfa username={}'.format(username))
+
+    # check if a parameter is empty
+    if len(username) == 0 or len(token) == 0:
+        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+        print('\r\nERROR Enable MFA: Empty parameter found\r\n')
+        return response, status.HTTP_400_BAD_REQUEST
+
+    # check if username and token is valid
+    verify_ret, new_token = g_database_client.verify_token(username, token)
+    if verify_ret == 2: # token expired
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Enable MFA: Token expired [{}]\r\n'.format(username))
+        return response, status.HTTP_401_UNAUTHORIZED
+    elif verify_ret != 0:
+        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
+        print('\r\nERROR Enable MFA: Token is invalid [{}]\r\n'.format(username))
+        return response, status.HTTP_401_UNAUTHORIZED
+
+
+    data = flask.request.get_json()
+    if data.get("enable") is None:
+        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+        print('\r\nERROR Enable MFA: Empty parameter found\r\n')
+        return response, status.HTTP_400_BAD_REQUEST
+
+    # enable/disable MFA
+    if CONFIG_SUPPORT_MFA:
+        result = g_database_client.enable_mfa(token['access'], data['enable'])
+        if not result:
+            response = json.dumps({'status': 'NG', 'message': 'Request failed'})
+            print('\r\nERROR Enable MFA: Request failed [{}]\r\n'.format(username))
+            return response, status.HTTP_500_INTERNAL_SERVER_ERROR
+    else:
+        response = json.dumps({'status': 'NG', 'message': 'MFA Support has been DISABLED!'})
+        print('\r\nERROR Enable MFA: MFA Support has been DISABLED!\r\n')
+        return response, status.HTTP_400_BAD_REQUEST
+
+
+    if data['enable'] == True:
+        msg = {'status': 'OK', 'message': 'Enable MFA successful'}
+    else:
+        msg = {'status': 'OK', 'message': 'Disable MFA successful'}
+    response = json.dumps(msg)
+    print('\r\n{}: {}\r\n{}\r\n'.format(msg["message"], username, response))
+    return response
+
+
+########################################################################################################
+#
+# LOGIN MFA
+#
+# - Request:
+#   POST /user/login/mfa
+#   headers: {'Content-Type': 'application/json'}
+#   data: { 'username': string, 'confirmationcode': string }
+#
+# - Response:
+#   {'status': 'OK', 'message': string, 'token': {'access': string, 'id': string, 'refresh': string}, 'name': string }
+#   {'status': 'NG', 'message': string}
+#
+########################################################################################################
+@app.route('/user/login/mfa', methods=['POST'])
+def login_mfa():
+    data = flask.request.get_json()
+    if data.get("username") is None or data.get("confirmationcode") is None:
+        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+        print('\r\nERROR Login MFA: Empty parameter found [{}]\r\n'.format(username))
+        return response, status.HTTP_400_BAD_REQUEST
+
+    username = data['username']
+    mfacode = data['confirmationcode']
+    print('login_mfa username={} confirmationcode={}'.format(username, mfacode))
+
+    # check if a parameter is empty
+    if len(username) == 0 or len(mfacode) != 6:
+        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+        print('\r\nERROR Login MFA: Empty parameter found [{}]\r\n'.format(username))
+        return response, status.HTTP_400_BAD_REQUEST
+
+
+    sessionkey = g_redis_client.mfa_get_session(username)
+    if sessionkey is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid request'})
+        print('\r\nERROR Login MFA: Invalid request [{}]\r\n'.format(username))
+        return response, status.HTTP_400_BAD_REQUEST
+
+    access, refresh, id = g_database_client.login_mfa(username, sessionkey, mfacode)
+    if not access:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid code'})
+        print('\r\nERROR Login MFA: Invalid code [{},{}]\r\n'.format(username, mfacode))
+        return response, status.HTTP_500_INTERNAL_SERVER_ERROR
+
+    g_redis_client.mfa_del_session(username)
+
+
+    # delete the couter for failed logins
+    attempts = g_redis_client.login_failed_get_attempts(username)
+    if attempts is not None:
+        g_redis_client.login_failed_del_attempts(username)
+
+    # return name during login as per special request
+    name = None
+    info = g_database_client.get_user_info(access)
+    if info:
+        # handle no family name
+        if 'given_name' in info:
+            name = info['given_name']
+        if 'family_name' in info:
+            if info['family_name'] != "NONE":
+                name += " " + info['family_name']
+
+    # Disable MFA since it is an expensive feature
+    g_database_client.admin_enable_mfa(username, False)
+
+
+    msg = {'status': 'OK', 'message': "Login MFA successful", 'token': {'access': access, 'refresh': refresh, 'id': id} }
+    if name is not None:
+        msg['name'] = name
+    response = json.dumps(msg)
+    #print('\r\nLogin successful: {}\r\n'.format(username))
     return response
 
 
@@ -5914,7 +6083,8 @@ def get_all_device_sensors_enabled_input_readings_dataset_filtered():
         for thr in thread_list:
             thr.join()
 
-        sensors_list.sort(key=sort_by_devicename)
+        if len(sensors_list):
+            sensors_list.sort(key=sort_by_devicename)
         #print(time.time()-start_time)
         msg = {'status': 'OK', 'message': 'Get All Device Sensors Dataset queried successfully.', 'sensors': sensors_list}
 
