@@ -21,6 +21,9 @@ MQTT_RESPONSE_PAYLOAD_EXPIRY = 60
 LOGIN_FAILED_ATTEMPTS        = "login:failed:username:attempts"
 LOGIN_FAILED_ATTEMPTS_EXPIRY = 0
 
+MFA_SESSION_KEY              = "mfa:username:session"
+MFA_SESSION_KEY_EXPIRY       = 180
+
 
 
 class redis_client:
@@ -93,6 +96,20 @@ class redis_client:
 
 	def login_failed_del_attempts(self, username):
 		self.client.delete("{}:{}".format(LOGIN_FAILED_ATTEMPTS, username))
+
+
+	#
+	# mfa session key
+	#
+
+	def mfa_set_session(self, username, session):
+		self.client.setex("{}:{}".format(MFA_SESSION_KEY, username), MFA_SESSION_KEY_EXPIRY, session)
+
+	def mfa_get_session(self, username):
+		return self.client.get("{}:{}".format(MFA_SESSION_KEY, username))
+
+	def mfa_del_session(self, username):
+		self.client.delete("{}:{}".format(MFA_SESSION_KEY, username))
 
 
 
