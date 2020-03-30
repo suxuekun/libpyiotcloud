@@ -42,18 +42,18 @@ It also keeps track of user details and user credit details and interfaces to 3r
 Below are the features of this IoT platform:
 
     1. Microservices architecture
-       A. Modern backend design using microservices architecture leveraging on containers and message brokers 
+       A. Modern backend design using microservices architecture leveraging on Docker containers (and RabbitMQ message broker)
        B. Docker-compose files to build and run Docker containers
        C. Kubernetes file to orchestrate clusterization of Docker containers (tested on Minikube and AWS EKS)
        D. Jenkins CI/CD pipelines to automate build and deployment from Github to AWS EC2
 
     2. Device connectivity services
-       A. Device and backend communication via Message Broker using MQTT protocol
+       A. Device and backend communication via RabbitMQ message broker using MQTTS protocol
        B. Secure communication using TLS, ECC-based X.509 SSL certificates, mutual authentication, MQTT topic permissions
        C. Device simulator (Python) as reference implementation for actual IoT device
 
     3. Web/mobile connectivity services
-       A. Web/mobile app and backend communication via RESTful APIs using HTTP protocol
+       A. Web/mobile app and backend communication via RESTful APIs using HTTPS protocol
        B. Secure communication using TLS, trusted SSL certificates, JWT authorization headers
        C. Hybrid web/mobile apps (using Ionic framework) as reference implementation for actual web/mobile clients
 
