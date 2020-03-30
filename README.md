@@ -68,6 +68,7 @@ Below are the features of this IoT platform:
        A. Register and configure device (using MongoDB and Redis databases)
        B. Access and configure location of a device (or a fleet of devices) via Google Maps (latitude, longitude)
        C. Update firmware (OTA) of a device (or a fleet of devices, can be a mixed of online or offline devices)
+       D. Organize devices into groups of devices (any category: logical, geographical, identical devices, etc.)
        *  Group-owned devices, organization-owned devices
 
     6. Peripheral and sensor management services
