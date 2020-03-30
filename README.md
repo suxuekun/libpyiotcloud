@@ -60,8 +60,9 @@ Below are the features of this IoT platform:
     4. Identity management services
        A. User sign-up and sign-in using Amazon Cognito with secure OTP (one-time password) sent to email/mobile number
        B. Login with email or with (verified) mobile number
-       C. Login via social IDP (Facebook/Google/Amazon) via OAuth2 security
-       D. User lockout security on consecutive failed attempts
+       C. Login with multi-factor authentication (MFA) security - disabled by default; must be explicitly enabled by user
+       D. Login via social IDP (Facebook/Google/Amazon) via OAuth2 security
+       E. User lockout security on consecutive failed attempts
        *  User groups and organizations
 
     5. Device management services
@@ -301,6 +302,10 @@ Menu, account, history
         // login via social idp (facebook, google, amazon)
         O. LOGIN IDP STORE CODE           - POST   /user/login/idp/code/ID
         P. LOGIN IDP QUERY CODE           - GET    /user/login/idp/code/ID
+        //
+        // mfa (multi-factor authentication)
+        Q. ENABLE MFA                     - POST   /user/mfa
+        R. LOGIN MFA                      - POST   /user/login/mfa
 
     2. Device registration and management APIs
         A. GET DEVICES                    - GET    /devices
