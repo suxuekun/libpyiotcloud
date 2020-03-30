@@ -19,6 +19,8 @@
       <label class="item item-input" id="profile-input170">
         <input type="text" placeholder="" ng-model="data.identityprovider" readonly="">
       </label>
+      <ion-item class="item-divider" id="profile-list-item-divider12" ng-show="data.phonenumber != &quot;Unknown&quot; &amp;&amp; data.phonenumber.includes(&quot;VERIFY&quot;) == false"> Multi-Factor Authentication</ion-item>
+      <ion-toggle toggle-class="toggle-positive" id="profile-toggle26" ng-show="data.phonenumber != &quot;Unknown&quot; &amp;&amp; data.phonenumber.includes(&quot;VERIFY&quot;) == false" ng-model="enable_2fa" ng-change="enable2FA(enable_2fa)">Enable MFA</ion-toggle>
       <button id="profile-button42" ng-click="submitSavechanges()" class="button button-positive button-block">SAVE</button>
       <button id="profile-button149" ng-click="submitDeleteaccount()" class="button button-assertive button-block button-outline">Delete account</button>
     </form>
