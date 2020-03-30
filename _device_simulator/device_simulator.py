@@ -2228,7 +2228,6 @@ def read_registered_sensors_eeprom():
         json_obj = json.loads(json_obj)
         sensors = json_obj["sensors"]
     except Exception as e:
-        print(e)
         sensors = []
 
     print("Read registered sensors {}".format(len(sensors)))
