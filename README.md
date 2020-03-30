@@ -116,7 +116,7 @@ The web app is made of Ionic framework so it can be compiled as Android and iOS 
 - <b>MongoDB</b> NoSQL database - https://www.mongodb.com/
 - <b>MongoDB Atlas</b> cloud database service - https://www.mongodb.com/cloud/atlas
 - <b>Redis</b> fast key-value data store (flexible: database, caching, mq) - https://redis.io/
-- <b>Amazon EC2</b> - https://aws.amazon.com/ec2/
+- <b>Amazon EC2</b> IaaS cloud service - https://aws.amazon.com/ec2/
 - <b>Amazon Cognito</b> (sign-up/sign-in user authentication with OTP, MFA, OAuth2, IdP) - https://aws.amazon.com/cognito/
 - <b>Docker</b> containerization (dockerfiles, docker-compose) - https://www.docker.com/
 - <b>Ionic</b> mobile/web frontend framework - https://ionicframework.com/
