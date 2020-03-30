@@ -196,6 +196,8 @@ class messaging_client:
         except Exception as e:
             if (str(e).find("hostname") >= 0 and str(e).find("doesn't match") >= 0):
                 return (None, 1)
+            elif (str(e).find("Hostname") >= 0 and str(e).find("mismatch") >= 0):
+                return (None, 1)
             client = None
 
         trial = 0
