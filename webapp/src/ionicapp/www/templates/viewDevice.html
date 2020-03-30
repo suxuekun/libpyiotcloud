@@ -21,7 +21,7 @@
         <span class="input-label">Name</span>
         <input type="text" placeholder="" ng-model="new_devicename">
       </label>
-      <button id="viewDevice-button156" ng-click="changeDevicename(data.devicename, new_devicename)" class="button button-positive button-block">Update Device Name</button>
+      <button id="viewDevice-button156" ng-click="changeDevicename(data.devicename, new_devicename)" class="button button-positive button-block button-outline">Update Name</button>
       <label class="item item-input" id="viewDevice-input157" name="input-deviceid">
         <span class="input-label">UUID</span>
         <input type="text" placeholder="" ng-model="data.deviceid" readonly="">
@@ -46,7 +46,7 @@
       <div id="viewDevice-markdown346" style="text-align:center;" class="show-list-numbers-and-dots">
         <p style="color:#AAAAAA;font-size:12px;">{{ newfirmwareavailable ? "New firmware is available" : "" }}</p>
       </div>
-      <button id="viewDevice-button21" ng-click="upgradeDeviceFirmware()" ng-disabled="newfirmwareversion < data.version &amp;&amp; data.version != &quot;UNKNOWN&quot;" class="button button-positive button-block">Upgrade Device Firmware</button>
+      <button id="viewDevice-button21" ng-click="upgradeDeviceFirmware()" ng-disabled="newfirmwareversion < data.version &amp;&amp; data.version != &quot;UNKNOWN&quot;" class="button button-positive button-block">Update Firmware</button>
     </form>
     <div id="viewDevice-markdown252" class="show-list-numbers-and-dots">
       <p style="color:#3C5A99;">Device operations</p>
@@ -55,7 +55,7 @@
     <button id="viewDevice-button56" ng-click="setDevice(data.devicename, &quot;restart&quot;)" style="text-align:left;" class="button button-positive button-block button-outline icon-right ion-android-arrow-dropright">Restart Device</button>
     <button id="viewDevice-button64" ng-click="setDevice(data.devicename, &quot;start&quot;)" style="text-align:left;" class="button button-positive button-block button-outline icon-right ion-android-arrow-dropright">Start Device</button>
     <button id="viewDevice-button57" ng-click="setDevice(data.devicename, &quot;stop&quot;)" style="text-align:left;" class="button button-positive button-block button-outline icon-right ion-android-arrow-dropright">Stop Device</button>
-    <button id="viewDevice-button110" ng-click="setDeviceGeneralSettings()" class="button button-positive button-block">Set Device General Settings</button>
+    <button id="viewDevice-button110" ng-click="setDeviceGeneralSettings()" class="button button-positive button-block">Update General Settings</button>
     <div class="spacer" style="height: 50px;"></div>
   </ion-content>
 </ion-view>

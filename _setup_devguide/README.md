@@ -273,8 +273,20 @@ SUMMARY:
 		P. GET OTA STATUS                 - GET    /devices/device/DEVICENAME/ota
 		Q. GET OTA STATUSES               - GET    /devices/ota
 
+ 
+	3. Device group registration and management APIs
 
-	3. Device access and control APIs (STATUS, UART, GPIO)
+		A. GET DEVICE GROUPS              - GET    /devicegroups
+		B. ADD DEVICE GROUP               - POST   /devicegroups/DEVICEGROUPNAME
+		C. DELETE DEVICE GROUP            - DELETE /devicegroups/DEVICEGROUPNAME
+		D. GET DEVICE GROUP               - GET    /devicegroups/DEVICEGROUPNAME
+		E. UPDATE DEVICE GROUP NAME       - POST   /devicegroups/DEVICEGROUPNAME/name
+		F. ADD DEVICE TO GROUP            - POST   /devicegroups/DEVICEGROUPNAME/device/DEVICENAME
+		G. DELETE DEVICE FROM GROUP       - DELETE /devicegroups/DEVICEGROUPNAME/device/DEVICENAME
+		H. SET DEVICES IN DEVICE GROUP    - POST   /devicegroups/DEVICEGROUPNAME/devices
+
+
+	4. Device access and control APIs (STATUS, UART, GPIO)
 
 		//
 		// status
@@ -317,7 +329,7 @@ SUMMARY:
 		U. DELETE PERIPHERAL SENSOR PROPERTIES - DELETE /devices/device/DEVICENAME/sensors/properties
 
 
-	4. Device access and control APIs (I2C)
+	5. Device access and control APIs (I2C)
 
 		A. ADD I2C DEVICE                 - POST   /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME
 		B. DELETE I2C DEVICE              - DELETE /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME
@@ -337,7 +349,7 @@ SUMMARY:
 		   (NUMBER can be 1-4 only and corresponds to I2C1,I2C2,I2C3,I2C4)
 
 
-	5. Device access and control APIs (ADC)
+	6. Device access and control APIs (ADC)
 
 		A. ADD ADC DEVICE                 - POST   /devices/device/DEVICENAME/adc/NUMBER/sensors/sensor/SENSORNAME
 		B. DELETE ADC DEVICE              - DELETE /devices/device/DEVICENAME/adc/NUMBER/sensors/sensor/SENSORNAME
@@ -357,7 +369,7 @@ SUMMARY:
 		O. SET ADC VOLTAGE                - POST   /devices/device/DEVICENAME/adc/voltage
 
 
-	6. Device access and control APIs (1WIRE)
+	7. Device access and control APIs (1WIRE)
 
 		A. ADD 1WIRE DEVICE               - POST   /devices/device/DEVICENAME/1wire/NUMBER/sensors/sensor/SENSORNAME
 		B. DELETE 1WIRE DEVICE            - DELETE /devices/device/DEVICENAME/1wire/NUMBER/sensors/sensor/SENSORNAME
@@ -375,7 +387,7 @@ SUMMARY:
 		   (NUMBER will always be 1 since there is only 1 1wire)
 
 
-	7. Device access and control APIs (TPROBE)
+	8. Device access and control APIs (TPROBE)
 
 		A. ADD TPROBE DEVICE              - POST   /devices/device/DEVICENAME/tprobe/NUMBER/sensors/sensor/SENSORNAME
 		B. DELETE TPROBE DEVICE           - DELETE /devices/device/DEVICENAME/tprobe/NUMBER/sensors/sensor/SENSORNAME
@@ -393,7 +405,7 @@ SUMMARY:
 		   (NUMBER will always be 1 since there is only 1 tprobe)
 
 
-	8. Device transaction recording APIs
+	9. Device transaction recording APIs
 
 		A. GET HISTORIES                  - GET    /devices/histories
 		B. GET HISTORIES FILTERED         - POST   /devices/histories
@@ -403,7 +415,7 @@ SUMMARY:
 		D. GET MENOS HISTORIES FILTERED   - POST   /devices/menos
 
 
-	9. Account subscription and payment APIs
+	10. Account subscription and payment APIs
 
 		A. GET SUBSCRIPTION               - GET    /account/subscription
 		B. PAYPAL SETUP                   - POST   /account/payment/paypalsetup
@@ -414,37 +426,37 @@ SUMMARY:
 		G. GET AMOUNT CONVERSION          - GET    /account/conversion/amount/AMOUNT
 
 
-	10. Mobile services
+	11. Mobile services
 
 		A. REGISTER DEVICE TOKEN          - POST   /mobile/devicetoken
 
 
-	11. Supported devices and firmware updates
+	12. Supported devices and firmware updates
 
 		A. GET SUPPORTED I2C DEVICES      - GET    /others/i2cdevices [OBSOLETED, use GET SUPPORTED SENSOR DEVICES instead]
 		B. GET SUPPORTED SENSOR DEVICES   - GET    /others/sensordevices
 		C. GET DEVICE FIRMWARE UPDATES    - GET    /others/firmwareupdates
 
 
-	12. Others
+	13. Others
 
 		A. SEND FEEDBACK                  - POST   /others/feedback
 		B. GET FAQS                       - GET    /others/faqs
 		C. GET ABOUT                      - GET    /others/about
 
 
-	13. ESP OTA Firmware Updates
+	14. ESP OTA Firmware Updates
 
 		A. DOWNLOAD FIRMWARE              - GET    /firmware/DEVICE/FILENAME
 		   (WARNING: This API is to be called by ESP device, not by web/mobile apps)
 
 
-	14. HTTP error codes
+	15. HTTP error codes
 
 		A. HTTP_400_BAD_REQUEST           - Invalid input
 		B. HTTP_401_UNAUTHORIZED          - Invalid password or invalid/expired token
 		C. HTTP_404_NOT_FOUND             - User or device not found
-		D. HTTP_409_CONFLICT              - User or device already exist
+		D. HTTP_409_CONFLICT              - User or device or device group already exist
 		E. HTTP_500_INTERNAL_SERVER_ERROR - Internal processing error or 3rd-party API failure
 		F. HTTP_503_SERVICE_UNAVAILABLE   - Device is offline/unreachable
 
@@ -992,7 +1004,82 @@ DETAILED:
 		   // timestamp is the completion datetime in epoch of the update
 
 
-	3. Device access and control APIs (STATUS, UART, GPIO)
+	3. Device group registration and management APIs
+
+		A. GET DEVICE GROUPS
+		-  Request:
+		   GET /devicegroups
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		-  Response:
+		   { 'status': 'OK', 'message': string, 
+		     'devices': array[{'groupname': string, 'timestamp': int, 'devices': ["devicename", ...]}, ...] }
+		   { 'status': 'NG', 'message': string}
+
+		B. ADD DEVICE GROUP
+		-  Request:
+		   POST /devicegroups/DEVICEGROUPNAME
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		-  Response:
+		   { 'status': 'OK', 'message': string}
+		   { 'status': 'NG', 'message': string}
+		   // HTTP_409_CONFLICT is returned if group name is already used
+
+		C. DELETE DEVICE GROUP
+		-  Request:
+		   DELETE /devicegroups/DEVICEGROUPNAME
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		-  Response:
+		   { 'status': 'OK', 'message': string}
+		   { 'status': 'NG', 'message': string}
+
+		D. GET DEVICE GROUP
+		-  Request:
+		   GET /devicegroups/DEVICEGROUPNAME
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		-  Response:
+		   { 'status': 'OK', 'message': string, 
+		     'devices': {'groupname': string, 'timestamp': int, 'devices': ["devicename", ...]} }
+		   { 'status': 'NG', 'message': string}
+
+		E. UPDATE DEVICE GROUP NAME
+		-  Request:
+		   POST /devicegroups/DEVICEGROUPNAME/name
+		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+		   data: {'new_groupname': string}
+		-  Response:
+		   { 'status': 'OK', 'message': string}
+		   { 'status': 'NG', 'message': string}
+
+		F. ADD DEVICE TO GROUP
+		-  Request:
+		   POST /devicegroups/DEVICEGROUPNAME/device/DEVICENAME
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		-  Response:
+		   { 'status': 'OK', 'message': string}
+		   { 'status': 'NG', 'message': string}
+		   // HTTP_400_BAD_REQUEST is returned if device already added in group
+
+		G. DELETE DEVICE FROM GROUP
+		-  Request:
+		   DELETE /devicegroups/DEVICEGROUPNAME/device/DEVICENAME
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		-  Response:
+		   { 'status': 'OK', 'message': string}
+		   { 'status': 'NG', 'message': string}
+
+		H. SET DEVICES IN DEVICE GROUP
+		-  Request:
+		   POST /devicegroups/DEVICEGROUPNAME/devices
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		   data: {'devices': ["devicename", ...]}
+		-  Response:
+		   { 'status': 'OK', 'message': string}
+		   { 'status': 'NG', 'message': string}
+		   // devices is an array of device names
+		   // devices can be an empty array, meaning remove all devices in the group
+
+
+	4. Device access and control APIs (STATUS, UART, GPIO)
 
 		For device APIs, note that DEVICENAME is used instead of DEVICEID.
 		This strategy is more secure as the unique DEVICEID is not easily exposed in the HTTP packets.
@@ -1541,7 +1628,7 @@ DETAILED:
 		   { 'status': 'NG', 'message': string}
 
 
-	4. Device access and control APIs (I2C)
+	5. Device access and control APIs (I2C)
 
 
 		A. ADD I2C DEVICE
@@ -2009,7 +2096,7 @@ DETAILED:
 		   { 'status': 'NG', 'message': string }
 
 
-	5. Device access and control APIs (ADC)
+	6. Device access and control APIs (ADC)
 
 
 		A. ADD ADC DEVICE
@@ -2285,7 +2372,7 @@ DETAILED:
 		   { 'status': 'NG', 'message': string }
 
 
-	6. Device access and control APIs (1WIRE)
+	7. Device access and control APIs (1WIRE)
 
 
 		A. ADD 1WIRE DEVICE
@@ -2441,7 +2528,7 @@ DETAILED:
 		   { 'status': 'NG', 'message': string }
 
 
-	7. Device access and control APIs (TPROBE)
+	8. Device access and control APIs (TPROBE)
 
 
 		A. ADD TPROBE DEVICE
@@ -2619,7 +2706,7 @@ DETAILED:
 		   { 'status': 'NG', 'message': string }
 
 
-	8. Device transaction recording APIs
+	9. Device transaction recording APIs
 
 		A. GET HISTORIES
 		-  Request:
@@ -2720,7 +2807,7 @@ DETAILED:
 		   // sensorname and condition are optional (ex. when source is UART/GPIOX, then both sensorname and condition are not present
 
 
-	9. Account subscription and payment APIs
+	10. Account subscription and payment APIs
 
 		// Use any of the following Paypal Sandbox accounts: (https://sandbox.paypal.com)
 		   dev1.sg@brtchip.com (personal) - Singapore buyer
@@ -2813,7 +2900,7 @@ DETAILED:
 		   // Note that in the Paypal website, it seems its only possible to query up to 3 years but invoices can be requested up to 7 years.
 
 
-	10. Mobile services
+	11. Mobile services
 
 		A. REGISTER DEVICE TOKEN
 		-  Request:
@@ -2845,7 +2932,7 @@ DETAILED:
 		   Double check your results here: https://jwt.io/
 
 
-	11. Supported devices/firmware updates
+	12. Supported devices/firmware updates
 
 		A. GET SUPPORTED I2C DEVICES (obsoloted: use GET SUPPORTED SENSOR DEVICES instead)
 		-  Request:
@@ -2882,7 +2969,7 @@ DETAILED:
 		   // this API provides access to the contents of the JSON file
 
 
-	12. Others
+	13. Others
 
 		A. SEND FEEDBACK
 		-  Request:
@@ -2911,7 +2998,7 @@ DETAILED:
 		   {'status': 'NG', 'message': string }
 
 
-	13. ESP OTA Firmware Updates
+	14. ESP OTA Firmware Updates
 
 		A. DOWNLOAD FIRMWARE
 		-  Request:

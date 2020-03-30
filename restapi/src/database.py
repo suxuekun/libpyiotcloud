@@ -284,6 +284,12 @@ class database_client:
     def sort_by_timestamp(self, elem):
         return elem['timestamp']
 
+    def sort_by_devicename(self, elem):
+        return elem['devicename']
+
+    def sort_by_groupname(self, elem):
+        return elem['groupname']
+
     def get_user_history(self, username):
         user_histories = []
         devices = self._devices.get_registered_devices()
@@ -620,6 +626,35 @@ class database_client:
 
     def update_devicename(self, username, devicename, new_devicename):
         self._devices.update_devicename(username, devicename, new_devicename)
+
+
+    ##########################################################
+    # devicegroups
+    ##########################################################
+
+    def add_devicegroup(self, username, groupname):
+        self._devices.add_devicegroup(username, groupname)
+
+    def delete_devicegroup(self, username, groupname):
+        self._devices.delete_devicegroup(username, groupname)
+
+    def get_devicegroup(self, username, groupname):
+        return self._devices.get_devicegroup(username, groupname)
+
+    def get_devicegroups(self, username):
+        return self._devices.get_devicegroups(username)
+
+    def add_device_to_devicegroup(self, username, groupname, devicename):
+        return self._devices.add_device_to_devicegroup(username, groupname, devicename)
+
+    def remove_device_from_devicegroup(self, username, groupname, devicename):
+        self._devices.remove_device_from_devicegroup(username, groupname, devicename)
+
+    def set_devices_to_devicegroup(self, username, groupname, devices):
+        self._devices.set_devices_to_devicegroup(username, groupname, devices)
+
+    def update_name_devicegroup(self, username, groupname, new_groupname):
+        self._devices.update_name_devicegroup(username, groupname, new_groupname)
 
 
 class database_utils:
@@ -2876,6 +2911,103 @@ class database_client_mongodb:
                 new_device = copy.deepcopy(device)
                 new_device['devicename'] = new_devicename
                 devices.replace_one(device, new_device)
+                break
+
+
+    ##########################################################
+    # devicegroups
+    ##########################################################
+
+    def sort_by_groupname(self, elem):
+        return elem['groupname']
+
+    def get_registered_devicegroups(self):
+        return self.client[config.CONFIG_MONGODB_TB_DEVICEGROUPS]
+
+    def add_devicegroup(self, username, groupname):
+        devicegroups = self.get_registered_devicegroups()
+        timestamp = time.time()
+        item = {}
+        item['username'] = username
+        item['groupname'] = groupname
+        item['groupid'] = "devgrp" + str(timestamp)
+        item['timestamp'] = int(timestamp)
+        item['devices'] = []
+        devicegroups.insert_one(item)
+        return True
+
+    def delete_devicegroup(self, username, groupname):
+        devicegroups = self.get_registered_devicegroups()
+        if devicegroups:
+            try:
+                devicegroups.delete_one({ 'username': username, 'groupname': groupname })
+            except:
+                print("delete_devicegroup: Exception occurred")
+
+    def get_devicegroup(self, username, groupname):
+        devicegroups = self.get_registered_devicegroups()
+        if devicegroups:
+            for devicegroup in devicegroups.find({ 'username': username, 'groupname': groupname }):
+                devicegroup.pop('_id')
+                devicegroup.pop('groupid')
+                devicegroup.pop('username')
+                return devicegroup
+        return None
+
+    def get_devicegroups(self, username):
+        devicegroups_list = []
+        devicegroups = self.get_registered_devicegroups()
+        if devicegroups and devicegroups.count():
+            for devicegroup in devicegroups.find({'username': username}):
+                devicegroup.pop('_id')
+                devicegroup.pop('groupid')
+                devicegroup.pop('username')
+                devicegroups_list.append(devicegroup)
+        devicegroups_list.sort(key=self.sort_by_groupname)
+        return devicegroups_list
+
+    def add_device_to_devicegroup(self, username, groupname, devicename):
+        devicegroups = self.get_registered_devicegroups()
+        if devicegroups and devicegroups.count():
+            for devicegroup in devicegroups.find({ 'username': username, 'groupname': groupname }):
+                print("{} {}".format(devicename, devicegroup['devices']))
+                if devicename not in devicegroup['devices']:
+                    new_devicegroup = copy.deepcopy(devicegroup)
+                    new_devicegroup['devices'].append(devicename)
+                    new_devicegroup['devices'].sort()
+                    devicegroups.replace_one(devicegroup, new_devicegroup)
+                    return True
+                else:
+                    return False
+        return False
+
+    def remove_device_from_devicegroup(self, username, groupname, devicename):
+        devicegroups = self.get_registered_devicegroups()
+        if devicegroups and devicegroups.count():
+            for devicegroup in devicegroups.find({ 'username': username, 'groupname': groupname }):
+                if devicename in devicegroup['devices']:
+                    new_devicegroup = copy.deepcopy(devicegroup)
+                    new_devicegroup['devices'].remove(devicename)
+                    devicegroups.replace_one(devicegroup, new_devicegroup)
+                break
+
+    def set_devices_to_devicegroup(self, username, groupname, devices):
+        devicegroups = self.get_registered_devicegroups()
+        if devicegroups and devicegroups.count():
+            for devicegroup in devicegroups.find({ 'username': username, 'groupname': groupname }):
+                new_devicegroup = copy.deepcopy(devicegroup)
+                new_devicegroup['devices'] = devices
+                devicegroups.replace_one(devicegroup, new_devicegroup)
+                break
+
+    def update_name_devicegroup(self, username, groupname, new_groupname):
+        devicegroups = self.get_registered_devicegroups()
+        if devicegroups:
+            for devicegroup in devicegroups.find({'username': username, 'groupname': groupname}):
+                devicegroup.pop('_id')
+                new_devicegroup= copy.deepcopy(devicegroup)
+                new_devicegroup['groupname'] = new_groupname
+                devicegroups.replace_one(devicegroup, new_devicegroup)
                 break
 
 
