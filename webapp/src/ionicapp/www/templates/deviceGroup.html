@@ -1,0 +1,48 @@
+<ion-view title="Device Group" hide-back-button="true" nav-transition="none" id="page64" style="background-color:#FFFFFF;" class="page_width">
+  <ion-nav-buttons side="left" class="has-header">
+    <button class="button button-icon icon ion-android-close" ng-click="exitPage()"></button>
+  </ion-nav-buttons>
+  <ion-nav-buttons side="right" class="has-header">
+    <button class="button button-positive icon ion-trash-b" ng-click="deleteDeviceGroup(data.devicegroupname)"></button>
+  </ion-nav-buttons>
+  <ion-content padding="true" class="has-header">
+    <div class="spacer" style="height: 12px;"></div>
+    <div id="deviceGroup-markdown127" style="text-align:center;" class="show-list-numbers-and-dots">
+      <p style="color:#3C5A99;font-size:18px;">
+        <strong> {{ data.devicegroupname }} </strong>
+      </p>
+    </div>
+    <div class="spacer" style="height: 12px;"></div>
+    <form id="deviceGroup-form234" class="list">
+      <div id="deviceGroup-markdown153" class="show-list-numbers-and-dots">
+        <p style="color:#3C5A99;">Device group information</p>
+      </div>
+      <label class="item item-input" id="deviceGroup-input174" name="input-devicegroupname">
+        <span class="input-label">Name</span>
+        <input type="text" placeholder="" ng-model="new_devicegroupname">
+      </label>
+      <button id="deviceGroup-button161" ng-click="changeName(data.devicegroupname, new_devicegroupname)" class="button button-positive button-block button-outline">Update Name</button>
+      <div id="deviceGroup-markdown467" class="show-list-numbers-and-dots"></div>
+    </form>
+    <form id="deviceGroup-form235" class="list" ng-show="devicegroup.length > 0">
+      <div id="deviceGroup-markdown472" class="show-list-numbers-and-dots">
+        <p style="color:#3C5A99;">Devices</p>
+      </div>
+      <ion-checkbox id="deviceGroup-checkbox56" ng-repeat="device in devicegroup" ng-model="device.enabled">{{ device.devicename }}</ion-checkbox>
+      <button id="deviceGroup-button172" ng-click="setDevicesToDeviceGroup(data.devicegroupname)" class="button button-positive button-block">Update Devices</button>
+      <div id="deviceGroup-markdown473" class="show-list-numbers-and-dots"></div>
+    </form>
+    <form id="deviceGroup-form236" class="list">
+      <div id="deviceGroup-markdown474" class="show-list-numbers-and-dots">
+        <p style="color:#3C5A99;">Add a device to the device group</p>
+      </div>
+      <label class="item item-select" id="deviceGroup-select107">
+        <span class="input-label">Device</span>
+        <select ng-options="device.id as device.devicename for device in devices" ng-model="deviceSelected" ng-change="changeDevice(deviceSelected)"></select>
+      </label>
+      <button id="deviceGroup-button173" ng-click="addDeviceToDeviceGroup(data.devicegroupname)" class="button button-positive button-block">Add Device</button>
+      <div id="deviceGroup-markdown475" class="show-list-numbers-and-dots"></div>
+    </form>
+    <div class="spacer" style="height: 50px;"></div>
+  </ion-content>
+</ion-view>

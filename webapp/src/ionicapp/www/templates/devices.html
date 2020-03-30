@@ -7,35 +7,53 @@
       <label class="item item-input" id="devices-input90">
         <input type="text" placeholder="Search" ng-model="data.devices_filter" ng-keypress="submitSearch($event)">
       </label>
+      <div id="devices-button-bar11" class="button-bar">
+        <button id="devices-button164" ng-click="changeActiveSection(1)" style="font-weight:300;color:#AAAAAA;font-size:12px;border-radius:256px 256px 256px 256px;" class="button button-stable button-small button-block">Devices</button>
+        <button id="devices-button165" ng-click="changeActiveSection(2)" style="font-weight:300;color:#AAAAAA;font-size:12px;border-radius:256px 256px 256px 256px;" class="button button-stable button-small button-block">Device Groups</button>
+      </div>
     </form>
     <div id="devices-markdown36" class="show-list-numbers-and-dots">
       <p style="color:#AAAAAA;font-size:12px;">{{ devices_counthdr }}</p>
     </div>
-    <div class="list card" id="devices-card27" ng-repeat="device in devices">
-      <div class="item item-body card_top_devices" id="devices-list-item-container6" ng-click="submitTest(device)">
-        <div id="devices-markdown127" class="show-list-numbers-and-dots">
-          <p style="margin-top:0px;color:#3C5A99;font-size:16px;">
-            <strong>{{ device.devicename }}</strong>
+    <div class="list card" id="devices-card27" ng-repeat="device in devices" ng-show="activeSection==1">
+      <div class="item item-body" id="devices-list-item-container30" ng-click="viewDevice(device)">
+        <div id="devices-markdown154" class="show-list-numbers-and-dots">
+          <p style="margin-top:0px;color:#3C5A99;font-size:18px;">
+            <strong> {{ device.devicename }} </strong>
           </p>
         </div>
-        <div id="devices-markdown153" class="show-list-numbers-and-dots">
-          <p style="margin-top:0px;color:#888888;font-size:12px;">{{ device.deviceid }}</p>
+        <div id="devices-markdown442" class="show-list-numbers-and-dots">
+          <p style="margin-top:0px;color:#444444;font-size:12px;">UUID: {{ device.deviceid }}</p>
         </div>
       </div>
-      <div id="devices-container25" ng-show="device.devicestatus != &quot;Online&quot;">
+      <div id="devices-container28" ng-show="device.devicestatus != &quot;Online&quot;">
         <div class="card_image_devices">
-          <img src="img/Hj6vhlJqQUSE5C1kj3lU_offline.png" style="display:block;width:16;height:24;" ng-show="device.devicestatus != &quot;Online&quot;">
+          <img src="img/xqcc2stgTNmAeM8gxhQ7_offline.png" style="display:block;width:16;height:16;" ng-show="device.devicestatus != &quot;Online&quot;">
         </div>
-        <div id="devices-markdown154" class="show-list-numbers-and-dots card_label_devices">
-          <p style="color:#888888;font-size:10px;">{{ device.devicestatus }}</p>
+        <div id="devices-markdown443" class="show-list-numbers-and-dots card_label_devices">
+          <p style="color:#888888;font-size:12px;">{{ device.devicestatus }}</p>
         </div>
       </div>
       <div id="devices-container26" ng-show="device.devicestatus == &quot;Online&quot;">
         <div class="card_image_devices">
-          <img src="img/aAFkzC2hQcSHZcx3kN1L_online.png" style="display:block;width:16;height:24;" ng-show="device.devicestatus == &quot;Online&quot;">
+          <img src="img/6RNUgrQwRemftiOCX3pw_online.png" style="display:block;width:16;height:16;" ng-show="device.devicestatus == &quot;Online&quot;">
         </div>
         <div id="devices-markdown155" class="show-list-numbers-and-dots card_label_devices">
-          <p style="color:#888888;font-size:10px;">{{ device.devicestatus }}</p>
+          <p style="color:#888888;font-size:12px;">{{ device.devicestatus }}</p>
+        </div>
+      </div>
+    </div>
+    <div class="list card" id="devices-card29" ng-repeat="group in devicegroups" ng-show="activeSection==2">
+      <div class="item item-body" id="devices-list-item-container31" ng-click="viewDevice(group)">
+        <div id="devices-markdown466" class="show-list-numbers-and-dots">
+          <p style="margin-top:0px;color:#3C5A99;font-size:18px;">
+            <strong> {{ group.groupname }} </strong>
+          </p>
+        </div>
+      </div>
+      <div id="devices-container25">
+        <div id="devices-markdown476" class="show-list-numbers-and-dots card_label_devicegroups">
+          <p style="color:#888888;font-size:12px;"> {{ group.devices.length &gt; 0 ? "DEVICES: " + group.devices : "DEVICES: None"}}</p>
         </div>
       </div>
     </div>

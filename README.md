@@ -321,7 +321,18 @@ Menu, account, history
         M. UPGRADE DEVICE FIRMWARE        - POST   /devices/device/DEVICENAME/firmware
         N. GET UPGRADE DEVICE FIRMWARE    - GET    /devices/device/DEVICENAME/firmware
 
-    3. Device access and control APIs (STATUS, UART, GPIO)
+    3. Device group registration and management APIs
+
+        A. GET DEVICE GROUPS              - GET    /devicegroups
+        B. ADD DEVICE GROUP               - POST   /devicegroups/DEVICEGROUPNAME
+        C. DELETE DEVICE GROUP            - DELETE /devicegroups/DEVICEGROUPNAME
+        D. GET DEVICE GROUP               - GET    /devicegroups/DEVICEGROUPNAME
+        E. UPDATE DEVICE GROUP NAME       - POST   /devicegroups/DEVICEGROUPNAME/name
+        F. ADD DEVICE TO GROUP            - POST   /devicegroups/DEVICEGROUPNAME/device/DEVICENAME
+        G. DELETE DEVICE FROM GROUP       - DELETE /devicegroups/DEVICEGROUPNAME/device/DEVICENAME
+        H. SET DEVICES IN DEVICE GROUP    - POST   /devicegroups/DEVICEGROUPNAME/devices
+
+    4. Device access and control APIs (STATUS, UART, GPIO)
         // status
         A. GET STATUS                     - GET    /devices/device/DEVICENAME/status
         B. SET STATUS                     - POST   /devices/device/DEVICENAME/status
@@ -350,7 +361,7 @@ Menu, account, history
         // sensor properties
         T. DELETE PERIPHERAL SENSOR PROPERTIES             - DELETE /devices/device/DEVICENAME/sensors/properties
 
-    4. Device access and control APIs (I2C)
+    5. Device access and control APIs (I2C)
         A. ADD I2C DEVICE                 - POST   /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME
         B. DELETE I2C DEVICE              - DELETE /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME
         C. GET I2C DEVICE                 - GET    /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME
@@ -367,7 +378,7 @@ Menu, account, history
         N. DELETE I2C DEVICES READINGS    - DELETE /devices/device/DEVICENAME/i2c/NUMBER/sensors/readings
            (NUMBER can be 1-4 only and corresponds to I2C1,I2C2,I2C3,I2C4)
 
-    5. Device access and control APIs (ADC)
+    6. Device access and control APIs (ADC)
         A. ADD ADC DEVICE                 - POST   /devices/device/DEVICENAME/adc/NUMBER/sensors/sensor/SENSORNAME
         B. DELETE ADC DEVICE              - DELETE /devices/device/DEVICENAME/adc/NUMBER/sensors/sensor/SENSORNAME
         C. GET ADC DEVICE                 - GET    /devices/device/DEVICENAME/adc/NUMBER/sensors/sensor/SENSORNAME
@@ -384,7 +395,7 @@ Menu, account, history
         M. GET ADC VOLTAGE                - GET    /devices/device/DEVICENAME/adc/voltage
         N. SET ADC VOLTAGE                - POST   /devices/device/DEVICENAME/adc/voltage
 
-    6. Device access and control APIs (1WIRE)
+    7. Device access and control APIs (1WIRE)
         A. ADD 1WIRE DEVICE               - POST   /devices/device/DEVICENAME/1wire/NUMBER/sensors/sensor/SENSORNAME
         B. DELETE 1WIRE DEVICE            - DELETE /devices/device/DEVICENAME/1wire/NUMBER/sensors/sensor/SENSORNAME
         C. GET 1WIRE DEVICE               - GET    /devices/device/DEVICENAME/1wire/NUMBER/sensors/sensor/SENSORNAME
@@ -399,7 +410,7 @@ Menu, account, history
         L. DELETE 1WIRE DEVICES READINGS  - DELETE /devices/device/DEVICENAME/1wire/NUMBER/sensors/readings
            (NUMBER will always be 1 since there is only 1 1wire)
 
-    7. Device access and control APIs (TPROBE)
+    8. Device access and control APIs (TPROBE)
         A. ADD TPROBE DEVICE              - POST   /devices/device/DEVICENAME/tprobe/NUMBER/sensors/sensor/SENSORNAME
         B. DELETE TPROBE DEVICE           - DELETE /devices/device/DEVICENAME/tprobe/NUMBER/sensors/sensor/SENSORNAME
         C. GET TPROBE DEVICE              - GET    /devices/device/DEVICENAME/tprobe/NUMBER/sensors/sensor/SENSORNAME
@@ -414,34 +425,34 @@ Menu, account, history
         L. DELETE TPROBE DEVICES READINGS - DELETE /devices/device/DEVICENAME/tprobe/NUMBER/sensors/readings
            (NUMBER will always be 1 since there is only 1 tprobe)
 
-    8. Device transaction recording APIs
+    9. Device transaction recording APIs
         A. GET HISTORIES                  - GET    /devices/histories
         B. GET HISTORIES FILTERED         - POST   /devices/histories
            (filter by device name, direction, topic, date start, date end)
         C. GET MENOS HISTORIES            - GET    /devices/menos
         D. GET MENOS HISTORIES FILTERED   - POST   /devices/menos
 
-    9. Account subscription and payment APIs
+    10. Account subscription and payment APIs
         A. GET SUBSCRIPTION               - GET    /account/subscription
         B. SET SUBSCRIPTION               - POST   /account/subscription
         C. PAYPAL SETUP                   - POST   /account/payment/paypalsetup
         D. PAYPAL EXECUTE                 - POST   /account/payment/paypalexecute
         E. PAYPAL VERIFY                  - POST   /account/payment/paypalverify
 
-    10. Mobile services
+    11. Mobile services
         A. REGISTER DEVICE TOKEN          - POST   /mobile/devicetoken
 
-    11. Supported devices and firmware updates
+    12. Supported devices and firmware updates
         A. GET SUPPORTED I2C DEVICES      - GET    /others/i2cdevices [OBSOLETED, use GET SUPPORTED SENSOR DEVICES instead]
         B. GET SUPPORTED SENSOR DEVICES   - GET    /others/sensordevices
         C. GET DEVICE FIRMWARE UPDATES    - GET    /others/firmwareupdates
 
-    12. Others
+    13. Others
         A. SEND FEEDBACK                  - POST   /others/feedback
         B. GET FAQS                       - GET    /others/faqs
         C. GET ABOUT                      - GET    /others/about
 
-    13. HTTP error codes
+    14. HTTP error codes
         A. HTTP_400_BAD_REQUEST           - Invalid input
         B. HTTP_401_UNAUTHORIZED          - Invalid password or invalid/expired token
         C. HTTP_404_NOT_FOUND             - User or device not found

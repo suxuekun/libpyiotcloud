@@ -513,15 +513,17 @@ function ($scope, $stateParams) {
 
 }])
    
-.controller('devicesCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Devices', 'Token',     // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+.controller('devicesCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', 'Devices', 'DeviceGroups',     // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
 // You can include any angular dependencies as parameters for this function
 // TIP: Access Route Parameters for your page via $stateParams.parameterName
-function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Devices, Token) {
+function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token, Devices, DeviceGroups) {
 
     var server = Server.rest_api;
 
     $scope.devices = [];
+    $scope.devicegroups = [];
     $scope.devices_counthdr = "No device registered" ;
+    $scope.activeSection = parseInt($stateParams.activeSection, 10);
     
     $scope.data = {
         'username': User.get_username(),
@@ -529,34 +531,51 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Device
         
         'devices_filter': "",
     };
-
     
-    $scope.submitTest = function(device) {
 
-        console.log("devicename=" + device.devicename);
-        var device_param = {
-            'username': User.get_username(),
-            'token': User.get_token(),
-            'devicename': device.devicename,
-            'deviceid': device.deviceid,
-            'serialnumber': device.serialnumber,
-            'devicestatus': "Status: UNKNOWN",
-            'deviceversion': "UNKNOWN",
-            'location': "UNKNOWN"
-        };
+    $scope.changeActiveSection = function(s) {
+        $scope.activeSection = s;
+        $scope.submitRefresh();
+    };
+    
+    $scope.viewDevice = function(device) {
 
-        if (device.heartbeat !== undefined) {
-            let heartbeat = new Date(device.heartbeat * 1000);
-            device_param.devicestatus = "Last active: " + heartbeat;    
+        if ($scope.activeSection === 1) {
+            // DEVICE
+            console.log("devicename=" + device.devicename);
+            let device_param = {
+                'username': User.get_username(),
+                'token': User.get_token(),
+                'devicename': device.devicename,
+                'deviceid': device.deviceid,
+                'serialnumber': device.serialnumber,
+                'devicestatus': "Status: UNKNOWN",
+                'deviceversion': "UNKNOWN",
+                'location': "UNKNOWN"
+            };
+    
+            if (device.heartbeat !== undefined) {
+                let heartbeat = new Date(device.heartbeat * 1000);
+                device_param.devicestatus = "Last active: " + heartbeat;    
+            }
+            if (device.version !== undefined) {
+                device_param.deviceversion = device.version;    
+            }
+            if (device.location !== undefined) {
+                device_param.location = device.location;    
+            }
+    
+            $state.go('device', device_param, {reload:true} );
         }
-        if (device.version !== undefined) {
-            device_param.deviceversion = device.version;    
+        else {
+            // DEVICE GROUP
+            let device_param = {
+                'username': User.get_username(),
+                'token': User.get_token(),
+                'devicegroupname': device.groupname
+            };
+            $state.go('deviceGroup', device_param, {reload:true} );
         }
-        if (device.location !== undefined) {
-            device_param.location = device.location;    
-        }
-
-        $state.go('device', device_param, {reload:true} );
     };
     
     $scope.submitAdd = function() {
@@ -565,20 +584,26 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Device
             'username': User.get_username(),
             'token': User.get_token()
         };
-        $state.go('addDevice', device_param);
+        
+        if ($scope.activeSection === 1) {
+            $state.go('addDevice', device_param);
+        }
+        else {
+            $state.go('addDeviceGroup', device_param);
+        }
     };
     
     
     $scope.submitSearch = function(keyEvent) {
         if (keyEvent.which === 13) {
-            $scope.submitRefresh(false);
+            $scope.submitRefresh();
         }
     };
 
     $scope.getDiffString = function(currdate, devicedate) {
         let diffString = "";
-        
         let diff = currdate-devicedate;
+
         console.log(diff);
         if (diff < 60) {
             diffString = diff + " second";
@@ -586,6 +611,10 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Device
                 diffString += "s";
             }
             diffString += " ago";
+            // just make it online
+            if (diff < 10) {
+                diffString = "Online";
+            }
         }
         else if (diff < 3600) {
             diff = parseInt(diff/60, 10);
@@ -638,67 +667,99 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Device
         
         //let heartbeat = new Date(devicedate * 1000);
         //diffString += " (" + heartbeat + ")";
+        if (diffString !== "Online") {
+            diffString = "Last active: " + diffString;
+        }
         return diffString;
     };
 
-    $scope.submitRefresh = function(livestatus) {
+    $scope.submitRefresh = function(livestatus=false) {
 
-        // Fetch devices
-        Devices.fetch($scope.data, $scope.data.devices_filter).then(function(res) {
-            $scope.devices = res;
-            $scope.data.token = User.get_token();
-            if ($scope.devices.length !== 0) {
-                if ($scope.devices.length == 1) {
-                    $scope.devices_counthdr = $scope.devices.length.toString() + " device registered";
-                }
-                else {
-                    $scope.devices_counthdr = $scope.devices.length.toString() + " devices registered";
-                }
-                
-                let currdate = parseInt(new Date().valueOf()/ 1000, 10);
-                console.log(currdate);
-                
-                if (livestatus === true) {
-                    //console.log($scope.devices.length);
-                    let indexy = 0;
-                    for (indexy=0; indexy<$scope.devices.length; indexy++) {
-                        //console.log("indexy=" + indexy.toString() + " " + $scope.devices[indexy].devicename);
-                        
-                        if ($scope.devices[indexy].heartbeat !== undefined) {
-                            $scope.devices[indexy].devicestatus = "Last active: " + $scope.getDiffString(currdate, $scope.devices[indexy].heartbeat);
-                        }
-                        else {
-                            $scope.devices[indexy].devicestatus = "Last active: N/A";
-                        }
-                        
-                        query_device(indexy, $scope.devices[indexy].devicename);
-                    }
-                }
-                else {
-                    let indexy = 0;
-                    for (indexy=0; indexy<$scope.devices.length; indexy++) {
-                        if ($scope.devices[indexy].heartbeat !== undefined) {
-                            $scope.devices[indexy].devicestatus = "Last active: " + $scope.getDiffString(currdate, $scope.devices[indexy].heartbeat);
-                        }
-                        else {
-                            $scope.devices[indexy].devicestatus = "Last active: N/A";
-                        }
-                    }
-                }
-            }
-            else {
-                $scope.devices_counthdr = "No device registered";
-            }
+        if ($scope.activeSection === 1) {
+            // DEVICES
             
-            // TEST CODE ONLY
-            //register_device_token("1234", "GCM");
-            //register_device_token("5678", "APNS");
-        })
-        .catch(function (error) {
-            console.log("Devices.fetch failed!!!");
-            handle_error(error);
-        }); 
+            // Fetch devices
+            Devices.fetch($scope.data, $scope.data.devices_filter).then(function(res) {
+                $scope.devices = res;
+                $scope.data.token = User.get_token();
+                if ($scope.devices.length !== 0) {
+                    if ($scope.devices.length === 1) {
+                        $scope.devices_counthdr = $scope.devices.length.toString() + " device registered";
+                    }
+                    else {
+                        $scope.devices_counthdr = $scope.devices.length.toString() + " devices registered";
+                    }
+                    
+                    let currdate = parseInt(new Date().valueOf()/ 1000, 10);
+                    console.log(currdate);
+                    
+                    if (livestatus === true) {
+                        //console.log($scope.devices.length);
+                        let indexy = 0;
+                        for (indexy=0; indexy<$scope.devices.length; indexy++) {
+                            //console.log("indexy=" + indexy.toString() + " " + $scope.devices[indexy].devicename);
+                            
+                            if ($scope.devices[indexy].heartbeat !== undefined) {
+                                $scope.devices[indexy].devicestatus = $scope.getDiffString(currdate, $scope.devices[indexy].heartbeat);
+                            }
+                            else {
+                                $scope.devices[indexy].devicestatus = "Last active: N/A";
+                            }
+                            
+                            query_device(indexy, $scope.devices[indexy].devicename);
+                        }
+                    }
+                    else {
+                        let indexy = 0;
+                        for (indexy=0; indexy<$scope.devices.length; indexy++) {
+                            if ($scope.devices[indexy].heartbeat !== undefined) {
+                                $scope.devices[indexy].devicestatus = $scope.getDiffString(currdate, $scope.devices[indexy].heartbeat);
+                            }
+                            else {
+                                $scope.devices[indexy].devicestatus = "Last active: N/A";
+                            }
+                        }
+                    }
+                }
+                else {
+                    $scope.devices_counthdr = "No device registered";
+                }
+                
+                // TEST CODE ONLY
+                //register_device_token("1234", "GCM");
+                //register_device_token("5678", "APNS");
+            })
+            .catch(function (error) {
+                console.log("Devices.fetch failed!!!");
+                handle_error(error);
+            }); 
+        }
+        else {
+            // DEVICE GROUPS
+            
+            // Fetch devicegroups
+            DeviceGroups.fetch($scope.data).then(function(res) {
+                $scope.devicegroups = res;
+                $scope.data.token = User.get_token();
+                if ($scope.devicegroups.length !== 0) {
+                    if ($scope.devicegroups.length === 1) {
+                        $scope.devices_counthdr = $scope.devicegroups.length.toString() + " device group registered";
+                    }
+                    else {
+                        $scope.devices_counthdr = $scope.devicegroups.length.toString() + " device groups registered";
+                    }
+                }
+                else {
+                    $scope.devices_counthdr = "No device group registered";
+                }
+            })
+            .catch(function (error) {
+                console.log("DeviceGroups.fetch failed!!!");
+                handle_error(error);
+            }); 
+        }
     };
+    
     
     base64Encode = function(str) {
         return window.btoa(str);
@@ -816,25 +877,17 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Device
 
     $scope.$on('$ionicView.enter', function(e) {
         $scope.devices = [];
+        $scope.devicegroups = [];
         $scope.devices_counthdr = "No device registered" ;
-        $scope.submitRefresh(false);
+        $scope.activeSection = 1;
+        
+        //console.log($state.params);
+        //console.log($stateParams);
+        if ($state.params.activeSection !== undefined) {
+            $scope.activeSection = parseInt($state.params.activeSection, 10);
+        }
+        $scope.submitRefresh();
     });
-    
-    
-    $scope.getStyle = function(devicestatus) {
-        //console.log("getStyle " + devicestatus);
-        if (devicestatus === "Online") {
-            return 'item-online';
-        }
-        else if (devicestatus === "Offline") {
-            return 'item-offline';
-        }
-        else if (devicestatus === "Detecting...") {
-            return 'item-detecting';
-        }
-        return 'item-lastactive';
-    };
-
 }])
    
 .controller('profileCtrl', ['$scope', '$stateParams', '$state', '$ionicPopup', '$http', 'Server', 'User', 'Token', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
@@ -1191,7 +1244,7 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token)
 }
 ])
    
-.controller('accountCtrl', ['$scope', '$stateParams', '$state', '$ionicPopup', '$http', 'Server', 'User', 'Token', 'Payments', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+.controller('creditsCtrl', ['$scope', '$stateParams', '$state', '$ionicPopup', '$http', 'Server', 'User', 'Token', 'Payments', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
 // You can include any angular dependencies as parameters for this function
 // TIP: Access Route Parameters for your page via $stateParams.parameterName
 function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token, Payments) {
@@ -1588,7 +1641,7 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token)
             'username': $scope.data.username,
             'token': $scope.data.token
         };
-        $state.go('menu.account', device_param, {reload: true});   
+        $state.go('menu.credits', device_param, {reload: true});   
     };
     
     
@@ -1741,7 +1794,7 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token)
                                     'username': $scope.data.username,
                                     'token': $scope.data.token
                                 };
-                                $state.go('menu.account', param, {reload: true});   
+                                $state.go('menu.credits', param, {reload: true});   
                             }
                         }
                     ]
@@ -1942,7 +1995,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Paymen
             'username': $scope.data.username,
             'token': $scope.data.token,
         };
-        $state.go('menu.account', param, {reload: true});   
+        $state.go('menu.credits', param, {reload: true});   
     };    
     
     $scope.$on('$ionicView.enter', function(e) {
@@ -3999,6 +4052,90 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, Devices, Use
     
 }])
    
+.controller('addDeviceGroupCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', 'Devices', 'DeviceGroups', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+// You can include any angular dependencies as parameters for this function
+// TIP: Access Route Parameters for your page via $stateParams.parameterName
+function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token, Devices, DeviceGroups) {
+
+    var server = Server.rest_api;
+
+    $scope.data = {
+        'username': User.get_username(),
+        'token': User.get_token(),
+
+        'devicegroupname': "",
+    };
+
+
+    $scope.submit = function() {
+        console.log("username=" + $scope.data.username);
+        console.log("token=" + $scope.data.token);
+        console.log("devicegroupname=" + $scope.data.devicegroupname);
+
+        if ($scope.data.devicegroupname === undefined) {
+            console.log("ERROR: Register DeviceGroup devicegroupname is undefined!");
+            // TODO: replace alert with ionic alert
+            alert("ERROR: Register DeviceGroup devicegroupname is undefined!");
+            return;
+        }
+        else if ($scope.data.devicegroupname.trim().length === 0) {
+            console.log("ERROR: Register DeviceGroup devicegroupname is empty!");
+            // TODO: replace alert with ionic alert
+            alert("ERROR: Register DeviceGroup devicegroupname is empty!");
+            return;
+        }
+        
+        DeviceGroups.add($scope.data, $scope.data.devicegroupname).then(function(res) {
+            console.log(res);
+            
+            if (res.data !== null) {
+                if (res.data.status === "OK") {
+                    $ionicPopup.alert({
+                        title: 'Success',
+                        template: 'Device group added successfully!',
+                        buttons: [
+                            {
+                                text: 'OK',
+                                type: 'button-positive',
+                                onTap: function(e) {
+                                    $state.go('menu.devices', 
+                                        {
+                                            'username': $scope.data.username, 
+                                            'token': $scope.data.token,
+                                            'activeSection': "2"
+                                        });
+                                }
+                            }
+                        ]
+                    });
+                }
+                else {
+                    if (res.status == 409) {
+                        $ionicPopup.alert({ title: 'Error', template: res.data.message, buttons: [{text: 'OK', type: 'button-assertive'}] });
+                    }
+                    else {
+                        $ionicPopup.alert({ title: 'Error', template: 'Failed to process device group!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+                    }
+                }
+            }
+            else {
+                console.log("ERROR: Server is down!"); 
+                $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{ text: 'OK', type: 'button-assertive' }] });
+            }
+        }); 
+    };
+    
+    $scope.submitDeviceList = function() {
+        var device_param = {
+            'username': $scope.data.username,
+            'token': $scope.data.token,
+            'activeSection': "2"
+        };
+        $state.go('menu.devices', device_param, {reload: true});
+    };
+    
+}])
+   
 .controller('viewDeviceCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
 // You can include any angular dependencies as parameters for this function
 // TIP: Access Route Parameters for your page via $stateParams.parameterName
@@ -4374,6 +4511,311 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         var device_param = {
             'username': $scope.data.username,
             'token'   : $scope.data.token
+        };
+        $state.go('menu.devices', device_param, {reload: true});
+    };
+}])
+   
+.controller('deviceGroupCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', 'Devices', 'DeviceGroups', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+// You can include any angular dependencies as parameters for this function
+// TIP: Access Route Parameters for your page via $stateParams.parameterName
+
+
+function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token, Devices, DeviceGroups) {
+
+    var server = Server.rest_api;
+
+    $scope.data = {
+        'username'        : User.get_username(),
+        'token'           : User.get_token(),
+        'devicegroupname' : $state.params.devicegroupname,
+    };
+
+    $scope.devices = [ {"id":0, "devicename": ""} ];
+    $scope.deviceSelected = -1;
+    $scope.devicegroup = [];
+    $scope.new_devicegroupname = $state.params.devicegroupname;
+
+
+    // CHANGE DEVICENAME
+    $scope.changeName = function(devicegroupname, new_devicegroupname) {
+        if ($scope.data.devicegroupname === new_devicegroupname) {
+            $ionicPopup.alert({ title: 'Error', template: 'Device group name is the same!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+        }
+        else {
+            
+            $ionicPopup.alert({
+                title: 'Change Device Group Name',
+                template: 'Are you sure you want to change the device group name from ' + devicegroupname + ' to ' + new_devicegroupname + '?',
+                buttons: [
+                    { 
+                        text: 'No',
+                        type: 'button-negative',
+                        onTap: function(e) {
+                            $scope.new_devicegroupname = devicegroupname;
+                        }
+                    },
+                    {
+                        text: 'Yes',
+                        type: 'button-positive',
+                        onTap: function(e) {
+                            $scope.new_devicegroupname = new_devicegroupname;
+                            $scope.update_devicegroupname(devicegroupname, new_devicegroupname);
+                        }
+                    }
+                ]            
+            });            
+        }
+    };
+
+
+
+    $scope.handle_error = function(error) {
+        if (error.data !== null) {
+            console.log("ERROR: Failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
+
+            if (error.data.message === "Token expired") {
+                Token.refresh({'username': $scope.data.username, 'token': $scope.data.token});
+                $scope.data.token = User.get_token();
+            }
+            
+            if (error.status == 503) {
+                $ionicPopup.alert({ title: 'Error', template: 'Device is unreachable!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+            }
+            else if (error.status >= 400 && error.status < 500) {
+                $ionicPopup.alert({ title: 'Error', template: error.data.message, buttons: [{text: 'OK', type: 'button-assertive'}] });
+            }
+        }
+        else {
+            console.log("ERROR: Server is down!");
+            $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+        }
+    }; 
+
+
+    // UPDATE DEVICE GROUP NAME
+    $scope.update_devicegroupname = function(devicegroupname, new_devicegroupname) {
+        //
+        // UPDATE DEVICE GROUP NAME
+        // - Request:
+        //   POST /devicegroups/<devicegroupname>/name
+        //   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+        //   data: {'new_groupname': string}
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string }
+        //   { 'status': 'NG', 'message': string}
+        //        
+        $http({
+            method: 'POST',
+            url: server + '/devicegroups/' + devicegroupname + '/name',
+            headers: {'Authorization': 'Bearer ' +  $scope.data.token.access, 'Content-Type': 'application/json' },
+            data: {'new_groupname': new_devicegroupname}
+        })
+        .then(function (result) {
+            console.log(result.data);
+            
+            $ionicPopup.alert({
+                title: 'Change Device Group Name',
+                template: 'Change Device Name Group was successful!',
+            });
+            
+            $scope.data.devicegroupname = new_devicegroupname;
+        })
+        .catch(function (error) {
+            $scope.handle_error(error);
+        }); 
+    }; 
+
+
+    // DELETE DEVICE
+    $scope.deleteDeviceGroup = function(devicegroupname) {
+        $ionicPopup.alert({
+            title: 'Delete Device Group',
+            template: 'Are you sure you want to delete this device group - ' + devicegroupname + '?',
+            buttons: [
+                { 
+                    text: 'No',
+                    type: 'button-negative',
+                },
+                {
+                    text: 'Yes',
+                    type: 'button-positive',
+                    onTap: function(e) {
+                        $scope.deleteDeviceGroupAction(devicegroupname);
+                    }
+                }
+            ]            
+        });            
+    };
+    
+    $scope.deleteDeviceGroupAction = function(devicegroupname) {
+        
+        DeviceGroups.delete($scope.data, $scope.data.devicegroupname).then(function(res) {
+            console.log(res);
+            
+            if (res.data !== null) {
+                if (res.data.status === "OK") {
+                    $ionicPopup.alert({
+                        title: 'Success',
+                        template: 'Device group deleted successfully!',
+                        buttons: [
+                            {
+                                text: 'OK',
+                                type: 'button-positive',
+                                onTap: function(e) {
+                                    $state.go('menu.devices', 
+                                        {
+                                            'username': $scope.data.username, 
+                                            'token': $scope.data.token,
+                                            'activeSection': "2"
+                                        });
+                                }
+                            }
+                        ]
+                    });
+                }
+                else {
+                    if (res.status == 409) {
+                        $ionicPopup.alert({ title: 'Error', template: res.data.message, buttons: [{text: 'OK', type: 'button-assertive'}] });
+                    }
+                    else {
+                        $ionicPopup.alert({ title: 'Error', template: 'Failed to process device group!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+                    }
+                }
+            }
+            else {
+                console.log("ERROR: Server is down!"); 
+                $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{ text: 'OK', type: 'button-assertive' }] });
+            }
+        });    
+    };
+    
+
+    $scope.getDeviceGroup = function(devicegroupname) {
+        
+        DeviceGroups.get($scope.data, $scope.data.devicegroupname).then(function(res) {
+            console.log("getDeviceGroups");
+            console.log(res);
+            
+            if (res.data !== null) {
+                if (res.data.status === "OK") {
+                    $scope.devicegroup = [];
+                    for (var device in res.data.devicegroup.devices) {
+                        $scope.devicegroup.push({'devicename': res.data.devicegroup.devices[device], 'enabled': true});
+                    }
+                }
+                else {
+                    if (res.status == 409) {
+                        $ionicPopup.alert({ title: 'Error', template: res.data.message, buttons: [{text: 'OK', type: 'button-assertive'}] });
+                    }
+                    else {
+                        $ionicPopup.alert({ title: 'Error', template: 'Failed to process device group!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+                    }
+                }
+            }
+            else {
+                console.log("ERROR: Server is down!"); 
+                $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{ text: 'OK', type: 'button-assertive' }] });
+            }
+        });    
+    };
+ 
+    $scope.changeDevice = function(id) {
+        $scope.deviceSelected = id;
+        console.log("changeDevice");
+        console.log($scope.deviceSelected);
+    };
+    
+    $scope.addDeviceToDeviceGroup = function(devicegroupname) {
+        console.log("addDeviceToDeviceGroup");
+        console.log($scope.deviceSelected);
+        if ($scope.deviceSelected === -1) {
+            return;
+        }
+        devicename = $scope.devices[$scope.deviceSelected].devicename;
+        console.log(devicename);
+        
+        DeviceGroups.add_device($scope.data, $scope.data.devicegroupname, devicename).then(function(res) {
+            console.log(res);
+            
+            if (res.data !== null) {
+                if (res.data.status === "OK") {
+                    $scope.getDeviceGroup($scope.data.devicegroupname);
+                }
+                else {
+                    if (res.status === 409 || res.status === 400) {
+                        $ionicPopup.alert({ title: 'Error', template: res.data.message, buttons: [{text: 'OK', type: 'button-assertive'}] });
+                    }
+                }
+            }
+            else {
+                console.log("ERROR: Server is down!"); 
+                $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{ text: 'OK', type: 'button-assertive' }] });
+            }
+        });    
+    };
+
+    $scope.setDevicesToDeviceGroup = function(devicegroupname) {
+        console.log("setDevicesToDeviceGroup");
+        var devices = [];
+        for (var device in $scope.devicegroup) {
+            if ($scope.devicegroup[device].enabled === true) {
+                devices.push($scope.devicegroup[device].devicename);
+            }
+        }
+
+        DeviceGroups.set_devices($scope.data, $scope.data.devicegroupname, devices).then(function(res) {
+            console.log(res);
+            
+            if (res.data !== null) {
+                if (res.data.status === "OK") {
+                    $scope.getDeviceGroup($scope.data.devicegroupname);
+                }
+                else {
+                    if (res.status === 409 || res.status === 400) {
+                        $ionicPopup.alert({ title: 'Error', template: res.data.message, buttons: [{text: 'OK', type: 'button-assertive'}] });
+                    }
+                }
+            }
+            else {
+                console.log("ERROR: Server is down!"); 
+                $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{ text: 'OK', type: 'button-assertive' }] });
+            }
+        });    
+    };
+    
+    $scope.getDevices = function() {
+        Devices.fetch($scope.data, "").then(function(res) {
+            $scope.data.token = User.get_token();
+            
+            // populate the list of devices
+            $scope.devices = res;
+            let indexy = 0;
+            for (indexy=0; indexy<$scope.devices.length; indexy++) {
+                $scope.devices[indexy].id = indexy;
+            }
+            if ($scope.devices.length > 0) {
+                $scope.deviceSelected = 0;
+            }
+            
+            $scope.getDeviceGroup($scope.data.devicegroupname);
+        });
+    };
+    
+    $scope.$on('$ionicView.enter', function(e) {
+        $scope.devicegroup = [];
+        $scope.deviceSelected = -1;
+        $scope.devices = [ {"id":0, "devicename": ""} ];
+        $scope.getDevices();
+    });   
+    
+    // EXIT PAGE
+    $scope.exitPage = function() {
+        var device_param = {
+            'username': $scope.data.username,
+            'token'   : $scope.data.token,
+            'activeSection': '2',
         };
         $state.go('menu.devices', device_param, {reload: true});
     };

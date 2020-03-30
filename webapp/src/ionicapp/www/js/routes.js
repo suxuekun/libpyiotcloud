@@ -25,7 +25,8 @@ angular.module('app.routes', [])
     url: '/page_devices',
 	params: {
 		username: "",
-		token: ""		
+		token: "",
+		activeSection: "1"		
 },
     views: {
       'side-menu21': {
@@ -50,16 +51,16 @@ angular.module('app.routes', [])
     }
   })
 
-  .state('menu.account', {
-    url: '/page_account',
+  .state('menu.credits', {
+    url: '/page_credits',
 	params: {
 		username: "",
 		token: ""		
 },
     views: {
       'side-menu21': {
-        templateUrl: 'templates/account.html',
-        controller: 'accountCtrl'
+        templateUrl: 'templates/credits.html',
+        controller: 'creditsCtrl'
       }
     }
   })
@@ -229,6 +230,16 @@ angular.module('app.routes', [])
     controller: 'addDeviceCtrl'
   })
 
+  .state('addDeviceGroup', {
+    url: '/page_add_devicegroup',
+	params: {
+		username: "",
+		token: ""		
+},
+    templateUrl: 'templates/addDeviceGroup.html',
+    controller: 'addDeviceGroupCtrl'
+  })
+
   .state('viewDevice', {
     url: '/page_view_device',
 	params: {
@@ -243,6 +254,17 @@ angular.module('app.routes', [])
 },
     templateUrl: 'templates/viewDevice.html',
     controller: 'viewDeviceCtrl'
+  })
+
+  .state('deviceGroup', {
+    url: '/page_device_group',
+	params: {
+		username: "",
+		token: "",
+		devicegroupname: ""		
+},
+    templateUrl: 'templates/deviceGroup.html',
+    controller: 'deviceGroupCtrl'
   })
 
   .state('deviceLocation', {

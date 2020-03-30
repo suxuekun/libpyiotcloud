@@ -9853,6 +9853,10 @@ table, th, td {
 .card_top_devices {
   background-color: #FFFFFF; }
 
+.card_id_devices {
+  margin-left: 15px;
+  height: 16px; }
+
 .card_image_devices {
   vertical-align: text-bottom;
   margin-left: 15px;
@@ -9861,6 +9865,10 @@ table, th, td {
 .card_label_devices {
   display: inline-block;
   height: 16px; }
+
+.card_label_devicegroups {
+  margin-left: 15px;
+  height: 20px; }
 
 .device_info_top_back {
   background-color: #3C5A99; }
