@@ -83,7 +83,7 @@ Below are the features of this IoT platform:
        D. Configure sensors for data forwarding
 
     7. Sensor data pipeline services
-       Remotely real-time sensor values visually and access data history
+       Remotely monitor real-time sensor values visually and access data history
        A. Ingest sensor data from sensors connected via peripherals: I2C, ADC, Onewire, TPROBE
        B. Store sensor data to a Big Data database using MongoDB Atlas
        C. Visualize sensor data in real-time using time-series dashboard charts (sensor filters, time range filter)
