@@ -6054,6 +6054,9 @@ def get_all_device_sensors_enabled_input_readings_dataset_filtered():
         #print(dateend)
         if period == 5:
             dateend = int(dateend/period) * period + period
+            # adjust based on specified index
+            if filter["index"] != 0:
+                dateend -= filter["index"] * timerange
             datebegin = dateend - timerange - period
         else:
             # adjust for adaptive begin and end "shift to left"
