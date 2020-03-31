@@ -67,6 +67,7 @@ Below are the features of this IoT platform:
        *  User groups and organizations
 
     5. Device management services
+       Provision, manage and monitor devices
        A. Register and configure device (using MongoDB and Redis databases)
        B. Access, configure and track location of a device (or a fleet of devices) via Google Maps (latitude, longitude)
        C. Update firmware (OTA) of a device (or a fleet of devices, can be a mixed of online or offline devices)
@@ -74,6 +75,7 @@ Below are the features of this IoT platform:
        *  Group-owned devices, organization-owned devices
 
     6. Peripheral and sensor management services
+       Provision and manage sensors for various devices
        A. Configure UART parameters and GPIO pins
        B. Register 3rd-party sensors connected via peripherals: I2C, ADC, OneWire, TPROBE
           potentiometer, temperature, humidity, anemometer, battery, fluid, speaker, display, light
@@ -83,7 +85,7 @@ Below are the features of this IoT platform:
        D. Configure sensors for data forwarding
 
     7. Sensor data pipeline services
-       Remotely monitor real-time sensor values visually and access data history
+       Remotely monitor real-time sensor values and data history visually
        A. Ingest sensor data from sensors connected via peripherals: I2C, ADC, Onewire, TPROBE
        B. Store sensor data to a Big Data database using MongoDB Atlas
        C. Visualize sensor data in real-time using time-series dashboard charts (sensor filters, time range filter)
@@ -92,7 +94,7 @@ Below are the features of this IoT platform:
        *  Analyze sensor data using 3rd-party Business Intellegence / Analytics tools (PowerBI, Tableau, Qlik)
 
     8. MENOS messaging/alerting services
-       Get alarmed over sMs, Email, push Notification, mOdem, Storage so you can respond and analyze events in time.
+       Raise alarms over sMs, Email, push Notification, mOdem, Storage so you can respond and analyze telemetry events in time.
        A. sMs: sending mobile SMS alerts via Amazon Pinpoint
        B. Email: sending email alerts via Amazon Pinpoint
        C. push Notification: sending mobile push notifications alerts to Android/IOS mobile via Amazon Pinpoint
