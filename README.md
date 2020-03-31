@@ -68,7 +68,7 @@ Below are the features of this IoT platform:
 
     5. Device management services
        A. Register and configure device (using MongoDB and Redis databases)
-       B. Access and configure location of a device (or a fleet of devices) via Google Maps (latitude, longitude)
+       B. Access, configure and track location of a device (or a fleet of devices) via Google Maps (latitude, longitude)
        C. Update firmware (OTA) of a device (or a fleet of devices, can be a mixed of online or offline devices)
        D. Organize devices into groups of devices for bulk/fleet-wide operations
        *  Group-owned devices, organization-owned devices
@@ -108,7 +108,7 @@ Below are the features of this IoT platform:
        C. View payment transactions and credits usage histories
 
 
-This IoT platform can be used for any type of businesses:
+This IoT platform can be used for any type of businesses and industries:
 - Agricultural and farm lots
 - Amusement parks and recreational fields
 - Data centers and facilities
