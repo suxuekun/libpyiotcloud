@@ -53,12 +53,13 @@ Below are the features of this IoT platform:
        C. Device simulator (Python) as reference implementation for actual IoT device
 
     3. Web/mobile connectivity services
+       Access Portal from your desktop computer or mobile devices.
        A. Web/mobile app and backend communication via RESTful APIs using HTTPS protocol
        B. Secure communication using TLS, trusted SSL certificates, JWT authorization headers
        C. Hybrid web/mobile apps (using Ionic framework) as reference implementation for actual web/mobile clients
 
     4. Identity management services
-       A. User sign-up and sign-in using Amazon Cognito with secure OTP (one-time password) sent to email/mobile number
+       A. User sign-up and sign-in with secure OTP (one-time password) using Amazon Cognito
        B. Login with email or with (verified) mobile number
        C. Login with multi-factor authentication (MFA) security - disabled by default; must be explicitly enabled by user
        D. Login via social IDP (Facebook/Google/Amazon) via OAuth2 security
@@ -69,7 +70,7 @@ Below are the features of this IoT platform:
        A. Register and configure device (using MongoDB and Redis databases)
        B. Access and configure location of a device (or a fleet of devices) via Google Maps (latitude, longitude)
        C. Update firmware (OTA) of a device (or a fleet of devices, can be a mixed of online or offline devices)
-       D. Organize devices into groups of devices (any category: logical, geographical, identical devices, etc.)
+       D. Organize devices into groups of devices for bulk/fleet-wide operations
        *  Group-owned devices, organization-owned devices
 
     6. Peripheral and sensor management services
@@ -82,6 +83,7 @@ Below are the features of this IoT platform:
        D. Configure sensors for data forwarding
 
     7. Sensor data pipeline services
+       Remotely real-time sensor values visually and access data history
        A. Ingest sensor data from sensors connected via peripherals: I2C, ADC, Onewire, TPROBE
        B. Store sensor data to a Big Data database using MongoDB Atlas
        C. Visualize sensor data in real-time using time-series dashboard charts (sensor filters, time range filter)
@@ -90,6 +92,7 @@ Below are the features of this IoT platform:
        *  Analyze sensor data using 3rd-party Business Intellegence / Analytics tools (PowerBI, Tableau, Qlik)
 
     8. MENOS messaging/alerting services
+       Get alarmed over sMs, Email, push Notification, mOdem, Storage so you can respond and analyze events in time.
        A. sMs: sending mobile SMS alerts via Amazon Pinpoint
        B. Email: sending email alerts via Amazon Pinpoint
        C. push Notification: sending mobile push notifications alerts to Android/IOS mobile via Amazon Pinpoint
@@ -99,9 +102,24 @@ Below are the features of this IoT platform:
        *  Lambda: trigger a user-defined Python/NodeJS function for highly customized alerting
 
     9. Credits and payment services
+       Conveniently topup your accounts every month to avail all services.
        A. Buy credits using Paypal gateway (with confirmation receipt sent to email)
        B. Use credits to be able to use messaging services and sensor data services
        C. View payment transactions and credits usage histories
+
+
+This IoT platform can be used for any type of businesses:
+- Agricultural and farm lots
+- Amusement parks and recreational fields
+- Data centers and facilities
+- Government offices and municipals
+- Hospitals and medical clinics
+- Hotels and house rentals
+- Industrial and manufacturing warehouses
+- Logistics and transportation
+- Schools and public libraries
+- Stores and retail outlets
+- Smart homes and smart offices
 
 
 This IoT platform is a container-based IoT cloud platform that leverages 
