@@ -291,7 +291,26 @@ SUMMARY:
 		H. SET DEVICES IN DEVICE GROUP    - POST   /devicegroups/DEVICEGROUPNAME/devices
 
 
-	4. Device access and control APIs (STATUS, UART, GPIO)
+	4. Device sensor access and control
+
+		//
+		// sensor properties
+		A. DELETE PERIPHERAL SENSOR PROPERTIES             - DELETE /devices/device/DEVICENAME/sensors/properties
+
+		//
+		// sensor readings (for dashboard)
+		B. GET PERIPHERAL SENSOR READINGS                  - GET    /devices/device/DEVICENAME/sensors/readings
+		C. DELETE PERIPHERAL SENSOR READINGS               - DELETE /devices/device/DEVICENAME/sensors/readings
+		D. GET PERIPHERAL SENSOR READINGS DATASET          - GET    /devices/device/DEVICENAME/sensors/readings/dataset
+		E. GET PERIPHERAL SENSOR READINGS DATASET FILTERED - POST   /devices/sensors/readings/dataset
+		F. DELETE PERIPHERAL SENSOR READINGS DATASET       - DELETE /devices/sensors/readings/dataset
+
+		//
+		// sensor forwarding and thresholding
+		G. GET PERIPHERAL SENSOR THRESHOLDS/FORWARDS       - GET   /devices/sensors/thresholdsforwards
+
+
+	5. Device access and control APIs (STATUS, UART, GPIO)
 
 		//
 		// status
@@ -321,20 +340,8 @@ SUMMARY:
 		O. SET GPIO VOLTAGE               - POST   /devices/device/DEVICENAME/gpio/voltage
 		   (NUMBER can be 1-4 only and corresponds to GPIO1,GPIO2,GPIO3,GPIO4)
 
-		//
-		// sensor readings (for dashboard)
-		P. GET PERIPHERAL SENSOR READINGS                  - GET    /devices/device/DEVICENAME/sensors/readings
-		Q. DELETE PERIPHERAL SENSOR READINGS               - DELETE /devices/device/DEVICENAME/sensors/readings
-		R. GET PERIPHERAL SENSOR READINGS DATASET          - GET    /devices/device/DEVICENAME/sensors/readings/dataset
-		S. GET PERIPHERAL SENSOR READINGS DATASET FILTERED - POST   /devices/sensors/readings/dataset
-		T. DELETE PERIPHERAL SENSOR READINGS DATASET       - DELETE /devices/sensors/readings/dataset
 
-		//
-		// sensor properties
-		U. DELETE PERIPHERAL SENSOR PROPERTIES - DELETE /devices/device/DEVICENAME/sensors/properties
-
-
-	5. Device access and control APIs (I2C)
+	6. Device access and control APIs (I2C)
 
 		A. ADD I2C DEVICE                 - POST   /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME
 		B. DELETE I2C DEVICE              - DELETE /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME
@@ -354,7 +361,7 @@ SUMMARY:
 		   (NUMBER can be 1-4 only and corresponds to I2C1,I2C2,I2C3,I2C4)
 
 
-	6. Device access and control APIs (ADC)
+	7. Device access and control APIs (ADC)
 
 		A. ADD ADC DEVICE                 - POST   /devices/device/DEVICENAME/adc/NUMBER/sensors/sensor/SENSORNAME
 		B. DELETE ADC DEVICE              - DELETE /devices/device/DEVICENAME/adc/NUMBER/sensors/sensor/SENSORNAME
@@ -374,7 +381,7 @@ SUMMARY:
 		O. SET ADC VOLTAGE                - POST   /devices/device/DEVICENAME/adc/voltage
 
 
-	7. Device access and control APIs (1WIRE)
+	8. Device access and control APIs (1WIRE)
 
 		A. ADD 1WIRE DEVICE               - POST   /devices/device/DEVICENAME/1wire/NUMBER/sensors/sensor/SENSORNAME
 		B. DELETE 1WIRE DEVICE            - DELETE /devices/device/DEVICENAME/1wire/NUMBER/sensors/sensor/SENSORNAME
@@ -392,7 +399,7 @@ SUMMARY:
 		   (NUMBER will always be 1 since there is only 1 1wire)
 
 
-	8. Device access and control APIs (TPROBE)
+	9. Device access and control APIs (TPROBE)
 
 		A. ADD TPROBE DEVICE              - POST   /devices/device/DEVICENAME/tprobe/NUMBER/sensors/sensor/SENSORNAME
 		B. DELETE TPROBE DEVICE           - DELETE /devices/device/DEVICENAME/tprobe/NUMBER/sensors/sensor/SENSORNAME
@@ -410,7 +417,7 @@ SUMMARY:
 		   (NUMBER will always be 1 since there is only 1 tprobe)
 
 
-	9. Device transaction recording APIs
+	10. Device transaction recording APIs
 
 		A. GET HISTORIES                  - GET    /devices/histories
 		B. GET HISTORIES FILTERED         - POST   /devices/histories
@@ -420,7 +427,7 @@ SUMMARY:
 		D. GET MENOS HISTORIES FILTERED   - POST   /devices/menos
 
 
-	10. Account subscription and payment APIs
+	11. Account subscription and payment APIs
 
 		A. GET SUBSCRIPTION               - GET    /account/subscription
 		B. PAYPAL SETUP                   - POST   /account/payment/paypalsetup
@@ -431,32 +438,32 @@ SUMMARY:
 		G. GET AMOUNT CONVERSION          - GET    /account/conversion/amount/AMOUNT
 
 
-	11. Mobile services
+	12. Mobile services
 
 		A. REGISTER DEVICE TOKEN          - POST   /mobile/devicetoken
 
 
-	12. Supported devices and firmware updates
+	13. Supported devices and firmware updates
 
 		A. GET SUPPORTED I2C DEVICES      - GET    /others/i2cdevices [OBSOLETED, use GET SUPPORTED SENSOR DEVICES instead]
 		B. GET SUPPORTED SENSOR DEVICES   - GET    /others/sensordevices
 		C. GET DEVICE FIRMWARE UPDATES    - GET    /others/firmwareupdates
 
 
-	13. Others
+	14. Others
 
 		A. SEND FEEDBACK                  - POST   /others/feedback
 		B. GET FAQS                       - GET    /others/faqs
 		C. GET ABOUT                      - GET    /others/about
 
 
-	14. ESP OTA Firmware Updates
+	15. ESP OTA Firmware Updates
 
 		A. DOWNLOAD FIRMWARE              - GET    /firmware/DEVICE/FILENAME
 		   (WARNING: This API is to be called by ESP device, not by web/mobile apps)
 
 
-	15. HTTP error codes
+	16. HTTP error codes
 
 		A. HTTP_400_BAD_REQUEST           - Invalid input
 		B. HTTP_401_UNAUTHORIZED          - Invalid password or invalid/expired token
@@ -1110,7 +1117,110 @@ DETAILED:
 		   // devices can be an empty array, meaning remove all devices in the group
 
 
-	4. Device access and control APIs (STATUS, UART, GPIO)
+	4. Device sensor access and control APIs
+
+		A. DELETE PERIPHERAL SENSOR PROPERTIES
+		-  Request:
+		   DELETE /devices/device/DEVICENAME/sensors/properties
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		-  Response:
+		   { 'status': 'OK', 'message': string}
+		   { 'status': 'NG', 'message': string}
+
+		B. GET PERIPHERAL SENSOR READINGS
+		-  Request:
+		   GET /devices/device/DEVICENAME/sensors/readings
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		-  Response:
+		   { 'status': 'OK', 'message': string, 
+		     'sensors': [{'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': string, 'enabled': int, 'configured': int, 'units': [], 'formats': [], 'attributes': [], 'readings': {'value': float, 'lowest': float, 'highest': float, 'subclass': {'value': float, 'lowest': float, 'highest': float}}] }
+		   { 'status': 'NG', 'message': string}
+		   // the subclass parameter of readings parameter will only appear if the sensor has a subclass
+
+		C. GET PERIPHERAL SENSOR READINGS DATASET
+		-  Request:
+		   GET /devices/device/DEVICENAME/sensors/readings/dataset
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		-  Response:
+		   { 'status': 'OK', 'message': string, 
+		     'sensors': [{'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': string, 'enabled': int, 'configured': int, 'units': [], 'formats': [], 'attributes': [], 'dataset': {'labels': [], 'data': [[],...]}] }
+		   { 'status': 'NG', 'message': string}
+		   // the subclass parameter of readings parameter will only appear if the sensor has a subclass
+		   // if sensor has a subclass:  'dataset': {'labels': [], 'data': [[],[]]}
+		      if sensor has no subclass: 'dataset': {'labels': [], 'data': [[]]}
+		      this make the dataset object directly useable by Chart.JS 
+
+		D. GET PERIPHERAL SENSOR READINGS DATASET FILTERED
+		-  Request:
+		   POST /devices/sensors/readings/dataset
+		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+		   data: {'devicename': string, 'peripheral': string, 'class': string, 'status': string, 'timerange': string, 'points': int, 'checkdevice': int}
+		   // devicename can be "All devices" or the devicename of specific device
+		   // peripheral can be ["All peripherals", "I2C1", "I2C2", "I2C3", "I2C4", "ADC1", "ADC2", "1WIRE1", "TPROBE1"]
+		   // class can be ["All classes", "potentiometer", "temperature", "humidity", "anemometer", "battery", "fluid"]
+		   // status can be ["All online/offline", "online", "offline"]
+		   // timerange can be:
+		        Last 5 minutes
+		        Last 15 minutes
+		        Last 30 minutes
+		        Last 60 minutes
+		        Last 3 hours
+		        Last 6 hours
+		        Last 12 hours
+		        Last 24 hours
+		        Last 3 days
+		        Last 7 days
+		        Last 2 weeks
+		        Last 4 weeks
+		        Last 3 months
+		        Last 6 months
+		        Last 12 months
+		   // points can be 60, 30 or 15 points (for mobile, since screen is small, should use 30 or 15 instead of 60)
+		   // index is 0 by default. 
+		      To view the timeranges above, index is 0
+		      To view the next timerange, ex. "Last Last 5 minutes", the previous instance, index is 1. and so on...
+		   // checkdevice is 1 or 0. 1 if device status needs to be check if device is online and if sensor is active
+		-  Response:
+		   { 'status': 'OK', 'message': string, 
+		     'sensors': [{'devicename': string, 'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': string, 'enabled': int, 'configured': int, 'units': [], 'formats': [], 'attributes': [], 
+		                  'dataset':  {'labels': [], 'data': [[],...], 'low': [[],...], 'high': [[],...]}, 
+		                  'readings': {'value': float, 'lowest': float, 'highest': float, 'subclass': {'value': float, 'lowest': float, 'highest': float}}
+		                ]}
+		   { 'status': 'NG', 'message': string}
+		   // the subclass parameter of readings parameter will only appear if the sensor has a subclass
+		   // if sensor has a subclass:  'dataset': {'labels': [], 'data': [[],[]]}
+		      if sensor has no subclass: 'dataset': {'labels': [], 'data': [[]]}
+		      this make the dataset object directly usable by Chart.JS 
+		   // low and high does NOT appear when "Last 5 minutes" timerange is selected.
+
+		E. DELETE PERIPHERAL SENSOR READINGS
+		-  Request:
+		   DELETE /devices/device/DEVICENAME/sensors/readings
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		-  Response:
+		   { 'status': 'OK', 'message': string}
+		   { 'status': 'NG', 'message': string}
+
+		F. DELETE PERIPHERAL SENSOR READINGS DATASET
+		-  Request:
+		   DELETE /devices/sensors/readings/dataset
+		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+		   data: {'devicename': string}
+		   // devicename can be "All devices" or the devicename of specific device
+		-  Response:
+		   { 'status': 'OK', 'message': string}
+		   { 'status': 'NG', 'message': string}
+
+		G. GET PERIPHERAL SENSOR THRESHOLDS/FORWARDS
+		-  Request:
+		   GET /devices/sensors/thresholdsforwards
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		-  Response:
+		   { 'status': 'OK', 'message': string, 'sensors': {'sensorname': string, 'devicename': string, 'classes': string, 'configuration': string, 'enabled': int} }
+		   { 'status': 'NG', 'message': string}
+
+
+	5. Device access and control APIs (STATUS, UART, GPIO)
 
 		For device APIs, note that DEVICENAME is used instead of DEVICEID.
 		This strategy is more secure as the unique DEVICEID is not easily exposed in the HTTP packets.
@@ -1566,100 +1676,7 @@ DETAILED:
 		   { 'status': 'NG', 'message': string }
 
 
-		P. GET PERIPHERAL SENSOR READINGS
-		-  Request:
-		   GET /devices/device/DEVICENAME/sensors/readings
-		   headers: {'Authorization': 'Bearer ' + token.access}
-		-  Response:
-		   { 'status': 'OK', 'message': string, 
-		     'sensors': [{'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': string, 'enabled': int, 'configured': int, 'units': [], 'formats': [], 'attributes': [], 'readings': {'value': float, 'lowest': float, 'highest': float, 'subclass': {'value': float, 'lowest': float, 'highest': float}}] }
-		   { 'status': 'NG', 'message': string}
-		   // the subclass parameter of readings parameter will only appear if the sensor has a subclass
-
-		Q. GET PERIPHERAL SENSOR READINGS DATASET
-		-  Request:
-		   GET /devices/device/DEVICENAME/sensors/readings/dataset
-		   headers: {'Authorization': 'Bearer ' + token.access}
-		-  Response:
-		   { 'status': 'OK', 'message': string, 
-		     'sensors': [{'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': string, 'enabled': int, 'configured': int, 'units': [], 'formats': [], 'attributes': [], 'dataset': {'labels': [], 'data': [[],...]}] }
-		   { 'status': 'NG', 'message': string}
-		   // the subclass parameter of readings parameter will only appear if the sensor has a subclass
-		   // if sensor has a subclass:  'dataset': {'labels': [], 'data': [[],[]]}
-		      if sensor has no subclass: 'dataset': {'labels': [], 'data': [[]]}
-		      this make the dataset object directly useable by Chart.JS 
-
-		R. GET PERIPHERAL SENSOR READINGS DATASET FILTERED
-		-  Request:
-		   POST /devices/sensors/readings/dataset
-		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-		   data: {'devicename': string, 'peripheral': string, 'class': string, 'status': string, 'timerange': string, 'points': int, 'checkdevice': int}
-		   // devicename can be "All devices" or the devicename of specific device
-		   // peripheral can be ["All peripherals", "I2C1", "I2C2", "I2C3", "I2C4", "ADC1", "ADC2", "1WIRE1", "TPROBE1"]
-		   // class can be ["All classes", "potentiometer", "temperature", "humidity", "anemometer", "battery", "fluid"]
-		   // status can be ["All online/offline", "online", "offline"]
-		   // timerange can be:
-		        Last 5 minutes
-		        Last 15 minutes
-		        Last 30 minutes
-		        Last 60 minutes
-		        Last 3 hours
-		        Last 6 hours
-		        Last 12 hours
-		        Last 24 hours
-		        Last 3 days
-		        Last 7 days
-		        Last 2 weeks
-		        Last 4 weeks
-		        Last 3 months
-		        Last 6 months
-		        Last 12 months
-		   // points can be 60 points or 30 points (for mobile, since screen is small, should use 30 instead of 60)
-		   // index is 0 by default. 
-		      To view the timeranges above, index is 0
-		      To view the next timerange, ex. "Last Last 5 minutes", the previous instance, index is 1. and so on...
-		   // checkdevice is 1 or 0. 1 if device status needs to be check if device is online and if sensor is active
-		-  Response:
-		   { 'status': 'OK', 'message': string, 
-		     'sensors': [{'devicename': string, 'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': string, 'enabled': int, 'configured': int, 'units': [], 'formats': [], 'attributes': [], 
-		                  'dataset':  {'labels': [], 'data': [[],...], 'low': [[],...], 'high': [[],...]}, 
-		                  'readings': {'value': float, 'lowest': float, 'highest': float, 'subclass': {'value': float, 'lowest': float, 'highest': float}}
-		                ]}
-		   { 'status': 'NG', 'message': string}
-		   // the subclass parameter of readings parameter will only appear if the sensor has a subclass
-		   // if sensor has a subclass:  'dataset': {'labels': [], 'data': [[],[]]}
-		      if sensor has no subclass: 'dataset': {'labels': [], 'data': [[]]}
-		      this make the dataset object directly usable by Chart.JS 
-		   // low and high does NOT appear when "Last 5 minutes" timerange is selected.
-
-		S. DELETE PERIPHERAL SENSOR READINGS
-		-  Request:
-		   DELETE /devices/device/DEVICENAME/sensors/readings
-		   headers: {'Authorization': 'Bearer ' + token.access}
-		-  Response:
-		   { 'status': 'OK', 'message': string}
-		   { 'status': 'NG', 'message': string}
-
-		T. DELETE PERIPHERAL SENSOR READINGS DATASET
-		-  Request:
-		   DELETE /devices/sensors/readings/dataset
-		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-		   data: {'devicename': string}
-		   // devicename can be "All devices" or the devicename of specific device
-		-  Response:
-		   { 'status': 'OK', 'message': string}
-		   { 'status': 'NG', 'message': string}
-
-		U. DELETE PERIPHERAL SENSOR PROPERTIES
-		-  Request:
-		   DELETE /devices/device/DEVICENAME/sensors/properties
-		   headers: {'Authorization': 'Bearer ' + token.access}
-		-  Response:
-		   { 'status': 'OK', 'message': string}
-		   { 'status': 'NG', 'message': string}
-
-
-	5. Device access and control APIs (I2C)
+	6. Device access and control APIs (I2C)
 
 
 		A. ADD I2C DEVICE
@@ -2127,7 +2144,7 @@ DETAILED:
 		   { 'status': 'NG', 'message': string }
 
 
-	6. Device access and control APIs (ADC)
+	7. Device access and control APIs (ADC)
 
 
 		A. ADD ADC DEVICE
@@ -2403,7 +2420,7 @@ DETAILED:
 		   { 'status': 'NG', 'message': string }
 
 
-	7. Device access and control APIs (1WIRE)
+	8. Device access and control APIs (1WIRE)
 
 
 		A. ADD 1WIRE DEVICE
@@ -2559,7 +2576,7 @@ DETAILED:
 		   { 'status': 'NG', 'message': string }
 
 
-	8. Device access and control APIs (TPROBE)
+	9. Device access and control APIs (TPROBE)
 
 
 		A. ADD TPROBE DEVICE
@@ -2737,7 +2754,7 @@ DETAILED:
 		   { 'status': 'NG', 'message': string }
 
 
-	9. Device transaction recording APIs
+	10. Device transaction recording APIs
 
 		A. GET HISTORIES
 		-  Request:
@@ -2838,7 +2855,7 @@ DETAILED:
 		   // sensorname and condition are optional (ex. when source is UART/GPIOX, then both sensorname and condition are not present
 
 
-	10. Account subscription and payment APIs
+	11. Account subscription and payment APIs
 
 		// Use any of the following Paypal Sandbox accounts: (https://sandbox.paypal.com)
 		   dev1.sg@brtchip.com (personal) - Singapore buyer
@@ -2931,7 +2948,7 @@ DETAILED:
 		   // Note that in the Paypal website, it seems its only possible to query up to 3 years but invoices can be requested up to 7 years.
 
 
-	11. Mobile services
+	12. Mobile services
 
 		A. REGISTER DEVICE TOKEN
 		-  Request:
@@ -2963,7 +2980,7 @@ DETAILED:
 		   Double check your results here: https://jwt.io/
 
 
-	12. Supported devices/firmware updates
+	13. Supported devices/firmware updates
 
 		A. GET SUPPORTED I2C DEVICES (obsoloted: use GET SUPPORTED SENSOR DEVICES instead)
 		-  Request:
@@ -3000,7 +3017,7 @@ DETAILED:
 		   // this API provides access to the contents of the JSON file
 
 
-	13. Others
+	14. Others
 
 		A. SEND FEEDBACK
 		-  Request:
@@ -3029,7 +3046,7 @@ DETAILED:
 		   {'status': 'NG', 'message': string }
 
 
-	14. ESP OTA Firmware Updates
+	15. ESP OTA Firmware Updates
 
 		A. DOWNLOAD FIRMWARE
 		-  Request:

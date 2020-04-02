@@ -9801,11 +9801,11 @@ a.button {
 
 table, th, td {
   border-collapse: collapse;
-  padding: 12px;
-  text-align: center;
+  padding: 4px;
+  text-align: left;
   border-bottom: 1px solid #ddd;
   color: #444444;
-  font-size: 16px; }
+  font-size: 13px; }
 
 #chartjs-tooltip {
   opacity: 0;
@@ -9869,6 +9869,9 @@ table, th, td {
 .card_label_devices {
   display: inline-block;
   height: 16px; }
+
+.card_label_dashboard_table {
+  display: inline-block; }
 
 .card_label_devicegroups {
   margin-left: 15px;
@@ -9960,6 +9963,9 @@ table, th, td {
 .widget_title_half_50 {
   width: 49% !important;
   display: inline-block; }
+
+.widget_whole {
+  width: 98% !important; }
 
 .widget_half {
   width: 49% !important;
