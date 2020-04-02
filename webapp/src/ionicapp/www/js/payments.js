@@ -36,18 +36,18 @@ angular.module('payments', [])
                     let timestamp = new Date(result.data.transactions[indexy].timestamp * 1000); 
 
                     result.data.transactions[indexy].timestamp = "" + timestamp;
-                    console.log(result.data.transactions[indexy].timestamp);
+                    //console.log(result.data.transactions[indexy].timestamp);
 
                     result.data.transactions[indexy].time = 
                         ('0'+timestamp.getHours()).slice(-2) + ":" + 
                         ('0'+timestamp.getMinutes()).slice(-2);
-                    console.log(result.data.transactions[indexy].time);
+                    //console.log(result.data.transactions[indexy].time);
 
                     result.data.transactions[indexy].date = 
                             timestamp.getFullYear() + "/" + 
                             ('0'+(timestamp.getMonth()+1)).slice(-2) + "/" + 
                             ('0'+timestamp.getDate()).slice(-2);
-                    console.log(result.data.transactions[indexy].date);
+                    //console.log(result.data.transactions[indexy].date);
                 }
                 
                 return result.data.transactions;

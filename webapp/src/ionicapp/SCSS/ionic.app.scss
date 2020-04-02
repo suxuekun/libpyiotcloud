@@ -113,6 +113,29 @@ table, th, td {
 	height: 10px;
 }
 
+.stats_block_container {
+	padding-top: 0px;
+	padding-bottom: 0px;
+	padding-left: 0px;
+	padding-right: 0px;
+	margin-top: 0px;
+	margin-bottom: 0px;
+	margin-left: 0px;
+	margin-right: 0px;
+}
+
+.stats_block {
+	background-color: #3C5A99;
+	width: 21% !important;
+	display: inline-block;
+}
+
+.stats_block_spacer {
+	background-color: #FFFFFF;
+	width: 1% !important;
+	display: inline-block;
+}
+
 .card_top {
 	background-color: #3C5A99;
 }
@@ -133,6 +156,21 @@ table, th, td {
 .page_width_small {
 	max-width: 500px;
 	margin: 0% auto;
+}
+
+.widget_selection_half {
+	width: 49% !important;
+	min-width: 300px;
+	height: 55px;
+	vertical-align: text-top;
+	display: inline-block;
+}
+
+.widget_selection_half_ex {
+	width: 49% !important;
+	min-width: 300px;
+	height: 55px;
+	vertical-align: text-top;
 }
 
 .widget_title_half_50 {

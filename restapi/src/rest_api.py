@@ -5788,7 +5788,7 @@ def get_all_device_sensors_enabled_input_readings_dataset(devicename):
     return response
 
 
-def get_running_sensors(token, username, devicename):
+def get_running_sensors(token, username, devicename, device):
     # query device
     api = "get_devs"
     data = {}
@@ -5797,6 +5797,7 @@ def get_running_sensors(token, username, devicename):
     data['username'] = username
     response, status_return = process_request(api, data)
     if status_return == 200:
+        device['status'] = 1
         # query database
         sensors = g_database_client.get_all_device_sensors_input(username, devicename)
 
@@ -5833,6 +5834,7 @@ def get_running_sensors(token, username, devicename):
                 g_database_client.set_enable_configure_sensor(username, devicename, sensor['source'], sensor['number'], sensor['sensorname'], 0, 0)
         #print()
     else:
+        device['status'] = 0
         # cannot communicate with device so set database record to unconfigured and disabled
         g_database_client.disable_unconfigure_sensors(username, devicename)
         #print('\r\nERROR Get All Device Sensors Dataset: Device is offline\r\n')
@@ -5892,6 +5894,67 @@ def get_sensor_data_threaded_ex(sensor, username, datebegin, dateend, period, ma
                     break
     sensor.pop("deviceid")
 
+def get_stats(devices, sensors_list):
+    stats = {}
+
+    enabled_devices = 0
+    for device in devices:
+        if device["status"] == 1:
+            enabled_devices += 1
+    stats['devices'] = { 'total': len(devices), 'online': enabled_devices, 'offline': len(devices)-enabled_devices }
+
+    peripherals = []
+    stats['peripherals'] = { 'total': 0 }
+    classes = []
+    stats['classes'] = { 'total': 0 }
+
+    enabled_sensors = 0
+    for sensor in sensors_list:
+        if sensor["enabled"] == 1:
+            enabled_sensors += 1
+
+        if sensor["source"] not in peripherals:
+            peripherals.append(sensor["source"])
+            stats['peripherals']['total'] += 1
+            stats['peripherals'][sensor["source"]] = 1
+            stats['peripherals']['label'] = ''
+        else:
+            stats['peripherals'][sensor["source"]] += 1
+
+        if sensor["class"] not in classes:
+            classes.append(sensor["class"])
+            stats['classes']['total'] += 1
+            stats['classes'][sensor["class"]] = 1
+            stats['classes']['label'] = ''
+        else:
+            stats['classes'][sensor["class"]] += 1
+
+        if sensor.get("subclass"):
+            if sensor["subclass"] not in classes:
+                classes.append(sensor["subclass"])
+                stats['classes']['total'] += 1
+                stats['classes'][sensor["subclass"]] = 1
+                stats['classes']['label'] = ''
+            else:
+                stats['classes'][sensor["subclass"]] += 1
+
+    stats['sensors'] = { 'total': len(sensors_list), 'enabled': enabled_sensors, 'disabled': len(sensors_list)-enabled_sensors }
+
+    if len(peripherals):
+        peripherals.sort()
+    for peripheral in peripherals:
+        stats['peripherals']['label'] += "{} {}, ".format(stats['peripherals'][peripheral], peripheral)
+    if len(peripherals):
+        stats['peripherals']['label'] = stats['peripherals']['label'][:len(stats['peripherals']['label'])-2]
+
+    if len(classes):
+        classes.sort()
+    for classe in classes:
+        stats['classes']['label'] += "{} {}, ".format(stats['classes'][classe], classe[:4])
+    if len(classes):
+        stats['classes']['label'] = stats['classes']['label'][:len(stats['classes']['label'])-2]
+
+    return stats
 
 ########################################################################################################
 #
@@ -5921,7 +5984,7 @@ def get_sensor_data_threaded_ex(sensor, username, datebegin, dateend, period, ma
 #        Last 3 months
 #        Last 6 months
 #        Last 12 months
-#   // points can be 60 points or 30 points (for mobile, since screen is small, should use 30 instead of 60)
+#   // points can be 60, 30 or 15 points (for mobile, since screen is small, should use 30 or 15 instead of 60)
 #   // index is 0 by default. 
 #        To view the timeranges above, index is 0
 #        To view the next timerange, ex. "Last Last 5 minutes", the previous instance, index is 1. and so on...
@@ -6018,7 +6081,7 @@ def get_all_device_sensors_enabled_input_readings_dataset_filtered():
             thread_list = []
             for device in devices:
                 devicename = device["devicename"]
-                thr = threading.Thread(target = get_running_sensors, args = (token, username, devicename, ))
+                thr = threading.Thread(target = get_running_sensors, args = (token, username, devicename, device, ))
                 thread_list.append(thr) 
                 thr.start()
             for thr in thread_list:
@@ -6046,7 +6109,7 @@ def get_all_device_sensors_enabled_input_readings_dataset_filtered():
 
         # get time bound
         maxpoints = filter["points"] # tested with 60 points
-        if (maxpoints != 60 and maxpoints != 30):
+        if (maxpoints != 60 and maxpoints != 30 and maxpoints != 15):
             maxpoints = 60
         period = int(timerange/maxpoints)
         maxpoints += 1
@@ -6088,8 +6151,16 @@ def get_all_device_sensors_enabled_input_readings_dataset_filtered():
 
         if len(sensors_list):
             sensors_list.sort(key=sort_by_devicename)
+
+        # compute stats
+        stats = None
+        if checkdevice != 0:
+            stats = get_stats(devices, sensors_list)
+
         #print(time.time()-start_time)
         msg = {'status': 'OK', 'message': 'Get All Device Sensors Dataset queried successfully.', 'sensors': sensors_list}
+        if stats:
+            msg['stats'] = stats
 
     elif flask.request.method == 'DELETE':
 
