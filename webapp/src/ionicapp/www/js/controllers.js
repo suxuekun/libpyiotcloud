@@ -6610,11 +6610,14 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
     
     $scope.hide_settings = false;
     $scope.sensors = [];
+    $scope.sensors_table = [];
+    $scope.sensors_tableshow = true;
     $scope.sensors_counthdr = "No sensor returned" ;
     $scope.refresh_automatically = false;
     $scope.refresh_time = 5;
     $scope.run_time = 0;
     $scope.big_charts = true;
+    $scope.online_charts = false;
 
     $scope.stats = {};
     
@@ -6839,6 +6842,11 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         //console.log($scope.big_charts);
     };
 
+    $scope.changeOnlineChart = function(s) {
+        $scope.online_charts = s;
+        //console.log($scope.online_charts);
+    };
+
     $scope.changeHideSettings = function(s) {
         $scope.hide_settings = s;
     };
@@ -6896,6 +6904,9 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         sensor.show = !sensor.show;
     };
 
+    $scope.changeSensorTableHide = function() {
+        $scope.sensors_tableshow = !$scope.sensors_tableshow;
+    };
 
     get_all_device_sensors_enabled_input_dataset = function() {
         //console.log($scope.peripheral);
@@ -6949,19 +6960,39 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                 $scope.sensors = [];
                 return;
             }
-            else if (result.data.sensors.length === 1) {
-                $scope.sensors_counthdr = "1 sensor returned";
-            }
             else {
-                $scope.sensors_counthdr = result.data.sensors.length.toString() + " sensors returned";
-            }
-
-            if ($scope.timer !== null /* && $scope.data.devicename === "All devices" */) {
-                if ($scope.checkdevice === 1) {
-                    $scope.checkdevice = 0;
+                // delete 
+                if ($scope.online_charts === true) {
+                    let count = result.data.sensors.length;
+                    
+                    for (let indexy=count-1; indexy>=0; indexy--) {
+                        if (result.data.sensors[indexy].enabled === 0) {
+                            //delete result.data.sensors[indexy];
+                            result.data.sensors.splice(indexy, 1);
+                        }
+                    }
+                    /*
+                    for (let indexy=0; indexy<count; indexy++) {
+                        if (result.data.sensors[indexy].enabled === 0) {
+                            result.data.sensors.splice(indexy, 1);
+                        }
+                    }
+                    */
+                    console.log(result.data.sensors.length);
+                }
+                if (result.data.sensors.length === 0) {
+                    $scope.sensors_counthdr = "No sensor returned";
+                    $scope.sensors = [];
+                    return;
+                }
+                else if (result.data.sensors.length === 1) {
+                    $scope.sensors_counthdr = "1 sensor returned";
+                }
+                else {
+                    $scope.sensors_counthdr = result.data.sensors.length.toString() + " sensors returned";
                 }
             }
-
+            
             for (let indexy=0; indexy<result.data.sensors.length; indexy++) {
                 let found = false;
                 for (let indexz=0; indexz<$scope.sensors.length; indexz++) {
@@ -7047,6 +7078,19 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                 }
                 //console.log($scope.sensors_datachart);
             }
+            
+
+            if ($scope.timer !== null /* && $scope.data.devicename === "All devices" */) {
+                if ($scope.checkdevice === 1) {
+                    $scope.checkdevice = 0;
+                    get_all_sensor_thresholdsforwards();
+                }
+            }
+            else {
+                if ($scope.checkdevice === 1) {
+                    get_all_sensor_thresholdsforwards();
+                }
+            }
         })
         .catch(function (error) {
             $scope.sensors_counthdr = "No sensor returned";
@@ -7127,7 +7171,32 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         }); 
     };
 
-
+    get_all_sensor_thresholdsforwards = function() {
+        //
+        // GET PERIPHERAL SENSOR THRESHOLDS/FORWARDS
+        //
+        // - Request:
+        //   GET /devices/sensors/thresholdsforwards
+        //   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string }
+        //   { 'status': 'NG', 'message': string }        
+        //
+        $http({
+            method: 'GET',
+            url: server + '/devices/sensors/thresholdsforwards',
+            headers: { 'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json' },
+        })
+        .then(function (result) {
+            console.log(result.data);
+            $scope.sensors_table = result.data.sensors;
+        })
+        .catch(function (error) {
+            handle_error(error);
+        }); 
+    };
+    
     $scope.changePeripheral = function(peripheral) {
         $scope.peripheral = peripheral;
         $scope.submitQuery();
@@ -7503,6 +7572,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         console.log("enter sensor dashboard");
         $scope.devices = [{"devicename": "All devices"}];
         $scope.sensors = [];
+        $scope.sensors_table = [];
         $scope.sensors_counthdr = "No sensor returned";
         
         $scope.timer = null;
@@ -7521,6 +7591,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         $scope.refresh_time = 5;
         $scope.run_time = 0;
         $scope.big_charts = true;
+        $scope.online_charts = false;
     
         $scope.stats = {};        
         

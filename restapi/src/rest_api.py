@@ -6246,6 +6246,117 @@ def delete_all_device_sensors_properties(devicename):
 
 ########################################################################################################
 #
+# GET PERIPHERAL SENSOR THRESHOLDS/FORWARDS
+#
+# - Request:
+#   GET /devices/sensors/thresholdsforwards
+#   headers: { 'Authorization': 'Bearer ' + token.access }
+#
+# - Response:
+#   { 'status': 'OK', 'message': string, 'sensors': {'sensorname': string, 'devicename': string, 'classes': string, 'configuration': string, 'enabled': int} }
+#   { 'status': 'NG', 'message': string }
+#
+########################################################################################################
+@app.route('/devices/sensors/thresholdsforwards', methods=['GET'])
+def get_all_sensor_thresholds():
+
+    # get token from Authorization header
+    auth_header_token = get_auth_header_token()
+    if auth_header_token is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
+        print('\r\nERROR Get All Sensor Thresholds: Invalid authorization header\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
+    token = {'access': auth_header_token}
+
+    # get username from token
+    username = g_database_client.get_username_from_token(token)
+    if username is None:
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Get All Sensor Thresholds: Token expired\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
+    #print('get_all_sensor_thresholds {}'.format(username))
+
+    # check if a parameter is empty
+    if len(username) == 0 or len(token) == 0:
+        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+        print('\r\nERROR Get All Sensor Thresholds: Empty parameter found\r\n')
+        return response, status.HTTP_400_BAD_REQUEST
+
+    # check if username and token is valid
+    verify_ret, new_token = g_database_client.verify_token(username, token)
+    if verify_ret == 2:
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Get All Sensor Thresholds: Token expired [{}]\r\n'.format(username))
+        return response, status.HTTP_401_UNAUTHORIZED
+    elif verify_ret != 0:
+        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
+        print('\r\nERROR Get All Sensor Thresholds: Token is invalid [{}]\r\n'.format(username))
+        return response, status.HTTP_401_UNAUTHORIZED
+
+    sensors_list = []
+    devices = g_database_client.get_devices(username)
+    for device in devices:
+        # get all user input sensors
+        sensors = g_database_client.get_all_device_sensors_input_by_deviceid(device["deviceid"])
+        if len(sensors):
+            #print(len(sensors))
+            for sensor in sensors:
+                address = None
+                if sensor.get("address"):
+                    address = sensor["address"]
+                configuration = g_database_client.get_device_peripheral_configuration_by_deviceid(device["deviceid"], sensor["source"], int(sensor["number"]), address)
+                if configuration is not None:
+                    mode = configuration["attributes"]["mode"]
+                    # check if continuous mode (sensor forwarding) or thresholding mode (notification triggering)
+                    if configuration.get("attributes"):
+                        if mode == 2: #MODE_CONTINUOUS: 
+                            value = configuration["attributes"]["hardware"]["devicename"]
+                            value = "forward: " + value
+                        else: 
+                            threshold = configuration["attributes"]["threshold"]
+                            if mode == 0: # MODE_THRESHOLD_SINGLE
+                                value = {"value": threshold["value"]}
+                            elif mode == 1: # MODE_THRESHOLD_DUAL
+                                value = {"min": threshold["min"], "max": threshold["max"]}
+                            value = "threshold: " + json.dumps(value)
+                        classes = sensor["class"]
+                    # handle subclass
+                    if configuration["attributes"].get("subattributes"):
+                        if mode == 2: #MODE_CONTINUOUS: 
+                            subvalue = configuration["attributes"]["subattributes"]["hardware"]["devicename"]
+                            subvalue = "forward: " + value
+                        else: 
+                            threshold = configuration["attributes"]["subattributes"]["threshold"]
+                            if mode == 0: # MODE_THRESHOLD_SINGLE
+                                subvalue = {"value": threshold["value"]}
+                            elif mode == 1: # MODE_THRESHOLD_DUAL
+                                subvalue = {"min": threshold["min"], "max": threshold["max"]}
+                            subvalue = "threshold: " + json.dumps(subvalue)
+                        value += ", " + subvalue
+                        classes += ", " + sensor["subclass"]
+                else:
+                    value = "Unconfigured"
+                    classes = sensor["class"]
+                    if sensor.get("subclass"):
+                        classes += ", " + sensor["subclass"]
+                #print("{}, {}, {}, {}, {}".format(sensor["sensorname"], device["devicename"], classes, value, sensor["enabled"]))
+                sensors_list.append({"sensorname": sensor["sensorname"], "devicename": device["devicename"], "classes": classes, "configuration": value, "enabled": sensor["enabled"]})
+    #print(len(sensors_list))
+
+
+    msg = {'status': 'OK', 'message': 'All Sensor Thresholds queried successfully.', 'sensors': sensors_list}
+    if new_token:
+        msg['new_token'] = new_token
+    response = json.dumps(msg)
+    print('\r\nAll Sensor Thresholds queried successful: {}\r\n'.format(username))
+    return response
+
+
+###########################
+
+
+########################################################################################################
+#
 # GET I2C DEVICES
 #
 # - Request:

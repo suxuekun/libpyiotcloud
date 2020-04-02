@@ -412,6 +412,9 @@ class database_client:
     def delete_all_device_peripheral_configuration(self, username, devicename):
         return self._devices.delete_all_device_peripheral_configuration(self._devices.get_deviceid(username, devicename))
 
+    def get_device_peripheral_configuration_by_deviceid(self, deviceid, source, number, address):
+        return self._devices.get_device_peripheral_configuration(deviceid, source, number, address)
+
     def get_device_peripheral_configuration(self, username, devicename, source, number, address):
         return self._devices.get_device_peripheral_configuration(self._devices.get_deviceid(username, devicename), source, number, address)
 
@@ -426,11 +429,20 @@ class database_client:
     # sensors
     ##########################################################
 
+    def get_user_sensors_input(self, username):
+        return self._devices.get_user_sensors_input(username)
+
+    def get_all_device_sensors_by_deviceid(self, deviceid):
+        return self._devices.get_all_device_sensors(deviceid)
+
     def get_all_device_sensors(self, username, devicename):
         return self._devices.get_all_device_sensors(self._devices.get_deviceid(username, devicename))
 
     def get_all_device_sensors_enabled_input(self, username, devicename, source=None, number=None, sensorclass=None, sensorstatus=1):
         return self._devices.get_all_device_sensors_enabled_input(self._devices.get_deviceid(username, devicename), source, number, sensorclass, sensorstatus)
+
+    def get_all_device_sensors_input_by_deviceid(self, deviceid):
+        return self._devices.get_all_device_sensors_input(deviceid)
 
     def get_all_device_sensors_input(self, username, devicename):
         return self._devices.get_all_device_sensors_input(self._devices.get_deviceid(username, devicename))
@@ -1754,6 +1766,17 @@ class database_client_mongodb:
 
     def get_sensors_document(self):
         return self.client[config.CONFIG_MONGODB_TB_I2CSENSORS]
+
+    def get_user_sensors_input(self, username):
+        sensor_list = []
+        i2csensors = self.get_sensors_document();
+        if i2csensors:
+            for i2csensor in i2csensors.find({'username': username, 'type': 'input'}):
+                i2csensor.pop('_id')
+                if i2csensor.get('username'):
+                    i2csensor.pop('username')
+                sensor_list.append(i2csensor)
+        return sensor_list
 
     def get_all_device_sensors(self, deviceid):
         sensor_list = []
