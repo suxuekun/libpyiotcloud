@@ -94,23 +94,25 @@ table, th, td {
 }
 
 .device_info_top {
-	width: 39% !important;
+	width: 48% !important;
 	display: inline-block;
 	padding-top: 0px;
 	padding-bottom: 0px;
 	margin-top: 0px;
 	margin-bottom: 0px;
 	height: 10px;
+	margin-right: 2px;
 }
 
 .device_info_top_ex {
-	width: 59% !important;
+	width: 50% !important;
 	display: inline-block;
 	padding-top: 0px;
 	padding-bottom: 0px;
 	margin-top: 0px;
 	margin-bottom: 0px;
 	height: 10px;
+	margin-left: 0px;
 }
 
 .stats_block_container {
@@ -241,6 +243,15 @@ table, th, td {
 .widget_button_half {
 	width: 49% !important;
 	display: inline-block;
+}
+
+.widget_button_half_device {
+	width: 49% !important;
+	display: inline-block;
+	padding-top: 0px;
+	padding-bottom: 0px;
+	margin-top: 0px;
+	margin-bottom: 0px;
 }
 
 .widget_button_half_50 {
