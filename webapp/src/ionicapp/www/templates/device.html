@@ -8,56 +8,92 @@
   <ion-content padding="true" class="has-header">
     <button id="device-button43" ng-click="getDevice(data.devicename)" style="font-weight:600;font-size:18px;" class="button button-positive button-block button-clear icon-right ion-android-settings">{{ data.devicename }}</button>
     <div id="device-container24">
-      <div id="device-markdown454" class="show-list-numbers-and-dots device_info_top">
-        <p style="color:#AAAAAA;font-size:14px;">
-          <strong>UUID</strong>
-        </p>
+      <div id="device-markdown454" style="text-align:right;" class="show-list-numbers-and-dots device_info_top">
+        <p style="color:#AAAAAA;font-size:14px;">UUID</p>
       </div>
       <div id="device-markdown455" class="show-list-numbers-and-dots device_info_top_ex">
-        <p style="color:#444444;font-size:14px;">{{ data.deviceid }}</p>
+        <p style="color:#AAAAAA;font-size:14px;">{{ data.deviceid }}</p>
       </div>
-      <div id="device-markdown456" class="show-list-numbers-and-dots device_info_top">
-        <p style="color:#AAAAAA;font-size:14px;">
-          <strong>Serial Number</strong>
-        </p>
+      <div id="device-markdown456" style="text-align:right;" class="show-list-numbers-and-dots device_info_top">
+        <p style="color:#AAAAAA;font-size:14px;">Serial Number</p>
       </div>
       <div id="device-markdown457" class="show-list-numbers-and-dots device_info_top_ex">
-        <p style="color:#444444;font-size:14px;">{{ data.serialnumber }}</p>
+        <p style="color:#AAAAAA;font-size:14px;">{{ data.serialnumber }}</p>
       </div>
-      <div id="device-markdown460" class="show-list-numbers-and-dots device_info_top">
-        <p style="color:#AAAAAA;font-size:14px;">
-          <strong>Firmware Version</strong>
-        </p>
+      <div id="device-markdown460" style="text-align:right;" class="show-list-numbers-and-dots device_info_top">
+        <p style="color:#AAAAAA;font-size:14px;">Firmware Version</p>
       </div>
       <div id="device-markdown461" class="show-list-numbers-and-dots device_info_top_ex">
-        <p style="color:#444444;font-size:14px;">{{ data.deviceversion }}</p>
+        <p style="color:#AAAAAA;font-size:14px;">{{ data.deviceversion }}</p>
       </div>
-      <div id="device-markdown462" class="show-list-numbers-and-dots device_info_top">
-        <p style="color:#AAAAAA;font-size:14px;">
-          <strong>Status</strong>
-        </p>
-      </div>
-      <div id="device-markdown463" class="show-list-numbers-and-dots device_info_top_ex">
-        <p style="color:#444444;font-size:14px;">{{ data.status != "Online" &amp;&amp; data.status != "Offline" ? "Please wait..." : data.status }}</p>
-      </div>
-      <div id="device-markdown464" ng-click="viewDeviceLocation(data)" class="show-list-numbers-and-dots device_info_top">
-        <p style="color:#AAAAAA;font-size:14px;">
-          <strong>Location</strong>
-        </p>
+      <div id="device-markdown464" ng-click="viewDeviceLocation(data)" style="text-align:right;" class="show-list-numbers-and-dots device_info_top">
+        <p style="color:#AAAAAA;font-size:14px;">Location</p>
       </div>
       <div id="device-markdown465" ng-click="viewDeviceLocation(data)" class="show-list-numbers-and-dots device_info_top_ex">
-        <p style="color:#444444;font-size:14px;">{{ data.devicelocation }}</p>
+        <p style="color:#AAAAAA;font-size:14px;">{{ data.devicelocation }}</p>
+      </div>
+      <div id="device-markdown531" style="text-align:right;" class="show-list-numbers-and-dots device_info_top">
+        <p style="color:#AAAAAA;font-size:14px;">Status</p>
+      </div>
+      <div id="device-markdown532" class="show-list-numbers-and-dots device_info_top_ex">
+        <p style="color:#AAAAAA;font-size:14px;">{{ data.status != "Online" &amp;&amp; data.status != "Offline" ? "Please wait..." : data.status }}</p>
       </div>
     </div>
     <div class="spacer" style="height: 20px;"></div>
-    <button id="device-button20" ng-click="submitUART()" ng-disabled="data.devicestatus==&quot;Detecting...&quot;" class="button button-positive button-large widget_button_half">UART</button>
-    <button id="device-button52" ng-click="submitGPIO()" ng-disabled="data.devicestatus==&quot;Detecting...&quot;" class="button button-positive button-large widget_button_half">GPIO</button>
-    <div class="spacer" style="width: 300px; height: 7px;"></div>
-    <button id="device-button18" ng-click="submitI2C()" ng-disabled="data.devicestatus==&quot;Detecting...&quot;" class="button button-positive button-large widget_button_half">I2C</button>
-    <button id="device-button58" ng-click="submitADC()" ng-disabled="data.devicestatus==&quot;Detecting...&quot;" class="button button-positive button-large widget_button_half">ADC</button>
-    <div class="spacer" style="width: 300px; height: 7px;"></div>
-    <button id="device-button59" ng-click="submit1WIRE()" ng-disabled="data.devicestatus==&quot;Detecting...&quot;" class="button button-positive button-large widget_button_half">OneWire</button>
-    <button id="device-button74" ng-click="submitTPROBE()" ng-disabled="data.devicestatus==&quot;Detecting...&quot;" class="button button-positive button-large widget_button_half">TProbe</button>
-    <div class="spacer" style="width: 300px; height: 7px;"></div>
+    <div class="list card widget_button_half_device" id="device-card210" ng-click="submitUART()">
+      <div class="item item-body" id="device-list-item-container33">
+        <div id="device-markdown502" style="text-align:center;" class="show-list-numbers-and-dots">
+          <p style="margin-top:0px;color:#3C5A99;font-size:18px;">
+            <strong> UART </strong>
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="list card widget_button_half_device" id="device-card212" ng-click="submitGPIO()">
+      <div class="item item-body" id="device-list-item-container41">
+        <div id="device-markdown505" style="text-align:center;" class="show-list-numbers-and-dots">
+          <p style="margin-top:0px;color:#3C5A99;font-size:18px;">
+            <strong> GPIO </strong>
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="list card widget_button_half_device" id="device-card213" ng-click="submitI2C()">
+      <div class="item item-body" id="device-list-item-container46">
+        <div id="device-markdown514" style="text-align:center;" class="show-list-numbers-and-dots">
+          <p style="margin-top:0px;color:#3C5A99;font-size:18px;">
+            <strong> I2C </strong>
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="list card widget_button_half_device" id="device-card214" ng-click="submitADC()">
+      <div class="item item-body" id="device-list-item-container47">
+        <div id="device-markdown515" style="text-align:center;" class="show-list-numbers-and-dots">
+          <p style="margin-top:0px;color:#3C5A99;font-size:18px;">
+            <strong> ADC </strong>
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="list card widget_button_half_device" id="device-card215" ng-click="submit1WIRE()">
+      <div class="item item-body" id="device-list-item-container48">
+        <div id="device-markdown516" style="text-align:center;" class="show-list-numbers-and-dots">
+          <p style="margin-top:0px;color:#3C5A99;font-size:18px;">
+            <strong> Onewire </strong>
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="list card widget_button_half_device" id="device-card216" ng-click="submitTPROBE()">
+      <div class="item item-body" id="device-list-item-container49">
+        <div id="device-markdown518" style="text-align:center;" class="show-list-numbers-and-dots">
+          <p style="margin-top:0px;color:#3C5A99;font-size:18px;">
+            <strong> TProbe </strong>
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="spacer" style="width: 748px; height: 50px;"></div>
   </ion-content>
 </ion-view>

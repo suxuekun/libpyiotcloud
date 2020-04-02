@@ -6361,9 +6361,14 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             }
         })
         .catch(function (error) {
-            console.log("ERRORXXXXXXXXXXXXXXXXXXXXXXXXXXX");
+            console.log("ERRORXXXXXXXXXXXXXXXXXXXXXXXXXXX get_status");
             console.log($scope.data);
             $scope.data.status = 'Offline';
+            
+            if (error.data.value !== undefined) {
+                $scope.data.deviceversion = error.data.value.version;
+            }
+            
             $scope.handle_error(error);
         }); 
     };   
@@ -6501,10 +6506,16 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         if ($state.params.location === "" || $state.params.location === "UNKNOWN" || $state.params.location === undefined) {
             $scope.data.devicelocation = "UNKNOWN";
             $scope.get_device_location($scope.data.devicename);
+            if ($scope.data.deviceversion === "") {
+                $scope.getStatus($scope.data.devicename);
+            }
         }
         else if ($stateParams.location === "" || $stateParams.location === "UNKNOWN" || $stateParams.location === undefined) {
             $scope.data.devicelocation = "UNKNOWN";
             $scope.get_device_location($scope.data.devicename);
+            if ($scope.data.deviceversion === "") {
+                $scope.getStatus($scope.data.devicename);
+            }
         }
         else {
             $stateParams.location = $state.params.location;

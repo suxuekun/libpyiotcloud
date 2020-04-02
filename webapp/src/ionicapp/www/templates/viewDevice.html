@@ -13,33 +13,30 @@
       </p>
     </div>
     <div class="spacer" style="height: 12px;"></div>
-    <div id="viewDevice-markdown251" class="show-list-numbers-and-dots">
-      <p style="color:#3C5A99;">Device information</p>
-    </div>
     <form id="viewDevice-form167" class="list">
+      <ion-item class="item-divider" id="viewDevice-list-item-divider18"> Name</ion-item>
       <label class="item item-input" id="viewDevice-input35" name="input-devicename">
-        <span class="input-label">Name</span>
         <input type="text" placeholder="" ng-model="new_devicename">
       </label>
       <button id="viewDevice-button156" ng-click="changeDevicename(data.devicename, new_devicename)" class="button button-positive button-block button-outline">Update Name</button>
+      <ion-item class="item-divider" id="viewDevice-list-item-divider13"> UUID</ion-item>
       <label class="item item-input" id="viewDevice-input157" name="input-deviceid">
-        <span class="input-label">UUID</span>
         <input type="text" placeholder="" ng-model="data.deviceid" readonly="">
       </label>
+      <ion-item class="item-divider" id="viewDevice-list-item-divider14"> Serial number</ion-item>
       <label class="item item-input" id="viewDevice-input158" name="input-serialnumber">
-        <span class="input-label">Serial Number</span>
         <input type="text" placeholder="" ng-model="data.serialnumber" readonly="">
       </label>
+      <ion-item class="item-divider" id="viewDevice-list-item-divider15"> Registration</ion-item>
       <label class="item item-input" id="viewDevice-input162" name="input-timestamp">
-        <span class="input-label">Registration</span>
         <input type="text" placeholder="" ng-model="data.timestamp" readonly="">
       </label>
+      <ion-item class="item-divider" id="viewDevice-list-item-divider16"> Last active</ion-item>
       <label class="item item-input" id="viewDevice-input163" name="input-heartbeat">
-        <span class="input-label">Last active</span>
         <input type="text" placeholder="" ng-model="data.heartbeat" readonly="">
       </label>
+      <ion-item class="item-divider" id="viewDevice-list-item-divider17"> Firmware Version</ion-item>
       <label class="item item-input" id="viewDevice-input164" name="input-version">
-        <span class="input-label">Firmware Version</span>
         <input type="text" placeholder="" ng-model="data.version" readonly="">
       </label>
       <div id="viewDevice-markdown118" class="show-list-numbers-and-dots"></div>
@@ -48,9 +45,6 @@
       </div>
       <button id="viewDevice-button21" ng-click="upgradeDeviceFirmware()" ng-disabled="newfirmwareversion < data.version &amp;&amp; data.version != &quot;UNKNOWN&quot;" class="button button-positive button-block">Update Firmware</button>
     </form>
-    <div id="viewDevice-markdown252" class="show-list-numbers-and-dots">
-      <p style="color:#3C5A99;">Device operations</p>
-    </div>
     <button id="viewDevice-button153" ng-click="getDevice(data.devicename)" style="text-align:left;" class="button button-positive button-block button-outline icon-right ion-android-arrow-dropright">Query Device</button>
     <button id="viewDevice-button56" ng-click="setDevice(data.devicename, &quot;restart&quot;)" style="text-align:left;" class="button button-positive button-block button-outline icon-right ion-android-arrow-dropright">Restart Device</button>
     <button id="viewDevice-button64" ng-click="setDevice(data.devicename, &quot;start&quot;)" style="text-align:left;" class="button button-positive button-block button-outline icon-right ion-android-arrow-dropright">Start Device</button>
