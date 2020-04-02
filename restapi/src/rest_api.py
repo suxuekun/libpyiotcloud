@@ -6339,8 +6339,14 @@ def get_all_sensor_thresholds():
                     classes = sensor["class"]
                     if sensor.get("subclass"):
                         classes += ", " + sensor["subclass"]
-                #print("{}, {}, {}, {}, {}".format(sensor["sensorname"], device["devicename"], classes, value, sensor["enabled"]))
-                sensors_list.append({"sensorname": sensor["sensorname"], "devicename": device["devicename"], "classes": classes, "configuration": value, "enabled": sensor["enabled"]})
+                #print("{}, {}, {}, {}, {}, {}".format(sensor["sensorname"], device["devicename"], classes, value, sensor["enabled"], sensor["source"]))
+                sensors_list.append({
+                    "sensorname": sensor["sensorname"], 
+                    "devicename": device["devicename"], 
+                    "classes": classes, 
+                    "peripheral": sensor["source"], 
+                    "configuration": value, 
+                    "enabled": sensor["enabled"]})
     #print(len(sensors_list))
 
 
