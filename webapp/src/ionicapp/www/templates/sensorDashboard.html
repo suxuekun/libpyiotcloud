@@ -151,17 +151,20 @@
           <tbody>
             <tr>
               <th style="width:3%">&nbsp;</th>
-              <th style="width:21%">
-                <b>Sensor Name</b>
+              <th style="width:19%">
+                <b>Sensor</b>
               </th>
-              <th style="width:15%">
-                <b>Device Name</b>
+              <th style="width:14%">
+                <b>Device</b>
               </th>
-              <th style="width:21%">
-                <b>Sensor Class</b>
+              <th style="width:12%">
+                <b>Peripheral</b>
               </th>
-              <th style="width:40%">
-                <b>Sensor Configuration</b>
+              <th style="width:19%">
+                <b>Class</b>
+              </th>
+              <th style="width:33%">
+                <b>Configuration</b>
               </th>
             </tr>
           </tbody>
@@ -180,10 +183,11 @@
                 </div>
 
               </td>
-              <td style="width:21%">{{ sensor.sensorname }}</td>
-              <td style="width:15%">{{ sensor.devicename }}</td>
-              <td style="width:21%">{{ sensor.classes }}</td>
-              <td style="width:40%">{{ sensor.configuration }}</td>
+              <td style="width:19%">{{ sensor.sensorname }}</td>
+              <td style="width:14%">{{ sensor.devicename }}</td>
+              <td style="width:12%">{{ sensor.peripheral }}</td>
+              <td style="width:19%">{{ sensor.classes }}</td>
+              <td style="width:33%">{{ sensor.configuration }}</td>
             </tr>
           </tbody>
         </table>
