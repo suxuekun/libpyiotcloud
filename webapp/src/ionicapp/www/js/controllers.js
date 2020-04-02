@@ -5351,6 +5351,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             return;    
         }
 
+        /*
         var device_param = {
             'username'      : $scope.data.username,
             'token'         : $scope.data.token,
@@ -5365,8 +5366,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         console.log($scope.data.devicelocation.latitude);
         console.log($scope.data.devicelocation.longitude);
         $state.go('device', device_param, {reload: true});    
-        
-        /*
+        */
+
         let device_param = {
             'username'     : $scope.data.username,
             'token'        : $scope.data.token,
@@ -5378,7 +5379,6 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             'version'      : $scope.data.version,
         };
         $state.go('viewDevice', device_param);    
-        */
     };    
     
     // EXIT PAGE
@@ -6049,6 +6049,20 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         
         if ($scope.data.devicename !== "All devices") {
 
+            var device_param = {
+                'username'     : $scope.data.username,
+                'token'        : $scope.data.token,
+                'devicename'   : $scope.data.devicename,
+                'deviceid'     : $scope.data.deviceid,
+                'serialnumber' : $scope.data.serialnumber,
+                'timestamp'    : $scope.data.timestamp,
+                'heartbeat'    : $scope.data.heartbeat,
+                'version'      : $scope.data.version,
+            };
+           
+            $state.go('viewDevice', device_param); 
+        
+            /*
             let device_param = {
                 'username': User.get_username(),
                 'token': User.get_token(),
@@ -6059,7 +6073,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                 'deviceversion': $scope.data.version,
             };
     
-            $state.go('device', device_param, {reload:true} );        
+            $state.go('device', device_param, {reload:true} );
+            */
         }
         else {
             
