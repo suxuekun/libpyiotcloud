@@ -6251,7 +6251,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         'devicestatus': $stateParams.devicestatus,
         'deviceversion': $stateParams.deviceversion,
         'location': $state.params.location,
-        'devicelocation': $state.params.location !== "UNKNOWN" && $state.params.location !== undefined ? $state.params.location.latitude.toFixed(2) + "... , " + $state.params.location.longitude.toFixed(2) + "..." : "UNKNOWN",
+        'devicelocation': $state.params.location !== "UNKNOWN" && $state.params.location !== undefined ? $state.params.location.latitude.toFixed(4) + "... , " + $state.params.location.longitude.toFixed(4) + "..." : "UNKNOWN",
         'status': $stateParams.devicestatus,
     };
 
@@ -6452,7 +6452,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             console.log(result.data);
             if (result.data.location !== undefined) {
                 $scope.data.location = result.data.location;
-                $scope.data.devicelocation = result.data.location !== "UNKNOWN" ? result.data.location.latitude.toFixed(2) + "..., " + result.data.location.longitude.toFixed(2) + "..." : "UNKNOWN";
+                $scope.data.devicelocation = result.data.location !== "UNKNOWN" ? result.data.location.latitude.toFixed(4) + "..., " + result.data.location.longitude.toFixed(4) + "..." : "UNKNOWN";
                 $scope.getStatus($scope.data.devicename);
             }
         })
@@ -6520,7 +6520,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         else {
             $stateParams.location = $state.params.location;
             $scope.data.location = $state.params.location;
-            $scope.data.devicelocation = $stateParams.location !== "UNKNOWN" ? $stateParams.location.latitude.toFixed(2) + "..., " + $stateParams.location.longitude.toFixed(2) + "..." : "UNKNOWN";
+            $scope.data.devicelocation = $stateParams.location !== "UNKNOWN" ? $stateParams.location.latitude.toFixed(4) + "..., " + $stateParams.location.longitude.toFixed(4) + "..." : "UNKNOWN";
             $scope.getStatus($scope.data.devicename);
         }
     });   
@@ -6584,7 +6584,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         "online",
         "offline",
     ];
-    $scope.sensorstatus = $scope.sensorstatuses[1];
+    $scope.sensorstatus = $scope.sensorstatuses[0];
 
     $scope.timeranges = [ 
         "Last 5 minutes",
@@ -7510,7 +7510,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         
         //$scope.peripheral = $scope.peripherals[0];
         //$scope.sensorclass = $scope.sensorclasses[0];
-        //$scope.sensorstatus = $scope.sensorstatuses[1];
+        //$scope.sensorstatus = $scope.sensorstatuses[0];
         //$scope.timerange = $scope.timeranges[0];
         //$scope.timerangeindex = 0;
         $scope.checkdevice = 1;

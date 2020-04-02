@@ -32,10 +32,16 @@
       <div id="device-markdown465" ng-click="viewDeviceLocation(data)" class="show-list-numbers-and-dots device_info_top_ex">
         <p style="color:#AAAAAA;font-size:14px;">{{ data.devicelocation }}</p>
       </div>
-      <div id="device-markdown531" style="text-align:right;" class="show-list-numbers-and-dots device_info_top">
+      <div id="device-markdown251" style="text-align:right;" class="show-list-numbers-and-dots device_info_top">
         <p style="color:#AAAAAA;font-size:14px;">Status</p>
       </div>
-      <div id="device-markdown532" class="show-list-numbers-and-dots device_info_top_ex">
+      <div class="card_image_device">
+        <img src="img/r8uDrUoTtmuVJnh4Na2A_offline.png" style="display: block; margin-left: auto; margin-right: auto;" ng-show="data.status != &quot;Online&quot;">
+      </div>
+      <div class="card_image_device">
+        <img src="img/Ly1Pw1dNTnek4ynCL8dS_online.png" style="display: block; margin-left: auto; margin-right: auto;" ng-show="data.status == &quot;Online&quot;">
+      </div>
+      <div id="device-markdown532" class="show-list-numbers-and-dots device_info_top_ex2">
         <p style="color:#AAAAAA;font-size:14px;">{{ data.status != "Online" &amp;&amp; data.status != "Offline" ? "Please wait..." : data.status }}</p>
       </div>
     </div>
