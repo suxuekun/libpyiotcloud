@@ -23,38 +23,118 @@
       <div id="sensorDashboard-markdown434" class="show-list-numbers-and-dots widget_title_half_50">
         <p style="color:#3C5A99;">Dashboard Settings</p>
       </div>
-      <label class="item item-select widget_button_half_50" id="sensorDashboard-select98">
+      <label class="item item-select widget_selection_half" id="sensorDashboard-select98">
         <span class="input-label">Device</span>
         <select ng-options="device.devicename as device.devicename for device in devices" ng-model="data.devicename" ng-change="changeDevice(data.devicename)" ng-disabled="refresh_automatically"></select>
       </label>
-      <label class="item item-input item-stacked-label widget_button_half_50" id="sensorDashboard-input144">
+      <label class="item item-input widget_selection_half" id="sensorDashboard-input144">
         <span class="input-label">Refresh time (sec)</span>
         <input type="number" placeholder="" ng-model="refresh_time" ng-disabled="refresh_automatically">
       </label>
-      <label class="item item-select widget_button_half_50" id="sensorDashboard-select109">
+      <label class="item item-select widget_selection_half" id="sensorDashboard-select109">
         <span class="input-label">Peripheral</span>
         <select ng-options="peripheral for peripheral in peripherals" ng-model="peripheral" ng-change="changePeripheral(peripheral)" ng-disabled="refresh_automatically"></select>
       </label>
-      <ion-toggle toggle-class="toggle-positive" id="sensorDashboard-toggle14" ng-model="refresh_automatically" ng-change="changeRefresh(refresh_automatically, refresh_time)" class="widget_button_half_50">Refresh automatically</ion-toggle>
-      <label class="item item-select widget_button_half_50" id="sensorDashboard-select110">
+      <ion-toggle toggle-class="toggle-positive" id="sensorDashboard-toggle14" ng-model="refresh_automatically" ng-change="changeRefresh(refresh_automatically, refresh_time)" class="widget_selection_half">Refresh automatically</ion-toggle>
+      <label class="item item-select widget_selection_half" id="sensorDashboard-select110">
         <span class="input-label">Sensor Class</span>
         <select ng-options="sensorclass for sensorclass in sensorclasses" ng-model="sensorclass" ng-change="changeSensorClass(sensorclass)" ng-disabled="refresh_automatically"></select>
       </label>
-      <ion-toggle toggle-class="toggle-positive" id="sensorDashboard-toggle24" ng-model="big_charts" ng-change="changeBigChart(big_charts)" class="widget_button_half_50">Big charts</ion-toggle>
-      <label class="item item-select widget_title_half_50_noninline" id="sensorDashboard-select111">
+      <ion-toggle toggle-class="toggle-positive" id="sensorDashboard-toggle24" ng-model="big_charts" ng-change="changeBigChart(big_charts)" class="widget_selection_half">Big charts</ion-toggle>
+      <label class="item item-select widget_selection_half_ex" id="sensorDashboard-select111">
         <span class="input-label">Sensor Status</span>
         <select ng-options="sensorstatus for sensorstatus in sensorstatuses" ng-model="sensorstatus" ng-change="changeSensorStatus(sensorstatus)" ng-disabled="refresh_automatically"></select>
       </label>
-      <div class="spacer" style="width: 747.778px; height: 5px;"></div>
-      <label class="item item-select widget_title_half_50_noninline" id="sensorDashboard-select112">
+      <label class="item item-select widget_selection_half_ex" id="sensorDashboard-select112">
         <span class="input-label">Showing data for</span>
         <select ng-options="timerange for timerange in timeranges" ng-model="timerange" ng-change="changeTimeRange(timerange)" ng-disabled="refresh_automatically"></select>
       </label>
-      <button id="sensorDashboard-button126" ng-click="submitDelete()" ng-disabled="refresh_automatically" class="button button-positive button-block">Reset values</button>
+      <button id="sensorDashboard-button126" ng-click="submitDelete()" ng-disabled="refresh_automatically" class="button button-positive button-block button-outline">Reset values</button>
     </form>
-    <div id="sensorDashboard-container22">
+    <div id="sensorDashboard-container22" ng-show="sensors.length == 0">
       <div id="sensorDashboard-markdown441" class="show-list-numbers-and-dots">
         <p style="color:#AAAAAA;font-size:12px;">{{ sensors_counthdr }}</p>
+      </div>
+    </div>
+    <div class="list card stats_block_container" id="sensorDashboard-card211" ng-show="sensors.length > 0">
+      <div class="item item-body stats_block" id="sensorDashboard-list-item-container34">
+        <div id="sensorDashboard-markdown491" style="text-align:center;" class="show-list-numbers-and-dots">
+          <p style="margin-top:0px;color:#3C5A99;font-size:10px;">.</p>
+        </div>
+        <div id="sensorDashboard-markdown469" style="text-align:center;" class="show-list-numbers-and-dots">
+          <p style="margin-top:0px;color:#FFFFFF;font-size:28px;">
+            <strong> {{ stats.devices.total }} </strong>
+          </p>
+        </div>
+        <div id="sensorDashboard-markdown495" style="text-align:center;" class="show-list-numbers-and-dots">
+          <p style="margin-top:0px;color:#FFFFFF;font-size:10px;">DEVICES</p>
+        </div>
+        <div id="sensorDashboard-markdown493" style="text-align:center;" class="show-list-numbers-and-dots">
+          <p style="margin-top:0px;color:#FFFFFF;font-size:10px;">{{ stats.devices.online }} online, {{ stats.devices.offline }} offline</p>
+        </div>
+      </div>
+      <div class="item item-body stats_block_spacer" id="sensorDashboard-list-item-container38">
+        <div id="sensorDashboard-markdown512" style="text-align:center;" class="show-list-numbers-and-dots">
+          <p style="margin-top:0px;color:#3C5A99;font-size:10px;">.</p>
+        </div>
+      </div>
+      <div class="item item-body stats_block" id="sensorDashboard-list-item-container35">
+        <div id="sensorDashboard-markdown496" style="text-align:center;" class="show-list-numbers-and-dots">
+          <p style="margin-top:0px;color:#3C5A99;font-size:10px;">.</p>
+        </div>
+        <div id="sensorDashboard-markdown480" style="text-align:center;" class="show-list-numbers-and-dots">
+          <p style="margin-top:0px;color:#FFFFFF;font-size:28px;">
+            <strong> {{ stats.sensors.total }} </strong>
+          </p>
+        </div>
+        <div id="sensorDashboard-markdown498" style="text-align:center;" class="show-list-numbers-and-dots">
+          <p style="margin-top:0px;color:#FFFFFF;font-size:10px;">SENSORS</p>
+        </div>
+        <div id="sensorDashboard-markdown499" style="text-align:center;" class="show-list-numbers-and-dots">
+          <p style="margin-top:0px;color:#FFFFFF;font-size:10px;">{{ stats.sensors.enabled }} enabled, {{ stats.sensors.disabled }} disabled</p>
+        </div>
+      </div>
+      <div class="item item-body stats_block_spacer" id="sensorDashboard-list-item-container39">
+        <div id="sensorDashboard-markdown517" style="text-align:center;" class="show-list-numbers-and-dots">
+          <p style="margin-top:0px;color:#3C5A99;font-size:10px;">.</p>
+        </div>
+      </div>
+      <div class="item item-body stats_block" id="sensorDashboard-list-item-container36">
+        <div id="sensorDashboard-markdown501" style="text-align:center;" class="show-list-numbers-and-dots">
+          <p style="margin-top:0px;color:#3C5A99;font-size:10px;">.</p>
+        </div>
+        <div id="sensorDashboard-markdown492" style="text-align:center;" class="show-list-numbers-and-dots">
+          <p style="margin-top:0px;color:#FFFFFF;font-size:28px;">
+            <strong> {{ stats.peripherals.total }} </strong>
+          </p>
+        </div>
+        <div id="sensorDashboard-markdown503" style="text-align:center;" class="show-list-numbers-and-dots">
+          <p style="margin-top:0px;color:#FFFFFF;font-size:10px;">PERIPHERALS</p>
+        </div>
+        <div id="sensorDashboard-markdown504" style="text-align:center;" class="show-list-numbers-and-dots">
+          <p style="margin-top:0px;color:#FFFFFF;font-size:10px;">{{ stats.peripherals.label }}</p>
+        </div>
+      </div>
+      <div class="item item-body stats_block_spacer" id="sensorDashboard-list-item-container40">
+        <div id="sensorDashboard-markdown522" style="text-align:center;" class="show-list-numbers-and-dots">
+          <p style="margin-top:0px;color:#3C5A99;font-size:10px;">.</p>
+        </div>
+      </div>
+      <div class="item item-body stats_block" id="sensorDashboard-list-item-container37">
+        <div id="sensorDashboard-markdown506" style="text-align:center;" class="show-list-numbers-and-dots">
+          <p style="margin-top:0px;color:#3C5A99;font-size:10px;">.</p>
+        </div>
+        <div id="sensorDashboard-markdown494" style="text-align:center;" class="show-list-numbers-and-dots">
+          <p style="margin-top:0px;color:#FFFFFF;font-size:28px;">
+            <strong> {{ stats.classes.total }} </strong>
+          </p>
+        </div>
+        <div id="sensorDashboard-markdown508" style="text-align:center;" class="show-list-numbers-and-dots">
+          <p style="margin-top:0px;color:#FFFFFF;font-size:10px;">CLASSES</p>
+        </div>
+        <div id="sensorDashboard-markdown509" style="text-align:center;" class="show-list-numbers-and-dots">
+          <p style="margin-top:0px;color:#FFFFFF;font-size:10px;">{{ stats.classes.label }}</p>
+        </div>
       </div>
     </div>
     <div class="list card widget_half" id="sensorDashboard-card28" ng-repeat="sensor in sensors" ng-show="!big_charts">
@@ -79,6 +159,11 @@
           <p style="margin-top:0px;color:#FFFFFF;font-size:10px;">{{ sensor.subclass ? "Low: " + sensor.readings.lowest + " " + sensor.units[0] + " High: " + sensor.readings.highest + " " + sensor.units[0] + " | " + "Low: " + sensor.readings.subclass.lowest + " " + sensor.units[1] + " High: " + sensor.readings.subclass.highest
             + " " + sensor.units[1] : "Low: " + sensor.readings.lowest + " " + sensor.units[0] + " High: " + sensor.readings.highest + " " + sensor.units[0] }}</p>
         </div>
+      </div>
+      <div id="sensorDashboard-container29" ng-show="sensor.show" class="widget_button_backward_forward_container">
+        <button id="sensorDashboard-button171" ng-click="changeTimeRangeIndexBackward()" class="button button-positive button-small button-block button-clear icon-left ion-android-arrow-dropleft widget_button_backward_forward"></button>
+        <button id="sensorDashboard-button178" ng-disabled="true" class="button button-positive button-small button-block button-clear widget_button_backward_forward_filler"></button>
+        <button id="sensorDashboard-button179" ng-disabled="timerangeindex==0" ng-click="changeTimeRangeIndexForward()" class="button button-positive button-small button-block button-clear icon-right ion-android-arrow-dropright widget_button_backward_forward"></button>
       </div>
       <div id="sensorDashboard-container20" ng-show="sensor.show" ng-click="submitViewSensorChart(sensor)">
         <div id="canvas-holder" style="width:97%; margin:0px 0px 0px 3%;">
