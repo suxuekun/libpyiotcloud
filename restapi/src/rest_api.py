@@ -6319,7 +6319,7 @@ def get_sensor_summary(username):
 #   headers: { 'Authorization': 'Bearer ' + token.access }
 #
 # - Response:
-#   { 'status': 'OK', 'message': string, 'summary': {'sensorname': string, 'devicename': string, 'classes': string, 'configuration': string, 'enabled': int} }
+#   { 'status': 'OK', 'message': string, 'summary': [{'sensorname': string, 'devicename': string, 'classes': string, 'configuration': string, 'enabled': int}] }
 #   { 'status': 'NG', 'message': string }
 #
 ########################################################################################################
