@@ -1185,13 +1185,26 @@ DETAILED:
 		     'sensors': [{'devicename': string, 'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': string, 'enabled': int, 'configured': int, 'units': [], 'formats': [], 'attributes': [], 
 		                  'dataset':  {'labels': [], 'data': [[],...], 'low': [[],...], 'high': [[],...]}, 
 		                  'readings': {'value': float, 'lowest': float, 'highest': float, 'subclass': {'value': float, 'lowest': float, 'highest': float}}
-		                ]}
+		                ],
+		     'stats'  : { 'devices':     {'total': int, 'labels': [strings], 'data': [int]},
+		                  'sensors':     {'total': int, 'labels': [strings], 'data': [int]},
+		                  'peripherals': {'total': int, 'labels': [strings], 'data': [int]},
+		                  'classes':     {'total': int, 'labels': [strings], 'data': [int]},
+		                },
+		     'summary': [{'sensorname': string, 'devicename': string, 'classes': string, 'configuration': string, 'enabled': int}]
+		     }
 		   { 'status': 'NG', 'message': string}
+		   //
 		   // the subclass parameter of readings parameter will only appear if the sensor has a subclass
-		   // if sensor has a subclass:  'dataset': {'labels': [], 'data': [[],[]]}
-		      if sensor has no subclass: 'dataset': {'labels': [], 'data': [[]]}
-		      this make the dataset object directly usable by Chart.JS 
+		   //   if sensor has a subclass:  'dataset': {'labels': [], 'data': [[],[]]}
+		   //   if sensor has no subclass: 'dataset': {'labels': [], 'data': [[]]}
+		   //   this make the dataset object directly usable by Chart.JS line charts
 		   // low and high does NOT appear when "Last 5 minutes" timerange is selected.
+		   //
+		   // stats and summary will ONLY appear if checkdevice parameter is set to 1
+		   //   stats is for doughnut/pie charts to show proportions of online/offline devices, enabled/disabled sensors, device peripheral types used, sensor classes used
+		   //     uses labels and data arrays to make object directly usable by Chart.JS doughnut/pie charts
+		   //   summary is for the table
 
 		E. DELETE PERIPHERAL SENSOR READINGS
 		-  Request:
