@@ -6610,13 +6610,13 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
     
     $scope.hide_settings = false;
     $scope.sensors = [];
-    $scope.sensors_table = [];
-    $scope.sensors_tableshow = true;
+    $scope.summary = [];
+    $scope.summaryshow = false;
     $scope.sensors_counthdr = "No sensor returned" ;
     $scope.refresh_automatically = false;
     $scope.refresh_time = 5;
     $scope.run_time = 0;
-    $scope.big_charts = true;
+    $scope.big_charts = false;
     $scope.online_charts = false;
 
     $scope.stats = {};
@@ -6624,6 +6624,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
     $scope.sensors_datachart_colors_options = ['#11C1F3', '#33CD5F', '#FFC900', '#F38124', '#EF473A', '#F58CF6', '#B6A2FC', '#BE9B7B', '#AAAAAA'];
     $scope.sensors_datachart = [{"labels": [], "data": [], "series": [], "colors": []}];
     $scope.sensors_datachart_empty = {"labels": [], "data": [], "series": [], "colors": []};
+    
     $scope.sensors_datachart_options = {
         "animation": false, 
         "legend": {
@@ -6817,6 +6818,46 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             }
         },*/           
     };
+    $scope.sensors_datachart_piechart_devices_options = {
+        "title": {
+            "display": true,
+            "text": 'Devices'
+        },
+        "legend": {
+            "display": true,
+            "position": 'left'
+        },
+    };
+    $scope.sensors_datachart_piechart_sensors_options = {
+        "title": {
+            "display": true,
+            "text": 'Status'
+        },
+        "legend": {
+            "display": true,
+            "position": 'left'
+        },
+    };
+    $scope.sensors_datachart_piechart_peripherals_options = {
+        "title": {
+            "display": true,
+            "text": 'Peripherals'
+        },
+        "legend": {
+            "display": true,
+            "position": 'left'
+        },
+    };
+    $scope.sensors_datachart_piechart_classes_options = {
+        "title": {
+            "display": true,
+            "text": 'Classes'
+        },
+        "legend": {
+            "display": true,
+            "position": 'left'
+        },
+    };
 
     
     $scope.changeTimeRangeIndexBackward = function() {
@@ -6905,7 +6946,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
     };
 
     $scope.changeSensorTableHide = function() {
-        $scope.sensors_tableshow = !$scope.sensors_tableshow;
+        $scope.summaryshow = !$scope.summaryshow;
     };
 
     get_all_device_sensors_enabled_input_dataset = function() {
@@ -7017,6 +7058,9 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             if (result.data.stats !== undefined) {
                 $scope.stats = result.data.stats;
             }
+            if (result.data.summary !== undefined) {
+                $scope.summary = result.data.summary;
+            }
 
             if ($scope.sensors.length > 0) {
                 
@@ -7083,12 +7127,12 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             if ($scope.timer !== null /* && $scope.data.devicename === "All devices" */) {
                 if ($scope.checkdevice === 1) {
                     $scope.checkdevice = 0;
-                    get_all_sensor_thresholdsforwards();
+                    //get_all_sensor_thresholdsforwards();
                 }
             }
             else {
                 if ($scope.checkdevice === 1) {
-                    get_all_sensor_thresholdsforwards();
+                    //get_all_sensor_thresholdsforwards();
                 }
             }
         })
@@ -7180,7 +7224,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         //   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
         //
         // - Response:
-        //   { 'status': 'OK', 'message': string }
+        //   { 'status': 'OK', 'message': string, 'summary': {'sensorname': string, 'devicename': string, 'classes': string, 'configuration': string, 'enabled': int} }
         //   { 'status': 'NG', 'message': string }        
         //
         $http({
@@ -7190,7 +7234,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         })
         .then(function (result) {
             console.log(result.data);
-            $scope.sensors_table = result.data.sensors;
+            $scope.summary = result.data.summary;
         })
         .catch(function (error) {
             handle_error(error);
@@ -7572,7 +7616,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         console.log("enter sensor dashboard");
         $scope.devices = [{"devicename": "All devices"}];
         $scope.sensors = [];
-        $scope.sensors_table = [];
+        $scope.summary = [];
+        $scope.summaryshow = false;
         $scope.sensors_counthdr = "No sensor returned";
         
         $scope.timer = null;
@@ -7590,7 +7635,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         $scope.refresh_automatically = false;
         $scope.refresh_time = 5;
         $scope.run_time = 0;
-        $scope.big_charts = true;
+        $scope.big_charts = false;
         $scope.online_charts = false;
     
         $scope.stats = {};        

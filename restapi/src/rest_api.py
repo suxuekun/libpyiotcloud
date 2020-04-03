@@ -5894,19 +5894,19 @@ def get_sensor_data_threaded_ex(sensor, username, datebegin, dateend, period, ma
                     break
     sensor.pop("deviceid")
 
-def get_stats(devices, sensors_list):
+def get_sensor_stats(devices, sensors_list):
     stats = {}
 
     enabled_devices = 0
     for device in devices:
         if device["status"] == 1:
             enabled_devices += 1
-    stats['devices'] = { 'total': len(devices), 'online': enabled_devices, 'offline': len(devices)-enabled_devices }
+    stats['devices'] = { 'total': len(devices), 'online': enabled_devices, 'offline': len(devices)-enabled_devices, 'labels': ['online', 'offline'], 'data': [enabled_devices, len(devices)-enabled_devices] }
 
     peripherals = []
-    stats['peripherals'] = { 'total': 0 }
+    stats['peripherals'] = { 'total': 0, 'labels': [], 'data': [] }
     classes = []
-    stats['classes'] = { 'total': 0 }
+    stats['classes'] = { 'total': 0, 'labels': [], 'data': [] }
 
     enabled_sensors = 0
     for sensor in sensors_list:
@@ -5938,11 +5938,13 @@ def get_stats(devices, sensors_list):
             else:
                 stats['classes'][sensor["subclass"]] += 1
 
-    stats['sensors'] = { 'total': len(sensors_list), 'enabled': enabled_sensors, 'disabled': len(sensors_list)-enabled_sensors }
+    stats['sensors'] = { 'total': len(sensors_list), 'enabled': enabled_sensors, 'disabled': len(sensors_list)-enabled_sensors, 'labels': ['enabled', 'disabled'], 'data': [enabled_sensors, len(sensors_list)-enabled_sensors] }
 
     if len(peripherals):
         peripherals.sort()
     for peripheral in peripherals:
+        stats['peripherals']['labels'].append(peripheral)
+        stats['peripherals']['data'].append(stats['peripherals'][peripheral])
         stats['peripherals']['label'] += "{} {}, ".format(stats['peripherals'][peripheral], peripheral)
     if len(peripherals):
         stats['peripherals']['label'] = stats['peripherals']['label'][:len(stats['peripherals']['label'])-2]
@@ -5950,6 +5952,8 @@ def get_stats(devices, sensors_list):
     if len(classes):
         classes.sort()
     for classe in classes:
+        stats['classes']['labels'].append(classe)
+        stats['classes']['data'].append(stats['classes'][classe])
         stats['classes']['label'] += "{} {}, ".format(stats['classes'][classe], classe[:4])
     if len(classes):
         stats['classes']['label'] = stats['classes']['label'][:len(stats['classes']['label'])-2]
@@ -6155,12 +6159,15 @@ def get_all_device_sensors_enabled_input_readings_dataset_filtered():
         # compute stats
         stats = None
         if checkdevice != 0:
-            stats = get_stats(devices, sensors_list)
+            stats = get_sensor_stats(devices, sensors_list)
+            summary = get_sensor_summary(username)
 
         #print(time.time()-start_time)
         msg = {'status': 'OK', 'message': 'Get All Device Sensors Dataset queried successfully.', 'sensors': sensors_list}
         if stats:
             msg['stats'] = stats
+        if summary:
+            msg['summary'] = summary
 
     elif flask.request.method == 'DELETE':
 
@@ -6244,55 +6251,7 @@ def delete_all_device_sensors_properties(devicename):
     return response
 
 
-########################################################################################################
-#
-# GET PERIPHERAL SENSOR THRESHOLDS/FORWARDS
-#
-# - Request:
-#   GET /devices/sensors/thresholdsforwards
-#   headers: { 'Authorization': 'Bearer ' + token.access }
-#
-# - Response:
-#   { 'status': 'OK', 'message': string, 'sensors': {'sensorname': string, 'devicename': string, 'classes': string, 'configuration': string, 'enabled': int} }
-#   { 'status': 'NG', 'message': string }
-#
-########################################################################################################
-@app.route('/devices/sensors/thresholdsforwards', methods=['GET'])
-def get_all_sensor_thresholds():
-
-    # get token from Authorization header
-    auth_header_token = get_auth_header_token()
-    if auth_header_token is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Get All Sensor Thresholds: Invalid authorization header\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    token = {'access': auth_header_token}
-
-    # get username from token
-    username = g_database_client.get_username_from_token(token)
-    if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Get All Sensor Thresholds: Token expired\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    #print('get_all_sensor_thresholds {}'.format(username))
-
-    # check if a parameter is empty
-    if len(username) == 0 or len(token) == 0:
-        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-        print('\r\nERROR Get All Sensor Thresholds: Empty parameter found\r\n')
-        return response, status.HTTP_400_BAD_REQUEST
-
-    # check if username and token is valid
-    verify_ret, new_token = g_database_client.verify_token(username, token)
-    if verify_ret == 2:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Get All Sensor Thresholds: Token expired [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
-    elif verify_ret != 0:
-        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
-        print('\r\nERROR Get All Sensor Thresholds: Token is invalid [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
-
+def get_sensor_summary(username):
     sensors_list = []
     devices = g_database_client.get_devices(username)
     for device in devices:
@@ -6347,10 +6306,63 @@ def get_all_sensor_thresholds():
                     "peripheral": sensor["source"], 
                     "configuration": value, 
                     "enabled": sensor["enabled"]})
-    #print(len(sensors_list))
+    return sensors_list
 
 
-    msg = {'status': 'OK', 'message': 'All Sensor Thresholds queried successfully.', 'sensors': sensors_list}
+########################################################################################################
+#
+# GET PERIPHERAL SENSOR THRESHOLDS/FORWARDS
+#
+# - Request:
+#   GET /devices/sensors/thresholdsforwards
+#   headers: { 'Authorization': 'Bearer ' + token.access }
+#
+# - Response:
+#   { 'status': 'OK', 'message': string, 'summary': {'sensorname': string, 'devicename': string, 'classes': string, 'configuration': string, 'enabled': int} }
+#   { 'status': 'NG', 'message': string }
+#
+########################################################################################################
+@app.route('/devices/sensors/thresholdsforwards', methods=['GET'])
+def get_all_sensor_thresholdsforwards():
+
+    # get token from Authorization header
+    auth_header_token = get_auth_header_token()
+    if auth_header_token is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
+        print('\r\nERROR Get All Sensor Thresholds: Invalid authorization header\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
+    token = {'access': auth_header_token}
+
+    # get username from token
+    username = g_database_client.get_username_from_token(token)
+    if username is None:
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Get All Sensor Thresholds: Token expired\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
+    #print('get_all_sensor_thresholds {}'.format(username))
+
+    # check if a parameter is empty
+    if len(username) == 0 or len(token) == 0:
+        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+        print('\r\nERROR Get All Sensor Thresholds: Empty parameter found\r\n')
+        return response, status.HTTP_400_BAD_REQUEST
+
+    # check if username and token is valid
+    verify_ret, new_token = g_database_client.verify_token(username, token)
+    if verify_ret == 2:
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Get All Sensor Thresholds: Token expired [{}]\r\n'.format(username))
+        return response, status.HTTP_401_UNAUTHORIZED
+    elif verify_ret != 0:
+        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
+        print('\r\nERROR Get All Sensor Thresholds: Token is invalid [{}]\r\n'.format(username))
+        return response, status.HTTP_401_UNAUTHORIZED
+
+
+    summary = get_sensor_summary(username)
+
+
+    msg = {'status': 'OK', 'message': 'All Sensor Thresholds queried successfully.', 'summary': summary}
     if new_token:
         msg['new_token'] = new_token
     response = json.dumps(msg)
