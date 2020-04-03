@@ -57,7 +57,7 @@
         <p style="color:#AAAAAA;font-size:12px;">{{ sensors_counthdr }}</p>
       </div>
     </div>
-    <div class="list card widget_whole" id="sensorDashboard-card211" ng-show="sensors.length > 0">
+    <div class="list card widget_whole" id="sensorDashboard-card211" ng-show="false">
       <div class="item item-body stats_block" id="sensorDashboard-list-item-container34">
         <div id="sensorDashboard-markdown491" style="text-align:center;" class="show-list-numbers-and-dots">
           <p style="margin-top:0px;color:#3C5A99;font-size:10px;">.</p>
@@ -142,35 +142,76 @@
       <div class="item item-body card_top" id="sensorDashboard-list-item-container32" ng-click="changeSensorTableHide()">
         <div id="sensorDashboard-markdown463" style="text-align:center;" class="show-list-numbers-and-dots">
           <p style="margin-top:0px;color:#FFFFFF;font-size:16px;">
-            <strong> Sensor Configuration Summary </strong>
+            <strong> Sensor Summary </strong>
           </p>
         </div>
       </div>
-      <div id="sensorDashboard-container30" ng-show="sensors_tableshow" class="tab_margin_1">
+      <div id="sensorDashboard-container30" ng-show="!summaryshow" class="tab_margin_1">
+        <div>
+
+          <br>
+
+          <div class="row">
+
+            <div class="column" style="width:50%;">
+              <canvas id="doughnut1" class="chart chart-doughnut" chart-data="stats.devices.data" chart-labels="stats.devices.labels" chart-colors="sensors_datachart_colors_options" chart-options="sensors_datachart_piechart_devices_options">
+              </canvas>
+            </div>
+
+            <div class="column" style="width:50%;">
+              <canvas id="doughnut2" class="chart chart-doughnut" chart-data="stats.sensors.data" chart-labels="stats.sensors.labels" chart-colors="sensors_datachart_colors_options" chart-options="sensors_datachart_piechart_sensors_options">
+              </canvas>
+            </div>
+
+          </div>
+
+          <br>
+
+
+          <div class="row">
+
+            <div class="column" style="width:50%;">
+              <canvas id="doughnut3" class="chart chart-doughnut" chart-data="stats.peripherals.data" chart-labels="stats.peripherals.labels" chart-colors="sensors_datachart_colors_options" chart-options="sensors_datachart_piechart_peripherals_options">
+              </canvas>
+            </div>
+
+            <div class="column" style="width:50%;">
+              <canvas id="doughnut4" class="chart chart-doughnut" chart-data="stats.classes.data" chart-labels="stats.classes.labels" chart-colors="sensors_datachart_colors_options" chart-options="sensors_datachart_piechart_classes_options">
+              </canvas>
+            </div>
+
+          </div>
+
+          <br>
+          <br>
+        </div>
+      </div>
+      <div id="sensorDashboard-container33" ng-show="summaryshow" class="tab_margin_1">
+        <div class="spacer" style="height: 28px;"></div>
         <table style="width:100%" bordercolor="#444444">
           <tbody>
             <tr>
               <th style="width:3%">&nbsp;</th>
-              <th style="width:19%">
+              <th style="width:18%">
                 <b>Sensor</b>
               </th>
-              <th style="width:14%">
+              <th style="width:13%">
                 <b>Device</b>
               </th>
               <th style="width:12%">
                 <b>Peripheral</b>
               </th>
-              <th style="width:19%">
+              <th style="width:18%">
                 <b>Class</b>
               </th>
-              <th style="width:33%">
+              <th style="width:36%">
                 <b>Configuration</b>
               </th>
             </tr>
           </tbody>
         </table>
       </div>
-      <div id="sensorDashboard-container31" ng-repeat="sensor in sensors_table" ng-show="sensors_tableshow" class="tab_margin_1">
+      <div id="sensorDashboard-container31" ng-repeat="sensor in summary" ng-show="summaryshow" class="tab_margin_1">
         <table style="width:100%">
           <tbody>
             <tr>
@@ -183,11 +224,11 @@
                 </div>
 
               </td>
-              <td style="width:19%">{{ sensor.sensorname }}</td>
-              <td style="width:14%">{{ sensor.devicename }}</td>
+              <td style="width:18%">{{ sensor.sensorname }}</td>
+              <td style="width:13%">{{ sensor.devicename }}</td>
               <td style="width:12%">{{ sensor.peripheral }}</td>
-              <td style="width:19%">{{ sensor.classes }}</td>
-              <td style="width:33%">{{ sensor.configuration }}</td>
+              <td style="width:18%">{{ sensor.classes }}</td>
+              <td style="width:36%">{{ sensor.configuration }}</td>
             </tr>
           </tbody>
         </table>
@@ -222,16 +263,11 @@
         <button id="sensorDashboard-button179" ng-disabled="timerangeindex==0" ng-click="changeTimeRangeIndexForward()" class="button button-positive button-small button-block button-clear icon-right ion-android-arrow-dropright widget_button_backward_forward"></button>
       </div>
       <div id="sensorDashboard-container20" ng-show="sensor.show" ng-click="submitViewSensorChart(sensor)">
-        <div id="canvas-holder" style="width:97%; margin:0px 0px 0px 3%;">
-
-          <br>
+        <div id="canvas-holder" style="width:94%; margin:0px 3% 3% 3%;">
 
           <canvas id="{{sensor.devicename}}.{{sensor.sensorname}}" title="{{sensor.devicename}}.{{sensor.sensorname}}" class="chart chart-line" chart-colors="chartColors(sensor)" chart-data="chartData(sensor)" chart-labels="chartLabels(sensor)" chart-series="chartSeries(sensor)"
             chart-options="chartOptions(sensor)">
           </canvas>
-
-          <p>
-          </p>
 
         </div>
       </div>
@@ -265,16 +301,11 @@
           <button id="sensorDashboard-button114" ng-disabled="true" class="button button-light button-small button-block widget_button_backward_forward_filler"></button>
           <button id="sensorDashboard-button154" ng-disabled="timerangeindex==0" ng-click="changeTimeRangeIndexForward()" class="button button-positive button-small button-block button-clear icon ion-arrow-right-b widget_button_backward_forward"></button>
         </div>
-        <div id="canvas-holder" style="width:97%; margin:0px 0px 0px 3%;">
-
-          <br>
+        <div id="canvas-holder" style="width:94%; margin:0% 3% 3% 3%;">
 
           <canvas id="{{sensor.devicename}}.{{sensor.sensorname}}" title="{{sensor.devicename}}.{{sensor.sensorname}}" class="chart chart-line" chart-colors="chartColors(sensor)" chart-data="chartData(sensor)" chart-labels="chartLabels(sensor)" chart-series="chartSeries(sensor)"
             chart-options="chartOptions(sensor)">
           </canvas>
-
-          <p>
-          </p>
 
         </div>
       </div>
