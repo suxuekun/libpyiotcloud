@@ -6158,6 +6158,7 @@ def get_all_device_sensors_enabled_input_readings_dataset_filtered():
 
         # compute stats
         stats = None
+        summary = None
         if checkdevice != 0:
             stats = get_sensor_stats(devices, sensors_list)
             summary = get_sensor_summary(username)
