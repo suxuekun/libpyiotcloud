@@ -1224,9 +1224,9 @@ DETAILED:
 		   { 'status': 'OK', 'message': string}
 		   { 'status': 'NG', 'message': string}
 
-		G. GET PERIPHERAL SENSOR THRESHOLDS/FORWARDS
+		G. GET PERIPHERAL SENSOR CONFIGURATION SUMMARY
 		-  Request:
-		   GET /devices/sensors/thresholdsforwards
+		   GET /devices/sensors/configurationsummary
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
 		   { 'status': 'OK', 'message': string, 'summary': {'sensorname': string, 'devicename': string, 'classes': string, 'configuration': string, 'enabled': int} }
