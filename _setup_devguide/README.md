@@ -1058,11 +1058,14 @@ DETAILED:
 		-  Request:
 		   POST /devices/device/DEVICENAME/hierarchy
 		   headers: {'Authorization': 'Bearer ' + token.access}
+		   data: {'checkdevice': int, 'status': int}
+		   // checkdevice and status are both optional.
+		   // checkdevice is 1 or 0. it indicates if backend will check the status of the sensors of the device
+		   // status is 1 or 0. it indicates if device is online. (DEVICE page needs to query the status of the device. To prevent repeating the call, user can provide the result when calling the API.)
 		-  Response:
 		   { 'status': 'OK', 'message': string, 'hierarchy': {"name": string, "active": string, "children": [{"name": string, "active": int, "children":[]}, ...]} }
 		   { 'status': 'NG', 'message': string}
 		   // active is 1 or 0 to indicate if online/offline or enabled/disabled
-
 
 	3. Device group registration and management APIs
 
