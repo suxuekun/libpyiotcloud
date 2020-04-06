@@ -310,5 +310,28 @@
         </div>
       </div>
     </div>
+    <div class="spacer" style="width: 747.778px; height: 10px;"></div>
+    <div class="list card widget_half" id="sensorDashboard-card218" ng-repeat="comparison in comparisons" ng-show="!big_charts">
+      <div class="item item-body card_top" id="sensorDashboard-list-item-container42" ng-click="changeSensorComparisonsHide(comparison)">
+        <div id="sensorDashboard-markdown252" class="show-list-numbers-and-dots">
+          <p style="margin-top:0px;color:#FFFFFF;font-size:16px;">
+            <strong>{{ comparison.class.toUpperCase() }}</strong>
+          </p>
+        </div>
+      </div>
+      <div id="sensorDashboard-container32" ng-show="comparison.show" class="widget_button_backward_forward_container">
+        <button id="sensorDashboard-button180" ng-click="changeTimeRangeIndexBackward()" class="button button-positive button-small button-block button-clear icon-left ion-android-arrow-dropleft widget_button_backward_forward"></button>
+        <button id="sensorDashboard-button181" ng-disabled="true" class="button button-positive button-small button-block button-clear widget_button_backward_forward_filler"></button>
+        <button id="sensorDashboard-button182" ng-disabled="timerangeindex==0" ng-click="changeTimeRangeIndexForward()" class="button button-positive button-small button-block button-clear icon-right ion-android-arrow-dropright widget_button_backward_forward"></button>
+      </div>
+      <div id="sensorDashboard-container34" ng-show="comparison.show">
+        <div id="canvas-holder" style="width:94%; margin:0px 3% 3% 3%;">
+
+          <canvas id="barchart0" class="chart-bar" chart-data="comparison.data" chart-labels="comparison.labels" chart-colors="sensors_datachart_colors_options" chart-options="sensors_datachart_barchart_options">
+          </canvas>
+
+        </div>
+      </div>
+    </div>
   </ion-content>
 </ion-view>

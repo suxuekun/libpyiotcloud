@@ -156,7 +156,8 @@ The web app is made of Ionic framework so it can be compiled as Android and iOS 
 - <b>Amazon EKS</b> Kubernetes service - https://aws.amazon.com/eks
 - <b>Google Firebase Cloud Messaging (FCM)</b> for Android push notifications
 - <b>Apple Push Notification service (APNs)</b> for IOS push notifications
-- <b>Chart.JS</b> for time-series charts/graphs - https://www.chartjs.org/
+- <b>Chart.JS</b> Visualization charts/graphs - https://www.chartjs.org/
+- <b>D3.JS</b> Visualization charts/graphs - https://d3js.org/
 - <b>Google Maps Platform</b> for device location - https://developers.google.com/maps/documentation
 
 
