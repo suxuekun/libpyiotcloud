@@ -157,7 +157,7 @@ The web app is made of Ionic framework so it can be compiled as Android and iOS 
 - <b>Google Firebase Cloud Messaging (FCM)</b> for Android push notifications
 - <b>Apple Push Notification service (APNs)</b> for IOS push notifications
 - <b>Chart.JS</b> Visualization charts/graphs - https://www.chartjs.org/
-- <b>D3.JS</b> Visualization charts/graphs - https://d3js.org/
+- <b>D3.JS</b> Visualization charts/graphs - https://observablehq.com/@d3/gallery
 - <b>Google Maps Platform</b> for device location - https://developers.google.com/maps/documentation
 
 
