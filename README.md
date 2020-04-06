@@ -303,11 +303,15 @@ Device access and control
 Menu, account, history
 <img src="./_images/ui_menuaccounthistory.png" width="800"/>
 
+Device-sensor hierarchy charts
+<img src="./_images/dashboard_hierarchy_charts.png" width="800"/>
+
 Dashboard line charts
 <img src="./_images/dashboard_charts_linechart.png" width="800"/>
 
 Dashboard doughnut charts
 <img src="./_images/dashboard_charts_dougnutchart.png" width="800"/>
+
 
 
 ### REST APIs
