@@ -6254,6 +6254,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         'devicelocation': $state.params.location !== "UNKNOWN" && $state.params.location !== undefined ? $state.params.location.latitude.toFixed(4) + "... , " + $state.params.location.longitude.toFixed(4) + "..." : "UNKNOWN",
         'status': $stateParams.devicestatus,
     };
+    $scope.treeData = null;
 
     console.log("xxx " + $scope.data.devicename);
 
@@ -6347,9 +6348,9 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             headers: {'Authorization': 'Bearer ' +  $scope.data.token.access}
         })
         .then(function (result) {
-            console.log("OK XXXXXXXXXXXXXXXXXXX");
+            //console.log("OK XXXXXXXXXXXXXXXXXXX");
             console.log(result.data);
-            
+        
             if (result.data.status === "OK") {
                 $scope.data.status = 'Online';
             }
@@ -6359,9 +6360,11 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             if (result.data.value !== undefined) {
                 $scope.data.deviceversion = result.data.value.version;
             }
+            
+            $scope.get_hierarchy($scope.data.devicename, 1, 1);
         })
         .catch(function (error) {
-            console.log("ERRORXXXXXXXXXXXXXXXXXXXXXXXXXXX get_status");
+            //console.log("ERRORXXXXXXXXXXXXXXXXXXXXXXXXXXX get_status");
             console.log($scope.data);
             $scope.data.status = 'Offline';
             
@@ -6370,9 +6373,48 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             }
             
             $scope.handle_error(error);
+            
+            $scope.get_hierarchy($scope.data.devicename, 1, 0);
         }); 
     };   
 
+    $scope.get_hierarchy = function(devicename, checkdevice=0, status=null) {
+        console.log("get_hierarchy " + devicename);
+        var data = undefined;
+        if (checkdevice === 1) {
+            data = {};
+            data.checkdevice = checkdevice;
+            if (status !== null) {
+                data.status = status;
+            }
+        }
+        //
+        // GET DEVICE HIERARCHY
+        // - Request:
+        //   POST /devices/device/<devicename>/hierarchy
+        //   headers: {'Authorization': 'Bearer ' + token.access}
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string, 'hierarchy': { "name": string, "children": ["name": string, "children": [...]] } }
+        //   { 'status': 'NG', 'message': string}
+        //        
+        $http({
+            method: 'POST',
+            url: server + '/devices/device/' + devicename + '/hierarchy',
+            headers: {'Authorization': 'Bearer ' +  $scope.data.token.access},
+            data: data
+        })
+        .then(function (result) {
+            console.log(result.data);
+
+            if ($scope.treeData !== null) {
+                $scope.eraseTreeChart2();
+                $scope.treeData = null;
+            }
+            $scope.treeData = result.data.hierarchy;
+            $scope.drawTreeChart($scope.treeData);
+        });
+    };
 
     // GET DEVICE
     $scope.getDevice = function(devicename) {
@@ -6496,7 +6538,9 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
     };
    
     $scope.$on('$ionicView.enter', function(e) {
-        console.log("enter");
+        console.log("DEVICE enter");
+        $scope.treeData = null;
+        
         //console.log($stateParams.location);
         //console.log($stateParams.location.latitude);
         //console.log($stateParams.location.longitude);
@@ -6523,9 +6567,188 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             $scope.data.devicelocation = $stateParams.location !== "UNKNOWN" ? $stateParams.location.latitude.toFixed(4) + "..., " + $stateParams.location.longitude.toFixed(4) + "..." : "UNKNOWN";
             $scope.getStatus($scope.data.devicename);
         }
+        
+        $scope.get_hierarchy($scope.data.devicename);
     });   
    
+    $scope.$on('$ionicView.beforeLeave', function(e) {
+        console.log("DEVICE beforeLeave");
+        if ($scope.treeData !== null) {
+            $scope.eraseTreeChart();
+            $scope.treeData = null;
+        }
+    });
     
+/*
+    $scope.treeData = {
+      "name": "Demo1Device1",
+      "active": 1,  // online/offline
+      "children": [
+        {
+          "name": "UART",
+          "children": [
+            {
+              "name": "UART 1",
+            },
+          ]
+        },
+        {
+          "name": "GPIO",
+          "children": [
+            {
+              "name": "GPIO 1",
+            },
+            {
+              "name": "GPIO 2",
+            },
+            {
+              "name": "GPIO 3",
+            },
+            {
+              "name": "GPIO 4",
+            },
+          ]
+        },
+        {
+          "name": "I2C",
+          "children": [
+            {
+              "name": "I2C 1",
+              "children": [
+                {
+                  "name": "POT 1",
+                  "active": 0,  // online/offline
+                  "children": [
+                    {
+                      "name": "Temperature",
+                      "active": 0,  // online/offline
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "I2C 2",
+            },
+            {
+              "name": "I2C 3",
+            },
+            {
+              "name": "I2C 4",
+            },
+          ]
+        },
+        {
+          "name": "ADC",
+          "children": [
+            {
+              "name": "ADC 1",
+            },
+            {
+              "name": "ADC 2",
+            },
+          ]
+        },
+        {
+          "name": "Onewire",
+          "children": [
+            {
+              "name": "Onewire 1",
+            },
+          ]
+        },
+        {
+          "name": "TProbe",
+          "children": [
+            {
+              "name": "TProbe 1",
+            },
+          ]
+        },
+      ]
+    };
+*/
+    
+    $scope.eraseTreeChart = function(){
+        const svg_id = "#" + $scope.data.devicename;
+        var svg = d3.select(svg_id);
+        svg.data([]).exit().remove();
+    };
+
+    $scope.eraseTreeChart2 = function(){
+        const svg_id = "#" + $scope.data.devicename;
+        var svg = d3.select(svg_id);
+        svg.select("svg").remove();
+    };
+   
+    $scope.drawTreeChart = function(treeData) { // Function for creating bar chart
+        //console.log(document.getElementsByClassName("hierarchychart"));
+        
+        // set the dimensions and margins of the diagram
+        const margin = {top: 50, right: 100, bottom: 50, left: 250},
+              width  = 800 - margin.left - margin.right,
+              height = 450 - margin.top - margin.bottom;
+        
+        // declares a tree layout and assigns the size
+        const treemap = d3.tree().size([height, width]);
+        
+        //  assigns the data to a hierarchy using parent-child relationships
+        let nodes = d3.hierarchy(treeData, d => d.children);
+        
+        // maps the node data to the tree layout
+        nodes = treemap(nodes);
+        
+        // append the svg object to the body of the page
+        // appends a 'group' element to 'svg'
+        // moves the 'group' element to the top left margin
+        const svg_id = "#" + $scope.data.devicename;
+        console.log(d3.select(svg_id));
+        
+        const svg = d3.select(svg_id).append("svg")
+                .attr("width", width + margin.left + margin.right)
+                .attr("height", height + margin.top + margin.bottom),
+              g = svg.append("g")
+                .attr("transform",
+                    "translate(" + margin.left + "," + margin.top + ")");
+        
+        // adds the links between the nodes
+        const link = g.selectAll(".d3link")
+            .data( nodes.descendants().slice(1))
+          .enter().append("path")
+            .attr("class", "d3link")
+            //.style("stroke", d => d.data.level)
+            .attr("d", d => {
+               return "M" + d.y + "," + d.x
+                 + "C" + (d.y + d.parent.y) / 2 + "," + d.x
+                 + " " + (d.y + d.parent.y) / 2 + "," + d.parent.x
+                 + " " + d.parent.y + "," + d.parent.x;
+               });
+        
+        // adds each node as a group
+        const node = g.selectAll(".d3node")
+            .data(nodes.descendants())
+            .enter().append("g")
+            .attr("class", d => "d3node" + (d.children ? " node--internal" : " node--leaf"))
+            .attr("transform", d => "translate(" + d.y + "," + d.x + ")");
+        
+        // adds the circle to the node
+        node.append("circle")
+          .attr("r", d => 4)//d.data.value) // hardcode value to 4
+          .style("stroke", d => d.data.type)
+          .style("fill", d => /*d.data.level*/ {
+                return d.data.active===1 ? "green" : (d.data.active===0 ? "red" : "#DDDDDD"); 
+              }
+          );
+          
+        // adds the text to the node
+        node.append("text")
+          .attr("dy", ".35em")
+          .attr("x", d => d.children ? (/*d.data.value*/4 + 5) * -1 : /*d.data.value*/4 + 5)
+          .attr("y", d => d.children && d.depth !== 0 ? -(/*d.data.value*/4 + 5) : d)
+          .style("text-anchor", d => d.children ? "end" : "start")
+          .text(d => d.data.name);
+    };
+   
 }])
    
 .controller('sensorDashboardCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', 'Devices', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
@@ -6612,6 +6835,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
     $scope.sensors = [];
     $scope.summary = [];
     $scope.summaryshow = false;
+    $scope.comparisons = [];
     $scope.sensors_counthdr = "No sensor returned" ;
     $scope.refresh_automatically = false;
     $scope.refresh_time = 5;
@@ -6858,6 +7082,23 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             "position": 'left'
         },
     };
+    $scope.sensors_datachart_barchart_options = {
+        "animation": false, 
+        "scales": {
+            //"xAxes": [{
+            //    "ticks": {
+            //        //"autoSkip": false,
+            //        "maxRotation": 90,
+            //        "minRotation": 90
+            //    }
+            //}],
+            "yAxes": [{
+                "ticks": {
+                    "beginAtZero": true,
+                }
+            }],
+        }
+    };
 
     
     $scope.changeTimeRangeIndexBackward = function() {
@@ -6949,6 +7190,10 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         $scope.summaryshow = !$scope.summaryshow;
     };
 
+    $scope.changeSensorComparisonsHide = function(comparison) {
+        comparison.show = !comparison.show;
+    };
+
     get_all_device_sensors_enabled_input_dataset = function() {
         //console.log($scope.peripheral);
         //console.log($scope.sensorclass);
@@ -7034,6 +7279,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                 }
             }
             
+            // handle show parameter for sensor
             for (let indexy=0; indexy<result.data.sensors.length; indexy++) {
                 let found = false;
                 for (let indexz=0; indexz<$scope.sensors.length; indexz++) {
@@ -7054,6 +7300,33 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                 }
             }
             $scope.sensors = result.data.sensors;
+            // handle show parameter for comparison
+            if (result.data.comparisons !== undefined) {
+                for (let indexy=0; indexy<result.data.comparisons.length; indexy++) {
+                    result.data.comparisons[indexy].show = true;
+                    /*
+                    let found = false;
+                    if ($scope.comparisons !== undefined) {
+                        for (let indexz=0; indexz<$scope.comparisons.length; indexz++) {
+                            if ($scope.comparisons[indexz].class === result.data.comparisons[indexy].class) {
+                                if ($scope.comparisons[indexz].show === undefined) {
+                                    result.data.comparisons[indexy].show = true;
+                                }
+                                else {
+                                    result.data.comparisons[indexy].show = $scope.comparisons[indexz].show;
+                                }
+                                found = true;
+                                break;
+                            }
+                        }
+                    }
+                    if (found === false) {
+                        result.data.comparisons[indexy].show = true;
+                    }
+                    */
+                }
+                $scope.comparisons = result.data.comparisons;
+            }
             
             if (result.data.stats !== undefined) {
                 $scope.stats = result.data.stats;
@@ -7215,12 +7488,12 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         }); 
     };
 
-    get_all_sensor_thresholdsforwards = function() {
+    get_all_sensor_configurationsummary = function() {
         //
-        // GET PERIPHERAL SENSOR THRESHOLDS/FORWARDS
+        // GET PERIPHERAL SENSOR CONFIGURATION SUMMARY
         //
         // - Request:
-        //   GET /devices/sensors/thresholdsforwards
+        //   GET /devices/sensors/configurationsummary
         //   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
         //
         // - Response:
@@ -7229,7 +7502,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         //
         $http({
             method: 'GET',
-            url: server + '/devices/sensors/thresholdsforwards',
+            url: server + '/devices/sensors/configurationsummary',
             headers: { 'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json' },
         })
         .then(function (result) {
@@ -7618,6 +7891,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         $scope.sensors = [];
         $scope.summary = [];
         $scope.summaryshow = false;
+        $scope.comparisons = [];
         $scope.sensors_counthdr = "No sensor returned";
         
         $scope.timer = null;

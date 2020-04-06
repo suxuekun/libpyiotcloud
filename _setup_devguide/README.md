@@ -278,7 +278,12 @@ SUMMARY:
 		P. GET OTA STATUS                 - GET    /devices/device/DEVICENAME/ota
 		Q. GET OTA STATUSES               - GET    /devices/ota
 
- 
+		//
+		// device-sensor hierarchy tree
+		R. GET DEVICE HIERARCHY TREE               - GET    /devices/device/DEVICENAME/hierarchy
+		S. GET DEVICE HIERARCHY TREE (WITH STATUS) - POST   /devices/device/DEVICENAME/hierarchy
+
+
 	3. Device group registration and management APIs
 
 		A. GET DEVICE GROUPS              - GET    /devicegroups
@@ -294,20 +299,16 @@ SUMMARY:
 	4. Device sensor access and control
 
 		//
-		// sensor properties
-		A. DELETE PERIPHERAL SENSOR PROPERTIES             - DELETE /devices/device/DEVICENAME/sensors/properties
-
-		//
 		// sensor readings (for dashboard)
-		B. GET PERIPHERAL SENSOR READINGS                  - GET    /devices/device/DEVICENAME/sensors/readings
-		C. DELETE PERIPHERAL SENSOR READINGS               - DELETE /devices/device/DEVICENAME/sensors/readings
-		D. GET PERIPHERAL SENSOR READINGS DATASET          - GET    /devices/device/DEVICENAME/sensors/readings/dataset
-		E. GET PERIPHERAL SENSOR READINGS DATASET FILTERED - POST   /devices/sensors/readings/dataset
-		F. DELETE PERIPHERAL SENSOR READINGS DATASET       - DELETE /devices/sensors/readings/dataset
+		A. GET PERIPHERAL SENSOR READINGS                  - GET    /devices/device/DEVICENAME/sensors/readings
+		B. DELETE PERIPHERAL SENSOR READINGS               - DELETE /devices/device/DEVICENAME/sensors/readings
+		C. GET PERIPHERAL SENSOR READINGS DATASET          - GET    /devices/device/DEVICENAME/sensors/readings/dataset
+		D. GET PERIPHERAL SENSOR READINGS DATASET FILTERED - POST   /devices/sensors/readings/dataset
+		E. DELETE PERIPHERAL SENSOR READINGS DATASET       - DELETE /devices/sensors/readings/dataset
 
 		//
 		// sensor forwarding and thresholding
-		G. GET PERIPHERAL SENSOR THRESHOLDS/FORWARDS       - GET   /devices/sensors/thresholdsforwards
+		F. GET PERIPHERAL SENSOR THRESHOLDS/FORWARDS       - GET   /devices/sensors/thresholdsforwards
 
 
 	5. Device access and control APIs (STATUS, UART, GPIO)
@@ -339,6 +340,10 @@ SUMMARY:
 		N. GET GPIO VOLTAGE               - GET    /devices/device/DEVICENAME/gpio/voltage
 		O. SET GPIO VOLTAGE               - POST   /devices/device/DEVICENAME/gpio/voltage
 		   (NUMBER can be 1-4 only and corresponds to GPIO1,GPIO2,GPIO3,GPIO4)
+
+		//
+		// sensor properties
+		P. DELETE PERIPHERAL SENSOR PROPERTIES             - DELETE /devices/device/DEVICENAME/sensors/properties
 
 
 	6. Device access and control APIs (I2C)
@@ -1040,6 +1045,23 @@ DETAILED:
 		   // status is the update status 
 		   // time is the duration for the update
 		   // timestamp is the completion datetime in epoch of the update
+
+		R. GET DEVICE HIERARCHY TREE
+		-  Request:
+		   GET /devices/device/DEVICENAME/hierarchy
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		-  Response:
+		   { 'status': 'OK', 'message': string, 'hierarchy': {"name": string, "children": [{"name": string, "children": []}, ...]} }
+		   { 'status': 'NG', 'message': string}
+
+		S. GET DEVICE HIERARCHY TREE (WITH STATUS)
+		-  Request:
+		   POST /devices/device/DEVICENAME/hierarchy
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		-  Response:
+		   { 'status': 'OK', 'message': string, 'hierarchy': {"name": string, "active": string, "children": [{"name": string, "active": int, "children":[]}, ...]} }
+		   { 'status': 'NG', 'message': string}
+		   // active is 1 or 0 to indicate if online/offline or enabled/disabled
 
 
 	3. Device group registration and management APIs

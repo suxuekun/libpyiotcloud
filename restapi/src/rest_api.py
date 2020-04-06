@@ -20,6 +20,7 @@ from s3_client import s3_client
 import threading
 import copy
 from redis_client import redis_client
+import statistics
 
 
 
@@ -3373,6 +3374,291 @@ def get_ota_status(devicename):
     return response
 
 
+def get_default_device_hierarchy(devicename):
+
+    hierarchy = {
+        "name": devicename,
+        "children": [
+
+            {
+                "name": "UART",
+                "children": [
+                {
+                    "name": "UART 1"
+                },
+                ]
+            },
+
+            {
+                "name": "GPIO",
+                "children": [
+                {
+                    "name": "GPIO 1"
+                },
+                {
+                    "name": "GPIO 2"
+                },
+                {
+                    "name": "GPIO 3"
+                },
+                {
+                    "name": "GPIO 4"
+                },
+                ]
+            },
+
+            {
+                "name": "I2C",
+                "children": [
+                {
+                    "name": "I2C 1"
+                },
+                {
+                    "name": "I2C 2"
+                },
+                {
+                    "name": "I2C 3"
+                },
+                {
+                    "name": "I2C 4"
+                },
+                ]
+            },
+
+            {
+                "name": "ADC",
+                "children": [
+                {
+                    "name": "ADC 1"
+                },
+                {
+                    "name": "ADC 2"
+                },
+                ]
+            },
+
+            {
+                "name": "1WIRE",
+                "children": [
+                {
+                    "name": "1WIRE 1"
+                },
+                ]
+            },
+
+            {
+                "name": "TPROBE",
+                "children": [
+                {
+                    "name": "TPROBE 1"
+                },
+                ]
+            },
+
+        ]
+    }
+
+    return hierarchy
+
+
+def generate_device_hierarchy(username, devicename, hierarchy, checkdevice=0, status=None, token=None):
+
+    if checkdevice == 1:
+        if status is not None:
+            hierarchy["active"] = status
+            if status == 1:
+                device = {}
+                get_running_sensors(token, username, devicename, device)
+                hierarchy["active"] = device["status"]
+
+    sensors = g_database_client.get_all_device_sensors(username, devicename)
+    for sensor in sensors:
+        #print("{} {} {}".format(sensor["sensorname"], sensor["source"], sensor["number"]))
+        peripheral = sensor["source"].upper()
+        for child in hierarchy["children"]:
+            if child["name"] == peripheral:
+                peripheral += " {}".format(sensor["number"])
+                for granchild in child["children"]:
+                    if granchild["name"] == peripheral:
+                        if granchild.get("children") is None:
+                            granchild["children"] = []
+                        item = {
+                            "name": sensor["sensorname"],
+                            "children": [
+                            {
+                                "name": sensor["class"]
+                            }
+                            ]
+                        }
+                        if sensor.get("subclass"):
+                            item["children"].append({"name": sensor["subclass"]})
+
+                        if checkdevice == 1:
+                            if hierarchy["active"] == 0:
+                                item["active"] = 0
+                                for x in item["children"]:
+                                    x["active"] = 0
+                            else:
+                                item["active"] = sensor["enabled"]
+                                for x in item["children"]:
+                                    x["active"] = sensor["enabled"]
+
+                        granchild["children"].append(item)
+                        break
+                break
+
+    return hierarchy
+
+
+########################################################################################################
+#
+# GET DEVICE HIERARCHY TREE
+#
+# - Request:
+#   GET /devices/device/<devicename>/hierarchy
+#   headers: {'Authorization': 'Bearer ' + token.access}
+#
+# - Response:
+#   {'status': 'OK', 'message': string, 'hierarchy': {"name": string, "children": [{"name": "children", ...}, ...]} }
+#   {'status': 'NG', 'message': string}
+#
+########################################################################################################
+@app.route('/devices/device/<devicename>/hierarchy', methods=['GET'])
+def get_device_hierarchy(devicename):
+    # get token from Authorization header
+    auth_header_token = get_auth_header_token()
+    if auth_header_token is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
+        print('\r\nERROR Get hierarchy tree: Invalid authorization header\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
+    token = {'access': auth_header_token}
+
+    # get username from token
+    username = g_database_client.get_username_from_token(token)
+    if username is None:
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Get hierarchy tree: Token expired\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
+
+    print('get_device_hierarchy {} devicename={}'.format(username, devicename))
+
+    # check if a parameter is empty
+    if len(username) == 0 or len(token) == 0 or len(devicename) == 0:
+        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+        print('\r\nERROR Get hierarchy tree: Empty parameter found\r\n')
+        return response, status.HTTP_400_BAD_REQUEST
+
+    # check if username and token is valid
+    verify_ret, new_token = g_database_client.verify_token(username, token)
+    if verify_ret == 2:
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Get hierarchy tree: Token expired [{}]\r\n'.format(username))
+        return response, status.HTTP_401_UNAUTHORIZED
+    elif verify_ret != 0:
+        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
+        print('\r\nERROR Get hierarchy tree: Token is invalid [{}]\r\n'.format(username))
+        return response, status.HTTP_401_UNAUTHORIZED
+
+    # check if device is registered
+    device = g_database_client.find_device(username, devicename)
+    if not device:
+        response = json.dumps({'status': 'NG', 'message': 'Device is not registered'})
+        print('\r\nERROR Get hierarchy tree: Device is not registered [{},{}]\r\n'.format(username, devicename))
+        return response, status.HTTP_404_NOT_FOUND
+
+
+    # generate hierarchy
+    hierarchy = get_default_device_hierarchy(devicename)
+    hierarchy = generate_device_hierarchy(username, devicename, hierarchy)
+
+
+    msg = {'status': 'OK', 'message': 'Get hierarchy tree successful.', 'hierarchy': hierarchy}
+    if new_token:
+        msg['new_token'] = new_token
+    response = json.dumps(msg)
+    print('\r\nGet hierarchy tree successful: {}\r\n\r\n'.format(username))
+    return response
+
+
+########################################################################################################
+#
+# GET DEVICE HIERARCHY TREE (WITH STATUS)
+#
+# - Request:
+#   POST /devices/device/<devicename>/hierarchy
+#   headers: {'Authorization': 'Bearer ' + token.access}
+#   data: {'checkdevice': int, 'status': int}
+#
+# - Response:
+#   {'status': 'OK', 'message': string, 'hierarchy': {"name": string, "children": [{"name": "children", ...}, ...]} }
+#   {'status': 'NG', 'message': string}
+#
+########################################################################################################
+@app.route('/devices/device/<devicename>/hierarchy', methods=['POST'])
+def get_device_hierarchy_with_status(devicename):
+    # get token from Authorization header
+    auth_header_token = get_auth_header_token()
+    if auth_header_token is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
+        print('\r\nERROR Get hierarchy tree: Invalid authorization header\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
+    token = {'access': auth_header_token}
+
+    # get username from token
+    username = g_database_client.get_username_from_token(token)
+    if username is None:
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Get hierarchy tree: Token expired\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
+
+    print('get_device_hierarchy_with_status {} devicename={}'.format(username, devicename))
+
+    # check if a parameter is empty
+    if len(username) == 0 or len(token) == 0 or len(devicename) == 0:
+        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+        print('\r\nERROR Get hierarchy tree: Empty parameter found\r\n')
+        return response, status.HTTP_400_BAD_REQUEST
+
+    # check if username and token is valid
+    verify_ret, new_token = g_database_client.verify_token(username, token)
+    if verify_ret == 2:
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Get hierarchy tree: Token expired [{}]\r\n'.format(username))
+        return response, status.HTTP_401_UNAUTHORIZED
+    elif verify_ret != 0:
+        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
+        print('\r\nERROR Get hierarchy tree: Token is invalid [{}]\r\n'.format(username))
+        return response, status.HTTP_401_UNAUTHORIZED
+
+    # check if device is registered
+    device = g_database_client.find_device(username, devicename)
+    if not device:
+        response = json.dumps({'status': 'NG', 'message': 'Device is not registered'})
+        print('\r\nERROR Get hierarchy tree: Device is not registered [{},{}]\r\n'.format(username, devicename))
+        return response, status.HTTP_404_NOT_FOUND
+
+
+    # generate hierarchy
+    checkdevice = 0
+    status = None
+    data = flask.request.get_json()
+    if data is not None:
+        if data.get("checkdevice") is not None:
+            checkdevice = data["checkdevice"]
+        if data.get("status") is not None:
+            status = data["status"]
+    hierarchy = get_default_device_hierarchy(devicename)
+    hierarchy = generate_device_hierarchy(username, devicename, hierarchy, checkdevice, status, token)
+
+
+    msg = {'status': 'OK', 'message': 'Get hierarchy tree successful.', 'hierarchy': hierarchy}
+    if new_token:
+        msg['new_token'] = new_token
+    response = json.dumps(msg)
+    print('\r\nGet hierarchy tree successful: {}\r\n\r\n'.format(username))
+    return response
+
+
 #########################
 
 
@@ -5894,6 +6180,85 @@ def get_sensor_data_threaded_ex(sensor, username, datebegin, dateend, period, ma
                     break
     sensor.pop("deviceid")
 
+def get_sensor_comparisons(devices, sensors_list):
+    classes = []
+    comparisons = []
+
+    for sensor in sensors_list:
+        label = sensor["sensorname"] + "." + sensor["devicename"]
+
+        try:
+            average_data = round(statistics.mean(sensor["dataset"]["data"][0]), 1)
+        except:
+            average_data = 0
+        try:
+            min_low = round(min(sensor["dataset"]["low"][0]), 1)
+        except:
+            min_low = 0
+        try:
+            max_high = round(max(sensor["dataset"]["high"][0]), 1)
+        except:
+            max_high = 0
+
+        if average_data > 0:
+            if sensor["class"] not in classes:
+                classes.append(sensor["class"])
+                item = {
+                    'class': sensor["class"], 'labels': [], 'data': [[],[],[]]
+                }
+                item['data'][0].append(min_low)
+                item['data'][1].append(average_data)
+                item['data'][2].append(max_high)
+                item['labels'].append(label)
+                comparisons.append(item)
+            else:
+                for comparison in comparisons:
+                    if comparison["class"] == sensor["class"]:
+                        comparison['data'][0].append(min_low)
+                        comparison['data'][1].append(average_data)
+                        comparison['data'][2].append(max_high)
+                        comparison['labels'].append(label)
+                        break
+
+        if sensor.get("subclass"):
+            try:
+                average_data = round(statistics.mean(sensor["dataset"]["data"][1]), 1)
+            except:
+                average_data = 0
+            try:
+                min_low = round(min(sensor["dataset"]["low"][1]), 1)
+            except:
+                min_low = 0
+            try:
+                max_high = round(max(sensor["dataset"]["high"][1]), 1)
+            except:
+                max_high = 0
+
+            if average_data > 0:
+                if sensor["subclass"] not in classes:
+                    classes.append(sensor["subclass"])
+                    item = {
+                        'class': sensor["subclass"], 'labels': [], 'data': [[],[],[]]
+                    }
+                    item['data'][0].append(min_low)
+                    item['data'][1].append(average_data)
+                    item['data'][2].append(max_high)
+                    item['labels'].append(label)
+                    comparisons.append(item)
+                else:
+                    for comparison in comparisons:
+                        if comparison["class"] == sensor["subclass"]:
+                            comparison['data'][0].append(min_low)
+                            comparison['data'][1].append(average_data)
+                            comparison['data'][2].append(max_high)
+                            comparison['labels'].append(label)
+                            break
+    for x in range(len(comparisons)-1, 0, -1):
+        if len(comparisons[x]['labels']) == 1:
+            comparisons.remove(comparisons[x])
+    #    print(comparison)
+    return comparisons
+
 def get_sensor_stats(devices, sensors_list):
     stats = {}
 
@@ -6156,12 +6521,14 @@ def get_all_device_sensors_enabled_input_readings_dataset_filtered():
         if len(sensors_list):
             sensors_list.sort(key=sort_by_devicename)
 
-        # compute stats
+        # compute stats, summary and comparisons
         stats = None
         summary = None
+        comparisons = None
         if checkdevice != 0:
             stats = get_sensor_stats(devices, sensors_list)
             summary = get_sensor_summary(username)
+        comparisons = get_sensor_comparisons(devices, sensors_list)
 
         #print(time.time()-start_time)
         msg = {'status': 'OK', 'message': 'Get All Device Sensors Dataset queried successfully.', 'sensors': sensors_list}
@@ -6169,6 +6536,8 @@ def get_all_device_sensors_enabled_input_readings_dataset_filtered():
             msg['stats'] = stats
         if summary:
             msg['summary'] = summary
+        if comparisons:
+            msg['comparisons'] = comparisons
 
     elif flask.request.method == 'DELETE':
 
@@ -6312,10 +6681,10 @@ def get_sensor_summary(username):
 
 ########################################################################################################
 #
-# GET PERIPHERAL SENSOR THRESHOLDS/FORWARDS
+# GET PERIPHERAL SENSOR CONFIGURATION SUMMARY
 #
 # - Request:
-#   GET /devices/sensors/thresholdsforwards
+#   GET /devices/sensors/configurationsummary
 #   headers: { 'Authorization': 'Bearer ' + token.access }
 #
 # - Response:
@@ -6323,8 +6692,8 @@ def get_sensor_summary(username):
 #   { 'status': 'NG', 'message': string }
 #
 ########################################################################################################
-@app.route('/devices/sensors/thresholdsforwards', methods=['GET'])
-def get_all_sensor_thresholdsforwards():
+@app.route('/devices/sensors/configurationsummary', methods=['GET'])
+def get_all_sensor_configurationsummary():
 
     # get token from Authorization header
     auth_header_token = get_auth_header_token()
@@ -6340,7 +6709,7 @@ def get_all_sensor_thresholdsforwards():
         response = json.dumps({'status': 'NG', 'message': 'Token expired'})
         print('\r\nERROR Get All Sensor Thresholds: Token expired\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
-    #print('get_all_sensor_thresholds {}'.format(username))
+    #print('get_all_sensor_configurationsummary {}'.format(username))
 
     # check if a parameter is empty
     if len(username) == 0 or len(token) == 0:

@@ -9827,6 +9827,24 @@ table, th, td {
   margin-right: 10px;
   font-size: 10px; }
 
+.d3node circle {
+  fill: #DDDDDD;
+  stroke: #FFFFFF;
+  stroke-width: 1px; }
+
+.d3node text {
+  font: 12px sans-serif;
+  fill: #3C5A99; }
+
+.d3link {
+  fill: none;
+  stroke: #DDDDDD;
+  stroke-width: 1px; }
+
+.d3container {
+  width: 99% !important;
+  background-color: #FFF; }
+
 .img_logo {
   top: 35%; }
 
