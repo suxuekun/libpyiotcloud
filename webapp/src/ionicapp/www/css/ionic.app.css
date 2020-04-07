@@ -9961,6 +9961,10 @@ table, th, td {
   max-width: 1000px;
   margin: 0% auto; }
 
+.page_width_dashboard {
+  max-width: 1700px;
+  margin: 0% auto; }
+
 .page_width_small {
   max-width: 500px;
   margin: 0% auto; }
@@ -9987,6 +9991,10 @@ table, th, td {
 
 .widget_half {
   width: 49% !important;
+  display: inline-block; }
+
+.widget_quarter {
+  width: 24.5% !important;
   display: inline-block; }
 
 .widget_third {
@@ -10033,6 +10041,14 @@ table, th, td {
 
 .widget_button_80 {
   width: 79% !important;
+  display: inline-block; }
+
+.widget_button_40 {
+  width: 39% !important;
+  display: inline-block; }
+
+.widget_button_60 {
+  width: 59% !important;
   display: inline-block; }
 
 .widget_button_half {

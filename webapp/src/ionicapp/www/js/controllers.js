@@ -633,20 +633,24 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             diffString += " ago";
         }
         else if (diff < 604800) {
-            diff = parseInt(diff/86400, 10);
             /*
+            diff = parseInt(diff/86400, 10);
             diffString = diff + " day";
             if (diff > 1) {
                 diffString += "s";
             }
             diffString += " ago";
             */
+            let devicedatetime = new Date(devicedate * 1000);
+            let currdatetime = new Date(currdate * 1000);
+            diff = currdatetime.getDate()-devicedatetime.getDate();
             if (diff === 1) {
                 diffString = "Yesterday";
             }
+            else if (diff === 7) {
+                diffString = "1 week ago";
+            }
             else {
-                let devicedatetime = new Date(devicedate * 1000);
-                //console.log(devicedatetime);
                 diffString = devicedatetime.toLocaleString('en-us', {  weekday: 'long' });
             }
         }
@@ -6372,8 +6376,6 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
                 $scope.data.deviceversion = error.data.value.version;
             }
             
-            $scope.handle_error(error);
-            
             $scope.get_hierarchy($scope.data.devicename, 1, 0);
         }); 
     };   
@@ -6413,7 +6415,10 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             }
             $scope.treeData = result.data.hierarchy;
             $scope.drawTreeChart($scope.treeData);
-        });
+        })
+        .catch(function (error) {
+            $scope.handle_error(error);
+        }); 
     };
 
     // GET DEVICE
@@ -6540,6 +6545,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
     $scope.$on('$ionicView.enter', function(e) {
         console.log("DEVICE enter");
         $scope.treeData = null;
+        $scope.get_hierarchy($scope.data.devicename);
         
         //console.log($stateParams.location);
         //console.log($stateParams.location.latitude);
@@ -6567,8 +6573,6 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             $scope.data.devicelocation = $stateParams.location !== "UNKNOWN" ? $stateParams.location.latitude.toFixed(4) + "..., " + $stateParams.location.longitude.toFixed(4) + "..." : "UNKNOWN";
             $scope.getStatus($scope.data.devicename);
         }
-        
-        $scope.get_hierarchy($scope.data.devicename);
     });   
    
     $scope.$on('$ionicView.beforeLeave', function(e) {
@@ -6702,7 +6706,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         // appends a 'group' element to 'svg'
         // moves the 'group' element to the top left margin
         const svg_id = "#" + $scope.data.devicename;
-        console.log(d3.select(svg_id));
+        //console.log(d3.select(svg_id));
         
         const svg = d3.select(svg_id).append("svg")
                 .attr("width", width + margin.left + margin.right)
@@ -6833,19 +6837,22 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
     
     $scope.hide_settings = false;
     $scope.sensors = [];
-    $scope.summary = [];
-    $scope.summaryshow = false;
+    $scope.sensorsummary = [];
+    $scope.sensorsummaryshow = false;
+    $scope.devicesummary = [];
+    $scope.devicesummaryshow = false;
     $scope.comparisons = [];
     $scope.sensors_counthdr = "No sensor returned" ;
     $scope.refresh_automatically = false;
     $scope.refresh_time = 5;
     $scope.run_time = 0;
     $scope.big_charts = false;
-    $scope.online_charts = false;
+    $scope.online_charts = true;
 
     $scope.stats = {};
     
-    $scope.sensors_datachart_colors_options = ['#11C1F3', '#33CD5F', '#FFC900', '#F38124', '#EF473A', '#F58CF6', '#B6A2FC', '#BE9B7B', '#AAAAAA'];
+    $scope.sensors_datachart_colors_options    = ['#11C1F3', '#33CD5F', '#FFC900', '#F38124', '#EF473A', '#F58CF6', '#B6A2FC', '#3C5A99'];//, '#BE9B7B', '#AAAAAA'];
+    $scope.sensors_datachart_colors_options_ex = ['#EF473A', '#F38124', '#FFC900', '#33CD5F', '#3C5A99', '#11C1F3', '#B6A2FC', '#F58CF6'];
     $scope.sensors_datachart = [{"labels": [], "data": [], "series": [], "colors": []}];
     $scope.sensors_datachart_empty = {"labels": [], "data": [], "series": [], "colors": []};
     
@@ -7042,17 +7049,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             }
         },*/           
     };
-    $scope.sensors_datachart_piechart_devices_options = {
-        "title": {
-            "display": true,
-            "text": 'Devices'
-        },
-        "legend": {
-            "display": true,
-            "position": 'left'
-        },
-    };
-    $scope.sensors_datachart_piechart_sensors_options = {
+    
+    $scope.sensors_datachart_piechart_devices_statuses_options = {
         "title": {
             "display": true,
             "text": 'Status'
@@ -7062,7 +7060,59 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             "position": 'left'
         },
     };
-    $scope.sensors_datachart_piechart_peripherals_options = {
+    $scope.sensors_datachart_piechart_devices_groups_options = {
+        "title": {
+            "display": true,
+            "text": 'Groups'
+        },
+        "legend": {
+            "display": true,
+            "position": 'left'
+        },
+    };
+    $scope.sensors_datachart_piechart_devices_versions_options = {
+        "title": {
+            "display": true,
+            "text": 'Versions'
+        },
+        "legend": {
+            "display": true,
+            "position": 'left'
+        },
+    };
+    $scope.sensors_datachart_piechart_devices_locations_options = {
+        "title": {
+            "display": true,
+            "text": 'Locations'
+        },
+        "legend": {
+            "display": true,
+            "position": 'left'
+        },
+    };
+    
+    
+    $scope.sensors_datachart_piechart_sensors_statuses_options = {
+        "title": {
+            "display": true,
+            "text": 'Status'
+        },
+        "legend": {
+            "display": true,
+            "position": 'left'
+        },
+    };
+    $scope.sensors_datachart_piechart_sensors_types_options = {
+        "title": {
+            "display": true,
+            "text": 'Types'
+        },
+        "legend": {
+            "display": true,
+            "position": 'left'
+        },
+    };
+    $scope.sensors_datachart_piechart_sensors_peripherals_options = {
         "title": {
             "display": true,
             "text": 'Peripherals'
@@ -7072,7 +7122,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             "position": 'left'
         },
     };
-    $scope.sensors_datachart_piechart_classes_options = {
+    $scope.sensors_datachart_piechart_sensors_classes_options = {
         "title": {
             "display": true,
             "text": 'Classes'
@@ -7187,7 +7237,11 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
     };
 
     $scope.changeSensorTableHide = function() {
-        $scope.summaryshow = !$scope.summaryshow;
+        $scope.sensorsummaryshow = !$scope.sensorsummaryshow;
+    };
+    
+    $scope.changeDeviceTableHide = function() {
+        $scope.devicesummaryshow = !$scope.devicesummaryshow;
     };
 
     $scope.changeSensorComparisonsHide = function(comparison) {
@@ -7332,7 +7386,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                 $scope.stats = result.data.stats;
             }
             if (result.data.summary !== undefined) {
-                $scope.summary = result.data.summary;
+                $scope.sensorsummary = result.data.summary;
             }
 
             if ($scope.sensors.length > 0) {
@@ -7507,7 +7561,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         })
         .then(function (result) {
             console.log(result.data);
-            $scope.summary = result.data.summary;
+            $scope.sensorsummary = result.data.summary;
         })
         .catch(function (error) {
             handle_error(error);
@@ -7889,8 +7943,10 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         console.log("enter sensor dashboard");
         $scope.devices = [{"devicename": "All devices"}];
         $scope.sensors = [];
-        $scope.summary = [];
-        $scope.summaryshow = false;
+        $scope.sensorsummary = [];
+        $scope.sensorsummaryshow = false;
+        $scope.devicesummary = [];
+        $scope.devicesummaryshow = false;
         $scope.comparisons = [];
         $scope.sensors_counthdr = "No sensor returned";
         
@@ -7910,12 +7966,11 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         $scope.refresh_time = 5;
         $scope.run_time = 0;
         $scope.big_charts = false;
-        $scope.online_charts = false;
+        $scope.online_charts = true;
     
         $scope.stats = {};        
         
         $scope.sensors_datachart = [{"labels": [], "data": [], "series": [], "colors": []}];
-        
         //console.log($scope.data);
         //console.log($state.params);
         //console.log($stateParams);

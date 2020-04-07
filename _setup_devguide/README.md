@@ -1211,10 +1211,19 @@ DETAILED:
 		                  'dataset':  {'labels': [], 'data': [[],...], 'low': [[],...], 'high': [[],...]}, 
 		                  'readings': {'value': float, 'lowest': float, 'highest': float, 'subclass': {'value': float, 'lowest': float, 'highest': float}}
 		                ],
-		     'stats'  : { 'devices':     {'total': int, 'labels': [strings], 'data': [int]},
-		                  'sensors':     {'total': int, 'labels': [strings], 'data': [int]},
-		                  'peripherals': {'total': int, 'labels': [strings], 'data': [int]},
-		                  'classes':     {'total': int, 'labels': [strings], 'data': [int]},
+		     'stats'  : { 
+		                  'devices': {
+		                    'statuses':    {'total': int, 'labels': [strings], 'data': [int]},
+		                    'groups:       {'total': int, 'labels': [strings], 'data': [int]},
+		                    'versions':    {'total': int, 'labels': [strings], 'data': [int]},
+		                    'locations':   {'total': int, 'labels': [strings], 'data': [int]}
+		                  },
+		                  'sensors': {
+		                    'statuses':    {'total': int, 'labels': [strings], 'data': [int]},
+		                    'types':       {'total': int, 'labels': [strings], 'data': [int]},
+		                    'peripherals': {'total': int, 'labels': [strings], 'data': [int]},
+		                    'classes':     {'total': int, 'labels': [strings], 'data': [int]}
+		                  },
 		                },
 		     'summary': [{'sensorname': string, 'devicename': string, 'classes': string, 'configuration': string, 'enabled': int}]
 		     }

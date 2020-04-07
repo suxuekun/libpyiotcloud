@@ -3470,6 +3470,10 @@ def generate_device_hierarchy(username, devicename, hierarchy, checkdevice=0, st
                 device = {}
                 get_running_sensors(token, username, devicename, device)
                 hierarchy["active"] = device["status"]
+        else:
+            device = {}
+            get_running_sensors(token, username, devicename, device)
+            hierarchy["active"] = device["status"]
 
     sensors = g_database_client.get_all_device_sensors(username, devicename)
     for sensor in sensors:
@@ -6085,7 +6089,7 @@ def get_running_sensors(token, username, devicename, device):
     if status_return == 200:
         device['status'] = 1
         # query database
-        sensors = g_database_client.get_all_device_sensors_input(username, devicename)
+        sensors = g_database_client.get_all_device_sensors(username, devicename)
 
         # map queried result with database result
         #print("from device")
@@ -6259,15 +6263,82 @@ def get_sensor_comparisons(devices, sensors_list):
     #    print(comparison)
     return comparisons
 
-def get_sensor_stats(devices, sensors_list):
+def get_device_stats(devices, username):
     stats = {}
 
+    if devices == "All devices":
+        devices = g_database_client.devices(username)
+    else:
+        devices[0]["deviceid"] = g_database_client.get_deviceid(username, devices[0]["devicename"])
+
+    devicegroups    = g_database_client.get_devicegroups(username)
+    devicelocations = g_database_client.get_devices_location(username)
+    stats['groups']    = { 'labels': ['no group'], 'data': [0] }
+    stats['versions']  = { 'labels': ['unknown'], 'data': [0] }
+    stats['locations'] = { 'labels': ['known', 'unknown'], 'data': [0, 0] }
     enabled_devices = 0
+
     for device in devices:
+        # handle statuses
         if device["status"] == 1:
             enabled_devices += 1
-    stats['devices'] = { 'total': len(devices), 'online': enabled_devices, 'offline': len(devices)-enabled_devices, 'labels': ['online', 'offline'], 'data': [enabled_devices, len(devices)-enabled_devices] }
 
+        # handle groups
+        found = 0
+        #print(device["devicename"])
+        for devicegroup in devicegroups:
+            if len(devicegroup["devices"]):
+                if device["devicename"] in devicegroup["devices"]:
+                    #print(devicegroup["groupname"])
+                    found = 1
+                    try:
+                        index = stats['groups']['labels'].index(devicegroup["groupname"])
+                        stats['groups']['data'][index] += 1
+                    except:
+                        stats['groups']['labels'].insert(0, devicegroup["groupname"])
+                        stats['groups']['data'].insert(0, 1)
+                    break
+        if found == 0:
+            #print(stats['groups']['labels'][0])
+            stats['groups']['data'][-1] += 1
+
+        # handle versions
+        if device.get("version") is not None:
+            try:
+                index = stats['versions']['labels'].index("version " + device["version"])
+                stats['versions']['data'][index] += 1
+            except:
+                stats['versions']['labels'].insert(0, "version " + device["version"])
+                stats['versions']['data'].insert(0, 1)
+        else:
+            stats['versions']['data'][-1] += 1
+
+        # handle locations
+        found = 0
+        for devicelocation in devicelocations:
+            if device.get("deviceid"):
+                if device["deviceid"] == devicelocation["deviceid"]:
+                    stats['locations']['data'][0] += 1
+                    found = 1
+                    break
+        if found == 0:
+            stats['locations']['data'][1] += 1
+
+
+    stats['statuses'] = { 
+        'total': len(devices), 
+        'online': enabled_devices, 
+        'offline': len(devices)-enabled_devices, 
+        'labels': ['online', 'offline'], 
+        'data': [enabled_devices, len(devices)-enabled_devices] }
+
+    return stats
+
+def get_sensor_stats(sensors_list):
+    stats = {}
+
+    input_sensors = 0
+    stats['types'] = { 'total': 0, 'input': 0, 'output': 0 }
     peripherals = []
     stats['peripherals'] = { 'total': 0, 'labels': [], 'data': [] }
     classes = []
@@ -6277,6 +6348,9 @@ def get_sensor_stats(devices, sensors_list):
     for sensor in sensors_list:
         if sensor["enabled"] == 1:
             enabled_sensors += 1
+
+        if sensor["type"] == "input":
+            input_sensors += 1
 
         if sensor["source"] not in peripherals:
             peripherals.append(sensor["source"])
@@ -6303,7 +6377,19 @@ def get_sensor_stats(devices, sensors_list):
             else:
                 stats['classes'][sensor["subclass"]] += 1
 
-    stats['sensors'] = { 'total': len(sensors_list), 'enabled': enabled_sensors, 'disabled': len(sensors_list)-enabled_sensors, 'labels': ['enabled', 'disabled'], 'data': [enabled_sensors, len(sensors_list)-enabled_sensors] }
+    len_sensors = len(sensors_list)
+    stats['types'] = { 
+        'total': len_sensors, 
+        'input': input_sensors, 
+        'output': len_sensors-input_sensors, 
+        'labels': ['input', 'output'], 
+        'data': [input_sensors, len_sensors-input_sensors] }
+    stats['statuses'] = { 
+        'total': len_sensors, 
+        'enabled': enabled_sensors, 
+        'disabled': len_sensors-enabled_sensors, 
+        'labels': ['enabled', 'disabled'], 
+        'data': [enabled_sensors, len_sensors-enabled_sensors] }
 
     if len(peripherals):
         peripherals.sort()
@@ -6319,7 +6405,7 @@ def get_sensor_stats(devices, sensors_list):
     for classe in classes:
         stats['classes']['labels'].append(classe)
         stats['classes']['data'].append(stats['classes'][classe])
-        stats['classes']['label'] += "{} {}, ".format(stats['classes'][classe], classe[:4])
+        stats['classes']['label'] += "{} {}, ".format(stats['classes'][classe], classe[:3])
     if len(classes):
         stats['classes']['label'] = stats['classes']['label'][:len(stats['classes']['label'])-2]
 
@@ -6526,9 +6612,24 @@ def get_all_device_sensors_enabled_input_readings_dataset_filtered():
         summary = None
         comparisons = None
         if checkdevice != 0:
-            stats = get_sensor_stats(devices, sensors_list)
-            summary = get_sensor_summary(username)
-        comparisons = get_sensor_comparisons(devices, sensors_list)
+            output_sensors_list = g_database_client.get_all_device_sensors_enabled_input(username, sensordevicename, source, number, sensorclass, sensorstatus, type="output")
+            stats = {"sensors": {}, "devices": {}}
+            try:
+                stats["sensors"] = get_sensor_stats(sensors_list+output_sensors_list)
+            except:
+                pass
+            try:
+                stats["devices"] = get_device_stats(devices, username)
+            except:
+                pass
+            try:
+                summary = get_sensor_summary(username)
+            except:
+                pass
+        try:
+            comparisons = get_sensor_comparisons(devices, sensors_list)
+        except:
+            pass
 
         #print(time.time()-start_time)
         msg = {'status': 'OK', 'message': 'Get All Device Sensors Dataset queried successfully.', 'sensors': sensors_list}
@@ -6626,7 +6727,7 @@ def get_sensor_summary(username):
     devices = g_database_client.get_devices(username)
     for device in devices:
         # get all user input sensors
-        sensors = g_database_client.get_all_device_sensors_input_by_deviceid(device["deviceid"])
+        sensors = g_database_client.get_all_device_sensors_by_deviceid(device["deviceid"])
         if len(sensors):
             #print(len(sensors))
             for sensor in sensors:
@@ -6634,37 +6735,87 @@ def get_sensor_summary(username):
                 if sensor.get("address"):
                     address = sensor["address"]
                 configuration = g_database_client.get_device_peripheral_configuration_by_deviceid(device["deviceid"], sensor["source"], int(sensor["number"]), address)
-                if configuration is not None:
-                    mode = configuration["attributes"]["mode"]
-                    # check if continuous mode (sensor forwarding) or thresholding mode (notification triggering)
-                    if configuration.get("attributes"):
-                        if mode == 2: #MODE_CONTINUOUS: 
-                            value = configuration["attributes"]["hardware"]["devicename"]
-                            value = "forward: " + value
-                        else: 
-                            threshold = configuration["attributes"]["threshold"]
-                            if mode == 0: # MODE_THRESHOLD_SINGLE
-                                value = {"value": threshold["value"]}
-                            elif mode == 1: # MODE_THRESHOLD_DUAL
-                                value = {"min": threshold["min"], "max": threshold["max"]}
-                            value = "threshold: " + json.dumps(value)
+                if sensor["type"] == "input":
+                    if configuration is not None:
+                        mode = configuration["attributes"]["mode"]
+                        # check if continuous mode (sensor forwarding) or thresholding mode (notification triggering)
+                        if configuration.get("attributes"):
+                            if mode == 2: #MODE_CONTINUOUS: 
+                                value = configuration["attributes"]["hardware"]["devicename"]
+                                value = "forward: " + value
+                            else: 
+                                threshold = configuration["attributes"]["threshold"]
+                                if mode == 0: # MODE_THRESHOLD_SINGLE
+                                    value = {"value": threshold["value"]}
+                                elif mode == 1: # MODE_THRESHOLD_DUAL
+                                    value = {"min": threshold["min"], "max": threshold["max"]}
+                                value = "threshold: " + json.dumps(value)
+                            classes = sensor["class"]
+                        # handle subclass
+                        if configuration["attributes"].get("subattributes"):
+                            if mode == 2: #MODE_CONTINUOUS: 
+                                subvalue = configuration["attributes"]["subattributes"]["hardware"]["devicename"]
+                                subvalue = "forward: " + value
+                            else: 
+                                threshold = configuration["attributes"]["subattributes"]["threshold"]
+                                if mode == 0: # MODE_THRESHOLD_SINGLE
+                                    subvalue = {"value": threshold["value"]}
+                                elif mode == 1: # MODE_THRESHOLD_DUAL
+                                    subvalue = {"min": threshold["min"], "max": threshold["max"]}
+                                subvalue = "threshold: " + json.dumps(subvalue)
+                            value += ", " + subvalue
+                            classes += ", " + sensor["subclass"]
+                    else:
+                        value = "Unconfigured"
                         classes = sensor["class"]
-                    # handle subclass
-                    if configuration["attributes"].get("subattributes"):
-                        if mode == 2: #MODE_CONTINUOUS: 
-                            subvalue = configuration["attributes"]["subattributes"]["hardware"]["devicename"]
-                            subvalue = "forward: " + value
-                        else: 
-                            threshold = configuration["attributes"]["subattributes"]["threshold"]
-                            if mode == 0: # MODE_THRESHOLD_SINGLE
-                                subvalue = {"value": threshold["value"]}
-                            elif mode == 1: # MODE_THRESHOLD_DUAL
-                                subvalue = {"min": threshold["min"], "max": threshold["max"]}
-                            subvalue = "threshold: " + json.dumps(subvalue)
-                        value += ", " + subvalue
-                        classes += ", " + sensor["subclass"]
-                else:
-                    value = "Unconfigured"
+                        if sensor.get("subclass"):
+                            classes += ", " + sensor["subclass"]
+                elif sensor["type"] == "output":
+                    if configuration is not None:
+                        if sensor["class"] == "light":
+                            usage = configuration["attributes"]["color"]["usage"]
+                            if usage == 0:
+                                endpoint = configuration["attributes"]["color"]["single"]["endpoint"]
+                                if endpoint == 0:
+                                    value = "source: manual"
+                                else:
+                                    hardware = configuration["attributes"]["color"]["single"]["hardware"]
+                                    value = "source: " + hardware["devicename"] + "." + hardware["peripheral"] + "." + hardware["sensorname"]
+                            else:
+                                individual = configuration["attributes"]["color"]["individual"]
+                                value = {"red": "", "blue": "", "green": ""}
+                                # red
+                                if individual["red"]["endpoint"] == 0:
+                                    value["red"] = "manual"
+                                else:
+                                    hardware = individual["red"]["hardware"]
+                                    value["red"] = hardware["devicename"] + "." + hardware["peripheral"] + "." + hardware["sensorname"]
+                                # blue
+                                if individual["blue"]["endpoint"] == 0:
+                                    value["blue"] = "manual"
+                                else:
+                                    hardware = individual["blue"]["hardware"]
+                                    value["blue"] = hardware["devicename"] + "." + hardware["peripheral"] + "." + hardware["sensorname"]
+                                # green
+                                if individual["green"]["endpoint"] == 0:
+                                    value["green"] = "manual"
+                                else:
+                                    hardware = individual["green"]["hardware"]
+                                    value["green"] = hardware["devicename"] + "." + hardware["peripheral"] + "." + hardware["sensorname"]
+                                value = "source: " + json.dumps(value)
+                        else:
+                            try:
+                                endpoint = configuration["attributes"]["endpoint"]
+                            except:
+                                print("XXXXXXX" + str(json.dumps(configuration)))
+                                endpoint = 0
+                            if endpoint == 0:
+                                value = "source: manual"
+                            else:
+                                hardware = configuration["attributes"]["hardware"]
+                                value = "source: " + hardware["devicename"] + "." + hardware["peripheral"] + "." + hardware["sensorname"]
+                    else:
+                        value = "Unconfigured"
                     classes = sensor["class"]
                     if sensor.get("subclass"):
                         classes += ", " + sensor["subclass"]
@@ -6672,8 +6823,9 @@ def get_sensor_summary(username):
                 sensors_list.append({
                     "sensorname": sensor["sensorname"], 
                     "devicename": device["devicename"], 
-                    "classes": classes, 
+                    "type": sensor["type"], 
                     "peripheral": sensor["source"], 
+                    "classes": classes, 
                     "configuration": value, 
                     "enabled": sensor["enabled"]})
     return sensors_list
