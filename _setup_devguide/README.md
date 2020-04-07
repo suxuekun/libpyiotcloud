@@ -1209,22 +1209,28 @@ DETAILED:
 		                ],
 		     'stats'  : { 
 		                  'devices': {
-		                    'statuses':    {'total': int, 'labels': [strings], 'data': [int]},
-		                    'groups:       {'total': int, 'labels': [strings], 'data': [int]},
-		                    'versions':    {'total': int, 'labels': [strings], 'data': [int]},
-		                    'locations':   {'total': int, 'labels': [strings], 'data': [int]}
+		                    'statuses':    {'labels': [strings], 'data': [int]},
+		                    'groups:       {'labels': [strings], 'data': [int]},
+		                    'versions':    {'labels': [strings], 'data': [int]},
+		                    'locations':   {'labels': [strings], 'data': [int]}
 		                  },
 		                  'sensors': {
-		                    'statuses':    {'total': int, 'labels': [strings], 'data': [int]},
-		                    'types':       {'total': int, 'labels': [strings], 'data': [int]},
-		                    'peripherals': {'total': int, 'labels': [strings], 'data': [int]},
-		                    'classes':     {'total': int, 'labels': [strings], 'data': [int]}
+		                    'statuses':    {'labels': [strings], 'data': [int]},
+		                    'types':       {'labels': [strings], 'data': [int]},
+		                    'peripherals': {'labels': [strings], 'data': [int]},
+		                    'classes':     {'labels': [strings], 'data': [int]}
 		                  },
 		                },
 		     'summary': { 
 		                  'sensors': [{'sensorname': string, 'devicename': string, 'type': string, 'peripheral': string, 'classes': string, 'configuration': string, 'enabled': int}],
 		                  'devices': [{'devicename': string, 'group': string, 'version': string, 'location': string, 'status': int}],
-		     }
+		                },
+		     'usages':  {
+		                  'alerts':  {'labels': ['sms', 'emails', 'notifications'], 'data': [int, int, int]},
+		                  'storage': {'labels': ['sensor data', 'alerts data'], 'data': [int, int]},
+		                  'login':   {'labels': ['email', 'sms'], 'data': [int, int]}
+		                }
+
 		   { 'status': 'NG', 'message': string}
 		   //
 		   // the subclass parameter of readings parameter will only appear if the sensor has a subclass

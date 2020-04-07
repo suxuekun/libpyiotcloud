@@ -6841,18 +6841,21 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
     $scope.sensorsummaryshow = false;
     $scope.devicesummary = [];
     $scope.devicesummaryshow = false;
+    $scope.usages = [];
+    $scope.usagesshow = false;
     $scope.comparisons = [];
     $scope.sensors_counthdr = "No sensor returned" ;
     $scope.refresh_automatically = false;
     $scope.refresh_time = 5;
     $scope.run_time = 0;
     $scope.big_charts = false;
-    $scope.online_charts = true;
+    $scope.online_charts = false;
 
     $scope.stats = {};
     
-    $scope.sensors_datachart_colors_options    = ['#11C1F3', '#33CD5F', '#FFC900', '#F38124', '#EF473A', '#F58CF6', '#B6A2FC', '#3C5A99'];//, '#BE9B7B', '#AAAAAA'];
-    $scope.sensors_datachart_colors_options_ex = ['#EF473A', '#F38124', '#FFC900', '#33CD5F', '#3C5A99', '#11C1F3', '#B6A2FC', '#F58CF6'];
+    $scope.sensors_datachart_colors_options     = ['#11C1F3', '#33CD5F', '#FFC900', '#F38124', '#EF473A', '#F58CF6', '#B6A2FC', '#3C5A99'];//, '#BE9B7B', '#AAAAAA'];
+    $scope.sensors_datachart_colors_options_ex  = ['#EF473A', '#F38124', '#FFC900', '#33CD5F', '#3C5A99', '#11C1F3', '#B6A2FC', '#F58CF6'];
+    $scope.sensors_datachart_colors_options_ex2 = ['#F58CF6', '#B6A2FC', '#3C5A99', '#EF473A', '#F38124', '#FFC900', '#33CD5F', '#11C1F3'];
     $scope.sensors_datachart = [{"labels": [], "data": [], "series": [], "colors": []}];
     $scope.sensors_datachart_empty = {"labels": [], "data": [], "series": [], "colors": []};
     
@@ -7132,6 +7135,56 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             "position": 'left'
         },
     };
+    
+    
+    $scope.sensors_datachart_barchart_usages_alerts_options = {
+        "title": {
+            "display": true,
+            "text": 'Alerts'
+        },
+        "animation": false, 
+        "scales": {
+            "xAxes": [{
+                "ticks": {
+                    "beginAtZero": true,
+                    "max": 100,
+                    "min": 0,                    
+                }
+            }]
+        }
+    };
+    $scope.sensors_datachart_barchart_usages_storage_options = {
+        "title": {
+            "display": true,
+            "text": 'Storage'
+        },
+        "animation": false, 
+        "scales": {
+            "xAxes": [{
+                "ticks": {
+                    "beginAtZero": true,
+                    "max": 100,
+                    "min": 0,                    
+                }
+            }]
+        }
+    };
+    $scope.sensors_datachart_barchart_usages_login_options = {
+        "title": {
+            "display": true,
+            "text": 'Login (success rate)'
+        },
+        "animation": false, 
+        "scales": {
+            "xAxes": [{
+                "ticks": {
+                    "beginAtZero": true,
+                    "max": 100,
+                    "min": 0,                    
+                }
+            }]
+        }
+    };
     $scope.sensors_datachart_barchart_options = {
         "animation": false, 
         "scales": {
@@ -7242,6 +7295,10 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
     
     $scope.changeDeviceTableHide = function() {
         $scope.devicesummaryshow = !$scope.devicesummaryshow;
+    };
+
+    $scope.changeUsageTableHide = function() {
+        $scope.usagesshow = !$scope.usagesshow;
     };
 
     $scope.changeSensorComparisonsHide = function(comparison) {
@@ -7388,6 +7445,9 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             if (result.data.summary !== undefined) {
                 $scope.sensorsummary = result.data.summary.sensors;
                 $scope.devicesummary = result.data.summary.devices;
+            }
+            if (result.data.usages !== undefined) {
+                $scope.usages = result.data.usages;
             }
 
             if ($scope.sensors.length > 0) {
@@ -7949,6 +8009,9 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         $scope.sensorsummaryshow = false;
         $scope.devicesummary = [];
         $scope.devicesummaryshow = false;
+        $scope.usages = [];
+        $scope.usagesshow = false;
+    
         $scope.comparisons = [];
         $scope.sensors_counthdr = "No sensor returned";
         
@@ -7968,7 +8031,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         $scope.refresh_time = 5;
         $scope.run_time = 0;
         $scope.big_charts = false;
-        $scope.online_charts = true;
+        $scope.online_charts = false;
     
         $scope.stats = {};        
         
