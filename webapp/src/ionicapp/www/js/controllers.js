@@ -7386,7 +7386,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                 $scope.stats = result.data.stats;
             }
             if (result.data.summary !== undefined) {
-                $scope.sensorsummary = result.data.summary;
+                $scope.sensorsummary = result.data.summary.sensors;
+                $scope.devicesummary = result.data.summary.devices;
             }
 
             if ($scope.sensors.length > 0) {
@@ -7561,7 +7562,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         })
         .then(function (result) {
             console.log(result.data);
-            $scope.sensorsummary = result.data.summary;
+            $scope.sensorsummary = result.data.summary.sensors;
+            $scope.devicesummary = result.data.summary.devices;
         })
         .catch(function (error) {
             handle_error(error);

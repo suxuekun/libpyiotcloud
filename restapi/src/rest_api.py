@@ -6263,12 +6263,10 @@ def get_sensor_comparisons(devices, sensors_list):
     #    print(comparison)
     return comparisons
 
-def get_device_stats(devices, username):
+def get_device_stats(username, devices, sensordevicename):
     stats = {}
 
-    if devices == "All devices":
-        devices = g_database_client.devices(username)
-    else:
+    if sensordevicename is not None: # All devices
         devices[0]["deviceid"] = g_database_client.get_deviceid(username, devices[0]["devicename"])
 
     devicegroups    = g_database_client.get_devicegroups(username)
@@ -6619,17 +6617,24 @@ def get_all_device_sensors_enabled_input_readings_dataset_filtered():
             except:
                 pass
             try:
-                stats["devices"] = get_device_stats(devices, username)
+                stats["devices"] = get_device_stats(username, devices, sensordevicename)
+            except:
+                pass
+
+            summary = {"sensors": [], "devices": []}
+            try:
+                summary["sensors"] = get_sensor_summary(username, devices, sensordevicename)
             except:
                 pass
             try:
-                summary = get_sensor_summary(username)
+                summary["devices"] = get_device_summary(username, devices, sensordevicename)
             except:
                 pass
-        try:
-            comparisons = get_sensor_comparisons(devices, sensors_list)
-        except:
-            pass
+
+            try:
+                comparisons = get_sensor_comparisons(devices, sensors_list)
+            except:
+                pass
 
         #print(time.time()-start_time)
         msg = {'status': 'OK', 'message': 'Get All Device Sensors Dataset queried successfully.', 'sensors': sensors_list}
@@ -6722,9 +6727,48 @@ def delete_all_device_sensors_properties(devicename):
     return response
 
 
-def get_sensor_summary(username):
+def get_device_summary(username, devices, sensordevicename):
+    devices_list = []
+
+    devicegroups    = g_database_client.get_devicegroups(username)
+    devicelocations = g_database_client.get_devices_location(username)
+
+    if sensordevicename is not None: #"All devices":
+        devices[0]["deviceid"] = g_database_client.get_deviceid(username, devices[0]["devicename"])
+
+    for device in devices:
+        version = "unknown"
+        if device.get("version") is not None:
+            version = device["version"]
+
+        group = "no group"
+        for devicegroup in devicegroups:
+            if len(devicegroup["devices"]):
+                if device["devicename"] in devicegroup["devices"]:
+                    group = devicegroup["groupname"]
+                    break
+
+        location = "unknown"
+        for devicelocation in devicelocations:
+            if device["deviceid"] == devicelocation["deviceid"]:
+                location = json.dumps(devicelocation["location"])
+                break
+
+        devices_list.append({
+            "devicename": device["devicename"],
+            "version": version,
+            "group": group,
+            "location": location,
+            "status": device["status"],
+        })
+
+    return devices_list
+
+
+def get_sensor_summary(username, devices, sensordevicename):
     sensors_list = []
-    devices = g_database_client.get_devices(username)
+    if sensordevicename is not None: #"All devices":
+        devices[0]["deviceid"] = g_database_client.get_deviceid(username, devices[0]["devicename"])
     for device in devices:
         # get all user input sensors
         sensors = g_database_client.get_all_device_sensors_by_deviceid(device["deviceid"])
