@@ -306,10 +306,6 @@ SUMMARY:
 		D. GET PERIPHERAL SENSOR READINGS DATASET FILTERED - POST   /devices/sensors/readings/dataset
 		E. DELETE PERIPHERAL SENSOR READINGS DATASET       - DELETE /devices/sensors/readings/dataset
 
-		//
-		// sensor forwarding and thresholding
-		F. GET PERIPHERAL SENSOR THRESHOLDS/FORWARDS       - GET   /devices/sensors/thresholdsforwards
-
 
 	5. Device access and control APIs (STATUS, UART, GPIO)
 
@@ -1225,7 +1221,9 @@ DETAILED:
 		                    'classes':     {'total': int, 'labels': [strings], 'data': [int]}
 		                  },
 		                },
-		     'summary': [{'sensorname': string, 'devicename': string, 'classes': string, 'configuration': string, 'enabled': int}]
+		     'summary': { 
+		                  'sensors': [{'sensorname': string, 'devicename': string, 'type': string, 'peripheral': string, 'classes': string, 'configuration': string, 'enabled': int}],
+		                  'devices': [{'devicename': string, 'status': int}],
 		     }
 		   { 'status': 'NG', 'message': string}
 		   //
@@ -1256,14 +1254,6 @@ DETAILED:
 		   // devicename can be "All devices" or the devicename of specific device
 		-  Response:
 		   { 'status': 'OK', 'message': string}
-		   { 'status': 'NG', 'message': string}
-
-		G. GET PERIPHERAL SENSOR CONFIGURATION SUMMARY
-		-  Request:
-		   GET /devices/sensors/configurationsummary
-		   headers: {'Authorization': 'Bearer ' + token.access}
-		-  Response:
-		   { 'status': 'OK', 'message': string, 'summary': {'sensorname': string, 'devicename': string, 'classes': string, 'configuration': string, 'enabled': int} }
 		   { 'status': 'NG', 'message': string}
 
 

@@ -68,8 +68,6 @@
       <div id="sensorDashboard-container30" ng-show="!devicesummaryshow" class="tab_margin_1">
         <div>
 
-          <br>
-
           <div class="row">
 
             <div class="column" style="width:25%;">
@@ -96,58 +94,47 @@
 
           </div>
 
-
-          <br>
-          <br>
         </div>
       </div>
-      <div id="sensorDashboard-container33" ng-show="devicesummaryshow &amp;&amp; devicesummaryshow.length > 0" class="tab_margin_1">
+      <div id="sensorDashboard-container33" ng-show="devicesummaryshow" class="tab_margin_1">
         <div class="spacer" style="height: 28px;"></div>
         <table style="width:100%" bordercolor="#444444">
           <tbody>
             <tr>
               <th style="width:3%">&nbsp;</th>
-              <th style="width:16%">
-                <b>Sensor</b>
-              </th>
-              <th style="width:12%">
+              <th style="width:25%">
                 <b>Device</b>
               </th>
-              <th style="width:7%">
-                <b>Type</b>
+              <th style="width:20%">
+                <b>Version</b>
               </th>
-              <th style="width:10%">
-                <b>Peripheral</b>
+              <th style="width:20%">
+                <b>Group</b>
               </th>
-              <th style="width:17%">
-                <b>Class</b>
-              </th>
-              <th style="width:35%">
-                <b>Configuration</b>
+              <th style="width:32%">
+                <b>Location</b>
               </th>
             </tr>
           </tbody>
         </table>
       </div>
-      <div id="sensorDashboard-container31" ng-repeat="sensor in devicesummaryshow" ng-show="devicesummaryshow" class="tab_margin_1">
+      <div id="sensorDashboard-container31" ng-repeat="device in devicesummary" ng-show="devicesummaryshow" class="tab_margin_1">
         <table style="width:100%">
           <tbody>
             <tr>
               <td style="width:3%">
-                <div ng-show="sensor.enabled==0">
+                <div ng-show="device.status==0">
                   <img src="img/xqcc2stgTNmAeM8gxhQ7_offline.png" style="width:16px; height:16px">
                 </div>
-                <div ng-show="sensor.enabled==1">
+                <div ng-show="device.status==1">
                   <img src="img/6RNUgrQwRemftiOCX3pw_online.png" style="width:16px; height:16px">
                 </div>
 
               </td>
-              <td style="width:16%">{{ sensor.sensorname }}</td>
-              <td style="width:12%">{{ sensor.devicename }}</td>
-              <td style="width:7%">{{ sensor.type }}</td>
-              <td style="width:10%">{{ sensor.peripheral }}</td>
-              <td style="width:17%">{{ sensor.classes }}</td>
-              <td style="width:35%">{{ sensor.configuration }}</td>
+              <td style="width:25%">{{ device.devicename }}</td>
+              <td style="width:20%">{{ device.version }}</td>
+              <td style="width:20%">{{ device.group }}</td>
+              <td style="width:32%">{{ device.location }}</td>
             </tr>
           </tbody>
         </table>
@@ -163,8 +150,6 @@
       </div>
       <div id="sensorDashboard-container35" ng-show="!sensorsummaryshow" class="tab_margin_1">
         <div>
-
-          <br>
 
           <div class="row">
 
@@ -189,12 +174,9 @@
               </canvas>
             </div>
 
-
           </div>
-
-
           <br>
-          <br>
+
         </div>
       </div>
       <div id="sensorDashboard-container36" ng-show="sensorsummaryshow" class="tab_margin_1">
