@@ -1223,7 +1223,7 @@ DETAILED:
 		                },
 		     'summary': { 
 		                  'sensors': [{'sensorname': string, 'devicename': string, 'type': string, 'peripheral': string, 'classes': string, 'configuration': string, 'enabled': int}],
-		                  'devices': [{'devicename': string, 'status': int}],
+		                  'devices': [{'devicename': string, 'group': string, 'version': string, 'location': string, 'status': int}],
 		     }
 		   { 'status': 'NG', 'message': string}
 		   //
