@@ -6610,6 +6610,7 @@ def get_all_device_sensors_enabled_input_readings_dataset_filtered():
         summary = None
         comparisons = None
         if checkdevice != 0:
+            # stats
             output_sensors_list = g_database_client.get_all_device_sensors_enabled_input(username, sensordevicename, source, number, sensorclass, sensorstatus, type="output")
             stats = {"sensors": {}, "devices": {}}
             try:
@@ -6621,6 +6622,7 @@ def get_all_device_sensors_enabled_input_readings_dataset_filtered():
             except:
                 pass
 
+            # summary
             summary = {"sensors": [], "devices": []}
             try:
                 summary["sensors"] = get_sensor_summary(username, devices, sensordevicename)
@@ -6631,10 +6633,17 @@ def get_all_device_sensors_enabled_input_readings_dataset_filtered():
             except:
                 pass
 
+            # comparisons
             try:
                 comparisons = get_sensor_comparisons(devices, sensors_list)
             except:
                 pass
+
+            usages = {
+                  'alerts':  {'labels': ['sms', 'emails', 'notifications'], 'data': [75, 50, 25]},
+                  'storage': {'labels': ['sensor data', 'alerts data'], 'data': [50, 25]},
+                  'login':   {'labels': ['email', 'sms'], 'data': [100, 100]}
+            }
 
         #print(time.time()-start_time)
         msg = {'status': 'OK', 'message': 'Get All Device Sensors Dataset queried successfully.', 'sensors': sensors_list}
@@ -6644,6 +6653,8 @@ def get_all_device_sensors_enabled_input_readings_dataset_filtered():
             msg['summary'] = summary
         if comparisons:
             msg['comparisons'] = comparisons
+        if usages:
+            msg['usages'] = usages
 
     elif flask.request.method == 'DELETE':
 

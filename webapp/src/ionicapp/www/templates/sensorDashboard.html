@@ -94,6 +94,8 @@
 
           </div>
 
+
+          <br>
         </div>
       </div>
       <div id="sensorDashboard-container33" ng-show="devicesummaryshow" class="tab_margin_1">
@@ -174,9 +176,11 @@
               </canvas>
             </div>
 
-          </div>
-          <br>
 
+          </div>
+
+
+          <br>
         </div>
       </div>
       <div id="sensorDashboard-container36" ng-show="sensorsummaryshow" class="tab_margin_1">
@@ -208,6 +212,92 @@
         </table>
       </div>
       <div id="sensorDashboard-container37" ng-repeat="sensor in sensorsummary" ng-show="sensorsummaryshow" class="tab_margin_1">
+        <table style="width:100%">
+          <tbody>
+            <tr>
+              <td style="width:3%">
+                <div ng-show="sensor.enabled==0">
+                  <img src="img/xqcc2stgTNmAeM8gxhQ7_offline.png" style="width:16px; height:16px">
+                </div>
+                <div ng-show="sensor.enabled==1">
+                  <img src="img/6RNUgrQwRemftiOCX3pw_online.png" style="width:16px; height:16px">
+                </div>
+
+              </td>
+              <td style="width:17%">{{ sensor.sensorname }}</td>
+              <td style="width:13%">{{ sensor.devicename }}</td>
+              <td style="width:7%">{{ sensor.type }}</td>
+              <td style="width:8%">{{ sensor.peripheral }}</td>
+              <td style="width:17%">{{ sensor.classes }}</td>
+              <td style="width:35%">{{ sensor.configuration }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="list card widget_whole" id="sensorDashboard-card211" ng-show="sensors.length > 0">
+      <div class="item item-body" id="sensorDashboard-list-item-container34" ng-click="changeUsageTableHide()">
+        <div id="sensorDashboard-markdown469" style="text-align:center;" class="show-list-numbers-and-dots">
+          <p style="margin-top:0px;color:#444444;font-size:16px;">
+            <strong> Usage Summary </strong>
+          </p>
+        </div>
+      </div>
+      <div id="sensorDashboard-container38" ng-show="!usagesshow" class="tab_margin_1">
+        <div>
+
+          <div class="row">
+
+            <div class="column" style="width:25%;">
+              <canvas id="bar1" class="chart chart-horizontal-bar" chart-data="usages.alerts.data" chart-labels="usages.alerts.labels" chart-colors="sensors_datachart_colors_options_ex2" chart-options="sensors_datachart_barchart_usages_alerts_options">
+              </canvas>
+            </div>
+
+
+            <div class="column" style="width:25%;">
+              <canvas id="bar2" class="chart chart-horizontal-bar" chart-data="usages.storage.data" chart-labels="usages.storage.labels" chart-colors="sensors_datachart_colors_options_ex2" chart-options="sensors_datachart_barchart_usages_storage_options">
+              </canvas>
+            </div>
+
+            <div class="column" style="width:25%;">
+              <canvas id="bar3" class="chart chart-horizontal-bar" chart-data="usages.login.data" chart-labels="usages.login.labels" chart-colors="sensors_datachart_colors_options_ex2" chart-options="sensors_datachart_barchart_usages_login_options">
+              </canvas>
+            </div>
+
+          </div>
+
+          <br>
+        </div>
+      </div>
+      <div id="sensorDashboard-container39" ng-show="false" class="tab_margin_1">
+        <div class="spacer" style="height: 28px;"></div>
+        <table style="width:100%" bordercolor="#444444">
+          <tbody>
+            <tr>
+              <th style="width:3%">&nbsp;</th>
+              <th style="width:17%">
+                <b>Sensor</b>
+              </th>
+              <th style="width:13%">
+                <b>Device</b>
+              </th>
+              <th style="width:7%">
+                <b>Type</b>
+              </th>
+              <th style="width:8%">
+                <b>Peripheral</b>
+              </th>
+              <th style="width:17%">
+                <b>Class</b>
+              </th>
+              <th style="width:35%">
+                <b>Configuration</b>
+              </th>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div id="sensorDashboard-container40" ng-repeat="sensor in sensorsummary" ng-show="false" class="tab_margin_1">
         <table style="width:100%">
           <tbody>
             <tr>
