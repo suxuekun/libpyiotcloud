@@ -102,7 +102,7 @@ def print_json(json_object):
     print(json_formatted_str)
 
 
-def store_sensor_reading(database_client, username, devicename, deviceid, source, address, value, subclass_value):
+def store_sensor_reading(database_client, username, devicename, deviceid, source, address, value, subclass_value, timestamp):
 
     try:
         #
@@ -154,8 +154,9 @@ def store_sensor_reading(database_client, username, devicename, deviceid, source
         #
         # update sensor reading with timestamp for charting/graphing
         if sensor_config.CONFIG_ENABLE_DATASET:
-            database_client.add_sensor_reading_dataset(username, deviceid, source, address, value, subclass_value)
-    except:
+            database_client.add_sensor_reading_dataset(username, deviceid, source, address, value, subclass_value, timestamp)
+    except Exception as e:
+        print(e)
         print("exception store_sensor_reading")
         pass
 
@@ -375,6 +376,13 @@ def forward_sensor_reading(database_client, username, devicename, deviceid, sour
 def process_sensor_reading(database_client, username, devicename, deviceid, source, sensor):
 
     #
+    # get timestamp
+    if sensor.get("timestamp"):
+        timestamp = sensor["timestamp"]
+    else:
+        timestamp = int(time.time())
+
+    #
     # get address
     address = None
     if sensor.get("address"):
@@ -390,7 +398,7 @@ def process_sensor_reading(database_client, username, devicename, deviceid, sour
 
     #
     # store sensor reading
-    thr1 = threading.Thread(target = store_sensor_reading, args = (database_client, username, devicename, deviceid, source, address, value, subclass_value, ))
+    thr1 = threading.Thread(target = store_sensor_reading, args = (database_client, username, devicename, deviceid, source, address, value, subclass_value, timestamp, ))
     thr1.start()
     #store_sensor_reading(database_client, deviceid, source, address, value, subclass_value)
 

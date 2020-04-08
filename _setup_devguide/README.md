@@ -3756,6 +3756,24 @@ DETAILED:
 		A. RECEIVE SENSOR READING    rcv_sensor_reading
 		B. REQUEST SENSOR READING    req_sensor_reading
 		C. PUBLISH SENSOR READING    sensor_reading
+		   {
+		     "timestamp": int,
+		     "sensors": { 
+		       "i2c1":    [{"class": 0, "value": 1, "address": 1}, ...],
+		       "i2c2":    [{"class": 1, "value": 2, "address": 2}, ...],
+		       "i2c3":    [{"class": 2, "value": 3, "address": 3}, ...],
+		       "i2c4":    [{"class": 3, "value": 4, "address": 4}, ...],
+		       "adc1":    [{"class": 0, "value": 1}],
+		       "adc2":    [{"class": 1, "value": 2}],
+		       "1wire1":  [{"class": 2, "value": 3}],
+		       "tprobe1": [{"class": 3, "value": 4, subclass: {"class": 4, "value": 5}}],
+		     }
+		   }
+		   // NOTE: multiple sensor data from different peripherals can be sent at the same time
+		   // class is the index of the sensor's class in the array
+		      ["speaker", "display", "light", "potentiometer", "temperature", "humidity", "anemometer", "battery", "fluid"]
+		   // address is optional and it only applies for I2C
+		   // timestamp is optional and it refers to epoch in seconds
 
 
 	11. Configurations
