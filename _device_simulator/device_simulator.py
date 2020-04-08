@@ -28,6 +28,9 @@ CONFIG_USE_AMQP = False
 # global variables
 ###################################################################################
 
+# add timestamp to sensor data
+CONFIG_ADD_SENSOR_DATA_TIMESTAMP = True
+
 # scan sensor for automatic registration
 CONFIG_SCAN_SENSORS_AT_BOOTUP = True
 
@@ -1651,6 +1654,8 @@ class TimerThread(threading.Thread):
         # if any of the I2C INPUT/ADC/1WIRE/TPROBE devices are enabled, then send a packet
         if num_entries > 0:
             payload = {}
+            if CONFIG_ADD_SENSOR_DATA_TIMESTAMP:
+                payload["timestamp"] = int(time.time())
             payload["sensors"] = sensors
             print("")
             global start_timeX

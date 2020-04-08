@@ -202,8 +202,8 @@ class database_client:
 
     # sensor readings datasets
 
-    def add_sensor_reading_dataset(self, username, deviceid, source, address, value, subclass_value):
-        self._devices.add_sensor_reading_dataset(username, deviceid, source, address, value, subclass_value)
+    def add_sensor_reading_dataset(self, username, deviceid, source, address, value, subclass_value, timestamp):
+        self._devices.add_sensor_reading_dataset(username, deviceid, source, address, value, subclass_value, timestamp)
 
     def get_sensor_reading_dataset(self, username, devicename, source, address):
         return self._devices.get_sensor_reading_dataset_by_deviceid(self._devices.get_deviceid(username, devicename), source, address)
@@ -719,8 +719,10 @@ class database_client_mongodb:
         #return self.client[config.CONFIG_MONGODB_TB_SENSORREADINGS_DATASET]
         return self.client_sensor[config.CONFIG_MONGODB_TB_SENSORREADINGS_DATASET]
 
-    def add_sensor_reading_dataset(self, username, deviceid, source, address, value, subclass_value):
-        timestamp = int(time.time())
+    def add_sensor_reading_dataset(self, username, deviceid, source, address, value, subclass_value, timestamp):
+        #print("add_sensor_reading_dataset {} ".format(timestamp))
+        if timestamp is None:
+            timestamp = int(time.time())
         sensorreadings = self.get_sensorreadings_dataset_document();
         item = {}
         # add username in order to optimize querying of all sensors of a user
