@@ -56,7 +56,7 @@ Below are the features of this IoT platform:
        D. Device simulator (Python) as reference implementation for actual IoT device
 
     3. Web/mobile connectivity services
-       Access Portal from your desktop web browsers or mobile devices.
+       Access Portal from your desktop web browsers or mobile apps.
        A. Access from a specific domain (and subdomains) with SSL certificate/s from trusted certificate authorities
        B. Web/mobile app and backend communication via RESTful APIs using HTTPS protocol
        C. Secure communication using TLS, trusted SSL certificates, JWT authorization headers
@@ -115,7 +115,7 @@ Below are the features of this IoT platform:
        *  Lambda: trigger a user-defined Python/NodeJS function for highly customized alerting
 
     9. Billing and payment services
-       Conveniently topup your accounts every month to avail all services.
+       Conveniently topup your accounts every month to avail all services for all purchased IoT devices.
        A. Avail of some services (for some limited time) when you buy the IoT device
        B. Upgrade to any subscription plan to avail of all services (per device)
        C. Use Paypal to upgrade a device to a subscription plan (per device)
