@@ -108,9 +108,10 @@ Below are the features of this IoT platform:
 
     9. Credits and payment services
        Conveniently topup your accounts every month to avail all services.
-       A. Buy credits using Paypal gateway (with confirmation receipt sent to email)
-       B. Use credits to be able to use messaging services and sensor data services
-       C. View payment transactions and credits usage histories
+       A. Avail of some services (for some limited time) when you buy the IoT device
+       B. Upgrade to any subscription plan to avail of all services (per device)
+       C. Use Paypal to upgrade a device to a subscription plan (per device)
+       D. View device usage and payment transactions histories
 
 
 This IoT platform can be used for any type of businesses and industries:
