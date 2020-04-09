@@ -88,7 +88,7 @@ Below are the features of this IoT platform:
           INPUT: potentiometer, temperature, humidity, anemometer, battery, fluid, 
           OUTPUT: speaker, display, light
           User MANUALLY registers sensors connected
-          Device AUTOMATICALLY registers sensors connected
+          Device AUTOMATICALLY registers sensors connected on bootup
        C. Configure sensors for data thresholding (for MENOS alerts)
        D. Configure sensors for data forwarding
        E. Configure output sensors to receive data from (input) sensors
@@ -104,8 +104,8 @@ Below are the features of this IoT platform:
        F. Threshold sensor data (trigger MENOS alerts when threshold limits are met)
        *  Analyze sensor data using 3rd-party Business Intellegence / Analytics tools (PowerBI, Tableau, Qlik)
 
-    8. MENOS messaging/alerting services
-       Raise alarms over sMs, Email, push Notification, mOdem, Storage so you can respond and analyze telemetry events in time.
+    8. Messaging and alerting services
+       Raise alarms over sMs, Email, push Notification, mOdem, Storage (MENOS) so you can respond and analyze telemetry events in time.
        A. sMs: sending mobile SMS alerts via Amazon Pinpoint
        B. Email: sending email alerts via Amazon Pinpoint
        C. push Notification: sending mobile push notifications alerts to Android/IOS mobile via Amazon Pinpoint
