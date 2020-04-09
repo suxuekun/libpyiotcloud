@@ -52,13 +52,15 @@ Below are the features of this IoT platform:
        Utilizes lightweight MQTT protocol for device connectivity ideal for low-powered devices
        A. Device and backend communication via RabbitMQ message broker using MQTTS protocol
        B. Secure communication using TLS, ECC-based X.509 SSL certificates, mutual authentication, MQTT topic permissions
-       C. Device simulator (Python) as reference implementation for actual IoT device
+       C. Company-generated ECC-based X.509 SSL certificates (server root certificate and client device certificates)
+       D. Device simulator (Python) as reference implementation for actual IoT device
 
     3. Web/mobile connectivity services
-       Access Portal from your desktop computer or mobile devices.
-       A. Web/mobile app and backend communication via RESTful APIs using HTTPS protocol
-       B. Secure communication using TLS, trusted SSL certificates, JWT authorization headers
-       C. Hybrid web/mobile apps (using Ionic framework) as reference implementation for actual web/mobile clients
+       Access Portal from your desktop web browsers or mobile devices.
+       A. Access from a specific domain (and subdomains) with SSL certificate/s from trusted certificate authorities
+       B. Web/mobile app and backend communication via RESTful APIs using HTTPS protocol
+       C. Secure communication using TLS, trusted SSL certificates, JWT authorization headers
+       D. Hybrid web/mobile apps (using Ionic framework) as reference implementation for actual web/mobile clients
 
     4. Identity management services
        Access Portal in a secure way.
