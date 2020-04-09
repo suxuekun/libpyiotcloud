@@ -39,7 +39,7 @@ It maintains the state of the entire system. It stores device and sensor informa
 It also ingests and stores the received sensor readings from the devices for real-time dashboard visualization and off-line analysis. 
 It also keeps track of user details and user credit details and interfaces to 3rd party cloud systems such as identity services, alerting services, payment merchants and additional services.
 
-Below are the features of this IoT platform:
+Below are the features of this secure and scalable IoT platform:
 
     1. Microservices architecture
        Utilizes microservices architecture enabling scalability and fault-tolerance to support millions of devices and sensors 
