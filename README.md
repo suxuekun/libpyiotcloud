@@ -116,9 +116,9 @@ Below are the features of this IoT platform:
 
     9. Billing and payment services
        Conveniently topup your accounts every month to avail all services for all purchased IoT devices.
-       A. Avail of some services (for some limited time) when you buy the IoT device
-       B. Upgrade to any subscription plan to avail of all services (per device)
-       C. Use Paypal to upgrade a device to a subscription plan (per device)
+       A. Avail of some services (for limited time?) when you buy the IoT device
+       B. Upgrade to a subscription plan to avail of all services (per device)
+       C. Use Paypal to for a subscription plan (per device)
        D. View device usage and payment transactions histories
 
 
