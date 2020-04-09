@@ -66,7 +66,7 @@ Below are the features of this secure and scalable IoT platform:
        Access Portal in a secure way.
        A. User sign-up and sign-in with secure OTP (one-time password) using Amazon Cognito
        B. Login with email or with (verified) mobile number
-       C. Login with multi-factor authentication (MFA) security - disabled by default; must be explicitly enabled by user
+       C. Login with multi-factor authentication (MFA/2FA) security - disabled by default; must be explicitly enabled by user
        D. Login via social IDP (Facebook/Google/Amazon) via OAuth2 security
        E. User lockout security on consecutive failed attempts
        *. Create and manage an organization, inviting new/existing users and assigning user permissions
