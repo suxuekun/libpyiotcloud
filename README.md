@@ -67,33 +67,39 @@ Below are the features of this IoT platform:
        C. Login with multi-factor authentication (MFA) security - disabled by default; must be explicitly enabled by user
        D. Login via social IDP (Facebook/Google/Amazon) via OAuth2 security
        E. User lockout security on consecutive failed attempts
-       *  User groups and organizations
+       *. Create and manage an organization, inviting new/existing users and assigning user permissions
+       *. Login to an organization account
 
     5. Device management services
        Provision, manage and monitor devices
        A. Register and configure device (using MongoDB and Redis databases)
        B. Access, configure and track location of a device (or a fleet of devices) via Google Maps (latitude, longitude)
        C. Update firmware (OTA) of a device (or a fleet of devices, can be a mixed of online or offline devices)
-       D. Organize devices into groups of devices for bulk/fleet-wide operations
-       *  Group-owned devices, organization-owned devices
+       D. Organize devices into groups of devices for bulk/fleet-wide operations or for organizing several devices
+       E. View device-sensor hierarchy tree and devices configurations summary 
+       *  Configure and manage organization-owned devices
 
     6. Peripheral and sensor management services
        Provision and manage sensors for various devices
        A. Configure UART parameters and GPIO pins
        B. Register 3rd-party sensors connected via peripherals: I2C, ADC, OneWire, TPROBE
-          potentiometer, temperature, humidity, anemometer, battery, fluid, speaker, display, light
+          INPUT: potentiometer, temperature, humidity, anemometer, battery, fluid, 
+          OUTPUT: speaker, display, light
           User MANUALLY registers sensors connected
           Device AUTOMATICALLY registers sensors connected
        C. Configure sensors for data thresholding (for MENOS alerts)
        D. Configure sensors for data forwarding
+       E. Configure output sensors to receive data from (input) sensors
+       F. View device-sensor hierarchy tree and summary of sensor configurations
 
     7. Sensor data pipeline services
-       Remotely monitor real-time sensor values and data history visually
+       Remotely monitor real-time sensor values and data history visually via the dashboard
        A. Ingest sensor data from sensors connected via peripherals: I2C, ADC, Onewire, TPROBE
        B. Store sensor data to a Big Data database using MongoDB Atlas
-       C. Visualize sensor data in real-time using time-series dashboard charts (sensor filters, time range filter)
-       D. Forward sensor data (forward INPUT sensor data to another OUTPUT sensor from same or different device)
-       E. Threshold sensor data (trigger MENOS alerts when threshold limits are met)
+       C. Visualize real-time and historical sensor data via time-series line charts (with sensor filters, time range filter)
+       D. Visualize device and sensor related metrics via pie, doughnut and bar charts
+       E. Forward sensor data (forward INPUT sensor data to another OUTPUT sensor from same or different device)
+       F. Threshold sensor data (trigger MENOS alerts when threshold limits are met)
        *  Analyze sensor data using 3rd-party Business Intellegence / Analytics tools (PowerBI, Tableau, Qlik)
 
     8. MENOS messaging/alerting services
@@ -106,7 +112,7 @@ Below are the features of this IoT platform:
        *  IFTTT: trigger a 3rd-party application (like, Twitter, Facebook, Alexa, etc) via IFTTT
        *  Lambda: trigger a user-defined Python/NodeJS function for highly customized alerting
 
-    9. Credits and payment services
+    9. Billing and payment services
        Conveniently topup your accounts every month to avail all services.
        A. Avail of some services (for some limited time) when you buy the IoT device
        B. Upgrade to any subscription plan to avail of all services (per device)
