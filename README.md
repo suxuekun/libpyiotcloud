@@ -74,11 +74,12 @@ Below are the features of this IoT platform:
 
     5. Device management services
        Provision, manage and monitor devices
-       A. Register and configure device (using MongoDB and Redis databases)
-       B. Access, configure and track location of a device (or a fleet of devices) via Google Maps (latitude, longitude)
-       C. Update firmware (OTA) of a device (or a fleet of devices, can be a mixed of online or offline devices)
-       D. Organize devices into groups of devices for bulk/fleet-wide operations or for organizing several devices
-       E. View device-sensor hierarchy tree and devices configurations summary 
+       A. Register device manually or via QR code (QR code registration via mobile apps only)
+       B. Configure and view device properties including last active time
+       C. Configure and track location of a device (or a fleet of devices) via Google Maps (latitude, longitude)
+       D. Update firmware (OTA) of a device (or a fleet of devices, can be a mixed of online or offline devices)
+       E. Organize devices into groups of devices for bulk/fleet-wide operations or for organizing several devices
+       F. View device-sensor hierarchy tree and devices configurations summary 
        *  Configure and manage organization-owned devices
 
     6. Peripheral and sensor management services
