@@ -600,4 +600,41 @@ class cognito_client:
 			return (False, None)
 		return (self.__get_result(response), response)
 
+	def admin_link_provider_for_user(self, username, email, provider):
+		params = {
+			'UserPoolId'     : self.pool_id,
+			'DestinationUser': {
+				'ProviderName': 'Cognito',
+				'ProviderAttributeName': 'email',
+				'ProviderAttributeValue': email
+			},
+			'SourceUser':{
+				'ProviderName': provider,
+				'ProviderAttributeName': 'Cognito_Subject',
+				'ProviderAttributeValue': username
+			}
+		}
+		print(params)
+		try:
+			print("admin_link_provider_for_user")
+			response = self.__get_client().admin_link_provider_for_user(**params)
+			print(response)
+		except Exception as e:
+			print(e)
+			return (False, None)
+		return (self.__get_result(response), response)
 
+	def admin_disable_provider_for_user(self, username, provider):
+		params = {
+			'UserPoolId'     : self.pool_id,
+			'User': {
+				'ProviderName': provider,
+				'ProviderAttributeName': 'email',
+				'ProviderAttributeValue': username
+			}
+		}
+		try:
+			response = self.__get_client().admin_disable_provider_for_user(**params)
+		except:
+			return (False, None)
+		return (self.__get_result(response), response)

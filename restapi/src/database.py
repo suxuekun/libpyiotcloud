@@ -276,6 +276,12 @@ class database_client:
     def admin_enable_mfa(self, username, enable):
         return self._users.admin_enable_mfa(username, enable)
 
+    def admin_link_provider_for_user(self, username, email, provider):
+        return self._users.admin_link_provider_for_user(username, email, provider)
+
+    def admin_disable_provider_for_user(self, username, provider):
+        return self._users.admin_disable_provider_for_user(username, provider)
+
 
     ##########################################################
     # history
@@ -774,6 +780,7 @@ class database_client_cognito:
         (result, users) = self.client.get_user(access_token)
         if result == False:
             return None
+        #print(users)
         return users
 
     def delete_user(self, username, access_token):
@@ -939,6 +946,14 @@ class database_client_cognito:
 
     def admin_enable_mfa(self, username, enable):
         (result, response) = self.client.admin_enable_mfa(username, enable)
+        return result
+
+    def admin_link_provider_for_user(self, username, email, provider):
+        (result, response) = self.client.admin_link_provider_for_user(username, email, provider)
+        return result
+
+    def admin_disable_provider_for_user(self, username, provider):
+        (result, response) = self.client.admin_disable_provider_for_user(username, provider)
         return result
 
 
