@@ -6622,8 +6622,11 @@ def get_all_device_sensors_enabled_input_readings_dataset_filtered():
         for thr in thread_list:
             thr.join()
 
-        if len(sensors_list):
-            sensors_list.sort(key=sort_by_devicename)
+        try:
+            if len(sensors_list):
+                sensors_list.sort(key=sort_by_devicename)
+        except:
+            pass
 
         # compute stats, summary and comparisons
         stats = None
