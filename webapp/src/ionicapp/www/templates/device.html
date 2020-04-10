@@ -3,7 +3,7 @@
     <button class="button button-icon icon ion-android-close" ng-click="exitPage()"></button>
   </ion-nav-buttons>
   <ion-nav-buttons side="right" class="has-header">
-    <button class="button button-positive icon ion-refresh" ng-click="getStatus(data.devicename)"></button>
+    <button class="button button-positive icon ion-refresh" ng-click="getStatus(data.devicename, 1)"></button>
   </ion-nav-buttons>
   <ion-content padding="true" class="has-header">
     <button id="device-button43" ng-click="getDevice(data.devicename)" style="font-weight:600;font-size:18px;" class="button button-positive button-block button-clear icon-right ion-android-settings">{{ data.devicename }}</button>
@@ -27,10 +27,10 @@
         <p style="color:#AAAAAA;font-size:14px;">{{ data.deviceversion }}</p>
       </div>
       <div id="device-markdown464" ng-click="viewDeviceLocation(data)" style="text-align:right;" class="show-list-numbers-and-dots device_info_top">
-        <p style="color:#AAAAAA;font-size:14px;">Location</p>
+        <p style="color:#888888;font-size:14px;">Location</p>
       </div>
       <div id="device-markdown465" ng-click="viewDeviceLocation(data)" class="show-list-numbers-and-dots device_info_top_ex">
-        <p style="color:#AAAAAA;font-size:14px;">{{ data.devicelocation }}</p>
+        <p style="color:#888888;font-size:14px;">{{ data.devicelocation }}</p>
       </div>
       <div id="device-markdown251" style="text-align:right;" class="show-list-numbers-and-dots device_info_top">
         <p style="color:#AAAAAA;font-size:14px;">Status</p>

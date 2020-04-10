@@ -7,6 +7,7 @@ import hashlib
 import flask
 import base64
 import datetime
+import calendar
 from flask_json import FlaskJSON, JsonError, json_response, as_json
 from certificate_generator import certificate_generator
 from messaging_client import messaging_client
@@ -386,6 +387,11 @@ def login():
         if 'family_name' in info:
             if info['family_name'] != "NONE":
                 name += " " + info['family_name']
+
+    # link social idp
+    #print(username)
+    #g_database_client.admin_link_provider_for_user(username, 'Facebook')
+    #g_database_client.admin_link_provider_for_user(username, info["email"], 'Facebook')
 
 
     msg = {'status': 'OK', 'message': "Login successful", 'token': {'access': access, 'refresh': refresh, 'id': id} }
@@ -835,6 +841,7 @@ def get_user_info():
 
     # add username to info for Login via Social IDP (Facebook, Google, Amazon)
     info['username'] = username
+
 
     msg = {'status': 'OK', 'message': 'Userinfo queried successfully.', 'info': info}
     if new_token:
@@ -6409,6 +6416,19 @@ def get_sensor_stats(sensors_list):
 
     return stats
 
+def get_usage():
+    curr_month = calendar.month_name[datetime.datetime.now().month]
+    usages = {
+#        'month': curr_month,
+#        'alerts':  {'labels': ['sms', 'email', 'notification'], 'data': [75, 50, 25]},
+#        'storage': {'labels': ['sensor data', 'alert data'], 'data': [50, 25]},
+#        'login':   {'labels': ['email', 'sms'], 'data': [100, 100]}
+        'alerts':  {'labels': [curr_month], 'data': [[75], [50], [25]]},
+        'storage': {'labels': [""], 'data': [[50], [25]]},
+        'login':   {'labels': [curr_month], 'data': [[100], [100]]}
+    }
+    return usages
+
 ########################################################################################################
 #
 # GET PERIPHERAL SENSOR READINGS DATASET (FILTERED)
@@ -6609,6 +6629,7 @@ def get_all_device_sensors_enabled_input_readings_dataset_filtered():
         stats = None
         summary = None
         comparisons = None
+        usages = None
         if checkdevice != 0:
             # stats
             output_sensors_list = g_database_client.get_all_device_sensors_enabled_input(username, sensordevicename, source, number, sensorclass, sensorstatus, type="output")
@@ -6639,11 +6660,7 @@ def get_all_device_sensors_enabled_input_readings_dataset_filtered():
             except:
                 pass
 
-            usages = {
-                  'alerts':  {'labels': ['sms', 'emails', 'notifications'], 'data': [75, 50, 25]},
-                  'storage': {'labels': ['sensor data', 'alerts data'], 'data': [50, 25]},
-                  'login':   {'labels': ['email', 'sms'], 'data': [100, 100]}
-            }
+            usages = get_usage()
 
         #print(time.time()-start_time)
         msg = {'status': 'OK', 'message': 'Get All Device Sensors Dataset queried successfully.', 'sensors': sensors_list}

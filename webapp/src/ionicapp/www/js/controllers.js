@@ -6539,12 +6539,29 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             'username': $scope.data.username,
             'token': $scope.data.token
         };
+        
+        if ($scope.data.status === "Online") {
+            if ($scope.treeData !== null) {
+                $scope.eraseTreeChart();
+                $scope.treeData = null;
+            }
+        }
+        else { //if ($scope.data.status !== "Online") {
+            if ($scope.treeData !== null) {
+                $scope.eraseTreeChart2();
+                $scope.treeData = null;
+            }
+        }
+        
         $state.go('menu.devices', device_param, {reload: true});
     };
    
     $scope.$on('$ionicView.enter', function(e) {
         console.log("DEVICE enter");
-        $scope.treeData = null;
+        if ($scope.treeData !== null) { 
+            $scope.eraseTreeChart2();
+            $scope.treeData = null;
+        }
         $scope.get_hierarchy($scope.data.devicename);
         
         //console.log($stateParams.location);
@@ -6577,10 +6594,22 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
    
     $scope.$on('$ionicView.beforeLeave', function(e) {
         console.log("DEVICE beforeLeave");
-        if ($scope.treeData !== null) {
-            $scope.eraseTreeChart();
-            $scope.treeData = null;
+        if ($scope.data.status === "Online") {
+            if ($scope.treeData !== null) {
+                $scope.eraseTreeChart();
+                $scope.treeData = null;
+            }
         }
+        else { //if ($scope.data.status !== "Online") {
+            if ($scope.treeData !== null) {
+                $scope.eraseTreeChart2();
+                $scope.treeData = null;
+            }
+        }
+        //if ($scope.treeData !== null) {
+        //    $scope.eraseTreeChart();
+        //    $scope.treeData = null;
+        //}
     });
     
 /*
@@ -6709,11 +6738,9 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         //console.log(d3.select(svg_id));
         
         const svg = d3.select(svg_id).append("svg")
-                .attr("width", width + margin.left + margin.right)
-                .attr("height", height + margin.top + margin.bottom),
-              g = svg.append("g")
-                .attr("transform",
-                    "translate(" + margin.left + "," + margin.top + ")");
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom);
+        g = svg.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
         
         // adds the links between the nodes
         const link = g.selectAll(".d3link")
@@ -6748,11 +6775,10 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         node.append("text")
           .attr("dy", ".35em")
           .attr("x", d => d.children ? (/*d.data.value*/4 + 5) * -1 : /*d.data.value*/4 + 5)
-          .attr("y", d => d.children && d.depth !== 0 ? -(/*d.data.value*/4 + 5) : d)
+          .attr("y", d => d.children && d.depth !== 0 ? -(/*d.data.value*/4 + 5) : 0)
           .style("text-anchor", d => d.children ? "end" : "start")
           .text(d => d.data.name);
     };
-   
 }])
    
 .controller('sensorDashboardCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', 'Devices', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
@@ -6853,9 +6879,15 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
 
     $scope.stats = {};
     
-    $scope.sensors_datachart_colors_options     = ['#11C1F3', '#33CD5F', '#FFC900', '#F38124', '#EF473A', '#F58CF6', '#B6A2FC', '#3C5A99'];//, '#BE9B7B', '#AAAAAA'];
-    $scope.sensors_datachart_colors_options_ex  = ['#EF473A', '#F38124', '#FFC900', '#33CD5F', '#3C5A99', '#11C1F3', '#B6A2FC', '#F58CF6'];
+    // colorful palette    
+    $scope.sensors_datachart_colors_options     = ['#11C1F3', '#33CD5F', '#FFC900', '#F38124', '#EF473A', '#F58CF6', '#B6A2FC', '#3C5A99'];
+    $scope.sensors_datachart_colors_options_ex  = ['#EF473A', '#F38124', '#FFC900', '#33CD5F', '#11C1F3', '#3C5A99', '#B6A2FC', '#F58CF6'];
     $scope.sensors_datachart_colors_options_ex2 = ['#F58CF6', '#B6A2FC', '#3C5A99', '#EF473A', '#F38124', '#FFC900', '#33CD5F', '#11C1F3'];
+    // sunburst palette
+    //$scope.sensors_datachart_colors_options     = ['#A78FC9', '#D98DCC', '#FF94B4', '#FFAD94', '#EFD38F', '#CFF5A7', '#93F8AD', '#66EBCA', '#66CDE6'];
+    //$scope.sensors_datachart_colors_options_ex  = ['#FFAD94', '#EFD38F', '#CFF5A7', '#93F8AD', '#66EBCA', '#66CDE6', '#A78FC9', '#D98DCC', '#FF94B4'];
+    //$scope.sensors_datachart_colors_options_ex2 = ['#93F8AD', '#66EBCA', '#66CDE6', '#A78FC9', '#D98DCC', '#FF94B4', '#FFAD94', '#EFD38F', '#CFF5A7'];    
+    
     $scope.sensors_datachart = [{"labels": [], "data": [], "series": [], "colors": []}];
     $scope.sensors_datachart_empty = {"labels": [], "data": [], "series": [], "colors": []};
     
@@ -7136,7 +7168,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         },
     };
     
-    
+    $scope.sensors_datachart_barchart_usages_alerts_series = ["sms", "email", "notification"];
     $scope.sensors_datachart_barchart_usages_alerts_options = {
         "title": {
             "display": true,
@@ -7151,8 +7183,24 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                     "min": 0,                    
                 }
             }]
+        },
+        "tooltips": {
+            "enabled": true,
+            "callbacks": {
+                "title": function(tooltipItem, data) {
+                    return "Alerts usage for " + tooltipItem[0].label;
+                },
+                "label": function(tooltipItem, data) {
+                    return tooltipItem.xLabel + "%";
+                }
+            }
+        },
+        "legend": {
+            "display": true,
+            "position": 'left'
         }
     };
+    $scope.sensors_datachart_barchart_usages_storage_series = ["sensor data", "alert data"];
     $scope.sensors_datachart_barchart_usages_storage_options = {
         "title": {
             "display": true,
@@ -7167,12 +7215,28 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                     "min": 0,                    
                 }
             }]
+        },
+        "tooltips": {
+            "enabled": true,
+            "callbacks": {
+                "title": function(tooltipItem, data) {
+                    return "Storage usage";
+                },                
+                "label": function(tooltipItem, data) {
+                    return tooltipItem.xLabel + "%";
+                }
+            }
+        },
+        "legend": {
+            "display": true,
+            "position": 'left'
         }
     };
+    $scope.sensors_datachart_barchart_usages_login_series = ["via email", "via sms"];
     $scope.sensors_datachart_barchart_usages_login_options = {
         "title": {
             "display": true,
-            "text": 'Login (success rate)'
+            "text": 'Logins'
         },
         "animation": false, 
         "scales": {
@@ -7183,6 +7247,21 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                     "min": 0,                    
                 }
             }]
+        },
+        "tooltips": {
+            "enabled": true,
+            "callbacks": {
+                "title": function(tooltipItem, data) {
+                    return "Login success rate for " + tooltipItem[0].label;
+                },
+                "label": function(tooltipItem, data) {
+                    return tooltipItem.xLabel + "%";
+                }
+            }
+        },
+        "legend": {
+            "display": true,
+            "position": 'left'
         }
     };
     $scope.sensors_datachart_barchart_options = {
@@ -9830,7 +9909,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             
             'i2cnumber': $scope.data.activeSection,
         };
-        $state.go('addI2CDevice', device_param);        
+        $state.go('addI2CDevice', device_param);
     };
 
 
@@ -9842,7 +9921,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
 
     $scope.$on('$ionicView.beforeLeave', function(e) {
         $scope.sensors = [];
-        $scope.sensors_counthdr = "No I2C device registered for I2C " + $scope.data.activeSection.toString();        
+        $scope.sensors_counthdr = "No I2C device registered for I2C " + $scope.data.activeSection.toString();
     });
     
     
