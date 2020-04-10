@@ -475,10 +475,10 @@ class database_client:
         return self._devices.get_sensors_with_enabled(self._devices.get_deviceid(username, devicename), source, number)
 
     def add_sensor(self, username, devicename, source, number, sensorname, data):
-        return self._devices.add_sensor(self._devices.get_deviceid(username, devicename), source, number, sensorname, data)
+        return self._devices.add_sensor(username, self._devices.get_deviceid(username, devicename), source, number, sensorname, data)
 
-    def add_sensor_by_deviceid(self, deviceid, source, number, sensorname, data):
-        return self._devices.add_sensor(deviceid, source, number, sensorname, data)
+    def add_sensor_by_deviceid(self, username, deviceid, source, number, sensorname, data):
+        return self._devices.add_sensor(username, deviceid, source, number, sensorname, data)
 
     def delete_device_sensors(self, username, devicename):
         self._devices.delete_device_sensors(self._devices.get_deviceid(username, devicename))
@@ -2120,7 +2120,7 @@ class database_client_mongodb:
                 sensor_list.append(i2csensor)
         return sensor_list
 
-    def add_sensor(self, deviceid, source, number, sensorname, data):
+    def add_sensor(self, username, deviceid, source, number, sensorname, data):
         i2csensors = self.get_sensors_document();
         timestamp = str(int(time.time()))
         device = {}
