@@ -63,8 +63,8 @@ Below are the features of this secure and scalable IoT platform:
        D. Hybrid web/mobile apps (using Ionic framework) as reference implementation for actual web/mobile clients
 
     4. Identity management services
-       Access Portal in a secure way.
-       A. User sign-up and sign-in with secure OTP (one-time password) using Amazon Cognito
+       Access Portal in a secure way (using Amazon Cognito).
+       A. User sign-up and passwordreset with secure OTP (one-time password)
        B. Login with email or with (verified) mobile number
        C. Login with multi-factor authentication (MFA/2FA) security - disabled by default; must be explicitly enabled by user
        D. Login via social IDP (Facebook/Google/Amazon) via OAuth2 security
