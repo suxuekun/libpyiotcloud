@@ -83,6 +83,8 @@ class config:
     CONFIG_MONGODB_TB_PAYMENTPAYERIDS     = "paymentpayerids"
     CONFIG_MONGODB_TB_OTAUPDATES     = "otaupdates"
     CONFIG_MONGODB_TB_DEVICEGROUPS   = "devicegroups"
+    CONFIG_MONGODB_TB_ORGANIZATIONS       = "organizations"
+    CONFIG_MONGODB_TB_ORGANIZATIONS_USERS = "organizationsusers"
 
     # Caching settings
     if os.name == 'nt':
