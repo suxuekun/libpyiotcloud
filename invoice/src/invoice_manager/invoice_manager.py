@@ -64,10 +64,13 @@ CONFIG_AMQP_TLS_PORT            = 5671
 CONFIG_PREPEND_REPLY_TOPIC      = "server"
 CONFIG_SEPARATOR                = '/'
 
-CONFIG_MODEL_EMAIL              = int(invoice_config.CONFIG_USE_EMAIL_MODEL)
-CONFIG_EMAIL_SUBJECT            = aws_config.CONFIG_PINPOINT_EMAIL_SUBJECT
+CONFIG_MODEL_EMAIL                = int(invoice_config.CONFIG_USE_EMAIL_MODEL)
+CONFIG_EMAIL_SUBJECT_RECEIPT      = aws_config.CONFIG_PINPOINT_EMAIL_SUBJECT_RECEIPT
+CONFIG_EMAIL_SUBJECT_ORGANIZATION = aws_config.CONFIG_PINPOINT_EMAIL_SUBJECT_ORGANIZATION
+CONFIG_USE_APIURL                 = aws_config.CONFIG_USE_APIURL
 
-API_SEND_INVOICE                = "send_invoice"
+API_SEND_RECEIPT                  = "send_invoice"
+API_SEND_INVITATION_ORGANIZATION  = "send_invitation_organization"
 
 
 print("MODEL_EMAIL {}".format(CONFIG_MODEL_EMAIL))
@@ -75,21 +78,21 @@ print("MODEL_EMAIL {}".format(CONFIG_MODEL_EMAIL))
 
 
 ###################################################################################
-# MQTT/AMQP callback functions
+# Invoice/Receipt
 ###################################################################################
 
-
-def construct_message(name, payment):
+def construct_invoice_message(name, payment):
 
     message =  "Hi {},\r\n\r\n\r\n".format(name)
+
     message += "A Paypal payment of {} USD for {} credits was processed successfully.\r\n".format(payment["amount"], payment["value"])
     message += "To confirm your Paypal transaction, visit the Paypal website and check the transaction ID: {}.\r\n\r\n".format(payment["id"])
 
     message += "If unauthorised, please contact customer support.\r\n\r\n"
+
     message += "\r\nBest Regards,\r\n"
     message += "Bridgetek Pte. Ltd.\r\n"
     return message
-
 
 def get_name(database_client, username):
 
@@ -109,7 +112,6 @@ def get_name(database_client, username):
                     name += " " + info['family_name']
     return name, info
 
-
 def send_invoice(database_client, paymentid, topic, payload):
 
     try:
@@ -117,18 +119,58 @@ def send_invoice(database_client, paymentid, topic, payload):
         #print(payment)
         name, info = get_name(database_client, payment["username"])
         recipient = info["email"]
-        message = construct_message(name, payment)
-        response = g_invoice_client.send_message(recipient, message, subject=CONFIG_EMAIL_SUBJECT)
+        message = construct_invoice_message(name, payment)
+        response = g_invoice_client.send_message(recipient, message, subject=CONFIG_EMAIL_SUBJECT_RECEIPT)
     except Exception as e:
         print(e)
         return
 
     try:
         result = response["ResponseMetadata"]["HTTPStatusCode"]==200 and response["MessageResponse"]["Result"][recipient]["StatusCode"]==200
-        print("{}: {} {}={} [{}]".format(paymentid, payment["username"], payment["value"], payment["amount"], result))
+        print("RECEIPT {}: {} {}={} [{}]".format(paymentid, payment["username"], payment["value"], payment["amount"], result))
     except Exception as e:
         print(e)
 
+
+###################################################################################
+# Invitation organization
+###################################################################################
+
+def construct_invitation_organization_message(orgname, orgowner):
+
+    message =  "Hi,\r\n\r\n\r\n"
+
+    message += "You have been invited to join the {} organization by {}.\r\n".format(orgname, orgowner)
+    message += "This allows you to manage or view IoT devices of your organization.\r\n\r\n"
+
+    message += "Please go to Bridgetek IoT Portal website at {} or download the Android or IOS mobile apps.\r\n".format(CONFIG_USE_APIURL)
+    message += "If you don't have an account yet, sign up and go to the Organization page to accept the invitation.\r\n\r\n"
+
+    message += "\r\nBest Regards,\r\n"
+    message += "Bridgetek Pte. Ltd.\r\n"
+    return message
+
+def send_invitation_organization(database_client, orgname, topic, payload):
+
+    payload = json.loads(payload)
+    message = construct_invitation_organization_message(orgname, payload["owner"])
+    for recipient in payload["recipients"]:
+        try:
+            response = g_invoice_client.send_message(recipient, message, subject=CONFIG_EMAIL_SUBJECT_ORGANIZATION)
+        except Exception as e:
+            print(e)
+            return
+
+        try:
+            result = response["ResponseMetadata"]["HTTPStatusCode"]==200 and response["MessageResponse"]["Result"][recipient]["StatusCode"]==200
+            print("INVITATION {}: {} [{}]".format(orgname, recipient, result))
+        except Exception as e:
+            print(e)
+
+
+###################################################################################
+# MQTT subscription handling
+###################################################################################
 
 def on_message(subtopic, subpayload):
 
@@ -139,18 +181,29 @@ def on_message(subtopic, subpayload):
     if len(arr_subtopic) != 3:
         return
 
-    paymentid = arr_subtopic[1]
-    topic = arr_subtopic[2]
     payload = subpayload.decode("utf-8")
+    topic = arr_subtopic[2]
 
-    if topic == API_SEND_INVOICE:
+    if topic == API_SEND_RECEIPT:
+        paymentid = arr_subtopic[1]
         try:
             thr = threading.Thread(target = send_invoice, args = (g_database_client, paymentid, topic, payload ))
             thr.start()
         except Exception as e:
-            print("exception API_SEND_INVOICE")
+            print("exception API_SEND_RECEIPT")
             print(e)
             return
+
+    elif topic == API_SEND_INVITATION_ORGANIZATION:
+        orgname = arr_subtopic[1]
+        try:
+            thr = threading.Thread(target = send_invitation_organization, args = (g_database_client, orgname, topic, payload ))
+            thr.start()
+        except Exception as e:
+            print("exception API_SEND_RECEIPT")
+            print(e)
+            return
+
     return
 
 
@@ -256,8 +309,10 @@ if __name__ == '__main__':
 
     # Subscribe to messages sent for this device
     time.sleep(1)
-    subtopic = "{}{}+{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_SEPARATOR, API_SEND_INVOICE)
+    subtopic = "{}{}+{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_SEPARATOR, API_SEND_RECEIPT)
     g_messaging_client.subscribe(subtopic, subscribe=True, declare=True, consume_continuously=True)
+    subtopic2 = "{}{}+{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_SEPARATOR, API_SEND_INVITATION_ORGANIZATION)
+    g_messaging_client.subscribe(subtopic2, subscribe=True, declare=True, consume_continuously=True)
 
 
     while g_messaging_client.is_connected():

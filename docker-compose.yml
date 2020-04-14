@@ -156,6 +156,7 @@ services:
       - AWS_COGNITO_CLIENT_ID
       - AWS_COGNITO_USERPOOL_ID
       - AWS_COGNITO_USERPOOL_REGION
+      - CONFIG_USE_APIURL
   history:
     build: ./history
     restart: always
