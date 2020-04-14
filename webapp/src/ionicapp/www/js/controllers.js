@@ -2088,8 +2088,8 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
                 'name': result.data.name
             };
             
+            User.clear();
             User.set(user_data);
-        
             $state.go('menu.devices', user_data);
         })
         .catch(function (error) {
@@ -2250,6 +2250,8 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
                         'token': { 'id': result.data.id_token, 'refresh': result.data.refresh_token, 'access': result.data.access_token },
                         'name': 'SocialIDPLogin'
                     };
+                    
+                    User.clear();                    
                     User.set(user_data);
                     $state.go('menu.devices', user_data);
                 }
@@ -2438,6 +2440,7 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
                     'name': result.data.name,
                 };
                 
+                User.clear();
                 User.set(user_data);
                 $state.go('menu.devices', user_data);
             }
@@ -2582,6 +2585,8 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
                 'token': token,
                 'name': result.data.info.name
             };
+            
+            User.clear();
             User.set(user_data);
             $state.go('menu.devices', user_data);
         })
@@ -19137,5 +19142,480 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Device
         console.log("DEVICES enter ionicView REFRESH LIST");
         $scope.submitRefresh();
     });    
+}])
+   
+.controller('organizationsCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', 'Devices', 'DeviceGroups', 'Organizations', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+// You can include any angular dependencies as parameters for this function
+// TIP: Access Route Parameters for your page via $stateParams.parameterName
+function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token, Devices, DeviceGroups, Organizations) {
+
+    var server = Server.rest_api;
+    
+    $scope.data = {
+        'username': User.get_username(), //$stateParams.username,
+        'token': User.get_token(),        //$stateParams.token
+        
+        'orgname': ''
+    };
+    
+    $scope.organization = null;
+    
+    
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Get organization
+    // Create organization
+    // Delete organization
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    
+    $scope.getOrganization = function() {
+        Organizations.get($scope.data).then(function(res) {
+            if (res.organization !== undefined) {
+                $scope.organization = res.organization;
+                
+                if ($scope.organization.members !== undefined) {
+                    for (var indexy=0; indexy<$scope.organization.members.length; indexy++) {
+                        let timestamp = new Date($scope.organization.members[indexy].date * 1000); 
+                        $scope.organization.members[indexy].date = timestamp.getFullYear() + "/" + (timestamp.getMonth()+1) + "/" + timestamp.getDate();
+                        $scope.organization.members[indexy].checked = false;
+                    }
+                }
+                if ($scope.organization.date !== undefined) {
+                    let timestamp = new Date($scope.organization.date * 1000); 
+                    $scope.organization.date = timestamp.getFullYear() + "/" + (timestamp.getMonth()+1) + "/" + timestamp.getDate();
+                }
+            }
+        });
+    };
+    
+    $scope.createOrganization = function() {
+        console.log('createOrganization');
+        if ($scope.data.orgname === '') {
+            $ionicPopup.alert({title: 'Create Organization', template: 'Organization name is empty!'});
+            return;
+        }
+        
+        Organizations.create($scope.data, $scope.data.orgname).then(function(res) {
+            if (res.status === 'OK') {
+
+                $ionicPopup.alert({
+                    title: 'Create Organization',
+                    template: 'You have successfully created the organization named ' + $scope.data.orgname,
+                    buttons: [
+                        {
+                            text: 'Yes',
+                            type: 'button-positive',
+                            onTap: function(e) {
+                                $scope.organization = null;
+                                $scope.getOrganization();
+                            }
+                        }
+                    ]
+                });
+            }
+        });
+    };
+    
+    $scope.deleteOrganization = function() {
+        console.log('deleteOrganization');
+        if ($scope.organization.orgname === '') {
+            $ionicPopup.alert({title: 'Delete Organization', template: 'Organization name is empty!'});
+            return;
+        }
+        
+        $ionicPopup.alert({
+            title: 'Delete Organization',
+            template: 'Are you sure you want to delete the organization named ' + $scope.organization.orgname + "?",
+            buttons: [
+                {
+                    text: 'No',
+                    type: 'button-negative',
+                },
+                {
+                    text: 'Yes',
+                    type: 'button-positive',
+                    onTap: function(e) {
+                        $scope.deleteOrganizationAction();
+                    }
+                }
+            ]
+        });
+    };
+
+    $scope.deleteOrganizationAction = function() {
+        console.log('deleteOrganization');
+        if ($scope.organization.orgname === '') {
+            $ionicPopup.alert({title: 'Delete Organization', template: 'Organization name is empty!'});
+            return;
+        }
+        
+        Organizations.delete($scope.data, $scope.organization.orgname).then(function(res) {
+            if (res.status === 'OK') {
+                 $ionicPopup.alert({
+                    title: 'Delete Organization',
+                    template: 'You have successfully deleted the organization named ' + $scope.organization.orgname + ".",
+                    buttons: [
+                        {
+                            text: 'Yes',
+                            type: 'button-positive',
+                            onTap: function(e) {
+                                $scope.organization = null;
+                                $scope.getOrganization();
+                            }
+                        }
+                    ]
+                });
+            }
+        });
+    };
+    
+    
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Add user
+    // Remove user
+    // Cancel invitation
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    
+    $scope.addUser = function() {
+        let param = {
+            'username': User.get_username(),
+            'token': User.get_token(),
+            'orgname': $scope.organization.orgname
+        };
+        $state.go('addOrganizationUser', param, {reload:true} );    
+    };    
+    
+    $scope.removeMemberships = function() {
+        var emails = [];
+        for (var indexy=0; indexy<$scope.organization.members.length; indexy++) {
+            if ($scope.organization.members[indexy].checked === true) {
+                emails.push($scope.organization.members[indexy].username);
+            }
+        }
+        console.log(emails);
+        
+        if (emails.length === 0) {
+            return;
+        }
+        
+        $ionicPopup.alert({
+            title: 'Remove memberships',
+            template: 'Are you sure you want to remove the membership for specified members in ' + $scope.organization.orgname + " organization?",
+            buttons: [
+                {
+                    text: 'No',
+                    type: 'button-negative',
+                },
+                {
+                    text: 'Yes',
+                    type: 'button-positive',
+                    onTap: function(e) {
+                        $scope.removeMembershipsAction(emails);
+                    }
+                }
+            ]
+        });        
+        
+    };    
+
+    $scope.removeMembershipsAction = function(emails) {
+        console.log(emails);
+        Organizations.update_membership($scope.data, $scope.organization.orgname, emails, remove=1).then(function(res) {
+            if (res.status === 'OK') {
+                $ionicPopup.alert({
+                    title: 'Remove Membership',
+                    template: 'Removal of memberships in the organization for selected members was successful.',
+                    buttons: [
+                        {
+                            text: 'Yes',
+                            type: 'button-positive',
+                            onTap: function(e) {
+                                $scope.organization = null;
+                                $scope.getOrganization();
+                            }
+                        }
+                    ]
+                });
+            }
+            else {
+                $ionicPopup.alert({
+                    title: 'Remove Membership',
+                    template: 'Removal of memberships in the organization for selected members failed. Some of the emails are invalid.',
+                    buttons: [
+                        {
+                            text: 'Yes',
+                            type: 'button-positive'
+                        }
+                    ]
+                });
+            }
+        });
+    };
+    
+    $scope.cancelInvitations = function() {
+        var emails = [];
+        for (var indexy=0; indexy<$scope.organization.members.length; indexy++) {
+            if ($scope.organization.members[indexy].checked === true) {
+                emails.push($scope.organization.members[indexy].username);
+            }
+        }
+        console.log(emails);
+        
+        if (emails.length === 0) {
+            return;
+        }
+        
+        $ionicPopup.alert({
+            title: 'Cancel Invitation',
+            template: 'Are you sure you want to cancel the invitation for specified members to join ' + $scope.organization.orgname + " organization?",
+            buttons: [
+                {
+                    text: 'No',
+                    type: 'button-negative',
+                },
+                {
+                    text: 'Yes',
+                    type: 'button-positive',
+                    onTap: function(e) {
+                        $scope.cancelInvitationAction(emails);
+                    }
+                }
+            ]
+        });        
+    };    
+   
+    $scope.cancelInvitationAction = function(emails) {
+        console.log(emails);
+        Organizations.create_invitation($scope.data, $scope.organization.orgname, emails, cancel=1).then(function(res) {
+            if (res.status === 'OK') {
+                $ionicPopup.alert({
+                    title: 'Cancel Invitation',
+                    template: 'Cancelation of invitations to join the organization for selected members was successful.',
+                    buttons: [
+                        {
+                            text: 'Yes',
+                            type: 'button-positive',
+                            onTap: function(e) {
+                                $scope.organization = null;
+                                $scope.getOrganization();
+                            }
+                        }
+                    ]
+                });
+            }
+            else {
+                $ionicPopup.alert({
+                    title: 'Cancel Invitation',
+                    template: 'Cancelation of invitations to join the organization for selected members failed. Some of the emails are invalid.',
+                    buttons: [
+                        {
+                            text: 'Yes',
+                            type: 'button-positive'
+                        }
+                    ]
+                });
+            }
+        });
+    };      
+    
+    
+
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Accept invitation
+    // Decline invitation
+    // Leave organization
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    
+    $scope.acceptInvitation = function() {
+        Organizations.accept_invitation($scope.data).then(function(res) {
+            if (res.status === 'OK') {
+                 $ionicPopup.alert({
+                    title: 'Accept Invitation',
+                    template: 'You are now a member of ' + $scope.organization.orgname + " organization.",
+                    buttons: [
+                        {
+                            text: 'Yes',
+                            type: 'button-positive',
+                            onTap: function(e) {
+                                $scope.organization = null;
+                                $scope.getOrganization();
+                            }
+                        }
+                    ]
+                });
+            }
+        });
+    };    
+
+    $scope.declineInvitation = function() {
+        $ionicPopup.alert({
+            title: 'Decline Invitation',
+            template: 'Are you sure you want to decline the invitation to join ' + $scope.organization.orgname + " organization?",
+            buttons: [
+                {
+                    text: 'No',
+                    type: 'button-negative',
+                },
+                {
+                    text: 'Yes',
+                    type: 'button-positive',
+                    onTap: function(e) {
+                        $scope.declineInvitationAction();
+                    }
+                }
+            ]
+        });
+    };    
+
+    $scope.declineInvitationAction = function() {
+        Organizations.decline_invitation($scope.data).then(function(res) {
+            if (res.status === 'OK') {
+                 $ionicPopup.alert({
+                    title: 'Decline Invitation',
+                    template: 'You have successfully declined to join the organization named ' + $scope.organization.orgname + ".",
+                    buttons: [
+                        {
+                            text: 'Yes',
+                            type: 'button-positive',
+                            onTap: function(e) {
+                                $scope.organization = null;
+                                $scope.getOrganization();
+                            }
+                        }
+                    ]
+                });
+            }
+        });
+    };    
+    
+    $scope.leaveOrganization = function() {
+        $ionicPopup.alert({
+            title: 'Leave Organization',
+            template: 'Are you sure you want to leave the organization named ' + $scope.organization.orgname + "?",
+            buttons: [
+                {
+                    text: 'No',
+                    type: 'button-negative',
+                },
+                {
+                    text: 'Yes',
+                    type: 'button-positive',
+                    onTap: function(e) {
+                        $scope.leaveOrganizationAction();
+                    }
+                }
+            ]
+        });
+    };
+    
+    $scope.leaveOrganizationAction = function() {
+        Organizations.leave($scope.data).then(function(res) {
+            if (res.status === 'OK') {
+                 $ionicPopup.alert({
+                    title: 'Leave Organization',
+                    template: 'You have successfully left the organization named ' + $scope.organization.orgname + ".",
+                    buttons: [
+                        {
+                            text: 'Yes',
+                            type: 'button-positive',
+                            onTap: function(e) {
+                                $scope.organization = null;
+                                $scope.getOrganization();
+                            }
+                        }
+                    ]
+                });
+            }
+        });
+    };
+
+
+    $scope.onCheckedOrgMember = function(member) {
+        console.log("onCheckedOrgMember " + member.username + " " + member.checked);        
+    };
+    
+    $scope.submitRefresh = function() {
+        console.log("submitRefresh");
+        $scope.data.username = User.get_username();
+        $scope.data.token = User.get_token();        
+        $scope.getOrganization();
+    };
+    
+    $scope.$on('$ionicView.enter', function(e) {
+        console.log("enter");
+        $scope.organization = null;
+        $scope.submitRefresh();
+    }); 
+    
+    $scope.$on('$ionicView.beforeLeave', function(e) {
+        console.log("beforeLeave");
+        $scope.organization = null;
+    });
+}])
+   
+.controller('addOrganizationUserCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', 'Devices', 'DeviceGroups', 'Organizations', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+// You can include any angular dependencies as parameters for this function
+// TIP: Access Route Parameters for your page via $stateParams.parameterName
+function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token, Devices, DeviceGroups, Organizations) {
+
+    var server = Server.rest_api;
+    
+    $scope.data = {
+        'username': User.get_username(), //$stateParams.username,
+        'token': User.get_token(),        //$stateParams.token
+        
+        'orgname': $stateParams.orgname,
+        'emails': ''
+    };
+    
+    
+    $scope.inviteUsers = function() {
+        var emails = $scope.data.emails.split(",");
+        for (var email in emails) {
+            emails[email] = emails[email].trim();
+        }
+        
+        console.log(emails);
+        Organizations.create_invitation($scope.data, $scope.data.orgname, emails).then(function(res) {
+            
+            if (res.status === "OK") {
+                $ionicPopup.alert({
+                    title: 'Create Invitation',
+                    template: 'Inviting specified user/s to the organization was successful.',
+                    buttons: [
+                        {
+                            text: 'Yes',
+                            type: 'button-positive',
+                            onTap: function(e) {
+                                $scope.exitPage();
+                            }
+                        }
+                    ]
+                });
+            }
+            else {
+                $ionicPopup.alert({
+                    title: 'Create Invitation',
+                    template: 'Inviting specified user/s to the organization failed. Some of the emails are invalid.',
+                    buttons: [
+                        {
+                            text: 'Yes',
+                            type: 'button-positive',
+                            onTap: function(e) {
+                                $scope.exitPage();
+                            }
+                        }
+                    ]
+                });
+            }
+        });
+    };
+    
+    $scope.exitPage = function() {
+        let param = {
+            'username': User.get_username(),
+            'token': User.get_token()
+        };
+        $state.go('menu.organizations', param, {reload:true} );    
+    };   
 }])
  

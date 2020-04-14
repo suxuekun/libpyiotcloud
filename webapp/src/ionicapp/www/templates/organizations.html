@@ -1,0 +1,105 @@
+<ion-view title="Organizations" hide-back-button="true" nav-transition="none" id="page66" class="page_width">
+  <ion-nav-buttons side="right" class="has-header">
+    <button class="button button-positive icon ion-refresh" ng-click="submitRefresh()"></button>
+  </ion-nav-buttons>
+  <ion-content padding="true" class="has-header">
+    <div class="spacer" style="width: 300px; height: 20px;"></div>
+    <form id="organizations-form240" class="list page_width_medium" ng-show="organization == null">
+      <div id="organizations-markdown498" class="show-list-numbers-and-dots">
+        <p style="color:#AAAAAA;font-size:12px;">Organizations enables you to delegate the management of your IoT devices to various user accounts where each user can have one or multiple roles that have associated access permissions.</p>
+      </div>
+      <label class="item item-input" id="organizations-input180">
+        <input type="text" placeholder="Organization name" ng-model="data.orgname">
+      </label>
+      <button id="organizations-button185" ng-click="createOrganization()" class="button button-positive button-block">Create an organization</button>
+      <div class="spacer" style="height: 50px;"></div>
+    </form>
+    <form id="organizations-form239" class="list page_width_medium" ng-show="organization != null &amp;&amp; organization.membership == &quot;Owner&quot;">
+      <button id="organizations-button191" style="font-weight:600;font-size:18px;" class="button button-positive button-block button-clear icon-right ion-android-settings">{{ organization.orgname }}</button>
+      <div id="organizations-markdown499" style="text-align:center;" class="show-list-numbers-and-dots">
+        <p style="color:#AAAAAA;font-size:12px;">You are the owner of {{ organization.orgname }} organization.</p>
+      </div>
+      <div id="organizations-container43">
+        <div>
+          <img src="img/O084RUCWTlWpYxLh1GTT_star.png" style="display: block; margin-left: auto; margin-right: auto;" ng-show="false">
+        </div>
+      </div>
+      <div class="spacer" style="width: 700px; height: 25px;"></div>
+      <div id="organizations-container41" class="tab_margin_1">
+        <table style="width:100%" bordercolor="#444444">
+          <tbody>
+            <tr>
+              <th style="width:3%">&nbsp;</th>
+              <th style="width:4%">&nbsp;</th>
+              <th style="width:57%">
+                <b>Email</b>
+              </th>
+              <th style="width:15%">
+                <b>Membership</b>
+              </th>
+              <th style="width:21%">
+                <b>Status</b>
+              </th>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div id="organizations-container42" ng-repeat="member in organization.members" class="tab_margin_1">
+        <table style="width:100%">
+          <tbody>
+            <tr>
+              <td style="width:3%">
+                <input type="checkbox" ng-model="member.checked">
+              </td>
+
+              <td style="width:4%">
+                <div ng-show="member.membership=='Owner'">
+                  <img src="img/O084RUCWTlWpYxLh1GTT_star.png" style="width:16px; height:16px">
+                </div>
+
+                <div ng-show="member.membership!='Owner'">
+                  &nbsp;
+                </div>
+
+              </td>
+
+              <td style="width:57%">{{ member.username }}</td>
+              <td style="width:15%">{{ member.membership }}</td>
+              <td style="width:21%">{{ member.status }} on {{ member.date }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="spacer" style="width: 700px; height: 50px;"></div>
+      <button id="organizations-button186" ng-click="addUser()" class="button button-positive button-block widget_button_quarter">Add user</button>
+      <button id="organizations-button187" ng-click="removeMemberships()" class="button button-positive button-block button-outline widget_button_quarter">Remove user</button>
+      <button id="organizations-button197" ng-click="cancelInvitations()" class="button button-positive button-block button-outline widget_button_quarter">Cancel invitation</button>
+      <button id="organizations-button189" ng-click="deleteOrganization()" class="button button-assertive button-block button-outline widget_button_quarter">Delete organization</button>
+      <div class="spacer" style="height: 50px;"></div>
+    </form>
+    <form id="organizations-form241" class="list page_width_medium" ng-show="organization != null &amp;&amp; organization.membership != &quot;Owner&quot;">
+      <button id="organizations-button192" style="font-weight:600;font-size:18px;" class="button button-positive button-block button-clear icon-right ion-android-settings">{{ organization.orgname }}</button>
+      <div class="list card widget_whole" id="organizations-card223">
+        <div class="item item-body" id="organizations-list-item-container39">
+          <div id="organizations-markdown507" class="show-list-numbers-and-dots widget_half">
+            <p style="margin-top:0px;color:#444444;font-size:12px;">{{ organization.membership }}</p>
+          </div>
+          <div id="organizations-markdown508" style="text-align:right;" class="show-list-numbers-and-dots widget_half">
+            <p style="margin-top:0px;color:#444444;font-size:12px;">{{ organization.status }} on {{ organization.date }}</p>
+          </div>
+        </div>
+      </div>
+      <div id="organizations-markdown491" ng-show="organization.status == &quot;Invited&quot;" style="text-align:center;" class="show-list-numbers-and-dots">
+        <p style="color:#AAAAAA;font-size:12px;">You have been invited to join {{ organization.orgname }} organization. Click Accept or Decline button.</p>
+      </div>
+      <div id="organizations-markdown496" ng-show="organization.status != &quot;Invited&quot;" style="text-align:center;" class="show-list-numbers-and-dots">
+        <p style="color:#AAAAAA;font-size:12px;">You are a member of {{ organization.orgname }} organization. You can access resources based on the roles and permissions assigned to your account.</p>
+      </div>
+      <button id="organizations-button184" ng-show="organization.status == &quot;Invited&quot;" ng-click="acceptInvitation()" class="button button-positive button-block widget_button_half">Accept</button>
+      <button id="organizations-button183" ng-show="organization.status == &quot;Invited&quot;" ng-click="declineInvitation()" class="button button-positive button-block widget_button_half">Decline</button>
+      <div class="spacer" style="height: 20px;"></div>
+      <button id="organizations-button188" ng-show="organization.status != &quot;Invited&quot;" ng-click="leaveOrganization()" class="button button-assertive button-block button-outline widget_whole">Leave</button>
+      <div class="spacer" style="height: 50px;"></div>
+    </form>
+  </ion-content>
+</ion-view>

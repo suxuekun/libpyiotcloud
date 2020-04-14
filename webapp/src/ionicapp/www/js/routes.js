@@ -900,6 +900,31 @@ angular.module('app.routes', [])
     }
   })
 
+  .state('menu.organizations', {
+    url: '/page_organizations',
+	params: {
+		username: "",
+		token: ""		
+},
+    views: {
+      'side-menu21': {
+        templateUrl: 'templates/organizations.html',
+        controller: 'organizationsCtrl'
+      }
+    }
+  })
+
+  .state('addOrganizationUser', {
+    url: '/page_add_organization_user',
+	params: {
+		username: "",
+		token: "",
+		orgname: ""		
+},
+    templateUrl: 'templates/addOrganizationUser.html',
+    controller: 'addOrganizationUserCtrl'
+  })
+
 $urlRouterProvider.otherwise('/page_home')
 
 
