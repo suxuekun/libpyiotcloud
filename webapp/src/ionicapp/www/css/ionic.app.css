@@ -9969,6 +9969,10 @@ table, th, td {
   max-width: 500px;
   margin: 0% auto; }
 
+.page_width_medium {
+  max-width: 700px;
+  margin: 0% auto; }
+
 .widget_selection_half {
   width: 49% !important;
   min-width: 300px;
@@ -10070,6 +10074,10 @@ table, th, td {
 
 .widget_button_third {
   width: 33% !important;
+  display: inline-block; }
+
+.widget_button_quarter {
+  width: 24.5% !important;
   display: inline-block; }
 
 .line_spacing {
