@@ -1540,6 +1540,541 @@ def register_mobile_device_token():
 
 ########################################################################################################
 #
+# GET ORGANIZATION
+#
+# - Request:
+#   GET /user/organization
+#   headers: {'Authorization': 'Bearer ' + token.access}
+#
+# - Response:
+#   {'status': 'OK', 'message': string}
+#   {'status': 'NG', 'message': string}
+#
+#
+# LEAVE ORGANIZATION
+#
+# - Request:
+#   GET /user/organization
+#   headers: {'Authorization': 'Bearer ' + token.access}
+#
+# - Response:
+#   {'status': 'OK', 'message': string}
+#   {'status': 'NG', 'message': string}
+#
+########################################################################################################
+@app.route('/user/organization', methods=['GET', 'DELETE'])
+def get_organization():
+    # get token from Authorization header
+    auth_header_token = get_auth_header_token()
+    if auth_header_token is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
+        print('\r\nERROR Get organization: Invalid authorization header\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
+    token = {'access': auth_header_token}
+
+    # get username from token
+    username = g_database_client.get_username_from_token(token)
+    if username is None:
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Get organization: Token expired\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
+    print('get_organization username={}'.format(username))
+
+    # check if a parameter is empty
+    if len(username) == 0 or len(token) == 0:
+        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+        print('\r\nERROR Get organization: Empty parameter found\r\n')
+        return response, status.HTTP_400_BAD_REQUEST
+
+    # check if username and token is valid
+    verify_ret, new_token = g_database_client.verify_token(username, token)
+    if verify_ret == 2: # token expired
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Get organization: Token expired [{}]\r\n'.format(username))
+        return response, status.HTTP_401_UNAUTHORIZED
+    elif verify_ret != 0:
+        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
+        print('\r\nERROR Get organization: Token is invalid [{}]\r\n'.format(username))
+        return response, status.HTTP_401_UNAUTHORIZED
+
+
+    # get or leave organization
+    if flask.request.method == 'GET':
+        organization = g_database_client.get_organization(username)
+        msg = {'status': 'OK', 'message': 'Get organization successful'}
+        if organization:
+            msg["organization"] = organization
+        else:
+            msg["message"] = "No organization"
+
+    elif flask.request.method == 'DELETE':
+        g_database_client.leave_organization(username)
+        msg = {'status': 'OK', 'message': 'Leave organization successful'}
+
+
+    response = json.dumps(msg)
+    print('\r\n{} successful: {}\r\n'.format(msg["message"], username))
+    return response
+
+
+########################################################################################################
+#
+# ACCEPT ORGANIZATION INVITATION
+#
+# - Request:
+#   POST /user/organization/invitation
+#   headers: {'Authorization': 'Bearer ' + token.access}
+#
+# - Response:
+#   {'status': 'OK', 'message': string}
+#   {'status': 'NG', 'message': string}
+#
+#
+# DECLINE ORGANIZATION INVITATION
+#
+# - Request:
+#   POST /user/organization/invitation
+#   headers: {'Authorization': 'Bearer ' + token.access}
+#
+# - Response:
+#   {'status': 'OK', 'message': string}
+#   {'status': 'NG', 'message': string}
+#
+########################################################################################################
+@app.route('/user/organization/invitation', methods=['POST', 'DELETE'])
+def accept_organization_invitation():
+    # get token from Authorization header
+    auth_header_token = get_auth_header_token()
+    if auth_header_token is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
+        print('\r\nERROR Accept organization invitation: Invalid authorization header\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
+    token = {'access': auth_header_token}
+
+    # get username from token
+    username = g_database_client.get_username_from_token(token)
+    if username is None:
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Accept organization invitation: Token expired\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
+    print('accept_organization_invitation username={}'.format(username))
+
+    # check if a parameter is empty
+    if len(username) == 0 or len(token) == 0:
+        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+        print('\r\nERROR Accept organization invitation: Empty parameter found\r\n')
+        return response, status.HTTP_400_BAD_REQUEST
+
+    # check if username and token is valid
+    verify_ret, new_token = g_database_client.verify_token(username, token)
+    if verify_ret == 2: # token expired
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Accept organization invitation: Token expired [{}]\r\n'.format(username))
+        return response, status.HTTP_401_UNAUTHORIZED
+    elif verify_ret != 0:
+        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
+        print('\r\nERROR Accept organization invitation: Token is invalid [{}]\r\n'.format(username))
+        return response, status.HTTP_401_UNAUTHORIZED
+
+
+    # accept or decline invitation
+    if flask.request.method == 'POST':
+        result, errorcode = g_database_client.accept_organization_invitation(username)
+        if not result:
+            if errorcode == 401:
+                errormsg = "User is not allowed to accept invitation"
+            elif errorcode == 404:
+                errormsg = "User is not allowed to accept invitation"
+            else:
+                errormsg = "Accept organization invitation failed"
+            response = json.dumps({'status': 'NG', 'message': errormsg})
+            print('\r\nERROR {} [{}]\r\n'.format(errormsg, username))
+            return response, errorcode
+        msg = {'status': 'OK', 'message': 'Accept organization invitation successful'}
+
+    elif flask.request.method == 'DELETE':
+        result, errorcode = g_database_client.decline_organization_invitation(username)
+        if not result:
+            if errorcode == 401:
+                errormsg = "User is not allowed to accept invitation"
+            elif errorcode == 404:
+                errormsg = "User is not allowed to accept invitation"
+            else:
+                errormsg = "Decline organization invitation failed"
+            response = json.dumps({'status': 'NG', 'message': errormsg})
+            print('\r\nERROR {} [{}]\r\n'.format(errormsg, username))
+            return response, errorcode
+        msg = {'status': 'OK', 'message': 'Decline organization invitation successful'}
+
+    response = json.dumps(msg)
+    print('\r\n{} successful: {}\r\n'.format(msg["message"], username))
+    return response
+
+
+########################################################################################################
+#
+# CREATE ORGANIZATION
+#
+# - Request:
+#   POST /organizations/organization/ORGNAME
+#   headers: {'Authorization': 'Bearer ' + token.access}
+#
+# - Response:
+#   {'status': 'OK', 'message': string}
+#   {'status': 'NG', 'message': string}
+#
+#
+# DELETE ORGANIZATION
+#
+# - Request:
+#   POST /organizations/organization/ORGNAME
+#   headers: {'Authorization': 'Bearer ' + token.access}
+#
+# - Response:
+#   {'status': 'OK', 'message': string}
+#   {'status': 'NG', 'message': string}
+#
+########################################################################################################
+@app.route('/organizations/organization/<orgname>', methods=['POST', 'DELETE'])
+def create_organization(orgname):
+    # get token from Authorization header
+    auth_header_token = get_auth_header_token()
+    if auth_header_token is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
+        print('\r\nERROR Create organization: Invalid authorization header\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
+    token = {'access': auth_header_token}
+
+    # get username from token
+    username = g_database_client.get_username_from_token(token)
+    if username is None:
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Create organization: Token expired\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
+    print('create_organization username={}'.format(username))
+
+    # check if a parameter is empty
+    if len(username) == 0 or len(token) == 0:
+        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+        print('\r\nERROR Create organization: Empty parameter found\r\n')
+        return response, status.HTTP_400_BAD_REQUEST
+
+    # check if username and token is valid
+    verify_ret, new_token = g_database_client.verify_token(username, token)
+    if verify_ret == 2: # token expired
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Create organization: Token expired [{}]\r\n'.format(username))
+        return response, status.HTTP_401_UNAUTHORIZED
+    elif verify_ret != 0:
+        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
+        print('\r\nERROR Create organization: Token is invalid [{}]\r\n'.format(username))
+        return response, status.HTTP_401_UNAUTHORIZED
+
+
+    # check orgname
+    if len(orgname) == 0:
+        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+        print('\r\nERROR Create organization: Empty parameter found\r\n')
+        return response, status.HTTP_400_BAD_REQUEST
+
+    # create or delete organization
+    if flask.request.method == 'POST':
+
+        result, errorcode = g_database_client.create_organization(username, orgname)
+        if not result:
+            if errorcode == 401:
+                errormsg = "Cannot create another organization"
+            elif errorcode == 409:
+                errormsg = "Organization name already taken"
+            else:
+                errormsg = "Create organization failed"
+            response = json.dumps({'status': 'NG', 'message': errormsg})
+            print('\r\nERROR {} [{}]\r\n'.format(errormsg, username))
+            return response, errorcode
+        msg = {'status': 'OK', 'message': 'Create organization successful'}
+
+    elif flask.request.method == 'DELETE':
+
+        # get organization
+        result, errorcode = g_database_client.delete_organization(username, orgname)
+        if not result:
+            if errorcode == 404:
+                errormsg = "Organization not found"
+            elif errorcode == 401:
+                errormsg = "User is not the owner of the organization"
+            else:
+                errormsg = "Delete organization failed"
+            response = json.dumps({'status': 'NG', 'message': errormsg})
+            print('\r\nERROR {} [{}]\r\n'.format(errormsg, username))
+            return response, errorcode
+
+        msg = {'status': 'OK', 'message': 'Delete organization successful'}
+
+
+    print('\r\n{}: {}\r\n'.format(msg["message"], username))
+    response = json.dumps(msg)
+    return response
+
+
+########################################################################################################
+#
+# CREATE/CANCEL INVITATIONS
+#
+# - Request:
+#   POST /organizations/organization/ORGNAME/invitation
+#   headers: {'Authorization': 'Bearer ' + token.access}
+#   data: {'emails': [], 'cancel': 1}
+#
+# - Response:
+#   {'status': 'OK', 'message': string}
+#   {'status': 'NG', 'message': string}
+#
+########################################################################################################
+@app.route('/organizations/organization/<orgname>/invitation', methods=['POST'])
+def create_organization_invitation(orgname):
+    # get token from Authorization header
+    auth_header_token = get_auth_header_token()
+    if auth_header_token is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
+        print('\r\nERROR Create organization invitation: Invalid authorization header\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
+    token = {'access': auth_header_token}
+
+    # get username from token
+    username = g_database_client.get_username_from_token(token)
+    if username is None:
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Create organization invitation: Token expired\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
+    print('create_organization_invitation username={}'.format(username))
+
+    # check if a parameter is empty
+    if len(username) == 0 or len(token) == 0:
+        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+        print('\r\nERROR Create organization invitation: Empty parameter found\r\n')
+        return response, status.HTTP_400_BAD_REQUEST
+
+    # check if username and token is valid
+    verify_ret, new_token = g_database_client.verify_token(username, token)
+    if verify_ret == 2: # token expired
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Create organization invitation: Token expired [{}]\r\n'.format(username))
+        return response, status.HTTP_401_UNAUTHORIZED
+    elif verify_ret != 0:
+        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
+        print('\r\nERROR Create organization invitation: Token is invalid [{}]\r\n'.format(username))
+        return response, status.HTTP_401_UNAUTHORIZED
+
+
+    # check orgname
+    if len(orgname) == 0:
+        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+        print('\r\nERROR Create organization invitation: Empty parameter found\r\n')
+        return response, status.HTTP_400_BAD_REQUEST
+
+    # check parameter
+    data = flask.request.get_json()
+    #print(data)
+    if data.get("emails") is None:
+        response = json.dumps({'status': 'NG', 'message': 'Parameters not included'})
+        print('\r\nERROR Create organization invitation: Parameters not included [{}]\r\n'.format(username))
+        return response, status.HTTP_400_BAD_REQUEST
+    if len(data["emails"]) == 0:
+        response = json.dumps({'status': 'NG', 'message': 'Parameters not included'})
+        print('\r\nERROR Create organization invitation: Parameters not included [{}]\r\n'.format(username))
+        return response, status.HTTP_400_BAD_REQUEST
+    cancel = 0
+    if data.get("cancel") is not None:
+        cancel = data["cancel"]
+
+    # create or cancel organization invitation
+    results = []
+    allfailed = True
+    if cancel == 0:
+        result = g_database_client.check_create_organization_invitations(username, orgname, data["emails"])
+        if result == False:
+            msg = {'status': 'NG', 'message': 'Some of the emails are invalid.'}
+        else:
+            for email in data["emails"]:
+                result, errorcode = g_database_client.create_organization_invitation(username, orgname, email)
+                if not result:
+                    if errorcode == 400:
+                        errormsg = "User already a member of the organization"
+                    elif errorcode == 401:
+                        errormsg = "User is not the owner of the organization"
+                    elif errorcode == 404:
+                        errormsg = "Organization not found"
+                    elif errorcode == 409:
+                        errormsg = "User already exist"
+                    else:
+                        errormsg = "Create organization invitation failed"
+                    results.append({"email": email, "result": 0, "errormsg": errormsg})
+                else:
+                    allfailed = False
+                    results.append({"email": email, "result": 1})
+            if allfailed == True:
+                msg = {'status': 'NG', 'message': 'Create organization invitation failed', 'results': results}
+            else:
+                msg = {'status': 'OK', 'message': 'Create organization invitation successful', 'results': results}
+
+                # send email invitation
+                try:
+                    pubtopic = CONFIG_PREPEND_REPLY_TOPIC + CONFIG_SEPARATOR + orgname + CONFIG_SEPARATOR + "send_invitation_organization"
+                    payload  = {"owner": username, "recipients": []}
+                    for result in results:
+                        if result["result"] == 1:
+                            payload["recipients"].append(result["email"])
+                    if len(payload["recipients"]):
+                        g_messaging_client.publish(pubtopic, json.dumps(payload))
+                except:
+                    print("Send email invitation failed!")
+                    pass
+
+    else:
+        result = g_database_client.check_cancel_organization_invitations(username, orgname, data["emails"])
+        if result == False:
+            msg = {'status': 'NG', 'message': 'Some of the emails are invalid.'}
+        else:
+            for email in data["emails"]:
+                result, errorcode = g_database_client.cancel_organization_invitation(username, orgname, email)
+                if not result:
+                    if errorcode == 400:
+                        errormsg = "User status is not Invited"
+                    elif errorcode == 401:
+                        errormsg = "User is not the owner of the organization"
+                    elif errorcode == 404:
+                        errormsg = "Organization or user not found"
+                    else:
+                        errormsg = "Delete organization invitation failed"
+                    results.append({"email": email, "result": 0, "errormsg": errormsg})
+                else:
+                    allfailed = False
+                    results.append({"email": email, "result": 1})
+            if allfailed == True:
+                msg = {'status': 'NG', 'message': 'Delete organization invitation failed', 'results': results}
+            else:
+                msg = {'status': 'OK', 'message': 'Delete organization invitation successful', 'results': results}
+
+
+    print('\r\n{}: {}\r\n'.format(msg["message"], username))
+    response = json.dumps(msg)
+    return response
+
+
+########################################################################################################
+#
+# UPDATE/REMOVE MEMBERSHIPS
+#
+# - Request:
+#   POST /organizations/organization/ORGNAME/membership
+#   headers: {'Authorization': 'Bearer ' + token.access}
+#   data: {'emails': [], 'remove': 1}
+#
+# - Response:
+#   {'status': 'OK', 'message': string}
+#   {'status': 'NG', 'message': string}
+#
+########################################################################################################
+@app.route('/organizations/organization/<orgname>/membership', methods=['POST'])
+def update_organization_membership(orgname):
+    # get token from Authorization header
+    auth_header_token = get_auth_header_token()
+    if auth_header_token is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
+        print('\r\nERROR Update organization membership: Invalid authorization header\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
+    token = {'access': auth_header_token}
+
+    # get username from token
+    username = g_database_client.get_username_from_token(token)
+    if username is None:
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Update organization membership: Token expired\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
+    print('create_organization_invitation username={}'.format(username))
+
+    # check if a parameter is empty
+    if len(username) == 0 or len(token) == 0:
+        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+        print('\r\nERROR Update organization membership: Empty parameter found\r\n')
+        return response, status.HTTP_400_BAD_REQUEST
+
+    # check if username and token is valid
+    verify_ret, new_token = g_database_client.verify_token(username, token)
+    if verify_ret == 2: # token expired
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Update organization membership: Token expired [{}]\r\n'.format(username))
+        return response, status.HTTP_401_UNAUTHORIZED
+    elif verify_ret != 0:
+        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
+        print('\r\nERROR Update organization membership: Token is invalid [{}]\r\n'.format(username))
+        return response, status.HTTP_401_UNAUTHORIZED
+
+
+    # check orgname
+    if len(orgname) == 0:
+        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+        print('\r\nERROR Update organization membership: Empty parameter found\r\n')
+        return response, status.HTTP_400_BAD_REQUEST
+
+    # check parameter
+    data = flask.request.get_json()
+    #print(data)
+    if data.get("emails") is None:
+        response = json.dumps({'status': 'NG', 'message': 'Parameters not included'})
+        print('\r\nERROR Update organization membership: Parameters not included [{}]\r\n'.format(username))
+        return response, status.HTTP_400_BAD_REQUEST
+    if len(data["emails"]) == 0:
+        response = json.dumps({'status': 'NG', 'message': 'Parameters not included'})
+        print('\r\nERROR Update organization membership: Parameters not included [{}]\r\n'.format(username))
+        return response, status.HTTP_400_BAD_REQUEST
+    remove = 0
+    if data.get("remove") is not None:
+        remove = data["remove"]
+
+    # update or remove organization membership
+    results = []
+    allfailed = True
+    if remove == 0:
+        msg = {'status': 'OK', 'message': 'Update membership successful', 'results': results}
+        pass
+
+    else:
+        result = g_database_client.check_remove_organization_memberships(username, orgname, data["emails"])
+        if result == False:
+            msg = {'status': 'NG', 'message': 'Some of the emails are invalid.'}
+        else:
+            for email in data["emails"]:
+                result, errorcode = g_database_client.remove_organization_membership(username, orgname, email)
+                if not result:
+                    if errorcode == 400:
+                        errormsg = "User status is not Invited"
+                    elif errorcode == 401:
+                        errormsg = "User is not the owner of the organization"
+                    elif errorcode == 404:
+                        errormsg = "Organization or user not found"
+                    else:
+                        errormsg = "Remove membership failed"
+                    results.append({"email": email, "result": 0, "errormsg": errormsg})
+                else:
+                    allfailed = False
+                    results.append({"email": email, "result": 1})
+            if allfailed == True:
+                msg = {'status': 'NG', 'message': 'Remove membership failed', 'results': results}
+            else:
+                msg = {'status': 'OK', 'message': 'Remove membership successful', 'results': results}
+
+
+    print('\r\n{}: {}\r\n'.format(msg["message"], username))
+    response = json.dumps(msg)
+    return response
+
+
+#########################
+
+
+########################################################################################################
+#
 # GET SUBSCRIPTION
 #
 # - Request:
@@ -1880,7 +2415,7 @@ def set_payment_paypal_execute(paymentid):
             transaction = g_database_client.record_paypal_payment(username, payment_result, credits, subscription["prevcredits"], subscription["credits"])
             #print(transaction)
 
-            # send invoice
+            # send email receipt/invoice
             try:
                 pubtopic = CONFIG_PREPEND_REPLY_TOPIC + CONFIG_SEPARATOR + paymentid + CONFIG_SEPARATOR + "send_invoice"
                 payload  = json.dumps({})

@@ -251,8 +251,23 @@ SUMMARY:
 		Q. ENABLE MFA                     - POST   /user/mfa
 		R. LOGIN MFA                      - POST   /user/login/mfa
 
+		//
+		// organization (members)
+		S. GET ORGANIZATION                - GET    /user/organization
+		T. LEAVE ORGANIZATION              - DELETE /user/organization
+		U. ACCEPT ORGANIZATION INVITATION  - POST   /user/organization/invitation
+		V. DECLINE ORGANIZATION INVITATION - DELETE /user/organization/invitation
 
-	2. Device registration and management APIs
+
+	2. Organization management APIs
+
+		A. CREATE ORGANIZATION             - POST   organizations/organization/ORGNAME
+		B. DELETE ORGANIZATION             - DELETE organizations/organization/ORGNAME
+		C. CREATE/CANCEL INVITATIONS       - POST   organizations/organization/ORGNAME/invitation
+		D. UPDATE/REMOVE MEMBERSHIPS       - POST   organizations/organization/ORGNAME/membership
+
+
+	3. Device registration and management APIs
 
 		A. GET DEVICES                    - GET    /devices
 		B. GET DEVICES FILTERED           - GET    /devices/filter/FILTERSTRING
@@ -284,7 +299,7 @@ SUMMARY:
 		S. GET DEVICE HIERARCHY TREE (WITH STATUS) - POST   /devices/device/DEVICENAME/hierarchy
 
 
-	3. Device group registration and management APIs
+	4. Device group registration and management APIs
 
 		A. GET DEVICE GROUPS              - GET    /devicegroups
 		B. ADD DEVICE GROUP               - POST   /devicegroups/DEVICEGROUPNAME
@@ -296,7 +311,7 @@ SUMMARY:
 		H. SET DEVICES IN DEVICE GROUP    - POST   /devicegroups/DEVICEGROUPNAME/devices
 
 
-	4. Device sensor access and control
+	5. Device sensor access and control
 
 		//
 		// sensor readings (for dashboard)
@@ -307,7 +322,7 @@ SUMMARY:
 		E. DELETE PERIPHERAL SENSOR READINGS DATASET       - DELETE /devices/sensors/readings/dataset
 
 
-	5. Device access and control APIs (STATUS, UART, GPIO)
+	6. Device access and control APIs (STATUS, UART, GPIO)
 
 		//
 		// status
@@ -342,7 +357,7 @@ SUMMARY:
 		P. DELETE PERIPHERAL SENSOR PROPERTIES             - DELETE /devices/device/DEVICENAME/sensors/properties
 
 
-	6. Device access and control APIs (I2C)
+	7. Device access and control APIs (I2C)
 
 		A. ADD I2C DEVICE                 - POST   /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME
 		B. DELETE I2C DEVICE              - DELETE /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME
@@ -362,7 +377,7 @@ SUMMARY:
 		   (NUMBER can be 1-4 only and corresponds to I2C1,I2C2,I2C3,I2C4)
 
 
-	7. Device access and control APIs (ADC)
+	8. Device access and control APIs (ADC)
 
 		A. ADD ADC DEVICE                 - POST   /devices/device/DEVICENAME/adc/NUMBER/sensors/sensor/SENSORNAME
 		B. DELETE ADC DEVICE              - DELETE /devices/device/DEVICENAME/adc/NUMBER/sensors/sensor/SENSORNAME
@@ -382,7 +397,7 @@ SUMMARY:
 		O. SET ADC VOLTAGE                - POST   /devices/device/DEVICENAME/adc/voltage
 
 
-	8. Device access and control APIs (1WIRE)
+	9. Device access and control APIs (1WIRE)
 
 		A. ADD 1WIRE DEVICE               - POST   /devices/device/DEVICENAME/1wire/NUMBER/sensors/sensor/SENSORNAME
 		B. DELETE 1WIRE DEVICE            - DELETE /devices/device/DEVICENAME/1wire/NUMBER/sensors/sensor/SENSORNAME
@@ -400,7 +415,7 @@ SUMMARY:
 		   (NUMBER will always be 1 since there is only 1 1wire)
 
 
-	9. Device access and control APIs (TPROBE)
+	10. Device access and control APIs (TPROBE)
 
 		A. ADD TPROBE DEVICE              - POST   /devices/device/DEVICENAME/tprobe/NUMBER/sensors/sensor/SENSORNAME
 		B. DELETE TPROBE DEVICE           - DELETE /devices/device/DEVICENAME/tprobe/NUMBER/sensors/sensor/SENSORNAME
@@ -418,7 +433,7 @@ SUMMARY:
 		   (NUMBER will always be 1 since there is only 1 tprobe)
 
 
-	10. Device transaction recording APIs
+	11. Device transaction recording APIs
 
 		A. GET HISTORIES                  - GET    /devices/histories
 		B. GET HISTORIES FILTERED         - POST   /devices/histories
@@ -428,7 +443,7 @@ SUMMARY:
 		D. GET MENOS HISTORIES FILTERED   - POST   /devices/menos
 
 
-	11. Account subscription and payment APIs
+	12. Account subscription and payment APIs
 
 		A. GET SUBSCRIPTION               - GET    /account/subscription
 		B. PAYPAL SETUP                   - POST   /account/payment/paypalsetup
@@ -439,32 +454,32 @@ SUMMARY:
 		G. GET AMOUNT CONVERSION          - GET    /account/conversion/amount/AMOUNT
 
 
-	12. Mobile services
+	13. Mobile services
 
 		A. REGISTER DEVICE TOKEN          - POST   /mobile/devicetoken
 
 
-	13. Supported devices and firmware updates
+	14. Supported devices and firmware updates
 
 		A. GET SUPPORTED I2C DEVICES      - GET    /others/i2cdevices [OBSOLETED, use GET SUPPORTED SENSOR DEVICES instead]
 		B. GET SUPPORTED SENSOR DEVICES   - GET    /others/sensordevices
 		C. GET DEVICE FIRMWARE UPDATES    - GET    /others/firmwareupdates
 
 
-	14. Others
+	15. Others
 
 		A. SEND FEEDBACK                  - POST   /others/feedback
 		B. GET FAQS                       - GET    /others/faqs
 		C. GET ABOUT                      - GET    /others/about
 
 
-	15. ESP OTA Firmware Updates
+	16. ESP OTA Firmware Updates
 
 		A. DOWNLOAD FIRMWARE              - GET    /firmware/DEVICE/FILENAME
 		   (WARNING: This API is to be called by ESP device, not by web/mobile apps)
 
 
-	16. HTTP error codes
+	17. HTTP error codes
 
 		A. HTTP_400_BAD_REQUEST           - Invalid input
 		B. HTTP_401_UNAUTHORIZED          - Invalid password or invalid/expired token
@@ -837,8 +852,121 @@ DETAILED:
 		   {'status': 'NG', 'message': string}
 		   MFA must be manually enabled before Login within MFA
 
+		S. GET ORGANIZATION
+		-  Request:
+		   GET /user/organization
+		   headers: {'Content-Type': 'application/json'}
+		-  Response:
+		   {'status': 'OK', 'message': string, 
+		    'organization': {
+		      'orgname': string, 
+		      'membership': string, 
+		      'members':[{"username": string, "status": string, "date": int, "membership": string}, ...], 
+		      'details': {"status": string, "date": int}
+		    }
+		   }
+		   {'status': 'NG', 'message': string}
+		   //
+		   // membership is Owner, Member, Not member
+		   // status is Invited or Joined
+		   // members is optional and only appears when user is the master of the organization
+		   // details is optional and only appears when user is a member of the organization
+		   //
+		   // if MASTER:
+		   //  orgname: string
+		   //  membership: "Owner"
+		   //  members: [{"username": string, "status": string, "date": int, "membership": string}, ...]
+		   //elif MEMBER:
+		   //  orgname: string
+		   //  membership: "Member"
+		   //  details: {status: string, 'date': int, "membership": string}
 
-	2. Device registration and management APIs 
+		T. LEAVE ORGANIZATION INVITATION
+		-  Request:
+		   DELETE /user/organization
+		   headers: {'Content-Type': 'application/json'}
+		-  Response:
+		   {'status': 'OK', 'message': string}
+		   {'status': 'NG', 'message': string}
+
+		U. ACCEPT ORGANIZATION INVITATION
+		-  Request:
+		   POST /user/organization/invitation
+		   headers: {'Content-Type': 'application/json'}
+		-  Response:
+		   {'status': 'OK', 'message': string}
+		   {'status': 'NG', 'message': string}
+
+		V. DECLINE ORGANIZATION INVITATION
+		-  Request:
+		   DELETE /user/organization/invitation
+		   headers: {'Content-Type': 'application/json'}
+		-  Response:
+		   {'status': 'OK', 'message': string}
+		   {'status': 'NG', 'message': string}
+
+
+	2. Organization management APIs 
+
+		A. CREATE ORGANIZATION
+		-  Request:
+		   POST organizations/organization/ORGNAME
+		   headers: {'Content-Type': 'application/json'}
+		-  Response:
+		   {'status': 'OK', 'message': string}
+		   {'status': 'NG', 'message': string}
+		   // User cannot create an organization if he is already a part of an organization. 
+		   //   User has to leave the current organization in order to create a new organization.
+		   //   HTTP_401_UNAUTHORIZED error is returned if user tries to create an organization but already a part of an organization.
+		   // Organization names should be unique across all organizations.
+		   //   HTTP_409_CONFLICT error is returned if the organization name used is already taken.
+
+		B. DELETE ORGANIZATION
+		-  Request:
+		   DELETE organizations/organization/ORGNAME
+		   headers: {'Content-Type': 'application/json'}
+		-  Response:
+		   {'status': 'OK', 'message': string}
+		   {'status': 'NG', 'message': string}
+		   // The organization must exist in order to be deleted.
+		   //   HTTP_404_NOT_FOUND error is returned if the organization being deleted does not exist.
+		   // Only the owner of the organization can delete an organization.
+		   //   HTTP_401_UNAUTHORIZED error is returned if the organization is being deleted by a member, not the owner.
+
+		C. CREATE/CANCEL INVITATIONS
+		-  Request:
+		   POST organizations/organization/ORGNAME/invitation
+		   headers: {'Content-Type': 'application/json'}
+		   data: {'emails': [], 'cancel': 1}
+		-  Response:
+		   {'status': 'OK', 'message': string}
+		   {'status': 'NG', 'message': string}
+		   // emails is a list of emails to be invited to join the organization
+		   // cancel flag is optional and only appears if user wants to cancel invitation 
+		   // Only the owner of the organization can create/cancel invitation to join the organization
+		   //   HTTP_401_UNAUTHORIZED error is returned if a user is being invited by a member, not the owner.
+		   // The organization must exist in order to create/cancel invitation.
+		   //   HTTP_404_NOT_FOUND error is returned if the organization does not exist.
+		   // HTTP_400_BAD_REQUEST error is returned if the user being invited is already part of the organization.
+
+		D. UPDATE/REMOVE MEMBERSHIPS
+		-  Request:
+		   POST organizations/organization/ORGNAME/membership
+		   headers: {'Content-Type': 'application/json'}
+		   data: {'emails': [], 'remove': 1}
+		-  Response:
+		   {'status': 'OK', 'message': string}
+		   {'status': 'NG', 'message': string}
+		   // emails is a list of emails to be invited to join the organization
+		   // remove flag is optional and only appears if user wants to remove members 
+		   // Only the owner of the organization can update/remove users to join the organization
+		   //   HTTP_401_UNAUTHORIZED error is returned if a user is being invited by a member, not the owner.
+		   // The organization must exist in order to update/remove users.
+		   //   HTTP_404_NOT_FOUND error is returned if the organization does not exist.
+		   // HTTP_400_BAD_REQUEST error is returned if the user being invited is already part of the organization.
+
+
+	3. Device registration and management APIs 
 
 		DEVICENAME (and other parameters) are included in the URL field because of the following reasons:
 		- LIMITATION. HTTP GET requests do not permit including payload/data parameters.
@@ -1063,7 +1191,7 @@ DETAILED:
 		   { 'status': 'NG', 'message': string}
 		   // active is 1 or 0 to indicate if online/offline or enabled/disabled
 
-	3. Device group registration and management APIs
+	4. Device group registration and management APIs
 
 		A. GET DEVICE GROUPS
 		-  Request:
@@ -1138,7 +1266,7 @@ DETAILED:
 		   // devices can be an empty array, meaning remove all devices in the group
 
 
-	4. Device sensor access and control APIs
+	5. Device sensor access and control APIs
 
 		A. DELETE PERIPHERAL SENSOR PROPERTIES
 		-  Request:
@@ -1263,7 +1391,7 @@ DETAILED:
 		   { 'status': 'NG', 'message': string}
 
 
-	5. Device access and control APIs (STATUS, UART, GPIO)
+	6. Device access and control APIs (STATUS, UART, GPIO)
 
 		For device APIs, note that DEVICENAME is used instead of DEVICEID.
 		This strategy is more secure as the unique DEVICEID is not easily exposed in the HTTP packets.
@@ -1719,7 +1847,7 @@ DETAILED:
 		   { 'status': 'NG', 'message': string }
 
 
-	6. Device access and control APIs (I2C)
+	7. Device access and control APIs (I2C)
 
 
 		A. ADD I2C DEVICE
@@ -2187,7 +2315,7 @@ DETAILED:
 		   { 'status': 'NG', 'message': string }
 
 
-	7. Device access and control APIs (ADC)
+	8. Device access and control APIs (ADC)
 
 
 		A. ADD ADC DEVICE
@@ -2463,7 +2591,7 @@ DETAILED:
 		   { 'status': 'NG', 'message': string }
 
 
-	8. Device access and control APIs (1WIRE)
+	9. Device access and control APIs (1WIRE)
 
 
 		A. ADD 1WIRE DEVICE
@@ -2619,7 +2747,7 @@ DETAILED:
 		   { 'status': 'NG', 'message': string }
 
 
-	9. Device access and control APIs (TPROBE)
+	10. Device access and control APIs (TPROBE)
 
 
 		A. ADD TPROBE DEVICE
@@ -2797,7 +2925,7 @@ DETAILED:
 		   { 'status': 'NG', 'message': string }
 
 
-	10. Device transaction recording APIs
+	11. Device transaction recording APIs
 
 		A. GET HISTORIES
 		-  Request:
@@ -2898,7 +3026,7 @@ DETAILED:
 		   // sensorname and condition are optional (ex. when source is UART/GPIOX, then both sensorname and condition are not present
 
 
-	11. Account subscription and payment APIs
+	12. Account subscription and payment APIs
 
 		// Use any of the following Paypal Sandbox accounts: (https://sandbox.paypal.com)
 		   dev1.sg@brtchip.com (personal) - Singapore buyer
@@ -2991,7 +3119,7 @@ DETAILED:
 		   // Note that in the Paypal website, it seems its only possible to query up to 3 years but invoices can be requested up to 7 years.
 
 
-	12. Mobile services
+	13. Mobile services
 
 		A. REGISTER DEVICE TOKEN
 		-  Request:
@@ -3023,7 +3151,7 @@ DETAILED:
 		   Double check your results here: https://jwt.io/
 
 
-	13. Supported devices/firmware updates
+	14. Supported devices/firmware updates
 
 		A. GET SUPPORTED I2C DEVICES (obsoloted: use GET SUPPORTED SENSOR DEVICES instead)
 		-  Request:
@@ -3060,7 +3188,7 @@ DETAILED:
 		   // this API provides access to the contents of the JSON file
 
 
-	14. Others
+	15. Others
 
 		A. SEND FEEDBACK
 		-  Request:
@@ -3089,7 +3217,7 @@ DETAILED:
 		   {'status': 'NG', 'message': string }
 
 
-	15. ESP OTA Firmware Updates
+	16. ESP OTA Firmware Updates
 
 		A. DOWNLOAD FIRMWARE
 		-  Request:

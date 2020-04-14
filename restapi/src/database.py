@@ -610,6 +610,70 @@ class database_client:
         self._devices.delete_devices_location(username)
 
 
+
+
+    ##########################################################
+    # user organization
+    ##########################################################
+
+    def get_organization(self, username):
+        return self._devices.get_organization(username)
+
+    def leave_organization(self, username):
+        return self._devices.leave_organization(username)
+
+    def accept_organization_invitation(self, member):
+        return self._devices.accept_organization_invitation(member)
+
+    def decline_organization_invitation(self, member):
+        return self._devices.decline_organization_invitation(member)
+
+
+    ##########################################################
+    # organizations
+    ##########################################################
+
+    def find_organization(self, orgname):
+        return self._devices.find_organization(orgname)
+
+    def create_organization(self, username, orgname):
+        return self._devices.create_organization(username, orgname)
+
+    def delete_organization(self, username, orgname):
+        return self._devices.delete_organization(username, orgname)
+
+
+    def check_create_organization_invitations(self, username, orgname, members):
+        for member in members:
+            result, errcode = self._devices.check_create_organization_invitation(username, orgname, member)
+            if result == False:
+                return False
+        return True
+
+    def create_organization_invitation(self, username, orgname, member):
+        return self._devices.create_organization_invitation(username, orgname, member)
+
+    def check_cancel_organization_invitations(self, username, orgname, members):
+        for member in members:
+            result, errcode = self._devices.check_cancel_organization_invitation(username, orgname, member)
+            if result == False:
+                return False
+        return True
+
+    def cancel_organization_invitation(self, username, orgname, member):
+        return self._devices.cancel_organization_invitation(username, orgname, member)
+
+    def check_remove_organization_memberships(self, username, orgname, members):
+        for member in members:
+            result, errcode = self._devices.check_remove_organization_membership(username, orgname, member)
+            if result == False:
+                return False
+        return True
+
+    def remove_organization_membership(self, username, orgname, member):
+        return self._devices.remove_organization_membership(username, orgname, member)
+
+
     ##########################################################
     # devices
     ##########################################################
@@ -2837,6 +2901,325 @@ class database_client_mongodb:
                 devicelocations.delete_many({ 'username': username })
             except:
                 print("delete_devices_location: Exception occurred")
+
+
+    ##########################################################
+    # organizations_users
+    ##########################################################
+
+    def get_organizations_users_document(self):
+        return self.client[config.CONFIG_MONGODB_TB_ORGANIZATIONS_USERS]
+
+    def updateuser_organizations_users(self, username, orgname, status, membership):
+        timestamp = int(time.time())
+        organizations = self.get_organizations_users_document()
+        item = {}
+        item['username'] = username
+        item['orgname'] = orgname
+        item['status'] = status
+        item['date'] = timestamp
+        item['membership'] = membership
+        found = organizations.find_one({'username': username})
+        if found is None:
+            organizations.insert_one(item)
+        else:
+            organizations.replace_one({'username': username}, item)
+
+    def removeuser_organizations_users(self, username):
+        organizations = self.get_organizations_users_document()
+        try:
+            organizations.delete_one({'username': username})
+        except:
+            print("remove_organization_user: Exception occurred")
+
+    def removeuser_organizations_users_by_orgname(self, orgname):
+        organizations = self.get_organizations_users_document()
+        try:
+            organizations.delete_many({'orgname': orgname})
+        except:
+            print("remove_organization_user: Exception occurred")
+
+
+    def get_user_organization(self, username, complete=False):
+        organizations = self.get_organizations_users_document()
+        if complete:
+            found = organizations.find_one({'username': username})
+        else:
+            found = organizations.find_one({'username': username}, {'username': 1, 'status': 1, 'date': 1, 'membership': 1})
+        if found is None:
+            return None
+        found.pop('_id')
+        return found
+
+
+    ##########################################################
+    # organizations
+    ##########################################################
+
+    def get_organizations_document(self):
+        return self.client[config.CONFIG_MONGODB_TB_ORGANIZATIONS]
+
+    def get_organization(self, username):
+        ###
+        user = self.get_user_organization(username, complete=True)
+        ###
+        if user is None:
+            return None
+        orgname = user["orgname"]
+        if user["membership"] != "Owner":
+            return user
+
+        organizations = self.get_organizations_document()
+        organization = organizations.find_one({'orgname': user["orgname"]})
+        if organization is None:
+            return None
+        organization["membership"] = user["membership"]
+        organization["members"] = []
+        for user in organization["users"]:
+            organization["members"].append(self.get_user_organization(user, complete=False))
+
+        organization.pop("_id")
+        organization.pop("orgid")
+        organization.pop("users")
+        #print(organization)
+        return organization
+
+    def leave_organization(self, username):
+        ###
+        user = self.get_user_organization(username, complete=True)
+        ###
+        if user is None:
+            return False, 401 # HTTP_401_UNAUTHORIZED
+        if user["status"] != "Joined":
+            return False, 401 # HTTP_401_UNAUTHORIZED
+
+        organizations = self.get_organizations_document()
+        item = organizations.find_one({'orgname': user["orgname"]})
+        if item is None:
+            return False, 404 # HTTP_404_NOT_FOUND, org not found
+        else:
+            found = False
+            for x in item["users"]:
+                if x == username:
+                    item['users'].remove(x)
+                    organizations.replace_one({'orgname': user["orgname"]}, item)
+                    ###
+                    self.removeuser_organizations_users(username)
+                    ###
+                    found = True
+                    break
+            if found == False:
+                return False, 404 # HTTP_404_NOT_FOUND
+        return True, None
+
+    def accept_organization_invitation(self, member):
+        ###
+        user = self.get_user_organization(member, complete=True)
+        ###
+        if user is None:
+            return False, 401 # HTTP_401_UNAUTHORIZED
+        if user["status"] != "Invited":
+            return False, 401 # HTTP_401_UNAUTHORIZED
+
+        organizations = self.get_organizations_document()
+        item = organizations.find_one({'orgname': user["orgname"]})
+        if item is None:
+            return False, 404 # HTTP_404_NOT_FOUND, org not found
+        else:
+            found = False
+            for x in item["users"]:
+                if x == member:
+                    found = True
+                    break
+            if found == False:
+                return False, 404 # HTTP_404_NOT_FOUND
+            ###
+            self.updateuser_organizations_users(member, user["orgname"], "Joined", "Member")
+            ###
+        return True, None
+
+    def decline_organization_invitation(self, member):
+        ###
+        user = self.get_user_organization(member, complete=True)
+        ###
+        if user is None:
+            return False, 401 # HTTP_401_UNAUTHORIZED
+        if user["status"] != "Invited":
+            return False, 401 # HTTP_401_UNAUTHORIZED
+
+        organizations = self.get_organizations_document()
+        item = organizations.find_one({'orgname': user["orgname"]})
+        if item is None:
+            return False, 404 # HTTP_404_NOT_FOUND, org not found
+        else:
+            found = False
+            for x in item["users"]:
+                if x == member:
+                    item['users'].remove(x)
+                    organizations.replace_one({'orgname': user["orgname"]}, item)
+                    ###
+                    self.removeuser_organizations_users(member)
+                    ###
+                    found = True
+                    break
+            if found == False:
+                return False, 404 # HTTP_404_NOT_FOUND
+        return True, None
+
+
+    ####################
+
+
+    def create_organization(self, username, orgname):
+        ###
+        user = self.get_user_organization(username, complete=True)
+        ###
+        if user is not None:
+            return False, 401 # HTTP_401_UNAUTHORIZED
+
+        timestamp = int(time.time())
+        organizations = self.get_organizations_document()
+        item = {}
+        item['orgname'] = orgname
+        item['orgid'] = timestamp
+        item['users'] = [username]
+        found = organizations.find_one({'orgname': orgname})
+        if found is None:
+            organizations.insert_one(item)
+            ###
+            self.updateuser_organizations_users(username, orgname, "Joined", "Owner")
+            ###
+        else:
+            return False, 409 # HTTP_409_CONFLICT
+        return True, None
+
+    def delete_organization(self, username, orgname):
+        organizations = self.get_organizations_document()
+        item = organizations.find_one({'orgname': orgname})
+        if item is None:
+            return False, 404 # HTTP_404_NOT_FOUND
+        else:
+            if item["users"][0] != username:
+                return False, 401 # HTTP_401_UNAUTHORIZED
+            ###
+            self.removeuser_organizations_users_by_orgname(orgname)
+            ###
+            organizations.delete_one(item)
+        return True, None
+
+    def check_create_organization_invitation(self, username, orgname, member):
+        ###
+        user = self.get_user_organization(member, complete=True)
+        ###
+        if user is not None:
+            return False, 400 # HTTP_400_BAD_REQUEST
+
+        return True, None
+
+    def create_organization_invitation(self, username, orgname, member):
+        organizations = self.get_organizations_document()
+        item = organizations.find_one({'orgname': orgname})
+        if item is None:
+            return False, 404 # HTTP_404_NOT_FOUND, org not found
+        else:
+            if item["users"][0] != username:
+                return False, 401 # HTTP_401_UNAUTHORIZED, only master can add or remove
+            for user in item["users"]:
+                if user == member:
+                    return False, 400 # HTTP_400_BAD_REQUEST, already a member
+            item['users'].append(member)
+            organizations.replace_one({'orgname': orgname}, item)
+            ###
+            self.updateuser_organizations_users(member, orgname, "Invited", "Not member")
+            ###
+        return True, None
+
+    def check_cancel_organization_invitation(self, username, orgname, member):
+        ###
+        user = self.get_user_organization(member, complete=True)
+        ###
+        if user is None:
+            return False, 400 # HTTP_400_BAD_REQUEST
+        if user["status"] != "Invited":
+            return False, 400 # HTTP_400_BAD_REQUEST
+
+        return True, None
+
+    def cancel_organization_invitation(self, username, orgname, member):
+        ###
+        user = self.get_user_organization(member, complete=True)
+        ###
+        if user is None:
+            return False, 400 # HTTP_400_BAD_REQUEST
+        if user["status"] != "Invited":
+            return False, 400 # HTTP_400_BAD_REQUEST
+
+        organizations = self.get_organizations_document()
+        item = organizations.find_one({'orgname': orgname})
+        if item is None:
+            return False, 404 # HTTP_404_NOT_FOUND, org not found
+        else:
+            if item["users"][0] != username:
+                return False, 401 # HTTP_401_UNAUTHORIZED, only master can add or remove
+            if member == username:
+                return False, 401 # HTTP_401_UNAUTHORIZED, cannot remove master
+            found = False
+            for x in item["users"]:
+                if x == member:
+                    item['users'].remove(x)
+                    organizations.replace_one({'orgname': orgname}, item)
+                    ###
+                    self.removeuser_organizations_users(member)
+                    ###
+                    found = True
+                    break
+            if found == False:
+                return False, 404 # HTTP_404_NOT_FOUND
+        return True, None
+
+
+    def check_remove_organization_membership(self, username, orgname, member):
+        ###
+        user = self.get_user_organization(member, complete=True)
+        ###
+        if user is None:
+            return False, 400 # HTTP_400_BAD_REQUEST
+        if user["status"] != "Joined":
+            return False, 400 # HTTP_400_BAD_REQUEST
+
+        return True, None
+
+    def remove_organization_membership(self, username, orgname, member):
+        ###
+        user = self.get_user_organization(member, complete=True)
+        ###
+        if user is None:
+            return False, 400 # HTTP_400_BAD_REQUEST
+        if user["status"] != "Joined":
+            return False, 400 # HTTP_400_BAD_REQUEST
+
+        organizations = self.get_organizations_document()
+        item = organizations.find_one({'orgname': orgname})
+        if item is None:
+            return False, 404 # HTTP_404_NOT_FOUND, org not found
+        else:
+            if item["users"][0] != username:
+                return False, 401 # HTTP_401_UNAUTHORIZED, only master can add or remove
+            if member == username:
+                return False, 401 # HTTP_401_UNAUTHORIZED, cannot remove master
+            found = False
+            for x in item["users"]:
+                if x == member:
+                    item['users'].remove(x)
+                    organizations.replace_one({'orgname': orgname}, item)
+                    ###
+                    self.removeuser_organizations_users(member)
+                    ###
+                    found = True
+                    break
+            if found == False:
+                return False, 404 # HTTP_404_NOT_FOUND
+        return True, None
 
 
     ##########################################################
