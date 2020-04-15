@@ -15,6 +15,7 @@ import random
 CONFIG_AMQP_SEPARATOR       = '.'
 CONFIG_PREPEND_REPLY_TOPIC  = "server"
 CONFIG_QOS                  = 1
+printf = None
 
 
 
@@ -25,7 +26,9 @@ CONFIG_QOS                  = 1
 ###################################################################################
 class messaging_client:
 
-    def __init__(self, use_amqp, on_message_callback, device_id=None, use_ecc=False):
+    def __init__(self, use_amqp, on_message_callback, device_id=None, use_ecc=False, use_printf=None):
+        global printf
+        printf = use_printf
         self.use_amqp = use_amqp
         self.client = None
         self.mqtt_connected = False
@@ -58,7 +61,10 @@ class messaging_client:
 
     def print_json(self, json_object):
         json_formatted_str = json.dumps(json_object, indent=2)
-        print(json_formatted_str)
+        #printf(json_formatted_str)
+        lines = json_formatted_str.split("\n")
+        for line in lines:
+            printf(line)
 
     def initialize(self, timeout=0, ignore_hostname=False):
         if self.use_amqp:
@@ -202,13 +208,13 @@ class messaging_client:
 
         trial = 0
         while True:
-            #print(self.mqtt_connected)
+            #printf(self.mqtt_connected)
             if self.mqtt_connected:
                 break
             time.sleep(1)
             trial += 1
             if timeout > 0 and timeout == trial:
-                #print("timeout")
+                #printf("timeout")
                 try:
                     client.disconnect()
                 except:
@@ -228,20 +234,20 @@ class messaging_client:
             pass
 
     def publish_ampq(self, client, topic, payload):
-        print("PUB: topic={} payload={}".format(topic, payload))
+        printf("PUB: topic={} payload={}".format(topic, payload))
         if client:
             client.basic_publish(exchange='amq.topic', routing_key=topic, body=payload.encode("utf-8"))
 
     def publish_mqtt(self, client, topic, payload, debug):
         if debug:
-            print("PUB: {}".format(topic))
+            printf("PUB: {}".format(topic))
             self.print_json(json.loads(payload))
-            print("")
+            printf("")
         if client:
             client.publish(topic, payload, qos=CONFIG_QOS)
 
     def subscribe_ampq(self, client, topic, subscribe=True, declare=False, deviceid=None):
-        print("SUB: {}".format(topic))
+        printf("SUB: {}".format(topic))
         if client:
             if subscribe:
                 if deviceid is not None:
@@ -255,33 +261,34 @@ class messaging_client:
                     result = client.queue_declare(queue=myqueue, auto_delete=True)
 
                 try:
-                    print("SUB: queue_bind")
+                    printf("SUB: queue_bind")
                     client.queue_bind(queue=myqueue, exchange='amq.topic', routing_key=topic)
-                    print("SUB: basic_consume")
+                    printf("SUB: basic_consume")
                     client.basic_consume(queue=myqueue, on_message_callback=self.on_amqp_message, consumer_tag=self.tag)
                     x = threading.Thread(target=self.subscribe_amqp_thread, args=(client,))
                     x.start()
                 except:
-                    print("SUB: exception! Please check if device is connected with correct deviceid=\r\n{}".format(deviceid))
+                    printf("SUB: exception! Please check if device is connected with correct deviceid={}".format(deviceid))
+                    printf("")
                     return False
         return True
 
     def subscribe_amqp_thread(self, client):
-        print("SUB: thread")
+        printf("SUB: thread")
         while True:
             try:
                 client.start_consuming()
                 break
             except amqp.exceptions.ConnectionClosedByBroker:
-                print("ConnectionClosedByBroker")
+                printf("ConnectionClosedByBroker")
                 time.sleep(1)
                 break
             except amqp.exceptions.AMQPChannelError:
-                print("AMQPChannelError")
+                printf("AMQPChannelError")
                 time.sleep(1)
                 break
             except amqp.exceptions.AMQPConnectionError:
-                print("AMQPConnectionError")
+                printf("AMQPConnectionError")
                 time.sleep(1)
                 break
         if self.consume_continuously:
@@ -292,12 +299,13 @@ class messaging_client:
             self.amqp_connected = False
 
     def subscribe_mqtt(self, client, topic, subscribe=True):
-        print("SUB: {} {}".format(topic, subscribe))
+        printf("SUB: {} {}".format(topic, subscribe))
         if client:
             if subscribe:
                 try:
                     client.subscribe(topic, qos=CONFIG_QOS)
-                    print("\nDevice is now ready! Control this device from IoT Portal https://{}".format(self.host))
+                    printf("")
+                    printf("Device is now ready! Control this device from IoT Portal https://{}".format(self.host))
                 except:
                     return False
             else:
@@ -310,11 +318,13 @@ class messaging_client:
     def on_mqtt_connect(self, client, userdata, flags, rc):
         if rc == 0:
             client.loop_start()
-            print("\nMQTT CONNECTED {}".format(rc))
+            printf("")
+            printf("MQTT CONNECTED {}".format(rc))
             self.mqtt_connected = True
 
     def on_mqtt_disconnect(self, client, userdata, rc):
-        print("\nMQTT DISCONNECTED {}".format(rc))
+        printf("")
+        printf("MQTT DISCONNECTED {}".format(rc))
         client.loop_stop()
         self.mqtt_connected = False
 
