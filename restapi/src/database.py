@@ -1255,12 +1255,43 @@ class database_client_mongodb:
         payment_id = payment["paymentId"]
         payer_id = payment["PayerID"]
 
-        result = self.paypal.execute_payment(payment_id, payer_id)
+        # Execute payment
+        result = False
+        trial = 0
+        while trial < 3:
+            try:
+                result = self.paypal.execute_payment(payment_id, payer_id)
+                if not result:
+                    print("Execute payment failed!")
+                    return False, None
+                break
+            except Exception as e:
+                print(e)
+                trial += 1
+                time.sleep(1)
         if not result:
-            print("Payment failed!")
+            print("Execute payment failed!")
             return False, None
 
-        payment_result = self.paypal.fetch_payment(payment_id)
+        # Fetch payment
+        payment_result = None
+        trial = 0
+        while trial < 3:
+            try:
+                payment_result = self.paypal.fetch_payment(payment_id)
+                if payment_result is None:
+                    print("Fetch payment failed!")
+                    return False, 0
+                break
+            except Exception as e:
+                print(e)
+                trial += 1
+                time.sleep(1)
+        if payment_result is None:
+            print("Fetch payment failed!")
+            return False, None
+
+        # Get status
         status = self.paypal.get_payment_status(payment_result)
         if status != "approved":
             print("Payment not yet completed! {}".format(status))
@@ -1275,10 +1306,25 @@ class database_client_mongodb:
         if not payment_id:
             return False, 0
 
-        payment_result = self.paypal.fetch_payment(payment_id)
-        if not payment_result:
+        # Fetch payment
+        payment_result = None
+        trial = 0
+        while trial < 3:
+            try:
+                payment_result = self.paypal.fetch_payment(payment_id)
+                if payment_result is None:
+                    print("Fetch payment failed!")
+                    return False, 0
+                break
+            except Exception as e:
+                print(e)
+                trial += 1
+                time.sleep(1)
+        if payment_result is None:
+            print("Fetch payment failed!")
             return False, 0
 
+        # Get status
         status = self.paypal.get_payment_status(payment_result)
         if status != "approved":
             print("Payment not yet completed! {}".format(status))
