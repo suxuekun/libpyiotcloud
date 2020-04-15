@@ -3929,7 +3929,7 @@ DETAILED:
 		   // Refer to DOWNLOAD FIRMWARE API
 		   //   HTTP_HOST: check dev or prod URL
 		   //   HTTP_TLS_PORT: 443
-		   //   GET /firmware/location (where location is retrieved from API_UPGRADE_FIRMWARE)
+		   //   GET /firmware/LOCATION (where LOCATION refers to location parameter in API_UPGRADE_FIRMWARE)
 		   // Also refer to the DEVICE SIMULATOR function http_get_firmware_binary() in device_simulator.py
 
 		B. API_UPGRADE_FIRMWARE_COMPLETION 
