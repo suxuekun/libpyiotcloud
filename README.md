@@ -143,6 +143,17 @@ Flask, GUnicorn, Nginx, RabbitMQ, MongoDB, Ionic, Amazon Cognito, Amazon Pinpoin
 It can be deployed in a local PC or in the cloud - AWS EC2, Linode, Heroku, Rackspace, DigitalOcean or etc.
 The web app is made of Ionic framework so it can be compiled as Android and iOS mobile apps using one code base.
 
+- <b>Amazon EC2</b> IaaS cloud service - https://aws.amazon.com/ec2/
+- <b>Amazon Cognito</b> (sign-up/sign-in identity/authentication management with OTP, MFA/2FA, OAuth2, IdP) - https://aws.amazon.com/cognito/
+- <b>Amazon S3</b> File data storage - https://aws.amazon.com/s3
+- <b>Amazon Pinpoint</b> email/SMS/push notification messaging platform - https://aws.amazon.com/pinpoint/
+- <b>Amazon SNS</b> email/SMS messaging platform - https://aws.amazon.com/sns/
+- <b>Amazon Route 53</b> DNS domain resolution - https://aws.amazon.com/route53
+- <b>Amazon Cloudwatch</b> monitoring/alarm platform - https://aws.amazon.com/cloudwatch/
+- <b>Amazon EKS</b> Kubernetes service - https://aws.amazon.com/eks
+- <b>Docker</b> containerization (dockerfiles, docker-compose) - https://www.docker.com/
+- <b>Kubernetes</b> container orchestration - https://kubernetes.io
+- <b>Minikube</b> local Kubernetes cluster - https://github.com/kubernetes/minikube
 - <b>Nginx</b> web server - https://www.nginx.com/
 - <b>GUnicorn</b> WSGI server - https://gunicorn.org/
 - <b>Flask</b> web framework (REST API) - http://flask.pocoo.org/
@@ -150,47 +161,29 @@ The web app is made of Ionic framework so it can be compiled as Android and iOS 
 - <b>MongoDB</b> NoSQL database - https://www.mongodb.com/
 - <b>MongoDB Atlas</b> cloud database service - https://www.mongodb.com/cloud/atlas
 - <b>Redis</b> fast key-value data store (flexible: database, caching, mq) - https://redis.io/
-- <b>Amazon EC2</b> IaaS cloud service - https://aws.amazon.com/ec2/
-- <b>Amazon Cognito</b> (sign-up/sign-in user authentication with OTP, MFA, OAuth2, IdP) - https://aws.amazon.com/cognito/
-- <b>Docker</b> containerization (dockerfiles, docker-compose) - https://www.docker.com/
 - <b>Ionic</b> mobile/web frontend framework - https://ionicframework.com/
-- <b>GoDaddy</b> domain and SSL certificate - https://godaddy.com
-- <b>Amazon Route 53</b> DNS domain resolution - https://aws.amazon.com/route53
-- <b>Amazon S3</b> File data storage - https://aws.amazon.com/s3
-- <b>Amazon Pinpoint</b> email/SMS/push notification messaging platform - https://aws.amazon.com/pinpoint/
-- <b>Amazon SNS</b> email/SMS messaging platform - https://aws.amazon.com/sns/
-- <b>Twilio</b> SMS messaging platform - https://www.twilio.com/
-- <b>Nexmo</b> SMS messaging platform - https://www.nexmo.com/
 - <b>Paypal Payment Platform</b> payment gateway - https://developer.paypal.com
-- <b>Kubernetes</b> container orchestration - https://kubernetes.io
-- <b>Minikube</b> local Kubernetes cluster - https://github.com/kubernetes/minikube
-- <b>Amazon EKS</b> Kubernetes service - https://aws.amazon.com/eks
-- <b>Google Firebase Cloud Messaging (FCM)</b> for Android push notifications
 - <b>Apple Push Notification service (APNs)</b> for IOS push notifications
+- <b>Google Firebase Cloud Messaging (FCM)</b> for Android push notifications
+- <b>Google Maps Platform</b> for device location - https://developers.google.com/maps/documentation
 - <b>Chart.JS</b> Visualization charts/graphs - https://www.chartjs.org/
 - <b>D3.JS</b> Visualization charts/graphs - https://observablehq.com/@d3/gallery
-- <b>Google Maps Platform</b> for device location - https://developers.google.com/maps/documentation
-
-
-An alternative solution is using an AWS serverless solution wherein:
-
-- <b>AWS API Gateway+AWS Lambda</b> will replace Flask+Gunicorn+Nginx
-- <b>AWS DynamoDB</b> will replace MongoDB
-- <b>AWS IoT</b> or <b>AmazonMQ</b> will replace RabbitMQ
-
+- <b>GoDaddy</b> domain and SSL certificate - https://godaddy.com
+- <b>Twilio</b> SMS messaging platform - https://www.twilio.com/
+- <b>Nexmo</b> SMS messaging platform - https://www.nexmo.com/
 
 Below are tools and utilities being used:
 
-- <b>LucidChart</b> UML design diagrams - https://www.lucidchart.com/
 - <b>Jenkins</b> automation for CI/CD - https://jenkins.io/
 - <b>Github Desktop</b> Git application - https://desktop.github.com/
+- <b>MongoDB Compass</b> GUI for MongoDB - https://www.mongodb.com/products/compass
 - <b>Putty</b> SSH application to access AWS EC2 - https://www.putty.org/
 - <b>WinSCP</b> SSH gui application to access AWS EC2 - https://winscp.net/eng/index.php
-- <b>Postman</b> (API testing tool) - https://www.getpostman.com/
-- <b>MongoDB Compass</b> GUI for MongoDB - https://www.mongodb.com/products/compass
 - <b>Ionic Creator</b> - https://creator.ionic.io
 - <b>Android Studio</b> (Building Ionic webapp to Androidapp) - https://developer.android.com/studio
 - <b>OpenSSL</b> cryptography (X509 certificates) - https://www.openssl.org/
+- <b>Postman</b> (API testing tool) - https://www.getpostman.com/
+- <b>LucidChart</b> UML design diagrams - https://www.lucidchart.com/
 
 
 ### High-level architecture diagram:
@@ -1732,6 +1725,29 @@ Notes:
         1. Run restapi\src\web_server.bat
         2. Update rest_api to 'https://localhost' in webapp\src\ionicapp\www\js\server.js
         3. Run "ionic serve" in webapp\src\ionicapp
+
+### Troubleshooting CPU usage
+
+        Tools:
+        1. AWS Cloudwatch
+        2. Putty SSH
+        3. MongoDB Compass
+        4. RabbitMQ Management interface
+
+        When there is CPU usage issue, AWS Cloudwatch will send email notification.
+        1. Open Putty SSH and type "top" to verify CPU usage is high.
+           Based on previous incidents, "beam.smp" process of RabbitMQ is causing the high CPU usage. 
+        2. User RabbitMQ management tool and find the device causing issue.
+        3. Open MongoDB Compass to check owner of the suspected device.
+        4. Open the device in RabbitMQ.
+           Delete/clear the permission of the device.
+           Delete/clear the topic permission of the device.
+           Change the password.
+        5. Observe if the CPU goes down.
+        6. Revert the changes in #4.
+           Revert the permission of the device.
+           Revert the topic permission of the device.
+           Revert the password.
 
 ### Troubleshooting
 
