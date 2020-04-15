@@ -1743,7 +1743,6 @@ class TimerThread(threading.Thread):
             start_timeX = time.time()
             #printf(start_timeX)
             publish(topic, payload)
-            printf("")
         else:
             #printf("no enabled sensor")
             pass
