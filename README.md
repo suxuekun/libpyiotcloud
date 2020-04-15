@@ -1850,33 +1850,47 @@ Current security implementation for device connectivity:
 
 Below are the Post EW2020 Demo and new requirements:
 
-1. [DONE] API for changing devicename 
-2. [DONE] Optimized output format for sensor charting APIs ( x[], y[] arrays instead of [(x,y), ...] )
-2. [DONE] OTA firmware update (HTTPS or MQTTS, CRC32)
-3. [DONE] Google Maps Platform location (drag and drop markers to change device location)
-4. [DONE] Login via social accounts (Facebook, Google, Amazon)
-5. [DONE] Record Paypal transactions, Paypal API cleanup
-6. [DONE] Login via (an OTP-verified) phone number
-7. [DONE] OTA firmware update for an OFFLINE device
-8. [DONE] OTA firmware update for a FLEET of devices
-9. [DONE] "S"torage for MENOS messaging using Amazon S3
+1.  [DONE] API for changing devicename 
+2.  [DONE] Optimized output format for sensor charting APIs ( x[], y[] arrays instead of [(x,y), ...] )
+2.  [DONE] OTA firmware update (HTTPS or MQTTS, CRC32)
+3.  [DONE] Google Maps Platform location (drag and drop markers to change device location)
+4.  [DONE] Login via social accounts (Facebook, Google, Amazon)
+5.  [DONE] Record Paypal transactions, Paypal API cleanup
+6.  [DONE] Login via (an OTP-verified) phone number
+7.  [DONE] OTA firmware update for an OFFLINE device
+8.  [DONE] OTA firmware update for a FLEET of devices
+9.  [DONE] "S"torage for MENOS messaging using Amazon S3
 10. [DONE] Utilize REDIS for key value store, caching and message passing
 11. [DONE] Custom filtering of sensors in dashboard (filter by devicename, peripheral, class, status)
 12. [DONE] Dedicated database for BIG DATA (days, weeks, months, years) sensor data dashboards using MongDB Atlas 
 13. [DONE] Sensor dashboarding for days, weeks, months, years (with aggregation like financial stocks)
 14. [DONE] User lockdown security for consecutive failed login attempts (prevent brute force hacking)
 15. [DONE] Email confirmation for payment receipt/invoice
-16. [DONE] Automated sensor registration on device bootiup (for sensor scanning feature)
-17. GET/SET PROPERTIES cache
-18. Sensor scanning
-19. Modem groups
-20. User groups/organization (with AWS-style login for organizations)
-21. CASBIN - Permissions Engine (for user groups/organization)
-22. Creating Jenkins pipelines for Android/IOS mobile apps (for automated build and deployment) 
-23. Clustering of RabbitMQ and REST APIs... (study federation/shovel, clustering is for LAN, federation/shovel is for WAN)
-24. Optimize MongoDB calls (utilize Redis, query by username or deviceid instead of by sensors if possible)
-25. Utilize Swagger REST API documentation.
-26. Microservices documentation
-27. "L"ambda function integration for MENLOS for custom messaging/notifications (support both Python 3, NodeJS)
-28. IFTTT integration. (requires OAuth2 server and APIs implemented for triggers "if this" and actions "then-that" )
-29. Update the Kubernetes support (lots of microservices has been added since then).
+16. [DONE] Automated sensor registration on device bootup (for sensor scanning feature)
+17. [DONE] Email confirmation for payment receipt/invoice
+18. [DONE] Modem/device groups
+19. [DONE] Login with Multi-Factor Authentication (MFA)
+20. [DONE] Dashboard pie, doughnut and bar charts 
+21. [DONE] Dashboard tables for device and sensor configurations
+22. [DONE] Device-sensor hierarychy/tree charts (using D3.js)
+23. [DONE] Users management for Organization feature
+24. [DONE] File logging in device simulator (as requested by QA for easy bug reporting) 
+25. Roles and Policies management for Organization feature (using CASBIN)
+26. Access Control for all APIs based on assigned Roles (RBAC)
+27. Backend logging/monitoring using Elastic/ELK stack
+28. GET/SET PROPERTIES cache
+29. New payment model (monthly, add-on)
+30. Highly-customizable dashboard
+31. Dashboard usage-related info
+32. Dashboard overlay charts from different sensors from same or other devices
+33. Business Intelligence integration with Microsoft PowerBI (or Tableau, Qlik)
+34. Write regression tester
+35. Microservices documentation
+36. Swagger REST API documentation
+37. Optimize MongoDB calls (utilize Redis, query by username or deviceid instead of by sensors if possible)
+38. Apache Hadoop integration using Amazon EMR for legit BigData database (instead of MongoDB Atlas)
+39. "L"ambda function integration for MENLOS for custom messaging/notifications (support both Python 3, NodeJS)
+40. IFTTT integration. (requires OAuth2 server and APIs implemented for triggers "if this" and actions "then-that" )
+41. Clustering of RabbitMQ and REST APIs... (study federation/shovel, clustering is for LAN, federation/shovel is for WAN)
+42. Update the Kubernetes support (a number of microservices has been added since then).
+
