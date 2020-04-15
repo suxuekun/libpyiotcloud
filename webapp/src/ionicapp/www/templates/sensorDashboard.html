@@ -20,36 +20,38 @@
       <div id="sensorDashboard-markdown413" class="show-list-numbers-and-dots widget_title_half_50">
         <p style="color:#3C5A99;">Sensor Filter</p>
       </div>
-      <div id="sensorDashboard-markdown434" class="show-list-numbers-and-dots widget_title_half_50">
-        <p style="color:#3C5A99;">Dashboard Settings</p>
-      </div>
-      <label class="item item-select widget_selection_half" id="sensorDashboard-select98">
+      <div id="sensorDashboard-markdown492" class="show-list-numbers-and-dots widget_title_half_50"></div>
+      <label class="item item-select widget_button_fifth_ex" id="sensorDashboard-select98">
         <span class="input-label">Device</span>
         <select ng-options="device.devicename as device.devicename for device in devices" ng-model="data.devicename" ng-change="changeDevice(data.devicename)" ng-disabled="refresh_automatically"></select>
       </label>
-      <label class="item item-input widget_selection_half" id="sensorDashboard-input144">
-        <span class="input-label">Refresh time (sec)</span>
-        <input type="number" placeholder="" ng-model="refresh_time" ng-disabled="refresh_automatically">
-      </label>
-      <label class="item item-select widget_selection_half" id="sensorDashboard-select109">
+      <label class="item item-select widget_button_fifth_ex" id="sensorDashboard-select109">
         <span class="input-label">Peripheral</span>
         <select ng-options="peripheral for peripheral in peripherals" ng-model="peripheral" ng-change="changePeripheral(peripheral)" ng-disabled="refresh_automatically"></select>
       </label>
-      <ion-toggle toggle-class="toggle-positive" id="sensorDashboard-toggle14" ng-model="refresh_automatically" ng-change="changeRefresh(refresh_automatically, refresh_time)" class="widget_selection_half">Refresh automatically</ion-toggle>
-      <label class="item item-select widget_selection_half" id="sensorDashboard-select110">
+      <label class="item item-select widget_button_fifth_ex" id="sensorDashboard-select110">
         <span class="input-label">Sensor Class</span>
         <select ng-options="sensorclass for sensorclass in sensorclasses" ng-model="sensorclass" ng-change="changeSensorClass(sensorclass)" ng-disabled="refresh_automatically"></select>
       </label>
-      <ion-toggle toggle-class="toggle-positive" id="sensorDashboard-toggle24" ng-model="big_charts" ng-change="changeBigChart(big_charts)" class="widget_selection_half">Big charts</ion-toggle>
-      <label class="item item-select widget_selection_half" id="sensorDashboard-select111">
+      <label class="item item-select widget_button_fifth_ex" id="sensorDashboard-select111">
         <span class="input-label">Sensor Status</span>
         <select ng-options="sensorstatus for sensorstatus in sensorstatuses" ng-model="sensorstatus" ng-change="changeSensorStatus(sensorstatus)" ng-disabled="refresh_automatically"></select>
       </label>
-      <ion-toggle toggle-class="toggle-positive" id="sensorDashboard-toggle27" ng-model="online_charts" ng-change="changeOnlineChart(online_charts)" class="widget_selection_half">Online charts</ion-toggle>
-      <label class="item item-select widget_selection_half_ex" id="sensorDashboard-select112">
+      <label class="item item-select widget_button_fifth_ex" id="sensorDashboard-select112">
         <span class="input-label">Showing data for</span>
         <select ng-options="timerange for timerange in timeranges" ng-model="timerange" ng-change="changeTimeRange(timerange)" ng-disabled="refresh_automatically"></select>
       </label>
+      <div class="spacer" style="height: 1px;"></div>
+      <div id="sensorDashboard-markdown434" class="show-list-numbers-and-dots widget_title_half_50">
+        <p style="color:#3C5A99;">Dashboard Settings</p>
+      </div>
+      <div id="sensorDashboard-markdown480" class="show-list-numbers-and-dots widget_title_half_50"></div>
+      <label class="item item-input widget_button_fifth_ex" id="sensorDashboard-input144">
+        <input type="number" placeholder="Refresh time (sec)" ng-model="refresh_time" ng-disabled="refresh_automatically">
+      </label>
+      <ion-toggle toggle-class="toggle-positive" id="sensorDashboard-toggle14" ng-model="refresh_automatically" ng-change="changeRefresh(refresh_automatically, refresh_time)" class="widget_button_fifth_ex">Refresh automatically</ion-toggle>
+      <ion-toggle toggle-class="toggle-positive" id="sensorDashboard-toggle24" ng-model="big_charts" ng-change="changeBigChart(big_charts)" class="widget_button_fifth_ex">Big charts</ion-toggle>
+      <ion-toggle toggle-class="toggle-positive" id="sensorDashboard-toggle27" ng-model="online_charts" ng-change="changeOnlineChart(online_charts)" class="widget_button_fifth_ex">Online charts</ion-toggle>
       <button id="sensorDashboard-button126" ng-click="submitDelete()" ng-disabled="refresh_automatically" class="button button-positive button-block button-outline widget_whole">Reset values</button>
     </form>
     <div id="sensorDashboard-container22" ng-show="sensors.length == 0">
@@ -235,7 +237,7 @@
         </table>
       </div>
     </div>
-    <div class="list card widget_whole" id="sensorDashboard-card211" ng-show="false">
+    <div class="list card widget_whole" id="sensorDashboard-card211" ng-show="sensors.length > 0">
       <div class="item item-body" id="sensorDashboard-list-item-container34" ng-click="changeUsageTableHide()">
         <div id="sensorDashboard-markdown469" class="show-list-numbers-and-dots">
           <p style="margin-top:0px;color:#888888;font-size:16px;">

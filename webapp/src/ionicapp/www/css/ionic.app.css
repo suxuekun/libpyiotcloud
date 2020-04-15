@@ -9970,7 +9970,7 @@ table, th, td {
   margin: 0% auto; }
 
 .page_width_medium {
-  max-width: 700px;
+  max-width: 800px;
   margin: 0% auto; }
 
 .widget_selection_half {
@@ -10076,9 +10076,28 @@ table, th, td {
   width: 33% !important;
   display: inline-block; }
 
+.widget_button_third_ex {
+  width: 33% !important;
+  display: inline-block;
+  min-width: 300px; }
+
 .widget_button_quarter {
   width: 24.5% !important;
   display: inline-block; }
+
+.widget_button_quarter_ex {
+  width: 24.5% !important;
+  min-width: 196px;
+  display: inline-block; }
+
+.widget_button_fifth_ex {
+  width: 19.6% !important;
+  display: inline-block;
+  min-width: 300px; }
+
+.container_center {
+  margin-left: auto;
+  margin-right: auto; }
 
 .line_spacing {
   line-height: 10px; }
