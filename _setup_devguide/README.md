@@ -473,7 +473,7 @@ SUMMARY:
 		C. GET ABOUT                      - GET    /others/about
 
 
-	16. ESP OTA Firmware Updates
+	16. OTA Firmware Update
 
 		A. DOWNLOAD FIRMWARE              - GET    /firmware/DEVICE/FILENAME
 		   (WARNING: This API is to be called by ESP device, not by web/mobile apps)
@@ -3217,12 +3217,12 @@ DETAILED:
 		   {'status': 'NG', 'message': string }
 
 
-	16. ESP OTA Firmware Updates
+	16. OTA Firmware Update
 
 		A. DOWNLOAD FIRMWARE
 		-  Request:
 		   GET /firmware/<device>/<filename>
-		   headers: { 'Content-type': 'application/octet-stream', 'Accept-Ranges': 'bytes' }
+		   headers: { 'Connection': 'keep-alive' }
 		-  Response:
 		   binary file
 		   // WARNING: This API is to be called by ESP device, not by web/mobile apps
@@ -3918,17 +3918,19 @@ DETAILED:
 		   topic: DEVICEID/beg_ota
 		   payload: 
 		   {
-		     "location": string,
-		     "size"    : int,
-		     "version" : string,
-		     "checksum": int,
+		     "location": string, // used to download the firmware via HTTPS
+		     "size"    : int,    // used to verify if firmware is complete
+		     "version" : string, // used to compare with current firmware version
+		     "checksum": int,    // used to verify if firmware is not corrupted
 		   }
 		   // checksum is computed as CRC32 and is used to verify if the downloaded firmware is not corrupted.
 		   // This MQTT packet is sent to device when there is an OTA firmware update triggered/scheduled by user.
 		   // Once received, device shall proceed to download the firmware via HTTPS using the REST API "DOWNLOAD FIRMWARE"
 		   // Refer to DOWNLOAD FIRMWARE API
-		   //   GET /firmware/location where location is retrieved from API_UPGRADE_FIRMWARE
-		   // Also refer to http_get_firmware_binary() in device_simulator.py
+		   //   HTTP_HOST: check dev or prod URL
+		   //   HTTP_TLS_PORT: 443
+		   //   GET /firmware/location (where location is retrieved from API_UPGRADE_FIRMWARE)
+		   // Also refer to the DEVICE SIMULATOR function http_get_firmware_binary() in device_simulator.py
 
 		B. API_UPGRADE_FIRMWARE_COMPLETION 
 		-  Publish:
