@@ -37,6 +37,8 @@ CONFIG_ADD_SENSOR_DATA_TIMESTAMP = True
 # add timestamp to logs in console and file
 CONFIG_ADD_LOG_FILE_TIMESTAMP = True
 CONFIG_ADD_LOG_CONSOLE_TIMESTAMP = False
+CONFIG_LOG_FILE_MAX_SIZE = 1048576*10 # 10MB
+CONFIG_LOG_FILE_MAX_BACKUP = 10
 
 # scan sensor for automatic registration
 CONFIG_SCAN_SENSORS_AT_BOOTUP = True
@@ -311,7 +313,7 @@ def setup_logging(filename):
     log.addHandler(ch)
 
     # log to file
-    fh = handlers.RotatingFileHandler(filename, maxBytes=(1048576*5), backupCount=7)
+    fh = handlers.RotatingFileHandler(filename, maxBytes=CONFIG_LOG_FILE_MAX_SIZE, backupCount=CONFIG_LOG_FILE_MAX_BACKUP)
     if CONFIG_ADD_LOG_FILE_TIMESTAMP:
         fh.setFormatter(format)
     log.addHandler(fh)
