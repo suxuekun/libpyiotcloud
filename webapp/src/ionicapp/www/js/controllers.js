@@ -13962,9 +13962,9 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         'attributes': {
             'mode': $scope.modes[0].id,
             'threshold': {
-                'value': 0,
+                'value': 40,
                 'min': 0,
-                'max': 100,
+                'max': 40,
                 'activate': $scope.activates[0].id,
             },
             'alert': {
@@ -14430,7 +14430,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         'attributes': {
             'mode': $scope.modes[0].id,
             'threshold': {
-                'value': 0,
+                'value': 100,
                 'min': 0,
                 'max': 100,
                 'activate': $scope.activates[0].id,
@@ -15863,9 +15863,9 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             'range': $scope.ranges[0].id,
             'mode': $scope.modes[0].id,
             'threshold': {
-                'value': 0,
+                'value': 255,
                 'min': 0,
-                'max': 100,
+                'max': 255,
                 'activate': $scope.activates[0].id,
             },
             'alert': {
@@ -16242,7 +16242,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         'attributes': {
             'mode': $scope.modes[0].id,
             'threshold': {
-                'value': 0,
+                'value': 100,
                 'min': 0,
                 'max': 100,
                 'activate': $scope.activates[0].id,
@@ -16602,7 +16602,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         'attributes': {
             'mode': $scope.modes[0].id,
             'threshold': {
-                'value': 0,
+                'value': 100,
                 'min': 0,
                 'max': 100,
                 'activate': $scope.activates[0].id,
@@ -16962,7 +16962,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         'attributes': {
             'mode': $scope.modes[0].id,
             'threshold': {
-                'value': 0,
+                'value': 100,
                 'min': 0,
                 'max': 100,
                 'activate': $scope.activates[0].id,
