@@ -242,7 +242,6 @@ class messaging_client:
         if debug:
             printf("PUB: {}".format(topic))
             self.print_json(json.loads(payload))
-            printf("")
         if client:
             client.publish(topic, payload, qos=CONFIG_QOS)
 
