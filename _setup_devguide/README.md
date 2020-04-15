@@ -3911,6 +3911,45 @@ DETAILED:
 		C. DELETE CONFIGURATION      del_configuration
 
 
+	12. OTA Firmware Update
+
+		A. API_UPGRADE_FIRMWARE
+		-  Receive:
+		   topic: DEVICEID/beg_ota
+		   payload: 
+		   {
+		     "location": string,
+		     "size"    : int,
+		     "version" : string,
+		     "checksum": int,
+		   }
+		   // checksum is computed as CRC32 and is used to verify if the downloaded firmware is not corrupted.
+		   // This MQTT packet is sent to device when there is an OTA firmware update triggered/scheduled by user.
+		   // Once received, device shall proceed to download the firmware via HTTPS using the REST API "DOWNLOAD FIRMWARE"
+		   // Refer to DOWNLOAD FIRMWARE API
+		   //   GET /firmware/location where location is retrieved from API_UPGRADE_FIRMWARE
+		   // Also refer to http_get_firmware_binary() in device_simulator.py
+
+		B. API_UPGRADE_FIRMWARE_COMPLETION 
+		-  Publish:
+		   topic: server/DEVICEID/end_ota
+		   payload: 
+		   {
+		     "value": {"result": boolean},
+		   }
+		   // The device shall publish this MQTT packet once the device has downloaded and verified the firmware.
+
+		C. API_REQUEST_OTASTATUS
+		-  Publish:
+		   topic: server/DEVICEID/end_ota
+		   payload: 
+		   {
+		     "version": string
+		   }
+		   // this MQTT packet should ve called every device bootup to check if device is schedule for OTA update
+		   // if device is scheduled for OTA update, device shall receive API_UPGRADE_FIRMWARE call
+
+
 
 ## Demo Setup Documentation
 
