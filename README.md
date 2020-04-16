@@ -87,8 +87,8 @@ Below are the features of this secure and scalable IoT platform:
        Provision and manage sensors for various devices
        A. Configure UART parameters and GPIO pins
        B. Register 3rd-party sensors connected via peripherals: I2C, ADC, OneWire, TPROBE
-          INPUT: potentiometer, temperature, humidity, anemometer, battery, fluid, 
-          OUTPUT: speaker, display, light
+          INPUT  [sensors]   : potentiometer, temperature, humidity, anemometer, battery, fluid, 
+          OUTPUT [actuators] : speaker, display, light
           User MANUALLY registers sensors connected
           Device AUTOMATICALLY registers sensors connected on bootup
        C. Configure sensors for data thresholding (for MENOS alerts)
