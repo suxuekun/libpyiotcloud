@@ -1010,8 +1010,10 @@ DETAILED:
 		-  Request:
 		   POST /devices/device/DEVICENAME
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-		   data: {'deviceid': string, 'serialnumber': string}
-		   // deviceid refers to UUID
+		   data: {'deviceid': string, 'serialnumber': string, 'poemacaddress': string}
+		   // deviceid refers to UUID and must be unique
+		   // serialnumber is some derivative of UUID
+		   // poemacaddress is a unique mac address in uppercase string ex. AA:BB:CC:DD:EE:FF
 		   // format of UUID and Serial Number has not yet been finalized by Sree
 		   // currently no checking is performed on the UUID and Serial Number format
 		   // web prototype temporarily uses the format from PanL
@@ -3258,7 +3260,7 @@ Subscribing or publishing to other MQTT topics will fail as the message broker r
 		2.  MQTT port: 8883
 		3.  MQTT clientid: DEVICEID
 		4.  MQTT username: UUID
-		5.  MQTT password: SERIALNUMBER
+		5.  MQTT password: jwt.encode({UUID, SERIAL_NUMBER, POE_MAC_ADDRESS}, secret_key=ASK_ME, signing_algo=HMAC_SHA256)
 		6.  TLS CA certificate
 		7.  TLS client certificates
 		8.  TLS client private key

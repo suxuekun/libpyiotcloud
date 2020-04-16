@@ -693,9 +693,9 @@ class database_client:
     def get_devices_with_filter(self, username, filter):
         return self._devices.get_devices_with_filter(username, filter)
 
-    def add_device(self, username, devicename, uuid, serialnumber):
+    def add_device(self, username, devicename, uuid, serialnumber, poemacaddress=None):
         # todo: verify uuid and serialnumber matches
-        return self._devices.add_device(username, devicename, uuid, serialnumber)
+        return self._devices.add_device(username, devicename, uuid, serialnumber, poemacaddress)
 
     def delete_device(self, username, devicename):
         self._devices.delete_device(username, devicename)
@@ -705,6 +705,9 @@ class database_client:
 
     def find_device_by_id(self, deviceid):
         return self._devices.find_device_by_id(deviceid)
+
+    def find_device_by_poemacaddress(self, deviceid):
+        return self._devices.find_device_by_poemacaddress(deviceid)
 
     def get_device_cached_values(self, username, devicename):
         return self._devices.get_device_cached_values(username, devicename)
@@ -3285,7 +3288,7 @@ class database_client_mongodb:
         device_list = []
         devices = self.get_registered_devices()
         if devices and devices.count():
-            for device in devices.find({'username': username},{'devicename':1, 'deviceid': 1, 'serialnumber':1, 'timestamp':1, 'heartbeat':1, 'version': 1}):
+            for device in devices.find({'username': username},{'username': 0}): #,{'devicename':1, 'deviceid': 1, 'serialnumber':1, 'timestamp':1, 'heartbeat':1, 'version': 1}):
                 device.pop('_id')
                 device_list.append(device)
         return device_list
@@ -3308,7 +3311,7 @@ class database_client_mongodb:
         devices = self.get_registered_devices()
         if devices and devices.count():
             filter_lo = filter.lower()
-            for device in devices.find({'username': username},{'devicename':1, 'deviceid': 1, 'serialnumber':1, 'timestamp':1, 'heartbeat':1, 'version': 1}):
+            for device in devices.find({'username': username},{'username': 0}): #,{'devicename':1, 'deviceid': 1, 'serialnumber':1, 'timestamp':1, 'heartbeat':1, 'version': 1}):
                 device.pop('_id')
                 if filter_lo in device["devicename"].lower():
                     # check the device name
@@ -3339,13 +3342,15 @@ class database_client_mongodb:
                                 break
         return device_list
 
-    def add_device(self, username, devicename, deviceid, serialnumber):
+    def add_device(self, username, devicename, deviceid, serialnumber, poemacaddress):
         timestamp = str(int(time.time()))
         device = {}
         device['username']     = username
         device['devicename']   = devicename
         device['deviceid']     = deviceid
         device['serialnumber'] = serialnumber
+        if poemacaddress is not None:
+            device['poemacaddress']= poemacaddress
         device['timestamp']    = timestamp
         self.client.devices.insert_one(device)
         return True
@@ -3359,7 +3364,7 @@ class database_client_mongodb:
     def find_device(self, username, devicename):
         devices = self.get_registered_devices()
         if devices:
-            for device in devices.find({'username': username, 'devicename': devicename},{'devicename':1, 'deviceid': 1, 'serialnumber':1, 'timestamp':1, 'heartbeat':1, 'version': 1}):
+            for device in devices.find({'username': username, 'devicename': devicename},{'username': 0}): #,{'devicename':1, 'deviceid': 1, 'serialnumber':1, 'timestamp':1, 'heartbeat':1, 'version': 1}):
                 device.pop('_id')
                 return device
         return None
@@ -3368,7 +3373,15 @@ class database_client_mongodb:
     def find_device_by_id(self, deviceid):
         devices = self.get_registered_devices()
         if devices:
-            for device in devices.find({'deviceid': deviceid},{'username': 1, 'devicename':1, 'deviceid': 1, 'serialnumber':1, 'timestamp':1, 'heartbeat':1, 'version': 1}):
+            for device in devices.find({'deviceid': deviceid}): #,{'username': 1, 'devicename':1, 'deviceid': 1, 'serialnumber':1, 'timestamp':1, 'heartbeat':1, 'version': 1}):
+                device.pop('_id')
+                return device
+        return None
+
+    def find_device_by_poemacaddress(self, poemacaddress):
+        devices = self.get_registered_devices()
+        if devices:
+            for device in devices.find({'poemacaddress': poemacaddress}): #,{'username': 1, 'devicename':1, 'deviceid': 1, 'serialnumber':1, 'timestamp':1, 'heartbeat':1, 'version': 1}):
                 device.pop('_id')
                 return device
         return None
@@ -3405,7 +3418,7 @@ class database_client_mongodb:
                 new_device = copy.deepcopy(device)
                 new_device['version'] = version
                 devices.replace_one(device, new_device)
-                return device['version']
+                return new_device['version']
         return None
 
     def update_devicename(self, username, devicename, new_devicename):
