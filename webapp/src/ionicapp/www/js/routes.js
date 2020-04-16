@@ -259,7 +259,8 @@ angular.module('app.routes', [])
 		serialnumber: "",
 		timestamp: "",
 		heartbeat: "",
-		version: ""		
+		version: "",
+		poemacaddress: ""		
 },
     templateUrl: 'templates/viewDevice.html',
     controller: 'viewDeviceCtrl'
@@ -335,7 +336,8 @@ angular.module('app.routes', [])
 		serialnumber: "",
 		deviceversion: "",
 		devicestatus: "",
-		location: ""		
+		location: "",
+		poemacaddress: ""		
 },
     templateUrl: 'templates/device.html',
     controller: 'deviceCtrl'
