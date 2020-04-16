@@ -359,21 +359,6 @@ def setClassAttributes(device_class, class_attributes):
     attributes = class_attributes
     return attributes
 
-def writeConfigToFile(json_config):
-    try:
-        now = datetime.datetime.now()
-        filename = "{}_{}.cfg".format(CONFIG_DEVICE_ID, now.strftime("%Y%m%d%H%M%S"))
-        f = open(filename, "w")
-        json_formatted_str = json.dumps(json_config, indent=2)
-        f.write(json_formatted_str)
-        f.close()
-        printf("")
-        printf("Device configuration saved to {}".format(filename))
-        printf("")
-    except:
-        printf("exception")
-        pass
-
 def reset_local_configurations():
     global g_uart_properties, g_gpio_properties
     global g_i2c_properties, g_i2c_properties_enabled_output
@@ -1254,7 +1239,7 @@ def handle_api(api, subtopic, subpayload):
         subpayload = json.loads(subpayload)
 
         if CONFIG_SAVE_CONFIGURATION_TO_FILE:
-            writeConfigToFile(subpayload)
+            save_configuration(subpayload)
 
         if CONFIG_REQUEST_CONFIGURATION_DEBUG:
             printf("")
@@ -1578,8 +1563,28 @@ def set_configuration(filename = None):
     payload = json.loads(config)
     #printf_json(payload)
     f.close()
+
     publish(topic, payload)
 
+def save_configuration(json_config):
+    try:
+        now = datetime.datetime.now()
+        filename = "{}_{}.cfg".format(CONFIG_DEVICE_ID, now.strftime("%Y%m%d_%H%M%S"))
+        f = open(filename, "w")
+        json_formatted_str = json.dumps(json_config, indent=2)
+        if (json_formatted_str != "{}"):
+            f.write(json_formatted_str)
+        f.close()
+
+        printf("")
+        if (json_formatted_str != "{}"):
+            printf("Device configuration saved to {}".format(filename))
+        else:
+            printf("Device configuration is empty; not saving to file")
+        printf("")
+    except:
+        printf("exception")
+        pass
 
 def req_otastatus(ver):
     printf("")
