@@ -1886,11 +1886,12 @@ Below are the Post EW2020 Demo and new requirements:
 33. Business Intelligence integration with Microsoft PowerBI (or Tableau, Qlik)
 34. Write regression tester
 35. Microservices documentation
-36. Swagger REST API documentation
-37. Optimize MongoDB calls (utilize Redis, query by username or deviceid instead of by sensors if possible)
-38. Apache Hadoop integration using Amazon EMR for legit BigData database (instead of MongoDB Atlas)
-39. "L"ambda function integration for MENLOS for custom messaging/notifications (support both Python 3, NodeJS)
-40. IFTTT integration. (requires OAuth2 server and APIs implemented for triggers "if this" and actions "then-that" )
-41. Clustering of RabbitMQ and REST APIs... (study federation/shovel, clustering is for LAN, federation/shovel is for WAN)
-42. Update the Kubernetes support (a number of microservices has been added since then).
+36. Databases documentation
+37. Swagger REST API documentation
+38. Optimize MongoDB calls (utilize Redis, query by username or deviceid instead of by sensors if possible)
+39. Apache Hadoop integration using Amazon EMR for legit BigData database (instead of MongoDB Atlas)
+40. "L"ambda function integration for MENLOS for custom messaging/notifications (support both Python 3, NodeJS)
+41. IFTTT integration. (requires OAuth2 server and APIs implemented for triggers "if this" and actions "then-that" )
+42. Clustering of RabbitMQ and REST APIs... (study federation/shovel, clustering is for LAN, federation/shovel is for WAN)
+43. Update the Kubernetes support (a number of microservices has been added since then).
 
