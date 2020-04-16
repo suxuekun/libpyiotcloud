@@ -2823,6 +2823,39 @@ def get_device_list_filtered(filter):
     print('\r\nGet Devices successful: {}\r\n{} devices\r\n'.format(username, len(devices)))
     return response
 
+def decode_password(secret_key, password):
+
+    return jwt.decode(password, secret_key, algorithms=['HS256'])
+
+def compute_password(secret_key, uuid, serial_number, mac_address, debug=False):
+
+    if secret_key=='' or uuid=='' or serial_number=='' or mac_address=='':
+        printf("secret key, uuid, serial number and mac address should not be empty!")
+        return None
+
+    current_time = int(time.time())
+    params = {
+        "uuid": uuid,                  # device uuid
+        "serialnumber": serial_number, # device serial number
+        "poemacaddress": mac_address,  # device mac address in uppercase string ex. AA:BB:CC:DD:EE:FF
+    }
+    password = jwt.encode(params, secret_key, algorithm='HS256')
+
+    if debug:
+        print("")
+        print("compute_password")
+        print_json(params)
+        print(password)
+        print("")
+
+        payload = decode_password(secret_key, password)
+        print("")
+        print("decode_password")
+        print_json(payload)
+        print("")
+
+    return password
+
 ########################################################################################################
 #
 # ADD DEVICE
@@ -2830,7 +2863,8 @@ def get_device_list_filtered(filter):
 # - Request:
 #   POST /devices/device/<devicename>
 #   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-#   data: {'deviceid': string, 'serialnumber': string}
+#   data: {'deviceid': string, 'serialnumber': string, 'poemacaddress': string}
+#   // poemacaddress is a mac address in uppercase string ex. AA:BB:CC:DD:EE:FF
 #
 # - Response:
 #   {'status': 'OK', 'message': string}
@@ -2887,7 +2921,7 @@ def register_device(devicename):
         # check parameters
         data = flask.request.get_json()
         #print(data)
-        if not data.get("deviceid") or not data.get("serialnumber"):
+        if not data.get("deviceid") or not data.get("serialnumber") or not data.get("poemacaddress"):
             response = json.dumps({'status': 'NG', 'message': 'Parameters not included'})
             print('\r\nERROR Add Device: Parameters not included [{},{}]\r\n'.format(username, devicename))
             return response, status.HTTP_400_BAD_REQUEST
@@ -2901,17 +2935,23 @@ def register_device(devicename):
             print('\r\nERROR Add Device: Device name is already taken [{},{}]\r\n'.format(username, devicename))
             return response, status.HTTP_409_CONFLICT
 
-        # check if device is registered
+        # check if UUID is unique
         # a user cannot register a device if it is already registered by another user
         if g_database_client.find_device_by_id(data["deviceid"]):
             response = json.dumps({'status': 'NG', 'message': 'Device UUID is already registered'})
             print('\r\nERROR Add Device: Device uuid is already registered[{}]\r\n'.format(data["deviceid"]))
             return response, status.HTTP_409_CONFLICT
 
-        # TODO: check if UUID and serial number matches
+        # TODO: check if serial number matches UUID
+
+        # check if poe mac address is unique
+        if g_database_client.find_device_by_poemacaddress(data["poemacaddress"]):
+            response = json.dumps({'status': 'NG', 'message': 'Device POE MAC Address is already registered'})
+            print('\r\nERROR Add Device: Device POE MAC Address is already registered[{}]\r\n'.format(data["deviceid"]))
+            return response, status.HTTP_409_CONFLICT
 
         # add device to database
-        result = g_database_client.add_device(username, devicename, data["deviceid"], data["serialnumber"])
+        result = g_database_client.add_device(username, devicename, data["deviceid"], data["serialnumber"], data['poemacaddress'])
         #print(result)
         if not result:
             response = json.dumps({'status': 'NG', 'message': 'Device could not be registered'})
@@ -2920,18 +2960,28 @@ def register_device(devicename):
 
         # add and configure message broker user
         try:
+            # Password is now a combination of UUID, Serial Number and POE Mac Address
+            # Previously, PASSWORD is just the DEVICE_SERIAL
+            #devicepass = data["serialnumber"]
+            deviceuser = data["deviceid"]
+            devicepass = compute_password(config.CONFIG_JWT_SECRET_KEY_DEVICE, data["deviceid"], data["serialnumber"], data['poemacaddress'], debug=False)
+            #print(devicepass)
+
             # if secure is True, device will only be able to publish and subscribe to server/<deviceid>/# and <deviceid>/# respectively
             # this means a hacker can only hack that particular device and will not be able to eavesdrop on other devices
             # if secure is False, device will be able to publish and subscribe to/from other devices which enables multi-subscriptions
             secure = True
-            result = message_broker_register(data["deviceid"], data["serialnumber"], secure)
+            result = message_broker_register(deviceuser, devicepass, secure)
             #print(result)
             if not result:
                 response = json.dumps({'status': 'NG', 'message': 'Device could not be registered in message broker'})
                 print('\r\nERROR Add Device: Device could not be registered  in message broker [{},{}]\r\n'.format(username, devicename))
                 return response, status.HTTP_500_INTERNAL_SERVER_ERROR
-        except:
-            pass
+        except Exception as e:
+            print("Exception encounter".format(e))
+            response = json.dumps({'status': 'NG', 'message': 'Device could not be registered in message broker'})
+            print('\r\nERROR Add Device: Device could not be registered in message broker [{},{}]\r\n'.format(username, devicename))
+            return response, status.HTTP_500_INTERNAL_SERVER_ERROR
 
         # add default uart notification recipients
         # this is necessary so that an entry exist for consumption of notification manager
@@ -9060,7 +9110,7 @@ def get_supported_i2c_devices():
     msg = {'status': 'OK', 'message': 'Content queried successfully.'}
     msg['document'] = document
     response = json.dumps(msg)
-    print('\r\nContent queried successfully: {}\r\n{}\r\n'.format(username, response))
+    print('\r\nContent queried successfully: {}\r\n'.format(username))
     return response
 
 
@@ -9448,9 +9498,11 @@ def mq_adduser(auth64, deviceid, serialnumber):
 
     conn.request("PUT", api, json.dumps(params), header)
     response = conn.getresponse()
-    if (response.status != 201):
+    if response.status != 201:
         print(response.status)
         return False
+    #else:
+    #    print(response)
 
     return True
 
