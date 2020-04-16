@@ -1,4 +1,4 @@
-<ion-view title="View Device" hide-back-button="true" nav-transition="none" id="page13" style="background-color:#FFFFFF;" class="page_width">
+<ion-view title="View Device" hide-back-button="true" nav-transition="none" id="page13" style="background-color:#FFFFFF;" class="page_width_small">
   <ion-nav-buttons side="left" class="has-header">
     <button class="button button-icon icon ion-android-close" ng-click="configureDevice()"></button>
   </ion-nav-buttons>
@@ -26,6 +26,10 @@
       <ion-item class="item-divider" id="viewDevice-list-item-divider14"> Serial number</ion-item>
       <label class="item item-input" id="viewDevice-input158" name="input-serialnumber">
         <input type="text" placeholder="" ng-model="data.serialnumber" readonly="">
+      </label>
+      <ion-item class="item-divider" id="viewDevice-list-item-divider23"> POE MAC address</ion-item>
+      <label class="item item-input" id="viewDevice-input178" name="input-poemacaddress">
+        <input type="text" placeholder="" ng-model="data.poemacaddress" readonly="">
       </label>
       <ion-item class="item-divider" id="viewDevice-list-item-divider15"> Registration</ion-item>
       <label class="item item-input" id="viewDevice-input162" name="input-timestamp">

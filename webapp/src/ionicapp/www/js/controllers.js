@@ -549,6 +549,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                 'devicename': device.devicename,
                 'deviceid': device.deviceid,
                 'serialnumber': device.serialnumber,
+                'poemacaddress': device.poemacaddress === undefined || device.poemacaddress === "" ? 'UNKNOWN' : device.poemacaddress,
                 'devicestatus': "Status: UNKNOWN",
                 'deviceversion': "UNKNOWN",
                 'location': "UNKNOWN"
@@ -3741,11 +3742,13 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, Devices, Use
         'devicename': "",
         'uuid': "",
         'serialnumber': "",
+        'poemacaddress': "",
     };
 
     $scope.generate = function() {
         uuid = "PH80XXRRMMDDYYSS";
         serialnumber = "SSSSS";
+        poemacaddress = ""
         
         var today = new Date();
         month = today.getMonth() + 1;
@@ -3767,11 +3770,25 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, Devices, Use
         uuid = uuid.replace("YY", year.toString());
         uuid = uuid.replace("SS", random.toString());
         uuid = uuid.toUpperCase();
+
+        poemacaddress = "";
+        for (var i=0; i<6; i++) {
+            random = Math.floor(Math.random() * 256);
+            random = random.toString(16);
+            random = ("0" + random).slice(-2);
+            poemacaddress += random;
+            if (i<5) {
+                poemacaddress += ":";
+            }
+        }
+        poemacaddress = poemacaddress.toUpperCase();
         
         $scope.data.uuid = uuid;
         $scope.data.serialnumber = serialnumber;
-        
+        $scope.data.poemacaddress = poemacaddress;
+
         console.log(uuid);
+        console.log(serialnumber);
         console.log(serialnumber);
     };       
 
@@ -3829,11 +3846,24 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, Devices, Use
             alert("ERROR: Register Device devicename is empty!");
             return;
         }
+        else if ($scope.data.poemacaddress === undefined) {
+            console.log("ERROR: Register Device POE MAC address is undefined!");
+            // TODO: replace alert with ionic alert
+            alert("ERROR: Register Device POE MAC address is undefined!");
+            return;
+        }
+        else if ($scope.data.poemacaddress.trim().length === 0) {
+            console.log("ERROR: Register Device POE MAC address is empty!");
+            // TODO: replace alert with ionic alert
+            alert("ERROR: Register Device POE MAC address is empty!");
+            return;
+        }
         
        
         param = {
             'deviceid': $scope.data.uuid,
             'serialnumber': $scope.data.serialnumber,
+            'poemacaddress': $scope.data.poemacaddress,
         };
 
         //
@@ -3842,7 +3872,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, Devices, Use
         // - Request:
         //   POST /devices/device/<devicename>
         //   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-        //   data: {'deviceid': string, 'serialnumber': string}
+        //   data: {'deviceid': string, 'serialnumber': string, 'poemacaddress': string}
         //
         // - Response:
         //   {'status': 'OK', 'message': string}
@@ -4005,14 +4035,15 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
     var server = Server.rest_api;
 
     $scope.data = {
-        'username'    : User.get_username(),
-        'token'       : User.get_token(),
-        'devicename'  : $stateParams.devicename,
-        'deviceid'    : $stateParams.deviceid,
-        'serialnumber': $stateParams.serialnumber,
-        'timestamp'   : $stateParams.timestamp,
-        'heartbeat'   : $stateParams.heartbeat,
-        'version'     : $stateParams.version
+        'username'     : User.get_username(),
+        'token'        : User.get_token(),
+        'devicename'   : $stateParams.devicename,
+        'deviceid'     : $stateParams.deviceid,
+        'serialnumber' : $stateParams.serialnumber,
+        'poemacaddress': $stateParams.poemacaddress === undefined || $stateParams.poemacaddress === "" ? "UNKNOWN" : $stateParams.poemacaddress,
+        'timestamp'    : $stateParams.timestamp,
+        'heartbeat'    : $stateParams.heartbeat,
+        'version'      : $stateParams.version
     };
 
     $scope.newfirmwareavailable = false;
@@ -4362,6 +4393,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
 
     
     $scope.$on('$ionicView.enter', function(e) {
+        console.log($scope.data.poemacaddress);
         $scope.get_latest_firmware();
     });   
     
@@ -6255,8 +6287,10 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         'username': User.get_username(),
         'token': User.get_token(),
         'devicename': $stateParams.devicename,
+        'devicename_ex': $stateParams.devicename.trim().replace(/ +/g, ''),
         'deviceid': $stateParams.deviceid,
         'serialnumber': $stateParams.serialnumber,
+        'poemacaddress': $stateParams.poemacaddress === undefined || $stateParams.poemacaddress === "" ? 'UNKNOWN' : $stateParams.poemacaddress,
         'devicestatus': $stateParams.devicestatus,
         'deviceversion': $stateParams.deviceversion,
         'location': $state.params.location,
@@ -6468,6 +6502,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
                 'devicename': result.data.device.devicename,
                 'deviceid': result.data.device.deviceid,
                 'serialnumber': result.data.device.serialnumber,
+                'poemacaddress': result.data.device.poemacaddress === undefined ? 'UNKNOWN' : result.data.device.poemacaddress,
                 'timestamp': "" + timestamp,
                 'heartbeat': "" + heartbeat,
                 'version': $scope.data.deviceversion
@@ -6563,6 +6598,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
    
     $scope.$on('$ionicView.enter', function(e) {
         console.log("DEVICE enter");
+        console.log($scope.data.poemacaddress);
         if ($scope.treeData !== null) { 
             $scope.eraseTreeChart2();
             $scope.treeData = null;
@@ -6574,6 +6610,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         //console.log($stateParams.location.longitude);
         //console.log($state.params.location.latitude);
         //console.log($state.params.location.longitude);
+        console.log($scope.data.devicename_ex);
         
         if ($state.params.location === "" || $state.params.location === "UNKNOWN" || $state.params.location === undefined) {
             $scope.data.devicelocation = "UNKNOWN";
@@ -6708,19 +6745,20 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
 */
     
     $scope.eraseTreeChart = function(){
-        const svg_id = "#" + $scope.data.devicename;
+        const svg_id = "#" + $scope.data.devicename_ex;
         var svg = d3.select(svg_id);
         svg.data([]).exit().remove();
     };
 
     $scope.eraseTreeChart2 = function(){
-        const svg_id = "#" + $scope.data.devicename;
+        const svg_id = "#" + $scope.data.devicename_ex;
         var svg = d3.select(svg_id);
         svg.select("svg").remove();
     };
    
     $scope.drawTreeChart = function(treeData) { // Function for creating bar chart
         //console.log(document.getElementsByClassName("hierarchychart"));
+        console.log($scope.data.devicename_ex);
         
         // set the dimensions and margins of the diagram
         const margin = {top: 50, right: 100, bottom: 50, left: 250},
@@ -6739,7 +6777,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         // append the svg object to the body of the page
         // appends a 'group' element to 'svg'
         // moves the 'group' element to the top left margin
-        const svg_id = "#" + $scope.data.devicename;
+        const svg_id = "#" + $scope.data.devicename_ex;
         //console.log(d3.select(svg_id));
         
         const svg = d3.select(svg_id).append("svg")
