@@ -6,8 +6,8 @@ set DEVICE_SERIAL=""
 set DEVICE_MACADD=""
 set DEVICE_SECRETKEY=""
 ::NO NEED TO SPECIFY USERNAME AND PASSWORD NO. Application will generate based on DEVICE_ID, DEVICE_SERIAL, DEVICE_MACADD
-::set USER=""
-::set PASS=""
+set USER=""
+set PASS=""
 
 
 :::::::::::::::::::::::::::
