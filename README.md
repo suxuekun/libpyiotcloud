@@ -51,10 +51,11 @@ Below are the features of this secure and scalable IoT platform:
     2. Device connectivity services
        Utilizes lightweight MQTT protocol for device connectivity ideal for low-powered devices
        A. Device and backend communication via RabbitMQ message broker using MQTTS protocol
-       B. Device authentication using unique username, password, ECC-based X.509 client certificate and mutual authentication
-       C. Secure communication using TLS, device athorization using MQTT topic permissions
-       D. Company-generated ECC-based X.509 SSL certificates (server root certificate and client device certificates)
-       E. Device simulator (Python) as reference implementation for actual IoT device
+       B. Device authentication using unique username and JWT-encoded password credentials
+       C. Device authentication using ECC-based X.509 client certificate with mutual authentication enforcement
+       D. Secure communication using TLS, device athorization using MQTT topic permissions
+       E. Company-generated ECC-based X.509 SSL certificates (server root certificate and client device certificates)
+       F. Device simulator (Python) as reference implementation for actual IoT device
 
     3. Web/mobile connectivity services
        Access Portal from your desktop web browsers or mobile apps.
