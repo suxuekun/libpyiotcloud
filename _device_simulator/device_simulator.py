@@ -17,6 +17,7 @@ import binascii
 import logging
 from logging.handlers import RotatingFileHandler
 from logging import handlers
+from jose import jwt
 
 
 
@@ -288,6 +289,11 @@ CONFIG_SEPARATOR            = '/'
 CONFIG_HTTP_HOST            = "localhost"
 CONFIG_HTTP_TLS_PORT        = 443
 CONFIG_HTTP_TIMEOUT         = 10
+
+CONFIG_DEVICE_SECRETKEY     = ''
+CONFIG_DEVICE_ID            = ''
+CONFIG_DEVICE_SERIAL        = ''
+CONFIG_DEVICE_MACADD        = ''
 
 
 
@@ -2356,43 +2362,127 @@ def set_registration(sensors):
 
 
 ###################################################################################
+# Password generation
+###################################################################################
+
+def decode_password(secret_key, password):
+
+    return jwt.decode(password, secret_key, algorithms=['HS256'])
+
+def compute_password(secret_key, uuid, serial_number, mac_address, debug=False):
+
+    if secret_key=='' or uuid=='' or serial_number=='' or mac_address=='':
+        printf("secret key, uuid, serial number and mac address should not be empty!")
+        return None
+
+    current_time = int(time.time())
+    params = {
+        "uuid": uuid,                  # device uuid
+        "serialnumber": serial_number, # device serial number
+        "poemacaddress": mac_address,  # device mac address in uppercase string ex. AA:BB:CC:DD:EE:FF
+    }
+    password = jwt.encode(params, secret_key, algorithm='HS256')
+
+    if debug:
+        printf("")
+        printf("compute_password")
+        printf_json(params)
+        printf(password)
+        printf("")
+
+        payload = decode_password(secret_key, password)
+        printf("")
+        printf("decode_password")
+        printf_json(payload)
+        printf("")
+
+    return password
+
+
+###################################################################################
 # Main entry point
 ###################################################################################
 
 def parse_arguments(argv):
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--USE_ECC',         required=False, default=1 if CONFIG_USE_ECC else 0, help='Use ECC instead of RSA')
-    parser.add_argument('--USE_AMQP',        required=False, default=1 if CONFIG_USE_AMQP else 0, help='Use AMQP instead of MQTT')
-    parser.add_argument('--USE_DEVICE_ID',   required=False, default=CONFIG_DEVICE_ID,     help='Device ID to use')
-    parser.add_argument('--USE_DEVICE_CA',   required=False, default=CONFIG_TLS_CA,        help='Device CA certificate to use')
-    parser.add_argument('--USE_DEVICE_CERT', required=False, default=CONFIG_TLS_CERT,      help='Device certificate to use')
-    parser.add_argument('--USE_DEVICE_PKEY', required=False, default=CONFIG_TLS_PKEY,      help='Device private key to use')
-    parser.add_argument('--USE_HOST',        required=False, default=CONFIG_HOST,          help='Host server to connect to')
-    parser.add_argument('--USE_PORT',        required=False, default=CONFIG_MQTT_TLS_PORT, help='Host port to connect to')
-    parser.add_argument('--USE_USERNAME',    required=False, default=CONFIG_USERNAME,      help='Username to use in connection')
-    parser.add_argument('--USE_PASSWORD',    required=False, default=CONFIG_PASSWORD,      help='Password to use in connection')
+    parser.add_argument('--USE_ECC',              required=False, default=1 if CONFIG_USE_ECC else 0, help='Use ECC instead of RSA')
+    parser.add_argument('--USE_AMQP',             required=False, default=1 if CONFIG_USE_AMQP else 0, help='Use AMQP instead of MQTT')
+
+    parser.add_argument('--USE_DEVICE_SECRETKEY', required=False, default='',                   help='Device Secret Key to use')
+    parser.add_argument('--USE_DEVICE_ID',        required=False, default='',                   help='Device ID to use')
+    parser.add_argument('--USE_DEVICE_SERIAL',    required=False, default='',                   help='Device Serial Number to use')
+    parser.add_argument('--USE_DEVICE_MACADD',    required=False, default='',                   help='Device POE MAC Address to use')
+
+    parser.add_argument('--USE_DEVICE_CA',        required=False, default=CONFIG_TLS_CA,        help='Device CA certificate to use')
+    parser.add_argument('--USE_DEVICE_CERT',      required=False, default=CONFIG_TLS_CERT,      help='Device certificate to use')
+    parser.add_argument('--USE_DEVICE_PKEY',      required=False, default=CONFIG_TLS_PKEY,      help='Device private key to use')
+
+    parser.add_argument('--USE_HOST',             required=False, default=CONFIG_HOST,          help='Host server to connect to')
+    parser.add_argument('--USE_PORT',             required=False, default=CONFIG_MQTT_TLS_PORT, help='Host port to connect to')
+    parser.add_argument('--USE_USERNAME',         required=False, default='',                   help='Username to use in connection')
+    parser.add_argument('--USE_PASSWORD',         required=False, default='',                   help='Password to use in connection')
     return parser.parse_args(argv)
 
+def main(args):
 
-if __name__ == '__main__':
+    global g_firmware_version_STR
+    global g_messaging_client
+    global g_device_status
+    global g_timer_thread_use
+    global g_timer_thread_stop
+    global g_timer_thread_timeout
+    global g_timer_thread
+    global g_input_thread
 
-    args = parse_arguments(sys.argv[1:])
-    CONFIG_USE_AMQP    = True if int((args.USE_AMQP))==1 else False
-    CONFIG_USE_ECC     = True if int((args.USE_ECC))==1 else False
-    CONFIG_SEPARATOR   = "." if int((args.USE_AMQP))==1 else "/"
-    CONFIG_DEVICE_ID   = args.USE_DEVICE_ID
-    CONFIG_TLS_CA      = args.USE_DEVICE_CA
-    CONFIG_TLS_CERT    = args.USE_DEVICE_CERT
-    CONFIG_TLS_PKEY    = args.USE_DEVICE_PKEY
-    CONFIG_HOST        = args.USE_HOST
-    CONFIG_HTTP_HOST   = args.USE_HOST
+    global CONFIG_USE_AMQP
+    global CONFIG_USE_ECC
+    global CONFIG_SEPARATOR
+    global CONFIG_TLS_CA
+    global CONFIG_TLS_CERT
+    global CONFIG_TLS_PKEY
+    global CONFIG_HOST
+    global CONFIG_HTTP_HOST
+    global CONFIG_MQTT_TLS_PORT
+    global CONFIG_AMQP_TLS_PORT
+
+    global CONFIG_DEVICE_SECRETKEY
+    global CONFIG_DEVICE_ID
+    global CONFIG_DEVICE_SERIAL
+    global CONFIG_DEVICE_MACADD
+    global CONFIG_USERNAME
+    global CONFIG_PASSWORD
+
+    CONFIG_USE_AMQP      = True if int((args.USE_AMQP))==1 else False
+    CONFIG_USE_ECC       = True if int((args.USE_ECC))==1 else False
+    CONFIG_SEPARATOR     = "." if int((args.USE_AMQP))==1 else "/"
+    CONFIG_TLS_CA        = args.USE_DEVICE_CA
+    CONFIG_TLS_CERT      = args.USE_DEVICE_CERT
+    CONFIG_TLS_PKEY      = args.USE_DEVICE_PKEY
+    CONFIG_HOST          = args.USE_HOST
+    CONFIG_HTTP_HOST     = args.USE_HOST
     CONFIG_MQTT_TLS_PORT = int(args.USE_PORT)
     CONFIG_AMQP_TLS_PORT = int(args.USE_PORT)
-    CONFIG_USERNAME    = args.USE_USERNAME
-    CONFIG_PASSWORD    = args.USE_PASSWORD
 
+    CONFIG_DEVICE_SECRETKEY = args.USE_DEVICE_SECRETKEY
+    CONFIG_DEVICE_ID        = args.USE_DEVICE_ID
+    CONFIG_DEVICE_SERIAL    = args.USE_DEVICE_SERIAL
+    CONFIG_DEVICE_MACADD    = args.USE_DEVICE_MACADD
     setup_logging(CONFIG_DEVICE_ID + "_logs.txt")
+
+    # Password is now a combination of UUID, Serial Number and POE Mac Address
+    # Previously, PASSWORD is just the DEVICE_SERIAL
+    #CONFIG_PASSWORD = CONFIG_DEVICE_SERIAL
+    if args.USE_USERNAME != '' and args.USE_PASSWORD != '':
+        # backward compatibility
+        CONFIG_USERNAME = args.USE_USERNAME
+        CONFIG_PASSWORD = args.USE_PASSWORD
+    else:
+        CONFIG_USERNAME = CONFIG_DEVICE_ID
+        CONFIG_PASSWORD = compute_password(CONFIG_DEVICE_SECRETKEY, CONFIG_DEVICE_ID, CONFIG_DEVICE_SERIAL, CONFIG_DEVICE_MACADD, debug=False)
+        if CONFIG_PASSWORD is None:
+            return
+
 
     printf("-------------------------------------------------------")
     printf("Copyright (C) Bridgetek Pte Ltd")
@@ -2411,16 +2501,16 @@ if __name__ == '__main__':
 
     printf("")
     printf("TLS CERTIFICATES")
-    printf("ca:   {}".format(args.USE_DEVICE_CA))
-    printf("cert: {}".format(args.USE_DEVICE_CERT))
-    printf("pkey: {}".format(args.USE_DEVICE_PKEY))
+    printf("ca:   {}".format(CONFIG_TLS_CA))
+    printf("cert: {}".format(CONFIG_TLS_CERT))
+    printf("pkey: {}".format(CONFIG_TLS_PKEY))
 
     printf("")
     printf("MQTT CREDENTIALS")
-    printf("host: {}:{}".format(args.USE_HOST, args.USE_PORT))
-    printf("id:   {}".format(args.USE_DEVICE_ID))
-    printf("user: {}".format(args.USE_USERNAME))
-    printf("pass: {}".format(args.USE_PASSWORD))
+    printf("host: {}:{}".format(CONFIG_HOST, CONFIG_MQTT_TLS_PORT))
+    printf("id:   {}".format(CONFIG_DEVICE_ID))
+    printf("user: {}".format(CONFIG_USERNAME))
+    printf("pass: {}".format(CONFIG_PASSWORD))
 
 
     # Initialize MQTT/AMQP client
@@ -2542,3 +2632,7 @@ if __name__ == '__main__':
         reset_local_configurations()
 
     printf("application exits!")
+
+if __name__ == '__main__':
+    main(parse_arguments(sys.argv[1:]))
+
