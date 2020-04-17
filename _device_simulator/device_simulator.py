@@ -2477,6 +2477,8 @@ def main(args):
         # backward compatibility
         CONFIG_USERNAME = args.USE_USERNAME
         CONFIG_PASSWORD = args.USE_PASSWORD
+        CONFIG_DEVICE_SERIAL = args.USE_PASSWORD
+        CONFIG_DEVICE_MACADD = "Unknown"
     else:
         CONFIG_USERNAME = CONFIG_DEVICE_ID
         CONFIG_PASSWORD = compute_password(CONFIG_DEVICE_SECRETKEY, CONFIG_DEVICE_ID, CONFIG_DEVICE_SERIAL, CONFIG_DEVICE_MACADD, debug=False)
@@ -2498,6 +2500,12 @@ def main(args):
 
     printf("")
     printf("FIRMWARE VERSION = {}".format(g_firmware_version_STR))
+
+    printf("")
+    printf("DEVICE INFO")
+    printf("uuid: {}".format(CONFIG_DEVICE_ID))
+    printf("ser:  {}".format(CONFIG_DEVICE_SERIAL))
+    printf("mac:  {}".format(CONFIG_DEVICE_MACADD))
 
     printf("")
     printf("TLS CERTIFICATES")
