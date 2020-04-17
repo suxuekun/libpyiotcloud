@@ -17,7 +17,7 @@ import binascii
 import logging
 from logging.handlers import RotatingFileHandler
 from logging import handlers
-from jose import jwt
+import jwt # now using pyjwt instead of jose
 
 
 
@@ -2382,6 +2382,7 @@ def compute_password(secret_key, uuid, serial_number, mac_address, debug=False):
         "poemacaddress": mac_address,  # device mac address in uppercase string ex. AA:BB:CC:DD:EE:FF
     }
     password = jwt.encode(params, secret_key, algorithm='HS256')
+    password = password.decode("utf-8")
 
     if debug:
         printf("")
