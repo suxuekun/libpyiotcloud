@@ -15,13 +15,28 @@ from rest_api_config import config
 from database import database_client
 from flask_cors import CORS
 from flask_api import status
-from jose import jwk, jwt
+import jwt
+#from jose import jwk, jwt
 import http.client
 from s3_client import s3_client
 import threading
 import copy
 from redis_client import redis_client
 import statistics
+
+from message_broker_api import message_broker_api
+
+from rest_api_messaging_requests import messaging_requests
+from rest_api_identity_authentication import identity_authentication
+from rest_api_access_control import access_control
+from rest_api_payment_accounting import payment_accounting
+from rest_api_device_groups import device_groups
+from rest_api_device_locations import device_locations
+from rest_api_device_otaupdates import device_otaupdates
+from rest_api_device_hierarchies import device_hierarchies
+from rest_api_device_histories import device_histories
+from rest_api_other_stuffs import other_stuffs
+import rest_api_utils
 
 
 
@@ -35,22 +50,7 @@ CONFIG_USE_ECC              = True if int(os.environ["CONFIG_USE_ECC"]) == 1 els
 CONFIG_SEPARATOR            = '/'
 CONFIG_PREPEND_REPLY_TOPIC  = "server"
 
-
-
-###################################################################################
-# feature configurables
-###################################################################################
-
-CONFIG_WAIT_DEVICE_RESPONSE_TIMEOUT_SEC  = 3
-CONFIG_WAIT_DEVICE_RESPONSE_FREQUENCY_MS = 250
-
-CONFIG_ALLOW_LOGIN_VIA_PHONE_NUMBER = True
-
-CONFIG_USE_REDIS_FOR_PAYPAL         = False
-CONFIG_USE_REDIS_FOR_IDP            = True
 CONFIG_USE_REDIS_FOR_MQTT_RESPONSE  = True
-
-CONFIG_SUPPORT_MFA                  = True
 
 
 
@@ -70,34 +70,20 @@ CORS(app)
 
 
 ###################################################################################
-# i2c device classes
+# Class instances
 ###################################################################################
 
-I2C_DEVICE_CLASS_SPEAKER       = 0
-I2C_DEVICE_CLASS_DISPLAY       = 1
-I2C_DEVICE_CLASS_LIGHT         = 2
-I2C_DEVICE_CLASS_POTENTIOMETER = 3
-I2C_DEVICE_CLASS_TEMPERATURE   = 4
-I2C_DEVICE_CLASS_HUMIDITY      = 5
-I2C_DEVICE_CLASS_ANEMOMETER    = 6
-I2C_DEVICE_CLASS_BATTERY       = 7
-I2C_DEVICE_CLASS_FLUID         = 8
-
-
-
-###################################################################################
-# JSON Printer
-###################################################################################
-
-def print_json(json_object, is_json=True, label=None):
-    if is_json:
-        json_formatted_str = json.dumps(json_object, indent=2)
-    else: 
-        json_formatted_str = json_object
-    if label is None:
-        print(json_formatted_str)
-    else:
-        print("{}\r\n{}".format(label, json_formatted_str))
+g_messaging_requests      = None
+g_identity_authentication = None
+g_access_control          = None
+g_payment_accounting      = None
+g_device_locations        = None
+g_device_groups           = None
+g_device_otaupdates       = None
+g_device_hierarchies      = None
+g_device_histories        = None
+g_other_stuffs            = None
+g_utils                   = None
 
 
 ###################################################################################
@@ -109,2587 +95,413 @@ def index():
     return "", status.HTTP_401_UNAUTHORIZED
 
 
-########################################################################################################
-#
-# LOGIN IDP STORE TOKEN
-#
-# - Request:
-#   POST /user/login/idp/token/<id>
-#   headers: {'Content-Type': 'application/json'}
-#   data: {'token': json_obj}
-#   // token can be empty {} to indicate failed login via idp
-#
-# - Response:
-#   {'status': 'OK', 'message': string}
-#   {'status': 'NG', 'message': string}
-#
-########################################################################################################
-@app.route('/user/login/idp/token/<id>', methods=['POST'])
-def login_idp_storetoken(id):
-    data = flask.request.get_json()
-    if data.get("token") is None:
-        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-        print('\r\nERROR Login IDP STORE TOKEN: Empty parameter found [{}]\r\n'.format(username))
-        return response, status.HTTP_400_BAD_REQUEST
-
-    g_database_client.set_idp_token(id, data["token"])
-
-    response = json.dumps({'status': 'OK', 'message': "Login IDP store token successful"})
-    return response
 
 ########################################################################################################
 #
-# LOGIN IDP QUERY TOKEN
-#
-# - Request:
-#   GET /user/login/idp/token/<id>
-#   headers: {'Content-Type': 'application/json'}
-#
-# - Response:
-#   {'status': 'OK', 'message': string, 'token': json_obj, 'name': string, 'username': string}
-#   {'status': 'NG', 'message': string}
-#   // token can be empty {} to indicate failed login via idp
-#   // when token is empty, both name and username will not be available
+# IDENTITY AUTHENTICATION
 #
 ########################################################################################################
-@app.route('/user/login/idp/token/<id>', methods=['GET'])
-def login_idp_querytoken(id):
-    # check if token is available
-    # note that token can be available but no entry, this means that the login via idp failed
-    token = g_database_client.get_idp_token(id)
-    if token is None:
-        response = json.dumps({'status': 'NG', 'message': "Login IDP query token not found"})
-        return response
 
-    username = None
-    name = None
-
-    if token.get("access"):
-        # get username from token
-        username = g_database_client.get_username_from_token(token)
-        if username is None:
-            response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-            print('\r\nERROR Login IDP query token: Token expired\r\n')
-            return response, status.HTTP_401_UNAUTHORIZED
-
-        # get user information
-        info = g_database_client.get_user_info(token["access"])
-        if info:
-            # handle no family name
-            if 'given_name' in info:
-                name = info['given_name']
-            if 'family_name' in info:
-                if info['family_name'] != "NONE":
-                    if 'identities' in info:
-                        identity = json.loads(info['identities'].strip(']['))
-                        if identity['providerName'] != 'LoginWithAmazon':
-                            name += " " + info['family_name']
-                    else:
-                        name += " " + info['family_name']
-
-    msg = {'status': 'OK', 'message': "Login IDP query token successful", 'token': token}
-    if username:
-        msg["username"] = username
-    if name:
-        msg["name"] = name
-    response = json.dumps(msg)
-    return response
-
-########################################################################################################
-#
-# LOGIN IDP STORE CODE
-#
-# - Request:
-#   POST /user/login/idp/code/<id>
-#   headers: {'Content-Type': 'application/json'}
-#   data: {'code': string}
-#
-# - Response:
-#   {'status': 'OK', 'message': string}
-#   {'status': 'NG', 'message': string}
-#
-########################################################################################################
-@app.route('/user/login/idp/code/<id>', methods=['POST'])
-def login_idp_storecode(id):
-    data = flask.request.get_json()
-    if data.get("code") is None:
-        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-        print('\r\nERROR Login IDP STORE CODE: Empty parameter found [{}]\r\n'.format(username))
-        return response, status.HTTP_400_BAD_REQUEST
-
-    if CONFIG_USE_REDIS_FOR_IDP:
-        # redis
-        print("xxxxx idp {}:{}".format(id, data["code"]))
-        g_redis_client.idp_set_code(id, data["code"])
-        print("yyyyy idp {}:{}".format(id, data["code"]))
-    else:
-        g_database_client.set_idp_code(id, data["code"])
-
-    response = json.dumps({'status': 'OK', 'message': "Login IDP store code successful"})
-    return response
-
-########################################################################################################
-#
-# LOGIN IDP QUERY CODE
-#
-# - Request:
-#   GET /user/login/idp/code/<id>
-#   headers: {'Content-Type': 'application/json'}
-#
-# - Response:
-#   {'status': 'OK', 'message': string, 'code': string}
-#   {'status': 'NG', 'message': string}
-#
-########################################################################################################
-@app.route('/user/login/idp/code/<id>', methods=['GET'])
-def login_idp_querycode(id):
-    # check if code is available
-    if CONFIG_USE_REDIS_FOR_IDP:
-        # redis
-        code = g_redis_client.idp_get_code(id)
-        if code:
-            g_redis_client.idp_del_code(id)
-    else:
-        code = g_database_client.get_idp_code(id)
-
-    if code is None:
-        response = json.dumps({'status': 'NG', 'message': 'Login IDP query code not found'})
-        print('\r\nERROR Login IDP query: Code not found [{}]\r\n'.format(id))
-        return response, status.HTTP_404_NOT_FOUND
-
-    response = json.dumps({'status': 'OK', 'message': "Login IDP query code successful", 'code': code})
-    return response
-
-
-########################################################################################################
-#
-# LOGIN
-#
-# - Request:
-#   POST /user/login
-#   headers: {'Authorization': 'Basic ' + jwtEncode(username, password)}
-#   User can login using email or phone_number so the username parameter can be either an email or phone_number
-#   When username is a phone_number, it must start with '+'.
-#   When username is a phone_number, it must be verified first via OTP
-# - Response:
-#   {'status': 'OK', 'message': string, 'token': {'access': string, 'id': string, 'refresh': string}, 'name': string }
-#   {'status': 'NG', 'message': string}
-#   // When user logins with incorrect password for 5 consecutive times, user needs to reset the password
-#   // When error is HTTP_401_UNAUTHORIZED, web/mobile app should check message
-#   // If message is PasswordResetRequiredException, the web/mobile app should redirect user to the CONFIRM FORGOT PASSWORD page
-#   // User should input the OTP code sent in email and the new password to be used
-#
-########################################################################################################
-@app.route('/user/login', methods=['POST'])
-def login():
-    # get username and password from Authorization header
-    username, password, reason = get_auth_header_user_pass()
-    if username is None or password is None:
-        response = json.dumps({'status': 'NG', 'message': reason})
-        print('\r\nERROR Login: Username password format invalid\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    print('login {} {}'.format(username, password))
-
-    # check if a parameter is empty
-    if len(username) == 0 or len(password) == 0:
-        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-        print('\r\nERROR Login: Empty parameter found [{}]\r\n'.format(username))
-        return response, status.HTTP_400_BAD_REQUEST
-
-
-    if CONFIG_ALLOW_LOGIN_VIA_PHONE_NUMBER:
-        # support login via phonenumber
-        # check if username is a phonenumber (starts with '+'), email (has '@') or string(login via idp)
-        # since login via phone_number is now allowed,
-        # the phone_number must be unique
-        if username.startswith('+'):
-            # username is a phone number
-            # get the username given the phone number
-            username = g_database_client.get_username_by_phonenumber(username)
-            if username is None:
-                response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
-                print('\r\nERROR Login: Phone number does not exist [{}]\r\n'.format(username))
-                return response, status.HTTP_404_NOT_FOUND
-        else:
-            # check if username does not exist
-            if not g_database_client.find_user(username):
-                # NOTE:
-                # its not good to provide a specific error message for LOGIN
-                # because it provides additional info for hackers
-                response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
-                print('\r\nERROR Login: Username does not exist [{}]\r\n'.format(username))
-                return response, status.HTTP_404_NOT_FOUND
-    else:
-        # check if username does not exist
-        if not g_database_client.find_user(username):
-            # NOTE:
-            # its not good to provide a specific error message for LOGIN
-            # because it provides additional info for hackers
-            response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
-            print('\r\nERROR Login: Username does not exist [{}]\r\n'.format(username))
-            return response, status.HTTP_404_NOT_FOUND
-
-
-    # RESOLVE MFA ISSUES
-    #g_database_client.admin_enable_mfa(username, False)
-
-
-    # check if password is valid
-    access, refresh, id = g_database_client.login(username, password)
-    if access is None:
-        print(username)
-        # NOTE:
-        # its not good to provide a specific error message for LOGIN
-        # because it provides additional info for hackers
-        if id == "PasswordResetRequiredException":
-            response = json.dumps({'status': 'NG', 'message': 'PasswordResetRequiredException', 'username': username})
-            # trigger to send OTP to email
-            result = g_database_client.forgot_password(username)
-            #print(result)
-        elif id == "NotAuthorizedException":
-            # increment failed attempts
-            g_redis_client.login_failed_set_attempts(username)
-            attempts = g_redis_client.login_failed_get_attempts(username)
-            # force password reset on 5 consecutive failed attempts
-            if int(attempts) >= 5:
-                response = json.dumps({'status': 'NG', 'message': 'PasswordResetRequiredException', 'username': username})
-                g_database_client.reset_user_password(username)
-                #g_redis_client.login_failed_del_attempts(username)
-            else:
-                response = json.dumps({'status': 'NG', 'message': 'NotAuthorizedException'})
-        elif id == "MFARequiredException":
-            if CONFIG_SUPPORT_MFA:
-                response = json.dumps({'status': 'NG', 'message': 'MFARequiredException', 'username': username})
-                # save the sessionkey saved in refresh username, session key
-                if g_redis_client.mfa_get_session(username) is not None:
-                    g_redis_client.mfa_del_session(username)
-                g_redis_client.mfa_set_session(username, refresh)
-            else:
-                response = json.dumps({'status': 'NG', 'message': 'NotAuthorizedException'})
-        else:
-            response = json.dumps({'status': 'NG', 'message': 'NotAuthorizedException'})
-        print('\r\nERROR Login: Password is incorrect [{}] {}\r\n'.format(username, id))
-        return response, status.HTTP_401_UNAUTHORIZED
-
-
-    # delete the couter for failed logins
-    attempts = g_redis_client.login_failed_get_attempts(username)
-    if attempts is not None:
-        g_redis_client.login_failed_del_attempts(username)
-
-    # return name during login as per special request
-    name = None
-    info = g_database_client.get_user_info(access)
-    if info:
-        # handle no family name
-        if 'given_name' in info:
-            name = info['given_name']
-        if 'family_name' in info:
-            if info['family_name'] != "NONE":
-                name += " " + info['family_name']
-
-    # link social idp
-    #print(username)
-    #g_database_client.admin_link_provider_for_user(username, 'Facebook')
-    #g_database_client.admin_link_provider_for_user(username, info["email"], 'Facebook')
-
-
-    msg = {'status': 'OK', 'message': "Login successful", 'token': {'access': access, 'refresh': refresh, 'id': id} }
-    if name is not None:
-        msg['name'] = name
-    response = json.dumps(msg)
-    #print('\r\nLogin successful: {}\r\n'.format(username))
-    return response
-
-########################################################################################################
-#
-# SIGN-UP
-#
-# - Request:
-#   POST /user/signup
-#   headers: {'Authorization': 'Bearer ' + jwtEncode(email, password), 'Content-Type': 'application/json'}
-#   data: { 'email': string, 'phone_number': string, 'name': string }
-#   // name can be 1 or multiple words
-#   // phone_number is optional
-#   // phone number should begin with "+" followed by country code then the number (ex. SG number +6512341234)
-#   // password length is 6 characters minimum as set in Cognito
-# - Response:
-#   {'status': 'OK', 'message': string}
-#   {'status': 'NG', 'message': string}
-#
-########################################################################################################
 @app.route('/user/signup', methods=['POST'])
 def signup():
-    # get username and password from Authorization header
-    username, password, reason = get_auth_header_user_pass()
-    if username is None or password is None:
-        response = json.dumps({'status': 'NG', 'message': reason})
-        print('\r\nERROR Signup: Username password format invalid\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    #print('signup username={}'.format(username))
+    return g_identity_authentication.signup()
 
-    data = flask.request.get_json()
-    email = data['email']
-    if data.get("phone_number"):
-        phonenumber = data['phone_number']
-    else:
-        phonenumber = None
-    name = data['name']
-    names = name.split(" ")
-    if (len(names) > 1):
-        givenname = " ".join(names[:-1])
-        familyname = names[-1]
-    else:
-        # handle no family name
-        givenname = names[0]
-        familyname = "NONE"
-
-    print('signup username={} password={} email={} phonenumber={} givenname={} familyname={}'.format(username, password, email, phonenumber, givenname, familyname))
-
-    # check if a parameter is empty
-    if len(username) == 0 or len(password) == 0 or len(email) == 0 or len(givenname) == 0 or len(familyname) == 0:
-        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-        print('\r\nERROR Signup: Empty parameter found [{}]\r\n'.format(username))
-        return response, status.HTTP_400_BAD_REQUEST
-
-    # check format of phonenumber
-    if phonenumber is not None:
-        if phonenumber[0] != "+":
-            response = json.dumps({'status': 'NG', 'message': 'Phone number format is invalid'})
-            print('\r\nERROR Signup: Phone number format is invalid [{}]\r\n'.format(phonenumber))
-            return response, status.HTTP_400_BAD_REQUEST
-
-
-        if CONFIG_ALLOW_LOGIN_VIA_PHONE_NUMBER:
-            # since login via phone_number is now allowed,
-            # the phone_number must be unique,
-            # so check if phone_number is already taken or not
-            if g_database_client.get_username_by_phonenumber(phonenumber) is not None:
-                response = json.dumps({'status': 'NG', 'message': 'Phone number is already registered to another user'})
-                print('\r\nERROR Signup: Phone number is already registered to another user [{}]\r\n'.format(phonenumber))
-                return response, status.HTTP_400_BAD_REQUEST
-
-
-    # check length of password
-    if len(password) < 6:
-        response = json.dumps({'status': 'NG', 'message': 'Password length should at least be 6 characters'})
-        print('\r\nERROR Signup: Password length should at least be 6 characters [{}]\r\n'.format(username))
-        return response, status.HTTP_400_BAD_REQUEST
-
-    # check if username is already in database
-    if g_database_client.find_user(username):
-        if g_database_client.is_email_verified(username):
-            response = json.dumps({'status': 'NG', 'message': 'Username already exists'})
-            print('\r\nERROR Signup: Username already exists [{}]\r\n'.format(username))
-            return response, status.HTTP_409_CONFLICT
-        else:
-            # user already signed up but unverified, so delete the user for signup to proceed
-            g_database_client.admin_delete_user(username)
-
-    # Remove for scenario of login with social accounts identity providers
-    # check if email is already in database
-    #if g_database_client.find_email(email) is not None:
-    #    response = json.dumps({'status': 'NG', 'message': 'Email already used'})
-    #    print('\r\nERROR Signup: Email already used [{}]\r\n'.format(email))
-    #    return response, status.HTTP_409_CONFLICT
-
-    # add entry in database
-    result = g_database_client.add_user(username, password, email, phonenumber, givenname, familyname)
-    if not result:
-        response = json.dumps({'status': 'NG', 'message': 'Internal server error'})
-        print('\r\nERROR Signup: Internal server error [{},{},{},{},{}]\r\n'.format(username, password, email, givenname, familyname))
-        return response, status.HTTP_500_INTERNAL_SERVER_ERROR
-
-    response = json.dumps({'status': 'OK', 'message': 'User registered successfully. Check email for confirmation code.'})
-    print('\r\nSignup successful: {}\r\n{}\r\n'.format(username, response))
-    return response
-
-########################################################################################################
-#
-# CONFIRM SIGN-UP
-#
-# - Request:
-#   POST /user/confirm_signup
-#   headers: {'Content-Type': 'application/json'}
-#   data: { 'username': string, 'confirmationcode': string }
-#
-# - Response:
-#   {'status': 'OK', 'message': string}
-#   {'status': 'NG', 'message': string}
-#
-########################################################################################################
 @app.route('/user/confirm_signup', methods=['POST'])
 def confirm_signup():
-    data = flask.request.get_json()
-    username = data['username']
-    confirmationcode = data['confirmationcode']
-    #print('confirm_signup username={} confirmationcode={}'.format(username, confirmationcode))
+    return g_identity_authentication.confirm_signup()
 
-    # check if a parameter is empty
-    if len(username) == 0 or len(confirmationcode) != 6:
-        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-        print('\r\nERROR Confirm Signup: Empty parameter found [{}]\r\n'.format(username))
-        return response, status.HTTP_400_BAD_REQUEST
-
-    # confirm user in database
-    result = g_database_client.confirm_user(username, confirmationcode)
-    if not result:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid code'})
-        print('\r\nERROR Confirm Signup: Invalid code [{},{}]\r\n'.format(username, confirmationcode))
-        return response, status.HTTP_500_INTERNAL_SERVER_ERROR
-
-    response = json.dumps({'status': 'OK', 'message': 'User registration confirmed successfully'})
-    print('\r\nConfirm Signup successful: {}\r\n{}\r\n'.format(username, response))
-    return response
-
-########################################################################################################
-#
-# RESEND CONFIRMATION CODE
-#
-# - Request:
-#   POST /user/resend_confirmation_code
-#   headers: {'Content-Type': 'application/json'}
-#   data: { 'username': string }
-#
-# - Response:
-#   {'status': 'OK', 'message': string}
-#   {'status': 'NG', 'message': string}
-#
-########################################################################################################
 @app.route('/user/resend_confirmation_code', methods=['POST'])
 def resend_confirmation_code():
-    data = flask.request.get_json()
-    username = data['username']
-    print('resend_confirmation_code username={}'.format(username))
+    return g_identity_authentication.resend_confirmation_code()
 
-    # check if a parameter is empty
-    if len(username) == 0:
-        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-        print('\r\nERROR Resend Confirmation: Empty parameter found [{}]\r\n'.format(username))
-        return response, status.HTTP_400_BAD_REQUEST
-
-    # confirm user in database
-    result = g_database_client.resend_confirmationcode(username)
-    if not result:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid code'})
-        print('\r\nERROR Resend Confirmation: Invalid code [{}]\r\n'.format(username))
-        return response, status.HTTP_500_INTERNAL_SERVER_ERROR
-
-    response = json.dumps({'status': 'OK', 'message': 'Confirmation code resend successfully'})
-    print('\r\nResend Confirmation successful: {}\r\n{}\r\n'.format(username, response))
-    return response
-
-########################################################################################################
-#
-# FORGOT PASSWORD
-#
-# - Request:
-#   POST /user/forgot_password
-#   headers: {'Content-Type': 'application/json'}
-#   data: { 'email': string }
-#
-# - Response:
-#   {'status': 'OK', 'message': string, 'username': string}
-#   {'status': 'NG', 'message': string}
-#
-########################################################################################################
 @app.route('/user/forgot_password', methods=['POST'])
 def forgot_password():
-    data = flask.request.get_json()
+    return g_identity_authentication.forgot_password()
 
-
-    if CONFIG_ALLOW_LOGIN_VIA_PHONE_NUMBER:
-        if data.get("email") is None and data.get("phone_number") is None:
-            response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-            print('\r\nERROR Recover Account: Empty parameter found\r\n')
-            return response, status.HTTP_400_BAD_REQUEST
-    else:
-        if data.get("email") is None:
-            response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-            print('\r\nERROR Recover Account: Empty parameter found\r\n')
-            return response, status.HTTP_400_BAD_REQUEST
-
-
-    email = None
-    if data.get("email") is not None:
-        email = data['email']
-
-        # check if a parameter is empty
-        if len(email) == 0:
-            response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-            print('\r\nERROR Recover Account: Empty parameter found\r\n')
-            return response, status.HTTP_400_BAD_REQUEST
-
-        # check if email is in database
-        username = g_database_client.find_user(email)
-        if username == False:
-            response = json.dumps({'status': 'NG', 'message': 'Email does not exist'})
-            print('\r\nERROR Recover Account: Email does not exist [{}]\r\n'.format(email))
-            return response, status.HTTP_400_BAD_REQUEST
-
-        username = email
-        response = json.dumps({'status': 'OK', 'message': 'User account recovery successfully. Check email for confirmation code.', 'username': username})
-        print('forgot_password email={}'.format(username))
-
-
-    if CONFIG_ALLOW_LOGIN_VIA_PHONE_NUMBER:
-        phone_number = None
-        if data.get("phone_number") is not None:
-            phone_number = data['phone_number']
-
-            # check if a parameter is empty
-            if len(phone_number) == 0:
-                response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-                print('\r\nERROR Recover Account: Empty parameter found\r\n')
-                return response, status.HTTP_400_BAD_REQUEST
-
-            # check if email is in database
-            username = g_database_client.get_username_by_phonenumber(phone_number)
-            if username is None:
-                response = json.dumps({'status': 'NG', 'message': 'Email does not exist'})
-                print('\r\nERROR Recover Account: Email does not exist [{}]\r\n'.format(email))
-                return response, status.HTTP_400_BAD_REQUEST
-
-            response = json.dumps({'status': 'OK', 'message': 'User account recovery successfully. Check mobile number for confirmation code.', 'username': username})
-            print('forgot_password phone_number={}'.format(phone_number))
-
-
-    # recover account
-    result = g_database_client.forgot_password(username)
-    if not result:
-        response = json.dumps({'status': 'NG', 'message': 'Internal server error'})
-        print('\r\nERROR Recover Account: Internal server error [{}]\r\n'.format(username))
-        return response, status.HTTP_500_INTERNAL_SERVER_ERROR
-
-    print('\r\nRecover Account successful: {}\r\n{}\r\n'.format(username, response))
-    return response
-
-########################################################################################################
-#
-# CONFIRM FORGOT PASSWORD
-#
-# - Request:
-#   POST /user/confirm_forgot_password
-#   headers: {'Authorization': 'Bearer ' + jwtEncode(username, password), 'Content-Type': 'application/json'}
-#   data: { 'confirmationcode': string }
-#
-# - Response:
-#   {'status': 'OK', 'message': string}
-#   {'status': 'NG', 'message': string}
-#
-########################################################################################################
 @app.route('/user/confirm_forgot_password', methods=['POST'])
 def confirm_forgot_password():
-    # get username and password from Authorization header
-    username, password, reason = get_auth_header_user_pass()
-    if username is None or password is None:
-        response = json.dumps({'status': 'NG', 'message': reason})
-        print('\r\nERROR Reset Password: Username password format invalid\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    print('confirm_forgot_password username={}'.format(username))
+    return g_identity_authentication.confirm_forgot_password()
 
-    data = flask.request.get_json()
-    confirmationcode = data['confirmationcode']
-    #print('confirm_forgot_password username={} confirmationcode={} password={}'.format(username, confirmationcode, password))
+@app.route('/user/login', methods=['POST'])
+def login():
+    # flask.request.endpoint
+    return g_identity_authentication.login()
 
-    # check if a parameter is empty
-    if len(username) == 0 or len(confirmationcode) == 0 or len(password) == 0:
-        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-        print('\r\nERROR Reset Password: Empty parameter found\r\n')
-        return response, status.HTTP_400_BAD_REQUEST
-
-    # confirm user in database
-    result = g_database_client.confirm_forgot_password(username, confirmationcode, password)
-    if not result:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid code'})
-        print('\r\nERROR Reset Password: Invalid code [{}]\r\n'.format(username))
-        return response, status.HTTP_500_INTERNAL_SERVER_ERROR
-
-    # delete the couter for failed logins
-    attempts = g_redis_client.login_failed_get_attempts(username)
-    if attempts is not None:
-        g_redis_client.login_failed_del_attempts(username)
-
-    response = json.dumps({'status': 'OK', 'message': 'User account recovery confirmed successfully.'})
-    print('\r\nReset Password successful: {}\r\n{}\r\n'.format(username, response))
-    return response
-
-
-########################################################################################################
-#
-# LOGOUT
-#
-# - Request:
-#   POST /user/logout
-#   headers: {'Authorization': 'Bearer ' + token.access}
-#
-# - Response:
-#   {'status': 'OK', 'message': string}
-#   {'status': 'NG', 'message': string}
-#
-########################################################################################################
 @app.route('/user/logout', methods=['POST'])
 def logout():
-    try:
-        # get token from Authorization header
-        auth_header_token = get_auth_header_token()
-        if auth_header_token:
-            token = {'access': auth_header_token}
+    return g_identity_authentication.logout()
 
-            # get username from token
-            username = g_database_client.get_username_from_token(token)
-            if username is not None:
-
-                #print("")
-                #devicetoken = g_database_client.get_all_mobile_device_token(username)
-                #print(len(devicetoken))
-                #print(devicetoken)
-
-                # delete mobile device tokens
-                g_database_client.delete_mobile_device_token(username, token['access'])
-                #g_database_client.delete_all_mobile_device_token(username)
-                #print('\r\nDeleted mobile device token')
-
-                #devicetoken = g_database_client.get_all_mobile_device_token(username)
-                #print(len(devicetoken))
-                #print(devicetoken)
-                #print("")
-
-            # there's only global_sign_out, no sign_out so just skip calling it logout
-            # g_database_client.logout(token['access'])
-            print('logout {}\r\n'.format(username))
-    except:
-        print('\r\nERROR Logout: exception\r\n')
-
-    #g_database_client.delete_ota_statuses(username)
-    return json.dumps({'status': 'OK', 'message': 'User logout successfully.'})
-
-
-########################################################################################################
-#
-# GET USER INFO
-#
-# - Request:
-#   GET /user
-#   headers: {'Authorization': 'Bearer ' + token.access}
-#
-# - Response:
-#   {'status': 'OK', 'message': string, 
-#    'info': {'name': string, 'email': string, 'phone_number': string, 'email_verified': boolean, 'phone_number_verified': boolean} }
-#   // phone_number and phone_number_verified are not included if no phone_number has been added yet
-#   {'status': 'NG', 'message': string}
-#
-########################################################################################################
 @app.route('/user', methods=['GET'])
-def get_user_info():
-    # get token from Authorization header
-    auth_header_token = get_auth_header_token()
-    if auth_header_token is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Userinfo: Invalid authorization header\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    token = {'access': auth_header_token}
+def get_user():
+    return g_identity_authentication.get_user()
 
-    # get username from token
-    username = g_database_client.get_username_from_token(token)
-    if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Userinfo: Token expired\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
+@app.route('/user', methods=['POST'])
+def update_user():
+    return g_identity_authentication.update_user()
 
-    print('get_user_info username={}'.format(username))
-
-    # check if a parameter is empty
-    if len(username) == 0 or len(token) == 0:
-        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-        print('\r\nERROR Userinfo: Empty parameter found\r\n')
-        return response, status.HTTP_400_BAD_REQUEST
-
-    # check if username and token is valid
-    verify_ret, new_token = g_database_client.verify_token(username, token)
-    if verify_ret == 2: # token expired
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Userinfo: Token expired [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
-    elif verify_ret != 0:
-        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
-        print('\r\nERROR Userinfo: Token is invalid [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
-
-    if new_token:
-        info = g_database_client.get_user_info(new_token['access'])
-    else:
-        info = g_database_client.get_user_info(token['access'])
-
-    # handle no family name
-    if 'identities' in info:
-        identity = json.loads(info['identities'].strip(']['))
-        info['identity'] = { 'providerName': identity['providerName'], 'userId': identity['userId'] }
-        info.pop('identities')
-    if 'given_name' in info:
-        info['name'] = info['given_name']
-        info.pop('given_name')
-    if 'family_name' in info:
-        if info['family_name'] != "NONE":
-            # do not append family name if login with amazon
-            if 'identity' in info:
-                if info['identity']['providerName'] != 'LoginWithAmazon':
-                    info['name'] += " " + info['family_name']
-            else:
-                info['name'] += " " + info['family_name']
-        info.pop('family_name')
-
-    # add username to info for Login via Social IDP (Facebook, Google, Amazon)
-    info['username'] = username
-
-
-    msg = {'status': 'OK', 'message': 'Userinfo queried successfully.', 'info': info}
-    if new_token:
-        msg['new_token'] = new_token
-    response = json.dumps(msg)
-    print('\r\nUserinfo queried successful: {}\r\n{}\r\n'.format(username, response))
-    return response
-
-
-########################################################################################################
-#
-# DELETE USER
-#
-# - Request:
-#   DELETE /user
-#   headers: {'Authorization': 'Bearer ' + token.access}
-#
-# - Response:
-#   {'status': 'OK', 'message': string }
-#   {'status': 'NG', 'message': string}
-#
-########################################################################################################
 @app.route('/user', methods=['DELETE'])
 def delete_user():
-    # get token from Authorization header
-    auth_header_token = get_auth_header_token()
-    if auth_header_token is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Delete user: Invalid authorization header\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    token = {'access': auth_header_token}
+    return g_identity_authentication.delete_user()
 
-    # get username from token
-    username = g_database_client.get_username_from_token(token)
-    if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Delete user: Token expired\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    print('delete_user username={}'.format(username))
-
-    # check if a parameter is empty
-    if len(username) == 0 or len(token) == 0:
-        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-        print('\r\nERROR Delete user: Empty parameter found\r\n')
-        # NOTE:
-        # No need to return error code status.HTTP_401_UNAUTHORIZED since this is a logout
-        return response, status.HTTP_400_BAD_REQUEST
-
-    # check if username and token is valid
-    verify_ret, new_token = g_database_client.verify_token(username, token)
-    if verify_ret == 2: # token expired
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Delete user: Token expired [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
-    elif verify_ret != 0:
-        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
-        print('\r\nERROR Delete user: Token is invalid [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
-
-    # delete the user in cognito
-    if new_token:
-        result = g_database_client.delete_user(username, new_token['access'])
-    else:
-        result = g_database_client.delete_user(username, token['access'])
-    if result == False:
-        response = json.dumps({'status': 'NG', 'message': 'Delete user failed internal error'})
-        print('\r\nERROR Delete user: Internal error [{}]\r\n'.format(username))
-        return response, status.HTTP_500_INTERNAL_SERVER_ERROR
-
-    # TODO: delete user devices
-
-    msg = {'status': 'OK', 'message': 'Delete user successful.'}
-    if new_token:
-        msg['new_token'] = new_token
-    response = json.dumps(msg)
-    print('\r\nDelete user successful: {}\r\n{}\r\n'.format(username, response))
-    return response
-
-
-########################################################################################################
-#
-# REFRESH USER TOKEN
-#
-# - Request:
-#   POST /user/token
-#   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-#   data: { 'refresh': string, 'id: string' }
-#
-# - Response:
-#   {'status': 'OK', 'message': string, 'token' : {'access': string, 'refresh': string, 'id': string} }
-#   {'status': 'NG', 'message': string}
-#
-########################################################################################################
 @app.route('/user/token', methods=['POST'])
 def refresh_user_token():
-    # get token from Authorization header
-    auth_header_token = get_auth_header_token()
-    if auth_header_token is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Refresh token: Invalid authorization header\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    token = {'access': auth_header_token}
+    return g_identity_authentication.refresh_user_token()
 
-    #print('refresh_user_token')
-
-    # check if a parameter is empty
-    if len(token) == 0:
-        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-        print('\r\nERROR Refresh token: Empty parameter found\r\n')
-        # NOTE:
-        # No need to return error code status.HTTP_401_UNAUTHORIZED since this is a logout
-        return response, status.HTTP_400_BAD_REQUEST
-
-    # get refresh and id token
-    data = flask.request.get_json()
-    if not data.get("refresh") or not data.get("id"):
-        response = json.dumps({'status': 'NG', 'message': 'Refresh and ID tokens are not provided'})
-        print('\r\nERROR Refresh token: Refresh and ID tokens are not provided\r\n')
-        return response, status.HTTP_400_BAD_REQUEST
-    token['refresh'] = data['refresh']
-    token['id'] = data['id']
-
-    # refresh the access token
-    new_token = g_database_client.refresh_token(token)
-    if new_token is None:
-        response = json.dumps({'status': 'NG', 'message': 'Refresh token invalid'})
-        print('\r\nERROR Refresh token: Token expired. DATETIME {}\r\n\r\n'.format(datetime.datetime.now()))
-        return response, status.HTTP_500_INTERNAL_SERVER_ERROR
-
-    # update mobile device token
-    try:
-        g_database_client.update_mobile_device_token(token["access"], new_token["access"])
-    except:
-        print("exception update_mobile_device_token")
-        pass
-
-    msg = {'status': 'OK', 'message': 'Refresh token successful.', 'token': new_token}
-    response = json.dumps(msg)
-    print('\r\nRefresh token successful DATETIME {}\r\n'.format(datetime.datetime.now()))
-    return response
-
-
-########################################################################################################
-#
-# VERIFY PHONE NUMBER
-#
-# - Request:
-#   POST /user/verify_phone_number
-#   headers: {'Authorization': 'Bearer ' + token.access}
-#
-# - Response:
-#   {'status': 'OK', 'message': string}
-#   {'status': 'NG', 'message': string}
-#
-########################################################################################################
 @app.route('/user/verify_phone_number', methods=['POST'])
 def verify_phone_number():
-    # get token from Authorization header
-    auth_header_token = get_auth_header_token()
-    if auth_header_token is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Verify phone: Invalid authorization header\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    token = {'access': auth_header_token}
+    return g_identity_authentication.verify_phone_number()
 
-    # get username from token
-    username = g_database_client.get_username_from_token(token)
-    if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Verify phone: Token expired\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    print('verify_phone_number username={}'.format(username))
-
-    # check if a parameter is empty
-    if len(username) == 0 or len(token) == 0:
-        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-        print('\r\nERROR Verify phone: Empty parameter found\r\n')
-        return response, status.HTTP_400_BAD_REQUEST
-
-    # check if username and token is valid
-    verify_ret, new_token = g_database_client.verify_token(username, token)
-    if verify_ret == 2: # token expired
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Verify phone: Token expired [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
-    elif verify_ret != 0:
-        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
-        print('\r\nERROR Verify phone: Token is invalid [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
-
-
-    if CONFIG_ALLOW_LOGIN_VIA_PHONE_NUMBER:
-        info = g_database_client.get_user_info(token['access'])
-        if info is not None:
-            # since login via phone_number is now allowed,
-            # the phone_number must be unique,
-            # so check if phone_number is already taken or not
-            if g_database_client.get_username_by_phonenumber(info["phone_number"]) is not None:
-                response = json.dumps({'status': 'NG', 'message': 'Phone number is already registered to another user'})
-                print('\r\nERROR Signup: Phone number is already registered to another user [{}]\r\n'.format(info["phone_number"]))
-                return response, status.HTTP_400_BAD_REQUEST
-
-
-    # verify phone number
-    result = g_database_client.request_verify_phone_number(token["access"])
-    if not result:
-        response = json.dumps({'status': 'NG', 'message': 'Request failed'})
-        print('\r\nERROR Verify phone: Request failed [{}]\r\n'.format(username))
-        return response, status.HTTP_500_INTERNAL_SERVER_ERROR
-
-    response = json.dumps({'status': 'OK', 'message': 'Verify phone successful'})
-    print('\r\nVerify phone successful: {}\r\n{}\r\n'.format(username, response))
-    return response
-
-
-########################################################################################################
-#
-# CONFIRM VERIFY PHONE NUMBER
-#
-# - Request:
-#   POST /user/confirm_verify_phone_number
-#   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-#   data: {'confirmationcode': string}
-#
-# - Response:
-#   {'status': 'OK', 'message': string}
-#   {'status': 'NG', 'message': string}
-#
-########################################################################################################
 @app.route('/user/confirm_verify_phone_number', methods=['POST'])
 def confirm_verify_phone_number():
-    # get token from Authorization header
-    auth_header_token = get_auth_header_token()
-    if auth_header_token is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Confirm verify phone: Invalid authorization header\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    token = {'access': auth_header_token}
+    return g_identity_authentication.confirm_verify_phone_number()
 
-    # get username from token
-    username = g_database_client.get_username_from_token(token)
-    if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Confirm verify phone: Token expired\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    print('confirm_verify_phone_number username={}'.format(username))
-
-    # check if a parameter is empty
-    if len(username) == 0 or len(token) == 0:
-        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-        print('\r\nERROR Confirm verify phone: Empty parameter found\r\n')
-        return response, status.HTTP_400_BAD_REQUEST
-
-    # check if username and token is valid
-    verify_ret, new_token = g_database_client.verify_token(username, token)
-    if verify_ret == 2: # token expired
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Confirm verify phone: Token expired [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
-    elif verify_ret != 0:
-        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
-        print('\r\nERROR Confirm verify phone: Token is invalid [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
-
-    data = flask.request.get_json()
-
-    # confirm verify phone number
-    result = g_database_client.confirm_verify_phone_number(token["access"], data["confirmationcode"])
-    if not result:
-        response = json.dumps({'status': 'NG', 'message': 'Request failed'})
-        print('\r\nERROR Confirm verify phone: Request failed [{}]\r\n'.format(username))
-        return response, status.HTTP_500_INTERNAL_SERVER_ERROR
-
-    # update notifications for all devices to contain new phone number (for UART only)
-    try:
-        info = g_database_client.get_user_info(token['access'])
-        devices = g_database_client.get_devices(username)
-        sources = ["uart"]
-        for source in sources:
-            for device in devices:
-                notification = g_database_client.get_device_notification(username, device["devicename"], source)
-                if notification is not None:
-                    if info is not None:
-                        if info.get("phone_number"):
-                            notification["endpoints"]["mobile"]["recipients"] = info["phone_number"]
-                            notification["endpoints"]["mobile"]["recipients_list"] = []
-                            notification["endpoints"]["mobile"]["recipients_list"].append({ "to": info["phone_number"], "group": False })
-                            notification["endpoints"]["notification"]["recipients"] = info["phone_number"]
-                            notification["endpoints"]["notification"]["recipients_list"] = []
-                            notification["endpoints"]["notification"]["recipients_list"].append({ "to": info["phone_number"], "group": False })
-                        if info.get("phone_number_verified"):
-                            notification["endpoints"]["mobile"]["enable"] = info["phone_number_verified"]
-                            notification["endpoints"]["notification"]["enable"] = False
-                        g_database_client.update_device_notification(username, device["devicename"], source, notification)
-    except:
-        print("exception")
-        pass
-
-    response = json.dumps({'status': 'OK', 'message': 'Confirm verify phone successful'})
-    print('\r\nConfirm verify phone successful: {}\r\n{}\r\n'.format(username, response))
-    return response
-
-
-########################################################################################################
-#
-# CHANGE PASSWORD
-#
-# - Request:
-#   POST /user/change_password
-#   headers: {'Authorization': 'Bearer ' + token.access}
-#   data: {'token': jwtEncode(password, newpassword)}
-#
-# - Response:
-#   {'status': 'OK', 'message': string}
-#   {'status': 'NG', 'message': string}
-#
-########################################################################################################
 @app.route('/user/change_password', methods=['POST'])
 def change_password():
-    # get token from Authorization header
-    auth_header_token = get_auth_header_token()
-    if auth_header_token is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Change password: Invalid authorization header\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    token = {'access': auth_header_token}
+    return g_identity_authentication.change_password()
 
-    # get username from token
-    username = g_database_client.get_username_from_token(token)
-    if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Change password: Token expired\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    print('refresh_user_token username={}'.format(username))
+@app.route('/user/login/idp/code/<id>', methods=['POST'])
+def login_idp_storecode(id):
+    return g_identity_authentication.login_idp_storecode(id)
 
-    # check if a parameter is empty
-    if len(username) == 0 or len(token) == 0:
-        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-        print('\r\nERROR Change password: Empty parameter found\r\n')
-        return response, status.HTTP_400_BAD_REQUEST
+@app.route('/user/login/idp/code/<id>', methods=['GET'])
+def login_idp_querycode(id):
+    return g_identity_authentication.login_idp_querycode(id)
 
-    # check if username and token is valid
-    verify_ret, new_token = g_database_client.verify_token(username, token)
-    if verify_ret == 2: # token expired
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Change password: Token expired [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
-    elif verify_ret != 0:
-        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
-        print('\r\nERROR Change password: Token is invalid [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
-
-    data = flask.request.get_json()
-    password, newpassword, reason = get_jwtencode_user_pass(data["token"])
-    if password is None or newpassword is None:
-        response = json.dumps({'status': 'NG', 'message': reason})
-        print('\r\nERROR Change password: Password newpassword format invalid\r\n')
-        return response, status.HTTP_400_BAD_REQUEST
-
-    # change password
-    result = g_database_client.change_password(token["access"], password, newpassword)
-    if not result:
-        response = json.dumps({'status': 'NG', 'message': 'Request failed'})
-        print('\r\nERROR Change password: Request failed [{}]\r\n'.format(username))
-        return response, status.HTTP_500_INTERNAL_SERVER_ERROR
-
-    response = json.dumps({'status': 'OK', 'message': 'Change password successful'})
-    print('\r\nChange password successful: {}\r\n{}\r\n'.format(username, response))
-    return response
-
-
-########################################################################################################
-#
-# ENABLE MFA
-#
-# - Request:
-#   POST /user/mfa
-#   headers: {'Authorization': 'Bearer ' + token.access}
-#   data: {'enable': boolean}
-#
-# - Response:
-#   {'status': 'OK', 'message': string}
-#   {'status': 'NG', 'message': string}
-#
-########################################################################################################
 @app.route('/user/mfa', methods=['POST'])
 def enable_mfa():
-    # get token from Authorization header
-    auth_header_token = get_auth_header_token()
-    if auth_header_token is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Enable MFA: Invalid authorization header\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    token = {'access': auth_header_token}
+    return g_identity_authentication.enable_mfa()
 
-    # get username from token
-    username = g_database_client.get_username_from_token(token)
-    if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Enable MFA: Token expired\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    print('enable_mfa username={}'.format(username))
-
-    # check if a parameter is empty
-    if len(username) == 0 or len(token) == 0:
-        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-        print('\r\nERROR Enable MFA: Empty parameter found\r\n')
-        return response, status.HTTP_400_BAD_REQUEST
-
-    # check if username and token is valid
-    verify_ret, new_token = g_database_client.verify_token(username, token)
-    if verify_ret == 2: # token expired
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Enable MFA: Token expired [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
-    elif verify_ret != 0:
-        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
-        print('\r\nERROR Enable MFA: Token is invalid [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
-
-
-    data = flask.request.get_json()
-    if data.get("enable") is None:
-        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-        print('\r\nERROR Enable MFA: Empty parameter found\r\n')
-        return response, status.HTTP_400_BAD_REQUEST
-
-    # enable/disable MFA
-    if CONFIG_SUPPORT_MFA:
-        result = g_database_client.enable_mfa(token['access'], data['enable'])
-        if not result:
-            response = json.dumps({'status': 'NG', 'message': 'Request failed'})
-            print('\r\nERROR Enable MFA: Request failed [{}]\r\n'.format(username))
-            return response, status.HTTP_500_INTERNAL_SERVER_ERROR
-    else:
-        response = json.dumps({'status': 'NG', 'message': 'MFA Support has been DISABLED!'})
-        print('\r\nERROR Enable MFA: MFA Support has been DISABLED!\r\n')
-        return response, status.HTTP_400_BAD_REQUEST
-
-
-    if data['enable'] == True:
-        msg = {'status': 'OK', 'message': 'Enable MFA successful'}
-    else:
-        msg = {'status': 'OK', 'message': 'Disable MFA successful'}
-    response = json.dumps(msg)
-    print('\r\n{}: {}\r\n{}\r\n'.format(msg["message"], username, response))
-    return response
-
-
-########################################################################################################
-#
-# LOGIN MFA
-#
-# - Request:
-#   POST /user/login/mfa
-#   headers: {'Content-Type': 'application/json'}
-#   data: { 'username': string, 'confirmationcode': string }
-#
-# - Response:
-#   {'status': 'OK', 'message': string, 'token': {'access': string, 'id': string, 'refresh': string}, 'name': string }
-#   {'status': 'NG', 'message': string}
-#
-########################################################################################################
 @app.route('/user/login/mfa', methods=['POST'])
 def login_mfa():
-    data = flask.request.get_json()
-    if data.get("username") is None or data.get("confirmationcode") is None:
-        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-        print('\r\nERROR Login MFA: Empty parameter found [{}]\r\n'.format(username))
-        return response, status.HTTP_400_BAD_REQUEST
-
-    username = data['username']
-    mfacode = data['confirmationcode']
-    print('login_mfa username={} confirmationcode={}'.format(username, mfacode))
-
-    # check if a parameter is empty
-    if len(username) == 0 or len(mfacode) != 6:
-        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-        print('\r\nERROR Login MFA: Empty parameter found [{}]\r\n'.format(username))
-        return response, status.HTTP_400_BAD_REQUEST
+    return g_identity_authentication.login_mfa()
 
 
-    sessionkey = g_redis_client.mfa_get_session(username)
-    if sessionkey is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid request'})
-        print('\r\nERROR Login MFA: Invalid request [{}]\r\n'.format(username))
-        return response, status.HTTP_400_BAD_REQUEST
-
-    access, refresh, id = g_database_client.login_mfa(username, sessionkey, mfacode)
-    if not access:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid code'})
-        print('\r\nERROR Login MFA: Invalid code [{},{}]\r\n'.format(username, mfacode))
-        return response, status.HTTP_500_INTERNAL_SERVER_ERROR
-
-    g_redis_client.mfa_del_session(username)
-
-
-    # delete the couter for failed logins
-    attempts = g_redis_client.login_failed_get_attempts(username)
-    if attempts is not None:
-        g_redis_client.login_failed_del_attempts(username)
-
-    # return name during login as per special request
-    name = None
-    info = g_database_client.get_user_info(access)
-    if info:
-        # handle no family name
-        if 'given_name' in info:
-            name = info['given_name']
-        if 'family_name' in info:
-            if info['family_name'] != "NONE":
-                name += " " + info['family_name']
-
-    # Disable MFA since it is an expensive feature
-    g_database_client.admin_enable_mfa(username, False)
-
-
-    msg = {'status': 'OK', 'message': "Login MFA successful", 'token': {'access': access, 'refresh': refresh, 'id': id} }
-    if name is not None:
-        msg['name'] = name
-    response = json.dumps(msg)
-    #print('\r\nLogin successful: {}\r\n'.format(username))
-    return response
-
-
-########################################################################################################
-#
-# UPDATE USER INFO
-#
-# - Request:
-#   POST /user
-#   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-#   data: {'name': string, 'phone_number': string}
-#   // phone_number is optional
-#   // phone number should begin with "+" followed by country code then the number (ex. SG number +6512341234)
-# - Response:
-#   {'status': 'OK', 'message': string}
-#   {'status': 'NG', 'message': string}
-#
-########################################################################################################
-@app.route('/user', methods=['POST'])
-def update_user_info():
-    # get token from Authorization header
-    auth_header_token = get_auth_header_token()
-    if auth_header_token is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Update user: Invalid authorization header\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    token = {'access': auth_header_token}
-
-    # get username from token
-    username = g_database_client.get_username_from_token(token)
-    if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Update user: Token expired\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    print('update_user_info username={}'.format(username))
-
-    # check if a parameter is empty
-    if len(username) == 0 or len(token) == 0:
-        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-        print('\r\nERROR Update user: Empty parameter found\r\n')
-        return response, status.HTTP_400_BAD_REQUEST
-
-    # check if username and token is valid
-    verify_ret, new_token = g_database_client.verify_token(username, token)
-    if verify_ret == 2: # token expired
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Update user: Token expired [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
-    elif verify_ret != 0:
-        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
-        print('\r\nERROR Update user: Token is invalid [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
-
-    # get the input parameters
-    data = flask.request.get_json()
-    if data.get('phone_number'):
-        phonenumber = data['phone_number']
-    else:
-        phonenumber = None
-
-
-    if CONFIG_ALLOW_LOGIN_VIA_PHONE_NUMBER:
-        # since login via phone_number is now allowed,
-        # the phone_number must be unique,
-        # so check if phone_number is already taken or not
-        if g_database_client.get_username_by_phonenumber(phonenumber) is not None:
-            response = json.dumps({'status': 'NG', 'message': 'Phone number is already registered to another user'})
-            print('\r\nERROR Signup: Phone number is already registered to another user [{}]\r\n'.format(phonenumber))
-            return response, status.HTTP_400_BAD_REQUEST
-
-
-    #print(phonenumber)
-    name = data['name']
-    names = name.split(" ")
-    if (len(names) > 1):
-        givenname = " ".join(names[:-1])
-        familyname = names[-1]
-    else:
-        # handle no family name
-        givenname = names[0]
-        familyname = "NONE"
-
-    # change user
-    result = g_database_client.update_user(token["access"], phonenumber, givenname, familyname)
-    if not result:
-        response = json.dumps({'status': 'NG', 'message': 'Request failed'})
-        print('\r\nERROR Update user: Request failed [{}]\r\n'.format(username))
-        return response, status.HTTP_500_INTERNAL_SERVER_ERROR
-
-    response = json.dumps({'status': 'OK', 'message': 'Change password successful'})
-    print('\r\nUpdate user successful: {}\r\n{}\r\n'.format(username, response))
-    return response
-
-
-########################################################################################################
-#
-# REGISTER DEVICE TOKEN
-#
-# - Request:
-#   POST /mobile/devicetoken
-#   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-#   data: {'token': jwtEncode(devicetoken, service)}
-# - Response:
-#   {'status': 'OK', 'message': string}
-#   {'status': 'NG', 'message': string}
-#
-########################################################################################################
-@app.route('/mobile/devicetoken', methods=['POST'])
-def register_mobile_device_token():
-    # get token from Authorization header
-    auth_header_token = get_auth_header_token()
-    if auth_header_token is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Register mobile device token: Invalid authorization header\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    token = {'access': auth_header_token}
-
-    # get username from token
-    username = g_database_client.get_username_from_token(token)
-    if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Register mobile device token: Token expired\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    print('register_mobile_device_token username={}'.format(username))
-
-    # check if username and token is valid
-    verify_ret, new_token = g_database_client.verify_token(username, token)
-    if verify_ret == 2: # token expired
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Register mobile device token: Token expired [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
-    elif verify_ret != 0:
-        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
-        print('\r\nERROR Register mobile device token: Token is invalid [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
-
-    # decode the devicetoken and service
-    data = flask.request.get_json()
-    if data.get("token") is None:
-        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-        print('\r\nERROR Register mobile device token: Empty parameter found\r\n')
-        return response, status.HTTP_400_BAD_REQUEST
-    if len(data["token"]) == 0:
-        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found 2'})
-        print('\r\nERROR Register mobile device token: Empty parameter found 2\r\n')
-        return response, status.HTTP_400_BAD_REQUEST
-    devicetoken, service, reason = get_jwtencode_user_pass(data["token"])
-    if devicetoken is None or service is None:
-        response = json.dumps({'status': 'NG', 'message': reason})
-        print('\r\nERROR Register mobile device token: Devicetoken, service format invalid\r\n')
-        return response, status.HTTP_400_BAD_REQUEST
-    if service != "APNS" and service != "GCM":
-        response = json.dumps({'status': 'NG', 'message': reason})
-        print('\r\nERROR Register mobile device token: Service value is invalid\r\n')
-        return response, status.HTTP_400_BAD_REQUEST
-
-    # add mobile device token
-    g_database_client.add_mobile_device_token(username, devicetoken, service, token["access"])
-
-    #print('\r\nAdded mobile device token\r\n{}\r\n{}\r\n{}\r\n'.format(devicetoken, service, token["access"]))
-    #print("")
-    #devicetoken = g_database_client.get_all_mobile_device_token(username)
-    #print(len(devicetoken))
-    #print(devicetoken)
-    #print("")
-
-    response = json.dumps({'status': 'OK', 'message': 'Register mobile device token successful'})
-    print('\r\nRegister mobile device token successful: {} {} {}\r\n'.format(username, service, devicetoken))
-    return response
-
-
-#########################
-
-
-########################################################################################################
-#
-# GET ORGANIZATION
-#
-# - Request:
-#   GET /user/organization
-#   headers: {'Authorization': 'Bearer ' + token.access}
-#
-# - Response:
-#   {'status': 'OK', 'message': string}
-#   {'status': 'NG', 'message': string}
-#
-#
-# LEAVE ORGANIZATION
-#
-# - Request:
-#   GET /user/organization
-#   headers: {'Authorization': 'Bearer ' + token.access}
-#
-# - Response:
-#   {'status': 'OK', 'message': string}
-#   {'status': 'NG', 'message': string}
-#
-########################################################################################################
-@app.route('/user/organization', methods=['GET', 'DELETE'])
+@app.route('/user/organization', methods=['GET'])
 def get_organization():
-    # get token from Authorization header
-    auth_header_token = get_auth_header_token()
-    if auth_header_token is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Get organization: Invalid authorization header\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    token = {'access': auth_header_token}
+    return g_identity_authentication.get_organization()
 
-    # get username from token
-    username = g_database_client.get_username_from_token(token)
-    if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Get organization: Token expired\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    print('get_organization username={}'.format(username))
+@app.route('/user/organization', methods=['DELETE'])
+def leave_organization():
+    return g_identity_authentication.get_organization()
 
-    # check if a parameter is empty
-    if len(username) == 0 or len(token) == 0:
-        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-        print('\r\nERROR Get organization: Empty parameter found\r\n')
-        return response, status.HTTP_400_BAD_REQUEST
-
-    # check if username and token is valid
-    verify_ret, new_token = g_database_client.verify_token(username, token)
-    if verify_ret == 2: # token expired
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Get organization: Token expired [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
-    elif verify_ret != 0:
-        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
-        print('\r\nERROR Get organization: Token is invalid [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
-
-
-    # get or leave organization
-    if flask.request.method == 'GET':
-        organization = g_database_client.get_organization(username)
-        msg = {'status': 'OK', 'message': 'Get organization successful'}
-        if organization:
-            msg["organization"] = organization
-        else:
-            msg["message"] = "No organization"
-
-    elif flask.request.method == 'DELETE':
-        g_database_client.leave_organization(username)
-        msg = {'status': 'OK', 'message': 'Leave organization successful'}
-
-
-    response = json.dumps(msg)
-    print('\r\n{} successful: {}\r\n'.format(msg["message"], username))
-    return response
-
-
-########################################################################################################
-#
-# ACCEPT ORGANIZATION INVITATION
-#
-# - Request:
-#   POST /user/organization/invitation
-#   headers: {'Authorization': 'Bearer ' + token.access}
-#
-# - Response:
-#   {'status': 'OK', 'message': string}
-#   {'status': 'NG', 'message': string}
-#
-#
-# DECLINE ORGANIZATION INVITATION
-#
-# - Request:
-#   POST /user/organization/invitation
-#   headers: {'Authorization': 'Bearer ' + token.access}
-#
-# - Response:
-#   {'status': 'OK', 'message': string}
-#   {'status': 'NG', 'message': string}
-#
-########################################################################################################
-@app.route('/user/organization/invitation', methods=['POST', 'DELETE'])
+@app.route('/user/organization/invitation', methods=['POST'])
 def accept_organization_invitation():
-    # get token from Authorization header
-    auth_header_token = get_auth_header_token()
-    if auth_header_token is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Accept organization invitation: Invalid authorization header\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    token = {'access': auth_header_token}
+    return g_identity_authentication.accept_organization_invitation()
 
-    # get username from token
-    username = g_database_client.get_username_from_token(token)
-    if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Accept organization invitation: Token expired\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    print('accept_organization_invitation username={}'.format(username))
+@app.route('/user/organization/invitation', methods=['DELETE'])
+def decline_organization_invitation():
+    return g_identity_authentication.accept_organization_invitation()
 
-    # check if a parameter is empty
-    if len(username) == 0 or len(token) == 0:
-        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-        print('\r\nERROR Accept organization invitation: Empty parameter found\r\n')
-        return response, status.HTTP_400_BAD_REQUEST
-
-    # check if username and token is valid
-    verify_ret, new_token = g_database_client.verify_token(username, token)
-    if verify_ret == 2: # token expired
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Accept organization invitation: Token expired [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
-    elif verify_ret != 0:
-        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
-        print('\r\nERROR Accept organization invitation: Token is invalid [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
-
-
-    # accept or decline invitation
-    if flask.request.method == 'POST':
-        result, errorcode = g_database_client.accept_organization_invitation(username)
-        if not result:
-            if errorcode == 401:
-                errormsg = "User is not allowed to accept invitation"
-            elif errorcode == 404:
-                errormsg = "User is not allowed to accept invitation"
-            else:
-                errormsg = "Accept organization invitation failed"
-            response = json.dumps({'status': 'NG', 'message': errormsg})
-            print('\r\nERROR {} [{}]\r\n'.format(errormsg, username))
-            return response, errorcode
-        msg = {'status': 'OK', 'message': 'Accept organization invitation successful'}
-
-    elif flask.request.method == 'DELETE':
-        result, errorcode = g_database_client.decline_organization_invitation(username)
-        if not result:
-            if errorcode == 401:
-                errormsg = "User is not allowed to accept invitation"
-            elif errorcode == 404:
-                errormsg = "User is not allowed to accept invitation"
-            else:
-                errormsg = "Decline organization invitation failed"
-            response = json.dumps({'status': 'NG', 'message': errormsg})
-            print('\r\nERROR {} [{}]\r\n'.format(errormsg, username))
-            return response, errorcode
-        msg = {'status': 'OK', 'message': 'Decline organization invitation successful'}
-
-    response = json.dumps(msg)
-    print('\r\n{} successful: {}\r\n'.format(msg["message"], username))
-    return response
+g_identity_authentication_list = [
+    { "name": "SIGN-UP",                         "func": signup,                          "api": "/user/signup",                      "method": "POST"   },
+    { "name": "CONFIRM SIGN-UP",                 "func": confirm_signup,                  "api": "/user/confirm_signup",              "method": "POST"   },
+    { "name": "RESEND CONFIRMATION CODE",        "func": resend_confirmation_code,        "api": "/user/resend_confirmation_code",    "method": "POST"   },
+    { "name": "FORGOT PASSWORD",                 "func": forgot_password,                 "api": "/user/forgot_password",             "method": "POST"   },
+    { "name": "CONFIRM FORGOT PASSWORD",         "func": confirm_forgot_password,         "api": "/user/confirm_forgot_password",     "method": "POST"   },
+    { "name": "LOGIN",                           "func": login,                           "api": "/user/login",                       "method": "POST"   },
+    { "name": "LOGOUT",                          "func": logout,                          "api": "/user/logout",                      "method": "POST"   },
+    { "name": "GET USER INFO",                   "func": get_user,                        "api": "/user",                             "method": "GET"    },
+    { "name": "UPDATE USER INFO",                "func": update_user,                     "api": "/user",                             "method": "POST"   },
+    { "name": "DELETE USER",                     "func": delete_user,                     "api": "/user",                             "method": "DELETE" },
+    { "name": "REFRESH USER TOKEN",              "func": refresh_user_token,              "api": "/user/token",                       "method": "POST"   },
+    { "name": "VERIFY PHONE NUMBER",             "func": verify_phone_number,             "api": "/user/verify_phone_number",         "method": "POST"   },
+    { "name": "CONFIRM VERIFY PHONE NUMBER",     "func": confirm_verify_phone_number,     "api": "/user/confirm_verify_phone_number", "method": "POST"   },
+    { "name": "CHANGE PASSWORD",                 "func": change_password,                 "api": "/user/change_password",             "method": "POST"   },
+    { "name": "LOGIN IDP STORE CODE",            "func": login_idp_storecode,             "api": "/user/login/idp/code/<id>",         "method": "POST"   },
+    { "name": "LOGIN IDP QUERY CODE",            "func": login_idp_querycode,             "api": "/user/login/idp/code/<id>",         "method": "GET"    },
+    { "name": "ENABLE MFA",                      "func": enable_mfa,                      "api": "/user/mfa",                         "method": "POST"   },
+    { "name": "LOGIN MFA",                       "func": login_mfa,                       "api": "/user/login/mfa",                   "method": "POST"   },
+    { "name": "GET ORGANIZATION",                "func": get_organization,                "api": "/user/organization",                "method": "POST"   },
+    { "name": "LEAVE ORGANIZATION",              "func": leave_organization,              "api": "/user/organization",                "method": "DELETE" },
+    { "name": "ACCEPT ORGANIZATION INVITATION",  "func": accept_organization_invitation,  "api": "/user/organization/invitation",     "method": "POST"   },
+    { "name": "DECLINE ORGANIZATION INVITATION", "func": decline_organization_invitation, "api": "/user/organization/invitation",     "method": "DELETE" },
+]
 
 
 ########################################################################################################
 #
-# CREATE ORGANIZATION
-#
-# - Request:
-#   POST /organizations/organization/ORGNAME
-#   headers: {'Authorization': 'Bearer ' + token.access}
-#
-# - Response:
-#   {'status': 'OK', 'message': string}
-#   {'status': 'NG', 'message': string}
-#
-#
-# DELETE ORGANIZATION
-#
-# - Request:
-#   POST /organizations/organization/ORGNAME
-#   headers: {'Authorization': 'Bearer ' + token.access}
-#
-# - Response:
-#   {'status': 'OK', 'message': string}
-#   {'status': 'NG', 'message': string}
+# ACCESS CONTROL
 #
 ########################################################################################################
-@app.route('/organizations/organization/<orgname>', methods=['POST', 'DELETE'])
+
+@app.route('/organizations/organization/<orgname>', methods=['POST'])
 def create_organization(orgname):
-    # get token from Authorization header
-    auth_header_token = get_auth_header_token()
-    if auth_header_token is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Create organization: Invalid authorization header\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    token = {'access': auth_header_token}
+    return g_access_control.create_organization(orgname)
 
-    # get username from token
-    username = g_database_client.get_username_from_token(token)
-    if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Create organization: Token expired\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    print('create_organization username={}'.format(username))
+@app.route('/organizations/organization/<orgname>', methods=['DELETE'])
+def delete_organization(orgname):
+    return g_access_control.create_organization(orgname)
 
-    # check if a parameter is empty
-    if len(username) == 0 or len(token) == 0:
-        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-        print('\r\nERROR Create organization: Empty parameter found\r\n')
-        return response, status.HTTP_400_BAD_REQUEST
-
-    # check if username and token is valid
-    verify_ret, new_token = g_database_client.verify_token(username, token)
-    if verify_ret == 2: # token expired
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Create organization: Token expired [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
-    elif verify_ret != 0:
-        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
-        print('\r\nERROR Create organization: Token is invalid [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
-
-
-    # check orgname
-    if len(orgname) == 0:
-        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-        print('\r\nERROR Create organization: Empty parameter found\r\n')
-        return response, status.HTTP_400_BAD_REQUEST
-
-    # create or delete organization
-    if flask.request.method == 'POST':
-
-        result, errorcode = g_database_client.create_organization(username, orgname)
-        if not result:
-            if errorcode == 401:
-                errormsg = "Cannot create another organization"
-            elif errorcode == 409:
-                errormsg = "Organization name already taken"
-            else:
-                errormsg = "Create organization failed"
-            response = json.dumps({'status': 'NG', 'message': errormsg})
-            print('\r\nERROR {} [{}]\r\n'.format(errormsg, username))
-            return response, errorcode
-        msg = {'status': 'OK', 'message': 'Create organization successful'}
-
-    elif flask.request.method == 'DELETE':
-
-        # get organization
-        result, errorcode = g_database_client.delete_organization(username, orgname)
-        if not result:
-            if errorcode == 404:
-                errormsg = "Organization not found"
-            elif errorcode == 401:
-                errormsg = "User is not the owner of the organization"
-            else:
-                errormsg = "Delete organization failed"
-            response = json.dumps({'status': 'NG', 'message': errormsg})
-            print('\r\nERROR {} [{}]\r\n'.format(errormsg, username))
-            return response, errorcode
-
-        msg = {'status': 'OK', 'message': 'Delete organization successful'}
-
-
-    print('\r\n{}: {}\r\n'.format(msg["message"], username))
-    response = json.dumps(msg)
-    return response
-
-
-########################################################################################################
-#
-# CREATE/CANCEL INVITATIONS
-#
-# - Request:
-#   POST /organizations/organization/ORGNAME/invitation
-#   headers: {'Authorization': 'Bearer ' + token.access}
-#   data: {'emails': [], 'cancel': 1}
-#
-# - Response:
-#   {'status': 'OK', 'message': string}
-#   {'status': 'NG', 'message': string}
-#
-########################################################################################################
 @app.route('/organizations/organization/<orgname>/invitation', methods=['POST'])
 def create_organization_invitation(orgname):
-    # get token from Authorization header
-    auth_header_token = get_auth_header_token()
-    if auth_header_token is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Create organization invitation: Invalid authorization header\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    token = {'access': auth_header_token}
+    return g_access_control.create_organization_invitation(orgname)
 
-    # get username from token
-    username = g_database_client.get_username_from_token(token)
-    if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Create organization invitation: Token expired\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    print('create_organization_invitation username={}'.format(username))
-
-    # check if a parameter is empty
-    if len(username) == 0 or len(token) == 0:
-        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-        print('\r\nERROR Create organization invitation: Empty parameter found\r\n')
-        return response, status.HTTP_400_BAD_REQUEST
-
-    # check if username and token is valid
-    verify_ret, new_token = g_database_client.verify_token(username, token)
-    if verify_ret == 2: # token expired
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Create organization invitation: Token expired [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
-    elif verify_ret != 0:
-        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
-        print('\r\nERROR Create organization invitation: Token is invalid [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
-
-
-    # check orgname
-    if len(orgname) == 0:
-        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-        print('\r\nERROR Create organization invitation: Empty parameter found\r\n')
-        return response, status.HTTP_400_BAD_REQUEST
-
-    # check parameter
-    data = flask.request.get_json()
-    #print(data)
-    if data.get("emails") is None:
-        response = json.dumps({'status': 'NG', 'message': 'Parameters not included'})
-        print('\r\nERROR Create organization invitation: Parameters not included [{}]\r\n'.format(username))
-        return response, status.HTTP_400_BAD_REQUEST
-    if len(data["emails"]) == 0:
-        response = json.dumps({'status': 'NG', 'message': 'Parameters not included'})
-        print('\r\nERROR Create organization invitation: Parameters not included [{}]\r\n'.format(username))
-        return response, status.HTTP_400_BAD_REQUEST
-    cancel = 0
-    if data.get("cancel") is not None:
-        cancel = data["cancel"]
-
-    # create or cancel organization invitation
-    results = []
-    allfailed = True
-    if cancel == 0:
-        result = g_database_client.check_create_organization_invitations(username, orgname, data["emails"])
-        if result == False:
-            msg = {'status': 'NG', 'message': 'Some of the emails are invalid.'}
-        else:
-            for email in data["emails"]:
-                result, errorcode = g_database_client.create_organization_invitation(username, orgname, email)
-                if not result:
-                    if errorcode == 400:
-                        errormsg = "User already a member of the organization"
-                    elif errorcode == 401:
-                        errormsg = "User is not the owner of the organization"
-                    elif errorcode == 404:
-                        errormsg = "Organization not found"
-                    elif errorcode == 409:
-                        errormsg = "User already exist"
-                    else:
-                        errormsg = "Create organization invitation failed"
-                    results.append({"email": email, "result": 0, "errormsg": errormsg})
-                else:
-                    allfailed = False
-                    results.append({"email": email, "result": 1})
-            if allfailed == True:
-                msg = {'status': 'NG', 'message': 'Create organization invitation failed', 'results': results}
-            else:
-                msg = {'status': 'OK', 'message': 'Create organization invitation successful', 'results': results}
-
-                # send email invitation
-                try:
-                    pubtopic = CONFIG_PREPEND_REPLY_TOPIC + CONFIG_SEPARATOR + orgname + CONFIG_SEPARATOR + "send_invitation_organization"
-                    payload  = {"owner": username, "recipients": []}
-                    for result in results:
-                        if result["result"] == 1:
-                            payload["recipients"].append(result["email"])
-                    if len(payload["recipients"]):
-                        g_messaging_client.publish(pubtopic, json.dumps(payload))
-                except:
-                    print("Send email invitation failed!")
-                    pass
-
-    else:
-        result = g_database_client.check_cancel_organization_invitations(username, orgname, data["emails"])
-        if result == False:
-            msg = {'status': 'NG', 'message': 'Some of the emails are invalid.'}
-        else:
-            for email in data["emails"]:
-                result, errorcode = g_database_client.cancel_organization_invitation(username, orgname, email)
-                if not result:
-                    if errorcode == 400:
-                        errormsg = "User status is not Invited"
-                    elif errorcode == 401:
-                        errormsg = "User is not the owner of the organization"
-                    elif errorcode == 404:
-                        errormsg = "Organization or user not found"
-                    else:
-                        errormsg = "Delete organization invitation failed"
-                    results.append({"email": email, "result": 0, "errormsg": errormsg})
-                else:
-                    allfailed = False
-                    results.append({"email": email, "result": 1})
-            if allfailed == True:
-                msg = {'status': 'NG', 'message': 'Delete organization invitation failed', 'results': results}
-            else:
-                msg = {'status': 'OK', 'message': 'Delete organization invitation successful', 'results': results}
-
-
-    print('\r\n{}: {}\r\n'.format(msg["message"], username))
-    response = json.dumps(msg)
-    return response
-
-
-########################################################################################################
-#
-# UPDATE/REMOVE MEMBERSHIPS
-#
-# - Request:
-#   POST /organizations/organization/ORGNAME/membership
-#   headers: {'Authorization': 'Bearer ' + token.access}
-#   data: {'emails': [], 'remove': 1}
-#
-# - Response:
-#   {'status': 'OK', 'message': string}
-#   {'status': 'NG', 'message': string}
-#
-########################################################################################################
 @app.route('/organizations/organization/<orgname>/membership', methods=['POST'])
 def update_organization_membership(orgname):
-    # get token from Authorization header
-    auth_header_token = get_auth_header_token()
-    if auth_header_token is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Update organization membership: Invalid authorization header\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    token = {'access': auth_header_token}
+    return g_access_control.update_organization_membership(orgname)
 
-    # get username from token
-    username = g_database_client.get_username_from_token(token)
-    if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Update organization membership: Token expired\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    print('create_organization_invitation username={}'.format(username))
-
-    # check if a parameter is empty
-    if len(username) == 0 or len(token) == 0:
-        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-        print('\r\nERROR Update organization membership: Empty parameter found\r\n')
-        return response, status.HTTP_400_BAD_REQUEST
-
-    # check if username and token is valid
-    verify_ret, new_token = g_database_client.verify_token(username, token)
-    if verify_ret == 2: # token expired
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Update organization membership: Token expired [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
-    elif verify_ret != 0:
-        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
-        print('\r\nERROR Update organization membership: Token is invalid [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
-
-
-    # check orgname
-    if len(orgname) == 0:
-        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-        print('\r\nERROR Update organization membership: Empty parameter found\r\n')
-        return response, status.HTTP_400_BAD_REQUEST
-
-    # check parameter
-    data = flask.request.get_json()
-    #print(data)
-    if data.get("emails") is None:
-        response = json.dumps({'status': 'NG', 'message': 'Parameters not included'})
-        print('\r\nERROR Update organization membership: Parameters not included [{}]\r\n'.format(username))
-        return response, status.HTTP_400_BAD_REQUEST
-    if len(data["emails"]) == 0:
-        response = json.dumps({'status': 'NG', 'message': 'Parameters not included'})
-        print('\r\nERROR Update organization membership: Parameters not included [{}]\r\n'.format(username))
-        return response, status.HTTP_400_BAD_REQUEST
-    remove = 0
-    if data.get("remove") is not None:
-        remove = data["remove"]
-
-    # update or remove organization membership
-    results = []
-    allfailed = True
-    if remove == 0:
-        msg = {'status': 'OK', 'message': 'Update membership successful', 'results': results}
-        pass
-
-    else:
-        result = g_database_client.check_remove_organization_memberships(username, orgname, data["emails"])
-        if result == False:
-            msg = {'status': 'NG', 'message': 'Some of the emails are invalid.'}
-        else:
-            for email in data["emails"]:
-                result, errorcode = g_database_client.remove_organization_membership(username, orgname, email)
-                if not result:
-                    if errorcode == 400:
-                        errormsg = "User status is not Invited"
-                    elif errorcode == 401:
-                        errormsg = "User is not the owner of the organization"
-                    elif errorcode == 404:
-                        errormsg = "Organization or user not found"
-                    else:
-                        errormsg = "Remove membership failed"
-                    results.append({"email": email, "result": 0, "errormsg": errormsg})
-                else:
-                    allfailed = False
-                    results.append({"email": email, "result": 1})
-            if allfailed == True:
-                msg = {'status': 'NG', 'message': 'Remove membership failed', 'results': results}
-            else:
-                msg = {'status': 'OK', 'message': 'Remove membership successful', 'results': results}
-
-
-    print('\r\n{}: {}\r\n'.format(msg["message"], username))
-    response = json.dumps(msg)
-    return response
-
-
-#########################
+g_access_control_list = [
+    { "name": "CREATE ORGANIZATION",             "func": signup,                          "api": "/organizations/organization/<orgname>",            "method": "POST"   },
+    { "name": "DELETE ORGANIZATION",             "func": confirm_signup,                  "api": "/organizations/organization/<orgname>",            "method": "DELETE" },
+    { "name": "CREATE/CANCEL INVITATIONS",       "func": resend_confirmation_code,        "api": "/organizations/organization/<orgname>/invitation", "method": "POST"   },
+    { "name": "UPDATE/REMOVE MEMBERSHIPS",       "func": forgot_password,                 "api": "/organizations/organization/<orgname>/membership", "method": "POST"   },
+]
 
 
 ########################################################################################################
 #
-# GET SUBSCRIPTION
-#
-# - Request:
-#   GET /account/subscription
-#   headers: {'Authorization': 'Bearer ' + token.access}
-#
-# - Response:
-#  {'status': 'OK', 'message': string, 'subscription': {'credits': string, 'type': string} }
-#  {'status': 'NG', 'message': string}
+# PAYMENT ACCOUNTING
 #
 ########################################################################################################
+
 @app.route('/account/subscription', methods=['GET'])
 def get_subscription():
-    # get token from Authorization header
-    auth_header_token = get_auth_header_token()
-    if auth_header_token is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Get Subscription: Invalid authorization header\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    token = {'access': auth_header_token}
+    return g_payment_accounting.get_subscription()
 
-    # get username from token
-    username = g_database_client.get_username_from_token(token)
-    if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Get Subscription: Token expired\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    print('get_subscription {}'.format(username))
-
-    # check if a parameter is empty
-    if len(username) == 0 or len(token) == 0:
-        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-        print('\r\nERROR Get Subscription: Empty parameter found\r\n')
-        # NOTE:
-        # No need to return error code status.HTTP_401_UNAUTHORIZED since this is a logout
-        return response, status.HTTP_400_BAD_REQUEST
-
-    # check if username and token is valid
-    verify_ret, new_token = g_database_client.verify_token(username, token)
-    if verify_ret == 2:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Get Subscription: Token expired [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
-    elif verify_ret != 0:
-        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
-        print('\r\nERROR Get Subscription: Token is invalid [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
-
-    subscription = g_database_client.get_subscription(username)
-    #print(subscription)
-    msg = {'status': 'OK', 'message': 'User subscription queried successfully.', 'subscription': subscription}
-
-
-    if new_token:
-        msg['new_token'] = new_token
-    response = json.dumps(msg)
-    print('\r\n{}: {}\r\n{}\r\n'.format(msg['message'], username, response))
-    return response
-
-
-########################################################################################################
-#
-# SET SUBSCRIPTION
-#
-# - Request:
-#   POST /account/subscription
-#   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-#   data: { 'credits': string }
-#
-# - Response:
-#  {'status': 'OK', 'message': string, 'subscription': {'credits': string, 'type': paid} }
-#  {'status': 'NG', 'message': string}
-#
-########################################################################################################
-#@app.route('/account/subscription', methods=['POST'])
-#def set_subscription():
-#    data = flask.request.get_json()
-#    credits = data['credits']
-#
-#    # get token from Authorization header
-#    auth_header_token = get_auth_header_token()
-#    if auth_header_token is None:
-#        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-#        print('\r\nERROR Set Subscription: Invalid authorization header\r\n')
-#        return response, status.HTTP_401_UNAUTHORIZED
-#    token = {'access': auth_header_token}
-#
-#    # get username from token
-#    username = g_database_client.get_username_from_token(token)
-#    if username is None:
-#        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-#        print('\r\nERROR Set Subscription: Token expired\r\n')
-#        return response, status.HTTP_401_UNAUTHORIZED
-#    print('set_subscription {}'.format(username))
-#
-#    # check if a parameter is empty
-#    if len(username) == 0 or len(token) == 0:
-#        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-#        print('\r\nERROR Set Subscription: Empty parameter found\r\n')
-#        # NOTE:
-#        # No need to return error code status.HTTP_401_UNAUTHORIZED since this is a logout
-#        return response, status.HTTP_400_BAD_REQUEST
-#
-#    # check if username and token is valid
-#    verify_ret, new_token = g_database_client.verify_token(username, token)
-#    if verify_ret == 2:
-#        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-#        print('\r\nERROR Set Subscription: Token expired [{}]\r\n'.format(username))
-#        return response, status.HTTP_401_UNAUTHORIZED
-#    elif verify_ret != 0:
-#        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
-#        print('\r\nERROR Set Subscription: Token is invalid [{}]\r\n'.format(username))
-#        # NOTE:
-#        # No need to return error code status.HTTP_401_UNAUTHORIZED since this is a logout
-#        return response, status.HTTP_401_UNAUTHORIZED
-#
-#    subscription = g_database_client.set_subscription(username, credits)
-#    #print(subscription)
-#    msg = {'status': 'OK', 'message': 'User subscription set successfully.', 'subscription': subscription}
-#
-#
-#    if new_token:
-#        msg['new_token'] = new_token
-#    response = json.dumps(msg)
-#    print('\r\n{}: {}\r\n{}\r\n'.format(msg['message'], username, response))
-#    return response
-#
-#########################
-
-
-def compute_credits_by_amount(amount):
-    return int(amount * 100)
-
-########################################################################################################
-#
-# PAYPAL SETUP
-#
-# - Request:
-#   POST /account/payment/paypalsetup
-#   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-#   data: { 'returnurl': string, 'cancelurl', string, 'amount': int }
-#
-# - Response:
-#   {'status': 'OK', 'message': string, 'payment': {'approvalurl': string, 'paymentid': string}}
-#   {'status': 'NG', 'message': string}
-#
-########################################################################################################
 @app.route('/account/payment/paypalsetup', methods=['POST'])
 def set_payment_paypal_setup():
-    data = flask.request.get_json()
-    if data.get("returnurl") is None or data.get("cancelurl") is None or data.get("amount") is None:
-        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-        print('\r\nERROR Paypal Setup: Empty parameter found\r\n')
-        return response, status.HTTP_400_BAD_REQUEST
-    payment = {}
-    payment["return_url"] = data["returnurl"]
-    payment["cancel_url"] = data["cancelurl"]
-    payment["item_price"] = data["amount"]
-    payment["item_credits"] = compute_credits_by_amount(data["amount"])
-    payment["item_sku"] = 'CREDS{}USD{}'.format(payment["item_credits"], payment["item_price"])
+    return g_payment_accounting.set_payment_paypal_setup()
 
-    # get token from Authorization header
-    auth_header_token = get_auth_header_token()
-    if auth_header_token is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Paypal Setup: Invalid authorization header\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    token = {'access': auth_header_token}
-
-    # get username from token
-    username = g_database_client.get_username_from_token(token)
-    if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Paypal Setup: Token expired\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    print('set_payment_paypal_setup {}'.format(username))
-
-    # check if a parameter is empty
-    if len(username) == 0 or len(token) == 0:
-        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-        print('\r\nERROR Paypal Setup: Empty parameter found\r\n')
-        return response, status.HTTP_400_BAD_REQUEST
-
-    # check if username and token is valid
-    verify_ret, new_token = g_database_client.verify_token(username, token)
-    if verify_ret == 2:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Paypal Setup: Token expired [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
-    elif verify_ret != 0:
-        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
-        print('\r\nERROR Paypal Setup: Token is invalid [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
-
-
-    #print(payment)
-    approval_url, payment_id, token = g_database_client.transactions_paypal_set_payment(username, token, payment)
-    msg = {'status': 'OK', 'message': 'Paypal payment setup successful.', 'payment': {'approvalurl': approval_url, 'paymentid': payment_id}}
-
-
-    if new_token:
-        msg['new_token'] = new_token
-    response = json.dumps(msg)
-    print('\r\n{}: {}\r\n'.format(msg['message'], username))
-    return response
-
-
-########################################################################################################
-#
-# PAYPAL STORE PAYERID
-#
-# - Request:
-#   POST /account/payment/paypalpayerid/<paymentid>
-#   headers: {'Content-Type': 'application/json'}
-#   data: { 'payerid': string }
-#
-# - Response:
-#   {'status': 'OK', 'message': string}
-#   {'status': 'NG', 'message': string}
-#   // When the returnurl callback from PAYPAL SETUP is called, the web app shall call PAYPAL STORE PAYERID.
-#   // This callback contains the parameters: PayerID and paymentID, needed for payerid and PAYMENTID, respectively
-#   // These parameters should then be stored 
-#
-########################################################################################################
 @app.route('/account/payment/paypalpayerid/<paymentid>', methods=['POST'])
 def store_payment_paypal_payerid(paymentid):
-    payerid = None
+    return g_payment_accounting.store_payment_paypal_payerid(paymentid)
 
-    data = flask.request.get_json()
-    if data.get("payerid"):
-        payerid = data["payerid"]
-
-    if CONFIG_USE_REDIS_FOR_PAYPAL:
-        # redis
-        g_redis_client.paypal_set_payerid(paymentid, payerid)
-    else:
-        g_database_client.paypal_set_payerid(paymentid, payerid)
-
-    return json.dumps({'status': 'OK', 'message': "Paypal Store PayerID successful."})
-
-
-########################################################################################################
-#
-# PAYPAL EXECUTE
-#
-# - Request:
-#   POST /account/payment/paypalexecute/<paymentid>
-#   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-#   data: {'payerid': payerid}
-#   // payerid is optional (available for mobile app scenario)
-#
-# - Response:
-#   {'status': 'OK', 'message': string, 'subscription': {'type': string, 'credits': int, 'prevcredits': int}}
-#   {'status': 'NG', 'message': string}
-#   // When the callback window completes and exits, the web/mobile app shall call PAYPAL EXECUTE
-#   // This API will internally read the QUERY PAYERID given the PAYMENTID
-#   // and then proceed with execution of the payment transaction
-#   // NG is returned when transaction fails (due to user cancelled or closed the window, etc)
-#
-########################################################################################################
 @app.route('/account/payment/paypalexecute/<paymentid>', methods=['POST'])
 def set_payment_paypal_execute(paymentid):
-    payment = {"paymentId": paymentid}
-    data = flask.request.get_json()
-    if data is not None and data.get("payerid"):
-        # mobile app case
-        payment["PayerID"] = data["payerid"]
-    else:
-        # web app case
-        if CONFIG_USE_REDIS_FOR_PAYPAL:
-            # redis
-            payment["PayerID"] = g_redis_client.paypal_get_payerid(paymentid)
-            if payment["PayerID"]:
-                g_redis_client.paypal_del_payerid(paymentid)
-        else:
-            payment["PayerID"] = g_database_client.paypal_get_payerid(paymentid)
-    if payment["PayerID"] is None or payment["PayerID"] == "":
-        response = json.dumps({'status': 'NG', 'message': 'Paypal payment execution failed.'})
-        return response
+    return g_payment_accounting.set_payment_paypal_execute(paymentid)
 
-    # get token from Authorization header
-    auth_header_token = get_auth_header_token()
-    if auth_header_token is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Paypal Execute: Invalid authorization header\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    token = {'access': auth_header_token}
-
-    # get username from token
-    username = g_database_client.get_username_from_token(token)
-    if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Paypal Execute: Token expired\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    print('set_payment_paypal_execute {}'.format(username))
-
-    # check if a parameter is empty
-    if len(username) == 0 or len(token) == 0:
-        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-        print('\r\nERROR Paypal Execute: Empty parameter found\r\n')
-        return response, status.HTTP_400_BAD_REQUEST
-
-    # check if username and token is valid
-    verify_ret, new_token = g_database_client.verify_token(username, token)
-    if verify_ret == 2:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Paypal Execute: Token expired [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
-    elif verify_ret != 0:
-        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
-        print('\r\nERROR Paypal Execute: Token is invalid [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
-
-    #print(payment)
-    subscription = None
-    status, payment_result = g_database_client.transactions_paypal_execute_payment(username, payment)
-    if status:
-        status, amount = g_database_client.transactions_paypal_verify_payment(username, payment)
-        if status:
-            msg = {'status': 'OK', 'message': 'Paypal payment verified successful.'}
-
-            # get the credits
-            credits = compute_credits_by_amount(float(amount))
-            #print("amount: {} == credits: {}".format(amount, credits))
-
-            # get the current subscription value
-            subscription_old = g_database_client.get_subscription(username)
-            #print("old: {}".format(subscription_old))
-
-            # add the new subscription credits
-            subscription = g_database_client.set_subscription(username, credits)
-            #print("new: {}".format(subscription))
-            if subscription:
-                subscription["prevcredits"] = subscription_old["credits"]
-                msg["subscription"] = subscription
-
-            # record the paypal transaction
-            transaction = g_database_client.record_paypal_payment(username, payment_result, credits, subscription["prevcredits"], subscription["credits"])
-            #print(transaction)
-
-            # send email receipt/invoice
-            try:
-                pubtopic = CONFIG_PREPEND_REPLY_TOPIC + CONFIG_SEPARATOR + paymentid + CONFIG_SEPARATOR + "send_invoice"
-                payload  = json.dumps({})
-                g_messaging_client.publish(pubtopic, payload)
-                #print("publish xxxxxxxxxxxxx")
-            except:
-                pass
-        else:
-            msg = {'status': 'NG', 'message': 'Paypal payment verified failed.'}
-    else:
-        msg = {'status': 'NG', 'message': 'Paypal payment execution failed.'}
-
-
-    if new_token:
-        msg['new_token'] = new_token
-    response = json.dumps(msg)
-    print('\r\n{} {}\r\n'.format(msg["message"], username))
-    return response
-
-
-########################################################################################################
-#
-# PAYPAL VERIFY
-#
-# - Request:
-#   GET /account/payment/paypalverify/<paymentid>
-#   headers: {'Authorization': 'Bearer ' + token.access}
-#
-# - Response:
-#   {'status': 'OK', 'message': string, 'transaction': {'id': string, 'amount': float, 'timestamp': int, 'credits': int, 'prevcredits': int, 'newcredits': int}}
-#   {'status': 'NG', 'message': string}
-#   // OK is successful, NG if failed
-#   // In the web app scenario, the url_callback is called with the different system browser.
-#   // So in order for the original browser to know if the transaction failed or NOT, this API is used.
-#   // When the transaction is completed and verified successfully, the API will return OK, together with the transaction details.
-#
-########################################################################################################
-@app.route('/account/payment/paypalverify/<paymentid>', methods=['GET'])
-def set_payment_paypal_verify(paymentid):
-    payment = {"paymentId": paymentid}
-
-    # get token from Authorization header
-    auth_header_token = get_auth_header_token()
-    if auth_header_token is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Paypal Verify: Invalid authorization header\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    token = {'access': auth_header_token}
-
-    # get username from token
-    username = g_database_client.get_username_from_token(token)
-    if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Paypal Verify: Token expired\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    print('set_payment_paypal_verify {}'.format(username))
-
-    # check if a parameter is empty
-    if len(username) == 0 or len(token) == 0:
-        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-        print('\r\nERROR Paypal Verify: Empty parameter found\r\n')
-        return response, status.HTTP_400_BAD_REQUEST
-
-    # check if username and token is valid
-    verify_ret, new_token = g_database_client.verify_token(username, token)
-    if verify_ret == 2:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Paypal Verify: Token expired [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
-    elif verify_ret != 0:
-        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
-        print('\r\nERROR Paypal Verify: Token is invalid [{}]\r\n'.format(username))
-        # NOTE:
-        # No need to return error code status.HTTP_401_UNAUTHORIZED since this is a logout
-        return response, status.HTTP_401_UNAUTHORIZED
-
-    #print(payment)
-    status, amount = g_database_client.transactions_paypal_verify_payment(username, payment)
-    if status:
-        msg = {'status': 'OK', 'message': 'Paypal payment verification successful.'}
-
-        # get record the paypal transaction
-        transaction = g_database_client.get_paypal_payment(username, paymentid)
-        #print(transaction)
-        if transaction:
-            msg["transaction"] = transaction
-    else:
-        msg = {'status': 'NG', 'message': 'Paypal payment verification failed.'}
-
-
-    if new_token:
-        msg['new_token'] = new_token
-    response = json.dumps(msg)
-    print('\r\n{} {}\r\n'.format(msg["message"], username))
-    return response
-
-
-########################################################################################################
-#
-# GET PAYPAL TRANSACTIONS
-#
-# - Request:
-#   GET /account/payment/paypal
-#   headers: {'Authorization': 'Bearer ' + token.access}
-#
-# - Response:
-#   {'status': 'OK', 'message': string, 'transactions': [{'id': string, 'amount': float, 'timestamp': int, 'credits': int}, ...]}
-#   {'status': 'NG', 'message': string}
-#
-########################################################################################################
 @app.route('/account/payment/paypal', methods=['GET'])
 def get_payment_paypal_transactions():
+    return g_payment_accounting.get_payment_paypal_transactions()
 
-    # get token from Authorization header
-    auth_header_token = get_auth_header_token()
-    if auth_header_token is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Paypal Get Transactions: Invalid authorization header\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    token = {'access': auth_header_token}
-
-    # get username from token
-    username = g_database_client.get_username_from_token(token)
-    if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Paypal Get Transactions: Token expired\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    print('get_payment_paypal_transactions {}'.format(username))
-
-    # check if a parameter is empty
-    if len(username) == 0 or len(token) == 0:
-        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-        print('\r\nERROR Paypal Get Transactions: Empty parameter found\r\n')
-        return response, status.HTTP_400_BAD_REQUEST
-
-    # check if username and token is valid
-    verify_ret, new_token = g_database_client.verify_token(username, token)
-    if verify_ret == 2:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Paypal Get Transactions: Token expired [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
-    elif verify_ret != 0:
-        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
-        print('\r\nERROR Paypal Get Transactions: Token is invalid [{}]\r\n'.format(username))
-        # NOTE:
-        # No need to return error code status.HTTP_401_UNAUTHORIZED since this is a logout
-        return response, status.HTTP_401_UNAUTHORIZED
-
-
-    # get record the paypal transactions
-    transactions = g_database_client.get_paypal_payments(username)
-    transactions.sort(key=sort_by_timestamp, reverse=True)
-    #print(transactions)
-
-
-    msg = {'status': 'OK', 'message': 'Paypal Get Transactions successful.'}
-    if transactions:
-        msg["transactions"] = transactions
-    if new_token:
-        msg['new_token'] = new_token
-    response = json.dumps(msg)
-    print('\r\n{} {}\r\n'.format(msg["message"], username))
-    return response
-
-
-########################################################################################################
-#
-# RETRIEVE PAYPAL TRANSACTION
-#
-# - Request:
-#   GET /account/payment/paypal/<transactionid>
-#   headers: {'Authorization': 'Bearer ' + token.access}
-#
-# - Response:
-#   {'status': 'OK', 'message': string, 'paypal': json_obj}
-#   {'status': 'NG', 'message': string}
-#
-########################################################################################################
 @app.route('/account/payment/paypal/<transactionid>', methods=['GET'])
 def get_payment_paypal_transactions_detailed(transactionid):
+    return g_payment_accounting.get_payment_paypal_transactions_detailed(transactionid)
 
-    # get token from Authorization header
-    auth_header_token = get_auth_header_token()
-    if auth_header_token is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Paypal Verify: Invalid authorization header\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    token = {'access': auth_header_token}
-
-    # get username from token
-    username = g_database_client.get_username_from_token(token)
-    if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Paypal Get Transaction: Token expired\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    print('get_payment_paypal_transactions_detailed {}'.format(username))
-
-    # check if a parameter is empty
-    if len(username) == 0 or len(token) == 0:
-        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-        print('\r\nERROR Paypal Get Transaction: Empty parameter found\r\n')
-        return response, status.HTTP_400_BAD_REQUEST
-
-    # check if username and token is valid
-    verify_ret, new_token = g_database_client.verify_token(username, token)
-    if verify_ret == 2:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Paypal Get Transaction: Token expired [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
-    elif verify_ret != 0:
-        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
-        print('\r\nERROR Paypal Get Transaction: Token is invalid [{}]\r\n'.format(username))
-        # NOTE:
-        # No need to return error code status.HTTP_401_UNAUTHORIZED since this is a logout
-        return response, status.HTTP_401_UNAUTHORIZED
+g_payment_accounting_list = [
+    { "name": "GET SUBSCRIPTION",           "func": get_subscription,                         "api": "/account/subscription",                      "method": "GET"    },
+    { "name": "PAYPAL SETUP",               "func": set_payment_paypal_setup,                 "api": "/account/payment/paypalsetup",               "method": "POST"   },
+    { "name": "PAYPAL STORE PAYERID",       "func": store_payment_paypal_payerid,             "api": "/account/payment/paypalpayerid/<paymentid>", "method": "POST"   },
+    { "name": "PAYPAL EXECUTE",             "func": set_payment_paypal_execute,               "api": "/account/payment/paypalexecute/<paymentid>", "method": "POST"   },
+    { "name": "GET PAYPAL TRANSACTIONS",    "func": get_payment_paypal_transactions,          "api": "/account/payment/paypal",                    "method": "GET"    },
+    { "name": "GET PAYPAL TRANSACTIONS EX", "func": get_payment_paypal_transactions_detailed, "api": "/account/payment/paypal/<transactionid>",    "method": "GET"    },
+]
 
 
-    paypal = None
-    # get paymentid and payerid given the transactionid
-    paymentid = g_database_client.get_paypal_payment_by_transaction_id(username, transactionid)
-    #print(paymentid)
-    if paymentid:
-        #pubtopic = CONFIG_PREPEND_REPLY_TOPIC + CONFIG_SEPARATOR + paymentid + CONFIG_SEPARATOR + "send_invoice"
-        #payload  = json.dumps({})
-        #g_messaging_client.publish(pubtopic, payload)
-        #print("publish xxxxxxxxxxxxx")
+########################################################################################################
+#
+# DEVICE GROUPS
+#
+########################################################################################################
 
-        # get record the paypal transactions
-        paypal_param = g_database_client.transactions_paypal_get_payment(username, {'paymentId': paymentid})
-        print(paypal_param)
-        paypal = {}
-        paypal["state"] = paypal_param["state"]
-        paypal["payer"] = {}
-        paypal["payer"]["payer_info"] = {}
-        paypal["payer"]["payer_info"]["payer_id"]     = paypal_param["payer"]["payer_info"]["payer_id"]
-        paypal["payer"]["payer_info"]["email"]        = paypal_param["payer"]["payer_info"]["email"]
-        paypal["payer"]["payer_info"]["first_name"]   = paypal_param["payer"]["payer_info"]["first_name"]
-        paypal["payer"]["payer_info"]["last_name"]    = paypal_param["payer"]["payer_info"]["last_name"]
-        paypal["payer"]["payer_info"]["phone"]        = paypal_param["payer"]["payer_info"]["phone"]
-        paypal["payer"]["payer_info"]["country_code"] = paypal_param["payer"]["payer_info"]["country_code"]
-        paypal["payer"]["payer_info"]["shipping_address"] = {}
-        paypal["payer"]["payer_info"]["shipping_address"]["recipient_name"] = paypal_param["payer"]["payer_info"]["shipping_address"]["recipient_name"]
-        paypal["payer"]["payer_info"]["shipping_address"]["line1"]          = paypal_param["payer"]["payer_info"]["shipping_address"]["line1"]
-        paypal["payer"]["payer_info"]["shipping_address"]["city"]           = paypal_param["payer"]["payer_info"]["shipping_address"]["city"]
-        paypal["payer"]["payer_info"]["shipping_address"]["state"]          = paypal_param["payer"]["payer_info"]["shipping_address"]["state"]
-        paypal["payer"]["payer_info"]["shipping_address"]["postal_code"]    = paypal_param["payer"]["payer_info"]["shipping_address"]["postal_code"]
-        paypal["payer"]["payer_info"]["shipping_address"]["country_code"]   = paypal_param["payer"]["payer_info"]["shipping_address"]["country_code"]
-        paypal["transactions"] = [{}]
-        paypal["transactions"][0]["amount"] = {}
-        paypal["transactions"][0]["amount"]["total"]      = paypal_param["transactions"][0]["amount"]["total"]
-        paypal["transactions"][0]["amount"]["currency"]   = paypal_param["transactions"][0]["amount"]["currency"]
-        paypal["transactions"][0]["payee"] = {}
-        paypal["transactions"][0]["payee"]["merchant_id"] = paypal_param["transactions"][0]["payee"]["merchant_id"]
-        paypal["transactions"][0]["payee"]["email"]       = paypal_param["transactions"][0]["payee"]["email"]
-        paypal["transactions"][0]["description"]          = paypal_param["transactions"][0]["description"]
-        paypal["transactions"][0]["item_list"] = {}
-        paypal["transactions"][0]["item_list"]["items"]   = [{}]
-        #paypal["transactions"][0]["item_list"]["items"][0][""] paypal_param["transactions"][0]["item_list"]["total"]
-        print(paypal)
-        #paypal = json.dumps(paypal_param, default=lambda x: getattr(x, '__dict__', str(x)))
-        #print_json(paypal, is_json=False)
+@app.route('/devicegroups', methods=['GET'])
+def get_device_group_list():
+    return g_device_groups.get_device_group_list()
+
+@app.route('/devicegroups/<devicegroupname>', methods=['POST'])
+def register_devicegroups(devicegroupname):
+    return g_device_groups.register_devicegroups(devicegroupname)
+
+@app.route('/devicegroups/<devicegroupname>', methods=['DELETE'])
+def unregister_devicegroups(devicegroupname):
+    return g_device_groups.register_devicegroups(devicegroupname)
+
+@app.route('/devicegroups/<devicegroupname>', methods=['GET'])
+def get_devicegroups(devicegroupname):
+    return g_device_groups.register_devicegroups(devicegroupname)
 
 
-    msg = {'status': 'OK', 'message': 'Paypal Get Transaction successful.'}
-    if paypal:
-        msg["paypal"] = paypal
-    if new_token:
-        msg['new_token'] = new_token
-    response = json.dumps(msg)
-    print('\r\n{} {}\r\n'.format(msg["message"], username))
-    return response
+@app.route('/devicegroups/<devicegroupname>/name', methods=['POST'])
+def update_devicegroupname(devicegroupname):
+    return g_device_groups.update_devicegroupname(devicegroupname)
 
-#########################
+@app.route('/devicegroups/<devicegroupname>/device/<devicename>', methods=['POST'])
+def register_device_to_devicegroups(devicegroupname, devicename):
+    return g_device_groups.register_device_to_devicegroups(devicegroupname, devicename)
 
+@app.route('/devicegroups/<devicegroupname>/device/<devicename>', methods=['DELETE'])
+def unregister_device_to_devicegroups(devicegroupname, devicename):
+    return g_device_groups.register_device_to_devicegroups(devicegroupname, devicename)
+
+@app.route('/devicegroups/<devicegroupname>/devices', methods=['POST'])
+def set_devices_to_devicegroups(devicegroupname):
+    return g_device_groups.set_devices_to_devicegroups(devicegroupname)
+
+g_device_groups_list = [
+    { "name": "GET DEVICE GROUPS",           "func": get_device_group_list,             "api": "/devicegroups",                                       "method": "GET"    },
+    { "name": "ADD DEVICE GROUP",            "func": register_devicegroups,             "api": "/devicegroups/<devicegroupname>",                     "method": "POST"   },
+    { "name": "DELETE DEVICE GROUP",         "func": unregister_devicegroups,           "api": "/devicegroups/<devicegroupname>",                     "method": "DELETE" },
+    { "name": "GET DEVICE GROUP",            "func": get_devicegroups,                  "api": "/devicegroups/<devicegroupname>",                     "method": "GET"    },
+    { "name": "UPDATE DEVICE GROUP NAME",    "func": update_devicegroupname,            "api": "/devicegroups/<devicegroupname>/name",                "method": "POST"   },
+    { "name": "ADD DEVICE TO GROUP",         "func": register_device_to_devicegroups,   "api": "/devicegroups/<devicegroupname>/device/<devicename>", "method": "POST"   },
+    { "name": "DELETE DEVICE FROM GROUP",    "func": unregister_device_to_devicegroups, "api": "/devicegroups/<devicegroupname>/device/<devicename>", "method": "DELETE" },
+    { "name": "SET DEVICES IN DEVICE GROUP", "func": set_devices_to_devicegroups,       "api": "/devicegroups/<devicegroupname>/devices",             "method": "POST"   },
+]
+
+
+########################################################################################################
+#
+# DEVICE LOCATIONS
+#
+########################################################################################################
+
+@app.route('/devices/location', methods=['GET'])
+def get_deviceslocations():
+    return g_device_locations.get_deviceslocations()
+
+@app.route('/devices/location', methods=['POST'])
+def set_deviceslocation():
+    return g_device_locations.set_deviceslocation()
+
+@app.route('/devices/location', methods=['DELETE'])
+def delete_deviceslocation():
+    return g_device_locations.set_deviceslocation()
+
+@app.route('/devices/device/<devicename>/location', methods=['GET'])
+def get_devicelocation(devicename):
+    return g_device_locations.get_devicelocation(devicename)
+
+@app.route('/devices/device/<devicename>/location', methods=['POST'])
+def set_devicelocation(devicename):
+    return g_device_locations.set_devicelocation(devicename)
+
+@app.route('/devices/device/<devicename>/location', methods=['DELETE'])
+def delete_devicelocation(devicename):
+    return g_device_locations.set_devicelocation(devicename)
+
+g_device_locations_list = [
+    { "name": "GET DEVICES LOCATIONS",    "func": get_deviceslocations,   "api": "/devices/location",                     "method": "GET"    },
+    { "name": "SET DEVICES LOCATIONS",    "func": set_deviceslocation,    "api": "/devices/location",                     "method": "POST"   },
+    { "name": "DELETE DEVICES LOCATIONS", "func": delete_deviceslocation, "api": "/devices/location",                     "method": "DELETE" },
+    { "name": "GET DEVICE LOCATION",      "func": get_devicelocation,     "api": "/devices/device/<devicename>/location", "method": "POST"   },
+    { "name": "SET DEVICE LOCATION",      "func": set_devicelocation,     "api": "/devices/device/<devicename>/location", "method": "GET"    },
+    { "name": "DELETE DEVICE LOCATION",   "func": delete_devicelocation,  "api": "/devices/device/<devicename>/location", "method": "DELETE" },
+]
+
+
+########################################################################################################
+#
+# DEVICE OTA FIRMWARE UPDATE
+#
+########################################################################################################
+
+@app.route('/devices/device/<devicename>/firmware', methods=['POST'])
+def update_firmware(devicename):
+    return g_device_otaupdates.update_firmware(devicename)
+
+@app.route('/devices/firmware', methods=['POST'])
+def update_firmwares():
+    return g_device_otaupdates.update_firmwares()
+
+@app.route('/devices/device/<devicename>/firmware', methods=['GET'])
+def get_update_firmware(devicename):
+    return g_device_otaupdates.get_update_firmware(devicename)
+
+@app.route('/devices/ota', methods=['GET'])
+def get_ota_statuses():
+    return g_device_otaupdates.get_ota_statuses()
+
+@app.route('/devices/device/<devicename>/ota', methods=['GET'])
+def get_ota_status(devicename):
+    return g_device_otaupdates.get_ota_status(devicename)
+
+@app.route('/firmware/<device>/<filename>', methods=['GET'])
+def download_firmware_file(device, filename):
+    return g_device_otaupdates.download_firmware_file(device, filename)
+
+g_device_otaupdates_list = [
+    { "name": "UPDATE FIRMWARE",     "func": update_firmware,        "api": "/devices/location",                     "method": "POST"   },
+    { "name": "UPDATE FIRMWARES",    "func": update_firmwares,       "api": "/devices/location",                     "method": "POST"   },
+    { "name": "GET UPDATE FIRMWARE", "func": get_update_firmware,    "api": "/devices/location",                     "method": "GET"    },
+    { "name": "GET OTA STATUSES",    "func": get_ota_statuses,       "api": "/devices/device/<devicename>/location", "method": "GET"    },
+    { "name": "GET OTA STATUS",      "func": get_ota_status,         "api": "/devices/device/<devicename>/location", "method": "GET"    },
+    { "name": "DOWNLOAD FIRMWARE",   "func": download_firmware_file, "api": "/firmware/<device>/<filename>",         "method": "GET"    },
+]
+
+
+########################################################################################################
+#
+# DEVICE HIERARCHIES
+#
+########################################################################################################
+
+@app.route('/devices/device/<devicename>/hierarchy', methods=['GET'])
+def get_device_hierarchy(devicename):
+    return g_device_hierarchies.get_device_hierarchy(devicename)
+
+@app.route('/devices/device/<devicename>/hierarchy', methods=['POST'])
+def get_device_hierarchy_with_status(devicename):
+    return g_device_hierarchies.get_device_hierarchy_with_status(devicename)
+
+g_device_hierarchies_list = [
+    { "name": "GET DEVICE HIERARCHY TREE",               "func": get_device_hierarchy,             "api": "/devices/device/<devicename>/hierarchy", "method": "GET"    },
+    { "name": "GET DEVICE HIERARCHY TREE (WITH STATUS)", "func": get_device_hierarchy_with_status, "api": "/devices/device/<devicename>/hierarchy", "method": "POST"   },
+]
+
+
+########################################################################################################
+#
+# DEVICE HISTORIES
+#
+########################################################################################################
+
+@app.route('/devices/histories', methods=['GET'])
+def get_device_histories():
+    return g_device_histories.get_device_histories()
+
+@app.route('/devices/histories', methods=['POST'])
+def get_device_histories_filtered():
+    return g_device_histories.get_device_histories_filtered()
+
+@app.route('/devices/menos', methods=['GET'])
+def get_device_menos_histories():
+    return g_device_histories.get_device_menos_histories()
+
+@app.route('/devices/menos', methods=['POST'])
+def get_device_menos_histories_filtered():
+    return g_device_histories.get_device_menos_histories_filtered()
+
+g_device_histories_list = [
+    { "name": "GET HISTORIES",                "func": get_device_histories,                "api": "/devices/histories", "method": "GET"    },
+    { "name": "GET HISTORIES FILTERED",       "func": get_device_histories_filtered,       "api": "/devices/histories", "method": "POST"   },
+    { "name": "GET MENOS HISTORIES",          "func": get_device_menos_histories,          "api": "/devices/menos",     "method": "GET"    },
+    { "name": "GET MENOS HISTORIES FILTERED", "func": get_device_menos_histories_filtered, "api": "/devices/menos",     "method": "POST"   },
+]
+
+
+########################################################################################################
+#
+# OTHERS
+#
+########################################################################################################
+
+@app.route('/others/feedback', methods=['POST'])
+def send_feedback():
+    return g_other_stuffs.send_feedback()
+
+@app.route('/others/<item>', methods=['GET'])
+def get_item(item):
+    return g_other_stuffs.get_item(item)
+
+@app.route('/others/sensordevices', methods=['GET'])
+def get_supported_sensors():
+    return g_other_stuffs.get_supported_sensors()
+
+@app.route('/others/firmwareupdates', methods=['GET'])
+def get_device_firmware_updates():
+    return g_other_stuffs.get_device_firmware_updates()
+
+@app.route('/mobile/devicetoken', methods=['POST'])
+def register_mobile_device_token():
+    return g_other_stuffs.register_mobile_device_token()
+
+g_other_stuffs_list = [
+    { "name": "SEND FEEDBACK",         "func": send_feedback,                "api": "/others/feedback",        "method": "POST"   },
+    { "name": "GET ITEM",              "func": get_item,                     "api": "/others/<item>",          "method": "GET"    },
+    { "name": "GET SUPPORTED SENSORS", "func": get_supported_sensors,        "api": "/others/sensordevices",   "method": "GET"    },
+    { "name": "GET FIRMWARE UPDATES",  "func": get_device_firmware_updates,  "api": "/others/firmwareupdates", "method": "GET"    },
+    { "name": "REGISTER MOBILE TOKEN", "func": register_mobile_device_token, "api": "/mobile/devicetoken",     "method": "POST"   },
+]
 
 
 
@@ -2709,7 +521,7 @@ def get_payment_paypal_transactions_detailed(transactionid):
 @app.route('/devices', methods=['GET'])
 def get_device_list():
     # get token from Authorization header
-    auth_header_token = get_auth_header_token()
+    auth_header_token = g_utils.get_auth_header_token()
     if auth_header_token is None:
         response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
         print('\r\nERROR Get Devices: Invalid authorization header\r\n')
@@ -2774,7 +586,7 @@ def get_device_list():
 @app.route('/devices/filter/<filter>', methods=['GET'])
 def get_device_list_filtered(filter):
     # get token from Authorization header
-    auth_header_token = get_auth_header_token()
+    auth_header_token = g_utils.get_auth_header_token()
     if auth_header_token is None:
         response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
         print('\r\nERROR Get Devices: Invalid authorization header\r\n')
@@ -2841,17 +653,22 @@ def compute_password(secret_key, uuid, serial_number, mac_address, debug=False):
     }
     password = jwt.encode(params, secret_key, algorithm='HS256')
 
+    # pyjwt returns bytes while jose returns string
+    # if bytes is returned, then convert to string
+    if type(password) == bytes:
+        password = password.decode("utf-8")
+
     if debug:
         print("")
         print("compute_password")
-        print_json(params)
+        g_utils.print_json(params)
         print(password)
         print("")
 
         payload = decode_password(secret_key, password)
         print("")
         print("decode_password")
-        print_json(payload)
+        g_utils.print_json(payload)
         print("")
 
     return password
@@ -2885,7 +702,7 @@ def compute_password(secret_key, uuid, serial_number, mac_address, debug=False):
 @app.route('/devices/device/<devicename>', methods=['POST', 'DELETE'])
 def register_device(devicename):
     # get token from Authorization header
-    auth_header_token = get_auth_header_token()
+    auth_header_token = g_utils.get_auth_header_token()
     if auth_header_token is None:
         response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
         print('\r\nERROR Add/Delete Device: Invalid authorization header\r\n')
@@ -2971,14 +788,14 @@ def register_device(devicename):
             # this means a hacker can only hack that particular device and will not be able to eavesdrop on other devices
             # if secure is False, device will be able to publish and subscribe to/from other devices which enables multi-subscriptions
             secure = True
-            result = message_broker_register(deviceuser, devicepass, secure)
+            result = message_broker_api().register(deviceuser, devicepass, secure)
             #print(result)
             if not result:
                 response = json.dumps({'status': 'NG', 'message': 'Device could not be registered in message broker'})
                 print('\r\nERROR Add Device: Device could not be registered  in message broker [{},{}]\r\n'.format(username, devicename))
                 return response, status.HTTP_500_INTERNAL_SERVER_ERROR
         except Exception as e:
-            print("Exception encounter".format(e))
+            print("Exception encountered {}".format(e))
             response = json.dumps({'status': 'NG', 'message': 'Device could not be registered in message broker'})
             print('\r\nERROR Add Device: Device could not be registered in message broker [{},{}]\r\n'.format(username, devicename))
             return response, status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -3021,7 +838,8 @@ def register_device(devicename):
         # delete message broker user
         try:
             # no checking needed
-            message_broker_unregister(device["deviceid"])
+            deviceuser = device["deviceid"]
+            message_broker_api().unregister(deviceuser)
         except:
             pass
 
@@ -3049,7 +867,7 @@ def register_device(devicename):
 @app.route('/devices/device/<devicename>', methods=['GET'])
 def get_device(devicename):
     # get token from Authorization header
-    auth_header_token = get_auth_header_token()
+    auth_header_token = g_utils.get_auth_header_token()
     if auth_header_token is None:
         response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
         print('\r\nERROR Get Device: Invalid authorization header\r\n')
@@ -3118,7 +936,7 @@ def get_device(devicename):
 @app.route('/devices/device/<devicename>/name', methods=['POST'])
 def update_devicename(devicename):
     # get token from Authorization header
-    auth_header_token = get_auth_header_token()
+    auth_header_token = g_utils.get_auth_header_token()
     if auth_header_token is None:
         response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
         print('\r\nERROR Update Device Name: Invalid authorization header\r\n')
@@ -3187,1605 +1005,7 @@ def update_devicename(devicename):
     return response
 
 
-########################################################################################################
-#
-# GET DEVICES LOCATION 
-#
-# - Request:
-#   GET /devices/location
-#   headers: {'Authorization': 'Bearer ' + token.access}
-#
-# - Response:
-#   {'status': 'OK', 'message': string, 'locations': [{'devicename': string, 'latitude': float, 'longitude': float}] }
-#   {'status': 'NG', 'message': string}
-#
-########################################################################################################
-@app.route('/devices/location', methods=['GET'])
-def get_deviceslocations():
-    # get token from Authorization header
-    auth_header_token = get_auth_header_token()
-    if auth_header_token is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Get Devices Locations: Invalid authorization header\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    token = {'access': auth_header_token}
-
-    # get username from token
-    username = g_database_client.get_username_from_token(token)
-    if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Get Devices Locations: Token expired\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    print('get_deviceslocations {}'.format(username))
-
-    # check if a parameter is empty
-    if len(username) == 0 or len(token) == 0:
-        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-        print('\r\nERROR Get Devices Locations: Empty parameter found\r\n')
-        return response, status.HTTP_400_BAD_REQUEST
-
-    # check if username and token is valid
-    verify_ret, new_token = g_database_client.verify_token(username, token)
-    if verify_ret == 2:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Get Devices Locations: Token expired [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
-    elif verify_ret != 0:
-        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
-        print('\r\nERROR Get Devices Locations: Token is invalid [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
-
-
-    # get devices of the user
-    devices = g_database_client.get_devices(username)
-
-    # get the devices location from database
-    locations = g_database_client.get_devices_location(username)
-    for location in locations:
-        for device in devices:
-            if location["deviceid"] == device["deviceid"]:
-                location["devicename"] = device["devicename"]
-                location.pop("deviceid")
-                break
-
-    msg = {'status': 'OK', 'message': 'Devices locations queried successfully.'}
-    if locations:
-        msg['locations'] = locations
-    if new_token:
-        msg['new_token'] = new_token
-    response = json.dumps(msg)
-    print('\r\nDevice locations queried successful: {}\r\n'.format(username))
-    return response
-
-########################################################################################################
-#
-# SET DEVICES LOCATION 
-#
-# - Request:
-#   POST /devices/location
-#   headers: {'Authorization': 'Bearer ' + token.access}
-#   data: { 'locations': [{devicename: string, location: {'latitude': float, 'longitude': float}}, ...] }
-#
-# - Response:
-#   {'status': 'OK', 'message': string}
-#   {'status': 'NG', 'message': string}
-#
-# DELETE DEVICES LOCATION 
-#
-# - Request:
-#   DELETE /devices/location
-#   headers: {'Authorization': 'Bearer ' + token.access}
-#
-# - Response:
-#   {'status': 'OK', 'message': string}
-#   {'status': 'NG', 'message': string}
-#
-########################################################################################################
-@app.route('/devices/location', methods=['POST', 'DELETE'])
-def set_deviceslocation():
-    # get token from Authorization header
-    auth_header_token = get_auth_header_token()
-    if auth_header_token is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Set Devices Locations: Invalid authorization header\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    token = {'access': auth_header_token}
-
-    # get username from token
-    username = g_database_client.get_username_from_token(token)
-    if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Set Devices Locations: Token expired\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    print('set_deviceslocation {}'.format(username))
-
-    # check if a parameter is empty
-    if len(username) == 0 or len(token) == 0:
-        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-        print('\r\nERROR Set Devices Locations: Empty parameter found\r\n')
-        return response, status.HTTP_400_BAD_REQUEST
-
-    # check if username and token is valid
-    verify_ret, new_token = g_database_client.verify_token(username, token)
-    if verify_ret == 2:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Set Devices Locations: Token expired [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
-    elif verify_ret != 0:
-        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
-        print('\r\nERROR Set Devices Locations: Token is invalid [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
-
-    if flask.request.method == 'POST':
-        # check if new device name is already registered
-        data = flask.request.get_json()
-        if data.get("locations") is None:
-            response = json.dumps({'status': 'NG', 'message': 'Parameters not included'})
-            print('\r\nERROR Set Devices Locations: Parameters not included [{},{}]\r\n'.format(username, devicename))
-            return response, status.HTTP_400_BAD_REQUEST
-
-        # get devices of the user
-        devices = g_database_client.get_devices(username)
-
-        # set the location to database
-        for location in data["locations"]:
-            g_database_client.add_device_location(username, location["devicename"], location["location"])
-
-
-        msg = {'status': 'OK', 'message': 'Devices locations updated successfully.'}
-        if new_token:
-            msg['new_token'] = new_token
-        response = json.dumps(msg)
-        print('\r\nDevices locations updated successful: {}\r\n'.format(username))
-        return response
-
-    elif flask.request.method == 'DELETE':
-        # delete devices location for all devices of the user
-        g_database_client.delete_devices_location(username)
-
-        msg = {'status': 'OK', 'message': 'Devices locations deleted successfully.'}
-        if new_token:
-            msg['new_token'] = new_token
-        response = json.dumps(msg)
-        print('\r\nDevices locations deleted successful: {}\r\n'.format(username))
-        return response
-
-
-########################################################################################################
-#
-# GET DEVICE LOCATION 
-#
-# - Request:
-#   GET /devices/device/<devicename>/location
-#   headers: {'Authorization': 'Bearer ' + token.access}
-#
-# - Response:
-#   {'status': 'OK', 'message': string, 'location': {'latitude': float, 'longitude': float} }
-#   {'status': 'NG', 'message': string}
-#
-########################################################################################################
-@app.route('/devices/device/<devicename>/location', methods=['GET'])
-def get_devicelocation(devicename):
-    # get token from Authorization header
-    auth_header_token = get_auth_header_token()
-    if auth_header_token is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Get Device Location: Invalid authorization header\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    token = {'access': auth_header_token}
-
-    # get username from token
-    username = g_database_client.get_username_from_token(token)
-    if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Get Device Location: Token expired\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    print('get_devicelocation {} devicename={}'.format(username, devicename))
-
-    # check if a parameter is empty
-    if len(username) == 0 or len(token) == 0 or len(devicename) == 0:
-        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-        print('\r\nERROR Get Device Location: Empty parameter found\r\n')
-        return response, status.HTTP_400_BAD_REQUEST
-
-    # check if username and token is valid
-    verify_ret, new_token = g_database_client.verify_token(username, token)
-    if verify_ret == 2:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Get Device Location: Token expired [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
-    elif verify_ret != 0:
-        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
-        print('\r\nERROR Get Device Location: Token is invalid [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
-
-    # check if device is registered
-    device = g_database_client.find_device(username, devicename)
-    if not device:
-        response = json.dumps({'status': 'NG', 'message': 'Device is not registered'})
-        print('\r\nERROR Get Device Location: Device is not registered [{},{}]\r\n'.format(username, devicename))
-        return response, status.HTTP_404_NOT_FOUND
-
-
-    # get the location from database
-    location  = g_database_client.get_device_location(username, devicename)
-
-
-    msg = {'status': 'OK', 'message': 'Device location queried successfully.'}
-    if location:
-        msg['location'] = location
-    if new_token:
-        msg['new_token'] = new_token
-    response = json.dumps(msg)
-    print('\r\nDevice location queried successful: {}\r\n'.format(username))
-    return response
-
-
-########################################################################################################
-#
-# SET DEVICE LOCATION 
-#
-# - Request:
-#   POST /devices/device/<devicename>/location
-#   headers: {'Authorization': 'Bearer ' + token.access}
-#   data: {'latitude': float, 'longitude': float}
-#
-# - Response:
-#   {'status': 'OK', 'message': string}
-#   {'status': 'NG', 'message': string}
-#
-# DELETE DEVICE LOCATION 
-#
-# - Request:
-#   DELETE /devices/device/<devicename>/location
-#   headers: {'Authorization': 'Bearer ' + token.access}
-#
-# - Response:
-#   {'status': 'OK', 'message': string}
-#   {'status': 'NG', 'message': string}
-#
-########################################################################################################
-@app.route('/devices/device/<devicename>/location', methods=['POST', 'DELETE'])
-def set_devicelocation(devicename):
-    # get token from Authorization header
-    auth_header_token = get_auth_header_token()
-    if auth_header_token is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Set Device Location: Invalid authorization header\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    token = {'access': auth_header_token}
-
-    # get username from token
-    username = g_database_client.get_username_from_token(token)
-    if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Set Device Location: Token expired\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    print('set_devicelocation {} devicename={}'.format(username, devicename))
-
-    # check if a parameter is empty
-    if len(username) == 0 or len(token) == 0 or len(devicename) == 0:
-        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-        print('\r\nERROR Set Device Location: Empty parameter found\r\n')
-        return response, status.HTTP_400_BAD_REQUEST
-
-    # check if username and token is valid
-    verify_ret, new_token = g_database_client.verify_token(username, token)
-    if verify_ret == 2:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Set Device Location: Token expired [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
-    elif verify_ret != 0:
-        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
-        print('\r\nERROR Set Device Location: Token is invalid [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
-
-    # check if device is registered
-    device = g_database_client.find_device(username, devicename)
-    if not device:
-        response = json.dumps({'status': 'NG', 'message': 'Device is not registered'})
-        print('\r\nERROR Set Device Location: Device is not registered [{},{}]\r\n'.format(username, devicename))
-        return response, status.HTTP_404_NOT_FOUND
-
-
-    if flask.request.method == 'POST':
-        # check if new device name is already registered
-        data = flask.request.get_json()
-        if data.get("latitude") is None or data.get("longitude") is None:
-            print(data)
-            response = json.dumps({'status': 'NG', 'message': 'Parameters not included'})
-            print('\r\nERROR Set Device Location: Parameters not included [{},{}]\r\n'.format(username, devicename))
-            return response, status.HTTP_400_BAD_REQUEST
-
-
-        # set the location to database
-        g_database_client.add_device_location(username, devicename, data)
-
-
-        msg = {'status': 'OK', 'message': 'Device location updated successfully.'}
-        if new_token:
-            msg['new_token'] = new_token
-        response = json.dumps(msg)
-        print('\r\nDevice location updated successful: {}\r\n'.format(username))
-        return response
-
-    elif flask.request.method == 'DELETE':
-        # delete the location from database
-        g_database_client.delete_device_location(username, devicename)
-
-        msg = {'status': 'OK', 'message': 'Device location deleted successfully.'}
-        if new_token:
-            msg['new_token'] = new_token
-        response = json.dumps(msg)
-        print('\r\nDevice location deleted successful: {}\r\n'.format(username))
-        return response
-
-
-########################################################################################################
-#
-# UPDATE FIRMWARE
-#
-# - Request:
-#   POST /devices/device/<devicename>/firmware
-#   headers: {'Authorization': 'Bearer ' + token.access}
-#   data: {'version': string}
-#
-# - Response:
-#   {'status': 'OK', 'message': string}
-#   {'status': 'NG', 'message': string}
-#
-########################################################################################################
-@app.route('/devices/device/<devicename>/firmware', methods=['POST'])
-def update_firmware(devicename):
-    api = 'beg_ota'
-
-    # get token from Authorization header
-    auth_header_token = get_auth_header_token()
-    if auth_header_token is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Upgrade Device Firmware: Invalid authorization header\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-
-    # get username from token
-    data = flask.request.get_json()
-    data['token'] = {'access': auth_header_token}
-    data['devicename'] = devicename
-    username = g_database_client.get_username_from_token(data['token'])
-    if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Upgrade Device Firmware: Token expired\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    data['username'] = username
-    print('update_firmware {} devicename={}'.format(data['username'], data['devicename']))
-
-    # check if a parameter is empty
-    result, document = g_storage_client.get_device_firmware_updates()
-    if not result:
-        response = json.dumps({'status': 'NG', 'message': 'Could not retrieve JSON document'})
-        print('\r\nERROR Upgrade Device Firmware: Could not retrieve JSON document [{}]\r\n'.format(username))
-        return response, status.HTTP_500_INTERNAL_SERVER_ERROR
-
-    # get the size and location
-    if data.get("version"):
-        for firmware in document["ft900"]["firmware"]:
-            if firmware["version"] == data["version"]:
-                data["size"]     = firmware["size"]
-                data["location"] = firmware["location"]
-                data["version"]  = firmware["version"]
-                data["checksum"] = firmware["checksum"]
-                break
-    else:
-        for firmware in document["ft900"]["firmware"]:
-            if firmware["version"] == document["ft900"]["latest"]:
-                data["size"]     = firmware["size"]
-                data["location"] = firmware["location"]
-                data["version"]  = firmware["version"]
-                data["checksum"] = firmware["checksum"]
-                break
-
-    # trigger device to update firmware
-    response, status_return = process_request(api, data)
-    if status_return != 200:
-        # save ota firmware update status in database
-        g_database_client.set_ota_status_pending(username, devicename, data["version"])
-        msg = {'status': 'NG', 'message': 'Device is offline. Device has been scheduled for update on device bootup.'}
-        response = json.dumps(msg)
-        return response
-
-
-    # save ota firmware update status in database
-    g_database_client.set_ota_status_ongoing(username, devicename, data["version"])
-    #ota_status = g_database_client.get_ota_status(username, devicename)
-    #print(ota_status)
-
-
-    msg = {'status': 'OK', 'message': 'Upgrade Device Firmware successful.'}
-    response = json.dumps(msg)
-    print('\r\nUpgrade Device Firmware successful: {} {}\r\n'.format(username, devicename))
-    return response
-
-
-def update_firmwares_thread(api, data, username, devicename, version):
-
-    # trigger device to update firmware
-    response, status_return = process_request(api, data)
-    if status_return != 200:
-        g_database_client.set_ota_status_pending(username, devicename, version)
-        print("{} {}".format(devicename, "pending"))
-        return
-
-    # save ota firmware update status in database
-    g_database_client.set_ota_status_ongoing(username, devicename, version)
-    print("{} {}".format(devicename, "ongoing"))
-
-
-########################################################################################################
-#
-# UPDATE FIRMWARES
-#
-# - Request:
-#   POST /devices/firmware
-#   headers: {'Authorization': 'Bearer ' + token.access}
-#   data: {'version': string, 'devices': ['devicename', ...]}
-#
-# - Response:
-#   {'status': 'OK', 'message': string}
-#   {'status': 'NG', 'message': string}
-#
-########################################################################################################
-@app.route('/devices/firmware', methods=['POST'])
-def update_firmwares():
-    api = 'beg_ota'
-
-    # get token from Authorization header
-    auth_header_token = get_auth_header_token()
-    if auth_header_token is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Update Firmwares: Invalid authorization header\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-
-    # get username from token
-    data = flask.request.get_json()
-    data['token'] = {'access': auth_header_token}
-    username = g_database_client.get_username_from_token(data['token'])
-    if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Update Firmwares: Token expired\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    data['username'] = username
-    print('update_firmwares {}'.format(data['username']))
-
-    # check if a parameter is empty
-    result, document = g_storage_client.get_device_firmware_updates()
-    if not result:
-        response = json.dumps({'status': 'NG', 'message': 'Could not retrieve JSON document'})
-        print('\r\nERROR Update Firmwares: Could not retrieve JSON document [{}]\r\n'.format(username))
-        return response, status.HTTP_500_INTERNAL_SERVER_ERROR
-
-    # get the size and location
-    if data.get("version"):
-        for firmware in document["ft900"]["firmware"]:
-            if firmware["version"] == data["version"]:
-                data["size"]     = firmware["size"]
-                data["location"] = firmware["location"]
-                data["version"]  = firmware["version"]
-                data["checksum"] = firmware["checksum"]
-                break
-    else:
-        for firmware in document["ft900"]["firmware"]:
-            if firmware["version"] == document["ft900"]["latest"]:
-                data["size"]     = firmware["size"]
-                data["location"] = firmware["location"]
-                data["version"]  = firmware["version"]
-                data["checksum"] = firmware["checksum"]
-                break
-
-    #if data.get("devices"):
-    #    print(data["devices"])
-
-    device_list = g_database_client.get_devices(username)
-    thread_list = []
-
-    for device in device_list:
-        if data.get("devices"):
-            if device["devicename"] not in data["devices"]:
-                continue
-        #print(device["devicename"])
-        data_thr = copy.deepcopy(data)
-        data_thr["devicename"] = device["devicename"]
-        thr = threading.Thread(target = update_firmwares_thread, args = (api, data_thr, username, device["devicename"], data["version"], ))
-        thr.start()
-        thread_list.append(thr) 
-
-    for thr in thread_list:
-        thr.join()
-
-
-    msg = {'status': 'OK', 'message': 'Update Firmwares successful.'}
-    response = json.dumps(msg)
-    print('\r\nUpdate Firmwares successful: {}\r\n'.format(username))
-    return response
-
-
-########################################################################################################
-#
-# GET UPDATE FIRMWARE
-#
-# - Request:
-#   GET /devices/device/<devicename>/firmware
-#   headers: {'Authorization': 'Bearer ' + token.access}
-#
-# - Response:
-#   {'status': 'OK', 'message': string}
-#   {'status': 'NG', 'message': string}
-#
-########################################################################################################
-@app.route('/devices/device/<devicename>/firmware', methods=['GET'])
-def get_update_firmware(devicename):
-    # get token from Authorization header
-    auth_header_token = get_auth_header_token()
-    if auth_header_token is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Get Upgrade Device Firmware: Invalid authorization header\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    token = {'access': auth_header_token}
-
-    # get username from token
-    username = g_database_client.get_username_from_token(token)
-    if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Get Upgrade Device Firmware: Token expired\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-
-    print('get_update_firmware {} devicename={}'.format(username, devicename))
-
-    # check if a parameter is empty
-    if len(username) == 0 or len(token) == 0 or len(devicename) == 0:
-        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-        print('\r\nERROR Get Upgrade Device Firmware: Empty parameter found\r\n')
-        return response, status.HTTP_400_BAD_REQUEST
-
-    # check if username and token is valid
-    verify_ret, new_token = g_database_client.verify_token(username, token)
-    if verify_ret == 2:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Get Upgrade Device Firmware: Token expired [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
-    elif verify_ret != 0:
-        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
-        print('\r\nERROR Get Upgrade Device Firmware: Token is invalid [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
-
-    # check if device is registered
-    device = g_database_client.find_device(username, devicename)
-    if not device:
-        response = json.dumps({'status': 'NG', 'message': 'Device is not registered'})
-        print('\r\nERROR Get Upgrade Device Firmware: Device is not registered [{},{}]\r\n'.format(username, devicename))
-        return response, status.HTTP_404_NOT_FOUND
-
-
-    # check database for ota status
-    ota_status = g_database_client.get_ota_status(username, devicename)
-    if ota_status is None:
-        response = json.dumps({'status': 'NG', 'message': 'OTA not started'})
-        print('\r\nERROR Get Upgrade Device Firmware: OTA not started\r\n')
-        return response, status.HTTP_400_BAD_REQUEST
-
-    result = "ongoing"
-    if ota_status["status"] != "ongoing":
-        result = ota_status["status"]
-        print(ota_status)
-
-
-    msg = {'status': 'OK', 'message': 'Device upgrade queried successfully.', 'result': result}
-    if new_token:
-        msg['new_token'] = new_token
-    response = json.dumps(msg)
-    print('\r\nDevice upgrade queried successful: {}\r\n\r\n'.format(username))
-    return response
-
-
-########################################################################################################
-#
-# GET OTA STATUSES
-#
-# - Request:
-#   GET /devices/ota
-#   headers: {'Authorization': 'Bearer ' + token.access}
-#
-# - Response:
-#   {'status': 'OK', 'message': string. 'ota': [{"devicename": string, "deviceid", string, "version": string, "status":string, "time": string, "timestamp": int}, ...]}
-#   {'status': 'NG', 'message': string}
-#
-########################################################################################################
-@app.route('/devices/ota', methods=['GET'])
-def get_ota_statuses():
-    # get token from Authorization header
-    auth_header_token = get_auth_header_token()
-    if auth_header_token is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Get OTA statuses: Invalid authorization header\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    token = {'access': auth_header_token}
-
-    # get username from token
-    username = g_database_client.get_username_from_token(token)
-    if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Get OTA statuses: Token expired\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-
-    print('get_ota_statuses {}'.format(username))
-
-    # check if a parameter is empty
-    if len(username) == 0 or len(token) == 0:
-        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-        print('\r\nERROR Get OTA statuses: Empty parameter found\r\n')
-        return response, status.HTTP_400_BAD_REQUEST
-
-    # check if username and token is valid
-    verify_ret, new_token = g_database_client.verify_token(username, token)
-    if verify_ret == 2:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Get OTA statuses: Token expired [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
-    elif verify_ret != 0:
-        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
-        print('\r\nERROR Get OTA statuses: Token is invalid [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
-
-
-    # check database for ota status
-    ota_statuses = g_database_client.get_ota_statuses(username)
-    if ota_statuses is None:
-        ota_statuses = []
-
-    devices = g_database_client.get_devices(username)
-    for device in devices:
-        found = False
-        for ota_status in ota_statuses:
-            if device["deviceid"] == ota_status["deviceid"]:
-                ota_status["devicename"] = device["devicename"]
-                if ota_status["status"] == "completed":
-                    #print(ota_status)
-                    if ota_status.get("timestamp") and ota_status.get("timestart"):
-                        ota_status["time"] = "{} seconds".format(ota_status["timestamp"] - ota_status["timestart"])
-                        ota_status.pop("timestart")
-                        found = True
-                        break
-                elif ota_status["status"] == "pending" or ota_status["status"] == "ongoing":
-                    ota_status["time"] = "n/a"
-                    ota_status["timestamp"] = "n/a"
-                    if ota_status.get("timestart"):
-                        ota_status.pop("timestart")
-                    found = True
-                    break
-        if found == False:
-            ota_status = {
-                "deviceid"   : device["deviceid"],
-                "devicename" : device["devicename"],
-                "status"     : "n/a",
-                "time"       : "n/a",
-                "timestamp"  : "n/a",
-            }
-            if device.get("version"):
-                ota_status["version"] = device["version"]
-            else:
-                ota_status["version"] = "0.1"
-            ota_statuses.append(ota_status)
-    ota_statuses.sort(key=sort_by_devicename)
-
-
-    msg = {'status': 'OK', 'message': 'Get OTA statuses successful.', 'ota': ota_statuses}
-    if new_token:
-        msg['new_token'] = new_token
-    response = json.dumps(msg)
-    print('\r\nGet OTA statuses successful: {}\r\n\r\n'.format(username))
-    return response
-
-
-########################################################################################################
-#
-# GET OTA STATUS
-#
-# - Request:
-#   GET /devices/device/<devicename>/ota
-#   headers: {'Authorization': 'Bearer ' + token.access}
-#
-# - Response:
-#   {'status': 'OK', 'message': string, 'ota': {"version": string, "status":string, "time": string, "timestamp": int} }
-#   {'status': 'NG', 'message': string}
-#
-########################################################################################################
-@app.route('/devices/device/<devicename>/ota', methods=['GET'])
-def get_ota_status(devicename):
-    # get token from Authorization header
-    auth_header_token = get_auth_header_token()
-    if auth_header_token is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Get OTA status: Invalid authorization header\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    token = {'access': auth_header_token}
-
-    # get username from token
-    username = g_database_client.get_username_from_token(token)
-    if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Get OTA status: Token expired\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-
-    print('get_ota_status {} devicename={}'.format(username, devicename))
-
-    # check if a parameter is empty
-    if len(username) == 0 or len(token) == 0 or len(devicename) == 0:
-        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-        print('\r\nERROR Get OTA status: Empty parameter found\r\n')
-        return response, status.HTTP_400_BAD_REQUEST
-
-    # check if username and token is valid
-    verify_ret, new_token = g_database_client.verify_token(username, token)
-    if verify_ret == 2:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Get OTA status: Token expired [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
-    elif verify_ret != 0:
-        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
-        print('\r\nERROR Get OTA status: Token is invalid [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
-
-    # check if device is registered
-    device = g_database_client.find_device(username, devicename)
-    if not device:
-        response = json.dumps({'status': 'NG', 'message': 'Device is not registered'})
-        print('\r\nERROR Get OTA status: Device is not registered [{},{}]\r\n'.format(username, devicename))
-        return response, status.HTTP_404_NOT_FOUND
-
-
-    # check database for ota status
-    ota_status = g_database_client.get_ota_status(username, devicename)
-    if ota_status is None:
-        ota_status = {}
-        if device.get("version"):
-            ota_status["version"] = device["version"]
-        else:
-            ota_status["version"] = "0.1"
-        ota_status["status"] = "n/a"
-        ota_status["time"] = "n/a"
-        ota_status["timestamp"] = "n/a"
-    elif ota_status.get("timestamp") and ota_status.get("timestart"):
-        ota_status["time"] = "{} seconds".format(ota_status["timestamp"] - ota_status["timestart"])
-        ota_status.pop("timestart")
-        ota_status.pop("deviceid")
-
-
-    msg = {'status': 'OK', 'message': 'Get OTA status successful.', 'ota': ota_status}
-    if new_token:
-        msg['new_token'] = new_token
-    response = json.dumps(msg)
-    print('\r\nGet OTA status successful: {}\r\n\r\n'.format(username))
-    return response
-
-
-def get_default_device_hierarchy(devicename):
-
-    hierarchy = {
-        "name": devicename,
-        "children": [
-
-            {
-                "name": "UART",
-                "children": [
-                {
-                    "name": "UART 1"
-                },
-                ]
-            },
-
-            {
-                "name": "GPIO",
-                "children": [
-                {
-                    "name": "GPIO 1"
-                },
-                {
-                    "name": "GPIO 2"
-                },
-                {
-                    "name": "GPIO 3"
-                },
-                {
-                    "name": "GPIO 4"
-                },
-                ]
-            },
-
-            {
-                "name": "I2C",
-                "children": [
-                {
-                    "name": "I2C 1"
-                },
-                {
-                    "name": "I2C 2"
-                },
-                {
-                    "name": "I2C 3"
-                },
-                {
-                    "name": "I2C 4"
-                },
-                ]
-            },
-
-            {
-                "name": "ADC",
-                "children": [
-                {
-                    "name": "ADC 1"
-                },
-                {
-                    "name": "ADC 2"
-                },
-                ]
-            },
-
-            {
-                "name": "1WIRE",
-                "children": [
-                {
-                    "name": "1WIRE 1"
-                },
-                ]
-            },
-
-            {
-                "name": "TPROBE",
-                "children": [
-                {
-                    "name": "TPROBE 1"
-                },
-                ]
-            },
-
-        ]
-    }
-
-    return hierarchy
-
-
-def generate_device_hierarchy(username, devicename, hierarchy, checkdevice=0, status=None, token=None):
-
-    if checkdevice == 1:
-        if status is not None:
-            hierarchy["active"] = status
-            if status == 1:
-                device = {}
-                get_running_sensors(token, username, devicename, device)
-                hierarchy["active"] = device["status"]
-        else:
-            device = {}
-            get_running_sensors(token, username, devicename, device)
-            hierarchy["active"] = device["status"]
-
-    sensors = g_database_client.get_all_device_sensors(username, devicename)
-    for sensor in sensors:
-        #print("{} {} {}".format(sensor["sensorname"], sensor["source"], sensor["number"]))
-        peripheral = sensor["source"].upper()
-        for child in hierarchy["children"]:
-            if child["name"] == peripheral:
-                peripheral += " {}".format(sensor["number"])
-                for granchild in child["children"]:
-                    if granchild["name"] == peripheral:
-                        if granchild.get("children") is None:
-                            granchild["children"] = []
-                        item = {
-                            "name": sensor["sensorname"],
-                            "children": [
-                            {
-                                "name": sensor["class"]
-                            }
-                            ]
-                        }
-                        if sensor.get("subclass"):
-                            item["children"].append({"name": sensor["subclass"]})
-
-                        if checkdevice == 1:
-                            if hierarchy["active"] == 0:
-                                item["active"] = 0
-                                for x in item["children"]:
-                                    x["active"] = 0
-                            else:
-                                item["active"] = sensor["enabled"]
-                                for x in item["children"]:
-                                    x["active"] = sensor["enabled"]
-
-                        granchild["children"].append(item)
-                        break
-                break
-
-    return hierarchy
-
-
-########################################################################################################
-#
-# GET DEVICE HIERARCHY TREE
-#
-# - Request:
-#   GET /devices/device/<devicename>/hierarchy
-#   headers: {'Authorization': 'Bearer ' + token.access}
-#
-# - Response:
-#   {'status': 'OK', 'message': string, 'hierarchy': {"name": string, "children": [{"name": "children", ...}, ...]} }
-#   {'status': 'NG', 'message': string}
-#
-########################################################################################################
-@app.route('/devices/device/<devicename>/hierarchy', methods=['GET'])
-def get_device_hierarchy(devicename):
-    # get token from Authorization header
-    auth_header_token = get_auth_header_token()
-    if auth_header_token is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Get hierarchy tree: Invalid authorization header\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    token = {'access': auth_header_token}
-
-    # get username from token
-    username = g_database_client.get_username_from_token(token)
-    if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Get hierarchy tree: Token expired\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-
-    print('get_device_hierarchy {} devicename={}'.format(username, devicename))
-
-    # check if a parameter is empty
-    if len(username) == 0 or len(token) == 0 or len(devicename) == 0:
-        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-        print('\r\nERROR Get hierarchy tree: Empty parameter found\r\n')
-        return response, status.HTTP_400_BAD_REQUEST
-
-    # check if username and token is valid
-    verify_ret, new_token = g_database_client.verify_token(username, token)
-    if verify_ret == 2:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Get hierarchy tree: Token expired [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
-    elif verify_ret != 0:
-        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
-        print('\r\nERROR Get hierarchy tree: Token is invalid [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
-
-    # check if device is registered
-    device = g_database_client.find_device(username, devicename)
-    if not device:
-        response = json.dumps({'status': 'NG', 'message': 'Device is not registered'})
-        print('\r\nERROR Get hierarchy tree: Device is not registered [{},{}]\r\n'.format(username, devicename))
-        return response, status.HTTP_404_NOT_FOUND
-
-
-    # generate hierarchy
-    hierarchy = get_default_device_hierarchy(devicename)
-    hierarchy = generate_device_hierarchy(username, devicename, hierarchy)
-
-
-    msg = {'status': 'OK', 'message': 'Get hierarchy tree successful.', 'hierarchy': hierarchy}
-    if new_token:
-        msg['new_token'] = new_token
-    response = json.dumps(msg)
-    print('\r\nGet hierarchy tree successful: {}\r\n\r\n'.format(username))
-    return response
-
-
-########################################################################################################
-#
-# GET DEVICE HIERARCHY TREE (WITH STATUS)
-#
-# - Request:
-#   POST /devices/device/<devicename>/hierarchy
-#   headers: {'Authorization': 'Bearer ' + token.access}
-#   data: {'checkdevice': int, 'status': int}
-#
-# - Response:
-#   {'status': 'OK', 'message': string, 'hierarchy': {"name": string, "children": [{"name": "children", ...}, ...]} }
-#   {'status': 'NG', 'message': string}
-#
-########################################################################################################
-@app.route('/devices/device/<devicename>/hierarchy', methods=['POST'])
-def get_device_hierarchy_with_status(devicename):
-    # get token from Authorization header
-    auth_header_token = get_auth_header_token()
-    if auth_header_token is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Get hierarchy tree: Invalid authorization header\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    token = {'access': auth_header_token}
-
-    # get username from token
-    username = g_database_client.get_username_from_token(token)
-    if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Get hierarchy tree: Token expired\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-
-    print('get_device_hierarchy_with_status {} devicename={}'.format(username, devicename))
-
-    # check if a parameter is empty
-    if len(username) == 0 or len(token) == 0 or len(devicename) == 0:
-        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-        print('\r\nERROR Get hierarchy tree: Empty parameter found\r\n')
-        return response, status.HTTP_400_BAD_REQUEST
-
-    # check if username and token is valid
-    verify_ret, new_token = g_database_client.verify_token(username, token)
-    if verify_ret == 2:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Get hierarchy tree: Token expired [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
-    elif verify_ret != 0:
-        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
-        print('\r\nERROR Get hierarchy tree: Token is invalid [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
-
-    # check if device is registered
-    device = g_database_client.find_device(username, devicename)
-    if not device:
-        response = json.dumps({'status': 'NG', 'message': 'Device is not registered'})
-        print('\r\nERROR Get hierarchy tree: Device is not registered [{},{}]\r\n'.format(username, devicename))
-        return response, status.HTTP_404_NOT_FOUND
-
-
-    # generate hierarchy
-    checkdevice = 0
-    status = None
-    data = flask.request.get_json()
-    if data is not None:
-        if data.get("checkdevice") is not None:
-            checkdevice = data["checkdevice"]
-        if data.get("status") is not None:
-            status = data["status"]
-    hierarchy = get_default_device_hierarchy(devicename)
-    hierarchy = generate_device_hierarchy(username, devicename, hierarchy, checkdevice, status, token)
-
-
-    msg = {'status': 'OK', 'message': 'Get hierarchy tree successful.', 'hierarchy': hierarchy}
-    if new_token:
-        msg['new_token'] = new_token
-    response = json.dumps(msg)
-    print('\r\nGet hierarchy tree successful: {}\r\n\r\n'.format(username))
-    return response
-
-
 #########################
-
-
-########################################################################################################
-# 
-# GET DEVICE GROUPS
-#
-# - Request:
-#   GET /devicegroups
-#   headers: {'Authorization': 'Bearer ' + token.access}
-#
-# - Response:
-#   {'status': 'OK', 'message': string, 'devicegroups': array[{'groupname': string, 'devices': [{'devicename': string}], ...}]}
-#   {'status': 'NG', 'message': string}
-#
-########################################################################################################
-@app.route('/devicegroups', methods=['GET'])
-def get_device_group_list():
-    # get token from Authorization header
-    auth_header_token = get_auth_header_token()
-    if auth_header_token is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Get Device Groups: Invalid authorization header\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    token = {'access': auth_header_token}
-
-    # get username from token
-    username = g_database_client.get_username_from_token(token)
-    if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Get Device Groups: Token expired\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    #print('get_device_list {}'.format(username))
-
-    # check if a parameter is empty
-    if len(username) == 0 or len(token) == 0:
-        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-        print('\r\nERROR Get Device Groups: Empty parameter found\r\n')
-        return response, status.HTTP_400_BAD_REQUEST
-
-    # check if username and token is valid
-    verify_ret, new_token = g_database_client.verify_token(username, token)
-    if verify_ret == 2:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Get Device Groups: Token expired [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
-    elif verify_ret != 0:
-        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
-        print('\r\nERROR Get Device Groups: Token is invalid [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
-
-
-    devicegroups = g_database_client.get_devicegroups(username)
-
-
-    msg = {'status': 'OK', 'message': 'Device groups queried successfully.', 'devicegroups': devicegroups}
-    if new_token:
-        msg['new_token'] = new_token
-    response = json.dumps(msg)
-    print('get_device_list {} {} devices'.format(username, len(devicegroups)))
-    return response
-
-
-########################################################################################################
-#
-#
-# GET DEVICE GROUP
-#
-# - Request:
-#   GET /devicegroups/<devicegroupname>
-#   headers: {'Authorization': 'Bearer ' + token.access}
-#
-# - Response:
-#   {'status': 'OK', 'message': string, 'devicegroup': {'groupname': string, 'devices': [{'devicename': string}], ...}}
-#   {'status': 'NG', 'message': string}
-#
-#
-# ADD DEVICE GROUP
-#
-# - Request:
-#   POST /devicegroups/<devicegroupname>
-#   headers: {'Authorization': 'Bearer ' + token.access}
-#
-# - Response:
-#   {'status': 'OK', 'message': string}
-#   {'status': 'NG', 'message': string}
-#
-#
-# DELETE DEVICE GROUP
-#
-# - Request:
-#   DELETE /devicegroups/<devicegroupname>
-#   headers: {'Authorization': 'Bearer ' + token.access}
-#
-# - Response:
-#   {'status': 'OK', 'message': string}
-#   {'status': 'NG', 'message': string}
-#
-########################################################################################################
-@app.route('/devicegroups/<devicegroupname>', methods=['GET', 'POST', 'DELETE'])
-def register_devicegroups(devicegroupname):
-    # get token from Authorization header
-    auth_header_token = get_auth_header_token()
-    if auth_header_token is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Get/Add/Delete DeviceGroup: Invalid authorization header\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    token = {'access': auth_header_token}
-
-    # get username from token
-    username = g_database_client.get_username_from_token(token)
-    if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Get/Add/Delete DeviceGroup: Token expired\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    print('register_devicegroups {} devicegroupname={}'.format(username, devicegroupname))
-
-    # check if a parameter is empty
-    if len(username) == 0 or len(token) == 0 or len(devicegroupname) == 0:
-        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-        print('\r\nERROR Get/Add/Delete DeviceGroup: Empty parameter found\r\n')
-        return response, status.HTTP_400_BAD_REQUEST
-
-    # check if username and token is valid
-    verify_ret, new_token = g_database_client.verify_token(username, token)
-    if verify_ret == 2:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Get/Add/Delete DeviceGroup: Token expired [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
-    elif verify_ret != 0:
-        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
-        print('\r\nERROR Get/Add/Delete DeviceGroup: Token is invalid [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
-
-
-    if flask.request.method == 'GET':
-        msg = {'status': 'OK', 'message': 'Device group retrieved successfully.'}
-        msg['devicegroup'] = g_database_client.get_devicegroup(username, devicegroupname)
-
-    elif flask.request.method == 'POST':
-        if g_database_client.get_devicegroup(username, devicegroupname) is not None:
-            response = json.dumps({'status': 'NG', 'message': 'Device group name is already used'})
-            print('\r\nERROR Get/Add/Delete DeviceGroup: Name is already used [{},{}]\r\n'.format(username, devicegroupname))
-            return response, status.HTTP_409_CONFLICT
-
-        msg = {'status': 'OK', 'message': 'Device group added successfully.'}
-        g_database_client.add_devicegroup(username, devicegroupname)
-
-    elif flask.request.method == 'DELETE':
-        msg = {'status': 'OK', 'message': 'Device group deleted successfully.'}
-        g_database_client.delete_devicegroup(username, devicegroupname)
-
-
-    print('\r\n%s: {}\r\n{}\r\n'.format(username, msg["message"]))
-    response = json.dumps(msg)
-    return response
-
-
-########################################################################################################
-#
-# UPDATE DEVICE GROUP NAME
-#
-# - Request:
-#   POST /devicegroups/<devicegroupname>/name
-#   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-#   data: {'new_groupname': string}
-#
-# - Response:
-#   {'status': 'OK', 'message': string}}
-#   {'status': 'NG', 'message': string}
-#
-########################################################################################################
-@app.route('/devicegroups/<devicegroupname>/name', methods=['POST'])
-def update_devicegroupname(devicegroupname):
-    # get token from Authorization header
-    auth_header_token = get_auth_header_token()
-    if auth_header_token is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Update Device Group Name: Invalid authorization header\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    token = {'access': auth_header_token}
-
-    # get username from token
-    username = g_database_client.get_username_from_token(token)
-    if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Update Device Group Name: Token expired\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    print('update_devicegroupname {} devicegroupname={}'.format(username, devicegroupname))
-
-    # check if a parameter is empty
-    if len(username) == 0 or len(token) == 0 or len(devicegroupname) == 0:
-        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-        print('\r\nERROR Update Device Group Name: Empty parameter found\r\n')
-        return response, status.HTTP_400_BAD_REQUEST
-
-    # check if username and token is valid
-    verify_ret, new_token = g_database_client.verify_token(username, token)
-    if verify_ret == 2:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Update Device Group Name: Token expired [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
-    elif verify_ret != 0:
-        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
-        print('\r\nERROR Update Device Group Name: Token is invalid [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
-
-
-    # check if device group is registered
-    if g_database_client.get_devicegroup(username, devicegroupname) is None:
-        response = json.dumps({'status': 'NG', 'message': 'Device group is not registered'})
-        print('\r\nERROR Update Device Group Name: Device group is not registered [{},{}]\r\n'.format(username, devicegroupname))
-        return response, status.HTTP_404_NOT_FOUND
-
-
-    # check if new device group name is already registered
-    data = flask.request.get_json()
-    if not data.get("new_groupname"):
-        response = json.dumps({'status': 'NG', 'message': 'Parameters not included'})
-        print('\r\nERROR Update Device Group Name: Parameters not included [{},{}]\r\n'.format(username, devicegroupname))
-        return response, status.HTTP_400_BAD_REQUEST
-    if len(data["new_groupname"]) == 0:
-        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-        print('\r\nERROR Update Device Group Name: Empty parameter found\r\n')
-        return response, status.HTTP_400_BAD_REQUEST
-    if g_database_client.get_devicegroup(username, data["new_groupname"]) is not None:
-        response = json.dumps({'status': 'NG', 'message': 'Device group name is already registered'})
-        print('\r\nERROR Update Device Group Name: Device group name is already registered [{},{}]\r\n'.format(username, devicegroupname))
-        return response, status.HTTP_400_BAD_REQUEST
-
-
-    # update the device group name
-    g_database_client.update_name_devicegroup(username, devicegroupname, data["new_groupname"])
-
-
-    msg = {'status': 'OK', 'message': 'Device Group name updated successfully.'}
-    if new_token:
-        msg['new_token'] = new_token
-    response = json.dumps(msg)
-    print('\r\nDevice Group name updated successful: {}\r\n{}\r\n'.format(username, response))
-    return response
-
-
-########################################################################################################
-#
-#
-# ADD DEVICE TO DEVICE GROUP
-#
-# - Request:
-#   POST /devicegroups/<devicegroupname>/device/<devicename>
-#   headers: {'Authorization': 'Bearer ' + token.access}
-#
-# - Response:
-#   {'status': 'OK', 'message': string}
-#   {'status': 'NG', 'message': string}
-#
-#
-# REMOVE DEVICE FROM DEVICE GROUP
-#
-# - Request:
-#   DELETE /devicegroups/<devicegroupname>/device/<devicename>
-#   headers: {'Authorization': 'Bearer ' + token.access}
-#
-# - Response:
-#   {'status': 'OK', 'message': string}
-#   {'status': 'NG', 'message': string}
-#
-########################################################################################################
-@app.route('/devicegroups/<devicegroupname>/device/<devicename>', methods=['POST', 'DELETE'])
-def register_device_to_devicegroups(devicegroupname, devicename):
-    # get token from Authorization header
-    auth_header_token = get_auth_header_token()
-    if auth_header_token is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Add/Delete Device To/From DeviceGroup: Invalid authorization header\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    token = {'access': auth_header_token}
-
-    # get username from token
-    username = g_database_client.get_username_from_token(token)
-    if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Add/Delete Device To/From DeviceGroup: Token expired\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    print('register_devicegroups {} devicegroupname={}'.format(username, devicegroupname))
-
-    # check if a parameter is empty
-    if len(username) == 0 or len(token) == 0 or len(devicegroupname) == 0 or len(devicename) == 0:
-        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-        print('\r\nERROR Add/Delete Device To/From DeviceGroup: Empty parameter found\r\n')
-        return response, status.HTTP_400_BAD_REQUEST
-
-    # check if username and token is valid
-    verify_ret, new_token = g_database_client.verify_token(username, token)
-    if verify_ret == 2:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Add/Delete Device To/From DeviceGroup: Token expired [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
-    elif verify_ret != 0:
-        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
-        print('\r\nERROR Add/Delete Device To/From DeviceGroup: Token is invalid [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
-
-
-    if flask.request.method == 'POST':
-        msg = {'status': 'OK', 'message': 'Device added to device group successfully.'}
-        result = g_database_client.add_device_to_devicegroup(username, devicegroupname, devicename)
-        if result == False:
-            response = json.dumps({'status': 'NG', 'message': 'Device already in device group'})
-            print('\r\nERROR Add/Delete Device To/From DeviceGroup: Device already in device group\r\n')
-            return response, status.HTTP_400_BAD_REQUEST
-
-    elif flask.request.method == 'DELETE':
-        msg = {'status': 'OK', 'message': 'Device removed from device group successfully.'}
-        g_database_client.remove_device_from_devicegroup(username, devicegroupname, devicename)
-
-
-    print('\r\n%s: {}\r\n{}\r\n'.format(username, msg["message"]))
-    response = json.dumps(msg)
-    return response
-
-
-########################################################################################################
-#
-#
-# SET DEVICES TO DEVICE GROUP
-#
-# - Request:
-#   POST /devicegroups/<devicegroupname>/devices
-#   headers: {'Authorization': 'Bearer ' + token.access}
-#   data: {'devices': ["devicename", ...]}
-#
-# - Response:
-#   {'status': 'OK', 'message': string}
-#   {'status': 'NG', 'message': string}
-#
-########################################################################################################
-@app.route('/devicegroups/<devicegroupname>/devices', methods=['POST'])
-def set_devices_to_devicegroups(devicegroupname):
-    # get token from Authorization header
-    auth_header_token = get_auth_header_token()
-    if auth_header_token is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Add/Delete Device To/From DeviceGroup: Invalid authorization header\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    token = {'access': auth_header_token}
-
-    # get username from token
-    username = g_database_client.get_username_from_token(token)
-    if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Add/Delete Device To/From DeviceGroup: Token expired\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    print('set_devices_to_devicegroups {} devicegroupname={}'.format(username, devicegroupname))
-
-    # check if a parameter is empty
-    if len(username) == 0 or len(token) == 0 or len(devicegroupname) == 0:
-        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-        print('\r\nERROR Add/Delete Device To/From DeviceGroup: Empty parameter found\r\n')
-        return response, status.HTTP_400_BAD_REQUEST
-
-    # check if username and token is valid
-    verify_ret, new_token = g_database_client.verify_token(username, token)
-    if verify_ret == 2:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Add/Delete Device To/From DeviceGroup: Token expired [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
-    elif verify_ret != 0:
-        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
-        print('\r\nERROR Add/Delete Device To/From DeviceGroup: Token is invalid [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
-
-
-    # check if new device group name is already registered
-    data = flask.request.get_json()
-    if data is None or data.get("devices") is None:
-        response = json.dumps({'status': 'NG', 'message': 'Parameters not included'})
-        print('\r\nERROR Add/Delete Device To/From DeviceGroup: Parameters not included [{},{}]\r\n'.format(username, devicegroupname))
-        return response, status.HTTP_400_BAD_REQUEST
-
-    g_database_client.set_devices_to_devicegroup(username, devicegroupname, data["devices"])
-    msg = {'status': 'OK', 'message': 'Devices set to device group successfully.'}
-
-
-    print('\r\n%s: {}\r\n{}\r\n'.format(username, msg["message"]))
-    response = json.dumps(msg)
-    return response
-
-
-#########################
-
-
-########################################################################################################
-#
-# GET HISTORIES
-#
-# - Request:
-#   GET /devices/histories
-#   headers: {'Authorization': 'Bearer ' + token.access}
-#
-# - Response:
-#   { 'status': 'OK', 'message': string, 
-#     'transactions': array[
-#       {'devicename': string, 'deviceid': string, 'direction': string, 'topic': string, 'payload': string, 'timestamp': string}, ...]}
-#   { 'status': 'NG', 'message': string}
-#
-########################################################################################################
-@app.route('/devices/histories', methods=['GET'])
-def get_device_histories():
-    # get token from Authorization header
-    auth_header_token = get_auth_header_token()
-    if auth_header_token is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Get Histories: Invalid authorization header\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    token = {'access': auth_header_token}
-
-    # get username from token
-    username = g_database_client.get_username_from_token(token)
-    if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Get Histories: Token expired\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    print('get_device_histories {}'.format(username))
-
-    # check if a parameter is empty
-    if len(username) == 0 or len(token) == 0:
-        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-        print('\r\nERROR Get Histories: Empty parameter found\r\n')
-        return response, status.HTTP_400_BAD_REQUEST
-
-    # check if username and token is valid
-    verify_ret, new_token = g_database_client.verify_token(username, token)
-    if verify_ret == 2: # token expired
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Get Histories: Token expired [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
-    elif verify_ret != 0:
-        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
-        print('\r\nERROR Get Histories: Token is invalid [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
-
-    histories = g_database_client.get_user_history(username)
-    #print(histories)
-
-
-    msg = {'status': 'OK', 'message': 'User histories queried successfully.', 'transactions': histories}
-    if new_token:
-        msg['new_token'] = new_token
-    response = json.dumps(msg)
-    return response
-
-
-########################################################################################################
-#
-# GET HISTORIES FILTERED
-#
-# - Request:
-#   POST /devices/histories
-#   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-#   data: { 'devicename': string, 'deviceid': string, 'direction': string, 'topic': string, 'datebegin': int, 'dateend': int }
-#
-# - Response:
-#   { 'status': 'OK', 'message': string, 
-#     'transactions': array[
-#       {'devicename': string, 'deviceid': string, 'direction': string, 'topic': string, 'payload': string, 'timestamp': string}, ...]}
-#   { 'status': 'NG', 'message': string}
-#
-########################################################################################################
-@app.route('/devices/histories', methods=['POST'])
-def get_device_histories_filtered():
-    # get token from Authorization header
-    auth_header_token = get_auth_header_token()
-    if auth_header_token is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Get Histories: Invalid authorization header\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    token = {'access': auth_header_token}
-
-    # get username from token
-    username = g_database_client.get_username_from_token(token)
-    if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Get Histories: Token expired\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    print('get_device_histories_filtered {}'.format(username))
-
-    # check if a parameter is empty
-    if len(username) == 0 or len(token) == 0:
-        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-        print('\r\nERROR Get Histories: Empty parameter found\r\n')
-        return response, status.HTTP_400_BAD_REQUEST
-
-    # check if username and token is valid
-    verify_ret, new_token = g_database_client.verify_token(username, token)
-    if verify_ret == 2: # token expired
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Get Histories: Token expired [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
-    elif verify_ret != 0:
-        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
-        print('\r\nERROR Get Histories: Token is invalid [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
-
-    # get filter data
-    devicename = None
-    direction = None
-    topic = None
-    datebegin = 0
-    dateend = 0
-    data = flask.request.get_json()
-    if data.get("devicename"):
-        devicename = data["devicename"]
-    if data.get("direction"):
-        direction = data["direction"]
-    if data.get("topic"):
-        topic = data["topic"]
-    if data.get("datebegin"):
-        datebegin = data["datebegin"]
-        if data.get("dateend"):
-            dateend = data["dateend"]
-
-    histories = g_database_client.get_user_history_filtered(username, devicename, direction, topic, datebegin, dateend)
-    #print(histories)
-
-
-    msg = {'status': 'OK', 'message': 'User histories queried successfully.', 'transactions': histories}
-    if new_token:
-        msg['new_token'] = new_token
-    response = json.dumps(msg)
-    return response
 
 
 def sort_by_timestamp(elem):
@@ -4796,170 +1016,6 @@ def sort_by_devicename(elem):
 
 def sort_by_sensorname(elem):
     return elem['sensorname']
-
-
-########################################################################################################
-#
-# GET MENOS HISTORIES
-#
-# - Request:
-#   GET /devices/menos
-#   headers: {'Authorization': 'Bearer ' + token.access}
-#
-# - Response:
-#   { 'status': 'OK', 'message': string, 
-#     'transactions': array[
-#       {'devicename': string, 'deviceid': string, 'direction': string, 'topic': string, 'payload': string, 'timestamp': string}, ...]}
-#   { 'status': 'NG', 'message': string}
-#
-########################################################################################################
-@app.route('/devices/menos', methods=['GET'])
-def get_device_menos_histories():
-    # get token from Authorization header
-    auth_header_token = get_auth_header_token()
-    if auth_header_token is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Get MENOS Histories: Invalid authorization header\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    token = {'access': auth_header_token}
-
-    # get username from token
-    username = g_database_client.get_username_from_token(token)
-    if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Get MENOS Histories: Token expired\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    print('get_device_menos_histories {}'.format(username))
-
-    # check if a parameter is empty
-    if len(username) == 0 or len(token) == 0:
-        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-        print('\r\nERROR Get MENOS Histories: Empty parameter found\r\n')
-        return response, status.HTTP_400_BAD_REQUEST
-
-    # check if username and token is valid
-    verify_ret, new_token = g_database_client.verify_token(username, token)
-    if verify_ret == 2: # token expired
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Get MENOS Histories: Token expired [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
-    elif verify_ret != 0:
-        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
-        print('\r\nERROR Get MENOS Histories: Token is invalid [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
-
-
-    # get menos histories of all devices of user
-    histories = []
-    devices = g_database_client.get_devices(username)
-    for device in devices:
-        transactions = g_database_client.get_menos_transaction(device["deviceid"])
-        for transaction in transactions:
-            transaction["devicename"] = device["devicename"]
-        histories += transactions
-    histories.sort(key=sort_by_timestamp, reverse=True)
-
-    msg = {'status': 'OK', 'message': 'User MENOS histories queried successfully.', 'transactions': histories}
-    if new_token:
-        msg['new_token'] = new_token
-    response = json.dumps(msg)
-    return response
-
-
-########################################################################################################
-#
-# GET MENOS HISTORIES FILTERED
-#
-# - Request:
-#   POST /devices/menos
-#   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-#   data: { 'devicename': string, 'deviceid': string, 'type': string, 'peripheral': string, 'datebegin': int, 'dateend': int }
-#
-# - Response:
-#   { 'status': 'OK', 'message': string, 
-#     'transactions': array[
-#       {'devicename': string, 'deviceid': string, 'direction': string, 'topic': string, 'payload': string, 'timestamp': string}, ...]}
-#   { 'status': 'NG', 'message': string}
-#
-########################################################################################################
-@app.route('/devices/menos', methods=['POST'])
-def get_device_menos_histories_filtered():
-    # get token from Authorization header
-    auth_header_token = get_auth_header_token()
-    if auth_header_token is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Get MENOS Histories: Invalid authorization header\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    token = {'access': auth_header_token}
-
-    # get username from token
-    username = g_database_client.get_username_from_token(token)
-    if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Get MENOS Histories: Token expired\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    print('get_device_menos_histories_filtered {}'.format(username))
-
-    # check if a parameter is empty
-    if len(username) == 0 or len(token) == 0:
-        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-        print('\r\nERROR Get MENOS Histories: Empty parameter found\r\n')
-        return response, status.HTTP_400_BAD_REQUEST
-
-    # check if username and token is valid
-    verify_ret, new_token = g_database_client.verify_token(username, token)
-    if verify_ret == 2: # token expired
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Get MENOS Histories: Token expired [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
-    elif verify_ret != 0:
-        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
-        print('\r\nERROR Get MENOS Histories: Token is invalid [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
-
-    # get filter data
-    devicename = None
-    type = None
-    source = None
-    datebegin = 0
-    dateend = 0
-    data = flask.request.get_json()
-    #print(data)
-    if data.get("devicename"):
-        devicename = data["devicename"]
-    if data.get("type"):
-        type = data["type"]
-    if data.get("source"):
-        source = data["source"]
-    if data.get("datebegin"):
-        datebegin = data["datebegin"]
-        if data.get("dateend"):
-            dateend = data["dateend"]
-
-    # get menos histories of all devices of user
-    histories = []
-    devices = g_database_client.get_devices(username)
-    if devicename is not None:
-        for device in devices:
-            if device["devicename"] == devicename:
-                transactions = g_database_client.get_menos_transaction_filtered(device["deviceid"], type, source, datebegin, dateend)
-                for transaction in transactions:
-                    transaction["devicename"] = device["devicename"]
-                histories += transactions
-                break
-    else:
-        for device in devices:
-            transactions = g_database_client.get_menos_transaction_filtered(device["deviceid"], type, source, datebegin, dateend)
-            for transaction in transactions:
-                transaction["devicename"] = device["devicename"]
-            histories += transactions
-    histories.sort(key=sort_by_timestamp, reverse=True)
-
-    msg = {'status': 'OK', 'message': 'User MENOS histories queried successfully.', 'transactions': histories}
-    if new_token:
-        msg['new_token'] = new_token
-    response = json.dumps(msg)
-    return response
 
 
 #########################
@@ -4984,7 +1040,7 @@ def get_status(devicename):
     api = 'get_status'
 
     # get token from Authorization header
-    auth_header_token = get_auth_header_token()
+    auth_header_token = g_utils.get_auth_header_token()
     if auth_header_token is None:
         response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
         print('\r\nERROR Invalid authorization header\r\n')
@@ -5002,7 +1058,7 @@ def get_status(devicename):
     data['username'] = username
     #print('get_status {} devicename={}'.format(data['username'], data['devicename']))
 
-    response, status_return = process_request(api, data)
+    response, status_return = g_messaging_requests.process(api, data)
     if status_return == 503: # HTTP_503_SERVICE_UNAVAILABLE
         # if device is unreachable, get the cached heartbeat and version
         cached_value = g_database_client.get_device_cached_values(username, devicename)
@@ -5024,7 +1080,7 @@ def get_status(devicename):
     return response
 
 def get_status_threaded(username, api, data, device):
-    response, status_return = process_request(api, data)
+    response, status_return = g_messaging_requests.process(api, data)
     if status_return == 503: # HTTP_503_SERVICE_UNAVAILABLE
         # if device is unreachable, get the cached heartbeat and version
         cached_value = g_database_client.get_device_cached_values(username, device["devicename"])
@@ -5058,7 +1114,7 @@ def get_statuses():
     api = 'get_status'
 
     # get token from Authorization header
-    auth_header_token = get_auth_header_token()
+    auth_header_token = g_utils.get_auth_header_token()
     if auth_header_token is None:
         response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
         print('\r\nERROR Invalid authorization header\r\n')
@@ -5107,7 +1163,7 @@ def set_status(devicename):
     api = 'set_status'
 
     # get token from Authorization header
-    auth_header_token = get_auth_header_token()
+    auth_header_token = g_utils.get_auth_header_token()
     if auth_header_token is None:
         response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
         print('\r\nERROR Invalid authorization header\r\n')
@@ -5132,7 +1188,7 @@ def set_status(devicename):
         return response, status.HTTP_401_UNAUTHORIZED
     print('set_status {} devicename={}'.format(data['username'], data['devicename']))
 
-    return process_request(api, data)
+    return g_messaging_requests.process(api, data)
 
 #
 # GET SETTINGS
@@ -5149,7 +1205,7 @@ def get_settings(devicename):
     api = 'get_settings'
 
     # get token from Authorization header
-    auth_header_token = get_auth_header_token()
+    auth_header_token = g_utils.get_auth_header_token()
     if auth_header_token is None:
         response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
         print('\r\nERROR Invalid authorization header\r\n')
@@ -5167,7 +1223,7 @@ def get_settings(devicename):
     data['username'] = username
     print('get_settings {} devicename={}'.format(data['username'], data['devicename']))
 
-    return process_request(api, data)
+    return g_messaging_requests.process(api, data)
 
 #
 # SET SETTINGS
@@ -5185,7 +1241,7 @@ def set_settings(devicename):
     api = 'set_settings'
 
     # get token from Authorization header
-    auth_header_token = get_auth_header_token()
+    auth_header_token = g_utils.get_auth_header_token()
     if auth_header_token is None:
         response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
         print('\r\nERROR Invalid authorization header\r\n')
@@ -5204,327 +1260,7 @@ def set_settings(devicename):
         return response, status.HTTP_401_UNAUTHORIZED
     print('set_settings {} devicename={}'.format(data['username'], data['devicename']))
 
-    return process_request(api, data)
-
-#
-# GET IP
-#
-# - Request:
-#   GET /devices/device/<devicename>/ip
-#   headers: {'Authorization': 'Bearer ' + token.access}
-#
-# - Response:
-#   { 'status': 'OK', 'message': string, 'value': string }
-#   { 'status': 'NG', 'message': string}
-#
-@app.route('/devices/device/<devicename>/ip', methods=['GET'])
-def get_ip(devicename):
-    api = 'get_ip'
-
-    # get token from Authorization header
-    auth_header_token = get_auth_header_token()
-    if auth_header_token is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Invalid authorization header\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-
-    # get username from token
-    data = {}
-    data['token'] = {'access': auth_header_token}
-    data['devicename'] = devicename
-    data['username'] = g_database_client.get_username_from_token(data['token'])
-    if data['username'] is None:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Token expired\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    print('get_ip {}'.format(data['username']))
-
-    return process_request(api, data)
-
-#
-# GET SUBNET
-#
-# - Request:
-#   GET /devices/device/<devicename>/subnet
-#   headers: {'Authorization': 'Bearer ' + token.access}
-#
-# - Response:
-#   { 'status': 'OK', 'message': string, 'value': string }
-#   { 'status': 'NG', 'message': string}
-#
-@app.route('/devices/device/<devicename>/subnet', methods=['GET'])
-def get_subnet(devicename):
-    api = 'get_subnet'
-
-    # get token from Authorization header
-    auth_header_token = get_auth_header_token()
-    if auth_header_token is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Invalid authorization header\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-
-    # get username from token
-    data = {}
-    data['token'] = {'access': auth_header_token}
-    data['devicename'] = devicename
-    data['username'] = g_database_client.get_username_from_token(data['token'])
-    if data['username'] is None:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Token expired\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    print('get_subnet {}'.format(data['username']))
-
-    return process_request(api, data)
-
-#
-# GET GATEWAY
-#
-# - Request:
-#   GET /devices/device/<devicename>/gateway
-#   headers: {'Authorization': 'Bearer ' + token.access}
-#
-# - Response:
-#   { 'status': 'OK', 'message': string, 'value': string }
-#   { 'status': 'NG', 'message': string}
-#
-@app.route('/devices/device/<devicename>/gateway', methods=['GET'])
-def get_gateway(devicename):
-    api = 'get_gateway'
-
-    # get token from Authorization header
-    auth_header_token = get_auth_header_token()
-    if auth_header_token is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Invalid authorization header\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-
-    # get username from token
-    data = {}
-    data['token'] = {'access': auth_header_token}
-    data['devicename'] = devicename
-    data['username'] = g_database_client.get_username_from_token(data['token'])
-    if data['username'] is None:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Token expired\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    print('get_gateway {}'.format(data['username']))
-
-    return process_request(api, data)
-
-#
-# GET MAC
-#
-# - Request:
-#   GET /devices/device/<devicename>/mac
-#   headers: {'Authorization': 'Bearer ' + token.access}
-#
-# - Response:
-#   { 'status': 'OK', 'message': string, 'value': string }
-#   { 'status': 'NG', 'message': string}
-#
-@app.route('/devices/device/<devicename>/mac', methods=['GET'])
-def get_mac(devicename):
-    api = 'get_mac'
-
-    # get token from Authorization header
-    auth_header_token = get_auth_header_token()
-    if auth_header_token is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Invalid authorization header\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-
-    # get username from token
-    data = {}
-    data['token'] = {'access': auth_header_token}
-    data['devicename'] = devicename
-    data['username'] = g_database_client.get_username_from_token(data['token'])
-    if data['username'] is None:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Token expired\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    print('get_mac {}'.format(data['username']))
-
-    return process_request(api, data)
-
-# 
-# GET GPIO
-# 
-# - Request:
-#   GET /devices/device/<devicename>/gpio/<number>
-#   headers: {'Authorization': 'Bearer ' + token.access}
-# 
-# - Response:
-#   { 'status': 'OK', 'message': string, 'value': string }
-#   { 'status': 'NG', 'message': string}
-# 
-@app.route('/devices/device/<devicename>/gpio/<number>', methods=['GET'])
-def get_gpio(devicename, number):
-    api = 'get_gpio'
-
-    # get token from Authorization header
-    auth_header_token = get_auth_header_token()
-    if auth_header_token is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Invalid authorization header\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-
-    # get username from token
-    data = {}
-    data['token'] = {'access': auth_header_token}
-    data['devicename'] = devicename
-    data['number'] = number
-    data['username'] = g_database_client.get_username_from_token(data['token'])
-    if data['username'] is None:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Token expired\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    print('get_gpio {}'.format(data['username']))
-
-    return process_request(api, data)
-
-# 
-# SET GPIO
-# 
-# - Request:
-#   POST /devices/device/<devicename>/gpio/<number>
-#   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-#   data: { 'value': string }
-# 
-# - Response:
-#   { 'status': 'OK', 'message': string, 'value': string }
-#   { 'status': 'NG', 'message': string}
-# 
-@app.route('/devices/device/<devicename>/gpio/<number>', methods=['POST'])
-def set_gpio(devicename, number):
-    api = 'set_gpio'
-
-    # get token from Authorization header
-    auth_header_token = get_auth_header_token()
-    if auth_header_token is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Invalid authorization header\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-
-    # get username from token
-    data = flask.request.get_json()
-    data['token'] = {'access': auth_header_token}
-    data['devicename'] = devicename
-    data['number'] = number
-    data['username'] = g_database_client.get_username_from_token(data['token'])
-    if data['username'] is None:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Token expired\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    print('set_gpio {}'.format(data['username']))
-
-    return process_request(api, data)
-
-#
-# GET RTC
-#
-# - Request:
-#   GET devices/device/<devicename>/rtc
-#   headers: {'Authorization': 'Bearer ' + token.access}
-#
-# - Response:
-#   { 'status': 'OK', 'message': string, 'value': string }
-#   { 'status': 'NG', 'message': string}
-#
-@app.route('/devices/device/<devicename>/rtc', methods=['GET'])
-def get_rtc(devicename):
-    api = 'get_rtc'
-
-    # get token from Authorization header
-    auth_header_token = get_auth_header_token()
-    if auth_header_token is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Invalid authorization header\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-
-    # get username from token
-    data = {}
-    data['token'] = {'access': auth_header_token}
-    data['devicename'] = devicename
-    data['username'] = g_database_client.get_username_from_token(data['token'])
-    if data['username'] is None:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Token expired\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    print('get_rtc {}'.format(data['username']))
-
-    return process_request(api, data)
-
-#
-# SET UART
-#
-# - Request:
-#   POST /devices/device/<devicename>/uart
-#   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-#   data: { 'value': string }
-#
-# - Response:
-#   { 'status': 'OK', 'message': string, 'value': string }
-#   { 'status': 'NG', 'message': string}
-#
-@app.route('/devices/device/<devicename>/uart', methods=['POST'])
-def write_uart(devicename):
-    api = 'write_uart'
-
-    # get token from Authorization header
-    auth_header_token = get_auth_header_token()
-    if auth_header_token is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Invalid authorization header\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-
-    # get username from token
-    data = flask.request.get_json()
-    data['token'] = {'access': auth_header_token}
-    data['devicename'] = devicename
-    data['username'] = g_database_client.get_username_from_token(data['token'])
-    if data['username'] is None:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Token expired\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    print('write_uart {}'.format(data['username']))
-
-    return process_request(api, data)
-
-#
-# SET NOTIFICATIONS
-#
-# - Request:
-#   POST /devices/device/<devicename>/notification
-#   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-#   data: { 'recipient': string, 'message': string, 'options': string }
-#
-# - Response:
-#   { 'status': 'OK', 'message': string, 'value': string }
-#   { 'status': 'NG', 'message': string}
-#
-@app.route('/devices/device/<devicename>/notification', methods=['POST'])
-def trigger_notification(devicename):
-    api = 'trigger_notification'
-
-    # get token from Authorization header
-    auth_header_token = get_auth_header_token()
-    if auth_header_token is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Invalid authorization header\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-
-    # get username from token
-    data = flask.request.get_json()
-    data['token'] = {'access': auth_header_token}
-    data['devicename'] = devicename
-    data['username'] = g_database_client.get_username_from_token(data['token'])
-    if data['username'] is None:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Token expired\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    print('trigger_notification {}'.format(data['username']))
-
-    return process_request(api, data)
+    return g_messaging_requests.process(api, data)
 
 
 
@@ -5638,7 +1374,7 @@ def get_uarts(devicename):
     api = 'get_uarts'
 
     # get token from Authorization header
-    auth_header_token = get_auth_header_token()
+    auth_header_token = g_utils.get_auth_header_token()
     if auth_header_token is None:
         response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
         print('\r\nERROR Invalid authorization header\r\n')
@@ -5657,7 +1393,7 @@ def get_uarts(devicename):
     data['username'] = username
     print('get_uarts {} devicename={}'.format(data['username'], data['devicename']))
 
-    return process_request(api, data)
+    return g_messaging_requests.process(api, data)
 
 
 #
@@ -5676,7 +1412,7 @@ def get_uart_prop(devicename):
     api = 'get_uart_prop'
 
     # get token from Authorization header
-    auth_header_token = get_auth_header_token()
+    auth_header_token = g_utils.get_auth_header_token()
     if auth_header_token is None:
         response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
         print('\r\nERROR Invalid authorization header\r\n')
@@ -5695,7 +1431,7 @@ def get_uart_prop(devicename):
     data['username'] = username
     print('get_uart_prop {} devicename={}'.format(data['username'], data['devicename']))
 
-    response, status_return = process_request(api, data)
+    response, status_return = g_messaging_requests.process(api, data)
     if status_return != 200:
         return response, status_return
 
@@ -5736,7 +1472,7 @@ def set_uart_prop(devicename):
     api = 'set_uart_prop'
 
     # get token from Authorization header
-    auth_header_token = get_auth_header_token()
+    auth_header_token = g_utils.get_auth_header_token()
     if auth_header_token is None:
         response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
         print('\r\nERROR Invalid authorization header\r\n')
@@ -5770,7 +1506,7 @@ def set_uart_prop(devicename):
     data['username'] = username
     print('set_uart_prop {} devicename={}'.format(data['username'], data['devicename']))
 
-    response, status_return = process_request(api, data)
+    response, status_return = g_messaging_requests.process(api, data)
     if status_return != 200:
         return response, status_return
 
@@ -5801,7 +1537,7 @@ def enable_uart(devicename):
     api = 'enable_uart'
 
     # get token from Authorization header
-    auth_header_token = get_auth_header_token()
+    auth_header_token = g_utils.get_auth_header_token()
     if auth_header_token is None:
         response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
         print('\r\nERROR Invalid authorization header\r\n')
@@ -5826,7 +1562,7 @@ def enable_uart(devicename):
     data['username'] = username
     print('enable_uart {} devicename={}'.format(data['username'], data['devicename']))
 
-    return process_request(api, data)
+    return g_messaging_requests.process(api, data)
 
 
 #
@@ -5855,7 +1591,7 @@ def get_gpios(devicename):
     api = 'get_gpios'
 
     # get token from Authorization header
-    auth_header_token = get_auth_header_token()
+    auth_header_token = g_utils.get_auth_header_token()
     if auth_header_token is None:
         response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
         print('\r\nERROR Invalid authorization header\r\n')
@@ -5874,7 +1610,7 @@ def get_gpios(devicename):
     data['username'] = username
     print('get_gpios {} devicename={}'.format(data['username'], data['devicename']))
 
-    return process_request(api, data)
+    return g_messaging_requests.process(api, data)
 
 
 #
@@ -5900,7 +1636,7 @@ def get_gpio_prop(devicename, number):
         return response, status.HTTP_400_BAD_REQUEST
 
     # get token from Authorization header
-    auth_header_token = get_auth_header_token()
+    auth_header_token = g_utils.get_auth_header_token()
     if auth_header_token is None:
         response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
         print('\r\nERROR Invalid authorization header\r\n')
@@ -5920,7 +1656,7 @@ def get_gpio_prop(devicename, number):
     data['number'] = number
     print('get_gpio_prop {} devicename={}'.format(data['username'], data['devicename']))
 
-    response, status_return = process_request(api, data)
+    response, status_return = g_messaging_requests.process(api, data)
     if status_return != 200:
         return response, status_return
 
@@ -5962,7 +1698,7 @@ def set_gpio_prop(devicename, number):
         return response, status.HTTP_400_BAD_REQUEST
 
     # get token from Authorization header
-    auth_header_token = get_auth_header_token()
+    auth_header_token = g_utils.get_auth_header_token()
     if auth_header_token is None:
         response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
         print('\r\nERROR Invalid authorization header\r\n')
@@ -6041,7 +1777,7 @@ def set_gpio_prop(devicename, number):
     data['number'] = number
     print('set_gpio_prop {} devicename={}'.format(data['username'], data['devicename']))
 
-    response, status_return = process_request(api, data)
+    response, status_return = g_messaging_requests.process(api, data)
     if status_return != 200:
         return response, status_return
 
@@ -6087,7 +1823,7 @@ def get_xxx_voltage(devicename, xxx):
     api = 'get_{}_voltage'.format(xxx)
 
     # get token from Authorization header
-    auth_header_token = get_auth_header_token()
+    auth_header_token = g_utils.get_auth_header_token()
     if auth_header_token is None:
         response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
         print('\r\nERROR Invalid authorization header\r\n')
@@ -6104,7 +1840,7 @@ def get_xxx_voltage(devicename, xxx):
         return response, status.HTTP_401_UNAUTHORIZED
     print('get_{}_voltage {} devicename={}'.format(xxx, data['username'], data['devicename']))
 
-    return process_request(api, data)
+    return g_messaging_requests.process(api, data)
 
 #
 # SET GPIO VOLTAGE
@@ -6138,7 +1874,7 @@ def set_xxx_voltage(devicename, xxx):
     api = 'set_{}_voltage'.format(xxx)
 
     # get token from Authorization header
-    auth_header_token = get_auth_header_token()
+    auth_header_token = g_utils.get_auth_header_token()
     if auth_header_token is None:
         response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
         print('\r\nERROR Invalid authorization header\r\n')
@@ -6166,7 +1902,7 @@ def set_xxx_voltage(devicename, xxx):
         return response, status.HTTP_401_UNAUTHORIZED
     print('set_{}_voltage {} devicename={}'.format(xxx, data['username'], data['devicename']))
 
-    return process_request(api, data)
+    return g_messaging_requests.process(api, data)
 
 
 #
@@ -6193,7 +1929,7 @@ def enable_gpio(devicename, number):
         return response, status.HTTP_400_BAD_REQUEST
 
     # get token from Authorization header
-    auth_header_token = get_auth_header_token()
+    auth_header_token = g_utils.get_auth_header_token()
     if auth_header_token is None:
         response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
         print('\r\nERROR Invalid authorization header\r\n')
@@ -6221,7 +1957,7 @@ def enable_gpio(devicename, number):
     data['number'] = number
     print('enable_gpio {} devicename={} number={}'.format(username, devicename, number))
 
-    return process_request(api, data)
+    return g_messaging_requests.process(api, data)
 
 
 #
@@ -6249,7 +1985,7 @@ def get_i2cs(devicename):
     api = 'get_i2cs'
 
     # get token from Authorization header
-    auth_header_token = get_auth_header_token()
+    auth_header_token = g_utils.get_auth_header_token()
     if auth_header_token is None:
         response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
         print('\r\nERROR Invalid authorization header\r\n')
@@ -6268,7 +2004,7 @@ def get_i2cs(devicename):
     data['username'] = username
     print('get_i2cs {} devicename={}'.format(data['username'], data['devicename']))
 
-    return process_request(api, data)
+    return g_messaging_requests.process(api, data)
 
 
 ########################################################################################################
@@ -6303,7 +2039,7 @@ def get_i2cs(devicename):
 def get_all_xxx_sensors(devicename, xxx):
 
     # get token from Authorization header
-    auth_header_token = get_auth_header_token()
+    auth_header_token = g_utils.get_auth_header_token()
     if auth_header_token is None:
         response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
         print('\r\nERROR Get All {} Sensors: Invalid authorization header\r\n'.format(xxx))
@@ -6363,7 +2099,7 @@ def get_all_xxx_sensors(devicename, xxx):
 def get_all_i2c_type_sensors(devicename, devicetype):
 
     # get token from Authorization header
-    auth_header_token = get_auth_header_token()
+    auth_header_token = g_utils.get_auth_header_token()
     if auth_header_token is None:
         response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
         print('\r\nERROR Get All {} Sensors: Invalid authorization header\r\n'.format("i2c"))
@@ -6434,7 +2170,7 @@ def get_all_i2c_type_sensors(devicename, devicetype):
 def get_all_device_sensors_enabled_input_readings(devicename):
 
     # get token from Authorization header
-    auth_header_token = get_auth_header_token()
+    auth_header_token = g_utils.get_auth_header_token()
     if auth_header_token is None:
         response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
         print('\r\nERROR Get All Device Sensors: Invalid authorization header\r\n')
@@ -6474,7 +2210,7 @@ def get_all_device_sensors_enabled_input_readings(devicename):
         data['token'] = token
         data['devicename'] = devicename
         data['username'] = username
-        response, status_return = process_request(api, data)
+        response, status_return = g_messaging_requests.process(api, data)
         if status_return == 200:
             # query database
             sensors = g_database_client.get_all_device_sensors_input(username, devicename)
@@ -6501,7 +2237,7 @@ def get_all_device_sensors_enabled_input_readings(devicename):
                 else:
                     if response["value"].get(peripheral):
                         for item in response["value"][peripheral]:
-                            if item["class"] == get_i2c_device_class(sensor["class"]):
+                            if item["class"] == g_utils.get_i2c_device_class(sensor["class"]):
                                 g_database_client.set_enable_configure_sensor(username, devicename, sensor['source'], sensor['number'], sensor['sensorname'], item["enabled"], 1)
                                 found = True
                                 break
@@ -6565,7 +2301,7 @@ def get_all_device_sensors_enabled_input_readings(devicename):
 def get_all_device_sensors_enabled_input_readings_dataset(devicename):
 
     # get token from Authorization header
-    auth_header_token = get_auth_header_token()
+    auth_header_token = g_utils.get_auth_header_token()
     if auth_header_token is None:
         response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
         print('\r\nERROR Get All Device Sensors Dataset: Invalid authorization header\r\n')
@@ -6605,7 +2341,7 @@ def get_all_device_sensors_enabled_input_readings_dataset(devicename):
         data['token'] = token
         data['devicename'] = devicename
         data['username'] = username
-        response, status_return = process_request(api, data)
+        response, status_return = g_messaging_requests.process(api, data)
         if status_return == 200:
             # query database
             sensors = g_database_client.get_all_device_sensors_input(username, devicename)
@@ -6632,7 +2368,7 @@ def get_all_device_sensors_enabled_input_readings_dataset(devicename):
                 else:
                     if response["value"].get(peripheral):
                         for item in response["value"][peripheral]:
-                            if item["class"] == get_i2c_device_class(sensor["class"]):
+                            if item["class"] == g_utils.get_i2c_device_class(sensor["class"]):
                                 g_database_client.set_enable_configure_sensor(username, devicename, sensor['source'], sensor['number'], sensor['sensorname'], item["enabled"], 1)
                                 found = True
                                 break
@@ -6677,7 +2413,7 @@ def get_running_sensors(token, username, devicename, device):
     data['token'] = token
     data['devicename'] = devicename
     data['username'] = username
-    response, status_return = process_request(api, data)
+    response, status_return = g_messaging_requests.process(api, data)
     if status_return == 200:
         device['status'] = 1
         # query database
@@ -6705,7 +2441,7 @@ def get_running_sensors(token, username, devicename, device):
             else:
                 if response["value"].get(peripheral):
                     for item in response["value"][peripheral]:
-                        if item["class"] == get_i2c_device_class(sensor["class"]):
+                        if item["class"] == g_utils.get_i2c_device_class(sensor["class"]):
                             g_database_client.set_enable_configure_sensor(username, devicename, sensor['source'], sensor['number'], sensor['sensorname'], item["enabled"], 1)
                             found = True
                             break
@@ -7074,7 +2810,7 @@ def get_all_device_sensors_enabled_input_readings_dataset_filtered():
     #start_time = time.time()
 
     # get token from Authorization header
-    auth_header_token = get_auth_header_token()
+    auth_header_token = g_utils.get_auth_header_token()
     if auth_header_token is None:
         response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
         print('\r\nERROR Get All Device Sensors Dataset: Invalid authorization header\r\n')
@@ -7299,7 +3035,7 @@ def get_all_device_sensors_enabled_input_readings_dataset_filtered():
 def delete_all_device_sensors_properties(devicename):
 
     # get token from Authorization header
-    auth_header_token = get_auth_header_token()
+    auth_header_token = g_utils.get_auth_header_token()
     if auth_header_token is None:
         response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
         print('\r\nERROR Delete All Device Sensors Properties: Invalid authorization header\r\n')
@@ -7506,7 +3242,7 @@ def get_sensor_summary(username, devices, sensordevicename):
 def get_all_sensor_configurationsummary():
 
     # get token from Authorization header
-    auth_header_token = get_auth_header_token()
+    auth_header_token = g_utils.get_auth_header_token()
     if auth_header_token is None:
         response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
         print('\r\nERROR Get All Sensor Thresholds: Invalid authorization header\r\n')
@@ -7591,7 +3327,7 @@ def get_xxx_sensors(devicename, xxx, number):
         return response, status.HTTP_400_BAD_REQUEST
 
     # get token from Authorization header
-    auth_header_token = get_auth_header_token()
+    auth_header_token = g_utils.get_auth_header_token()
     if auth_header_token is None:
         response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
         print('\r\nERROR Get {} Sensors: Invalid authorization header\r\n'.format(xxx))
@@ -7635,7 +3371,7 @@ def get_xxx_sensors(devicename, xxx, number):
     data["number"] = int(number)
 
     # query device
-    response, status_return = process_request(api, data)
+    response, status_return = g_messaging_requests.process(api, data)
 
     if status_return == 200:
         # map queried result with database result
@@ -7673,7 +3409,7 @@ def get_xxx_sensors(devicename, xxx, number):
                 #print(sensor)
 #                if sensor['configured']:
                 for item in response["value"]:
-                    if item["class"] == get_i2c_device_class(sensor["class"]):
+                    if item["class"] == g_utils.get_i2c_device_class(sensor["class"]):
                         g_database_client.set_enable_configure_sensor(username, devicename, sensor['source'], sensor['number'], sensor['sensorname'], item["enabled"], 1)
                         sensor["enabled"] = item["enabled"]
                         sensor["configured"] = 1
@@ -7837,7 +3573,7 @@ def register_xxx_sensor(devicename, xxx, number, sensorname):
         return response, status.HTTP_400_BAD_REQUEST
 
     # get token from Authorization header
-    auth_header_token = get_auth_header_token()
+    auth_header_token = g_utils.get_auth_header_token()
     if auth_header_token is None:
         response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
         print('\r\nERROR Add/Delete {} Sensor: Invalid authorization header\r\n'.format(xxx))
@@ -7983,7 +3719,7 @@ def get_xxx_sensor(devicename, xxx, number, sensorname):
         return response, status.HTTP_400_BAD_REQUEST
 
     # get token from Authorization header
-    auth_header_token = get_auth_header_token()
+    auth_header_token = g_utils.get_auth_header_token()
     if auth_header_token is None:
         response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
         print('\r\nERROR Get {} Sensor: Invalid authorization header\r\n'.format(xxx))
@@ -8093,7 +3829,7 @@ def get_xxx_sensor_readings(devicename, xxx, number, sensorname):
         return response, status.HTTP_400_BAD_REQUEST
 
     # get token from Authorization header
-    auth_header_token = get_auth_header_token()
+    auth_header_token = g_utils.get_auth_header_token()
     if auth_header_token is None:
         response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
         print('\r\nERROR Get {} Sensor: Invalid authorization header\r\n'.format(xxx))
@@ -8233,7 +3969,7 @@ def get_xxx_sensors_readings(devicename, xxx, number):
         return response, status.HTTP_400_BAD_REQUEST
 
     # get token from Authorization header
-    auth_header_token = get_auth_header_token()
+    auth_header_token = g_utils.get_auth_header_token()
     if auth_header_token is None:
         response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
         print('\r\nERROR Get {} Sensor: Invalid authorization header\r\n'.format(xxx))
@@ -8347,7 +4083,7 @@ def get_xxx_sensors_readings_dataset(devicename, xxx, number, sensorname):
         return response, status.HTTP_400_BAD_REQUEST
 
     # get token from Authorization header
-    auth_header_token = get_auth_header_token()
+    auth_header_token = g_utils.get_auth_header_token()
     if auth_header_token is None:
         response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
         print('\r\nERROR Get {} Sensor: Invalid authorization header\r\n'.format(xxx))
@@ -8398,28 +4134,6 @@ def get_xxx_sensors_readings_dataset(devicename, xxx, number, sensorname):
     return response
 
 
-def get_i2c_device_class(classname):
-    if classname == "speaker":
-        return I2C_DEVICE_CLASS_SPEAKER
-    elif classname == "display":
-        return I2C_DEVICE_CLASS_DISPLAY
-    elif classname == "light":
-        return I2C_DEVICE_CLASS_LIGHT
-    elif classname == "potentiometer":
-        return I2C_DEVICE_CLASS_POTENTIOMETER
-    elif classname == "temperature":
-        return I2C_DEVICE_CLASS_TEMPERATURE
-    elif classname == "humidity":
-        return I2C_DEVICE_CLASS_HUMIDITY
-    elif classname == "anemometer":
-        return I2C_DEVICE_CLASS_ANEMOMETER
-    elif classname == "battery":
-        return I2C_DEVICE_CLASS_BATTERY
-    elif classname == "fluid":
-        return I2C_DEVICE_CLASS_FLUID
-    return 0xFF
-
-
 ########################################################################################################
 #
 # SET I2C DEVICE PROPERTIES
@@ -8461,7 +4175,7 @@ def set_xxx_dev_prop(devicename, xxx, number, sensorname):
         return response, status.HTTP_400_BAD_REQUEST
 
     # get token from Authorization header
-    auth_header_token = get_auth_header_token()
+    auth_header_token = g_utils.get_auth_header_token()
     if auth_header_token is None:
         response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
         print('\r\nERROR Set {} Sensor: Invalid authorization header\r\n'.format(xxx))
@@ -8513,10 +4227,10 @@ def set_xxx_dev_prop(devicename, xxx, number, sensorname):
     data['username'] = username
     if sensor.get('address'):
         data['address'] = sensor['address']
-    data['class'] = int(get_i2c_device_class(sensor['class']))
+    data['class'] = int(g_utils.get_i2c_device_class(sensor['class']))
     if sensor.get('subclass'):
         # handle subclasses
-        data['subclass'] = int(get_i2c_device_class(sensor['subclass']))
+        data['subclass'] = int(g_utils.get_i2c_device_class(sensor['subclass']))
     data['number'] = int(number)
     print('set_{}_dev_prop {} devicename={} number={}'.format(xxx, username, devicename, number))
 
@@ -8525,7 +4239,7 @@ def set_xxx_dev_prop(devicename, xxx, number, sensorname):
     if not data.get("notification"):
         #print("no notification data")
 
-        response, status_return = process_request(api, data)
+        response, status_return = g_messaging_requests.process(api, data)
         if status_return != 200:
             # set enabled to FALSE and configured to FALSE
             g_database_client.set_enable_configure_sensor(username, devicename, xxx, number, sensorname, 0, 0)
@@ -8552,10 +4266,10 @@ def set_xxx_dev_prop(devicename, xxx, number, sensorname):
             address = sensor['address']
         classid = None
         if sensor.get('class'):
-            classid = int(get_i2c_device_class(sensor['class']))
+            classid = int(g_utils.get_i2c_device_class(sensor['class']))
         subclassid = None
         if sensor.get('subclass'):
-            subclassid = int(get_i2c_device_class(sensor['subclass']))
+            subclassid = int(g_utils.get_i2c_device_class(sensor['subclass']))
         item = g_database_client.update_device_peripheral_configuration(username, devicename, xxx, int(number), address, classid, subclassid, data)
 
         return response
@@ -8572,7 +4286,7 @@ def set_xxx_dev_prop(devicename, xxx, number, sensorname):
         subattributes_notification = None
 
     # query device
-    response, status_return = process_request(api, data)
+    response, status_return = g_messaging_requests.process(api, data)
     if status_return != 200:
         # set enabled to FALSE and configured to FALSE
         g_database_client.set_enable_configure_sensor(username, devicename, xxx, number, sensorname, 0, 0)
@@ -8604,10 +4318,10 @@ def set_xxx_dev_prop(devicename, xxx, number, sensorname):
         address = sensor['address']
     classid = None
     if sensor.get('class'):
-        classid = int(get_i2c_device_class(sensor['class']))
+        classid = int(g_utils.get_i2c_device_class(sensor['class']))
     subclassid = None
     if sensor.get('subclass'):
-        subclassid = int(get_i2c_device_class(sensor['subclass']))
+        subclassid = int(g_utils.get_i2c_device_class(sensor['subclass']))
     item = g_database_client.update_device_peripheral_configuration(username, devicename, xxx, int(number), address, classid, subclassid, data)
 
     return response
@@ -8653,7 +4367,7 @@ def get_xxx_dev_prop(devicename, xxx, number, sensorname):
         return response, status.HTTP_400_BAD_REQUEST
 
     # get token from Authorization header
-    auth_header_token = get_auth_header_token()
+    auth_header_token = g_utils.get_auth_header_token()
     if auth_header_token is None:
         response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
         print('\r\nERROR Get {} Sensor: Invalid authorization header\r\n'.format(xxx))
@@ -8698,16 +4412,16 @@ def get_xxx_dev_prop(devicename, xxx, number, sensorname):
     data['username'] = username
     if sensor.get('address'):
         data['address'] = sensor['address']
-    data['class'] = int(get_i2c_device_class(sensor['class']))
+    data['class'] = int(g_utils.get_i2c_device_class(sensor['class']))
     data['number'] = int(number)
     print('get_{}_dev_prop {} devicename={} number={}'.format(xxx, username, devicename, number))
 
     # no notification object required
-    if data["class"] < I2C_DEVICE_CLASS_POTENTIOMETER:
-        return process_request(api, data)
+    if data["class"] < rest_api_utils.classes().I2C_DEVICE_CLASS_POTENTIOMETER:
+        return g_messaging_requests.process(api, data)
 
     # has notification object required
-    response, status_return = process_request(api, data)
+    response, status_return = g_messaging_requests.process(api, data)
     if status_return != 200:
         return response, status_return
 
@@ -8795,7 +4509,7 @@ def enable_xxx_dev(devicename, xxx, number, sensorname):
         return response, status.HTTP_400_BAD_REQUEST
 
     # get token from Authorization header
-    auth_header_token = get_auth_header_token()
+    auth_header_token = g_utils.get_auth_header_token()
     if auth_header_token is None:
         response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
         print('\r\nERROR Invalid authorization header\r\n')
@@ -8841,7 +4555,7 @@ def enable_xxx_dev(devicename, xxx, number, sensorname):
     do_enable = data['enable']
 
     # communicate with device
-    response, status_return = process_request(api, data)
+    response, status_return = g_messaging_requests.process(api, data)
     if status_return != 200:
         return response, status_return
 
@@ -8881,7 +4595,7 @@ def enable_i2c(devicename, number):
         return response, status.HTTP_400_BAD_REQUEST
 
     # get token from Authorization header
-    auth_header_token = get_auth_header_token()
+    auth_header_token = g_utils.get_auth_header_token()
     if auth_header_token is None:
         response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
         print('\r\nERROR Invalid authorization header\r\n')
@@ -8909,680 +4623,7 @@ def enable_i2c(devicename, number):
     data['number'] = number
     print('enable_i2c {} devicename={} number={}'.format(username, devicename, number))
 
-    return process_request(api, data)
-
-
-#########################
-
-
-########################################################################################################
-#
-# SEND FEEDBACK
-#
-# - Request:
-#   POST /others/feedback
-#   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-#   data: { 'feedback': string, 'rating': int, 'contactme': boolean, 'recipient': string }
-#   // recipient is temporary for testing purposes only
-#
-# - Response:
-#  {'status': 'OK', 'message': string}
-#  {'status': 'NG', 'message': string}
-#
-########################################################################################################
-@app.route('/others/feedback', methods=['POST'])
-def send_feedback():
-    # get token from Authorization header
-    auth_header_token = get_auth_header_token()
-    if auth_header_token is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Send Feedback: Invalid authorization header\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    token = {'access': auth_header_token}
-
-    # get username from token
-    username = g_database_client.get_username_from_token(token)
-    if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Send Feedback: Token expired\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    print('send_feedback {}'.format(username))
-
-    # check if a parameter is empty
-    if len(username) == 0 or len(token) == 0:
-        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-        print('\r\nERROR Send Feedback: Empty parameter found\r\n')
-        return response, status.HTTP_400_BAD_REQUEST
-
-    # check if username and token is valid
-    verify_ret, new_token = g_database_client.verify_token(username, token)
-    if verify_ret == 2:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Send Feedback: Token expired [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
-    elif verify_ret != 0:
-        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
-        print('\r\nERROR Send Feedback: Token is invalid [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
-
-    # check if a parameter is empty
-    data = flask.request.get_json()
-    if data["feedback"] is None or data["rating"] is None or data["contactme"] is None:
-        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-        print('\r\nERROR Send Feedback: Empty parameter found\r\n')
-        return response, status.HTTP_400_BAD_REQUEST
-    feedback = data['feedback']
-    rating = data['rating']
-    contactme = data['contactme']
-    if data.get("recipient"):
-        recipient = data['recipient']
-
-    response = json.dumps({'status': 'OK', 'message': 'Feedback sent successfully.'})
-    print('\r\nFeedback sent successfully: {}\r\n{}\r\n'.format(username, response))
-    return response
-
-
-########################################################################################################
-#
-# GET ABOUT
-#
-# - Request:
-#   GET /others/ITEM
-#   headers: {'Authorization': 'Bearer ' + token.access}
-#
-# - Response:
-#   {'status': 'OK', 'message': string, 'url': {'terms': string, 'privacy': string, 'license': string} }
-#   {'status': 'NG', 'message': string}
-#
-########################################################################################################
-@app.route('/others/<item>', methods=['GET'])
-def get_item(item):
-    # get token from Authorization header
-    auth_header_token = get_auth_header_token()
-    if auth_header_token is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Get About: Invalid authorization header\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    token = {'access': auth_header_token}
-
-    # get username from token
-    username = g_database_client.get_username_from_token(token)
-    if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Get About: Token expired\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    print('get_{} {}'.format(item, username))
-
-    # check if a parameter is empty
-    if len(username) == 0 or len(token) == 0:
-        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-        print('\r\nERROR Get About: Empty parameter found\r\n')
-        return response, status.HTTP_400_BAD_REQUEST
-
-    # check if username and token is valid
-    verify_ret, new_token = g_database_client.verify_token(username, token)
-    if verify_ret == 2:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Get About: Token expired [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
-    elif verify_ret != 0:
-        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
-        print('\r\nERROR Get About: Token is invalid [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
-
-    # check if a parameter is empty
-    url = {}
-    if item == "faqs":
-        url["faqs"] = "https://richmondu.com/faqs"
-    elif item == "about":
-        url["terms"]   = "https://richmondu.com/terms"
-        url["privacy"] = "https://richmondu.com/privacy"
-        url["license"] = "https://richmondu.com/license"
-    else:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid request found'})
-        print('\r\nERROR Get Item Url: Invalid request found\r\n')
-        return response, status.HTTP_400_BAD_REQUEST
-
-
-    msg = {'status': 'OK', 'message': 'Content queried successfully.'}
-    msg['url'] = url
-    response = json.dumps(msg)
-    print('\r\nContent queried successfully: {}\r\n{}\r\n'.format(username, response))
-    return response
-
-
-########################################################################################################
-#
-# GET SUPPORTED I2C DEVICES
-#
-# - Request:
-#   GET /others/i2cdevices
-#   headers: {'Authorization': 'Bearer ' + token.access}
-#
-# - Response:
-#   {'status': 'OK', 'message': string, 'document': json_object } }
-#   {'status': 'NG', 'message': string}
-#
-########################################################################################################
-@app.route('/others/i2cdevices', methods=['GET'])
-def get_supported_i2c_devices():
-    # get token from Authorization header
-    auth_header_token = get_auth_header_token()
-    if auth_header_token is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Get Supported I2C Devices: Invalid authorization header\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    token = {'access': auth_header_token}
-
-    # get username from token
-    username = g_database_client.get_username_from_token(token)
-    if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Get Supported I2C Devices: Token expired\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    print('get_supported_i2c_devices {}'.format(username))
-
-    # check if a parameter is empty
-    if len(username) == 0 or len(token) == 0:
-        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-        print('\r\nERROR Get Supported I2C Devices: Empty parameter found\r\n')
-        return response, status.HTTP_400_BAD_REQUEST
-
-    # check if username and token is valid
-    verify_ret, new_token = g_database_client.verify_token(username, token)
-    if verify_ret == 2:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Get Supported I2C Devices: Token expired [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
-    elif verify_ret != 0:
-        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
-        print('\r\nERROR Get Supported I2C Devices: Token is invalid [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
-
-    # check if a parameter is empty
-    result, document = g_storage_client.get_supported_i2c_devices()
-    if not result:
-        response = json.dumps({'status': 'NG', 'message': 'Could not retrieve JSON document'})
-        print('\r\nERROR Get Supported I2C Devices: Could not retrieve JSON document [{}]\r\n'.format(username))
-        return response, status.HTTP_500_INTERNAL_SERVER_ERROR
-
-
-    msg = {'status': 'OK', 'message': 'Content queried successfully.'}
-    msg['document'] = document
-    response = json.dumps(msg)
-    print('\r\nContent queried successfully: {}\r\n'.format(username))
-    return response
-
-
-########################################################################################################
-#
-# GET SUPPORTED SENSOR DEVICES
-#
-# - Request:
-#   GET /others/sensordevices
-#   headers: {'Authorization': 'Bearer ' + token.access}
-#
-# - Response:
-#   {'status': 'OK', 'message': string, 'document': json_object } }
-#   {'status': 'NG', 'message': string}
-#
-########################################################################################################
-@app.route('/others/sensordevices', methods=['GET'])
-def get_supported_sensor_devices():
-    # get token from Authorization header
-    auth_header_token = get_auth_header_token()
-    if auth_header_token is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Get Supported Sensor Devices: Invalid authorization header\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    token = {'access': auth_header_token}
-
-    # get username from token
-    username = g_database_client.get_username_from_token(token)
-    if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Get Supported Sensor Devices: Token expired\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    print('get_supported_sensor_devices {}'.format(username))
-
-    # check if a parameter is empty
-    if len(username) == 0 or len(token) == 0:
-        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-        print('\r\nERROR Get Supported Sensor Devices: Empty parameter found\r\n')
-        return response, status.HTTP_400_BAD_REQUEST
-
-    # check if username and token is valid
-    verify_ret, new_token = g_database_client.verify_token(username, token)
-    if verify_ret == 2:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Get Supported Sensor Devices: Token expired [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
-    elif verify_ret != 0:
-        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
-        print('\r\nERROR Get Supported Sensor Devices: Token is invalid [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
-
-    # check if a parameter is empty
-    result, document = g_storage_client.get_supported_sensor_devices()
-    if not result:
-        response = json.dumps({'status': 'NG', 'message': 'Could not retrieve JSON document'})
-        print('\r\nERROR Get Supported Sensor Devices: Could not retrieve JSON document [{}]\r\n'.format(username))
-        return response, status.HTTP_500_INTERNAL_SERVER_ERROR
-
-
-    msg = {'status': 'OK', 'message': 'Content queried successfully.', 'document': document}
-    response = json.dumps(msg)
-    print('\r\nContent queried successfully: {}\r\n{}\r\n'.format(username, response))
-    return response
-
-
-########################################################################################################
-#
-# GET DEVICE FIRMWARE UPDATES
-#
-# - Request:
-#   GET /others/firmwareupdates
-#   headers: {'Authorization': 'Bearer ' + token.access}
-#
-# - Response:
-#   {'status': 'OK', 'message': string, 'document': json_object } }
-#   {'status': 'NG', 'message': string}
-#
-########################################################################################################
-@app.route('/others/firmwareupdates', methods=['GET'])
-def get_device_firmware_updates():
-    # get token from Authorization header
-    auth_header_token = get_auth_header_token()
-    if auth_header_token is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Get Device Firmware Updates: Invalid authorization header\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    token = {'access': auth_header_token}
-
-    # get username from token
-    username = g_database_client.get_username_from_token(token)
-    if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Get Device Firmware Updates: Token expired\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    print('get_device_firmware_updates {}'.format(username))
-
-    # check if a parameter is empty
-    if len(username) == 0 or len(token) == 0:
-        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-        print('\r\nERROR Get Device Firmware Updates: Empty parameter found\r\n')
-        return response, status.HTTP_400_BAD_REQUEST
-
-    # check if username and token is valid
-    verify_ret, new_token = g_database_client.verify_token(username, token)
-    if verify_ret == 2:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Get Device Firmware Updates: Token expired [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
-    elif verify_ret != 0:
-        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
-        print('\r\nERROR Get Device Firmware Updates: Token is invalid [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
-
-    # check if a parameter is empty
-    result, document = g_storage_client.get_device_firmware_updates()
-    if not result:
-        response = json.dumps({'status': 'NG', 'message': 'Could not retrieve JSON document'})
-        print('\r\nERROR Get Device Firmware Updates: Could not retrieve JSON document [{}]\r\n'.format(username))
-        return response, status.HTTP_500_INTERNAL_SERVER_ERROR
-
-
-    msg = {'status': 'OK', 'message': 'Content queried successfully.', 'document': document}
-    response = json.dumps(msg)
-    print('\r\nContent queried successfully: {}\r\n{}\r\n'.format(username, response))
-    return response
-
-
-########################################################################################################
-#
-# DOWNLOAD FIRMWARE
-#
-# - Request:
-#   GET /firmware/<device>/<filename>
-#   headers: {'Authorization': 'Bearer ' + token.access}
-#
-# - Response:
-#   binary file
-#
-########################################################################################################
-@app.route('/firmware/<device>/<filename>', methods=['GET'])
-def download_firmware_file(device, filename):
-
-    file_path = "firmware/" + device + "/" + filename
-    print('get_device_firmware_updates {}'.format(file_path))
-
-    result, binary = g_storage_client.get_firmware(file_path)
-    if not result:
-        response = json.dumps({'status': 'NG', 'message': 'Could not retrieve JSON document'})
-        print('\r\nERROR Get Device Firmware Updates: Could not retrieve JSON document\r\n')
-        return response, status.HTTP_500_INTERNAL_SERVER_ERROR
-
-    print('get_device_firmware_updates {} OK'.format(file_path))
-    return binary
-
-
-#########################
-
-
-
-def generate_publish_topic(data, deviceid, api, separator):
-    #username = data['username']
-    #devicename = data['devicename']
-    #topic = username + separator + devicename + separator + api 
-    topic = deviceid + separator + api 
-    return topic
-
-def generate_publish_payload(data):
-    data.pop('username')
-    data.pop('token')
-    data.pop('devicename')
-    payload = json.dumps(data)
-    return payload
-
-def generate_subscribe_topic(topic, separator):
-    topic = CONFIG_PREPEND_REPLY_TOPIC + separator + topic
-    return topic
-
-
-def process_request(api, data, timeout=CONFIG_WAIT_DEVICE_RESPONSE_TIMEOUT_SEC):
-
-    #print("\r\nAPI: {} {} devicename={}".format(api, data['username'], data['devicename']))
-
-    username = data['username']
-    token = data['token']
-    devicename = data['devicename']
-
-    # check if username and token is valid
-    verify_ret, new_token = g_database_client.verify_token(username, token)
-    if verify_ret == 2:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Token expired [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
-    elif verify_ret != 0:
-        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
-        print('\r\nERROR Token is invalid [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
-
-    # check if device is registered
-    if not g_database_client.find_device(username, devicename):
-        response = json.dumps({'status': 'NG', 'message': 'Device is not registered'})
-        print('\r\nERROR Device is not registered [{}]\r\n'.format(username))
-        return response, status.HTTP_404_NOT_FOUND
-
-    # get deviceid for subscribe purpose (AMQP)
-    deviceid = g_database_client.get_deviceid(username, devicename)
-
-    # construct publish/subscribe topics and payloads
-    pubtopic = generate_publish_topic(data, deviceid, api, CONFIG_SEPARATOR)
-    payload = generate_publish_payload(data)
-    subtopic = generate_subscribe_topic(pubtopic, CONFIG_SEPARATOR)
-
-    try:
-        # subscribe for response
-        ret = g_messaging_client.subscribe(subtopic, subscribe=True, deviceid=deviceid)
-        if ret:
-            # use event object to wait for response
-            event_response_available = threading.Event()
-            g_event_dict[subtopic] = event_response_available
-
-            # publish request
-            g_messaging_client.publish(pubtopic, payload)
-
-            # receive response
-            #start = time.time()
-            event_response_available.wait(timeout)
-            #print("{}".format(time.time()-start))
-            if CONFIG_USE_REDIS_FOR_MQTT_RESPONSE:
-                response = g_redis_client.mqtt_response_get_payload(subtopic)
-                if response:
-                    g_redis_client.mqtt_response_del_payload(subtopic)
-            else:
-                if subtopic in g_queue_dict:
-                    response = g_queue_dict[subtopic].decode("utf-8")
-                    g_queue_dict.pop(subtopic)
-                else:
-                    response = None
-            #response = receive_message(subtopic, timeout)
-
-            # unsubscribe for response
-            g_messaging_client.subscribe(subtopic, subscribe=False)
-        else:
-            msg = {'status': 'NG', 'message': 'Could not communicate with device'}
-            if new_token:
-                msg['new_token'] = new_token
-            response = json.dumps(msg)
-            print('\r\nERROR Could not communicate with device [{}, {}]\r\n'.format(username, devicename))
-            return response, status.HTTP_500_INTERNAL_SERVER_ERROR
-    except:
-        msg = {'status': 'NG', 'message': 'Could not communicate with device'}
-        if new_token:
-            msg['new_token'] = new_token
-        response = json.dumps(msg)
-        print('\r\nERROR Could not communicate with device [{}, {}]\r\n'.format(username, devicename))
-        return response, status.HTTP_500_INTERNAL_SERVER_ERROR
-
-    # return HTTP response
-    if response is None:
-        msg = {'status': 'NG', 'message': 'Device is unreachable'}
-        if new_token:
-            msg['new_token'] = new_token
-        response = json.dumps(msg)
-        print('\r\nERROR Device is unreachable [{}, {}] DATETIME {}\r\n'.format(username, devicename, datetime.datetime.now()))
-        return response, status.HTTP_503_SERVICE_UNAVAILABLE
-
-    #print(response)
-    msg = {'status': 'OK', 'message': 'Device accessed successfully.'}
-    if new_token:
-        msg['new_token'] = new_token
-    try:
-        msg['value'] = (json.loads(response))["value"]
-        response = json.dumps(msg)
-    except:
-        response = json.dumps(msg)
-    return response, 200
-
-
-# Authorization header for username and password
-def get_auth_header_user_pass():
-    auth_header = flask.request.headers.get('Authorization')
-    if auth_header is None:
-        reason = "No Authorization header"
-        print(reason)
-        return None, None, reason
-    token = auth_header.split(" ")
-    if len(token) != 2:
-        reason = "No Authorization Bearer header"
-        print(reason)
-        return None, None, reason
-    if token[0] != "Bearer":
-        reason = "No Bearer header"
-        print(reason)
-        return None, None, reason
-    return get_jwtencode_user_pass(token[1])
-    #return get_base64encode_user_pass(token[1]) #change Bearer to Basic
-
-
-# Authorization header: Bearer JWT
-def get_jwtencode_user_pass(token):
-    payload = None
-    try:
-        payload = jwt.decode(token, config.CONFIG_JWT_SECRET_KEY, algorithms=['HS256'])
-    except:
-        reason = "JWT decode exception"
-        print(reason)
-        return None, None, reason
-    if payload is None:
-        reason = "JWT decode failed"
-        print(reason)
-        return None, None, reason
-    if not payload.get("username") or not payload.get("password") or not payload.get("iat") or not payload.get("exp"):
-        reason = "JWT has missing fields"
-        print(reason)
-        return None, None, reason
-
-    currepoch = int(time.time())
-    if False:
-        print("username: {}".format(payload["username"]))
-        print("password: {}".format(payload["password"]))
-        print("cur: {}".format(currepoch))
-        print("iat: {}".format(payload["iat"]))
-        print("exp: {}".format(payload["exp"]))
-
-    if payload["exp"] - payload["iat"] != config.CONFIG_JWT_EXPIRATION:
-        reason = "JWT expiration date is incorrect"
-        print(reason)
-        return None, None, reason
-    # add lee way for both time start and time end
-    # so that minor differences in time will not fail
-    # example if pc is NOT set to automatically synchronize with SNTP
-    # allow difference of +/- 60 seconds
-    if currepoch < payload["iat"] - config.CONFIG_JWT_ADJUSTMENT:
-        print("username: {}".format(payload["username"]))
-        print("password: {}".format(payload["password"]))
-        print("cur: {}".format(currepoch))
-        print("iat: {}".format(payload["iat"]))
-        print("exp: {}".format(payload["exp"]))
-        reason = "currepoch({}) < payload[iat]({})".format(currepoch, payload["iat"])
-        return None, None, reason
-    elif currepoch > payload["exp"] + config.CONFIG_JWT_ADJUSTMENT:
-        print("username: {}".format(payload["username"]))
-        print("password: {}".format(payload["password"]))
-        print("cur: {}".format(currepoch))
-        print("iat: {}".format(payload["iat"]))
-        print("exp: {}".format(payload["exp"]))
-        reason = "currepoch({}) > payload[exp]({})".format(currepoch, payload["exp"])
-        return None, None, reason
-    return payload["username"], payload["password"], ""
-
-
-# Authorization header: Basic Base64
-def get_base64encode_user_pass(token):
-    decoded = base64.b64decode(token)
-    user_pass = decoded.decode("utf-8").split(":")
-    return user_pass[0], user_pass[1], ""
-
-
-# Authorization header for the access token
-def get_auth_header_token():
-    auth_header = flask.request.headers.get('Authorization')
-    if auth_header is None:
-        print("No Authorization header")
-        return None
-    token = auth_header.split(" ")
-    if len(token) != 2:
-        print("No Authorization Bearer header")
-        return None
-    if token[0] != "Bearer":
-        print("No Bearer header")
-        return None
-    #print("auth header: {}".format(token[1]))
-    return token[1]
-
-
-
-###################################################################################
-# MQ User/Device Management functions
-###################################################################################
-
-def mq_adduser(auth64, deviceid, serialnumber):
-    conn = http.client.HTTPConnection(config.CONFIG_HOST, config.CONFIG_MGMT_PORT)
-    header = { "Authorization": auth64, "Content-Type": "application/json" }
-
-    api = "/api/users/{}".format(deviceid)
-    params = { "password": serialnumber, "tags": "" }
-
-    conn.request("PUT", api, json.dumps(params), header)
-    response = conn.getresponse()
-    if response.status != 201:
-        print(response.status)
-        return False
-    #else:
-    #    print(response)
-
-    return True
-
-def mq_removeuser(auth64, deviceid):
-    conn = http.client.HTTPConnection(config.CONFIG_HOST, config.CONFIG_MGMT_PORT)
-    header = { "Authorization": auth64 }
-
-    api = "/api/users/{}".format(deviceid)
-
-    conn.request("DELETE", api, None, header)
-    response = conn.getresponse()
-    if (response.status != 204):
-        print(response.status)
-        return False
-
-    return True
-
-def mq_setpermission(auth64, deviceid):
-    conn = http.client.HTTPConnection(config.CONFIG_HOST, config.CONFIG_MGMT_PORT)
-    header = { "Authorization": auth64, "Content-Type": "application/json" }
-
-    api = "/api/permissions/%2F/{}".format(deviceid)
-    params = { "configure": ".*", "write": ".*", "read": ".*" }
-
-    conn.request("PUT", api, json.dumps(params), header)
-    response = conn.getresponse()
-    if (response.status != 201):
-        print(response.status)
-        return False
-
-    return True
-
-def mq_settopicpermission(auth64, deviceid):
-    conn = http.client.HTTPConnection(config.CONFIG_HOST, config.CONFIG_MGMT_PORT)
-    header = { "Authorization": auth64, "Content-Type": "application/json" }
-
-    api = "/api/topic%2Dpermissions/%2F/{}".format(deviceid)
-    pubtopic = "^server.{}.*".format(deviceid)
-    subtopic = "{}.#".format(deviceid)
-    params = {"exchange": "amq.topic", "write": pubtopic, "read": subtopic }
-
-    conn.request("PUT", api, json.dumps(params), header)
-    response = conn.getresponse()
-    if (response.status != 201):
-        print(response.status)
-        return False
-
-    return True
-
-
-######
-
-def message_broker_register(deviceid, serialnumber, secure=True):
-    if config.CONFIG_ENABLE_MQ_SECURITY:
-        account = config.CONFIG_MGMT_ACCOUNT
-        auth64 = "Basic {}".format(str(base64.urlsafe_b64encode(account.encode("utf-8")), "utf-8"))
-        result = mq_adduser(auth64, deviceid, serialnumber)
-        if not result:
-            print("mq_adduser fails")
-            return result
-        result = mq_setpermission(auth64, deviceid)
-        if not result:
-            print("mq_setpermission fails")
-            return result
-        # set topic permission only if secure option is enabled
-        if secure:
-            result = mq_settopicpermission(auth64, deviceid)
-            if not result:
-                print("mq_settopicpermission fails")
-                return result
-    return True
-
-def message_broker_unregister(deviceid):
-    if config.CONFIG_ENABLE_MQ_SECURITY:
-        account = config.CONFIG_MGMT_ACCOUNT
-        auth64 = "Basic {}".format(str(base64.urlsafe_b64encode(account.encode("utf-8")), "utf-8"))
-        return mq_removeuser(auth64, deviceid)
-    return True
-
-######
+    return g_messaging_requests.process(api, data)
 
 
 
@@ -9624,27 +4665,6 @@ def on_amqp_message(ch, method, properties, body):
     g_queue_dict[method.routing_key] = body
     #print("RCV: {}".format(g_queue_dict))
 
-#def receive_message(topic, timeout):
-#    # this is now obsoleted, now using eventing instead of polling
-#    divisor = 1000/CONFIG_WAIT_DEVICE_RESPONSE_FREQUENCY_MS
-#    iteration = timeout*divisor-1
-#    sleeptime = 1/divisor
-#    i = 0
-#    while True:
-#        try:
-#            data = g_queue_dict[topic].decode("utf-8")
-#            g_queue_dict.pop(topic)
-#            #print("API: response={}\r\n".format(data))
-#            return data
-#        except:
-#            #print("x")
-#            time.sleep(sleeptime)
-#            i += 1
-#        if i > iteration:
-#            #print("receive_message timed_out")
-#            break
-#    return None
-
 
 
 ###################################################################################
@@ -9652,11 +4672,25 @@ def on_amqp_message(ch, method, properties, body):
 ###################################################################################
 
 def initialize():
+
     global CONFIG_SEPARATOR
     global g_messaging_client
     global g_database_client
     global g_storage_client
     global g_redis_client
+
+    global g_messaging_requests
+    global g_identity_authentication
+    global g_access_control
+    global g_payment_accounting
+    global g_device_locations
+    global g_device_groups
+    global g_device_otaupdates
+    global g_device_hierarchies
+    global g_device_histories
+    global g_other_stuffs
+    global g_utils
+
 
     CONFIG_SEPARATOR = "." if config.CONFIG_USE_AMQP==1 else "/"
 
@@ -9691,6 +4725,19 @@ def initialize():
     # Initialize Redis client
     g_redis_client = redis_client()
     g_redis_client.initialize()
+
+    # Classes
+    g_messaging_requests      = messaging_requests(g_database_client, g_messaging_client, g_redis_client, g_event_dict, g_queue_dict)
+    g_identity_authentication = identity_authentication(g_database_client, g_redis_client)
+    g_access_control          = access_control(g_database_client, g_messaging_client)
+    g_payment_accounting      = payment_accounting(g_database_client, g_messaging_client, g_redis_client)
+    g_device_locations        = device_locations(g_database_client)
+    g_device_groups           = device_groups(g_database_client)
+    g_device_otaupdates       = device_otaupdates(g_database_client, g_storage_client, g_messaging_requests)
+    g_device_hierarchies      = device_hierarchies(g_database_client, g_messaging_requests)
+    g_device_histories        = device_histories(g_database_client)
+    g_other_stuffs            = other_stuffs(g_database_client, g_storage_client)
+    g_utils                   = rest_api_utils.utils()
 
 
 # Initialize globally so that no issue with GUnicorn integration

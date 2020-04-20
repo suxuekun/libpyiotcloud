@@ -15,3 +15,4 @@ flask_api==1.1.0
 paypalrestsdk==1.13.1
 redis==3.4.1
 dnspython==1.16.0
+pyjwt==1.7.1
