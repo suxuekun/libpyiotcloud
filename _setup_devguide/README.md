@@ -450,8 +450,6 @@ SUMMARY:
 		C. PAYPAL STORE PAYERID           - POST   /account/payment/paypalpayerid/PAYMENTID
 		D. PAYPAL EXECUTE                 - POST   /account/payment/paypalexecute/PAYMENTID
 		E. GET PAYPAL TRANSACTIONS        - GET    /account/payment/paypal
-		F. GET CREDIT CONVERSION          - GET    /account/conversion/credits/CREDITS
-		G. GET AMOUNT CONVERSION          - GET    /account/conversion/amount/AMOUNT
 
 
 	13. Mobile services
@@ -461,9 +459,8 @@ SUMMARY:
 
 	14. Supported devices and firmware updates
 
-		A. GET SUPPORTED I2C DEVICES      - GET    /others/i2cdevices [OBSOLETED, use GET SUPPORTED SENSOR DEVICES instead]
-		B. GET SUPPORTED SENSOR DEVICES   - GET    /others/sensordevices
-		C. GET DEVICE FIRMWARE UPDATES    - GET    /others/firmwareupdates
+		A. GET SUPPORTED SENSOR DEVICES   - GET    /others/sensordevices
+		B. GET DEVICE FIRMWARE UPDATES    - GET    /others/firmwareupdates
 
 
 	15. Others
