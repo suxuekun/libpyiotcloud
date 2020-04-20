@@ -2752,15 +2752,23 @@ class database_client_mongodb:
                     # handle last element
                     if len(points):
                         dataset["labels"].append(begin)
+                        if len(dataset["data"]) == 0:
+                            dataset["data"].append([])
+                            dataset["low"].append([])
+                            dataset["high"].append([])
                         dataset["data"][0].append(round(statistics.mean(points), 1))
                         dataset["low"][0].append(min(points))
                         dataset["high"][0].append(max(points))
                         begin = end
                         end += period
                     if len(points2):
-                        dataset["data"][0].append(round(statistics.mean(points2), 1))
-                        dataset["low"][0].append(min(points2))
-                        dataset["high"][0].append(max(points2))
+                        if len(dataset["data"]) == 1:
+                            dataset["data"].append([])
+                            dataset["low"].append([])
+                            dataset["high"].append([])
+                        dataset["data"][1].append(round(statistics.mean(points2), 1))
+                        dataset["low"][1].append(min(points2))
+                        dataset["high"][1].append(max(points2))
                     # handle case that device got disconnected, no more data
                     while end < dateend:
                         dataset["labels"].append(begin)
@@ -2768,9 +2776,9 @@ class database_client_mongodb:
                         dataset["low"][0].append(None)
                         dataset["high"][0].append(None)
                         if len(dataset["data"]) == 2:
-                            dataset["data"][0].append(None)
-                            dataset["low"][0].append(None)
-                            dataset["high"][0].append(None)
+                            dataset["data"][1].append(None)
+                            dataset["low"][1].append(None)
+                            dataset["high"][1].append(None)
                         begin = end
                         end += period
 
