@@ -1750,6 +1750,17 @@ Notes:
            Revert the topic permission of the device.
            Revert the password.
 
+### Troubleshooting Docker logs
+
+        docker ps // to get container_name
+        docker logs [container_name]
+
+        docker ps // to get container_name
+        docker inspect --format="{{.Id}}" container_name // to get container_id
+        cd /var/lib/docker
+        sudo ls containers/container_id
+        sudo cat containers/container_id/container_id-json.log
+
 ### Troubleshooting
 
         RabbitMQ message queue
