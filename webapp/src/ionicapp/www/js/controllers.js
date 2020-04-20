@@ -3261,10 +3261,10 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server) {
 
 
         // 
-        // CONFIRM REGISTRATION
+        // RESEND CONFIRMATION CODE
         // 
         // - Request:
-        //   POST /user/confirm_signup
+        //   POST /user/resend_confirmation_code
         // 
         // - Response:
         //   {'status': 'OK', 'message': string}
@@ -3272,7 +3272,7 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server) {
         // 
         $http({
             method: 'POST',
-            url: server + '/user/confirm_signup',
+            url: server + '/user/resend_confirmation_code',
             headers: {'Content-Type': 'application/json'},
             data: param
         })
@@ -6540,8 +6540,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             if (result.data.location !== undefined) {
                 $scope.data.location = result.data.location;
                 $scope.data.devicelocation = result.data.location !== "UNKNOWN" ? result.data.location.latitude.toFixed(4) + "..., " + result.data.location.longitude.toFixed(4) + "..." : "UNKNOWN";
-                $scope.getStatus($scope.data.devicename);
             }
+            $scope.getStatus($scope.data.devicename);
         })
         .catch(function (error) {
             $scope.handle_error(error);
@@ -6610,21 +6610,15 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         //console.log($stateParams.location.longitude);
         //console.log($state.params.location.latitude);
         //console.log($state.params.location.longitude);
-        console.log($scope.data.devicename_ex);
+        //console.log($scope.data.devicename_ex);
         
         if ($state.params.location === "" || $state.params.location === "UNKNOWN" || $state.params.location === undefined) {
             $scope.data.devicelocation = "UNKNOWN";
             $scope.get_device_location($scope.data.devicename);
-            if ($scope.data.deviceversion === "") {
-                $scope.getStatus($scope.data.devicename);
-            }
         }
         else if ($stateParams.location === "" || $stateParams.location === "UNKNOWN" || $stateParams.location === undefined) {
             $scope.data.devicelocation = "UNKNOWN";
             $scope.get_device_location($scope.data.devicename);
-            if ($scope.data.deviceversion === "") {
-                $scope.getStatus($scope.data.devicename);
-            }
         }
         else {
             $stateParams.location = $state.params.location;
