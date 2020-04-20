@@ -2375,7 +2375,6 @@ def compute_password(secret_key, uuid, serial_number, mac_address, debug=False):
         printf("secret key, uuid, serial number and mac address should not be empty!")
         return None
 
-    current_time = int(time.time())
     params = {
         "uuid": uuid,                  # device uuid
         "serialnumber": serial_number, # device serial number
