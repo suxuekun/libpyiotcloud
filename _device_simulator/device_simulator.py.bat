@@ -51,8 +51,8 @@ set DEVICE_PKEY="cert_ecc/ft900device1_pkey.pem"
 ::
 ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 ::
-:: DEV environment              - set HOST to ec2-54-88-41-145.compute-1.amazonaws.com
-:: PROD/TEST environment        - set HOST to richmondu.com
+:: DEV environment              - set HOST to *** [CONFIDENTIAL] please ASK ME directly or check the SKYPE GROUP
+:: PROD/TEST environment        - set HOST to *** [CONFIDENTIAL] please ASK ME directly or check the SKYPE GROUP
 ::
 :: LOCAL non-docker environment - set HOST to localhost
 :: LOCAL docker environment     - set HOST to 192.168.99.100 [double check with docker-machine ip]
@@ -62,7 +62,7 @@ set DEVICE_PKEY="cert_ecc/ft900device1_pkey.pem"
 ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 set PORT="8883"
-set HOST="ec2-54-88-41-145.compute-1.amazonaws.com"
+set HOST="localhost"
 
 
 
