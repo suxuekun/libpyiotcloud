@@ -131,8 +131,8 @@ Below are the features of this secure and scalable IoT platform:
 
 
 With IoT, the opportunities are endless. 
-Below, we outline just some of the use cases in which this IoT platform can used influence outcomes, 
-enhance business efficiencies and opportunities, and improve lives in any type of businesses and industries:
+Below, we outline just some of the applications in which this IoT platform can used to influence outcomes, 
+enhance business efficiencies and opportunities, and improve lives, in any type of businesses and industries:
 
 - Agricultural and farm lots
 - Amusement parks and recreational fields
