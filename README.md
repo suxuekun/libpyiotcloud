@@ -38,7 +38,7 @@ It acts as the central messaging broker that supports client to device and devic
 It maintains the state of the entire system. It stores device and sensor information and all manner of device and sensor configurations and their routing information. 
 It also ingests and stores the received sensor readings from the devices for real-time dashboard visualization and off-line analysis. 
 It also keeps track of user details and user credit details and interfaces to 3rd party cloud systems such as identity services, alerting services, payment merchants and additional services.
-All these are done securely as security is built-in from the design - Security by Design.
+All these are done securely as security is built-in from the design - Security by Design principle.
 
 Below are the features of this secure and scalable IoT platform:
 
@@ -80,7 +80,7 @@ Below are the features of this secure and scalable IoT platform:
        A. Register device manually or via QR code (QR code registration via mobile apps only)
        B. Control device remotely (restart, stop, start) and view device properties including last active time
        C. Configure and track location of a device (or a fleet of devices) via Google Maps (latitude, longitude)
-       D. Update firmware of a device over-the-air (OTA) for a fleet of devices (can be a mixed of online or offline devices)
+       D. Update firmware of a device (or fleet of devices) remotely over-the-air (OTA) - can be a mixed of online or offline devices
        E. Organize devices into groups of devices for bulk/fleet-wide operations or for organizing several devices
        F. View device-sensor hierarchy tree and devices configurations summary 
        *  Configure and manage organization-owned devices
