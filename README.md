@@ -77,7 +77,7 @@ Below are the features of this secure and scalable IoT platform:
        D. Login via social IDP (Facebook/Google/Amazon) via OAuth2 security
        E. User lockout security on consecutive failed attempts to alert suspicious behavior
        F. Create and manage an organization, inviting/removing new/existing users, accepting/declining/cancelling invitations
-       *. Manage user's roles and assign permissions to each role (role-based access control aka RBAC)
+       *. Administrate user's roles in an organization and assign permissions to each role (role-based access control aka RBAC)
 
     5. Device management services
        Provision, manage and monitor devices
