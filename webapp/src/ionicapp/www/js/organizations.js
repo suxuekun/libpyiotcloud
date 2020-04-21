@@ -252,6 +252,185 @@ angular.module('organizations', [])
             });
         },
         
+        
+        //////////////////////////////////////////////////////////////
+
+
+        get_groups: function(userdata, orgname) {
+            return $http({
+                method: 'GET',
+                url: server + '/organizations/organization/' + orgname + '/groups',
+                headers: {'Authorization': 'Bearer ' + userdata.token.access},
+            })
+            .then(function (result) {
+                console.log(result.data);
+                return result.data;
+            })
+            .catch(function (error) {
+                if (error.data !== null) {
+                    console.log("ERROR: Get organizations failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
+                    
+                    if (error.data.message === "Token expired") {
+                        Token.refresh(userdata);
+                        //$ionicPopup.alert({ title: 'Error', template: 'Token expired!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+                    }
+                }
+                else {
+                    console.log("ERROR: Server is down!"); 
+                    $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+                }
+                
+                return error.data;
+            });
+        },
+
+        create_group: function(userdata, orgname, groupname) {
+            return $http({
+                method: 'POST',
+                url: server + '/organizations/organization/' + orgname + '/groups/group/' + groupname,
+                headers: {'Authorization': 'Bearer ' + userdata.token.access},
+            })
+            .then(function (result) {
+                console.log(result.data);
+                return result.data;
+            })
+            .catch(function (error) {
+                if (error.data !== null) {
+                    console.log("ERROR: Create organization group failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
+                    
+                    if (error.data.message === "Token expired") {
+                        Token.refresh(userdata);
+                        //$ionicPopup.alert({ title: 'Error', template: 'Token expired!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+                    }
+                }
+                else {
+                    console.log("ERROR: Server is down!"); 
+                    $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+                }
+                
+                return error.data;
+            });
+        },
+
+        delete_group: function(userdata, orgname, groupname) {
+            return $http({
+                method: 'DELETE',
+                url: server + '/organizations/organization/' + orgname + '/groups/group/' + groupname,
+                headers: {'Authorization': 'Bearer ' + userdata.token.access},
+            })
+            .then(function (result) {
+                console.log(result.data);
+                return result.data;
+            })
+            .catch(function (error) {
+                if (error.data !== null) {
+                    console.log("ERROR: Delete organization group failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
+                    
+                    if (error.data.message === "Token expired") {
+                        Token.refresh(userdata);
+                        //$ionicPopup.alert({ title: 'Error', template: 'Token expired!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+                    }
+                }
+                else {
+                    console.log("ERROR: Server is down!"); 
+                    $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+                }
+                
+                return error.data;
+            });
+        },
+
+
+        //////////////////////////////////////////////////////////////
+        
+        
+        get_group_members: function(userdata, orgname, groupname) {
+            console.log("get_group_members " + orgname + " " + groupname);
+            return $http({
+                method: 'GET',
+                url: server + '/organizations/organization/' + orgname + '/groups/group/' + groupname + "/members",
+                headers: {'Authorization': 'Bearer ' + userdata.token.access},
+            })
+            .then(function (result) {
+                console.log(result.data);
+                return result.data;
+            })
+            .catch(function (error) {
+                if (error.data !== null) {
+                    console.log("ERROR: Get organization group members failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
+                    
+                    if (error.data.message === "Token expired") {
+                        Token.refresh(userdata);
+                        //$ionicPopup.alert({ title: 'Error', template: 'Token expired!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+                    }
+                }
+                else {
+                    console.log("ERROR: Server is down!"); 
+                    $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+                }
+                
+                return error.data;
+            });
+        },
+        
+        
+        add_group_member: function(userdata, orgname, groupname, membername) {
+            return $http({
+                method: 'POST',
+                url: server + '/organizations/organization/' + orgname + '/groups/group/' + groupname + '/members/member/' + membername,
+                headers: {'Authorization': 'Bearer ' + userdata.token.access},
+            })
+            .then(function (result) {
+                console.log(result.data);
+                return result.data;
+            })
+            .catch(function (error) {
+                if (error.data !== null) {
+                    console.log("ERROR: Add organization group member failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
+                    
+                    if (error.data.message === "Token expired") {
+                        Token.refresh(userdata);
+                        //$ionicPopup.alert({ title: 'Error', template: 'Token expired!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+                    }
+                }
+                else {
+                    console.log("ERROR: Server is down!"); 
+                    $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+                }
+                
+                return error.data;
+            });
+        },
+        
+        update_group_members: function(userdata, orgname, groupname, members) {
+            return $http({
+                method: 'POST',
+                url: server + '/organizations/organization/' + orgname + '/groups/group/' + groupname + '/members',
+                headers: {'Authorization': 'Bearer ' + userdata.token.access},
+                data: {'members': members}
+            })
+            .then(function (result) {
+                console.log(result.data);
+                return result.data;
+            })
+            .catch(function (error) {
+                if (error.data !== null) {
+                    console.log("ERROR: Add organization group member failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
+                    
+                    if (error.data.message === "Token expired") {
+                        Token.refresh(userdata);
+                        //$ionicPopup.alert({ title: 'Error', template: 'Token expired!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+                    }
+                }
+                else {
+                    console.log("ERROR: Server is down!"); 
+                    $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+                }
+                
+                return error.data;
+            });
+        },
+        
     };
     
     return ret;

@@ -37,6 +37,7 @@ class access_control:
         self.database_client = database_client
         self.messaging_client = messaging_client
 
+
     ########################################################################################################
     #
     # CREATE ORGANIZATION
@@ -391,3 +392,324 @@ class access_control:
         print('\r\n{}: {}\r\n'.format(msg["message"], username))
         response = json.dumps(msg)
         return response
+
+
+
+
+    ########################################################################################################
+    #
+    # GET ORGANIZATION GROUPS
+    #
+    # - Request:
+    #   GET /organizations/organization/<orgname>/groups
+    #   headers: {'Authorization': 'Bearer ' + token.access}
+    #
+    # - Response:
+    #   {'status': 'OK', 'message': string}
+    #   {'status': 'NG', 'message': string}
+    #
+    ########################################################################################################
+    def get_organization_groups(self, orgname):
+        # get token from Authorization header
+        auth_header_token = rest_api_utils.utils().get_auth_header_token()
+        if auth_header_token is None:
+            response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
+            print('\r\nERROR Get organization groups: Invalid authorization header\r\n')
+            return response, status.HTTP_401_UNAUTHORIZED
+        token = {'access': auth_header_token}
+
+        # get username from token
+        username = self.database_client.get_username_from_token(token)
+        if username is None:
+            response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+            print('\r\nERROR Get organization groups: Token expired\r\n')
+            return response, status.HTTP_401_UNAUTHORIZED
+        print('get_organization_groups username={}'.format(username))
+
+        # check if a parameter is empty
+        if len(username) == 0 or len(token) == 0:
+            response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+            print('\r\nERROR Get organization groups: Empty parameter found\r\n')
+            return response, status.HTTP_400_BAD_REQUEST
+
+        # check if username and token is valid
+        verify_ret, new_token = self.database_client.verify_token(username, token)
+        if verify_ret == 2: # token expired
+            response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+            print('\r\nERROR Get organization groups: Token expired [{}]\r\n'.format(username))
+            return response, status.HTTP_401_UNAUTHORIZED
+        elif verify_ret != 0:
+            response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
+            print('\r\nERROR Get organization groups: Token is invalid [{}]\r\n'.format(username))
+            return response, status.HTTP_401_UNAUTHORIZED
+
+
+        # get organization groups
+        groups = self.database_client.get_organization_groups(username, orgname)
+        msg = {'status': 'OK', 'message': 'Get organization groups successful', 'groups': groups}
+
+
+        response = json.dumps(msg)
+        print('\r\n{} successful: {}\r\n'.format(msg["message"], username))
+        return response
+
+
+    ########################################################################################################
+    #
+    # CREATE USER GROUP
+    #
+    # - Request:
+    #   POST /organizations/organization/<orgname>/groups/group/<groupname>
+    #   headers: {'Authorization': 'Bearer ' + token.access}
+    #
+    # - Response:
+    #   {'status': 'OK', 'message': string}
+    #   {'status': 'NG', 'message': string}
+    #
+    #
+    # DELETE USER GROUP
+    #
+    # - Request:
+    #   POST /organizations/organization/<orgname>/groups/group/<groupname>
+    #   headers: {'Authorization': 'Bearer ' + token.access}
+    #
+    # - Response:
+    #   {'status': 'OK', 'message': string}
+    #   {'status': 'NG', 'message': string}
+    #
+    ########################################################################################################
+    def create_organization_group(self, orgname, groupname):
+        # get token from Authorization header
+        auth_header_token = rest_api_utils.utils().get_auth_header_token()
+        if auth_header_token is None:
+            response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
+            print('\r\nERROR Create organization group: Invalid authorization header\r\n')
+            return response, status.HTTP_401_UNAUTHORIZED
+        token = {'access': auth_header_token}
+
+        # get username from token
+        username = self.database_client.get_username_from_token(token)
+        if username is None:
+            response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+            print('\r\nERROR Create organization group: Token expired\r\n')
+            return response, status.HTTP_401_UNAUTHORIZED
+        print('create_organization_group username={}'.format(username))
+
+        # check if a parameter is empty
+        if len(username) == 0 or len(token) == 0:
+            response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+            print('\r\nERROR Create organization group: Empty parameter found\r\n')
+            return response, status.HTTP_400_BAD_REQUEST
+
+        # check if username and token is valid
+        verify_ret, new_token = self.database_client.verify_token(username, token)
+        if verify_ret == 2: # token expired
+            response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+            print('\r\nERROR Create organization group: Token expired [{}]\r\n'.format(username))
+            return response, status.HTTP_401_UNAUTHORIZED
+        elif verify_ret != 0:
+            response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
+            print('\r\nERROR Create organization group: Token is invalid [{}]\r\n'.format(username))
+            return response, status.HTTP_401_UNAUTHORIZED
+
+
+        # check orgname
+        if len(orgname) == 0 or len(groupname) == 0:
+            response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+            print('\r\nERROR Create organization group: Empty parameter found\r\n')
+            return response, status.HTTP_400_BAD_REQUEST
+
+        # groupname is not valid
+        if groupname == "Ungrouped":
+            response = json.dumps({'status': 'NG', 'message': 'Group name is not valid'})
+            print('\r\nERROR Create organization group: Group name is not valid\r\n')
+            return response, status.HTTP_400_BAD_REQUEST
+
+        # create or delete organization group
+        if flask.request.method == 'POST':
+
+            result, errorcode = self.database_client.create_organization_group(username, orgname, groupname)
+            if not result:
+                if errorcode == 401:
+                    errormsg = "Cannot create another organization group"
+                elif errorcode == 409:
+                    errormsg = "Organization group name already taken"
+                else:
+                    errormsg = "Create organization group failed"
+                response = json.dumps({'status': 'NG', 'message': errormsg})
+                print('\r\nERROR {} [{}]\r\n'.format(errormsg, username))
+                return response, errorcode
+            msg = {'status': 'OK', 'message': 'Create organization group successful'}
+
+        elif flask.request.method == 'DELETE':
+
+            # get organization
+            result, errorcode = self.database_client.delete_organization_group(username, orgname, groupname)
+            if not result:
+                if errorcode == 404:
+                    errormsg = "Organization group not found"
+                elif errorcode == 401:
+                    errormsg = "User is not the owner of the organization"
+                else:
+                    errormsg = "Delete organization group failed"
+                response = json.dumps({'status': 'NG', 'message': errormsg})
+                print('\r\nERROR {} [{}]\r\n'.format(errormsg, username))
+                return response, errorcode
+
+            msg = {'status': 'OK', 'message': 'Delete organization group successful'}
+
+
+        print('\r\n{}: {}\r\n'.format(msg["message"], username))
+        response = json.dumps(msg)
+        return response
+
+
+
+    def get_members_in_organization_group(self, orgname, groupname):
+        # get token from Authorization header
+        auth_header_token = rest_api_utils.utils().get_auth_header_token()
+        if auth_header_token is None:
+            response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
+            print('\r\nERROR Get organization group members: Invalid authorization header\r\n')
+            return response, status.HTTP_401_UNAUTHORIZED
+        token = {'access': auth_header_token}
+
+        # get username from token
+        username = self.database_client.get_username_from_token(token)
+        if username is None:
+            response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+            print('\r\nERROR Get organization group members: Token expired\r\n')
+            return response, status.HTTP_401_UNAUTHORIZED
+        print('get_members_in_organization_group username={}'.format(username))
+
+        # check if a parameter is empty
+        if len(username) == 0 or len(token) == 0:
+            response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+            print('\r\nERROR Get organization group members: Empty parameter found\r\n')
+            return response, status.HTTP_400_BAD_REQUEST
+
+        # check if username and token is valid
+        verify_ret, new_token = self.database_client.verify_token(username, token)
+        if verify_ret == 2: # token expired
+            response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+            print('\r\nERROR Get organization group members: Token expired [{}]\r\n'.format(username))
+            return response, status.HTTP_401_UNAUTHORIZED
+        elif verify_ret != 0:
+            response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
+            print('\r\nERROR Get organization group members: Token is invalid [{}]\r\n'.format(username))
+            return response, status.HTTP_401_UNAUTHORIZED
+
+
+        # get organization group members
+        result, members = self.database_client.get_members_in_organization_group(username, orgname, groupname)
+        if result:
+            msg = {'status': 'OK', 'message': 'Get organization group members successful', 'members': members}
+        else:
+            msg = {'status': 'NG', 'message': 'Get organization group members failed', 'members': []}
+
+
+        response = json.dumps(msg)
+        print('\r\n{} successful: {}\r\n'.format(msg["message"], username))
+        return response
+
+    def update_members_in_organization_group(self, orgname, groupname):
+        # get token from Authorization header
+        auth_header_token = rest_api_utils.utils().get_auth_header_token()
+        if auth_header_token is None:
+            response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
+            print('\r\nERROR Update organization group members: Invalid authorization header\r\n')
+            return response, status.HTTP_401_UNAUTHORIZED
+        token = {'access': auth_header_token}
+
+        # get username from token
+        username = self.database_client.get_username_from_token(token)
+        if username is None:
+            response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+            print('\r\nERROR Update organization group members: Token expired\r\n')
+            return response, status.HTTP_401_UNAUTHORIZED
+        print('update_members_in_organization_group username={}'.format(username))
+
+        # check if a parameter is empty
+        if len(username) == 0 or len(token) == 0:
+            response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+            print('\r\nERROR Update organization group members: Empty parameter found\r\n')
+            return response, status.HTTP_400_BAD_REQUEST
+
+        # check if username and token is valid
+        verify_ret, new_token = self.database_client.verify_token(username, token)
+        if verify_ret == 2: # token expired
+            response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+            print('\r\nERROR Update organization group members: Token expired [{}]\r\n'.format(username))
+            return response, status.HTTP_401_UNAUTHORIZED
+        elif verify_ret != 0:
+            response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
+            print('\r\nERROR Update organization group members: Token is invalid [{}]\r\n'.format(username))
+            return response, status.HTTP_401_UNAUTHORIZED
+
+
+        # check parameter
+        data = flask.request.get_json()
+        #print(data)
+        if data.get("members") is None:
+            response = json.dumps({'status': 'NG', 'message': 'Parameters not included'})
+            print('\r\nERROR Update organization group members: Parameters not included [{}]\r\n'.format(username))
+            return response, status.HTTP_400_BAD_REQUEST
+
+        # update organization group members
+        self.database_client.update_members_in_organization_group(username, orgname, groupname, data["members"])
+        msg = {'status': 'OK', 'message': 'Update organization group members successful'}
+
+
+        response = json.dumps(msg)
+        print('\r\n{} successful: {}\r\n'.format(msg["message"], username))
+        return response
+
+    def add_member_to_organization_group(self, orgname, groupname, membername):
+        # get token from Authorization header
+        auth_header_token = rest_api_utils.utils().get_auth_header_token()
+        if auth_header_token is None:
+            response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
+            print('\r\nERROR Add organization group member: Invalid authorization header\r\n')
+            return response, status.HTTP_401_UNAUTHORIZED
+        token = {'access': auth_header_token}
+
+        # get username from token
+        username = self.database_client.get_username_from_token(token)
+        if username is None:
+            response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+            print('\r\nERROR Add organization group member: Token expired\r\n')
+            return response, status.HTTP_401_UNAUTHORIZED
+        print('add_member_to_organization_group username={}'.format(username))
+
+        # check if a parameter is empty
+        if len(username) == 0 or len(token) == 0:
+            response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+            print('\r\nERROR Add organization group member: Empty parameter found\r\n')
+            return response, status.HTTP_400_BAD_REQUEST
+
+        # check if username and token is valid
+        verify_ret, new_token = self.database_client.verify_token(username, token)
+        if verify_ret == 2: # token expired
+            response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+            print('\r\nERROR Add organization group member: Token expired [{}]\r\n'.format(username))
+            return response, status.HTTP_401_UNAUTHORIZED
+        elif verify_ret != 0:
+            response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
+            print('\r\nERROR Add organization group member: Token is invalid [{}]\r\n'.format(username))
+            return response, status.HTTP_401_UNAUTHORIZED
+
+
+        # add organization group member
+        result, errcode = self.database_client.add_member_to_organization_group(username, orgname, groupname, membername)
+        print(errcode)
+        if result:
+            msg = {'status': 'OK', 'message': 'Add organization group member successful'}
+        else:
+            msg = {'status': 'NG', 'message': 'Add organization group member failed'}
+
+
+        response = json.dumps(msg)
+        print('\r\n{}: {}\r\n'.format(msg["message"], username))
+        return response
+
+

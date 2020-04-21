@@ -19190,7 +19190,9 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         'orgname': ''
     };
     
+    $scope.section = parseInt($stateParams.section, 10);
     $scope.organization = null;
+    $scope.groups = null;
     
     
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -19214,6 +19216,11 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                 if ($scope.organization.date !== undefined) {
                     let timestamp = new Date($scope.organization.date * 1000); 
                     $scope.organization.date = timestamp.getFullYear() + "/" + (timestamp.getMonth()+1) + "/" + timestamp.getDate();
+                }
+
+                // get groups
+                if ($scope.section === 2) {
+                    $scope.getGroups();
                 }
             }
         });
@@ -19256,7 +19263,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         
         $ionicPopup.alert({
             title: 'Delete Organization',
-            template: 'Are you sure you want to delete the organization named ' + $scope.organization.orgname + "?",
+            template: 'Are you sure you want to delete the organization named ' + $scope.organization.orgname + "? This will delete all resources of the organization including device configurations and all sensor data.",
             buttons: [
                 {
                     text: 'No',
@@ -19561,8 +19568,201 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
     };
 
 
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Get organization groups
+    // Create organization group
+    // Delete organization group
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    $scope.getGroups = function() {
+        
+        Organizations.get_groups($scope.data, $scope.organization.orgname).then(function(res) {
+            
+            if (res.status === 'OK') {
+                
+                if (res.groups !== undefined) {
+                    $scope.groups = res.groups;
+                    
+                    for (var indexy=0; indexy<$scope.groups.length; indexy++) {
+                        $scope.groups[indexy].checked = false;
+                        if ($scope.groups[indexy].members.length) {
+                            $scope.groups[indexy].members_ex = $scope.groups[indexy].members.join(", ");
+                        }
+                        else {
+                            $scope.groups[indexy].members_ex = "None";
+                        }
+                    }
+                }
+                else {
+                    $scope.groups = null;
+                }
+            }
+        });
+    };
+
+    $scope.addGroup = function() {
+        
+        let param = {
+            'username': User.get_username(),
+            'token': User.get_token(),
+            'orgname': $scope.organization.orgname
+        };
+        $state.go('addOrganizationGroup', param, {reload:true} );    
+        
+    };    
+
+    $scope.deleteGroup = function() {
+        
+        var groups = [];
+        for (var indexy=0; indexy<$scope.groups.length; indexy++) {
+            if ($scope.groups[indexy].checked === true) {
+                groups.push($scope.groups[indexy].groupname);
+            }
+        }
+        if (groups.length > 1) {
+            $ionicPopup.alert({
+                title: 'Delete Group',
+                template: 'Error. You have selected more than 1 group.',
+                buttons: [{ text: 'Yes', type: 'button-positive' }]
+            });
+            return;
+        }
+        else if (groups.length === 0) {
+            $ionicPopup.alert({
+                title: 'Delete Group',
+                template: 'Error. You have not selected a group.',
+                buttons: [{ text: 'Yes', type: 'button-positive' }]
+            });
+            return;
+        }
+
+        $ionicPopup.alert({
+            title: 'Delete Group',
+            template: 'Are you sure you want to delete the group ' + groups[0] + "?",
+            buttons: [
+                {
+                    text: 'No',
+                    type: 'button-negative',
+                },
+                {
+                    text: 'Yes',
+                    type: 'button-positive',
+                    onTap: function(e) {
+                        $scope.deleteGroupAction(groups[0]);
+                    }
+                }
+            ]
+        });        
+    };
+
+    $scope.deleteGroupAction = function(groupname) {
+        
+        Organizations.delete_group($scope.data, $scope.organization.orgname, groupname).then(function(res) {
+            
+            if (res.status === 'OK') {
+                $ionicPopup.alert({
+                    title: 'Delete Group',
+                    template: 'You have successfully deleted the group named ' + groupname + ".",
+                    buttons: [
+                        {
+                            text: 'Yes',
+                            type: 'button-positive',
+                            onTap: function(e) {
+                                $scope.groups = null;
+                                $scope.getGroups();
+                            }
+                        }
+                    ]
+                });
+            }
+            
+        });
+    };
+
+    $scope.updateGroupUsers = function() {
+        
+        var groups = [];
+        for (var indexy=0; indexy<$scope.groups.length; indexy++) {
+            if ($scope.groups[indexy].checked === true) {
+                groups.push($scope.groups[indexy].groupname);
+            }
+        }
+        if (groups.length > 1) {
+            $ionicPopup.alert({
+                title: 'Delete Group',
+                template: 'Error. You have selected more than 1 group.',
+                buttons: [{ text: 'Yes', type: 'button-positive' }]
+            });
+            return;
+        }
+        else if (groups.length === 0) {
+            $ionicPopup.alert({
+                title: 'Delete Group',
+                template: 'Error. You have not selected a group.',
+                buttons: [{ text: 'Yes', type: 'button-positive' }]
+            });
+            return;
+        }        
+        
+        let param = {
+            'username': User.get_username(),
+            'token': User.get_token(),
+            'orgname': $scope.organization.orgname,
+            'groupname': groups[0]
+        };
+        $state.go('updateOrganizationGroupUsers', param, {reload:true} );    
+        
+    };    
+    
+    $scope.updateGroupPolicies = function() {
+        
+        var groups = [];
+        for (var indexy=0; indexy<$scope.groups.length; indexy++) {
+            if ($scope.groups[indexy].checked === true) {
+                groups.push($scope.groups[indexy].groupname);
+            }
+        }
+        if (groups.length > 1) {
+            $ionicPopup.alert({
+                title: 'Delete Group',
+                template: 'Error. You have selected more than 1 group.',
+                buttons: [{ text: 'Yes', type: 'button-positive' }]
+            });
+            return;
+        }
+        else if (groups.length === 0) {
+            $ionicPopup.alert({
+                title: 'Delete Group',
+                template: 'Error. You have not selected a group.',
+                buttons: [{ text: 'Yes', type: 'button-positive' }]
+            });
+            return;
+        }
+        
+        let param = {
+            'username': User.get_username(),
+            'token': User.get_token(),
+            'orgname': $scope.organization.orgname,
+            'groupname': groups[0]
+        };
+        $state.go('updateOrganizationGroupPolicies', param, {reload:true} );    
+        
+    };    
+
+    
+    
+    
+
     $scope.onCheckedOrgMember = function(member) {
         console.log("onCheckedOrgMember " + member.username + " " + member.checked);        
+    };
+    
+    
+    $scope.changeSection = function(s) {
+        $scope.section = s;
+        if (s === 2) {
+            $scope.getGroups();
+        }
     };
     
     $scope.submitRefresh = function() {
@@ -19575,6 +19775,9 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
     $scope.$on('$ionicView.enter', function(e) {
         console.log("enter");
         $scope.organization = null;
+        $scope.groups = null;
+        $scope.section = parseInt($stateParams.section, 10);
+        console.log($scope.section);
         $scope.submitRefresh();
     }); 
     
@@ -19592,21 +19795,22 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
     var server = Server.rest_api;
     
     $scope.data = {
-        'username': User.get_username(), //$stateParams.username,
-        'token': User.get_token(),        //$stateParams.token
+        'username': User.get_username(),
+        'token': User.get_token(),
         
         'orgname': $stateParams.orgname,
         'emails': ''
     };
-    
-    
+
+
     $scope.inviteUsers = function() {
+        
         var emails = $scope.data.emails.split(",");
         for (var email in emails) {
             emails[email] = emails[email].trim();
         }
-        
         console.log(emails);
+        
         Organizations.create_invitation($scope.data, $scope.data.orgname, emails).then(function(res) {
             
             if (res.status === "OK") {
@@ -19649,5 +19853,213 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         };
         $state.go('menu.organizations', param, {reload:true} );    
     };   
+}])
+   
+.controller('addOrganizationGroupCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', 'Devices', 'DeviceGroups', 'Organizations', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+// You can include any angular dependencies as parameters for this function
+// TIP: Access Route Parameters for your page via $stateParams.parameterName
+function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token, Devices, DeviceGroups, Organizations) {
+
+    var server = Server.rest_api;
+    
+    $scope.data = {
+        'username': User.get_username(),
+        'token': User.get_token(),
+        
+        'orgname': $stateParams.orgname,
+        'groupname': '',
+    };
+
+
+    $scope.createGroup = function() {
+        console.log("createGroup " + $scope.data.groupname);
+        
+        Organizations.create_group($scope.data, $scope.data.orgname, $scope.data.groupname).then(function(res) {
+            
+            if (res.status === 'OK') {
+                $ionicPopup.alert({
+                    title: 'Create Group',
+                    template: 'Creating user group in the organization was successful.',
+                    buttons: [
+                        {
+                            text: 'Yes',
+                            type: 'button-positive',
+                            onTap: function(e) {
+                                $scope.exitPage();
+                            }
+                        }
+                    ]
+                });
+            }
+            else {
+                $ionicPopup.alert({
+                    title: 'Create Group',
+                    template: 'Creating user group in the organization failed.',
+                    buttons: [
+                        {
+                            text: 'Yes',
+                            type: 'button-positive',
+                            onTap: function(e) {
+                                $scope.exitPage();
+                            }
+                        }
+                    ]
+                });
+            }            
+        });
+    };
+
+    $scope.exitPage = function() {
+        let param = {
+            'username': User.get_username(),
+            'token': User.get_token(),
+            'section': "2"
+        };
+        $state.go('menu.organizations', param, {reload:true} );    
+    };   
+}])
+   
+.controller('updateOrganizationGroupUsersCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', 'Devices', 'DeviceGroups', 'Organizations', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+// You can include any angular dependencies as parameters for this function
+// TIP: Access Route Parameters for your page via $stateParams.parameterName
+function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token, Devices, DeviceGroups, Organizations) {
+
+    var server = Server.rest_api;
+    
+    $scope.data = {
+        'username': User.get_username(),
+        'token': User.get_token(),
+        
+        'orgname': $stateParams.orgname,
+        'groupname': $stateParams.groupname,
+    };
+
+    $scope.members = [];
+    $scope.ungrouped = [];
+    $scope.memberSelected = 0;
+
+
+
+    $scope.changeMember = function(id) {
+        $scope.memberSelected = id;
+        console.log("changeMember");
+        console.log($scope.memberSelected);
+    };
+    
+    $scope.getGroupMembers = function(groupname="Ungrouped", flag=false) {
+        
+        console.log("getGroupMembers " + groupname);
+        
+        Organizations.get_group_members($scope.data, $scope.data.orgname, groupname).then(function(res) {
+
+            if (res.status === 'OK') {
+                
+                if (groupname === "Ungrouped") {
+                    $scope.ungrouped = [];
+                    let id=0;
+                    for (let member in res.members) {
+                        $scope.ungrouped.push({ "id": id, 'membername': res.members[member] });
+                        id+=1;
+                    }
+                }
+                else {
+                    $scope.members = [];
+                    let id=0;
+                    for (let member in res.members) {
+                        $scope.members.push({ "id": id, 'membername': res.members[member], 'enabled': true });
+                        id+=1;
+                    }
+                }
+                
+                if (flag === true) {
+                    $scope.getGroupMembers($scope.data.groupname, false);
+                }
+            }
+        });        
+    };
+
+    $scope.addGroupMember = function() {
+        
+        var membername = $scope.ungrouped[$scope.memberSelected].membername;
+
+        console.log("addGroupMember " + $scope.data.orgname + " " + $scope.data.groupname + " " + membername);
+        
+        Organizations.add_group_member($scope.data, $scope.data.orgname, $scope.data.groupname, membername).then(function(res) {
+
+            if (res.status === 'OK') {
+                $ionicPopup.alert({
+                    title: 'Add Group Member',
+                    template: 'Adding member to the organization group was successful.',
+                    buttons: [{ text: 'Yes', type: 'button-positive', 
+                        onTap: function(e) {
+                            $scope.submitRefresh(true);
+                        } 
+                    }]
+                });
+            }
+            else {
+                $scope.submitRefresh(true);
+            }
+            
+        });        
+    };
+    
+    $scope.updateGroupMembers = function() {
+        
+        var members = [];
+
+        for (var member in $scope.members) {
+            if ($scope.members[member].enabled) {
+                members.push($scope.members[member].membername);
+            }
+        }
+        
+        Organizations.update_group_members($scope.data, $scope.data.orgname, $scope.data.groupname, members).then(function(res) {
+
+            if (res.status === 'OK') {
+                $ionicPopup.alert({
+                    title: 'Update Group Members',
+                    template: 'Updating members of the organization group was successful.',
+                    buttons: [{ text: 'Yes', type: 'button-positive', 
+                        onTap: function(e) {
+                            $scope.submitRefresh(true);
+                        } 
+                    }]
+                });
+            }
+            else {
+                $scope.submitRefresh(true);
+            }
+            
+        });        
+    };
+    
+    
+
+    $scope.submitRefresh = function(flag) {
+        $scope.getGroupMembers("Ungrouped", flag);
+    };
+
+
+    $scope.$on('$ionicView.enter', function(e) {
+        console.log("enter");
+        $scope.members = [];
+        $scope.ungrouped = [];
+        $scope.memberSelected = 0;
+        $scope.submitRefresh(true);
+    }); 
+    
+    $scope.$on('$ionicView.beforeLeave', function(e) {
+        console.log("beforeLeave");
+    });
+
+    $scope.exitPage = function() {
+        let param = {
+            'username': User.get_username(),
+            'token': User.get_token(),
+            'section': "2"
+        };
+        $state.go('menu.organizations', param, {reload:true} );    
+    };  
 }])
  
