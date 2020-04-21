@@ -906,7 +906,8 @@ angular.module('app.routes', [])
     url: '/page_organizations',
 	params: {
 		username: "",
-		token: ""		
+		token: "",
+		section: "1"		
 },
     views: {
       'side-menu21': {
@@ -925,6 +926,29 @@ angular.module('app.routes', [])
 },
     templateUrl: 'templates/addOrganizationUser.html',
     controller: 'addOrganizationUserCtrl'
+  })
+
+  .state('addOrganizationGroup', {
+    url: '/page_add_organization_group',
+	params: {
+		username: "",
+		token: "",
+		orgname: ""		
+},
+    templateUrl: 'templates/addOrganizationGroup.html',
+    controller: 'addOrganizationGroupCtrl'
+  })
+
+  .state('updateOrganizationGroupUsers', {
+    url: '/page_update_organization_group_users',
+	params: {
+		username: "",
+		token: "",
+		orgname: "",
+		groupname: ""		
+},
+    templateUrl: 'templates/updateOrganizationGroupUsers.html',
+    controller: 'updateOrganizationGroupUsersCtrl'
   })
 
 $urlRouterProvider.otherwise('/page_home')

@@ -1,0 +1,30 @@
+<ion-view title="Update Organization Group Users" hide-back-button="true" nav-transition="none" id="page69" class="page_width" ng-click="submitRefresh()">
+  <ion-nav-buttons side="left" class="has-header">
+    <button class="button button-icon icon ion-android-close" ng-click="exitPage()"></button>
+  </ion-nav-buttons>
+  <ion-content padding="true" class="has-header">
+    <div class="spacer" style="width: 300px; height: 20px;"></div>
+    <form id="updateOrganizationGroupUsers-form245" class="list page_width_small" ng-show="organization == null">
+      <button id="updateOrganizationGroupUsers-button215" style="font-weight:600;font-size:18px;" class="button button-positive button-block button-clear icon-right ion-android-settings">{{ data.orgname }}</button>
+      <div id="updateOrganizationGroupUsers-markdown503" class="show-list-numbers-and-dots">
+        <p style="color:#3C5A99;font-size:18px;">{{ data.groupname }}</p>
+      </div>
+      <div id="updateOrganizationGroupUsers-markdown501" class="show-list-numbers-and-dots">
+        <p style="color:#AAAAAA;font-size:12px;">Add or remove users in the organization group.</p>
+      </div>
+      <ion-checkbox id="updateOrganizationGroupUsers-checkbox57" ng-repeat="member in members" ng-model="member.enabled">{{ member.membername }}</ion-checkbox>
+      <button id="updateOrganizationGroupUsers-button216" ng-click="updateGroupMembers()" ng-show="members.length > 0" class="button button-positive button-block">Update</button>
+      <div id="updateOrganizationGroupUsers-markdown504" ng-show="members.length == 0" class="show-list-numbers-and-dots">
+        <p style="color:#AAAAAA;font-size:12px;">There are no members in the group.</p>
+      </div>
+    </form>
+    <form id="updateOrganizationGroupUsers-form246" class="list page_width_small">
+      <div class="spacer" style="width: 500px; height: 50px;"></div>
+      <label class="item item-select" id="updateOrganizationGroupUsers-select113">
+        <span class="input-label">Select</span>
+        <select ng-options="ungroup.id as ungroup.membername for ungroup in ungrouped" ng-model="memberSelected" ng-change="changeMember(memberSelected)"></select>
+      </label>
+      <button id="updateOrganizationGroupUsers-button217" ng-click="addGroupMember()" class="button button-positive button-block">Add</button>
+    </form>
+  </ion-content>
+</ion-view>

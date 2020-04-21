@@ -240,11 +240,46 @@ def create_organization_invitation(orgname):
 def update_organization_membership(orgname):
     return g_access_control.update_organization_membership(orgname)
 
+
+@app.route('/organizations/organization/<orgname>/groups', methods=['GET'])
+def get_organization_groups(orgname):
+    return g_access_control.get_organization_groups(orgname)
+
+@app.route('/organizations/organization/<orgname>/groups/group/<groupname>', methods=['POST'])
+def create_organization_group(orgname, groupname):
+    return g_access_control.create_organization_group(orgname, groupname)
+
+@app.route('/organizations/organization/<orgname>/groups/group/<groupname>', methods=['DELETE'])
+def delete_organization_group(orgname, groupname):
+    return g_access_control.create_organization_group(orgname, groupname)
+
+
+@app.route('/organizations/organization/<orgname>/groups/group/<groupname>/members', methods=['GET'])
+def get_members_in_organization_group(orgname, groupname):
+    return g_access_control.get_members_in_organization_group(orgname, groupname)
+
+@app.route('/organizations/organization/<orgname>/groups/group/<groupname>/members', methods=['POST'])
+def update_members_in_organization_group(orgname, groupname):
+    return g_access_control.update_members_in_organization_group(orgname, groupname)
+
+@app.route('/organizations/organization/<orgname>/groups/group/<groupname>/members/member/<membername>', methods=['POST'])
+def add_member_to_organization_group(orgname, groupname, membername):
+    return g_access_control.add_member_to_organization_group(orgname, groupname, membername)
+
+
 g_access_control_list = [
-    { "name": "CREATE ORGANIZATION",             "func": signup,                          "api": "/organizations/organization/<orgname>",            "method": "POST"   },
-    { "name": "DELETE ORGANIZATION",             "func": confirm_signup,                  "api": "/organizations/organization/<orgname>",            "method": "DELETE" },
-    { "name": "CREATE/CANCEL INVITATIONS",       "func": resend_confirmation_code,        "api": "/organizations/organization/<orgname>/invitation", "method": "POST"   },
-    { "name": "UPDATE/REMOVE MEMBERSHIPS",       "func": forgot_password,                 "api": "/organizations/organization/<orgname>/membership", "method": "POST"   },
+    { "name": "CREATE ORGANIZATION",          "func": create_organization,                  "api": "/organizations/organization/<orgname>",                                                "method": "POST"   },
+    { "name": "DELETE ORGANIZATION",          "func": delete_organization,                  "api": "/organizations/organization/<orgname>",                                                "method": "DELETE" },
+    { "name": "CREATE/CANCEL INVITATIONS",    "func": create_organization_invitation,       "api": "/organizations/organization/<orgname>/invitation",                                     "method": "POST"   },
+    { "name": "UPDATE/REMOVE MEMBERSHIPS",    "func": update_organization_membership,       "api": "/organizations/organization/<orgname>/membership",                                     "method": "POST"   },
+
+    { "name": "GET USER GROUPS",              "func": get_organization_groups,              "api": "/organizations/organization/<orgname>/groups",                                         "method": "GET"    },
+    { "name": "CREATE USER GROUP",            "func": create_organization_group,            "api": "/organizations/organization/<orgname>/groups/group/<groupname>",                       "method": "POST"   },
+    { "name": "DELETE USER GROUP",            "func": delete_organization_group,            "api": "/organizations/organization/<orgname>/groups/group/<groupname>",                       "method": "DELETE" },
+
+    { "name": "GET MEMBERS IN USER GROUP",    "func": get_members_in_organization_group,    "api": "/organizations/organization/ORGNAME/groups/group/GROUPNAME/members",                   "method": "GET"    },
+    { "name": "UPDATE MEMBERS IN USER GROUP", "func": update_members_in_organization_group, "api": "/organizations/organization/ORGNAME/groups/group/GROUPNAME/members",                   "method": "POST"   },
+    { "name": "ADD MEMBER TO USER GROUP",     "func": add_member_to_organization_group,     "api": "/organizations/organization/ORGNAME/groups/group/GROUPNAME/members/member/MEMBERNAME", "method": "POST"   },
 ]
 
 

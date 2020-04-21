@@ -266,6 +266,14 @@ SUMMARY:
 		C. CREATE/CANCEL INVITATIONS       - POST   organizations/organization/ORGNAME/invitation
 		D. UPDATE/REMOVE MEMBERSHIPS       - POST   organizations/organization/ORGNAME/membership
 
+		E. GET USER GROUPS                 - GET    organizations/organization/ORGNAME/groups
+		F. CREATE USER GROUP               - POST   organizations/organization/ORGNAME/groups/group/GROUPNAME
+		G. DELETE USER GROUP               - DELETE organizations/organization/ORGNAME/groups/group/GROUPNAME
+
+		H. GET MEMBERS IN USER GROUP       - GET    organizations/organization/ORGNAME/groups/group/GROUPNAME/members
+		I. UPDATE MEMBERS IN USER GROUP    - POST   organizations/organization/ORGNAME/groups/group/GROUPNAME/members
+		J. ADD MEMBER TO USER GROUP        - POST   organizations/organization/ORGNAME/groups/group/GROUPNAME/members/member/MEMBERNAME
+
 
 	3. Device registration and management APIs
 
@@ -961,6 +969,56 @@ DETAILED:
 		   // The organization must exist in order to update/remove users.
 		   //   HTTP_404_NOT_FOUND error is returned if the organization does not exist.
 		   // HTTP_400_BAD_REQUEST error is returned if the user being invited is already part of the organization.
+
+
+		E. GET USER GROUPS
+		-  Request:
+		   GET organizations/organization/ORGNAME/groups
+		   headers: {'Content-Type': 'application/json'}
+		-  Response:
+		   {'status': 'OK', 'message': string}
+		   {'status': 'NG', 'message': string}
+
+		F. CREATE USER GROUP
+		-  Request:
+		   POST organizations/organization/ORGNAME/groups/group/GROUPNAME
+		   headers: {'Content-Type': 'application/json'}
+		-  Response:
+		   {'status': 'OK', 'message': string}
+		   {'status': 'NG', 'message': string}
+
+		G. DELETE USER GROUP
+		-  Request:
+		   DELETE organizations/organization/ORGNAME/groups/group/GROUPNAME
+		   headers: {'Content-Type': 'application/json'}
+		-  Response:
+		   {'status': 'OK', 'message': string}
+		   {'status': 'NG', 'message': string}
+
+		H. GET MEMBERS IN USER GROUP
+		-  Request:
+		   GET organizations/organization/ORGNAME/groups/group/GROUPNAME/members
+		   headers: {'Content-Type': 'application/json'}
+		-  Response:
+		   {'status': 'OK', 'message': string, 'members': [string]}
+		   {'status': 'NG', 'message': string}
+
+		I. UPDATE MEMBERS IN USER GROUP
+		-  Request:
+		   POST organizations/organization/ORGNAME/groups/group/GROUPNAME/members
+		   headers: {'Content-Type': 'application/json'}
+		   data: {'members': [strings]}
+		-  Response:
+		   {'status': 'OK', 'message': string}
+		   {'status': 'NG', 'message': string}
+
+		J. ADD MEMBER TO USER GROUP
+		-  Request:
+		   POST organizations/organization/ORGNAME/groups/group/GROUPNAME/members/member/MEMBERNAME
+		   headers: {'Content-Type': 'application/json'}
+		-  Response:
+		   {'status': 'OK', 'message': string}
+		   {'status': 'NG', 'message': string}
 
 
 	3. Device registration and management APIs 
