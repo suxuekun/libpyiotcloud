@@ -52,6 +52,7 @@ Below are the features of this secure and scalable IoT platform:
        B. Docker-compose files to build and run Docker containers
        C. Kubernetes file to orchestrate clusterization of Docker containers (tested on Minikube and AWS EKS)
        D. Jenkins CI/CD pipelines to automate build and deployment from Github to AWS EC2
+       E. Limited ports exposed to fend off attacks in infrastructure level
 
     2. Device connectivity services
        Utilizes lightweight MQTT protocol for device connectivity ideal for low-powered devices
