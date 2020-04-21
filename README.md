@@ -38,7 +38,10 @@ It acts as the central messaging broker that supports client to device and devic
 It maintains the state of the entire system. It stores device and sensor information and all manner of device and sensor configurations and their routing information. 
 It also ingests and stores the received sensor readings from the devices for real-time dashboard visualization and off-line analysis. 
 It also keeps track of user details and user credit details and interfaces to 3rd party cloud systems such as identity services, alerting services, payment merchants and additional services.
+
 All these are done securely as security is built-in from the design - Security by Design principle.
+Security concerns is one of the major challenges slowing down IoT adoption. It is mostly because of neglect than lack of skills.
+Even though its impossible to defend against all sophisticated cyber-attacks, following industry-proven best practices and incorporating security and privacy in design is vital to any IoT platform. 
 
 Below are the features of this secure and scalable IoT platform:
 
@@ -52,7 +55,7 @@ Below are the features of this secure and scalable IoT platform:
     2. Device connectivity services
        Utilizes lightweight MQTT protocol for device connectivity ideal for low-powered devices
        A. Device and backend communication via RabbitMQ message broker using MQTTS protocol
-       B. Device authentication using unique username and JWT-encoded password credentials
+       B. Device authentication using unique username and JWT-encoded password (with shared secret key) credentials
        C. Device authentication using ECC-based X.509 client certificate with mutual authentication enforcement
        D. Secure communication using TLS, device athorization using MQTT topic permissions
        E. Company-generated ECC-based X.509 SSL certificates (server root certificate and client device certificates)
@@ -126,7 +129,10 @@ Below are the features of this secure and scalable IoT platform:
        D. View device usage and payment transactions histories
 
 
-This IoT platform can be used for any type of businesses and industries:
+With IoT, the opportunities are endless. 
+Below, we outline just some of the use cases in which this IoT platform can used influence outcomes, 
+enhance business efficiencies and opportunities, and improve lives in any type of businesses and industries:
+
 - Agricultural and farm lots
 - Amusement parks and recreational fields
 - Data centers and facilities
@@ -1829,6 +1835,7 @@ In Linux, the total round trip time is only 1 second.
 # Security
 
 Security has been the most challenging and controversial issues of IoT devices and smart devices.
+As such this IoT platform was designed so that security is built-in from the design - Security by Design principle.
 
 ### Device Connectivity
 
@@ -1837,7 +1844,7 @@ Current security implementation for device connectivity:
     1. MQTT connectivity over secured TLS connection
     2. ECC-based (Elliptic Curve Cryptography ECC) PKI and X.509 certificates
     3. Enforcement of mutual authentication on both MQTT broker and MQTT client configurations
-    4. Unique MQTT credentials (username and password) per device
+    4. Unique MQTT credentials (username and password) per device where password is JWT-encoded with shared secret key
     5. Strict restrictions for MQTT topic permission (subscribe and publish) per device
     6. [TODO] ECC certificates stored in 3rd-party ATECC hardware chip 
 
