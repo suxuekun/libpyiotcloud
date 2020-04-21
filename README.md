@@ -42,7 +42,7 @@ It also keeps track of user details and user credit details and interfaces to 3r
 All these are done securely as security is built-in from the design - Security by Design principle.
 Security concerns is one of the major challenges slowing down IoT adoption. It is mostly because of neglect than lack of skills.
 Even though its impossible to defend against all sophisticated cyber-attacks, following industry-proven best practices and incorporating security and privacy in design is vital to any IoT platform. 
-As security is very challenging, security enhancement will be an ongoing process. Incremental security improvements will be continuously applied.
+As security is very challenging and of paramount importance, security enhancement will be an ongoing process. Incremental security improvements will be continuously applied.
 
 Below are the features of this secure and scalable IoT platform:
 
@@ -75,7 +75,7 @@ Below are the features of this secure and scalable IoT platform:
        B. Login with email or with (verified) mobile number
        C. Login with multi-factor authentication (MFA/2FA) security - disabled by default; must be explicitly enabled by user
        D. Login via social IDP (Facebook/Google/Amazon) via OAuth2 security
-       E. User lockout security on consecutive failed attempts
+       E. User lockout security on consecutive failed attempts to alert suspicious behavior
        F. Create and manage an organization, inviting/removing new/existing users, accepting/declining/cancelling invitations
        *. Manage user's roles and assign permissions to each role
 
@@ -110,6 +110,7 @@ Below are the features of this secure and scalable IoT platform:
        D. Visualize device and sensor related metrics via pie, doughnut and bar charts
        E. Forward sensor data (forward INPUT sensor data to another OUTPUT sensor from same or different device)
        F. Threshold sensor data (trigger MENOS alerts when threshold limits are met)
+       G. Download sensor data for data analysis, data backup, data recovery or data privacy
        *  Analyze sensor data using 3rd-party Business Intellegence / Analytics tools (PowerBI, Tableau, Qlik)
 
     8. Messaging and alerting services
