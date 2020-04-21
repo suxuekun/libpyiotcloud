@@ -7,16 +7,16 @@
 :: For new devices, set the following values:
 :: Application will now generate USERNAME AND PASSWORD based on DEVICE_ID, DEVICE_SERIAL, DEVICE_MACADD
 ::
-:: DEVICE_ID        - should match UUID during device registration      
-:: DEVICE_SERIAL    - should match Serial Number during device registration 
-:: DEVICE_MACADD    - should match POE MAC Address during device registration 
+:: DEVICE_ID        - should match UUID during device registration
+:: DEVICE_SERIAL    - should match Serial Number during device registration
+:: DEVICE_MACADD    - should match POE MAC Address during device registration
 :: DEVICE_SECRETKEY - [CONFIDENTIAL] please ASK ME directly or check the SKYPE GROUP
 ::
 :: For existing devices (backward compatibility), set the following values:
 ::
-:: DEVICE_ID        - should match UUID during device registration   
-:: USER             - should match UUID during device registration   
-:: PASS             - should match Serial Number during device registration 
+:: DEVICE_ID        - should match UUID during device registration
+:: USER             - should match UUID during device registration
+:: PASS             - should match Serial Number during device registration
 ::
 ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
