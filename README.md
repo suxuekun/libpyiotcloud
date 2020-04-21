@@ -84,7 +84,7 @@ Below are the features of this secure and scalable IoT platform:
        A. Register device manually or via QR code (QR code registration via mobile apps only)
        B. Control device remotely (restart, stop, start) and view device properties including last active time
        C. Configure and track location of a device (or a fleet of devices) via Google Maps (latitude, longitude)
-       D. Update firmware of a device (or fleet of devices) remotely over-the-air (OTA) with security checksum validation - can be a mixed of online or offline devices
+       D. Securely update firmware of a device (or fleet of devices - online and/or offline) remotely over-the-air (OTA) with checksum validation
        E. Organize devices into groups of devices for bulk/fleet-wide operations or for organizing several devices
        F. View device-sensor hierarchy tree and devices configurations summary 
        *  Configure and manage organization-owned devices
