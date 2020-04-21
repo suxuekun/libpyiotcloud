@@ -42,6 +42,7 @@ It also keeps track of user details and user credit details and interfaces to 3r
 All these are done securely as security is built-in from the design - Security by Design principle.
 Security concerns is one of the major challenges slowing down IoT adoption. It is mostly because of neglect than lack of skills.
 Even though its impossible to defend against all sophisticated cyber-attacks, following industry-proven best practices and incorporating security and privacy in design is vital to any IoT platform. 
+As security is very challenging, security enhancement will be an ongoing process. Incremental security improvements will be continuously applied.
 
 Below are the features of this secure and scalable IoT platform:
 
