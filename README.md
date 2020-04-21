@@ -38,6 +38,7 @@ It acts as the central messaging broker that supports client to device and devic
 It maintains the state of the entire system. It stores device and sensor information and all manner of device and sensor configurations and their routing information. 
 It also ingests and stores the received sensor readings from the devices for real-time dashboard visualization and off-line analysis. 
 It also keeps track of user details and user credit details and interfaces to 3rd party cloud systems such as identity services, alerting services, payment merchants and additional services.
+All these are done securely as security is built-in from the design - Security by Design.
 
 Below are the features of this secure and scalable IoT platform:
 
