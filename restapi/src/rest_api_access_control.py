@@ -563,6 +563,19 @@ class access_control:
 
 
 
+    ########################################################################################################
+    #
+    # GET MEMBERS IN USER GROUP
+    #
+    # - Request:
+    #   GET /organizations/organization/ORGNAME/groups/group/GROUPNAME/members
+    #   headers: {'Authorization': 'Bearer ' + token.access}
+    #
+    # - Response:
+    #   {'status': 'OK', 'message': string, 'members': [string]}
+    #   {'status': 'NG', 'message': string}
+    #
+    ########################################################################################################
     def get_members_in_organization_group(self, orgname, groupname):
         # get token from Authorization header
         auth_header_token = rest_api_utils.utils().get_auth_header_token()
@@ -610,6 +623,21 @@ class access_control:
         print('\r\n{} successful: {}\r\n'.format(msg["message"], username))
         return response
 
+
+    ########################################################################################################
+    #
+    # UPDATE MEMBERS IN USER GROUP
+    #
+    # - Request:
+    #   POST /organizations/organization/ORGNAME/groups/group/GROUPNAME/members
+    #   headers: {'Authorization': 'Bearer ' + token.access}
+    #   data: {'members': [strings]}
+    #
+    # - Response:
+    #   {'status': 'OK', 'message': string}
+    #   {'status': 'NG', 'message': string}
+    #
+    ########################################################################################################
     def update_members_in_organization_group(self, orgname, groupname):
         # get token from Authorization header
         auth_header_token = rest_api_utils.utils().get_auth_header_token()
@@ -662,6 +690,31 @@ class access_control:
         print('\r\n{} successful: {}\r\n'.format(msg["message"], username))
         return response
 
+
+    ########################################################################################################
+    #
+    # ADD MEMBER TO USER GROUP
+    #
+    # - Request:
+    #   POST organizations/organization/ORGNAME/groups/group/GROUPNAME/members/member/MEMBERNAME
+    #   headers: {'Authorization': 'Bearer ' + token.access}
+    #
+    # - Response:
+    #   {'status': 'OK', 'message': string}
+    #   {'status': 'NG', 'message': string}
+    #
+    #
+    # REMOVE MEMBER FROM USER GROUP
+    #
+    # - Request:
+    #   DELETE organizations/organization/ORGNAME/groups/group/GROUPNAME/members/member/MEMBERNAME
+    #   headers: {'Authorization': 'Bearer ' + token.access}
+    #
+    # - Response:
+    #   {'status': 'OK', 'message': string}
+    #   {'status': 'NG', 'message': string}
+    #
+    ########################################################################################################
     def add_member_to_organization_group(self, orgname, groupname, membername):
         # get token from Authorization header
         auth_header_token = rest_api_utils.utils().get_auth_header_token()
