@@ -20006,6 +20006,27 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             }
         }
         
+        $ionicPopup.alert({
+            title: 'Update Group Members',
+            template: 'Are you sure you want to update the group members?' + ' ' + 'Unchecked users will be removed from the group.',
+            buttons: [
+                {
+                    text: 'No',
+                    type: 'button-negative',
+                },
+                {
+                    text: 'Yes',
+                    type: 'button-positive',
+                    onTap: function(e) {
+                        $scope.updateGroupMembersAction(members);
+                    }
+                }
+            ]
+        });           
+    };
+    
+    $scope.updateGroupMembersAction = function(members) {
+        
         Organizations.update_group_members($scope.data, $scope.data.orgname, $scope.data.groupname, members).then(function(res) {
 
             if (res.status === 'OK') {
@@ -20025,8 +20046,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             
         });        
     };
-    
-    
+
 
     $scope.submitRefresh = function(flag) {
         $scope.getGroupMembers("Ungrouped", flag);
