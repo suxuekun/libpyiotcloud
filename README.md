@@ -46,13 +46,14 @@ As security is very challenging and of paramount importance, security enhancemen
 
 Below are the features of this secure and scalable IoT platform:
 
-    1. Microservices architecture
-       Utilizes microservices architecture enabling scalability and fault-tolerance to support millions of devices and sensors 
-       A. Modern backend design using microservices architecture leveraging on Docker containers (and RabbitMQ message broker)
-       B. Docker-compose files to build and run Docker containers
-       C. Kubernetes file to orchestrate clusterization of Docker containers (tested on Minikube and AWS EKS)
-       D. Jenkins CI/CD pipelines to automate build and deployment from Github to AWS EC2
-       E. Limited ports exposed to fend off attacks in infrastructure level
+    1. Backend infrastructure
+       Utilizes microservices architecture on AWS cloud for enabling scalability and fault-tolerance
+       A. IaaS service on reliable cloud platform using AWS EC2
+       B. Containerized microservices architecture using Docker containers
+       C. Reliable and scalable databases and message brokers using MongoDB, MongoDB Atlas and RabbitMQ
+       D. Container orchestration tools using Docker-compose or Kubernetes (tested on Minikube and AWS EKS)
+       E. Continuous integration/deployment (CI/CD) using Jenkins pipelines (automated deployment from Github to AWS EC2)
+       F. Limited ports exposed to fend off attacks in infrastructure level
 
     2. Device connectivity services
        Utilizes lightweight MQTT protocol for device connectivity ideal for low-powered devices
