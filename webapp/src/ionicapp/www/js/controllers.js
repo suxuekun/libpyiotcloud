@@ -19894,16 +19894,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             else {
                 $ionicPopup.alert({
                     title: 'Create Group',
-                    template: 'Creating user group in the organization failed.',
-                    buttons: [
-                        {
-                            text: 'Yes',
-                            type: 'button-positive',
-                            onTap: function(e) {
-                                $scope.exitPage();
-                            }
-                        }
-                    ]
+                    template: 'Creating user group in the organization failed.' + ' ' + res.message,
+                    buttons: [{ text: 'Yes', type: 'button-positive' }]
                 });
             }            
         });

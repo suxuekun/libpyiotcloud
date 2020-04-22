@@ -77,8 +77,8 @@ Below are the features of this secure and scalable IoT platform:
        C. Login with multi-factor authentication (MFA/2FA) security - disabled by default; must be explicitly enabled by user
        D. Login via social IDP (Facebook/Google/Amazon) via OAuth2 security
        E. User lockout security on consecutive failed attempts to alert suspicious behavior
-       F. Create and manage an organization, inviting/removing new/existing users, accepting/declining/cancelling invitations
-       *. Administrate user's roles in an organization and assign permissions to each role (role-based access control aka RBAC)
+       F. Create and manage an organization, adding users and grouping the users based on assigned tasks/roles
+       *. Administrate user's roles/tasks in an organization by assign permissions policies to each user groups (role-based access control aka RBAC)
 
     5. Device management services
        Provision, manage and monitor devices

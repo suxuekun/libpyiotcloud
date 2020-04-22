@@ -405,7 +405,7 @@ class access_control:
     #   headers: {'Authorization': 'Bearer ' + token.access}
     #
     # - Response:
-    #   {'status': 'OK', 'message': string}
+    #   {'status': 'OK', 'message': string, 'groups': {'groupname': string, 'members': [string]}}
     #   {'status': 'NG', 'message': string}
     #
     ########################################################################################################
@@ -530,9 +530,7 @@ class access_control:
 
             result, errorcode = self.database_client.create_organization_group(username, orgname, groupname)
             if not result:
-                if errorcode == 401:
-                    errormsg = "Cannot create another organization group"
-                elif errorcode == 409:
+                if errorcode == 409:
                     errormsg = "Organization group name already taken"
                 else:
                     errormsg = "Create organization group failed"
@@ -699,13 +697,20 @@ class access_control:
             return response, status.HTTP_401_UNAUTHORIZED
 
 
-        # add organization group member
-        result, errcode = self.database_client.add_member_to_organization_group(username, orgname, groupname, membername)
-        print(errcode)
-        if result:
-            msg = {'status': 'OK', 'message': 'Add organization group member successful'}
-        else:
-            msg = {'status': 'NG', 'message': 'Add organization group member failed'}
+        # add or remove organization group member
+        if flask.request.method == 'POST':
+            result, errcode = self.database_client.add_member_to_organization_group(username, orgname, groupname, membername)
+            if result:
+                msg = {'status': 'OK', 'message': 'Add organization group member successful'}
+            else:
+                msg = {'status': 'NG', 'message': 'Add organization group member failed'}
+
+        elif flask.request.method == 'DELETE':
+            result, errcode = self.database_client.remove_member_from_organization_group(username, orgname, groupname, membername)
+            if result:
+                msg = {'status': 'OK', 'message': 'Remove organization group member successful'}
+            else:
+                msg = {'status': 'NG', 'message': 'Remove organization group member failed'}
 
 
         response = json.dumps(msg)

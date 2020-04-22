@@ -273,6 +273,7 @@ SUMMARY:
 		H. GET MEMBERS IN USER GROUP       - GET    organizations/organization/ORGNAME/groups/group/GROUPNAME/members
 		I. UPDATE MEMBERS IN USER GROUP    - POST   organizations/organization/ORGNAME/groups/group/GROUPNAME/members
 		J. ADD MEMBER TO USER GROUP        - POST   organizations/organization/ORGNAME/groups/group/GROUPNAME/members/member/MEMBERNAME
+		K. REMOVE MEMBER FROM USER GROUP   - DELETE organizations/organization/ORGNAME/groups/group/GROUPNAME/members/member/MEMBERNAME
 
 
 	3. Device registration and management APIs
@@ -976,7 +977,7 @@ DETAILED:
 		   GET organizations/organization/ORGNAME/groups
 		   headers: {'Content-Type': 'application/json'}
 		-  Response:
-		   {'status': 'OK', 'message': string}
+		   {'status': 'OK', 'message': string, 'groups': {'groupname': string, 'members': [string]}}
 		   {'status': 'NG', 'message': string}
 
 		F. CREATE USER GROUP
@@ -1002,6 +1003,7 @@ DETAILED:
 		-  Response:
 		   {'status': 'OK', 'message': string, 'members': [string]}
 		   {'status': 'NG', 'message': string}
+		   // To get Organization members that has no group, use "Ungrouped" for GROUPNAME
 
 		I. UPDATE MEMBERS IN USER GROUP
 		-  Request:
@@ -1015,6 +1017,14 @@ DETAILED:
 		J. ADD MEMBER TO USER GROUP
 		-  Request:
 		   POST organizations/organization/ORGNAME/groups/group/GROUPNAME/members/member/MEMBERNAME
+		   headers: {'Content-Type': 'application/json'}
+		-  Response:
+		   {'status': 'OK', 'message': string}
+		   {'status': 'NG', 'message': string}
+
+		K. REMOVE MEMBER FROM USER GROUP
+		-  Request:
+		   DELETE organizations/organization/ORGNAME/groups/group/GROUPNAME/members/member/MEMBERNAME
 		   headers: {'Content-Type': 'application/json'}
 		-  Response:
 		   {'status': 'OK', 'message': string}
