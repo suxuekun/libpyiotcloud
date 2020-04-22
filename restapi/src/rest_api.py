@@ -266,20 +266,25 @@ def update_members_in_organization_group(orgname, groupname):
 def add_member_to_organization_group(orgname, groupname, membername):
     return g_access_control.add_member_to_organization_group(orgname, groupname, membername)
 
+@app.route('/organizations/organization/<orgname>/groups/group/<groupname>/members/member/<membername>', methods=['DELETE'])
+def remove_member_from_organization_group(orgname, groupname, membername):
+    return g_access_control.add_member_to_organization_group(orgname, groupname, membername)
+
 
 g_access_control_list = [
-    { "name": "CREATE ORGANIZATION",          "func": create_organization,                  "api": "/organizations/organization/<orgname>",                                                "method": "POST"   },
-    { "name": "DELETE ORGANIZATION",          "func": delete_organization,                  "api": "/organizations/organization/<orgname>",                                                "method": "DELETE" },
-    { "name": "CREATE/CANCEL INVITATIONS",    "func": create_organization_invitation,       "api": "/organizations/organization/<orgname>/invitation",                                     "method": "POST"   },
-    { "name": "UPDATE/REMOVE MEMBERSHIPS",    "func": update_organization_membership,       "api": "/organizations/organization/<orgname>/membership",                                     "method": "POST"   },
+    { "name": "CREATE ORGANIZATION",           "func": create_organization,                   "api": "/organizations/organization/<orgname>",                                                "method": "POST"   },
+    { "name": "DELETE ORGANIZATION",           "func": delete_organization,                   "api": "/organizations/organization/<orgname>",                                                "method": "DELETE" },
+    { "name": "CREATE/CANCEL INVITATIONS",     "func": create_organization_invitation,        "api": "/organizations/organization/<orgname>/invitation",                                     "method": "POST"   },
+    { "name": "UPDATE/REMOVE MEMBERSHIPS",     "func": update_organization_membership,        "api": "/organizations/organization/<orgname>/membership",                                     "method": "POST"   },
 
-    { "name": "GET USER GROUPS",              "func": get_organization_groups,              "api": "/organizations/organization/<orgname>/groups",                                         "method": "GET"    },
-    { "name": "CREATE USER GROUP",            "func": create_organization_group,            "api": "/organizations/organization/<orgname>/groups/group/<groupname>",                       "method": "POST"   },
-    { "name": "DELETE USER GROUP",            "func": delete_organization_group,            "api": "/organizations/organization/<orgname>/groups/group/<groupname>",                       "method": "DELETE" },
+    { "name": "GET USER GROUPS",               "func": get_organization_groups,               "api": "/organizations/organization/<orgname>/groups",                                         "method": "GET"    },
+    { "name": "CREATE USER GROUP",             "func": create_organization_group,             "api": "/organizations/organization/<orgname>/groups/group/<groupname>",                       "method": "POST"   },
+    { "name": "DELETE USER GROUP",             "func": delete_organization_group,             "api": "/organizations/organization/<orgname>/groups/group/<groupname>",                       "method": "DELETE" },
 
-    { "name": "GET MEMBERS IN USER GROUP",    "func": get_members_in_organization_group,    "api": "/organizations/organization/ORGNAME/groups/group/GROUPNAME/members",                   "method": "GET"    },
-    { "name": "UPDATE MEMBERS IN USER GROUP", "func": update_members_in_organization_group, "api": "/organizations/organization/ORGNAME/groups/group/GROUPNAME/members",                   "method": "POST"   },
-    { "name": "ADD MEMBER TO USER GROUP",     "func": add_member_to_organization_group,     "api": "/organizations/organization/ORGNAME/groups/group/GROUPNAME/members/member/MEMBERNAME", "method": "POST"   },
+    { "name": "GET MEMBERS IN USER GROUP",     "func": get_members_in_organization_group,     "api": "/organizations/organization/ORGNAME/groups/group/GROUPNAME/members",                   "method": "GET"    },
+    { "name": "UPDATE MEMBERS IN USER GROUP",  "func": update_members_in_organization_group,  "api": "/organizations/organization/ORGNAME/groups/group/GROUPNAME/members",                   "method": "POST"   },
+    { "name": "ADD MEMBER TO USER GROUP",      "func": add_member_to_organization_group,      "api": "/organizations/organization/ORGNAME/groups/group/GROUPNAME/members/member/MEMBERNAME", "method": "POST"   },
+    { "name": "REMOVE MEMBER FROM USER GROUP", "func": remove_member_from_organization_group, "api": "/organizations/organization/ORGNAME/groups/group/GROUPNAME/members/member/MEMBERNAME", "method": "DELETE" },
 ]
 
 
