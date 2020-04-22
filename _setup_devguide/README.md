@@ -261,15 +261,18 @@ SUMMARY:
 
 	2. Organization management APIs
 
+		//
+		// organization (owner, users)
 		A. CREATE ORGANIZATION             - POST   organizations/organization/ORGNAME
 		B. DELETE ORGANIZATION             - DELETE organizations/organization/ORGNAME
 		C. CREATE/CANCEL INVITATIONS       - POST   organizations/organization/ORGNAME/invitation
 		D. UPDATE/REMOVE MEMBERSHIPS       - POST   organizations/organization/ORGNAME/membership
 
+		//
+		// organization (owner, groups)
 		E. GET USER GROUPS                 - GET    organizations/organization/ORGNAME/groups
 		F. CREATE USER GROUP               - POST   organizations/organization/ORGNAME/groups/group/GROUPNAME
 		G. DELETE USER GROUP               - DELETE organizations/organization/ORGNAME/groups/group/GROUPNAME
-
 		H. GET MEMBERS IN USER GROUP       - GET    organizations/organization/ORGNAME/groups/group/GROUPNAME/members
 		I. UPDATE MEMBERS IN USER GROUP    - POST   organizations/organization/ORGNAME/groups/group/GROUPNAME/members
 		J. ADD MEMBER TO USER GROUP        - POST   organizations/organization/ORGNAME/groups/group/GROUPNAME/members/member/MEMBERNAME
