@@ -46,7 +46,7 @@ As security risks can never be completely eliminated, security enhancement will 
 Security will be enforced in an end-to-end approach, from physical devices and sensors, to data connections, to host systems, to the services and data stored in the cloud.
 
 
-Below are the features of this secure and scalable IoT platform:
+Below are the features of this secure, scalable and reliable IoT platform:
 
     1. Backend infrastructure
        Utilizes microservices architecture on AWS cloud for enabling scalability and fault-tolerance
@@ -58,7 +58,7 @@ Below are the features of this secure and scalable IoT platform:
        F. Limited ports exposed to fend off attacks in infrastructure level
 
     2. Device connectivity services
-       Utilizes lightweight MQTT protocol for device connectivity ideal for low-powered devices
+       Utilizes lightweight MQTT protocol for device connectivity ideal for low-powered devices and long-term reliability
        A. Device and backend communication via RabbitMQ message broker using MQTTS protocol
        B. Device authentication using unique username and JWT-encoded password (with shared secret key) credentials
        C. Device authentication using ECC-based X.509 client certificate with mutual authentication enforcement
