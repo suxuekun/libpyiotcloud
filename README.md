@@ -104,7 +104,7 @@ Below are the features of this secure and scalable IoT platform:
        E. Buy add-ons on top of Basic subscription to avail more of specific services
 
     8. Subscription and usage tracking services
-       Conveniently topup your accounts every month for each device to avail all services for all purchased IoT devices.
+       Monitor usage of services real-time to detect usage pattern and continuously avail of premium services
        A. Monitor usage for SMS, email, push notifications
        B. Monitor usage for sensor data storage
 
