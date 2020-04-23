@@ -103,36 +103,38 @@ Below are the features of this secure and scalable IoT platform:
        D. Upgrade free subscription to Basic subscription to avail of all services
        E. Buy add-ons on top of Basic subscription to avail more of specific services
 
-    8. Usage tracking and accounting services
+    8. Subscription and usage tracking services
        Conveniently topup your accounts every month for each device to avail all services for all purchased IoT devices.
-       A. View outstanding usage for SMS, email, push notifications
-       B. View outstanding usage for sensor data storage
+       A. Monitor usage for SMS, email, push notifications
+       B. Monitor usage for sensor data storage
 
     9. Device (Gateway and LDSU) management services
        Provision, manage and monitor devices
        A. Register device manually or via QR code (QR code registration via mobile apps only)
-       B. Control device remotely (restart, stop, start) and view device properties including last active time
+       B. Manager device status remotely (restart, stop, start) and view device properties including last active time
        C. Configure and track location of a device (or a fleet of devices) via Google Maps (latitude, longitude)
        D. Securely update firmware of a device (or fleet of devices - online and/or offline) remotely over-the-air (OTA) with checksum validation
        E. Organize devices into groups of devices for bulk/fleet-wide operations or for organizing several devices
        F. View device-sensor hierarchy tree and devices configurations summary 
        *  Configure and manage organization-owned devices
 
-    10.Sensor management services
-       Provision and manage sensors for various devices
+    10.Sensor/actuator management services
+       Provision and manage sensors/actuators for customizable alerts/alarms or trigger/action
        A. Configure UART parameters and GPIO pins
        B. Register 3rd-party sensors connected via peripherals: I2C, ADC, OneWire, TPROBE
           INPUT  [sensors]   : potentiometer, temperature, humidity, anemometer, battery, fluid, 
           OUTPUT [actuators] : speaker, display, light
           User MANUALLY registers sensors connected
           Device AUTOMATICALLY registers sensors connected on bootup
-       C. Configure sensors for data thresholding (for MENOS alerts)
-       D. Configure sensors for data forwarding
-       E. Configure output sensors to receive data from (input) sensors
-       F. View device-sensor hierarchy tree and summary of sensor configurations
+       C. Configure sensors for data thresholding (to trigger MENOS alerts)
+       D. Configure sensors for data thresholding (to set actuators)
+       E. Configure sensors for data forwarding
+       F. Configure actuators to receive data from sensors (data forwarding)
+       G. Configure actuators to receive commands from sensors (data thresholding - item D)
+       H. View device-sensor hierarchy tree and summary of sensor configurations
 
     11.Sensor data visualization and analytics services
-       Remotely monitor real-time sensor values and data history visually via the dashboard
+       Understand device and sensor behaviour via the dashboard charts/graphs/infographics
        A. Ingest sensor data from sensors connected via peripherals: I2C, ADC, Onewire, TPROBE
        B. Store sensor data to a Big Data database using MongoDB Atlas
        C. Visualize real-time and historical sensor data via time-series line charts (with sensor filters, time range filter)
