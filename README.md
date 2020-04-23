@@ -71,17 +71,44 @@ Below are the features of this secure and scalable IoT platform:
        C. Secure communication using TLS, trusted SSL certificates, JWT authorization headers
        D. Hybrid web/mobile apps (using Ionic framework) as reference implementation for actual web/mobile clients
 
-    4. Identity and access management services
+    4. Identity management services
        Access Portal in a secure way (using Amazon Cognito).
        A. User sign-up (and password reset/recovery) with secure OTP (one-time password)
        B. Login with verified email or mobile number
        C. Login with multi-factor authentication (MFA/2FA) security - disabled by default; must be explicitly enabled by user
        D. Login via social IDP (Facebook/Google/Amazon) via OAuth2 security
        E. User lockout security on consecutive failed attempts to alert suspicious behavior
-       F. Create and manage an organization, adding users and grouping the users based on assigned tasks/roles
-       *. Administrate user's roles/tasks in an organization by assign permissions policies to each user groups (role-based access control aka RBAC)
 
-    5. Device management services
+    5. Organization and access control management services
+       Manage an organization of users and assign permissions.
+       A. Create and manage an organization, adding new/existing users
+       B. Group the users based on assigned tasks/roles
+       C. Administrate user's roles/tasks in an organization by assign permissions policies to each user groups (role-based access control aka RBAC)
+
+    6. Alerting and messaging services
+       Raise alarms over sMs, Email, push Notification, mOdem, Storage (MENOS) so you can respond and analyze telemetry events in time.
+       A. sMs: sending mobile SMS alerts via Amazon Pinpoint
+       B. Email: sending email alerts via Amazon Pinpoint
+       C. push Notification: sending mobile push notifications alerts to Android/IOS mobile via Amazon Pinpoint
+       D. mOdem: sending alerts to another device
+       E. Storage: sending alerts to Amazon S3 for file storage (user can download file for later analysis)
+       *  IFTTT: trigger a 3rd-party application (like, Twitter, Facebook, Alexa, etc) via IFTTT
+       *  Lambda: trigger a user-defined Python/NodeJS function for highly customized alerting
+
+    7. Payment services
+       Conveniently pay for subscription upgrade for each device every month to avail all services for all purchased IoT devices.
+       A. Use Paypal to pay for subscription plan (and/or add-ons) and receive an email confirmation receipt
+       B. View payment histories fo all purchased IoT devices
+       C. Use free subscription for all purchased devices
+       D. Upgrade free subscription to Basic subscription to avail of all services
+       E. Buy add-ons on top of Basic subscription to avail more of specific services
+
+    8. Usage tracking and accounting services
+       Conveniently topup your accounts every month for each device to avail all services for all purchased IoT devices.
+       A. View outstanding usage for SMS, email, push notifications
+       B. View outstanding usage for sensor data storage
+
+    9. Device (Gateway and LDSU) management services
        Provision, manage and monitor devices
        A. Register device manually or via QR code (QR code registration via mobile apps only)
        B. Control device remotely (restart, stop, start) and view device properties including last active time
@@ -91,7 +118,7 @@ Below are the features of this secure and scalable IoT platform:
        F. View device-sensor hierarchy tree and devices configurations summary 
        *  Configure and manage organization-owned devices
 
-    6. Peripheral and sensor management services
+    10.Sensor management services
        Provision and manage sensors for various devices
        A. Configure UART parameters and GPIO pins
        B. Register 3rd-party sensors connected via peripherals: I2C, ADC, OneWire, TPROBE
@@ -104,7 +131,7 @@ Below are the features of this secure and scalable IoT platform:
        E. Configure output sensors to receive data from (input) sensors
        F. View device-sensor hierarchy tree and summary of sensor configurations
 
-    7. Sensor data pipeline services
+    11.Sensor data visualization and analytics services
        Remotely monitor real-time sensor values and data history visually via the dashboard
        A. Ingest sensor data from sensors connected via peripherals: I2C, ADC, Onewire, TPROBE
        B. Store sensor data to a Big Data database using MongoDB Atlas
@@ -115,29 +142,12 @@ Below are the features of this secure and scalable IoT platform:
        G. Download sensor data for data analysis, data backup, data recovery or data privacy
        *  Analyze sensor data using 3rd-party Business Intellegence / Analytics tools (PowerBI, Tableau, Qlik)
 
-    8. Messaging and alerting services
-       Raise alarms over sMs, Email, push Notification, mOdem, Storage (MENOS) so you can respond and analyze telemetry events in time.
-       A. sMs: sending mobile SMS alerts via Amazon Pinpoint
-       B. Email: sending email alerts via Amazon Pinpoint
-       C. push Notification: sending mobile push notifications alerts to Android/IOS mobile via Amazon Pinpoint
-       D. mOdem: sending alerts to another device
-       E. Storage: sending alerts to Amazon S3 for file storage (user can download file for later analysis)
-       *  IFTTT: trigger a 3rd-party application (like, Twitter, Facebook, Alexa, etc) via IFTTT
-       *  Lambda: trigger a user-defined Python/NodeJS function for highly customized alerting
-
-    9. Billing and payment services
-       Conveniently topup your accounts every month to avail all services for all purchased IoT devices.
-       A. Avail of some services (for limited time?) when you buy the IoT device
-       B. Upgrade to a subscription plan to avail of all services (per device)
-       C. Use Paypal to buy a subscription plan (per device) and receive an email confirmation receipt
-       D. View device usage and payment transactions histories
-
 
 With IoT, the opportunities are endless. 
 Below, we outline just some of the applications in which this IoT platform can used to influence outcomes, 
 enhance business efficiencies and opportunities, and improve lives, in any type of businesses and industries:
 
-- Agricultural and farm lots
+- Agricultural and urban farming
 - Amusement parks and recreational fields
 - Data centers and facilities
 - Government offices and municipals
