@@ -201,12 +201,16 @@ The web app is made of Ionic framework so it can be compiled as Android and iOS 
 - <b>GoDaddy</b> domain and SSL certificate - https://godaddy.com
 - <b>Twilio</b> SMS messaging platform - https://www.twilio.com/
 - <b>Nexmo</b> SMS messaging platform - https://www.nexmo.com/
+- <b>Elastic stack/ELK stack</b> logging solution - https://www.elastic.co/elastic-stack
+- <b>Prometheus and Grafana</b> monitoring solution - https://prometheus.io/, https://prometheus.io/docs/visualization/grafana/
+
 
 Below are tools and utilities being used:
 
 - <b>Jenkins</b> automation for CI/CD - https://jenkins.io/
 - <b>Github Desktop</b> Git application - https://desktop.github.com/
 - <b>MongoDB Compass</b> GUI for MongoDB - https://www.mongodb.com/products/compass
+- <b>RabbitMQ</b> Management web interface - https://www.rabbitmq.com/management.html
 - <b>Putty</b> SSH application to access AWS EC2 - https://www.putty.org/
 - <b>WinSCP</b> SSH gui application to access AWS EC2 - https://winscp.net/eng/index.php
 - <b>Ionic Creator</b> - https://creator.ionic.io
