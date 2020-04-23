@@ -53,7 +53,7 @@ Security will be enforced in an end-to-end approach, from physical devices and s
 Below are the features of this secure, scalable and reliable IoT platform:
 
     1. Backend infrastructure
-       Utilizes microservices architecture on AWS cloud for enabling scalability and fault-tolerance
+       Utilizes microservices architecture on AWS cloud for enabling scalability, high-availability and fault-tolerance
        A. IaaS service on reliable cloud platform using AWS EC2
        B. Containerized microservices architecture using Docker containers
        C. Reliable and scalable databases and message brokers using MongoDB, MongoDB Atlas and RabbitMQ
