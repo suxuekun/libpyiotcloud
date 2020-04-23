@@ -119,7 +119,7 @@ Below are the features of this secure and scalable IoT platform:
        *  Configure and manage organization-owned devices
 
     10.Sensor/actuator management services
-       Provision and manage sensors/actuators for customizable alerts/alarms or trigger/action
+       Configure sensors/actuators for customizable alerts/alarms or trigger/action
        A. Configure UART parameters and GPIO pins
        B. Register 3rd-party sensors connected via peripherals: I2C, ADC, OneWire, TPROBE
           INPUT  [sensors]   : potentiometer, temperature, humidity, anemometer, battery, fluid, 
@@ -134,7 +134,7 @@ Below are the features of this secure and scalable IoT platform:
        H. View device-sensor hierarchy tree and summary of sensor configurations
 
     11.Sensor data visualization and analytics services
-       Understand device and sensor behaviour via the dashboard charts/graphs/infographics
+       Understand device and sensor behaviour via the dashboard charts/graphs/infographics for complete holistic insight
        A. Ingest sensor data from sensors connected via peripherals: I2C, ADC, Onewire, TPROBE
        B. Store sensor data to a Big Data database using MongoDB Atlas
        C. Visualize real-time and historical sensor data via time-series line charts (with sensor filters, time range filter)
