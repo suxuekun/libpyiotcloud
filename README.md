@@ -39,7 +39,7 @@ It maintains the state of the entire system. It stores device and sensor informa
 It also ingests and stores the received sensor readings from the devices for real-time dashboard visualization and off-line analysis. 
 It also keeps track of user details and user credit details and interfaces to 3rd party cloud systems such as identity services, alerting services, payment merchants and additional services.
 
-All these are done securely as security is built-in from the design - Security by Design principle.
+All these are done securely as security is built-in from the design, not as an after-thought. Security by Design principle.
 Security concerns is one of the major challenges slowing down IoT adoption. It is mostly because of neglect than lack of skills.
 Even though its impossible to defend against all sophisticated cyber-attacks, following industry-proven best practices and incorporating security and privacy in design is vital to any IoT platform. 
 As security is very challenging and of paramount importance, security enhancement will be an ongoing process. Incremental security improvements will be continuously applied.
