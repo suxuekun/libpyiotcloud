@@ -40,9 +40,11 @@ It also ingests and stores the received sensor readings from the devices for rea
 It also keeps track of user details and user credit details and interfaces to 3rd party cloud systems such as identity services, alerting services, payment merchants and additional services.
 
 All these are done securely as security is built-in from the design, not as an after-thought. Security by Design principle.
-Security concerns is one of the major challenges slowing down IoT adoption. It is mostly because of neglect than lack of skills.
+Security concerns is one of the major challenges slowing down IoT adoption. For some companies, it is mostly because of neglect than lack of skills.
 Even though its impossible to defend against all sophisticated cyber-attacks, following industry-proven best practices and incorporating security and privacy in design is vital to any IoT platform. 
-As security is very challenging and of paramount importance, security enhancement will be an ongoing process. Incremental security improvements will be continuously applied.
+As security risks can never be completely eliminated, security enhancement will be an ongoing process. Incremental security improvements will be continuously applied.
+Security will be enforced in an end-to-end approach, from physical devices and sensors, to data connections, to host systems, to the services and data stored in the cloud.
+
 
 Below are the features of this secure and scalable IoT platform:
 
@@ -113,7 +115,7 @@ Below are the features of this secure and scalable IoT platform:
        A. Register device manually or via QR code (QR code registration via mobile apps only)
        B. Manager device status remotely (restart, stop, start) and view device properties including last active time
        C. Configure and track location of a device (or a fleet of devices) via Google Maps (latitude, longitude)
-       D. Securely update firmware of a device (or fleet of devices - online and/or offline) remotely over-the-air (OTA) with checksum validation
+       D. Seamlessly update firmware of a device (or fleet of devices - online and/or offline) remotely over-the-air (OTA) with secure checksum validation
        E. Organize devices into groups of devices for bulk/fleet-wide operations or for organizing several devices
        F. View device-sensor hierarchy tree and devices configurations summary 
        *  Configure and manage organization-owned devices
