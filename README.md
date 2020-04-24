@@ -56,10 +56,12 @@ Below are the features of this secure, scalable and reliable IoT platform:
        Utilizes microservices architecture on AWS cloud for enabling scalability, high-availability and fault-tolerance
        A. IaaS service on reliable cloud platform using AWS EC2
        B. Containerized microservices architecture using Docker containers
-       C. Reliable and scalable databases and message brokers using MongoDB, MongoDB Atlas and RabbitMQ
+       C. Reliable and scalable databases and message brokers using MongoDB, MongoDB Atlas, Redis and RabbitMQ
        D. Container orchestration tools using Docker-compose or Kubernetes (tested on Minikube and AWS EKS)
        E. Continuous integration/deployment (CI/CD) using Jenkins pipelines (automated deployment from Github to AWS EC2)
-       F. Limited ports exposed to fend off attacks in infrastructure level
+       F. Monitoring analytics solution using Prometheus and Grafana
+       G. Logging analytics solution using Elastic stack / ELK stack (Elasticsearch, Logstash, and Kibana)
+       H. Limited ports exposed to fend off attacks in infrastructure level
 
     2. Device connectivity services
        Utilizes lightweight MQTT protocol for device connectivity ideal for low-powered devices and long-term reliability
@@ -76,6 +78,7 @@ Below are the features of this secure, scalable and reliable IoT platform:
        B. Web/mobile app and backend communication via RESTful APIs using HTTPS protocol
        C. Secure communication using TLS, trusted SSL certificates, JWT authorization headers
        D. Hybrid web/mobile apps (using Ionic framework) as reference implementation for actual web/mobile clients
+       E. SSL certificate registered in NGINX web server for specific domain mapped to EC2 instance using Amazon Route53
 
     4. Identity management services
        Access Portal in a secure way (using Amazon Cognito).
@@ -86,10 +89,10 @@ Below are the features of this secure, scalable and reliable IoT platform:
        E. User lockout security on consecutive failed attempts to alert suspicious behavior
 
     5. Organization and access control management services
-       Manage an organization of users and assign permissions.
+       Manage an organization of users and assign permissions (role-based access control aka RBAC).
        A. Create and manage an organization, adding new/existing users
        B. Group the users based on assigned tasks/roles
-       C. Administrate user's roles/tasks in an organization by assign permissions policies to each user groups (role-based access control aka RBAC)
+       C. Assign permissions policies to each user groups
 
     6. Alerting and messaging services
        Raise alarms over sMs, Email, push Notification, mOdem, Storage (MENOS) so you can respond and analyze telemetry events in time.
@@ -191,6 +194,8 @@ The web app is made of Ionic framework so it can be compiled as Android and iOS 
 - <b>MongoDB</b> NoSQL database - https://www.mongodb.com/
 - <b>MongoDB Atlas</b> cloud database service - https://www.mongodb.com/cloud/atlas
 - <b>Redis</b> fast key-value data store (flexible: database, caching, mq) - https://redis.io/
+- <b>Elastic stack/ELK stack</b> logging solution - https://www.elastic.co/elastic-stack
+- <b>Prometheus and Grafana</b> monitoring solution - https://prometheus.io/, https://prometheus.io/docs/visualization/grafana/
 - <b>Ionic</b> mobile/web frontend framework - https://ionicframework.com/
 - <b>Paypal Payment Platform</b> payment gateway - https://developer.paypal.com
 - <b>Apple Push Notification service (APNs)</b> for IOS push notifications
@@ -201,8 +206,6 @@ The web app is made of Ionic framework so it can be compiled as Android and iOS 
 - <b>GoDaddy</b> domain and SSL certificate - https://godaddy.com
 - <b>Twilio</b> SMS messaging platform - https://www.twilio.com/
 - <b>Nexmo</b> SMS messaging platform - https://www.nexmo.com/
-- <b>Elastic stack/ELK stack</b> logging solution - https://www.elastic.co/elastic-stack
-- <b>Prometheus and Grafana</b> monitoring solution - https://prometheus.io/, https://prometheus.io/docs/visualization/grafana/
 
 
 Below are tools and utilities being used:
