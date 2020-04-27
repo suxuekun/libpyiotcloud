@@ -2272,11 +2272,37 @@ def http_recv_response(conn):
         printf("RES: Could not communicate with DEVICE! {}".format(e))
     return 0, None
 
+def compute_ota_authcode(secret_key, username, password, debug=False):
+
+    if secret_key=='' or username=='' or password=='':
+        printf("secret key, uuid, serial number and mac address should not be empty!")
+        return None
+
+    currtime = int(time.time())
+    params = {
+        "username": username, # device uuid
+        "password": password, # device serial number
+        "iat": currtime,
+        "exp": currtime + 10
+    }
+    password = jwt.encode(params, secret_key, algorithm='HS256')
+    password = password.decode("utf-8")
+
+    if debug:
+        printf("")
+        printf("compute_password")
+        printf_json(params)
+        printf(password)
+        printf("")
+
+    return password
+
 def http_get_firmware_binary(filename, filesize):
     conn = http_initialize_connection()
     #headers = { "Content-type": "application/octet-stream", "Accept-Ranges": "bytes", "Content-Length": filesize }
     #headers = { "User-Agent": "PostmanRuntime/7.22.0", "Accept": "*/*", "Host": "ec2-54-166-169-66.compute-1.amazonaws.com", "Accept-Encoding": "gzip, deflate, br", "Connection": "keep-alive" }
-    headers = { "Connection": "keep-alive" }
+    authcode = compute_ota_authcode(CONFIG_DEVICE_SECRETKEY, CONFIG_USERNAME, CONFIG_PASSWORD, debug=True)
+    headers = { "Connection": "keep-alive", "Authorization": "Bearer " + authcode }
 
     api = "/firmware"
     result = http_send_request(conn, "GET", api + "/" + filename, None, headers)
