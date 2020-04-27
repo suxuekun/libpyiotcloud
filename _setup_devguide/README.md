@@ -278,6 +278,16 @@ SUMMARY:
 		J. ADD MEMBER TO USER GROUP        - POST   organizations/organization/ORGNAME/groups/group/GROUPNAME/members/member/MEMBERNAME
 		K. REMOVE MEMBER FROM USER GROUP   - DELETE organizations/organization/ORGNAME/groups/group/GROUPNAME/members/member/MEMBERNAME
 
+		//
+		// organization (owner, policies)
+		L. GET POLICIES                    - GET    organizations/organization/ORGNAME/policies
+		M. CREATE/UPDATE POLICY            - POST   organizations/organization/ORGNAME/policies/policy/POLICYNAME
+		N. DELETE POLICY                   - DELETE organizations/organization/ORGNAME/policies/policy/POLICYNAME
+		O. GET GROUP POLICIES              - GET    organizations/organization/ORGNAME/groups/group/GROUPNAME/policies
+		P. ASSIGN POLICIES TO GROUP        - POST   organizations/organization/ORGNAME/groups/group/GROUPNAME/policies/policy/POLICYNAME
+		Q. REMOVE POLICIES FROM GROUP      - DELETE organizations/organization/ORGNAME/groups/group/GROUPNAME/policies/policy/POLICYNAME
+		R. GET POLICY OPTIONS
+
 
 	3. Device registration and management APIs
 
@@ -3292,11 +3302,23 @@ DETAILED:
 		A. DOWNLOAD FIRMWARE
 		-  Request:
 		   GET /firmware/<device>/<filename>
-		   headers: { 'Connection': 'keep-alive' }
+		   headers: { 'Connection': 'keep-alive', 'Authorization': 'Bearer ' + authcode }
+		   // authcode is computed as JWT.encode(
+		      {
+		        "username": string, // device uuid
+		        "password": string, // device password (this is JWT encode of uuid, serialnumber, poemacaddress with shared_secret_key)
+		        "iat": int,         // current time in epoch (seconds)
+		        "exp": int          // expiry time in epoch (seconds), should be iat + 10
+		      })
 		-  Response:
-		   binary file
+		   if SUCCESS, returns binary file
 		   // WARNING: This API is to be called by ESP device, not by web/mobile apps
 		   // device can be ft900 or esp32
+		   // if username is invalid uuid, HTTP_404_NOT_FOUND is returned
+		   // if password is invalid, HTTP_401_UNAUTHORIZED
+		   // if iat or exp is invalid, HTTP_401_UNAUTHORIZED and check the message
+		   if FAILED, returns
+		   // {'status': 'NG', 'message': string }
 
 
 ## Device Firmware Messaging API Documentation

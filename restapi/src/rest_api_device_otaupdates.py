@@ -1,7 +1,7 @@
 #import os
 #import ssl
 import json
-#import time
+import time
 #import hmac
 #import hashlib
 import flask
@@ -11,11 +11,11 @@ import flask
 #from flask_json import FlaskJSON, JsonError, json_response, as_json
 #from certificate_generator import certificate_generator
 #from messaging_client import messaging_client
-#from rest_api_config import config
+from rest_api_config import config
 #from database import database_client
 #from flask_cors import CORS
 from flask_api import status
-#from jose import jwk, jwt
+from jose import jwk, jwt
 #import http.client
 #from s3_client import s3_client
 import threading
@@ -482,6 +482,45 @@ class device_otaupdates:
         return response
 
 
+
+    def decode_password(self, secret_key, password):
+
+        return jwt.decode(password, secret_key, algorithms=['HS256'])
+
+    def compute_password(self, secret_key, uuid, serial_number, mac_address, debug=False):
+
+        if secret_key=='' or uuid=='' or serial_number=='' or mac_address=='':
+            printf("secret key, uuid, serial number and mac address should not be empty!")
+            return None
+
+        params = {
+            "uuid": uuid,                  # device uuid
+            "serialnumber": serial_number, # device serial number
+            "poemacaddress": mac_address,  # device mac address in uppercase string ex. AA:BB:CC:DD:EE:FF
+        }
+        password = jwt.encode(params, secret_key, algorithm='HS256')
+
+        # pyjwt returns bytes while jose returns string
+        # if bytes is returned, then convert to string
+        if type(password) == bytes:
+            password = password.decode("utf-8")
+
+        if debug:
+            print("")
+            print("compute_password")
+            rest_api_utils.utils().print_json(params)
+            print(password)
+            print("")
+
+            payload = self.decode_password(secret_key, password)
+            print("")
+            print("decode_password")
+            rest_api_utils.utils().print_json(payload)
+            print("")
+
+        return password
+
+
     ########################################################################################################
     #
     # DOWNLOAD FIRMWARE
@@ -496,8 +535,39 @@ class device_otaupdates:
     ########################################################################################################
     def download_firmware_file(self, device, filename):
 
+        deviceuser, devicepass, reason = rest_api_utils.utils().get_auth_header_user_pass_ota()
+        if deviceuser is None or devicepass is None:
+            response = json.dumps({'status': 'NG', 'message': reason})
+            print('\r\nERROR Get Device Firmware Updates: {}\r\n'.format(reason))
+            return response, status.HTTP_401_UNAUTHORIZED
+
         file_path = "firmware/" + device + "/" + filename
         print('download_firmware_file {}'.format(file_path))
+
+        # get the device if valid
+        device = self.database_client.find_device_by_id(deviceuser)
+        if device is None:
+            response = json.dumps({'status': 'NG', 'message': 'Device is not registered'})
+            print('\r\nERROR Get Device Firmware Updates: Device is not registered [{},{}]\r\n'.format(deviceuser, devicepass))
+            return response, status.HTTP_404_NOT_FOUND
+
+        # check if password is correct
+        if device.get("poemacaddress") is None:
+            # if no macaddress, password must be the serialnumber
+            if devicepass != device["serialnumber"]:
+                response = json.dumps({'status': 'NG', 'message': 'Invalid password'})
+                print('\r\nERROR Get Device Firmware Updates: Invalid password\r\n')
+                return response, status.HTTP_401_UNAUTHORIZED
+        else:
+            # if has macaddress, password must be the JWT(uuid, serialnumber, macaddress)
+            devicepass_computed = self.compute_password(config.CONFIG_JWT_SECRET_KEY_DEVICE, device["deviceid"], device["serialnumber"], device['poemacaddress'], debug=True)
+            if devicepass_computed != devicepass:
+                response = json.dumps({'status': 'NG', 'message': 'Invalid password'})
+                print('\r\nERROR Get Device Firmware Updates: Invalid password\r\n')
+                print(deviceuser)
+                print(devicepass_computed)
+                print(devicepass)
+                return response, status.HTTP_401_UNAUTHORIZED
 
         result, binary = self.storage_client.get_firmware(file_path)
         if not result:
