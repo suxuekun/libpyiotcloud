@@ -3208,6 +3208,10 @@ class database_client_mongodb:
         return found["users"]
 
     def delete_organization(self, username, orgname):
+        ###
+        self.delete_organization_groups(username, orgname)
+        ###
+
         organizations = self.get_organizations_document()
         item = organizations.find_one({'orgname': orgname})
         if item is None:
@@ -3219,6 +3223,7 @@ class database_client_mongodb:
             self.removeuser_organizations_users_by_orgname(orgname)
             ###
             organizations.delete_one(item)
+
         return True, None
 
     def check_create_organization_invitation(self, username, orgname, member):
@@ -3408,6 +3413,21 @@ class database_client_mongodb:
             organizations_groups.delete_one({'orgname': orgname, 'groupname': groupname})
         return True, None
 
+    def delete_organization_groups(self, username, orgname):
+        ###
+        user = self.get_user_organization(username, complete=True)
+        ###
+        if user is None:
+            return False, 401 # HTTP_401_UNAUTHORIZED
+        if user["membership"] != "Owner" or user["orgname"] != orgname:
+            return False, 401 # HTTP_401_UNAUTHORIZED
+
+        organizations_groups = self.get_organizations_groups_document()
+        try:
+            organizations_groups.delete_many({'orgname': orgname})
+        except:
+            return False, 404 # HTTP_404_NOT_FOUND
+        return True, None
 
 
     def get_members_in_organization_group(self, username, orgname, groupname):
