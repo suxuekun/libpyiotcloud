@@ -2298,10 +2298,19 @@ def compute_ota_authcode(secret_key, username, password, debug=False):
     return password
 
 def http_get_firmware_binary(filename, filesize):
+    global CONFIG_DEVICE_SECRETKEY
+    global CONFIG_USERNAME
+    global CONFIG_PASSWORD
+
     conn = http_initialize_connection()
     #headers = { "Content-type": "application/octet-stream", "Accept-Ranges": "bytes", "Content-Length": filesize }
     #headers = { "User-Agent": "PostmanRuntime/7.22.0", "Accept": "*/*", "Host": "ec2-54-166-169-66.compute-1.amazonaws.com", "Accept-Encoding": "gzip, deflate, br", "Connection": "keep-alive" }
     authcode = compute_ota_authcode(CONFIG_DEVICE_SECRETKEY, CONFIG_USERNAME, CONFIG_PASSWORD, debug=True)
+    if authcode is None:
+        print(CONFIG_DEVICE_SECRETKEY)
+        print(CONFIG_USERNAME)
+        print(CONFIG_PASSWORD)
+        return False
     headers = { "Connection": "keep-alive", "Authorization": "Bearer " + authcode }
 
     api = "/firmware"
