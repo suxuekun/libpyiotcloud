@@ -17,7 +17,7 @@
 :: DEVICE_ID        - should match UUID during device registration
 :: USER             - should match UUID during device registration
 :: PASS             - should match Serial Number during device registration
-:: DEVICE_SECRETKEY - [CONFIDENTIAL] please ASK ME directly or check the SKYPE GROUP // used in OTA
+:: DEVICE_SECRETKEY - [CONFIDENTIAL] please ASK ME directly or check the SKYPE GROUP // also used in OTA
 ::
 ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
