@@ -1,4 +1,4 @@
-<ion-view title="Update Organization Group Users" hide-back-button="true" nav-transition="none" id="page69" class="page_width" ng-click="submitRefresh()">
+<ion-view title="Update Organization Group Users" hide-back-button="true" nav-transition="none" id="page69" class="page_width">
   <ion-nav-buttons side="left" class="has-header">
     <button class="button button-icon icon ion-android-close" ng-click="exitPage()"></button>
   </ion-nav-buttons>
@@ -10,7 +10,7 @@
         <p style="color:#3C5A99;font-size:18px;">{{ data.groupname }}</p>
       </div>
       <div class="spacer" style="width: 500px; height: 50px;"></div>
-      <div id="updateOrganizationGroupUsers-markdown501" class="show-list-numbers-and-dots">
+      <div id="updateOrganizationGroupUsers-markdown501" ng-show="members.length != 0" class="show-list-numbers-and-dots">
         <p style="color:#AAAAAA;font-size:12px;">Update users in the organization group. Unchecked users will be removed from the group.</p>
       </div>
       <ion-checkbox id="updateOrganizationGroupUsers-checkbox57" ng-repeat="member in members" ng-model="member.enabled">{{ member.membername }}</ion-checkbox>
