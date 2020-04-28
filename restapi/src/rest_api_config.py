@@ -88,6 +88,7 @@ class config:
     CONFIG_MONGODB_TB_ORGANIZATIONS          = "organizations"
     CONFIG_MONGODB_TB_ORGANIZATIONS_USERS    = "organizationsusers"
     CONFIG_MONGODB_TB_ORGANIZATIONS_GROUPS   = "organizationsgroups"
+    CONFIG_MONGODB_TB_ORGANIZATIONS_POLICIES = "organizationspolicies"
 
     # Caching settings
     if os.name == 'nt':

@@ -771,3 +771,369 @@ class access_control:
         return response
 
 
+
+
+    ########################################################################################################
+    #
+    # GET ORGANIZATION POLICIES
+    #
+    # - Request:
+    #   GET /organizations/organization/<orgname>/policies
+    #   headers: {'Authorization': 'Bearer ' + token.access}
+    #
+    # - Response:
+    #   {'status': 'OK', 'message': string, 'policies': [{'policyname': string}]}
+    #   {'status': 'NG', 'message': string}
+    #
+    ########################################################################################################
+    def get_organization_policies(self, orgname):
+        # get token from Authorization header
+        auth_header_token = rest_api_utils.utils().get_auth_header_token()
+        if auth_header_token is None:
+            response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
+            print('\r\nERROR Get organization policies: Invalid authorization header\r\n')
+            return response, status.HTTP_401_UNAUTHORIZED
+        token = {'access': auth_header_token}
+
+        # get username from token
+        username = self.database_client.get_username_from_token(token)
+        if username is None:
+            response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+            print('\r\nERROR Get organization policies: Token expired\r\n')
+            return response, status.HTTP_401_UNAUTHORIZED
+        print('get_organization_policies username={}'.format(username))
+
+        # check if a parameter is empty
+        if len(username) == 0 or len(token) == 0:
+            response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+            print('\r\nERROR Get organization policies: Empty parameter found\r\n')
+            return response, status.HTTP_400_BAD_REQUEST
+
+        # check if username and token is valid
+        verify_ret, new_token = self.database_client.verify_token(username, token)
+        if verify_ret == 2: # token expired
+            response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+            print('\r\nERROR Get organization policies: Token expired [{}]\r\n'.format(username))
+            return response, status.HTTP_401_UNAUTHORIZED
+        elif verify_ret != 0:
+            response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
+            print('\r\nERROR Get organization policies: Token is invalid [{}]\r\n'.format(username))
+            return response, status.HTTP_401_UNAUTHORIZED
+
+
+        # get organization policies
+        policies = self.database_client.get_organization_policies(username, orgname)
+        msg = {'status': 'OK', 'message': 'Get organization policies successful', 'policies': policies}
+
+
+        response = json.dumps(msg)
+        print('\r\n{} successful: {}\r\n'.format(msg["message"], username))
+        return response
+
+
+    ########################################################################################################
+    #
+    # CREATE POLICY
+    #
+    # - Request:
+    #   POST /organizations/organization/<orgname>/policies/policy/<policyname>
+    #   headers: {'Authorization': 'Bearer ' + token.access}
+    #
+    # - Response:
+    #   {'status': 'OK', 'message': string}
+    #   {'status': 'NG', 'message': string}
+    #
+    #
+    # DELETE POLICY
+    #
+    # - Request:
+    #   POST /organizations/organization/<orgname>/policies/policy/<policyname>
+    #   headers: {'Authorization': 'Bearer ' + token.access}
+    #
+    # - Response:
+    #   {'status': 'OK', 'message': string}
+    #   {'status': 'NG', 'message': string}
+    #
+    ########################################################################################################
+    def create_organization_policy(self, orgname, policyname):
+        # get token from Authorization header
+        auth_header_token = rest_api_utils.utils().get_auth_header_token()
+        if auth_header_token is None:
+            response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
+            print('\r\nERROR Create organization policy: Invalid authorization header\r\n')
+            return response, status.HTTP_401_UNAUTHORIZED
+        token = {'access': auth_header_token}
+
+        # get username from token
+        username = self.database_client.get_username_from_token(token)
+        if username is None:
+            response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+            print('\r\nERROR Create organization policy: Token expired\r\n')
+            return response, status.HTTP_401_UNAUTHORIZED
+        print('create_organization_policy username={}'.format(username))
+
+        # check if a parameter is empty
+        if len(username) == 0 or len(token) == 0:
+            response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+            print('\r\nERROR Create organization policy: Empty parameter found\r\n')
+            return response, status.HTTP_400_BAD_REQUEST
+
+        # check if username and token is valid
+        verify_ret, new_token = self.database_client.verify_token(username, token)
+        if verify_ret == 2: # token expired
+            response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+            print('\r\nERROR Create organization policy: Token expired [{}]\r\n'.format(username))
+            return response, status.HTTP_401_UNAUTHORIZED
+        elif verify_ret != 0:
+            response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
+            print('\r\nERROR Create organization policy: Token is invalid [{}]\r\n'.format(username))
+            return response, status.HTTP_401_UNAUTHORIZED
+
+
+        # check orgname
+        if len(orgname) == 0 or len(policyname) == 0:
+            response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+            print('\r\nERROR Create organization policy: Empty parameter found\r\n')
+            return response, status.HTTP_400_BAD_REQUEST
+
+        # create or delete organization policy
+        if flask.request.method == 'POST':
+
+            result, errorcode = self.database_client.create_organization_policy(username, orgname, policyname)
+            if not result:
+                if errorcode == 409:
+                    errormsg = "Organization policy name already taken"
+                else:
+                    errormsg = "Create organization policy failed"
+                response = json.dumps({'status': 'NG', 'message': errormsg})
+                print('\r\nERROR {} [{}]\r\n'.format(errormsg, username))
+                return response, errorcode
+            msg = {'status': 'OK', 'message': 'Create organization policy successful'}
+
+        elif flask.request.method == 'DELETE':
+
+            # get organization
+            result, errorcode = self.database_client.delete_organization_policy(username, orgname, policyname)
+            if not result:
+                if errorcode == 404:
+                    errormsg = "Organization policy not found"
+                elif errorcode == 401:
+                    errormsg = "User is not the owner of the organization"
+                else:
+                    errormsg = "Delete organization policy failed"
+                response = json.dumps({'status': 'NG', 'message': errormsg})
+                print('\r\nERROR {} [{}]\r\n'.format(errormsg, username))
+                return response, errorcode
+
+            msg = {'status': 'OK', 'message': 'Delete organization policy successful'}
+
+
+        print('\r\n{}: {}\r\n'.format(msg["message"], username))
+        response = json.dumps(msg)
+        return response
+
+    ########################################################################################################
+    #
+    # GET POLICIES IN USER GROUP
+    #
+    # - Request:
+    #   GET /organizations/organization/ORGNAME/groups/group/GROUPNAME/policies
+    #   headers: {'Authorization': 'Bearer ' + token.access}
+    #
+    # - Response:
+    #   {'status': 'OK', 'message': string, 'policies': [string]}
+    #   {'status': 'NG', 'message': string}
+    #
+    ########################################################################################################
+    def get_policies_in_organization_group(self, orgname, groupname):
+        # get token from Authorization header
+        auth_header_token = rest_api_utils.utils().get_auth_header_token()
+        if auth_header_token is None:
+            response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
+            print('\r\nERROR Get organization group policies: Invalid authorization header\r\n')
+            return response, status.HTTP_401_UNAUTHORIZED
+        token = {'access': auth_header_token}
+
+        # get username from token
+        username = self.database_client.get_username_from_token(token)
+        if username is None:
+            response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+            print('\r\nERROR Get organization group policies: Token expired\r\n')
+            return response, status.HTTP_401_UNAUTHORIZED
+        print('get_policies_in_organization_group username={}'.format(username))
+
+        # check if a parameter is empty
+        if len(username) == 0 or len(token) == 0:
+            response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+            print('\r\nERROR Get organization group policies: Empty parameter found\r\n')
+            return response, status.HTTP_400_BAD_REQUEST
+
+        # check if username and token is valid
+        verify_ret, new_token = self.database_client.verify_token(username, token)
+        if verify_ret == 2: # token expired
+            response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+            print('\r\nERROR Get organization group policies: Token expired [{}]\r\n'.format(username))
+            return response, status.HTTP_401_UNAUTHORIZED
+        elif verify_ret != 0:
+            response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
+            print('\r\nERROR Get organization group policies: Token is invalid [{}]\r\n'.format(username))
+            return response, status.HTTP_401_UNAUTHORIZED
+
+
+        # get organization group policies
+        result, policies = self.database_client.get_policies_in_organization_group(username, orgname, groupname)
+        if result:
+            msg = {'status': 'OK', 'message': 'Get organization group policies successful', 'policies': policies}
+        else:
+            msg = {'status': 'NG', 'message': 'Get organization group policies failed', 'policies': []}
+
+
+        response = json.dumps(msg)
+        print('\r\n{} successful: {}\r\n'.format(msg["message"], username))
+        return response
+
+    ########################################################################################################
+    #
+    # UPDATE POLICIES IN USER GROUP
+    #
+    # - Request:
+    #   POST /organizations/organization/ORGNAME/groups/group/GROUPNAME/policies
+    #   headers: {'Authorization': 'Bearer ' + token.access}
+    #   data: {'policies': [strings]}
+    #
+    # - Response:
+    #   {'status': 'OK', 'message': string}
+    #   {'status': 'NG', 'message': string}
+    #
+    ########################################################################################################
+    def update_policies_in_organization_group(self, orgname, groupname):
+        # get token from Authorization header
+        auth_header_token = rest_api_utils.utils().get_auth_header_token()
+        if auth_header_token is None:
+            response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
+            print('\r\nERROR Update organization group policies: Invalid authorization header\r\n')
+            return response, status.HTTP_401_UNAUTHORIZED
+        token = {'access': auth_header_token}
+
+        # get username from token
+        username = self.database_client.get_username_from_token(token)
+        if username is None:
+            response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+            print('\r\nERROR Update organization group policies: Token expired\r\n')
+            return response, status.HTTP_401_UNAUTHORIZED
+        print('update_policies_in_organization_group username={}'.format(username))
+
+        # check if a parameter is empty
+        if len(username) == 0 or len(token) == 0:
+            response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+            print('\r\nERROR Update organization group policies: Empty parameter found\r\n')
+            return response, status.HTTP_400_BAD_REQUEST
+
+        # check if username and token is valid
+        verify_ret, new_token = self.database_client.verify_token(username, token)
+        if verify_ret == 2: # token expired
+            response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+            print('\r\nERROR Update organization group policies: Token expired [{}]\r\n'.format(username))
+            return response, status.HTTP_401_UNAUTHORIZED
+        elif verify_ret != 0:
+            response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
+            print('\r\nERROR Update organization group policies: Token is invalid [{}]\r\n'.format(username))
+            return response, status.HTTP_401_UNAUTHORIZED
+
+
+        # check parameter
+        data = flask.request.get_json()
+        print(data)
+        if data.get("policies") is None:
+            response = json.dumps({'status': 'NG', 'message': 'Parameters not included'})
+            print('\r\nERROR Update organization group policies: Parameters not included [{}]\r\n'.format(username))
+            return response, status.HTTP_400_BAD_REQUEST
+
+        # update organization group policies
+        self.database_client.update_policies_in_organization_group(username, orgname, groupname, data["policies"])
+        msg = {'status': 'OK', 'message': 'Update organization group policies successful'}
+
+
+        response = json.dumps(msg)
+        print('\r\n{} successful: {}\r\n'.format(msg["message"], username))
+        return response
+
+
+    ########################################################################################################
+    #
+    # ADD POLICY TO USER GROUP
+    #
+    # - Request:
+    #   POST organizations/organization/ORGNAME/groups/group/GROUPNAME/policies/policy/POLICYNAME
+    #   headers: {'Authorization': 'Bearer ' + token.access}
+    #
+    # - Response:
+    #   {'status': 'OK', 'message': string}
+    #   {'status': 'NG', 'message': string}
+    #
+    #
+    # REMOVE POLICY FROM USER GROUP
+    #
+    # - Request:
+    #   DELETE organizations/organization/ORGNAME/groups/group/GROUPNAME/policies/policy/POLICYNAME
+    #   headers: {'Authorization': 'Bearer ' + token.access}
+    #
+    # - Response:
+    #   {'status': 'OK', 'message': string}
+    #   {'status': 'NG', 'message': string}
+    #
+    ########################################################################################################
+    def add_policy_to_organization_group(self, orgname, groupname, policyname):
+        # get token from Authorization header
+        auth_header_token = rest_api_utils.utils().get_auth_header_token()
+        if auth_header_token is None:
+            response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
+            print('\r\nERROR Add organization group policy: Invalid authorization header\r\n')
+            return response, status.HTTP_401_UNAUTHORIZED
+        token = {'access': auth_header_token}
+
+        # get username from token
+        username = self.database_client.get_username_from_token(token)
+        if username is None:
+            response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+            print('\r\nERROR Add organization group policy: Token expired\r\n')
+            return response, status.HTTP_401_UNAUTHORIZED
+        print('add_policy_to_organization_group username={}'.format(username))
+
+        # check if a parameter is empty
+        if len(username) == 0 or len(token) == 0:
+            response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+            print('\r\nERROR Add organization group policy: Empty parameter found\r\n')
+            return response, status.HTTP_400_BAD_REQUEST
+
+        # check if username and token is valid
+        verify_ret, new_token = self.database_client.verify_token(username, token)
+        if verify_ret == 2: # token expired
+            response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+            print('\r\nERROR Add organization group policy: Token expired [{}]\r\n'.format(username))
+            return response, status.HTTP_401_UNAUTHORIZED
+        elif verify_ret != 0:
+            response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
+            print('\r\nERROR Add organization group policy: Token is invalid [{}]\r\n'.format(username))
+            return response, status.HTTP_401_UNAUTHORIZED
+
+
+        # add or remove organization group policy
+        if flask.request.method == 'POST':
+            result, errcode = self.database_client.add_policy_to_organization_group(username, orgname, groupname, policyname)
+            if result:
+                msg = {'status': 'OK', 'message': 'Add organization group policy successful'}
+            else:
+                msg = {'status': 'NG', 'message': 'Add organization group policy failed'}
+
+        elif flask.request.method == 'DELETE':
+            result, errcode = self.database_client.remove_policy_from_organization_group(username, orgname, groupname, policyname)
+            if result:
+                msg = {'status': 'OK', 'message': 'Remove organization group policy successful'}
+            else:
+                msg = {'status': 'NG', 'message': 'Remove organization group policy failed'}
+
+
+        response = json.dumps(msg)
+        print('\r\n{}: {}\r\n'.format(msg["message"], username))
+        return response

@@ -241,6 +241,9 @@ def update_organization_membership(orgname):
     return g_access_control.update_organization_membership(orgname)
 
 
+#############
+# GROUPS
+
 @app.route('/organizations/organization/<orgname>/groups', methods=['GET'])
 def get_organization_groups(orgname):
     return g_access_control.get_organization_groups(orgname)
@@ -252,7 +255,6 @@ def create_organization_group(orgname, groupname):
 @app.route('/organizations/organization/<orgname>/groups/group/<groupname>', methods=['DELETE'])
 def delete_organization_group(orgname, groupname):
     return g_access_control.create_organization_group(orgname, groupname)
-
 
 @app.route('/organizations/organization/<orgname>/groups/group/<groupname>/members', methods=['GET'])
 def get_members_in_organization_group(orgname, groupname):
@@ -271,20 +273,63 @@ def remove_member_from_organization_group(orgname, groupname, membername):
     return g_access_control.add_member_to_organization_group(orgname, groupname, membername)
 
 
+#############
+# POLICIES
+
+@app.route('/organizations/organization/<orgname>/policies', methods=['GET'])
+def get_organization_policies(orgname):
+    return g_access_control.get_organization_policies(orgname)
+
+@app.route('/organizations/organization/<orgname>/policies/policy/<policyname>', methods=['POST'])
+def create_organization_policy(orgname, policyname):
+    return g_access_control.create_organization_policy(orgname, policyname)
+
+@app.route('/organizations/organization/<orgname>/policies/policy/<policyname>', methods=['DELETE'])
+def delete_organization_policy(orgname, policyname):
+    return g_access_control.create_organization_policy(orgname, policyname)
+
+@app.route('/organizations/organization/<orgname>/groups/group/<groupname>/policies', methods=['GET'])
+def get_policies_in_organization_group(orgname, groupname):
+    return g_access_control.get_policies_in_organization_group(orgname, groupname)
+
+@app.route('/organizations/organization/<orgname>/groups/group/<groupname>/policies', methods=['POST'])
+def update_policies_in_organization_group(orgname, groupname):
+    return g_access_control.update_policies_in_organization_group(orgname, groupname)
+
+@app.route('/organizations/organization/<orgname>/groups/group/<groupname>/policies/policy/<policyname>', methods=['POST'])
+def add_policy_to_organization_group(orgname, groupname, policyname):
+    print("\r\nxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\r\n")
+    return g_access_control.add_policy_to_organization_group(orgname, groupname, policyname)
+
+@app.route('/organizations/organization/<orgname>/groups/group/<groupname>/policies/policy/<policyname>', methods=['DELETE'])
+def remove_policy_from_organization_group(orgname, groupname, policyname):
+    return g_access_control.add_policy_to_organization_group(orgname, groupname, policyname)
+
+
 g_access_control_list = [
-    { "name": "CREATE ORGANIZATION",           "func": create_organization,                   "api": "/organizations/organization/<orgname>",                                                "method": "POST"   },
-    { "name": "DELETE ORGANIZATION",           "func": delete_organization,                   "api": "/organizations/organization/<orgname>",                                                "method": "DELETE" },
-    { "name": "CREATE/CANCEL INVITATIONS",     "func": create_organization_invitation,        "api": "/organizations/organization/<orgname>/invitation",                                     "method": "POST"   },
-    { "name": "UPDATE/REMOVE MEMBERSHIPS",     "func": update_organization_membership,        "api": "/organizations/organization/<orgname>/membership",                                     "method": "POST"   },
+    { "name": "CREATE ORGANIZATION",           "func": create_organization,                   "api": "/organizations/organization/<orgname>",                                                       "method": "POST"   },
+    { "name": "DELETE ORGANIZATION",           "func": delete_organization,                   "api": "/organizations/organization/<orgname>",                                                       "method": "DELETE" },
+    { "name": "CREATE/CANCEL INVITATIONS",     "func": create_organization_invitation,        "api": "/organizations/organization/<orgname>/invitation",                                            "method": "POST"   },
+    { "name": "UPDATE/REMOVE MEMBERSHIPS",     "func": update_organization_membership,        "api": "/organizations/organization/<orgname>/membership",                                            "method": "POST"   },
 
-    { "name": "GET USER GROUPS",               "func": get_organization_groups,               "api": "/organizations/organization/<orgname>/groups",                                         "method": "GET"    },
-    { "name": "CREATE USER GROUP",             "func": create_organization_group,             "api": "/organizations/organization/<orgname>/groups/group/<groupname>",                       "method": "POST"   },
-    { "name": "DELETE USER GROUP",             "func": delete_organization_group,             "api": "/organizations/organization/<orgname>/groups/group/<groupname>",                       "method": "DELETE" },
+    { "name": "GET USER GROUPS",               "func": get_organization_groups,               "api": "/organizations/organization/<orgname>/groups",                                                "method": "GET"    },
+    { "name": "CREATE USER GROUP",             "func": create_organization_group,             "api": "/organizations/organization/<orgname>/groups/group/<groupname>",                              "method": "POST"   },
+    { "name": "DELETE USER GROUP",             "func": delete_organization_group,             "api": "/organizations/organization/<orgname>/groups/group/<groupname>",                              "method": "DELETE" },
 
-    { "name": "GET MEMBERS IN USER GROUP",     "func": get_members_in_organization_group,     "api": "/organizations/organization/ORGNAME/groups/group/GROUPNAME/members",                   "method": "GET"    },
-    { "name": "UPDATE MEMBERS IN USER GROUP",  "func": update_members_in_organization_group,  "api": "/organizations/organization/ORGNAME/groups/group/GROUPNAME/members",                   "method": "POST"   },
-    { "name": "ADD MEMBER TO USER GROUP",      "func": add_member_to_organization_group,      "api": "/organizations/organization/ORGNAME/groups/group/GROUPNAME/members/member/MEMBERNAME", "method": "POST"   },
-    { "name": "REMOVE MEMBER FROM USER GROUP", "func": remove_member_from_organization_group, "api": "/organizations/organization/ORGNAME/groups/group/GROUPNAME/members/member/MEMBERNAME", "method": "DELETE" },
+    { "name": "GET MEMBERS IN USER GROUP",     "func": get_members_in_organization_group,     "api": "/organizations/organization/<orgname>/groups/group/<groupname>/members",                      "method": "GET"    },
+    { "name": "UPDATE MEMBERS IN USER GROUP",  "func": update_members_in_organization_group,  "api": "/organizations/organization/<orgname>/groups/group/<groupname>/members",                      "method": "POST"   },
+    { "name": "ADD MEMBER TO USER GROUP",      "func": add_member_to_organization_group,      "api": "/organizations/organization/<orgname>/groups/group/<groupname>/members/member/<membername>",  "method": "POST"   },
+    { "name": "REMOVE MEMBER FROM USER GROUP", "func": remove_member_from_organization_group, "api": "/organizations/organization/<orgname>/groups/group/<groupname>/members/member/<membername>",  "method": "DELETE" },
+
+    { "name": "GET POLICIES",                  "func": get_organization_policies,             "api": "/organizations/organization/<orgname>/policies",                                              "method": "GET"    },
+    { "name": "CREATE/UPDATE POLICY",          "func": create_organization_policy,            "api": "/organizations/organization/<orgname>/policies/policy/<policyname>",                          "method": "POST"   },
+    { "name": "DELETE POLICY",                 "func": delete_organization_policy,            "api": "/organizations/organization/<orgname>/policies/policy/<policyname>",                          "method": "DELETE" },
+
+    { "name": "GET POLICIES IN USER GROUP",    "func": get_policies_in_organization_group,    "api": "/organizations/organization/<orgname>/groups/group/<groupname>/policies",                     "method": "GET"    },
+    { "name": "UPDATE POLICIES IN USER GROUP", "func": update_policies_in_organization_group, "api": "/organizations/organization/<orgname>/groups/group/<groupname>/policies",                     "method": "POST"   },
+    { "name": "ADD POLICY TO USER GROUP",      "func": add_policy_to_organization_group,      "api": "/organizations/organization/<orgname>/groups/group/<groupname>/policies/policy/<policyname>", "method": "POST"   },
+    { "name": "REMOVE POLICY FROM USER GROUP", "func": remove_policy_from_organization_group, "api": "/organizations/organization/<orgname>/groups/group/<groupname>/policies/policy/<policyname>", "method": "DELETE" },
+
 ]
 
 
