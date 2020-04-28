@@ -283,10 +283,10 @@ SUMMARY:
 		L. GET POLICIES                    - GET    organizations/organization/ORGNAME/policies
 		M. CREATE/UPDATE POLICY            - POST   organizations/organization/ORGNAME/policies/policy/POLICYNAME
 		N. DELETE POLICY                   - DELETE organizations/organization/ORGNAME/policies/policy/POLICYNAME
-		O. GET GROUP POLICIES              - GET    organizations/organization/ORGNAME/groups/group/GROUPNAME/policies
-		P. ASSIGN POLICIES TO GROUP        - POST   organizations/organization/ORGNAME/groups/group/GROUPNAME/policies/policy/POLICYNAME
-		Q. REMOVE POLICIES FROM GROUP      - DELETE organizations/organization/ORGNAME/groups/group/GROUPNAME/policies/policy/POLICYNAME
-		R. GET POLICY OPTIONS
+		O. GET POLICIES IN USER GROUP      - GET    organizations/organization/ORGNAME/groups/group/GROUPNAME/policies
+		P. UPDATE POLICIES IN USER GROUP   - POST   organizations/organization/ORGNAME/groups/group/GROUPNAME/policies
+		Q. ADD POLICY TO USER GROUP        - POST   organizations/organization/ORGNAME/groups/group/GROUPNAME/policies/policy/POLICYNAME
+		R. REMOVE POLICY FROM USER GROUP   - DELETE organizations/organization/ORGNAME/groups/group/GROUPNAME/policies/policy/POLICYNAME
 
 
 	3. Device registration and management APIs
@@ -990,7 +990,7 @@ DETAILED:
 		   GET organizations/organization/ORGNAME/groups
 		   headers: {'Content-Type': 'application/json'}
 		-  Response:
-		   {'status': 'OK', 'message': string, 'groups': {'groupname': string, 'members': [string]}}
+		   {'status': 'OK', 'message': string, 'groups': [{'groupname': string, 'members': [string]}, ...]}
 		   {'status': 'NG', 'message': string}
 
 		F. CREATE USER GROUP
@@ -1038,6 +1038,64 @@ DETAILED:
 		K. REMOVE MEMBER FROM USER GROUP
 		-  Request:
 		   DELETE organizations/organization/ORGNAME/groups/group/GROUPNAME/members/member/MEMBERNAME
+		   headers: {'Content-Type': 'application/json'}
+		-  Response:
+		   {'status': 'OK', 'message': string}
+		   {'status': 'NG', 'message': string}
+
+
+		L. GET POLICIES
+		-  Request:
+		   GET organizations/organization/ORGNAME/policies
+		   headers: {'Content-Type': 'application/json'}
+		-  Response:
+		   {'status': 'OK', 'message': string, 'policies': [{'policyname': string}, ...]}
+		   {'status': 'NG', 'message': string}
+
+		M. CREATE/UPDATE POLICY
+		-  Request:
+		   POST organizations/organization/ORGNAME/policies/policy/POLICYNAME
+		   headers: {'Content-Type': 'application/json'}
+		-  Response:
+		   {'status': 'OK', 'message': string}
+		   {'status': 'NG', 'message': string}
+
+		N. DELETE POLICY
+		-  Request:
+		   DELETE organizations/organization/ORGNAME/policies/policy/POLICYNAME
+		   headers: {'Content-Type': 'application/json'}
+		-  Response:
+		   {'status': 'OK', 'message': string}
+		   {'status': 'NG', 'message': string}
+
+		O. GET POLICIES IN USER GROUP
+		-  Request:
+		   GET organizations/organization/ORGNAME/groups/group/GROUPNAME/policies
+		   headers: {'Content-Type': 'application/json'}
+		-  Response:
+		   {'status': 'OK', 'message': string, 'policies': [string]}
+		   {'status': 'NG', 'message': string}
+
+		P. UPDATE POLICIES IN USER GROUP
+		-  Request:
+		   POST organizations/organization/ORGNAME/groups/group/GROUPNAME/policies
+		   headers: {'Content-Type': 'application/json'}
+		   data: {'policies': [strings]}
+		-  Response:
+		   {'status': 'OK', 'message': string}
+		   {'status': 'NG', 'message': string}
+
+		Q. ADD POLICY TO USER GROUP
+		-  Request:
+		   POST organizations/organization/ORGNAME/groups/group/GROUPNAME/policies/policy/POLICYNAME
+		   headers: {'Content-Type': 'application/json'}
+		-  Response:
+		   {'status': 'OK', 'message': string}
+		   {'status': 'NG', 'message': string}
+
+		R. REMOVE POLICY FROM USER GROUP
+		-  Request:
+		   DELETE organizations/organization/ORGNAME/groups/group/GROUPNAME/policies/policy/POLICYNAME
 		   headers: {'Content-Type': 'application/json'}
 		-  Response:
 		   {'status': 'OK', 'message': string}
