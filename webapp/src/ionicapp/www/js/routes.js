@@ -939,6 +939,17 @@ angular.module('app.routes', [])
     controller: 'addOrganizationGroupCtrl'
   })
 
+  .state('addOrganizationPolicy', {
+    url: '/page_add_organization_policy',
+	params: {
+		username: "",
+		token: "",
+		orgname: ""		
+},
+    templateUrl: 'templates/addOrganizationPolicy.html',
+    controller: 'addOrganizationPolicyCtrl'
+  })
+
   .state('updateOrganizationGroupUsers', {
     url: '/page_update_organization_group_users',
 	params: {
@@ -949,6 +960,18 @@ angular.module('app.routes', [])
 },
     templateUrl: 'templates/updateOrganizationGroupUsers.html',
     controller: 'updateOrganizationGroupUsersCtrl'
+  })
+
+  .state('updateOrganizationGroupPolicies', {
+    url: '/page_update_organization_group_policies',
+	params: {
+		username: "",
+		token: "",
+		orgname: "",
+		groupname: ""		
+},
+    templateUrl: 'templates/updateOrganizationGroupPolicies.html',
+    controller: 'updateOrganizationGroupPoliciesCtrl'
   })
 
 $urlRouterProvider.otherwise('/page_home')

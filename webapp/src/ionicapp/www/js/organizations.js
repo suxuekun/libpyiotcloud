@@ -254,7 +254,8 @@ angular.module('organizations', [])
         
         
         //////////////////////////////////////////////////////////////
-
+        // GROUPS
+        //////////////////////////////////////////////////////////////
 
         get_groups: function(userdata, orgname) {
             return $http({
@@ -268,7 +269,7 @@ angular.module('organizations', [])
             })
             .catch(function (error) {
                 if (error.data !== null) {
-                    console.log("ERROR: Get organizations failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
+                    console.log("ERROR: Get organization groups failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
                     
                     if (error.data.message === "Token expired") {
                         Token.refresh(userdata);
@@ -373,7 +374,6 @@ angular.module('organizations', [])
             });
         },
         
-        
         add_group_member: function(userdata, orgname, groupname, membername) {
             return $http({
                 method: 'POST',
@@ -430,6 +430,186 @@ angular.module('organizations', [])
                 return error.data;
             });
         },
+
+
+        //////////////////////////////////////////////////////////////
+        // POLICIES
+        //////////////////////////////////////////////////////////////
+
+        get_policies: function(userdata, orgname) {
+            return $http({
+                method: 'GET',
+                url: server + '/organizations/organization/' + orgname + '/policies',
+                headers: {'Authorization': 'Bearer ' + userdata.token.access},
+            })
+            .then(function (result) {
+                console.log(result.data);
+                return result.data;
+            })
+            .catch(function (error) {
+                if (error.data !== null) {
+                    console.log("ERROR: Get organization policies failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
+                    
+                    if (error.data.message === "Token expired") {
+                        Token.refresh(userdata);
+                        //$ionicPopup.alert({ title: 'Error', template: 'Token expired!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+                    }
+                }
+                else {
+                    console.log("ERROR: Server is down!"); 
+                    $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+                }
+                
+                return error.data;
+            });
+        },
+        
+        create_policy: function(userdata, orgname, policyname) {
+            return $http({
+                method: 'POST',
+                url: server + '/organizations/organization/' + orgname + '/policies/policy/' + policyname,
+                headers: {'Authorization': 'Bearer ' + userdata.token.access},
+            })
+            .then(function (result) {
+                console.log(result.data);
+                return result.data;
+            })
+            .catch(function (error) {
+                if (error.data !== null) {
+                    console.log("ERROR: Create organization policy failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
+                    
+                    if (error.data.message === "Token expired") {
+                        Token.refresh(userdata);
+                        //$ionicPopup.alert({ title: 'Error', template: 'Token expired!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+                    }
+                }
+                else {
+                    console.log("ERROR: Server is down!"); 
+                    $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+                }
+                
+                return error.data;
+            });
+        },
+
+        delete_policy: function(userdata, orgname, policyname) {
+            return $http({
+                method: 'DELETE',
+                url: server + '/organizations/organization/' + orgname + '/policies/policy/' + policyname,
+                headers: {'Authorization': 'Bearer ' + userdata.token.access},
+            })
+            .then(function (result) {
+                console.log(result.data);
+                return result.data;
+            })
+            .catch(function (error) {
+                if (error.data !== null) {
+                    console.log("ERROR: Delete organization policy failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
+                    
+                    if (error.data.message === "Token expired") {
+                        Token.refresh(userdata);
+                        //$ionicPopup.alert({ title: 'Error', template: 'Token expired!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+                    }
+                }
+                else {
+                    console.log("ERROR: Server is down!"); 
+                    $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+                }
+                
+                return error.data;
+            });
+        },        
+
+
+        //////////////////////////////////////////////////////////////
+
+
+        get_group_policies: function(userdata, orgname, groupname) {
+            console.log("get_group_policies " + orgname + " " + groupname);
+            return $http({
+                method: 'GET',
+                url: server + '/organizations/organization/' + orgname + '/groups/group/' + groupname + "/policies",
+                headers: {'Authorization': 'Bearer ' + userdata.token.access},
+            })
+            .then(function (result) {
+                console.log(result.data);
+                return result.data;
+            })
+            .catch(function (error) {
+                if (error.data !== null) {
+                    console.log("ERROR: Get organization group policies failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
+                    
+                    if (error.data.message === "Token expired") {
+                        Token.refresh(userdata);
+                        //$ionicPopup.alert({ title: 'Error', template: 'Token expired!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+                    }
+                }
+                else {
+                    console.log("ERROR: Server is down!"); 
+                    $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+                }
+                
+                return error.data;
+            });
+        },
+        
+        add_group_policy: function(userdata, orgname, groupname, policyname) {
+            return $http({
+                method: 'POST',
+                url: server + '/organizations/organization/' + orgname + '/groups/group/' + groupname + '/policies/policy/' + policyname,
+                headers: {'Authorization': 'Bearer ' + userdata.token.access},
+            })
+            .then(function (result) {
+                console.log(result.data);
+                return result.data;
+            })
+            .catch(function (error) {
+                if (error.data !== null) {
+                    console.log("ERROR: Add organization group policy failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
+                    
+                    if (error.data.message === "Token expired") {
+                        Token.refresh(userdata);
+                        //$ionicPopup.alert({ title: 'Error', template: 'Token expired!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+                    }
+                }
+                else {
+                    console.log("ERROR: Server is down!"); 
+                    $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+                }
+                
+                return error.data;
+            });
+        },
+        
+        update_group_policies: function(userdata, orgname, groupname, policies) {
+            return $http({
+                method: 'POST',
+                url: server + '/organizations/organization/' + orgname + '/groups/group/' + groupname + '/policies',
+                headers: {'Authorization': 'Bearer ' + userdata.token.access},
+                data: {'policies': policies}
+            })
+            .then(function (result) {
+                console.log(result.data);
+                return result.data;
+            })
+            .catch(function (error) {
+                if (error.data !== null) {
+                    console.log("ERROR: Add organization group policy failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
+                    
+                    if (error.data.message === "Token expired") {
+                        Token.refresh(userdata);
+                        //$ionicPopup.alert({ title: 'Error', template: 'Token expired!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+                    }
+                }
+                else {
+                    console.log("ERROR: Server is down!"); 
+                    $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+                }
+                
+                return error.data;
+            });
+        },        
+        
         
     };
     
