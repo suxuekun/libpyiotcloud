@@ -408,6 +408,15 @@ Dashboard doughnut charts
         I. UPDATE MEMBERS IN USER GROUP    - POST   organizations/organization/ORGNAME/groups/group/GROUPNAME/members
         J. ADD MEMBER TO USER GROUP        - POST   organizations/organization/ORGNAME/groups/group/GROUPNAME/members/member/MEMBERNAME
         K. REMOVE MEMBER FROM USER GROUP   - DELETE organizations/organization/ORGNAME/groups/group/GROUPNAME/members/member/MEMBERNAME
+        //
+        // organization (owner, policies)
+        L. GET POLICIES                    - GET    organizations/organization/ORGNAME/policies
+        M. CREATE/UPDATE POLICY            - POST   organizations/organization/ORGNAME/policies/policy/POLICYNAME
+        N. DELETE POLICY                   - DELETE organizations/organization/ORGNAME/policies/policy/POLICYNAME
+        O. GET POLICIES IN USER GROUP      - GET    organizations/organization/ORGNAME/groups/group/GROUPNAME/policies
+        P. UPDATE POLICIES IN USER GROUP   - POST   organizations/organization/ORGNAME/groups/group/GROUPNAME/policies
+        Q. ADD POLICY TO USER GROUP        - POST   organizations/organization/ORGNAME/groups/group/GROUPNAME/policies/policy/POLICYNAME
+        R. REMOVE POLICY FROM USER GROUP   - DELETE organizations/organization/ORGNAME/groups/group/GROUPNAME/policies/policy/POLICYNAME
 
     3. Device registration and management APIs
         A. GET DEVICES                    - GET    /devices
