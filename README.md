@@ -184,29 +184,30 @@ The web app is made of Ionic framework so it can be compiled as Android and iOS 
 - <b>Amazon S3</b> File data storage - https://aws.amazon.com/s3
 - <b>Amazon Pinpoint</b> email/SMS/push notification messaging platform - https://aws.amazon.com/pinpoint/
 - <b>Amazon SNS</b> email/SMS messaging platform - https://aws.amazon.com/sns/
-- <b>Amazon Route 53</b> DNS domain resolution - https://aws.amazon.com/route53
+- <b>Amazon Route 53</b> DNS domain resolution - https://aws.amazon.com/route53/
 - <b>Amazon Cloudwatch</b> monitoring/alarm platform - https://aws.amazon.com/cloudwatch/
-- <b>Amazon EKS</b> Kubernetes service - https://aws.amazon.com/eks
+- <b>Amazon EKS</b> Kubernetes service - https://aws.amazon.com/eks/
 - <b>Docker</b> containerization (dockerfiles, docker-compose) - https://www.docker.com/
-- <b>Kubernetes</b> container orchestration - https://kubernetes.io
-- <b>Minikube</b> local Kubernetes cluster - https://github.com/kubernetes/minikube
+- <b>Kubernetes</b> container orchestration - https://kubernetes.io/
+- <b>Minikube</b> local Kubernetes cluster - https://github.com/kubernetes/minikube/
 - <b>Nginx</b> web server - https://www.nginx.com/
 - <b>GUnicorn</b> WSGI server - https://gunicorn.org/
 - <b>Flask</b> web framework (REST API) - http://flask.pocoo.org/
 - <b>RabbitMQ</b> message broker (AMQP, MQTT plugin, Management plugin) - https://www.rabbitmq.com/
 - <b>MongoDB</b> NoSQL database - https://www.mongodb.com/
-- <b>MongoDB Atlas</b> cloud database service - https://www.mongodb.com/cloud/atlas
+- <b>MongoDB Atlas</b> cloud database service - https://www.mongodb.com/cloud/atlas/
 - <b>Redis</b> fast key-value data store (flexible: database, caching, mq) - https://redis.io/
-- <b>Elastic stack/ELK stack</b> logging solution - https://www.elastic.co/elastic-stack
-- <b>Prometheus and Grafana</b> monitoring solution - https://prometheus.io/, https://prometheus.io/docs/visualization/grafana/
+- <b>Elastic stack/ELK stack</b> logging solution - https://www.elastic.co/elastic-stack/
+- <b>Prometheus</b> monitoring solution - https://prometheus.io/
+- <b>Grafana</b> visualization solution - https://grafana.com/
 - <b>Ionic</b> mobile/web frontend framework - https://ionicframework.com/
-- <b>Paypal Payment Platform</b> payment gateway - https://developer.paypal.com
+- <b>Paypal Payment Platform</b> payment gateway - https://developer.paypal.com/
 - <b>Apple Push Notification service (APNs)</b> for IOS push notifications
 - <b>Google Firebase Cloud Messaging (FCM)</b> for Android push notifications
-- <b>Google Maps Platform</b> for device location - https://developers.google.com/maps/documentation
+- <b>Google Maps Platform</b> for device location - https://developers.google.com/maps/documentation/
 - <b>Chart.JS</b> Visualization charts/graphs - https://www.chartjs.org/
-- <b>D3.JS</b> Visualization charts/graphs - https://observablehq.com/@d3/gallery
-- <b>GoDaddy</b> domain and SSL certificate - https://godaddy.com
+- <b>D3.JS</b> Visualization charts/graphs - https://observablehq.com/@d3/gallery/
+- <b>GoDaddy</b> domain and SSL certificate - https://godaddy.com/
 - <b>Twilio</b> SMS messaging platform - https://www.twilio.com/
 - <b>Nexmo</b> SMS messaging platform - https://www.nexmo.com/
 
