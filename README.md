@@ -63,7 +63,7 @@ Below are the features of this secure, scalable and reliable IoT platform:
        D. Container orchestration tools using Docker-compose or Kubernetes (tested on Minikube and AWS EKS)
        E. Continuous integration/deployment (CI/CD) using Jenkins pipelines (automated deployment from Github to AWS EC2)
        F. Monitoring solution using Prometheus and Grafana (cAdvisor: Docker container monitoring, NodeExporter: AWS EC2 host monitoring)
-       G. Logging analytics solution using Elastic stack / ELK stack (Elasticsearch, Logstash, and Kibana)
+       G. Logging solution using Elastic stack / ELK stack (Elasticsearch, Logstash, and Kibana)
        H. Limited ports exposed to fend off attacks in infrastructure level
 
     2. Device connectivity services
