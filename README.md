@@ -1723,6 +1723,16 @@ Note: Using Kubernetes will also change the infrastracture.
           eksctl delete cluster --name <CLUSTERNAME>
 
 
+### Setup Prometheus and Grafana for backend monitoring
+
+       A. Download from https://github.com/stefanprodan/dockprom
+          cAdvisor is for Docker container monitoring
+          NodeExporter is for AWS EC2 host monitoring
+       B. Change Prometheus configuration and Docker compose configuration
+          Change default port for cAdvisor (conflicts with Jenkins)
+          Remove settings related to alerting
+       C. Run docker-compose up -d
+
 
 # Production environment
 
