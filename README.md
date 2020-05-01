@@ -62,7 +62,7 @@ Below are the features of this secure, scalable and reliable IoT platform:
        C. Reliable and scalable databases and message brokers using MongoDB, MongoDB Atlas, Redis and RabbitMQ
        D. Container orchestration tools using Docker-compose or Kubernetes (tested on Minikube and AWS EKS)
        E. Continuous integration/deployment (CI/CD) using Jenkins pipelines (automated deployment from Github to AWS EC2)
-       F. Monitoring analytics solution using Prometheus, cAdvisor and Grafana
+       F. Monitoring solution using Prometheus and Grafana (cAdvisor: docker monitoring, node-exporter: host monitoring)
        G. Logging analytics solution using Elastic stack / ELK stack (Elasticsearch, Logstash, and Kibana)
        H. Limited ports exposed to fend off attacks in infrastructure level
 
