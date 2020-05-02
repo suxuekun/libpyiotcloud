@@ -14,9 +14,12 @@
       <label class="item item-input" id="profile-input54">
         <input type="text" placeholder="" ng-model="data.phonenumber" ng-click="submitVerifynumber()">
       </label>
-      <ion-item class="item-divider" id="profile-list-item-divider11"> Identity Provider</ion-item>
+      <label class="item item-input" id="profile-input183">
+        <input type="text" placeholder="" ng-model="data.country" readonly="" ng-show="data.country != &quot;Unknown&quot;">
+      </label>
+      <ion-item class="item-divider" id="profile-list-item-divider11" ng-show="data.identityprovider != &quot;None&quot;"> Identity Provider</ion-item>
       <label class="item item-input" id="profile-input170">
-        <input type="text" placeholder="" ng-model="data.identityprovider" readonly="">
+        <input type="text" placeholder="" ng-model="data.identityprovider" readonly="" ng-show="data.identityprovider != &quot;None&quot;">
       </label>
       <ion-item class="item-divider" id="profile-list-item-divider12" ng-show="data.phonenumber != &quot;Unknown&quot; &amp;&amp; data.phonenumber.includes(&quot;VERIFY&quot;) == false"> Multi-Factor Authentication</ion-item>
       <ion-toggle toggle-class="toggle-positive" id="profile-toggle26" ng-show="data.phonenumber != &quot;Unknown&quot; &amp;&amp; data.phonenumber.includes(&quot;VERIFY&quot;) == false" ng-model="enable_2fa" ng-change="enable2FA(enable_2fa)">Enable MFA</ion-toggle>

@@ -1,0 +1,66 @@
+<ion-view title="Gateways" hide-back-button="true" nav-transition="none" id="page2" style="background-color:#FFFFFF;" class="page_width">
+  <ion-nav-buttons side="right" class="has-header">
+    <button class="button button-positive icon ion-refresh" ng-click="submitRefresh(true)"></button>
+  </ion-nav-buttons>
+  <ion-content padding="true" class="has-header">
+    <form id="gateways-form54" class="list">
+      <label class="item item-input" id="gateways-input90">
+        <input type="text" placeholder="Search" ng-model="data.devices_filter" ng-keypress="submitSearch($event)">
+      </label>
+      <div id="gateways-button-bar11" class="button-bar">
+        <button id="gateways-button164" ng-click="changeActiveSection(1)" style="font-weight:300;color:#AAAAAA;font-size:12px;border-radius:256px 256px 256px 256px;" class="button button-stable button-small button-block">Gateways</button>
+        <button id="gateways-button165" ng-click="changeActiveSection(2)" style="font-weight:300;color:#AAAAAA;font-size:12px;border-radius:256px 256px 256px 256px;" class="button button-stable button-small button-block">Gateway Groups</button>
+      </div>
+    </form>
+    <div id="gateways-markdown36" class="show-list-numbers-and-dots">
+      <p style="color:#AAAAAA;font-size:12px;">{{ devices_counthdr }}</p>
+    </div>
+    <div class="list card" id="gateways-card27" ng-repeat="device in devices" ng-show="activeSection==1">
+      <div class="item item-body" id="gateways-list-item-container30" ng-click="viewDevice(device)">
+        <div id="gateways-markdown154" class="show-list-numbers-and-dots">
+          <p style="margin-top:0px;color:#3C5A99;font-size:18px;">
+            <strong> {{ device.devicename }} </strong>
+          </p>
+        </div>
+        <div id="gateways-markdown442" class="show-list-numbers-and-dots">
+          <p style="margin-top:0px;color:#444444;font-size:12px;">UUID: {{ device.deviceid }}</p>
+        </div>
+      </div>
+      <div id="gateways-container28" ng-show="device.devicestatus != &quot;Online&quot;">
+        <div class="card_image_devices">
+          <img src="img/xqcc2stgTNmAeM8gxhQ7_offline.png" style="display:block;width:16;height:16;" ng-show="device.devicestatus != &quot;Online&quot;">
+        </div>
+        <div id="gateways-markdown443" class="show-list-numbers-and-dots card_label_devices">
+          <p style="color:#888888;font-size:12px;">{{ device.devicestatus }}</p>
+        </div>
+      </div>
+      <div id="gateways-container26" ng-show="device.devicestatus == &quot;Online&quot;">
+        <div class="card_image_devices">
+          <img src="img/6RNUgrQwRemftiOCX3pw_online.png" style="display:block;width:16;height:16;" ng-show="device.devicestatus == &quot;Online&quot;">
+        </div>
+        <div id="gateways-markdown155" class="show-list-numbers-and-dots card_label_devices">
+          <p style="color:#888888;font-size:12px;">{{ device.devicestatus }}</p>
+        </div>
+      </div>
+    </div>
+    <div class="list card" id="gateways-card29" ng-repeat="group in devicegroups" ng-show="activeSection==2">
+      <div class="item item-body" id="gateways-list-item-container31" ng-click="viewDevice(group)">
+        <div id="gateways-markdown466" class="show-list-numbers-and-dots">
+          <p style="margin-top:0px;color:#3C5A99;font-size:18px;">
+            <strong> {{ group.groupname }} </strong>
+          </p>
+        </div>
+      </div>
+      <div id="gateways-container25">
+        <div id="gateways-markdown476" class="show-list-numbers-and-dots card_label_devicegroups">
+          <p style="color:#888888;font-size:12px;"> {{ group.devices.length &gt; 0 ? "GATEWAYS: " + group.devices : "GATEWAYS: None"}}</p>
+        </div>
+      </div>
+    </div>
+    <div id="gateways-container66" class="widget_button_half creator-container"></div>
+    <div id="gateways-container85" class="widget_button_quarter creator-container"></div>
+    <div id="gateways-container86" class="widget_button_quarter">
+      <button id="gateways-button24" ng-click="submitAdd()" style="font-weight:600;" class="button button-positive button-large button-block button-clear icon-right ion-android-add-circle"></button>
+    </div>
+  </ion-content>
+</ion-view>

@@ -99,6 +99,13 @@ class database_client:
     def delete_ota_statuses(self, username):
         self._devices.delete_ota_statuses(username)
 
+    def delete_ota_status(self, username, devicename):
+        deviceid = self._devices.get_deviceid(username, devicename)
+        self._devices.delete_ota_status_by_deviceid(deviceid)
+
+    def delete_ota_status_by_deviceid(self, deviceid):
+        self._devices.delete_ota_status_by_deviceid(deviceid)
+
 
     ##########################################################
     # transactions
@@ -293,7 +300,11 @@ class database_client:
     def get_device_history(self, deviceid):
         return self._devices.get_device_history(deviceid)
 
-    def delete_device_history(self, deviceid):
+    def delete_device_history(self, username, devicename):
+        deviceid = self._devices.get_deviceid(username, devicename)
+        return self._devices.delete_device_history(deviceid)
+
+    def delete_device_history_by_deviceid(self, deviceid):
         return self._devices.delete_device_history(deviceid)
 
     def sort_by_timestamp(self, elem):
@@ -360,7 +371,11 @@ class database_client:
     def add_menos_transaction(self, deviceid, recipient, message, type, source, sensorname, timestamp, condition, result):
         self._devices.add_menos_transaction(deviceid, recipient, message, type, source, sensorname, timestamp, condition, result)
 
-    def delete_menos_transaction(self, deviceid):
+    def delete_menos_transaction(self, username, devicename):
+        deviceid = self._devices.get_deviceid(username, devicename)
+        self._devices.delete_menos_transaction(deviceid)
+
+    def delete_menos_transaction_by_deviceid(self, deviceid):
         self._devices.delete_menos_transaction(deviceid)
 
     def get_menos_transaction(self, deviceid):
@@ -386,8 +401,14 @@ class database_client:
         deviceid = self._devices.get_deviceid(username, devicename)
         return self._devices.delete_device_notification_sensor(deviceid, source)
 
+    def delete_device_notification_sensor_by_deviceid(self, deviceid, source):
+        return self._devices.delete_device_notification_sensor(deviceid, source)
+
     def delete_device_notification(self, username, devicename):
         deviceid = self._devices.get_deviceid(username, devicename)
+        return self._devices.delete_device_notification(deviceid)
+
+    def delete_device_notification_by_deviceid(self, deviceid):
         return self._devices.delete_device_notification(deviceid)
 
     def get_device_notification(self, username, devicename, source):
@@ -414,6 +435,9 @@ class database_client:
 
     def delete_device_peripheral_configuration(self, username, devicename, source, number, address):
         return self._devices.delete_device_peripheral_configuration(self._devices.get_deviceid(username, devicename), source, number, address)
+
+    def delete_device_peripheral_configuration_by_deviceid(self, deviceid, source, number, address):
+        return self._devices.delete_device_peripheral_configuration(deviceid, source, number, address)
 
     def delete_all_device_peripheral_configuration(self, username, devicename):
         return self._devices.delete_all_device_peripheral_configuration(self._devices.get_deviceid(username, devicename))
@@ -489,6 +513,9 @@ class database_client:
     def delete_sensor(self, username, devicename, source, number, sensorname):
         self._devices.delete_sensor(self._devices.get_deviceid(username, devicename), source, number, sensorname)
 
+    def delete_sensor_by_deviceid(self, deviceid, source, number, sensorname):
+        self._devices.delete_sensor(deviceid, source, number, sensorname)
+
     def check_sensor(self, username, devicename, sensorname):
         return self._devices.check_sensor(self._devices.get_deviceid(username, devicename), sensorname)
 
@@ -520,6 +547,10 @@ class database_client:
 
     def delete_sensor_reading(self, username, devicename, source, address):
         deviceid = self._devices.get_deviceid(username, devicename)
+        self._devices.delete_sensor_reading(deviceid, source, address)
+        self._devices.delete_sensor_reading_dataset(deviceid, source, address)
+
+    def delete_sensor_reading_by_deviceid(self, deviceid, source, address):
         self._devices.delete_sensor_reading(deviceid, source, address)
         self._devices.delete_sensor_reading_dataset(deviceid, source, address)
 
@@ -604,6 +635,9 @@ class database_client:
 
     def delete_device_location(self, username, devicename):
         deviceid = self._devices.get_deviceid(username, devicename)
+        self._devices.delete_device_location(deviceid)
+
+    def delete_device_location_by_deviceid(self, deviceid):
         self._devices.delete_device_location(deviceid)
 
     def delete_devices_location(self, username):
@@ -754,6 +788,9 @@ class database_client:
     def delete_device(self, username, devicename):
         self._devices.delete_device(username, devicename)
 
+    def delete_device_by_deviceid(self, deviceid):
+        self._devices.delete_device_by_deviceid(deviceid)
+
     def find_device(self, username, devicename):
         return self._devices.find_device(username, devicename)
 
@@ -795,11 +832,14 @@ class database_client:
     def get_devicegroups(self, username):
         return self._devices.get_devicegroups(username)
 
-    def add_device_to_devicegroup(self, username, groupname, devicename):
-        return self._devices.add_device_to_devicegroup(username, groupname, devicename)
+    def add_device_to_devicegroup(self, username, groupname, deviceid):
+        return self._devices.add_device_to_devicegroup(username, groupname, deviceid)
 
-    def remove_device_from_devicegroup(self, username, groupname, devicename):
-        self._devices.remove_device_from_devicegroup(username, groupname, devicename)
+    def remove_device_from_devicegroup(self, username, groupname, deviceid):
+        self._devices.remove_device_from_devicegroup(username, groupname, deviceid)
+
+    def remove_device_from_devicegroups(self, username, deviceid):
+        self._devices.remove_device_from_devicegroups(username, deviceid)
 
     def set_devices_to_devicegroup(self, username, groupname, devices):
         self._devices.set_devices_to_devicegroup(username, groupname, devices)
@@ -1170,6 +1210,13 @@ class database_client_mongodb:
         otaupdates = self.get_otaupdates_db()
         try:
             otaupdates.delete_many({'username': username})
+        except:
+            pass
+
+    def delete_ota_status_by_deviceid(self, deviceid):
+        otaupdates = self.get_otaupdates_db()
+        try:
+            otaupdates.delete_many({'deviceid': deviceid})
         except:
             pass
 
@@ -3889,6 +3936,11 @@ class database_client_mongodb:
         if devices:
             devices.delete_one({ 'username': username, 'devicename': devicename })
 
+    def delete_device_by_deviceid(self, deviceid):
+        devices = self.get_registered_devices()
+        if devices:
+            devices.delete_one({ 'deviceid': deviceid })
+
     # a user cannot register the same device name
     def find_device(self, username, devicename):
         devices = self.get_registered_devices()
@@ -4013,14 +4065,14 @@ class database_client_mongodb:
         devicegroups_list.sort(key=self.sort_by_groupname)
         return devicegroups_list
 
-    def add_device_to_devicegroup(self, username, groupname, devicename):
+    def add_device_to_devicegroup(self, username, groupname, deviceid):
         devicegroups = self.get_registered_devicegroups()
         if devicegroups and devicegroups.count():
             for devicegroup in devicegroups.find({ 'username': username, 'groupname': groupname }):
-                print("{} {}".format(devicename, devicegroup['devices']))
-                if devicename not in devicegroup['devices']:
+                print("{} {}".format(deviceid, devicegroup['devices']))
+                if deviceid not in devicegroup['devices']:
                     new_devicegroup = copy.deepcopy(devicegroup)
-                    new_devicegroup['devices'].append(devicename)
+                    new_devicegroup['devices'].append(deviceid)
                     new_devicegroup['devices'].sort()
                     devicegroups.replace_one(devicegroup, new_devicegroup)
                     return True
@@ -4028,15 +4080,24 @@ class database_client_mongodb:
                     return False
         return False
 
-    def remove_device_from_devicegroup(self, username, groupname, devicename):
+    def remove_device_from_devicegroup(self, username, groupname, deviceid):
         devicegroups = self.get_registered_devicegroups()
         if devicegroups and devicegroups.count():
             for devicegroup in devicegroups.find({ 'username': username, 'groupname': groupname }):
-                if devicename in devicegroup['devices']:
+                if deviceid in devicegroup['devices']:
                     new_devicegroup = copy.deepcopy(devicegroup)
-                    new_devicegroup['devices'].remove(devicename)
+                    new_devicegroup['devices'].remove(deviceid)
                     devicegroups.replace_one(devicegroup, new_devicegroup)
                 break
+
+    def remove_device_from_devicegroups(self, username, deviceid):
+        devicegroups = self.get_registered_devicegroups()
+        if devicegroups and devicegroups.count():
+            for devicegroup in devicegroups.find({ 'username': username }):
+                if deviceid in devicegroup['devices']:
+                    new_devicegroup = copy.deepcopy(devicegroup)
+                    new_devicegroup['devices'].remove(deviceid)
+                    devicegroups.replace_one(devicegroup, new_devicegroup)
 
     def set_devices_to_devicegroup(self, username, groupname, devices):
         devicegroups = self.get_registered_devicegroups()

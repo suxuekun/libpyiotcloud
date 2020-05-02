@@ -18,6 +18,13 @@ parentdir = os.path.dirname(currentdir)
 sys.path.insert(0,parentdir)
 from messaging_client import messaging_client
 from s3_client import s3_client
+import pycountry
+import phonenumbers
+from phonenumbers import carrier
+from phonenumbers.phonenumberutil import (
+    region_code_for_country_code,
+    region_code_for_number,
+)
 
 
 
@@ -177,6 +184,15 @@ def construct_message(deviceid, message, source, sensorname, date_time, conditio
 
     return new_message, date_time
 
+def get_sms_details(phonenumber):
+    pn = phonenumbers.parse(phonenumber)
+    isocode = region_code_for_country_code(pn.country_code)
+    country = pycountry.countries.get(alpha_2=isocode)
+    try:
+        networkcarrier = carrier.name_for_number(pn, "en")
+    except:
+        networkcarrier = None
+    return country.name, isocode, networkcarrier
 
 def notification_thread(messaging_client, deviceid, recipient, message, subject, type, options, source, sensor, payload):
 
@@ -207,25 +223,10 @@ def notification_thread(messaging_client, deviceid, recipient, message, subject,
         result, contents = send_notification_storage(messaging_client, deviceid, recipient, message, source, sensorname, date_time, condition)
         print("{}: {} [{}] {}".format(deviceid, type_str, len(contents), result ))
     else:
-        # Send to Mobile (sms) or Email or Notification (push notification)
-        if options >= 0:
-            # With options parameter
-            print("OPTIONS = {}".format(options))
 
-            if options == 1:
-                options = 0
-            new_client = notification_client(notification_models.PINPOINT, options)
-            new_client.initialize()
-            try:
-                response = new_client.send_message(recipient, message_updated, subject=subject, type=type)
-            except:
-                send_notification_status(messaging_client, deviceid, "NG")
-                return
-        else:
-            # No options parameter
-            #print(recipient)
-            #print(message)
-            #print(type)
+        if type == notification_types.EMAIL or type == notification_types.PUSH_NOTIFICATION:
+            # Email or Notification (push notification)
+
             try:
                 response = g_notification_client.send_message(recipient, message_updated, subject=subject, type=type)
                 #print(response)
@@ -233,6 +234,38 @@ def notification_thread(messaging_client, deviceid, recipient, message, subject,
                 print("exception")
                 send_notification_status(messaging_client, deviceid, "NG")
                 return
+
+        elif type == notification_types.SMS:
+            # Mobile (sms)
+
+            country, isocode, networkcarrier = get_sms_details(recipient)
+            print("{} {} {}".format(country, isocode, networkcarrier))
+
+            if options >= 0:
+                # With options parameter
+                print("OPTIONS = {}".format(options))
+
+                if options == 1:
+                    options = 0
+                new_client = notification_client(notification_models.PINPOINT, options)
+                new_client.initialize()
+                try:
+                    response = new_client.send_message(recipient, message_updated, subject=subject, type=type)
+                except:
+                    send_notification_status(messaging_client, deviceid, "NG")
+                    return
+            else:
+                # No options parameter
+                #print(recipient)
+                #print(message)
+                #print(type)
+                try:
+                    response = g_notification_client.send_message(recipient, message_updated, subject=subject, type=type)
+                    #print(response)
+                except:
+                    print("exception")
+                    send_notification_status(messaging_client, deviceid, "NG")
+                    return
 
         # Display result
         if notification_config.CONFIG_DEBUG_NOTIFICATION:

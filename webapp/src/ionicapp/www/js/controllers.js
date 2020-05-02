@@ -137,7 +137,7 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
                         'name': 'SocialIDPLogin'
                     };
                     User.set(user_data);
-                    $state.go('menu.devices', user_data);
+                    $state.go('menu.gateways', user_data);
                 }
             }
             else {
@@ -325,7 +325,7 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
                 };
                 
                 User.set(user_data);
-                $state.go('menu.devices', user_data);
+                $state.go('menu.gateways', user_data);
             }
             else {
                 $ionicPopup.alert({ title: 'Error', template: 'Login with social account failed due to cancellation or timeout!', buttons: [{text: 'OK', type: 'button-assertive'}] });
@@ -469,7 +469,7 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
                 'name': result.data.info.name
             };
             User.set(user_data);
-            $state.go('menu.devices', user_data);
+            $state.go('menu.gateways', user_data);
         })
         .catch(function (error) {
             spinner[0].style.visibility = "hidden";
@@ -513,7 +513,7 @@ function ($scope, $stateParams) {
 
 }])
    
-.controller('devicesCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', 'Devices', 'DeviceGroups',     // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+.controller('gatewaysCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', 'Devices', 'DeviceGroups',     // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
 // You can include any angular dependencies as parameters for this function
 // TIP: Access Route Parameters for your page via $stateParams.parameterName
 function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token, Devices, DeviceGroups) {
@@ -522,7 +522,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
 
     $scope.devices = [];
     $scope.devicegroups = [];
-    $scope.devices_counthdr = "No device registered" ;
+    $scope.devices_counthdr = "No gateway registered" ;
     $scope.activeSection = parseInt($stateParams.activeSection, 10);
     
     $scope.data = {
@@ -566,7 +566,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                 device_param.location = device.location;    
             }
     
-            $state.go('device', device_param, {reload:true} );
+            $state.go('gateway', device_param, {reload:true} );
         }
         else {
             // DEVICE GROUP
@@ -575,7 +575,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                 'token': User.get_token(),
                 'devicegroupname': device.groupname
             };
-            $state.go('deviceGroup', device_param, {reload:true} );
+            $state.go('updateGatewayGroup', device_param, {reload:true} );
         }
     };
     
@@ -587,10 +587,10 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         };
         
         if ($scope.activeSection === 1) {
-            $state.go('addDevice', device_param);
+            $state.go('addGateway', device_param);
         }
         else {
-            $state.go('addDeviceGroup', device_param);
+            $state.go('addGatewayGroup', device_param);
         }
     };
     
@@ -704,10 +704,10 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                 $scope.data.token = User.get_token();
                 if ($scope.devices.length !== 0) {
                     if ($scope.devices.length === 1) {
-                        $scope.devices_counthdr = $scope.devices.length.toString() + " device registered";
+                        $scope.devices_counthdr = $scope.devices.length.toString() + " gateway registered";
                     }
                     else {
-                        $scope.devices_counthdr = $scope.devices.length.toString() + " devices registered";
+                        $scope.devices_counthdr = $scope.devices.length.toString() + " gateways registered";
                     }
                     
                     let currdate = parseInt(new Date().valueOf()/ 1000, 10);
@@ -742,7 +742,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                     }
                 }
                 else {
-                    $scope.devices_counthdr = "No device registered";
+                    $scope.devices_counthdr = "No gateway registered";
                 }
                 
                 // TEST CODE ONLY
@@ -763,14 +763,14 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                 $scope.data.token = User.get_token();
                 if ($scope.devicegroups.length !== 0) {
                     if ($scope.devicegroups.length === 1) {
-                        $scope.devices_counthdr = $scope.devicegroups.length.toString() + " device group registered";
+                        $scope.devices_counthdr = $scope.devicegroups.length.toString() + " gateway group registered";
                     }
                     else {
-                        $scope.devices_counthdr = $scope.devicegroups.length.toString() + " device groups registered";
+                        $scope.devices_counthdr = $scope.devicegroups.length.toString() + " gateway groups registered";
                     }
                 }
                 else {
-                    $scope.devices_counthdr = "No device group registered";
+                    $scope.devices_counthdr = "No gateway group registered";
                 }
             })
             .catch(function (error) {
@@ -898,7 +898,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
     $scope.$on('$ionicView.enter', function(e) {
         $scope.devices = [];
         $scope.devicegroups = [];
-        $scope.devices_counthdr = "No device registered" ;
+        $scope.devices_counthdr = "No gateway registered" ;
         $scope.activeSection = 1;
         
         //console.log($state.params);
@@ -925,6 +925,7 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token)
         'email': 'Unknown',
         'phonenumber': 'Unknown',
         'identityprovider': 'Unknown',
+        'country': 'Unknown'
     };
 
     $scope.enable_2fa = false;
@@ -1015,15 +1016,24 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token)
             $scope.data.email = result.data.info.email;
             if (result.data.info.phone_number !== undefined) {
                 $scope.data.phonenumber = result.data.info.phone_number;
+                if (result.data.info.phone_number_verified !== undefined) {
+                    if (result.data.info.phone_number_verified === false) {
+                        $scope.data.phonenumber +=  " (Click to VERIFY)";
+                    }
+                }
             }
             else {
                 $scope.data.phonenumber = "Unknown";
             }
-            if (result.data.info.phone_number_verified !== undefined) {
-                if (result.data.info.phone_number_verified === false) {
-                    $scope.data.phonenumber +=  " (Click to VERIFY)";
-                }
+            
+            if (result.data.info.phone_number_country !== undefined) {
+                $scope.data.country = result.data.info.phone_number_country + " (" + result.data.info.phone_number_isocode + ") - " + result.data.info.phone_number_carrier;
             }
+            else {
+                $scope.data.country = "Unknown";
+            }
+            
+            
             if (result.data.info.identity !== undefined) {
                 $scope.data.identityprovider = result.data.info.identity.providerName + " (" + result.data.info.identity.userId + ")";
             }
@@ -1155,19 +1165,22 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token)
             $ionicPopup.alert({title: 'Save Changes Error', template: 'Phone Number is empty!'});
             return;
         }
+        else if ($scope.data.phonenumber === "Unknown") {
+            return;
+        }
+        
+        /*
         else if ($scope.data.phonenumber.length === 0) {
             $ionicPopup.alert({title: 'Save Changes Error', template: 'Phone Number is empty!'});
             return;
         }
-        else if ($scope.data.phonenumber === "Unknown") {
-            $scope.data.phonenumber = "";
-        }
-        
+        */
         
         var param = { 'name': $scope.data.fullname };
-        if ($scope.data.phonenumber.length > 0) {
-            param.phone_number = $scope.data.phonenumber.split(" ")[0];   
-        }
+        //if ($scope.data.phonenumber.length > 0) {
+        param.phone_number = $scope.data.phonenumber.split(" ")[0];
+        console.log(param.phone_number);
+        //}
         
         // 
         // UPDATE USER INFO
@@ -2091,7 +2104,7 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
             
             User.clear();
             User.set(user_data);
-            $state.go('menu.devices', user_data);
+            $state.go('menu.gateways', user_data);
         })
         .catch(function (error) {
             spinner[0].style.visibility = "hidden";
@@ -2254,7 +2267,7 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
                     
                     User.clear();                    
                     User.set(user_data);
-                    $state.go('menu.devices', user_data);
+                    $state.go('menu.gateways', user_data);
                 }
             }
             else {
@@ -2443,7 +2456,7 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
                 
                 User.clear();
                 User.set(user_data);
-                $state.go('menu.devices', user_data);
+                $state.go('menu.gateways', user_data);
             }
             else {
                 $ionicPopup.alert({ title: 'Error', template: 'Login with social account failed due to cancellation or timeout!', buttons: [{text: 'OK', type: 'button-assertive'}] });
@@ -2589,7 +2602,7 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
             
             User.clear();
             User.set(user_data);
-            $state.go('menu.devices', user_data);
+            $state.go('menu.gateways', user_data);
         })
         .catch(function (error) {
             spinner[0].style.visibility = "hidden";
@@ -3363,7 +3376,7 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
             
             User.set(user_data);
         
-            $state.go('menu.devices', user_data);
+            $state.go('menu.gateways', user_data);
         })
         .catch(function (error) {
             spinner[0].style.visibility = "hidden";
@@ -3540,9 +3553,18 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token)
         get_item("license");
     };
 
-
+    // GET TERMS AND CONDITIONS
+    $scope.getFAQs = function() {
+        console.log("getFAQs");
+        get_item("faqs");
+    };
+    
     get_item = function(item) {
         console.log(item);
+        var resource = "faqs";
+        if (item !== "faqs") {
+            resource = "about";
+        }
         //
         // GET FAQS/TERMS AND CONDITIONS/PRIVACY STATEMENTS/LICENSE
         //
@@ -3556,7 +3578,7 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token)
         //
         $http({
             method: 'GET',
-            url: server + '/others/about',
+            url: server + '/others/' + resource,
             headers: {'Authorization': 'Bearer ' + $scope.data.token.access}
         })
         .then(function (result) {
@@ -3661,74 +3683,7 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token)
     
 }])
    
-.controller('helpSupportCtrl', ['$scope', '$stateParams', '$state', '$ionicPopup', '$http', 'Server', 'User', 'Token', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
-// You can include any angular dependencies as parameters for this function
-// TIP: Access Route Parameters for your page via $stateParams.parameterName
-function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token) {
-
-    var server = Server.rest_api;
-
-    $scope.data = {
-        'username': User.get_username(), //$stateParams.username,
-        'token': User.get_token()        //$stateParams.token
-    };
-    
-    handle_error = function(error) {
-        if (error.data !== null) {
-            console.log("ERROR: Failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
-
-            if (error.data.message === "Token expired") {
-                Token.refresh({'username': $scope.data.username, 'token': $scope.data.token});
-                $scope.data.token = User.get_token();
-            }
-        }
-        else {
-            console.log("ERROR: Server is down!"); 
-            $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
-        }
-    };
-    
-    
-    // GET TERMS AND CONDITIONS
-    $scope.getFAQs = function() {
-        console.log("getFAQs");
-        get_item("faqs");
-    };
-
-
-    get_item = function(item) {
-        console.log(item);
-        //
-        // GET FAQS/TERMS AND CONDITIONS/PRIVACY STATEMENTS/LICENSE
-        //
-        // - Request:
-        //   GET /others/ITEM
-        //   headers: { 'Authorization': 'Bearer ' + token.access }
-        //
-        // - Response:
-        //   { 'status': 'OK', 'message': string, 'ITEM': string }
-        //   { 'status': 'NG', 'message': string }
-        //
-        $http({
-            method: 'GET',
-            url: server + '/others/' + item,
-            headers: {'Authorization': 'Bearer ' + $scope.data.token.access}
-        })
-        .then(function (result) {
-            console.log(result.data);
-            
-            $ionicPopup.alert({ title: 'Success', template: result.data.url[item],
-                buttons: [{ text: "OK", type: 'button-positive' }]
-            });
-        })
-        .catch(function (error) {
-            handle_error(error);
-        }); 
-    };
-    
-}])
-   
-.controller('addDeviceCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'Devices', 'User', 'Token', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+.controller('addGatewayCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'Devices', 'User', 'Token', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
 // You can include any angular dependencies as parameters for this function
 // TIP: Access Route Parameters for your page via $stateParams.parameterName
 function ($scope, $stateParams, $state, $http, $ionicPopup, Server, Devices, User, Token) {
@@ -3895,7 +3850,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, Devices, Use
                         text: 'OK',
                         type: 'button-positive',
                         onTap: function(e) {
-                            $state.go('menu.devices', {'username': $scope.data.username, 'token': $scope.data.token});
+                            $state.go('menu.gateways', {'username': $scope.data.username, 'token': $scope.data.token});
                         }
                     }
                 ]
@@ -3929,7 +3884,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, Devices, Use
             'username': $scope.data.username,
             'token': $scope.data.token
         };
-        $state.go('menu.devices', device_param, {reload: true});
+        $state.go('menu.gateways', device_param, {reload: true});
     };
     
     $scope.$on('$ionicView.enter', function(e) {
@@ -3941,7 +3896,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, Devices, Use
     
 }])
    
-.controller('addDeviceGroupCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', 'Devices', 'DeviceGroups', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+.controller('addGatewayGroupCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', 'Devices', 'DeviceGroups', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
 // You can include any angular dependencies as parameters for this function
 // TIP: Access Route Parameters for your page via $stateParams.parameterName
 function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token, Devices, DeviceGroups) {
@@ -3987,7 +3942,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                                 text: 'OK',
                                 type: 'button-positive',
                                 onTap: function(e) {
-                                    $state.go('menu.devices', 
+                                    $state.go('menu.gateways', 
                                         {
                                             'username': $scope.data.username, 
                                             'token': $scope.data.token,
@@ -4020,12 +3975,12 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             'token': $scope.data.token,
             'activeSection': "2"
         };
-        $state.go('menu.devices', device_param, {reload: true});
+        $state.go('menu.gateways', device_param, {reload: true});
     };
     
 }])
    
-.controller('viewDeviceCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+.controller('viewGatewayCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
 // You can include any angular dependencies as parameters for this function
 // TIP: Access Route Parameters for your page via $stateParams.parameterName
 
@@ -4242,7 +4197,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             'version'      : $scope.data.version,
         };
        
-        $state.go('deviceGeneralSettings', device_param);    
+        $state.go('gatewayGeneralSettings', device_param);    
     };
 
 
@@ -4300,7 +4255,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             'location'     : "UNKNOWN",
         };
 
-        $state.go('device', device_param);    
+        $state.go('gateway', device_param);    
     };
 
 
@@ -4346,7 +4301,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         })
         .then(function (result) {
             console.log(result.data);
-            $state.go('menu.devices', {'username': $scope.data.username, 'token': $scope.data.token});
+            $state.go('menu.gateways', {'username': $scope.data.username, 'token': $scope.data.token});
         })
         .catch(function (error) {
             $scope.handle_error(error);
@@ -4388,7 +4343,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             'version'      : $scope.data.version,
         };
        
-        $state.go('viewDeviceLocation', device_param);    
+        $state.go('viewGatewayLocation', device_param);    
     };
 
     
@@ -4403,11 +4358,11 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             'username': $scope.data.username,
             'token'   : $scope.data.token
         };
-        $state.go('menu.devices', device_param, {reload: true});
+        $state.go('menu.gateways', device_param, {reload: true});
     };
 }])
    
-.controller('deviceGroupCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', 'Devices', 'DeviceGroups', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+.controller('updateGatewayGroupCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', 'Devices', 'DeviceGroups', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
 // You can include any angular dependencies as parameters for this function
 // TIP: Access Route Parameters for your page via $stateParams.parameterName
 
@@ -4555,7 +4510,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                                 text: 'OK',
                                 type: 'button-positive',
                                 onTap: function(e) {
-                                    $state.go('menu.devices', 
+                                    $state.go('menu.gateways', 
                                         {
                                             'username': $scope.data.username, 
                                             'token': $scope.data.token,
@@ -4710,11 +4665,11 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             'token'   : $scope.data.token,
             'activeSection': '2',
         };
-        $state.go('menu.devices', device_param, {reload: true});
+        $state.go('menu.gateways', device_param, {reload: true});
     };
 }])
    
-.controller('deviceLocationCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', 'Devices', 'uiGmapGoogleMapApi', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+.controller('gatewayLocationCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', 'Devices', 'uiGmapGoogleMapApi', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
 // You can include any angular dependencies as parameters for this function
 // TIP: Access Route Parameters for your page via $stateParams.parameterName
 
@@ -5388,7 +5343,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                 'username': $scope.data.username,
                 'token'   : $scope.data.token
             };
-            $state.go('menu.devices', device_param, {reload: true});
+            $state.go('menu.gateways', device_param, {reload: true});
             return;    
         }
 
@@ -5406,7 +5361,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         console.log("viewDevice");
         console.log($scope.data.devicelocation.latitude);
         console.log($scope.data.devicelocation.longitude);
-        $state.go('device', device_param, {reload: true});    
+        $state.go('gateway', device_param, {reload: true});    
         */
 
         let device_param = {
@@ -5419,7 +5374,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             'heartbeat'    : $scope.data.heartbeat,
             'version'      : $scope.data.version,
         };
-        $state.go('viewDevice', device_param);    
+        $state.go('viewGateway', device_param);    
     };    
     
     // EXIT PAGE
@@ -5428,7 +5383,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             'username': $scope.data.username,
             'token'   : $scope.data.token
         };
-        $state.go('menu.devices', device_param, {reload: true});
+        $state.go('menu.gateways', device_param, {reload: true});
     };
 }])
    
@@ -6082,7 +6037,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             'version'      : $scope.data.version,
         };
        
-        $state.go('viewDevice', device_param);    
+        $state.go('viewGateway', device_param);    
     };    
     
     // EXIT PAGE
@@ -6101,7 +6056,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                 'version'      : $scope.data.version,
             };
            
-            $state.go('viewDevice', device_param); 
+            $state.go('viewGateway', device_param); 
         
             /*
             let device_param = {
@@ -6114,7 +6069,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                 'deviceversion': $scope.data.version,
             };
     
-            $state.go('device', device_param, {reload:true} );
+            $state.go('gateway', device_param, {reload:true} );
             */
         }
         else {
@@ -6124,12 +6079,12 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                 'token': User.get_token()
             };
     
-            $state.go('menu.devices', device_param, {reload:true} );        
+            $state.go('menu.gateways', device_param, {reload:true} );        
         }
     };
 }])
    
-.controller('deviceGeneralSettingsCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+.controller('gatewayGeneralSettingsCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
 // You can include any angular dependencies as parameters for this function
 // TIP: Access Route Parameters for your page via $stateParams.parameterName
 
@@ -6270,13 +6225,13 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             'version'      : $scope.data.version,
         };
        
-        $state.go('viewDevice', device_param);    
+        $state.go('viewGateway', device_param);    
     };
     
     $scope.getSettings($scope.data.devicename);
 }])
    
-.controller('deviceCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+.controller('gatewayCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
 // You can include any angular dependencies as parameters for this function
 // TIP: Access Route Parameters for your page via $stateParams.parameterName
 function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token) {
@@ -6509,7 +6464,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             };
             
 //            $state.go('menu.mapsExample', device_param, {reload:true});
-            $state.go('viewDevice', device_param, {reload:true});
+            $state.go('viewGateway', device_param, {reload:true});
         })
         .catch(function (error) {
             $scope.handle_error(error);
@@ -6570,7 +6525,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         else if ($stateParams.devicelocation === "UKNOWN") {
             device_param.location = null;
         }
-        $state.go('deviceLocation', device_param, {reload: true});    
+        $state.go('gatewayLocation', device_param, {reload: true});    
     };
     
     // EXIT PAGE
@@ -6593,7 +6548,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             }
         }
         
-        $state.go('menu.devices', device_param, {reload: true});
+        $state.go('menu.gateways', device_param, {reload: true});
     };
    
     $scope.$on('$ionicView.enter', function(e) {
@@ -8106,14 +8061,14 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                 'serialnumber': $scope.data.serialnumber,
                 'location': $scope.data.location,
             };
-            $state.go('device', device_param);
+            $state.go('gateway', device_param);
         }
         else {
             let device_param = {
                 'username': $scope.data.username,
                 'token': $scope.data.token,
             };
-            $state.go('menu.devices', device_param);
+            $state.go('menu.gateways', device_param);
         }
     };
     
@@ -9043,7 +8998,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             'serialnumber': $scope.data.serialnumber,
             'location': $scope.data.location === "" ? "UNKNOWN" : $scope.data.location,
         };
-        $state.go('device', device_param);
+        $state.go('gateway', device_param);
     };
     
     
@@ -9516,7 +9471,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             'serialnumber': $scope.data.serialnumber,
             'location': $scope.data.location === "" ? "UNKNOWN" : $scope.data.location,
         };
-        $state.go('device', device_param);
+        $state.go('gateway', device_param);
     };
 
     $scope.submitQuery();
@@ -9975,7 +9930,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             'serialnumber': $scope.data.serialnumber,
             'location': $scope.data.location === "" ? "UNKNOWN" : $scope.data.location,
         };
-        $state.go('device', device_param);
+        $state.go('gateway', device_param);
     };
 }])
    
@@ -10427,7 +10382,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             'serialnumber': $scope.data.serialnumber,
             'location': $scope.data.location === "" ? "UNKNOWN" : $scope.data.location,
         };
-        $state.go('device', device_param);
+        $state.go('gateway', device_param);
     };
 }])
    
@@ -10815,7 +10770,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             'serialnumber': $scope.data.serialnumber,
             'location': $scope.data.location === "" ? "UNKNOWN" : $scope.data.location,
         };
-        $state.go('device', device_param);
+        $state.go('gateway', device_param);
     };
 }])
    
@@ -11199,7 +11154,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             'serialnumber': $scope.data.serialnumber,
             'location': $scope.data.location === "" ? "UNKNOWN" : $scope.data.location,
         };
-        $state.go('device', device_param);
+        $state.go('gateway', device_param);
     };
 }])
    

@@ -758,6 +758,34 @@ def compute_password(secret_key, uuid, serial_number, mac_address, debug=False):
 
     return password
 
+
+def device_cleanup(username, deviceid):
+
+    # delete device sensor-related information
+    sensors = g_database_client.get_all_device_sensors_by_deviceid(deviceid)
+    if sensors is not None:
+        for sensor in sensors:
+            if sensor.get("source") and sensor.get("number") and sensor.get("sensorname"):
+                sensor_cleanup(None, None, deviceid, sensor["source"], sensor["number"], sensor["sensorname"], sensor)
+
+    # delete device-related information
+    g_database_client.delete_device_history_by_deviceid(deviceid)
+    g_database_client.delete_ota_status_by_deviceid(deviceid)
+    g_database_client.delete_device_notification_by_deviceid(deviceid)
+    g_database_client.delete_device_location_by_deviceid(deviceid)
+    g_database_client.remove_device_from_devicegroups(username, deviceid)
+    g_database_client.delete_menos_transaction_by_deviceid(deviceid)
+
+    # delete device from database
+    g_database_client.delete_device_by_deviceid(deviceid)
+
+    # delete device from message broker
+    try:
+        message_broker_api().unregister(deviceid)
+    except:
+        pass
+
+
 ########################################################################################################
 #
 # ADD DEVICE
@@ -910,23 +938,10 @@ def register_device(devicename):
             print('\r\nERROR Delete Device: Device is not registered [{},{}]\r\n'.format(username, devicename))
             return response, status.HTTP_404_NOT_FOUND
 
-        # delete device sensors and related information
-        sensors = g_database_client.get_all_device_sensors(username, devicename)
-        if sensors is not None:
-            for sensor in sensors:
-                if sensor.get("source") and sensor.get("number") and sensor.get("sensorname"):
-                    delete_sensor(username, devicename, sensor["source"], sensor["number"], sensor["sensorname"], sensor)
 
-        # delete device from database
-        g_database_client.delete_device(username, devicename)
+        # cleanup device
+        device_cleanup(username, device['deviceid'])
 
-        # delete message broker user
-        try:
-            # no checking needed
-            deviceuser = device["deviceid"]
-            message_broker_api().unregister(deviceuser)
-        except:
-            pass
 
         msg = {'status': 'OK', 'message': 'Devices unregistered successfully.'}
         if new_token:
@@ -2699,7 +2714,7 @@ def get_device_stats(username, devices, sensordevicename):
         #print(device["devicename"])
         for devicegroup in devicegroups:
             if len(devicegroup["devices"]):
-                if device["devicename"] in devicegroup["devices"]:
+                if device["deviceid"] in devicegroup["devices"]:
                     #print(devicegroup["groupname"])
                     found = 1
                     try:
@@ -3179,7 +3194,7 @@ def get_device_summary(username, devices, sensordevicename):
         group = "no group"
         for devicegroup in devicegroups:
             if len(devicegroup["devices"]):
-                if device["devicename"] in devicegroup["devices"]:
+                if device["deviceid"] in devicegroup["devices"]:
                     group = devicegroup["groupname"]
                     break
 
@@ -3544,7 +3559,7 @@ def get_xxx_sensors(devicename, xxx, number):
 # when deleting a sensor,
 # make sure the sensor configurations, sensor readings and sensor registration are also deleted
 #
-def delete_sensor(username, devicename, xxx, number, sensorname, sensor):
+def sensor_cleanup(username, devicename, deviceid, xxx, number, sensorname, sensor):
 
     print("\r\ndelete_sensor {}".format(sensorname))
     address = None
@@ -3556,42 +3571,54 @@ def delete_sensor(username, devicename, xxx, number, sensorname, sensor):
     # delete sensor notifications
     print("Deleting sensor notifications...")
     source = "{}{}{}".format(xxx, number, sensorname)
-    notification = g_database_client.get_device_notification(username, devicename, source)
-    print(notification)
-    g_database_client.delete_device_notification_sensor(username, devicename, source)
-    notification = g_database_client.get_device_notification(username, devicename, source)
-    print(notification)
-    print("")
+    #notification = g_database_client.get_device_notification(username, devicename, source)
+    #print(notification)
+    if deviceid:
+        g_database_client.delete_device_notification_sensor_by_deviceid(deviceid, source)
+    else:
+        g_database_client.delete_device_notification_sensor(username, devicename, source)
+    #notification = g_database_client.get_device_notification(username, devicename, source)
+    #print(notification)
+    #print("")
 
     # delete sensor configurations
     print("Deleting sensor configurations...")
-    config = g_database_client.get_device_peripheral_configuration(username, devicename, xxx, int(number), address)
-    print(config)
-    g_database_client.delete_device_peripheral_configuration(username, devicename, xxx, int(number), address)
-    config = g_database_client.get_device_peripheral_configuration(username, devicename, xxx, int(number), address)
-    print(config)
-    print("")
+    #config = g_database_client.get_device_peripheral_configuration(username, devicename, xxx, int(number), address)
+    #print(config)
+    if deviceid:
+        g_database_client.delete_device_peripheral_configuration_by_deviceid(deviceid, xxx, int(number), address)
+    else:
+        g_database_client.delete_device_peripheral_configuration(username, devicename, xxx, int(number), address)
+    #config = g_database_client.get_device_peripheral_configuration(username, devicename, xxx, int(number), address)
+    #print(config)
+    #print("")
 
     # delete sensor readings
     print("Deleting sensor readings...")
     source = "{}{}".format(xxx, number)
-    readings = g_database_client.get_sensor_reading(username, devicename, source, address)
-    print(readings)
-    readings_dataset = g_database_client.get_sensor_reading_dataset(username, devicename, source, address)
-    print(readings_dataset)
-    g_database_client.delete_sensor_reading(username, devicename, source, address)
-    readings = g_database_client.get_sensor_reading(username, devicename, source, address)
-    print(readings)
-    readings_dataset = g_database_client.get_sensor_reading_dataset(username, devicename, source, address)
-    print(readings_dataset)
-    print("")
+    #readings = g_database_client.get_sensor_reading(username, devicename, source, address)
+    #print(readings)
+    #readings_dataset = g_database_client.get_sensor_reading_dataset(username, devicename, source, address)
+    #print(readings_dataset)
+    if deviceid:
+        g_database_client.delete_sensor_reading_by_deviceid(deviceid, source, address)
+    else:
+        g_database_client.delete_sensor_reading(username, devicename, source, address)
+    #readings = g_database_client.get_sensor_reading(username, devicename, source, address)
+    #print(readings)
+    #readings_dataset = g_database_client.get_sensor_reading_dataset(username, devicename, source, address)
+    #print(readings_dataset)
+    #print("")
 
     # delete sensor from database
     print("Deleting sensor registration...")
-    g_database_client.delete_sensor(username, devicename, xxx, number, sensorname)
-    result = g_database_client.get_sensor(username, devicename, xxx, number, sensorname)
-    print(result)
-    print("")
+    if deviceid:
+        g_database_client.delete_sensor_by_deviceid(deviceid, xxx, number, sensorname)
+    else:
+        g_database_client.delete_sensor(username, devicename, xxx, number, sensorname)
+    #result = g_database_client.get_sensor(username, devicename, xxx, number, sensorname)
+    #print(result)
+    #print("")
 
 
 ########################################################################################################
@@ -3757,7 +3784,7 @@ def register_xxx_sensor(devicename, xxx, number, sensorname):
             return response, status.HTTP_404_NOT_FOUND
 
         # delete necessary sensor-related database information
-        delete_sensor(username, devicename, xxx, number, sensorname, sensor)
+        sensor_cleanup(username, devicename, None, xxx, number, sensorname, sensor)
 
         msg = {'status': 'OK', 'message': 'Sensor unregistered successfully.'}
         if new_token:
