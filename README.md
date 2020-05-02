@@ -1086,7 +1086,7 @@ Note: Using Kubernetes will also change the infrastracture.
        A. Create a t2.micro instance of Amazon Linux (or Ubuntu 16.04 if not using Docker)
        B. Dowload "Private key file for authentication" for SSH access
        C. Copy the "IPv4 Public IP" address
-       D. Enable ports: 22 (SSH), 8883 (MQTTS), 5671 (AMQPS), 443 (HTTPS), 8080 (Jenkins)
+       D. Enable ports: 22 (SSH), 8883 (MQTTS), 443 (HTTPS)
 
        // PUTTY setup (for SSH console access)
        A. Create PPK file from the PEM file downloaded from EC2 using PuttyGEN
@@ -1618,6 +1618,7 @@ Note: Using Kubernetes will also change the infrastracture.
        Update value of JENKINS_USER to "ec2-user"
        Update value of JENKINS_ARGS to "-Dmail.smtp.starttls.enable=true"
        Add JENKINS_JAVA_OPTIONS with "-Dmail.smtp.starttls.enable=true"
+       ESC
        :x
        sudo chown -R ec2-user:ec2-user /var/lib/jenkins
        sudo chown -R ec2-user:ec2-user /var/cache/jenkins
@@ -1797,6 +1798,9 @@ Notes:
 
 ### Troubleshooting CPU usage
 
+        Issues:
+        One of the CPU usage issues is caused by beam.smp
+
         Tools:
         1. AWS Cloudwatch
         2. Putty SSH
@@ -1817,6 +1821,11 @@ Notes:
            Revert the permission of the device.
            Revert the topic permission of the device.
            Revert the password.
+
+### Troubleshooting Disk usage
+
+        df
+        sudo du -x -h / | sort -h | tail -40
 
 ### Troubleshooting Docker logs
 
