@@ -21,7 +21,7 @@ angular.module('app.routes', [])
     controller: 'home2Ctrl'
   })
 
-  .state('menu.devices', {
+  .state('menu.gateways', {
     url: '/page_devices',
 	params: {
 		username: "",
@@ -30,8 +30,8 @@ angular.module('app.routes', [])
 },
     views: {
       'side-menu21': {
-        templateUrl: 'templates/devices.html',
-        controller: 'devicesCtrl'
+        templateUrl: 'templates/gateways.html',
+        controller: 'gatewaysCtrl'
       }
     }
   })
@@ -215,42 +215,28 @@ angular.module('app.routes', [])
     }
   })
 
-  .state('menu.helpSupport', {
-    url: '/page_help',
+  .state('addGateway', {
+    url: '/page_register_gateway',
 	params: {
 		username: "",
 		token: ""		
 },
-    views: {
-      'side-menu21': {
-        templateUrl: 'templates/helpSupport.html',
-        controller: 'helpSupportCtrl'
-      }
-    }
+    templateUrl: 'templates/addGateway.html',
+    controller: 'addGatewayCtrl'
   })
 
-  .state('addDevice', {
-    url: '/page_register_device',
+  .state('addGatewayGroup', {
+    url: '/page_add_gatewatgroup',
 	params: {
 		username: "",
 		token: ""		
 },
-    templateUrl: 'templates/addDevice.html',
-    controller: 'addDeviceCtrl'
+    templateUrl: 'templates/addGatewayGroup.html',
+    controller: 'addGatewayGroupCtrl'
   })
 
-  .state('addDeviceGroup', {
-    url: '/page_add_devicegroup',
-	params: {
-		username: "",
-		token: ""		
-},
-    templateUrl: 'templates/addDeviceGroup.html',
-    controller: 'addDeviceGroupCtrl'
-  })
-
-  .state('viewDevice', {
-    url: '/page_view_device',
+  .state('viewGateway', {
+    url: '/page_view_gateway',
 	params: {
 		username: "",
 		token: "",
@@ -262,23 +248,23 @@ angular.module('app.routes', [])
 		version: "",
 		poemacaddress: ""		
 },
-    templateUrl: 'templates/viewDevice.html',
-    controller: 'viewDeviceCtrl'
+    templateUrl: 'templates/viewGateway.html',
+    controller: 'viewGatewayCtrl'
   })
 
-  .state('deviceGroup', {
+  .state('updateGatewayGroup', {
     url: '/page_device_group',
 	params: {
 		username: "",
 		token: "",
 		devicegroupname: ""		
 },
-    templateUrl: 'templates/deviceGroup.html',
-    controller: 'deviceGroupCtrl'
+    templateUrl: 'templates/updateGatewayGroup.html',
+    controller: 'updateGatewayGroupCtrl'
   })
 
-  .state('deviceLocation', {
-    url: '/page_view_device_location',
+  .state('gatewayLocation', {
+    url: '/page_view_gateway_location',
 	params: {
 		username: "",
 		token: "",
@@ -289,8 +275,8 @@ angular.module('app.routes', [])
 		deviceversion: "",
 		location: ""		
 },
-    templateUrl: 'templates/deviceLocation.html',
-    controller: 'deviceLocationCtrl'
+    templateUrl: 'templates/gatewayLocation.html',
+    controller: 'gatewayLocationCtrl'
   })
 
   .state('oTAFirmwareUpdate', {
@@ -310,7 +296,7 @@ angular.module('app.routes', [])
     controller: 'oTAFirmwareUpdateCtrl'
   })
 
-  .state('deviceGeneralSettings', {
+  .state('gatewayGeneralSettings', {
     url: '/page_device_general_settings',
 	params: {
 		username: "",
@@ -322,12 +308,12 @@ angular.module('app.routes', [])
 		heartbeat: "",
 		version: ""		
 },
-    templateUrl: 'templates/deviceGeneralSettings.html',
-    controller: 'deviceGeneralSettingsCtrl'
+    templateUrl: 'templates/gatewayGeneralSettings.html',
+    controller: 'gatewayGeneralSettingsCtrl'
   })
 
-  .state('device', {
-    url: '/page_control_device',
+  .state('gateway', {
+    url: '/page_gateway',
 	params: {
 		devicename: "",
 		username: "",
@@ -339,8 +325,8 @@ angular.module('app.routes', [])
 		location: "",
 		poemacaddress: ""		
 },
-    templateUrl: 'templates/device.html',
-    controller: 'deviceCtrl'
+    templateUrl: 'templates/gateway.html',
+    controller: 'gatewayCtrl'
   })
 
   .state('menu.sensorDashboard', {

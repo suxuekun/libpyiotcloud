@@ -23,6 +23,13 @@ from jose import jwk, jwt
 #from redis_client import redis_client
 #import statistics
 import rest_api_utils
+import pycountry
+import phonenumbers
+from phonenumbers import carrier
+from phonenumbers.phonenumberutil import (
+    region_code_for_country_code,
+    region_code_for_number,
+)
 
 
 
@@ -272,7 +279,7 @@ class identity_authentication:
 
         data = flask.request.get_json()
         email = data['email']
-        if data.get("phone_number"):
+        if data.get("phone_number") is not None:
             phonenumber = data['phone_number']
         else:
             phonenumber = None
@@ -301,6 +308,18 @@ class identity_authentication:
                 print('\r\nERROR Signup: Phone number format is invalid [{}]\r\n'.format(phonenumber))
                 return response, status.HTTP_400_BAD_REQUEST
 
+            # verify phone number using phonenumbers library
+            try:
+                if phonenumber is not None and phonenumber != "":
+                    x = phonenumbers.parse(phonenumber, None)
+                    if phonenumbers.is_possible_number(x) == False or phonenumbers.is_valid_number(x) == False:
+                        response = json.dumps({'status': 'NG', 'message': 'Phone number is not valid'})
+                        print('\r\nERROR Signup: Phone number is not valid [{}]\r\n'.format(phonenumber))
+                        return response, status.HTTP_400_BAD_REQUEST
+            except:
+                response = json.dumps({'status': 'NG', 'message': 'Phone number is not valid'})
+                print('\r\nERROR Signup: Phone number is not valid [{}]\r\n'.format(phonenumber))
+                return response, status.HTTP_400_BAD_REQUEST
 
             if CONFIG_ALLOW_LOGIN_VIA_PHONE_NUMBER:
                 # since login via phone_number is now allowed,
@@ -616,6 +635,7 @@ class identity_authentication:
     #   {'status': 'OK', 'message': string, 
     #    'info': {'name': string, 'email': string, 'phone_number': string, 'email_verified': boolean, 'phone_number_verified': boolean} }
     #   // phone_number and phone_number_verified are not included if no phone_number has been added yet
+    #   // phone_number_country, phone_number_isocode and phone_number_carrier is included only if phone_number has been verified
     #   {'status': 'NG', 'message': string}
     #
     ########################################################################################################
@@ -660,28 +680,46 @@ class identity_authentication:
             info = self.database_client.get_user_info(token['access'])
 
         # handle no family name
-        if 'identities' in info:
-            identity = json.loads(info['identities'].strip(']['))
-            info['identity'] = { 'providerName': identity['providerName'], 'userId': identity['userId'] }
-            info.pop('identities')
-        if 'given_name' in info:
-            info['name'] = info['given_name']
-            info.pop('given_name')
-        if 'family_name' in info:
-            if info['family_name'] != "NONE":
-                # do not append family name if login with amazon
-                if 'identity' in info:
-                    if info['identity']['providerName'] != 'LoginWithAmazon':
+        if info is not None:
+            if 'identities' in info:
+                identity = json.loads(info['identities'].strip(']['))
+                info['identity'] = { 'providerName': identity['providerName'], 'userId': identity['userId'] }
+                info.pop('identities')
+            if 'given_name' in info:
+                info['name'] = info['given_name']
+                info.pop('given_name')
+            if 'family_name' in info:
+                if info['family_name'] != "NONE":
+                    # do not append family name if login with amazon
+                    if 'identity' in info:
+                        if info['identity']['providerName'] != 'LoginWithAmazon':
+                            info['name'] += " " + info['family_name']
+                    else:
                         info['name'] += " " + info['family_name']
-                else:
-                    info['name'] += " " + info['family_name']
-            info.pop('family_name')
+                info.pop('family_name')
 
-        # add username to info for Login via Social IDP (Facebook, Google, Amazon)
-        info['username'] = username
+            # add the country deducted from the phone number
+            try:
+                if 'phone_number' in info:
+                    if 'phone_number_verified' in info:
+                        if info['phone_number_verified'] == True:
+                            pn = phonenumbers.parse(info['phone_number'])
+                            isocode = region_code_for_country_code(pn.country_code)
+                            country = pycountry.countries.get(alpha_2=isocode)
+                            info['phone_number_country'] = country.name
+                            info['phone_number_isocode'] = isocode
+                            info['phone_number_carrier'] = carrier.name_for_number(pn, "en")
+            except Exception as e:
+                print(e)
+                pass
+
+            # add username to info for Login via Social IDP (Facebook, Google, Amazon)
+            info['username'] = username
 
 
-        msg = {'status': 'OK', 'message': 'Userinfo queried successfully.', 'info': info}
+        msg = {'status': 'OK', 'message': 'Userinfo queried successfully.'}
+        if info:
+            msg['info'] = info
         if new_token:
             msg['new_token'] = new_token
         response = json.dumps(msg)
@@ -873,9 +911,23 @@ class identity_authentication:
                 # since login via phone_number is now allowed,
                 # the phone_number must be unique,
                 # so check if phone_number is already taken or not
-                if self.database_client.get_username_by_phonenumber(info["phone_number"]) is not None:
-                    response = json.dumps({'status': 'NG', 'message': 'Phone number is already registered to another user'})
-                    print('\r\nERROR Signup: Phone number is already registered to another user [{}]\r\n'.format(info["phone_number"]))
+                if info.get("phone_number") is not None:
+                    if self.database_client.get_username_by_phonenumber(info["phone_number"]) is not None:
+                        response = json.dumps({'status': 'NG', 'message': 'Phone number is already registered to another user'})
+                        print('\r\nERROR Verify phone: Phone number is already registered to another user [{}]\r\n'.format(info["phone_number"]))
+                        return response, status.HTTP_400_BAD_REQUEST
+
+                # verify phone number using phonenumbers library
+                try:
+                    if info["phone_number"] is not None and info["phone_number"] != "":
+                        x = phonenumbers.parse(info["phone_number"], None)
+                        if phonenumbers.is_possible_number(x) == False or phonenumbers.is_valid_number(x) == False:
+                            response = json.dumps({'status': 'NG', 'message': 'Phone number is not valid'})
+                            print('\r\nERROR Verify phone: Phone number is not valid [{}]\r\n'.format(info["phone_number"]))
+                            return response, status.HTTP_400_BAD_REQUEST
+                except:
+                    response = json.dumps({'status': 'NG', 'message': 'Phone number is not valid'})
+                    print('\r\nERROR Verify phone: Phone number is not valid [{}]\r\n'.format(info["phone_number"]))
                     return response, status.HTTP_400_BAD_REQUEST
 
 
@@ -1248,10 +1300,23 @@ class identity_authentication:
 
         # get the input parameters
         data = flask.request.get_json()
-        if data.get('phone_number'):
+        if data.get('phone_number') is not None:
             phonenumber = data['phone_number']
         else:
             phonenumber = None
+
+        # verify phone number using phonenumbers library
+        try:
+            if phonenumber is not None and phonenumber != "":
+                x = phonenumbers.parse(phonenumber, None)
+                if phonenumbers.is_possible_number(x) == False or phonenumbers.is_valid_number(x) == False:
+                    response = json.dumps({'status': 'NG', 'message': 'Phone number is not valid'})
+                    print('\r\nERROR Update user: Phone number is not valid [{}]\r\n'.format(phonenumber))
+                    return response, status.HTTP_400_BAD_REQUEST
+        except:
+            response = json.dumps({'status': 'NG', 'message': 'Phone number is not valid'})
+            print('\r\nERROR Update user: Phone number is not valid [{}]\r\n'.format(phonenumber))
+            return response, status.HTTP_400_BAD_REQUEST
 
 
         if CONFIG_ALLOW_LOGIN_VIA_PHONE_NUMBER:
@@ -1260,7 +1325,7 @@ class identity_authentication:
             # so check if phone_number is already taken or not
             if self.database_client.get_username_by_phonenumber(phonenumber) is not None:
                 response = json.dumps({'status': 'NG', 'message': 'Phone number is already registered to another user'})
-                print('\r\nERROR Signup: Phone number is already registered to another user [{}]\r\n'.format(phonenumber))
+                print('\r\nERROR Update user: Phone number is already registered to another user [{}]\r\n'.format(phonenumber))
                 return response, status.HTTP_400_BAD_REQUEST
 
 

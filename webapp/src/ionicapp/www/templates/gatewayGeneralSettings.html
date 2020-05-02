@@ -1,0 +1,38 @@
+<ion-view title="Gateway General Settings" hide-back-button="true" nav-transition="none" id="page51" style="background-color:#FFFFFF;" class="page_width">
+  <ion-nav-buttons side="left" class="has-header">
+    <button class="button button-icon icon ion-android-close" ng-click="exitPage()"></button>
+  </ion-nav-buttons>
+  <ion-nav-buttons side="right" class="has-header">
+    <button class="button button-positive icon ion-refresh" ng-click="getSettings(data.devicename)"></button>
+  </ion-nav-buttons>
+  <ion-content padding="true" class="has-header">
+    <div class="spacer" style="height: 12px;"></div>
+    <div id="gatewayGeneralSettings-markdown182" style="text-align:center;" class="show-list-numbers-and-dots">
+      <p style="color:#3C5A99;font-size:18px;">
+        <strong> {{ data.devicename }} </strong>
+      </p>
+    </div>
+    <form id="gatewayGeneralSettings-form184" class="list">
+      <div id="gatewayGeneralSettings-markdown309" class="show-list-numbers-and-dots"></div>
+      <div class="spacer" style="width: 300px; height: 10px;"></div>
+    </form>
+    <form id="gatewayGeneralSettings-form185" class="list">
+      <div id="gatewayGeneralSettings-markdown361" class="show-list-numbers-and-dots"></div>
+      <div id="gatewayGeneralSettings-markdown364" class="show-list-numbers-and-dots">
+        <p style="color:#444444;">Sensor settings</p>
+      </div>
+      <label class="item item-input" id="gatewayGeneralSettings-input142">
+        <span class="input-label">Publish rate (sec)</span>
+        <input type="number" placeholder="" ng-model="settings.sensorrate">
+      </label>
+    </form>
+    <form id="gatewayGeneralSettings-form186" class="list">
+      <div id="gatewayGeneralSettings-markdown370" class="show-list-numbers-and-dots"></div>
+      <button id="gatewayGeneralSettings-button113" ng-click="setSettings(data.devicename)" class="button button-positive button-block">Apply</button>
+    </form>
+    <form id="gatewayGeneralSettings-form187" class="list">
+      <div id="gatewayGeneralSettings-markdown334" class="show-list-numbers-and-dots"></div>
+      <button id="gatewayGeneralSettings-button127" ng-click="deleteProperties(data.devicename)" class="button button-positive button-block button-outline">Reset Sensor Configurations</button>
+    </form>
+  </ion-content>
+</ion-view>

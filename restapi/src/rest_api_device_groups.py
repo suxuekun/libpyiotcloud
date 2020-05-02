@@ -87,6 +87,16 @@ class device_groups:
 
         devicegroups = self.database_client.get_devicegroups(username)
 
+        # update the devicenames to be deviceids
+        if devicegroups:
+            for devicegroup in devicegroups:
+                devicenames = []
+                for deviceid in devicegroup['devices']:
+                    device = self.database_client.find_device_by_id(deviceid)
+                    if device:
+                        devicenames.append(device["devicename"])
+                devicegroup['devices'] = devicenames
+
 
         msg = {'status': 'OK', 'message': 'Device groups queried successfully.', 'devicegroups': devicegroups}
         if new_token:
@@ -168,19 +178,45 @@ class device_groups:
 
 
         if flask.request.method == 'GET':
+
             msg = {'status': 'OK', 'message': 'Device group retrieved successfully.'}
+
+            # get device group if exist
             msg['devicegroup'] = self.database_client.get_devicegroup(username, devicegroupname)
+            if msg['devicegroup'] is None:
+                response = json.dumps({'status': 'NG', 'message': 'Device group not found'})
+                print('\r\nERROR Get/Add/Delete DeviceGroup: Device group not found [{},{}]\r\n'.format(username, devicegroupname))
+                return response, status.HTTP_404_NOT_FOUND
+
+            # update the devicenames to be deviceids
+            devicenames = []
+            for deviceid in msg['devicegroup']['devices']:
+                device = self.database_client.find_device_by_id(deviceid)
+                if device:
+                    devicenames.append(device["devicename"])
+            msg['devicegroup']['devices'] = devicenames
 
         elif flask.request.method == 'POST':
+
+            # check device group if exist
             if self.database_client.get_devicegroup(username, devicegroupname) is not None:
                 response = json.dumps({'status': 'NG', 'message': 'Device group name is already used'})
                 print('\r\nERROR Get/Add/Delete DeviceGroup: Name is already used [{},{}]\r\n'.format(username, devicegroupname))
                 return response, status.HTTP_409_CONFLICT
 
+            # create device group
             msg = {'status': 'OK', 'message': 'Device group added successfully.'}
             self.database_client.add_devicegroup(username, devicegroupname)
 
         elif flask.request.method == 'DELETE':
+
+            # check device group if exist
+            if self.database_client.get_devicegroup(username, devicegroupname) is None:
+                response = json.dumps({'status': 'NG', 'message': 'Device group not found'})
+                print('\r\nERROR Get/Add/Delete DeviceGroup: Device group not found [{},{}]\r\n'.format(username, devicegroupname))
+                return response, status.HTTP_404_NOT_FOUND
+
+            # delete device group
             msg = {'status': 'OK', 'message': 'Device group deleted successfully.'}
             self.database_client.delete_devicegroup(username, devicegroupname)
 
@@ -334,9 +370,24 @@ class device_groups:
             return response, status.HTTP_401_UNAUTHORIZED
 
 
+        # check if device is registered
+        device = self.database_client.find_device(username, devicename)
+        if not device:
+            response = json.dumps({'status': 'NG', 'message': 'Device is not registered'})
+            print('\r\nERROR Add/Delete Device To/From DeviceGroup: Device is not registered [{},{}]\r\n'.format(username, devicename))
+            return response, status.HTTP_404_NOT_FOUND
+
+        # check if device group is registered
+        if self.database_client.get_devicegroup(username, devicegroupname) is None:
+            response = json.dumps({'status': 'NG', 'message': 'Device group is not registered'})
+            print('\r\nERROR Add/Delete Device To/From DeviceGroup: Device group is not registered [{},{}]\r\n'.format(username, devicegroupname))
+            return response, status.HTTP_404_NOT_FOUND
+
         if flask.request.method == 'POST':
             msg = {'status': 'OK', 'message': 'Device added to device group successfully.'}
-            result = self.database_client.add_device_to_devicegroup(username, devicegroupname, devicename)
+
+            # add device to device group
+            result = self.database_client.add_device_to_devicegroup(username, devicegroupname, device['deviceid'])
             if result == False:
                 response = json.dumps({'status': 'NG', 'message': 'Device already in device group'})
                 print('\r\nERROR Add/Delete Device To/From DeviceGroup: Device already in device group\r\n')
@@ -344,7 +395,9 @@ class device_groups:
 
         elif flask.request.method == 'DELETE':
             msg = {'status': 'OK', 'message': 'Device removed from device group successfully.'}
-            self.database_client.remove_device_from_devicegroup(username, devicegroupname, devicename)
+
+            # remove device from device group
+            self.database_client.remove_device_from_devicegroup(username, devicegroupname, device['deviceid'])
 
 
         print('\r\n%s: {}\r\n{}\r\n'.format(username, msg["message"]))
@@ -409,7 +462,15 @@ class device_groups:
             print('\r\nERROR Add/Delete Device To/From DeviceGroup: Parameters not included [{},{}]\r\n'.format(username, devicegroupname))
             return response, status.HTTP_400_BAD_REQUEST
 
-        self.database_client.set_devices_to_devicegroup(username, devicegroupname, data["devices"])
+
+        # get the deviceids given the devicenames
+        deviceids = []
+        for devicename in data["devices"]:
+            device = self.database_client.find_device(username, devicename)
+            if device:
+                deviceids.append(device["deviceid"])
+
+        self.database_client.set_devices_to_devicegroup(username, devicegroupname, deviceids)
         msg = {'status': 'OK', 'message': 'Devices set to device group successfully.'}
 
 
