@@ -21,7 +21,7 @@ services:
       - '--storage.tsdb.path=/prometheus'
       - '--web.console.libraries=/etc/prometheus/console_libraries'
       - '--web.console.templates=/etc/prometheus/consoles'
-      - '--storage.tsdb.retention.time=24h'
+      - '--storage.tsdb.retention.time=12h'
       - '--web.enable-lifecycle'
     restart: unless-stopped
     expose:
