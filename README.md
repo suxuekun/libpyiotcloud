@@ -1622,7 +1622,7 @@ Note: Using Kubernetes will also change the infrastracture.
        :x
        sudo chown -R ec2-user:ec2-user /var/lib/jenkins
        sudo chown -R ec2-user:ec2-user /var/cache/jenkins
-       sudo chown -R ec2-user:ec2-user /var/log/jenkins       
+       sudo chown -R ec2-user:ec2-user /var/log/jenkins
        sudo service jenkins restart
        
        Access http://<ec2-hostname-or-ipaddress>:<port>
