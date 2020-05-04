@@ -68,7 +68,7 @@ services:
       - CONFIG_USE_MONGODB_PASS
       - CONFIG_USE_MONGODB_ATLAS
     volumes:
-      - "promtail-data:/var/log"
+      - /var/log:/var/log
   webapp:
     build: 
       context: ./webapp
@@ -137,7 +137,7 @@ services:
       - CONFIG_USE_MONGODB_USER
       - CONFIG_USE_MONGODB_PASS
     volumes:
-      - "promtail-data:/var/log"
+      - /var/log:/var/log
   invoice:
     build: ./invoice
     restart: always
@@ -163,7 +163,7 @@ services:
       - AWS_COGNITO_USERPOOL_REGION
       - CONFIG_USE_APIURL
     volumes:
-      - "promtail-data:/var/log"
+      - /var/log:/var/log
   history:
     build: ./history
     restart: always
@@ -179,7 +179,7 @@ services:
       - CONFIG_USE_MONGODB_USER
       - CONFIG_USE_MONGODB_PASS
     volumes:
-      - "promtail-data:/var/log"
+      - /var/log:/var/log
   sensor:
     build: ./sensor
     restart: always
@@ -196,7 +196,7 @@ services:
       - CONFIG_USE_MONGODB_PASS
       - CONFIG_USE_MONGODB_ATLAS
     volumes:
-      - "promtail-data:/var/log"
+      - /var/log:/var/log
   configuration:
     build: ./configuration
     restart: always
@@ -212,7 +212,7 @@ services:
       - CONFIG_USE_MONGODB_USER
       - CONFIG_USE_MONGODB_PASS
     volumes:
-      - "promtail-data:/var/log"
+      - /var/log:/var/log
   registration:
     build: ./registration
     restart: always
@@ -228,7 +228,7 @@ services:
       - CONFIG_USE_MONGODB_USER
       - CONFIG_USE_MONGODB_PASS
     volumes:
-      - "promtail-data:/var/log"
+      - /var/log:/var/log
   ota:
     build: ./ota
     restart: always
@@ -251,7 +251,7 @@ services:
       - CONFIG_USE_MONGODB_USER
       - CONFIG_USE_MONGODB_PASS
     volumes:
-      - "promtail-data:/var/log"
+      - /var/log:/var/log
   loki:
     image: grafana/loki:1.4.1
     container_name: loki
@@ -266,7 +266,6 @@ services:
     image: grafana/promtail:1.4.1
     container_name: promtail
     volumes:
-      - "promtail-data:/var/log"
       - /var/log:/var/log
     command: -config.file=/etc/promtail/docker-config.yaml
     networks:
@@ -280,6 +279,4 @@ volumes:
   mongodb-data:
     driver: local
   redis-data:
-    driver: local
-  promtail-data:
     driver: local
