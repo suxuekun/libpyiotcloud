@@ -663,11 +663,25 @@ DETAILED:
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
 		   {'status': 'OK', 'message': string, 
-		    'info': {'name': string, 'email': string, 'phone_number': string, 'email_verified': boolean, 'phone_number_verified': boolean, 'identity': {'providerName': string, 'userId': string}, 'username': string} }
+		    'info': {'name': string, 
+		             'email': string, 
+		             'email_verified': boolean, 
+		             'phone_number': string, 
+		             'phone_number_verified': boolean, 
+		             'phone_number_country': string, 
+		             'phone_number_isocode': string, 
+		             'phone_number_carrier': string, 
+		             'identity': {'providerName': string, 'userId': string}, 'username': string} }
 		   // phone_number and phone_number_verified are not included if no phone_number has been added yet
 		   // phone_number can be added using SIGN UP or UPDATE USER INFO
 		   // phone_number_verified will return true once it has been verified using VERIFY PHONE NUMBER and CONFIRM VERIFY PHONE NUMBER
 		   // identity is optional and appears only when user logged in using social identity provider like Facebook
+		   // phone_number_country refers to the country of the phone number
+		   //   phone_number_country is optional and appears only when user has provided and verified his phone number
+		   // phone_number_isocode refers to the 2-character ISO code of the country (ex. US for United States of America, PH for Philippines, SG for Singapore)
+		   //   phone_number_isocode is optional and appears only when user has provided and verified his phone number
+		   // phone_number_carrier refers to the network carrier of the phone number
+		   //   phone_number_carrier is optional and appears only when user has provided and verified his phone number
 		   {'status': 'NG', 'message': string}
 
 		I. UPDATE USER INFO
