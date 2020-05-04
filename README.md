@@ -1845,6 +1845,13 @@ Notes:
         docker ps
         sudo service docker start
 
+        Cant stop a container?
+        docker stop container_name
+        docker rm container_name
+        docker kill container_name
+        sudo service docker stop
+        sudo service docker start
+
         RabbitMQ message queue
         - Use the Web interface (via HTTP)
 
