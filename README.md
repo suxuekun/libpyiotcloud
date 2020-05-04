@@ -1840,6 +1840,11 @@ Notes:
 
 ### Troubleshooting
 
+        After restart AWS EC2 instance in AWS console:
+        df
+        docker ps
+        sudo service docker start
+
         RabbitMQ message queue
         - Use the Web interface (via HTTP)
 
