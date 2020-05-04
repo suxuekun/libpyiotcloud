@@ -67,8 +67,6 @@ services:
       - CONFIG_USE_MONGODB_USER
       - CONFIG_USE_MONGODB_PASS
       - CONFIG_USE_MONGODB_ATLAS
-    volumes:
-      - /var/log:/var/log
   webapp:
     build: 
       context: ./webapp
@@ -136,8 +134,6 @@ services:
       - AWS_S3_BUCKET
       - CONFIG_USE_MONGODB_USER
       - CONFIG_USE_MONGODB_PASS
-    volumes:
-      - /var/log:/var/log
   invoice:
     build: ./invoice
     restart: always
@@ -162,8 +158,6 @@ services:
       - AWS_COGNITO_USERPOOL_ID
       - AWS_COGNITO_USERPOOL_REGION
       - CONFIG_USE_APIURL
-    volumes:
-      - /var/log:/var/log
   history:
     build: ./history
     restart: always
@@ -178,8 +172,6 @@ services:
       - CONFIG_USE_MQTT_DEFAULT_PASS
       - CONFIG_USE_MONGODB_USER
       - CONFIG_USE_MONGODB_PASS
-    volumes:
-      - /var/log:/var/log
   sensor:
     build: ./sensor
     restart: always
@@ -195,8 +187,6 @@ services:
       - CONFIG_USE_MONGODB_USER
       - CONFIG_USE_MONGODB_PASS
       - CONFIG_USE_MONGODB_ATLAS
-    volumes:
-      - /var/log:/var/log
   configuration:
     build: ./configuration
     restart: always
@@ -211,8 +201,6 @@ services:
       - CONFIG_USE_MQTT_DEFAULT_PASS
       - CONFIG_USE_MONGODB_USER
       - CONFIG_USE_MONGODB_PASS
-    volumes:
-      - /var/log:/var/log
   registration:
     build: ./registration
     restart: always
@@ -227,8 +215,6 @@ services:
       - CONFIG_USE_MQTT_DEFAULT_PASS
       - CONFIG_USE_MONGODB_USER
       - CONFIG_USE_MONGODB_PASS
-    volumes:
-      - /var/log:/var/log
   ota:
     build: ./ota
     restart: always
@@ -250,26 +236,6 @@ services:
       - AWS_S3_FILE_FIRMWARE_UPDATES
       - CONFIG_USE_MONGODB_USER
       - CONFIG_USE_MONGODB_PASS
-    volumes:
-      - /var/log:/var/log
-  loki:
-    image: grafana/loki:1.4.1
-    container_name: loki
-    ports:
-      - "3100:3100"
-    expose:
-      - "3100"
-    command: -config.file=/etc/loki/local-config.yaml
-    networks:
-      - mydockernet
-  promtail:
-    image: grafana/promtail:1.4.1
-    container_name: promtail
-    volumes:
-      - /var/log:/var/log
-    command: -config.file=/etc/promtail/docker-config.yaml
-    networks:
-      - mydockernet
 networks:
   mydockernet:
     driver: bridge
