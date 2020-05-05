@@ -32,6 +32,7 @@ _client_simulator
 _client_simulator/__pycache__
 redis/src/*
 webapp/src/ionicapp/www/js/env.js
+get_logs.py
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
