@@ -19145,18 +19145,60 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         'orgname': ''
     };
     
-    $scope.section = parseInt($stateParams.section, 10);
+    console.log($state.params.section);
+    console.log($stateParams.section);
+    $scope.section = parseInt($state.params.section, 10);
+    $scope.organizations = null;
     $scope.organization = null;
+    $scope.activeorg = 0;
     $scope.groups = null;
     $scope.policies = null;
     
     
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Get organizations
     // Get organization
     // Create organization
     // Delete organization
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    
+
+    $scope.updateOrganizations = function() {
+        let param = {
+            'username': User.get_username(),
+            'token': User.get_token()
+        };
+        $state.go('updateOrganizations', param, {reload:true} );            
+    };
+
+/*
+    $scope.getOrganizations = function() {
+        Organizations.get_all($scope.data).then(function(res) {
+            if (res.organizations !== undefined) {
+                $scope.organizations = res.organizations;
+
+                var activeOrg = 0;
+                if ($scope.organizations !== undefined) {
+                    for (var indexy=0; indexy<$scope.organizations.length; indexy++) {
+                        $scope.organizations[indexy].id = indexy;
+                        
+                        // save if the active organization
+                        if ($scope.organizations[indexy].active !== undefined) {
+                            if ($scope.organizations[indexy].active === 1) {
+                                activeOrg = indexy;
+                            }
+                        }
+                    }
+                    if ($scope.organizations.length > 0) {
+                        $scope.activeorg = activeOrg;
+                        console.log($scope.organizations[activeOrg].orgname);
+                        $scope.getOrganization();
+                    }
+                }
+            }
+        });
+    };
+*/
+
     $scope.getOrganization = function() {
         Organizations.get($scope.data).then(function(res) {
             if (res.organization !== undefined) {
@@ -19180,7 +19222,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
     };
     
     $scope.createOrganization = function() {
-        console.log('createOrganization');
+        console.log('setActiveOrganization');
         if ($scope.data.orgname === '') {
             $ionicPopup.alert({title: 'Create Organization', template: 'Organization name is empty!'});
             return;
@@ -19197,7 +19239,11 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                             text: 'Yes',
                             type: 'button-positive',
                             onTap: function(e) {
+                                $scope.organizations = null;
+                                $scope.activeorg = 0;
                                 $scope.organization = null;
+                                $scope.groups = null;
+                                $scope.policies = null;
                                 $scope.getOrganization();
                             }
                         }
@@ -19240,7 +19286,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             return;
         }
         
-        Organizations.delete($scope.data, $scope.organization.orgname).then(function(res) {
+        Organizations.delete($scope.data).then(function(res) {
             if (res.status === 'OK') {
                  $ionicPopup.alert({
                     title: 'Delete Organization',
@@ -19250,6 +19296,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                             text: 'Yes',
                             type: 'button-positive',
                             onTap: function(e) {
+                                $scope.organizations = null;
+                                $scope.activeorg = 0;
                                 $scope.organization = null;
                                 $scope.groups = null;
                                 $scope.policies = null;
@@ -19313,7 +19361,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
 
     $scope.removeMembershipsAction = function(emails) {
         console.log(emails);
-        Organizations.update_membership($scope.data, $scope.organization.orgname, emails, remove=1).then(function(res) {
+        Organizations.update_membership($scope.data, emails, remove=1).then(function(res) {
             if (res.status === 'OK') {
                 $ionicPopup.alert({
                     title: 'Remove Membership',
@@ -19379,7 +19427,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
    
     $scope.cancelInvitationAction = function(emails) {
         console.log(emails);
-        Organizations.create_invitation($scope.data, $scope.organization.orgname, emails, cancel=1).then(function(res) {
+        Organizations.create_invitation($scope.data, emails, cancel=1).then(function(res) {
             if (res.status === 'OK') {
                 $ionicPopup.alert({
                     title: 'Cancel Invitation',
@@ -19471,7 +19519,11 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                             text: 'Yes',
                             type: 'button-positive',
                             onTap: function(e) {
+                                $scope.organizations = null;
+                                $scope.activeorg = 0;
                                 $scope.organization = null;
+                                $scope.groups = null;
+                                $scope.policies = null;
                                 $scope.getOrganization();
                             }
                         }
@@ -19494,7 +19546,12 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                     text: 'Yes',
                     type: 'button-positive',
                     onTap: function(e) {
-                        $scope.leaveOrganizationAction();
+                        $scope.organizations = null;
+                        $scope.activeorg = 0;
+                        $scope.organization = null;
+                        $scope.groups = null;
+                        $scope.policies = null;
+                        $scope.getOrganization();
                     }
                 }
             ]
@@ -19531,7 +19588,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
 
     $scope.getGroups = function() {
         
-        Organizations.get_groups($scope.data, $scope.organization.orgname).then(function(res) {
+        Organizations.get_groups($scope.data).then(function(res) {
             
             if (res.status === 'OK') {
                 
@@ -19630,7 +19687,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
 
     $scope.deleteGroupAction = function(groupname) {
         
-        Organizations.delete_group($scope.data, $scope.organization.orgname, groupname).then(function(res) {
+        Organizations.delete_group($scope.data, groupname).then(function(res) {
             
             if (res.status === 'OK') {
                 $ionicPopup.alert({
@@ -19730,7 +19787,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
     
     $scope.getPolicies = function() {
         
-        Organizations.get_policies($scope.data, $scope.organization.orgname).then(function(res) {
+        Organizations.get_policies($scope.data).then(function(res) {
             
             if (res.status === 'OK') {
                 
@@ -19811,7 +19868,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
 
     $scope.deletePolicyAction = function(policyname) {
         
-        Organizations.delete_policy($scope.data, $scope.organization.orgname, policyname).then(function(res) {
+        Organizations.delete_policy($scope.data, policyname).then(function(res) {
             
             if (res.status === 'OK') {
                 $ionicPopup.alert({
@@ -19855,8 +19912,11 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
     $scope.submitRefresh = function() {
         console.log("submitRefresh");
         $scope.data.username = User.get_username();
-        $scope.data.token = User.get_token();        
-        //$scope.organization = null;
+        $scope.data.token = User.get_token();
+        
+        $scope.organizations = null;
+        $scope.activeorg = 0;
+        $scope.organization = null;
         $scope.groups = null;
         $scope.policies = null;
         $scope.getOrganization();
@@ -19864,13 +19924,15 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
     
     $scope.$on('$ionicView.enter', function(e) {
         console.log("enter");
-        $scope.section = parseInt($stateParams.section, 10);
+        $scope.section = parseInt($state.params.section, 10);
         console.log($scope.section);
         $scope.submitRefresh();
     }); 
     
     $scope.$on('$ionicView.beforeLeave', function(e) {
         console.log("beforeLeave");
+        $scope.organizations = null;
+        $scope.activeorg = 0;
         $scope.organization = null;
         $scope.groups = null;
         $scope.policies = null;
@@ -19901,7 +19963,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         }
         console.log(emails);
         
-        Organizations.create_invitation($scope.data, $scope.data.orgname, emails).then(function(res) {
+        Organizations.create_invitation($scope.data, emails).then(function(res) {
             
             if (res.status === "OK") {
                 $ionicPopup.alert({
@@ -19965,7 +20027,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
     $scope.createGroup = function() {
         console.log("createGroup " + $scope.data.groupname);
         
-        Organizations.create_group($scope.data, $scope.data.orgname, $scope.data.groupname).then(function(res) {
+        Organizations.create_group($scope.data, $scope.data.groupname).then(function(res) {
             
             if (res.status === 'OK') {
                 $ionicPopup.alert({
@@ -20021,7 +20083,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
     $scope.createPolicy = function() {
         console.log("createPolicy " + $scope.data.policyname);
         
-        Organizations.create_policy($scope.data, $scope.data.orgname, $scope.data.policyname).then(function(res) {
+        Organizations.create_policy($scope.data, $scope.data.policyname).then(function(res) {
             
             if (res.status === 'OK') {
                 $ionicPopup.alert({
@@ -20058,6 +20120,150 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
     };   
 }])
    
+.controller('updateOrganizationsCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', 'Devices', 'DeviceGroups', 'Organizations', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+// You can include any angular dependencies as parameters for this function
+// TIP: Access Route Parameters for your page via $stateParams.parameterName
+function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token, Devices, DeviceGroups, Organizations) {
+
+    var server = Server.rest_api;
+    
+    $scope.data = {
+        'username': User.get_username(), //$stateParams.username,
+        'token': User.get_token(),        //$stateParams.token
+        
+        'orgname': ''
+    };
+    
+
+    $scope.createOrganization = function() {
+        console.log('createOrganization');
+        if ($scope.data.orgname === '') {
+            $ionicPopup.alert({title: 'Create Organization', template: 'Organization name is empty!'});
+            return;
+        }
+        
+        Organizations.create($scope.data, $scope.data.orgname).then(function(res) {
+            if (res.status === 'OK') {
+
+                $ionicPopup.alert({
+                    title: 'Create Organization',
+                    template: 'You have successfully created the organization named ' + $scope.data.orgname,
+                    buttons: [
+                        {
+                            text: 'Yes',
+                            type: 'button-positive',
+                            onTap: function(e) {
+                                let param = {
+                                    'username': User.get_username(),
+                                    'token': User.get_token(),
+                                    'section': "1"
+                                };
+                                $scope.submitRefresh();
+                                //$state.go('menu.organizations', param, {reload:true} );    
+                            }
+                        }
+                    ]
+                });
+            }
+        });
+    };
+   
+    $scope.setActiveOrganization = function() {
+
+        var org_list = [];    
+        for (var organization in $scope.organizations) {
+            if ($scope.organizations[organization].checked) {
+                org_list.push($scope.organizations[organization].orgname);
+            }
+        }
+        if (org_list.length > 1) {
+            $ionicPopup.alert({
+                title: 'Set Active Organization',
+                template: 'Error. You have selected more than 1 organization.',
+                buttons: [{ text: 'Yes', type: 'button-positive' }]
+            });
+            return;
+        }
+        else if (org_list.length === 0) {
+            $scope.setActiveOrganizationAction('None');
+        }
+        else {
+            $scope.setActiveOrganizationAction(org_list[0]);
+        }
+    };
+        
+    $scope.setActiveOrganizationAction = function(orgname) {
+        
+        Organizations.set_active($scope.data, orgname).then(function(res) {
+            $ionicPopup.alert({
+                title: 'Set Active Organization',
+                template: 'You have successfully set the active organization to ' + orgname,
+                buttons: [
+                    {
+                        text: 'Yes',
+                        type: 'button-positive',
+                        onTap: function(e) {
+                            let param = {
+                                'username': User.get_username(),
+                                'token': User.get_token(),
+                                'section': "1"
+                            };
+                            $state.go('menu.organizations', param, {reload:true} );    
+                        }
+                    }
+                ]
+            });
+        });
+    };
+   
+    $scope.getOrganizations = function() {
+        
+        Organizations.get_all($scope.data).then(function(res) {
+            
+            if (res.organizations !== undefined) {
+                $scope.organizations = res.organizations;
+                for (var organization in $scope.organizations) {
+                    
+                    let timestamp = new Date($scope.organizations[organization].date * 1000); 
+                    $scope.organizations[organization].date = timestamp.getFullYear() + "/" + (timestamp.getMonth()+1) + "/" + timestamp.getDate();                    
+                    if ($scope.organizations[organization].active) {
+                        $scope.organizations[organization].checked = true;
+                    }
+                    else {
+                        $scope.organizations[organization].checked = false;
+                    }
+                }
+            }
+        });
+    };
+    
+    $scope.submitRefresh = function() {
+        $scope.data.username = User.get_username();
+        $scope.data.token = User.get_token();
+        $scope.organizations = null;
+        $scope.getOrganizations();
+    };
+    
+    $scope.$on('$ionicView.enter', function(e) {
+        $scope.submitRefresh();
+    }); 
+    
+    $scope.$on('$ionicView.beforeLeave', function(e) {
+        $scope.organizations = null;
+        $scope.data.orgname = '';
+    });
+    
+    $scope.exitPage = function() {
+        let param = {
+            'username': User.get_username(),
+            'token': User.get_token(),
+            'section': "1"
+        };
+        $state.go('menu.organizations', param, {reload:true} );    
+    }; 
+}
+])
+   
 .controller('updateOrganizationGroupUsersCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', 'Devices', 'DeviceGroups', 'Organizations', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
 // You can include any angular dependencies as parameters for this function
 // TIP: Access Route Parameters for your page via $stateParams.parameterName
@@ -20089,7 +20295,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         
         console.log("getGroupMembers " + groupname);
         
-        Organizations.get_group_members($scope.data, $scope.data.orgname, groupname).then(function(res) {
+        Organizations.get_group_members($scope.data, groupname).then(function(res) {
 
             if (res.status === 'OK') {
                 
@@ -20123,7 +20329,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
 
         console.log("addGroupMember " + $scope.data.orgname + " " + $scope.data.groupname + " " + membername);
         
-        Organizations.add_group_member($scope.data, $scope.data.orgname, $scope.data.groupname, membername).then(function(res) {
+        Organizations.add_group_member($scope.data, $scope.data.groupname, membername).then(function(res) {
 
             if (res.status === 'OK') {
                 $ionicPopup.alert({
@@ -20174,7 +20380,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
     
     $scope.updateGroupMembersAction = function(members) {
         
-        Organizations.update_group_members($scope.data, $scope.data.orgname, $scope.data.groupname, members).then(function(res) {
+        Organizations.update_group_members($scope.data, $scope.data.groupname, members).then(function(res) {
 
             if (res.status === 'OK') {
                 $ionicPopup.alert({
@@ -20253,7 +20459,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         
         console.log("getOrgPolicies");
         
-        Organizations.get_policies($scope.data, $scope.data.orgname).then(function(res) {
+        Organizations.get_policies($scope.data).then(function(res) {
 
             if (res.status === 'OK') {
                 
@@ -20277,7 +20483,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         
         console.log("getGroupPolicies " + groupname);
         
-        Organizations.get_group_policies($scope.data, $scope.data.orgname, groupname).then(function(res) {
+        Organizations.get_group_policies($scope.data, groupname).then(function(res) {
 
             if (res.status === 'OK') {
                 
@@ -20299,9 +20505,9 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         
         var policyname = $scope.orgPolicies[$scope.policySelected].policyname;
 
-        console.log("addGroupPolicy " + $scope.data.orgname + " " + $scope.data.groupname + " " + policyname);
+        console.log("addGroupPolicy " + $scope.data.groupname + " " + policyname);
         
-        Organizations.add_group_policy($scope.data, $scope.data.orgname, $scope.data.groupname, policyname).then(function(res) {
+        Organizations.add_group_policy($scope.data, $scope.data.groupname, policyname).then(function(res) {
 
             if (res.status === 'OK') {
                 $ionicPopup.alert({
@@ -20352,7 +20558,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
     
     $scope.updateGroupPoliciesAction = function(policies) {
         
-        Organizations.update_group_policies($scope.data, $scope.data.orgname, $scope.data.groupname, policies).then(function(res) {
+        Organizations.update_group_policies($scope.data, $scope.data.groupname, policies).then(function(res) {
 
             if (res.status === 'OK') {
                 $ionicPopup.alert({

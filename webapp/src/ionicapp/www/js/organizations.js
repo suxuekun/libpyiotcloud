@@ -6,6 +6,75 @@ angular.module('organizations', [])
 
     var ret = {
 
+        //////////////////////////////////////////////////////////////
+        // GET ORGANIZATIONS
+        // SET ACTIVE ORGANIZATION
+        // GET ORGANIZATION
+        // ACCEPT INVITATION
+        // DECLINE INVITATION
+        // LEAVE ORGANIZATION
+        //////////////////////////////////////////////////////////////
+
+        // GET ORGANIZATIONS
+        get_all: function(userdata) {
+            return $http({
+                method: 'GET',
+                url: server + '/user/organizations',
+                headers: {'Authorization': 'Bearer ' + userdata.token.access},
+            })
+            .then(function (result) {
+                console.log(result.data);
+                return result.data;
+            })
+            .catch(function (error) {
+                if (error.data !== null) {
+                    console.log("ERROR: Get organizations failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
+                    
+                    if (error.data.message === "Token expired") {
+                        Token.refresh(userdata);
+                        //$ionicPopup.alert({ title: 'Error', template: 'Token expired!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+                    }
+                }
+                else {
+                    console.log("ERROR: Server is down!"); 
+                    $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+                }
+                
+                return error.data;
+            });
+        },
+        
+        // SET ACTIVE ORGANIZATION
+        set_active: function(userdata, orgname) {
+            return $http({
+                method: 'POST',
+                url: server + '/user/organizations',
+                headers: {'Authorization': 'Bearer ' + userdata.token.access},
+                data: {'orgname': orgname}
+            })
+            .then(function (result) {
+                console.log(result.data);
+                return result.data;
+            })
+            .catch(function (error) {
+                if (error.data !== null) {
+                    console.log("ERROR: Set active organization failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
+                    
+                    if (error.data.message === "Token expired") {
+                        Token.refresh(userdata);
+                        //$ionicPopup.alert({ title: 'Error', template: 'Token expired!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+                    }
+                }
+                else {
+                    console.log("ERROR: Server is down!"); 
+                    $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+                }
+                
+                return error.data;
+            });
+        },
+        
+        // GET ORGANIZATION
         get: function(userdata) {
             return $http({
                 method: 'GET',
@@ -34,140 +103,7 @@ angular.module('organizations', [])
             });
         },
 
-
-        //////////////////////////////////////////////////////////////
-
-
-        create: function(userdata, orgname) {
-            return $http({
-                method: 'POST',
-                url: server + '/organizations/organization/' + orgname,
-                headers: {'Authorization': 'Bearer ' + userdata.token.access},
-            })
-            .then(function (result) {
-                console.log(result.data);
-                return result.data;
-            })
-            .catch(function (error) {
-                if (error.data !== null) {
-                    console.log("ERROR: Create organization failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
-                    
-                    if (error.data.message === "Token expired") {
-                        Token.refresh(userdata);
-                        //$ionicPopup.alert({ title: 'Error', template: 'Token expired!', buttons: [{text: 'OK', type: 'button-assertive'}] });
-                    }
-                }
-                else {
-                    console.log("ERROR: Server is down!"); 
-                    $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
-                }
-                
-                return error.data;
-            });
-        },
-        
-        delete: function(userdata, orgname) {
-            return $http({
-                method: 'DELETE',
-                url: server + '/organizations/organization/' + orgname,
-                headers: {'Authorization': 'Bearer ' + userdata.token.access},
-            })
-            .then(function (result) {
-                console.log(result.data);
-                return result.data;
-            })
-            .catch(function (error) {
-                if (error.data !== null) {
-                    console.log("ERROR: Delete organization failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
-                    
-                    if (error.data.message === "Token expired") {
-                        Token.refresh(userdata);
-                        //$ionicPopup.alert({ title: 'Error', template: 'Token expired!', buttons: [{text: 'OK', type: 'button-assertive'}] });
-                    }
-                }
-                else {
-                    console.log("ERROR: Server is down!"); 
-                    $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
-                }
-                
-                return error.data;
-            });
-        },
-        
-    
-        //////////////////////////////////////////////////////////////
-
-
-        create_invitation: function(userdata, orgname, email_list, cancel=0) {
-            var data = {'emails': email_list};
-            if (cancel === 1) {
-                data.cancel = 1;
-            }
-            return $http({
-                method: 'POST',
-                url: server + '/organizations/organization/' + orgname + '/invitation',
-                headers: {'Authorization': 'Bearer ' + userdata.token.access},
-                data: data
-            })
-            .then(function (result) {
-                console.log(result.data);
-                return result.data;
-            })
-            .catch(function (error) {
-                if (error.data !== null) {
-                    console.log("ERROR: Create invitation failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
-                    
-                    if (error.data.message === "Token expired") {
-                        Token.refresh(userdata);
-                        //$ionicPopup.alert({ title: 'Error', template: 'Token expired!', buttons: [{text: 'OK', type: 'button-assertive'}] });
-                    }
-                }
-                else {
-                    console.log("ERROR: Server is down!"); 
-                    $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
-                }
-                
-                return error.data;
-            });
-        },    
-
-
-        update_membership: function(userdata, orgname, email_list, remove=0) {
-            var data = {'emails': email_list};
-            if (remove === 1) {
-                data.remove = 1;
-            }
-            return $http({
-                method: 'POST',
-                url: server + '/organizations/organization/' + orgname + '/membership',
-                headers: {'Authorization': 'Bearer ' + userdata.token.access},
-                data: data
-            })
-            .then(function (result) {
-                console.log(result.data);
-                return result.data;
-            })
-            .catch(function (error) {
-                if (error.data !== null) {
-                    console.log("ERROR: Update membership failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
-                    
-                    if (error.data.message === "Token expired") {
-                        Token.refresh(userdata);
-                        //$ionicPopup.alert({ title: 'Error', template: 'Token expired!', buttons: [{text: 'OK', type: 'button-assertive'}] });
-                    }
-                }
-                else {
-                    console.log("ERROR: Server is down!"); 
-                    $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
-                }
-                
-                return error.data;
-            });
-        },    
-
-        //////////////////////////////////////////////////////////////
-    
-
+        // ACCEPT INVITATION
         accept_invitation: function(userdata) {
             return $http({
                 method: 'POST',
@@ -196,6 +132,7 @@ angular.module('organizations', [])
             });
         },    
 
+        // DECLINE INVITATION
         decline_invitation: function(userdata) {
             return $http({
                 method: 'DELETE',
@@ -224,6 +161,7 @@ angular.module('organizations', [])
             });
         },
 
+        // LEAVE ORGANIZATION
         leave: function(userdata) {
             return $http({
                 method: 'DELETE',
@@ -251,16 +189,148 @@ angular.module('organizations', [])
                 return error.data;
             });
         },
+
+        //////////////////////////////////////////////////////////////
+
+
+        create: function(userdata, orgname) {
+            return $http({
+                method: 'POST',
+                url: server + '/organization' + orgname,
+                headers: {'Authorization': 'Bearer ' + userdata.token.access},
+                data: {'orgname': orgname}
+            })
+            .then(function (result) {
+                console.log(result.data);
+                return result.data;
+            })
+            .catch(function (error) {
+                if (error.data !== null) {
+                    console.log("ERROR: Create organization failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
+                    
+                    if (error.data.message === "Token expired") {
+                        Token.refresh(userdata);
+                        //$ionicPopup.alert({ title: 'Error', template: 'Token expired!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+                    }
+                }
+                else {
+                    console.log("ERROR: Server is down!"); 
+                    $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+                }
+                
+                return error.data;
+            });
+        },
         
+        delete: function(userdata) {
+            return $http({
+                method: 'DELETE',
+                url: server + '/organization',
+                headers: {'Authorization': 'Bearer ' + userdata.token.access},
+            })
+            .then(function (result) {
+                console.log(result.data);
+                return result.data;
+            })
+            .catch(function (error) {
+                if (error.data !== null) {
+                    console.log("ERROR: Delete organization failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
+                    
+                    if (error.data.message === "Token expired") {
+                        Token.refresh(userdata);
+                        //$ionicPopup.alert({ title: 'Error', template: 'Token expired!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+                    }
+                }
+                else {
+                    console.log("ERROR: Server is down!"); 
+                    $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+                }
+                
+                return error.data;
+            });
+        },
+        
+    
+        //////////////////////////////////////////////////////////////
+
+
+        create_invitation: function(userdata, email_list, cancel=0) {
+            var data = {'emails': email_list};
+            if (cancel === 1) {
+                data.cancel = 1;
+            }
+            return $http({
+                method: 'POST',
+                url: server + '/organization/invitation',
+                headers: {'Authorization': 'Bearer ' + userdata.token.access},
+                data: data
+            })
+            .then(function (result) {
+                console.log(result.data);
+                return result.data;
+            })
+            .catch(function (error) {
+                if (error.data !== null) {
+                    console.log("ERROR: Create invitation failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
+                    
+                    if (error.data.message === "Token expired") {
+                        Token.refresh(userdata);
+                        //$ionicPopup.alert({ title: 'Error', template: 'Token expired!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+                    }
+                }
+                else {
+                    console.log("ERROR: Server is down!"); 
+                    $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+                }
+                
+                return error.data;
+            });
+        },    
+
+
+        update_membership: function(userdata, email_list, remove=0) {
+            var data = {'emails': email_list};
+            if (remove === 1) {
+                data.remove = 1;
+            }
+            return $http({
+                method: 'POST',
+                url: server + '/organization/membership',
+                headers: {'Authorization': 'Bearer ' + userdata.token.access},
+                data: data
+            })
+            .then(function (result) {
+                console.log(result.data);
+                return result.data;
+            })
+            .catch(function (error) {
+                if (error.data !== null) {
+                    console.log("ERROR: Update membership failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
+                    
+                    if (error.data.message === "Token expired") {
+                        Token.refresh(userdata);
+                        //$ionicPopup.alert({ title: 'Error', template: 'Token expired!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+                    }
+                }
+                else {
+                    console.log("ERROR: Server is down!"); 
+                    $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+                }
+                
+                return error.data;
+            });
+        },    
+
+
         
         //////////////////////////////////////////////////////////////
         // GROUPS
         //////////////////////////////////////////////////////////////
 
-        get_groups: function(userdata, orgname) {
+        get_groups: function(userdata) {
             return $http({
                 method: 'GET',
-                url: server + '/organizations/organization/' + orgname + '/groups',
+                url: server + '/organization/groups',
                 headers: {'Authorization': 'Bearer ' + userdata.token.access},
             })
             .then(function (result) {
@@ -285,10 +355,10 @@ angular.module('organizations', [])
             });
         },
 
-        create_group: function(userdata, orgname, groupname) {
+        create_group: function(userdata, groupname) {
             return $http({
                 method: 'POST',
-                url: server + '/organizations/organization/' + orgname + '/groups/group/' + groupname,
+                url: server + '/organization/groups/group/' + groupname,
                 headers: {'Authorization': 'Bearer ' + userdata.token.access},
             })
             .then(function (result) {
@@ -313,10 +383,10 @@ angular.module('organizations', [])
             });
         },
 
-        delete_group: function(userdata, orgname, groupname) {
+        delete_group: function(userdata, groupname) {
             return $http({
                 method: 'DELETE',
-                url: server + '/organizations/organization/' + orgname + '/groups/group/' + groupname,
+                url: server + '/organization/groups/group/' + groupname,
                 headers: {'Authorization': 'Bearer ' + userdata.token.access},
             })
             .then(function (result) {
@@ -345,11 +415,11 @@ angular.module('organizations', [])
         //////////////////////////////////////////////////////////////
         
         
-        get_group_members: function(userdata, orgname, groupname) {
-            console.log("get_group_members " + orgname + " " + groupname);
+        get_group_members: function(userdata, groupname) {
+            console.log("get_group_members " + groupname);
             return $http({
                 method: 'GET',
-                url: server + '/organizations/organization/' + orgname + '/groups/group/' + groupname + "/members",
+                url: server + '/organization/groups/group/' + groupname + "/members",
                 headers: {'Authorization': 'Bearer ' + userdata.token.access},
             })
             .then(function (result) {
@@ -374,10 +444,10 @@ angular.module('organizations', [])
             });
         },
         
-        add_group_member: function(userdata, orgname, groupname, membername) {
+        add_group_member: function(userdata, groupname, membername) {
             return $http({
                 method: 'POST',
-                url: server + '/organizations/organization/' + orgname + '/groups/group/' + groupname + '/members/member/' + membername,
+                url: server + '/organization/groups/group/' + groupname + '/members/member/' + membername,
                 headers: {'Authorization': 'Bearer ' + userdata.token.access},
             })
             .then(function (result) {
@@ -402,10 +472,10 @@ angular.module('organizations', [])
             });
         },
         
-        update_group_members: function(userdata, orgname, groupname, members) {
+        update_group_members: function(userdata, groupname, members) {
             return $http({
                 method: 'POST',
-                url: server + '/organizations/organization/' + orgname + '/groups/group/' + groupname + '/members',
+                url: server + '/organization/groups/group/' + groupname + '/members',
                 headers: {'Authorization': 'Bearer ' + userdata.token.access},
                 data: {'members': members}
             })
@@ -436,10 +506,10 @@ angular.module('organizations', [])
         // POLICIES
         //////////////////////////////////////////////////////////////
 
-        get_policies: function(userdata, orgname) {
+        get_policies: function(userdata) {
             return $http({
                 method: 'GET',
-                url: server + '/organizations/organization/' + orgname + '/policies',
+                url: server + '/organization/policies',
                 headers: {'Authorization': 'Bearer ' + userdata.token.access},
             })
             .then(function (result) {
@@ -464,10 +534,10 @@ angular.module('organizations', [])
             });
         },
         
-        create_policy: function(userdata, orgname, policyname) {
+        create_policy: function(userdata, policyname) {
             return $http({
                 method: 'POST',
-                url: server + '/organizations/organization/' + orgname + '/policies/policy/' + policyname,
+                url: server + '/organization/policies/policy/' + policyname,
                 headers: {'Authorization': 'Bearer ' + userdata.token.access},
             })
             .then(function (result) {
@@ -492,10 +562,10 @@ angular.module('organizations', [])
             });
         },
 
-        delete_policy: function(userdata, orgname, policyname) {
+        delete_policy: function(userdata, policyname) {
             return $http({
                 method: 'DELETE',
-                url: server + '/organizations/organization/' + orgname + '/policies/policy/' + policyname,
+                url: server + '/organization/policies/policy/' + policyname,
                 headers: {'Authorization': 'Bearer ' + userdata.token.access},
             })
             .then(function (result) {
@@ -524,11 +594,11 @@ angular.module('organizations', [])
         //////////////////////////////////////////////////////////////
 
 
-        get_group_policies: function(userdata, orgname, groupname) {
-            console.log("get_group_policies " + orgname + " " + groupname);
+        get_group_policies: function(userdata, groupname) {
+            console.log("get_group_policies " + groupname);
             return $http({
                 method: 'GET',
-                url: server + '/organizations/organization/' + orgname + '/groups/group/' + groupname + "/policies",
+                url: server + '/organization/groups/group/' + groupname + "/policies",
                 headers: {'Authorization': 'Bearer ' + userdata.token.access},
             })
             .then(function (result) {
@@ -553,10 +623,10 @@ angular.module('organizations', [])
             });
         },
         
-        add_group_policy: function(userdata, orgname, groupname, policyname) {
+        add_group_policy: function(userdata, groupname, policyname) {
             return $http({
                 method: 'POST',
-                url: server + '/organizations/organization/' + orgname + '/groups/group/' + groupname + '/policies/policy/' + policyname,
+                url: server + '/organization/groups/group/' + groupname + '/policies/policy/' + policyname,
                 headers: {'Authorization': 'Bearer ' + userdata.token.access},
             })
             .then(function (result) {
@@ -581,10 +651,10 @@ angular.module('organizations', [])
             });
         },
         
-        update_group_policies: function(userdata, orgname, groupname, policies) {
+        update_group_policies: function(userdata, groupname, policies) {
             return $http({
                 method: 'POST',
-                url: server + '/organizations/organization/' + orgname + '/groups/group/' + groupname + '/policies',
+                url: server + '/organization/groups/group/' + groupname + '/policies',
                 headers: {'Authorization': 'Bearer ' + userdata.token.access},
                 data: {'policies': policies}
             })

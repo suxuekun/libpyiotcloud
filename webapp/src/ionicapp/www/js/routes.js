@@ -936,6 +936,16 @@ angular.module('app.routes', [])
     controller: 'addOrganizationPolicyCtrl'
   })
 
+  .state('updateOrganizations', {
+    url: '/page_create_organization',
+	params: {
+		username: "",
+		token: ""		
+},
+    templateUrl: 'templates/updateOrganizations.html',
+    controller: 'updateOrganizationsCtrl'
+  })
+
   .state('updateOrganizationGroupUsers', {
     url: '/page_update_organization_group_users',
 	params: {
