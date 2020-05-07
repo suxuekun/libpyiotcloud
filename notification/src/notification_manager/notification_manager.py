@@ -649,8 +649,8 @@ if __name__ == '__main__':
     print("USE_DEVICE_PKEY={}".format(args.USE_DEVICE_PKEY))
     print("USE_HOST={}".format(args.USE_HOST))
     print("USE_DBHOST={}".format(args.USE_DBHOST))
-    print("USE_USERNAME={}".format(args.USE_USERNAME))
-    print("USE_PASSWORD={}".format(args.USE_PASSWORD))
+    #print("USE_USERNAME={}".format(args.USE_USERNAME))
+    #print("USE_PASSWORD={}".format(args.USE_PASSWORD))
     print("")
 
 
