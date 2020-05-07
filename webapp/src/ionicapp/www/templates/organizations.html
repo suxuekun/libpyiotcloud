@@ -4,14 +4,8 @@
   </ion-nav-buttons>
   <ion-content padding="true" class="has-header">
     <div class="spacer" style="width: 300px; height: 20px;"></div>
-    <form id="organizations-form240" class="list page_width_small" ng-show="organization == null">
-      <div id="organizations-markdown498" class="show-list-numbers-and-dots">
-        <p style="color:#AAAAAA;font-size:12px;">Organizations enables you to delegate the management of your IoT devices to various user accounts where each user can have one or multiple roles that have associated access permissions.</p>
-      </div>
-      <label class="item item-input" id="organizations-input180">
-        <input type="text" placeholder="Organization name" ng-model="data.orgname">
-      </label>
-      <button id="organizations-button185" ng-click="createOrganization()" class="button button-positive button-block">Create an organization</button>
+    <form id="organizations-form240" class="list page_width_small">
+      <button id="organizations-button213" ng-click="updateOrganizations()" class="button button-positive button-small button-block button-outline">Update organizations</button>
       <div class="spacer" style="height: 50px;"></div>
     </form>
     <form id="organizations-form241" class="list page_width_medium" ng-show="organization != null &amp;&amp; organization.membership != &quot;Owner&quot;">
@@ -59,9 +53,9 @@
         </div>
         <div id="organizations-container52" class="widget_button_half">
           <div id="organizations-button-bar12" class="button-bar">
-            <button id="organizations-button201" ng-click="changeSection(1)" ng-model="section" class="button button-stable button-small button-block button-outline">Users</button>
-            <button id="organizations-button202" ng-click="changeSection(2)" ng-model="section" class="button button-stable button-small button-block button-outline">Groups</button>
-            <button id="organizations-button203" ng-click="changeSection(3)" ng-model="section" class="button button-stable button-small button-block button-outline">Policies</button>
+            <button id="organizations-button201" ng-click="changeSection(1)" ng-model="section" style="font-weight:300;color:#AAAAAA;border-radius:256px 256px 256px 256px;" class="button button-stable button-small button-block">Users</button>
+            <button id="organizations-button202" ng-click="changeSection(2)" ng-model="section" style="font-weight:300;color:#AAAAAA;border-radius:256px 256px 256px 256px;" class="button button-stable button-small button-block">Groups</button>
+            <button id="organizations-button203" ng-click="changeSection(3)" ng-model="section" style="font-weight:300;color:#AAAAAA;border-radius:256px 256px 256px 256px;" class="button button-stable button-small button-block">Policies</button>
           </div>
         </div>
       </div>

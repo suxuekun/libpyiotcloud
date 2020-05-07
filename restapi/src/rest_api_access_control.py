@@ -43,7 +43,7 @@ class access_control:
     # CREATE ORGANIZATION
     #
     # - Request:
-    #   POST /organizations/organization/ORGNAME
+    #   POST /organization
     #   headers: {'Authorization': 'Bearer ' + token.access}
     #
     # - Response:
@@ -54,7 +54,7 @@ class access_control:
     # DELETE ORGANIZATION
     #
     # - Request:
-    #   POST /organizations/organization/ORGNAME
+    #   POST /organization
     #   headers: {'Authorization': 'Bearer ' + token.access}
     #
     # - Response:
@@ -62,7 +62,7 @@ class access_control:
     #   {'status': 'NG', 'message': string}
     #
     ########################################################################################################
-    def create_organization(self, orgname):
+    def create_organization(self):
         # get token from Authorization header
         auth_header_token = rest_api_utils.utils().get_auth_header_token()
         if auth_header_token is None:
@@ -97,16 +97,17 @@ class access_control:
             return response, status.HTTP_401_UNAUTHORIZED
 
 
-        # check orgname
-        if len(orgname) == 0:
-            response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-            print('\r\nERROR Create organization: Empty parameter found\r\n')
-            return response, status.HTTP_400_BAD_REQUEST
-
         # create or delete organization
         if flask.request.method == 'POST':
 
-            result, errorcode = self.database_client.create_organization(username, orgname)
+            # get the input parameters
+            data = flask.request.get_json()
+            if data is None or data.get("orgname") is None:
+                response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+                print('\r\nERROR Create organization: Empty parameter found\r\n')
+                return response, status.HTTP_400_BAD_REQUEST
+
+            result, errorcode = self.database_client.create_organization(username, data["orgname"])
             if not result:
                 if errorcode == 401:
                     errormsg = "Cannot create another organization"
@@ -121,8 +122,15 @@ class access_control:
 
         elif flask.request.method == 'DELETE':
 
+            # there must be an active organization for these APIs
+            orgname, orgid = self.database_client.get_active_organization(username)
+            if orgname is None:
+                response = json.dumps({'status': 'NG', 'message': 'No organization is active'})
+                print('\r\nERROR Delete organization: No organization is active [{}]\r\n'.format(username))
+                return response, status.HTTP_400_BAD_REQUEST
+
             # get organization
-            result, errorcode = self.database_client.delete_organization(username, orgname)
+            result, errorcode = self.database_client.delete_organization(username, orgname, orgid)
             if not result:
                 if errorcode == 404:
                     errormsg = "Organization not found"
@@ -147,7 +155,7 @@ class access_control:
     # CREATE/CANCEL INVITATIONS
     #
     # - Request:
-    #   POST /organizations/organization/ORGNAME/invitation
+    #   POST /organization/invitation
     #   headers: {'Authorization': 'Bearer ' + token.access}
     #   data: {'emails': [], 'cancel': 1}
     #
@@ -156,7 +164,7 @@ class access_control:
     #   {'status': 'NG', 'message': string}
     #
     ########################################################################################################
-    def create_organization_invitation(self, orgname):
+    def create_organization_invitation(self):
         # get token from Authorization header
         auth_header_token = rest_api_utils.utils().get_auth_header_token()
         if auth_header_token is None:
@@ -191,12 +199,6 @@ class access_control:
             return response, status.HTTP_401_UNAUTHORIZED
 
 
-        # check orgname
-        if len(orgname) == 0:
-            response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-            print('\r\nERROR Create organization invitation: Empty parameter found\r\n')
-            return response, status.HTTP_400_BAD_REQUEST
-
         # check parameter
         data = flask.request.get_json()
         #print(data)
@@ -212,16 +214,24 @@ class access_control:
         if data.get("cancel") is not None:
             cancel = data["cancel"]
 
+
+        # there must be an active organization for these APIs
+        orgname, orgid = self.database_client.get_active_organization(username)
+        if orgname is None:
+            response = json.dumps({'status': 'NG', 'message': 'No organization is active'})
+            print('\r\nERROR Create organization invitation: No organization is active [{}]\r\n'.format(username))
+            return response, status.HTTP_400_BAD_REQUEST
+
         # create or cancel organization invitation
         results = []
         allfailed = True
         if cancel == 0:
-            result = self.database_client.check_create_organization_invitations(username, orgname, data["emails"])
+            result = self.database_client.check_create_organization_invitations(username, orgname, orgid, data["emails"])
             if result == False:
                 msg = {'status': 'NG', 'message': 'Some of the emails are invalid.'}
             else:
                 for email in data["emails"]:
-                    result, errorcode = self.database_client.create_organization_invitation(username, orgname, email)
+                    result, errorcode = self.database_client.create_organization_invitation(username, orgname, orgid, email)
                     if not result:
                         if errorcode == 400:
                             errormsg = "User already a member of the organization"
@@ -245,7 +255,7 @@ class access_control:
                     # send email invitation
                     try:
                         pubtopic = CONFIG_PREPEND_REPLY_TOPIC + CONFIG_SEPARATOR + orgname + CONFIG_SEPARATOR + "send_invitation_organization"
-                        payload  = {"owner": username, "recipients": []}
+                        payload  = {"orgid": orgid, "owner": username, "recipients": []}
                         for result in results:
                             if result["result"] == 1:
                                 payload["recipients"].append(result["email"])
@@ -256,12 +266,12 @@ class access_control:
                         pass
 
         else:
-            result = self.database_client.check_cancel_organization_invitations(username, orgname, data["emails"])
+            result = self.database_client.check_cancel_organization_invitations(username, orgname, orgid, data["emails"])
             if result == False:
                 msg = {'status': 'NG', 'message': 'Some of the emails are invalid.'}
             else:
                 for email in data["emails"]:
-                    result, errorcode = self.database_client.cancel_organization_invitation(username, orgname, email)
+                    result, errorcode = self.database_client.cancel_organization_invitation(username, orgname, orgid, email)
                     if not result:
                         if errorcode == 400:
                             errormsg = "User status is not Invited"
@@ -291,7 +301,7 @@ class access_control:
     # UPDATE/REMOVE MEMBERSHIPS
     #
     # - Request:
-    #   POST /organizations/organization/ORGNAME/membership
+    #   POST /organization/membership
     #   headers: {'Authorization': 'Bearer ' + token.access}
     #   data: {'emails': [], 'remove': 1}
     #
@@ -300,7 +310,7 @@ class access_control:
     #   {'status': 'NG', 'message': string}
     #
     ########################################################################################################
-    def update_organization_membership(self, orgname):
+    def update_organization_membership(self):
         # get token from Authorization header
         auth_header_token = rest_api_utils.utils().get_auth_header_token()
         if auth_header_token is None:
@@ -335,10 +345,11 @@ class access_control:
             return response, status.HTTP_401_UNAUTHORIZED
 
 
-        # check orgname
-        if len(orgname) == 0:
-            response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-            print('\r\nERROR Update organization membership: Empty parameter found\r\n')
+        # there must be an active organization for these APIs
+        orgname, orgid = self.database_client.get_active_organization(username)
+        if orgname is None:
+            response = json.dumps({'status': 'NG', 'message': 'No organization is active'})
+            print('\r\nERROR Update organization membership: No organization is active [{}]\r\n'.format(username))
             return response, status.HTTP_400_BAD_REQUEST
 
         # check parameter
@@ -364,12 +375,12 @@ class access_control:
             pass
 
         else:
-            result = self.database_client.check_remove_organization_memberships(username, orgname, data["emails"])
+            result = self.database_client.check_remove_organization_memberships(username, orgname, orgid, data["emails"])
             if result == False:
                 msg = {'status': 'NG', 'message': 'Some of the emails are invalid.'}
             else:
                 for email in data["emails"]:
-                    result, errorcode = self.database_client.remove_organization_membership(username, orgname, email)
+                    result, errorcode = self.database_client.remove_organization_membership(username, orgname, orgid, email)
                     if not result:
                         if errorcode == 400:
                             errormsg = "User status is not Invited"
@@ -409,7 +420,7 @@ class access_control:
     #   {'status': 'NG', 'message': string}
     #
     ########################################################################################################
-    def get_organization_groups(self, orgname):
+    def get_organization_groups(self):
         # get token from Authorization header
         auth_header_token = rest_api_utils.utils().get_auth_header_token()
         if auth_header_token is None:
@@ -444,8 +455,15 @@ class access_control:
             return response, status.HTTP_401_UNAUTHORIZED
 
 
+        # there must be an active organization for these APIs
+        orgname, orgid = self.database_client.get_active_organization(username)
+        if orgname is None:
+            response = json.dumps({'status': 'NG', 'message': 'No organization is active'})
+            print('\r\nERROR Get organization groups: No organization is active [{}]\r\n'.format(username))
+            return response, status.HTTP_400_BAD_REQUEST
+
         # get organization groups
-        groups = self.database_client.get_organization_groups(username, orgname)
+        groups = self.database_client.get_organization_groups(username, orgname, orgid)
         msg = {'status': 'OK', 'message': 'Get organization groups successful', 'groups': groups}
 
 
@@ -478,7 +496,7 @@ class access_control:
     #   {'status': 'NG', 'message': string}
     #
     ########################################################################################################
-    def create_organization_group(self, orgname, groupname):
+    def create_organization_group(self, groupname):
         # get token from Authorization header
         auth_header_token = rest_api_utils.utils().get_auth_header_token()
         if auth_header_token is None:
@@ -513,8 +531,8 @@ class access_control:
             return response, status.HTTP_401_UNAUTHORIZED
 
 
-        # check orgname
-        if len(orgname) == 0 or len(groupname) == 0:
+        # check groupname
+        if len(groupname) == 0:
             response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
             print('\r\nERROR Create organization group: Empty parameter found\r\n')
             return response, status.HTTP_400_BAD_REQUEST
@@ -525,10 +543,17 @@ class access_control:
             print('\r\nERROR Create organization group: Group name is not valid\r\n')
             return response, status.HTTP_400_BAD_REQUEST
 
+        # there must be an active organization for these APIs
+        orgname, orgid = self.database_client.get_active_organization(username)
+        if orgname is None:
+            response = json.dumps({'status': 'NG', 'message': 'No organization is active'})
+            print('\r\nERROR Get organization groups: No organization is active [{}]\r\n'.format(username))
+            return response, status.HTTP_400_BAD_REQUEST
+
         # create or delete organization group
         if flask.request.method == 'POST':
 
-            result, errorcode = self.database_client.create_organization_group(username, orgname, groupname)
+            result, errorcode = self.database_client.create_organization_group(username, orgname, orgid, groupname)
             if not result:
                 if errorcode == 409:
                     errormsg = "Organization group name already taken"
@@ -542,7 +567,7 @@ class access_control:
         elif flask.request.method == 'DELETE':
 
             # get organization
-            result, errorcode = self.database_client.delete_organization_group(username, orgname, groupname)
+            result, errorcode = self.database_client.delete_organization_group(username, orgname, orgid, groupname)
             if not result:
                 if errorcode == 404:
                     errormsg = "Organization group not found"
@@ -568,7 +593,7 @@ class access_control:
     # GET MEMBERS IN USER GROUP
     #
     # - Request:
-    #   GET /organizations/organization/ORGNAME/groups/group/GROUPNAME/members
+    #   GET /organization/groups/group/GROUPNAME/members
     #   headers: {'Authorization': 'Bearer ' + token.access}
     #
     # - Response:
@@ -576,7 +601,7 @@ class access_control:
     #   {'status': 'NG', 'message': string}
     #
     ########################################################################################################
-    def get_members_in_organization_group(self, orgname, groupname):
+    def get_members_in_organization_group(self, groupname):
         # get token from Authorization header
         auth_header_token = rest_api_utils.utils().get_auth_header_token()
         if auth_header_token is None:
@@ -611,8 +636,15 @@ class access_control:
             return response, status.HTTP_401_UNAUTHORIZED
 
 
+        # there must be an active organization for these APIs
+        orgname, orgid = self.database_client.get_active_organization(username)
+        if orgname is None:
+            response = json.dumps({'status': 'NG', 'message': 'No organization is active'})
+            print('\r\nERROR Get organization group members: No organization is active [{}]\r\n'.format(username))
+            return response, status.HTTP_400_BAD_REQUEST
+
         # get organization group members
-        result, members = self.database_client.get_members_in_organization_group(username, orgname, groupname)
+        result, members = self.database_client.get_members_in_organization_group(username, orgname, orgid, groupname)
         if result:
             msg = {'status': 'OK', 'message': 'Get organization group members successful', 'members': members}
         else:
@@ -629,7 +661,7 @@ class access_control:
     # UPDATE MEMBERS IN USER GROUP
     #
     # - Request:
-    #   POST /organizations/organization/ORGNAME/groups/group/GROUPNAME/members
+    #   POST /organization/groups/group/GROUPNAME/members
     #   headers: {'Authorization': 'Bearer ' + token.access}
     #   data: {'members': [strings]}
     #
@@ -638,7 +670,7 @@ class access_control:
     #   {'status': 'NG', 'message': string}
     #
     ########################################################################################################
-    def update_members_in_organization_group(self, orgname, groupname):
+    def update_members_in_organization_group(self, groupname):
         # get token from Authorization header
         auth_header_token = rest_api_utils.utils().get_auth_header_token()
         if auth_header_token is None:
@@ -681,8 +713,15 @@ class access_control:
             print('\r\nERROR Update organization group members: Parameters not included [{}]\r\n'.format(username))
             return response, status.HTTP_400_BAD_REQUEST
 
+        # there must be an active organization for these APIs
+        orgname, orgid = self.database_client.get_active_organization(username)
+        if orgname is None:
+            response = json.dumps({'status': 'NG', 'message': 'No organization is active'})
+            print('\r\nERROR Update organization group members: No organization is active [{}]\r\n'.format(username))
+            return response, status.HTTP_400_BAD_REQUEST
+
         # update organization group members
-        self.database_client.update_members_in_organization_group(username, orgname, groupname, data["members"])
+        self.database_client.update_members_in_organization_group(username, orgname, orgid, groupname, data["members"])
         msg = {'status': 'OK', 'message': 'Update organization group members successful'}
 
 
@@ -696,7 +735,7 @@ class access_control:
     # ADD MEMBER TO USER GROUP
     #
     # - Request:
-    #   POST organizations/organization/ORGNAME/groups/group/GROUPNAME/members/member/MEMBERNAME
+    #   POST organization/groups/group/GROUPNAME/members/member/MEMBERNAME
     #   headers: {'Authorization': 'Bearer ' + token.access}
     #
     # - Response:
@@ -707,7 +746,7 @@ class access_control:
     # REMOVE MEMBER FROM USER GROUP
     #
     # - Request:
-    #   DELETE organizations/organization/ORGNAME/groups/group/GROUPNAME/members/member/MEMBERNAME
+    #   DELETE organization/groups/group/GROUPNAME/members/member/MEMBERNAME
     #   headers: {'Authorization': 'Bearer ' + token.access}
     #
     # - Response:
@@ -715,7 +754,7 @@ class access_control:
     #   {'status': 'NG', 'message': string}
     #
     ########################################################################################################
-    def add_member_to_organization_group(self, orgname, groupname, membername):
+    def add_member_to_organization_group(self, groupname, membername):
         # get token from Authorization header
         auth_header_token = rest_api_utils.utils().get_auth_header_token()
         if auth_header_token is None:
@@ -750,16 +789,23 @@ class access_control:
             return response, status.HTTP_401_UNAUTHORIZED
 
 
+        # there must be an active organization for these APIs
+        orgname, orgid = self.database_client.get_active_organization(username)
+        if orgname is None:
+            response = json.dumps({'status': 'NG', 'message': 'No organization is active'})
+            print('\r\nERROR Add organization group member: No organization is active [{}]\r\n'.format(username))
+            return response, status.HTTP_400_BAD_REQUEST
+
         # add or remove organization group member
         if flask.request.method == 'POST':
-            result, errcode = self.database_client.add_member_to_organization_group(username, orgname, groupname, membername)
+            result, errcode = self.database_client.add_member_to_organization_group(username, orgname, orgid, groupname, membername)
             if result:
                 msg = {'status': 'OK', 'message': 'Add organization group member successful'}
             else:
                 msg = {'status': 'NG', 'message': 'Add organization group member failed'}
 
         elif flask.request.method == 'DELETE':
-            result, errcode = self.database_client.remove_member_from_organization_group(username, orgname, groupname, membername)
+            result, errcode = self.database_client.remove_member_from_organization_group(username, orgname, orgid, groupname, membername)
             if result:
                 msg = {'status': 'OK', 'message': 'Remove organization group member successful'}
             else:
@@ -786,7 +832,7 @@ class access_control:
     #   {'status': 'NG', 'message': string}
     #
     ########################################################################################################
-    def get_organization_policies(self, orgname):
+    def get_organization_policies(self):
         # get token from Authorization header
         auth_header_token = rest_api_utils.utils().get_auth_header_token()
         if auth_header_token is None:
@@ -821,8 +867,15 @@ class access_control:
             return response, status.HTTP_401_UNAUTHORIZED
 
 
+        # there must be an active organization for these APIs
+        orgname, orgid = self.database_client.get_active_organization(username)
+        if orgname is None:
+            response = json.dumps({'status': 'NG', 'message': 'No organization is active'})
+            print('\r\nERROR Get organization policies: No organization is active [{}]\r\n'.format(username))
+            return response, status.HTTP_400_BAD_REQUEST
+
         # get organization policies
-        policies = self.database_client.get_organization_policies(username, orgname)
+        policies = self.database_client.get_organization_policies(username, orgname, orgid)
         msg = {'status': 'OK', 'message': 'Get organization policies successful', 'policies': policies}
 
 
@@ -855,7 +908,7 @@ class access_control:
     #   {'status': 'NG', 'message': string}
     #
     ########################################################################################################
-    def create_organization_policy(self, orgname, policyname):
+    def create_organization_policy(self, policyname):
         # get token from Authorization header
         auth_header_token = rest_api_utils.utils().get_auth_header_token()
         if auth_header_token is None:
@@ -890,16 +943,23 @@ class access_control:
             return response, status.HTTP_401_UNAUTHORIZED
 
 
-        # check orgname
-        if len(orgname) == 0 or len(policyname) == 0:
+        # check policyname
+        if len(policyname) == 0:
             response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
             print('\r\nERROR Create organization policy: Empty parameter found\r\n')
+            return response, status.HTTP_400_BAD_REQUEST
+
+        # there must be an active organization for these APIs
+        orgname, orgid = self.database_client.get_active_organization(username)
+        if orgname is None:
+            response = json.dumps({'status': 'NG', 'message': 'No organization is active'})
+            print('\r\nERROR Create organization policy: No organization is active [{}]\r\n'.format(username))
             return response, status.HTTP_400_BAD_REQUEST
 
         # create or delete organization policy
         if flask.request.method == 'POST':
 
-            result, errorcode = self.database_client.create_organization_policy(username, orgname, policyname)
+            result, errorcode = self.database_client.create_organization_policy(username, orgname, orgid, policyname)
             if not result:
                 if errorcode == 409:
                     errormsg = "Organization policy name already taken"
@@ -913,7 +973,7 @@ class access_control:
         elif flask.request.method == 'DELETE':
 
             # get organization
-            result, errorcode = self.database_client.delete_organization_policy(username, orgname, policyname)
+            result, errorcode = self.database_client.delete_organization_policy(username, orgname, orgid, policyname)
             if not result:
                 if errorcode == 404:
                     errormsg = "Organization policy not found"
@@ -937,7 +997,7 @@ class access_control:
     # GET POLICIES IN USER GROUP
     #
     # - Request:
-    #   GET /organizations/organization/ORGNAME/groups/group/GROUPNAME/policies
+    #   GET /organization/groups/group/GROUPNAME/policies
     #   headers: {'Authorization': 'Bearer ' + token.access}
     #
     # - Response:
@@ -945,7 +1005,7 @@ class access_control:
     #   {'status': 'NG', 'message': string}
     #
     ########################################################################################################
-    def get_policies_in_organization_group(self, orgname, groupname):
+    def get_policies_in_organization_group(self, groupname):
         # get token from Authorization header
         auth_header_token = rest_api_utils.utils().get_auth_header_token()
         if auth_header_token is None:
@@ -980,8 +1040,15 @@ class access_control:
             return response, status.HTTP_401_UNAUTHORIZED
 
 
+        # there must be an active organization for these APIs
+        orgname, orgid = self.database_client.get_active_organization(username)
+        if orgname is None:
+            response = json.dumps({'status': 'NG', 'message': 'No organization is active'})
+            print('\r\nERROR Get organization group policies: No organization is active [{}]\r\n'.format(username))
+            return response, status.HTTP_400_BAD_REQUEST
+
         # get organization group policies
-        result, policies = self.database_client.get_policies_in_organization_group(username, orgname, groupname)
+        result, policies = self.database_client.get_policies_in_organization_group(username, orgname, orgid, groupname)
         if result:
             msg = {'status': 'OK', 'message': 'Get organization group policies successful', 'policies': policies}
         else:
@@ -997,7 +1064,7 @@ class access_control:
     # UPDATE POLICIES IN USER GROUP
     #
     # - Request:
-    #   POST /organizations/organization/ORGNAME/groups/group/GROUPNAME/policies
+    #   POST /organization/groups/group/GROUPNAME/policies
     #   headers: {'Authorization': 'Bearer ' + token.access}
     #   data: {'policies': [strings]}
     #
@@ -1006,7 +1073,7 @@ class access_control:
     #   {'status': 'NG', 'message': string}
     #
     ########################################################################################################
-    def update_policies_in_organization_group(self, orgname, groupname):
+    def update_policies_in_organization_group(self, groupname):
         # get token from Authorization header
         auth_header_token = rest_api_utils.utils().get_auth_header_token()
         if auth_header_token is None:
@@ -1049,8 +1116,15 @@ class access_control:
             print('\r\nERROR Update organization group policies: Parameters not included [{}]\r\n'.format(username))
             return response, status.HTTP_400_BAD_REQUEST
 
+        # there must be an active organization for these APIs
+        orgname, orgid = self.database_client.get_active_organization(username)
+        if orgname is None:
+            response = json.dumps({'status': 'NG', 'message': 'No organization is active'})
+            print('\r\nERROR Update organization group policies: No organization is active [{}]\r\n'.format(username))
+            return response, status.HTTP_400_BAD_REQUEST
+
         # update organization group policies
-        self.database_client.update_policies_in_organization_group(username, orgname, groupname, data["policies"])
+        self.database_client.update_policies_in_organization_group(username, orgname, orgid, groupname, data["policies"])
         msg = {'status': 'OK', 'message': 'Update organization group policies successful'}
 
 
@@ -1064,7 +1138,7 @@ class access_control:
     # ADD POLICY TO USER GROUP
     #
     # - Request:
-    #   POST organizations/organization/ORGNAME/groups/group/GROUPNAME/policies/policy/POLICYNAME
+    #   POST organization/groups/group/GROUPNAME/policies/policy/POLICYNAME
     #   headers: {'Authorization': 'Bearer ' + token.access}
     #
     # - Response:
@@ -1075,7 +1149,7 @@ class access_control:
     # REMOVE POLICY FROM USER GROUP
     #
     # - Request:
-    #   DELETE organizations/organization/ORGNAME/groups/group/GROUPNAME/policies/policy/POLICYNAME
+    #   DELETE organization/groups/group/GROUPNAME/policies/policy/POLICYNAME
     #   headers: {'Authorization': 'Bearer ' + token.access}
     #
     # - Response:
@@ -1083,7 +1157,7 @@ class access_control:
     #   {'status': 'NG', 'message': string}
     #
     ########################################################################################################
-    def add_policy_to_organization_group(self, orgname, groupname, policyname):
+    def add_policy_to_organization_group(self, groupname, policyname):
         # get token from Authorization header
         auth_header_token = rest_api_utils.utils().get_auth_header_token()
         if auth_header_token is None:
@@ -1118,16 +1192,23 @@ class access_control:
             return response, status.HTTP_401_UNAUTHORIZED
 
 
+        # there must be an active organization for these APIs
+        orgname, orgid = self.database_client.get_active_organization(username)
+        if orgname is None:
+            response = json.dumps({'status': 'NG', 'message': 'No organization is active'})
+            print('\r\nERROR Add organization group policy: No organization is active [{}]\r\n'.format(username))
+            return response, status.HTTP_400_BAD_REQUEST
+
         # add or remove organization group policy
         if flask.request.method == 'POST':
-            result, errcode = self.database_client.add_policy_to_organization_group(username, orgname, groupname, policyname)
+            result, errcode = self.database_client.add_policy_to_organization_group(username, orgname, orgid, groupname, policyname)
             if result:
                 msg = {'status': 'OK', 'message': 'Add organization group policy successful'}
             else:
                 msg = {'status': 'NG', 'message': 'Add organization group policy failed'}
 
         elif flask.request.method == 'DELETE':
-            result, errcode = self.database_client.remove_policy_from_organization_group(username, orgname, groupname, policyname)
+            result, errcode = self.database_client.remove_policy_from_organization_group(username, orgname, orgid, groupname, policyname)
             if result:
                 msg = {'status': 'OK', 'message': 'Remove organization group policy successful'}
             else:
