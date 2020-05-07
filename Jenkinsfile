@@ -116,6 +116,7 @@ pipeline {
             sh "docker-compose down"
             sh "docker-compose rm -f"
             sh "docker network prune -f"
+            sh service docker start
         }
     }
 }
