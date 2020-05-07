@@ -15,33 +15,30 @@
         <input type="text" placeholder="Organization name" ng-model="data.orgname">
       </label>
       <button id="updateOrganizations-button221" ng-click="createOrganization()" class="button button-positive button-block">Create new organization</button>
-    </form>
-    <div id="updateOrganizations-container89">
       <div class="spacer" style="width: 480px; height: 50px;"></div>
       <div id="updateOrganizations-markdown522" class="show-list-numbers-and-dots">
         <p style="color:#AAAAAA;font-size:12px;">You have {{ organizations.length }} organizations.</p>
       </div>
+    </form>
+    <div id="updateOrganizations-container89" ng-show="organizations.length > 0">
       <table style="width:100%" bordercolor="#444444">
         <tbody>
           <tr>
-            <th style="width:3%">&nbsp;</th>
-            <th style="width:47%">
-              <b>Name</b>
+            <th style="width:10%">&nbsp;</th>
+            <th style="width:55%">
+              <b>Organization</b>
             </th>
             <th style="width:20%">
               <b>Membership</b>
             </th>
-            <th style="width:20%">
+            <th style="width:15%">
               <b>Status</b>
-            </th>
-            <th style="width:10%">
-              <b>Active</b>
             </th>
           </tr>
         </tbody>
       </table>
     </div>
-    <div id="updateOrganizations-container90" ng-repeat="organization in organizations">
+    <div id="updateOrganizations-container90" ng-repeat="organization in organizations" ng-show="organizations.length > 0">
       <table style="width:100%">
         <tbody>
           <tr>
@@ -49,16 +46,25 @@
               <input type="checkbox" ng-model="organization.checked">
             </td>
 
-            <td style="width:47%">{{ organization.orgname }}</td>
-            <td style="width:20%">{{ organization.membership }}</td>
-            <td style="width:20%">{{ organization.status }} on {{ organization.date }}</td>
+            <td style="width:7%">
+              <div ng-show="organization.active==1">
+                <img src="img/O084RUCWTlWpYxLh1GTT_star.png" style="width:16px; height:16px">
+              </div>
 
-            <td style="width:10%">{{ organization.active }} </td>
+              <div ng-show="organization.active!=1">
+                &nbsp;
+              </div>
+            </td>
+
+            <td style="width:55%">{{ organization.orgname }} ({{ organization.orgid }})</td>
+            <td style="width:20%">{{ organization.membership }}</td>
+            <td style="width:15%">{{ organization.status }} on {{ organization.date }}</td>
+
 
           </tr>
         </tbody>
       </table>
     </div>
-    <button id="updateOrganizations-button223" ng-click="setActiveOrganization()" class="button button-positive button-block">Set active organization</button>
+    <button id="updateOrganizations-button223" ng-click="setActiveOrganization()" ng-show="organizations.length > 0" class="button button-positive button-block">Set active organization</button>
   </ion-content>
 </ion-view>

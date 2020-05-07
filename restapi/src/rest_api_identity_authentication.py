@@ -1375,7 +1375,7 @@ class identity_authentication:
     # - Request:
     #   POST /user/organizations
     #   headers: {'Authorization': 'Bearer ' + token.access}
-    #   data: {'orgname': string}
+    #   data: {'orgname': string, 'orgid': string}
     #
     # - Response:
     #   {'status': 'OK', 'message': string}
@@ -1430,12 +1430,12 @@ class identity_authentication:
 
             # get the input parameters
             data = flask.request.get_json()
-            if data is None or data.get("orgname") is None:
+            if data is None or data.get("orgname") is None or data.get("orgid") is None:
                 response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
                 print('\r\nERROR Get organizations: Empty parameter found\r\n')
                 return response, status.HTTP_400_BAD_REQUEST
 
-            organization = self.database_client.set_active_organization(username, data["orgname"])
+            organization = self.database_client.set_active_organization(username, data["orgname"], data["orgid"])
             msg = {'status': 'OK', 'message': 'Set active organization successful'}
 
 
@@ -1524,12 +1524,13 @@ class identity_authentication:
 
         elif flask.request.method == 'DELETE':
 
+            print("leave_organization 1 DELETE")
             # get the active organization
             # its ok if no active organization
             orgname, orgid = self.database_client.get_active_organization(username)
             if orgname is None:
                 response = json.dumps({'status': 'NG', 'message': 'No active organization'})
-                print('\r\nERROR Delete organization: No active organization\r\n')
+                print('\r\nERROR Leave organization: No active organization\r\n')
                 return response, status.HTTP_400_BAD_REQUEST
 
             self.database_client.leave_organization(username, orgname, orgid)
@@ -1546,7 +1547,7 @@ class identity_authentication:
     # ACCEPT ORGANIZATION INVITATION
     #
     # - Request:
-    #   POST /user/organizations/organization/<orgname>/invitation
+    #   POST /user/organization/invitation
     #   headers: {'Authorization': 'Bearer ' + token.access}
     #
     # - Response:
@@ -1557,7 +1558,7 @@ class identity_authentication:
     # DECLINE ORGANIZATION INVITATION
     #
     # - Request:
-    #   POST /user/organizations/organization/<orgname>/invitation
+    #   POST /user/organization/invitation
     #   headers: {'Authorization': 'Bearer ' + token.access}
     #
     # - Response:
@@ -1565,7 +1566,7 @@ class identity_authentication:
     #   {'status': 'NG', 'message': string}
     #
     ########################################################################################################
-    def accept_organization_invitation(self, orgname):
+    def accept_organization_invitation(self):
         # get token from Authorization header
         auth_header_token = rest_api_utils.utils().get_auth_header_token()
         if auth_header_token is None:
@@ -1580,7 +1581,7 @@ class identity_authentication:
             response = json.dumps({'status': 'NG', 'message': 'Token expired'})
             print('\r\nERROR Accept organization invitation: Token expired\r\n')
             return response, status.HTTP_401_UNAUTHORIZED
-        print('accept_organization_invitation username={} orgname={}'.format(username, orgname))
+        print('accept_organization_invitation username={}'.format(username))
 
         # check if a parameter is empty
         if len(username) == 0 or len(token) == 0:

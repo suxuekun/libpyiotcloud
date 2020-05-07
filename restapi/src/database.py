@@ -653,8 +653,8 @@ class database_client:
     def get_organizations(self, username):
         return self._devices.get_organizations(username)
 
-    def set_active_organization(self, username, orgname):
-        return self._devices.set_active_organization(username, orgname)
+    def set_active_organization(self, username, orgname, orgid):
+        return self._devices.set_active_organization(username, orgname, orgid)
 
     def get_active_organization(self, username):
         return self._devices.get_active_organization(username)
@@ -3101,11 +3101,11 @@ class database_client_mongodb:
     def setactive_organizations_users(self, username, orgname, orgid):
         organizations_doc = self.get_organizations_users_document()
         for organization in organizations_doc.find({'username': username}):
-            if organization['orgname'] == orgname: # and organization['orgid'] == orgid:
+            if organization['orgname'] == orgname and organization['orgid'] == orgid:
                 organization['active'] = 1
             else:
                 organization['active'] = 0
-            organizations_doc.replace_one({'username': username, 'orgname': organization['orgname']}, organization)
+            organizations_doc.replace_one({'username': username, 'orgname': organization['orgname'], 'orgid': organization['orgid']}, organization)
 
     def getactive_organizations_users(self, username):
         organizations_doc = self.get_organizations_users_document()
@@ -3172,8 +3172,8 @@ class database_client_mongodb:
         organizations = self.get_user_organizations(username)
         return organizations
 
-    def set_active_organization(self, username, orgname):
-        self.setactive_organizations_users(username, orgname, None)
+    def set_active_organization(self, username, orgname, orgid):
+        self.setactive_organizations_users(username, orgname, orgid)
 
     def get_active_organization(self, username):
         orgname, orgid = self.getactive_organizations_users(username)
@@ -3199,12 +3199,12 @@ class database_client_mongodb:
             organization["members"].append(self.get_user_organization(user, orgname=orgname, orgid=orgid, complete=False))
 
         organization.pop("_id")
-        organization.pop("orgid")
         organization.pop("users")
         #print(organization)
         return organization
 
     def leave_organization(self, username, orgname, orgid):
+        print("leave_organization")
         ###
         user = self.get_user_organization(username, orgname=orgname, orgid=orgid, complete=True)
         ###
@@ -3301,9 +3301,10 @@ class database_client_mongodb:
     def create_organization(self, username, orgname):
         # multiple organizations is allowed
         ###
-        # user = self.get_user_organization(username, orgname=orgname, complete=True)
+        #orgs = self.get_user_organizations(username)
         ###
-        # if user is not None:
+        #if len(orgs) == 3:
+        #    # Max of 3 organizations for now
         #    return False, 401 # HTTP_401_UNAUTHORIZED
 
         timestamp = int(time.time())
@@ -3320,9 +3321,7 @@ class database_client_mongodb:
             self.setactive_organizations_users(username, orgname, item['orgid'])
             ###
         else:
-            if username in found['users']:
-                return False, 409 # HTTP_409_CONFLICT
-
+            # allow adding since orgid will be different anyway
             organizations_doc.insert_one(item)
             ###
             self.updateuser_organizations_users(username, orgname, item["orgid"], "Joined", "Owner")

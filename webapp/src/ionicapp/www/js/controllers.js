@@ -19222,7 +19222,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
     };
     
     $scope.createOrganization = function() {
-        console.log('setActiveOrganization');
+        console.log('createOrganization');
         if ($scope.data.orgname === '') {
             $ionicPopup.alert({title: 'Create Organization', template: 'Organization name is empty!'});
             return;
@@ -19249,6 +19249,21 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                         }
                     ]
                 });
+            }
+            else {
+
+                console.log("ERROR");
+                $ionicPopup.alert({
+                    title: 'Create Organization',
+                    template: 'Creating of new organization failed. ' + res.message,
+                    buttons: [
+                        {
+                            text: 'Yes',
+                            type: 'button-positive'
+                        }
+                    ]
+                });
+                
             }
         });
     };
@@ -19546,12 +19561,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                     text: 'Yes',
                     type: 'button-positive',
                     onTap: function(e) {
-                        $scope.organizations = null;
-                        $scope.activeorg = 0;
-                        $scope.organization = null;
-                        $scope.groups = null;
-                        $scope.policies = null;
-                        $scope.getOrganization();
+                        $scope.leaveOrganizationAction();
                     }
                 }
             ]
@@ -19569,7 +19579,11 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                             text: 'Yes',
                             type: 'button-positive',
                             onTap: function(e) {
+                                $scope.organizations = null;
+                                $scope.activeorg = 0;
                                 $scope.organization = null;
+                                $scope.groups = null;
+                                $scope.policies = null;
                                 $scope.getOrganization();
                             }
                         }
@@ -20134,6 +20148,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         'orgname': ''
     };
     
+    $scope.organizations = [];
+
 
     $scope.createOrganization = function() {
         console.log('createOrganization');
@@ -20165,15 +20181,38 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                     ]
                 });
             }
+            else {
+                
+                console.log("ERROR");
+                $ionicPopup.alert({
+                    title: 'Create Organization',
+                    template: 'Creating of new organization failed. ' + res.message,
+                    buttons: [
+                        {
+                            text: 'Yes',
+                            type: 'button-positive'
+                        }
+                    ]
+                });                
+            }
         });
     };
    
     $scope.setActiveOrganization = function() {
 
+        if ($scope.organizations.length === 0) {
+            $ionicPopup.alert({
+                title: 'Set Active Organization',
+                template: 'Error. You have no organizations.',
+                buttons: [{ text: 'Yes', type: 'button-positive' }]
+            });
+            return;
+        }
+
         var org_list = [];    
         for (var organization in $scope.organizations) {
             if ($scope.organizations[organization].checked) {
-                org_list.push($scope.organizations[organization].orgname);
+                org_list.push({'orgname': $scope.organizations[organization].orgname, 'orgid': $scope.organizations[organization].orgid});
             }
         }
         if (org_list.length > 1) {
@@ -20188,16 +20227,16 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             $scope.setActiveOrganizationAction('None');
         }
         else {
-            $scope.setActiveOrganizationAction(org_list[0]);
+            $scope.setActiveOrganizationAction(org_list[0].orgname, org_list[0].orgid);
         }
     };
         
-    $scope.setActiveOrganizationAction = function(orgname) {
+    $scope.setActiveOrganizationAction = function(orgname, orgid) {
         
-        Organizations.set_active($scope.data, orgname).then(function(res) {
+        Organizations.set_active($scope.data, orgname, orgid).then(function(res) {
             $ionicPopup.alert({
                 title: 'Set Active Organization',
-                template: 'You have successfully set the active organization to ' + orgname,
+                template: 'You have successfully set the active organization to ' + orgname + ' (' + orgid + ')',
                 buttons: [
                     {
                         text: 'Yes',
@@ -20240,7 +20279,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
     $scope.submitRefresh = function() {
         $scope.data.username = User.get_username();
         $scope.data.token = User.get_token();
-        $scope.organizations = null;
+        $scope.organizations = [];
         $scope.getOrganizations();
     };
     
@@ -20249,7 +20288,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
     }); 
     
     $scope.$on('$ionicView.beforeLeave', function(e) {
-        $scope.organizations = null;
+        $scope.organizations = [];
         $scope.data.orgname = '';
     });
     
