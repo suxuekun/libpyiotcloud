@@ -45,12 +45,12 @@ angular.module('organizations', [])
         },
         
         // SET ACTIVE ORGANIZATION
-        set_active: function(userdata, orgname) {
+        set_active: function(userdata, orgname, orgid) {
             return $http({
                 method: 'POST',
                 url: server + '/user/organizations',
                 headers: {'Authorization': 'Bearer ' + userdata.token.access},
-                data: {'orgname': orgname}
+                data: {'orgname': orgname, 'orgid': orgid}
             })
             .then(function (result) {
                 console.log(result.data);
@@ -196,7 +196,7 @@ angular.module('organizations', [])
         create: function(userdata, orgname) {
             return $http({
                 method: 'POST',
-                url: server + '/organization' + orgname,
+                url: server + '/organization',
                 headers: {'Authorization': 'Bearer ' + userdata.token.access},
                 data: {'orgname': orgname}
             })

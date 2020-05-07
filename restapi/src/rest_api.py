@@ -190,6 +190,7 @@ def get_organization():
 
 @app.route('/user/organization', methods=['DELETE'])
 def leave_organization():
+    print("leave_organization 1")
     return g_identity_authentication.get_organization()
 
 @app.route('/user/organization/invitation', methods=['POST'])

@@ -6,6 +6,9 @@
     <div class="spacer" style="width: 300px; height: 20px;"></div>
     <form id="organizations-form240" class="list page_width_small">
       <button id="organizations-button213" ng-click="updateOrganizations()" class="button button-positive button-small button-block button-outline">Update organizations</button>
+      <div id="organizations-markdown495" ng-show="organization == null" class="show-list-numbers-and-dots">
+        <p style="color:#AAAAAA;font-size:12px;">No organization or no organization is active.</p>
+      </div>
       <div class="spacer" style="height: 50px;"></div>
     </form>
     <form id="organizations-form241" class="list page_width_medium" ng-show="organization != null &amp;&amp; organization.membership != &quot;Owner&quot;">
@@ -21,10 +24,10 @@
         </div>
       </div>
       <div id="organizations-markdown491" ng-show="organization.status == &quot;Invited&quot;" style="text-align:center;" class="show-list-numbers-and-dots">
-        <p style="color:#AAAAAA;font-size:12px;">You have been invited to join {{ organization.orgname }} organization. Click Accept or Decline button.</p>
+        <p style="color:#AAAAAA;font-size:12px;">You have been invited to join {{ organization.orgname }} ({{ organization.orgid }}) organization. Click Accept or Decline button.</p>
       </div>
       <div id="organizations-markdown496" ng-show="organization.status != &quot;Invited&quot;" style="text-align:center;" class="show-list-numbers-and-dots">
-        <p style="color:#AAAAAA;font-size:12px;">You are a member of {{ organization.orgname }} organization. You can access resources based on the roles and permissions assigned to your account.</p>
+        <p style="color:#AAAAAA;font-size:12px;">You are a member of {{ organization.orgname }} ({{ organization.orgid }}) organization. You can access resources based on the roles and permissions assigned to your account.</p>
       </div>
       <div id="organizations-container44" class="widget_button_quarter creator-container"></div>
       <div id="organizations-container46" class="widget_button_quarter">
@@ -44,7 +47,7 @@
     <form id="organizations-form239" class="list page_width_medium" ng-show="organization != null &amp;&amp; organization.membership == &quot;Owner&quot;">
       <button id="organizations-button191" style="font-weight:600;font-size:18px;" class="button button-positive button-block button-clear icon-right ion-android-settings">{{ organization.orgname }}</button>
       <div id="organizations-markdown499" style="text-align:center;" class="show-list-numbers-and-dots">
-        <p style="color:#AAAAAA;font-size:12px;">You are the owner of {{ organization.orgname }} organization.</p>
+        <p style="color:#AAAAAA;font-size:12px;">You are the owner of {{ organization.orgname }} ({{ organization.orgid }}) organization.</p>
       </div>
       <div id="organizations-container43">
         <div class="spacer" style="width: 700px; height: 25px;"></div>
