@@ -319,7 +319,7 @@ def remove_policy_from_organization_group(groupname, policyname):
 
 g_access_control_list = [
     { "name": "CREATE ORGANIZATION",           "func": create_organization,                   "api": "/organization",                                                       "method": "POST"   },
-    { "name": "DELETE ORGANIZATION",           "func": delete_organization,                   "api": "/organization",                                                       "method": "DELETE" },
+    { "name": "DELETE ORGANIZATION",           "func": create_organization,                   "api": "/organization",                                                       "method": "DELETE" },
     { "name": "CREATE/CANCEL INVITATIONS",     "func": create_organization_invitation,        "api": "/organization/invitation",                                            "method": "POST"   },
     { "name": "UPDATE/REMOVE MEMBERSHIPS",     "func": update_organization_membership,        "api": "/organization/membership",                                            "method": "POST"   },
 
