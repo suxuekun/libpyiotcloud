@@ -107,6 +107,17 @@ class access_control:
                 print('\r\nERROR Create organization: Empty parameter found\r\n')
                 return response, status.HTTP_400_BAD_REQUEST
 
+            # check orgname
+            if data["orgname"].strip() == "":
+                response = json.dumps({'status': 'NG', 'message': 'Invalid orgname'})
+                print('\r\nERROR Create organization: Invalid orgname\r\n')
+                return response, status.HTTP_400_BAD_REQUEST
+            if data["orgname"].lower() == "none":
+                response = json.dumps({'status': 'NG', 'message': 'Invalid orgname. Orgname reserved'})
+                print('\r\nERROR Create organization: Invalid orgname. Orgname is reserved\r\n')
+                return response, status.HTTP_400_BAD_REQUEST
+
+            # create organization
             result, errorcode = self.database_client.create_organization(username, data["orgname"])
             if not result:
                 if errorcode == 401:
