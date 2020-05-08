@@ -3187,6 +3187,10 @@ class database_client_mongodb:
         if user is None:
             return None
         if user["membership"] != "Owner":
+            if user.get("username"):
+                user.pop("username")
+            if user.get("active"):
+                user.pop("active")
             return user
 
         organizations_doc = self.get_organizations_document()
@@ -3195,16 +3199,24 @@ class database_client_mongodb:
             return None
         organization["membership"] = user["membership"]
         organization["members"] = []
-        for user in organization["users"]:
-            organization["members"].append(self.get_user_organization(user, orgname=orgname, orgid=orgid, complete=False))
+        for userx in organization["users"]:
+            userx_info = self.get_user_organization(userx, orgname=orgname, orgid=orgid, complete=False)
+            if userx_info.get("orgname"):
+                userx_info.pop("orgname")
+            if userx_info.get("orgid"):
+                userx_info.pop("orgid")
+            if userx_info.get("active"):
+                userx_info.pop("active")
+            organization["members"].append(userx_info)
 
         organization.pop("_id")
         organization.pop("users")
+        organization["status"] = user["status"]
+        organization["date"] = user["date"]
         #print(organization)
         return organization
 
     def leave_organization(self, username, orgname, orgid):
-        print("leave_organization")
         ###
         user = self.get_user_organization(username, orgname=orgname, orgid=orgid, complete=True)
         ###
@@ -3232,6 +3244,8 @@ class database_client_mongodb:
                     break
             if found == False:
                 return False, 404 # HTTP_404_NOT_FOUND
+            # select the new active organization
+            #self.select_new_active_org(username)
         return True, None
 
     def accept_organization_invitation(self, member, orgname, orgid):
@@ -3292,6 +3306,8 @@ class database_client_mongodb:
                     break
             if found == False:
                 return False, 404 # HTTP_404_NOT_FOUND
+            # select the new active organization
+            #self.select_new_active_org(username)
         return True, None
 
 
@@ -3338,6 +3354,11 @@ class database_client_mongodb:
         del found["users"][0]
         return found["users"]
 
+    def select_new_active_org(self, username):
+        orgs = self.get_user_organizations(username)
+        if len(orgs):
+            self.setactive_organizations_users(username, orgs[-1]['orgname'], orgs[-1]['orgid'])
+
     def delete_organization(self, username, orgname, orgid):
         ###
         self.delete_organization_policies(username, orgname, orgid)
@@ -3358,9 +3379,8 @@ class database_client_mongodb:
             self.removeuser_organizations_users_by_orgname(orgname, orgid)
             ###
             organizations_doc.delete_one(item)
-            orgs = self.get_user_organizations(username)
-            if len(orgs):
-                self.setactive_organizations_users(username, orgs[-1]['orgname'], orgs[-1]['orgid']) 
+            # select the new active organization
+            #self.select_new_active_org(username)
 
         return True, None
 
@@ -3750,7 +3770,7 @@ class database_client_mongodb:
             for x in range(len(item["policies"]), 0, -1):
                 if item["policies"][x-1] not in policies:
                     ###
-                    #self.updateuser_organizations_group(item["policies"][x-1], orgname, None)
+                    #self.updateuser_organizations_group(item["policies"][x-1], orgname, orgid, None)
                     ###
                     del item["policies"][x-1]
             organizations_groups.replace_one({'orgname': orgname, 'orgid': orgid, 'groupname': groupname}, item)
@@ -3776,7 +3796,7 @@ class database_client_mongodb:
             item['policies'].append(policyname)
             organizations_groups.replace_one({'orgname': orgname, 'orgid': orgid, 'groupname': groupname}, item)
             ###
-            #self.updateuser_organizations_group(policyname, orgname, groupname)
+            #self.updateuser_organizations_group(policyname, orgname, orgid, groupname)
             ###
         return True, None
 
@@ -3799,7 +3819,7 @@ class database_client_mongodb:
                 item['policies'].remove(policyname)
                 organizations_groups.replace_one({'orgname': orgname, 'orgid': orgid, 'groupname': groupname}, item)
             ###
-            #self.updateuser_organizations_group(policyname, orgname, None)
+            #self.updateuser_organizations_group(policyname, orgname, orgid, None)
             ###
         return True, None
 
@@ -3818,11 +3838,8 @@ class database_client_mongodb:
         if item is None:
             return False, 404 # HTTP_404_NOT_FOUND, org not found
         else:
-            print(item)
             for group in item:
-                print(group)
                 if policyname in group["policies"]:
-                    print("FOUND XXXXXXXXXXXX")
                     group['policies'].remove(policyname)
                     organizations_groups.replace_one({'orgname': orgname, 'orgid': orgid, 'groupname': group['groupname']}, group)
         return True, None
