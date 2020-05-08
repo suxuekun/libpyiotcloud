@@ -388,36 +388,41 @@ Dashboard doughnut charts
         R. LOGIN MFA                      - POST   /user/login/mfa
         //
         // organization (member)
-        S. GET ORGANIZATION                - GET    /user/organization
-        T. LEAVE ORGANIZATION              - DELETE /user/organization
-        U. ACCEPT ORGANIZATION INVITATION  - POST   /user/organization/invitation
-        V. DECLINE ORGANIZATION INVITATION - DELETE /user/organization/invitation
+        S. GET ORGANIZATIONS               - GET    /user/organizations
+        T. SET ACTIVE ORGANIZATION         - POST   /user/organizations
+           all ORG-related APIs below will use the organization that is active
+        U. GET ORGANIZATION                - GET    /user/organization
+        V. LEAVE ORGANIZATION              - DELETE /user/organization
+        W. ACCEPT ORGANIZATION INVITATION  - POST   /user/organization/invitation
+        X. DECLINE ORGANIZATION INVITATION - DELETE /user/organization/invitation
+
 
     2. Organization management APIs
+        all APIs below will use the organization that is active (EXCEPT FOR CREATE ORGANIZATION)
         //
         // organization (owner, users)
-        A. CREATE ORGANIZATION             - POST   organizations/organization/ORGNAME
-        B. DELETE ORGANIZATION             - DELETE organizations/organization/ORGNAME
-        C. CREATE/CANCEL INVITATIONS       - POST   organizations/organization/ORGNAME/invitation
-        D. UPDATE/REMOVE MEMBERSHIPS       - POST   organizations/organization/ORGNAME/membership
+        A. CREATE ORGANIZATION             - POST   organization
+        B. DELETE ORGANIZATION             - DELETE organization
+        C. CREATE/CANCEL INVITATIONS       - POST   organization/invitation
+        D. UPDATE/REMOVE MEMBERSHIPS       - POST   organization/membership
         //
         // organization (owner, groups)
-        E. GET USER GROUPS                 - GET    organizations/organization/ORGNAME/groups
-        F. CREATE USER GROUP               - POST   organizations/organization/ORGNAME/groups/group/GROUPNAME
-        G. DELETE USER GROUP               - DELETE organizations/organization/ORGNAME/groups/group/GROUPNAME
-        H. GET MEMBERS IN USER GROUP       - GET    organizations/organization/ORGNAME/groups/group/GROUPNAME/members
-        I. UPDATE MEMBERS IN USER GROUP    - POST   organizations/organization/ORGNAME/groups/group/GROUPNAME/members
-        J. ADD MEMBER TO USER GROUP        - POST   organizations/organization/ORGNAME/groups/group/GROUPNAME/members/member/MEMBERNAME
-        K. REMOVE MEMBER FROM USER GROUP   - DELETE organizations/organization/ORGNAME/groups/group/GROUPNAME/members/member/MEMBERNAME
+        E. GET USER GROUPS                 - GET    organization/groups
+        F. CREATE USER GROUP               - POST   organization/groups/group/GROUPNAME
+        G. DELETE USER GROUP               - DELETE organization/groups/group/GROUPNAME
+        H. GET MEMBERS IN USER GROUP       - GET    organization/groups/group/GROUPNAME/members
+        I. UPDATE MEMBERS IN USER GROUP    - POST   organization/groups/group/GROUPNAME/members
+        J. ADD MEMBER TO USER GROUP        - POST   organization/groups/group/GROUPNAME/members/member/MEMBERNAME
+        K. REMOVE MEMBER FROM USER GROUP   - DELETE organization/groups/group/GROUPNAME/members/member/MEMBERNAME
         //
         // organization (owner, policies)
-        L. GET POLICIES                    - GET    organizations/organization/ORGNAME/policies
-        M. CREATE/UPDATE POLICY            - POST   organizations/organization/ORGNAME/policies/policy/POLICYNAME
-        N. DELETE POLICY                   - DELETE organizations/organization/ORGNAME/policies/policy/POLICYNAME
-        O. GET POLICIES IN USER GROUP      - GET    organizations/organization/ORGNAME/groups/group/GROUPNAME/policies
-        P. UPDATE POLICIES IN USER GROUP   - POST   organizations/organization/ORGNAME/groups/group/GROUPNAME/policies
-        Q. ADD POLICY TO USER GROUP        - POST   organizations/organization/ORGNAME/groups/group/GROUPNAME/policies/policy/POLICYNAME
-        R. REMOVE POLICY FROM USER GROUP   - DELETE organizations/organization/ORGNAME/groups/group/GROUPNAME/policies/policy/POLICYNAME
+        L. GET POLICIES                    - GET    organization/policies
+        M. CREATE/UPDATE POLICY            - POST   organization/policies/policy/POLICYNAME
+        N. DELETE POLICY                   - DELETE organization/policies/policy/POLICYNAME
+        O. GET POLICIES IN USER GROUP      - GET    organization/groups/group/GROUPNAME/policies
+        P. UPDATE POLICIES IN USER GROUP   - POST   organization/groups/group/GROUPNAME/policies
+        Q. ADD POLICY TO USER GROUP        - POST   organization/groups/group/GROUPNAME/policies/policy/POLICYNAME
+        R. REMOVE POLICY FROM USER GROUP   - DELETE organization/groups/group/GROUPNAME/policies/policy/POLICYNAME
 
     3. Device registration and management APIs
         A. GET DEVICES                    - GET    /devices
