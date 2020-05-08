@@ -255,7 +255,7 @@ SUMMARY:
 		// organization (members)
 		S. GET ORGANIZATIONS               - GET    /user/organizations
 		T. SET ACTIVE ORGANIZATION         - POST   /user/organizations
-		   all ORG related APIs below will use the organization that is active
+		   all ORG-related APIs below will use the organization that is active
 
 		U. GET ORGANIZATION                - GET    /user/organization
 		V. LEAVE ORGANIZATION              - DELETE /user/organization
@@ -264,6 +264,8 @@ SUMMARY:
 
 
 	2. Organization management APIs
+
+		all APIs below will use the organization that is active (EXCEPT FOR CREATE ORGANIZATION)
 
 		//
 		// organization (owner, users)
@@ -895,20 +897,34 @@ DETAILED:
 		   GET /user/organizations
 		   headers: {'Content-Type': 'application/json'}
 		-  Response:
-		   {'status': 'OK', 'message': string}
+		   {'status': 'OK', 'message': string, 
+		    'organizations': [
+		      { 
+		        'orgname': string, 
+		        'orgid': string, 
+		        'membership': string, 
+		        'status': string, 
+		        'date': int, 
+		        'active': int
+		      }, ...
+		    ]}
 		   {'status': 'NG', 'message': string}
+		   // user can belong to multiple organizations
 
 		T. SET ACTIVE ORGANIZATION
 		-  Request:
 		   POST /user/organizations
 		   headers: {'Content-Type': 'application/json'}
-		   data: {'orgname': string }
+		   data: {'orgname': string, 'orgid': string }
+		   // both orgname and orgid are mandatory 
+		   //   because its possible for user to belong into 2 or more organizations with the same orgname
+		   // to set all organization inactive, both orgname and orgid can be set to string 'None'
 		-  Response:
 		   {'status': 'OK', 'message': string}
 		   {'status': 'NG', 'message': string}
 
 
-		S. GET ORGANIZATION
+		U. GET ORGANIZATION
 		-  Request:
 		   GET /user/organization
 		   headers: {'Content-Type': 'application/json'}
@@ -916,70 +932,80 @@ DETAILED:
 		   {'status': 'OK', 'message': string, 
 		    'organization': {
 		      'orgname': string, 
+		      'orgid': string, 
 		      'membership': string, 
-		      'members':[{"username": string, "status": string, "date": int, "membership": string}, ...], 
-		      'details': {"status": string, "date": int}
+		      'status': string, 
+		      'date': int,
+		      'members':[
+		        { 
+		          'username': string,
+		          'membership': string,
+		          'status': string,
+		          'date': int,
+		        }, ...
+		      ], 
+		     }
 		    }
 		   }
 		   {'status': 'NG', 'message': string}
 		   //
+		   // This API retreives the ACTIVE organization
+		   //   If no organization is active, this 
+		   // members only appears when user is the OWNER of the organization
 		   // membership is Owner, Member, Not member
 		   // status is Invited or Joined
-		   // members is optional and only appears when user is the master of the organization
-		   // details is optional and only appears when user is a member of the organization
-		   //
-		   // if MASTER:
-		   //  orgname: string
-		   //  membership: "Owner"
-		   //  members: [{"username": string, "status": string, "date": int, "membership": string}, ...]
-		   //elif MEMBER:
-		   //  orgname: string
-		   //  membership: "Member"
-		   //  details: {status: string, 'date': int, "membership": string}
+		   // date is the date in epoch in seconds when user was invited or joined the organization
 
-		T. LEAVE ORGANIZATION INVITATION
+		V. LEAVE ORGANIZATION INVITATION
 		-  Request:
 		   DELETE /user/organization
 		   headers: {'Content-Type': 'application/json'}
 		-  Response:
 		   {'status': 'OK', 'message': string}
 		   {'status': 'NG', 'message': string}
+		   // This API removes user from the ACTIVE organization
 
-		U. ACCEPT ORGANIZATION INVITATION
+		W. ACCEPT ORGANIZATION INVITATION
 		-  Request:
 		   POST /user/organization/invitation
 		   headers: {'Content-Type': 'application/json'}
 		-  Response:
 		   {'status': 'OK', 'message': string}
 		   {'status': 'NG', 'message': string}
+		   // This API accepts invitation from the ACTIVE organization
 
-		V. DECLINE ORGANIZATION INVITATION
+		X. DECLINE ORGANIZATION INVITATION
 		-  Request:
 		   DELETE /user/organization/invitation
 		   headers: {'Content-Type': 'application/json'}
 		-  Response:
 		   {'status': 'OK', 'message': string}
 		   {'status': 'NG', 'message': string}
+		   // This API declines invitation from the ACTIVE organization
 
 
 	2. Organization management APIs 
 
+		* All organization APIs points to the ACTIVE organization ONLY.
+		  (That's why specifying the orgname is NOT REQUIRED except for creating an organization.)
+
 		A. CREATE ORGANIZATION
 		-  Request:
-		   POST organizations/organization/ORGNAME
+		   POST organization
 		   headers: {'Content-Type': 'application/json'}
+		   data: {'orgname': string}
 		-  Response:
 		   {'status': 'OK', 'message': string}
 		   {'status': 'NG', 'message': string}
 		   // User cannot create an organization if he is already a part of an organization. 
 		   //   User has to leave the current organization in order to create a new organization.
 		   //   HTTP_401_UNAUTHORIZED error is returned if user tries to create an organization but already a part of an organization.
-		   // Organization names should be unique across all organizations.
-		   //   HTTP_409_CONFLICT error is returned if the organization name used is already taken.
+		   // Organization names do not have to be unique across all organizations.
+		   // Organization name 'None' is not allowed
 
 		B. DELETE ORGANIZATION
 		-  Request:
-		   DELETE organizations/organization/ORGNAME
+		   DELETE organization
 		   headers: {'Content-Type': 'application/json'}
 		-  Response:
 		   {'status': 'OK', 'message': string}
@@ -991,7 +1017,7 @@ DETAILED:
 
 		C. CREATE/CANCEL INVITATIONS
 		-  Request:
-		   POST organizations/organization/ORGNAME/invitation
+		   POST organization/invitation
 		   headers: {'Content-Type': 'application/json'}
 		   data: {'emails': [], 'cancel': 1}
 		-  Response:
@@ -1007,7 +1033,7 @@ DETAILED:
 
 		D. UPDATE/REMOVE MEMBERSHIPS
 		-  Request:
-		   POST organizations/organization/ORGNAME/membership
+		   POST organization/membership
 		   headers: {'Content-Type': 'application/json'}
 		   data: {'emails': [], 'remove': 1}
 		-  Response:
@@ -1024,7 +1050,7 @@ DETAILED:
 
 		E. GET USER GROUPS
 		-  Request:
-		   GET organizations/organization/ORGNAME/groups
+		   GET organization/groups
 		   headers: {'Content-Type': 'application/json'}
 		-  Response:
 		   {'status': 'OK', 'message': string, 'groups': [{'groupname': string, 'members': [string]}, ...]}
@@ -1032,7 +1058,7 @@ DETAILED:
 
 		F. CREATE USER GROUP
 		-  Request:
-		   POST organizations/organization/ORGNAME/groups/group/GROUPNAME
+		   POST organization/groups/group/GROUPNAME
 		   headers: {'Content-Type': 'application/json'}
 		-  Response:
 		   {'status': 'OK', 'message': string}
@@ -1040,7 +1066,7 @@ DETAILED:
 
 		G. DELETE USER GROUP
 		-  Request:
-		   DELETE organizations/organization/ORGNAME/groups/group/GROUPNAME
+		   DELETE organization/groups/group/GROUPNAME
 		   headers: {'Content-Type': 'application/json'}
 		-  Response:
 		   {'status': 'OK', 'message': string}
@@ -1048,7 +1074,7 @@ DETAILED:
 
 		H. GET MEMBERS IN USER GROUP
 		-  Request:
-		   GET organizations/organization/ORGNAME/groups/group/GROUPNAME/members
+		   GET organization/groups/group/GROUPNAME/members
 		   headers: {'Content-Type': 'application/json'}
 		-  Response:
 		   {'status': 'OK', 'message': string, 'members': [string]}
@@ -1057,7 +1083,7 @@ DETAILED:
 
 		I. UPDATE MEMBERS IN USER GROUP
 		-  Request:
-		   POST organizations/organization/ORGNAME/groups/group/GROUPNAME/members
+		   POST organization/groups/group/GROUPNAME/members
 		   headers: {'Content-Type': 'application/json'}
 		   data: {'members': [strings]}
 		-  Response:
@@ -1066,7 +1092,7 @@ DETAILED:
 
 		J. ADD MEMBER TO USER GROUP
 		-  Request:
-		   POST organizations/organization/ORGNAME/groups/group/GROUPNAME/members/member/MEMBERNAME
+		   POST organization/groups/group/GROUPNAME/members/member/MEMBERNAME
 		   headers: {'Content-Type': 'application/json'}
 		-  Response:
 		   {'status': 'OK', 'message': string}
@@ -1074,7 +1100,7 @@ DETAILED:
 
 		K. REMOVE MEMBER FROM USER GROUP
 		-  Request:
-		   DELETE organizations/organization/ORGNAME/groups/group/GROUPNAME/members/member/MEMBERNAME
+		   DELETE organization/groups/group/GROUPNAME/members/member/MEMBERNAME
 		   headers: {'Content-Type': 'application/json'}
 		-  Response:
 		   {'status': 'OK', 'message': string}
@@ -1083,7 +1109,7 @@ DETAILED:
 
 		L. GET POLICIES
 		-  Request:
-		   GET organizations/organization/ORGNAME/policies
+		   GET organization/policies
 		   headers: {'Content-Type': 'application/json'}
 		-  Response:
 		   {'status': 'OK', 'message': string, 'policies': [{'policyname': string}, ...]}
@@ -1091,7 +1117,7 @@ DETAILED:
 
 		M. CREATE/UPDATE POLICY
 		-  Request:
-		   POST organizations/organization/ORGNAME/policies/policy/POLICYNAME
+		   POST organization/policies/policy/POLICYNAME
 		   headers: {'Content-Type': 'application/json'}
 		-  Response:
 		   {'status': 'OK', 'message': string}
@@ -1099,7 +1125,7 @@ DETAILED:
 
 		N. DELETE POLICY
 		-  Request:
-		   DELETE organizations/organization/ORGNAME/policies/policy/POLICYNAME
+		   DELETE organization/policies/policy/POLICYNAME
 		   headers: {'Content-Type': 'application/json'}
 		-  Response:
 		   {'status': 'OK', 'message': string}
@@ -1107,7 +1133,7 @@ DETAILED:
 
 		O. GET POLICIES IN USER GROUP
 		-  Request:
-		   GET organizations/organization/ORGNAME/groups/group/GROUPNAME/policies
+		   GET organization/groups/group/GROUPNAME/policies
 		   headers: {'Content-Type': 'application/json'}
 		-  Response:
 		   {'status': 'OK', 'message': string, 'policies': [string]}
@@ -1115,7 +1141,7 @@ DETAILED:
 
 		P. UPDATE POLICIES IN USER GROUP
 		-  Request:
-		   POST organizations/organization/ORGNAME/groups/group/GROUPNAME/policies
+		   POST organization/groups/group/GROUPNAME/policies
 		   headers: {'Content-Type': 'application/json'}
 		   data: {'policies': [strings]}
 		-  Response:
@@ -1124,7 +1150,7 @@ DETAILED:
 
 		Q. ADD POLICY TO USER GROUP
 		-  Request:
-		   POST organizations/organization/ORGNAME/groups/group/GROUPNAME/policies/policy/POLICYNAME
+		   POST organization/groups/group/GROUPNAME/policies/policy/POLICYNAME
 		   headers: {'Content-Type': 'application/json'}
 		-  Response:
 		   {'status': 'OK', 'message': string}
@@ -1132,7 +1158,7 @@ DETAILED:
 
 		R. REMOVE POLICY FROM USER GROUP
 		-  Request:
-		   DELETE organizations/organization/ORGNAME/groups/group/GROUPNAME/policies/policy/POLICYNAME
+		   DELETE organization/groups/group/GROUPNAME/policies/policy/POLICYNAME
 		   headers: {'Content-Type': 'application/json'}
 		-  Response:
 		   {'status': 'OK', 'message': string}
