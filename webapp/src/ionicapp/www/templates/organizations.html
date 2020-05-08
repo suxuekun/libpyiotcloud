@@ -7,7 +7,7 @@
     <form id="organizations-form240" class="list page_width_small">
       <button id="organizations-button213" ng-click="updateOrganizations()" class="button button-positive button-small button-block button-outline">Update organizations</button>
       <div id="organizations-markdown495" ng-show="organization == null" class="show-list-numbers-and-dots">
-        <p style="color:#AAAAAA;font-size:12px;">No organization or no organization is active.</p>
+        <p style="color:#AAAAAA;font-size:12px;">{{ warning }}</p>
       </div>
       <div class="spacer" style="height: 50px;"></div>
     </form>
