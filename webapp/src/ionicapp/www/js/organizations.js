@@ -194,6 +194,7 @@ angular.module('organizations', [])
 
 
         create: function(userdata, orgname) {
+            console.log(orgname);
             return $http({
                 method: 'POST',
                 url: server + '/organization',
