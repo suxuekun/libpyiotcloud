@@ -1934,6 +1934,8 @@ Current security implementation for device connectivity:
     4. Unique MQTT credentials (username and password) per device where password is JWT-encoded with shared secret key
     5. Strict restrictions for MQTT topic permission (subscribe and publish) per device
     6. [TODO] ECC certificates stored in 3rd-party ATECC hardware chip 
+    7. [TODO] Secure boot with 256-bit AES key stored in an eFuse block to prevent tampered firmware
+    8. [TODO] Flash encryption to prevent copying SPI Flash contents (bootloader, partition table, app partitions) controlled via eFuses
 
 ### Front-end (Web/Mobile App) Connectivity
 
