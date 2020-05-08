@@ -1366,7 +1366,8 @@ class identity_authentication:
     #   headers: {'Authorization': 'Bearer ' + token.access}
     #
     # - Response:
-    #   {'status': 'OK', 'message': string}
+    #   {'status': 'OK', 'message': string, 
+    #    'organizations': [{'orgname': string, 'orgid': string, 'membership': string, 'status': string, 'date': int, 'active': int}, ...]}
     #   {'status': 'NG', 'message': string}
     #
     #
