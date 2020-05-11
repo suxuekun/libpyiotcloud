@@ -1116,18 +1116,30 @@ DETAILED:
 		   GET organization/policies
 		   headers: {'Content-Type': 'application/json'}
 		-  Response:
-		   {'status': 'OK', 'message': string, 'policies': [{'policyname': string}, ...]}
+		   {'status': 'OK', 'message': string, 'policies': [{'policyname': string, 'type': string, 'settings': [{'label': string, 'crud': [boolean, boolean, boolean, boolean]}, ...]}, ...]}
 		   {'status': 'NG', 'message': string}
+		   // crud is an array of 4 booleans and corresponds to Create, Read, Update and Delete
 
-		M. CREATE/UPDATE POLICY
+		M. GET POLICY
+		-  Request:
+		   GET organization/policies/policy/POLICYNAME
+		   headers: {'Content-Type': 'application/json'}
+		-  Response:
+		   {'status': 'OK', 'message': string, 'settings': [{'label': string, 'crud': [boolean, boolean, boolean, boolean]}, ...] }
+		   {'status': 'NG', 'message': string}
+		   // crud is an array of 4 booleans and corresponds to Create, Read, Update and Delete
+
+		N. CREATE/UPDATE POLICY
 		-  Request:
 		   POST organization/policies/policy/POLICYNAME
 		   headers: {'Content-Type': 'application/json'}
+		   data: {'settings': [{'label': string, 'crud': [boolean, boolean, boolean, boolean]}, ...] }
 		-  Response:
 		   {'status': 'OK', 'message': string}
 		   {'status': 'NG', 'message': string}
+		   // crud is an array of 4 booleans and corresponds to Create, Read, Update and Delete
 
-		N. DELETE POLICY
+		O. DELETE POLICY
 		-  Request:
 		   DELETE organization/policies/policy/POLICYNAME
 		   headers: {'Content-Type': 'application/json'}
@@ -1135,7 +1147,15 @@ DETAILED:
 		   {'status': 'OK', 'message': string}
 		   {'status': 'NG', 'message': string}
 
-		O. GET POLICIES IN USER GROUP
+		P. GET POLICY SETTINGS/OPTIONS
+		-  Request:
+		   GET organization/policies/settings
+		   headers: {'Content-Type': 'application/json'}
+		-  Response:
+		   {'status': 'OK', 'message': string, 'settings': {'label': string, 'crud': [boolean, boolean, boolean, boolean]}}
+		   {'status': 'NG', 'message': string}
+
+		Q. GET POLICIES IN USER GROUP
 		-  Request:
 		   GET organization/groups/group/GROUPNAME/policies
 		   headers: {'Content-Type': 'application/json'}
@@ -1143,7 +1163,7 @@ DETAILED:
 		   {'status': 'OK', 'message': string, 'policies': [string]}
 		   {'status': 'NG', 'message': string}
 
-		P. UPDATE POLICIES IN USER GROUP
+		R. UPDATE POLICIES IN USER GROUP
 		-  Request:
 		   POST organization/groups/group/GROUPNAME/policies
 		   headers: {'Content-Type': 'application/json'}
@@ -1152,7 +1172,7 @@ DETAILED:
 		   {'status': 'OK', 'message': string}
 		   {'status': 'NG', 'message': string}
 
-		Q. ADD POLICY TO USER GROUP
+		S. ADD POLICY TO USER GROUP
 		-  Request:
 		   POST organization/groups/group/GROUPNAME/policies/policy/POLICYNAME
 		   headers: {'Content-Type': 'application/json'}
@@ -1160,7 +1180,7 @@ DETAILED:
 		   {'status': 'OK', 'message': string}
 		   {'status': 'NG', 'message': string}
 
-		R. REMOVE POLICY FROM USER GROUP
+		T. REMOVE POLICY FROM USER GROUP
 		-  Request:
 		   DELETE organization/groups/group/GROUPNAME/policies/policy/POLICYNAME
 		   headers: {'Content-Type': 'application/json'}
