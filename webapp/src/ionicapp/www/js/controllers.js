@@ -19816,7 +19816,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         var policies = [];
         for (var indexy=0; indexy<$scope.policies.length; indexy++) {
             if ($scope.policies[indexy].checked === true) {
-                policies.push($scope.policies[indexy].policyname);
+                policies.push({'policyname': $scope.policies[indexy].policyname, 'settings': $scope.policies[indexy].settings, 'type': $scope.policies[indexy].type});
             }
         }
         if (policies.length > 1) {
@@ -19841,7 +19841,9 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             'username': User.get_username(),
             'token': User.get_token(),
             'orgname': $scope.organization.orgname,
-            'policyname': policies[0]
+            'policyname': policies[0].policyname,
+            'settings': policies[0].settings,
+            'type': policies[0].type,
         };
         $state.go('updateOrganizationPolicy', param, {reload:true} );    
         
@@ -19909,6 +19911,13 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                             }
                         }
                     ]
+                });
+            }
+            else {
+                $ionicPopup.alert({
+                    title: 'Delete Policy',
+                    template: 'Deleting the policy named ' + policyname + " failed! " + res.message,
+                    buttons: [{text: 'Yes', type: 'button-positive'}]
                 });
             }
             
@@ -20185,10 +20194,25 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         
         'orgname': $stateParams.orgname,
         'policyname': $stateParams.policyname,
-        'settings': []
+        'settings': $stateParams.settings,
+        'type': $stateParams.type,
     };
 
+    $scope.policySelected = 0;
+    $scope.policies = [];
 
+
+
+    $scope.changePolicy = function(id) {
+        $scope.policySelected = id;
+        console.log("changePolicy " + id);
+        console.log($scope.policySelected);
+        
+        $scope.data.policyname = $scope.policies[id].policyname;
+        $scope.data.settings   = $scope.policies[id].settings;
+        $scope.data.type       = $scope.policies[id].type;
+    };
+    
     $scope.updatePolicy = function() {
         console.log("updatePolicy " + $scope.data.policyname);
         
@@ -20232,12 +20256,36 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         });
     };
 
-
+    $scope.getPolicies = function() {
+        console.log("getPolicies");
+        
+        Organizations.get_policies($scope.data).then(function(res) {
+            
+            if (res.status === 'OK') {
+                
+                if (res.policies !== undefined) {
+                    $scope.policies = res.policies;
+                    
+                    for (var indexy=0; indexy<$scope.policies.length; indexy++) {
+                        $scope.policies[indexy].id = indexy;
+                        if ($scope.policies[indexy].policyname === $scope.data.policyname) {
+                            $scope.policySelected = indexy;
+                        }
+                    }
+                }
+                else {
+                    $scope.policySelected = 0;
+                    $scope.policies = [];
+                }
+            }
+        });
+    };
+    
     $scope.submitRefresh = function() {
         console.log("submitRefresh");
         $scope.data.username = User.get_username();
         $scope.data.token = User.get_token();
-        $scope.getPolicy();
+        $scope.getPolicies();
     };
     
     $scope.$on('$ionicView.enter', function(e) {
@@ -20713,7 +20761,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
 
         for (var policy in $scope.policies) {
             if ($scope.policies[policy].enabled) {
-                policies.push($scope.policies[policy].membername);
+                policies.push($scope.policies[policy].policyname);
             }
         }
         

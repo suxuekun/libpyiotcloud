@@ -899,7 +899,7 @@ DETAILED:
 		S. GET ORGANIZATIONS
 		-  Request:
 		   GET /user/organizations
-		   headers: {'Content-Type': 'application/json'}
+		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
 		   {'status': 'OK', 'message': string, 
 		    'organizations': [
@@ -918,7 +918,7 @@ DETAILED:
 		T. SET ACTIVE ORGANIZATION
 		-  Request:
 		   POST /user/organizations
-		   headers: {'Content-Type': 'application/json'}
+		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
 		   data: {'orgname': string, 'orgid': string }
 		   // both orgname and orgid are mandatory 
 		   //   because its possible for user to belong into 2 or more organizations with the same orgname
@@ -931,7 +931,7 @@ DETAILED:
 		U. GET ORGANIZATION
 		-  Request:
 		   GET /user/organization
-		   headers: {'Content-Type': 'application/json'}
+		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
 		   {'status': 'OK', 'message': string, 
 		    'organization': {
@@ -963,7 +963,7 @@ DETAILED:
 		V. LEAVE ORGANIZATION INVITATION
 		-  Request:
 		   DELETE /user/organization
-		   headers: {'Content-Type': 'application/json'}
+		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
 		-  Response:
 		   {'status': 'OK', 'message': string}
 		   {'status': 'NG', 'message': string}
@@ -972,7 +972,7 @@ DETAILED:
 		W. ACCEPT ORGANIZATION INVITATION
 		-  Request:
 		   POST /user/organization/invitation
-		   headers: {'Content-Type': 'application/json'}
+		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
 		-  Response:
 		   {'status': 'OK', 'message': string}
 		   {'status': 'NG', 'message': string}
@@ -981,7 +981,7 @@ DETAILED:
 		X. DECLINE ORGANIZATION INVITATION
 		-  Request:
 		   DELETE /user/organization/invitation
-		   headers: {'Content-Type': 'application/json'}
+		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
 		-  Response:
 		   {'status': 'OK', 'message': string}
 		   {'status': 'NG', 'message': string}
@@ -996,7 +996,7 @@ DETAILED:
 		A. CREATE ORGANIZATION
 		-  Request:
 		   POST organization
-		   headers: {'Content-Type': 'application/json'}
+		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
 		   data: {'orgname': string}
 		-  Response:
 		   {'status': 'OK', 'message': string}
@@ -1010,7 +1010,7 @@ DETAILED:
 		B. DELETE ORGANIZATION
 		-  Request:
 		   DELETE organization
-		   headers: {'Content-Type': 'application/json'}
+		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
 		-  Response:
 		   {'status': 'OK', 'message': string}
 		   {'status': 'NG', 'message': string}
@@ -1022,7 +1022,7 @@ DETAILED:
 		C. CREATE/CANCEL INVITATIONS
 		-  Request:
 		   POST organization/invitation
-		   headers: {'Content-Type': 'application/json'}
+		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
 		   data: {'emails': [], 'cancel': 1}
 		-  Response:
 		   {'status': 'OK', 'message': string}
@@ -1038,7 +1038,7 @@ DETAILED:
 		D. UPDATE/REMOVE MEMBERSHIPS
 		-  Request:
 		   POST organization/membership
-		   headers: {'Content-Type': 'application/json'}
+		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
 		   data: {'emails': [], 'remove': 1}
 		-  Response:
 		   {'status': 'OK', 'message': string}
@@ -1055,7 +1055,7 @@ DETAILED:
 		E. GET USER GROUPS
 		-  Request:
 		   GET organization/groups
-		   headers: {'Content-Type': 'application/json'}
+		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
 		   {'status': 'OK', 'message': string, 'groups': [{'groupname': string, 'members': [string]}, ...]}
 		   {'status': 'NG', 'message': string}
@@ -1063,7 +1063,7 @@ DETAILED:
 		F. CREATE USER GROUP
 		-  Request:
 		   POST organization/groups/group/GROUPNAME
-		   headers: {'Content-Type': 'application/json'}
+		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
 		-  Response:
 		   {'status': 'OK', 'message': string}
 		   {'status': 'NG', 'message': string}
@@ -1071,7 +1071,7 @@ DETAILED:
 		G. DELETE USER GROUP
 		-  Request:
 		   DELETE organization/groups/group/GROUPNAME
-		   headers: {'Content-Type': 'application/json'}
+		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
 		-  Response:
 		   {'status': 'OK', 'message': string}
 		   {'status': 'NG', 'message': string}
@@ -1079,7 +1079,7 @@ DETAILED:
 		H. GET MEMBERS IN USER GROUP
 		-  Request:
 		   GET organization/groups/group/GROUPNAME/members
-		   headers: {'Content-Type': 'application/json'}
+		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
 		   {'status': 'OK', 'message': string, 'members': [string]}
 		   {'status': 'NG', 'message': string}
@@ -1088,7 +1088,7 @@ DETAILED:
 		I. UPDATE MEMBERS IN USER GROUP
 		-  Request:
 		   POST organization/groups/group/GROUPNAME/members
-		   headers: {'Content-Type': 'application/json'}
+		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
 		   data: {'members': [strings]}
 		-  Response:
 		   {'status': 'OK', 'message': string}
@@ -1097,7 +1097,7 @@ DETAILED:
 		J. ADD MEMBER TO USER GROUP
 		-  Request:
 		   POST organization/groups/group/GROUPNAME/members/member/MEMBERNAME
-		   headers: {'Content-Type': 'application/json'}
+		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
 		-  Response:
 		   {'status': 'OK', 'message': string}
 		   {'status': 'NG', 'message': string}
@@ -1105,7 +1105,7 @@ DETAILED:
 		K. REMOVE MEMBER FROM USER GROUP
 		-  Request:
 		   DELETE organization/groups/group/GROUPNAME/members/member/MEMBERNAME
-		   headers: {'Content-Type': 'application/json'}
+		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
 		-  Response:
 		   {'status': 'OK', 'message': string}
 		   {'status': 'NG', 'message': string}
@@ -1114,26 +1114,41 @@ DETAILED:
 		L. GET POLICIES
 		-  Request:
 		   GET organization/policies
-		   headers: {'Content-Type': 'application/json'}
+		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
-		   {'status': 'OK', 'message': string, 'policies': [{'policyname': string, 'type': string, 'settings': [{'label': string, 'crud': [boolean, boolean, boolean, boolean]}, ...]}, ...]}
+		   {'status': 'OK', 'message': string, 
+		    'policies': [
+		      {
+		        'policyname': string, 
+		        'type': string, 
+		        'settings': [{'label': string, 'crud': [boolean, boolean, boolean, boolean]}, ...]
+		      }, ...
+		    ]
+		   }
 		   {'status': 'NG', 'message': string}
 		   // crud is an array of 4 booleans and corresponds to Create, Read, Update and Delete
 
 		M. GET POLICY
 		-  Request:
 		   GET organization/policies/policy/POLICYNAME
-		   headers: {'Content-Type': 'application/json'}
+		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
-		   {'status': 'OK', 'message': string, 'settings': [{'label': string, 'crud': [boolean, boolean, boolean, boolean]}, ...] }
+		   {'status': 'OK', 'message': string, 
+		    'settings': [
+		      {
+		        'label': string, 
+		        'crud': [boolean, boolean, boolean, boolean]
+		      }, ...
+		    ]
+		   }
 		   {'status': 'NG', 'message': string}
 		   // crud is an array of 4 booleans and corresponds to Create, Read, Update and Delete
 
 		N. CREATE/UPDATE POLICY
 		-  Request:
 		   POST organization/policies/policy/POLICYNAME
-		   headers: {'Content-Type': 'application/json'}
-		   data: {'settings': [{'label': string, 'crud': [boolean, boolean, boolean, boolean]}, ...] }
+		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+		   data: { 'settings': [{'label': string, 'crud': [boolean, boolean, boolean, boolean]}, ...] }
 		-  Response:
 		   {'status': 'OK', 'message': string}
 		   {'status': 'NG', 'message': string}
@@ -1142,7 +1157,7 @@ DETAILED:
 		O. DELETE POLICY
 		-  Request:
 		   DELETE organization/policies/policy/POLICYNAME
-		   headers: {'Content-Type': 'application/json'}
+		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
 		-  Response:
 		   {'status': 'OK', 'message': string}
 		   {'status': 'NG', 'message': string}
@@ -1150,7 +1165,7 @@ DETAILED:
 		P. GET POLICY SETTINGS/OPTIONS
 		-  Request:
 		   GET organization/policies/settings
-		   headers: {'Content-Type': 'application/json'}
+		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
 		   {'status': 'OK', 'message': string, 'settings': {'label': string, 'crud': [boolean, boolean, boolean, boolean]}}
 		   {'status': 'NG', 'message': string}
@@ -1158,7 +1173,7 @@ DETAILED:
 		Q. GET POLICIES IN USER GROUP
 		-  Request:
 		   GET organization/groups/group/GROUPNAME/policies
-		   headers: {'Content-Type': 'application/json'}
+		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
 		   {'status': 'OK', 'message': string, 'policies': [string]}
 		   {'status': 'NG', 'message': string}
@@ -1166,7 +1181,7 @@ DETAILED:
 		R. UPDATE POLICIES IN USER GROUP
 		-  Request:
 		   POST organization/groups/group/GROUPNAME/policies
-		   headers: {'Content-Type': 'application/json'}
+		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
 		   data: {'policies': [strings]}
 		-  Response:
 		   {'status': 'OK', 'message': string}
@@ -1175,7 +1190,7 @@ DETAILED:
 		S. ADD POLICY TO USER GROUP
 		-  Request:
 		   POST organization/groups/group/GROUPNAME/policies/policy/POLICYNAME
-		   headers: {'Content-Type': 'application/json'}
+		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
 		-  Response:
 		   {'status': 'OK', 'message': string}
 		   {'status': 'NG', 'message': string}
@@ -1183,7 +1198,7 @@ DETAILED:
 		T. REMOVE POLICY FROM USER GROUP
 		-  Request:
 		   DELETE organization/groups/group/GROUPNAME/policies/policy/POLICYNAME
-		   headers: {'Content-Type': 'application/json'}
+		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
 		   {'status': 'OK', 'message': string}
 		   {'status': 'NG', 'message': string}

@@ -908,7 +908,7 @@ class access_control:
     #   {'status': 'NG', 'message': string}
     #
     #
-    # CREATE POLICY
+    # CREATE/UPDATE POLICY
     #
     # - Request:
     #   POST /organizations/organization/<orgname>/policies/policy/<policyname>
@@ -1000,10 +1000,12 @@ class access_control:
 
             result, errorcode = self.database_client.create_organization_policy(username, orgname, orgid, policyname, data["settings"])
             if not result:
-                if errorcode == 409:
+                if errorcode == 401:
                     errormsg = "Organization policy name already taken"
+                elif errorcode == 400:
+                    errormsg = "Updating default organization policy is not allowed"
                 else:
-                    errormsg = "Create organization policy failed"
+                    errormsg = "Creating/updating organization policy failed"
                 response = json.dumps({'status': 'NG', 'message': errormsg})
                 print('\r\nERROR {} [{}]\r\n'.format(errormsg, username))
                 return response, errorcode
@@ -1018,6 +1020,8 @@ class access_control:
                     errormsg = "Organization policy not found"
                 elif errorcode == 401:
                     errormsg = "User is not the owner of the organization"
+                elif errorcode == 400:
+                    errormsg = "Deleting default organization policy is not allowed"
                 else:
                     errormsg = "Delete organization policy failed"
                 response = json.dumps({'status': 'NG', 'message': errormsg})

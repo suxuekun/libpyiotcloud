@@ -942,7 +942,9 @@ angular.module('app.routes', [])
 		username: "",
 		token: "",
 		orgname: "",
-		policyname: ""		
+		policyname: "",
+		settings: "",
+		type: ""		
 },
     templateUrl: 'templates/updateOrganizationPolicy.html',
     controller: 'updateOrganizationPolicyCtrl'
