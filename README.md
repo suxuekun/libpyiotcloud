@@ -1936,7 +1936,8 @@ As such this IoT platform was designed so that security is built-in from the des
 
     1. HTTP connectivity over secured TLS connection
     2. Cognito OAuth2 authorization with OTP and MFA/2FA via email and SMS
-    3. HTTP Authentication header with JWT encoding and secret key
+    3. HTTP authentication header with JWT encoding and secret key
+    4. User lockout after 5 consecutive failed attempts
 
 ### Device
 
