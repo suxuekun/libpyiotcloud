@@ -10,9 +10,11 @@
         <p style="color:#AAAAAA;font-size:12px;">Update the policy permissions.</p>
       </div>
       <div class="spacer" style="width: 500px; height: 30px;"></div>
-      <div id="updateOrganizationPolicy-markdown525" class="show-list-numbers-and-dots">
-        <p style="color:#3C5A99;font-size:18px;">{{ data.policyname }}</p>
-      </div>
+      <label class="item item-select" id="updateOrganizationPolicy-select115">
+        <span class="input-label">Policy</span>
+        <select ng-options="policy.id as policy.policyname for policy in policies" ng-model="policySelected" ng-change="changePolicy(policySelected)"></select>
+      </label>
+      <div class="spacer" style="width: 500px; height: 30px;"></div>
       <div id="updateOrganizationPolicy-container93">
         <table style="width:100%" bordercolor="#444444">
           <tbody>

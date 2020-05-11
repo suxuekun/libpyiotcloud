@@ -3617,7 +3617,7 @@ class database_client_mongodb:
         item['orgid'] = orgid
         item['groupname'] = groupname
         item['members'] = []
-        item['policies'] = []
+        item['policies'] = ["ReadOnly"] # add ReadOnly policy by default
         found = organizations_groups.find_one({'orgname': orgname, 'orgid': orgid, 'groupname': groupname})
         if found is None:
             organizations_groups.insert_one(item)
@@ -3965,6 +3965,7 @@ class database_client_mongodb:
             for policy in organizations_policies.find({'orgname': orgname, 'orgid': orgid}):
                 policy.pop("_id")
                 policy.pop("orgname")
+                policy.pop("orgid")
                 policy_list.append(policy)
         return policy_list
 
@@ -4005,6 +4006,9 @@ class database_client_mongodb:
         if found is None:
             organizations_policies.insert_one(item)
         else:
+            # prevent updating the default policies
+            if found["type"] == "Default":
+                return False, 400 # HTTP_400_BAD_REQUEST
             organizations_policies.replace_one({'orgname': orgname, 'orgid': orgid, 'policyname': policyname}, item)
         return True, None
 
@@ -4022,6 +4026,9 @@ class database_client_mongodb:
         if item is None:
             return False, 404 # HTTP_404_NOT_FOUND
         else:
+            # prevent updating the default policies
+            if item["type"] == "Default":
+                return False, 400 # HTTP_400_BAD_REQUEST
             #
             self.remove_policy_from_organization_group_ex(username, orgname, orgid, policyname)
             #
