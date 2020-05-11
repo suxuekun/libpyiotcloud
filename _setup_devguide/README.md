@@ -677,6 +677,7 @@ DETAILED:
 		             'phone_number_country': string, 
 		             'phone_number_isocode': string, 
 		             'phone_number_carrier': string, 
+		             'mfa_enabled': boolean,
 		             'identity': {'providerName': string, 'userId': string}, 'username': string} }
 		   // phone_number and phone_number_verified are not included if no phone_number has been added yet
 		   // phone_number can be added using SIGN UP or UPDATE USER INFO
@@ -688,6 +689,7 @@ DETAILED:
 		   //   phone_number_isocode is optional and appears only when user has provided and verified his phone number
 		   // phone_number_carrier refers to the network carrier of the phone number
 		   //   phone_number_carrier is optional and appears only when user has provided and verified his phone number
+		   // mfa_enabled is optional and appears only when user has provided and verified his phone number
 		   {'status': 'NG', 'message': string}
 
 		I. UPDATE USER INFO

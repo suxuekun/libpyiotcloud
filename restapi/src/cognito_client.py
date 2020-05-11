@@ -199,20 +199,23 @@ class cognito_client:
 		return (self.__get_result(response), response)
 
 	def get_user(self, access_token):
-		#print("get_user")
 		params = {
 			'AccessToken': access_token
 		}
 		try:
 			response = self.__get_client().get_user(**params)
+			# convert user settings
 			user_attributes = self.__cognito_to_dict(response["UserAttributes"])
-			#print(user_attributes)
 			if 'sub' in user_attributes:
 				user_attributes.pop("sub")
-			#if 'email_verified' in user_attributes:
-			#	user_attributes.pop("email_verified")
-			#if 'phone_number_verified' in user_attributes:
-			#	user_attributes.pop("phone_number_verified")
+			# add mfa setting
+			if user_attributes.get("phone_number"):
+				if user_attributes.get("phone_number_verified"):
+					if user_attributes["phone_number_verified"] == True:
+						if response.get("PreferredMfaSetting"):
+							user_attributes["mfa_enabled"] = True
+						else:
+							user_attributes["mfa_enabled"] = False
 		except:
 			return (False, None)
 		return (self.__get_result(response), user_attributes)

@@ -1161,13 +1161,24 @@ class identity_authentication:
             print('\r\nERROR Enable MFA: Empty parameter found\r\n')
             return response, status.HTTP_400_BAD_REQUEST
 
+        user = self.database_client.get_user_info(token['access'])
+        if user.get("phone_number") is None or user.get("phone_number_verified") is None:
+            response = json.dumps({'status': 'NG', 'message': 'Phone number is not registered'})
+            print('\r\nERROR Enable MFA: Phone number is not registered\r\n')
+            return response, status.HTTP_400_BAD_REQUEST
+        if user["phone_number_verified"] == False:
+            response = json.dumps({'status': 'NG', 'message': 'Phone number is not verified'})
+            print('\r\nERROR Enable MFA: Phone number is not verified\r\n')
+            return response, status.HTTP_400_BAD_REQUEST
+
         # enable/disable MFA
         if CONFIG_SUPPORT_MFA:
-            result = self.database_client.enable_mfa(token['access'], data['enable'])
-            if not result:
-                response = json.dumps({'status': 'NG', 'message': 'Request failed'})
-                print('\r\nERROR Enable MFA: Request failed [{}]\r\n'.format(username))
-                return response, status.HTTP_500_INTERNAL_SERVER_ERROR
+            if user["mfa_enabled"] != data['enable']:
+                result = self.database_client.enable_mfa(token['access'], data['enable'])
+                if not result:
+                    response = json.dumps({'status': 'NG', 'message': 'Request failed'})
+                    print('\r\nERROR Enable MFA: Request failed [{}]\r\n'.format(username))
+                    return response, status.HTTP_500_INTERNAL_SERVER_ERROR
         else:
             response = json.dumps({'status': 'NG', 'message': 'MFA Support has been DISABLED!'})
             print('\r\nERROR Enable MFA: MFA Support has been DISABLED!\r\n')
@@ -1247,7 +1258,7 @@ class identity_authentication:
                     name += " " + info['family_name']
 
         # Disable MFA since it is an expensive feature
-        self.database_client.admin_enable_mfa(username, False)
+        #self.database_client.admin_enable_mfa(username, False)
 
 
         msg = {'status': 'OK', 'message': "Login MFA successful", 'token': {'access': access, 'refresh': refresh, 'id': id} }
