@@ -897,6 +897,17 @@ class access_control:
 
     ########################################################################################################
     #
+    # GET POLICY
+    #
+    # - Request:
+    #   POST /organizations/organization/<orgname>/policies/policy/<policyname>
+    #   headers: {'Authorization': 'Bearer ' + token.access}
+    #
+    # - Response:
+    #   {'status': 'OK', 'message': string}
+    #   {'status': 'NG', 'message': string}
+    #
+    #
     # CREATE POLICY
     #
     # - Request:
@@ -967,10 +978,27 @@ class access_control:
             print('\r\nERROR Create organization policy: No organization is active [{}]\r\n'.format(username))
             return response, status.HTTP_400_BAD_REQUEST
 
-        # create or delete organization policy
-        if flask.request.method == 'POST':
+        # get or create or delete organization policy
+        if flask.request.method == 'GET':
 
-            result, errorcode = self.database_client.create_organization_policy(username, orgname, orgid, policyname)
+            policy = self.database_client.get_organization_policy(username, orgname, orgid, policyname)
+            if policy is None:
+                errormsg = "Get organization policy failed"
+                response = json.dumps({'status': 'NG', 'message': errormsg})
+                print('\r\nERROR {} [{}]\r\n'.format(errormsg, username))
+                return response, errorcode
+            msg = {'status': 'OK', 'message': 'Get organization policy successful', 'settings': policy['settings']}
+
+        elif flask.request.method == 'POST':
+
+            # get the input parameters
+            data = flask.request.get_json()
+            if data is None or data.get("settings") is None:
+                response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+                print('\r\nERROR Create organization policy: Empty parameter found\r\n')
+                return response, status.HTTP_400_BAD_REQUEST
+
+            result, errorcode = self.database_client.create_organization_policy(username, orgname, orgid, policyname, data["settings"])
             if not result:
                 if errorcode == 409:
                     errormsg = "Organization policy name already taken"
@@ -1002,6 +1030,65 @@ class access_control:
         print('\r\n{}: {}\r\n'.format(msg["message"], username))
         response = json.dumps(msg)
         return response
+
+    ########################################################################################################
+    #
+    # GET ORGANIZATION POLICY SETTINGS
+    #
+    # - Request:
+    #   GET /organizations/organization/settings
+    #   headers: {'Authorization': 'Bearer ' + token.access}
+    #
+    # - Response:
+    #   {'status': 'OK', 'message': string, 'settings': [{'label': string, 'crud': []}]}
+    #   {'status': 'NG', 'message': string}
+    #
+    ########################################################################################################
+    def get_organization_policy_settings(self):
+        # get token from Authorization header
+        auth_header_token = rest_api_utils.utils().get_auth_header_token()
+        if auth_header_token is None:
+            response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
+            print('\r\nERROR Get organization policy settings: Invalid authorization header\r\n')
+            return response, status.HTTP_401_UNAUTHORIZED
+        token = {'access': auth_header_token}
+
+        # get username from token
+        username = self.database_client.get_username_from_token(token)
+        if username is None:
+            response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+            print('\r\nERROR Get organization policy settings: Token expired\r\n')
+            return response, status.HTTP_401_UNAUTHORIZED
+        print('get_organization_policy_settings username={}'.format(username))
+
+        # check if a parameter is empty
+        if len(username) == 0 or len(token) == 0:
+            response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+            print('\r\nERROR Get organization policy settings: Empty parameter found\r\n')
+            return response, status.HTTP_400_BAD_REQUEST
+
+        # check if username and token is valid
+        verify_ret, new_token = self.database_client.verify_token(username, token)
+        if verify_ret == 2: # token expired
+            response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+            print('\r\nERROR Get organization policy settings: Token expired [{}]\r\n'.format(username))
+            return response, status.HTTP_401_UNAUTHORIZED
+        elif verify_ret != 0:
+            response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
+            print('\r\nERROR Get organization policy settings: Token is invalid [{}]\r\n'.format(username))
+            return response, status.HTTP_401_UNAUTHORIZED
+
+
+
+        # get policy settings
+        settings = self.database_client.get_policy_settings()
+        msg = {'status': 'OK', 'message': 'Get organization policy settings successful', 'settings': settings}
+
+
+        response = json.dumps(msg)
+        print('\r\n{} successful: {}\r\n'.format(msg["message"], username))
+        return response
+
 
     ########################################################################################################
     #

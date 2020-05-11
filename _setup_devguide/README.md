@@ -287,12 +287,14 @@ SUMMARY:
 		//
 		// organization (owner, policies)
 		L. GET POLICIES                    - GET    organization/policies
-		M. CREATE/UPDATE POLICY            - POST   organization/policies/policy/POLICYNAME
-		N. DELETE POLICY                   - DELETE organization/policies/policy/POLICYNAME
-		O. GET POLICIES IN USER GROUP      - GET    organization/groups/group/GROUPNAME/policies
-		P. UPDATE POLICIES IN USER GROUP   - POST   organization/groups/group/GROUPNAME/policies
-		Q. ADD POLICY TO USER GROUP        - POST   organization/groups/group/GROUPNAME/policies/policy/POLICYNAME
-		R. REMOVE POLICY FROM USER GROUP   - DELETE organization/groups/group/GROUPNAME/policies/policy/POLICYNAME
+		M. GET POLICY                      - GET    organization/policies/policy/POLICYNAME
+		N. CREATE/UPDATE POLICY            - POST   organization/policies/policy/POLICYNAME
+		O. DELETE POLICY                   - DELETE organization/policies/policy/POLICYNAME
+		P. GET POLICIES SETTINGS           - GET    organization/policies/settings
+		Q. GET POLICIES IN USER GROUP      - GET    organization/groups/group/GROUPNAME/policies
+		R. UPDATE POLICIES IN USER GROUP   - POST   organization/groups/group/GROUPNAME/policies
+		S. ADD POLICY TO USER GROUP        - POST   organization/groups/group/GROUPNAME/policies/policy/POLICYNAME
+		T. REMOVE POLICY FROM USER GROUP   - DELETE organization/groups/group/GROUPNAME/policies/policy/POLICYNAME
 
 
 	3. Device registration and management APIs

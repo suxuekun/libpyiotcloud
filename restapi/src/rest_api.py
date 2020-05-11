@@ -292,6 +292,11 @@ def remove_member_from_organization_group(groupname, membername):
 def get_organization_policies():
     return g_access_control.get_organization_policies()
 
+@app.route('/organization/policies/policy/<policyname>', methods=['GET'])
+def get_organization_policy(policyname):
+    print("get_organization_policy xxxxxxxxx {}".format(policyname))
+    return g_access_control.create_organization_policy(policyname)
+
 @app.route('/organization/policies/policy/<policyname>', methods=['POST'])
 def create_organization_policy(policyname):
     return g_access_control.create_organization_policy(policyname)
@@ -299,6 +304,11 @@ def create_organization_policy(policyname):
 @app.route('/organization/policies/policy/<policyname>', methods=['DELETE'])
 def delete_organization_policy(policyname):
     return g_access_control.create_organization_policy(policyname)
+
+@app.route('/organization/policies/settings', methods=['GET'])
+def get_organization_policy_settings():
+    return g_access_control.get_organization_policy_settings()
+
 
 @app.route('/organization/groups/group/<groupname>/policies', methods=['GET'])
 def get_policies_in_organization_group(groupname):
@@ -333,8 +343,10 @@ g_access_control_list = [
     { "name": "REMOVE MEMBER FROM USER GROUP", "func": remove_member_from_organization_group, "api": "/organization/groups/group/<groupname>/members/member/<membername>",  "method": "DELETE" },
 
     { "name": "GET POLICIES",                  "func": get_organization_policies,             "api": "/organization/policies",                                              "method": "GET"    },
+    { "name": "GET POLICY",                    "func": get_organization_policy,               "api": "/organization/policies/policy/<policyname>",                          "method": "GET"    },
     { "name": "CREATE/UPDATE POLICY",          "func": create_organization_policy,            "api": "/organization/policies/policy/<policyname>",                          "method": "POST"   },
     { "name": "DELETE POLICY",                 "func": delete_organization_policy,            "api": "/organization/policies/policy/<policyname>",                          "method": "DELETE" },
+    { "name": "GET POLICY SETTINGS",           "func": get_organization_policy_settings,      "api": "/organization/policies/settings",                                     "method": "GET"    },
 
     { "name": "GET POLICIES IN USER GROUP",    "func": get_policies_in_organization_group,    "api": "/organization/groups/group/<groupname>/policies",                     "method": "GET"    },
     { "name": "UPDATE POLICIES IN USER GROUP", "func": update_policies_in_organization_group, "api": "/organization/groups/group/<groupname>/policies",                     "method": "POST"   },
