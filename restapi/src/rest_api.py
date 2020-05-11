@@ -294,7 +294,6 @@ def get_organization_policies():
 
 @app.route('/organization/policies/policy/<policyname>', methods=['GET'])
 def get_organization_policy(policyname):
-    print("get_organization_policy xxxxxxxxx {}".format(policyname))
     return g_access_control.create_organization_policy(policyname)
 
 @app.route('/organization/policies/policy/<policyname>', methods=['POST'])
