@@ -8,16 +8,21 @@
   <ion-content padding="true" class="has-header">
     <div class="spacer" style="width: 300px; height: 20px;"></div>
     <form id="updateOrganizations-form253" class="list page_width_small" ng-show="organization == null">
-      <div id="updateOrganizations-markdown498" class="show-list-numbers-and-dots">
+      <button id="updateOrganizations-button185" style="font-weight:600;font-size:18px;" class="button button-positive button-block button-clear">Organizations</button>
+      <div id="updateOrganizations-markdown498" style="text-align:center;" class="show-list-numbers-and-dots">
+        <p style="color:#AAAAAA;font-size:12px;">You have {{ organizations.length }} organizations.</p>
+      </div>
+      <div class="spacer" style="width: 480px; height: 30px;"></div>
+      <div id="updateOrganizations-markdown520" class="show-list-numbers-and-dots">
         <p style="color:#AAAAAA;font-size:12px;">Create a new organization.</p>
       </div>
       <label class="item item-input" id="updateOrganizations-input186">
         <input type="text" placeholder="Organization name" ng-model="data.orgname">
       </label>
-      <button id="updateOrganizations-button221" ng-click="createOrganization()" class="button button-positive button-block">Create new organization</button>
-      <div class="spacer" style="width: 480px; height: 50px;"></div>
+      <button id="updateOrganizations-button221" ng-click="createOrganization()" class="button button-positive button-block">Create new</button>
+      <div class="spacer" style="width: 480px; height: 30px;"></div>
       <div id="updateOrganizations-markdown522" class="show-list-numbers-and-dots">
-        <p style="color:#AAAAAA;font-size:12px;">You have {{ organizations.length }} organizations.</p>
+        <p style="color:#AAAAAA;font-size:12px;">Set an active organization.</p>
       </div>
     </form>
     <div id="updateOrganizations-container89" ng-show="organizations.length > 0">
@@ -25,13 +30,13 @@
         <tbody>
           <tr>
             <th style="width:10%">&nbsp;</th>
-            <th style="width:55%">
+            <th style="width:56%">
               <b>Organization</b>
             </th>
             <th style="width:20%">
               <b>Membership</b>
             </th>
-            <th style="width:15%">
+            <th style="width:14%">
               <b>Status</b>
             </th>
           </tr>
@@ -46,7 +51,7 @@
               <input type="checkbox" ng-model="organization.checked">
             </td>
 
-            <td style="width:7%">
+            <td style="width:6%">
               <div ng-show="organization.active==1">
                 <img src="img/O084RUCWTlWpYxLh1GTT_star.png" style="width:16px; height:16px">
               </div>
@@ -56,15 +61,15 @@
               </div>
             </td>
 
-            <td style="width:55%">{{ organization.orgname }} ({{ organization.orgid }})</td>
+            <td style="width:57%">{{ organization.orgname }} (id:{{ organization.orgid }})</td>
             <td style="width:20%">{{ organization.membership }}</td>
-            <td style="width:15%">{{ organization.status }} on {{ organization.date }}</td>
+            <td style="width:14%">{{ organization.status }} on {{ organization.date }}</td>
 
 
           </tr>
         </tbody>
       </table>
     </div>
-    <button id="updateOrganizations-button223" ng-click="setActiveOrganization()" ng-show="organizations.length > 0" class="button button-positive button-block">Set active organization</button>
+    <button id="updateOrganizations-button223" ng-click="setActiveOrganization()" ng-show="organizations.length > 0" class="button button-positive button-block">Set active</button>
   </ion-content>
 </ion-view>

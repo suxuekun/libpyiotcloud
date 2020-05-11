@@ -714,6 +714,12 @@ class identity_authentication:
                             info['phone_number_carrier'] = carrier.name_for_number(pn, "en")
             except Exception as e:
                 print(e)
+                if info.get('phone_number_country') is None:
+                    info['phone_number_country'] = "Unknown"
+                if info.get('phone_number_isocode') is None:
+                    info['phone_number_isocode'] = "Unknown"
+                if info.get('phone_number_carrier') is None:
+                    info['phone_number_carrier'] = "Unknown"
                 pass
 
             # add username to info for Login via Social IDP (Facebook, Google, Amazon)

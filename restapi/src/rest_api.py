@@ -58,10 +58,10 @@ CONFIG_USE_REDIS_FOR_MQTT_RESPONSE  = True
 # global variables
 ###################################################################################
 
-g_messaging_client = None
-g_database_client  = None
-g_storage_client   = None
-g_redis_client     = None
+g_messaging_client          = None
+g_database_client           = None
+g_storage_client            = None
+g_redis_client              = None
 g_queue_dict  = {} # no longer used; replaced by redis
 g_event_dict  = {} # still used to trigger event from callback thread to rest api thread
 app = flask.Flask(__name__)
@@ -73,17 +73,17 @@ CORS(app)
 # Class instances
 ###################################################################################
 
-g_messaging_requests      = None
-g_identity_authentication = None
-g_access_control          = None
-g_payment_accounting      = None
-g_device_locations        = None
-g_device_groups           = None
-g_device_otaupdates       = None
-g_device_hierarchies      = None
-g_device_histories        = None
-g_other_stuffs            = None
-g_utils                   = None
+g_messaging_requests        = None
+g_identity_authentication   = None
+g_access_control            = None
+g_payment_accounting        = None
+g_device_locations          = None
+g_device_groups             = None
+g_device_otaupdates         = None
+g_device_hierarchies        = None
+g_device_histories          = None
+g_other_stuffs              = None
+g_utils                     = None
 
 
 ###################################################################################
@@ -221,12 +221,12 @@ g_identity_authentication_list = [
     { "name": "ENABLE MFA",                      "func": enable_mfa,                      "api": "/user/mfa",                         "method": "POST"   },
     { "name": "LOGIN MFA",                       "func": login_mfa,                       "api": "/user/login/mfa",                   "method": "POST"   },
 
-    { "name": "GET ORGANIZATIONS",               "func": get_organizations,               "api": "/user/organizations",           "method": "GET"    },
-    { "name": "SET ACTIVE ORGANIZATION",         "func": get_organizations,               "api": "/user/organizations",           "method": "POST"   },
-    { "name": "GET ORGANIZATION",                "func": get_organization,                "api": "/user/organization",            "method": "GET"    },
-    { "name": "LEAVE ORGANIZATION",              "func": get_organization,                "api": "/user/organization",            "method": "DELETE" },
-    { "name": "ACCEPT ORGANIZATION INVITATION",  "func": accept_organization_invitation,  "api": "/user/organization/invitation", "method": "POST"   },
-    { "name": "DECLINE ORGANIZATION INVITATION", "func": decline_organization_invitation, "api": "/user/organization/invitation", "method": "DELETE" },
+    { "name": "GET ORGANIZATIONS",               "func": get_organizations,               "api": "/user/organizations",               "method": "GET"    },
+    { "name": "SET ACTIVE ORGANIZATION",         "func": get_organizations,               "api": "/user/organizations",               "method": "POST"   },
+    { "name": "GET ORGANIZATION",                "func": get_organization,                "api": "/user/organization",                "method": "GET"    },
+    { "name": "LEAVE ORGANIZATION",              "func": get_organization,                "api": "/user/organization",                "method": "DELETE" },
+    { "name": "ACCEPT ORGANIZATION INVITATION",  "func": accept_organization_invitation,  "api": "/user/organization/invitation",     "method": "POST"   },
+    { "name": "DECLINE ORGANIZATION INVITATION", "func": decline_organization_invitation, "api": "/user/organization/invitation",     "method": "DELETE" },
 ]
 
 

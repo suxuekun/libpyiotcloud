@@ -20204,7 +20204,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         Organizations.set_active($scope.data, orgname, orgid).then(function(res) {
             $ionicPopup.alert({
                 title: 'Set Active Organization',
-                template: 'You have successfully set the active organization to ' + orgname + ' (' + orgid + ')',
+                template: 'You have successfully set the active organization to ' + orgname + ' (id:' + orgid + ')',
                 buttons: [
                     {
                         text: 'Yes',
