@@ -141,10 +141,13 @@ def construct_invitation_organization_message(orgname, orgowner):
     message =  "Hi,\r\n\r\n\r\n"
 
     message += "You have been invited to join the {} organization by {}.\r\n".format(orgname, orgowner)
-    message += "This allows you to manage or view IoT devices of your organization.\r\n\r\n"
+    message += "This allows you to manage, operate, monitor or view IoT gateway devices of your organization based on assigned roles and permissions.\r\n\r\n"
 
-    message += "Please go to Bridgetek IoT Portal website at https://{} or download the Android or IOS mobile apps.\r\n".format(CONFIG_USE_APIURL)
-    message += "If you don't have an account yet, sign up and go to the Organization page to accept the invitation.\r\n\r\n"
+    message += "Please download the Bridgetek IoT Portal mobile app or visit the website:\r\n".format(CONFIG_USE_APIURL)
+    message += "- Android app at Google Play\r\n"
+    message += "- iOS app at Apple App Store\r\n"
+    message += "- Website at https://{}\r\n".format(CONFIG_USE_APIURL)
+    message += "If you don't have an account yet, sign up for an account then go to the Organization page to accept the invitation.\r\n\r\n"
 
     message += "\r\nBest Regards,\r\n"
     message += "Bridgetek Pte. Ltd.\r\n"
