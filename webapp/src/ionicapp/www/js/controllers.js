@@ -1033,6 +1033,12 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token)
                 $scope.data.country = "Unknown";
             }
             
+            if (result.data.info.mfa_enabled !== undefined) {
+                $scope.enable_2fa = result.data.info.mfa_enabled;
+            }
+            else {
+                $scope.enable_2fa = false;
+            }
             
             if (result.data.info.identity !== undefined) {
                 $scope.data.identityprovider = result.data.info.identity.providerName + " (" + result.data.info.identity.userId + ")";
@@ -1040,6 +1046,7 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token)
             else {
                 $scope.data.identityprovider = "None";
             }
+            
         })
         .catch(function (error) {
             $scope.handle_error(error);
