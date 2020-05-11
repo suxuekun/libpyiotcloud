@@ -19,6 +19,8 @@ class database_models:
     AWSCOGNITO = 1
     POSTGRESQL = 2
 
+policy_labels = ["devices", "dashboards", "payments"]
+
 
 
 ##########################################################
@@ -57,10 +59,70 @@ class database_client:
     def initialize(self):
         self._users.initialize()
         self._devices.initialize()
+        self.create_default_policies()
 
     def is_using_cognito(self):
         return self.use_cognito
 
+    def create_default_policies(self):
+
+        # read-only
+        settings = []
+        for label in policy_labels:
+            settings.append({ "label": label, "crud": [False, True, False, False] })
+        self._devices.create_default_policy("ReadOnly", settings)
+
+        # read-write only
+        settings = []
+        for label in policy_labels:
+            settings.append({ "label": label, "crud": [False, True, True, False] })
+        self._devices.create_default_policy("ReadWriteOnly", settings)
+
+        # create-delete only
+        settings = []
+        for label in policy_labels:
+            settings.append({ "label": label, "crud": [True, False, False, True] })
+        self._devices.create_default_policy("CreateDeleteOnly", settings)
+
+        # full-access
+        settings = []
+        for label in policy_labels:
+            settings.append({ "label": label, "crud": [True, True, True, True] })
+        self._devices.create_default_policy("FullAccess", settings)
+
+        # operator
+        settings = []
+        for label in policy_labels:
+            if label == "devices":
+                settings.append({ "label": label, "crud": [True, True, True, True] })
+            else:
+                settings.append({ "label": label, "crud": [False, False, False, False] })
+        self._devices.create_default_policy("Operator", settings)
+
+        # analyst
+        settings = []
+        for label in policy_labels:
+            if label == "dashboards":
+                settings.append({ "label": label, "crud": [True, True, True, True] })
+            else:
+                settings.append({ "label": label, "crud": [False, False, False, False] })
+        self._devices.create_default_policy("Analyst", settings)
+
+        # finance admin
+        settings = []
+        for label in policy_labels:
+            if label == "payments":
+                settings.append({ "label": label, "crud": [True, True, True, True] })
+            else:
+                settings.append({ "label": label, "crud": [False, False, False, False] })
+        self._devices.create_default_policy("FinanceAdmin", settings)
+
+
+    def get_policy_settings(self):
+        settings = []
+        for label in policy_labels:
+            settings.append({ "label": label, "crud": [False, False, False, False] })
+        return settings
 
 
     ##########################################################
@@ -749,8 +811,11 @@ class database_client:
     def get_organization_policies(self, username, orgname, orgid):
         return self._devices.get_organization_policies(username, orgname, orgid)
 
-    def create_organization_policy(self, username, orgname, orgid, policyname):
-        return self._devices.create_organization_policy(username, orgname, orgid, policyname)
+    def get_organization_policy(self, username, orgname, orgid, policyname):
+        return self._devices.get_organization_policy(username, orgname, orgid, policyname)
+
+    def create_organization_policy(self, username, orgname, orgid, policyname, settings):
+        return self._devices.create_organization_policy(username, orgname, orgid, policyname, settings)
 
     def delete_organization_policy(self, username, orgname, orgid, policyname):
         return self._devices.delete_organization_policy(username, orgname, orgid, policyname)
@@ -3342,6 +3407,11 @@ class database_client_mongodb:
             ###
             self.updateuser_organizations_users(username, orgname, item["orgid"], "Joined", "Owner")
             self.setactive_organizations_users(username, orgname, item['orgid'])
+
+        # add the default policies
+        for policy in self.get_default_policies():
+            self.create_organization_policy(username, orgname, item['orgid'], policy["policyname"], policy["settings"], "Default")
+
         return True, None
 
     def get_organization_members(self, username, orgname, orgid):
@@ -3846,6 +3916,34 @@ class database_client_mongodb:
 
 
     ##########################################################
+    # default policies
+    ##########################################################
+
+    def get_default_policies_document(self):
+        return self.client[config.CONFIG_MONGODB_TB_DEFAULT_POLICIES]
+
+    def create_default_policy(self, policyname, settings):
+        default_policies_doc = self.get_default_policies_document()
+        item = {}
+        item['policyname'] = policyname
+        item['settings'] = settings
+        found = default_policies_doc.find_one({'policyname': policyname})
+        if found is None:
+            default_policies_doc.insert_one(item)
+        else:
+            default_policies_doc.replace_one({'policyname': policyname}, item)
+        return True, None
+
+    def get_default_policies(self):
+        default_policies_doc = self.get_default_policies_document()
+        default_policies = []
+        for policy in default_policies_doc.find({}):
+            policy.pop("_id")
+            default_policies.append(policy)
+        return default_policies
+
+
+    ##########################################################
     # organization policies
     ##########################################################
 
@@ -3870,7 +3968,23 @@ class database_client_mongodb:
                 policy_list.append(policy)
         return policy_list
 
-    def create_organization_policy(self, username, orgname, orgid, policyname):
+    def get_organization_policy(self, username, orgname, orgid, policyname):
+        ###
+        user = self.get_user_organization(username, orgname=orgname, orgid=orgid, complete=True)
+        ###
+        if user is None:
+            return None
+        if user["membership"] != "Owner" or user["orgname"] != orgname:
+            return None
+
+        organizations_policies = self.get_organizations_policies_document()
+        policy = organizations_policies.find_one({'orgname': orgname, 'orgid': orgid, 'policyname': policyname})
+        if policy is None:
+            return None
+        policy.pop("_id")
+        return policy
+
+    def create_organization_policy(self, username, orgname, orgid, policyname, settings, type="Custom"):
         ###
         user = self.get_user_organization(username, orgname=orgname, orgid=orgid, complete=True)
         ###
@@ -3884,12 +3998,14 @@ class database_client_mongodb:
         item['orgname'] = orgname
         item['orgid'] = user['orgid']
         item['policyname'] = policyname
+        item['settings'] = settings
+        item['type'] = type
         #item['members'] = []
         found = organizations_policies.find_one({'orgname': orgname, 'orgid': orgid, 'policyname': policyname})
         if found is None:
             organizations_policies.insert_one(item)
         else:
-            return False, 409 # HTTP_409_CONFLICT
+            organizations_policies.replace_one({'orgname': orgname, 'orgid': orgid, 'policyname': policyname}, item)
         return True, None
 
     def delete_organization_policy(self, username, orgname, orgid, policyname):

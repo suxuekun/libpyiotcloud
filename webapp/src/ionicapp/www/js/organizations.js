@@ -534,12 +534,41 @@ angular.module('organizations', [])
                 return error.data;
             });
         },
+
+        get_policy: function(userdata, policyname) {
+            return $http({
+                method: 'GET',
+                url: server + '/organization/policies/policy/' + policyname,
+                headers: {'Authorization': 'Bearer ' + userdata.token.access},
+            })
+            .then(function (result) {
+                console.log(result.data);
+                return result.data;
+            })
+            .catch(function (error) {
+                if (error.data !== null) {
+                    console.log("ERROR: Get organization policy failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
+                    
+                    if (error.data.message === "Token expired") {
+                        Token.refresh(userdata);
+                        //$ionicPopup.alert({ title: 'Error', template: 'Token expired!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+                    }
+                }
+                else {
+                    console.log("ERROR: Server is down!"); 
+                    $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+                }
+                
+                return error.data;
+            });
+        },
         
-        create_policy: function(userdata, policyname) {
+        create_policy: function(userdata, policyname, settings) {
             return $http({
                 method: 'POST',
                 url: server + '/organization/policies/policy/' + policyname,
                 headers: {'Authorization': 'Bearer ' + userdata.token.access},
+                data: {'settings': settings}
             })
             .then(function (result) {
                 console.log(result.data);
@@ -590,6 +619,34 @@ angular.module('organizations', [])
                 return error.data;
             });
         },        
+
+        get_policy_settings: function(userdata) {
+            return $http({
+                method: 'GET',
+                url: server + '/organization/policies/settings',
+                headers: {'Authorization': 'Bearer ' + userdata.token.access},
+            })
+            .then(function (result) {
+                console.log(result.data);
+                return result.data;
+            })
+            .catch(function (error) {
+                if (error.data !== null) {
+                    console.log("ERROR: Get organization policy settings failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
+                    
+                    if (error.data.message === "Token expired") {
+                        Token.refresh(userdata);
+                        //$ionicPopup.alert({ title: 'Error', template: 'Token expired!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+                    }
+                }
+                else {
+                    console.log("ERROR: Server is down!"); 
+                    $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+                }
+                
+                return error.data;
+            });
+        },
 
 
         //////////////////////////////////////////////////////////////

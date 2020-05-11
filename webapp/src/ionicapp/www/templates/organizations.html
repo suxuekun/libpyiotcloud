@@ -195,10 +195,12 @@
             <tr>
 
               <th style="width:6%">&nbsp;</th>
-              <th style="width:17%">
+              <th style="width:80%">
                 <b>Policies</b>
               </th>
-              <th style="width:77%"></th>
+              <th style="width:14%">
+                <b>Type</b>
+              </th>
 
             </tr>
           </tbody>
@@ -213,9 +215,9 @@
                 <input type="checkbox" ng-model="policy.checked">
               </td>
 
-              <td style="width:17%">{{ policy.policyname }}</td>
+              <td style="width:80%">{{ policy.policyname }}</td>
 
-              <td style="width:77%"></td>
+              <td style="width:14%">{{ policy.type }}</td>
 
             </tr>
           </tbody>
@@ -228,7 +230,7 @@
       </div>
       <div id="organizations-container56" class="widget_button_quarter creator-container"></div>
       <div id="organizations-container61" class="widget_button_half">
-        <button id="organizations-button199" ng-click="updateGroupPolicies()" ng-show="policies.length > 0" class="button button-positive button-block">Update policy</button>
+        <button id="organizations-button199" ng-click="updatePolicy()" ng-show="policies.length > 0" class="button button-positive button-block">Update policy</button>
       </div>
       <div id="organizations-container62" class="widget_button_quarter creator-container"></div>
       <div id="organizations-container63" class="widget_button_quarter creator-container"></div>

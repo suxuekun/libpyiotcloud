@@ -1,19 +1,19 @@
-<ion-view title="Add Organization Policy" hide-back-button="true" nav-transition="none" id="page70" class="page_width">
+<ion-view title="Update Organization Policy" hide-back-button="true" nav-transition="none" id="page21" class="page_width">
   <ion-nav-buttons side="left" class="has-header">
     <button class="button button-icon icon ion-android-close" ng-click="exitPage()"></button>
   </ion-nav-buttons>
   <ion-content padding="true" class="has-header">
     <div class="spacer" style="width: 300px; height: 20px;"></div>
-    <form id="addOrganizationPolicy-form247" class="list page_width_small" ng-show="organization == null">
-      <button id="addOrganizationPolicy-button189" style="font-weight:600;font-size:18px;" class="button button-positive button-block button-clear">{{ data.orgname }}</button>
-      <div id="addOrganizationPolicy-markdown510" style="text-align:center;" class="show-list-numbers-and-dots">
-        <p style="color:#AAAAAA;font-size:12px;">Create a custom policy for the organization.</p>
+    <form id="updateOrganizationPolicy-form252" class="list page_width_small" ng-show="organization == null">
+      <button id="updateOrganizationPolicy-button211" style="font-weight:600;font-size:18px;" class="button button-positive button-block button-clear">{{ data.orgname }}</button>
+      <div id="updateOrganizationPolicy-markdown524" style="text-align:center;" class="show-list-numbers-and-dots">
+        <p style="color:#AAAAAA;font-size:12px;">Update the policy permissions.</p>
       </div>
       <div class="spacer" style="width: 500px; height: 30px;"></div>
-      <div id="addOrganizationPolicy-markdown499" class="show-list-numbers-and-dots">
-        <p style="color:#AAAAAA;font-size:12px;">Set the policy permissions.</p>
+      <div id="updateOrganizationPolicy-markdown525" class="show-list-numbers-and-dots">
+        <p style="color:#3C5A99;font-size:18px;">{{ data.policyname }}</p>
       </div>
-      <div id="addOrganizationPolicy-container91">
+      <div id="updateOrganizationPolicy-container93">
         <table style="width:100%" bordercolor="#444444">
           <tbody>
             <tr>
@@ -36,7 +36,7 @@
           </tbody>
         </table>
       </div>
-      <div id="addOrganizationPolicy-container92" ng-repeat="setting in data.settings">
+      <div id="updateOrganizationPolicy-container94" ng-repeat="setting in data.settings">
         <table style="width:100%">
           <tbody>
             <tr>
@@ -61,13 +61,7 @@
         </table>
       </div>
       <div class="spacer" style="width: 500px; height: 30px;"></div>
-      <div id="addOrganizationPolicy-markdown523" class="show-list-numbers-and-dots">
-        <p style="color:#AAAAAA;font-size:12px;">Set the policy name.</p>
-      </div>
-      <label class="item item-input" id="addOrganizationPolicy-input182">
-        <input type="text" placeholder="Policy name" ng-model="data.policyname">
-      </label>
-      <button id="addOrganizationPolicy-button194" ng-click="createPolicy()" class="button button-positive button-block">Create</button>
+      <button id="updateOrganizationPolicy-button218" ng-click="updatePolicy()" class="button button-positive button-block">Update</button>
     </form>
   </ion-content>
 </ion-view>

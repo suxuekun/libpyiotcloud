@@ -19811,6 +19811,42 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         
     };    
 
+    $scope.updatePolicy = function() {
+
+        var policies = [];
+        for (var indexy=0; indexy<$scope.policies.length; indexy++) {
+            if ($scope.policies[indexy].checked === true) {
+                policies.push($scope.policies[indexy].policyname);
+            }
+        }
+        if (policies.length > 1) {
+            $ionicPopup.alert({
+                title: 'Update Policy',
+                template: 'Error. You have selected more than 1 policy.',
+                buttons: [{ text: 'Yes', type: 'button-positive' }]
+            });
+            return;
+        }
+        else if (policies.length === 0) {
+            $ionicPopup.alert({
+                title: 'Update Policy',
+                template: 'Error. You have not selected a policy.',
+                buttons: [{ text: 'Yes', type: 'button-positive' }]
+            });
+            return;
+        }
+
+        console.log(policies[0]);
+        let param = {
+            'username': User.get_username(),
+            'token': User.get_token(),
+            'orgname': $scope.organization.orgname,
+            'policyname': policies[0]
+        };
+        $state.go('updateOrganizationPolicy', param, {reload:true} );    
+        
+    };    
+    
     $scope.deletePolicy = function() {
         
         var policies = [];
@@ -20066,13 +20102,14 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         
         'orgname': $stateParams.orgname,
         'policyname': '',
+        'settings': []
     };
 
 
     $scope.createPolicy = function() {
         console.log("createPolicy " + $scope.data.policyname);
         
-        Organizations.create_policy($scope.data, $scope.data.policyname).then(function(res) {
+        Organizations.create_policy($scope.data, $scope.data.policyname, $scope.data.settings).then(function(res) {
             
             if (res.status === 'OK') {
                 $ionicPopup.alert({
@@ -20099,6 +20136,115 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         });
     };
 
+    $scope.getPolicySettings = function() {
+        console.log("getPolicySettings");
+        
+        Organizations.get_policy_settings($scope.data).then(function(res) {
+            if (res.status === 'OK') {
+                $scope.data.settings = res.settings;
+            }
+            else {
+                $scope.data.settings = [];
+            }
+        });
+    };
+
+
+    $scope.submitRefresh = function() {
+        console.log("submitRefresh");
+        $scope.data.username = User.get_username();
+        $scope.data.token = User.get_token();
+        $scope.getPolicySettings();
+    };
+    
+    $scope.$on('$ionicView.enter', function(e) {
+        console.log("enter");
+        $scope.submitRefresh();
+    }); 
+    
+    $scope.exitPage = function() {
+        let param = {
+            'username': User.get_username(),
+            'token': User.get_token(),
+            'section': "3"
+        };
+        $state.go('menu.organizations', param, {reload:true} );    
+    };   
+}])
+   
+.controller('updateOrganizationPolicyCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', 'Devices', 'DeviceGroups', 'Organizations', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+// You can include any angular dependencies as parameters for this function
+// TIP: Access Route Parameters for your page via $stateParams.parameterName
+function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token, Devices, DeviceGroups, Organizations) {
+
+    var server = Server.rest_api;
+    
+    $scope.data = {
+        'username': User.get_username(),
+        'token': User.get_token(),
+        
+        'orgname': $stateParams.orgname,
+        'policyname': $stateParams.policyname,
+        'settings': []
+    };
+
+
+    $scope.updatePolicy = function() {
+        console.log("updatePolicy " + $scope.data.policyname);
+        
+        Organizations.create_policy($scope.data, $scope.data.policyname, $scope.data.settings).then(function(res) {
+            
+            if (res.status === 'OK') {
+                $ionicPopup.alert({
+                    title: 'Update Policy',
+                    template: 'Updating policy in the organization was successful.',
+                    buttons: [
+                        {
+                            text: 'Yes',
+                            type: 'button-positive',
+                            onTap: function(e) {
+                                $scope.exitPage();
+                            }
+                        }
+                    ]
+                });
+            }
+            else {
+                $ionicPopup.alert({
+                    title: 'Update Policy',
+                    template: 'Updating policy in the organization failed.' + ' ' + res.message,
+                    buttons: [{ text: 'Yes', type: 'button-positive' }]
+                });
+            }            
+        });
+    };
+
+    $scope.getPolicy = function() {
+        console.log("getPolicy");
+        
+        Organizations.get_policy($scope.data, $scope.data.policyname).then(function(res) {
+            if (res.status === 'OK') {
+                $scope.data.settings = res.settings;
+            }
+            else {
+                $scope.data.settings = [];
+            }
+        });
+    };
+
+
+    $scope.submitRefresh = function() {
+        console.log("submitRefresh");
+        $scope.data.username = User.get_username();
+        $scope.data.token = User.get_token();
+        $scope.getPolicy();
+    };
+    
+    $scope.$on('$ionicView.enter', function(e) {
+        console.log("enter");
+        $scope.submitRefresh();
+    }); 
+    
     $scope.exitPage = function() {
         let param = {
             'username': User.get_username(),
