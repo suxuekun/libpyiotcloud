@@ -1923,27 +1923,27 @@ In Linux, the total round trip time is only 1 second.
 
 Security has been the most challenging and controversial issues of IoT devices and smart devices.
 As such this IoT platform was designed so that security is built-in from the design - Security by Design principle.
+Below are security features by backend for device connectivity and frontend connectivity.
 
-### Backend
+### Device connectivity
 
     1. MQTT connectivity over secured TLS connection
     2. ECC-based (Elliptic Curve Cryptography ECC) PKI and X.509 certificates
     3. Enforcement of mutual authentication on both MQTT broker and MQTT client configurations
     4. Unique MQTT credentials (username and password) per device where password is JWT-encoded with shared secret key
     5. Strict restrictions for MQTT topic permission (subscribe and publish) per device
+    6. ECC certificates stored in 3rd-party ATECC hardware chip 
+    7. Secure boot with 256-bit AES key stored in an eFuse block to prevent tampered firmware
+    8. Flash encryption to prevent copying SPI Flash contents (bootloader, partition table, app partitions) via eFuses
 
-### Frontend
+### Frontend connectivity
 
     1. HTTP connectivity over secured TLS connection
     2. Cognito OAuth2 authorization with OTP and MFA/2FA via email and SMS
     3. HTTP authentication header with JWT encoding and secret key
     4. User lockout after 5 consecutive failed attempts
 
-### Device
 
-    1. ECC certificates stored in 3rd-party ATECC hardware chip 
-    2. Secure boot with 256-bit AES key stored in an eFuse block to prevent tampered firmware
-    3. Flash encryption to prevent copying SPI Flash contents (bootloader, partition table, app partitions) via eFuses
 
 
 
