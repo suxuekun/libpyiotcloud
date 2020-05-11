@@ -1942,7 +1942,7 @@ As such this IoT platform was designed so that security is built-in from the des
 
     1. ECC certificates stored in 3rd-party ATECC hardware chip 
     2. Secure boot with 256-bit AES key stored in an eFuse block to prevent tampered firmware
-    3. Flash encryption to prevent copying SPI Flash contents (bootloader, partition table, app partitions) controlled via eFuses
+    3. Flash encryption to prevent copying SPI Flash contents (bootloader, partition table, app partitions) via eFuses
 
 
 
