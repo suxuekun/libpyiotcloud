@@ -1990,23 +1990,28 @@ Below are the Post EW2020 Demo and new requirements:
 22. [DONE] Device-sensor hierarychy/tree charts (using D3.js)
 23. [DONE] Users management for Organization feature
 24. [DONE] File logging in device simulator (as requested by QA for easy bug reporting) 
-25. Roles and Policies management for Organization feature (using CASBIN)
-26. Access Control for all APIs based on assigned Roles (RBAC)
-27. Backend logging/monitoring using Elastic/ELK stack
-28. GET/SET PROPERTIES cache
-29. New payment model (monthly, add-on)
-30. Highly-customizable dashboard
-31. Dashboard usage-related info
-32. Dashboard overlay charts from different sensors from same or other devices
-33. Business Intelligence integration with Microsoft PowerBI (or Tableau, Qlik)
-34. Write regression tester
-35. Microservices documentation
-36. Databases documentation
-37. Swagger REST API documentation
-38. Optimize MongoDB calls (utilize Redis, query by username or deviceid instead of by sensors if possible)
-39. Apache Hadoop integration using Amazon EMR for legit BigData database (instead of MongoDB Atlas)
-40. "L"ambda function integration for MENLOS for custom messaging/notifications (support both Python 3, NodeJS)
-41. IFTTT integration. (requires OAuth2 server and APIs implemented for triggers "if this" and actions "then-that" )
-42. Clustering of RabbitMQ and REST APIs... (study federation/shovel, clustering is for LAN, federation/shovel is for WAN)
-43. Update the Kubernetes support (a number of microservices has been added since then).
+25. [DONE] Groups/Roles management for Organization feature
+26. [DONE] Device authentication with JWT-encoded password for enhanced security
+27. [DONE] Backend monitoring solution using Prometheus and Grafana for better maintainability
+28. [DONE] Backend logging solution using custom Python script (sufficient for now)
+29. [DONE] Multiple organizations
+30. [DONE] Policies management for Organization feature
+
+31. Access Control for all APIs based on assigned Roles (RBAC)
+32. GET/SET PROPERTIES cache
+33. New payment model (monthly, add-on)
+34. Highly-customizable dashboard
+35. Dashboard usage-related info
+36. Dashboard overlay charts from different sensors from same or other devices
+37. Business Intelligence integration with Microsoft PowerBI (or Tableau, Qlik)
+38. Write regression tester
+39. Microservices documentation
+40. Databases documentation
+41. Swagger REST API documentation
+42. Optimize MongoDB calls (utilize Redis, query by username or deviceid instead of by sensors if possible)
+43. Apache Hadoop integration using Amazon EMR for legit BigData database (instead of MongoDB Atlas)
+44. "L"ambda function integration for MENLOS for custom messaging/notifications (support both Python 3, NodeJS)
+45. IFTTT integration. (requires OAuth2 server and APIs implemented for triggers "if this" and actions "then-that" )
+46. Clustering of RabbitMQ and REST APIs... (study federation/shovel, clustering is for LAN, federation/shovel is for WAN)
+47. Update the Kubernetes support (a number of microservices has been added since then).
 
