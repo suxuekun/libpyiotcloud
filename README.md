@@ -1949,13 +1949,13 @@ Below are security features by backend for device connectivity and frontend conn
 
 # Reminders
 
-1. When using self-signed certificate on NGINX,
-   The Ionic iOS/Android mobile simulators can be viewed online at https://creator.ionic.io/share/xxxASKMExxx but requires the following
-   - "C:\Program Files (x86)\Google\Chrome\Application\chrome.exe" --ignore-certificate-errors
-   - OR type in browser chrome://flags/#allow-insecure-localhost
-2. The certificate bought from GoDaddy is different from the self-signed certificate for RabbitMQ.
-   - RABBITMQ: Uses the self-signed rootca; for MQTTS/AMQPS device connectivity
-   - NGINX: Uses the trusted certificate bought from GoDaddy; for HTTPS web/mobile connectivity; currently tied up to richmondu.com
+    1. When using self-signed certificate on NGINX,
+       The Ionic iOS/Android mobile simulators can be viewed online at https://creator.ionic.io/share/xxxASKMExxx but requires the following
+       - "C:\Program Files (x86)\Google\Chrome\Application\chrome.exe" --ignore-certificate-errors
+       - OR type in browser chrome://flags/#allow-insecure-localhost
+    2. The certificate bought from GoDaddy is different from the self-signed certificate for RabbitMQ.
+       - RABBITMQ: Uses the self-signed rootca; for MQTTS/AMQPS device connectivity
+       - NGINX: Uses the trusted certificate bought from GoDaddy; for HTTPS web/mobile connectivity; currently tied up to richmondu.com
 
 
 
