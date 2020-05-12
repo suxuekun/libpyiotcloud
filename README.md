@@ -1947,8 +1947,6 @@ Below are security features by backend for device connectivity and frontend conn
 
 
 
-
-
 # Reminders
 
 1. When using self-signed certificate on NGINX,
