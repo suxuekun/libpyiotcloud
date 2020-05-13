@@ -4195,7 +4195,7 @@ DETAILED:
 
 		C. API_REQUEST_OTASTATUS
 		-  Publish:
-		   topic: server/DEVICEID/end_ota
+		   topic: server/DEVICEID/req_otastatus
 		   payload: 
 		   {
 		     "version": string
