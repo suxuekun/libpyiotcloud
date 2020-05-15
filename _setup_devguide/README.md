@@ -4171,6 +4171,17 @@ DETAILED:
 		   // this MQTT packet should ve called every device bootup to check if device is schedule for OTA update
 		   // if device is scheduled for OTA update, device shall receive API_UPGRADE_FIRMWARE call
 
+		D. API_REQUEST_TIME
+		-  Publish:
+		   topic: server/DEVICEID/req_time
+		   payload: {}
+		-  Receive:
+		   topic: DEVICEID/req_time
+		   {
+		     "time": string
+		   }
+		   // this topic is for querying the current epoch time in seconds
+		   // device should probably add 1 second to accomodate any transmission delay
 
 
 ## Demo Setup Documentation
