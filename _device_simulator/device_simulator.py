@@ -261,6 +261,7 @@ API_UPGRADE_FIRMWARE_COMPLETION  = "end_ota"
 API_REQUEST_FIRMWARE             = "req_firmware"
 API_RECEIVE_FIRMWARE             = "rcv_firmware"
 API_REQUEST_OTASTATUS            = "req_otastatus"
+API_REQUEST_TIME                 = "req_time"
 
 # sensor registration 
 API_SET_REGISTRATION             = "set_registration"
@@ -1384,6 +1385,7 @@ def handle_api(api, subtopic, subpayload):
     elif api == API_REQUEST_OTASTATUS:
         topic = generate_pubtopic(subtopic)
         subpayload = json.loads(subpayload)
+        printf("")
 
 
     elif api == API_UPGRADE_FIRMWARE:
@@ -1434,6 +1436,12 @@ def handle_api(api, subtopic, subpayload):
         # inform download thread
         g_download_thread.set_downloaded(subpayload["size"])
         g_download_thread_stop.set()
+
+
+    elif api == API_REQUEST_TIME:
+        topic = generate_pubtopic(subtopic)
+        subpayload = json.loads(subpayload)
+        printf("")
 
 
     ####################################################
@@ -1598,6 +1606,15 @@ def req_otastatus(ver):
     printf("Request OTA status")
     topic = "{}{}{}{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_DEVICE_ID, CONFIG_SEPARATOR, API_REQUEST_OTASTATUS)
     payload = {"version": ver}
+    publish(topic, payload)
+
+def req_epochtime():
+    printf("")
+    printf("")
+    printf("Request EPOCH time")
+    topic = "{}{}{}{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_DEVICE_ID, CONFIG_SEPARATOR, API_REQUEST_TIME)
+    payload = {}
+    payload = json.dumps(payload)
     publish(topic, payload)
 
 
@@ -2395,7 +2412,6 @@ def set_registration(sensors):
     publish(topic, payload)
 
 
-
 ###################################################################################
 # Password generation
 ###################################################################################
@@ -2594,6 +2610,11 @@ def main(args):
         #subtopic2 = "{}{}{}{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_DEVICE_ID, CONFIG_SEPARATOR, API_PUBLISH_SENSOR_READING)
         #g_messaging_client.subscribe(subtopic2, subscribe=True, declare=True, consume_continuously=True)
 
+
+        # Get epoch time
+        # Not needed for the device simulator
+        # This is just for demonstration to device firmware (to be used as last resort in case SNTP fails for some reason)
+        req_epochtime()
 
         # Scan sensor for configuration
         if CONFIG_SCAN_SENSORS_AT_BOOTUP:
