@@ -94,7 +94,18 @@ class payment_accounting:
             print('\r\nERROR Get Subscription: Token is invalid [{}]\r\n'.format(username))
             return response, status.HTTP_401_UNAUTHORIZED
 
-        subscription = self.database_client.get_subscription(username)
+
+        # get entity using the active organization
+        orgname, orgid = self.database_client.get_active_organization(username)
+        if orgname is not None:
+            # has active organization
+            entityname = "{}.{}".format(orgname, orgid)
+        else:
+            # no active organization, just a normal user
+            entityname = username
+
+
+        subscription = self.database_client.get_subscription(entityname)
         #print(subscription)
         msg = {'status': 'OK', 'message': 'User subscription queried successfully.', 'subscription': subscription}
 
@@ -167,8 +178,18 @@ class payment_accounting:
             return response, status.HTTP_401_UNAUTHORIZED
 
 
+        # get entity using the active organization
+        orgname, orgid = self.database_client.get_active_organization(username)
+        if orgname is not None:
+            # has active organization
+            entityname = "{}.{}".format(orgname, orgid)
+        else:
+            # no active organization, just a normal user
+            entityname = username
+
+
         #print(payment)
-        approval_url, payment_id, token = self.database_client.transactions_paypal_set_payment(username, token, payment)
+        approval_url, payment_id, token = self.database_client.transactions_paypal_set_payment(entityname, token, payment)
         msg = {'status': 'OK', 'message': 'Paypal payment setup successful.', 'payment': {'approvalurl': approval_url, 'paymentid': payment_id}}
 
 
@@ -283,11 +304,22 @@ class payment_accounting:
             print('\r\nERROR Paypal Execute: Token is invalid [{}]\r\n'.format(username))
             return response, status.HTTP_401_UNAUTHORIZED
 
+
+        # get entity using the active organization
+        orgname, orgid = self.database_client.get_active_organization(username)
+        if orgname is not None:
+            # has active organization
+            entityname = "{}.{}".format(orgname, orgid)
+        else:
+            # no active organization, just a normal user
+            entityname = username
+
+
         #print(payment)
         subscription = None
-        status, payment_result = self.database_client.transactions_paypal_execute_payment(username, payment)
+        status, payment_result = self.database_client.transactions_paypal_execute_payment(entityname, payment)
         if status:
-            status, amount = self.database_client.transactions_paypal_verify_payment(username, payment)
+            status, amount = self.database_client.transactions_paypal_verify_payment(entityname, payment)
             if status:
                 msg = {'status': 'OK', 'message': 'Paypal payment verified successful.'}
 
@@ -296,18 +328,18 @@ class payment_accounting:
                 #print("amount: {} == credits: {}".format(amount, credits))
 
                 # get the current subscription value
-                subscription_old = self.database_client.get_subscription(username)
+                subscription_old = self.database_client.get_subscription(entityname)
                 #print("old: {}".format(subscription_old))
 
                 # add the new subscription credits
-                subscription = self.database_client.set_subscription(username, credits)
+                subscription = self.database_client.set_subscription(entityname, credits)
                 #print("new: {}".format(subscription))
                 if subscription:
                     subscription["prevcredits"] = subscription_old["credits"]
                     msg["subscription"] = subscription
 
                 # record the paypal transaction
-                transaction = self.database_client.record_paypal_payment(username, payment_result, credits, subscription["prevcredits"], subscription["credits"])
+                transaction = self.database_client.record_paypal_payment(entityname, payment_result, credits, subscription["prevcredits"], subscription["credits"])
                 #print(transaction)
 
                 # send email receipt/invoice
@@ -386,13 +418,24 @@ class payment_accounting:
             # No need to return error code status.HTTP_401_UNAUTHORIZED since this is a logout
             return response, status.HTTP_401_UNAUTHORIZED
 
+
+        # get entity using the active organization
+        orgname, orgid = self.database_client.get_active_organization(username)
+        if orgname is not None:
+            # has active organization
+            entityname = "{}.{}".format(orgname, orgid)
+        else:
+            # no active organization, just a normal user
+            entityname = username
+
+
         #print(payment)
-        status, amount = self.database_client.transactions_paypal_verify_payment(username, payment)
+        status, amount = self.database_client.transactions_paypal_verify_payment(entityname, payment)
         if status:
             msg = {'status': 'OK', 'message': 'Paypal payment verification successful.'}
 
             # get record the paypal transaction
-            transaction = self.database_client.get_paypal_payment(username, paymentid)
+            transaction = self.database_client.get_paypal_payment(entityname, paymentid)
             #print(transaction)
             if transaction:
                 msg["transaction"] = transaction
@@ -458,8 +501,18 @@ class payment_accounting:
             return response, status.HTTP_401_UNAUTHORIZED
 
 
+        # get entity using the active organization
+        orgname, orgid = self.database_client.get_active_organization(username)
+        if orgname is not None:
+            # has active organization
+            entityname = "{}.{}".format(orgname, orgid)
+        else:
+            # no active organization, just a normal user
+            entityname = username
+
+
         # get record the paypal transactions
-        transactions = self.database_client.get_paypal_payments(username)
+        transactions = self.database_client.get_paypal_payments(entityname)
         transactions.sort(key=self.sort_by_timestamp, reverse=True)
         #print(transactions)
 
@@ -525,9 +578,19 @@ class payment_accounting:
             return response, status.HTTP_401_UNAUTHORIZED
 
 
+        # get entity using the active organization
+        orgname, orgid = self.database_client.get_active_organization(username)
+        if orgname is not None:
+            # has active organization
+            entityname = "{}.{}".format(orgname, orgid)
+        else:
+            # no active organization, just a normal user
+            entityname = username
+
+
         paypal = None
         # get paymentid and payerid given the transactionid
-        paymentid = self.database_client.get_paypal_payment_by_transaction_id(username, transactionid)
+        paymentid = self.database_client.get_paypal_payment_by_transaction_id(entityname, transactionid)
         #print(paymentid)
         if paymentid:
             #pubtopic = CONFIG_PREPEND_REPLY_TOPIC + CONFIG_SEPARATOR + paymentid + CONFIG_SEPARATOR + "send_invoice"
@@ -536,7 +599,7 @@ class payment_accounting:
             #print("publish xxxxxxxxxxxxx")
 
             # get record the paypal transactions
-            paypal_param = self.database_client.transactions_paypal_get_payment(username, {'paymentId': paymentid})
+            paypal_param = self.database_client.transactions_paypal_get_payment(entityname, {'paymentId': paymentid})
             print(paypal_param)
             paypal = {}
             paypal["state"] = paypal_param["state"]

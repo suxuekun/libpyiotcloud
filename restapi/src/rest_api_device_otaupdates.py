@@ -78,11 +78,22 @@ class device_otaupdates:
         data['username'] = username
         print('update_firmware {} devicename={}'.format(data['username'], data['devicename']))
 
+
+        # get entity using the active organization
+        orgname, orgid = self.database_client.get_active_organization(username)
+        if orgname is not None:
+            # has active organization
+            entityname = "{}.{}".format(orgname, orgid)
+        else:
+            # no active organization, just a normal user
+            entityname = username
+
+
         # check if a parameter is empty
         result, document = self.storage_client.get_device_firmware_updates()
         if not result:
             response = json.dumps({'status': 'NG', 'message': 'Could not retrieve JSON document'})
-            print('\r\nERROR Upgrade Device Firmware: Could not retrieve JSON document [{}]\r\n'.format(username))
+            print('\r\nERROR Upgrade Device Firmware: Could not retrieve JSON document [{}]\r\n'.format(entityname))
             return response, status.HTTP_500_INTERNAL_SERVER_ERROR
 
         # get the size and location
@@ -107,14 +118,14 @@ class device_otaupdates:
         response, status_return = self.messaging_requests.process(api, data)
         if status_return != 200:
             # save ota firmware update status in database
-            self.database_client.set_ota_status_pending(username, devicename, data["version"])
+            self.database_client.set_ota_status_pending(entityname, devicename, data["version"])
             msg = {'status': 'NG', 'message': 'Device is offline. Device has been scheduled for update on device bootup.'}
             response = json.dumps(msg)
             return response
 
 
         # save ota firmware update status in database
-        self.database_client.set_ota_status_ongoing(username, devicename, data["version"])
+        self.database_client.set_ota_status_ongoing(entityname, devicename, data["version"])
         #ota_status = self.database_client.get_ota_status(username, devicename)
         #print(ota_status)
 
@@ -125,17 +136,17 @@ class device_otaupdates:
         return response
 
 
-    def update_firmwares_thread(self, api, data, username, devicename, version):
+    def update_firmwares_thread(self, api, data, entityname, devicename, version):
 
         # trigger device to update firmware
         response, status_return = self.messaging_requests.process(api, data)
         if status_return != 200:
-            self.database_client.set_ota_status_pending(username, devicename, version)
+            self.database_client.set_ota_status_pending(entityname, devicename, version)
             print("{} {}".format(devicename, "pending"))
             return
 
         # save ota firmware update status in database
-        self.database_client.set_ota_status_ongoing(username, devicename, version)
+        self.database_client.set_ota_status_ongoing(entityname, devicename, version)
         print("{} {}".format(devicename, "ongoing"))
 
 
@@ -174,11 +185,22 @@ class device_otaupdates:
         data['username'] = username
         print('update_firmwares {}'.format(data['username']))
 
+
+        # get entity using the active organization
+        orgname, orgid = self.database_client.get_active_organization(username)
+        if orgname is not None:
+            # has active organization
+            entityname = "{}.{}".format(orgname, orgid)
+        else:
+            # no active organization, just a normal user
+            entityname = username
+
+
         # check if a parameter is empty
         result, document = self.storage_client.get_device_firmware_updates()
         if not result:
             response = json.dumps({'status': 'NG', 'message': 'Could not retrieve JSON document'})
-            print('\r\nERROR Update Firmwares: Could not retrieve JSON document [{}]\r\n'.format(username))
+            print('\r\nERROR Update Firmwares: Could not retrieve JSON document [{}]\r\n'.format(entityname))
             return response, status.HTTP_500_INTERNAL_SERVER_ERROR
 
         # get the size and location
@@ -202,7 +224,7 @@ class device_otaupdates:
         #if data.get("devices"):
         #    print(data["devices"])
 
-        device_list = self.database_client.get_devices(username)
+        device_list = self.database_client.get_devices(entityname)
         thread_list = []
 
         for device in device_list:
@@ -212,7 +234,7 @@ class device_otaupdates:
             #print(device["devicename"])
             data_thr = copy.deepcopy(data)
             data_thr["devicename"] = device["devicename"]
-            thr = threading.Thread(target = self.update_firmwares_thread, args = (api, data_thr, username, device["devicename"], data["version"], ))
+            thr = threading.Thread(target = self.update_firmwares_thread, args = (api, data_thr, entityname, device["devicename"], data["version"], ))
             thr.start()
             thread_list.append(thr) 
 
@@ -274,16 +296,27 @@ class device_otaupdates:
             print('\r\nERROR Get Upgrade Device Firmware: Token is invalid [{}]\r\n'.format(username))
             return response, status.HTTP_401_UNAUTHORIZED
 
+
+        # get entity using the active organization
+        orgname, orgid = self.database_client.get_active_organization(username)
+        if orgname is not None:
+            # has active organization
+            entityname = "{}.{}".format(orgname, orgid)
+        else:
+            # no active organization, just a normal user
+            entityname = username
+
+
         # check if device is registered
-        device = self.database_client.find_device(username, devicename)
+        device = self.database_client.find_device(entityname, devicename)
         if not device:
             response = json.dumps({'status': 'NG', 'message': 'Device is not registered'})
-            print('\r\nERROR Get Upgrade Device Firmware: Device is not registered [{},{}]\r\n'.format(username, devicename))
+            print('\r\nERROR Get Upgrade Device Firmware: Device is not registered [{},{}]\r\n'.format(entityname, devicename))
             return response, status.HTTP_404_NOT_FOUND
 
 
         # check database for ota status
-        ota_status = self.database_client.get_ota_status(username, devicename)
+        ota_status = self.database_client.get_ota_status(entityname, devicename)
         if ota_status is None:
             response = json.dumps({'status': 'NG', 'message': 'OTA not started'})
             print('\r\nERROR Get Upgrade Device Firmware: OTA not started\r\n')
@@ -352,12 +385,22 @@ class device_otaupdates:
             return response, status.HTTP_401_UNAUTHORIZED
 
 
+        # get entity using the active organization
+        orgname, orgid = self.database_client.get_active_organization(username)
+        if orgname is not None:
+            # has active organization
+            entityname = "{}.{}".format(orgname, orgid)
+        else:
+            # no active organization, just a normal user
+            entityname = username
+
+
         # check database for ota status
-        ota_statuses = self.database_client.get_ota_statuses(username)
+        ota_statuses = self.database_client.get_ota_statuses(entityname)
         if ota_statuses is None:
             ota_statuses = []
 
-        devices = self.database_client.get_devices(username)
+        devices = self.database_client.get_devices(entityname)
         for device in devices:
             found = False
             for ota_status in ota_statuses:
@@ -449,16 +492,27 @@ class device_otaupdates:
             print('\r\nERROR Get OTA status: Token is invalid [{}]\r\n'.format(username))
             return response, status.HTTP_401_UNAUTHORIZED
 
+
+        # get entity using the active organization
+        orgname, orgid = self.database_client.get_active_organization(username)
+        if orgname is not None:
+            # has active organization
+            entityname = "{}.{}".format(orgname, orgid)
+        else:
+            # no active organization, just a normal user
+            entityname = username
+
+
         # check if device is registered
-        device = self.database_client.find_device(username, devicename)
+        device = self.database_client.find_device(entityname, devicename)
         if not device:
             response = json.dumps({'status': 'NG', 'message': 'Device is not registered'})
-            print('\r\nERROR Get OTA status: Device is not registered [{},{}]\r\n'.format(username, devicename))
+            print('\r\nERROR Get OTA status: Device is not registered [{},{}]\r\n'.format(entityname, devicename))
             return response, status.HTTP_404_NOT_FOUND
 
 
         # check database for ota status
-        ota_status = self.database_client.get_ota_status(username, devicename)
+        ota_status = self.database_client.get_ota_status(entityname, devicename)
         if ota_status is None:
             ota_status = {}
             if device.get("version"):

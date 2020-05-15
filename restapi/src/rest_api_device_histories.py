@@ -83,7 +83,18 @@ class device_histories:
             print('\r\nERROR Get Histories: Token is invalid [{}]\r\n'.format(username))
             return response, status.HTTP_401_UNAUTHORIZED
 
-        histories = self.database_client.get_user_history(username)
+
+        # get entity using the active organization
+        orgname, orgid = self.database_client.get_active_organization(username)
+        if orgname is not None:
+            # has active organization
+            entityname = "{}.{}".format(orgname, orgid)
+        else:
+            # no active organization, just a normal user
+            entityname = username
+
+
+        histories = self.database_client.get_user_history(entityname)
         #print(histories)
 
 
@@ -144,6 +155,17 @@ class device_histories:
             print('\r\nERROR Get Histories: Token is invalid [{}]\r\n'.format(username))
             return response, status.HTTP_401_UNAUTHORIZED
 
+
+        # get entity using the active organization
+        orgname, orgid = self.database_client.get_active_organization(username)
+        if orgname is not None:
+            # has active organization
+            entityname = "{}.{}".format(orgname, orgid)
+        else:
+            # no active organization, just a normal user
+            entityname = username
+
+
         # get filter data
         devicename = None
         direction = None
@@ -162,7 +184,7 @@ class device_histories:
             if data.get("dateend"):
                 dateend = data["dateend"]
 
-        histories = self.database_client.get_user_history_filtered(username, devicename, direction, topic, datebegin, dateend)
+        histories = self.database_client.get_user_history_filtered(entityname, devicename, direction, topic, datebegin, dateend)
         #print(histories)
 
 
@@ -223,9 +245,19 @@ class device_histories:
             return response, status.HTTP_401_UNAUTHORIZED
 
 
+        # get entity using the active organization
+        orgname, orgid = self.database_client.get_active_organization(username)
+        if orgname is not None:
+            # has active organization
+            entityname = "{}.{}".format(orgname, orgid)
+        else:
+            # no active organization, just a normal user
+            entityname = username
+
+
         # get menos histories of all devices of user
         histories = []
-        devices = self.database_client.get_devices(username)
+        devices = self.database_client.get_devices(entityname)
         for device in devices:
             transactions = self.database_client.get_menos_transaction(device["deviceid"])
             for transaction in transactions:
@@ -290,6 +322,17 @@ class device_histories:
             print('\r\nERROR Get MENOS Histories: Token is invalid [{}]\r\n'.format(username))
             return response, status.HTTP_401_UNAUTHORIZED
 
+
+        # get entity using the active organization
+        orgname, orgid = self.database_client.get_active_organization(username)
+        if orgname is not None:
+            # has active organization
+            entityname = "{}.{}".format(orgname, orgid)
+        else:
+            # no active organization, just a normal user
+            entityname = username
+
+
         # get filter data
         devicename = None
         type = None
@@ -311,7 +354,7 @@ class device_histories:
 
         # get menos histories of all devices of user
         histories = []
-        devices = self.database_client.get_devices(username)
+        devices = self.database_client.get_devices(entityname)
         if devicename is not None:
             for device in devices:
                 if device["devicename"] == devicename:

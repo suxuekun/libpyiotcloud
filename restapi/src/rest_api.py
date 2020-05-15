@@ -612,6 +612,17 @@ g_other_stuffs_list = [
 
 
 
+def sort_by_timestamp(elem):
+    return elem['timestamp']
+
+def sort_by_devicename(elem):
+    return elem['devicename']
+
+def sort_by_sensorname(elem):
+    return elem['sensorname']
+
+
+
 ########################################################################################################
 # 
 # GET DEVICES
@@ -661,13 +672,17 @@ def get_device_list():
         return response, status.HTTP_401_UNAUTHORIZED
 
 
-    devices = g_database_client.get_devices(username)
+    # get entity using the active organization
+    orgname, orgid = g_database_client.get_active_organization(username)
+    if orgname is not None:
+        # has active organization
+        entityname = "{}.{}".format(orgname, orgid)
+    else:
+        # no active organization, just a normal user
+        entityname = username
 
-    # get the location from database
-    #for device in devices:
-    #    location  = g_database_client.get_device_location(username, device["devicename"])
-    #    if location:
-    #        device["location"] = location
+
+    devices = g_database_client.get_devices(entityname)
 
 
     msg = {'status': 'OK', 'message': 'Devices queried successfully.', 'devices': devices}
@@ -726,7 +741,17 @@ def get_device_list_filtered(filter):
         return response, status.HTTP_401_UNAUTHORIZED
 
 
-    devices = g_database_client.get_devices_with_filter(username, filter)
+    # get entity using the active organization
+    orgname, orgid = g_database_client.get_active_organization(username)
+    if orgname is not None:
+        # has active organization
+        entityname = "{}.{}".format(orgname, orgid)
+    else:
+        # no active organization, just a normal user
+        entityname = username
+
+
+    devices = g_database_client.get_devices_with_filter(entityname, filter)
 
     # get the location from database
     #for device in devices:
@@ -781,7 +806,7 @@ def compute_password(secret_key, uuid, serial_number, mac_address, debug=False):
     return password
 
 
-def device_cleanup(username, deviceid):
+def device_cleanup(entityname, deviceid):
 
     # delete device sensor-related information
     sensors = g_database_client.get_all_device_sensors_by_deviceid(deviceid)
@@ -795,7 +820,7 @@ def device_cleanup(username, deviceid):
     g_database_client.delete_ota_status_by_deviceid(deviceid)
     g_database_client.delete_device_notification_by_deviceid(deviceid)
     g_database_client.delete_device_location_by_deviceid(deviceid)
-    g_database_client.remove_device_from_devicegroups(username, deviceid)
+    g_database_client.remove_device_from_devicegroups(entityname, deviceid)
     g_database_client.delete_menos_transaction_by_deviceid(deviceid)
 
     # delete device from database
@@ -869,22 +894,33 @@ def register_device(devicename):
         print('\r\nERROR Add/Delete Device: Token is invalid [{}]\r\n'.format(username))
         return response, status.HTTP_401_UNAUTHORIZED
 
+
+    # get entity using the active organization
+    orgname, orgid = g_database_client.get_active_organization(username)
+    if orgname is not None:
+        # has active organization
+        entityname = "{}.{}".format(orgname, orgid)
+    else:
+        # no active organization, just a normal user
+        entityname = username
+
+
     if flask.request.method == 'POST':
         # check parameters
         data = flask.request.get_json()
         #print(data)
         if not data.get("deviceid") or not data.get("serialnumber") or not data.get("poemacaddress"):
             response = json.dumps({'status': 'NG', 'message': 'Parameters not included'})
-            print('\r\nERROR Add Device: Parameters not included [{},{}]\r\n'.format(username, devicename))
+            print('\r\nERROR Add Device: Parameters not included [{},{}]\r\n'.format(entityname, devicename))
             return response, status.HTTP_400_BAD_REQUEST
         #print(data["deviceid"])
         #print(data["serialnumber"])
 
         # check if device is registered
         # a user cannot register the same device name
-        if g_database_client.find_device(username, devicename):
+        if g_database_client.find_device(entityname, devicename):
             response = json.dumps({'status': 'NG', 'message': 'Device name is already taken'})
-            print('\r\nERROR Add Device: Device name is already taken [{},{}]\r\n'.format(username, devicename))
+            print('\r\nERROR Add Device: Device name is already taken [{},{}]\r\n'.format(entityname, devicename))
             return response, status.HTTP_409_CONFLICT
 
         # check if UUID is unique
@@ -903,11 +939,11 @@ def register_device(devicename):
             return response, status.HTTP_409_CONFLICT
 
         # add device to database
-        result = g_database_client.add_device(username, devicename, data["deviceid"], data["serialnumber"], data['poemacaddress'])
+        result = g_database_client.add_device(entityname, devicename, data["deviceid"], data["serialnumber"], data['poemacaddress'])
         #print(result)
         if not result:
             response = json.dumps({'status': 'NG', 'message': 'Device could not be registered'})
-            print('\r\nERROR Add Device: Device could not be registered [{},{}]\r\n'.format(username, devicename))
+            print('\r\nERROR Add Device: Device could not be registered [{},{}]\r\n'.format(entityname, devicename))
             return response, status.HTTP_400_BAD_REQUEST
 
         # add and configure message broker user
@@ -927,22 +963,22 @@ def register_device(devicename):
             #print(result)
             if not result:
                 response = json.dumps({'status': 'NG', 'message': 'Device could not be registered in message broker'})
-                print('\r\nERROR Add Device: Device could not be registered  in message broker [{},{}]\r\n'.format(username, devicename))
+                print('\r\nERROR Add Device: Device could not be registered  in message broker [{},{}]\r\n'.format(entityname, devicename))
                 return response, status.HTTP_500_INTERNAL_SERVER_ERROR
         except Exception as e:
             print("Exception encountered {}".format(e))
             response = json.dumps({'status': 'NG', 'message': 'Device could not be registered in message broker'})
-            print('\r\nERROR Add Device: Device could not be registered in message broker [{},{}]\r\n'.format(username, devicename))
+            print('\r\nERROR Add Device: Device could not be registered in message broker [{},{}]\r\n'.format(entityname, devicename))
             return response, status.HTTP_500_INTERNAL_SERVER_ERROR
 
         # add default uart notification recipients
         # this is necessary so that an entry exist for consumption of notification manager
         source = "uart"
-        notification = g_database_client.get_device_notification(username, devicename, source)
+        notification = g_database_client.get_device_notification(entityname, devicename, source)
         if notification is None:
             notification = build_default_notifications(source, token)
             if notification is not None:
-                g_database_client.update_device_notification(username, devicename, source, notification)
+                g_database_client.update_device_notification(entityname, devicename, source, notification)
 
         msg = {'status': 'OK', 'message': 'Devices registered successfully.'}
         if new_token:
@@ -954,15 +990,15 @@ def register_device(devicename):
     elif flask.request.method == 'DELETE':
 
         # check if device is registered
-        device = g_database_client.find_device(username, devicename)
+        device = g_database_client.find_device(entityname, devicename)
         if not device:
             response = json.dumps({'status': 'NG', 'message': 'Device is not registered'})
-            print('\r\nERROR Delete Device: Device is not registered [{},{}]\r\n'.format(username, devicename))
+            print('\r\nERROR Delete Device: Device is not registered [{},{}]\r\n'.format(entityname, devicename))
             return response, status.HTTP_404_NOT_FOUND
 
 
         # cleanup device
-        device_cleanup(username, device['deviceid'])
+        device_cleanup(entityname, device['deviceid'])
 
 
         msg = {'status': 'OK', 'message': 'Devices unregistered successfully.'}
@@ -1021,16 +1057,23 @@ def get_device(devicename):
         print('\r\nERROR Get Device: Token is invalid [{}]\r\n'.format(username))
         return response, status.HTTP_401_UNAUTHORIZED
 
+
+    # get entity using the active organization
+    orgname, orgid = g_database_client.get_active_organization(username)
+    if orgname is not None:
+        # has active organization
+        entityname = "{}.{}".format(orgname, orgid)
+    else:
+        # no active organization, just a normal user
+        entityname = username
+
+
     # check if device is registered
-    device = g_database_client.find_device(username, devicename)
+    device = g_database_client.find_device(entityname, devicename)
     if not device:
         response = json.dumps({'status': 'NG', 'message': 'Device is not registered'})
-        print('\r\nERROR Get Device: Device is not registered [{},{}]\r\n'.format(username, devicename))
+        print('\r\nERROR Get Device: Device is not registered [{},{}]\r\n'.format(entityname, devicename))
         return response, status.HTTP_404_NOT_FOUND
-
-    #location  = g_database_client.get_device_location(username, devicename)
-    #if location:
-    #    device["location"] = location
 
 
     msg = {'status': 'OK', 'message': 'Devices queried successfully.', 'device': device}
@@ -1090,11 +1133,21 @@ def update_devicename(devicename):
         print('\r\nERROR Update Device Name: Token is invalid [{}]\r\n'.format(username))
         return response, status.HTTP_401_UNAUTHORIZED
 
+
+    # get entity using the active organization
+    orgname, orgid = g_database_client.get_active_organization(username)
+    if orgname is not None:
+        # has active organization
+        entityname = "{}.{}".format(orgname, orgid)
+    else:
+        # no active organization, just a normal user
+        entityname = username
+
     # check if device is registered
-    device = g_database_client.find_device(username, devicename)
+    device = g_database_client.find_device(entityname, devicename)
     if not device:
         response = json.dumps({'status': 'NG', 'message': 'Device is not registered'})
-        print('\r\nERROR Update Device Name: Device is not registered [{},{}]\r\n'.format(username, devicename))
+        print('\r\nERROR Update Device Name: Device is not registered [{},{}]\r\n'.format(entityname, devicename))
         return response, status.HTTP_404_NOT_FOUND
 
 
@@ -1102,21 +1155,21 @@ def update_devicename(devicename):
     data = flask.request.get_json()
     if not data.get("new_devicename"):
         response = json.dumps({'status': 'NG', 'message': 'Parameters not included'})
-        print('\r\nERROR Update Device Name: Parameters not included [{},{}]\r\n'.format(username, devicename))
+        print('\r\nERROR Update Device Name: Parameters not included [{},{}]\r\n'.format(entityname, devicename))
         return response, status.HTTP_400_BAD_REQUEST
     if len(data["new_devicename"]) == 0:
         response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
         print('\r\nERROR Update Device Name: Empty parameter found\r\n')
         return response, status.HTTP_400_BAD_REQUEST
-    device = g_database_client.find_device(username, data["new_devicename"])
+    device = g_database_client.find_device(entityname, data["new_devicename"])
     if device:
         response = json.dumps({'status': 'NG', 'message': 'Device name is already registered'})
-        print('\r\nERROR Update Device Name: Device name is already registered [{},{}]\r\n'.format(username, devicename))
+        print('\r\nERROR Update Device Name: Device name is already registered [{},{}]\r\n'.format(entityname, devicename))
         return response, status.HTTP_400_BAD_REQUEST
 
 
     # update the device name
-    g_database_client.update_devicename(username, devicename, data["new_devicename"])
+    g_database_client.update_devicename(entityname, devicename, data["new_devicename"])
 
 
     msg = {'status': 'OK', 'message': 'Device name updated successfully.', 'device': device}
@@ -1130,14 +1183,7 @@ def update_devicename(devicename):
 #########################
 
 
-def sort_by_timestamp(elem):
-    return elem['timestamp']
 
-def sort_by_devicename(elem):
-    return elem['devicename']
-
-def sort_by_sensorname(elem):
-    return elem['sensorname']
 
 
 #########################
@@ -1180,10 +1226,20 @@ def get_status(devicename):
     data['username'] = username
     #print('get_status {} devicename={}'.format(data['username'], data['devicename']))
 
+
+    # get entity using the active organization
+    orgname, orgid = g_database_client.get_active_organization(username)
+    if orgname is not None:
+        # has active organization
+        entityname = "{}.{}".format(orgname, orgid)
+    else:
+        # no active organization, just a normal user
+        entityname = username
+
     response, status_return = g_messaging_requests.process(api, data)
     if status_return == 503: # HTTP_503_SERVICE_UNAVAILABLE
         # if device is unreachable, get the cached heartbeat and version
-        cached_value = g_database_client.get_device_cached_values(username, devicename)
+        cached_value = g_database_client.get_device_cached_values(entityname, devicename)
         if not cached_value:
             response = json.dumps({'status': 'NG', 'message': 'Device is not registered'})
             print('\r\nERROR Device is not registered [{},{}]\r\n'.format(username, devicename))
@@ -1197,15 +1253,15 @@ def get_status(devicename):
         response = json.loads(response)
         version = response["value"]["version"]
         response = json.dumps(response)
-        g_database_client.save_device_version(username, devicename, version)
+        g_database_client.save_device_version(entityname, devicename, version)
 
     return response
 
-def get_status_threaded(username, api, data, device):
+def get_status_threaded(entityname, api, data, device):
     response, status_return = g_messaging_requests.process(api, data)
     if status_return == 503: # HTTP_503_SERVICE_UNAVAILABLE
         # if device is unreachable, get the cached heartbeat and version
-        cached_value = g_database_client.get_device_cached_values(username, device["devicename"])
+        cached_value = g_database_client.get_device_cached_values(entityname, device["devicename"])
         if cached_value:
             if cached_value.get("heartbeat"):
                 device["heartbeat"] = cached_value["heartbeat"]
@@ -1217,7 +1273,7 @@ def get_status_threaded(username, api, data, device):
         version = response["value"]["version"]
         status = response["value"]["status"]
         response = json.dumps(response)
-        g_database_client.save_device_version(username, device["devicename"], version)
+        g_database_client.save_device_version(entityname, device["devicename"], version)
         device["version"] = version
         device["status"] = status
 
@@ -1251,14 +1307,25 @@ def get_statuses():
         return response, status.HTTP_401_UNAUTHORIZED
     #print('get_status {} devicename={}'.format(data['username'], data['devicename']))
 
+
+    # get entity using the active organization
+    orgname, orgid = g_database_client.get_active_organization(username)
+    if orgname is not None:
+        # has active organization
+        entityname = "{}.{}".format(orgname, orgid)
+    else:
+        # no active organization, just a normal user
+        entityname = username
+
+
     thread_list = []
-    devices = g_database_client.get_devicenames(username)
+    devices = g_database_client.get_devicenames(entityname)
     for device in devices:
         data = {}
         data['token'] = token
         data['devicename'] = device["devicename"]
-        data['username'] = username
-        thr = threading.Thread(target = get_status_threaded, args = (username, api, data, device, ))
+        data['username'] = entityname
+        thr = threading.Thread(target = get_status_threaded, args = (entityname, api, data, device, ))
         thread_list.append(thr) 
         thr.start()
     for thr in thread_list:
@@ -1557,8 +1624,18 @@ def get_uart_prop(devicename):
     if status_return != 200:
         return response, status_return
 
+
+    # get entity using the active organization
+    orgname, orgid = g_database_client.get_active_organization(username)
+    if orgname is not None:
+        # has active organization
+        entityname = "{}.{}".format(orgname, orgid)
+    else:
+        # no active organization, just a normal user
+        entityname = username
+
     source = "uart"
-    notification = g_database_client.get_device_notification(username, devicename, source)
+    notification = g_database_client.get_device_notification(entityname, devicename, source)
     if notification is not None:
         if notification["endpoints"]["modem"].get("recipients_id"):
             notification["endpoints"]["modem"].pop("recipients_id")
@@ -1632,12 +1709,22 @@ def set_uart_prop(devicename):
     if status_return != 200:
         return response, status_return
 
+
+    # get entity using the active organization
+    orgname, orgid = g_database_client.get_active_organization(username)
+    if orgname is not None:
+        # has active organization
+        entityname = "{}.{}".format(orgname, orgid)
+    else:
+        # no active organization, just a normal user
+        entityname = username
+
     source = "uart"
-    item = g_database_client.update_device_notification(username, devicename, source, notification)
+    item = g_database_client.update_device_notification(entityname, devicename, source, notification)
 
     # update device configuration database for device bootup
     #print("data={}".format(data))
-    item = g_database_client.update_device_peripheral_configuration(username, devicename, "uart", 1, None, None, None, data)
+    item = g_database_client.update_device_peripheral_configuration(entityname, devicename, "uart", 1, None, None, None, data)
 
     return response
 
@@ -1782,8 +1869,18 @@ def get_gpio_prop(devicename, number):
     if status_return != 200:
         return response, status_return
 
+
+    # get entity using the active organization
+    orgname, orgid = g_database_client.get_active_organization(username)
+    if orgname is not None:
+        # has active organization
+        entityname = "{}.{}".format(orgname, orgid)
+    else:
+        # no active organization, just a normal user
+        entityname = username
+
     source = "gpio{}".format(number)
-    notification = g_database_client.get_device_notification(username, devicename, source)
+    notification = g_database_client.get_device_notification(entityname, devicename, source)
     if notification is not None:
         response = json.loads(response)
         response['value']['notification'] = notification
@@ -1903,13 +2000,23 @@ def set_gpio_prop(devicename, number):
     if status_return != 200:
         return response, status_return
 
+
+    # get entity using the active organization
+    orgname, orgid = g_database_client.get_active_organization(username)
+    if orgname is not None:
+        # has active organization
+        entityname = "{}.{}".format(orgname, orgid)
+    else:
+        # no active organization, just a normal user
+        entityname = username
+
     source = "gpio{}".format(number)
-    g_database_client.update_device_notification(username, devicename, source, notification)
+    g_database_client.update_device_notification(entityname, devicename, source, notification)
 
     # update device configuration database for device bootup
     #print("data={}".format(data))
     data.pop('number')
-    item = g_database_client.update_device_peripheral_configuration(username, devicename, "gpio", int(number), None, None, None, data)
+    item = g_database_client.update_device_peripheral_configuration(entityname, devicename, "gpio", int(number), None, None, None, data)
 
     return response
 
@@ -2193,7 +2300,17 @@ def get_all_xxx_sensors(devicename, xxx):
         print('\r\nERROR Get All {} Sensors: Token is invalid [{}]\r\n'.format(xxx, username))
         return response, status.HTTP_401_UNAUTHORIZED
 
-    sensors = g_database_client.get_all_sensors(username, devicename, xxx)
+
+    # get entity using the active organization
+    orgname, orgid = g_database_client.get_active_organization(username)
+    if orgname is not None:
+        # has active organization
+        entityname = "{}.{}".format(orgname, orgid)
+    else:
+        # no active organization, just a normal user
+        entityname = username
+
+    sensors = g_database_client.get_all_sensors(entityname, devicename, xxx)
 
 
     msg = {'status': 'OK', 'message': 'All Sensors queried successfully.', 'sensors': sensors}
@@ -2253,7 +2370,17 @@ def get_all_i2c_type_sensors(devicename, devicetype):
         print('\r\nERROR Get All {} Sensors: Token is invalid [{}]\r\n'.format("i2c", username))
         return response, status.HTTP_401_UNAUTHORIZED
 
-    sensors = g_database_client.get_all_type_sensors(username, devicename, "i2c", devicetype)
+
+    # get entity using the active organization
+    orgname, orgid = g_database_client.get_active_organization(username)
+    if orgname is not None:
+        # has active organization
+        entityname = "{}.{}".format(orgname, orgid)
+    else:
+        # no active organization, just a normal user
+        entityname = username
+
+    sensors = g_database_client.get_all_type_sensors(entityname, devicename, "i2c", devicetype)
 
 
     msg = {'status': 'OK', 'message': 'All Sensors queried successfully.', 'sensors': sensors}
@@ -2325,6 +2452,15 @@ def get_all_device_sensors_enabled_input_readings(devicename):
         return response, status.HTTP_401_UNAUTHORIZED
 
 
+    # get entity using the active organization
+    orgname, orgid = g_database_client.get_active_organization(username)
+    if orgname is not None:
+        # has active organization
+        entityname = "{}.{}".format(orgname, orgid)
+    else:
+        # no active organization, just a normal user
+        entityname = username
+
     if flask.request.method == 'GET':
         # query device
         api = "get_devs"
@@ -2335,7 +2471,7 @@ def get_all_device_sensors_enabled_input_readings(devicename):
         response, status_return = g_messaging_requests.process(api, data)
         if status_return == 200:
             # query database
-            sensors = g_database_client.get_all_device_sensors_input(username, devicename)
+            sensors = g_database_client.get_all_device_sensors_input(entityname, devicename)
 
             # map queried result with database result
             #print("from device")
@@ -2353,28 +2489,28 @@ def get_all_device_sensors_enabled_input_readings(devicename):
                             # match found for database result and actual device result
                             # set database record to configured and actual device item["enabled"]
                             if sensor["address"] == item["address"]:
-                                g_database_client.set_enable_configure_sensor(username, devicename, sensor['source'], sensor['number'], sensor['sensorname'], item["enabled"], 1)
+                                g_database_client.set_enable_configure_sensor(entityname, devicename, sensor['source'], sensor['number'], sensor['sensorname'], item["enabled"], 1)
                                 found = True
                                 break
                 else:
                     if response["value"].get(peripheral):
                         for item in response["value"][peripheral]:
                             if item["class"] == g_utils.get_i2c_device_class(sensor["class"]):
-                                g_database_client.set_enable_configure_sensor(username, devicename, sensor['source'], sensor['number'], sensor['sensorname'], item["enabled"], 1)
+                                g_database_client.set_enable_configure_sensor(entityname, devicename, sensor['source'], sensor['number'], sensor['sensorname'], item["enabled"], 1)
                                 found = True
                                 break
 
                 # no match found
                 # set database record to unconfigured and disabled
                 if found == False:
-                    g_database_client.set_enable_configure_sensor(username, devicename, sensor['source'], sensor['number'], sensor['sensorname'], 0, 0)
+                    g_database_client.set_enable_configure_sensor(entityname, devicename, sensor['source'], sensor['number'], sensor['sensorname'], 0, 0)
             #print()
         else:
             # cannot communicate with device so set database record to unconfigured and disabled
-            g_database_client.disable_unconfigure_sensors(username, devicename)
+            g_database_client.disable_unconfigure_sensors(entityname, devicename)
 
         # query database
-        sensors = g_database_client.get_all_device_sensors_enabled_input(username, devicename)
+        sensors = g_database_client.get_all_device_sensors_enabled_input(entityname, devicename)
         for sensor in sensors:
             address = None
             if sensor.get("address"):
@@ -2382,20 +2518,20 @@ def get_all_device_sensors_enabled_input_readings(devicename):
             source = "{}{}".format(sensor["source"], sensor["number"])
             #sensor["devicename"] = devicename
             sensor.pop("deviceid")
-            sensor_reading = g_database_client.get_sensor_reading(username, devicename, source, address)
+            sensor_reading = g_database_client.get_sensor_reading(entityname, devicename, source, address)
             if sensor_reading is not None:
                 sensor['readings'] = sensor_reading
         msg = {'status': 'OK', 'message': 'Get All Device Sensors queried successfully.', 'sensors': sensors}
 
     elif flask.request.method == 'DELETE':
-        #sensors = g_database_client.get_all_device_sensors_input(username, devicename)
+        #sensors = g_database_client.get_all_device_sensors_input(entityname, devicename)
         #for sensor in sensors:
         #    address = None
         #    if sensor.get("address"):
         #        address = sensor["address"]
         #    source = "{}{}".format(sensor["source"], sensor["number"])
-        #    g_database_client.delete_sensor_reading(username, devicename, source, address)
-        g_database_client.delete_device_sensor_reading(username, devicename)
+        #    g_database_client.delete_sensor_reading(entityname, devicename, source, address)
+        g_database_client.delete_device_sensor_reading(entityname, devicename)
         msg = {'status': 'OK', 'message': 'Delete All Device Sensors queried successfully.'}
 
 
@@ -2456,6 +2592,15 @@ def get_all_device_sensors_enabled_input_readings_dataset(devicename):
         return response, status.HTTP_401_UNAUTHORIZED
 
 
+    # get entity using the active organization
+    orgname, orgid = g_database_client.get_active_organization(username)
+    if orgname is not None:
+        # has active organization
+        entityname = "{}.{}".format(orgname, orgid)
+    else:
+        # no active organization, just a normal user
+        entityname = username
+
     if flask.request.method == 'GET':
         # query device
         api = "get_devs"
@@ -2466,7 +2611,7 @@ def get_all_device_sensors_enabled_input_readings_dataset(devicename):
         response, status_return = g_messaging_requests.process(api, data)
         if status_return == 200:
             # query database
-            sensors = g_database_client.get_all_device_sensors_input(username, devicename)
+            sensors = g_database_client.get_all_device_sensors_input(entityname, devicename)
 
             # map queried result with database result
             #print("from device")
@@ -2484,38 +2629,38 @@ def get_all_device_sensors_enabled_input_readings_dataset(devicename):
                             # match found for database result and actual device result
                             # set database record to configured and actual device item["enabled"]
                             if sensor["address"] == item["address"]:
-                                g_database_client.set_enable_configure_sensor(username, devicename, sensor['source'], sensor['number'], sensor['sensorname'], item["enabled"], 1)
+                                g_database_client.set_enable_configure_sensor(entityname, devicename, sensor['source'], sensor['number'], sensor['sensorname'], item["enabled"], 1)
                                 found = True
                                 break
                 else:
                     if response["value"].get(peripheral):
                         for item in response["value"][peripheral]:
                             if item["class"] == g_utils.get_i2c_device_class(sensor["class"]):
-                                g_database_client.set_enable_configure_sensor(username, devicename, sensor['source'], sensor['number'], sensor['sensorname'], item["enabled"], 1)
+                                g_database_client.set_enable_configure_sensor(entityname, devicename, sensor['source'], sensor['number'], sensor['sensorname'], item["enabled"], 1)
                                 found = True
                                 break
 
                 # no match found
                 # set database record to unconfigured and disabled
                 if found == False:
-                    g_database_client.set_enable_configure_sensor(username, devicename, sensor['source'], sensor['number'], sensor['sensorname'], 0, 0)
+                    g_database_client.set_enable_configure_sensor(entityname, devicename, sensor['source'], sensor['number'], sensor['sensorname'], 0, 0)
             #print()
         else:
             # cannot communicate with device so set database record to unconfigured and disabled
-            g_database_client.disable_unconfigure_sensors(username, devicename)
+            g_database_client.disable_unconfigure_sensors(entityname, devicename)
 
         # query database
-        sensors = g_database_client.get_all_device_sensors_enabled_input(username, devicename)
+        sensors = g_database_client.get_all_device_sensors_enabled_input(entityname, devicename)
         for sensor in sensors:
             address = None
             if sensor.get("address"):
                 address = sensor["address"]
             source = "{}{}".format(sensor["source"], sensor["number"])
             sensor.pop("deviceid")
-            sensor_reading = g_database_client.get_sensor_reading_dataset(username, devicename, source, address)
+            sensor_reading = g_database_client.get_sensor_reading_dataset(entityname, devicename, source, address)
             if sensor_reading is not None:
                 sensor['dataset'] = sensor_reading
-            readings = g_database_client.get_sensor_reading(username, sensor["devicename"], source, address)
+            readings = g_database_client.get_sensor_reading(entityname, sensor["devicename"], source, address)
             if readings is not None:
                 sensor['readings'] = readings
 
@@ -2529,6 +2674,17 @@ def get_all_device_sensors_enabled_input_readings_dataset(devicename):
 
 
 def get_running_sensors(token, username, devicename, device):
+
+    # get entity using the active organization
+    orgname, orgid = g_database_client.get_active_organization(username)
+    if orgname is not None:
+        # has active organization
+        entityname = "{}.{}".format(orgname, orgid)
+    else:
+        # no active organization, just a normal user
+        entityname = username
+
+
     # query device
     api = "get_devs"
     data = {}
@@ -2539,7 +2695,7 @@ def get_running_sensors(token, username, devicename, device):
     if status_return == 200:
         device['status'] = 1
         # query database
-        sensors = g_database_client.get_all_device_sensors(username, devicename)
+        sensors = g_database_client.get_all_device_sensors(entityname, devicename)
 
         # map queried result with database result
         #print("from device")
@@ -2557,42 +2713,42 @@ def get_running_sensors(token, username, devicename, device):
                         # match found for database result and actual device result
                         # set database record to configured and actual device item["enabled"]
                         if sensor["address"] == item["address"]:
-                            g_database_client.set_enable_configure_sensor(username, devicename, sensor['source'], sensor['number'], sensor['sensorname'], item["enabled"], 1)
+                            g_database_client.set_enable_configure_sensor(entityname, devicename, sensor['source'], sensor['number'], sensor['sensorname'], item["enabled"], 1)
                             found = True
                             break
             else:
                 if response["value"].get(peripheral):
                     for item in response["value"][peripheral]:
                         if item["class"] == g_utils.get_i2c_device_class(sensor["class"]):
-                            g_database_client.set_enable_configure_sensor(username, devicename, sensor['source'], sensor['number'], sensor['sensorname'], item["enabled"], 1)
+                            g_database_client.set_enable_configure_sensor(entityname, devicename, sensor['source'], sensor['number'], sensor['sensorname'], item["enabled"], 1)
                             found = True
                             break
 
             # no match found
             # set database record to unconfigured and disabled
             if found == False:
-                g_database_client.set_enable_configure_sensor(username, devicename, sensor['source'], sensor['number'], sensor['sensorname'], 0, 0)
+                g_database_client.set_enable_configure_sensor(entityname, devicename, sensor['source'], sensor['number'], sensor['sensorname'], 0, 0)
         #print()
     else:
         device['status'] = 0
         # cannot communicate with device so set database record to unconfigured and disabled
-        g_database_client.disable_unconfigure_sensors(username, devicename)
+        g_database_client.disable_unconfigure_sensors(entityname, devicename)
         #print('\r\nERROR Get All Device Sensors Dataset: Device is offline\r\n')
         return response, status_return
     return response, 200
 
-def get_sensor_data_threaded(sensor, username, datebegin, dateend, period, maxpoints, readings, filter):
+def get_sensor_data_threaded(sensor, entityname, datebegin, dateend, period, maxpoints, readings, filter):
     address = None
     if sensor.get("address"):
         address = sensor["address"]
     source = "{}{}".format(sensor["source"], sensor["number"])
     sensor["devicename"] = filter["devicename"]
-    dataset = g_database_client.get_sensor_reading_dataset_timebound(username, sensor["devicename"], source, address, datebegin, dateend, period, maxpoints)
+    dataset = g_database_client.get_sensor_reading_dataset_timebound(entityname, sensor["devicename"], source, address, datebegin, dateend, period, maxpoints)
     if dataset is not None:
         sensor['dataset'] = dataset
         #print(len(dataset["labels"]))
 
-    #readings = g_database_client.get_sensor_reading(username, sensor["devicename"], source, address)
+    #readings = g_database_client.get_sensor_reading(entityname, sensor["devicename"], source, address)
     #if readings is not None:
     #    sensor['readings'] = readings
     for reading in readings:
@@ -2605,7 +2761,7 @@ def get_sensor_data_threaded(sensor, username, datebegin, dateend, period, maxpo
                 sensor['readings'] = reading['sensor_readings']
                 break
 
-def get_sensor_data_threaded_ex(sensor, username, datebegin, dateend, period, maxpoints, readings, devices):
+def get_sensor_data_threaded_ex(sensor, entityname, datebegin, dateend, period, maxpoints, readings, devices):
     address = None
     if sensor.get("address"):
         address = sensor["address"]
@@ -2614,12 +2770,12 @@ def get_sensor_data_threaded_ex(sensor, username, datebegin, dateend, period, ma
         if device["deviceid"] == sensor["deviceid"]:
             sensor["devicename"] = device["devicename"]
             break
-    dataset = g_database_client.get_sensor_reading_dataset_timebound(username, sensor["devicename"], source, address, datebegin, dateend, period, maxpoints)
+    dataset = g_database_client.get_sensor_reading_dataset_timebound(entityname, sensor["devicename"], source, address, datebegin, dateend, period, maxpoints)
     if dataset is not None:
         sensor['dataset'] = dataset
         #print(len(dataset))
 
-    #readings = g_database_client.get_sensor_reading(username, sensor["devicename"], source, address)
+    #readings = g_database_client.get_sensor_reading(entityname, sensor["devicename"], source, address)
     #if readings is not None:
     #    sensor['readings'] = readings
     for reading in readings:
@@ -2713,14 +2869,14 @@ def get_sensor_comparisons(devices, sensors_list):
     #    print(comparison)
     return comparisons
 
-def get_device_stats(username, devices, sensordevicename):
+def get_device_stats(entityname, devices, sensordevicename):
     stats = {}
 
     if sensordevicename is not None: # All devices
-        devices[0]["deviceid"] = g_database_client.get_deviceid(username, devices[0]["devicename"])
+        devices[0]["deviceid"] = g_database_client.get_deviceid(entityname, devices[0]["devicename"])
 
-    devicegroups    = g_database_client.get_devicegroups(username)
-    devicelocations = g_database_client.get_devices_location(username)
+    devicegroups    = g_database_client.get_devicegroups(entityname)
+    devicelocations = g_database_client.get_devices_location(entityname)
     stats['groups']    = { 'labels': ['no group'], 'data': [0] }
     stats['versions']  = { 'labels': ['unknown'], 'data': [0] }
     stats['locations'] = { 'labels': ['known', 'unknown'], 'data': [0, 0] }
@@ -2965,6 +3121,16 @@ def get_all_device_sensors_enabled_input_readings_dataset_filtered():
         return response, status.HTTP_401_UNAUTHORIZED
 
 
+    # get entity using the active organization
+    orgname, orgid = g_database_client.get_active_organization(username)
+    if orgname is not None:
+        # has active organization
+        entityname = "{}.{}".format(orgname, orgid)
+    else:
+        # no active organization, just a normal user
+        entityname = username
+
+
     if flask.request.method == 'POST':
         # get filter parameters
         filter = flask.request.get_json()
@@ -2984,7 +3150,7 @@ def get_all_device_sensors_enabled_input_readings_dataset_filtered():
 
         devices = []
         if filter["devicename"] == "All devices":
-            devices = g_database_client.get_devices(username)
+            devices = g_database_client.get_devices(entityname)
         else:
             devices.append({"devicename": filter["devicename"]})
 
@@ -3019,7 +3185,7 @@ def get_all_device_sensors_enabled_input_readings_dataset_filtered():
             sensorclass = filter["class"]
         if filter["status"] != "All online/offline":
             sensorstatus = 1 if filter["status"] == "online" else 0
-        sensors_list = g_database_client.get_all_device_sensors_enabled_input(username, sensordevicename, source, number, sensorclass, sensorstatus)
+        sensors_list = g_database_client.get_all_device_sensors_enabled_input(entityname, sensordevicename, source, number, sensorclass, sensorstatus)
         if len(sensors_list):
             sensors_list.sort(key=sort_by_sensorname)
 
@@ -3051,15 +3217,15 @@ def get_all_device_sensors_enabled_input_readings_dataset_filtered():
         # add sensor properties to the result filtered sensors
         thread_list = []
         if filter["devicename"] != "All devices":
-            readings = g_database_client.get_device_sensors_readings(username, filter["devicename"])
+            readings = g_database_client.get_device_sensors_readings(entityname, filter["devicename"])
             for sensor in sensors_list:
-                thr = threading.Thread(target = get_sensor_data_threaded, args = (sensor, username, datebegin, dateend, period, maxpoints, readings, filter, ))
+                thr = threading.Thread(target = get_sensor_data_threaded, args = (sensor, entityname, datebegin, dateend, period, maxpoints, readings, filter, ))
                 thread_list.append(thr) 
                 thr.start()
         else:
-            readings = g_database_client.get_user_sensors_readings(username)
+            readings = g_database_client.get_user_sensors_readings(entityname)
             for sensor in sensors_list:
-                thr = threading.Thread(target = get_sensor_data_threaded_ex, args = (sensor, username, datebegin, dateend, period, maxpoints, readings, devices, ))
+                thr = threading.Thread(target = get_sensor_data_threaded_ex, args = (sensor, entityname, datebegin, dateend, period, maxpoints, readings, devices, ))
                 thread_list.append(thr) 
                 thr.start()
         for thr in thread_list:
@@ -3076,25 +3242,25 @@ def get_all_device_sensors_enabled_input_readings_dataset_filtered():
         usages = None
         if checkdevice != 0:
             # stats
-            output_sensors_list = g_database_client.get_all_device_sensors_enabled_input(username, sensordevicename, source, number, sensorclass, sensorstatus, type="output")
+            output_sensors_list = g_database_client.get_all_device_sensors_enabled_input(entityname, sensordevicename, source, number, sensorclass, sensorstatus, type="output")
             stats = {"sensors": {}, "devices": {}}
             try:
                 stats["sensors"] = get_sensor_stats(sensors_list+output_sensors_list)
             except:
                 pass
             try:
-                stats["devices"] = get_device_stats(username, devices, sensordevicename)
+                stats["devices"] = get_device_stats(entityname, devices, sensordevicename)
             except:
                 pass
 
             # summary
             summary = {"sensors": [], "devices": []}
             try:
-                summary["sensors"] = get_sensor_summary(username, devices, sensordevicename)
+                summary["sensors"] = get_sensor_summary(entityname, devices, sensordevicename)
             except:
                 pass
             try:
-                summary["devices"] = get_device_summary(username, devices, sensordevicename)
+                summary["devices"] = get_device_summary(entityname, devices, sensordevicename)
             except:
                 pass
 
@@ -3126,9 +3292,9 @@ def get_all_device_sensors_enabled_input_readings_dataset_filtered():
             return response, status.HTTP_400_BAD_REQUEST
 
         if filter["devicename"] == "All devices":
-            g_database_client.delete_user_sensor_reading(username)
+            g_database_client.delete_user_sensor_reading(entityname)
         else:
-            g_database_client.delete_device_sensor_reading(username, filter["devicename"])
+            g_database_client.delete_device_sensor_reading(entityname, filter["devicename"])
 
         msg = {'status': 'OK', 'message': 'Delete All Device Sensors Dataset queried successfully.'}
 
@@ -3189,7 +3355,18 @@ def delete_all_device_sensors_properties(devicename):
         print('\r\nERROR Delete All Device Sensors Properties: Token is invalid [{} {}]\r\n'.format(username, devicename))
         return response, status.HTTP_401_UNAUTHORIZED
 
-    g_database_client.delete_all_device_peripheral_configuration(username, devicename)
+
+    # get entity using the active organization
+    orgname, orgid = g_database_client.get_active_organization(username)
+    if orgname is not None:
+        # has active organization
+        entityname = "{}.{}".format(orgname, orgid)
+    else:
+        # no active organization, just a normal user
+        entityname = username
+
+    g_database_client.delete_all_device_peripheral_configuration(entityname, devicename)
+
 
     msg = {'status': 'OK', 'message': 'Delete All Device Sensors Properties deleted successfully.',}
     if new_token:
@@ -3199,14 +3376,14 @@ def delete_all_device_sensors_properties(devicename):
     return response
 
 
-def get_device_summary(username, devices, sensordevicename):
+def get_device_summary(entityname, devices, sensordevicename):
     devices_list = []
 
-    devicegroups    = g_database_client.get_devicegroups(username)
-    devicelocations = g_database_client.get_devices_location(username)
+    devicegroups    = g_database_client.get_devicegroups(entityname)
+    devicelocations = g_database_client.get_devices_location(entityname)
 
     if sensordevicename is not None: #"All devices":
-        devices[0]["deviceid"] = g_database_client.get_deviceid(username, devices[0]["devicename"])
+        devices[0]["deviceid"] = g_database_client.get_deviceid(entityname, devices[0]["devicename"])
 
     for device in devices:
         version = "unknown"
@@ -3237,10 +3414,10 @@ def get_device_summary(username, devices, sensordevicename):
     return devices_list
 
 
-def get_sensor_summary(username, devices, sensordevicename):
+def get_sensor_summary(entityname, devices, sensordevicename):
     sensors_list = []
     if sensordevicename is not None: #"All devices":
-        devices[0]["deviceid"] = g_database_client.get_deviceid(username, devices[0]["devicename"])
+        devices[0]["deviceid"] = g_database_client.get_deviceid(entityname, devices[0]["devicename"])
     for device in devices:
         # get all user input sensors
         sensors = g_database_client.get_all_device_sensors_by_deviceid(device["deviceid"])
@@ -3397,7 +3574,16 @@ def get_all_sensor_configurationsummary():
         return response, status.HTTP_401_UNAUTHORIZED
 
 
-    summary = get_sensor_summary(username)
+    # get entity using the active organization
+    orgname, orgid = g_database_client.get_active_organization(username)
+    if orgname is not None:
+        # has active organization
+        entityname = "{}.{}".format(orgname, orgid)
+    else:
+        # no active organization, just a normal user
+        entityname = username
+
+    summary = get_sensor_summary(entityname)
 
 
     msg = {'status': 'OK', 'message': 'All Sensor Thresholds queried successfully.', 'summary': summary}
@@ -3481,8 +3667,19 @@ def get_xxx_sensors(devicename, xxx, number):
         print('\r\nERROR Get {} Sensors: Token is invalid [{}]\r\n'.format(xxx, username))
         return response, status.HTTP_401_UNAUTHORIZED
 
+
+    # get entity using the active organization
+    orgname, orgid = g_database_client.get_active_organization(username)
+    if orgname is not None:
+        # has active organization
+        entityname = "{}.{}".format(orgname, orgid)
+    else:
+        # no active organization, just a normal user
+        entityname = username
+
+
     # query peripheral sensors
-    sensors = g_database_client.get_sensors(username, devicename, xxx, number)
+    sensors = g_database_client.get_sensors(entityname, devicename, xxx, number)
 
     # set to query device
     api = "get_{}_devs".format(xxx)
@@ -3510,7 +3707,7 @@ def get_xxx_sensors(devicename, xxx, number):
                     # set database record to configured and actual device item["enabled"]
                     if sensor["address"] == item["address"]:
                         # device is configured
-                        g_database_client.set_enable_configure_sensor(username, devicename, sensor['source'], sensor['number'], sensor['sensorname'], item["enabled"], 1)
+                        g_database_client.set_enable_configure_sensor(entityname, devicename, sensor['source'], sensor['number'], sensor['sensorname'], item["enabled"], 1)
                         sensor["enabled"] = item["enabled"]
                         sensor["configured"] = 1
                         found = True
@@ -3518,7 +3715,7 @@ def get_xxx_sensors(devicename, xxx, number):
                 # no match found
                 # set database record to unconfigured and disabled
                 if found == False:
-                    g_database_client.set_enable_configure_sensor(username, devicename, sensor['source'], sensor['number'], sensor['sensorname'], 0, 0)
+                    g_database_client.set_enable_configure_sensor(entityname, devicename, sensor['source'], sensor['number'], sensor['sensorname'], 0, 0)
                     sensor["enabled"] = 0
                     sensor["configured"] = 0
         else:
@@ -3532,25 +3729,25 @@ def get_xxx_sensors(devicename, xxx, number):
 #                if sensor['configured']:
                 for item in response["value"]:
                     if item["class"] == g_utils.get_i2c_device_class(sensor["class"]):
-                        g_database_client.set_enable_configure_sensor(username, devicename, sensor['source'], sensor['number'], sensor['sensorname'], item["enabled"], 1)
+                        g_database_client.set_enable_configure_sensor(entityname, devicename, sensor['source'], sensor['number'], sensor['sensorname'], item["enabled"], 1)
                         sensor["enabled"] = item["enabled"]
                         sensor["configured"] = 1
                         found = True
                         break
                 if found == False:
                     # set database record to unconfigured and disabled
-                    g_database_client.set_enable_configure_sensor(username, devicename, sensor['source'], sensor['number'], sensor['sensorname'], 0, 0)
+                    g_database_client.set_enable_configure_sensor(entityname, devicename, sensor['source'], sensor['number'], sensor['sensorname'], 0, 0)
                     sensor["enabled"] = 0
                     sensor["configured"] = 0
 #                else:
 #                    # set database record to unconfigured and disabled
-#                    g_database_client.set_enable_configure_sensor(username, devicename, sensor['source'], sensor['number'], sensor['sensorname'], 0, 0)
+#                    g_database_client.set_enable_configure_sensor(entityname, devicename, sensor['source'], sensor['number'], sensor['sensorname'], 0, 0)
 #                    sensor["enabled"] = 0
 #                    sensor["configured"] = 0
         #print()
     else:
         # cannot communicate with device so set database record to unconfigured and disabled
-        g_database_client.disable_unconfigure_sensors(username, devicename)
+        g_database_client.disable_unconfigure_sensors(entityname, devicename)
         for sensor in sensors:
             sensor["enabled"] = 0
             sensor["configured"] = 0
@@ -3562,7 +3759,7 @@ def get_xxx_sensors(devicename, xxx, number):
             if sensor.get("address"):
                 address = sensor["address"]
             source = "{}{}".format(xxx, number)
-            sensor_reading = g_database_client.get_sensor_reading(username, devicename, source, address)
+            sensor_reading = g_database_client.get_sensor_reading(entityname, devicename, source, address)
             if sensor_reading is not None:
                 sensor['readings'] = sensor_reading
 
@@ -3581,7 +3778,7 @@ def get_xxx_sensors(devicename, xxx, number):
 # when deleting a sensor,
 # make sure the sensor configurations, sensor readings and sensor registration are also deleted
 #
-def sensor_cleanup(username, devicename, deviceid, xxx, number, sensorname, sensor):
+def sensor_cleanup(entityname, devicename, deviceid, xxx, number, sensorname, sensor):
 
     print("\r\ndelete_sensor {}".format(sensorname))
     address = None
@@ -3593,42 +3790,42 @@ def sensor_cleanup(username, devicename, deviceid, xxx, number, sensorname, sens
     # delete sensor notifications
     print("Deleting sensor notifications...")
     source = "{}{}{}".format(xxx, number, sensorname)
-    #notification = g_database_client.get_device_notification(username, devicename, source)
+    #notification = g_database_client.get_device_notification(entityname, devicename, source)
     #print(notification)
     if deviceid:
         g_database_client.delete_device_notification_sensor_by_deviceid(deviceid, source)
     else:
-        g_database_client.delete_device_notification_sensor(username, devicename, source)
-    #notification = g_database_client.get_device_notification(username, devicename, source)
+        g_database_client.delete_device_notification_sensor(entityname, devicename, source)
+    #notification = g_database_client.get_device_notification(entityname, devicename, source)
     #print(notification)
     #print("")
 
     # delete sensor configurations
     print("Deleting sensor configurations...")
-    #config = g_database_client.get_device_peripheral_configuration(username, devicename, xxx, int(number), address)
+    #config = g_database_client.get_device_peripheral_configuration(entityname, devicename, xxx, int(number), address)
     #print(config)
     if deviceid:
         g_database_client.delete_device_peripheral_configuration_by_deviceid(deviceid, xxx, int(number), address)
     else:
-        g_database_client.delete_device_peripheral_configuration(username, devicename, xxx, int(number), address)
-    #config = g_database_client.get_device_peripheral_configuration(username, devicename, xxx, int(number), address)
+        g_database_client.delete_device_peripheral_configuration(entityname, devicename, xxx, int(number), address)
+    #config = g_database_client.get_device_peripheral_configuration(entityname, devicename, xxx, int(number), address)
     #print(config)
     #print("")
 
     # delete sensor readings
     print("Deleting sensor readings...")
     source = "{}{}".format(xxx, number)
-    #readings = g_database_client.get_sensor_reading(username, devicename, source, address)
+    #readings = g_database_client.get_sensor_reading(entityname, devicename, source, address)
     #print(readings)
-    #readings_dataset = g_database_client.get_sensor_reading_dataset(username, devicename, source, address)
+    #readings_dataset = g_database_client.get_sensor_reading_dataset(entityname, devicename, source, address)
     #print(readings_dataset)
     if deviceid:
         g_database_client.delete_sensor_reading_by_deviceid(deviceid, source, address)
     else:
-        g_database_client.delete_sensor_reading(username, devicename, source, address)
-    #readings = g_database_client.get_sensor_reading(username, devicename, source, address)
+        g_database_client.delete_sensor_reading(entityname, devicename, source, address)
+    #readings = g_database_client.get_sensor_reading(entityname, devicename, source, address)
     #print(readings)
-    #readings_dataset = g_database_client.get_sensor_reading_dataset(username, devicename, source, address)
+    #readings_dataset = g_database_client.get_sensor_reading_dataset(entityname, devicename, source, address)
     #print(readings_dataset)
     #print("")
 
@@ -3637,8 +3834,8 @@ def sensor_cleanup(username, devicename, deviceid, xxx, number, sensorname, sens
     if deviceid:
         g_database_client.delete_sensor_by_deviceid(deviceid, xxx, number, sensorname)
     else:
-        g_database_client.delete_sensor(username, devicename, xxx, number, sensorname)
-    #result = g_database_client.get_sensor(username, devicename, xxx, number, sensorname)
+        g_database_client.delete_sensor(entityname, devicename, xxx, number, sensorname)
+    #result = g_database_client.get_sensor(entityname, devicename, xxx, number, sensorname)
     #print(result)
     #print("")
 
@@ -3739,6 +3936,17 @@ def register_xxx_sensor(devicename, xxx, number, sensorname):
         print('\r\nERROR Add/Delete {} Sensor: Token is invalid [{}]\r\n'.format(xxx, username))
         return response, status.HTTP_401_UNAUTHORIZED
 
+
+    # get entity using the active organization
+    orgname, orgid = g_database_client.get_active_organization(username)
+    if orgname is not None:
+        # has active organization
+        entityname = "{}.{}".format(orgname, orgid)
+    else:
+        # no active organization, just a normal user
+        entityname = username
+
+
     if flask.request.method == 'POST':
         # get parameters
         data = flask.request.get_json()
@@ -3746,67 +3954,67 @@ def register_xxx_sensor(devicename, xxx, number, sensorname):
         if xxx == 'i2c':
             if data['address'] is None:
                 response = json.dumps({'status': 'NG', 'message': 'Parameters not included'})
-                print('\r\nERROR Add {} Sensor: Parameters not included [{},{}]\r\n'.format(xxx, username, devicename))
+                print('\r\nERROR Add {} Sensor: Parameters not included [{},{}]\r\n'.format(xxx, entityname, devicename))
                 return response, status.HTTP_400_BAD_REQUEST
             data["address"] = int(data["address"])
             if data["address"] == 0:
                 response = json.dumps({'status': 'NG', 'message': 'Invalid address'})
-                print('\r\nERROR Add {} Sensor: Invalid address [{},{}]\r\n'.format(xxx, username, devicename))
+                print('\r\nERROR Add {} Sensor: Invalid address [{},{}]\r\n'.format(xxx, entityname, devicename))
                 return response, status.HTTP_400_BAD_REQUEST
             # check if sensor address is registered
             # address should be unique within a slot
-            if g_database_client.get_sensor_by_address(username, devicename, xxx, number, data["address"]):
+            if g_database_client.get_sensor_by_address(entityname, devicename, xxx, number, data["address"]):
                 response = json.dumps({'status': 'NG', 'message': 'Sensor address is already taken'})
-                print('\r\nERROR Add {} Sensor: Sensor address is already taken [{},{},{}]\r\n'.format(xxx, username, devicename, data["address"]))
+                print('\r\nERROR Add {} Sensor: Sensor address is already taken [{},{},{}]\r\n'.format(xxx, entityname, devicename, data["address"]))
                 return response, status.HTTP_409_CONFLICT
 
         if data["manufacturer"] is None or data["model"] is None or data["class"] is None or data["type"] is None or data["units"] is None or data["formats"] is None or data["attributes"] is None:
             response = json.dumps({'status': 'NG', 'message': 'Parameters not included'})
-            print('\r\nERROR Add {} Sensor: Parameters not included [{},{}]\r\n'.format(xxx, username, devicename))
+            print('\r\nERROR Add {} Sensor: Parameters not included [{},{}]\r\n'.format(xxx, entityname, devicename))
             return response, status.HTTP_400_BAD_REQUEST
         #print(data["manufacturer"])
         #print(data["model"])
 
         # check if sensor is registered
         # name should be unique all throughout the slots
-        if g_database_client.check_sensor(username, devicename, sensorname):
+        if g_database_client.check_sensor(entityname, devicename, sensorname):
             response = json.dumps({'status': 'NG', 'message': 'Sensor name is already taken'})
-            print('\r\nERROR Add {} Sensor: Sensor name is already taken [{},{},{}]\r\n'.format(xxx, username, devicename, sensorname))
+            print('\r\nERROR Add {} Sensor: Sensor name is already taken [{},{},{}]\r\n'.format(xxx, entityname, devicename, sensorname))
             return response, status.HTTP_409_CONFLICT
 
         # can only register 1 device for adc/1wire/tprobe
         if xxx != 'i2c':
-            if g_database_client.get_sensors_count(username, devicename, xxx, number) > 0:
+            if g_database_client.get_sensors_count(entityname, devicename, xxx, number) > 0:
                 response = json.dumps({'status': 'NG', 'message': 'Cannot add more than 1 sensor for {}'.format(xxx)})
-                print('\r\nERROR Add {} Sensor: Cannot add more than 1 sensor [{},{},{}]\r\n'.format(xxx, username, devicename, sensorname))
+                print('\r\nERROR Add {} Sensor: Cannot add more than 1 sensor [{},{},{}]\r\n'.format(xxx, entityname, devicename, sensorname))
                 return response, status.HTTP_400_BAD_REQUEST
 
         # add sensor to database
-        result = g_database_client.add_sensor(username, devicename, xxx, number, sensorname, data)
+        result = g_database_client.add_sensor(entityname, devicename, xxx, number, sensorname, data)
         #print(result)
         if not result:
             response = json.dumps({'status': 'NG', 'message': 'Sensor could not be registered'})
-            print('\r\nERROR Add {} Sensor: Sensor could not be registered [{},{}]\r\n'.format(xxx, username, devicename))
+            print('\r\nERROR Add {} Sensor: Sensor could not be registered [{},{}]\r\n'.format(xxx, entityname, devicename))
             return response, status.HTTP_500_INTERNAL_SERVER_ERROR
 
         msg = {'status': 'OK', 'message': 'Sensor registered successfully.'}
         if new_token:
             msg['new_token'] = new_token
         response = json.dumps(msg)
-        print('\r\n{} Sensor registered successful: {}\r\n{}\r\n'.format(xxx, username, response))
+        print('\r\n{} Sensor registered successful: {}\r\n{}\r\n'.format(xxx, entityname, response))
         return response
 
     elif flask.request.method == 'DELETE':
 
         # check if sensor is registered
-        sensor = g_database_client.get_sensor(username, devicename, xxx, number, sensorname)
+        sensor = g_database_client.get_sensor(entityname, devicename, xxx, number, sensorname)
         if not sensor:
             response = json.dumps({'status': 'NG', 'message': 'Sensor is not registered'})
-            print('\r\nERROR Delete {} Sensor: Sensor is not registered [{},{}]\r\n'.format(xxx, username, devicename))
+            print('\r\nERROR Delete {} Sensor: Sensor is not registered [{},{}]\r\n'.format(xxx, entityname, devicename))
             return response, status.HTTP_404_NOT_FOUND
 
         # delete necessary sensor-related database information
-        sensor_cleanup(username, devicename, None, xxx, number, sensorname, sensor)
+        sensor_cleanup(entityname, devicename, None, xxx, number, sensorname, sensor)
 
         msg = {'status': 'OK', 'message': 'Sensor unregistered successfully.'}
         if new_token:
@@ -3885,11 +4093,22 @@ def get_xxx_sensor(devicename, xxx, number, sensorname):
         print('\r\nERROR Get {} Sensor: Token is invalid [{}]\r\n'.format(xxx, username))
         return response, status.HTTP_401_UNAUTHORIZED
 
+
+    # get entity using the active organization
+    orgname, orgid = g_database_client.get_active_organization(username)
+    if orgname is not None:
+        # has active organization
+        entityname = "{}.{}".format(orgname, orgid)
+    else:
+        # no active organization, just a normal user
+        entityname = username
+
+
     # check if sensor is registered
-    sensor = g_database_client.get_sensor(username, devicename, xxx, number, sensorname)
+    sensor = g_database_client.get_sensor(entityname, devicename, xxx, number, sensorname)
     if not sensor:
         response = json.dumps({'status': 'NG', 'message': 'Sensor is not registered'})
-        print('\r\nERROR Get {} Sensor: Sensor is not registered [{},{}]\r\n'.format(xxx, username, devicename))
+        print('\r\nERROR Get {} Sensor: Sensor is not registered [{},{}]\r\n'.format(xxx, entityname, devicename))
         return response, status.HTTP_404_NOT_FOUND
 
 
@@ -3995,17 +4214,28 @@ def get_xxx_sensor_readings(devicename, xxx, number, sensorname):
         print('\r\nERROR Get {} Sensor: Token is invalid [{}]\r\n'.format(xxx, username))
         return response, status.HTTP_401_UNAUTHORIZED
 
+
+    # get entity using the active organization
+    orgname, orgid = g_database_client.get_active_organization(username)
+    if orgname is not None:
+        # has active organization
+        entityname = "{}.{}".format(orgname, orgid)
+    else:
+        # no active organization, just a normal user
+        entityname = username
+
+
     # check if sensor is registered
-    sensor = g_database_client.get_sensor(username, devicename, xxx, number, sensorname)
+    sensor = g_database_client.get_sensor(entityname, devicename, xxx, number, sensorname)
     if not sensor:
         response = json.dumps({'status': 'NG', 'message': 'Sensor is not registered'})
-        print('\r\nERROR Get {} Sensor: Sensor is not registered [{},{}]\r\n'.format(xxx, username, devicename))
+        print('\r\nERROR Get {} Sensor: Sensor is not registered [{},{}]\r\n'.format(xxx, entityname, devicename))
         return response, status.HTTP_404_NOT_FOUND
 
     # check if sensor type is valid
     if sensor["type"] != "input":
         response = json.dumps({'status': 'NG', 'message': 'Sensor type is invalid'})
-        print('\r\nERROR Get {} Sensor: Sensor type is invalid [{},{}]\r\n'.format(xxx, username, devicename))
+        print('\r\nERROR Get {} Sensor: Sensor type is invalid [{},{}]\r\n'.format(xxx, entityname, devicename))
         return response, status.HTTP_404_NOT_FOUND
 
     address = None
@@ -4014,7 +4244,7 @@ def get_xxx_sensor_readings(devicename, xxx, number, sensorname):
     source = "{}{}".format(xxx, number)
     if flask.request.method == 'GET':
         # get sensor reading
-        sensor_readings = g_database_client.get_sensor_reading(username, devicename, source, address)
+        sensor_readings = g_database_client.get_sensor_reading(entityname, devicename, source, address)
         if not sensor_readings:
             # no readings yet
             sensor_readings = {}
@@ -4026,18 +4256,18 @@ def get_xxx_sensor_readings(devicename, xxx, number, sensorname):
         if new_token:
             msg['new_token'] = new_token
         response = json.dumps(msg)
-        print('\r\nSensor reading queried successful: {}\r\n{}\r\n'.format(username, response))
+        print('\r\nSensor reading queried successful: {}\r\n{}\r\n'.format(entityname, response))
         return response
 
     elif flask.request.method == 'DELETE':
         # delete sensor reading
-        g_database_client.delete_sensor_reading(username, devicename, source, address)
+        g_database_client.delete_sensor_reading(entityname, devicename, source, address)
 
         msg = {'status': 'OK', 'message': 'Sensor reading deleted successfully.'}
         if new_token:
             msg['new_token'] = new_token
         response = json.dumps(msg)
-        print('\r\nSensor reading deleted successful: {}\r\n{}\r\n'.format(username, response))
+        print('\r\nSensor reading deleted successful: {}\r\n{}\r\n'.format(entityname, response))
         return response
 
 
@@ -4135,46 +4365,57 @@ def get_xxx_sensors_readings(devicename, xxx, number):
         print('\r\nERROR Get {} Sensor: Token is invalid [{}]\r\n'.format(xxx, username))
         return response, status.HTTP_401_UNAUTHORIZED
 
+
+    # get entity using the active organization
+    orgname, orgid = g_database_client.get_active_organization(username)
+    if orgname is not None:
+        # has active organization
+        entityname = "{}.{}".format(orgname, orgid)
+    else:
+        # no active organization, just a normal user
+        entityname = username
+
+
     source = "{}{}".format(xxx, number)
     if flask.request.method == 'GET':
         if True:
             # get enabled input sensors
-            sensors = g_database_client.get_sensors_enabled_input(username, devicename, xxx, number)
+            sensors = g_database_client.get_sensors_enabled_input(entityname, devicename, xxx, number)
 
             # get sensor reading for each enabled input sensors
             for sensor in sensors:
                 address = None
                 if sensor.get("address"):
                     address = sensor["address"]
-                sensor_reading = g_database_client.get_sensor_reading(username, devicename, source, address)
+                sensor_reading = g_database_client.get_sensor_reading(entityname, devicename, source, address)
                 sensor['readings'] = sensor_reading
 
             msg = {'status': 'OK', 'message': 'Sensors readings queried successfully.', 'sensor_readings': sensors}
             if new_token:
                 msg['new_token'] = new_token
             response = json.dumps(msg)
-            print('\r\nSensors readings queried successful: {}\r\n{}\r\n'.format(username, response))
+            print('\r\nSensors readings queried successful: {}\r\n{}\r\n'.format(entityname, response))
             return response
         else:
             # get sensors readings
-            sensor_readings = g_database_client.get_sensors_readings(username, devicename, source)
+            sensor_readings = g_database_client.get_sensors_readings(entityname, devicename, source)
 
             msg = {'status': 'OK', 'message': 'Sensors readings queried successfully.', 'sensor_readings': sensor_readings}
             if new_token:
                 msg['new_token'] = new_token
             response = json.dumps(msg)
-            print('\r\nSensors readings queried successful: {}\r\n{}\r\n'.format(username, response))
+            print('\r\nSensors readings queried successful: {}\r\n{}\r\n'.format(entityname, response))
             return response
 
     elif flask.request.method == 'DELETE':
         # delete sensors readings
-        g_database_client.delete_sensors_readings(username, devicename, source)
+        g_database_client.delete_sensors_readings(entityname, devicename, source)
 
         msg = {'status': 'OK', 'message': 'Sensors readings deleted successfully.'}
         if new_token:
             msg['new_token'] = new_token
         response = json.dumps(msg)
-        print('\r\nSensors readings deleted successful: {}\r\n{}\r\n'.format(username, response))
+        print('\r\nSensors readings deleted successful: {}\r\n{}\r\n'.format(entityname, response))
         return response
 
 
@@ -4250,14 +4491,24 @@ def get_xxx_sensors_readings_dataset(devicename, xxx, number, sensorname):
         return response, status.HTTP_401_UNAUTHORIZED
 
 
+    # get entity using the active organization
+    orgname, orgid = g_database_client.get_active_organization(username)
+    if orgname is not None:
+        # has active organization
+        entityname = "{}.{}".format(orgname, orgid)
+    else:
+        # no active organization, just a normal user
+        entityname = username
+
+
     # get sensor
-    sensor = g_database_client.get_sensor(username, devicename, xxx, number, sensorname)
+    sensor = g_database_client.get_sensor(entityname, devicename, xxx, number, sensorname)
 
     source = "{}{}".format(xxx, number)
     address = None
     if sensor.get("address"):
         address = sensor["address"]
-    sensor_reading = g_database_client.get_sensor_reading_dataset(username, devicename, source, address)
+    sensor_reading = g_database_client.get_sensor_reading_dataset(entityname, devicename, source, address)
     sensor['readings'] = sensor_reading
 
     msg = {'status': 'OK', 'message': 'Sensors readings dataset queried successfully.', 'sensor_readings': sensor}
@@ -4347,11 +4598,22 @@ def set_xxx_dev_prop(devicename, xxx, number, sensorname):
         print('\r\nERROR Invalid parameters\r\n')
         return response, status.HTTP_400_BAD_REQUEST
 
+
+    # get entity using the active organization
+    orgname, orgid = g_database_client.get_active_organization(username)
+    if orgname is not None:
+        # has active organization
+        entityname = "{}.{}".format(orgname, orgid)
+    else:
+        # no active organization, just a normal user
+        entityname = username
+
+
     # check if sensor is registered
-    sensor = g_database_client.get_sensor(username, devicename, xxx, number, sensorname)
+    sensor = g_database_client.get_sensor(entityname, devicename, xxx, number, sensorname)
     if not sensor:
         response = json.dumps({'status': 'NG', 'message': 'Sensor is not registered'})
-        print('\r\nERROR Get {} Sensor: Sensor is not registered [{},{}]\r\n'.format(xxx, username, devicename))
+        print('\r\nERROR Get {} Sensor: Sensor is not registered [{},{}]\r\n'.format(xxx, entityname, devicename))
         return response, status.HTTP_404_NOT_FOUND
 
     api = 'set_{}_dev_prop'.format(xxx)
@@ -4366,7 +4628,7 @@ def set_xxx_dev_prop(devicename, xxx, number, sensorname):
         # handle subclasses
         data['subclass'] = int(g_utils.get_i2c_device_class(sensor['subclass']))
     data['number'] = int(number)
-    print('set_{}_dev_prop {} devicename={} number={}'.format(xxx, username, devicename, number))
+    print('set_{}_dev_prop {} devicename={} number={}'.format(xxx, entityname, devicename, number))
 
 
     # no notification data
@@ -4376,14 +4638,14 @@ def set_xxx_dev_prop(devicename, xxx, number, sensorname):
         response, status_return = g_messaging_requests.process(api, data)
         if status_return != 200:
             # set enabled to FALSE and configured to FALSE
-            g_database_client.set_enable_configure_sensor(username, devicename, xxx, number, sensorname, 0, 0)
+            g_database_client.set_enable_configure_sensor(entityname, devicename, xxx, number, sensorname, 0, 0)
             return response, status_return
 
         # if ADC/1WIRE/TPROBE, set all other ADC/1WIRE/TPROBE to unconfigured and disabled
         if xxx != "i2c":
-            g_database_client.disable_unconfigure_sensors_source(username, devicename, xxx, number)
+            g_database_client.disable_unconfigure_sensors_source(entityname, devicename, xxx, number)
         # set to disabled and configured
-        g_database_client.set_enable_configure_sensor(username, devicename, xxx, number, sensorname, 0, 1)
+        g_database_client.set_enable_configure_sensor(entityname, devicename, xxx, number, sensorname, 0, 1)
 
         # update device configuration database for device bootup
         #print("data={}".format(data))
@@ -4404,7 +4666,7 @@ def set_xxx_dev_prop(devicename, xxx, number, sensorname):
         subclassid = None
         if sensor.get('subclass'):
             subclassid = int(g_utils.get_i2c_device_class(sensor['subclass']))
-        item = g_database_client.update_device_peripheral_configuration(username, devicename, xxx, int(number), address, classid, subclassid, data)
+        item = g_database_client.update_device_peripheral_configuration(entityname, devicename, xxx, int(number), address, classid, subclassid, data)
 
         return response
 
@@ -4423,19 +4685,19 @@ def set_xxx_dev_prop(devicename, xxx, number, sensorname):
     response, status_return = g_messaging_requests.process(api, data)
     if status_return != 200:
         # set enabled to FALSE and configured to FALSE
-        g_database_client.set_enable_configure_sensor(username, devicename, xxx, number, sensorname, 0, 0)
+        g_database_client.set_enable_configure_sensor(entityname, devicename, xxx, number, sensorname, 0, 0)
         return response, status_return
 
     # if ADC/1WIRE/TPROBE, set all other ADC/1WIRE/TPROBE to unconfigured and disabled
     if xxx != "i2c":
-        g_database_client.disable_unconfigure_sensors_source(username, devicename, xxx, number)
+        g_database_client.disable_unconfigure_sensors_source(entityname, devicename, xxx, number)
 
     # set to disabled and configured
-    g_database_client.set_enable_configure_sensor(username, devicename, xxx, number, sensorname, 0, 1)
+    g_database_client.set_enable_configure_sensor(entityname, devicename, xxx, number, sensorname, 0, 1)
 
     source = "{}{}{}".format(xxx, number, sensorname)
-    #g_database_client.update_device_notification(username, devicename, source, notification)
-    g_database_client.update_device_notification_with_notification_subclass(username, devicename, source, notification, subattributes_notification)
+    #g_database_client.update_device_notification(entityname, devicename, source, notification)
+    g_database_client.update_device_notification_with_notification_subclass(entityname, devicename, source, notification, subattributes_notification)
 
     # update device configuration database for device bootup
     #print("data={}".format(data))
@@ -4456,7 +4718,7 @@ def set_xxx_dev_prop(devicename, xxx, number, sensorname):
     subclassid = None
     if sensor.get('subclass'):
         subclassid = int(g_utils.get_i2c_device_class(sensor['subclass']))
-    item = g_database_client.update_device_peripheral_configuration(username, devicename, xxx, int(number), address, classid, subclassid, data)
+    item = g_database_client.update_device_peripheral_configuration(entityname, devicename, xxx, int(number), address, classid, subclassid, data)
 
     return response
 
@@ -4532,11 +4794,22 @@ def get_xxx_dev_prop(devicename, xxx, number, sensorname):
         print('\r\nERROR Get {} Sensor: Token is invalid [{}]\r\n'.format(xxx, username))
         return response, status.HTTP_401_UNAUTHORIZED
 
+
+    # get entity using the active organization
+    orgname, orgid = g_database_client.get_active_organization(username)
+    if orgname is not None:
+        # has active organization
+        entityname = "{}.{}".format(orgname, orgid)
+    else:
+        # no active organization, just a normal user
+        entityname = username
+
+
     # check if sensor is registered
-    sensor = g_database_client.get_sensor(username, devicename, xxx, number, sensorname)
+    sensor = g_database_client.get_sensor(entityname, devicename, xxx, number, sensorname)
     if not sensor:
         response = json.dumps({'status': 'NG', 'message': 'Sensor is not registered'})
-        print('\r\nERROR Get {} Sensor: Sensor is not registered [{},{}]\r\n'.format(xxx, username, devicename))
+        print('\r\nERROR Get {} Sensor: Sensor is not registered [{},{}]\r\n'.format(xxx, entityname, devicename))
         return response, status.HTTP_404_NOT_FOUND
 
     api = 'get_{}_dev_prop'.format(xxx)
@@ -4548,7 +4821,7 @@ def get_xxx_dev_prop(devicename, xxx, number, sensorname):
         data['address'] = sensor['address']
     data['class'] = int(g_utils.get_i2c_device_class(sensor['class']))
     data['number'] = int(number)
-    print('get_{}_dev_prop {} devicename={} number={}'.format(xxx, username, devicename, number))
+    print('get_{}_dev_prop {} devicename={} number={}'.format(xxx, entityname, devicename, number))
 
     # no notification object required
     if data["class"] < rest_api_utils.classes().I2C_DEVICE_CLASS_POTENTIOMETER:
@@ -4560,8 +4833,8 @@ def get_xxx_dev_prop(devicename, xxx, number, sensorname):
         return response, status_return
 
     source = "{}{}{}".format(xxx, number, sensorname)
-    #notification = g_database_client.get_device_notification(username, devicename, source)
-    (notification, subattributes_notification) = g_database_client.get_device_notification_with_notification_subclass(username, devicename, source)
+    #notification = g_database_client.get_device_notification(entityname, devicename, source)
+    (notification, subattributes_notification) = g_database_client.get_device_notification_with_notification_subclass(entityname, devicename, source)
     if notification is not None:
         response = json.loads(response)
         if response.get('value'):
@@ -4667,24 +4940,35 @@ def enable_xxx_dev(devicename, xxx, number, sensorname):
         return response, status.HTTP_401_UNAUTHORIZED
     data['username'] = username
 
+
+    # get entity using the active organization
+    orgname, orgid = g_database_client.get_active_organization(username)
+    if orgname is not None:
+        # has active organization
+        entityname = "{}.{}".format(orgname, orgid)
+    else:
+        # no active organization, just a normal user
+        entityname = username
+
+
     # check if sensor is registered
-    sensor = g_database_client.get_sensor(username, devicename, xxx, number, sensorname)
+    sensor = g_database_client.get_sensor(entityname, devicename, xxx, number, sensorname)
     if not sensor:
         response = json.dumps({'status': 'NG', 'message': 'Sensor is not registered'})
-        print('\r\nERROR Get {} Sensor: Sensor is not registered [{},{}]\r\n'.format(xxx, username, devicename))
+        print('\r\nERROR Get {} Sensor: Sensor is not registered [{},{}]\r\n'.format(xxx, entityname, devicename))
         return response, status.HTTP_404_NOT_FOUND
 
     #print(sensor)
     if sensor["configured"] == 0:
         response = json.dumps({'status': 'NG', 'message': 'Sensor is not yet configured'})
-        print('\r\nERROR Get {} Sensor: Sensor is yet configured [{},{}]\r\n'.format(xxx, username, devicename))
+        print('\r\nERROR Get {} Sensor: Sensor is yet configured [{},{}]\r\n'.format(xxx, entityname, devicename))
         return response, status.HTTP_400_BAD_REQUEST
 
     if sensor.get('address'):
         data['address'] = sensor['address']
     # note: python dict maintains insertion order so number will always be the last key
     data['number'] = int(number)
-    print('enable_{}_dev {} devicename={} number={}'.format(xxx, username, devicename, number))
+    print('enable_{}_dev {} devicename={} number={}'.format(xxx, entityname, devicename, number))
 
     do_enable = data['enable']
 
@@ -4694,13 +4978,13 @@ def enable_xxx_dev(devicename, xxx, number, sensorname):
         return response, status_return
 
     # set enabled to do_enable and configured to 1
-    g_database_client.set_enable_configure_sensor(username, devicename, xxx, number, sensorname, do_enable, 1)
+    g_database_client.set_enable_configure_sensor(entityname, devicename, xxx, number, sensorname, do_enable, 1)
 
     # set enabled
     address = None
     if sensor.get('address'):
         address = sensor["address"]
-    g_database_client.set_enable_device_peripheral_configuration(username, devicename, xxx, int(number), address, do_enable)
+    g_database_client.set_enable_device_peripheral_configuration(entityname, devicename, xxx, int(number), address, do_enable)
 
     return response
 
