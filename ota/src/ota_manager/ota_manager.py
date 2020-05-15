@@ -73,6 +73,7 @@ API_UPGRADE_FIRMWARE_COMPLETION  = "end_ota"
 API_REQUEST_FIRMWARE             = "req_firmware"
 API_RECEIVE_FIRMWARE             = "rcv_firmware"
 API_REQUEST_OTASTATUS            = "req_otastatus"
+API_REQUEST_TIME                 = "req_time"
 
 
 
@@ -110,6 +111,16 @@ def read_file_chunk(payload):
     actualsize = len(bin)
     bin = base64.b64encode(bin).decode("utf-8")
     return bin, actualsize
+
+
+def request_time(database_client, deviceid, topic, payload):
+
+    new_topic = "{}{}{}".format(deviceid, CONFIG_SEPARATOR, API_REQUEST_TIME)
+    new_payload = {
+        "time": int(time.time())
+    }
+    new_payload = json.dumps(new_payload)
+    g_messaging_client.publish(new_topic, new_payload, debug=False) # NOTE: enable to DEBUG
 
 
 def request_firmware(database_client, deviceid, topic, payload):
@@ -233,15 +244,7 @@ def on_message(subtopic, subpayload):
     topic = arr_subtopic[2]
     payload = subpayload.decode("utf-8")
 
-    if topic == API_REQUEST_FIRMWARE:
-        try:
-            thr = threading.Thread(target = request_firmware, args = (g_database_client, deviceid, topic, payload ))
-            thr.start()
-        except Exception as e:
-            print("exception API_DOWNLOAD_FIRMWARE")
-            print(e)
-            return
-    elif topic == API_REQUEST_OTASTATUS:
+    if topic == API_REQUEST_OTASTATUS:
         try:
             thr = threading.Thread(target = request_otastatus, args = (g_database_client, deviceid, topic, payload ))
             thr.start()
@@ -252,6 +255,23 @@ def on_message(subtopic, subpayload):
     elif topic == API_UPGRADE_FIRMWARE_COMPLETION:
         try:
             thr = threading.Thread(target = upgrade_firmware_completion, args = (g_database_client, deviceid, topic, payload ))
+            thr.start()
+        except Exception as e:
+            print("exception API_DOWNLOAD_FIRMWARE")
+            print(e)
+            return
+    elif topic == API_REQUEST_TIME:
+        try:
+            thr = threading.Thread(target = request_time, args = (g_database_client, deviceid, topic, payload ))
+            thr.start()
+        except Exception as e:
+            print("exception API_REQUEST_TIME")
+            print(e)
+            return
+    elif topic == API_REQUEST_FIRMWARE: 
+        # to be removed later; device will download via HTTPS instead of MQTTS
+        try:
+            thr = threading.Thread(target = request_firmware, args = (g_database_client, deviceid, topic, payload ))
             thr.start()
         except Exception as e:
             print("exception API_DOWNLOAD_FIRMWARE")
@@ -434,9 +454,11 @@ if __name__ == '__main__':
     subtopic  = "{}{}+{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_SEPARATOR, API_REQUEST_FIRMWARE)
     subtopic2 = "{}{}+{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_SEPARATOR, API_REQUEST_OTASTATUS)
     subtopic3 = "{}{}+{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_SEPARATOR, API_UPGRADE_FIRMWARE_COMPLETION)
+    subtopic4 = "{}{}+{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_SEPARATOR, API_REQUEST_TIME)
     g_messaging_client.subscribe(subtopic,  subscribe=True, declare=True, consume_continuously=True)
     g_messaging_client.subscribe(subtopic2, subscribe=True, declare=True, consume_continuously=True)
     g_messaging_client.subscribe(subtopic3, subscribe=True, declare=True, consume_continuously=True)
+    g_messaging_client.subscribe(subtopic4, subscribe=True, declare=True, consume_continuously=True)
 
 
     while g_messaging_client.is_connected():
