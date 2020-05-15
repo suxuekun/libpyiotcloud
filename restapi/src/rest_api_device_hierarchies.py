@@ -121,6 +121,16 @@ class device_hierarchies:
 
 
     def get_running_sensors(self, token, username, devicename, device):
+
+        # get entity using the active organization
+        orgname, orgid = self.database_client.get_active_organization(username)
+        if orgname is not None:
+            # has active organization
+            entityname = "{}.{}".format(orgname, orgid)
+        else:
+            # no active organization, just a normal user
+            entityname = username
+
         # query device
         api = "get_devs"
         data = {}
@@ -131,7 +141,7 @@ class device_hierarchies:
         if status_return == 200:
             device['status'] = 1
             # query database
-            sensors = self.database_client.get_all_device_sensors(username, devicename)
+            sensors = self.database_client.get_all_device_sensors(entityname, devicename)
 
             # map queried result with database result
             #print("from device")
@@ -149,32 +159,41 @@ class device_hierarchies:
                             # match found for database result and actual device result
                             # set database record to configured and actual device item["enabled"]
                             if sensor["address"] == item["address"]:
-                                self.database_client.set_enable_configure_sensor(username, devicename, sensor['source'], sensor['number'], sensor['sensorname'], item["enabled"], 1)
+                                self.database_client.set_enable_configure_sensor(entityname, devicename, sensor['source'], sensor['number'], sensor['sensorname'], item["enabled"], 1)
                                 found = True
                                 break
                 else:
                     if response["value"].get(peripheral):
                         for item in response["value"][peripheral]:
                             if item["class"] == rest_api_utils.utils().get_i2c_device_class(sensor["class"]):
-                                self.database_client.set_enable_configure_sensor(username, devicename, sensor['source'], sensor['number'], sensor['sensorname'], item["enabled"], 1)
+                                self.database_client.set_enable_configure_sensor(entityname, devicename, sensor['source'], sensor['number'], sensor['sensorname'], item["enabled"], 1)
                                 found = True
                                 break
 
                 # no match found
                 # set database record to unconfigured and disabled
                 if found == False:
-                    self.database_client.set_enable_configure_sensor(username, devicename, sensor['source'], sensor['number'], sensor['sensorname'], 0, 0)
+                    self.database_client.set_enable_configure_sensor(entityname, devicename, sensor['source'], sensor['number'], sensor['sensorname'], 0, 0)
             #print()
         else:
             device['status'] = 0
             # cannot communicate with device so set database record to unconfigured and disabled
-            self.database_client.disable_unconfigure_sensors(username, devicename)
+            self.database_client.disable_unconfigure_sensors(entityname, devicename)
             #print('\r\nERROR Get All Device Sensors Dataset: Device is offline\r\n')
             return response, status_return
         return response, 200
 
 
     def generate_device_hierarchy(self, username, devicename, hierarchy, checkdevice=0, status=None, token=None):
+
+        # get entity using the active organization
+        orgname, orgid = self.database_client.get_active_organization(username)
+        if orgname is not None:
+            # has active organization
+            entityname = "{}.{}".format(orgname, orgid)
+        else:
+            # no active organization, just a normal user
+            entityname = username
 
         if checkdevice == 1:
             if status is not None:
@@ -188,7 +207,7 @@ class device_hierarchies:
                 self.get_running_sensors(token, username, devicename, device)
                 hierarchy["active"] = device["status"]
 
-        sensors = self.database_client.get_all_device_sensors(username, devicename)
+        sensors = self.database_client.get_all_device_sensors(entityname, devicename)
         for sensor in sensors:
             #print("{} {} {}".format(sensor["sensorname"], sensor["source"], sensor["number"]))
             peripheral = sensor["source"].upper()
@@ -275,11 +294,22 @@ class device_hierarchies:
             print('\r\nERROR Get hierarchy tree: Token is invalid [{}]\r\n'.format(username))
             return response, status.HTTP_401_UNAUTHORIZED
 
+
+        # get entity using the active organization
+        orgname, orgid = self.database_client.get_active_organization(username)
+        if orgname is not None:
+            # has active organization
+            entityname = "{}.{}".format(orgname, orgid)
+        else:
+            # no active organization, just a normal user
+            entityname = username
+
+
         # check if device is registered
-        device = self.database_client.find_device(username, devicename)
+        device = self.database_client.find_device(entityname, devicename)
         if not device:
             response = json.dumps({'status': 'NG', 'message': 'Device is not registered'})
-            print('\r\nERROR Get hierarchy tree: Device is not registered [{},{}]\r\n'.format(username, devicename))
+            print('\r\nERROR Get hierarchy tree: Device is not registered [{},{}]\r\n'.format(entityname, devicename))
             return response, status.HTTP_404_NOT_FOUND
 
 
@@ -345,11 +375,22 @@ class device_hierarchies:
             print('\r\nERROR Get hierarchy tree: Token is invalid [{}]\r\n'.format(username))
             return response, status.HTTP_401_UNAUTHORIZED
 
+
+        # get entity using the active organization
+        orgname, orgid = self.database_client.get_active_organization(username)
+        if orgname is not None:
+            # has active organization
+            entityname = "{}.{}".format(orgname, orgid)
+        else:
+            # no active organization, just a normal user
+            entityname = username
+
+
         # check if device is registered
-        device = self.database_client.find_device(username, devicename)
+        device = self.database_client.find_device(entityname, devicename)
         if not device:
             response = json.dumps({'status': 'NG', 'message': 'Device is not registered'})
-            print('\r\nERROR Get hierarchy tree: Device is not registered [{},{}]\r\n'.format(username, devicename))
+            print('\r\nERROR Get hierarchy tree: Device is not registered [{},{}]\r\n'.format(entityname, devicename))
             return response, status.HTTP_404_NOT_FOUND
 
 

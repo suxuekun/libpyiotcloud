@@ -78,14 +78,24 @@ class messaging_requests:
             print('\r\nERROR Token is invalid [{}]\r\n'.format(username))
             return response, status.HTTP_401_UNAUTHORIZED
 
+
+        # get entity using the active organization
+        orgname, orgid = self.database_client.get_active_organization(username)
+        if orgname is not None:
+            # has active organization
+            entityname = "{}.{}".format(orgname, orgid)
+        else:
+            # no active organization, just a normal user
+            entityname = username
+
         # check if device is registered
-        if not self.database_client.find_device(username, devicename):
+        if not self.database_client.find_device(entityname, devicename):
             response = json.dumps({'status': 'NG', 'message': 'Device is not registered'})
-            print('\r\nERROR Device is not registered [{}]\r\n'.format(username))
+            print('\r\nERROR Device is not registered [{}]\r\n'.format(entityname))
             return response, status.HTTP_404_NOT_FOUND
 
         # get deviceid for subscribe purpose (AMQP)
-        deviceid = self.database_client.get_deviceid(username, devicename)
+        deviceid = self.database_client.get_deviceid(entityname, devicename)
 
         # construct publish/subscribe topics and payloads
         pubtopic = self.generate_publish_topic(data, deviceid, api, CONFIG_SEPARATOR)
@@ -126,14 +136,14 @@ class messaging_requests:
                 if new_token:
                     msg['new_token'] = new_token
                 response = json.dumps(msg)
-                print('\r\nERROR Could not communicate with device [{}, {}]\r\n'.format(username, devicename))
+                print('\r\nERROR Could not communicate with device [{}, {}]\r\n'.format(entityname, devicename))
                 return response, status.HTTP_500_INTERNAL_SERVER_ERROR
         except:
             msg = {'status': 'NG', 'message': 'Could not communicate with device'}
             if new_token:
                 msg['new_token'] = new_token
             response = json.dumps(msg)
-            print('\r\nERROR Could not communicate with device [{}, {}]\r\n'.format(username, devicename))
+            print('\r\nERROR Could not communicate with device [{}, {}]\r\n'.format(entityname, devicename))
             return response, status.HTTP_500_INTERNAL_SERVER_ERROR
 
         # return HTTP response
@@ -142,7 +152,7 @@ class messaging_requests:
             if new_token:
                 msg['new_token'] = new_token
             response = json.dumps(msg)
-            print('\r\nERROR Device is unreachable [{}, {}] DATETIME {}\r\n'.format(username, devicename, datetime.datetime.now()))
+            print('\r\nERROR Device is unreachable [{}, {}] DATETIME {}\r\n'.format(entityname, devicename, datetime.datetime.now()))
             return response, status.HTTP_503_SERVICE_UNAVAILABLE
 
         #print(response)

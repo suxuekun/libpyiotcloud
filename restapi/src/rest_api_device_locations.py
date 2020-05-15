@@ -85,17 +85,28 @@ class device_locations:
             return response, status.HTTP_401_UNAUTHORIZED
 
 
+        # get entity using the active organization
+        orgname, orgid = self.database_client.get_active_organization(username)
+        if orgname is not None:
+            # has active organization
+            entityname = "{}.{}".format(orgname, orgid)
+        else:
+            # no active organization, just a normal user
+            entityname = username
+
+
         # get devices of the user
-        devices = self.database_client.get_devices(username)
+        devices = self.database_client.get_devices(entityname)
 
         # get the devices location from database
-        locations = self.database_client.get_devices_location(username)
+        locations = self.database_client.get_devices_location(entityname)
         for location in locations:
             for device in devices:
                 if location["deviceid"] == device["deviceid"]:
                     location["devicename"] = device["devicename"]
                     location.pop("deviceid")
                     break
+
 
         msg = {'status': 'OK', 'message': 'Devices locations queried successfully.'}
         if locations:
@@ -164,6 +175,17 @@ class device_locations:
             print('\r\nERROR Set Devices Locations: Token is invalid [{}]\r\n'.format(username))
             return response, status.HTTP_401_UNAUTHORIZED
 
+
+        # get entity using the active organization
+        orgname, orgid = self.database_client.get_active_organization(username)
+        if orgname is not None:
+            # has active organization
+            entityname = "{}.{}".format(orgname, orgid)
+        else:
+            # no active organization, just a normal user
+            entityname = username
+
+
         if flask.request.method == 'POST':
             # check if new device name is already registered
             data = flask.request.get_json()
@@ -173,11 +195,11 @@ class device_locations:
                 return response, status.HTTP_400_BAD_REQUEST
 
             # get devices of the user
-            devices = self.database_client.get_devices(username)
+            devices = self.database_client.get_devices(entityname)
 
             # set the location to database
             for location in data["locations"]:
-                self.database_client.add_device_location(username, location["devicename"], location["location"])
+                self.database_client.add_device_location(entityname, location["devicename"], location["location"])
 
 
             msg = {'status': 'OK', 'message': 'Devices locations updated successfully.'}
@@ -189,7 +211,7 @@ class device_locations:
 
         elif flask.request.method == 'DELETE':
             # delete devices location for all devices of the user
-            self.database_client.delete_devices_location(username)
+            self.database_client.delete_devices_location(entityname)
 
             msg = {'status': 'OK', 'message': 'Devices locations deleted successfully.'}
             if new_token:
@@ -246,16 +268,27 @@ class device_locations:
             print('\r\nERROR Get Device Location: Token is invalid [{}]\r\n'.format(username))
             return response, status.HTTP_401_UNAUTHORIZED
 
+
+        # get entity using the active organization
+        orgname, orgid = self.database_client.get_active_organization(username)
+        if orgname is not None:
+            # has active organization
+            entityname = "{}.{}".format(orgname, orgid)
+        else:
+            # no active organization, just a normal user
+            entityname = username
+
+
         # check if device is registered
-        device = self.database_client.find_device(username, devicename)
+        device = self.database_client.find_device(entityname, devicename)
         if not device:
             response = json.dumps({'status': 'NG', 'message': 'Device is not registered'})
-            print('\r\nERROR Get Device Location: Device is not registered [{},{}]\r\n'.format(username, devicename))
+            print('\r\nERROR Get Device Location: Device is not registered [{},{}]\r\n'.format(entityname, devicename))
             return response, status.HTTP_404_NOT_FOUND
 
 
         # get the location from database
-        location  = self.database_client.get_device_location(username, devicename)
+        location  = self.database_client.get_device_location(entityname, devicename)
 
 
         msg = {'status': 'OK', 'message': 'Device location queried successfully.'}
@@ -326,11 +359,22 @@ class device_locations:
             print('\r\nERROR Set Device Location: Token is invalid [{}]\r\n'.format(username))
             return response, status.HTTP_401_UNAUTHORIZED
 
+
+        # get entity using the active organization
+        orgname, orgid = self.database_client.get_active_organization(username)
+        if orgname is not None:
+            # has active organization
+            entityname = "{}.{}".format(orgname, orgid)
+        else:
+            # no active organization, just a normal user
+            entityname = username
+
+
         # check if device is registered
-        device = self.database_client.find_device(username, devicename)
+        device = self.database_client.find_device(entityname, devicename)
         if not device:
             response = json.dumps({'status': 'NG', 'message': 'Device is not registered'})
-            print('\r\nERROR Set Device Location: Device is not registered [{},{}]\r\n'.format(username, devicename))
+            print('\r\nERROR Set Device Location: Device is not registered [{},{}]\r\n'.format(entityname, devicename))
             return response, status.HTTP_404_NOT_FOUND
 
 
@@ -340,12 +384,12 @@ class device_locations:
             if data.get("latitude") is None or data.get("longitude") is None:
                 print(data)
                 response = json.dumps({'status': 'NG', 'message': 'Parameters not included'})
-                print('\r\nERROR Set Device Location: Parameters not included [{},{}]\r\n'.format(username, devicename))
+                print('\r\nERROR Set Device Location: Parameters not included [{},{}]\r\n'.format(entityname, devicename))
                 return response, status.HTTP_400_BAD_REQUEST
 
 
             # set the location to database
-            self.database_client.add_device_location(username, devicename, data)
+            self.database_client.add_device_location(entityname, devicename, data)
 
 
             msg = {'status': 'OK', 'message': 'Device location updated successfully.'}
@@ -357,7 +401,7 @@ class device_locations:
 
         elif flask.request.method == 'DELETE':
             # delete the location from database
-            self.database_client.delete_device_location(username, devicename)
+            self.database_client.delete_device_location(entityname, devicename)
 
             msg = {'status': 'OK', 'message': 'Device location deleted successfully.'}
             if new_token:

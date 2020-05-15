@@ -125,49 +125,6 @@ class database_client:
         return settings
 
 
-    ##########################################################
-    # ota firmware update
-    ##########################################################
-
-    def set_ota_status_ongoing(self, username, devicename, version):
-        self.set_ota_status(username, devicename, version, "ongoing")
-
-    def set_ota_status_pending(self, username, devicename, version):
-        self.set_ota_status(username, devicename, version, "pending")
-
-    def set_ota_status(self, username, devicename, version, status):
-        deviceid = self._devices.get_deviceid(username, devicename)
-        self._devices.set_ota_status(username, deviceid, version, status)
-
-    def set_ota_status_completed(self, username, devicename):
-        deviceid = self._devices.get_deviceid(username, devicename)
-        self._devices.set_ota_status_completed(deviceid)
-
-    def set_ota_status_completed_by_deviceid(self, deviceid):
-        self._devices.set_ota_status_completed(deviceid)
-
-
-    def get_ota_statuses(self, username):
-        return self._devices.get_ota_statuses(username)
-
-    def get_ota_status(self, username, devicename):
-        deviceid = self._devices.get_deviceid(username, devicename)
-        return self._devices.get_ota_status(deviceid)
-
-    def get_ota_status_by_deviceid(self, deviceid):
-        return self._devices.get_ota_status(deviceid)
-
-
-    def delete_ota_statuses(self, username):
-        self._devices.delete_ota_statuses(username)
-
-    def delete_ota_status(self, username, devicename):
-        deviceid = self._devices.get_deviceid(username, devicename)
-        self._devices.delete_ota_status_by_deviceid(deviceid)
-
-    def delete_ota_status_by_deviceid(self, deviceid):
-        self._devices.delete_ota_status_by_deviceid(deviceid)
-
 
     ##########################################################
     # transactions
@@ -378,6 +335,7 @@ class database_client:
     def sort_by_groupname(self, elem):
         return elem['groupname']
 
+    # org-ready
     def get_user_history(self, username):
         user_histories = []
         devices = self._devices.get_registered_devices()
@@ -392,6 +350,7 @@ class database_client:
         user_histories.sort(key=self.sort_by_timestamp, reverse=True)
         return user_histories
 
+    # org-ready
     def get_user_history_filtered(self, username, devicename, direction, topic, datebegin, dateend):
         filter_devices = {'username': username}
         if devicename is not None:
@@ -427,7 +386,7 @@ class database_client:
 
 
     ##########################################################
-    # menos
+    # menos history
     ##########################################################
 
     def add_menos_transaction(self, deviceid, recipient, message, type, source, sensorname, timestamp, condition, result):
@@ -440,9 +399,11 @@ class database_client:
     def delete_menos_transaction_by_deviceid(self, deviceid):
         self._devices.delete_menos_transaction(deviceid)
 
+    # org-ready
     def get_menos_transaction(self, deviceid):
         return self._devices.get_menos_transaction(deviceid)
 
+    # org-ready
     def get_menos_transaction_filtered(self, deviceid, type, source, datebegin, dateend):
         return self._devices.get_menos_transaction_filtered(deviceid, type, source, datebegin, dateend)
 
@@ -684,27 +645,83 @@ class database_client:
     # device locaton
     ##########################################################
 
+    # org-ready
+    def get_devices_location(self, username):
+        return self._devices.get_devices_location(username)
+
+    # org-ready
+    def delete_devices_location(self, username):
+        self._devices.delete_devices_location(username)
+
+    # org-ready
     def add_device_location(self, username, devicename, location):
         deviceid = self._devices.get_deviceid(username, devicename)
         self._devices.add_device_location(username, deviceid, location)
 
+    # org-ready
     def get_device_location(self, username, devicename):
         deviceid = self._devices.get_deviceid(username, devicename)
         return self._devices.get_device_location(deviceid)
 
-    def get_devices_location(self, username):
-        return self._devices.get_devices_location(username)
-
+    # org-ready
     def delete_device_location(self, username, devicename):
         deviceid = self._devices.get_deviceid(username, devicename)
         self._devices.delete_device_location(deviceid)
 
+    # org-ready
     def delete_device_location_by_deviceid(self, deviceid):
         self._devices.delete_device_location(deviceid)
 
-    def delete_devices_location(self, username):
-        self._devices.delete_devices_location(username)
 
+    ##########################################################
+    # ota firmware update
+    ##########################################################
+
+    # org-ready
+    def set_ota_status_ongoing(self, username, devicename, version):
+        self.set_ota_status(username, devicename, version, "ongoing")
+
+    # org-ready
+    def set_ota_status_pending(self, username, devicename, version):
+        self.set_ota_status(username, devicename, version, "pending")
+
+    # org-ready
+    def set_ota_status(self, username, devicename, version, status):
+        deviceid = self._devices.get_deviceid(username, devicename)
+        self._devices.set_ota_status(username, deviceid, version, status)
+
+    # org-ready
+    def set_ota_status_completed_by_deviceid(self, deviceid):
+        self._devices.set_ota_status_completed(deviceid)
+
+    def set_ota_status_completed(self, username, devicename):
+        deviceid = self._devices.get_deviceid(username, devicename)
+        self._devices.set_ota_status_completed(deviceid)
+
+
+    # org-ready
+    def get_ota_statuses(self, username):
+        return self._devices.get_ota_statuses(username)
+
+    # org-ready
+    def get_ota_status(self, username, devicename):
+        deviceid = self._devices.get_deviceid(username, devicename)
+        return self._devices.get_ota_status(deviceid)
+
+    # org-ready
+    def get_ota_status_by_deviceid(self, deviceid):
+        return self._devices.get_ota_status(deviceid)
+
+    # org-ready
+    def delete_ota_status_by_deviceid(self, deviceid):
+        self._devices.delete_ota_status_by_deviceid(deviceid)
+
+    def delete_ota_statuses(self, username):
+        self._devices.delete_ota_statuses(username)
+
+    def delete_ota_status(self, username, devicename):
+        deviceid = self._devices.get_deviceid(username, devicename)
+        self._devices.delete_ota_status_by_deviceid(deviceid)
 
 
 
@@ -844,33 +861,46 @@ class database_client:
     def get_registered_devices(self):
         return self._devices.get_registered_devices()
 
+    # org-ready
     def get_devices(self, username):
         return self._devices.get_devices(username)
 
-    def get_devicenames(self, username):
-        return self._devices.get_devicenames(username)
-
+    # org-ready
     def get_devices_with_filter(self, username, filter):
         return self._devices.get_devices_with_filter(username, filter)
 
+    # org-ready
+    def find_device(self, username, devicename):
+        return self._devices.find_device(username, devicename)
+
+    # org-ready
+    def find_device_by_id(self, deviceid):
+        return self._devices.find_device_by_id(deviceid)
+
+    # org-ready
+    def find_device_by_poemacaddress(self, deviceid):
+        return self._devices.find_device_by_poemacaddress(deviceid)
+
+    # org-ready
     def add_device(self, username, devicename, uuid, serialnumber, poemacaddress=None):
         # todo: verify uuid and serialnumber matches
         return self._devices.add_device(username, devicename, uuid, serialnumber, poemacaddress)
 
+    # org-ready
     def delete_device(self, username, devicename):
         self._devices.delete_device(username, devicename)
 
+    # org-ready
     def delete_device_by_deviceid(self, deviceid):
         self._devices.delete_device_by_deviceid(deviceid)
 
-    def find_device(self, username, devicename):
-        return self._devices.find_device(username, devicename)
+    # org-ready
+    def update_devicename(self, username, devicename, new_devicename):
+        self._devices.update_devicename(username, devicename, new_devicename)
 
-    def find_device_by_id(self, deviceid):
-        return self._devices.find_device_by_id(deviceid)
 
-    def find_device_by_poemacaddress(self, deviceid):
-        return self._devices.find_device_by_poemacaddress(deviceid)
+    def get_devicenames(self, username):
+        return self._devices.get_devicenames(username)
 
     def get_device_cached_values(self, username, devicename):
         return self._devices.get_device_cached_values(username, devicename)
@@ -884,40 +914,50 @@ class database_client:
     def save_device_version(self, username, devicename, version):
         return self._devices.save_device_version(username, devicename, version)
 
-    def update_devicename(self, username, devicename, new_devicename):
-        self._devices.update_devicename(username, devicename, new_devicename)
 
 
     ##########################################################
     # devicegroups
     ##########################################################
 
-    def add_devicegroup(self, username, groupname):
-        self._devices.add_devicegroup(username, groupname)
-
-    def delete_devicegroup(self, username, groupname):
-        self._devices.delete_devicegroup(username, groupname)
-
-    def get_devicegroup(self, username, groupname):
-        return self._devices.get_devicegroup(username, groupname)
-
+    # org-ready
     def get_devicegroups(self, username):
         return self._devices.get_devicegroups(username)
 
+
+    # org-ready
+    def get_devicegroup(self, username, groupname):
+        return self._devices.get_devicegroup(username, groupname)
+
+    # org-ready
+    def add_devicegroup(self, username, groupname):
+        self._devices.add_devicegroup(username, groupname)
+
+    # org-ready
+    def delete_devicegroup(self, username, groupname):
+        self._devices.delete_devicegroup(username, groupname)
+
+    # org-ready
+    def update_name_devicegroup(self, username, groupname, new_groupname):
+        self._devices.update_name_devicegroup(username, groupname, new_groupname)
+
+
+    # org-ready
     def add_device_to_devicegroup(self, username, groupname, deviceid):
         return self._devices.add_device_to_devicegroup(username, groupname, deviceid)
 
+    # org-ready
     def remove_device_from_devicegroup(self, username, groupname, deviceid):
         self._devices.remove_device_from_devicegroup(username, groupname, deviceid)
 
+    # org-ready
     def remove_device_from_devicegroups(self, username, deviceid):
         self._devices.remove_device_from_devicegroups(username, deviceid)
 
+    # org-ready
     def set_devices_to_devicegroup(self, username, groupname, devices):
         self._devices.set_devices_to_devicegroup(username, groupname, devices)
 
-    def update_name_devicegroup(self, username, groupname, new_groupname):
-        self._devices.update_name_devicegroup(username, groupname, new_groupname)
 
 
 class database_utils:
