@@ -85,9 +85,9 @@ Or at the least be able to experiment before proposing new or modified APIs.
 
 2. Set the following environment system variables.
 
-    In Linux/MacOS, use <b>export ENVIRONMENT_SYSTEM_VARIABLE="ENVIRONMENT_SYSTEM_VALUE"</b>
+		A. In Linux/MacOS, use <b>export ENVIRONMENT_SYSTEM_VARIABLE="ENVIRONMENT_SYSTEM_VALUE"</b>
 
-    In Windows, always <b>restart the Docker Toolbox/Desktop</b> after adding or updating an environment system variable.
+		B. In Windows, always <b>restart the Docker Toolbox/Desktop</b> after adding or updating an environment system variable.
 
 
 3. Run the Docker images using the following commands.
