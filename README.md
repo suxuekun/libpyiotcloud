@@ -1605,6 +1605,23 @@ Note: Using Kubernetes will also change the infrastracture.
             username: richmond.umagat@gmail.com
             password: xxx
 
+        // Paypal recurring payments
+        - To support monthly payment subscription, Paypal billing plans and billing agreement are used.
+        - Steps:
+          1. Create a billing plan.
+             First month of the recurring payment: prorated based on the remaining days of the month
+             - setup_fee is used instead of TRIAL period in order for Paypal charge the customer immediately.
+             - if TRIAL period is used instead of setup_fee, the customer will only be charge at 10am the next day US timezone.
+             Succeeding months of the recurring payment: regular amount
+             - REGULAR type is used indicating Month frequency and 6-1/12-1 cycles (if 6 months or 12 months recurring)
+          2. Activate the billing plan
+          3. Creating a billing agreement
+             - The start_date is set to the start of the next month.
+          4. Execute the billing agreement.
+             - The states of the billing agreement are Active, Expired, Cancelled
+        - Refer to https://github.com/richmondu/libpypaypal for the demonstration of this feature.
+
+
 ### Install Jenkins (on local and on AWS EC2)
     
        // Install Jenkins using Docker
