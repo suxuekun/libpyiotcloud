@@ -360,6 +360,25 @@ Dashboard pie charts
 Dashboard doughnut charts
 <img src="./_images/dashboard_charts_dougnutchart.png" width="800"/>
 
+Paypal payment redirection
+<img src="./_images/paypal_payment.png" width="800"/>
+
+Paypal payment redirection
+<img src="./_images/paypal_payment_2.png" width="800"/>
+
+Paypal payment execution and verification
+<img src="./_images/paypal_payment_3.png" width="800"/>
+
+Paypal payment email notification
+<img src="./_images/paypal_payment_4.png" width="800"/>
+
+Paypal payment buyer account
+<img src="./_images/paypal_payment_5.png" width="800"/>
+
+Paypal payment merchant account
+<img src="./_images/paypal_payment_6.png" width="800"/>
+
+
 
 ### REST APIs
 
