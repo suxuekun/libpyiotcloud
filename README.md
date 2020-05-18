@@ -2030,7 +2030,7 @@ Below are the Post EW2020 Demo and new requirements:
     28. [DONE] Backend logging solution using custom Python script (sufficient for now)
     29. [DONE] Multiple organizations
     30. [DONE] Policies management for Organization feature
-    31. [DONE] Paypal payment recurring payments
+    31. [DONE] Paypal payment recurring payments for 3/6/12 months monthly subscription
 
     32. Access Control for all APIs based on assigned Roles (RBAC)
     33. GET/SET PROPERTIES cache
