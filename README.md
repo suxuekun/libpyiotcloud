@@ -2013,22 +2013,23 @@ Below are the Post EW2020 Demo and new requirements:
     28. [DONE] Backend logging solution using custom Python script (sufficient for now)
     29. [DONE] Multiple organizations
     30. [DONE] Policies management for Organization feature
+    31. [DONE] Paypal payment recurring payments
 
-    31. Access Control for all APIs based on assigned Roles (RBAC)
-    32. GET/SET PROPERTIES cache
-    33. New payment model (monthly, add-on)
-    34. Highly-customizable dashboard
-    35. Dashboard usage-related info
-    36. Dashboard overlay charts from different sensors from same or other devices
-    37. Business Intelligence integration with Microsoft PowerBI (or Tableau, Qlik)
-    38. Write regression tester
-    39. Microservices documentation
-    40. Databases documentation
-    41. Swagger REST API documentation
-    42. Optimize MongoDB calls (utilize Redis, query by username or deviceid instead of by sensors if possible)
-    43. Apache Hadoop integration using Amazon EMR for legit BigData database (instead of MongoDB Atlas)
-    44. "L"ambda function integration for MENLOS for custom messaging/notifications (support both Python 3, NodeJS)
-    45. IFTTT integration. (requires OAuth2 server and APIs implemented for triggers "if this" and actions "then-that" )
-    46. Clustering of RabbitMQ and REST APIs... (study federation/shovel, clustering is for LAN, federation/shovel is for WAN)
-    47. Update the Kubernetes support (a number of microservices has been added since then).
+    32. Access Control for all APIs based on assigned Roles (RBAC)
+    33. GET/SET PROPERTIES cache
+    34. New payment model (monthly, add-on)
+    35. Highly-customizable dashboard
+    36. Dashboard usage-related info
+    37. Dashboard overlay charts from different sensors from same or other devices
+    38. Business Intelligence integration with Microsoft PowerBI (or Tableau, Qlik)
+    39. Write regression tester
+    40. Microservices documentation
+    41. Databases documentation
+    42. Swagger REST API documentation
+    43. Optimize MongoDB calls (utilize Redis, query by username or deviceid instead of by sensors if possible)
+    44. Apache Hadoop integration using Amazon EMR for legit BigData database (instead of MongoDB Atlas)
+    45. "L"ambda function integration for MENLOS for custom messaging/notifications (support both Python 3, NodeJS)
+    46. IFTTT integration. (requires OAuth2 server and APIs implemented for triggers "if this" and actions "then-that" )
+    47. Clustering of RabbitMQ and REST APIs... (study federation/shovel, clustering is for LAN, federation/shovel is for WAN)
+    48. Update the Kubernetes support (a number of microservices has been added since then).
 
