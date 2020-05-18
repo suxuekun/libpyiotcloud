@@ -2,8 +2,7 @@
 
 nginx/src_prod/cert/cert.pem
 nginx/src_prod/cert/pkey.pem
-aws-config.sh
-aws-config-old.sh
+*.sh
 _device_simulator/__pycache__
 _device_simulator/node_modules
 _device_simulator/package-lock.json
