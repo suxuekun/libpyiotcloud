@@ -225,6 +225,7 @@ Below are tools and utilities being used:
 - <b>OpenSSL</b> cryptography (X509 certificates) - https://www.openssl.org/
 - <b>Postman</b> (API testing tool) - https://www.getpostman.com/
 - <b>LucidChart</b> UML design diagrams - https://www.lucidchart.com/
+- <b>ProjectLibre</b> Gantt Chart project management for task estimation/scheduling - https://www.projectlibre.com/
 
 
 ### High-level architecture diagram:
