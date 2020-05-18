@@ -346,7 +346,7 @@ class payment_accounting:
                 try:
                     pubtopic = CONFIG_PREPEND_REPLY_TOPIC + CONFIG_SEPARATOR + paymentid + CONFIG_SEPARATOR + "send_invoice"
                     payload  = json.dumps({})
-                    g_messaging_client.publish(pubtopic, payload)
+                    self.messaging_client.publish(pubtopic, payload)
                     #print("publish xxxxxxxxxxxxx")
                 except:
                     pass
