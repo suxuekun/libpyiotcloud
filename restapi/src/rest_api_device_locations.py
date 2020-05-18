@@ -23,6 +23,7 @@ from flask_api import status
 #from redis_client import redis_client
 #import statistics
 import rest_api_utils
+from database import database_categorylabel, database_crudindex
 
 
 
@@ -88,6 +89,11 @@ class device_locations:
         # get entity using the active organization
         orgname, orgid = self.database_client.get_active_organization(username)
         if orgname is not None:
+            # check authorization
+            if self.database_client.is_authorized(username, orgname, orgid, database_categorylabel.DEVICES, database_crudindex.READ) == False:
+                response = json.dumps({'status': 'NG', 'message': 'Authorization failed! User is not allowed to access resource. Please check with the organization owner regarding policies assigned.'})
+                print('\r\nERROR Get Devices Locations: Authorization not allowed [{}]\r\n'.format(username))
+                return response, status.HTTP_401_UNAUTHORIZED
             # has active organization
             entityname = "{}.{}".format(orgname, orgid)
         else:
@@ -187,6 +193,13 @@ class device_locations:
 
 
         if flask.request.method == 'POST':
+            if orgname is not None:
+                # check authorization
+                if self.database_client.is_authorized(username, orgname, orgid, database_categorylabel.DEVICES, database_crudindex.UPDATE) == False:
+                    response = json.dumps({'status': 'NG', 'message': 'Authorization failed! User is not allowed to access resource. Please check with the organization owner regarding policies assigned.'})
+                    print('\r\nERROR Set Devices Locations: Authorization not allowed [{}]\r\n'.format(username))
+                    return response, status.HTTP_401_UNAUTHORIZED
+
             # check if new device name is already registered
             data = flask.request.get_json()
             if data.get("locations") is None:
@@ -210,6 +223,13 @@ class device_locations:
             return response
 
         elif flask.request.method == 'DELETE':
+            if orgname is not None:
+                # check authorization
+                if self.database_client.is_authorized(username, orgname, orgid, database_categorylabel.DEVICES, database_crudindex.DELETE) == False:
+                    response = json.dumps({'status': 'NG', 'message': 'Authorization failed! User is not allowed to access resource. Please check with the organization owner regarding policies assigned.'})
+                    print('\r\nERROR Delete Devices Locations: Authorization not allowed [{}]\r\n'.format(username))
+                    return response, status.HTTP_401_UNAUTHORIZED
+
             # delete devices location for all devices of the user
             self.database_client.delete_devices_location(entityname)
 
@@ -272,6 +292,11 @@ class device_locations:
         # get entity using the active organization
         orgname, orgid = self.database_client.get_active_organization(username)
         if orgname is not None:
+            # check authorization
+            if self.database_client.is_authorized(username, orgname, orgid, database_categorylabel.DEVICES, database_crudindex.READ) == False:
+                response = json.dumps({'status': 'NG', 'message': 'Authorization failed! User is not allowed to access resource. Please check with the organization owner regarding policies assigned.'})
+                print('\r\nERROR Get Device Location: Authorization not allowed [{}]\r\n'.format(username))
+                return response, status.HTTP_401_UNAUTHORIZED
             # has active organization
             entityname = "{}.{}".format(orgname, orgid)
         else:
@@ -379,6 +404,13 @@ class device_locations:
 
 
         if flask.request.method == 'POST':
+            if orgname is not None:
+                # check authorization
+                if self.database_client.is_authorized(username, orgname, orgid, database_categorylabel.DEVICES, database_crudindex.UPDATE) == False:
+                    response = json.dumps({'status': 'NG', 'message': 'Authorization failed! User is not allowed to access resource. Please check with the organization owner regarding policies assigned.'})
+                    print('\r\nERROR Set Device Location: Authorization not allowed [{}]\r\n'.format(username))
+                    return response, status.HTTP_401_UNAUTHORIZED
+
             # check if new device name is already registered
             data = flask.request.get_json()
             if data.get("latitude") is None or data.get("longitude") is None:
@@ -400,6 +432,13 @@ class device_locations:
             return response
 
         elif flask.request.method == 'DELETE':
+            if orgname is not None:
+                # check authorization
+                if self.database_client.is_authorized(username, orgname, orgid, database_categorylabel.DEVICES, database_crudindex.DELETE) == False:
+                    response = json.dumps({'status': 'NG', 'message': 'Authorization failed! User is not allowed to access resource. Please check with the organization owner regarding policies assigned.'})
+                    print('\r\nERROR Delete Device Location: Authorization not allowed [{}]\r\n'.format(username))
+                    return response, status.HTTP_401_UNAUTHORIZED
+
             # delete the location from database
             self.database_client.delete_device_location(entityname, devicename)
 

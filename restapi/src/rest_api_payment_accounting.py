@@ -23,6 +23,7 @@ from jose import jwk, jwt
 #from redis_client import redis_client
 #import statistics
 import rest_api_utils
+from database import database_categorylabel, database_crudindex
 
 
 
@@ -38,6 +39,7 @@ class payment_accounting:
         self.database_client = database_client
         self.messaging_client = messaging_client
         self.redis_client = redis_client
+
 
     def compute_credits_by_amount(self, amount):
         return int(amount * 100)
@@ -98,6 +100,11 @@ class payment_accounting:
         # get entity using the active organization
         orgname, orgid = self.database_client.get_active_organization(username)
         if orgname is not None:
+            # check authorization
+            if self.database_client.is_authorized(username, orgname, orgid, database_categorylabel.PAYMENTS, database_crudindex.READ) == False:
+                response = json.dumps({'status': 'NG', 'message': 'Authorization failed! User is not allowed to access resource. Please check with the organization owner regarding policies assigned.'})
+                print('\r\nERROR Get Subscription: Authorization not allowed [{}]\r\n'.format(username))
+                return response, status.HTTP_401_UNAUTHORIZED
             # has active organization
             entityname = "{}.{}".format(orgname, orgid)
         else:
@@ -181,6 +188,11 @@ class payment_accounting:
         # get entity using the active organization
         orgname, orgid = self.database_client.get_active_organization(username)
         if orgname is not None:
+            # check authorization
+            if self.database_client.is_authorized(username, orgname, orgid, database_categorylabel.PAYMENTS, database_crudindex.UPDATE) == False:
+                response = json.dumps({'status': 'NG', 'message': 'Authorization failed! User is not allowed to access resource. Please check with the organization owner regarding policies assigned.'})
+                print('\r\nERROR Paypal Setup: Authorization not allowed [{}]\r\n'.format(username))
+                return response, status.HTTP_401_UNAUTHORIZED
             # has active organization
             entityname = "{}.{}".format(orgname, orgid)
         else:
@@ -308,6 +320,11 @@ class payment_accounting:
         # get entity using the active organization
         orgname, orgid = self.database_client.get_active_organization(username)
         if orgname is not None:
+            # check authorization
+            if self.database_client.is_authorized(username, orgname, orgid, database_categorylabel.PAYMENTS, database_crudindex.UPDATE) == False:
+                response = json.dumps({'status': 'NG', 'message': 'Authorization failed! User is not allowed to access resource. Please check with the organization owner regarding policies assigned.'})
+                print('\r\nERROR Paypal Execute: Authorization not allowed [{}]\r\n'.format(username))
+                return response, status.HTTP_401_UNAUTHORIZED
             # has active organization
             entityname = "{}.{}".format(orgname, orgid)
         else:
@@ -422,6 +439,11 @@ class payment_accounting:
         # get entity using the active organization
         orgname, orgid = self.database_client.get_active_organization(username)
         if orgname is not None:
+            # check authorization
+            if self.database_client.is_authorized(username, orgname, orgid, database_categorylabel.PAYMENTS, database_crudindex.READ) == False:
+                response = json.dumps({'status': 'NG', 'message': 'Authorization failed! User is not allowed to access resource. Please check with the organization owner regarding policies assigned.'})
+                print('\r\nERROR Paypal Verify: Authorization not allowed [{}]\r\n'.format(username))
+                return response, status.HTTP_401_UNAUTHORIZED
             # has active organization
             entityname = "{}.{}".format(orgname, orgid)
         else:
@@ -504,6 +526,11 @@ class payment_accounting:
         # get entity using the active organization
         orgname, orgid = self.database_client.get_active_organization(username)
         if orgname is not None:
+            # check authorization
+            if self.database_client.is_authorized(username, orgname, orgid, database_categorylabel.PAYMENTS, database_crudindex.READ) == False:
+                response = json.dumps({'status': 'NG', 'message': 'Authorization failed! User is not allowed to access resource. Please check with the organization owner regarding policies assigned.'})
+                print('\r\nERROR Paypal Get Transactions: Authorization not allowed [{}]\r\n'.format(username))
+                return response, status.HTTP_401_UNAUTHORIZED
             # has active organization
             entityname = "{}.{}".format(orgname, orgid)
         else:
@@ -581,6 +608,11 @@ class payment_accounting:
         # get entity using the active organization
         orgname, orgid = self.database_client.get_active_organization(username)
         if orgname is not None:
+            # check authorization
+            if self.database_client.is_authorized(username, orgname, orgid, database_categorylabel.PAYMENTS, database_crudindex.READ) == False:
+                response = json.dumps({'status': 'NG', 'message': 'Authorization failed! User is not allowed to access resource. Please check with the organization owner regarding policies assigned.'})
+                print('\r\nERROR Paypal Get Transaction: Authorization not allowed [{}]\r\n'.format(username))
+                return response, status.HTTP_401_UNAUTHORIZED
             # has active organization
             entityname = "{}.{}".format(orgname, orgid)
         else:

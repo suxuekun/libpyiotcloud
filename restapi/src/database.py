@@ -19,6 +19,19 @@ class database_models:
     AWSCOGNITO = 1
     POSTGRESQL = 2
 
+class database_categorylabel:
+
+    DEVICES    = 0
+    DASHBOARDS = 1
+    PAYMENTS   = 2
+
+class database_crudindex:
+
+    CREATE = 0
+    READ   = 1
+    UPDATE = 2
+    DELETE = 3
+
 policy_labels = ["devices", "dashboards", "payments"]
 
 
@@ -819,6 +832,10 @@ class database_client:
 
     def remove_member_from_organization_group(self, username, orgname, orgid, groupname, membername):
         return self._devices.remove_member_from_organization_group(username, orgname, orgid, groupname, membername)
+
+
+    def is_authorized(self, username, orgname, orgid, categorylabel, crudindex):
+        return self._devices.is_authorized(username, orgname, orgid, policy_labels[categorylabel], crudindex)
 
 
     ##########################################################
@@ -3623,14 +3640,15 @@ class database_client_mongodb:
     def get_organizations_groups_document(self):
         return self.client[config.CONFIG_MONGODB_TB_ORGANIZATIONS_GROUPS]
 
-    def get_organization_groups(self, username, orgname, orgid):
-        ###
-        user = self.get_user_organization(username, orgname=orgname, orgid=orgid, complete=True)
-        ###
-        if user is None:
-            return False, 401 # HTTP_401_UNAUTHORIZED
-        if user["membership"] != "Owner" or user["orgname"] != orgname:
-            return False, 401 # HTTP_401_UNAUTHORIZED
+    def get_organization_groups(self, username, orgname, orgid, check=True):
+        if check == True:
+            ###
+            user = self.get_user_organization(username, orgname=orgname, orgid=orgid, complete=True)
+            ###
+            if user is None:
+                return False, 401 # HTTP_401_UNAUTHORIZED
+            if user["membership"] != "Owner" or user["orgname"] != orgname:
+                return False, 401 # HTTP_401_UNAUTHORIZED
 
         group_list = []
         organizations_groups = self.get_organizations_groups_document()
@@ -3955,6 +3973,73 @@ class database_client_mongodb:
         return True, None
 
 
+    def is_authorized(self, username, orgname, orgid, category, crudindex):
+
+        ###
+        user = self.get_user_organization(username, orgname=orgname, orgid=orgid, complete=True)
+        ###
+        if user is None:
+            return False
+        if user["membership"] == "Owner":
+            # check if user is the owner
+            print("is_authorized: Owner")
+            return True
+
+        # get the group of the user in the organization
+        print("is_authorized: get the group of the user in the organization")
+        found = None
+        groups = self.get_organization_groups(username, orgname, orgid, check=False)
+        for group in groups:
+            if username in group["members"]:
+                found = group
+                break
+
+        if found is None:
+            print("is_authorized: user is not part of any group, so ReadOnly by default")
+            # user is not part of any group, so ReadOnly by default
+            return True if crudindex == database_crudindex.READ else False
+
+        if len(found["policies"]) == 0:
+            # if no policy for the group, that is, user removed the default ReadOnly policy, enforce ReadOnly policy
+            print("is_authorized: if no policy for the group, that is, user removed the default ReadOnly policy, enforce ReadOnly policy")
+            return True if crudindex == database_crudindex.READ else False
+        elif len(found["policies"]) == 1:
+            # for optimization, check if policy is ReadOnly only
+            policyname = found["policies"][0]
+            print("is_authorized: single policy {}".format(policyname))
+
+            #if policyname == "ReadOnly":
+            #    print("is_authorized: for optimization, check if policy is ReadOnly only {} {}".format(crudindex, database_crudindex.READ))
+            #    return True if crudindex == database_crudindex.READ else False
+
+            # get the policy settings
+            policy = self.get_organization_policy(username, orgname, orgid, policyname, check=False)
+            if policy is None:
+                return True if crudindex == database_crudindex.READ else False
+            for setting in policy["settings"]:
+                if setting["label"] == category:
+                    print("is_authorized: 1 policy {} {}".format(policyname, setting["crud"][crudindex]))
+                    return setting["crud"][crudindex]
+            return True if crudindex == database_crudindex.READ else False
+        else:
+            print("is_authorized: multiple policies {}".format(found["policies"]))
+
+            # for multiple policies, get the union of the policies
+            for policyname in found["policies"]:
+                policy = self.get_organization_policy(username, orgname, orgid, policyname, check=False)
+                if policy is None:
+                    return True if crudindex == database_crudindex.READ else False
+                for setting in policy["settings"]:
+                    if setting["label"] == category:
+                        if setting["crud"][crudindex] == True:
+                            print("is_authorized: True")
+                            return True
+                        else:
+                            break # break the inner loop only
+        print("is_authorized: False")
+        return False
+
+
     ##########################################################
     # default policies
     ##########################################################
@@ -4009,14 +4094,15 @@ class database_client_mongodb:
                 policy_list.append(policy)
         return policy_list
 
-    def get_organization_policy(self, username, orgname, orgid, policyname):
-        ###
-        user = self.get_user_organization(username, orgname=orgname, orgid=orgid, complete=True)
-        ###
-        if user is None:
-            return None
-        if user["membership"] != "Owner" or user["orgname"] != orgname:
-            return None
+    def get_organization_policy(self, username, orgname, orgid, policyname, check=True):
+        if check == True:
+            ###
+            user = self.get_user_organization(username, orgname=orgname, orgid=orgid, complete=True)
+            ###
+            if user is None:
+                return None
+            if user["membership"] != "Owner" or user["orgname"] != orgname:
+                return None
 
         organizations_policies = self.get_organizations_policies_document()
         policy = organizations_policies.find_one({'orgname': orgname, 'orgid': orgid, 'policyname': policyname})

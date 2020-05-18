@@ -23,6 +23,7 @@ from jose import jwk, jwt
 #from redis_client import redis_client
 #import statistics
 import rest_api_utils
+from database import database_categorylabel, database_crudindex
 
 
 
@@ -88,6 +89,11 @@ class device_groups:
         # get entity using the active organization
         orgname, orgid = self.database_client.get_active_organization(username)
         if orgname is not None:
+            # check authorization
+            if self.database_client.is_authorized(username, orgname, orgid, database_categorylabel.DEVICES, database_crudindex.READ) == False:
+                response = json.dumps({'status': 'NG', 'message': 'Authorization failed! User is not allowed to access resource. Please check with the organization owner regarding policies assigned.'})
+                print('\r\nERROR Get Device Groups: Authorization not allowed [{}]\r\n'.format(username))
+                return response, status.HTTP_401_UNAUTHORIZED
             # has active organization
             entityname = "{}.{}".format(orgname, orgid)
         else:
@@ -198,6 +204,12 @@ class device_groups:
 
 
         if flask.request.method == 'GET':
+            if orgname is not None:
+                # check authorization
+                if self.database_client.is_authorized(username, orgname, orgid, database_categorylabel.DEVICES, database_crudindex.READ) == False:
+                    response = json.dumps({'status': 'NG', 'message': 'Authorization failed! User is not allowed to access resource. Please check with the organization owner regarding policies assigned.'})
+                    print('\r\nERROR Get DeviceGroup: Authorization not allowed [{}]\r\n'.format(username))
+                    return response, status.HTTP_401_UNAUTHORIZED
 
             msg = {'status': 'OK', 'message': 'Device group retrieved successfully.'}
 
@@ -205,7 +217,7 @@ class device_groups:
             msg['devicegroup'] = self.database_client.get_devicegroup(entityname, devicegroupname)
             if msg['devicegroup'] is None:
                 response = json.dumps({'status': 'NG', 'message': 'Device group not found'})
-                print('\r\nERROR Get/Add/Delete DeviceGroup: Device group not found [{},{}]\r\n'.format(entityname, devicegroupname))
+                print('\r\nERROR Get DeviceGroup: Device group not found [{},{}]\r\n'.format(entityname, devicegroupname))
                 return response, status.HTTP_404_NOT_FOUND
 
             # update the devicenames to be deviceids
@@ -217,11 +229,17 @@ class device_groups:
             msg['devicegroup']['devices'] = devicenames
 
         elif flask.request.method == 'POST':
+            if orgname is not None:
+                # check authorization
+                if self.database_client.is_authorized(username, orgname, orgid, database_categorylabel.DEVICES, database_crudindex.CREATE) == False:
+                    response = json.dumps({'status': 'NG', 'message': 'Authorization failed! User is not allowed to access resource. Please check with the organization owner regarding policies assigned.'})
+                    print('\r\nERROR Add DeviceGroup: Authorization not allowed [{}]\r\n'.format(username))
+                    return response, status.HTTP_401_UNAUTHORIZED
 
             # check device group if exist
             if self.database_client.get_devicegroup(entityname, devicegroupname) is not None:
                 response = json.dumps({'status': 'NG', 'message': 'Device group name is already used'})
-                print('\r\nERROR Get/Add/Delete DeviceGroup: Name is already used [{},{}]\r\n'.format(entityname, devicegroupname))
+                print('\r\nERROR Add DeviceGroup: Name is already used [{},{}]\r\n'.format(entityname, devicegroupname))
                 return response, status.HTTP_409_CONFLICT
 
             # create device group
@@ -229,11 +247,17 @@ class device_groups:
             self.database_client.add_devicegroup(entityname, devicegroupname)
 
         elif flask.request.method == 'DELETE':
+            if orgname is not None:
+                # check authorization
+                if self.database_client.is_authorized(username, orgname, orgid, database_categorylabel.DEVICES, database_crudindex.DELETE) == False:
+                    response = json.dumps({'status': 'NG', 'message': 'Authorization failed! User is not allowed to access resource. Please check with the organization owner regarding policies assigned.'})
+                    print('\r\nERROR Delete DeviceGroup: Authorization not allowed [{}]\r\n'.format(username))
+                    return response, status.HTTP_401_UNAUTHORIZED
 
             # check device group if exist
             if self.database_client.get_devicegroup(entityname, devicegroupname) is None:
                 response = json.dumps({'status': 'NG', 'message': 'Device group not found'})
-                print('\r\nERROR Get/Add/Delete DeviceGroup: Device group not found [{},{}]\r\n'.format(entityname, devicegroupname))
+                print('\r\nERROR Delete DeviceGroup: Device group not found [{},{}]\r\n'.format(entityname, devicegroupname))
                 return response, status.HTTP_404_NOT_FOUND
 
             # delete device group
@@ -298,6 +322,11 @@ class device_groups:
         # get entity using the active organization
         orgname, orgid = self.database_client.get_active_organization(username)
         if orgname is not None:
+            # check authorization
+            if self.database_client.is_authorized(username, orgname, orgid, database_categorylabel.DEVICES, database_crudindex.UPDATE) == False:
+                response = json.dumps({'status': 'NG', 'message': 'Authorization failed! User is not allowed to access resource. Please check with the organization owner regarding policies assigned.'})
+                print('\r\nERROR Update Device Group Name: Authorization not allowed [{}]\r\n'.format(username))
+                return response, status.HTTP_401_UNAUTHORIZED
             # has active organization
             entityname = "{}.{}".format(orgname, orgid)
         else:
@@ -402,6 +431,11 @@ class device_groups:
         # get entity using the active organization
         orgname, orgid = self.database_client.get_active_organization(username)
         if orgname is not None:
+            # check authorization
+            if self.database_client.is_authorized(username, orgname, orgid, database_categorylabel.DEVICES, database_crudindex.UPDATE) == False:
+                response = json.dumps({'status': 'NG', 'message': 'Authorization failed! User is not allowed to access resource. Please check with the organization owner regarding policies assigned.'})
+                print('\r\nERROR Add/Delete Device To/From DeviceGroup: Authorization not allowed [{}]\r\n'.format(username))
+                return response, status.HTTP_401_UNAUTHORIZED
             # has active organization
             entityname = "{}.{}".format(orgname, orgid)
         else:
@@ -497,6 +531,11 @@ class device_groups:
         # get entity using the active organization
         orgname, orgid = self.database_client.get_active_organization(username)
         if orgname is not None:
+            # check authorization
+            if self.database_client.is_authorized(username, orgname, orgid, database_categorylabel.DEVICES, database_crudindex.UPDATE) == False:
+                response = json.dumps({'status': 'NG', 'message': 'Authorization failed! User is not allowed to access resource. Please check with the organization owner regarding policies assigned.'})
+                print('\r\nERROR Add/Delete Device To/From DeviceGroup: Authorization not allowed [{}]\r\n'.format(username))
+                return response, status.HTTP_401_UNAUTHORIZED
             # has active organization
             entityname = "{}.{}".format(orgname, orgid)
         else:

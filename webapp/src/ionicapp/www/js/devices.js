@@ -42,6 +42,10 @@ angular.module('devices', [])
                             Token.refresh(userdata);
                             //$ionicPopup.alert({ title: 'Error', template: 'Token expired!', buttons: [{text: 'OK', type: 'button-assertive'}] });
                         }
+                        else if (error.status == 401 && error.data.message.includes('Please check with the organization owner') === true ) {
+                            $ionicPopup.alert({ title: 'Error', template: error.data.message, buttons: [{text: 'OK', type: 'button-assertive'}] });
+                        }         
+                        
                     }
                     else {
                         console.log("ERROR: Server is down!"); 
@@ -83,6 +87,9 @@ angular.module('devices', [])
                             Token.refresh(userdata);
                             //$ionicPopup.alert({ title: 'Error', template: 'Token expired!', buttons: [{text: 'OK', type: 'button-assertive'}] });
                         }
+                        else if (error.status == 401 && error.data.message.includes('Please check with the organization owner') === true ) {
+                            $ionicPopup.alert({ title: 'Error', template: error.data.message, buttons: [{text: 'OK', type: 'button-assertive'}] });
+                        }         
                     }
                     else {
                         console.log("ERROR: Server is down!"); 
