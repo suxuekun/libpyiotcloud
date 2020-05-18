@@ -1987,43 +1987,43 @@ Below are security features by backend for device connectivity and frontend conn
 # Youtube screen recordings
 
 1.  IoT Portal EW2020 demo stress test with device simulators
-	https://www.youtube.com/watch?v=xkrd0WblCaI
+    https://www.youtube.com/watch?v=xkrd0WblCaI
 2.  IoT Portal demo google maps
-	https://www.youtube.com/watch?v=QCfKW3920vI
+    https://www.youtube.com/watch?v=QCfKW3920vI
 3.  IoT Portal demo login with facebook, google, amazon
-	https://www.youtube.com/watch?v=RC_CiUj8W5s
+    https://www.youtube.com/watch?v=RC_CiUj8W5s
 4.  IoT Portal demo google maps move device markers
-	https://www.youtube.com/watch?v=PngyKmgQ7Cs
+    https://www.youtube.com/watch?v=PngyKmgQ7Cs
 5.  IoT Portal demo ota firmware update with device simulator
-	https://www.youtube.com/watch?v=pWtfvcHW0Ho
+    https://www.youtube.com/watch?v=pWtfvcHW0Ho
 6.  IoT Portal demo paypal payment
-	https://www.youtube.com/watch?v=IGGst_aGHfw
+    https://www.youtube.com/watch?v=IGGst_aGHfw
 7.  IoT Portal demo ota firmware update offlinedevices and devicefleet
-	https://www.youtube.com/watch?v=ZZNlmFEPPTg
+    https://www.youtube.com/watch?v=ZZNlmFEPPTg
 8.  IoT Portal demo storage for menos
-	https://www.youtube.com/watch?v=ObWsEfADTi0
+    https://www.youtube.com/watch?v=ObWsEfADTi0
 9.  IoT Portal demo dashboard
-	https://www.youtube.com/watch?v=cx_AiyG4aDM
+    https://www.youtube.com/watch?v=cx_AiyG4aDM
 10. IoT Portal demo dashboard with time range
-	https://www.youtube.com/watch?v=xg88WW7UkAo
+    https://www.youtube.com/watch?v=xg88WW7UkAo
 11. IoT Portal demo device groups
-	https://www.youtube.com/watch?v=NMFiBhFnmCc
+    https://www.youtube.com/watch?v=NMFiBhFnmCc
 12. IoT Portal demo login with multi-factor authentication (MFA)
-	https://www.youtube.com/watch?v=_bSppoJqgdc
+    https://www.youtube.com/watch?v=_bSppoJqgdc
 13. IoT Portal demo dashboard with dougnut charts
-	https://www.youtube.com/watch?v=1VNFLBg30-w
+    https://www.youtube.com/watch?v=1VNFLBg30-w
 14. IoT Portal demo device hierarchy charts using D3.js
-	https://www.youtube.com/watch?v=-SxLFtULwOc
+    https://www.youtube.com/watch?v=-SxLFtULwOc
 15. IoT Portal demo organizations users
-	https://www.youtube.com/watch?v=Hk1-3qi2Ok8
+    https://www.youtube.com/watch?v=Hk1-3qi2Ok8
 16. IoT Portal demo organizations groups
-	https://www.youtube.com/watch?v=vFWb-CcLJOI
+    https://www.youtube.com/watch?v=vFWb-CcLJOI
 17. IoT Portal demo multiple organizations
-	https://www.youtube.com/watch?v=YId8GmpC1dk&t=7s
+    https://www.youtube.com/watch?v=YId8GmpC1dk&t=7s
 18. IoT Portal demo organization policies
-	https://www.youtube.com/watch?v=cJG0VGHoLug
+    https://www.youtube.com/watch?v=cJG0VGHoLug
 19. IoT Portal demo multiple organizations resources
-	https://www.youtube.com/watch?v=k35sWhx6SL4
+    https://www.youtube.com/watch?v=k35sWhx6SL4
 
 
 
