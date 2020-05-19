@@ -228,6 +228,7 @@ Below are tools and utilities being used:
 - <b>Postman</b> (API testing tool) - https://www.getpostman.com/
 - <b>LucidChart</b> UML design diagrams - https://www.lucidchart.com/
 - <b>ProjectLibre</b> Gantt Chart project management for task estimation/scheduling - https://www.projectlibre.com/
+- <b>TeamViewer</b> Remote Desktop for helping team for debugging issues - https://www.teamviewer.com/en/
 
 
 ### High-level architecture diagram:
