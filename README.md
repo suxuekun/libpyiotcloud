@@ -746,8 +746,8 @@ Note: Using Kubernetes will also change the infrastracture.
        export PAYPAL_CLIENT_SECRET=""
        
     2. Build and execute Docker-compose file
-       docker-compose build
-       docker-compose up
+       docker-compose build // To rebuild from scratch, add "--no-cache"
+       docker-compose up // To run asynchronously as daemon, add "-d"
     3. Test by browsing https://192.168.99.100 or https://<aws_ec2_hostname> or https://<aws_ec2_ip>
     
 
@@ -1165,7 +1165,7 @@ Note: Using Kubernetes will also change the infrastracture.
        
        // Docker run
        docker-compose -f docker-compose.yml config
-       docker-compose build
+       docker-compose build OR docker-compose build --no-cache
        docker-compose up OR docker-compose up -d
        
        // Docker stop
@@ -1514,10 +1514,16 @@ Note: Using Kubernetes will also change the infrastracture.
 
         docker-compose -f docker-compose.yml config
         docker-compose build
+        docker-compose build --no-cache // build from scratch, note: takes too long
         docker-compose up
         docker-compose up -d // run as daemon
         docker-compose ps
         docker-compose down
+        docker-compose rm
+
+        docker image ls
+        docker image rm libpyiotcloud_rabbitmq // remove the rabbitmq image
+        docker-compose build rabbitmq // build the rabbitmq container only
 
 
 ### Ionic Web/Mobile apps
@@ -1890,11 +1896,16 @@ Notes:
         sudo service docker start
 
         Cant stop a container?
-        docker stop container_name
-        docker rm container_name
-        docker kill container_name
-        sudo service docker stop
-        sudo service docker start
+        - docker stop container_name
+        - docker rm container_name
+        - docker kill container_name
+        - sudo service docker stop
+        - sudo service docker start
+
+        Restart a container?
+        - docker image ls
+        - docker image rm libpyiotcloud_rabbitmq // remove the rabbitmq image
+        - docker-compose build rabbitmq // build the rabbitmq container only
 
         RabbitMQ message queue
         - Use the Web interface (via HTTP)
