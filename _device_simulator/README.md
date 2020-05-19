@@ -26,7 +26,7 @@ This page contains a step-by-step tutorial on <b>how to use the IoT Portal</b> i
     <img src="../_images/tutorial_adddevice_4.png" width="600"/>
 
     Copy the DEVICE ID by double clicking on it and typing Ctrl+C.
-    
+
 
 3. Set the DEVICE_ID, DEVICE_SERIAL, DEVICE_MACADD and DEVICE_SECRETKEY on the device then run it.
 
@@ -48,8 +48,6 @@ This page contains a step-by-step tutorial on <b>how to use the IoT Portal</b> i
 
 1. Install the latest Python 3.X.X from https://www.python.org/downloads/
 
-    <img src="../_images/device_simulator_py.png" width="600"/>
-
     After installation, open a command prompt and type "Python". You should see the version of the "Python" installed.
     Note that I'm using Python 3.6.6.
 
@@ -68,20 +66,10 @@ This page contains a step-by-step tutorial on <b>how to use the IoT Portal</b> i
 
    NOTE: To get a DEVICE_ID, DEVICE_SERIAL, DEVICE_MACADD, you must first register a device in the IoT Portal.
 
-    <img src="../_images/device_simulator_deviceid_py.png" width="600"/>
+    <img src="../_images/device_simulator_py.png" width="600"/>
 
-2. Update USER and PASS in <b>device_simulator.py.bat</b> (or device_simulator.py.sh for Linux/MacOS)
 
-    <b> NOTE: After implementing additional security measures in the backend, device also needs to provide the MQTT username and MQTT password with the UUID and SerialNumber, respectively. </b>
-
-    - DEVICE_ID = UUID
-    - USER = UUID
-    - PASS = Serial Number
-    - HOST = Use prod or dev hostname
-
-3. Run <b>device_simulator.py.bat</b> (or device_simulator.py.sh for Linux/MacOS)
-
-    <img src="../_images/device_simulator_bootup_py.png" width="600"/>
+2. Run <b>device_simulator.py.bat</b> (or device_simulator.py.sh for Linux/MacOS)
 
 
 
