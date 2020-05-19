@@ -1,6 +1,6 @@
 # User Guide:
 
-This page contains a tutorial on <b>how to use setup and run the device simulators</b> in Windows or Linux/MacOS. 
+This page contains a tutorial on <b>how to setup and run the device simulators</b> in Windows or Linux/MacOS. 
 
 1. Access the IoT portal, create an account and login.
 2. <b>Register a device</b> and then copy the DEVICE_ID, DEVICE_SERIAL, DEVICE_MACADD.
