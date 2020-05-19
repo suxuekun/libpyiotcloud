@@ -27,7 +27,7 @@ This page contains a tutorial on <b>how to use setup and run the device simulato
 
     <img src="../_images/device_simulator_py.png" width="600"/>
 
-2. Dont forget to update HOST and DEVICE_SECRETKEY.
+2. Dont forget to update HOST and DEVICE_SECRETKEY. Please ask @Richmond for the DEVICE_SECRETKEY.
 
 3. Run <b>device_simulator.py.bat</b> (or device_simulator.py.sh for Linux/MacOS)
 
