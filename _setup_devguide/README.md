@@ -4195,6 +4195,11 @@ DETAILED:
 		   // device should probably add 1 second to accomodate any transmission delay
 
 
+## REST API Documentation (for frontend web/mobile team)
+
+Refer to https://github.com/richmondu/libpyiotcloud/blob/dev/_setup_devguide/README_rest_api.md
+
+
 ## Device Simulator
 
 Refer to https://github.com/richmondu/libpyiotcloud/tree/dev/_device_simulator
