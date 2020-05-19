@@ -31,45 +31,57 @@ This page contains a step-by-step tutorial on <b>how to use the IoT Portal</b> i
     The IoT portal can be accessed in 4 ways:
     
     - Via <b>webapp</b> https://richmondu.com
+
         <img src="../_images/iotportal_website.png" width="600"/>
     
     - Via <b>Android mobile app</b> - Install the latest APK: https://github.com/richmondu/libpyiotcloud/tree/master/_android_app
+
         <img src="../_images/ui_androidemulator.png" width="600"/>
         
     - Via <b>Ionic Creator mobile app simulators</b> https://creator.ionic.io/share/8f86e2005ba5
+
         <img src="../_images/iotportal_mobilesimulators.png" width="600"/>
     
     - Via <b>Ionic Creator mobile app</b> from Apple App Store or Google Play - Use code: <b>B26EB3</b>
+
         <img src="../_images/iotportal_ioniccreatorapp.png" width="600"/>
 
 
 1. Create an account and login.
 
     <img src="../_images/tutorial_signuplogin.png" width="600"/>
+
     Click on "No account yet? Get started for free" link to create an account.
 
     <img src="../_images/tutorial_signuplogin_2.png" width="600"/>
+
     Input the details. Username can be same as email. Note that a confirmation code will be sent to your email.
 
     <img src="../_images/tutorial_signuplogin_3.png" width="600"/>
+
     Input the 6-digit code sent to your email.
 
     <img src="../_images/tutorial_signuplogin_4.png" width="600"/>
+
     You can now login using your specified username and password.
 
 
 2. Register a device (Registering a device will return a unique DEVICE_ID).
 
     <img src="../_images/tutorial_adddevice.png" width="600"/>
+
     To add a device, click on the "+" button on the top right of the window.
 
     <img src="../_images/tutorial_adddevice_2.png" width="600"/>
+
     Type a name for the device. Ex. "Smart Device 1"
 
     <img src="../_images/tutorial_adddevice_3.png" width="600"/>
+
     Wait for the device to be registered. A popup up window will appear that the device has been registered.
 
     <img src="../_images/tutorial_adddevice_4.png" width="600"/>
+
     Copy the DEVICE ID by double clicking on it and typing Ctrl+C.
     
 
