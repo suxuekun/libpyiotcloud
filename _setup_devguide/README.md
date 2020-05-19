@@ -1,9 +1,7 @@
 # Developer Guide
 
 
-#### Device Simulator (for all teams)
-
-https://github.com/richmondu/libpyiotcloud/tree/dev/_device_simulator
+#### [Device Simulator](https://github.com/richmondu/libpyiotcloud/tree/dev/_device_simulator) (for all teams)
 
 
 #### Backend Environment Setup Guide (for backend team)
