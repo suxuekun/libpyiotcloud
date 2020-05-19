@@ -220,6 +220,8 @@ Below are tools and utilities being used:
 - <b>RabbitMQ</b> Management web interface - https://www.rabbitmq.com/management.html
 - <b>Putty</b> SSH application to access AWS EC2 - https://www.putty.org/
 - <b>WinSCP</b> SSH gui application to access AWS EC2 - https://winscp.net/eng/index.php
+- <b>Docker Toolbox</b> Docker installation on Windows - https://docs.docker.com/toolbox/toolbox_install_windows/
+- <b>Kitematic</b> Docker GUI - https://kitematic.com/
 - <b>Ionic Creator</b> - https://creator.ionic.io
 - <b>Android Studio</b> (Building Ionic webapp to Androidapp) - https://developer.android.com/studio
 - <b>OpenSSL</b> cryptography (X509 certificates) - https://www.openssl.org/
