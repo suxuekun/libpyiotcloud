@@ -4195,7 +4195,12 @@ DETAILED:
 		   // device should probably add 1 second to accomodate any transmission delay
 
 
-## Demo Setup Documentation
+## Device Simulator
+
+Refer to https://github.com/richmondu/libpyiotcloud/tree/dev/_device_simulator
+
+
+## Embedded World 2020 Demo Documentation
 
 Refer to https://github.com/richmondu/libpyiotcloud/blob/dev/_setup_devguide/README_embedded_world_2020.md
 
