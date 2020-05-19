@@ -23,13 +23,11 @@ This page contains a tutorial on <b>how to use setup and run the device simulato
 
 ### Run
 
-1. Update DEVICE_ID, DEVICE_SERIAL, DEVICE_MACADD and DEVICE_SECRETKEY in <b>device_simulator.py.bat</b> (or device_simulator.py.sh for Linux/MacOS)
+1. Update DEVICE_ID, DEVICE_SERIAL, DEVICE_MACADD, DEVICE_SECRETKEY and HOST in <b>device_simulator.py.bat</b> (or device_simulator.py.sh for Linux/MacOS)
 
     <img src="../_images/device_simulator_py.png" width="600"/>
 
-2. Dont forget to update HOST and DEVICE_SECRETKEY. Please ask https://github.com/richmondu for the DEVICE_SECRETKEY.
+   Please ask https://github.com/richmondu for the DEVICE_SECRETKEY.
 
-3. Run <b>device_simulator.py.bat</b> (or device_simulator.py.sh for Linux/MacOS)
-
-
+2. Run <b>device_simulator.py.bat</b> (or device_simulator.py.sh for Linux/MacOS)
 
