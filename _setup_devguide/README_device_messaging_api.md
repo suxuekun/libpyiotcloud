@@ -1,4 +1,4 @@
-# Device Firmware Messaging API Documentation
+# MQTTS Device Messaging API Documentation
 
 This is for the firmware developers.
 
