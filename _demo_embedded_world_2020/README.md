@@ -1,4 +1,4 @@
-# Demo Setup Documentation
+# Embedded World 2020 Demo Documentation
 
 Below contains the 4 demo setups for Embedded World 2020 in Germany. 
 
