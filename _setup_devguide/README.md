@@ -76,14 +76,16 @@ Or at the least be able to experiment before proposing new or modified APIs.
 
 		A. Run Docker Toolbox/Desktop as administrator.
 
-		B. Type "git clone https://github.com/richmondu/libpyiotcloud"
+		B. Type "git clone https://github.com/richmondu/libpyiotcloud/tree/dev"
 		   In Mac OS, make sure the folder has permission. Refer to https://stackoverflow.com/questions/16376035/fatal-could-not-create-work-tree-dir-kivy.
+		   1. Update libpyiotcloud\rabbitmq\src\rabbitmq.config
+		   2. Remove libpyiotcloud\rabbitmq\src\rabbitmq-env.conf
 
 		C. Type "docker-machine ip"
 		   Take note of the value as this will be used in the next steps.
 
 
-2. Set the following environment system variables.
+2. Set the environment system variables.
 
 		A. In Linux/MacOS, use <b>export ENVIRONMENT_SYSTEM_VARIABLE="ENVIRONMENT_SYSTEM_VALUE"</b>
 
@@ -96,7 +98,7 @@ Or at the least be able to experiment before proposing new or modified APIs.
 
 		B. Type "docker-compose -f docker-compose.yml config"
 		C. Type "docker-compose build" // To rebuild from scratch, add "--no-cache"
-		D. Type "docker-compose up" // To run asynchronously, add "-d"
+		D. Type "docker-compose up" // To run asynchronously as daemon, add "-d"
 
 		E. Open a browser and browse https://docker-machine_ip // Refer to value of "docker-machine ip"
 
@@ -118,15 +120,24 @@ Or at the least be able to experiment before proposing new or modified APIs.
     <b>PYTHON device simulator</b>
 
 		B. Type "pip install -r requirements.py.txt"
-		
+
 		C. In Windows, update HOST variable in device_simulator.py.bat to the docker-machine ip
 		   In Mac OS,  update HOST variable in device_simulator.py.sh to the docker-machine ip
 		   // Refer to value of "docker-machine ip"
-		   
-		D. In Windows, run device_simulator.py.bat
+		   // In Windows, the default value is 192.168.99.100
+		   // In Mac OS, the default value is 127.0.0.1 or localhost
+
+		D. Open the IoT Portal and register a device. 
+		   // Go to the device page and copy the UUID, Serial Number and MAC Address
+
+		E. Update the following variables in device_simulator.py.bat/device_simulator.py.sh:
+		   // DEVICE_ID, DEVICE_SERIAL, DEVICE_MACADD - these are retrieved from the device registration
+		   // DEVICE_SECRETKEY - please ask me
+
+		F. In Windows, run device_simulator.py.bat
 		   In Mac OS,  run device_simulator.py.sh
-		
-		E. You should see "Device is now ready! ..."
+
+		G. You should see "Device is now ready! ..."
 		   This means the device simulator is now connected to the dockerized backend on local machine.
 
     <b>NODEJS device simulator</b>
