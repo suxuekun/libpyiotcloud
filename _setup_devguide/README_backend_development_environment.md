@@ -1,4 +1,4 @@
-# Backend development environment
+# Backend Environment Setup Guide
 
 Below contains a step-by-step instructions on installing and setting up the backend and frontend web infrastructure of <b>IoT Portal on local machine</b>.
 
