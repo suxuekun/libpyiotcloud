@@ -1,6 +1,11 @@
 # Developer Guide
 
 
+#### Device Simulator (for all teams)
+
+https://github.com/richmondu/libpyiotcloud/tree/dev/_device_simulator
+
+
 #### HTTPS REST API Documentation (for frontend web/mobile team)
 
 https://github.com/richmondu/libpyiotcloud/blob/dev/_setup_devguide/README_rest_api.md
@@ -14,11 +19,6 @@ https://github.com/richmondu/libpyiotcloud/blob/dev/_setup_devguide/README_devic
 #### Backend Environment Setup Guide (for backend team)
 
 https://github.com/richmondu/libpyiotcloud/blob/dev/_setup_devguide/README_backend_development_environment.md
-
-
-#### Device Simulator (for QA and development teams)
-
-https://github.com/richmondu/libpyiotcloud/tree/dev/_device_simulator
 
 
 #### Embedded World 2020 Demo Documentation
