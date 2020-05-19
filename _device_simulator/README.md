@@ -2,9 +2,8 @@
 
 This page contains a tutorial on <b>how to use setup and run the device simulators</b> in Windows or Linux/MacOS. 
 
-0. Access the IoT portal.
-1. Create an account and login.
-2. Register a device (Registering a device will return a unique DEVICE_ID, DEVICE_SERIAL, DEVICE_MACADD).
+1. Access the IoT portal, create an account and login.
+2. <b>Register a device</b> (Registering a device will return a unique DEVICE_ID, DEVICE_SERIAL, DEVICE_MACADD).
 3. Prepare, setup and run the device simulator using the DEVICE_ID, DEVICE_SERIAL, DEVICE_MACADD.
    Use <b>device_simulator.py.bat</b> for Windows or <b>device_simulator.py.sh</b> for Linux/MacOS.
 
