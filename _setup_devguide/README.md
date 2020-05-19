@@ -4197,7 +4197,7 @@ DETAILED:
 
 ## Demo Setup Documentation
 
-Refer to https://github.com/richmondu/libpyiotcloud/tree/dev/_demo_embedded_world_2020
+Refer to https://github.com/richmondu/libpyiotcloud/blob/dev/_setup_devguide/README_embedded_world_2020.md
 
 
 
