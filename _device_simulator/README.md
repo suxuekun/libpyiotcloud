@@ -6,65 +6,20 @@ This page contains a step-by-step tutorial on <b>how to use the IoT Portal</b> i
 
     A. Detailed step-by-step guide with screenshots
         0. Access the IoT portal.
-           a. Via web app https://richmondu.com
-           b. Via Ionic-based Android mobile app - Install APK: https://github.com/richmondu/libpyiotcloud/tree/master/_android_app
-           c. Via Ionic Creator mobile app simulators https://creator.ionic.io/share/8f86e2005ba5
-           d. Via Ionic Creator mobile app from Apple App Store or Google Play - Use code: <b>B26EB3</b>
         1. Create an account and login.
         2. Register a device (Registering a device will return a unique DEVICE_ID).
         3. Set the DEVICE_ID on the device.
         4. Run the device.
-        5. Access and control the device via the IoT portal. (GPIO, RTC, UART, IP/MAC, etc)
-        6. Check device history.
-        7. Test buying credits using Paypal.
-        8. Test username and password recovery.
-        9. Test deleting a device.
     B. Device simulator (Python)
     C. Device simulator (NodeJS)
     D. FT900 device (FT900RevC or IoTModule)
 
 
-# Detailed step-by-step guide with screenshots:
+# Step-by-step guide with screenshots:
 
 0. Access the IoT portal.
-    
-    The IoT portal can be accessed in 4 ways:
-    
-    - Via <b>webapp</b> https://richmondu.com
-
-        <img src="../_images/iotportal_website.png" width="600"/>
-    
-    - Via <b>Android mobile app</b> - Install the latest APK: https://github.com/richmondu/libpyiotcloud/tree/master/_android_app
-
-        <img src="../_images/ui_androidemulator.png" width="600"/>
-        
-    - Via <b>Ionic Creator mobile app simulators</b> https://creator.ionic.io/share/8f86e2005ba5
-
-        <img src="../_images/iotportal_mobilesimulators.png" width="600"/>
-    
-    - Via <b>Ionic Creator mobile app</b> from Apple App Store or Google Play - Use code: <b>B26EB3</b>
-
-        <img src="../_images/iotportal_ioniccreatorapp.png" width="600"/>
-
 
 1. Create an account and login.
-
-    <img src="../_images/tutorial_signuplogin.png" width="600"/>
-
-    Click on "No account yet? Get started for free" link to create an account.
-
-    <img src="../_images/tutorial_signuplogin_2.png" width="600"/>
-
-    Input the details. Username can be same as email. Note that a confirmation code will be sent to your email.
-
-    <img src="../_images/tutorial_signuplogin_3.png" width="600"/>
-
-    Input the 6-digit code sent to your email.
-
-    <img src="../_images/tutorial_signuplogin_4.png" width="600"/>
-
-    You can now login using your specified username and password.
-
 
 2. Register a device (Registering a device will return a unique DEVICE_ID).
 
@@ -85,7 +40,7 @@ This page contains a step-by-step tutorial on <b>how to use the IoT Portal</b> i
     Copy the DEVICE ID by double clicking on it and typing Ctrl+C.
     
 
-3. Set the DEVICE_ID, DEVICE_SERIAL, DEVICE_MACADD and DEVICE_SECRETKEY on the device.
+3. Set the DEVICE_ID, DEVICE_SERIAL, DEVICE_MACADD and DEVICE_SECRETKEY on the device then run it.
 
     <b>Refer to corresponding sections below for setup instructions for the device simulators and FT900 device.</b>
     
@@ -105,7 +60,7 @@ This page contains a step-by-step tutorial on <b>how to use the IoT Portal</b> i
 
 1. Install the latest Python 3.X.X from https://www.python.org/downloads/
 
-    <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/device_simulator_py.png" width="600"/>
+    <img src="../_images/device_simulator_py.png" width="600"/>
 
     After installation, open a command prompt and type "Python". You should see the version of the "Python" installed.
     Note that I'm using Python 3.6.6.
@@ -116,7 +71,7 @@ This page contains a step-by-step tutorial on <b>how to use the IoT Portal</b> i
     - pip install -r requirements.py.txt OR
     - python pip install -r requirements.py.txt
 
-    <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/device_simulator_requirements_py.png" width="600"/>
+    <img src="../_images/device_simulator_requirements_py.png" width="600"/>
 
 
 ### Test
@@ -125,7 +80,7 @@ This page contains a step-by-step tutorial on <b>how to use the IoT Portal</b> i
 
    NOTE: To get a DEVICE_ID, DEVICE_SERIAL, DEVICE_MACADD, you must first register a device in the IoT Portal.
 
-    <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/device_simulator_deviceid_py.png" width="600"/>
+    <img src="../_images/device_simulator_deviceid_py.png" width="600"/>
 
 2. Update USER and PASS in <b>device_simulator.py.bat</b> (or device_simulator.py.sh for Linux/MacOS)
 
@@ -138,7 +93,7 @@ This page contains a step-by-step tutorial on <b>how to use the IoT Portal</b> i
 
 3. Run <b>device_simulator.py.bat</b> (or device_simulator.py.sh for Linux/MacOS)
 
-    <img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/device_simulator_bootup_py.png" width="600"/>
+    <img src="../_images/device_simulator_bootup_py.png" width="600"/>
 
 
 
