@@ -11,7 +11,7 @@ https://github.com/richmondu/libpyiotcloud/blob/dev/_setup_devguide/README_rest_
 https://github.com/richmondu/libpyiotcloud/blob/dev/_setup_devguide/README_device_messaging_api.md
 
 
-### Backend Setup Guide (for backend team)
+### Backend Environment Setup Guide (for backend team)
 
 https://github.com/richmondu/libpyiotcloud/blob/dev/_setup_devguide/README_backend_development_environment.md
 
