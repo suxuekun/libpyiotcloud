@@ -20,8 +20,9 @@ This page contains a tutorial on <b>how to use setup and run the device simulato
 
 2. Update <b>DEVICE_ID, DEVICE_SERIAL, DEVICE_MACADD</b> together with <b>DEVICE_SECRETKEY and HOST</b>
 
+   Please ask https://github.com/richmondu for the DEVICE_SECRETKEY.
+
     <img src="../_images/device_simulator_py.png" width="600"/>
 
-   Please ask https://github.com/richmondu for the DEVICE_SECRETKEY.
 
 
