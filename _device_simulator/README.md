@@ -26,9 +26,11 @@ This page contains a tutorial on <b>how to setup and run the device simulators</
 
 	B. HOST - Server to connect to.
 
-		- If connecting to Windows docker setup, the default value is 192.168.99.100. Double check with docker-machine ip.
-		- If connecting to MacOS docker setup, the default value is 127.0.0.1 or localhost
-		- If connecting to Windows non-docker setup, the default value is 127.0.0.1 or localhost
+		- If connecting to cloud DEVELOPMENT setup, use the DEV URL.
+		- If connecting to cloud PRODUCTION setup, use the PROD URL.
+		- If connecting to Windows docker local setup, the default value is 192.168.99.100. Double check with docker-machine ip.
+		- If connecting to MacOS docker local setup, the default value is 127.0.0.1 or localhost
+		- If connecting to Windows non-docker local setup, the default value is 127.0.0.1 or localhost
 
 	<img src="../_images/device_simulator_py.png" width="600"/>
 
