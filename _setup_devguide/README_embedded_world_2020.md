@@ -19,7 +19,7 @@ On the AWS EC2 side, the CPU usage is as follows:
     alt="Face Pay demo prototype" width="480" border="10" /></a>
 
 
-Demo setups:
+## Demo setups:
 
 Note: MENOS messaging stands for Mobile, Email, (push) Notification, mOdem (device), Storage
 
@@ -133,10 +133,14 @@ Note: MENOS messaging stands for Mobile, Email, (push) Notification, mOdem (devi
             Type AT+N (Requires logging in on Android or IOS mobile app)
 
 
-<img src="../_images/embedded_world_2020_1.jpeg" width="800"/>
-<img src="../_images/embedded_world_2020_2.jpeg" width="800"/>
-<img src="../_images/embedded_world_2020_3.jpeg" width="800"/>
-<img src="../_images/embedded_world_2020_4.jpeg" width="800"/>
+## Actual device setups
 
+<img src="../_images/embedded_world_2020_1.jpeg" width="800"/>
+
+<img src="../_images/embedded_world_2020_2.jpeg" width="800"/>
+
+<img src="../_images/embedded_world_2020_3.jpeg" width="800"/>
+
+<img src="../_images/embedded_world_2020_4.jpeg" width="800"/>
 
 
