@@ -3,7 +3,7 @@
 Below contains the 4 demo setups for Embedded World 2020 in Germany. 
 
 All 4 setups can be simulated by the device simulator. 
-The device simulator was used to stress test the backend using the web app and was successfully running for 2.5 days over a weekend (Friday night to Monday morning).
+The device simulator was used to <b>stress test the backend using the web app</b> and was successfully running for 2.5 days over a weekend (Friday night to Monday morning).
 
   <img src="../_images/demo_stress_test.png" width="1000"/>
 
