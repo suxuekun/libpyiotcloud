@@ -23,6 +23,7 @@ This page contains a tutorial on <b>how to setup and run the device simulators</
 	Notes:
 
 	A. DEVICE_SECRETKEY - Please ask https://github.com/richmondu
+
 	B. HOST - Server to connect to
 	   If connecting to Windows docker setup, the default value is 192.168.99.100. Double check with docker-machine ip.
 	   If connecting to MacOS docker setup, the default value is 127.0.0.1 or localhost
