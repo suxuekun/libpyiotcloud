@@ -25,11 +25,6 @@ This page contains a tutorial on <b>how to use setup and run the device simulato
 
 1. Update DEVICE_ID, DEVICE_SERIAL, DEVICE_MACADD and DEVICE_SECRETKEY in <b>device_simulator.py.bat</b> (or device_simulator.py.sh for Linux/MacOS)
 
-   NOTES: 
-   
-    To get a DEVICE_ID, DEVICE_SERIAL, DEVICE_MACADD, you must first register a device in the IoT Portal.
-    
-   
     <img src="../_images/device_simulator_py.png" width="600"/>
 
 2. Dont forget to update HOST and DEVICE_SECRETKEY.
