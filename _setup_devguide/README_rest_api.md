@@ -1,4 +1,4 @@
-# REST API Documentation
+# HTTPS REST API Documentation
 
 This is for the front-end (web/mobile) developers.
 
