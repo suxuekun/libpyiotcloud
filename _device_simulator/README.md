@@ -39,4 +39,4 @@ This page contains a tutorial on <b>how to setup and run the device simulators</
 
 1. Run the device simulator. You should see "Device is now ready! ..."
 
-	This means the device simulator is now connected to the server as indicated in the HOST variable in the batch/bash script files.
+	This means the device simulator is now connected to the specified server.
