@@ -24,7 +24,7 @@ This page contains a tutorial on <b>how to use setup and run the device simulato
 
 ### Setup
 
-1. Update DEVICE_ID, DEVICE_SERIAL, DEVICE_MACADD, DEVICE_SECRETKEY and HOST
+1. Update <b>DEVICE_ID, DEVICE_SERIAL, DEVICE_MACADD</b> together with DEVICE_SECRETKEY and HOST
 
     <img src="../_images/device_simulator_py.png" width="600"/>
 
