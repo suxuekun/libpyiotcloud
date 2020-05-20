@@ -8,14 +8,6 @@ The frontend does NOT directly access any AWS service, Paypal service or MongoDB
 The backend communicates with AWS Cognito, Pinpoint, Paypal, MongoDB and all other 3rd party services, that means most of the logic is handled by the backend. 
 This makes the frontend abstracted of the complexities and focus on consistent user experience across Android, IOS and the web.
 
-
-
-There are 3 ways to access the REST APIs.
-
-1. Access directly from the live backend https://richmondu.com
-2. Setup the docker containers of the backend on local machine and access via https://192.168.99.100 or https://ipofdocker
-3. Setup the non-Docker version of the backend on local machine and access via https://localhost
-
 Below contains a summary and a detailed description of all the current REST APIs.
 More APIs will be added to support the new requirements.
 
