@@ -97,7 +97,7 @@ Or at the least be able to experiment before proposing new or modified APIs.
 		D. Type "docker-compose up" // To run asynchronously as daemon, add "-d"
 
 		E. Open a browser and browse https://docker-machine_ip // Refer to value of "docker-machine ip"
-
+		   For MacOS, use https://localhost
 
     <b>Note to stop the docker containers, do the following:</b>
 
@@ -110,7 +110,7 @@ Or at the least be able to experiment before proposing new or modified APIs.
 
 4. Run a device simulator.
 
-		Refer to https://github.com/richmondu/libpyiotcloud/tree/dev/_device_simulator
+	Refer to https://github.com/richmondu/libpyiotcloud/tree/dev/_device_simulator
 
 
 
