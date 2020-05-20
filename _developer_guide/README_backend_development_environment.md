@@ -114,5 +114,36 @@ Or at the least be able to experiment before proposing new or modified APIs.
 
 
 
+## Docker Basic Commands
 
+		docker-machine ip
+		docker ps
+		docker ps --size
+		docker logs <container>
 
+		docker-compose -f docker-compose.yml config
+		docker-compose build
+		docker-compose build --no-cache // build from scratch, note: takes too long
+		docker-compose build <container>
+		docker-compose up
+		docker-compose up -d // run as daemon
+		docker-compose ps
+		docker-compose down
+		docker-compose rm
+
+		docker network prune -f
+		docker volume prune -f
+		docker system prune -f
+
+		docker build <container>
+		docker run <container>
+		docker stop <container>
+		docker kill <container>
+		docker rm <container>
+		docker image ls
+		docker image rm <container>
+		docker volume ls
+		docker volume inspect <volume>
+		docker network ls
+		docker network inspect <network>
+		docker system df --verbose
