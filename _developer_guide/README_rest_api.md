@@ -1,6 +1,6 @@
 # HTTPS REST API Documentation
 
-This is for the front-end (web/mobile) developers.
+This is for the front-end (mobile/web) developers.
 
 The REST APIs are the gateway of the frontend (mobile apps, web app) to the backend (3rd party APIs and services). 
 <b>The frontend does NOT directly access any 3rd party APIs and services for security reasons.</b> 
