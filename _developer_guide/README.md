@@ -7,7 +7,7 @@
 
 [Backend Environment Setup Guide](https://github.com/richmondu/libpyiotcloud/blob/dev/_developer_guide/README_backend_development_environment.md) (for backend team)
 
-[HTTPS REST API Documentation](https://github.com/richmondu/libpyiotcloud/blob/dev/_developer_guide/README_rest_api.md) (for frontend mobile team and frontend web team)
+[HTTPS REST API Documentation](https://github.com/richmondu/libpyiotcloud/blob/dev/_developer_guide/README_rest_api.md) (for frontend team - mobile and web)
 
 [MQTTS Device Messaging API Documentation](https://github.com/richmondu/libpyiotcloud/blob/dev/_developer_guide/README_device_messaging_api.md) (for firmware team)
 
