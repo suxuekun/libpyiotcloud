@@ -52,11 +52,12 @@ set DEVICE_PKEY="cert_ecc/ft900device1_pkey.pem"
 ::
 ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 ::
-:: DEV environment              - set HOST to *** [CONFIDENTIAL] please ASK ME directly or check the SKYPE GROUP
-:: PROD/TEST environment        - set HOST to *** [CONFIDENTIAL] please ASK ME directly or check the SKYPE GROUP
+:: DEV environment              - set HOST to dev.brtchip-iotportal.com
+:: PROD/TEST environment        - set HOST to prod.brtchip-iotportal.com
 ::
 :: LOCAL non-docker environment - set HOST to localhost
 :: LOCAL docker environment     - set HOST to 192.168.99.100 [double check with docker-machine ip]
+:: LOCAL docker environment Mac - set HOST to localhost
 ::
 :: KUBERNETES environment       - set PORT to 30883
 ::
