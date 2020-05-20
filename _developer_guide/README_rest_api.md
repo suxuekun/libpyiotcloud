@@ -2,27 +2,12 @@
 
 This is for the front-end (web/mobile) developers.
 
-The REST APIs are the gateway of the frontend (mobile apps, web app) to the backend (3rd party APIs and services). <b>The frontend will not directly access any 3rd party APIs and services for security reasons.</b> The frontend will only communicate with the REST APIs.
+The REST APIs are the gateway of the frontend (mobile apps, web app) to the backend (3rd party APIs and services). 
 
-  <img src="../_images/architecture_frontend.png" width="1000"/>
+<b>The frontend will not directly access any 3rd party APIs and services for security reasons.</b> The frontend will only communicate with the REST APIs.
 
-  <img src="../_images/architecture_backend.png" width="1000"/>
+Most of the logic is handled by the backend. This makes the frontend abstracted of the complexities and focus on consistent user experience across Android, IOS and the web.
 
-  <img src="../_images/usecase.png" width="800"/>
-
-Below is the sequence diagrams for sensor dashboard, ota firmware update, login via social idp and notification alerts. 
-
-  <img src="../_images/architecture_livestatus.png" width="1000"/>
-
-  <img src="../_images/ota_firmware_update_sequence_diagram.png" width="800"/>
-
-  <img src="../_images/login_via_idp_sequence_diagram.png" width="800"/>
-
-  <img src="../_images/paypal_sequence_diagram.png" width="800"/>
-
-  <img src="../_images/notification_sequence_UART.png" width="1000"/>
-
-  <img src="../_images/notification_sequence_GPIO.png" width="1000"/>
 
 
 There are 3 ways to access the REST APIs.
