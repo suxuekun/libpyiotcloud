@@ -3,7 +3,7 @@
 This is for the front-end (mobile/web) developers.
 
 The REST APIs are the gateway of the frontend (mobile apps, web app) to the backend (3rd party APIs and services). 
-<b>The frontend does NOT directly access any 3rd party APIs and services for security reasons.</b> 
+<b>The frontend does NOT directly access any 3rd party APIs and services, it only communicates with the backend REST APIs.</b> 
 The frontend does NOT directly access any AWS service, Paypal service or MongoDB database.
 The backend communicates with AWS Cognito, Pinpoint, Paypal, MongoDB and all other 3rd party services, that means most of the logic is handled by the backend. 
 This makes the frontend abstracted of the complexities and focus on consistent user experience across Android, IOS and the web.
