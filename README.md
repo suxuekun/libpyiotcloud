@@ -317,6 +317,13 @@ Below are tools and utilities being used:
 ### UML Sequence diagram (paypal payment):
 <img src="./_images/paypal_sequence_diagram.png" width="800"/>
 
+### UML Sequence diagram (alerting UART):
+<img src="./_images/notification_sequence_UART.png" width="1000"/>
+
+### UML Sequence diagram (alerting GPIO):
+<img src="./_images/notification_sequence_GPIO.png" width="1000"/>
+
+
 
 ### Notes:
 
