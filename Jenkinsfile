@@ -42,7 +42,7 @@ pipeline {
             steps {
                 echo "BUILDING docker images"
                 sh "ls -l nginx/src_prod/cert"
-                sh "docker-compose build --no-cache"
+                sh "docker-compose build"
             }
         }
 
