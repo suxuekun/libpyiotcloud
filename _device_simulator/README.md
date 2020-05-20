@@ -1,4 +1,4 @@
-# User Guide:
+# Device Simulator:
 
 This page contains a tutorial on <b>how to setup and run the device simulators</b> in Windows or Linux/MacOS. 
 
