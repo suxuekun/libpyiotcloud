@@ -1,6 +1,8 @@
 # Developer Guide
 
 
+[System Architecture](https://github.com/richmondu/libpyiotcloud/tree/dev) (for all teams)
+
 [Device Simulator](https://github.com/richmondu/libpyiotcloud/tree/dev/_device_simulator) (for all teams)
 
 [Backend Environment Setup Guide](https://github.com/richmondu/libpyiotcloud/blob/dev/_developer_guide/README_backend_development_environment.md) (for backend team)
