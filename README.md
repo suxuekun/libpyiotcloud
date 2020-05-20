@@ -10,7 +10,7 @@ Readers are responsible for making their own independent assessment of the infor
 Warning: This github documentation is can appear as highly technical. 
 It requires necessary technical experience and skills in the IoT domain, networking, security and web/mobile development to fully grasp the information. 
 It would take some time to digest everything. But I've tried to simplify things in Laymans terms as much as possible. 
-For any question or clarification, just message me on Skype.
+For any question or clarification, just message me on Skype, ftdi.richmond.umagat.
 
 
 # Background
