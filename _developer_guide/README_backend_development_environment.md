@@ -121,7 +121,7 @@ Or at the least be able to experiment before proposing new or modified APIs.
 		docker ps --size
 		docker logs <container>
 
-		docker-compose -f docker-compose.yml config
+		docker-compose -f docker-compose.yml config // check if environment variables is correct
 		docker-compose build
 		docker-compose build --no-cache // build from scratch, note: takes too long
 		docker-compose build <container>
