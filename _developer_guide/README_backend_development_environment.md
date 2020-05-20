@@ -83,6 +83,8 @@ Or at the least be able to experiment before proposing new or modified APIs.
 
 2. Set the environment system variables.
 
+		Please ask ftdi.richmond.umagat for the list and values of the environment variables.
+
 		A. In Linux/MacOS, use <b>export ENVIRONMENT_SYSTEM_VARIABLE="ENVIRONMENT_SYSTEM_VALUE"</b>
 
 		B. In Windows, always <b>restart the Docker Toolbox/Desktop</b> after adding or updating an environment system variable.
