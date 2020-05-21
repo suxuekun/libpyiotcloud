@@ -287,7 +287,7 @@ DETAILED:
 		   payload: {}
 
 
-	3. LDUBUS
+	3. LDSBUS
 
 		A. REGISTER GW DESCRIPTOR
 		-  Publish:
