@@ -287,7 +287,67 @@ DETAILED:
 		   payload: {}
 
 
-	3. GPIO
+	3. LDUBUS
+
+		A. REGISTER GW DESCRIPTOR
+		-  Publish:
+		   topic: server/DEVICEID/reg_gateway
+		   payload: { 
+		     'value': { 
+		        // RO
+		        'uuid': string, // UUID
+		        'seri': string, // Serial Number
+		        'pmac': string, // PoE MAC ID
+		        'wmac': string, // WiFi MAC ID
+		        'modl': string, // Model Number
+		        'pver': string, // Product Version
+		        'fver': string, // Firmware Version and date
+		        'icac': string, // Sensor Cache Storage Size
+		        'iprt': string, // Number of LDS Ports
+		        'icfg': string, // Configuration Storage
+		        // RW
+		        'wgps': string, // GPS Location
+		        'wmlp': string, // Maximum LDSU Allowed Per Port
+		        'iupc': string, // UART Port Communication Parameters
+		        'iupe': string, // UART Port Enable (Default)/Disable Status
+		        'wasc': string, // Auto-scan
+		        'wscs': string, // Sensor Cache Status
+		     }
+		   }
+		
+		B. REGISTER LDS BUS
+		-  Publish:
+		   topic: server/DEVICEID/reg_ldsbus
+		   payload: { 
+		     'value': { 
+		        // TODO
+		        // Contains both LDSUs information and sensor information
+		     }
+		   }
+		
+		C. REQUEST LDS BUS
+		-  Receive:
+		   topic: DEVICEID/req_ldsbus
+		   payload: {'port': int}
+		   // port can be 1,2,3 or 0 for all ports
+		-  Publish:
+		   topic: server/DEVICEID/reg_ldsbus // SAME AS REGISTER LDS BUS for ALL PORTS
+		   payload: { 
+		     'value': { 
+		        // TODO
+		     }
+		   }
+
+		D. IDENTIFY LDSU
+		-  Receive:
+		   topic: DEVICEID/identify_ldsu
+		   payload: {'port': int}
+		-  Publish:
+		   topic: server/DEVICEID/identify_ldsu
+		   payload: {}
+
+
+	4. GPIO
 
 		A. GET GPIOS
 		-  Receive:
@@ -425,7 +485,7 @@ DETAILED:
 		   payload: {}
 
 
-	4. I2C
+	5. I2C
 
 		A. GET I2CS
 		-  Receive:
@@ -511,7 +571,7 @@ DETAILED:
 		   payload: {}
 
 
-	5. ADC
+	6. ADC
 
 		A. GET ADC DEVICE PROPERTIES
 		-  Receive:
@@ -546,7 +606,7 @@ DETAILED:
 		   payload: {}
 
 
-	6. 1WIRE
+	7. 1WIRE
 
 		A. GET 1WIRE DEVICE PROPERTIES
 		-  Receive:
@@ -581,7 +641,7 @@ DETAILED:
 		   payload: {}
 
 
-	7. TPROBE
+	8. TPROBE
 
 		A. GET TPROBE DEVICE PROPERTIES
 		-  Receive:
@@ -616,12 +676,12 @@ DETAILED:
 		   payload: {}
 
 
-	8. Peripherals
+	9. Peripherals
 
 		A. GET PERIPHERAL DEVICES    get_devs
 
 
-	9. Notifications
+	10. Notifications
 
 		A. SEND NOTIFICATION         trigger_notification
 		-  Receive:
@@ -648,7 +708,7 @@ DETAILED:
 		   // sender is the DEVICEID of the sender device/mOdem
 
 
-	10. Sensor Reading
+	11. Sensor Reading
 
 		A. RECEIVE SENSOR READING    rcv_sensor_reading
 		B. REQUEST SENSOR READING    req_sensor_reading
@@ -673,14 +733,14 @@ DETAILED:
 		   // timestamp is optional and it refers to epoch in seconds
 
 
-	11. Configurations
+	12. Configurations
 
 		A. RECEIVE CONFIGURATION     rcv_configuration
 		B. REQUEST CONFIGURATION     req_configuration
 		C. DELETE CONFIGURATION      del_configuration
 
 
-	12. OTA Firmware Update
+	13. OTA Firmware Update
 
 		A. API_UPGRADE_FIRMWARE
 		-  Receive:
