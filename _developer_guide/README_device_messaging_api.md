@@ -343,7 +343,7 @@ DETAILED:
 		D. IDENTIFY LDSU
 		-  Receive:
 		   topic: DEVICEID/identify_ldsu
-		   payload: {'port': int}
+		   payload: {'port': int, 'uuid': string}
 		-  Publish:
 		   topic: server/DEVICEID/identify_ldsu
 		   payload: {}
