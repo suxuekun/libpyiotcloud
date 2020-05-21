@@ -315,26 +315,28 @@ DETAILED:
 		     }
 		   }
 		
-		B. REGISTER LDS BUS
+		B. REGISTER LDS BUSES
 		-  Publish:
 		   topic: server/DEVICEID/reg_ldsbus
 		   payload: { 
 		     'value': { 
-		        // TODO
+		        // TODO: Get from Karan and Prabu
 		        // Contains both LDSUs information and sensor information
 		     }
 		   }
 		
-		C. REQUEST LDS BUS
+		C. REQUEST LDS BUS/BUSES
 		-  Receive:
 		   topic: DEVICEID/req_ldsbus
 		   payload: {'port': int}
 		   // port can be 1,2,3 or 0 for all ports
 		-  Publish:
-		   topic: server/DEVICEID/reg_ldsbus // SAME AS REGISTER LDS BUS for ALL PORTS
+		   topic: server/DEVICEID/reg_ldsbus
 		   payload: { 
-		     'value': { 
-		        // TODO
+		     'value': {
+		        'port': int
+		        // TODO: Get from Karan and Prabu
+		        // Contains both LDSUs information and sensor information
 		     }
 		   }
 
