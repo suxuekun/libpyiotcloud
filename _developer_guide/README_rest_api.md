@@ -177,7 +177,74 @@ SUMMARY:
 		P. DELETE PERIPHERAL SENSOR PROPERTIES             - DELETE /devices/device/DEVICENAME/sensors/properties
 
 
-	7. Device access and control APIs (I2C)
+	7. Device access and control APIs (LDSBUS)
+
+		A. GET LDS BUS                    - GET    /devices/device/DEVICENAME/ldsbus/PORTNUMBER
+		B. CHANGE LDSU NAME               - POST   /devices/device/DEVICENAME/ldsu/LDSUUUID/name
+		C. IDENTIFY LDSU                  - POST   /devices/device/DEVICENAME/ldsu/LDSUUUID/identify
+
+		A. GET LDS BUS
+		-  Request:
+		   GET /devices/device/DEVICENAME/ldsbus/PORTNUMBER
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		   // PORT_NUMBER can be 1, 2, 3, or 0 (0 if all lds bus)
+		-  Response:
+		   { 'status': 'OK', 'message': string, 'value': 
+		     { 
+		       "ldsu"     : [
+		         {
+		           "name": string, 
+		           "uuid": string, 
+		           "serialnumber": string, 
+		           "manufacturingdate": string, 
+		           "productversion": string, 
+		           "productname": string
+		         }, 
+		         ...
+		       ], 
+		       "sensors"  : [
+		         {
+		           "name": string, 
+		           "class": string, 
+		           "ldsuname": string, 
+		           "ldsuuuid": string, 
+		           "ldsuport": int
+		         },
+		         ...
+		       ], 
+		       "actuators": [
+		         {
+		           "name": string,
+		           "class": string, 
+		           "ldsuname": string, 
+		           "ldsuuuid": string, 
+		           "ldsuport": int
+		         },
+		         ...
+		       ] 
+		     } 
+		   }
+		   { 'status': 'NG', 'message': string }
+
+		B. CHANGE LDSU NAME
+		-  Request:
+		   POST /devices/device/DEVICENAME/ldsu/LDSUUUID/name
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		   data: {'name': string}
+		-  Response:
+		   { 'status': 'OK', 'message': string }
+		   { 'status': 'NG', 'message': string }
+
+		C. IDENTIFY LDSU
+		-  Request:
+		   POST /devices/device/DEVICENAME/ldsu/LDSUUUID/identify
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		-  Response:
+		   { 'status': 'OK', 'message': string }
+		   { 'status': 'NG', 'message': string }
+
+
+	8. Device access and control APIs (I2C)
 
 		A. ADD I2C DEVICE                 - POST   /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME
 		B. DELETE I2C DEVICE              - DELETE /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME
@@ -197,7 +264,7 @@ SUMMARY:
 		   (NUMBER can be 1-4 only and corresponds to I2C1,I2C2,I2C3,I2C4)
 
 
-	8. Device access and control APIs (ADC)
+	9. Device access and control APIs (ADC)
 
 		A. ADD ADC DEVICE                 - POST   /devices/device/DEVICENAME/adc/NUMBER/sensors/sensor/SENSORNAME
 		B. DELETE ADC DEVICE              - DELETE /devices/device/DEVICENAME/adc/NUMBER/sensors/sensor/SENSORNAME
@@ -217,7 +284,7 @@ SUMMARY:
 		O. SET ADC VOLTAGE                - POST   /devices/device/DEVICENAME/adc/voltage
 
 
-	9. Device access and control APIs (1WIRE)
+	10. Device access and control APIs (1WIRE)
 
 		A. ADD 1WIRE DEVICE               - POST   /devices/device/DEVICENAME/1wire/NUMBER/sensors/sensor/SENSORNAME
 		B. DELETE 1WIRE DEVICE            - DELETE /devices/device/DEVICENAME/1wire/NUMBER/sensors/sensor/SENSORNAME
@@ -235,7 +302,7 @@ SUMMARY:
 		   (NUMBER will always be 1 since there is only 1 1wire)
 
 
-	10. Device access and control APIs (TPROBE)
+	11. Device access and control APIs (TPROBE)
 
 		A. ADD TPROBE DEVICE              - POST   /devices/device/DEVICENAME/tprobe/NUMBER/sensors/sensor/SENSORNAME
 		B. DELETE TPROBE DEVICE           - DELETE /devices/device/DEVICENAME/tprobe/NUMBER/sensors/sensor/SENSORNAME
@@ -253,7 +320,7 @@ SUMMARY:
 		   (NUMBER will always be 1 since there is only 1 tprobe)
 
 
-	11. Device transaction recording APIs
+	12. Device transaction recording APIs
 
 		A. GET HISTORIES                  - GET    /devices/histories
 		B. GET HISTORIES FILTERED         - POST   /devices/histories
@@ -263,7 +330,7 @@ SUMMARY:
 		D. GET MENOS HISTORIES FILTERED   - POST   /devices/menos
 
 
-	12. Account subscription and payment APIs
+	13. Account subscription and payment APIs
 
 		A. GET SUBSCRIPTION               - GET    /account/subscription
 		B. PAYPAL SETUP                   - POST   /account/payment/paypalsetup
@@ -272,31 +339,31 @@ SUMMARY:
 		E. GET PAYPAL TRANSACTIONS        - GET    /account/payment/paypal
 
 
-	13. Mobile services
+	14. Mobile services
 
 		A. REGISTER DEVICE TOKEN          - POST   /mobile/devicetoken
 
 
-	14. Supported devices and firmware updates
+	15. Supported devices and firmware updates
 
 		A. GET SUPPORTED SENSOR DEVICES   - GET    /others/sensordevices
 		B. GET DEVICE FIRMWARE UPDATES    - GET    /others/firmwareupdates
 
 
-	15. Others
+	16. Others
 
 		A. SEND FEEDBACK                  - POST   /others/feedback
 		B. GET FAQS                       - GET    /others/faqs
 		C. GET ABOUT                      - GET    /others/about
 
 
-	16. OTA Firmware Update
+	17. OTA Firmware Update
 
 		A. DOWNLOAD FIRMWARE              - GET    /firmware/DEVICE/FILENAME
 		   (WARNING: This API is to be called by ESP device, not by web/mobile apps)
 
 
-	17. HTTP error codes
+	18. HTTP error codes
 
 		A. HTTP_400_BAD_REQUEST           - Invalid input
 		B. HTTP_401_UNAUTHORIZED          - Invalid password or invalid/expired token
