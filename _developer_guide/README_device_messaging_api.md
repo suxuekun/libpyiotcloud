@@ -321,7 +321,7 @@ DETAILED:
 		   payload: { 
 		     'value': { 
 		        // TODO: Get from Karan and Prabu
-		        // Contains both LDSUs information and sensor information
+		        // Contains both LDSUs information and sensors/actuators information (?)
 		     }
 		   }
 		
@@ -336,7 +336,7 @@ DETAILED:
 		     'value': {
 		        'port': int
 		        // TODO: Get from Karan and Prabu
-		        // Contains both LDSUs information and sensor information
+		        // Contains both LDSUs information and sensors/actuators information
 		     }
 		   }
 
