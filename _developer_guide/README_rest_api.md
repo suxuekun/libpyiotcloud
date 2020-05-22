@@ -1947,7 +1947,7 @@ DETAILED:
 		   // if port number is 0, ldsbus contains all 3 ports so ldsbus length is 3
 		   { 'status': 'NG', 'message': string }
 
-		B. CHANGE LDSU NAME
+		C. CHANGE LDSU NAME
 		-  Request:
 		   POST /devices/device/DEVICENAME/ldsu/LDSUUUID/name
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -1956,7 +1956,7 @@ DETAILED:
 		   { 'status': 'OK', 'message': string }
 		   { 'status': 'NG', 'message': string }
 
-		C. IDENTIFY LDSU
+		D. IDENTIFY LDSU
 		-  Request:
 		   POST /devices/device/DEVICENAME/ldsu/LDSUUUID/identify
 		   headers: {'Authorization': 'Bearer ' + token.access}
