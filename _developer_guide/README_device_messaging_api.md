@@ -94,7 +94,13 @@ SUMMARY:
 		           AT+D
 		   - Others
 
-	3. GPIO
+	3. LDSBUS
+		A. REGISTER GW DESCRIPTOR       reg_gateway
+		B. REGISTER LDSUs               reg_ldsus
+		C. REQUEST LDSUs                req_ldsus
+		D. IDENTIFY LDSU                identify_ldsu
+
+	4. GPIO
 		A. GET GPIOS                    get_gpios
 		   - gets enabled, direction and status of all 4 GPIO pins
 
@@ -124,13 +130,13 @@ SUMMARY:
 		   - 3.3v: gpio_write(16, 0), gpio_write(17, 1)
 		   - 5v:   gpio_write(16, 1), gpio_write(17, 0)
 
-	4. I2C
+	5. I2C
 		A. GET I2C DEVICES              get_i2c_devs
 		B. GET I2C DEVICE PROPERTIES    get_i2c_dev_prop
 		C. SET I2C DEVICE PROPERTIES    set_i2c_dev_prop
 		D. ENABLE/DISABLE I2C DEVICE    enable_i2c_dev
 
-	5. ADC
+	6. ADC
 		A. GET ADC DEVICES              get_adc_devs
 		B. GET ADC DEVICE PROPERTIES    get_adc_dev_prop
 		C. SET ADC DEVICE PROPERTIES    set_adc_dev_prop
@@ -138,32 +144,32 @@ SUMMARY:
 		E. GET ADC VOLTAGE              get_adc_voltage
 		F. SET ADC VOLTAGE              set_adc_voltage
 
-	6. 1WIRE
+	7. 1WIRE
 		A. GET 1WIRE DEVICES            get_1wire_devs
 		B. GET 1WIRE DEVICE PROPERTIES  get_1wire_dev_prop
 		C. SET 1WIRE DEVICE PROPERTIES  set_1wire_dev_prop
 		D. ENABLE/DISABLE 1WIRE DEVICE  enable_1wire_dev
 
-	7. TPROBE
+	8. TPROBE
 		A. GET TPROBE DEVICES           get_tprobe_devs
 		B. GET TPROBE DEVICE PROPERTIES get_tprobe_dev_prop
 		C. SET TPROBE DEVICE PROPERTIES set_tprobe_dev_prop
 		D. ENABLE/DISABLE TPROBE DEVICE enable_tprobe_dev
 
-	8. PERIPHERALS
+	9. PERIPHERALS
 		A. GET PERIPHERAL DEVICES       get_devs
 
-	9. Notifications
+	10. Notifications
 		A. SEND NOTIFICATION            trigger_notification
 		B. STATUS NOTIFICATION          status_notification
 		C. RECV NOTIFICATION            recv_notification
 
-	10. Sensor Reading
+	11. Sensor Reading
 		A. RECEIVE SENSOR READING       rcv_sensor_reading
 		B. REQUEST SENSOR READING       req_sensor_reading
 		C. PUBLISH SENSOR READING       sensor_reading
 
-	11. Configurations
+	12. Configurations
 		A. RECEIVE CONFIGURATION        rcv_configuration
 		B. REQUEST CONFIGURATION        req_configuration
 		C. DELETE CONFIGURATION         del_configuration
