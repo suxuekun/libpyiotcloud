@@ -618,11 +618,9 @@ def handle_api(api, subtopic, subpayload):
         payload = {}
         publish(topic, payload)
 
-
     ####################################################
     # LDS BUS
     ####################################################
-
     elif api == API_IDENTIFY_LDSU:
         topic = generate_pubtopic(subtopic)
         subpayload = json.loads(subpayload)
@@ -638,7 +636,7 @@ def handle_api(api, subtopic, subpayload):
         # Please ignore the current structure
         # This structure is basically what the frontend receives
         # But the firmware will send this in different structure and backend needs to convert into this format
-        ldsbus = [
+        payload = {'value': [
         {
             "port": subpayload["port"],
             "ldsus": [
@@ -693,8 +691,7 @@ def handle_api(api, subtopic, subpayload):
             ]
         }
         ]
-
-        payload = {'value': ldsbus}
+        }
         publish(topic, payload)
 
 
