@@ -327,7 +327,7 @@ DETAILED:
 		
 		C. REQUEST LDSUs
 		-  Receive:
-		   topic: DEVICEID/reg_ldsus
+		   topic: DEVICEID/req_ldsus
 		   payload: {'port': int}
 		   // port can be 1,2,3 or 0 for all ports
 		-  Publish:
