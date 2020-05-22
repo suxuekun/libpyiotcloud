@@ -2144,20 +2144,7 @@ def get_lds_bus(devicename, portnumber):
         entityname = username
 
 
-    # get username from token
-    data = {}
-    data['token'] = token
-    data['devicename'] = devicename
-    data['username'] = username
-    data['port'] = int(portnumber)
-    api = 'req_ldsus'
-    response, status_return = g_messaging_requests.process(api, data)
-    if status_return != 200:
-        ldsbus = None
-    else:
-        response = json.loads(response)
-        ldsbus = response["value"]
-    #devices = g_database_client.get_ldsbus(entityname)
+    ldsbus = []
     #[
     #{
     #    "port": int(portnumber),
@@ -2213,6 +2200,96 @@ def get_lds_bus(devicename, portnumber):
     #    ]
     #}
     #]
+
+
+    msg = {'status': 'OK', 'message': 'LDSBUS queried successfully.'}
+    if ldsbus:
+        msg['ldsbus'] = ldsbus
+    if new_token:
+        msg['new_token'] = new_token
+    response = json.dumps(msg)
+    return response
+
+
+########################################################################################################
+# 
+# SCAN LDS BUS
+#
+# - Request:
+#   POST /devices/device/DEVICENAME/ldsbus/PORTNUMBER
+#   headers: {'Authorization': 'Bearer ' + token.access}
+#   // PORT_NUMBER can be 1, 2, 3, or 0 (0 if all lds bus)
+#
+# - Response:
+#   {'status': 'OK', 'message': string, 'ldsbus': obj }
+#   {'status': 'NG', 'message': string}
+#
+########################################################################################################
+@app.route('/devices/device/<devicename>/ldsbus/<portnumber>', methods=['POST'])
+def scan_lds_bus(devicename, portnumber):
+    # get token from Authorization header
+    auth_header_token = g_utils.get_auth_header_token()
+    if auth_header_token is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
+        print('\r\nERROR Get LDSBUS: Invalid authorization header\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
+    token = {'access': auth_header_token}
+
+    # get username from token
+    username = g_database_client.get_username_from_token(token)
+    if username is None:
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Get LDSBUS: Token expired\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
+    #print('scan_lds_bus {}'.format(username))
+
+    # check if a parameter is empty
+    if len(username) == 0 or len(token) == 0:
+        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+        print('\r\nERROR Get LDSBUS: Empty parameter found\r\n')
+        return response, status.HTTP_400_BAD_REQUEST
+
+    # check if username and token is valid
+    verify_ret, new_token = g_database_client.verify_token(username, token)
+    if verify_ret == 2:
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Get LDSBUS: Token expired [{}]\r\n'.format(username))
+        return response, status.HTTP_401_UNAUTHORIZED
+    elif verify_ret != 0:
+        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
+        print('\r\nERROR Get LDSBUS: Token is invalid [{}]\r\n'.format(username))
+        return response, status.HTTP_401_UNAUTHORIZED
+
+
+    # get entity using the active organization
+    orgname, orgid = g_database_client.get_active_organization(username)
+    if orgname is not None:
+        # check authorization
+        if g_database_client.is_authorized(username, orgname, orgid, database_categorylabel.DEVICES, database_crudindex.READ) == False:
+            response = json.dumps({'status': 'NG', 'message': 'Authorization failed! User is not allowed to access resource. Please check with the organization owner regarding policies assigned.'})
+            print('\r\nERROR Get LDSBUS: Authorization not allowed [{}]\r\n'.format(username))
+            return response, status.HTTP_401_UNAUTHORIZED
+        # has active organization
+        entityname = "{}.{}".format(orgname, orgid)
+    else:
+        # no active organization, just a normal user
+        entityname = username
+
+
+    # get username from token
+    data = {}
+    data['token'] = token
+    data['devicename'] = devicename
+    data['username'] = username
+    data['port'] = int(portnumber)
+    api = 'req_ldsus'
+    response, status_return = g_messaging_requests.process(api, data)
+    if status_return != 200:
+        ldsbus = None
+    else:
+        response = json.loads(response)
+        ldsbus = response["value"]
+
 
     msg = {'status': 'OK', 'message': 'LDSBUS queried successfully.'}
     if ldsbus:
