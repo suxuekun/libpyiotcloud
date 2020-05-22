@@ -2144,64 +2144,79 @@ def get_lds_bus(devicename, portnumber):
         entityname = username
 
 
+    # get username from token
+    data = {}
+    data['token'] = token
+    data['devicename'] = devicename
+    data['username'] = username
+    data['port'] = int(portnumber)
+    api = 'req_ldsus'
+    response, status_return = g_messaging_requests.process(api, data)
+    if status_return != 200:
+        ldsbus = None
+    else:
+        response = json.loads(response)
+        ldsbus = response["value"]
     #devices = g_database_client.get_ldsbus(entityname)
-    ldsbus = [
-    {
-        "port": int(portnumber),
-        "ldsus": [
-            {
-                'name'             : 'LDSU01',
-                'uuid'             : 'LDSUUUID',
-                'serialnumber'     : 'asdasdasd',
-                'manufacturingdate': 'erwrwer',
-                'productversion'   : '0.0.1',
-                'productname'      : 'ldsuname 01'
-            },
-            {
-                'name'             : 'LDSU02',
-                'uuid'             : 'LDSUUUID02',
-                'serialnumber'     : 'asdasdasd',
-                'manufacturingdate': 'erwrwer',
-                'productversion'   : '0.0.2',
-                'productname'      : 'ldsuname 02'
-            }
-        ], 
-        "sensors": [
-            {
-                "name"    : "Sensor01", 
-                "class"   : "temperature", 
-                "ldsuname": "LDSU01", 
-                "ldsuuuid": "LDSUUUID01", 
-                "ldsuport": int(portnumber)
-            },
-            {
-                "name"    : "Sensor02", 
-                "class"   : "potentiometer", 
-                "ldsuname": "LDSU02", 
-                "ldsuuuid": "LDSUUUID02", 
-                "ldsuport": int(portnumber)
-            }
-        ], 
-        "actuators": [
-            {
-                "name"    : "Actuator01", 
-                "class"   : "display", 
-                "ldsuname": "LDSU01", 
-                "ldsuuuid": "LDSUUUID01", 
-                "ldsuport": int(portnumber)
-            },
-            {
-                "name"    : "Actuator02", 
-                "class"   : "led", 
-                "ldsuname": "LDSU02", 
-                "ldsuuuid": "LDSUUUID02", 
-                "ldsuport": int(portnumber)
-            }
-        ]
-    }
-    ]; 
+    #[
+    #{
+    #    "port": int(portnumber),
+    #    "ldsus": [
+    #        {
+    #            'name'             : 'LDSU01',
+    #            'uuid'             : 'LDSUUUID',
+    #            'serialnumber'     : 'asdasdasd',
+    #            'manufacturingdate': 'erwrwer',
+    #            'productversion'   : '0.0.1',
+    #            'productname'      : 'ldsuname 01'
+    #        },
+    #        {
+    #            'name'             : 'LDSU02',
+    #            'uuid'             : 'LDSUUUID02',
+    #            'serialnumber'     : 'asdasdasd',
+    #            'manufacturingdate': 'erwrwer',
+    #            'productversion'   : '0.0.2',
+    #            'productname'      : 'ldsuname 02'
+    #        }
+    #    ], 
+    #    "sensors": [
+    #        {
+    #            "name"    : "Sensor01", 
+    #            "class"   : "temperature", 
+    #            "ldsuname": "LDSU01", 
+    #            "ldsuuuid": "LDSUUUID01", 
+    #            "ldsuport": int(portnumber)
+    #        },
+    #        {
+    #            "name"    : "Sensor02", 
+    #            "class"   : "potentiometer", 
+    #            "ldsuname": "LDSU02", 
+    #            "ldsuuuid": "LDSUUUID02", 
+    #            "ldsuport": int(portnumber)
+    #        }
+    #    ], 
+    #    "actuators": [
+    #        {
+    #            "name"    : "Actuator01", 
+    #            "class"   : "display", 
+    #            "ldsuname": "LDSU01", 
+    #            "ldsuuuid": "LDSUUUID01", 
+    #            "ldsuport": int(portnumber)
+    #        },
+    #        {
+    #            "name"    : "Actuator02", 
+    #            "class"   : "led", 
+    #            "ldsuname": "LDSU02", 
+    #            "ldsuuuid": "LDSUUUID02", 
+    #            "ldsuport": int(portnumber)
+    #        }
+    #    ]
+    #}
+    #]
 
-    msg = {'status': 'OK', 'message': 'LDSBUS queried successfully.', 'ldsbus': ldsbus}
+    msg = {'status': 'OK', 'message': 'LDSBUS queried successfully.'}
+    if ldsbus:
+        msg['ldsbus'] = ldsbus
     if new_token:
         msg['new_token'] = new_token
     response = json.dumps(msg)
@@ -2345,6 +2360,17 @@ def identify_ldsu(devicename, ldsuuuid):
         # no active organization, just a normal user
         entityname = username
 
+
+    # get username from token
+    data = {}
+    data['token'] = token
+    data['devicename'] = devicename
+    data['username'] = username
+    data['uuid'] = ldsuuuid
+    api = 'ide_ldsu'
+    response, status_return = g_messaging_requests.process(api, data)
+    if status_return != 200:
+        return response, status_return
 
 
     msg = {'status': 'OK', 'message': 'LDSU identified successfully.'}
