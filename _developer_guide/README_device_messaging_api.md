@@ -98,7 +98,7 @@ SUMMARY:
 		A. REGISTER GW DESCRIPTOR       reg_gateway
 		B. REGISTER LDSUs               reg_ldsus
 		C. REQUEST LDSUs                req_ldsus
-		D. IDENTIFY LDSU                identify_ldsu
+		D. IDENTIFY LDSU                ide_ldsu
 
 	4. GPIO
 		A. GET GPIOS                    get_gpios
@@ -348,7 +348,7 @@ DETAILED:
 
 		D. IDENTIFY LDSU
 		-  Receive:
-		   topic: DEVICEID/identify_ldsu
+		   topic: DEVICEID/ide_ldsu
 		   payload: {'uuid': string}
 		-  Publish:
 		   topic: server/DEVICEID/identify_ldsu
