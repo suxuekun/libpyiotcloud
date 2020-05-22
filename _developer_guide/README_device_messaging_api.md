@@ -95,10 +95,11 @@ SUMMARY:
 		   - Others
 
 	3. LDSBUS
-		A. REGISTER GW DESCRIPTOR       reg_gateway
-		B. REGISTER LDSUs               reg_ldsus
-		C. REQUEST LDSUs                req_ldsus
-		D. IDENTIFY LDSU                ide_ldsu
+		A. REGISTER GW DESCRIPTOR       reg_gwdsc
+		B. REQUEST GW DESCRIPTOR        req_gwdsc
+		C. REGISTER LDSUs               reg_ldsus
+		D. REQUEST LDSUs                req_ldsus
+		E. IDENTIFY LDSU                ide_ldsu
 
 	4. GPIO
 		A. GET GPIOS                    get_gpios
@@ -297,7 +298,7 @@ DETAILED:
 
 		A. REGISTER GW DESCRIPTOR
 		-  Publish:
-		   topic: server/DEVICEID/reg_gateway
+		   topic: server/DEVICEID/reg_gwdsc
 		   payload: { 
 		     'value': { 
 		        // RO
@@ -321,7 +322,35 @@ DETAILED:
 		     }
 		   }
 		
-		B. REGISTER LDSUs
+		B. REQUEST GW DESCRIPTOR
+		-  Receive:
+		   topic: DEVICEID/req_gwdsc
+		-  Publish:
+		   topic: server/DEVICEID/reg_gwdsc
+		   payload: { 
+		     'value': { 
+		        // RO
+		        'uuid': string, // UUID
+		        'seri': string, // Serial Number
+		        'pmac': string, // PoE MAC ID
+		        'wmac': string, // WiFi MAC ID
+		        'modl': string, // Model Number
+		        'pver': string, // Product Version
+		        'fver': string, // Firmware Version and date
+		        'icac': string, // Sensor Cache Storage Size
+		        'iprt': string, // Number of LDS Ports
+		        'icfg': string, // Configuration Storage
+		        // RW
+		        'wgps': string, // GPS Location
+		        'wmlp': string, // Maximum LDSU Allowed Per Port
+		        'iupc': string, // UART Port Communication Parameters
+		        'iupe': string, // UART Port Enable (Default)/Disable Status
+		        'wasc': string, // Auto-scan
+		        'wscs': string, // Sensor Cache Status
+		     }
+		   }
+		
+		C. REGISTER LDSUs
 		-  Publish:
 		   topic: server/DEVICEID/reg_ldsus
 		   payload: { 
@@ -331,7 +360,7 @@ DETAILED:
 		     }
 		   }
 		
-		C. REQUEST LDSUs
+		D. REQUEST LDSUs
 		-  Receive:
 		   topic: DEVICEID/req_ldsus
 		   payload: {'port': int}
@@ -346,7 +375,7 @@ DETAILED:
 		     }
 		   }
 
-		D. IDENTIFY LDSU
+		E. IDENTIFY LDSU
 		-  Receive:
 		   topic: DEVICEID/ide_ldsu
 		   payload: {'uuid': string}
