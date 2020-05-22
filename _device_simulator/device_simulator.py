@@ -266,6 +266,10 @@ API_REQUEST_TIME                 = "req_time"
 # sensor registration 
 API_SET_REGISTRATION             = "set_registration"
 
+# lds bus
+API_IDENTIFY_LDSU                = "ide_ldsu"
+API_REQUEST_LDSUS                = "req_ldsus"
+
 
 
 ###################################################################################
@@ -612,6 +616,85 @@ def handle_api(api, subtopic, subpayload):
         g_timer_thread.set_timeout(g_timer_thread_timeout)
 
         payload = {}
+        publish(topic, payload)
+
+
+    ####################################################
+    # LDS BUS
+    ####################################################
+
+    elif api == API_IDENTIFY_LDSU:
+        topic = generate_pubtopic(subtopic)
+        subpayload = json.loads(subpayload)
+        payload = {}
+        publish(topic, payload)
+
+    elif api == API_REQUEST_LDSUS:
+        topic = generate_pubtopic(subtopic)
+        subpayload = json.loads(subpayload)
+
+        # TODO
+        # Temporary code only
+        # Please ignore the current structure
+        # This structure is basically what the frontend receives
+        # But the firmware will send this in different structure and backend needs to convert into this format
+        ldsbus = [
+        {
+            "port": subpayload["port"],
+            "ldsus": [
+                {
+                    'name'             : 'LDSU01',
+                    'uuid'             : 'LDSUUUID',
+                    'serialnumber'     : 'asdasdasd',
+                    'manufacturingdate': 'erwrwer',
+                    'productversion'   : '0.0.1',
+                    'productname'      : 'ldsuname 01'
+                },
+                {
+                    'name'             : 'LDSU02',
+                    'uuid'             : 'LDSUUUID02',
+                    'serialnumber'     : 'asdasdasd',
+                    'manufacturingdate': 'erwrwer',
+                    'productversion'   : '0.0.2',
+                    'productname'      : 'ldsuname 02'
+                }
+            ], 
+            "sensors": [
+                {
+                    "name"    : "Sensor01", 
+                    "class"   : "temperature", 
+                    "ldsuname": "LDSU01", 
+                    "ldsuuuid": "LDSUUUID01", 
+                    "ldsuport": subpayload["port"]
+                },
+                {
+                    "name"    : "Sensor02", 
+                    "class"   : "potentiometer", 
+                    "ldsuname": "LDSU02", 
+                    "ldsuuuid": "LDSUUUID02", 
+                    "ldsuport": subpayload["port"]
+                }
+            ], 
+            "actuators": [
+                {
+                    "name"    : "Actuator01", 
+                    "class"   : "display", 
+                    "ldsuname": "LDSU01", 
+                    "ldsuuuid": "LDSUUUID01", 
+                    "ldsuport": subpayload["port"]
+                },
+                {
+                    "name"    : "Actuator02", 
+                    "class"   : "led", 
+                    "ldsuname": "LDSU02", 
+                    "ldsuuuid": "LDSUUUID02", 
+                    "ldsuport": subpayload["port"]
+                }
+            ]
+        }
+        ]
+
+        payload = {'value': ldsbus}
         publish(topic, payload)
 
 
