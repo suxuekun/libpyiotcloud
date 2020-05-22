@@ -180,72 +180,9 @@ SUMMARY:
 	7. Device access and control APIs (LDSBUS)
 
 		A. GET LDS BUS                    - GET    /devices/device/DEVICENAME/ldsbus/PORTNUMBER
-		B. CHANGE LDSU NAME               - POST   /devices/device/DEVICENAME/ldsu/LDSUUUID/name
-		C. IDENTIFY LDSU                  - POST   /devices/device/DEVICENAME/ldsu/LDSUUUID/identify
-
-		A. GET LDS BUS
-		-  Request:
-		   GET /devices/device/DEVICENAME/ldsbus/PORTNUMBER
-		   headers: {'Authorization': 'Bearer ' + token.access}
-		   // PORT_NUMBER can be 1, 2, 3, or 0 (0 if all lds bus)
-		-  Response:
-		   { 'status': 'OK', 'message': string, 'ldsbus': 
-		     [ 
-		       {
-		         "port": int,
-		         "ldsu"     : [
-		           {
-		             "name": string, 
-		             "uuid": string, 
-		             "serialnumber": string, 
-		             "manufacturingdate": string, 
-		             "productversion": string, 
-		             "productname": string
-		           }, 
-		           ...
-		         ], 
-		         "sensors"  : [
-		           {
-		             "name": string, 
-		             "class": string, 
-		             "ldsuname": string, 
-		             "ldsuuuid": string, 
-		             "ldsuport": int
-		           },
-		           ...
-		         ], 
-		         "actuators": [
-		           {
-		             "name": string,
-		             "class": string, 
-		             "ldsuname": string, 
-		             "ldsuuuid": string, 
-		             "ldsuport": int
-		           },
-		           ...
-		         ]
-		       },
-			   ...
-		     ] 
-		   }
-		   { 'status': 'NG', 'message': string }
-
-		B. CHANGE LDSU NAME
-		-  Request:
-		   POST /devices/device/DEVICENAME/ldsu/LDSUUUID/name
-		   headers: {'Authorization': 'Bearer ' + token.access}
-		   data: {'name': string}
-		-  Response:
-		   { 'status': 'OK', 'message': string }
-		   { 'status': 'NG', 'message': string }
-
-		C. IDENTIFY LDSU
-		-  Request:
-		   POST /devices/device/DEVICENAME/ldsu/LDSUUUID/identify
-		   headers: {'Authorization': 'Bearer ' + token.access}
-		-  Response:
-		   { 'status': 'OK', 'message': string }
-		   { 'status': 'NG', 'message': string }
+		B. SCAN LDS BUS                   - POST   /devices/device/DEVICENAME/ldsbus/PORTNUMBER
+		C. CHANGE LDSU NAME               - POST   /devices/device/DEVICENAME/ldsu/LDSUUUID/name
+		D. IDENTIFY LDSU                  - POST   /devices/device/DEVICENAME/ldsu/LDSUUUID/identify
 
 
 	8. Device access and control APIs (I2C)
@@ -1948,7 +1885,87 @@ DETAILED:
 		   { 'status': 'NG', 'message': string }
 
 
-	7. Device access and control APIs (I2C)
+	7. Device access and control APIs (LDSBUS)
+
+		A. GET LDS BUS
+		-  Request:
+		   GET /devices/device/DEVICENAME/ldsbus/PORTNUMBER
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		   // PORT_NUMBER can be 1, 2, 3, or 0 (0 if all lds bus)
+		-  Response:
+		   { 'status': 'OK', 'message': string, 'ldsbus': 
+		     [ 
+		       {
+		         "port": int,
+		         "ldsus"     : [
+		           {
+		             "name": string, 
+		             "uuid": string, 
+		             "serialnumber": string, 
+		             "manufacturingdate": string, 
+		             "productversion": string, 
+		             "productname": string
+		           }, 
+		           ...
+		         ], 
+		         "sensors"  : [
+		           {
+		             "name": string, 
+		             "class": string, 
+		             "ldsuname": string, 
+		             "ldsuuuid": string, 
+		             "ldsuport": int
+		           },
+		           ...
+		         ], 
+		         "actuators": [
+		           {
+		             "name": string,
+		             "class": string, 
+		             "ldsuname": string, 
+		             "ldsuuuid": string, 
+		             "ldsuport": int
+		           },
+		           ...
+		         ]
+		       },
+			   ...
+		     ] 
+		   }
+		   // if port number is 1,2 or 3, ldsbus length is 1
+		   // if port number is 0, ldsbus contains all 3 ports so ldsbus length is 3
+		   { 'status': 'NG', 'message': string }
+
+		B. SCAN LDS BUS
+		-  Request:
+		   POST /devices/device/DEVICENAME/ldsbus/PORTNUMBER
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		   // PORT_NUMBER can be 1, 2, 3, or 0 (0 if all lds bus)
+		-  Response:
+		   { 'status': 'OK', 'message': string }
+		   // if port number is 1,2 or 3, ldsbus length is 1
+		   // if port number is 0, ldsbus contains all 3 ports so ldsbus length is 3
+		   { 'status': 'NG', 'message': string }
+
+		B. CHANGE LDSU NAME
+		-  Request:
+		   POST /devices/device/DEVICENAME/ldsu/LDSUUUID/name
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		   data: {'name': string}
+		-  Response:
+		   { 'status': 'OK', 'message': string }
+		   { 'status': 'NG', 'message': string }
+
+		C. IDENTIFY LDSU
+		-  Request:
+		   POST /devices/device/DEVICENAME/ldsu/LDSUUUID/identify
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		-  Response:
+		   { 'status': 'OK', 'message': string }
+		   { 'status': 'NG', 'message': string }
+
+
+	8. Device access and control APIs (I2C)
 
 
 		A. ADD I2C DEVICE
@@ -2416,7 +2433,7 @@ DETAILED:
 		   { 'status': 'NG', 'message': string }
 
 
-	8. Device access and control APIs (ADC)
+	9. Device access and control APIs (ADC)
 
 
 		A. ADD ADC DEVICE
@@ -2692,7 +2709,7 @@ DETAILED:
 		   { 'status': 'NG', 'message': string }
 
 
-	9. Device access and control APIs (1WIRE)
+	10. Device access and control APIs (1WIRE)
 
 
 		A. ADD 1WIRE DEVICE
@@ -2848,7 +2865,7 @@ DETAILED:
 		   { 'status': 'NG', 'message': string }
 
 
-	10. Device access and control APIs (TPROBE)
+	11. Device access and control APIs (TPROBE)
 
 
 		A. ADD TPROBE DEVICE
@@ -3026,7 +3043,7 @@ DETAILED:
 		   { 'status': 'NG', 'message': string }
 
 
-	11. Device transaction recording APIs
+	12. Device transaction recording APIs
 
 		A. GET HISTORIES
 		-  Request:
@@ -3127,7 +3144,7 @@ DETAILED:
 		   // sensorname and condition are optional (ex. when source is UART/GPIOX, then both sensorname and condition are not present
 
 
-	12. Account subscription and payment APIs
+	13. Account subscription and payment APIs
 
 		// Use any of the following Paypal Sandbox accounts: (https://sandbox.paypal.com)
 		   dev1.sg@brtchip.com (personal) - Singapore buyer
@@ -3220,7 +3237,7 @@ DETAILED:
 		   // Note that in the Paypal website, it seems its only possible to query up to 3 years but invoices can be requested up to 7 years.
 
 
-	13. Mobile services
+	14. Mobile services
 
 		A. REGISTER DEVICE TOKEN
 		-  Request:
@@ -3252,7 +3269,7 @@ DETAILED:
 		   Double check your results here: https://jwt.io/
 
 
-	14. Supported devices/firmware updates
+	15. Supported devices/firmware updates
 
 		A. GET SUPPORTED I2C DEVICES (obsoloted: use GET SUPPORTED SENSOR DEVICES instead)
 		-  Request:
@@ -3289,7 +3306,7 @@ DETAILED:
 		   // this API provides access to the contents of the JSON file
 
 
-	15. Others
+	16. Others
 
 		A. SEND FEEDBACK
 		-  Request:
@@ -3318,7 +3335,7 @@ DETAILED:
 		   {'status': 'NG', 'message': string }
 
 
-	16. OTA Firmware Update
+	17. OTA Firmware Update
 
 		A. DOWNLOAD FIRMWARE
 		-  Request:
