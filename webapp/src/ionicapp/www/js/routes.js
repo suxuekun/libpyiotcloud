@@ -409,6 +409,73 @@ angular.module('app.routes', [])
     controller: 'deviceI2CCtrl'
   })
 
+  .state('deviceLDSBUS', {
+    url: '/page_ldsbus',
+	params: {
+		devicename: "",
+		username: "",
+		token: "",
+		devicestatus: "",
+		deviceid: "",
+		serialnumber: "",
+		location: "",
+		activeSection: ""		
+},
+    templateUrl: 'templates/deviceLDSBUS.html',
+    controller: 'deviceLDSBUSCtrl'
+  })
+
+  .state('lDSUs', {
+    url: '/page_ldsus',
+	params: {
+		username: "",
+		token: "",
+		devicename: "",
+		devicestatus: "",
+		deviceid: "",
+		serialnumber: "",
+		location: "",
+		activeSection: "",
+		ldsus: ""		
+},
+    templateUrl: 'templates/lDSUs.html',
+    controller: 'lDSUsCtrl'
+  })
+
+  .state('sensors', {
+    url: '/page_sensors',
+	params: {
+		username: "",
+		token: "",
+		devicename: "",
+		devicestatus: "",
+		deviceid: "",
+		serialnumber: "",
+		location: "",
+		activeSection: "",
+		sensors: ""		
+},
+    templateUrl: 'templates/sensors.html',
+    controller: 'sensorsCtrl'
+  })
+
+  .state('actuators', {
+    url: '/page_actuators',
+	params: {
+		username: "",
+		token: "",
+		devicename: "",
+		devicestatus: "",
+		deviceid: "",
+		serialnumber: "",
+		location: "",
+		activeSection: "",
+		actuators: ""		
+},
+    templateUrl: 'templates/actuators.html',
+    controller: 'actuatorsCtrl'
+  })
+
   .state('deviceADC', {
     url: '/page_device_adc',
 	params: {

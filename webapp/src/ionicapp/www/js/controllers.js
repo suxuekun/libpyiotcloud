@@ -6279,15 +6279,21 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         $state.go('menu.sensorDashboard', $scope.data, {animate: false} );
     };   
 
-    $scope.submitGPIO = function() {
-        console.log("devicename=" + $scope.data.devicename);
-        $state.go('deviceGPIO', $scope.data, {animate: false} );
-    };   
+    $scope.submitLDSBUS = function(number) {
+        console.log("submitLDSBUS=" + number);
+        $scope.data.activeSection = number;
+        $state.go('deviceLDSBUS', $scope.data, {animate: false} );
+    };    
 
     $scope.submitUART = function() {
         console.log("devicename=" + $scope.data.devicename);
         $state.go('deviceUART', $scope.data, {animate: false} );
     };    
+
+    $scope.submitGPIO = function() {
+        console.log("devicename=" + $scope.data.devicename);
+        $state.go('deviceGPIO', $scope.data, {animate: false} );
+    };   
 
     $scope.submitI2C = function() {
         console.log("devicename=" + $scope.data.devicename);
@@ -9953,6 +9959,422 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             'location': $scope.data.location === "" ? "UNKNOWN" : $scope.data.location,
         };
         $state.go('gateway', device_param);
+    };
+}])
+   
+.controller('deviceLDSBUSCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+// You can include any angular dependencies as parameters for this function
+// TIP: Access Route Parameters for your page via $stateParams.parameterName
+function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token) {
+
+    var server = Server.rest_api;
+
+    $scope.data = {
+        'username': User.get_username(),
+        'token': User.get_token(),
+        'devicename': $stateParams.devicename,
+        'devicestatus': $stateParams.devicestatus,
+        'deviceid': $stateParams.deviceid,
+        'serialnumber': $stateParams.serialnumber,
+        'location': $stateParams.location,
+        
+        'activeSection': $stateParams.activeSection,
+    };
+
+    $scope.ldsbus = {
+        'ldsus': [],
+        'sensors': [],
+        'actuators': [],
+    };
+    $scope.warning = "No items scanned for LDS BUS " + $scope.data.activeSection.toString();
+
+
+
+    $scope.changeSection = function(s) {
+        $scope.data.activeSection = s;
+        $scope.submitRefresh();
+    };
+
+    $scope.handle_error = function(error, showerror) {
+        if (error.data !== null) {
+            console.log("ERROR: Device I2C failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
+
+            if (error.data.message === "Token expired") {
+                Token.refresh({'username': $scope.data.username, 'token': $scope.data.token});
+                $scope.data.token = User.get_token();
+            }
+            
+            if (error.status == 503 && showerror === true ) {
+                $ionicPopup.alert({ title: 'Error', template: 'Device is unreachable!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+            }            
+        }
+        else {
+            console.log("ERROR: Server is down!"); 
+            $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+        }
+    };
+
+
+
+    $scope.getLDSUs = function() {
+        var param = $scope.data;
+        param.ldsus = $scope.ldsbus[0].ldsus;  
+        console.log(param);
+        $state.go('lDSUs', param, {reload: true});          
+    };
+
+    $scope.getSensors = function() {
+        var param = $scope.data;
+        param.sensors = $scope.ldsbus[0].sensors;  
+        console.log(param);
+        $state.go('sensors', param, {reload: true});          
+    };
+
+    $scope.getActuators = function() {
+        var param = $scope.data;
+        param.actuators = $scope.ldsbus[0].actuators;  
+        console.log(param);
+        $state.go('actuators', param, {reload: true});          
+        
+    };
+
+
+    
+    // GET LDS BUS
+    $scope.getLDSBUS = function() {
+        console.log("getLDSBUS");
+        get_lds_bus();
+    };
+
+    get_lds_bus = function() {
+        //
+        // GET LDS BUS
+        //
+        // - Request:
+        //   GET /devices/device/DEVICENAME/ldsbus/PORTNUMBER
+        //   headers: { 'Authorization': 'Bearer ' + token.access }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string, }
+        //   { 'status': 'NG', 'message': string }
+        //
+        $http({
+            method: 'GET',
+            url: server + '/devices/device/' + $scope.data.devicename + '/ldsbus/' + $scope.data.activeSection.toString(),
+            headers: {'Authorization': 'Bearer ' + $scope.data.token.access}
+        })
+        .then(function (result) {
+            console.log(result.data);
+            $scope.ldsbus = result.data.ldsbus;
+        })
+        .catch(function (error) {
+            $scope.handle_error(error);
+        }); 
+    };
+
+
+
+    $scope.submitRefresh = function() {
+        $scope.getLDSBUS();
+    };
+
+    $scope.$on('$ionicView.enter', function(e) {
+        $scope.ldsbus.ldsus = [];
+        $scope.ldsbus.sensors = [];
+        $scope.ldsbus.actuators = [];
+        $scope.warning = "No items scanned for LDS BUS " + $scope.data.activeSection.toString();
+        $scope.submitRefresh();
+    });
+
+    $scope.$on('$ionicView.beforeLeave', function(e) {
+        $scope.ldsbus.ldsus = [];
+        $scope.ldsbus.sensors = [];
+        $scope.ldsbus.actuators = [];
+        $scope.warning = "No items scanned for LDS BUS " + $scope.data.activeSection.toString();
+   });
+    
+    
+    // EXIT PAGE
+    $scope.submitDeviceList = function() {
+        console.log("submitDeviceList");
+
+        var device_param = {
+            'username': $scope.data.username,
+            'token': $scope.data.token,
+            'devicename': $scope.data.devicename,
+            'devicestatus': $scope.data.devicestatus,
+            'deviceid': $scope.data.deviceid,
+            'serialnumber': $scope.data.serialnumber,
+            'location': $scope.data.location === "" ? "UNKNOWN" : $scope.data.location,
+        };
+        $state.go('gateway', device_param);
+    };
+}])
+   
+.controller('lDSUsCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+// You can include any angular dependencies as parameters for this function
+// TIP: Access Route Parameters for your page via $stateParams.parameterName
+function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token) {
+
+    var server = Server.rest_api;
+
+    $scope.data = {
+        'username': User.get_username(),
+        'token': User.get_token(),
+        'devicename': $stateParams.devicename,
+        'devicestatus': $stateParams.devicestatus,
+        'deviceid': $stateParams.deviceid,
+        'serialnumber': $stateParams.serialnumber,
+        'location': $stateParams.location,
+        'activeSection': $stateParams.activeSection.toString(),
+        'ldsus': $stateParams.ldsus,
+    };
+
+
+    console.log($scope.data);
+    $scope.ldsu = null;
+    $scope.newname = "";
+
+
+    $scope.handle_error = function(error, showerror) {
+        if (error.data !== null) {
+            console.log("ERROR: Device I2C failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
+
+            if (error.data.message === "Token expired") {
+                Token.refresh({'username': $scope.data.username, 'token': $scope.data.token});
+                $scope.data.token = User.get_token();
+            }
+            
+            if (error.status == 503 && showerror === true ) {
+                $ionicPopup.alert({ title: 'Error', template: 'Device is unreachable!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+            }            
+        }
+        else {
+            console.log("ERROR: Server is down!"); 
+            $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+        }
+    };
+
+
+    $scope.changeLDSU = function(s) {
+        if ($scope.ldsu === null) {
+            $scope.ldsu = s;
+            $scope.newname = s.name;
+            console.log("1");
+        }
+        else {
+            if ($scope.ldsu.name === s.name) {
+                $scope.ldsu = null;
+                $scope.newname = "";
+            console.log("2");
+            }
+            else {
+                $scope.ldsu = s;
+                $scope.newname = ldsu.name;
+            console.log("3 " + $scope.newname + ' ' + $scope.ldsu.name + ' ' + s.name );
+            }
+        }
+    };
+
+    $scope.changeName = function(name) {
+        console.log('Change name ' + name + ' ' + $scope.ldsu.name);
+        if (name === $scope.ldsu.name) {
+            console.log('Same name');
+            return;
+        }
+        
+        $scope.newname = name;
+        $scope.change_name($scope.newname);
+    };
+
+    $scope.change_name = function(name) {
+        //
+        // CHANGE LDSU NAME
+        //
+        // - Request:
+        //   POST /devices/device/DEVICENAME/ldsu/LDSUUUID/name
+        //   headers: { 'Authorization': 'Bearer ' + token.access }
+        //   data: {'name': string }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string, }
+        //   { 'status': 'NG', 'message': string }
+        //
+        $http({
+            method: 'POST',
+            url: server + '/devices/device/' + $scope.data.devicename + '/ldsu/' + $scope.ldsu.uuid + '/name',
+            headers: {'Authorization': 'Bearer ' + $scope.data.token.access},
+            data: {'name': name}
+        })
+        .then(function (result) {
+            console.log(result.data);
+            $scope.ldsu.name = name;
+            for (var item in $scope.data.ldsus) {
+                if (item.uuid == $scope.ldsu.uuid) {
+                    item.name = name;
+                    break;
+                }
+            }
+
+        })
+        .catch(function (error) {
+            $scope.handle_error(error);
+        }); 
+    };
+    
+    $scope.identifyLDSU = function() {
+        console.log('Identify LDSU');
+        $scope.identify_ldsu();
+    };
+    
+    $scope.identify_ldsu = function() {
+        //
+        // IDENTIFY LDSU
+        //
+        // - Request:
+        //   POST /devices/device/DEVICENAME/ldsu/LDSUUUID/identify
+        //   headers: { 'Authorization': 'Bearer ' + token.access }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string, }
+        //   { 'status': 'NG', 'message': string }
+        //
+        $http({
+            method: 'POST',
+            url: server + '/devices/device/' + $scope.data.devicename + '/ldsu/' + $scope.ldsu.uuid + '/identify',
+            headers: {'Authorization': 'Bearer ' + $scope.data.token.access}
+        })
+        .then(function (result) {
+            console.log(result.data);
+        })
+        .catch(function (error) {
+            $scope.handle_error(error);
+        }); 
+    };
+
+
+
+    $scope.$on('$ionicView.enter', function(e) {
+        console.log('enter');
+        console.log($scope.data);
+        //$scope.changeLDSU($scope.data.ldsus[0]);
+    });
+
+    
+    // EXIT PAGE
+    $scope.submitDeviceList = function() {
+        console.log("submitDeviceList");
+        $scope.ldsu = null;
+        $scope.newname = "";
+        $state.go('deviceLDSBUS', $scope.data);
+    };
+}])
+   
+.controller('sensorsCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+// You can include any angular dependencies as parameters for this function
+// TIP: Access Route Parameters for your page via $stateParams.parameterName
+function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token) {
+
+    var server = Server.rest_api;
+
+    $scope.data = {
+        'username': User.get_username(),
+        'token': User.get_token(),
+        'devicename': $stateParams.devicename,
+        'devicestatus': $stateParams.devicestatus,
+        'deviceid': $stateParams.deviceid,
+        'serialnumber': $stateParams.serialnumber,
+        'location': $stateParams.location,
+        'activeSection': $stateParams.activeSection.toString(),
+        'sensors': $stateParams.sensors,
+    };
+
+
+    $scope.handle_error = function(error, showerror) {
+        if (error.data !== null) {
+            console.log("ERROR: Device I2C failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
+
+            if (error.data.message === "Token expired") {
+                Token.refresh({'username': $scope.data.username, 'token': $scope.data.token});
+                $scope.data.token = User.get_token();
+            }
+            
+            if (error.status == 503 && showerror === true ) {
+                $ionicPopup.alert({ title: 'Error', template: 'Device is unreachable!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+            }            
+        }
+        else {
+            console.log("ERROR: Server is down!"); 
+            $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+        }
+    };
+
+
+
+    $scope.$on('$ionicView.enter', function(e) {
+        console.log('enter');
+        console.log($scope.data);
+    });
+
+    
+    // EXIT PAGE
+    $scope.submitDeviceList = function() {
+        console.log("submitDeviceList");
+        $state.go('deviceLDSBUS', $scope.data);
+    };
+}])
+   
+.controller('actuatorsCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+// You can include any angular dependencies as parameters for this function
+// TIP: Access Route Parameters for your page via $stateParams.parameterName
+function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token) {
+
+    var server = Server.rest_api;
+
+    $scope.data = {
+        'username': User.get_username(),
+        'token': User.get_token(),
+        'devicename': $stateParams.devicename,
+        'devicestatus': $stateParams.devicestatus,
+        'deviceid': $stateParams.deviceid,
+        'serialnumber': $stateParams.serialnumber,
+        'location': $stateParams.location,
+        'activeSection': $stateParams.activeSection.toString(),
+        'actuators': $stateParams.actuators,
+    };
+
+
+    $scope.handle_error = function(error, showerror) {
+        if (error.data !== null) {
+            console.log("ERROR: Device I2C failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
+
+            if (error.data.message === "Token expired") {
+                Token.refresh({'username': $scope.data.username, 'token': $scope.data.token});
+                $scope.data.token = User.get_token();
+            }
+            
+            if (error.status == 503 && showerror === true ) {
+                $ionicPopup.alert({ title: 'Error', template: 'Device is unreachable!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+            }            
+        }
+        else {
+            console.log("ERROR: Server is down!"); 
+            $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+        }
+    };
+
+
+
+    $scope.$on('$ionicView.enter', function(e) {
+        console.log('enter');
+        console.log($scope.data);
+    });
+
+    
+    // EXIT PAGE
+    $scope.submitDeviceList = function() {
+        console.log("submitDeviceList");
+        $state.go('deviceLDSBUS', $scope.data);
     };
 }])
    
