@@ -189,40 +189,44 @@ SUMMARY:
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		   // PORT_NUMBER can be 1, 2, 3, or 0 (0 if all lds bus)
 		-  Response:
-		   { 'status': 'OK', 'message': string, 'value': 
-		     { 
-		       "ldsu"     : [
-		         {
-		           "name": string, 
-		           "uuid": string, 
-		           "serialnumber": string, 
-		           "manufacturingdate": string, 
-		           "productversion": string, 
-		           "productname": string
-		         }, 
-		         ...
-		       ], 
-		       "sensors"  : [
-		         {
-		           "name": string, 
-		           "class": string, 
-		           "ldsuname": string, 
-		           "ldsuuuid": string, 
-		           "ldsuport": int
-		         },
-		         ...
-		       ], 
-		       "actuators": [
-		         {
-		           "name": string,
-		           "class": string, 
-		           "ldsuname": string, 
-		           "ldsuuuid": string, 
-		           "ldsuport": int
-		         },
-		         ...
-		       ] 
-		     } 
+		   { 'status': 'OK', 'message': string, 'ldsbus': 
+		     [ 
+		       {
+		         "port": int,
+		         "ldsu"     : [
+		           {
+		             "name": string, 
+		             "uuid": string, 
+		             "serialnumber": string, 
+		             "manufacturingdate": string, 
+		             "productversion": string, 
+		             "productname": string
+		           }, 
+		           ...
+		         ], 
+		         "sensors"  : [
+		           {
+		             "name": string, 
+		             "class": string, 
+		             "ldsuname": string, 
+		             "ldsuuuid": string, 
+		             "ldsuport": int
+		           },
+		           ...
+		         ], 
+		         "actuators": [
+		           {
+		             "name": string,
+		             "class": string, 
+		             "ldsuname": string, 
+		             "ldsuuuid": string, 
+		             "ldsuport": int
+		           },
+		           ...
+		         ]
+		       },
+			   ...
+		     ] 
 		   }
 		   { 'status': 'NG', 'message': string }
 
