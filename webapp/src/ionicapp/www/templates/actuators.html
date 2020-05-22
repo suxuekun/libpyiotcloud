@@ -1,0 +1,36 @@
+<ion-view title="Actuators" hide-back-button="true" cache-view="false" nav-transition="none" id="page76" class="page_width">
+  <ion-nav-buttons side="left" class="has-header">
+    <button class="button button-icon icon ion-android-close" ng-click="submitDeviceList()"></button>
+  </ion-nav-buttons>
+  <ion-content padding="true" class="has-header">
+    <div class="spacer" style="width: 300px; height: 12px;"></div>
+    <div id="actuators-markdown548" style="text-align:center;" class="show-list-numbers-and-dots">
+      <p style="color:#3C5A99;font-size:18px;">
+        <strong> {{ data.devicename }} </strong>
+      </p>
+    </div>
+    <div class="spacer" style="width: 747.778px; height: 10px;"></div>
+    <form id="actuators-form257" class="list">
+      <div id="actuators-markdown549" class="show-list-numbers-and-dots">
+        <p style="color:#3C5A99;font-size:18px;">
+          <strong> LDS BUS {{ data.activeSection }} </strong>
+        </p>
+      </div>
+      <div id="actuators-markdown550" class="show-list-numbers-and-dots">
+        <p style="color:#AAAAAA;font-size:12px;">{{ data.actuators.length }} actuators detected on LDS BUS port {{ data.activeSection }}</p>
+      </div>
+      <div class="list card" id="actuators-card231" ng-repeat="actuator in data.actuators">
+        <div class="item item-body card_top" id="actuators-list-item-container53" ng-click="changeActuator(actuator)">
+          <div id="actuators-markdown551" class="show-list-numbers-and-dots">
+            <p style="margin-top:0px;color:#FFFFFF;font-size:18px;">
+              <strong> {{ actuator.name }} </strong>
+            </p>
+          </div>
+        </div>
+        <div id="actuators-markdown552" class="show-list-numbers-and-dots card_label_devicegroups">
+          <p style="margin-top:0px;color:#888888;font-size:12px;">{{ actuator.class }}</p>
+        </div>
+      </div>
+    </form>
+  </ion-content>
+</ion-view>
