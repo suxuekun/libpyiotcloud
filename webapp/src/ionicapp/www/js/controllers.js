@@ -929,7 +929,10 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token)
         'email': 'Unknown',
         'phonenumber': 'Unknown',
         'identityprovider': 'Unknown',
-        'country': 'Unknown'
+        'country': 'Unknown',
+        
+        'lastlogin': 'Unknown',
+        'lastfailedlogin': 'Unknown',
     };
 
     $scope.enable_2fa = false;
@@ -1051,6 +1054,15 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token)
                 $scope.data.identityprovider = "None";
             }
             
+            
+            if (result.data.info.last_login !== undefined) {
+                let timestamp = new Date(result.data.info.last_login * 1000); 
+                $scope.data.lastlogin = "" + timestamp;
+            }
+            if (result.data.info.last_failed_login !== undefined) {
+                let timestamp = new Date(result.data.info.last_failed_login * 1000); 
+                $scope.data.lastfailedlogin = "" + timestamp;
+            }
         })
         .catch(function (error) {
             $scope.handle_error(error);
@@ -1267,6 +1279,8 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token)
         $scope.data.email = 'Unknown';
         $scope.data.phonenumber = 'Unknown';
         $scope.data.identityprovider = 'Unknown';
+        $scope.data.lastlogin = 'Unknown';
+        $scope.data.lastfailedlogin = 'Unknown';
     });
 }
 ])
@@ -2716,8 +2730,8 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server) {
             $ionicPopup.alert({title: 'Signup Error', template: 'Password is empty!'});
             return;
         }
-        else if ($scope.data.password.length < 6) {
-            $ionicPopup.alert({title: 'Signup Error', template: 'Password should be at least 6 characters!'});
+        else if ($scope.data.password.length < 8) {
+            $ionicPopup.alert({title: 'Signup Error', template: 'Password should be at least 8 characters!'});
             return;
         }        
         else if ($scope.data.password2 !== $scope.data.password) {
@@ -10072,6 +10086,38 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         }); 
     };
 
+
+    // SCAN LDS BUS
+    $scope.scanLDSBUS = function() {
+        console.log("scanLDSBUS");
+        scan_lds_bus();
+    };
+
+    scan_lds_bus = function() {
+        //
+        // SCAN LDS BUS
+        //
+        // - Request:
+        //   POST /devices/device/DEVICENAME/ldsbus/PORTNUMBER
+        //   headers: { 'Authorization': 'Bearer ' + token.access }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string, }
+        //   { 'status': 'NG', 'message': string }
+        //
+        $http({
+            method: 'POST',
+            url: server + '/devices/device/' + $scope.data.devicename + '/ldsbus/' + $scope.data.activeSection.toString(),
+            headers: {'Authorization': 'Bearer ' + $scope.data.token.access}
+        })
+        .then(function (result) {
+            console.log(result.data);
+            $scope.ldsbus = result.data.ldsbus;
+        })
+        .catch(function (error) {
+            $scope.handle_error(error);
+        }); 
+    };
 
 
     $scope.submitRefresh = function() {

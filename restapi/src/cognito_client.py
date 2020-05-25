@@ -72,8 +72,11 @@ class cognito_client:
 		}
 		try:
 			response = self.__get_client().sign_up(**params)
-		except:
-			return (False, None)
+		except Exception as e:
+			error_code = e.response.get("Error", {}).get("Code")
+			if error_code == "InvalidPasswordException":
+				print(error_code)
+			return (False, error_code)
 		return (self.__get_result(response), response)
 
 	def confirm_sign_up(self, username, confirmation_code):
@@ -120,8 +123,17 @@ class cognito_client:
 		}
 		try:
 			response = self.__get_client().confirm_forgot_password(**params)
-		except:
-			return (False, None)
+		except Exception as e:
+			print("confirm_forgot_password")
+			print(e)
+			error_code = e.response.get("Error", {}).get("Code")
+			if error_code == "CodeMismatchException":
+				print(error_code)
+			elif error_code == "InvalidPasswordException":
+				print(error_code)
+			elif error_code == "LimitExceededException":
+				print(error_code)
+			return (False, error_code)
 		return (self.__get_result(response), response)
 
 
@@ -263,8 +275,13 @@ class cognito_client:
 		}
 		try:
 			response = self.__get_client().change_password(**params)
-		except:
-			return (False, None)
+		except Exception as e:
+			print("change_password")
+			print(e)
+			error_code = e.response.get("Error", {}).get("Code")
+			if error_code == "InvalidPasswordException":
+				print(error_code)
+			return (False, error_code)
 		return (self.__get_result(response), response)
 
 	def request_verify_phone_number(self, access_token):

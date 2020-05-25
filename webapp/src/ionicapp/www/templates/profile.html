@@ -5,8 +5,14 @@
   <ion-content padding="true" class="has-header">
     <div class="spacer" style="height: 20px;"></div>
     <button id="profile-button132" ng-click="submitChangepassword()" style="font-weight:600;font-size:18px;text-align:left;" class="button button-positive button-block button-clear icon-right ion-android-settings">{{ data.fullname }}</button>
+    <div id="profile-markdown538" ng-show="data.lastlogin != &quot;Unknown&quot;" class="show-list-numbers-and-dots">
+      <p style="color:#AAAAAA;font-size:12px;">Last login: {{ data.lastlogin }}</p>
+    </div>
+    <div id="profile-markdown547" ng-show="data.lastfailedlogin != &quot;Unknown&quot;" class="show-list-numbers-and-dots">
+      <p style="color:#AAAAAA;font-size:12px;">Last failed login: {{ data.lastfailedlogin }}</p>
+    </div>
     <form id="profile-form16" class="list">
-      <ion-item class="item-divider" id="profile-list-item-divider9"> Email</ion-item>
+      <ion-item class="item-divider" id="profile-list-item-divider26"> Email</ion-item>
       <label class="item item-input" id="profile-input44">
         <input type="email" placeholder="" readonly="" ng-model="data.email">
       </label>

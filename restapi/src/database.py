@@ -321,6 +321,12 @@ class database_client:
     def admin_disable_provider_for_user(self, username, provider):
         return self._users.admin_disable_provider_for_user(username, provider)
 
+    def get_last_login(self, username):
+        return self._devices.get_last_login(username)
+
+    def set_last_login(self, username, is_succesful):
+        return self._devices.set_last_login(username, is_succesful)
+
 
     ##########################################################
     # history
@@ -1174,7 +1180,7 @@ class database_client_cognito:
             (result, response) = self.client.sign_up(username, password, email=email, given_name=givenname, family_name=familyname)
         else:
             (result, response) = self.client.sign_up(username, password, email=email, phone_number=phonenumber, given_name=givenname, family_name=familyname)
-        return result
+        return result, response
 
     def update_user(self, access_token, phonenumber, givenname, familyname):
         if phonenumber is None:
@@ -1193,7 +1199,7 @@ class database_client_cognito:
 
     def confirm_forgot_password(self, username, confirmation_code, new_password):
         (result, response) = self.client.confirm_forgot_password(username, confirmation_code, new_password)
-        return result
+        return result, response
 
     def get_user_group(self, username):
         val = self.client.admin_list_groups_for_user(username)
@@ -1224,7 +1230,7 @@ class database_client_cognito:
 
     def change_password(self, access_token, password, new_password):
         (result, response) = self.client.change_password(access_token, password, new_password)
-        return result
+        return result, response
 
     def reset_user_password(self, username):
         (result, response) = self.client.admin_reset_user_password(username)
@@ -4178,6 +4184,42 @@ class database_client_mongodb:
             organizations_policies.delete_many({'orgname': orgname, 'orgid': orgid})
         return True, None
 
+
+    ##########################################################
+    # lastlogin
+    ##########################################################
+
+    def get_last_login_document(self):
+        return self.client[config.CONFIG_MONGODB_TB_LASTLOGIN]
+
+    def get_last_login(self, username):
+        doc = self.get_last_login_document()
+        item = doc.find_one({'username': username})
+        if item is None:
+            return None
+        if item.get('current'):
+            item.pop('current')
+        item.pop('username')
+        item.pop('_id')
+        return item
+
+    def set_last_login(self, username, is_succesful):
+        doc = self.get_last_login_document()
+        timestamp = int(time.time())
+        item = {}
+        item['username'] = username
+        found = doc.find_one({'username': username})
+        if found is None:
+            item['current'] = int(time.time())
+            doc.insert_one(item)
+        else:
+            if is_succesful == True:
+                found['lastsuccess'] = found['current']
+                found['current'] = timestamp
+            else:
+                found['lastfailed'] = timestamp
+            doc.replace_one({'username': username}, found)
+        return True
 
     ##########################################################
     # devices
