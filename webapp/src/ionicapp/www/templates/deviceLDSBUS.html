@@ -24,7 +24,7 @@
       <div class="item item-body" id="deviceLDSBUS-list-item-container51" ng-click="getLDSUs()">
         <div id="deviceLDSBUS-markdown536" class="show-list-numbers-and-dots">
           <p style="margin-top:0px;color:#3C5A99;font-size:18px;">
-            <strong> LDSUs </strong> ({{ ldsbus[0].ldsus.length }})</p>
+            <strong> LDSUs </strong> ({{ ldsbus.length ? ldsbus[0].ldsus.length : 0 }})</p>
         </div>
       </div>
     </div>
@@ -32,7 +32,7 @@
       <div class="item item-body" id="deviceLDSBUS-list-item-container37" ng-click="getSensors()">
         <div id="deviceLDSBUS-markdown528" class="show-list-numbers-and-dots">
           <p style="margin-top:0px;color:#3C5A99;font-size:18px;">
-            <strong> Sensors </strong> ({{ ldsbus[0].sensors.length }})</p>
+            <strong> Sensors </strong> ({{ ldsbus.length ? ldsbus[0].sensors.length : 0 }})</p>
         </div>
       </div>
     </div>
@@ -40,10 +40,10 @@
       <div class="item item-body" id="deviceLDSBUS-list-item-container40" ng-click="getActuators()">
         <div id="deviceLDSBUS-markdown530" class="show-list-numbers-and-dots">
           <p style="margin-top:0px;color:#3C5A99;font-size:18px;">
-            <strong> Actuators </strong> ({{ ldsbus[0].actuators.length }})</p>
+            <strong> Actuators </strong> ({{ ldsbus.length ? ldsbus[0].actuators.length : 0 }})</p>
         </div>
       </div>
     </div>
-    <button id="deviceLDSBUS-button225" ng-click="submitRefresh()" class="button button-positive button-block">Scan</button>
+    <button id="deviceLDSBUS-button225" ng-click="scanLDSBUS()" class="button button-positive button-block">Scan</button>
   </ion-content>
 </ion-view>

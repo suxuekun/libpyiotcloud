@@ -196,6 +196,7 @@ class identity_authentication:
                 result = self.database_client.forgot_password(username)
                 #print(result)
             elif id == "NotAuthorizedException":
+                self.database_client.set_last_login(username, False)
                 # increment failed attempts
                 self.redis_client.login_failed_set_attempts(username)
                 attempts = self.redis_client.login_failed_get_attempts(username)
@@ -216,6 +217,7 @@ class identity_authentication:
                 else:
                     response = json.dumps({'status': 'NG', 'message': 'NotAuthorizedException'})
             else:
+                self.database_client.set_last_login(username, False)
                 response = json.dumps({'status': 'NG', 'message': 'NotAuthorizedException'})
             print('\r\nERROR Login: Password is incorrect [{}] {}\r\n'.format(username, id))
             return response, status.HTTP_401_UNAUTHORIZED
@@ -225,6 +227,10 @@ class identity_authentication:
         attempts = self.redis_client.login_failed_get_attempts(username)
         if attempts is not None:
             self.redis_client.login_failed_del_attempts(username)
+
+        # save the last login time
+        self.database_client.set_last_login(username, True)
+
 
         # return name during login as per special request
         name = None
@@ -335,9 +341,9 @@ class identity_authentication:
 
 
         # check length of password
-        if len(password) < 6:
-            response = json.dumps({'status': 'NG', 'message': 'Password length should at least be 6 characters'})
-            print('\r\nERROR Signup: Password length should at least be 6 characters [{}]\r\n'.format(username))
+        if len(password) < 8:
+            response = json.dumps({'status': 'NG', 'message': 'Password length should at least be 8 characters'})
+            print('\r\nERROR Signup: Password length should at least be 8 characters [{}]\r\n'.format(username))
             return response, status.HTTP_400_BAD_REQUEST
 
         # check if username is already in database
@@ -358,10 +364,14 @@ class identity_authentication:
         #    return response, status.HTTP_409_CONFLICT
 
         # add entry in database
-        result = self.database_client.add_user(username, password, email, phonenumber, givenname, familyname)
+        result, errorcode = self.database_client.add_user(username, password, email, phonenumber, givenname, familyname)
         if not result:
-            response = json.dumps({'status': 'NG', 'message': 'Internal server error'})
-            print('\r\nERROR Signup: Internal server error [{},{},{},{},{}]\r\n'.format(username, password, email, givenname, familyname))
+            if errorcode == "InvalidPasswordException":
+                msg = "Password must be atleast 8 characters with a lowercase character, uppercase character, special character and a number."
+            else:
+                msg = 'Internal server error'
+            response = json.dumps({'status': 'NG', 'message': msg})
+            print('\r\nERROR Signup: {} [{},{},{},{},{}]\r\n'.format(msg, username, password, email, givenname, familyname))
             return response, status.HTTP_500_INTERNAL_SERVER_ERROR
 
         response = json.dumps({'status': 'OK', 'message': 'User registered successfully. Check email for confirmation code.'})
@@ -561,11 +571,25 @@ class identity_authentication:
             print('\r\nERROR Reset Password: Empty parameter found\r\n')
             return response, status.HTTP_400_BAD_REQUEST
 
+        # check length of password
+        if len(password) < 8:
+            response = json.dumps({'status': 'NG', 'message': 'Password length should at least be 8 characters'})
+            print('\r\nERROR Reset Password: Password length should at least be 8 characters [{}]\r\n'.format(username))
+            return response, status.HTTP_400_BAD_REQUEST
+
         # confirm user in database
-        result = self.database_client.confirm_forgot_password(username, confirmationcode, password)
+        result, errorcode = self.database_client.confirm_forgot_password(username, confirmationcode, password)
         if not result:
-            response = json.dumps({'status': 'NG', 'message': 'Invalid code'})
-            print('\r\nERROR Reset Password: Invalid code [{}]\r\n'.format(username))
+            if errorcode == "InvalidPasswordException":
+                msg = "Password must be atleast 8 characters with a lowercase character, uppercase character, special character and a number."
+            elif errorcode == "CodeMismatchException":
+                msg = 'Invalid verification code'
+            elif errorcode == "LimitExceededException":
+                msg = 'Attempt limit exceeded. Please try again later.'
+            else:
+                msg = 'Internal error'
+            response = json.dumps({'status': 'NG', 'message': msg})
+            print('\r\nERROR Reset Password: {} [{}]\r\n'.format(msg, username))
             return response, status.HTTP_500_INTERNAL_SERVER_ERROR
 
         # delete the couter for failed logins
@@ -724,6 +748,13 @@ class identity_authentication:
 
             # add username to info for Login via Social IDP (Facebook, Google, Amazon)
             info['username'] = username
+
+            # add last login information
+            last_login = self.database_client.get_last_login(username)
+            if 'lastsuccess' in last_login:
+                info['last_login'] = last_login['lastsuccess']
+            if 'lastfailed' in last_login:
+                info['last_failed_login'] = last_login['lastfailed']
 
 
         msg = {'status': 'OK', 'message': 'Userinfo queried successfully.'}
@@ -1094,11 +1125,21 @@ class identity_authentication:
             print('\r\nERROR Change password: Password newpassword format invalid\r\n')
             return response, status.HTTP_400_BAD_REQUEST
 
+        # check length of newpassword
+        if len(newpassword) < 8:
+            response = json.dumps({'status': 'NG', 'message': 'Password length should at least be 8 characters'})
+            print('\r\nERROR Change password: Password length should at least be 8 characters [{}]\r\n'.format(username))
+            return response, status.HTTP_400_BAD_REQUEST
+
         # change password
-        result = self.database_client.change_password(token["access"], password, newpassword)
+        result, errorcode = self.database_client.change_password(token["access"], password, newpassword)
         if not result:
-            response = json.dumps({'status': 'NG', 'message': 'Request failed'})
-            print('\r\nERROR Change password: Request failed [{}]\r\n'.format(username))
+            if errorcode == "InvalidPasswordException":
+                msg = "Password must be atleast 8 characters with a lowercase character, uppercase character, special character and a number."
+            else:
+                msg = 'Internal server error'
+            response = json.dumps({'status': 'NG', 'message': msg})
+            print('\r\nERROR Change password: {} [{}]\r\n'.format(msg, username))
             return response, status.HTTP_500_INTERNAL_SERVER_ERROR
 
         response = json.dumps({'status': 'OK', 'message': 'Change password successful'})
@@ -1234,17 +1275,20 @@ class identity_authentication:
 
         access, refresh, id = self.database_client.login_mfa(username, sessionkey, mfacode)
         if not access:
+            self.database_client.set_last_login(username, False)
             response = json.dumps({'status': 'NG', 'message': 'Invalid code'})
             print('\r\nERROR Login MFA: Invalid code [{},{}]\r\n'.format(username, mfacode))
             return response, status.HTTP_500_INTERNAL_SERVER_ERROR
 
         self.redis_client.mfa_del_session(username)
 
-
         # delete the couter for failed logins
         attempts = self.redis_client.login_failed_get_attempts(username)
         if attempts is not None:
             self.redis_client.login_failed_del_attempts(username)
+
+        self.database_client.set_last_login(username, True)
+
 
         # return name during login as per special request
         name = None

@@ -329,7 +329,8 @@ DETAILED:
 		   // phone number should begin with "+" followed by country code then the number (ex. SG number +6512341234)
 		   // phone number must be unique for all users (since LOGIN via phone number is now supported)
 		   // name can be 1 or multiple words
-		   // password length is 6 characters minimum as set in Cognito
+		   // password length must be atleast 8 characters minimum 
+		   // pasword must contain uppercase character, lowercase character, special character and a number
 		   // OTP will be sent in the registered email
 		-  Response:
 		   {'status': 'OK', 'message': string}
@@ -385,6 +386,7 @@ DETAILED:
 		-  Request:
 		   POST /user/confirm_forgot_password
 		   headers: {'Authorization': 'Bearer ' + jwtEncode(username, password), 'Content-Type': 'application/json'}
+		   // password must conform to the password requirements. refer to SIGNUP api
 		   data: { 'confirmationcode': string }
 		-  Response:
 		   {'status': 'OK', 'message': string}
@@ -478,6 +480,8 @@ DETAILED:
 		             'phone_number_isocode': string, 
 		             'phone_number_carrier': string, 
 		             'mfa_enabled': boolean,
+		             'last_login': int,
+		             'last_failed_login': int,
 		             'identity': {'providerName': string, 'userId': string}, 'username': string} }
 		   // phone_number and phone_number_verified are not included if no phone_number has been added yet
 		   // phone_number can be added using SIGN UP or UPDATE USER INFO
@@ -490,6 +494,8 @@ DETAILED:
 		   // phone_number_carrier refers to the network carrier of the phone number
 		   //   phone_number_carrier is optional and appears only when user has provided and verified his phone number
 		   // mfa_enabled is optional and appears only when user has provided and verified his phone number
+		   // last_login specifies the user's previous successful login time in epoch
+		   // last_failed_login specifies the user's previous failed login time in epoch
 		   {'status': 'NG', 'message': string}
 
 		I. UPDATE USER INFO
@@ -548,6 +554,7 @@ DETAILED:
 		   POST /user/change_password
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
 		   data: {'token': jwtEncode(password, newpassword)}
+		   // newpassword must conform to the password requirements. refer to SIGNUP api
 		-  Response:
 		   {'status': 'OK', 'message': string}
 		   {'status': 'NG', 'message': string}
@@ -692,7 +699,7 @@ DETAILED:
 		   // output is the same as Login API
 		   {'status': 'NG', 'message': string}
 		   MFA must be manually enabled before Login within MFA
-
+		   MFA code has 3 minutes validity. It cannot be modified in Cognito.
 
 		S. GET ORGANIZATIONS
 		-  Request:

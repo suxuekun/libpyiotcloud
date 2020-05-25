@@ -109,7 +109,7 @@ Below are the features of this secure, scalable and reliable IoT platform:
 
     7. Payment services
        Conveniently pay for subscription upgrade for each device every month to avail all services for all purchased IoT devices.
-       A. Use Paypal to pay for subscription plan (and/or add-ons) and receive an email confirmation receipt
+       A. Use Paypal/BrainTree to pay for subscription plan (and/or add-ons) and receive an email confirmation receipt
        B. View payment histories fo all purchased IoT devices
        C. Use free subscription for all purchased devices
        D. Upgrade free subscription to Basic subscription to avail of all services
@@ -175,7 +175,7 @@ enhance business efficiencies and opportunities, and improve lives, in any type 
 
 
 This IoT platform is a container-based IoT cloud platform that leverages 
-Flask, GUnicorn, Nginx, RabbitMQ, MongoDB, Ionic, Amazon Cognito, Amazon Pinpoint, Twilio, Nexmo, Paypal, Docker, Kubernetes, Jenkins and many more.
+Flask, GUnicorn, Nginx, RabbitMQ, MongoDB, Ionic, Amazon Cognito, Amazon Pinpoint, Twilio, Nexmo, Paypal, BrainTree, Docker, Kubernetes, Jenkins and many more.
 It can be deployed in a local PC or in the cloud - AWS EC2, Linode, Heroku, Rackspace, DigitalOcean or etc.
 The web app is made of Ionic framework so it can be compiled as Android and iOS mobile apps using one code base.
 
@@ -201,7 +201,8 @@ The web app is made of Ionic framework so it can be compiled as Android and iOS 
 - <b>Prometheus</b> monitoring solution - https://prometheus.io/
 - <b>Grafana</b> visualization solution - https://grafana.com/
 - <b>Ionic</b> mobile/web frontend framework - https://ionicframework.com/
-- <b>Paypal Payment Platform</b> payment gateway - https://developer.paypal.com/
+- <b>Paypal</b> payment gateway - https://developer.paypal.com/
+- <b>BrainTree</b> payment gateway - https://www.braintreepayments.com/
 - <b>Apple Push Notification service (APNs)</b> for IOS push notifications
 - <b>Google Firebase Cloud Messaging (FCM)</b> for Android push notifications
 - <b>Google Maps Platform</b> for device location - https://developers.google.com/maps/documentation/
@@ -269,7 +270,7 @@ Below are tools and utilities being used:
 
 1. <b>Programming Languages:</b> Python
 2. <b>Nginx</b> -> called by frontend, will call RestAPI or Webapp
-3. <b>RestAPI</b> (Flask) -> Cognito, MongoDB, Paypal, RabbitMQ
+3. <b>RestAPI</b> (Flask) -> Cognito, MongoDB, Paypal, BrainTree, RabbitMQ
 4. <b>MongoDB</b>: accessed by restapi, history, notification, sensor, configuration, otaupdate
 5. <b>Redis</b>: accessed by restapi
 6. <b>Notification service</b> -> RabbitMQ, MongoDB, Pinpoint, Twilio, Nexmo
@@ -1637,6 +1638,9 @@ Note: Using Kubernetes will also change the infrastracture.
           4. Execute the billing agreement.
              - The states of the billing agreement are Active, Expired, Cancelled
         - Refer to https://github.com/richmondu/libpypaypal for the demonstration of this feature.
+
+
+### Setup BrainTree
 
 
 ### Install Jenkins (on local and on AWS EC2)
