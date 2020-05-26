@@ -136,7 +136,7 @@ angular.module('devicegroups', [])
             });
         },
         
-        add: function(userdata, groupname) {
+        add: function(userdata, groupname, devices) {
 
             //
             // ADD DEVICE GROUP
@@ -144,6 +144,7 @@ angular.module('devicegroups', [])
             // - Request:
             //   POST /devicegroups/GROUPNAME
             //   headers: {'Authorization': 'Bearer ' + token.access}
+            //   data: {'devices': []}
             //
             // - Response:
             //   {'status': 'OK', 'message': string}
@@ -152,7 +153,8 @@ angular.module('devicegroups', [])
             return $http({
                 method: 'POST',
                 url: server + '/devicegroups/' + groupname,
-                headers: {'Authorization': 'Bearer ' + userdata.token.access}
+                headers: {'Authorization': 'Bearer ' + userdata.token.access},
+                data: {'devices': devices}
             })
             .then(function (result) {
                 console.log(result.data);

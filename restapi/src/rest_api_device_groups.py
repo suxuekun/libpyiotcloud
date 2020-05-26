@@ -242,9 +242,21 @@ class device_groups:
                 print('\r\nERROR Add DeviceGroup: Name is already used [{},{}]\r\n'.format(entityname, devicegroupname))
                 return response, status.HTTP_409_CONFLICT
 
+            # add device list if provided 
+            deviceids = []
+            data = flask.request.get_json()
+            if data is not None and data.get("devices") is not None:
+                #print(data["devices"])
+                for devicename in data["devices"]:
+                    device = self.database_client.find_device(entityname, devicename)
+                    if device:
+                        deviceids.append(device["deviceid"])
+
             # create device group
             msg = {'status': 'OK', 'message': 'Device group added successfully.'}
-            self.database_client.add_devicegroup(entityname, devicegroupname)
+            self.database_client.add_devicegroup(entityname, devicegroupname, deviceids)
+
+            msg = {'status': 'OK', 'message': 'Devices set to device group successfully.'}
 
         elif flask.request.method == 'DELETE':
             if orgname is not None:
