@@ -128,7 +128,7 @@ class device_groups:
     # GET DEVICE GROUP
     #
     # - Request:
-    #   GET /devicegroups/<devicegroupname>
+    #   GET /devicegroups/group/<devicegroupname>
     #   headers: {'Authorization': 'Bearer ' + token.access}
     #
     # - Response:
@@ -139,7 +139,7 @@ class device_groups:
     # ADD DEVICE GROUP
     #
     # - Request:
-    #   POST /devicegroups/<devicegroupname>
+    #   POST /devicegroups/group/<devicegroupname>
     #   headers: {'Authorization': 'Bearer ' + token.access}
     #
     # - Response:
@@ -150,7 +150,7 @@ class device_groups:
     # DELETE DEVICE GROUP
     #
     # - Request:
-    #   DELETE /devicegroups/<devicegroupname>
+    #   DELETE /devicegroups/group/<devicegroupname>
     #   headers: {'Authorization': 'Bearer ' + token.access}
     #
     # - Response:
@@ -236,6 +236,12 @@ class device_groups:
                     print('\r\nERROR Add DeviceGroup: Authorization not allowed [{}]\r\n'.format(username))
                     return response, status.HTTP_401_UNAUTHORIZED
 
+            # check devicegroupname
+            if len(devicegroupname) == 0:
+                response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+                print('\r\nERROR Add DeviceGroup: Empty parameter found\r\n')
+                return response, status.HTTP_400_BAD_REQUEST
+
             # check device group if exist
             if self.database_client.get_devicegroup(entityname, devicegroupname) is not None:
                 response = json.dumps({'status': 'NG', 'message': 'Device group name is already used'})
@@ -246,17 +252,28 @@ class device_groups:
             deviceids = []
             data = flask.request.get_json()
             if data is not None and data.get("devices") is not None:
-                #print(data["devices"])
-                for devicename in data["devices"]:
-                    device = self.database_client.find_device(entityname, devicename)
-                    if device:
-                        deviceids.append(device["deviceid"])
+                # check if the devices dont belong to a group already
+                if len(data["devices"]):
+                    ungrouped_devices = self.database_client.get_ungroupeddevices(entityname)
+                    for devicename in data["devices"]:
+                        found = False
+                        for ungrouped_device in ungrouped_devices:
+                            if devicename == ungrouped_device["devicename"]:
+                                found = True
+                                break
+                        if found == False:
+                            response = json.dumps({'status': 'NG', 'message': 'Atleast one of the devices already belong to a group'})
+                            print('\r\nERROR Add DeviceGroup: Atleast one of the devices already belong to a group\r\n')
+                            return response, status.HTTP_400_BAD_REQUEST
+
+                        # get the deviceids given the devicenames
+                        device = self.database_client.find_device(entityname, devicename)
+                        if device:
+                            deviceids.append(device["deviceid"])
 
             # create device group
-            msg = {'status': 'OK', 'message': 'Device group added successfully.'}
             self.database_client.add_devicegroup(entityname, devicegroupname, deviceids)
-
-            msg = {'status': 'OK', 'message': 'Devices set to device group successfully.'}
+            msg = {'status': 'OK', 'message': 'Device group added successfully.'}
 
         elif flask.request.method == 'DELETE':
             if orgname is not None:
@@ -278,6 +295,257 @@ class device_groups:
 
 
         print('\r\n%s: {}\r\n{}\r\n'.format(username, msg["message"]))
+        response = json.dumps(msg)
+        return response
+
+
+    ########################################################################################################
+    #
+    #
+    # GET DEVICE GROUP DETAILED
+    #
+    # - Request:
+    #   GET /devicegroups/group/<devicegroupname>/devices
+    #   headers: {'Authorization': 'Bearer ' + token.access}
+    #
+    # - Response:
+    #   {'status': 'OK', 'message': string, 'devices': array[{'devicename': string, 'deviceid': string, 'serialnumber': string, 'timestamp': string, 'heartbeat': string, 'version': string}, ...]}
+    #   {'status': 'NG', 'message': string}
+    #
+    ########################################################################################################
+    def get_devicegroup_detailed(self, devicegroupname):
+        # get token from Authorization header
+        auth_header_token = rest_api_utils.utils().get_auth_header_token()
+        if auth_header_token is None:
+            response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
+            print('\r\nERROR Get/Add/Delete DeviceGroup: Invalid authorization header\r\n')
+            return response, status.HTTP_401_UNAUTHORIZED
+        token = {'access': auth_header_token}
+
+        # get username from token
+        username = self.database_client.get_username_from_token(token)
+        if username is None:
+            response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+            print('\r\nERROR Get/Add/Delete DeviceGroup: Token expired\r\n')
+            return response, status.HTTP_401_UNAUTHORIZED
+        print('get_devicegroup_detailed {} devicegroupname={}'.format(username, devicegroupname))
+
+        # check if a parameter is empty
+        if len(username) == 0 or len(token) == 0 or len(devicegroupname) == 0:
+            response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+            print('\r\nERROR Get/Add/Delete DeviceGroup: Empty parameter found\r\n')
+            return response, status.HTTP_400_BAD_REQUEST
+
+        # check if username and token is valid
+        verify_ret, new_token = self.database_client.verify_token(username, token)
+        if verify_ret == 2:
+            response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+            print('\r\nERROR Get/Add/Delete DeviceGroup: Token expired [{}]\r\n'.format(username))
+            return response, status.HTTP_401_UNAUTHORIZED
+        elif verify_ret != 0:
+            response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
+            print('\r\nERROR Get/Add/Delete DeviceGroup: Token is invalid [{}]\r\n'.format(username))
+            return response, status.HTTP_401_UNAUTHORIZED
+
+
+        # get entity using the active organization
+        orgname, orgid = self.database_client.get_active_organization(username)
+        if orgname is not None:
+            # has active organization
+            entityname = "{}.{}".format(orgname, orgid)
+        else:
+            # no active organization, just a normal user
+            entityname = username
+
+
+        if orgname is not None:
+            # check authorization
+            if self.database_client.is_authorized(username, orgname, orgid, database_categorylabel.DEVICES, database_crudindex.READ) == False:
+                response = json.dumps({'status': 'NG', 'message': 'Authorization failed! User is not allowed to access resource. Please check with the organization owner regarding policies assigned.'})
+                print('\r\nERROR Get DeviceGroup: Authorization not allowed [{}]\r\n'.format(username))
+                return response, status.HTTP_401_UNAUTHORIZED
+
+        msg = {'status': 'OK', 'message': 'Device group retrieved successfully.'}
+
+        # get device group if exist
+        msg['devicegroup'] = self.database_client.get_devicegroup(entityname, devicegroupname)
+        if msg['devicegroup'] is None:
+            response = json.dumps({'status': 'NG', 'message': 'Device group not found'})
+            print('\r\nERROR Get DeviceGroup: Device group not found [{},{}]\r\n'.format(entityname, devicegroupname))
+            return response, status.HTTP_404_NOT_FOUND
+
+        # update the devicenames to be deviceids
+        devices = self.database_client.get_devices(entityname)
+        device_list = []
+        for deviceid in msg['devicegroup']['devices']:
+            for device in devices:
+                if deviceid == device["deviceid"]:
+                    device_list.append(device)
+                    break
+        msg['devicegroup']['devices'] = device_list
+
+
+        print('\r\n%s: {}\r\n{}\r\n'.format(username, msg["message"]))
+        response = json.dumps(msg)
+        return response
+
+
+    ########################################################################################################
+    #
+    #
+    # GET UNGROUPED DEVICES
+    #
+    # - Request:
+    #   GET /devicegroups/ungrouped
+    #   headers: {'Authorization': 'Bearer ' + token.access}
+    #
+    # - Response:
+    #   {'status': 'OK', 'message': string, 'devices': array[{'devicename': string, 'deviceid': string, 'serialnumber': string, 'timestamp': string, 'heartbeat': string, 'version': string}, ...]}
+    #   {'status': 'NG', 'message': string}
+    #
+    ########################################################################################################
+    def get_ungroupeddevices(self):
+        # get token from Authorization header
+        auth_header_token = rest_api_utils.utils().get_auth_header_token()
+        if auth_header_token is None:
+            response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
+            print('\r\nERROR Get Ungrouped Devices: Invalid authorization header\r\n')
+            return response, status.HTTP_401_UNAUTHORIZED
+        token = {'access': auth_header_token}
+
+        # get username from token
+        username = self.database_client.get_username_from_token(token)
+        if username is None:
+            response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+            print('\r\nERROR Get Ungrouped Devices: Token expired\r\n')
+            return response, status.HTTP_401_UNAUTHORIZED
+        print('get_ungroupeddevices {}'.format(username))
+
+        # check if a parameter is empty
+        if len(username) == 0 or len(token) == 0:
+            response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+            print('\r\nERROR Get Ungrouped Devices: Empty parameter found\r\n')
+            return response, status.HTTP_400_BAD_REQUEST
+
+        # check if username and token is valid
+        verify_ret, new_token = self.database_client.verify_token(username, token)
+        if verify_ret == 2:
+            response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+            print('\r\nERROR Get Ungrouped Devices: Token expired [{}]\r\n'.format(username))
+            return response, status.HTTP_401_UNAUTHORIZED
+        elif verify_ret != 0:
+            response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
+            print('\r\nERROR Get Ungrouped Devices: Token is invalid [{}]\r\n'.format(username))
+            return response, status.HTTP_401_UNAUTHORIZED
+
+
+        # get entity using the active organization
+        orgname, orgid = self.database_client.get_active_organization(username)
+        if orgname is not None:
+            # has active organization
+            entityname = "{}.{}".format(orgname, orgid)
+            # check authorization
+            if self.database_client.is_authorized(username, orgname, orgid, database_categorylabel.DEVICES, database_crudindex.READ) == False:
+                response = json.dumps({'status': 'NG', 'message': 'Authorization failed! User is not allowed to access resource. Please check with the organization owner regarding policies assigned.'})
+                print('\r\nERROR Ungrouped Devices: Authorization not allowed [{}]\r\n'.format(username))
+                return response, status.HTTP_401_UNAUTHORIZED
+        else:
+            # no active organization, just a normal user
+            entityname = username
+
+
+        devices = self.database_client.get_ungroupeddevices(entityname)
+        msg = {'status': 'OK', 'message': 'Ungrouped devices retrieved successfully.', 'devices': devices}
+
+
+        print('\r\n {}\r\n{}\r\n'.format(username, msg["message"]))
+        response = json.dumps(msg)
+        return response
+
+
+    ########################################################################################################
+    #
+    #
+    # GET MIXED DEVICES
+    #
+    # - Request:
+    #   GET /devicegroups/mixed
+    #   headers: {'Authorization': 'Bearer ' + token.access}
+    #
+    # - Response:
+    #   {'status': 'OK', 'message': string, 'devices': array[{'devicename': string, 'deviceid': string, 'serialnumber': string, 'timestamp': string, 'heartbeat': string, 'version': string}, ...]}
+    #   {'status': 'NG', 'message': string}
+    #
+    ########################################################################################################
+    def get_mixeddevices(self):
+        # get token from Authorization header
+        auth_header_token = rest_api_utils.utils().get_auth_header_token()
+        if auth_header_token is None:
+            response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
+            print('\r\nERROR Get Mixed Devices: Invalid authorization header\r\n')
+            return response, status.HTTP_401_UNAUTHORIZED
+        token = {'access': auth_header_token}
+
+        # get username from token
+        username = self.database_client.get_username_from_token(token)
+        if username is None:
+            response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+            print('\r\nERROR Get Mixed Devices: Token expired\r\n')
+            return response, status.HTTP_401_UNAUTHORIZED
+        print('get_mixeddevices {}'.format(username))
+
+        # check if a parameter is empty
+        if len(username) == 0 or len(token) == 0:
+            response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+            print('\r\nERROR Get Mixed Devices: Empty parameter found\r\n')
+            return response, status.HTTP_400_BAD_REQUEST
+
+        # check if username and token is valid
+        verify_ret, new_token = self.database_client.verify_token(username, token)
+        if verify_ret == 2:
+            response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+            print('\r\nERROR Get Mixed Devices: Token expired [{}]\r\n'.format(username))
+            return response, status.HTTP_401_UNAUTHORIZED
+        elif verify_ret != 0:
+            response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
+            print('\r\nERROR Get Mixed Devices: Token is invalid [{}]\r\n'.format(username))
+            return response, status.HTTP_401_UNAUTHORIZED
+
+
+        # get entity using the active organization
+        orgname, orgid = self.database_client.get_active_organization(username)
+        if orgname is not None:
+            # has active organization
+            entityname = "{}.{}".format(orgname, orgid)
+            # check authorization
+            if self.database_client.is_authorized(username, orgname, orgid, database_categorylabel.DEVICES, database_crudindex.READ) == False:
+                response = json.dumps({'status': 'NG', 'message': 'Authorization failed! User is not allowed to access resource. Please check with the organization owner regarding policies assigned.'})
+                print('\r\nERROR Mixed Devices: Authorization not allowed [{}]\r\n'.format(username))
+                return response, status.HTTP_401_UNAUTHORIZED
+        else:
+            # no active organization, just a normal user
+            entityname = username
+
+
+        # get ungrouped devices
+        devices = self.database_client.get_ungroupeddevices(entityname)
+
+        # get device groups
+        devicegroups = self.database_client.get_devicegroups(entityname)
+        if devicegroups:
+            for devicegroup in devicegroups:
+                devicenames = []
+                for deviceid in devicegroup['devices']:
+                    device = self.database_client.find_device_by_id(deviceid)
+                    if device:
+                        devicenames.append(device["devicename"])
+                devicegroup['devices'] = devicenames
+
+        msg = {'status': 'OK', 'message': 'Mixed devices retrieved successfully.', 'devices': devices, 'devicegroups': devicegroups}
+
+
+
+        print('\r\n {}\r\n{}\r\n'.format(username, msg["message"]))
         response = json.dumps(msg)
         return response
 
@@ -344,6 +612,12 @@ class device_groups:
         else:
             # no active organization, just a normal user
             entityname = username
+
+        # check devicegroupname
+        if len(devicegroupname) == 0:
+            response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+            print('\r\nERROR Update Device Group Name: Empty parameter found\r\n')
+            return response, status.HTTP_400_BAD_REQUEST
 
         # check if device group is registered
         if self.database_client.get_devicegroup(entityname, devicegroupname) is None:
@@ -471,6 +745,18 @@ class device_groups:
         if flask.request.method == 'POST':
             msg = {'status': 'OK', 'message': 'Device added to device group successfully.'}
 
+            # check if the devices dont belong to a group already
+            ungrouped_devices = self.database_client.get_ungroupeddevices(entityname)
+            found = False
+            for ungrouped_device in ungrouped_devices:
+                if devicename == ungrouped_device["devicename"]:
+                    found = True
+                    break
+            if found == False:
+                response = json.dumps({'status': 'NG', 'message': 'The device already belong to a group'})
+                print('\r\nERROR Add DeviceGroup: The device already belong to a group\r\n')
+                return response, status.HTTP_400_BAD_REQUEST
+
             # add device to device group
             result = self.database_client.add_device_to_devicegroup(entityname, devicegroupname, device['deviceid'])
             if result == False:
@@ -562,6 +848,29 @@ class device_groups:
             print('\r\nERROR Add/Delete Device To/From DeviceGroup: Parameters not included [{},{}]\r\n'.format(username, devicegroupname))
             return response, status.HTTP_400_BAD_REQUEST
 
+
+        # check if the devices dont belong to a group already
+        if len(data["devices"]):
+            devicegroup = self.database_client.get_devicegroup(entityname, devicegroupname)
+            if devicegroup:
+                devicenames = []
+                for deviceid in devicegroup['devices']:
+                    device = self.database_client.find_device_by_id(deviceid)
+                    if device:
+                        devicenames.append(device["devicename"])
+
+            ungrouped_devices = self.database_client.get_ungroupeddevices(entityname)
+            for devicename in data["devices"]:
+                found = False
+                for ungrouped_device in ungrouped_devices:
+                    if devicename == ungrouped_device["devicename"]:
+                        found = True
+                        break
+                if found == False:
+                    if devicename not in devicenames:
+                        response = json.dumps({'status': 'NG', 'message': 'Atleast one of the devices already belong to a group'})
+                        print('\r\nERROR Add/Delete Device To/From DeviceGroup: Atleast one of the devices already belong to a group\r\n')
+                        return response, status.HTTP_400_BAD_REQUEST
 
         # get the deviceids given the devicenames
         deviceids = []

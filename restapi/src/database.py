@@ -953,6 +953,10 @@ class database_client:
         return self._devices.get_devicegroup(username, groupname)
 
     # org-ready
+    def get_ungroupeddevices(self, username):
+        return self._devices.get_ungroupeddevices(username)
+
+    # org-ready
     def add_devicegroup(self, username, groupname, devices):
         self._devices.add_devicegroup(username, groupname, devices)
 
@@ -4426,6 +4430,21 @@ class database_client_mongodb:
                 devicegroup.pop('username')
                 return devicegroup
         return None
+
+    def get_ungroupeddevices(self, username):
+        ungroupeddevices = []
+        devices = self.get_devices(username)
+        for device in devices:
+            found = False
+            devicegroups = self.get_devicegroups(username)
+            for devicegroup in devicegroups:
+                if device["deviceid"] in devicegroup["devices"]:
+                    found = True
+                    break
+            if not found:
+                ungroupeddevices.append(device)
+        print(ungroupeddevices)
+        return ungroupeddevices
 
     def get_devicegroups(self, username):
         devicegroups_list = []

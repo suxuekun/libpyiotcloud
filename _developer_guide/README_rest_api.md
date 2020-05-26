@@ -121,14 +121,17 @@ SUMMARY:
 
 	4. Device group registration and management APIs
 
-		A. GET DEVICE GROUPS              - GET    /devicegroups
-		B. ADD DEVICE GROUP               - POST   /devicegroups/DEVICEGROUPNAME
-		C. REMOVE DEVICE GROUP            - DELETE /devicegroups/DEVICEGROUPNAME
-		D. GET DEVICE GROUP               - GET    /devicegroups/DEVICEGROUPNAME
-		E. UPDATE DEVICE GROUP NAME       - POST   /devicegroups/DEVICEGROUPNAME/name
-		F. ADD DEVICE TO GROUP            - POST   /devicegroups/DEVICEGROUPNAME/device/DEVICENAME
-		G. REMOVE DEVICE FROM GROUP       - DELETE /devicegroups/DEVICEGROUPNAME/device/DEVICENAME
-		H. SET DEVICES IN DEVICE GROUP    - POST   /devicegroups/DEVICEGROUPNAME/devices
+		A. GET DEVICE GROUPS                               - GET    /devicegroups
+		B. ADD DEVICE GROUP                                - POST   /devicegroups/group/DEVICEGROUPNAME
+		C. REMOVE DEVICE GROUP                             - DELETE /devicegroups/group/DEVICEGROUPNAME
+		D. GET DEVICE GROUP                                - GET    /devicegroups/group/DEVICEGROUPNAME
+		E. GET DEVICE GROUP DETAILED                       - GET    /devicegroups/group/DEVICEGROUPNAME/devices
+		F. UPDATE DEVICE GROUP NAME                        - POST   /devicegroups/group/DEVICEGROUPNAME/name
+		G. ADD DEVICE TO GROUP                             - POST   /devicegroups/group/DEVICEGROUPNAME/device/DEVICENAME
+		H. REMOVE DEVICE FROM GROUP                        - DELETE /devicegroups/group/DEVICEGROUPNAME/device/DEVICENAME
+		I. SET DEVICES IN DEVICE GROUP                     - POST   /devicegroups/group/DEVICEGROUPNAME/devices
+		J. GET UNGROUPED DEVICES                           - GET    /devicegroups/ungrouped
+		K. GET DEVICE GROUPS & UNGROUPED DEVICES           - GET    /devicegroups/mixed
 
 
 	5. Device sensor access and control
@@ -1244,12 +1247,12 @@ DETAILED:
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
 		   { 'status': 'OK', 'message': string, 
-		     'devices': array[{'groupname': string, 'timestamp': int, 'devices': ["devicename", ...]}, ...] }
+		     'devicegroups': array[{'groupname': string, 'timestamp': int, 'devices': ["devicename", ...]}, ...] }
 		   { 'status': 'NG', 'message': string}
 
 		B. ADD DEVICE GROUP
 		-  Request:
-		   POST /devicegroups/DEVICEGROUPNAME
+		   POST /devicegroups/group/DEVICEGROUPNAME
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		   data: {'devices': ["devicename", ...]}
 		   // devices is optional; if provided then the list of devices will be included in the group to be created
@@ -1260,7 +1263,7 @@ DETAILED:
 
 		C. REMOVE DEVICE GROUP
 		-  Request:
-		   DELETE /devicegroups/DEVICEGROUPNAME
+		   DELETE /devicegroups/group/DEVICEGROUPNAME
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
 		   { 'status': 'OK', 'message': string}
@@ -1268,42 +1271,51 @@ DETAILED:
 
 		D. GET DEVICE GROUP
 		-  Request:
-		   GET /devicegroups/DEVICEGROUPNAME
+		   GET /devicegroups/group/DEVICEGROUPNAME
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
 		   { 'status': 'OK', 'message': string, 
-		     'devices': {'groupname': string, 'timestamp': int, 'devices': ["devicename", ...]} }
+		     'devicegroup': {'groupname': string, 'timestamp': int, 'devices': ["devicename", ...]} }
 		   { 'status': 'NG', 'message': string}
 
-		E. UPDATE DEVICE GROUP NAME
+		E. GET DEVICE GROUP DETAILED
 		-  Request:
-		   POST /devicegroups/DEVICEGROUPNAME/name
+		   GET /devicegroups/group/DEVICEGROUPNAME/devices
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		-  Response:
+		   { 'status': 'OK', 'message': string, 
+		     'devicegroup': {'groupname': string, 'timestamp': int, 'devices': array[{'devicename': string, 'deviceid': string, 'serialnumber': string, 'timestamp': string, 'heartbeat': string, 'version': string}, ...]} }
+		   { 'status': 'NG', 'message': string}
+
+		F. UPDATE DEVICE GROUP NAME
+		-  Request:
+		   POST /devicegroups/group/DEVICEGROUPNAME/name
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
 		   data: {'new_groupname': string}
 		-  Response:
 		   { 'status': 'OK', 'message': string}
 		   { 'status': 'NG', 'message': string}
 
-		F. ADD DEVICE TO GROUP
+		G. ADD DEVICE TO GROUP
 		-  Request:
-		   POST /devicegroups/DEVICEGROUPNAME/device/DEVICENAME
+		   POST /devicegroups/group/DEVICEGROUPNAME/device/DEVICENAME
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
 		   { 'status': 'OK', 'message': string}
 		   { 'status': 'NG', 'message': string}
 		   // HTTP_400_BAD_REQUEST is returned if device already added in group
 
-		G. REMOVE DEVICE FROM GROUP
+		H. REMOVE DEVICE FROM GROUP
 		-  Request:
-		   DELETE /devicegroups/DEVICEGROUPNAME/device/DEVICENAME
+		   DELETE /devicegroups/group/DEVICEGROUPNAME/device/DEVICENAME
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
 		   { 'status': 'OK', 'message': string}
 		   { 'status': 'NG', 'message': string}
 
-		H. SET DEVICES IN DEVICE GROUP
+		I. SET DEVICES IN DEVICE GROUP
 		-  Request:
-		   POST /devicegroups/DEVICEGROUPNAME/devices
+		   POST /devicegroups/group/DEVICEGROUPNAME/devices
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		   data: {'devices': ["devicename", ...]}
 		-  Response:
@@ -1311,6 +1323,28 @@ DETAILED:
 		   { 'status': 'NG', 'message': string}
 		   // devices is an array of device names
 		   // devices can be an empty array, meaning remove all devices in the group
+
+		J. GET UNGROUPED DEVICES
+		-  Request:
+		   GET /devicegroups/ungrouped
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		-  Response:
+		   { 'status': 'OK', 'message': string, 
+		     'devices': array[{'devicename': string, 'deviceid': string, 'serialnumber': string, 'timestamp': string, 'heartbeat': string, 'version': string}, ...]}
+		   { 'status': 'NG', 'message': string}
+		   // The return value is similar to GET DEVICES api
+
+		K. GET DEVICE GROUPS AND UNGROUPED DEVICES
+		-  Request:
+		   GET /devicegroups/mixed
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		-  Response:
+		   { 'status': 'OK', 'message': string, 
+		     'devices': array[{'devicename': string, 'deviceid': string, 'serialnumber': string, 'timestamp': string, 'heartbeat': string, 'version': string}, ...],
+		     'devicegroups': array[{'groupname': string, 'timestamp': int, 'devices': ["devicename", ...]}, ...]
+		   }
+		   { 'status': 'NG', 'message': string}
+		   // Yes, this is a weird API because of the weird FIGMA UI (All, Groups, Standalone - WTF!)
 
 
 	5. Device sensor access and control APIs
