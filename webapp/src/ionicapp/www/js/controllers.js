@@ -3942,6 +3942,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         'devicegroupname': "",
     };
 
+    $scope.devices = [];
+
 
     $scope.submit = function() {
         console.log("username=" + $scope.data.username);
@@ -3961,7 +3963,15 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             return;
         }
         
-        DeviceGroups.add($scope.data, $scope.data.devicegroupname).then(function(res) {
+
+        var devices = [];        
+        for (indexy=0; indexy<$scope.devices.length; indexy++) {
+            if ($scope.devices[indexy].enabled === true) {
+                devices.push($scope.devices[indexy].devicename);
+            }
+        }      
+
+        DeviceGroups.add($scope.data, $scope.data.devicegroupname, devices).then(function(res) {
             console.log(res);
             
             if (res.data !== null) {
@@ -4000,6 +4010,25 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             }
         }); 
     };
+    
+    $scope.getDevices = function() {
+        Devices.fetch($scope.data, "").then(function(res) {
+            $scope.data.token = User.get_token();
+            
+            // populate the list of devices
+            $scope.devices = res;
+            let indexy = 0;
+            for (indexy=0; indexy<$scope.devices.length; indexy++) {
+                $scope.devices[indexy].enabled = false;
+            }
+        });
+    };
+    
+    $scope.$on('$ionicView.enter', function(e) {
+        $scope.devices = [];
+        $scope.getDevices();
+    });     
+    
     
     $scope.submitDeviceList = function() {
         var device_param = {

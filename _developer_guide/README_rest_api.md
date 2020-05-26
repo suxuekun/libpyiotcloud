@@ -1251,6 +1251,8 @@ DETAILED:
 		-  Request:
 		   POST /devicegroups/DEVICEGROUPNAME
 		   headers: {'Authorization': 'Bearer ' + token.access}
+		   data: {'devices': ["devicename", ...]}
+		   // devices is optional; if provided then the list of devices will be included in the group to be created
 		-  Response:
 		   { 'status': 'OK', 'message': string}
 		   { 'status': 'NG', 'message': string}

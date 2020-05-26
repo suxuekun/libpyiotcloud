@@ -953,8 +953,8 @@ class database_client:
         return self._devices.get_devicegroup(username, groupname)
 
     # org-ready
-    def add_devicegroup(self, username, groupname):
-        self._devices.add_devicegroup(username, groupname)
+    def add_devicegroup(self, username, groupname, devices):
+        self._devices.add_devicegroup(username, groupname, devices)
 
     # org-ready
     def delete_devicegroup(self, username, groupname):
@@ -4397,7 +4397,7 @@ class database_client_mongodb:
     def get_registered_devicegroups(self):
         return self.client[config.CONFIG_MONGODB_TB_DEVICEGROUPS]
 
-    def add_devicegroup(self, username, groupname):
+    def add_devicegroup(self, username, groupname, devices):
         devicegroups = self.get_registered_devicegroups()
         timestamp = time.time()
         item = {}
@@ -4405,7 +4405,7 @@ class database_client_mongodb:
         item['groupname'] = groupname
         item['groupid'] = "devgrp" + str(timestamp)
         item['timestamp'] = int(timestamp)
-        item['devices'] = []
+        item['devices'] = devices
         devicegroups.insert_one(item)
         return True
 
