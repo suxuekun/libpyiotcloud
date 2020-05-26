@@ -354,10 +354,33 @@ DETAILED:
 		-  Publish:
 		   topic: server/DEVICEID/reg_ldsus
 		   payload: { 
-		     'value': { 
-		        // TODO: Get from Karan and Prabu
-		        // Contains both LDSUs information and sensors/actuators information (?)
-		     }
+		     'value': [
+		       { 
+		         'port': int,
+		         'vers': string, // ?
+		         'pver': string, // Product Version
+		         'mfgd': string, // Manufacturing Date
+		         'seri': string, // Serial Number
+		         'uuid': string, // UUID
+		         'pnam': string, // Product Name
+		         'objt': string, // Object Type
+		         'capa': string, // Capability
+		         'scnt': string, // Sensor Count
+		         'hcrc': string, // CRC 16 hash
+		         'i2cd': [
+		           {
+		             'manu': string, // Manufacturer
+		             'part': string, // Part Number
+		             'addr': string, // I2C Address
+		             'rgsz': string, // Register Size 
+		             'rgid': string, // Ref ID
+		             'objt': string, // Object type
+		           },
+		           ...
+		         ]
+		       },
+		       ...
+		     ]
 		   }
 		
 		D. REQUEST LDSUs
@@ -368,11 +391,33 @@ DETAILED:
 		-  Publish:
 		   topic: server/DEVICEID/reg_ldsus
 		   payload: { 
-		     'value': {
-		        'port': int,
-		        // TODO: Get from Karan and Prabu
-		        // Contains both LDSUs information and sensors/actuators information
-		     }
+		     'value': [
+		       {
+		         'port': int,
+		         'vers': string, // ?
+		         'pver': string, // Product Version
+		         'mfgd': string, // Manufacturing Date
+		         'seri': string, // Serial Number
+		         'uuid': string, // UUID
+		         'pnam': string, // Product Name
+		         'objt': string, // Object Type
+		         'capa': string, // Capability
+		         'scnt': string, // Sensor Count
+		         'hcrc': string, // CRC 16 hash
+		         'i2cd': [
+		           {
+		             'manu': string, // Manufacturer
+		             'part': string, // Part Number
+		             'addr': string, // I2C Address
+		             'rgsz': string, // Register Size 
+		             'rgid': string, // Ref ID
+		             'objt': string, // Object type
+		           },
+		           ...
+		         ]
+		       },
+		       ...
+		     ]
 		   }
 
 		E. IDENTIFY LDSU
