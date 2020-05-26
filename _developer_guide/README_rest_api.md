@@ -123,11 +123,11 @@ SUMMARY:
 
 		A. GET DEVICE GROUPS              - GET    /devicegroups
 		B. ADD DEVICE GROUP               - POST   /devicegroups/DEVICEGROUPNAME
-		C. DELETE DEVICE GROUP            - DELETE /devicegroups/DEVICEGROUPNAME
+		C. REMOVE DEVICE GROUP            - DELETE /devicegroups/DEVICEGROUPNAME
 		D. GET DEVICE GROUP               - GET    /devicegroups/DEVICEGROUPNAME
 		E. UPDATE DEVICE GROUP NAME       - POST   /devicegroups/DEVICEGROUPNAME/name
 		F. ADD DEVICE TO GROUP            - POST   /devicegroups/DEVICEGROUPNAME/device/DEVICENAME
-		G. DELETE DEVICE FROM GROUP       - DELETE /devicegroups/DEVICEGROUPNAME/device/DEVICENAME
+		G. REMOVE DEVICE FROM GROUP       - DELETE /devicegroups/DEVICEGROUPNAME/device/DEVICENAME
 		H. SET DEVICES IN DEVICE GROUP    - POST   /devicegroups/DEVICEGROUPNAME/devices
 
 
@@ -1258,7 +1258,7 @@ DETAILED:
 		   { 'status': 'NG', 'message': string}
 		   // HTTP_409_CONFLICT is returned if group name is already used
 
-		C. DELETE DEVICE GROUP
+		C. REMOVE DEVICE GROUP
 		-  Request:
 		   DELETE /devicegroups/DEVICEGROUPNAME
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -1293,7 +1293,7 @@ DETAILED:
 		   { 'status': 'NG', 'message': string}
 		   // HTTP_400_BAD_REQUEST is returned if device already added in group
 
-		G. DELETE DEVICE FROM GROUP
+		G. REMOVE DEVICE FROM GROUP
 		-  Request:
 		   DELETE /devicegroups/DEVICEGROUPNAME/device/DEVICENAME
 		   headers: {'Authorization': 'Bearer ' + token.access}
