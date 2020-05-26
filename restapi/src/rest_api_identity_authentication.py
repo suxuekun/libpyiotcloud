@@ -311,8 +311,8 @@ class identity_authentication:
         if phonenumber is not None:
             if phonenumber != "":
                 if phonenumber[0] != "+":
-                    response = json.dumps({'status': 'NG', 'message': 'Phone number format is invalid'})
-                    print('\r\nERROR Signup: Phone number format is invalid [{}]\r\n'.format(phonenumber))
+                    response = json.dumps({'status': 'NG', 'message': 'Phone number should follow the standard E.164 international phone numbering format: +<country code><number>'})
+                    print('\r\nERROR Signup: Phone number should follow the standard E.164 international phone numbering format: +<country code><number> [{}]\r\n'.format(phonenumber))
                     return response, status.HTTP_400_BAD_REQUEST
             else:
                 phonenumber = None
@@ -960,6 +960,11 @@ class identity_authentication:
                 # verify phone number using phonenumbers library
                 try:
                     if info["phone_number"] is not None and info["phone_number"] != "":
+                        if info["phone_number"][0] != "+":
+                            response = json.dumps({'status': 'NG', 'message': 'Phone number should follow the standard E.164 international phone numbering format: +<country code><number>'})
+                            print('\r\nERROR Verify phone: Phone number should follow the standard E.164 international phone numbering format: +<country code><number> [{}]\r\n'.format(info["phone_number"]))
+                            return response, status.HTTP_400_BAD_REQUEST
+
                         x = phonenumbers.parse(info["phone_number"], None)
                         if phonenumbers.is_possible_number(x) == False or phonenumbers.is_valid_number(x) == False:
                             response = json.dumps({'status': 'NG', 'message': 'Phone number is not valid'})
@@ -1372,6 +1377,11 @@ class identity_authentication:
         # verify phone number using phonenumbers library
         try:
             if phonenumber is not None and phonenumber != "":
+                if phonenumber[0] != "+":
+                    response = json.dumps({'status': 'NG', 'message': 'Phone number should follow the standard E.164 international phone numbering format: +<country code><number>'})
+                    print('\r\nERROR Update user: Phone number should follow the standard E.164 international phone numbering format: +<country code><number> [{}]\r\n'.format(phonenumber))
+                    return response, status.HTTP_400_BAD_REQUEST
+
                 x = phonenumbers.parse(phonenumber, None)
                 if phonenumbers.is_possible_number(x) == False or phonenumbers.is_valid_number(x) == False:
                     response = json.dumps({'status': 'NG', 'message': 'Phone number is not valid'})
