@@ -373,7 +373,7 @@ DETAILED:
 		             'part': string, // Part Number
 		             'addr': string, // I2C Address
 		             'rgsz': string, // Register Size 
-		             'rgid': string, // Ref ID
+		             'rgid': string, // Reference Identifier
 		             'objt': string, // Object type
 		           },
 		           ...
