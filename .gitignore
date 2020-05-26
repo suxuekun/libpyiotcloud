@@ -33,6 +33,7 @@ redis/src/*
 webapp/src/ionicapp/www/js/env.js
 get_logs.py
 _test_regression/*
+.idea/*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
