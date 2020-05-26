@@ -111,7 +111,7 @@ angular.module('devicegroups', [])
             //
             return $http({
                 method: 'GET',
-                url: server + '/devicegroups/' + groupname,
+                url: server + '/devicegroups/group/' + groupname,
                 headers: {'Authorization': 'Bearer ' + userdata.token.access}
             })
             .then(function (result) {
@@ -135,7 +135,127 @@ angular.module('devicegroups', [])
                 return error;
             });
         },
-        
+
+        get_detailed: function(userdata, groupname) {
+
+            //
+            // GET DEVICE GROUP DETAILED
+            //
+            // - Request:
+            //   GET /devicegroups/GROUPNAME/devices
+            //   headers: {'Authorization': 'Bearer ' + token.access}
+            //
+            // - Response:
+            //   {'status': 'OK', 'message': string}
+            //   {'status': 'NG', 'message': string}
+            //
+            return $http({
+                method: 'GET',
+                url: server + '/devicegroups/group/' + groupname + '/devices',
+                headers: {'Authorization': 'Bearer ' + userdata.token.access}
+            })
+            .then(function (result) {
+                console.log(result.data);
+                return result;
+            })
+            .catch(function (error) {
+                if (error.data !== null) {
+                    console.log("ERROR: Get Device Group failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
+                    
+                    if (error.data.message === "Token expired") {
+                        Token.refresh(userdata);
+                        //$ionicPopup.alert({ title: 'Error', template: 'Token expired!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+                    }
+                }
+                else {
+                    console.log("ERROR: Server is down!"); 
+                    $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+                }
+                
+                return error;
+            });
+        },
+
+        get_ungrouped_devices: function(userdata) {
+
+            //
+            // GET UNGROUPED DEVICES
+            //
+            // - Request:
+            //   GET /devicegroups/ungrouped
+            //   headers: {'Authorization': 'Bearer ' + token.access}
+            //
+            // - Response:
+            //   {'status': 'OK', 'message': string}
+            //   {'status': 'NG', 'message': string}
+            //
+            return $http({
+                method: 'GET',
+                url: server + '/devicegroups/ungrouped',
+                headers: {'Authorization': 'Bearer ' + userdata.token.access}
+            })
+            .then(function (result) {
+                console.log(result.data);
+                return result.data.devices;
+            })
+            .catch(function (error) {
+                if (error.data !== null) {
+                    console.log("ERROR: Get Device Group failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
+                    
+                    if (error.data.message === "Token expired") {
+                        Token.refresh(userdata);
+                        //$ionicPopup.alert({ title: 'Error', template: 'Token expired!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+                    }
+                }
+                else {
+                    console.log("ERROR: Server is down!"); 
+                    $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+                }
+                
+                return error;
+            });
+        },
+
+        get_mixed_devices: function(userdata) {
+
+            //
+            // GET MIXED DEVICES
+            //
+            // - Request:
+            //   GET /devicegroups/mixed
+            //   headers: {'Authorization': 'Bearer ' + token.access}
+            //
+            // - Response:
+            //   {'status': 'OK', 'message': string}
+            //   {'status': 'NG', 'message': string}
+            //
+            return $http({
+                method: 'GET',
+                url: server + '/devicegroups/mixed',
+                headers: {'Authorization': 'Bearer ' + userdata.token.access}
+            })
+            .then(function (result) {
+                console.log(result.data);
+                return result.data.devices;
+            })
+            .catch(function (error) {
+                if (error.data !== null) {
+                    console.log("ERROR: Get Mixed devices failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
+                    
+                    if (error.data.message === "Token expired") {
+                        Token.refresh(userdata);
+                        //$ionicPopup.alert({ title: 'Error', template: 'Token expired!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+                    }
+                }
+                else {
+                    console.log("ERROR: Server is down!"); 
+                    $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+                }
+                
+                return error;
+            });
+        },
+
         add: function(userdata, groupname, devices) {
 
             //
@@ -152,7 +272,7 @@ angular.module('devicegroups', [])
             //
             return $http({
                 method: 'POST',
-                url: server + '/devicegroups/' + groupname,
+                url: server + '/devicegroups/group/' + groupname,
                 headers: {'Authorization': 'Bearer ' + userdata.token.access},
                 data: {'devices': devices}
             })
@@ -193,7 +313,7 @@ angular.module('devicegroups', [])
             //
             return $http({
                 method: 'DELETE',
-                url: server + '/devicegroups/' + groupname,
+                url: server + '/devicegroups/group/' + groupname,
                 headers: {'Authorization': 'Bearer ' + userdata.token.access}
             })
             .then(function (result) {
@@ -233,7 +353,7 @@ angular.module('devicegroups', [])
             //
             return $http({
                 method: 'POST',
-                url: server + '/devicegroups/' + groupname + "/device/" + devicename,
+                url: server + '/devicegroups/group/' + groupname + "/device/" + devicename,
                 headers: {'Authorization': 'Bearer ' + userdata.token.access}
             })
             .then(function (result) {
@@ -273,7 +393,7 @@ angular.module('devicegroups', [])
             //
             return $http({
                 method: 'DELETE',
-                url: server + '/devicegroups/' + groupname + "/device/" + devicename,
+                url: server + '/devicegroups/group/' + groupname + "/device/" + devicename,
                 headers: {'Authorization': 'Bearer ' + userdata.token.access}
             })
             .then(function (result) {
@@ -314,7 +434,7 @@ angular.module('devicegroups', [])
             //
             return $http({
                 method: 'POST',
-                url: server + '/devicegroups/' + groupname + "/devices",
+                url: server + '/devicegroups/group/' + groupname + "/devices",
                 headers: {'Authorization': 'Bearer ' + userdata.token.access},
                 data: {'devices': devices}
             })

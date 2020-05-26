@@ -540,43 +540,43 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
     
     $scope.viewDevice = function(device) {
 
-        if ($scope.activeSection === 1) {
-            // DEVICE
-            console.log("devicename=" + device.devicename);
-            let device_param = {
-                'username': User.get_username(),
-                'token': User.get_token(),
-                'devicename': device.devicename,
-                'deviceid': device.deviceid,
-                'serialnumber': device.serialnumber,
-                'poemacaddress': device.poemacaddress === undefined || device.poemacaddress === "" ? 'UNKNOWN' : device.poemacaddress,
-                'devicestatus': "Status: UNKNOWN",
-                'deviceversion': "UNKNOWN",
-                'location': "UNKNOWN"
-            };
-    
-            if (device.heartbeat !== undefined) {
-                let heartbeat = new Date(device.heartbeat * 1000);
-                device_param.devicestatus = "Last active: " + heartbeat;    
-            }
-            if (device.version !== undefined) {
-                device_param.deviceversion = device.version;    
-            }
-            if (device.location !== undefined) {
-                device_param.location = device.location;    
-            }
-    
-            $state.go('gateway', device_param, {reload:true} );
+        // DEVICE
+        console.log("devicename=" + device.devicename);
+        let device_param = {
+            'username': User.get_username(),
+            'token': User.get_token(),
+            'devicename': device.devicename,
+            'deviceid': device.deviceid,
+            'serialnumber': device.serialnumber,
+            'poemacaddress': device.poemacaddress === undefined || device.poemacaddress === "" ? 'UNKNOWN' : device.poemacaddress,
+            'devicestatus': "Status: UNKNOWN",
+            'deviceversion': "UNKNOWN",
+            'location': "UNKNOWN"
+        };
+
+        if (device.heartbeat !== undefined) {
+            let heartbeat = new Date(device.heartbeat * 1000);
+            device_param.devicestatus = "Last active: " + heartbeat;    
         }
-        else {
-            // DEVICE GROUP
-            let device_param = {
-                'username': User.get_username(),
-                'token': User.get_token(),
-                'devicegroupname': device.groupname
-            };
-            $state.go('updateGatewayGroup', device_param, {reload:true} );
+        if (device.version !== undefined) {
+            device_param.deviceversion = device.version;    
         }
+        if (device.location !== undefined) {
+            device_param.location = device.location;    
+        }
+
+        $state.go('gateway', device_param, {reload:true} );
+    };
+
+    $scope.viewDeviceGroup = function(devicegroup) {
+
+        // DEVICE GROUP
+        let device_param = {
+            'username': User.get_username(),
+            'token': User.get_token(),
+            'devicegroupname': devicegroup.groupname
+        };
+        $state.go('updateGatewayGroup', device_param, {reload:true} );
     };
     
     $scope.submitAdd = function() {
@@ -589,8 +589,11 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         if ($scope.activeSection === 1) {
             $state.go('addGateway', device_param);
         }
-        else {
+        else if ($scope.activeSection === 2) {
             $state.go('addGatewayGroup', device_param);
+        }
+        else {
+            $state.go('addGateway', device_param);
         }
     };
     
@@ -698,21 +701,196 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         if ($scope.activeSection === 1) {
             // DEVICES
             
+            if (true) {
+                // DEVICE GROUPS AND UNGROUPED DEVICES
+                
+                // Fetch devicegroups
+                DeviceGroups.fetch($scope.data).then(function(res) {
+                    $scope.devicegroups = res;
+                    $scope.data.token = User.get_token();
+                    if ($scope.devicegroups.length !== 0) {
+                        if ($scope.devicegroups.length === 1) {
+                            $scope.devices_counthdr = $scope.devicegroups.length.toString() + " gateway group ";
+                        }
+                        else {
+                            $scope.devices_counthdr = $scope.devicegroups.length.toString() + " gateway groups ";
+                        }
+                    }
+                    else {
+                        $scope.devices_counthdr = "No gateway group ";
+                    }
+                })
+                .catch(function (error) {
+                    console.log("DeviceGroups.fetch failed!!!");
+                    $scope.handle_error(error);
+                });
+                
+                // Fetch ungrouped devices
+                DeviceGroups.get_ungrouped_devices($scope.data).then(function(res) {
+                    $scope.devices = res;
+                    $scope.data.token = User.get_token();
+                    if ($scope.devices.length !== 0) {
+                        if ($scope.devices.length === 1) {
+                            $scope.devices_counthdr += "and 1 ungrouped gateway registered";
+                        }
+                        else {
+                            $scope.devices_counthdr += "and " + $scope.devices.length.toString() + " ungrouped gateways registered";
+                        }
+                        
+                        let currdate = parseInt(new Date().valueOf()/ 1000, 10);
+    
+                        if (livestatus === true) {
+                            //console.log($scope.devices.length);
+                            let indexy = 0;
+                            for (indexy=0; indexy<$scope.devices.length; indexy++) {
+                                //console.log("indexy=" + indexy.toString() + " " + $scope.devices[indexy].devicename);
+                                
+                                if ($scope.devices[indexy].heartbeat !== undefined) {
+                                    $scope.devices[indexy].devicestatus = $scope.getDiffString(currdate, $scope.devices[indexy].heartbeat);
+                                }
+                                else {
+                                    $scope.devices[indexy].devicestatus = "Last active: N/A";
+                                }
+                                
+                                query_device(indexy, $scope.devices[indexy].devicename);
+                            }
+                        }
+                        else {
+                            let indexy = 0;
+                            for (indexy=0; indexy<$scope.devices.length; indexy++) {
+                                if ($scope.devices[indexy].heartbeat !== undefined) {
+                                    $scope.devices[indexy].devicestatus = $scope.getDiffString(currdate, $scope.devices[indexy].heartbeat);
+                                }
+                                else {
+                                    $scope.devices[indexy].devicestatus = "Last active: N/A";
+                                }
+                            }
+                        }
+                    }
+                    else {
+                        $scope.devices_counthdr += "and no ungrouped gateway";
+                    }
+                })
+                .catch(function (error) {
+                    console.log("Devices.get failed!!!");
+                    $scope.handle_error(error);
+                }); 
+            } 
+            else {
+                // DEVICES
+                
+                // Fetch devices
+                Devices.fetch($scope.data, $scope.data.devices_filter).then(function(res) {
+                    $scope.devices = res;
+                    $scope.data.token = User.get_token();
+                    if ($scope.devices.length !== 0) {
+                        if ($scope.devices.length === 1) {
+                            $scope.devices_counthdr = $scope.devices.length.toString() + " gateway registered";
+                        }
+                        else {
+                            $scope.devices_counthdr = $scope.devices.length.toString() + " gateways registered";
+                        }
+                        
+                        let currdate = parseInt(new Date().valueOf()/ 1000, 10);
+                        console.log(currdate);
+                        
+                        if (livestatus === true) {
+                            //console.log($scope.devices.length);
+                            let indexy = 0;
+                            for (indexy=0; indexy<$scope.devices.length; indexy++) {
+                                //console.log("indexy=" + indexy.toString() + " " + $scope.devices[indexy].devicename);
+                                
+                                if ($scope.devices[indexy].heartbeat !== undefined) {
+                                    $scope.devices[indexy].devicestatus = $scope.getDiffString(currdate, $scope.devices[indexy].heartbeat);
+                                }
+                                else {
+                                    $scope.devices[indexy].devicestatus = "Last active: N/A";
+                                }
+                                
+                                query_device(indexy, $scope.devices[indexy].devicename);
+                            }
+                        }
+                        else {
+                            let indexy = 0;
+                            for (indexy=0; indexy<$scope.devices.length; indexy++) {
+                                if ($scope.devices[indexy].heartbeat !== undefined) {
+                                    $scope.devices[indexy].devicestatus = $scope.getDiffString(currdate, $scope.devices[indexy].heartbeat);
+                                }
+                                else {
+                                    $scope.devices[indexy].devicestatus = "Last active: N/A";
+                                }
+                            }
+                        }
+                    }
+                    else {
+                        $scope.devices_counthdr = "no gateway registered";
+                    }
+                    
+                    // TEST CODE ONLY
+                    //register_device_token("1234", "GCM");
+                    //register_device_token("5678", "APNS");
+                })
+                .catch(function (error) {
+                    console.log("Devices.fetch failed!!!");
+                    $scope.handle_error(error);
+                }); 
+            }
+        }
+        else if ($scope.activeSection === 2) {
+            // DEVICE GROUPS
+            
+            // Fetch devicegroups
+            DeviceGroups.fetch($scope.data).then(function(res) {
+                $scope.devicegroups = res;
+                $scope.data.token = User.get_token();
+                if ($scope.devicegroups.length !== 0) {
+                    if ($scope.devicegroups.length === 1) {
+                        $scope.devices_counthdr = $scope.devicegroups.length.toString() + " gateway group registered";
+                    }
+                    else {
+                        $scope.devices_counthdr = $scope.devicegroups.length.toString() + " gateway groups registered";
+                    }
+                }
+                else {
+                    $scope.devices_counthdr = "No gateway group registered";
+                }
+            })
+            .catch(function (error) {
+                console.log("DeviceGroups.fetch failed!!!");
+                $scope.handle_error(error);
+            }); 
+            
+
+            // Just for testing
+            if (false) {
+                // Fetch devicegroups
+                let groupname = $scope.devicegroups[1].groupname;
+                DeviceGroups.get_detailed($scope.data, groupname).then(function(res) {
+                    console.log(res);
+                })
+                .catch(function (error) {
+                    console.log("DeviceGroups.fetch failed!!!");
+                    $scope.handle_error(error);
+                }); 
+            }
+        }
+        else {
+            // STANDALONE/UNGROUPED DEVICE GROUPS
+            
             // Fetch devices
-            Devices.fetch($scope.data, $scope.data.devices_filter).then(function(res) {
+            DeviceGroups.get_ungrouped_devices($scope.data).then(function(res) {
                 $scope.devices = res;
                 $scope.data.token = User.get_token();
                 if ($scope.devices.length !== 0) {
                     if ($scope.devices.length === 1) {
-                        $scope.devices_counthdr = $scope.devices.length.toString() + " gateway registered";
+                        $scope.devices_counthdr = $scope.devices.length.toString() + " ungrouped gateway registered";
                     }
                     else {
-                        $scope.devices_counthdr = $scope.devices.length.toString() + " gateways registered";
+                        $scope.devices_counthdr = $scope.devices.length.toString() + " ungrouped gateways registered";
                     }
                     
                     let currdate = parseInt(new Date().valueOf()/ 1000, 10);
-                    console.log(currdate);
-                    
+
                     if (livestatus === true) {
                         //console.log($scope.devices.length);
                         let indexy = 0;
@@ -742,39 +920,11 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                     }
                 }
                 else {
-                    $scope.devices_counthdr = "No gateway registered";
-                }
-                
-                // TEST CODE ONLY
-                //register_device_token("1234", "GCM");
-                //register_device_token("5678", "APNS");
-            })
-            .catch(function (error) {
-                console.log("Devices.fetch failed!!!");
-                $scope.handle_error(error);
-            }); 
-        }
-        else {
-            // DEVICE GROUPS
-            
-            // Fetch devicegroups
-            DeviceGroups.fetch($scope.data).then(function(res) {
-                $scope.devicegroups = res;
-                $scope.data.token = User.get_token();
-                if ($scope.devicegroups.length !== 0) {
-                    if ($scope.devicegroups.length === 1) {
-                        $scope.devices_counthdr = $scope.devicegroups.length.toString() + " gateway group registered";
-                    }
-                    else {
-                        $scope.devices_counthdr = $scope.devicegroups.length.toString() + " gateway groups registered";
-                    }
-                }
-                else {
-                    $scope.devices_counthdr = "No gateway group registered";
+                    $scope.devices_counthdr = "No ungrouped gateway";
                 }
             })
             .catch(function (error) {
-                console.log("DeviceGroups.fetch failed!!!");
+                console.log("Devices.get failed!!!");
                 $scope.handle_error(error);
             }); 
         }
@@ -890,7 +1040,9 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             else if (error.status == 401 && error.data.message.includes('Please check with the organization owner') === true ) {
                 $ionicPopup.alert({ title: 'Error', template: error.data.message, buttons: [{text: 'OK', type: 'button-assertive'}] });
             }         
-            
+            else {
+                $ionicPopup.alert({ title: 'Error', template: error.data.message, buttons: [{text: 'OK', type: 'button-assertive'}] });
+            }
         }
         else {
             console.log("ERROR: Server is down!"); 
@@ -3996,7 +4148,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                     });
                 }
                 else {
-                    if (res.status == 409) {
+                    if (res.status == 409 || res.status == 400) {
                         $ionicPopup.alert({ title: 'Error', template: res.data.message, buttons: [{text: 'OK', type: 'button-assertive'}] });
                     }
                     else {

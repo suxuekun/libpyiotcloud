@@ -405,44 +405,61 @@ g_payment_accounting_list = [
 def get_device_group_list():
     return g_device_groups.get_device_group_list()
 
-@app.route('/devicegroups/<devicegroupname>', methods=['POST'])
+@app.route('/devicegroups/group/<devicegroupname>', methods=['POST'])
 def register_devicegroups(devicegroupname):
     return g_device_groups.register_devicegroups(devicegroupname)
 
-@app.route('/devicegroups/<devicegroupname>', methods=['DELETE'])
+@app.route('/devicegroups/group/<devicegroupname>', methods=['DELETE'])
 def unregister_devicegroups(devicegroupname):
     return g_device_groups.register_devicegroups(devicegroupname)
 
-@app.route('/devicegroups/<devicegroupname>', methods=['GET'])
+@app.route('/devicegroups/group/<devicegroupname>', methods=['GET'])
 def get_devicegroups(devicegroupname):
     return g_device_groups.register_devicegroups(devicegroupname)
 
 
-@app.route('/devicegroups/<devicegroupname>/name', methods=['POST'])
+@app.route('/devicegroups/group/<devicegroupname>/name', methods=['POST'])
 def update_devicegroupname(devicegroupname):
     return g_device_groups.update_devicegroupname(devicegroupname)
 
-@app.route('/devicegroups/<devicegroupname>/device/<devicename>', methods=['POST'])
+@app.route('/devicegroups/group/<devicegroupname>/device/<devicename>', methods=['POST'])
 def register_device_to_devicegroups(devicegroupname, devicename):
     return g_device_groups.register_device_to_devicegroups(devicegroupname, devicename)
 
-@app.route('/devicegroups/<devicegroupname>/device/<devicename>', methods=['DELETE'])
+@app.route('/devicegroups/group/<devicegroupname>/device/<devicename>', methods=['DELETE'])
 def unregister_device_to_devicegroups(devicegroupname, devicename):
     return g_device_groups.register_device_to_devicegroups(devicegroupname, devicename)
 
-@app.route('/devicegroups/<devicegroupname>/devices', methods=['POST'])
+@app.route('/devicegroups/group/<devicegroupname>/devices', methods=['POST'])
 def set_devices_to_devicegroups(devicegroupname):
     return g_device_groups.set_devices_to_devicegroups(devicegroupname)
 
+
+@app.route('/devicegroups/group/<devicegroupname>/devices', methods=['GET'])
+def get_devicegroup_detailed(devicegroupname):
+    return g_device_groups.get_devicegroup_detailed(devicegroupname)
+
+@app.route('/devicegroups/ungrouped', methods=['GET'])
+def get_ungroupeddevices():
+    return g_device_groups.get_ungroupeddevices()
+
+@app.route('/devicegroups/mixed', methods=['GET'])
+def get_mixeddevices():
+    return g_device_groups.get_mixeddevices()
+
+
 g_device_groups_list = [
-    { "name": "GET DEVICE GROUPS",           "func": get_device_group_list,             "api": "/devicegroups",                                       "method": "GET"    },
-    { "name": "ADD DEVICE GROUP",            "func": register_devicegroups,             "api": "/devicegroups/<devicegroupname>",                     "method": "POST"   },
-    { "name": "DELETE DEVICE GROUP",         "func": unregister_devicegroups,           "api": "/devicegroups/<devicegroupname>",                     "method": "DELETE" },
-    { "name": "GET DEVICE GROUP",            "func": get_devicegroups,                  "api": "/devicegroups/<devicegroupname>",                     "method": "GET"    },
-    { "name": "UPDATE DEVICE GROUP NAME",    "func": update_devicegroupname,            "api": "/devicegroups/<devicegroupname>/name",                "method": "POST"   },
-    { "name": "ADD DEVICE TO GROUP",         "func": register_device_to_devicegroups,   "api": "/devicegroups/<devicegroupname>/device/<devicename>", "method": "POST"   },
-    { "name": "DELETE DEVICE FROM GROUP",    "func": unregister_device_to_devicegroups, "api": "/devicegroups/<devicegroupname>/device/<devicename>", "method": "DELETE" },
-    { "name": "SET DEVICES IN DEVICE GROUP", "func": set_devices_to_devicegroups,       "api": "/devicegroups/<devicegroupname>/devices",             "method": "POST"   },
+    { "name": "GET DEVICE GROUPS",           "func": get_device_group_list,             "api": "/devicegroups",                                             "method": "GET"    },
+    { "name": "ADD DEVICE GROUP",            "func": register_devicegroups,             "api": "/devicegroups/group/<devicegroupname>",                     "method": "POST"   },
+    { "name": "DELETE DEVICE GROUP",         "func": register_devicegroups,             "api": "/devicegroups/group/<devicegroupname>",                     "method": "DELETE" },
+    { "name": "GET DEVICE GROUP",            "func": register_devicegroups,             "api": "/devicegroups/group/<devicegroupname>",                     "method": "GET"    },
+    { "name": "UPDATE DEVICE GROUP NAME",    "func": update_devicegroupname,            "api": "/devicegroups/group/<devicegroupname>/name",                "method": "POST"   },
+    { "name": "ADD DEVICE TO GROUP",         "func": register_device_to_devicegroups,   "api": "/devicegroups/group/<devicegroupname>/device/<devicename>", "method": "POST"   },
+    { "name": "DELETE DEVICE FROM GROUP",    "func": unregister_device_to_devicegroups, "api": "/devicegroups/group/<devicegroupname>/device/<devicename>", "method": "DELETE" },
+    { "name": "SET DEVICES IN DEVICE GROUP", "func": set_devices_to_devicegroups,       "api": "/devicegroups/group/<devicegroupname>/devices",             "method": "POST"   },
+    { "name": "GET DEVICE GROUP DETAILED",   "func": get_devicegroup_detailed,          "api": "/devicegroups/group/<devicegroupname>/devices",             "method": "GET"    },
+    { "name": "GET UNGROUPED DEVICES",       "func": get_ungroupeddevices,              "api": "/devicegroups/ungrouped",                                   "method": "GET"    },
+    { "name": "GET MIXED DEVICES",           "func": get_mixeddevices,                  "api": "/devicegroups/mixed",                                       "method": "GET"    },
 ]
 
 
