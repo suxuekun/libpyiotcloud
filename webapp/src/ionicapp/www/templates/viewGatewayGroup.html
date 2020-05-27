@@ -1,0 +1,44 @@
+<ion-view title="View Gateway Group" hide-back-button="true" nav-transition="none" id="page77" style="background-color:#FFFFFF;" class="page_width">
+  <ion-nav-buttons side="left" class="has-header">
+    <button class="button button-icon icon ion-android-close" ng-click="exitPage()"></button>
+  </ion-nav-buttons>
+  <ion-nav-buttons side="right" class="has-header">
+    <button class="button button-positive icon ion-refresh" ng-click="submitRefresh(true)"></button>
+  </ion-nav-buttons>
+  <ion-content padding="true" class="has-header">
+    <div class="spacer" style="height: 12px;"></div>
+    <button id="viewGatewayGroup-button160" ng-click="updateDeviceGroup()" style="font-weight:600;font-size:18px;" class="button button-positive button-block button-clear icon-right ion-android-settings">{{ data.devicegroupname }}</button>
+    <div id="viewGatewayGroup-markdown559" class="show-list-numbers-and-dots">
+      <p style="color:#AAAAAA;font-size:12px;">{{ devices_counthdr }}</p>
+    </div>
+    <div class="list card" id="viewGatewayGroup-card232" ng-repeat="device in devices">
+      <div class="item item-body" id="viewGatewayGroup-list-item-container54" ng-click="viewDevice(device)">
+        <div id="viewGatewayGroup-markdown562" class="show-list-numbers-and-dots">
+          <p style="margin-top:0px;color:#3C5A99;font-size:18px;">
+            <strong> {{ device.devicename }} </strong>
+          </p>
+        </div>
+        <div id="viewGatewayGroup-markdown563" class="show-list-numbers-and-dots">
+          <p style="margin-top:0px;color:#444444;font-size:12px;">UUID: {{ device.deviceid }}</p>
+        </div>
+      </div>
+      <div id="viewGatewayGroup-container95" ng-show="device.devicestatus != &quot;Online&quot;">
+        <div class="card_image_devices">
+          <img src="img/xqcc2stgTNmAeM8gxhQ7_offline.png" style="display: block; margin-left: auto; margin-right: auto;">
+        </div>
+        <div id="viewGatewayGroup-markdown447" class="show-list-numbers-and-dots card_label_devices">
+          <p style="color:#888888;font-size:12px;">{{ device.devicestatus }}</p>
+        </div>
+      </div>
+      <div id="viewGatewayGroup-container96" ng-show="device.devicestatus == &quot;Online&quot;">
+        <div class="card_image_devices">
+          <img src="img/6RNUgrQwRemftiOCX3pw_online.png" style="display: block; margin-left: auto; margin-right: auto;">
+        </div>
+        <div id="viewGatewayGroup-markdown449" class="show-list-numbers-and-dots card_label_devices">
+          <p style="color:#888888;font-size:12px;">{{ device.devicestatus }}</p>
+        </div>
+      </div>
+    </div>
+    <div class="spacer" style="height: 50px;"></div>
+  </ion-content>
+</ion-view>

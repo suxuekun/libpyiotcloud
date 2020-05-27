@@ -15,12 +15,6 @@ angular.module('app.routes', [])
     controller: 'homeCtrl'
   })
 
-  .state('home2', {
-    url: '/page60',
-    templateUrl: 'templates/home2.html',
-    controller: 'home2Ctrl'
-  })
-
   .state('menu.gateways', {
     url: '/page_devices',
 	params: {
@@ -261,6 +255,18 @@ angular.module('app.routes', [])
 },
     templateUrl: 'templates/updateGatewayGroup.html',
     controller: 'updateGatewayGroupCtrl'
+  })
+
+  .state('viewGatewayGroup', {
+    url: '/page_view_gateway_group',
+	params: {
+		username: "",
+		token: "",
+		activeSection: "1",
+		devicegroupname: ""		
+},
+    templateUrl: 'templates/viewGatewayGroup.html',
+    controller: 'viewGatewayGroupCtrl'
   })
 
   .state('gatewayLocation', {

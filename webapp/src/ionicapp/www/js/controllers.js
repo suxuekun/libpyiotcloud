@@ -505,14 +505,6 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
 }
 ])
    
-.controller('home2Ctrl', ['$scope', '$stateParams', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
-// You can include any angular dependencies as parameters for this function
-// TIP: Access Route Parameters for your page via $stateParams.parameterName
-function ($scope, $stateParams) {
-
-
-}])
-   
 .controller('gatewaysCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', 'Devices', 'DeviceGroups',     // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
 // You can include any angular dependencies as parameters for this function
 // TIP: Access Route Parameters for your page via $stateParams.parameterName
@@ -569,6 +561,17 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
     };
 
     $scope.viewDeviceGroup = function(devicegroup) {
+
+        // DEVICE GROUP
+        let device_param = {
+            'username': User.get_username(),
+            'token': User.get_token(),
+            'devicegroupname': devicegroup.groupname
+        };
+        $state.go('viewGatewayGroup', device_param, {reload:true} );
+    };
+    
+    $scope.updateDeviceGroup = function(devicegroup) {
 
         // DEVICE GROUP
         let device_param = {
@@ -849,6 +852,38 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                     }
                     else {
                         $scope.devices_counthdr = $scope.devicegroups.length.toString() + " gateway groups registered";
+                    }
+                    
+                    
+                    let currdate = parseInt(new Date().valueOf()/ 1000, 10);
+                    console.log(currdate);
+                    
+                    if (livestatus === true) {
+                        //console.log($scope.devices.length);
+                        let indexy = 0;
+                        for (indexy=0; indexy<$scope.devices.length; indexy++) {
+                            //console.log("indexy=" + indexy.toString() + " " + $scope.devices[indexy].devicename);
+                            
+                            if ($scope.devices[indexy].heartbeat !== undefined) {
+                                $scope.devices[indexy].devicestatus = $scope.getDiffString(currdate, $scope.devices[indexy].heartbeat);
+                            }
+                            else {
+                                $scope.devices[indexy].devicestatus = "Last active: N/A";
+                            }
+                            
+                            query_device(indexy, $scope.devices[indexy].devicename);
+                        }
+                    }
+                    else {
+                        let indexy = 0;
+                        for (indexy=0; indexy<$scope.devices.length; indexy++) {
+                            if ($scope.devices[indexy].heartbeat !== undefined) {
+                                $scope.devices[indexy].devicestatus = $scope.getDiffString(currdate, $scope.devices[indexy].heartbeat);
+                            }
+                            else {
+                                $scope.devices[indexy].devicestatus = "Last active: N/A";
+                            }
+                        }
                     }
                 }
                 else {
@@ -4880,6 +4915,297 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         };
         $state.go('menu.gateways', device_param, {reload: true});
     };
+}])
+   
+.controller('viewGatewayGroupCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', 'Devices', 'DeviceGroups',     // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+// You can include any angular dependencies as parameters for this function
+// TIP: Access Route Parameters for your page via $stateParams.parameterName
+function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token, Devices, DeviceGroups) {
+
+    var server = Server.rest_api;
+
+    $scope.devices = [];
+    $scope.devices_counthdr = "No gateway registered" ;
+    $scope.activeSection = parseInt($stateParams.activeSection, 10);
+    
+    $scope.data = {
+        'username': User.get_username(),
+        'token': User.get_token(),
+
+        'devicegroupname': $stateParams.devicegroupname
+    };
+    
+
+    $scope.changeActiveSection = function(s) {
+        $scope.activeSection = s;
+        $scope.submitRefresh();
+    };
+    
+    $scope.viewDevice = function(device) {
+
+        // DEVICE
+        console.log("devicename=" + device.devicename);
+        let device_param = {
+            'username': User.get_username(),
+            'token': User.get_token(),
+            'devicename': device.devicename,
+            'deviceid': device.deviceid,
+            'serialnumber': device.serialnumber,
+            'poemacaddress': device.poemacaddress === undefined || device.poemacaddress === "" ? 'UNKNOWN' : device.poemacaddress,
+            'devicestatus': "Status: UNKNOWN",
+            'deviceversion': "UNKNOWN",
+            'location': "UNKNOWN"
+        };
+
+        if (device.heartbeat !== undefined) {
+            let heartbeat = new Date(device.heartbeat * 1000);
+            device_param.devicestatus = "Last active: " + heartbeat;    
+        }
+        if (device.version !== undefined) {
+            device_param.deviceversion = device.version;    
+        }
+        if (device.location !== undefined) {
+            device_param.location = device.location;    
+        }
+
+        $state.go('gateway', device_param, {reload:true} );
+    };
+
+    $scope.updateDeviceGroup = function() {
+
+        // DEVICE GROUP
+        let device_param = {
+            'username': User.get_username(),
+            'token': User.get_token(),
+            'devicegroupname': $scope.data.devicegroupname
+        };
+        $state.go('updateGatewayGroup', device_param, {reload:true} );
+    };    
+    
+    $scope.getDiffString = function(currdate, devicedate) {
+        let diffString = "";
+        let diff = currdate-devicedate;
+
+        //console.log(diff);
+        if (diff < 60) {
+            diffString = diff + " second";
+            if (diff > 1) {
+                diffString += "s";
+            }
+            diffString += " ago";
+            // just make it online
+            if (diff < 10) {
+                diffString = "Online";
+            }
+        }
+        else if (diff < 3600) {
+            diff = parseInt(diff/60, 10);
+            diffString = diff + " minute";
+            if (diff > 1) {
+                diffString += "s";
+            }
+            diffString += " ago";
+        }
+        else if (diff < 86400) {
+            diff = parseInt(diff/3600, 10);
+            diffString = diff + " hour";
+            if (diff > 1) {
+                diffString += "s";
+            }
+            diffString += " ago";
+        }
+        else if (diff < 604800) {
+            /*
+            diff = parseInt(diff/86400, 10);
+            diffString = diff + " day";
+            if (diff > 1) {
+                diffString += "s";
+            }
+            diffString += " ago";
+            */
+            let devicedatetime = new Date(devicedate * 1000);
+            let currdatetime = new Date(currdate * 1000);
+            diff = currdatetime.getDate()-devicedatetime.getDate();
+            if (diff === 1) {
+                diffString = "Yesterday";
+            }
+            else if (diff === 7) {
+                diffString = "1 week ago";
+            }
+            else {
+                diffString = devicedatetime.toLocaleString('en-us', {  weekday: 'long' });
+            }
+        }
+        else if (diff < 2419200) {
+            /*
+            diff = parseInt(diff/604800, 10);
+            diffString = diff + " week";
+            if (diff > 1) {
+                diffString += "s";
+            }
+            diffString += " ago";
+            */
+            let devicedatetime = new Date(devicedate * 1000);
+            //console.log(devicedatetime);
+            diffString = devicedatetime.toLocaleString('en-us', {  month: 'long', day: 'numeric' });
+        }
+        else if (diff < 29030400) {
+            diff = parseInt(diff/2419200, 10);
+            diffString = diff + " month";
+            if (diff > 1) {
+                diffString += "s";
+            }
+            diffString += " ago";
+        }
+        else {
+            diff = parseInt(diff/29030400, 10);
+            diffString = diff + " year";
+            if (diff > 1) {
+                diffString += "s";
+            }
+            diffString += " ago";
+        }
+        
+        //let heartbeat = new Date(devicedate * 1000);
+        //diffString += " (" + heartbeat + ")";
+        if (diffString !== "Online") {
+            diffString = "Last active: " + diffString;
+        }
+        return diffString;
+    };
+
+    $scope.submitRefresh = function(livestatus=false) {
+
+        if ($scope.activeSection === 1) {
+            // DEVICE GROUP DETAILED
+            
+            // Fetch devices
+            DeviceGroups.get_detailed($scope.data, $scope.data.devicegroupname).then(function(res) {
+                $scope.devices = res;
+                $scope.data.token = User.get_token();
+                if ($scope.devices.length !== 0) {
+                    if ($scope.devices.length === 1) {
+                        $scope.devices_counthdr = $scope.devices.length.toString() + " gateway registered";
+                    }
+                    else {
+                        $scope.devices_counthdr = $scope.devices.length.toString() + " gateways registered";
+                    }
+                    
+                    
+                    let currdate = parseInt(new Date().valueOf()/ 1000, 10);
+
+                    if (livestatus === true) {
+                        //console.log($scope.devices.length);
+                        let indexy = 0;
+                        for (indexy=0; indexy<$scope.devices.length; indexy++) {
+                            //console.log("indexy=" + indexy.toString() + " " + $scope.devices[indexy].devicename);
+                            
+                            if ($scope.devices[indexy].heartbeat !== undefined) {
+                                $scope.devices[indexy].devicestatus = $scope.getDiffString(currdate, $scope.devices[indexy].heartbeat);
+                            }
+                            else {
+                                $scope.devices[indexy].devicestatus = "Last active: N/A";
+                            }
+                            
+                            $scope.query_device(indexy, $scope.devices[indexy].devicename);
+                        }
+                    }
+                    else {
+                        let indexy = 0;
+                        for (indexy=0; indexy<$scope.devices.length; indexy++) {
+                            if ($scope.devices[indexy].heartbeat !== undefined) {
+                                $scope.devices[indexy].devicestatus = $scope.getDiffString(currdate, $scope.devices[indexy].heartbeat);
+                            }
+                            else {
+                                $scope.devices[indexy].devicestatus = "Last active: N/A";
+                            }
+                        }
+                    }                    
+                }
+                else {
+                    $scope.devices_counthdr = "No gateways registered";
+                }
+            })
+            .catch(function (error) {
+                console.log("DeviceGroups.get_Detailed failed!!!");
+                $scope.handle_error(error);
+            });
+        }
+    };
+    
+    $scope.query_device = function(index, devicename) {
+        //
+        // GET STATUS
+        // - Request:
+        //   GET /devices/device/<devicename>/status
+        //   headers: {'Authorization': 'Bearer ' + token.access}
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string, 'value': { "status": string, "version": string } }
+        //   { 'status': 'NG', 'message': string}
+        //        
+        $http({
+            method: 'GET',
+            url: server + '/devices/device/' + devicename + '/status',
+            headers: {'Authorization': 'Bearer ' +  $scope.data.token.access}
+        })
+        .then(function (result) {
+            console.log(result.data);
+            //console.log(devicename + ": Online");
+            $scope.devices[index].devicestatus = 'Online';    
+        })
+        .catch(function (error) {
+            $scope.handle_error(error);
+        }); 
+    };    
+    
+    $scope.handle_error = function(error) {
+        // Handle failed login
+        if (error.data !== null) {
+            console.log("ERROR: Get Device failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
+
+            if (error.data.message === "Token expired") {
+                Token.refresh({'username': $scope.data.username, 'token': $scope.data.token});
+                $scope.data.token = User.get_token();
+                //$ionicPopup.alert({ title: 'Error', template: 'Token expired!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+            }
+            else if (error.status == 401 && error.data.message.includes('Please check with the organization owner') === true ) {
+                $ionicPopup.alert({ title: 'Error', template: error.data.message, buttons: [{text: 'OK', type: 'button-assertive'}] });
+            }         
+            else {
+                $ionicPopup.alert({ title: 'Error', template: error.data.message, buttons: [{text: 'OK', type: 'button-assertive'}] });
+            }
+        }
+        else {
+            console.log("ERROR: Server is down!"); 
+            $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+        }
+    };    
+    
+
+    $scope.$on('$ionicView.enter', function(e) {
+        $scope.devices = [];
+        $scope.devices_counthdr = "No gateway registered" ;
+        $scope.activeSection = 1;
+        
+        //console.log($state.params);
+        //console.log($stateParams);
+        if ($state.params.activeSection !== undefined) {
+            $scope.activeSection = parseInt($state.params.activeSection, 10);
+        }
+        $scope.submitRefresh(true);
+    });
+    
+    // EXIT PAGE
+    $scope.exitPage = function() {
+        var device_param = {
+            'username': $scope.data.username,
+            'token'   : $scope.data.token,
+            'activeSection': '1',
+        };
+        $state.go('menu.gateways', device_param, {reload: true});
+    };    
+    
 }])
    
 .controller('gatewayLocationCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', 'Devices', 'uiGmapGoogleMapApi', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller

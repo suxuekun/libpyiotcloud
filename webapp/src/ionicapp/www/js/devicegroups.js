@@ -156,7 +156,7 @@ angular.module('devicegroups', [])
             })
             .then(function (result) {
                 console.log(result.data);
-                return result;
+                return result.data.devicegroup.devices;
             })
             .catch(function (error) {
                 if (error.data !== null) {
