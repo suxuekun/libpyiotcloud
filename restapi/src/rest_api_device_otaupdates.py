@@ -454,7 +454,8 @@ class device_otaupdates:
                 else:
                     ota_status["version"] = "0.1"
                 ota_statuses.append(ota_status)
-        ota_statuses.sort(key=self.sort_by_devicename)
+        if len(ota_statuses):
+            ota_statuses.sort(key=self.sort_by_devicename)
 
 
         msg = {'status': 'OK', 'message': 'Get OTA statuses successful.', 'ota': ota_statuses}

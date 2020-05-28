@@ -19,6 +19,10 @@
         <span class="input-label"> Device to update</span>
         <select ng-options="device.devicename as device.devicename for device in devices" ng-model="data.devicename" ng-change="changeDevice(data.devicename)" ng-disabled="timer != null"></select>
       </label>
+      <label class="item item-select" id="oTAFirmwareUpdate-select117">
+        <span class="input-label"> Device Group to update</span>
+        <select ng-options="devicegroup.groupname as devicegroup.groupname for devicegroup in devicegroups" ng-model="data.devicegroupname" ng-change="changeDeviceGroup(data.devicegroupname)" ng-disabled="timer != null"></select>
+      </label>
       <label class="item item-select" id="oTAFirmwareUpdate-select108">
         <span class="input-label">Version to use</span>
         <select ng-options="firmware.version as firmware.version for firmware in data.firmwares.ft900.firmware" ng-model="versiontouse" ng-change="changeDescription(versiontouse)" ng-disabled="timer != null"></select>

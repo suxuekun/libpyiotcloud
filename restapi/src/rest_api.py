@@ -448,18 +448,40 @@ def get_mixeddevices():
     return g_device_groups.get_mixeddevices()
 
 
+@app.route('/devicegroups/group/<devicegroupname>/location', methods=['GET'])
+def get_devicegroup_locations(devicegroupname):
+    return g_device_groups.get_devicegroup_locations(devicegroupname)
+
+@app.route('/devicegroups/group/<devicegroupname>/location', methods=['POST'])
+def set_devicegroup_locations(devicegroupname):
+    return g_device_groups.get_devicegroup_locations(devicegroupname)
+
+@app.route('/devicegroups/group/<devicegroupname>/location', methods=['DELETE'])
+def delete_devicegroup_locations(devicegroupname):
+    return g_device_groups.get_devicegroup_locations(devicegroupname)
+
+
+@app.route('/devicegroups/group/<devicegroupname>/ota', methods=['GET'])
+def get_devicegroup_ota_statuses(devicegroupname):
+    return g_device_groups.get_devicegroup_ota_statuses(devicegroupname)
+
+
 g_device_groups_list = [
-    { "name": "GET DEVICE GROUPS",           "func": get_device_group_list,             "api": "/devicegroups",                                             "method": "GET"    },
-    { "name": "ADD DEVICE GROUP",            "func": register_devicegroups,             "api": "/devicegroups/group/<devicegroupname>",                     "method": "POST"   },
-    { "name": "DELETE DEVICE GROUP",         "func": register_devicegroups,             "api": "/devicegroups/group/<devicegroupname>",                     "method": "DELETE" },
-    { "name": "GET DEVICE GROUP",            "func": register_devicegroups,             "api": "/devicegroups/group/<devicegroupname>",                     "method": "GET"    },
-    { "name": "UPDATE DEVICE GROUP NAME",    "func": update_devicegroupname,            "api": "/devicegroups/group/<devicegroupname>/name",                "method": "POST"   },
-    { "name": "ADD DEVICE TO GROUP",         "func": register_device_to_devicegroups,   "api": "/devicegroups/group/<devicegroupname>/device/<devicename>", "method": "POST"   },
-    { "name": "DELETE DEVICE FROM GROUP",    "func": unregister_device_to_devicegroups, "api": "/devicegroups/group/<devicegroupname>/device/<devicename>", "method": "DELETE" },
-    { "name": "SET DEVICES IN DEVICE GROUP", "func": set_devices_to_devicegroups,       "api": "/devicegroups/group/<devicegroupname>/devices",             "method": "POST"   },
-    { "name": "GET DEVICE GROUP DETAILED",   "func": get_devicegroup_detailed,          "api": "/devicegroups/group/<devicegroupname>/devices",             "method": "GET"    },
-    { "name": "GET UNGROUPED DEVICES",       "func": get_ungroupeddevices,              "api": "/devicegroups/ungrouped",                                   "method": "GET"    },
-    { "name": "GET MIXED DEVICES",           "func": get_mixeddevices,                  "api": "/devicegroups/mixed",                                       "method": "GET"    },
+    { "name": "GET DEVICE GROUPS",             "func": get_device_group_list,             "api": "/devicegroups",                                             "method": "GET"    },
+    { "name": "ADD DEVICE GROUP",              "func": register_devicegroups,             "api": "/devicegroups/group/<devicegroupname>",                     "method": "POST"   },
+    { "name": "DELETE DEVICE GROUP",           "func": register_devicegroups,             "api": "/devicegroups/group/<devicegroupname>",                     "method": "DELETE" },
+    { "name": "GET DEVICE GROUP",              "func": register_devicegroups,             "api": "/devicegroups/group/<devicegroupname>",                     "method": "GET"    },
+    { "name": "UPDATE DEVICE GROUP NAME",      "func": update_devicegroupname,            "api": "/devicegroups/group/<devicegroupname>/name",                "method": "POST"   },
+    { "name": "ADD DEVICE TO GROUP",           "func": register_device_to_devicegroups,   "api": "/devicegroups/group/<devicegroupname>/device/<devicename>", "method": "POST"   },
+    { "name": "DELETE DEVICE FROM GROUP",      "func": unregister_device_to_devicegroups, "api": "/devicegroups/group/<devicegroupname>/device/<devicename>", "method": "DELETE" },
+    { "name": "SET DEVICES IN DEVICE GROUP",   "func": set_devices_to_devicegroups,       "api": "/devicegroups/group/<devicegroupname>/devices",             "method": "POST"   },
+    { "name": "GET DEVICE GROUP DETAILED",     "func": get_devicegroup_detailed,          "api": "/devicegroups/group/<devicegroupname>/devices",             "method": "GET"    },
+    { "name": "GET UNGROUPED DEVICES",         "func": get_ungroupeddevices,              "api": "/devicegroups/ungrouped",                                   "method": "GET"    },
+    { "name": "GET MIXED DEVICES",             "func": get_mixeddevices,                  "api": "/devicegroups/mixed",                                       "method": "GET"    },
+    { "name": "GET DEVICE GROUP LOCATION",     "func": get_devicegroup_locations,         "api": "/devicegroups/group/<devicegroupname>/location",            "method": "GET"    },
+    { "name": "SET DEVICE GROUP LOCATION",     "func": set_devicegroup_locations,         "api": "/devicegroups/group/<devicegroupname>/location",            "method": "POST"   },
+    { "name": "DELETE DEVICE GROUP LOCATION",  "func": delete_devicegroup_locations,      "api": "/devicegroups/group/<devicegroupname>/location",            "method": "DELETE" },
+    { "name": "GET DEVICE GROUP OTA STATUSES", "func": get_devicegroup_ota_statuses,      "api": "/devicegroups/group/<devicegroupname>/ota",                 "method": "GET"    },
 ]
 
 
@@ -474,12 +496,12 @@ def get_deviceslocations():
     return g_device_locations.get_deviceslocations()
 
 @app.route('/devices/location', methods=['POST'])
-def set_deviceslocation():
-    return g_device_locations.set_deviceslocation()
+def set_deviceslocations():
+    return g_device_locations.get_deviceslocations()
 
 @app.route('/devices/location', methods=['DELETE'])
-def delete_deviceslocation():
-    return g_device_locations.set_deviceslocation()
+def delete_deviceslocations():
+    return g_device_locations.get_deviceslocations()
 
 @app.route('/devices/device/<devicename>/location', methods=['GET'])
 def get_devicelocation(devicename):
@@ -487,19 +509,19 @@ def get_devicelocation(devicename):
 
 @app.route('/devices/device/<devicename>/location', methods=['POST'])
 def set_devicelocation(devicename):
-    return g_device_locations.set_devicelocation(devicename)
+    return g_device_locations.get_devicelocation(devicename)
 
 @app.route('/devices/device/<devicename>/location', methods=['DELETE'])
 def delete_devicelocation(devicename):
-    return g_device_locations.set_devicelocation(devicename)
+    return g_device_locations.get_devicelocation(devicename)
 
 g_device_locations_list = [
-    { "name": "GET DEVICES LOCATIONS",    "func": get_deviceslocations,   "api": "/devices/location",                     "method": "GET"    },
-    { "name": "SET DEVICES LOCATIONS",    "func": set_deviceslocation,    "api": "/devices/location",                     "method": "POST"   },
-    { "name": "DELETE DEVICES LOCATIONS", "func": delete_deviceslocation, "api": "/devices/location",                     "method": "DELETE" },
-    { "name": "GET DEVICE LOCATION",      "func": get_devicelocation,     "api": "/devices/device/<devicename>/location", "method": "POST"   },
-    { "name": "SET DEVICE LOCATION",      "func": set_devicelocation,     "api": "/devices/device/<devicename>/location", "method": "GET"    },
-    { "name": "DELETE DEVICE LOCATION",   "func": delete_devicelocation,  "api": "/devices/device/<devicename>/location", "method": "DELETE" },
+    { "name": "GET DEVICES LOCATIONS",    "func": get_deviceslocations,    "api": "/devices/location",                     "method": "GET"    },
+    { "name": "SET DEVICES LOCATIONS",    "func": set_deviceslocations,    "api": "/devices/location",                     "method": "POST"   },
+    { "name": "DELETE DEVICES LOCATIONS", "func": delete_deviceslocations, "api": "/devices/location",                     "method": "DELETE" },
+    { "name": "GET DEVICE LOCATION",      "func": get_devicelocation,      "api": "/devices/device/<devicename>/location", "method": "POST"   },
+    { "name": "SET DEVICE LOCATION",      "func": set_devicelocation,      "api": "/devices/device/<devicename>/location", "method": "GET"    },
+    { "name": "DELETE DEVICE LOCATION",   "func": delete_devicelocation,   "api": "/devices/device/<devicename>/location", "method": "DELETE" },
 ]
 
 

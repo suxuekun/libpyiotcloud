@@ -4253,6 +4253,8 @@ class database_client_mongodb:
         if devices and devices.count():
             for device in devices.find({'username': username},{'username': 0}): #,{'devicename':1, 'deviceid': 1, 'serialnumber':1, 'timestamp':1, 'heartbeat':1, 'version': 1}):
                 device.pop('_id')
+                if device.get('descriptor'):
+                    device.pop('descriptor')
                 device_list.append(device)
         return device_list
         #devices = self.get_registered_devices()
