@@ -122,17 +122,27 @@ SUMMARY:
 
 	4. Device group registration and management APIs
 
-		A. GET DEVICE GROUPS                               - GET    /devicegroups
-		B. ADD DEVICE GROUP                                - POST   /devicegroups/group/DEVICEGROUPNAME
-		C. REMOVE DEVICE GROUP                             - DELETE /devicegroups/group/DEVICEGROUPNAME
-		D. GET DEVICE GROUP                                - GET    /devicegroups/group/DEVICEGROUPNAME
-		E. GET DEVICE GROUP DETAILED                       - GET    /devicegroups/group/DEVICEGROUPNAME/devices
-		F. UPDATE DEVICE GROUP NAME                        - POST   /devicegroups/group/DEVICEGROUPNAME/name
-		G. ADD DEVICE TO GROUP                             - POST   /devicegroups/group/DEVICEGROUPNAME/device/DEVICENAME
-		H. REMOVE DEVICE FROM GROUP                        - DELETE /devicegroups/group/DEVICEGROUPNAME/device/DEVICENAME
-		I. SET DEVICES IN DEVICE GROUP                     - POST   /devicegroups/group/DEVICEGROUPNAME/devices
-		J. GET UNGROUPED DEVICES                           - GET    /devicegroups/ungrouped
-		K. GET DEVICE GROUPS & UNGROUPED DEVICES           - GET    /devicegroups/mixed
+		A. GET DEVICE GROUPS              - GET    /devicegroups
+		B. ADD DEVICE GROUP               - POST   /devicegroups/group/DEVICEGROUPNAME
+		C. REMOVE DEVICE GROUP            - DELETE /devicegroups/group/DEVICEGROUPNAME
+		D. GET DEVICE GROUP               - GET    /devicegroups/group/DEVICEGROUPNAME
+		E. GET DEVICE GROUP DETAILED      - GET    /devicegroups/group/DEVICEGROUPNAME/devices
+		F. UPDATE DEVICE GROUP NAME       - POST   /devicegroups/group/DEVICEGROUPNAME/name
+		G. ADD DEVICE TO GROUP            - POST   /devicegroups/group/DEVICEGROUPNAME/device/DEVICENAME
+		H. REMOVE DEVICE FROM GROUP       - DELETE /devicegroups/group/DEVICEGROUPNAME/device/DEVICENAME
+		I. SET DEVICES IN DEVICE GROUP    - POST   /devicegroups/group/DEVICEGROUPNAME/devices
+		J. GET UNGROUPED DEVICES          - GET    /devicegroups/ungrouped
+		K. GET DEVICE GROUPS & UNGROUPED DEVICES   - GET    /devicegroups/mixed
+
+		//
+		// location
+		L. GET DEVICE GROUP LOCATION      - GET    /devicegroups/group/DEVICEGROUPNAME/location
+		M. SET DEVICE GROUP LOCATION      - POST   /devicegroups/group/DEVICEGROUPNAME/location
+		N. DELETE DEVICE GROUP LOCATION   - DELETE /devicegroups/group/DEVICEGROUPNAME/location
+
+		//
+		// ota firmware update
+		O. GET DEVICE GROUP OTA STATUSES  - GET    /devicegroups/group/DEVICEGROUPNAME/ota
 
 
 	5. Device access and control APIs (LDSBUS)
@@ -1377,6 +1387,46 @@ DETAILED:
 		   }
 		   { 'status': 'NG', 'message': string}
 		   // Yes, this is a weird API because of the weird FIGMA UI (All, Groups, Standalone - WTF!)
+
+		L. GET DEVICE GROUP LOCATION
+		-  Request:
+		   GET /devicegroups/group/DEVICEGROUPNAME/location
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		-  Response:
+		   { 'status': 'OK', 'message': string, 'locations': [{'devicename': string, location: {'latitude': float, 'longitude': float}}, ...] }
+		   { 'status': 'NG', 'message': string}
+		   // latitude and longitude can be negative values
+		   // locations will not be present if no device location has not yet been set
+
+		M. SET DEVICE GROUP LOCATION
+		-  Request:
+		   POST /devicegroups/group/DEVICEGROUPNAME/location
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		   data: {'locations': [{'devicename': string, location: {'latitude': float, 'longitude': float}}, ...]}
+		-  Response:
+		   { 'status': 'OK', 'message': string}
+		   { 'status': 'NG', 'message': string}
+		   // latitude and longitude can be negative values
+
+		N. DELETE DEVICE GROUP LOCATION
+		-  Request:
+		   DELETE /devicegroups/group/DEVICEGROUPNAME/location
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		-  Response:
+		   { 'status': 'OK', 'message': string}
+		   { 'status': 'NG', 'message': string}
+
+		O. GET DEVICE GROUP OTA STATUSES
+		-  Request:
+		   GET /devicegroups/group/DEVICEGROUPNAME/ota
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		-  Response:
+		   { 'status': 'OK', 'message': string, 'ota': [{"devicename": string, "deviceid", string, "version": string, "status":string, "time": string, "timestamp": int}, ...] }
+		   { 'status': 'NG', 'message': string}
+		   // version is the update version 
+		   // status is the update status 
+		   // time is the duration for the update
+		   // timestamp is the completion datetime in epoch of the update
 
 
 	5. Device access and control APIs (LDSBUS)

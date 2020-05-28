@@ -5,7 +5,7 @@
   <ion-nav-buttons side="right" class="has-header">
     <button class="button button-positive icon ion-refresh" ng-click="getDeviceLocation(data.devicename)"></button>
   </ion-nav-buttons>
-  <ion-content padding="true" class="has-header" has-bouncing=“false”>
+  <ion-content padding="true" class="has-header">
     <div class="spacer" style="height: 12px;"></div>
     <div id="gatewayLocation-markdown314" style="text-align:center;" class="show-list-numbers-and-dots">
       <p style="color:#3C5A99;font-size:18px;">
@@ -17,6 +17,10 @@
       <label class="item item-select" id="gatewayLocation-select106">
         <span class="input-label">Device</span>
         <select ng-options="device.devicename as device.devicename for device in devices" ng-model="data.devicename" ng-change="changeDevice(data.devicename)"></select>
+      </label>
+      <label class="item item-select" id="gatewayLocation-select116">
+        <span class="input-label">DeviceGroup</span>
+        <select ng-options="devicegroup.groupname as devicegroup.groupname for devicegroup in devicegroups" ng-model="data.devicegroupname" ng-change="changeDeviceGroup(data.devicegroupname)"></select>
       </label>
     </form>
     <ui-gmap-google-map ng-if="map.center" center="map.center" zoom="map.zoom" options="map.options" style="height:400px;">
