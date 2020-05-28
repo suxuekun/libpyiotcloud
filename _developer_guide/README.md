@@ -7,9 +7,16 @@
 
 [Backend Environment Setup Guide](https://github.com/richmondu/libpyiotcloud/blob/dev/_developer_guide/README_backend_development_environment.md) (for backend team)
 
+[MQTTS Device Messaging API Documentation](https://github.com/richmondu/libpyiotcloud/blob/dev/_developer_guide/README_device_messaging_api.md) (for firmware team)
+
+
 [HTTPS REST API Documentation](https://github.com/richmondu/libpyiotcloud/blob/dev/_developer_guide/README_rest_api.md) (for frontend team - mobile and web)
 
-[MQTTS Device Messaging API Documentation](https://github.com/richmondu/libpyiotcloud/blob/dev/_developer_guide/README_device_messaging_api.md) (for firmware team)
+   [HTTPS REST API Documentation - Payment](https://github.com/richmondu/libpyiotcloud/blob/dev/_developer_guide/README_rest_api_payment.md) 
+
+   [HTTPS REST API Documentation - Dashboard](https://github.com/richmondu/libpyiotcloud/blob/dev/_developer_guide/README_rest_api_dashboard.md) 
+
+
 
 [Embedded World 2020 Demo Documentation](https://github.com/richmondu/libpyiotcloud/blob/dev/_developer_guide/README_embedded_world_2020.md)
 
