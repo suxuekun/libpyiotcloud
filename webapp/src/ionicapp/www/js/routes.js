@@ -318,6 +318,22 @@ angular.module('app.routes', [])
     controller: 'gatewayGeneralSettingsCtrl'
   })
 
+  .state('gatewayDescriptor', {
+    url: '/page_gateway_descriptor',
+	params: {
+		username: "",
+		token: "",
+		devicename: "",
+		deviceid: "",
+		serialnumber: "",
+		timestamp: "",
+		heartbeat: "",
+		version: ""		
+},
+    templateUrl: 'templates/gatewayDescriptor.html',
+    controller: 'gatewayDescriptorCtrl'
+  })
+
   .state('gateway', {
     url: '/page_gateway',
 	params: {

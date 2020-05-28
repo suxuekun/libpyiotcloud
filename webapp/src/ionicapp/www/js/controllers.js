@@ -4448,7 +4448,22 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         $state.go('gatewayGeneralSettings', device_param);    
     };
 
-
+    $scope.viewGatewayDescriptor = function() {
+        console.log("viewGatewayDescriptor=");
+        
+        var device_param = {
+            'username'     : $scope.data.username,
+            'token'        : $scope.data.token,
+            'devicename'   : $scope.data.devicename,
+            'deviceid'     : $scope.data.deviceid,
+            'serialnumber' : $scope.data.serialnumber,
+            'timestamp'    : $scope.data.timestamp,
+            'heartbeat'    : $scope.data.heartbeat,
+            'version'      : $scope.data.version,
+        };
+       
+        $state.go('gatewayDescriptor', device_param);    
+    };
     
     // RESTART DEVICE/START DEVICE/STOP DEVICE
     $scope.setDevice = function(devicename, status) {
@@ -6768,6 +6783,104 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
     };
     
     $scope.getSettings($scope.data.devicename);
+}])
+   
+.controller('gatewayDescriptorCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+// You can include any angular dependencies as parameters for this function
+// TIP: Access Route Parameters for your page via $stateParams.parameterName
+
+
+function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token) {
+
+    var server = Server.rest_api;
+
+    $scope.data = {
+        'username'    : User.get_username(),
+        'token'       : User.get_token(),
+        'devicename'  : $stateParams.devicename,
+        'deviceid'    : $stateParams.deviceid,
+        'serialnumber': $stateParams.serialnumber,
+        'timestamp'   : $stateParams.timestamp,
+        'heartbeat'   : $stateParams.heartbeat,
+        'version'     : $stateParams.version
+    };
+
+    $scope.descriptor = "";
+
+
+
+    $scope.handle_error = function(error) {
+        // Handle failed login
+        if (error.data !== null) {
+            console.log("ERROR: Gateway Descriptor failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
+
+            if (error.data.message === "Token expired") {
+                Token.refresh({'username': $scope.data.username, 'token': $scope.data.token});
+                $scope.data.token = User.get_token();
+            }
+        }
+        else {
+            console.log("ERROR: Server is down!"); 
+            $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+        }
+    }; 
+    
+    
+
+    // GET DESCRIPTOR
+    $scope.getDescriptor = function(devicename) {
+        get_descriptor(devicename);
+    };
+
+    get_descriptor = function(devicename) {
+        //
+        // GET DESCRIPTOR
+        // - Request:
+        //   GET /devices/device/<devicename>/descriptor
+        //   headers: {'Authorization': 'Bearer ' + token.access}
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string, 'descriptor': {  } }
+        //   { 'status': 'NG', 'message': string}
+        //        
+        $http({
+            method: 'GET',
+            url: server + '/devices/device/' + devicename + '/descriptor',
+            headers: {'Authorization': 'Bearer ' +  $scope.data.token.access}
+        })
+        .then(function (result) {
+            console.log(result.data);
+            $scope.descriptor = result.data.descriptor; //JSON.stringify(result.data.descriptor, null, 10);
+        })
+        .catch(function (error) {
+            $scope.handle_error(error);
+        }); 
+    }; 
+
+
+    
+    $scope.exitPage = function() {
+        console.log("setDeviceGeneralSettings=");
+        
+        var device_param = {
+            'username'     : $scope.data.username,
+            'token'        : $scope.data.token,
+            'devicename'   : $scope.data.devicename,
+            'deviceid'     : $scope.data.deviceid,
+            'serialnumber' : $scope.data.serialnumber,
+            'timestamp'    : $scope.data.timestamp,
+            'heartbeat'    : $scope.data.heartbeat,
+            'version'      : $scope.data.version,
+        };
+       
+        $state.go('viewGateway', device_param);    
+    };
+   
+    $scope.$on('$ionicView.enter', function(e) {
+       $scope.descriptor = "";
+       $scope.getDescriptor($scope.data.devicename);
+    });   
+    
 }])
    
 .controller('gatewayCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller

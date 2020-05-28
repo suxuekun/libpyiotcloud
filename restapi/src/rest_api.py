@@ -2299,7 +2299,7 @@ def scan_lds_bus(devicename, portnumber):
     data['devicename'] = devicename
     data['username'] = username
     data['port'] = int(portnumber)
-    api = 'req_ldsus'
+    api = 'get_ldsu_descriptors'
     response, status_return = g_messaging_requests.process(api, data)
     if status_return != 200:
         ldsbus = None
@@ -2967,6 +2967,98 @@ def get_device(devicename):
 
 ########################################################################################################
 #
+# GET DEVICE DESCRIPTOR
+#
+# - Request:
+#   GET /devices/device/<devicename>/descriptor
+#   headers: {'Authorization': 'Bearer ' + token.access}
+#
+# - Response:
+#   {'status': 'OK', 'message': string, 'descriptor': {} }}
+#   {'status': 'NG', 'message': string}
+#
+########################################################################################################
+@app.route('/devices/device/<devicename>/descriptor', methods=['GET'])
+def get_device_descriptor(devicename):
+    # get token from Authorization header
+    auth_header_token = g_utils.get_auth_header_token()
+    if auth_header_token is None:
+        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
+        print('\r\nERROR Get Device Descriptor: Invalid authorization header\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
+    token = {'access': auth_header_token}
+
+    # get username from token
+    username = g_database_client.get_username_from_token(token)
+    if username is None:
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Get Device Descriptor: Token expired\r\n')
+        return response, status.HTTP_401_UNAUTHORIZED
+    print('get_device_descriptor {} devicename={}'.format(username, devicename))
+
+    # check if a parameter is empty
+    if len(username) == 0 or len(token) == 0 or len(devicename) == 0:
+        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+        print('\r\nERROR Get Device Descriptor: Empty parameter found\r\n')
+        return response, status.HTTP_400_BAD_REQUEST
+
+    # check if username and token is valid
+    verify_ret, new_token = g_database_client.verify_token(username, token)
+    if verify_ret == 2:
+        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+        print('\r\nERROR Get Device Descriptor: Token expired [{}]\r\n'.format(username))
+        return response, status.HTTP_401_UNAUTHORIZED
+    elif verify_ret != 0:
+        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
+        print('\r\nERROR Get Device Descriptor: Token is invalid [{}]\r\n'.format(username))
+        return response, status.HTTP_401_UNAUTHORIZED
+
+
+    # get entity using the active organization
+    orgname, orgid = g_database_client.get_active_organization(username)
+    if orgname is not None:
+        # check authorization
+        if g_database_client.is_authorized(username, orgname, orgid, database_categorylabel.DEVICES, database_crudindex.READ) == False:
+            response = json.dumps({'status': 'NG', 'message': 'Authorization failed! User is not allowed to access resource. Please check with the organization owner regarding policies assigned.'})
+            print('\r\nERROR Get Device Descriptor: Authorization not allowed [{}]\r\n'.format(username))
+            return response, status.HTTP_401_UNAUTHORIZED
+        # has active organization
+        entityname = "{}.{}".format(orgname, orgid)
+    else:
+        # no active organization, just a normal user
+        entityname = username
+
+
+    # get latest descriptor from device
+    api = "get_descriptor"
+    data = {}
+    data['token'] = {'access': auth_header_token}
+    data['devicename'] = devicename
+    data['username'] = username
+    response, status_return = g_messaging_requests.process(api, data)
+    if status_return == 503: # HTTP_503_SERVICE_UNAVAILABLE
+        # if device is not available get descriptor from database
+        descriptor = g_database_client.get_device_descriptor(entityname, devicename)
+        if descriptor is None:
+            return response, status_return
+    else:
+        # get the descriptor in response
+        response = json.loads(response)
+        descriptor = response['value']
+        g_database_client.set_device_descriptor(entityname, devicename, descriptor)
+        response = json.dumps(response)
+
+
+    msg = {'status': 'OK', 'message': 'Device Descriptor queried successfully.', 'descriptor': descriptor}
+    if new_token:
+        msg['new_token'] = new_token
+    response = json.dumps(msg)
+    print('\r\nDevice Descriptor queried successful: {}\r\n{}\r\n'.format(username, response))
+    return response
+
+
+########################################################################################################
+#
 # UPDATE DEVICE NAME
 #
 # - Request:
@@ -3517,19 +3609,24 @@ def get_uart_prop(devicename):
     data['username'] = username
     print('get_uart_prop {} devicename={}'.format(data['username'], data['devicename']))
 
-    response, status_return = g_messaging_requests.process(api, data)
-    if status_return != 200:
-        return response, status_return
-
 
     # get entity using the active organization
     orgname, orgid = g_database_client.get_active_organization(username)
     if orgname is not None:
+        if g_database_client.is_authorized(username, orgname, orgid, database_categorylabel.DEVICES, database_crudindex.READ) == False:
+            response = json.dumps({'status': 'NG', 'message': 'Authorization failed! User is not allowed to access resource. Please check with the organization owner regarding policies assigned.'})
+            print('\r\nERROR Set Uart: Authorization not allowed [{}]\r\n'.format(username))
+            return response, status.HTTP_401_UNAUTHORIZED
         # has active organization
         entityname = "{}.{}".format(orgname, orgid)
     else:
         # no active organization, just a normal user
         entityname = username
+
+
+    response, status_return = g_messaging_requests.process(api, data)
+    if status_return != 200:
+        return response, status_return
 
     source = "uart"
     notification = g_database_client.get_device_notification(entityname, devicename, source)

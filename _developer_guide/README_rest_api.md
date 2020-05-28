@@ -93,30 +93,31 @@ SUMMARY:
 		B. GET DEVICES FILTERED           - GET    /devices/filter/FILTERSTRING
 		C. ADD DEVICE                     - POST   /devices/device/DEVICENAME
 		D. DELETE DEVICE                  - DELETE /devices/device/DEVICENAME
-		E. GET DEVICE                     - GET    /devices/device/DEVICENAME
-		F. UPDATE DEVICE NAME             - POST   /devices/device/DEVICENAME/name
+		E. UPDATE DEVICE NAME             - POST   /devices/device/DEVICENAME/name
+		F. GET DEVICE                     - GET    /devices/device/DEVICENAME
+		G. GET DEVICE DESCRIPTOR          - GET    /devices/device/DEVICENAME/descriptor
 
 		//
 		// location
-		G. GET DEVICES LOCATION           - GET    /devices/location
-		H. SET DEVICES LOCATION           - POST   /devices/location
-		I. DELETE DEVICES LOCATION        - DELETE /devices/location
-		J. GET DEVICE LOCATION            - GET    /devices/device/DEVICENAME/location
-		K. SET DEVICE LOCATION            - POST   /devices/device/DEVICENAME/location
-		L. DELETE DEVICE LOCATION         - DELETE /devices/device/DEVICENAME/location
+		H. GET DEVICES LOCATION           - GET    /devices/location
+		I. SET DEVICES LOCATION           - POST   /devices/location
+		J. DELETE DEVICES LOCATION        - DELETE /devices/location
+		K. GET DEVICE LOCATION            - GET    /devices/device/DEVICENAME/location
+		L. SET DEVICE LOCATION            - POST   /devices/device/DEVICENAME/location
+		M. DELETE DEVICE LOCATION         - DELETE /devices/device/DEVICENAME/location
 
 		//
 		// ota firmware update
-		M. UPDATE FIRMWARE                - POST   /devices/device/DEVICENAME/firmware
-		N. UPDATE FIRMWARES               - POST   /devices/firmware
-		O. GET UPDATE FIRMWARE            - GET    /devices/device/DEVICENAME/firmware
-		P. GET OTA STATUS                 - GET    /devices/device/DEVICENAME/ota
-		Q. GET OTA STATUSES               - GET    /devices/ota
+		N. UPDATE FIRMWARE                - POST   /devices/device/DEVICENAME/firmware
+		O. UPDATE FIRMWARES               - POST   /devices/firmware
+		P. GET UPDATE FIRMWARE            - GET    /devices/device/DEVICENAME/firmware
+		Q. GET OTA STATUS                 - GET    /devices/device/DEVICENAME/ota
+		R. GET OTA STATUSES               - GET    /devices/ota
 
 		//
 		// device-sensor hierarchy tree
-		R. GET DEVICE HIERARCHY TREE               - GET    /devices/device/DEVICENAME/hierarchy
-		S. GET DEVICE HIERARCHY TREE (WITH STATUS) - POST   /devices/device/DEVICENAME/hierarchy
+		S. GET DEVICE HIERARCHY TREE               - GET    /devices/device/DEVICENAME/hierarchy
+		T. GET DEVICE HIERARCHY TREE (WITH STATUS) - POST   /devices/device/DEVICENAME/hierarchy
 
 
 	4. Device group registration and management APIs
@@ -134,15 +135,12 @@ SUMMARY:
 		K. GET DEVICE GROUPS & UNGROUPED DEVICES           - GET    /devicegroups/mixed
 
 
-	5. Device sensor access and control
+	5. Device access and control APIs (LDSBUS)
 
-		//
-		// sensor readings (for dashboard)
-		A. GET PERIPHERAL SENSOR READINGS                  - GET    /devices/device/DEVICENAME/sensors/readings
-		B. DELETE PERIPHERAL SENSOR READINGS               - DELETE /devices/device/DEVICENAME/sensors/readings
-		C. GET PERIPHERAL SENSOR READINGS DATASET          - GET    /devices/device/DEVICENAME/sensors/readings/dataset
-		D. GET PERIPHERAL SENSOR READINGS DATASET FILTERED - POST   /devices/sensors/readings/dataset
-		E. DELETE PERIPHERAL SENSOR READINGS DATASET       - DELETE /devices/sensors/readings/dataset
+		A. GET LDS BUS                    - GET    /devices/device/DEVICENAME/ldsbus/PORTNUMBER
+		B. SCAN LDS BUS                   - POST   /devices/device/DEVICENAME/ldsbus/PORTNUMBER
+		C. CHANGE LDSU NAME               - POST   /devices/device/DEVICENAME/ldsu/LDSUUUID/name
+		D. IDENTIFY LDSU                  - POST   /devices/device/DEVICENAME/ldsu/LDSUUUID/identify
 
 
 	6. Device access and control APIs (STATUS, UART, GPIO)
@@ -180,12 +178,15 @@ SUMMARY:
 		P. DELETE PERIPHERAL SENSOR PROPERTIES             - DELETE /devices/device/DEVICENAME/sensors/properties
 
 
-	7. Device access and control APIs (LDSBUS)
+	7. Device sensor access and control
 
-		A. GET LDS BUS                    - GET    /devices/device/DEVICENAME/ldsbus/PORTNUMBER
-		B. SCAN LDS BUS                   - POST   /devices/device/DEVICENAME/ldsbus/PORTNUMBER
-		C. CHANGE LDSU NAME               - POST   /devices/device/DEVICENAME/ldsu/LDSUUUID/name
-		D. IDENTIFY LDSU                  - POST   /devices/device/DEVICENAME/ldsu/LDSUUUID/identify
+		//
+		// sensor readings (for dashboard)
+		A. GET PERIPHERAL SENSOR READINGS                  - GET    /devices/device/DEVICENAME/sensors/readings
+		B. DELETE PERIPHERAL SENSOR READINGS               - DELETE /devices/device/DEVICENAME/sensors/readings
+		C. GET PERIPHERAL SENSOR READINGS DATASET          - GET    /devices/device/DEVICENAME/sensors/readings/dataset
+		D. GET PERIPHERAL SENSOR READINGS DATASET FILTERED - POST   /devices/sensors/readings/dataset
+		E. DELETE PERIPHERAL SENSOR READINGS DATASET       - DELETE /devices/sensors/readings/dataset
 
 
 	8. Device access and control APIs (I2C)
@@ -1080,7 +1081,17 @@ DETAILED:
 		   { 'status': 'OK', 'message': string}
 		   { 'status': 'NG', 'message': string}
 
-		E. GET DEVICE
+		E. UPDATE DEVICE NAME
+		-  Request:
+		   POST /devices/device/DEVICENAME/name
+		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+		   data: {'new_devicename': string}
+		-  Response:
+		   { 'status': 'OK', 'message': string}
+		   { 'status': 'NG', 'message': string}
+		   // new_devicename refers to the new name of the device
+
+		F. GET DEVICE
 		-  Request:
 		   GET /devices/device/DEVICENAME
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -1097,17 +1108,38 @@ DETAILED:
 		   // heartbeat and version are cached values
 		   // location will only appear if location has been set already
 
-		F. UPDATE DEVICE NAME
+		G. GET DEVICE DESCRIPTOR
 		-  Request:
-		   POST /devices/device/DEVICENAME/name
+		   GET /devices/device/DEVICENAME/descriptor
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-		   data: {'new_devicename': string}
+		   data: {'descriptor': {}}
 		-  Response:
-		   { 'status': 'OK', 'message': string}
+		   { 'status': 'OK', 'message': string, 
+		     'descriptor': {
+		          // RO
+		          "UUID": string, // UUID
+		          "SNO" : string, // Serial Number
+		          "PMAC": string, // PoE MAC ID
+		          "WMAC": string, // WiFi MAC ID
+		          "MOD" : string, // Model Number
+		          "PRV" : string, // Product Version
+		          "FWV" : string, // Firmware Version and date
+		          "ICAC": string, // Sensor Cache Storage Size
+		          "IPRT": string, // Number of LDS Ports                    ???
+		          "ICFG": string, // Configuration Storage                  ???
+		          // RW
+		          "WGPS": string, // GPS Location                           ???
+		          "WMLP": string, // Maximum LDSU Allowed Per Port          ???
+		          "IUPC": string, // UART Port Communication Parameters
+		          "IUPE": string, // UART Port Enable (Default)/Disable Status
+		          "WASC": string, // Auto-scan
+		          "WSCS": string, // Sensor Cache Status
+		          "OBJ" : string  // Newly added
+		     }
+		   }
 		   { 'status': 'NG', 'message': string}
-		   // new_devicename refers to the new name of the device
 
-		G. GET DEVICES LOCATION
+		H. GET DEVICES LOCATION
 		-  Request:
 		   GET /devices/location
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -1117,7 +1149,7 @@ DETAILED:
 		   // latitude and longitude can be negative values
 		   // locations will not be present if no device location has not yet been set
 
-		H. SET DEVICES LOCATION
+		I. SET DEVICES LOCATION
 		-  Request:
 		   POST /devices/location
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -1127,7 +1159,7 @@ DETAILED:
 		   { 'status': 'NG', 'message': string}
 		   // latitude and longitude can be negative values
 
-		I. DELETE DEVICES LOCATION
+		J. DELETE DEVICES LOCATION
 		-  Request:
 		   DELETE /devices/location
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -1135,7 +1167,7 @@ DETAILED:
 		   { 'status': 'OK', 'message': string}
 		   { 'status': 'NG', 'message': string}
 
-		J. GET DEVICE LOCATION
+		K. GET DEVICE LOCATION
 		-  Request:
 		   GET /devices/device/DEVICENAME/location
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -1145,7 +1177,7 @@ DETAILED:
 		   // latitude and longitude can be negative values
 		   // location will not be present if device location has not yet been set
 
-		K. SET DEVICE LOCATION
+		L. SET DEVICE LOCATION
 		-  Request:
 		   POST /devices/device/DEVICENAME/location
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
@@ -1155,7 +1187,7 @@ DETAILED:
 		   { 'status': 'NG', 'message': string}
 		   // latitude and longitude can be negative values
 
-		L. DELETE DEVICE LOCATION
+		M. DELETE DEVICE LOCATION
 		-  Request:
 		   DELETE /devices/device/DEVICENAME/location
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -1163,7 +1195,7 @@ DETAILED:
 		   { 'status': 'OK', 'message': string}
 		   { 'status': 'NG', 'message': string}
 
-		M. UPDATE FIRMWARE
+		N. UPDATE FIRMWARE
 		-  Request:
 		   POST /devices/device/DEVICENAME/firmware
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
@@ -1174,7 +1206,7 @@ DETAILED:
 		   // version is the version of the firmware to use
 		   // note that user can select the latest version or the same version (as per Sree)
 
-		N. UPDATE FIRMWARES
+		O. UPDATE FIRMWARES
 		-  Request:
 		   POST /devices/firmware
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
@@ -1185,7 +1217,7 @@ DETAILED:
 		   // version is the version of the firmware to use
 		   // note that user can select the latest version or the same version (as per Sree)
 
-		O. GET UPDATE FIRMWARE
+		P. GET UPDATE FIRMWARE
 		-  Request:
 		   GET /devices/device/DEVICENAME/firmware
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -1194,7 +1226,7 @@ DETAILED:
 		   { 'status': 'NG', 'message': string}
 		   // result can be ongoing, successful, failed
 
-		P. GET OTA STATUS
+		Q. GET OTA STATUS
 		-  Request:
 		   GET /devices/device/DEVICENAME/ota
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -1206,7 +1238,7 @@ DETAILED:
 		   // time is the duration for the update
 		   // timestamp is the completion datetime in epoch of the update
 
-		Q. GET OTA STATUSES
+		R. GET OTA STATUSES
 		-  Request:
 		   GET /devices/ota
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -1218,7 +1250,7 @@ DETAILED:
 		   // time is the duration for the update
 		   // timestamp is the completion datetime in epoch of the update
 
-		R. GET DEVICE HIERARCHY TREE
+		S. GET DEVICE HIERARCHY TREE
 		-  Request:
 		   GET /devices/device/DEVICENAME/hierarchy
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -1226,7 +1258,7 @@ DETAILED:
 		   { 'status': 'OK', 'message': string, 'hierarchy': {"name": string, "children": [{"name": string, "children": []}, ...]} }
 		   { 'status': 'NG', 'message': string}
 
-		S. GET DEVICE HIERARCHY TREE (WITH STATUS)
+		T. GET DEVICE HIERARCHY TREE (WITH STATUS)
 		-  Request:
 		   POST /devices/device/DEVICENAME/hierarchy
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -1347,129 +1379,84 @@ DETAILED:
 		   // Yes, this is a weird API because of the weird FIGMA UI (All, Groups, Standalone - WTF!)
 
 
-	5. Device sensor access and control APIs
+	5. Device access and control APIs (LDSBUS)
 
-		A. DELETE PERIPHERAL SENSOR PROPERTIES
+		A. GET LDS BUS
 		-  Request:
-		   DELETE /devices/device/DEVICENAME/sensors/properties
+		   GET /devices/device/DEVICENAME/ldsbus/PORTNUMBER
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		   // PORT_NUMBER can be 1, 2, 3, or 0 (0 if all lds bus)
+		-  Response:
+		   { 'status': 'OK', 'message': string, 'ldsbus': 
+		     [ 
+		       {
+		         "port": int,
+		         "ldsus"     : [
+		           {
+		             "name": string, 
+		             "uuid": string, 
+		             "serialnumber": string, 
+		             "manufacturingdate": string, 
+		             "productversion": string, 
+		             "productname": string
+		           }, 
+		           ...
+		         ], 
+		         "sensors"  : [
+		           {
+		             "name": string, 
+		             "class": string, 
+		             "ldsuname": string, 
+		             "ldsuuuid": string, 
+		             "ldsuport": int
+		           },
+		           ...
+		         ], 
+		         "actuators": [
+		           {
+		             "name": string,
+		             "class": string, 
+		             "ldsuname": string, 
+		             "ldsuuuid": string, 
+		             "ldsuport": int
+		           },
+		           ...
+		         ]
+		       },
+			   ...
+		     ] 
+		   }
+		   // if port number is 1,2 or 3, ldsbus length is 1
+		   // if port number is 0, ldsbus contains all 3 ports so ldsbus length is 3
+		   { 'status': 'NG', 'message': string }
+
+		B. SCAN LDS BUS
+		-  Request:
+		   POST /devices/device/DEVICENAME/ldsbus/PORTNUMBER
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		   // PORT_NUMBER can be 1, 2, 3, or 0 (0 if all lds bus)
+		-  Response:
+		   { 'status': 'OK', 'message': string }
+		   // if port number is 1,2 or 3, ldsbus length is 1
+		   // if port number is 0, ldsbus contains all 3 ports so ldsbus length is 3
+		   { 'status': 'NG', 'message': string }
+
+		C. CHANGE LDSU NAME
+		-  Request:
+		   POST /devices/device/DEVICENAME/ldsu/LDSUUUID/name
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		   data: {'name': string}
+		-  Response:
+		   { 'status': 'OK', 'message': string }
+		   { 'status': 'NG', 'message': string }
+
+		D. IDENTIFY LDSU
+		-  Request:
+		   POST /devices/device/DEVICENAME/ldsu/LDSUUUID/identify
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
-		   { 'status': 'OK', 'message': string}
-		   { 'status': 'NG', 'message': string}
-
-		B. GET PERIPHERAL SENSOR READINGS
-		-  Request:
-		   GET /devices/device/DEVICENAME/sensors/readings
-		   headers: {'Authorization': 'Bearer ' + token.access}
-		-  Response:
-		   { 'status': 'OK', 'message': string, 
-		     'sensors': [{'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': string, 'enabled': int, 'configured': int, 'units': [], 'formats': [], 'attributes': [], 'readings': {'value': float, 'lowest': float, 'highest': float, 'subclass': {'value': float, 'lowest': float, 'highest': float}}] }
-		   { 'status': 'NG', 'message': string}
-		   // the subclass parameter of readings parameter will only appear if the sensor has a subclass
-
-		C. GET PERIPHERAL SENSOR READINGS DATASET
-		-  Request:
-		   GET /devices/device/DEVICENAME/sensors/readings/dataset
-		   headers: {'Authorization': 'Bearer ' + token.access}
-		-  Response:
-		   { 'status': 'OK', 'message': string, 
-		     'sensors': [{'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': string, 'enabled': int, 'configured': int, 'units': [], 'formats': [], 'attributes': [], 'dataset': {'labels': [], 'data': [[],...]}] }
-		   { 'status': 'NG', 'message': string}
-		   // the subclass parameter of readings parameter will only appear if the sensor has a subclass
-		   // if sensor has a subclass:  'dataset': {'labels': [], 'data': [[],[]]}
-		      if sensor has no subclass: 'dataset': {'labels': [], 'data': [[]]}
-		      this make the dataset object directly useable by Chart.JS 
-
-		D. GET PERIPHERAL SENSOR READINGS DATASET FILTERED
-		-  Request:
-		   POST /devices/sensors/readings/dataset
-		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-		   data: {'devicename': string, 'peripheral': string, 'class': string, 'status': string, 'timerange': string, 'points': int, 'checkdevice': int}
-		   // devicename can be "All devices" or the devicename of specific device
-		   // peripheral can be ["All peripherals", "I2C1", "I2C2", "I2C3", "I2C4", "ADC1", "ADC2", "1WIRE1", "TPROBE1"]
-		   // class can be ["All classes", "potentiometer", "temperature", "humidity", "anemometer", "battery", "fluid"]
-		   // status can be ["All online/offline", "online", "offline"]
-		   // timerange can be:
-		        Last 5 minutes
-		        Last 15 minutes
-		        Last 30 minutes
-		        Last 60 minutes
-		        Last 3 hours
-		        Last 6 hours
-		        Last 12 hours
-		        Last 24 hours
-		        Last 3 days
-		        Last 7 days
-		        Last 2 weeks
-		        Last 4 weeks
-		        Last 3 months
-		        Last 6 months
-		        Last 12 months
-		   // points can be 60, 30 or 15 points (for mobile, since screen is small, should use 30 or 15 instead of 60)
-		   // index is 0 by default. 
-		      To view the timeranges above, index is 0
-		      To view the next timerange, ex. "Last Last 5 minutes", the previous instance, index is 1. and so on...
-		   // checkdevice is 1 or 0. 1 if device status needs to be check if device is online and if sensor is active
-		-  Response:
-		   { 'status': 'OK', 'message': string, 
-		     'sensors': [{'devicename': string, 'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': string, 'enabled': int, 'configured': int, 'units': [], 'formats': [], 'attributes': [], 
-		                  'dataset':  {'labels': [], 'data': [[],...], 'low': [[],...], 'high': [[],...]}, 
-		                  'readings': {'value': float, 'lowest': float, 'highest': float, 'subclass': {'value': float, 'lowest': float, 'highest': float}}
-		                ],
-		     'stats'  : { 
-		                  'devices': {
-		                    'statuses':    {'labels': [strings], 'data': [int]},
-		                    'groups:       {'labels': [strings], 'data': [int]},
-		                    'versions':    {'labels': [strings], 'data': [int]},
-		                    'locations':   {'labels': [strings], 'data': [int]}
-		                  },
-		                  'sensors': {
-		                    'statuses':    {'labels': [strings], 'data': [int]},
-		                    'types':       {'labels': [strings], 'data': [int]},
-		                    'peripherals': {'labels': [strings], 'data': [int]},
-		                    'classes':     {'labels': [strings], 'data': [int]}
-		                  },
-		                },
-		     'summary': { 
-		                  'sensors': [{'sensorname': string, 'devicename': string, 'type': string, 'peripheral': string, 'classes': string, 'configuration': string, 'enabled': int}],
-		                  'devices': [{'devicename': string, 'group': string, 'version': string, 'location': string, 'status': int}],
-		                },
-		     'usages':  {
-		                  'alerts':  {'labels': ['sms', 'emails', 'notifications'], 'data': [int, int, int]},
-		                  'storage': {'labels': ['sensor data', 'alerts data'], 'data': [int, int]},
-		                  'login':   {'labels': ['email', 'sms'], 'data': [int, int]}
-		                }
-
-		   { 'status': 'NG', 'message': string}
-		   //
-		   // the subclass parameter of readings parameter will only appear if the sensor has a subclass
-		   //   if sensor has a subclass:  'dataset': {'labels': [], 'data': [[],[]]}
-		   //   if sensor has no subclass: 'dataset': {'labels': [], 'data': [[]]}
-		   //   this make the dataset object directly usable by Chart.JS line charts
-		   // low and high does NOT appear when "Last 5 minutes" timerange is selected.
-		   //
-		   // stats and summary will ONLY appear if checkdevice parameter is set to 1
-		   //   stats is for doughnut/pie charts to show proportions of online/offline devices, enabled/disabled sensors, device peripheral types used, sensor classes used
-		   //     uses labels and data arrays to make object directly usable by Chart.JS doughnut/pie charts
-		   //   summary is for the table
-
-		E. DELETE PERIPHERAL SENSOR READINGS
-		-  Request:
-		   DELETE /devices/device/DEVICENAME/sensors/readings
-		   headers: {'Authorization': 'Bearer ' + token.access}
-		-  Response:
-		   { 'status': 'OK', 'message': string}
-		   { 'status': 'NG', 'message': string}
-
-		F. DELETE PERIPHERAL SENSOR READINGS DATASET
-		-  Request:
-		   DELETE /devices/sensors/readings/dataset
-		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-		   data: {'devicename': string}
-		   // devicename can be "All devices" or the devicename of specific device
-		-  Response:
-		   { 'status': 'OK', 'message': string}
-		   { 'status': 'NG', 'message': string}
+		   { 'status': 'OK', 'message': string }
+		   { 'status': 'NG', 'message': string }
 
 
 	6. Device access and control APIs (STATUS, UART, GPIO)
@@ -1928,84 +1915,129 @@ DETAILED:
 		   { 'status': 'NG', 'message': string }
 
 
-	7. Device access and control APIs (LDSBUS)
+	7. Device sensor access and control APIs
 
-		A. GET LDS BUS
+		A. DELETE PERIPHERAL SENSOR PROPERTIES
 		-  Request:
-		   GET /devices/device/DEVICENAME/ldsbus/PORTNUMBER
-		   headers: {'Authorization': 'Bearer ' + token.access}
-		   // PORT_NUMBER can be 1, 2, 3, or 0 (0 if all lds bus)
-		-  Response:
-		   { 'status': 'OK', 'message': string, 'ldsbus': 
-		     [ 
-		       {
-		         "port": int,
-		         "ldsus"     : [
-		           {
-		             "name": string, 
-		             "uuid": string, 
-		             "serialnumber": string, 
-		             "manufacturingdate": string, 
-		             "productversion": string, 
-		             "productname": string
-		           }, 
-		           ...
-		         ], 
-		         "sensors"  : [
-		           {
-		             "name": string, 
-		             "class": string, 
-		             "ldsuname": string, 
-		             "ldsuuuid": string, 
-		             "ldsuport": int
-		           },
-		           ...
-		         ], 
-		         "actuators": [
-		           {
-		             "name": string,
-		             "class": string, 
-		             "ldsuname": string, 
-		             "ldsuuuid": string, 
-		             "ldsuport": int
-		           },
-		           ...
-		         ]
-		       },
-			   ...
-		     ] 
-		   }
-		   // if port number is 1,2 or 3, ldsbus length is 1
-		   // if port number is 0, ldsbus contains all 3 ports so ldsbus length is 3
-		   { 'status': 'NG', 'message': string }
-
-		B. SCAN LDS BUS
-		-  Request:
-		   POST /devices/device/DEVICENAME/ldsbus/PORTNUMBER
-		   headers: {'Authorization': 'Bearer ' + token.access}
-		   // PORT_NUMBER can be 1, 2, 3, or 0 (0 if all lds bus)
-		-  Response:
-		   { 'status': 'OK', 'message': string }
-		   // if port number is 1,2 or 3, ldsbus length is 1
-		   // if port number is 0, ldsbus contains all 3 ports so ldsbus length is 3
-		   { 'status': 'NG', 'message': string }
-
-		C. CHANGE LDSU NAME
-		-  Request:
-		   POST /devices/device/DEVICENAME/ldsu/LDSUUUID/name
-		   headers: {'Authorization': 'Bearer ' + token.access}
-		   data: {'name': string}
-		-  Response:
-		   { 'status': 'OK', 'message': string }
-		   { 'status': 'NG', 'message': string }
-
-		D. IDENTIFY LDSU
-		-  Request:
-		   POST /devices/device/DEVICENAME/ldsu/LDSUUUID/identify
+		   DELETE /devices/device/DEVICENAME/sensors/properties
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
-		   { 'status': 'OK', 'message': string }
-		   { 'status': 'NG', 'message': string }
+		   { 'status': 'OK', 'message': string}
+		   { 'status': 'NG', 'message': string}
+
+		B. GET PERIPHERAL SENSOR READINGS
+		-  Request:
+		   GET /devices/device/DEVICENAME/sensors/readings
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		-  Response:
+		   { 'status': 'OK', 'message': string, 
+		     'sensors': [{'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': string, 'enabled': int, 'configured': int, 'units': [], 'formats': [], 'attributes': [], 'readings': {'value': float, 'lowest': float, 'highest': float, 'subclass': {'value': float, 'lowest': float, 'highest': float}}] }
+		   { 'status': 'NG', 'message': string}
+		   // the subclass parameter of readings parameter will only appear if the sensor has a subclass
+
+		C. GET PERIPHERAL SENSOR READINGS DATASET
+		-  Request:
+		   GET /devices/device/DEVICENAME/sensors/readings/dataset
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		-  Response:
+		   { 'status': 'OK', 'message': string, 
+		     'sensors': [{'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': string, 'enabled': int, 'configured': int, 'units': [], 'formats': [], 'attributes': [], 'dataset': {'labels': [], 'data': [[],...]}] }
+		   { 'status': 'NG', 'message': string}
+		   // the subclass parameter of readings parameter will only appear if the sensor has a subclass
+		   // if sensor has a subclass:  'dataset': {'labels': [], 'data': [[],[]]}
+		      if sensor has no subclass: 'dataset': {'labels': [], 'data': [[]]}
+		      this make the dataset object directly useable by Chart.JS 
+
+		D. GET PERIPHERAL SENSOR READINGS DATASET FILTERED
+		-  Request:
+		   POST /devices/sensors/readings/dataset
+		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+		   data: {'devicename': string, 'peripheral': string, 'class': string, 'status': string, 'timerange': string, 'points': int, 'checkdevice': int}
+		   // devicename can be "All devices" or the devicename of specific device
+		   // peripheral can be ["All peripherals", "I2C1", "I2C2", "I2C3", "I2C4", "ADC1", "ADC2", "1WIRE1", "TPROBE1"]
+		   // class can be ["All classes", "potentiometer", "temperature", "humidity", "anemometer", "battery", "fluid"]
+		   // status can be ["All online/offline", "online", "offline"]
+		   // timerange can be:
+		        Last 5 minutes
+		        Last 15 minutes
+		        Last 30 minutes
+		        Last 60 minutes
+		        Last 3 hours
+		        Last 6 hours
+		        Last 12 hours
+		        Last 24 hours
+		        Last 3 days
+		        Last 7 days
+		        Last 2 weeks
+		        Last 4 weeks
+		        Last 3 months
+		        Last 6 months
+		        Last 12 months
+		   // points can be 60, 30 or 15 points (for mobile, since screen is small, should use 30 or 15 instead of 60)
+		   // index is 0 by default. 
+		      To view the timeranges above, index is 0
+		      To view the next timerange, ex. "Last Last 5 minutes", the previous instance, index is 1. and so on...
+		   // checkdevice is 1 or 0. 1 if device status needs to be check if device is online and if sensor is active
+		-  Response:
+		   { 'status': 'OK', 'message': string, 
+		     'sensors': [{'devicename': string, 'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': string, 'enabled': int, 'configured': int, 'units': [], 'formats': [], 'attributes': [], 
+		                  'dataset':  {'labels': [], 'data': [[],...], 'low': [[],...], 'high': [[],...]}, 
+		                  'readings': {'value': float, 'lowest': float, 'highest': float, 'subclass': {'value': float, 'lowest': float, 'highest': float}}
+		                ],
+		     'stats'  : { 
+		                  'devices': {
+		                    'statuses':    {'labels': [strings], 'data': [int]},
+		                    'groups:       {'labels': [strings], 'data': [int]},
+		                    'versions':    {'labels': [strings], 'data': [int]},
+		                    'locations':   {'labels': [strings], 'data': [int]}
+		                  },
+		                  'sensors': {
+		                    'statuses':    {'labels': [strings], 'data': [int]},
+		                    'types':       {'labels': [strings], 'data': [int]},
+		                    'peripherals': {'labels': [strings], 'data': [int]},
+		                    'classes':     {'labels': [strings], 'data': [int]}
+		                  },
+		                },
+		     'summary': { 
+		                  'sensors': [{'sensorname': string, 'devicename': string, 'type': string, 'peripheral': string, 'classes': string, 'configuration': string, 'enabled': int}],
+		                  'devices': [{'devicename': string, 'group': string, 'version': string, 'location': string, 'status': int}],
+		                },
+		     'usages':  {
+		                  'alerts':  {'labels': ['sms', 'emails', 'notifications'], 'data': [int, int, int]},
+		                  'storage': {'labels': ['sensor data', 'alerts data'], 'data': [int, int]},
+		                  'login':   {'labels': ['email', 'sms'], 'data': [int, int]}
+		                }
+
+		   { 'status': 'NG', 'message': string}
+		   //
+		   // the subclass parameter of readings parameter will only appear if the sensor has a subclass
+		   //   if sensor has a subclass:  'dataset': {'labels': [], 'data': [[],[]]}
+		   //   if sensor has no subclass: 'dataset': {'labels': [], 'data': [[]]}
+		   //   this make the dataset object directly usable by Chart.JS line charts
+		   // low and high does NOT appear when "Last 5 minutes" timerange is selected.
+		   //
+		   // stats and summary will ONLY appear if checkdevice parameter is set to 1
+		   //   stats is for doughnut/pie charts to show proportions of online/offline devices, enabled/disabled sensors, device peripheral types used, sensor classes used
+		   //     uses labels and data arrays to make object directly usable by Chart.JS doughnut/pie charts
+		   //   summary is for the table
+
+		E. DELETE PERIPHERAL SENSOR READINGS
+		-  Request:
+		   DELETE /devices/device/DEVICENAME/sensors/readings
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		-  Response:
+		   { 'status': 'OK', 'message': string}
+		   { 'status': 'NG', 'message': string}
+
+		F. DELETE PERIPHERAL SENSOR READINGS DATASET
+		-  Request:
+		   DELETE /devices/sensors/readings/dataset
+		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+		   data: {'devicename': string}
+		   // devicename can be "All devices" or the devicename of specific device
+		-  Response:
+		   { 'status': 'OK', 'message': string}
+		   { 'status': 'NG', 'message': string}
 
 
 	8. Device access and control APIs (I2C)

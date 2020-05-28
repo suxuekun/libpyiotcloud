@@ -179,6 +179,29 @@ g_tprobe_properties = [
     { 'enabled': 0, 'class': 255, 'attributes': {} }
 ]
 
+# GW DESCRIPTOR
+g_gateway_descriptor = {
+    # RO
+    'UUID': '', # UUID
+    'SNO': '',  # Serial Number
+    'PMAC': '', # PoE MAC ID
+    'WMAC': '', # WiFi MAC ID
+    'MOD': '',  # Model Number
+    'PRV': '',  # Product Version
+    'FWV': '',  # Firmware Version and date
+    'ICAC': '', # Sensor Cache Storage Size
+    'IPRT': '', # Number of LDS Ports
+    'ICFG': '', # Configuration Storage
+    # RW
+    'WGPS': '', # GPS Location
+    'WMLP': '', # Maximum LDSU Allowed Per Port
+    'IUPC': '', # UART Port Communication Parameters
+    'IUPE': '', # UART Port Enable (Default)/Disable Status
+    'WASC': '', # Auto-scan
+    'WSCS': '', # Sensor Cache Status
+    'OBJ': '',  # Sensor Cache Status
+}
+
 start_timeX = 0
 
 
@@ -266,9 +289,13 @@ API_REQUEST_TIME                 = "req_time"
 # sensor registration 
 API_SET_REGISTRATION             = "set_registration"
 
+# descriptor
+API_GET_DESCRIPTOR               = "get_descriptor"
+API_SET_DESCRIPTOR               = "set_descriptor"
+
 # lds bus
 API_IDENTIFY_LDSU                = "ide_ldsu"
-API_REQUEST_LDSUS                = "req_ldsus"
+API_REQUEST_LDSUS                = "get_ldsu_descriptors"
 
 
 
@@ -616,6 +643,19 @@ def handle_api(api, subtopic, subpayload):
         g_timer_thread.set_timeout(g_timer_thread_timeout)
 
         payload = {}
+        publish(topic, payload)
+
+    ####################################################
+    # DESCRIPTOR
+    ####################################################
+    elif api == API_GET_DESCRIPTOR:
+        topic = generate_pubtopic(subtopic)
+        if g_gateway_descriptor["UUID"] == "":
+            g_gateway_descriptor["UUID"] = CONFIG_DEVICE_ID
+            g_gateway_descriptor["SNO"]  = CONFIG_DEVICE_SERIAL
+            g_gateway_descriptor["PMAC"] = CONFIG_DEVICE_MACADD
+        payload = {}
+        payload["value"] = g_gateway_descriptor
         publish(topic, payload)
 
     ####################################################
