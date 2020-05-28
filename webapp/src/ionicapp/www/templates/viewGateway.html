@@ -19,6 +19,7 @@
         <input type="text" placeholder="" ng-model="new_devicename">
       </label>
       <button id="viewGateway-button156" ng-click="changeDevicename(data.devicename, new_devicename)" class="button button-positive button-block button-outline">Update Name</button>
+      <button id="viewGateway-button227" ng-click="viewGatewayDescriptor()" class="button button-positive button-block">View Descriptor</button>
       <ion-item class="item-divider" id="viewGateway-list-item-divider13"> UUID</ion-item>
       <label class="item item-input" id="viewGateway-input157" name="input-deviceid">
         <input type="text" placeholder="" ng-model="data.deviceid" readonly="">
@@ -53,7 +54,7 @@
     <button id="viewGateway-button56" ng-click="setDevice(data.devicename, &quot;restart&quot;)" style="text-align:left;" class="button button-positive button-block button-outline icon-right ion-android-arrow-dropright">Restart Gateway</button>
     <button id="viewGateway-button64" ng-click="setDevice(data.devicename, &quot;start&quot;)" style="text-align:left;" class="button button-positive button-block button-outline icon-right ion-android-arrow-dropright">Start Gateway</button>
     <button id="viewGateway-button57" ng-click="setDevice(data.devicename, &quot;stop&quot;)" style="text-align:left;" class="button button-positive button-block button-outline icon-right ion-android-arrow-dropright">Stop Gateway</button>
-    <button id="viewGateway-button110" ng-click="setDeviceGeneralSettings()" class="button button-positive button-block">Update General Settings</button>
+    <button id="viewGateway-button110" ng-click="setDeviceGeneralSettings()" class="button button-positive button-block">Update Settings</button>
     <div class="spacer" style="height: 50px;"></div>
   </ion-content>
 </ion-view>

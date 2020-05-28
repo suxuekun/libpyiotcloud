@@ -131,9 +131,10 @@ class utils:
         payload = None
         try:
             payload = jwt.decode(token, config.CONFIG_JWT_SECRET_KEY, algorithms=['HS256'])
-        except:
+        except Exception as e:
             reason = "JWT decode exception"
             print(reason)
+            print(e)
             return None, None, reason
         if payload is None:
             reason = "JWT decode failed"

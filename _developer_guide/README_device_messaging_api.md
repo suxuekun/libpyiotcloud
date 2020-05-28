@@ -94,15 +94,15 @@ SUMMARY:
 		           AT+D
 		   - Others
 
-	3. LDSBUS
-		A. REGISTER GW DESCRIPTOR       reg_gwdsc
-		B. REQUEST GW DESCRIPTOR        req_gwdsc
-		C. REGISTER LDSUs               reg_ldsus
-		D. REQUEST LDSUs                req_ldsus
-		E. IDENTIFY LDSU                ide_ldsu
+	3. GATEWAY AND LDSBUS
+		A. SET GATEWAY DESCRIPTOR    set_descriptor       // auto-register
+		B. GET GATEWAY DESCRIPTOR    get_descriptor       // query-based
+		C. SET LDSU DESCRIPTORS      set_ldsu_descriptors // auto-register
+		D. GET LDSU DESCRIPTOR       get_ldsu_descriptors // query-based
+		E. IDENTIFY LDSU             ide_ldsu
 
 	4. GPIO
-		A. GET GPIOS                    get_gpios
+		A. GET GPIOS                 get_gpios
 		   - gets enabled, direction and status of all 4 GPIO pins
 
 		B. GET GPIO PROPERTIES       get_gpio_prop
@@ -294,65 +294,67 @@ DETAILED:
 		   payload: {}
 
 
-	3. LDSBUS
+	3. GATEWAY and LDSBUS
 
-		A. REGISTER GW DESCRIPTOR
+		A. SET GATEWAY DESCRIPTOR // auto-register
 		-  Publish:
-		   topic: server/DEVICEID/reg_gwdsc
+		   topic: server/DEVICEID/set_descriptor
 		   payload: { 
-		     'value': { 
-		        // RO
-		        'uuid': string, // UUID
-		        'seri': string, // Serial Number
-		        'pmac': string, // PoE MAC ID
-		        'wmac': string, // WiFi MAC ID
-		        'modl': string, // Model Number
-		        'pver': string, // Product Version
-		        'fver': string, // Firmware Version and date
-		        'icac': string, // Sensor Cache Storage Size
-		        'iprt': string, // Number of LDS Ports
-		        'icfg': string, // Configuration Storage
-		        // RW
-		        'wgps': string, // GPS Location
-		        'wmlp': string, // Maximum LDSU Allowed Per Port
-		        'iupc': string, // UART Port Communication Parameters
-		        'iupe': string, // UART Port Enable (Default)/Disable Status
-		        'wasc': string, // Auto-scan
-		        'wscs': string, // Sensor Cache Status
+		     'value': {
+		          // RO
+		          "UUID": string, // UUID
+		          "SNO" : string, // Serial Number
+		          "PMAC": string, // PoE MAC ID
+		          "WMAC": string, // WiFi MAC ID
+		          "MOD" : string, // Model Number
+		          "PRV" : string, // Product Version
+		          "FWV" : string, // Firmware Version and date
+		          "ICAC": string, // Sensor Cache Storage Size
+		          "IPRT": string, // Number of LDS Ports                    ???
+		          "ICFG": string, // Configuration Storage                  ???
+		          // RW
+		          "WGPS": string, // GPS Location                           ???
+		          "WMLP": string, // Maximum LDSU Allowed Per Port          ???
+		          "IUPC": string, // UART Port Communication Parameters
+		          "IUPE": string, // UART Port Enable (Default)/Disable Status
+		          "WASC": string, // Auto-scan
+		          "WSCS": string, // Sensor Cache Status
+		          "OBJ" : string  // Newly added
 		     }
 		   }
 		
-		B. REQUEST GW DESCRIPTOR
+		B. GET GATEWAY DESCRIPTOR // query-based
 		-  Receive:
-		   topic: DEVICEID/req_gwdsc
+		   topic: DEVICEID/get_descriptor
 		-  Publish:
-		   topic: server/DEVICEID/reg_gwdsc
+		   topic: server/DEVICEID/get_descriptor
 		   payload: { 
 		     'value': { 
-		        // RO
-		        'uuid': string, // UUID
-		        'seri': string, // Serial Number
-		        'pmac': string, // PoE MAC ID
-		        'wmac': string, // WiFi MAC ID
-		        'modl': string, // Model Number
-		        'pver': string, // Product Version
-		        'fver': string, // Firmware Version and date
-		        'icac': string, // Sensor Cache Storage Size
-		        'iprt': string, // Number of LDS Ports
-		        'icfg': string, // Configuration Storage
-		        // RW
-		        'wgps': string, // GPS Location
-		        'wmlp': string, // Maximum LDSU Allowed Per Port
-		        'iupc': string, // UART Port Communication Parameters
-		        'iupe': string, // UART Port Enable (Default)/Disable Status
-		        'wasc': string, // Auto-scan
-		        'wscs': string, // Sensor Cache Status
+		          // RO
+		          "UUID": string, // UUID
+		          "SNO" : string, // Serial Number
+		          "PMAC": string, // PoE MAC ID
+		          "WMAC": string, // WiFi MAC ID
+		          "MOD" : string, // Model Number
+		          "PRV" : string, // Product Version
+		          "FWV" : string, // Firmware Version and date
+		          "ICAC": string, // Sensor Cache Storage Size
+		          "IPRT": string, // Number of LDS Ports                    ???
+		          "ICFG": string, // Configuration Storage                  ???
+		          // RW
+		          "WGPS": string, // GPS Location                           ???
+		          "WMLP": string, // Maximum LDSU Allowed Per Port          ???
+		          "IUPC": string, // UART Port Communication Parameters
+		          "IUPE": string, // UART Port Enable (Default)/Disable Status
+		          "WASC": string, // Auto-scan
+		          "WSCS": string, // Sensor Cache Status
+		          "OBJ" : string  // Newly added
 		     }
 		   }
 		
-		C. REGISTER LDSUs
+		C. SET LDSU DESCRIPTORS
 		-  Publish:
-		   topic: server/DEVICEID/reg_ldsus
+		   topic: server/DEVICEID/reg_ldsu_descs
 		   payload: { 
 		     'value': [
 		       { 
@@ -383,13 +385,13 @@ DETAILED:
 		     ]
 		   }
 		
-		D. REQUEST LDSUs
+		D. GET LDSU DESCRIPTORS
 		-  Receive:
-		   topic: DEVICEID/req_ldsus
+		   topic: DEVICEID/get_ldsu_descriptors
 		   payload: {'port': int}
 		   // port can be 1,2,3 or 0 for all ports
 		-  Publish:
-		   topic: server/DEVICEID/reg_ldsus
+		   topic: server/DEVICEID/get_ldsu_descriptors
 		   payload: { 
 		     'value': [
 		       {

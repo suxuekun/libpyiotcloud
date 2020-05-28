@@ -1,0 +1,58 @@
+<ion-view title="Gateway Descriptor" hide-back-button="true" nav-transition="none" id="page60" style="background-color:#FFFFFF;" class="page_width_small">
+  <ion-nav-buttons side="left" class="has-header">
+    <button class="button button-icon icon ion-android-close" ng-click="exitPage()"></button>
+  </ion-nav-buttons>
+  <ion-nav-buttons side="right" class="has-header">
+    <button class="button button-positive icon ion-refresh" ng-click="getDescriptor(data.devicename)"></button>
+  </ion-nav-buttons>
+  <ion-content padding="true" class="has-header">
+    <div class="spacer" style="height: 12px;"></div>
+    <div id="gatewayDescriptor-markdown444" style="text-align:center;" class="show-list-numbers-and-dots">
+      <p style="color:#3C5A99;font-size:18px;">
+        <strong> {{ data.devicename }} </strong>
+      </p>
+    </div>
+    <form id="gatewayDescriptor-form258" class="list">
+      <div id="gatewayDescriptor-markdown446" class="show-list-numbers-and-dots"></div>
+      <div class="spacer" style="width: 480px; height: 25px;"></div>
+      <div id="gatewayDescriptor-markdown448" class="show-list-numbers-and-dots">
+        <p style="color:#444444;">{{ descriptor }}</p>
+      </div>
+      <div id="gatewayDescriptor-markdown445" class="show-list-numbers-and-dots">
+        <p style="color:#444444;">UUID: {{ descriptor.UUID }}</p>
+
+        <p style="color:#444444;">SNO: {{ descriptor.SNO }}</p>
+
+        <p style="color:#444444;">PMAC: {{ descriptor.PMAC }}</p>
+
+        <p style="color:#444444;">WMAC: {{ descriptor.WMAC }}</p>
+
+        <p style="color:#444444;">MOD: {{ descriptor.MOD }}</p>
+
+        <p style="color:#444444;">PRV: {{ descriptor.PRV }}</p>
+
+        <p style="color:#444444;">FWV: {{ descriptor.FWV }}</p>
+
+        <p style="color:#444444;">ICAC: {{ descriptor.ICAC }}</p>
+
+        <p style="color:#444444;">IPRT: {{ descriptor.IPRT }}</p>
+
+        <p style="color:#444444;">ICFG: {{ descriptor.ICFG }}</p>
+
+        <p style="color:#444444;">WGPS: {{ descriptor.WGPS }}</p>
+
+        <p style="color:#444444;">WMLP: {{ descriptor.WMLP }}</p>
+
+        <p style="color:#444444;">IUPC: {{ descriptor.IUPC }}</p>
+
+        <p style="color:#444444;">IUPE: {{ descriptor.IUPE }}</p>
+
+        <p style="color:#444444;">WASC: {{ descriptor.WASC }}</p>
+
+        <p style="color:#444444;">WSCS: {{ descriptor.WSCS }}</p>
+
+        <p style="color:#444444;">OBJ: {{ descriptor.OBJ }}</p>
+      </div>
+    </form>
+  </ion-content>
+</ion-view>
