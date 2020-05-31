@@ -192,15 +192,69 @@ g_gateway_descriptor = {
     'ICAC': '', # Sensor Cache Storage Size
     'IPRT': '', # Number of LDS Ports
     'ICFG': '', # Configuration Storage
+    'MLG': '',  # Maximum LDSUs Allowed for Gateway 80
+    'M2M': '',  # Machine-to-machine config
     # RW
     'WGPS': '', # GPS Location
-    'WMLP': '', # Maximum LDSU Allowed Per Port
-    'IUPC': '', # UART Port Communication Parameters
-    'IUPE': '', # UART Port Enable (Default)/Disable Status
     'WASC': '', # Auto-scan
     'WSCS': '', # Sensor Cache Status
     'OBJ': '',  # Sensor Cache Status
 }
+
+# FIXED LDSU DESCRIPTORS
+# LDS PORT 1
+#   BRT 4-in-1 Sensor  - BRT32768XXXXX781
+#   Air Quality Sensor - BRT32770XXXXX121
+# LDS PORT 2
+#   BRT 4-in-1 Sensor  - BRT32768XXXXX692
+# LDS PORT 3
+#   Air Quality Sensor - BRT32770XXXXX453
+g_ldsu_descriptors = [
+{
+    "IID": "12345",              # LDSU Instance ID.      IID is unique within the GW
+    "PORT": "1",                 # Port number
+    "DID": "1",                  # LDS device ID from eeprom.  DID is unique within the Port
+    "PRV": "1.0",                # Product version
+    "MFG": "01062020",           # Manufacturing date
+    "SNO": "BRT12345",           # Serial Number
+    "UID": "BRT32768XXXXX781",   # UUID
+    "NAME": "BRT 4-in-1 Sensor", # Name of the Sensor
+    "OBJ": "32768"               # LDSU Object type
+},
+{
+    "IID": "11246",
+    "PORT": "1",
+    "DID": "1",
+    "PRV": "1.0",
+    "MFG": "02062020",
+    "SNO": "BRT12345",
+    "UID": "BRT32770XXXXX121",
+    "NAME": "Air Quality Sensor",
+    "OBJ": "32770"
+},
+{
+    "IID": "12346",
+    "PORT": "2",
+    "DID": "1",
+    "PRV": "1.0",
+    "MFG": "01062020",
+    "SNO": "BRT12345",
+    "UID": "BRT32768XXXXX692",
+    "NAME": "BRT 4-in-1 Sensor",
+    "OBJ": "32768"
+},
+{
+    "IID": "11247",
+    "PORT": "3",
+    "DID": "1",
+    "PRV": "1.0",
+    "MFG": "02062020",
+    "SNO": "BRT12345",
+    "UID": "BRT32770XXXXX453",
+    "NAME": "Air Quality Sensor",
+    "OBJ": "32770"
+}
+]
 
 start_timeX = 0
 
@@ -292,6 +346,7 @@ API_SET_REGISTRATION             = "set_registration"
 # descriptor
 API_GET_DESCRIPTOR               = "get_descriptor"
 API_SET_DESCRIPTOR               = "set_descriptor"
+API_SET_LDSU_DESCS               = "set_ldsu_descs"
 
 # lds bus
 API_IDENTIFY_LDSU                = "ide_ldsu"
@@ -2531,6 +2586,24 @@ def set_registration(sensors):
     #payload = json.dumps(payload)
     publish(topic, payload)
 
+# Register gateway descriptor
+def reg_gateway_descriptor():
+    topic = "{}{}{}{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_DEVICE_ID, CONFIG_SEPARATOR, API_SET_DESCRIPTOR)
+    if g_gateway_descriptor["UUID"] == "":
+        g_gateway_descriptor["UUID"] = CONFIG_DEVICE_ID
+        g_gateway_descriptor["SNO"]  = CONFIG_DEVICE_SERIAL
+        g_gateway_descriptor["PMAC"] = CONFIG_DEVICE_MACADD
+    payload = {"descriptor": g_gateway_descriptor}
+    publish(topic, payload)
+
+# Register LDSU descriptors
+def reg_ldsu_descriptors():
+    # TODO: send LDSU descriptors in multiple chunks (ex. 80 LDSUs)
+    topic = "{}{}{}{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_DEVICE_ID, CONFIG_SEPARATOR, API_SET_LDSU_DESCS)
+    payload = {"ldsu_descs": g_ldsu_descriptors}
+    publish(topic, payload)
+
+
 
 ###################################################################################
 # Password generation
@@ -2735,6 +2808,11 @@ def main(args):
         # Not needed for the device simulator
         # This is just for demonstration to device firmware (to be used as last resort in case SNTP fails for some reason)
         req_epochtime()
+
+        # Register gateway descriptor and ldsu descriptors
+        # TODO: send LDSU descriptors in multiple chunks (ex. 80 LDSUs)
+        reg_gateway_descriptor()
+        reg_ldsu_descriptors()
 
         # Scan sensor for configuration
         if CONFIG_SCAN_SENSORS_AT_BOOTUP:

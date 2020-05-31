@@ -3,6 +3,7 @@ import hmac
 import hashlib
 import datetime
 import random
+import copy
 from registration_config import config
 from pymongo import MongoClient
 #from web_server_cognito_client import cognito_client
@@ -238,6 +239,15 @@ class database_client:
 
     def get_devicename(self, deviceid):
         return self._devices.get_devicename(deviceid)
+
+    def get_device_descriptor(self, username, devicename):
+        return self._devices.get_device_descriptor(username, devicename)
+
+    def set_device_descriptor(self, username, devicename, descriptor):
+        self._devices.set_device_descriptor_by_deviceid(self._devices.get_deviceid(username, devicename), descriptor)
+
+    def set_device_descriptor_by_deviceid(self, deviceid, descriptor):
+        self._devices.set_device_descriptor_by_deviceid(deviceid, descriptor)
 
 
     ##########################################################
@@ -861,6 +871,24 @@ class database_client_mongodb:
             for device in devices.find({'deviceid': deviceid},{'devicename': 1}):
                 return device['devicename']
         return None
+
+    def get_device_descriptor(self, username, devicename):
+        devices = self.get_registered_devices()
+        if devices:
+            for device in devices.find({'username': username, 'devicename': devicename}):
+                if device.get('descriptor') is None:
+                    return None
+                return device['descriptor']
+        return None
+
+    def set_device_descriptor_by_deviceid(self, deviceid, descriptor):
+        devices = self.get_registered_devices()
+        if devices:
+            for device in devices.find({'deviceid': deviceid}):
+                new_device = copy.deepcopy(device)
+                new_device['descriptor'] = descriptor
+                devices.replace_one(device, new_device)
+                break
 
 
 class database_client_postgresql:

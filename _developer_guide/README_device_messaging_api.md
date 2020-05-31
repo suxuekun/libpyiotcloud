@@ -300,7 +300,7 @@ DETAILED:
 		-  Publish:
 		   topic: server/DEVICEID/set_descriptor
 		   payload: { 
-		     'value': {
+		     'descriptor': {
 		          // RO
 		          "UUID": string, // UUID
 		          "SNO" : string, // Serial Number
@@ -310,13 +310,12 @@ DETAILED:
 		          "PRV" : string, // Product Version
 		          "FWV" : string, // Firmware Version and date
 		          "ICAC": string, // Sensor Cache Storage Size
-		          "IPRT": string, // Number of LDS Ports                    ???
-		          "ICFG": string, // Configuration Storage                  ???
+		          "IPRT": string, // Number of LDS Ports
+		          "ICFG": string, // Configuration Storage
+		          "MLG":  string, // Maximum LDSUs Allowed for Gateway 80
+		          "M2M":  string,
 		          // RW
-		          "WGPS": string, // GPS Location                           ???
-		          "WMLP": string, // Maximum LDSU Allowed Per Port          ???
-		          "IUPC": string, // UART Port Communication Parameters
-		          "IUPE": string, // UART Port Enable (Default)/Disable Status
+		          "WGPS": string, // GPS Location
 		          "WASC": string, // Auto-scan
 		          "WSCS": string, // Sensor Cache Status
 		          "OBJ" : string  // Newly added
@@ -339,13 +338,12 @@ DETAILED:
 		          "PRV" : string, // Product Version
 		          "FWV" : string, // Firmware Version and date
 		          "ICAC": string, // Sensor Cache Storage Size
-		          "IPRT": string, // Number of LDS Ports                    ???
-		          "ICFG": string, // Configuration Storage                  ???
+		          "IPRT": string, // Number of LDS Ports
+		          "ICFG": string, // Configuration Storage
+		          "MLG":  string,  // Maximum LDSUs Allowed for Gateway 80
+		          "M2M":  string,
 		          // RW
-		          "WGPS": string, // GPS Location                           ???
-		          "WMLP": string, // Maximum LDSU Allowed Per Port          ???
-		          "IUPC": string, // UART Port Communication Parameters
-		          "IUPE": string, // UART Port Enable (Default)/Disable Status
+		          "WGPS": string, // GPS Location
 		          "WASC": string, // Auto-scan
 		          "WSCS": string, // Sensor Cache Status
 		          "OBJ" : string  // Newly added
@@ -355,71 +353,95 @@ DETAILED:
 		C. SET LDSU DESCRIPTORS
 		-  Publish:
 		   topic: server/DEVICEID/reg_ldsu_descs
+		   topic: server/DEVICEID/reg_ldsu_descs/PORTNUM // if /PORTNUM is present, then all PORT in payload should be equal to PORTNUM
 		   payload: { 
-		     'value': [
-		       { 
-		         'port': int,
-		         'vers': string, // ?
-		         'pver': string, // Product Version
-		         'mfgd': string, // Manufacturing Date
-		         'seri': string, // Serial Number
-		         'uuid': string, // UUID
-		         'pnam': string, // Product Name
-		         'objt': string, // Object Type
-		         'capa': string, // Capability
-		         'scnt': string, // Sensor Count
-		         'hcrc': string, // CRC 16 hash
-		         'i2cd': [
-		           {
-		             'manu': string, // Manufacturer
-		             'part': string, // Part Number
-		             'addr': string, // I2C Address
-		             'rgsz': string, // Register Size 
-		             'rgid': string, // Reference Identifier
-		             'objt': string, // Object type
-		           },
-		           ...
-		         ]
+		     'ldsu_descs': {
+		       "LDS": [
+		       {
+		         "IID":  "12345",             // LDSU Instance ID. IID is unique within the GW
+		         "PORT": "1",                 // Port number
+		         "DID":  "1",                 // LDS device ID from eeprom. DID is unique within the Port
+
+		         "PRV":  "1.0",               // Product version
+		         "MFG":  "DDMMYYYY",          // Manufacturing date
+		         "SNO":  "BRT12345",          // Serial Number
+		         "UID":  "BRTXXXXXXXXXXXXX",  // UUID
+		         "NAME": "BRT 4-in-1 Sensor", // Name of the Sensor //"BRT 4-in-1 Sensor", "Thermocouple", "Air Quality Sensor"
+
+		         "OBJ":  "32768"              // LDSU Object type   //"32768", "32769", "32770"
+		       },
+		       {
+		         "IID":  string,
+		         "PORT": string,
+		         "DID":  string,
+		         "PRV":  string,
+		         "MFG":  string,
+		         "SNO":  string,
+		         "UID":  string,
+		         "NAME": string,
+		         "OBJ":  string,
+		       },
+		       {
+		         "IID":  string,
+		         "PORT": string,
+		         "DID":  string,
+		         "PRV":  string,
+		         "MFG":  string,
+		         "SNO":  string,
+		         "UID":  string,
+		         "NAME": string,
+		         "OBJ":  string,
 		       },
 		       ...
-		     ]
+		       ]
+		     }
 		   }
 		
 		D. GET LDSU DESCRIPTORS
 		-  Receive:
 		   topic: DEVICEID/get_ldsu_descriptors
 		   payload: {'port': int}
-		   // port can be 1,2,3 or 0 for all ports
+		   // port can be 1,2,3. If not present, then query is for all ports
 		-  Publish:
 		   topic: server/DEVICEID/get_ldsu_descriptors
 		   payload: { 
-		     'value': [
+		     'value': {
+		       "LDS": [
 		       {
-		         'port': int,
-		         'vers': string, // ?
-		         'pver': string, // Product Version
-		         'mfgd': string, // Manufacturing Date
-		         'seri': string, // Serial Number
-		         'uuid': string, // UUID
-		         'pnam': string, // Product Name
-		         'objt': string, // Object Type
-		         'capa': string, // Capability
-		         'scnt': string, // Sensor Count
-		         'hcrc': string, // CRC 16 hash
-		         'i2cd': [
-		           {
-		             'manu': string, // Manufacturer
-		             'part': string, // Part Number
-		             'addr': string, // I2C Address
-		             'rgsz': string, // Register Size 
-		             'rgid': string, // Ref ID
-		             'objt': string, // Object type
-		           },
-		           ...
-		         ]
+		         "IID":  "12345",             // LDSU Instance ID
+		         "PORT": "1",                 // Port number
+		         "DID":  "1",                 // LDS device ID from eeprom
+		         "PRV":  "1.0",               // Product version
+		         "MFG":  "DDMMYYYY",          // Manufacturing date
+		         "SNO":  "BRT12345",          // Serial Number
+		         "UID":  "BRTXXXXXXXXXXXXX",  // UUID
+		         "NAME": "BRT 4-in-1 Sensor", // Name of the Sensor //"BRT 4-in-1 Sensor", "Thermocouple", "Air Quality Sensor"
+		         "OBJ":  "32768"              // LDSU Object type   //"32768", "32769", "32770"
+		       },
+		       {
+		         "IID":  string,
+		         "PORT": string,
+		         "DID":  string,
+		         "PRV":  string,
+		         "MFG":  string,
+		         "SNO":  string,
+		         "UID":  string,
+		         "NAME": string,
+		         "OBJ":  string,
+		       },
+		       {
+		         "IID":  string,
+		         "PORT": string,
+		         "DID":  string,
+		         "PRV":  string,
+		         "MFG":  string,
+		         "SNO":  string,
+		         "UID":  string,
+		         "NAME": string,
+		         "OBJ":  string,
 		       },
 		       ...
-		     ]
+		     }
 		   }
 
 		E. IDENTIFY LDSU

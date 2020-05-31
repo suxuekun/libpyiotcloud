@@ -62,9 +62,8 @@ CONFIG_PREPEND_REPLY_TOPIC  = "server"
 CONFIG_SEPARATOR            = '/'
 
 API_SET_REGISTRATION        = "set_registration"
-#API_RECEIVE_CONFIGURATION   = "rcv_configuration"
-#API_DELETE_CONFIGURATION    = "del_configuration"
-#API_SET_CONFIGURATION       = "set_configuration"
+API_SET_DESCRIPTOR          = "set_descriptor" # gateway descriptor
+API_SET_LDSU_DESCS          = "set_ldsu_descs" # ldsu descriptors
 
 
 
@@ -76,6 +75,38 @@ API_SET_REGISTRATION        = "set_registration"
 def print_json(json_object):
     json_formatted_str = json.dumps(json_object, indent=2)
     print(json_formatted_str)
+
+
+def set_descriptor(database_client, deviceid, topic, payload):
+
+    print("{} {}".format(topic, deviceid))
+
+    # find if deviceid exists
+    devicename = database_client.get_devicename(deviceid)
+    if devicename is None:
+        return
+
+    payload = json.loads(payload)
+    print_json(payload)
+
+    # set the descriptor in the database
+    if payload.get("descriptor"):
+        database_client.set_device_descriptor_by_deviceid(deviceid, payload["descriptor"])
+
+
+def set_ldsu_descs(database_client, deviceid, topic, payload):
+
+    print("{} {}".format(topic, deviceid))
+
+    # find if deviceid exists
+    devicename = database_client.get_devicename(deviceid)
+    if devicename is None:
+        return
+
+    payload = json.loads(payload)
+    print_json(payload)
+
+    # TODO save to database
 
 
 def set_registration(database_client, deviceid, topic, payload):
@@ -158,6 +189,22 @@ def on_message(subtopic, subpayload):
             thr.start()
         except Exception as e:
             print("exception API_SET_REGISTRATION")
+            print(e)
+            return
+    elif topic == API_SET_DESCRIPTOR:
+        try:
+            thr = threading.Thread(target = set_descriptor, args = (g_database_client, deviceid, topic, payload ))
+            thr.start()
+        except Exception as e:
+            print("exception API_SET_DESCRIPTOR")
+            print(e)
+            return
+    elif topic == API_SET_LDSU_DESCS:
+        try:
+            thr = threading.Thread(target = set_ldsu_descs, args = (g_database_client, deviceid, topic, payload ))
+            thr.start()
+        except Exception as e:
+            print("exception API_SET_LDSU_DESCS")
             print(e)
             return
 
@@ -257,7 +304,11 @@ if __name__ == '__main__':
     # Subscribe to messages sent for this device
     time.sleep(1)
     subtopic = "{}{}+{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_SEPARATOR, API_SET_REGISTRATION)
+    subtopic2 = "{}{}+{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_SEPARATOR, API_SET_DESCRIPTOR)
+    subtopic3 = "{}{}+{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_SEPARATOR, API_SET_LDSU_DESCS)
     g_messaging_client.subscribe(subtopic, subscribe=True, declare=True, consume_continuously=True)
+    g_messaging_client.subscribe(subtopic2, subscribe=True, declare=True, consume_continuously=True)
+    g_messaging_client.subscribe(subtopic3, subscribe=True, declare=True, consume_continuously=True)
 
 
     while g_messaging_client.is_connected():

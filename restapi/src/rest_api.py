@@ -3051,24 +3051,47 @@ def get_device_descriptor(devicename):
         entityname = username
 
 
-    # get latest descriptor from device
-    api = "get_descriptor"
-    data = {}
-    data['token'] = {'access': auth_header_token}
-    data['devicename'] = devicename
-    data['username'] = username
-    response, status_return = g_messaging_requests.process(api, data)
-    if status_return == 503: # HTTP_503_SERVICE_UNAVAILABLE
-        # if device is not available get descriptor from database
+    if True:
+        # get descriptor from database
+        # this assumes that the device sends the descriptor during device bootup
         descriptor = g_database_client.get_device_descriptor(entityname, devicename)
         if descriptor is None:
-            return response, status_return
+            # device did not send descriptor on bootup, so query the device
+            api = "get_descriptor"
+            data = {}
+            data['token'] = {'access': auth_header_token}
+            data['devicename'] = devicename
+            data['username'] = username
+            response, status_return = g_messaging_requests.process(api, data)
+            if status_return == 503: # HTTP_503_SERVICE_UNAVAILABLE
+                return response, status_return
+            else:
+                # get the descriptor in response
+                response = json.loads(response)
+                descriptor = response['value']
+                g_database_client.set_device_descriptor(entityname, devicename, descriptor)
+                response = json.dumps(response)
     else:
-        # get the descriptor in response
-        response = json.loads(response)
-        descriptor = response['value']
-        g_database_client.set_device_descriptor(entityname, devicename, descriptor)
-        response = json.dumps(response)
+        # get latest descriptor from device
+        # this assumes that the device does not send the descriptor during device bootup
+        # and that it can change everytime so device must be queried instead of checking database
+        api = "get_descriptor"
+        data = {}
+        data['token'] = {'access': auth_header_token}
+        data['devicename'] = devicename
+        data['username'] = username
+        response, status_return = g_messaging_requests.process(api, data)
+        if status_return == 503: # HTTP_503_SERVICE_UNAVAILABLE
+            # if device is not available get descriptor from database
+            descriptor = g_database_client.get_device_descriptor(entityname, devicename)
+            if descriptor is None:
+                return response, status_return
+        else:
+            # get the descriptor in response
+            response = json.loads(response)
+            descriptor = response['value']
+            g_database_client.set_device_descriptor(entityname, devicename, descriptor)
+            response = json.dumps(response)
 
 
     msg = {'status': 'OK', 'message': 'Device Descriptor queried successfully.', 'descriptor': descriptor}

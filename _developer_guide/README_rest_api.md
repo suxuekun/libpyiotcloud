@@ -1135,13 +1135,12 @@ DETAILED:
 		          "PRV" : string, // Product Version
 		          "FWV" : string, // Firmware Version and date
 		          "ICAC": string, // Sensor Cache Storage Size
-		          "IPRT": string, // Number of LDS Ports                    ???
-		          "ICFG": string, // Configuration Storage                  ???
+		          "IPRT": string, // Number of LDS Ports
+		          "ICFG": string, // Configuration Storage
+		          "MLG":  string,  // Maximum LDSUs Allowed for Gateway 80
+		          "M2M":  string,
 		          // RW
-		          "WGPS": string, // GPS Location                           ???
-		          "WMLP": string, // Maximum LDSU Allowed Per Port          ???
-		          "IUPC": string, // UART Port Communication Parameters
-		          "IUPE": string, // UART Port Enable (Default)/Disable Status
+		          "WGPS": string, // GPS Location
 		          "WASC": string, // Auto-scan
 		          "WSCS": string, // Sensor Cache Status
 		          "OBJ" : string  // Newly added
@@ -1440,35 +1439,40 @@ DETAILED:
 		   { 'status': 'OK', 'message': string, 'ldsbus': 
 		     [ 
 		       {
-		         "port": int,
-		         "ldsus"     : [
+		         "PORT": string,
+		         "LDS"     : [
 		           {
-		             "name": string, 
-		             "uuid": string, 
-		             "serialnumber": string, 
-		             "manufacturingdate": string, 
-		             "productversion": string, 
-		             "productname": string
+		             "LABL": string,
+		             "PRV":  string,  // Product version
+		             "MFG":  string,  // Manufacturing date
+		             "SNO":  string,  // Serial Number
+		             "UID":  string,  // UUID
+		             "NAME": string,  // Name of the Sensor: "BRT 4-in-1 Sensor", "Thermocouple", "Air Quality Sensor"
+
+		             "IID":  string,  // LDSU Instance ID. IID is unique within the GW
+		             "PORT": string,  // Port number
+		             "DID":  string,  // LDS device ID from eeprom. DID is unique within the Port
+		             "OBJ":  string   // LDSU Object type: "32768", "32769", "32770"
 		           }, 
 		           ...
 		         ], 
 		         "sensors"  : [
 		           {
-		             "name": string, 
-		             "class": string, 
-		             "ldsuname": string, 
-		             "ldsuuuid": string, 
-		             "ldsuport": int
+		             "LABL": string, 
+		             "CLSS": string, 
+		             "LABL": string, 
+		             "UID":  string, 
+		             "PORT": string
 		           },
 		           ...
 		         ], 
 		         "actuators": [
 		           {
-		             "name": string,
-		             "class": string, 
-		             "ldsuname": string, 
-		             "ldsuuuid": string, 
-		             "ldsuport": int
+		             "LABL": string,
+		             "CLSS": string, 
+		             "LABL": string, 
+		             "UID":  string, 
+		             "PORT": string
 		           },
 		           ...
 		         ]
