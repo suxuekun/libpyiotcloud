@@ -24,9 +24,9 @@
 
 [HTTPS REST API Documentation](https://github.com/richmondu/libpyiotcloud/blob/dev/_developer_guide/README_rest_api.md) 
 
-[HTTPS REST API Documentation - Payment](https://github.com/richmondu/libpyiotcloud/blob/dev/_developer_guide/README_rest_api_payment.md) 
+[HTTPS REST API Documentation - Payment by Su](https://github.com/richmondu/libpyiotcloud/blob/dev/_developer_guide/README_rest_api_payment.md) 
 
-[HTTPS REST API Documentation - Dashboard](https://github.com/richmondu/libpyiotcloud/blob/dev/_developer_guide/README_rest_api_dashboard.md) 
+[HTTPS REST API Documentation - Dashboard by Thang](https://github.com/richmondu/libpyiotcloud/blob/dev/_developer_guide/README_rest_api_dashboard.md) 
 
 
 
