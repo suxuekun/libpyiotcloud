@@ -300,7 +300,7 @@ DETAILED:
 		-  Publish:
 		   topic: server/DEVICEID/set_descriptor
 		   payload: { 
-		     'descriptor': {
+		     'value': {
 		          // RO
 		          "UUID": string, // UUID
 		          "SNO" : string, // Serial Number
@@ -352,10 +352,10 @@ DETAILED:
 		
 		C. SET LDSU DESCRIPTORS
 		-  Publish:
-		   topic: server/DEVICEID/reg_ldsu_descs
-		   topic: server/DEVICEID/reg_ldsu_descs/PORTNUM // if /PORTNUM is present, then all PORT in payload should be equal to PORTNUM
+		   topic: server/DEVICEID/set_ldsu_descs
+		   topic: server/DEVICEID/set_ldsu_descs/PORTNUM // if /PORTNUM is present, then all PORT in payload should be equal to PORTNUM
 		   payload: { 
-		     'ldsu_descs': {
+		     'value': {
 		       "LDS": [
 		       {
 		         "IID":  "12345",             // LDSU Instance ID. IID is unique within the GW
@@ -399,11 +399,11 @@ DETAILED:
 		
 		D. GET LDSU DESCRIPTORS
 		-  Receive:
-		   topic: DEVICEID/get_ldsu_descriptors
+		   topic: DEVICEID/get_ldsu_descs
 		   payload: {'port': int}
 		   // port can be 1,2,3. If not present, then query is for all ports
 		-  Publish:
-		   topic: server/DEVICEID/get_ldsu_descriptors
+		   topic: server/DEVICEID/get_ldsu_descs
 		   payload: { 
 		     'value': {
 		       "LDS": [
@@ -447,9 +447,9 @@ DETAILED:
 		E. IDENTIFY LDSU
 		-  Receive:
 		   topic: DEVICEID/ide_ldsu
-		   payload: {'uuid': string}
+		   payload: {'UID': string}
 		-  Publish:
-		   topic: server/DEVICEID/identify_ldsu
+		   topic: server/DEVICEID/ide_ldsu
 		   payload: {}
 
 

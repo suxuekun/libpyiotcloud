@@ -12,6 +12,7 @@ from flask_json import FlaskJSON, JsonError, json_response, as_json
 from certificate_generator import certificate_generator
 from messaging_client import messaging_client
 from rest_api_config import config
+from device_client import device_client
 from database import database_client, database_categorylabel, database_crudindex
 from flask_cors import CORS
 from flask_api import status
@@ -62,6 +63,7 @@ g_messaging_client          = None
 g_database_client           = None
 g_storage_client            = None
 g_redis_client              = None
+g_device_client             = None
 g_queue_dict  = {} # no longer used; replaced by redis
 g_event_dict  = {} # still used to trigger event from callback thread to rest api thread
 app = flask.Flask(__name__)
@@ -2148,7 +2150,7 @@ def get_lds_bus(devicename, portnumber):
         response = json.dumps({'status': 'NG', 'message': 'Token expired'})
         print('\r\nERROR Get LDSBUS: Token expired\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
-    #print('get_lds_bus {}'.format(username))
+    print('get_lds_bus {}'.format(username))
 
     # check if a parameter is empty
     if len(username) == 0 or len(token) == 0:
@@ -2183,62 +2185,16 @@ def get_lds_bus(devicename, portnumber):
         entityname = username
 
 
-    ldsbus = []
-    #[
-    #{
-    #    "port": int(portnumber),
-    #    "ldsus": [
-    #        {
-    #            'name'             : 'LDSU01',
-    #            'uuid'             : 'LDSUUUID',
-    #            'serialnumber'     : 'asdasdasd',
-    #            'manufacturingdate': 'erwrwer',
-    #            'productversion'   : '0.0.1',
-    #            'productname'      : 'ldsuname 01'
-    #        },
-    #        {
-    #            'name'             : 'LDSU02',
-    #            'uuid'             : 'LDSUUUID02',
-    #            'serialnumber'     : 'asdasdasd',
-    #            'manufacturingdate': 'erwrwer',
-    #            'productversion'   : '0.0.2',
-    #            'productname'      : 'ldsuname 02'
-    #        }
-    #    ], 
-    #    "sensors": [
-    #        {
-    #            "name"    : "Sensor01", 
-    #            "class"   : "temperature", 
-    #            "ldsuname": "LDSU01", 
-    #            "ldsuuuid": "LDSUUUID01", 
-    #            "ldsuport": int(portnumber)
-    #        },
-    #        {
-    #            "name"    : "Sensor02", 
-    #            "class"   : "potentiometer", 
-    #            "ldsuname": "LDSU02", 
-    #            "ldsuuuid": "LDSUUUID02", 
-    #            "ldsuport": int(portnumber)
-    #        }
-    #    ], 
-    #    "actuators": [
-    #        {
-    #            "name"    : "Actuator01", 
-    #            "class"   : "display", 
-    #            "ldsuname": "LDSU01", 
-    #            "ldsuuuid": "LDSUUUID01", 
-    #            "ldsuport": int(portnumber)
-    #        },
-    #        {
-    #            "name"    : "Actuator02", 
-    #            "class"   : "led", 
-    #            "ldsuname": "LDSU02", 
-    #            "ldsuuuid": "LDSUUUID02", 
-    #            "ldsuport": int(portnumber)
-    #        }
-    #    ]
-    #}
-    #]
+    # get ldsus and sensors in database
+    ldsus = g_database_client.get_ldsus_by_port(entityname, devicename, portnumber)
+    sensors = g_database_client.get_sensors_by_port(entityname, devicename, portnumber)
+    ldsbus = [
+        {
+            "ldsus": ldsus,
+            "sensors": sensors,
+            "actuators": [],
+        }
+    ]
 
 
     msg = {'status': 'OK', 'message': 'LDSBUS queried successfully.'}
@@ -2280,7 +2236,7 @@ def scan_lds_bus(devicename, portnumber):
         response = json.dumps({'status': 'NG', 'message': 'Token expired'})
         print('\r\nERROR Get LDSBUS: Token expired\r\n')
         return response, status.HTTP_401_UNAUTHORIZED
-    #print('scan_lds_bus {}'.format(username))
+    print('scan_lds_bus {}'.format(username))
 
     # check if a parameter is empty
     if len(username) == 0 or len(token) == 0:
@@ -2321,13 +2277,56 @@ def scan_lds_bus(devicename, portnumber):
     data['devicename'] = devicename
     data['username'] = username
     data['port'] = int(portnumber)
-    api = 'get_ldsu_descriptors'
+    api = 'get_ldsu_descs'
     response, status_return = g_messaging_requests.process(api, data)
     if status_return != 200:
-        ldsbus = None
+        return response, status_return
+
+    response = json.loads(response)
+    if True:
+        # process response
+        for descriptor in response["value"]:
+            # add or update ldsu
+            ldsu = g_database_client.set_ldsu(entityname, devicename, descriptor)
+            # add or update sensors
+            obj = ldsu["descriptor"]["OBJ"]
+            num = g_device_client.get_obj_numdevices(obj)
+            for x in range(num):
+                descriptor = g_device_client.get_objidx(obj, x)
+                if descriptor:
+                    source = ldsu["UID"]
+                    number = g_device_client.get_objidx_said(descriptor)
+                    sensorname = ldsu["LABL"] + " " + descriptor["SAID"]
+                    sensor = {
+                        'port'     : ldsu["PORT"],
+                        'name'     : ldsu["LABL"],
+                        'class'    : g_device_client.get_objidx_class(descriptor),
+                        'format'   : g_device_client.get_objidx_format(descriptor),
+                        'type'     : g_device_client.get_objidx_type(descriptor),
+                        'unit'     : g_device_client.get_objidx_unit(descriptor),
+                        'accuracy' : g_device_client.get_objidx_accuracy(descriptor),
+                        'minmax'   : g_device_client.get_objidx_minmax(descriptor),
+                        'obj'      : obj,
+                    }
+                    g_database_client.add_sensor(entityname, devicename, source, number, sensorname, sensor)
+
+        # get ldsus and sensors in database
+        ldsus = g_database_client.get_ldsus_by_port(entityname, devicename, portnumber)
+        sensors = g_database_client.get_sensors_by_port(entityname, devicename, portnumber)
+        ldsbus = [
+            {
+                "ldsus": ldsus,
+                "sensors": sensors,
+                "actuators": [],
+            }
+        ]
     else:
-        response = json.loads(response)
         ldsbus = response["value"]
+        ldsus = ldsbus[0]["ldsus"]
+        for ldsu in ldsus:
+            ldsu["LABL"] = ldsu["NAME"]
+            print(ldsu)
+        print(ldsbus)
 
 
     msg = {'status': 'OK', 'message': 'LDSBUS queried successfully.'}
@@ -2403,6 +2402,15 @@ def change_ldsu_name(devicename, ldsuuuid):
     else:
         # no active organization, just a normal user
         entityname = username
+
+
+    data = flask.request.get_json()
+    if data is None or data.get("name") is None:
+        response = json.dumps({'status': 'NG', 'message': 'Parameters not included'})
+        print('\r\nERROR Change LDSU name: Parameters not included [{},{}]\r\n'.format(entityname, devicename))
+        return response, status.HTTP_400_BAD_REQUEST
+
+    g_database_client.change_ldsu_name(entityname, devicename, ldsuuuid, data["name"])
 
 
     msg = {'status': 'OK', 'message': 'LDSU name changed successfully.'}
@@ -2482,7 +2490,7 @@ def identify_ldsu(devicename, ldsuuuid):
     data['token'] = token
     data['devicename'] = devicename
     data['username'] = username
-    data['uuid'] = ldsuuuid
+    data['UID'] = ldsuuuid
     api = 'ide_ldsu'
     response, status_return = g_messaging_requests.process(api, data)
     if status_return != 200:
@@ -5837,6 +5845,7 @@ def initialize():
     global g_database_client
     global g_storage_client
     global g_redis_client
+    global g_device_client
 
     global g_messaging_requests
     global g_identity_authentication
@@ -5884,6 +5893,10 @@ def initialize():
     # Initialize Redis client
     g_redis_client = redis_client()
     g_redis_client.initialize()
+
+    # Initialize device client
+    g_device_client = device_client()
+    g_device_client.initialize()
 
     # Classes
     g_messaging_requests      = messaging_requests(g_database_client, g_messaging_client, g_redis_client, g_event_dict, g_queue_dict)

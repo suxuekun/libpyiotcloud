@@ -19,6 +19,7 @@ class config:
     CONFIG_MONGODB_TB_SENSORREADINGS = "sensorreadings"
     CONFIG_MONGODB_TB_CONFIGURATIONS = "configurations"
     CONFIG_MONGODB_TB_I2CSENSORS     = "i2csensors"
+    CONFIG_MONGODB_TB_LDSUS          = "ldsus"
 
     # RabbitMQ settings
     CONFIG_MQTT_DEFAULT_USER      = os.environ["CONFIG_USE_MQTT_DEFAULT_USER"]
