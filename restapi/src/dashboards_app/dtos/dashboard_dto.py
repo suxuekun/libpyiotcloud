@@ -3,6 +3,7 @@
 class OptionDto:
     color: str
 
-class CreatingDashboardDto:
+
+class DashboardDto:
     name: str
     color: str

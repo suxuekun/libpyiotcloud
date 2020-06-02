@@ -1,13 +1,8 @@
-from typing import TypeVar, Generic
 from pymongo import MongoClient
 from datetime import datetime
-from .entity import Entity
 from .base_repository import BaseRepository
 
-TypeEntity = TypeVar('TypeEntity', bound=Entity)
-
-
-class MongoBaseRepository(BaseRepository[TypeEntity]):
+class MongoBaseRepository(BaseRepository):
 
     def __init__(self, host: str = "", port: int = -1, database: str = "",  mongoclient: MongoClient = None, collection: str = ""):
 
@@ -20,7 +15,7 @@ class MongoBaseRepository(BaseRepository[TypeEntity]):
     def __init__(self, mongoclient: MongoClient):
         self.mongo_client = mongoclient
 
-    def create(self, input: TypeEntity) -> bool:
+    def create(self, input) -> bool:
         try:
             decodedObject = vars(input)
             self.collection.insert_one(decodedObject)
@@ -29,27 +24,26 @@ class MongoBaseRepository(BaseRepository[TypeEntity]):
             print(e)
             return False
 
-    def update(self, id: str, input: TypeEntity) -> bool:
+    def update(self, id: str, input) -> bool:
         try:
             query = {
                 "_id": id
             }
             decodedObject = vars(input)
-            decodedObject["updatedAt"] = str(datetime().utcnow().timestamp())
             self.collection.update_one(query, decodedObject)
             return True
         except Exception as e:
             print(e)
             return False
 
-    def getById(self, id: str) -> TypeEntity:
+    def getById(self, id: str):
         query = {
             "_id": id
         }
         result = self.collection.findOne(query)
         return result
 
-    def gets(self, query, projection) -> List[TypeEntity]:
+    def gets(self, query, projection) -> []:
         results = self.collection.find(query, projection)
         return results
 

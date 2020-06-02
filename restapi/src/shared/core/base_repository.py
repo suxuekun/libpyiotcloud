@@ -1,22 +1,20 @@
 
 from typing import TypeVar, Generic
 import asyncio
-from restapi.src.shared.core.entity import Entity
 
-TypeEntity = TypeVar('TypeEntity')
 
-class BaseRepository(Generic[TypeEntity]):
+class BaseRepository():
 
-    def create(self, input: Input) -> bool:
+    def create(self, input) -> bool:
         pass
 
-    def update(self, id: str, input: Input) -> bool:
+    def update(self, id: str, input) -> bool:
         pass
 
-    def getById(self, id: str) -> TypeEntity:
+    def getById(self, id: str):
         pass
 
-    def gets(self, query, projection) -> List[TypeEntity]:
+    def gets(self, query, projection) -> []:
         pass
     
     def delete(self, id: str) -> bool:

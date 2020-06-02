@@ -1,0 +1,252 @@
+version: '3.0'
+services:
+  rabbitmq:
+    build: ./rabbitmq
+    restart: always
+    networks:
+      - mydockernet
+    ports:
+      - "8883:8883"
+      - "15672:15672"
+    expose:
+      - "8883"
+      - "15672"
+    environment:
+      - CONFIG_USE_ECC
+    volumes:
+      - "rabbitmq-data:/var/lib/rabbitmq"
+  mongodb:
+    build: ./mongodb
+    restart: always
+    networks:
+      - mydockernet
+    ports:
+      - "27017:27017"
+    volumes:
+      - "mongodb-data:/data/db"
+  redis:
+    build: ./redis
+    restart: always
+    networks:
+      - mydockernet
+    ports:
+      - "6379:6379"
+    volumes:
+      - "redis-data:/data/db"
+  # restapi:
+  #   build:
+  #     dockerfile: Dockerfile.dev
+  #     context: ./restapi
+  #   restart: always
+  #   networks:
+  #     - mydockernet
+  #   # volumes: 
+  #   #   - ./restapi/src:/usr/src/app/libpyiotcloud
+  #   ports:
+  #     - "8000:8000"
+  #   depends_on:
+  #     - rabbitmq
+  #     - mongodb
+  #     - redis
+  #   environment:
+  #     - AWS_ACCESS_KEY_ID
+  #     - AWS_SECRET_ACCESS_KEY
+  #     - AWS_COGNITO_CLIENT_ID
+  #     - AWS_COGNITO_USERPOOL_ID
+  #     - AWS_COGNITO_USERPOOL_REGION
+  #     - CONFIG_USE_ECC
+  #     - PAYPAL_MODE
+  #     - PAYPAL_CLIENT_ID
+  #     - PAYPAL_CLIENT_SECRET
+  #     - CONFIG_USE_MQTT_DEFAULT_USER
+  #     - CONFIG_USE_MQTT_DEFAULT_PASS
+  #     - CONFIG_USE_JWT_SECRET_KEY
+  #     - CONFIG_USE_JWT_SECRET_KEY_DEVICE
+  #     - AWS_S3_REGION
+  #     - AWS_S3_BUCKET
+  #     - AWS_S3_FILE_I2C_DEVICES
+  #     - AWS_S3_FILE_SENSOR_DEVICES
+  #     - AWS_S3_FILE_FIRMWARE_UPDATES
+  #     - AWS_COGNITO_OAUTH_DOMAIN
+  #     - CONFIG_USE_MONGODB_USER
+  #     - CONFIG_USE_MONGODB_PASS
+  #     - CONFIG_USE_MONGODB_ATLAS
+  # webapp:
+  #   build: 
+  #     context: ./webapp
+  #     args:
+  #       config_use_apiurl: ${CONFIG_USE_APIURL}
+  #       config_use_jwtkey: ${CONFIG_USE_JWT_SECRET_KEY}
+  #       config_use_googleapikey: ${GOOGLE_API_KEY}
+  #       config_use_awsoauthdomain: ${AWS_COGNITO_OAUTH_DOMAIN}
+  #       config_use_awsclientid: ${AWS_COGNITO_CLIENT_ID}
+  #   restart: always
+  #   networks:
+  #     - mydockernet
+  #   ports:
+  #     - "8100:8100"
+  #   depends_on:
+  #     - restapi
+  #   environment:
+  #     - CONFIG_USE_APIURL
+  #     - CONFIG_USE_JWT_SECRET_KEY
+  #     - GOOGLE_API_KEY
+  #     - AWS_COGNITO_OAUTH_DOMAIN
+  #     - AWS_COGNITO_CLIENT_ID
+  # nginx:
+  #   build: 
+  #     context: ./nginx
+  #     args:
+  #       config_use_certs: ${CONFIG_USE_CERTS}
+  #   restart: always
+  #   networks:
+  #     - mydockernet
+  #   ports:
+  #     - "443:443"
+  #   expose:
+  #     - "443"
+  #   depends_on:
+  #     - restapi
+  #     # - webapp
+  #   environment:
+  #     - CONFIG_USE_CERTS
+  notification:
+    build: ./notification
+    restart: always
+    networks:
+      - mydockernet
+    depends_on:
+      - rabbitmq
+      - mongodb
+    environment:
+      - AWS_ACCESS_KEY_ID
+      - AWS_SECRET_ACCESS_KEY
+      - AWS_PINPOINT_ID
+      - AWS_PINPOINT_REGION
+      - AWS_PINPOINT_EMAIL
+      - CONFIG_USE_ECC
+      - TWILIO_ACCOUNT_SID
+      - TWILIO_AUTH_TOKEN
+      - TWILIO_NUMBER_FROM
+      - NEXMO_KEY
+      - NEXMO_SECRET
+      - CONFIG_USE_EMAIL_MODEL
+      - CONFIG_USE_SMS_MODEL
+      - CONFIG_USE_MQTT_DEFAULT_USER
+      - CONFIG_USE_MQTT_DEFAULT_PASS
+      - AWS_S3_REGION
+      - AWS_S3_BUCKET
+      - CONFIG_USE_MONGODB_USER
+      - CONFIG_USE_MONGODB_PASS
+  invoice:
+    build: ./invoice
+    restart: always
+    networks:
+      - mydockernet
+    depends_on:
+      - rabbitmq
+      - mongodb
+    environment:
+      - AWS_ACCESS_KEY_ID
+      - AWS_SECRET_ACCESS_KEY
+      - AWS_PINPOINT_ID
+      - AWS_PINPOINT_REGION
+      - AWS_PINPOINT_EMAIL
+      - CONFIG_USE_ECC
+      - CONFIG_USE_EMAIL_MODEL
+      - CONFIG_USE_MQTT_DEFAULT_USER
+      - CONFIG_USE_MQTT_DEFAULT_PASS
+      - CONFIG_USE_MONGODB_USER
+      - CONFIG_USE_MONGODB_PASS
+      - AWS_COGNITO_CLIENT_ID
+      - AWS_COGNITO_USERPOOL_ID
+      - AWS_COGNITO_USERPOOL_REGION
+      - CONFIG_USE_APIURL
+  history:
+    build: ./history
+    restart: always
+    networks:
+      - mydockernet
+    depends_on:
+      - rabbitmq
+      - mongodb
+    environment:
+      - CONFIG_USE_ECC
+      - CONFIG_USE_MQTT_DEFAULT_USER
+      - CONFIG_USE_MQTT_DEFAULT_PASS
+      - CONFIG_USE_MONGODB_USER
+      - CONFIG_USE_MONGODB_PASS
+  sensor:
+    build: ./sensor
+    restart: always
+    networks:
+      - mydockernet
+    depends_on:
+      - rabbitmq
+      - mongodb
+    environment:
+      - CONFIG_USE_ECC
+      - CONFIG_USE_MQTT_DEFAULT_USER
+      - CONFIG_USE_MQTT_DEFAULT_PASS
+      - CONFIG_USE_MONGODB_USER
+      - CONFIG_USE_MONGODB_PASS
+      - CONFIG_USE_MONGODB_ATLAS
+  configuration:
+    build: ./configuration
+    restart: always
+    networks:
+      - mydockernet
+    depends_on:
+      - rabbitmq
+      - mongodb
+    environment:
+      - CONFIG_USE_ECC
+      - CONFIG_USE_MQTT_DEFAULT_USER
+      - CONFIG_USE_MQTT_DEFAULT_PASS
+      - CONFIG_USE_MONGODB_USER
+      - CONFIG_USE_MONGODB_PASS
+  registration:
+    build: ./registration
+    restart: always
+    networks:
+      - mydockernet
+    depends_on:
+      - rabbitmq
+      - mongodb
+    environment:
+      - CONFIG_USE_ECC
+      - CONFIG_USE_MQTT_DEFAULT_USER
+      - CONFIG_USE_MQTT_DEFAULT_PASS
+      - CONFIG_USE_MONGODB_USER
+      - CONFIG_USE_MONGODB_PASS
+  ota:
+    build: ./ota
+    restart: always
+    networks:
+      - mydockernet
+    depends_on:
+      - rabbitmq
+      - mongodb
+    environment:
+      - CONFIG_USE_ECC
+      - CONFIG_USE_MQTT_DEFAULT_USER
+      - CONFIG_USE_MQTT_DEFAULT_PASS
+      - AWS_ACCESS_KEY_ID
+      - AWS_SECRET_ACCESS_KEY
+      - AWS_S3_REGION
+      - AWS_S3_BUCKET
+      - AWS_S3_FILE_I2C_DEVICES
+      - AWS_S3_FILE_SENSOR_DEVICES
+      - AWS_S3_FILE_FIRMWARE_UPDATES
+      - CONFIG_USE_MONGODB_USER
+      - CONFIG_USE_MONGODB_PASS
+networks:
+  mydockernet:
+    driver: bridge
+volumes:
+  rabbitmq-data:
+    driver: local
+  mongodb-data:
+    driver: local
+  redis-data:
+    driver: local
