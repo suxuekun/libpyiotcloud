@@ -9,6 +9,7 @@ from shared.core.utils.JsonSchemaUtils import to_jsonschema, jsonschema_for_mode
 
 class TestModel(BaseModel):
     name = StringType()
+    innerList = ListType(ListType(IntType))
 
 class PlanModel(BaseModel,TimeStampMixin):
     name = StringType()
@@ -25,6 +26,9 @@ class PlanModel(BaseModel,TimeStampMixin):
     active = BooleanType(default=True)
     testList = ListType(ListType(ModelType(TestModel)))
     testList2 = ListType(ListType(IntType))
+    testModel3 = ModelType(TestModel)
+    testListModel = ListType(ModelType(TestModel))
+
 
 
 if __name__ == "__main__":
