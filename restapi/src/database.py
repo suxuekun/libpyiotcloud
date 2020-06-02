@@ -498,6 +498,23 @@ class database_client:
 
 
     ##########################################################
+    # ldsu
+    ##########################################################
+
+    def set_ldsu_by_deviceid(self, username, deviceid, descriptor):
+        return self._devices.set_ldsu_by_deviceid(username, deviceid, descriptor)
+
+    def set_ldsu(self, username, devicename, descriptor):
+        return self._devices.set_ldsu_by_deviceid(username, self._devices.get_deviceid(username, devicename), descriptor)
+
+    def get_ldsus_by_port(self, username, devicename, port):
+        return self._devices.get_ldsus_by_port(self._devices.get_deviceid(username, devicename), port)
+
+    def change_ldsu_name(self, username, devicename, uid, name):
+        self._devices.change_ldsu_name_by_deviceid(self._devices.get_deviceid(username, devicename), uid, name)
+
+
+    ##########################################################
     # sensors
     ##########################################################
 
@@ -539,6 +556,9 @@ class database_client:
 
     def get_sensors_with_enabled(self, username, devicename, source, number):
         return self._devices.get_sensors_with_enabled(self._devices.get_deviceid(username, devicename), source, number)
+
+    def get_sensors_by_port(self, username, devicename, port):
+        return self._devices.get_sensors_by_port(self._devices.get_deviceid(username, devicename), port)
 
     def add_sensor(self, username, devicename, source, number, sensorname, data):
         return self._devices.add_sensor(username, self._devices.get_deviceid(username, devicename), source, number, sensorname, data)
@@ -2482,12 +2502,23 @@ class database_client_mongodb:
                 sensor_list.append(i2csensor)
         return sensor_list
 
+    def get_sensors_by_port(self, deviceid, port):
+        sensor_list = []
+        i2csensors = self.get_sensors_document();
+        if i2csensors:
+            for i2csensor in i2csensors.find({'deviceid': deviceid, 'port': port}):
+                #i2csensor['enabled'] = 0
+                i2csensor.pop('_id')
+                i2csensor.pop('deviceid')
+                i2csensor.pop('username')
+                sensor_list.append(i2csensor)
+        return sensor_list
+
     def add_sensor(self, username, deviceid, source, number, sensorname, data):
         i2csensors = self.get_sensors_document();
         timestamp = str(int(time.time()))
         device = {}
         device['username']     = username
-        #device['devicename']   = devicename
         device['deviceid']     = deviceid
         device['source']       = source
         device['number']       = number
@@ -2497,8 +2528,12 @@ class database_client_mongodb:
         device_all = {}
         device_all.update(device)
         device_all.update(data)
-        #print(device_all)
-        i2csensors.insert_one(device_all)
+        found = i2csensors.find_one({'deviceid': deviceid, 'source': source, 'number': number})
+        if found is None:
+            i2csensors.insert_one(device_all)
+        else:
+            device_all["sensorname"] = found["sensorname"]
+            i2csensors.replace_one({'deviceid': deviceid, 'source': source, 'number': number}, device_all)
         return True
 
     def delete_device_sensors(self, deviceid):
@@ -4418,6 +4453,51 @@ class database_client_mongodb:
                 new_device['descriptor'] = descriptor
                 devices.replace_one(device, new_device)
                 break
+
+
+    ##########################################################
+    # ldsu
+    ##########################################################
+
+    def get_ldsu_document(self):
+        return self.client[config.CONFIG_MONGODB_TB_LDSUS]
+
+    def set_ldsu_by_deviceid(self, username, deviceid, descriptor):
+        ldsu_doc = self.get_ldsu_document();
+        item = {}
+        item['username'] = username
+        item['deviceid'] = deviceid
+        item['UID'] = descriptor["UID"]
+        item['PORT'] = descriptor["PORT"]
+        item['LABL'] = descriptor["NAME"]
+        descriptor.pop('UID')
+        descriptor.pop('PORT')
+        item['descriptor'] = descriptor
+        found = ldsu_doc.find_one({'deviceid': deviceid, 'UID': item['UID']})
+        if found is None:
+            ldsu_doc.insert_one(item)
+        else:
+            item['LABL'] = found['LABL']
+            ldsu_doc.replace_one({'deviceid': deviceid, 'UID': item['UID']}, item)
+        return item
+
+    def get_ldsus_by_port(self, deviceid, port):
+        ldsu_list = []
+        ldsu_doc = self.get_ldsu_document()
+        if ldsu_doc:
+            for ldsu in ldsu_doc.find({'deviceid': deviceid, 'PORT': port}):
+                ldsu.pop('_id')
+                ldsu.pop('username')
+                ldsu.pop('deviceid')
+                ldsu_list.append(ldsu)
+        return ldsu_list
+
+    def change_ldsu_name_by_deviceid(self, deviceid, uid, name):
+        ldsu_doc = self.get_ldsu_document()
+        found = ldsu_doc.find_one({'deviceid': deviceid, 'UID': uid})
+        if found:
+            found['LABL'] = name
+            ldsu_doc.replace_one({'deviceid': deviceid, 'UID': uid}, found)
 
 
     ##########################################################

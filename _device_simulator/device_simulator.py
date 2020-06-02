@@ -201,60 +201,65 @@ g_gateway_descriptor = {
     'OBJ': '',  # Sensor Cache Status
 }
 
-# FIXED LDSU DESCRIPTORS
-# LDS PORT 1
-#   BRT 4-in-1 Sensor  - BRT32768XXXXX781
-#   Air Quality Sensor - BRT32770XXXXX121
-# LDS PORT 2
-#   BRT 4-in-1 Sensor  - BRT32768XXXXX692
-# LDS PORT 3
-#   Air Quality Sensor - BRT32770XXXXX453
+# LDSU DESCRIPTORS
+# Sample hardcoded LDSUs
 g_ldsu_descriptors = [
-{
-    "IID": "12345",              # LDSU Instance ID.      IID is unique within the GW
-    "PORT": "1",                 # Port number
-    "DID": "1",                  # LDS device ID from eeprom.  DID is unique within the Port
-    "PRV": "1.0",                # Product version
-    "MFG": "01062020",           # Manufacturing date
-    "SNO": "BRT12345",           # Serial Number
-    "UID": "BRT32768XXXXX781",   # UUID
-    "NAME": "BRT 4-in-1 Sensor", # Name of the Sensor
-    "OBJ": "32768"               # LDSU Object type
-},
-{
-    "IID": "11246",
-    "PORT": "1",
-    "DID": "1",
-    "PRV": "1.0",
-    "MFG": "02062020",
-    "SNO": "BRT12345",
-    "UID": "BRT32770XXXXX121",
-    "NAME": "Air Quality Sensor",
-    "OBJ": "32770"
-},
-{
-    "IID": "12346",
-    "PORT": "2",
-    "DID": "1",
-    "PRV": "1.0",
-    "MFG": "01062020",
-    "SNO": "BRT12345",
-    "UID": "BRT32768XXXXX692",
-    "NAME": "BRT 4-in-1 Sensor",
-    "OBJ": "32768"
-},
-{
-    "IID": "11247",
-    "PORT": "3",
-    "DID": "1",
-    "PRV": "1.0",
-    "MFG": "02062020",
-    "SNO": "BRT12345",
-    "UID": "BRT32770XXXXX453",
-    "NAME": "Air Quality Sensor",
-    "OBJ": "32770"
-}
+    # Port 1
+    # BRT 4-in-1 Sensor  - BRT32768XXXXX781
+    {
+        "IID": "12345",              # LDSU Instance ID.      IID is unique within the GW
+        "PORT": "1",                 # Port number
+        "DID": "1",                  # LDS device ID from eeprom.  DID is unique within the Port
+        "PRV": "1.0",                # Product version
+        "MFG": "01062020",           # Manufacturing date
+        "SNO": "BRT12345",           # Serial Number
+        "UID": "BRT32768XXXXX781",   # UUID
+        "NAME": "BRT 4-in-1 Sensor", # Name of the Sensor
+        "OBJ": "32768"               # LDSU Object type
+    },
+    # Port 1
+    # Air Quality Sensor - BRT32770XXXXX121
+    {
+        "IID": "11246",
+        "PORT": "1",
+        "DID": "1",
+        "PRV": "1.0",
+        "MFG": "02062020",
+        "SNO": "BRT12345",
+        "UID": "BRT32770XXXXX121",
+        "NAME": "Air Quality Sensor",
+        "OBJ": "32770"
+    },
+    # Port 2
+    # BRT 4-in-1 Sensor  - BRT32768XXXXX692
+    {
+        "IID": "12346",
+        "PORT": "2",
+        "DID": "1",
+        "PRV": "1.0",
+        "MFG": "01062020",
+        "SNO": "BRT12345",
+        "UID": "BRT32768XXXXX692",
+        "NAME": "BRT 4-in-1 Sensor",
+        "OBJ": "32768"
+    },
+    # Port 3
+    # Air Quality Sensor - BRT32770XXXXX453
+    {
+        "IID": "11247",
+        "PORT": "3",
+        "DID": "1",
+        "PRV": "1.0",
+        "MFG": "02062020",
+        "SNO": "BRT12345",
+        "UID": "BRT32770XXXXX453",
+        "NAME": "Air Quality Sensor",
+        "OBJ": "32770"
+    }
 ]
+
+g_sensor_classids = [256, 512, 769, 770, 1024, 1280]
+g_sensor_classes = ["temperature", "humidity", "eCo2 gas", "TVOC gas", "ambient light", "motion detection"]
 
 start_timeX = 0
 
@@ -346,11 +351,11 @@ API_SET_REGISTRATION             = "set_registration"
 # descriptor
 API_GET_DESCRIPTOR               = "get_descriptor"
 API_SET_DESCRIPTOR               = "set_descriptor"
-API_SET_LDSU_DESCS               = "set_ldsu_descs"
 
 # lds bus
+API_SET_LDSU_DESCS               = "set_ldsu_descs"
+API_GET_LDSU_DESCS               = "get_ldsu_descs"
 API_IDENTIFY_LDSU                = "ide_ldsu"
-API_REQUEST_LDSUS                = "get_ldsu_descriptors"
 
 
 
@@ -499,6 +504,22 @@ def reset_local_configurations():
     g_tprobe_properties = [
         { 'enabled': 0, 'class': 255, 'attributes': {} }
     ]
+
+
+def get_sensors_descriptors(obj, prv):
+    descriptor = None
+    for sensor in g_sensors:
+        if obj == sensor["OBJ"] and float(prv) == float(sensor["VER"]):
+            return sensor["SNS"]
+    return None
+
+def get_sensor_class(cls):
+    print(cls)
+    clsid = int(cls)
+    for x in range(len(g_sensor_classids)):
+        if clsid == g_sensor_classids[x]:
+            return g_sensor_classes[x]
+    return "Unknown"
 
 
 def handle_api(api, subtopic, subpayload):
@@ -701,7 +722,7 @@ def handle_api(api, subtopic, subpayload):
         publish(topic, payload)
 
     ####################################################
-    # DESCRIPTOR
+    # GATEWAY DESCRIPTOR
     ####################################################
     elif api == API_GET_DESCRIPTOR:
         topic = generate_pubtopic(subtopic)
@@ -709,9 +730,11 @@ def handle_api(api, subtopic, subpayload):
             g_gateway_descriptor["UUID"] = CONFIG_DEVICE_ID
             g_gateway_descriptor["SNO"]  = CONFIG_DEVICE_SERIAL
             g_gateway_descriptor["PMAC"] = CONFIG_DEVICE_MACADD
+
         payload = {}
         payload["value"] = g_gateway_descriptor
         publish(topic, payload)
+
 
     ####################################################
     # LDS BUS
@@ -722,72 +745,16 @@ def handle_api(api, subtopic, subpayload):
         payload = {}
         publish(topic, payload)
 
-    elif api == API_REQUEST_LDSUS:
+    elif api == API_GET_LDSU_DESCS:
         topic = generate_pubtopic(subtopic)
         subpayload = json.loads(subpayload)
 
-        # TODO
-        # Temporary code only
-        # Please ignore the current structure
-        # This structure is basically what the frontend receives
-        # But the firmware will send this in different structure and backend needs to convert into this format
-        payload = {'value': [
-        {
-            "port": subpayload["port"],
-            "ldsus": [
-                {
-                    'name'             : 'LDSU01',
-                    'uuid'             : 'LDSUUUID',
-                    'serialnumber'     : 'asdasdasd',
-                    'manufacturingdate': 'erwrwer',
-                    'productversion'   : '0.0.1',
-                    'productname'      : 'ldsuname 01'
-                },
-                {
-                    'name'             : 'LDSU02',
-                    'uuid'             : 'LDSUUUID02',
-                    'serialnumber'     : 'asdasdasd',
-                    'manufacturingdate': 'erwrwer',
-                    'productversion'   : '0.0.2',
-                    'productname'      : 'ldsuname 02'
-                }
-            ], 
-            "sensors": [
-                {
-                    "name"    : "Sensor01", 
-                    "class"   : "temperature", 
-                    "ldsuname": "LDSU01", 
-                    "ldsuuuid": "LDSUUUID01", 
-                    "ldsuport": subpayload["port"]
-                },
-                {
-                    "name"    : "Sensor02", 
-                    "class"   : "potentiometer", 
-                    "ldsuname": "LDSU02", 
-                    "ldsuuuid": "LDSUUUID02", 
-                    "ldsuport": subpayload["port"]
-                }
-            ], 
-            "actuators": [
-                {
-                    "name"    : "Actuator01", 
-                    "class"   : "display", 
-                    "ldsuname": "LDSU01", 
-                    "ldsuuuid": "LDSUUUID01", 
-                    "ldsuport": subpayload["port"]
-                },
-                {
-                    "name"    : "Actuator02", 
-                    "class"   : "led", 
-                    "ldsuname": "LDSU02", 
-                    "ldsuuuid": "LDSUUUID02", 
-                    "ldsuport": subpayload["port"]
-                }
-            ]
-        }
-        ]
-        }
-        publish(topic, payload)
+        if subpayload.get("port"):
+            # if port number exist, then return LDSUs for specified port
+            reg_ldsu_descriptors(port=str(subpayload["port"]), as_response=True)
+        else:
+            # if port number not exist, then return LDSUs for all ports
+            reg_ldsu_descriptors(port=None, as_response=True)
 
 
     ####################################################
@@ -2582,7 +2549,7 @@ def read_registered_sensors_eeprom():
 # Send registered sensors from .sns file
 def set_registration(sensors):
     topic = "{}{}{}{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_DEVICE_ID, CONFIG_SEPARATOR, API_SET_REGISTRATION)
-    payload = {"sensors": sensors}
+    payload = {"value": sensors}
     #payload = json.dumps(payload)
     publish(topic, payload)
 
@@ -2593,15 +2560,30 @@ def reg_gateway_descriptor():
         g_gateway_descriptor["UUID"] = CONFIG_DEVICE_ID
         g_gateway_descriptor["SNO"]  = CONFIG_DEVICE_SERIAL
         g_gateway_descriptor["PMAC"] = CONFIG_DEVICE_MACADD
-    payload = {"descriptor": g_gateway_descriptor}
+    payload = {"value": g_gateway_descriptor}
     publish(topic, payload)
 
 # Register LDSU descriptors
-def reg_ldsu_descriptors():
+def reg_ldsu_descriptors(port=None, as_response=False):
     # TODO: send LDSU descriptors in multiple chunks (ex. 80 LDSUs)
-    topic = "{}{}{}{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_DEVICE_ID, CONFIG_SEPARATOR, API_SET_LDSU_DESCS)
-    payload = {"ldsu_descs": g_ldsu_descriptors}
-    publish(topic, payload)
+    api = API_SET_LDSU_DESCS
+    if as_response:
+        api = API_GET_LDSU_DESCS
+
+    if port is None:
+        # send all LDSUs
+        topic = "{}{}{}{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_DEVICE_ID, CONFIG_SEPARATOR, api)
+        payload = {"value": g_ldsu_descriptors}
+        publish(topic, payload)
+    else:
+        # send all LDSUs for specified port
+        topic = "{}{}{}{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_DEVICE_ID, CONFIG_SEPARATOR, api)
+        ldsu_descriptors = []
+        for ldsu_descriptor in g_ldsu_descriptors:
+            if ldsu_descriptor["PORT"] == port:
+                ldsu_descriptors.append(ldsu_descriptor)
+        payload = {"value": ldsu_descriptors}
+        publish(topic, payload)
 
 
 

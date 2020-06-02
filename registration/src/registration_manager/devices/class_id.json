@@ -1,0 +1,28 @@
+{
+	"classes": [
+		{
+			"AttributeName":    "temperature",
+			"AttributeID":      "0x0100"
+		},
+		{
+			"AttributeName":    "humidity",
+			"AttributeID":      "0x0200"
+		},
+		{
+			"AttributeName":    "Co2 gas",
+			"AttributeID":      "0x0300"
+		},
+		{
+			"AttributeName":    "VOC gas",
+			"AttributeID":      "0x0301"
+		},
+		{
+			"AttributeName":    "ambient light",
+			"AttributeID":      "0x0400"
+		},
+		{
+			"AttributeName":    "motion detection",
+			"AttributeID":      "0x0500"
+		}
+	]
+}

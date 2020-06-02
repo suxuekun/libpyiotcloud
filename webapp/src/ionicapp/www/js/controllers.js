@@ -10627,7 +10627,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
 
     console.log($scope.data);
     $scope.ldsu = null;
-    $scope.newname = "";
+    $scope.newlabel = "";
 
 
     $scope.handle_error = function(error, showerror) {
@@ -10653,32 +10653,48 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
     $scope.changeLDSU = function(s) {
         if ($scope.ldsu === null) {
             $scope.ldsu = s;
-            $scope.newname = s.name;
+            $scope.newlabel = s.LABL;
             console.log("1");
         }
         else {
-            if ($scope.ldsu.name === s.name) {
+            if ($scope.ldsu.LABL === s.LABL) {
                 $scope.ldsu = null;
-                $scope.newname = "";
+                $scope.newlabel = "";
             console.log("2");
             }
             else {
                 $scope.ldsu = s;
-                $scope.newname = ldsu.name;
-            console.log("3 " + $scope.newname + ' ' + $scope.ldsu.name + ' ' + s.name );
+                $scope.newlabel = $scope.ldsu.LABL;
+            console.log("3 " + $scope.newlabel + ' ' + $scope.ldsu.LABL + ' ' + s.LABL );
             }
         }
     };
 
     $scope.changeName = function(name) {
-        console.log('Change name ' + name + ' ' + $scope.ldsu.name);
-        if (name === $scope.ldsu.name) {
+        console.log('Change name ' + name + ' ' + $scope.ldsu.LABL);
+        if (name === $scope.ldsu.LABL) {
             console.log('Same name');
             return;
         }
         
-        $scope.newname = name;
-        $scope.change_name($scope.newname);
+        $ionicPopup.alert({
+            title: 'Change LDSU Name',
+            template: 'Are you sure you want to change the LDSU name to ' + name + '?',
+            buttons: [
+                { 
+                    text: 'No',
+                    type: 'button-negative',
+                },
+                {
+                    text: 'Yes',
+                    type: 'button-positive',
+                    onTap: function(e) {
+                        $scope.newlabel = name;
+                        $scope.change_name($scope.newlabel);
+                    }
+                }
+            ]            
+        });          
     };
 
     $scope.change_name = function(name) {
@@ -10696,16 +10712,16 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         //
         $http({
             method: 'POST',
-            url: server + '/devices/device/' + $scope.data.devicename + '/ldsu/' + $scope.ldsu.uuid + '/name',
+            url: server + '/devices/device/' + $scope.data.devicename + '/ldsu/' + $scope.ldsu.UID + '/name',
             headers: {'Authorization': 'Bearer ' + $scope.data.token.access},
             data: {'name': name}
         })
         .then(function (result) {
             console.log(result.data);
-            $scope.ldsu.name = name;
+            $scope.ldsu.LABL = name;
             for (var item in $scope.data.ldsus) {
-                if (item.uuid == $scope.ldsu.uuid) {
-                    item.name = name;
+                if (item.UID == $scope.ldsu.UID) {
+                    item.LABL = name;
                     break;
                 }
             }
@@ -10735,7 +10751,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         //
         $http({
             method: 'POST',
-            url: server + '/devices/device/' + $scope.data.devicename + '/ldsu/' + $scope.ldsu.uuid + '/identify',
+            url: server + '/devices/device/' + $scope.data.devicename + '/ldsu/' + $scope.ldsu.UID + '/identify',
             headers: {'Authorization': 'Bearer ' + $scope.data.token.access}
         })
         .then(function (result) {
@@ -10803,6 +10819,46 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         }
     };
 
+
+    $scope.processSensor = function(sensor) {
+        console.log("processSensor");
+        console.log(sensor);
+        
+        param = {
+            'username': $scope.data.username,
+            'token':$scope.data.token,
+            'devicename': $scope.data.devicename,
+            'devicestatus': $scope.data.devicestatus,
+            'deviceid': $scope.data.deviceid,
+            'serialnumber': $scope.data.serialnumber,
+            
+            'location': $scope.data.location,
+            'activeSection': $scope.data.activeSection,
+            'sensors': $scope.data.sensors,
+            
+            'sensor' : sensor,
+            'source' : 'LDSU',
+        };
+
+        if (sensor.class === "temperature") {
+            $state.go('temperature', param);
+        }
+        else if (sensor.class === "humidity") {
+            $state.go('humidity', param);
+        }
+        else if (sensor.class === "Co2 gas" || sensor.class === "VOC gas") {
+            $state.go('gas', param);
+        }
+        else if (sensor.class === "ambient light") {
+            $state.go('ambientLight', param);
+        }
+        else if (sensor.class === "motion detection") {
+            $state.go('motionDetection', param);
+        }
+        else {
+            $state.go('unknown', param);
+        }
+    };
 
 
     $scope.$on('$ionicView.enter', function(e) {
@@ -14880,6 +14936,10 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         'deviceid': $stateParams.deviceid,
         'serialnumber': $stateParams.serialnumber,
         
+        'location': $stateParams.location,
+        'activeSection': $stateParams.activeSection,
+        'sensors': $stateParams.sensors,        
+        
         'sensor': $stateParams.sensor,
         'source': $stateParams.source,
         'hardware_devicename': $scope.devices[0].id,
@@ -15226,7 +15286,10 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             $scope.data.token = User.get_token();
             
             if (flag) {
-                if ($scope.data.source === "I2C") {
+                if ($scope.data.source === "LDSU") {
+                    get_xxx_device_properties("ldsu");
+                }
+                else if ($scope.data.source === "I2C") {
                     get_xxx_device_properties("i2c");
                 }
                 else if ($scope.data.source === "ADC") {
@@ -15292,7 +15355,13 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             $state.go('multiclass', device_param);
         }
         else {
-            if ($scope.data.source === "I2C") {
+            if ($scope.data.source === "LDSU") {
+                device_param.location = $scope.data.location;
+                device_param.activeSection = $scope.data.activeSection;
+                device_param.sensors = $scope.data.sensors;
+                $state.go('sensors', device_param);
+            }
+            else if ($scope.data.source === "I2C") {
                $state.go('deviceI2C', device_param);
             }
             else if ($scope.data.source === "ADC") {
@@ -15347,6 +15416,10 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         'devicestatus': $stateParams.devicestatus,
         'deviceid': $stateParams.deviceid,
         'serialnumber': $stateParams.serialnumber,
+
+        'location': $stateParams.location,
+        'activeSection': $stateParams.activeSection,
+        'sensors': $stateParams.sensors,        
         
         'sensor': $stateParams.sensor,
         'source': $stateParams.source,
@@ -15729,7 +15802,10 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             $scope.data.token = User.get_token();
             
             if (flag) {
-                if ($scope.data.source === "I2C") {
+                if ($scope.data.source === "LDSU") {
+                    get_xxx_device_properties("ldsu");
+                }
+                else if ($scope.data.source === "I2C") {
                     get_xxx_device_properties("i2c");
                 }
                 else if ($scope.data.source === "ADC") {
@@ -15795,7 +15871,13 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             $state.go('multiclass', device_param);
         }
         else {
-            if ($scope.data.source === "I2C") {
+            if ($scope.data.source === "LDSU") {
+                device_param.location = $scope.data.location;
+                device_param.activeSection = $scope.data.activeSection;
+                device_param.sensors = $scope.data.sensors;
+                $state.go('sensors', device_param);
+            }
+            else if ($scope.data.source === "I2C") {
                $state.go('deviceI2C', device_param);
             }
             else if ($scope.data.source === "ADC") {

@@ -91,6 +91,7 @@ class config:
     CONFIG_MONGODB_TB_ORGANIZATIONS_POLICIES = "organizationspolicies"
     CONFIG_MONGODB_TB_DEFAULT_POLICIES       = "defaultpolicies"
     CONFIG_MONGODB_TB_LASTLOGIN              = "lastlogin"
+    CONFIG_MONGODB_TB_LDSUS                  = "ldsus"
 
     # Caching settings
     if os.name == 'nt':

@@ -675,7 +675,10 @@ angular.module('app.routes', [])
 		serialnumber: "",
 		sensor: "",
 		source: "",
-		multiclass: ""		
+		multiclass: "",
+		location: "",
+		activeSection: "",
+		sensors: ""		
 },
     templateUrl: 'templates/temperature.html',
     controller: 'temperatureCtrl'
@@ -692,7 +695,10 @@ angular.module('app.routes', [])
 		serialnumber: "",
 		sensor: "",
 		source: "",
-		multiclass: ""		
+		multiclass: "",
+		location: "",
+		activeSection: "",
+		sensors: ""		
 },
     templateUrl: 'templates/humidity.html',
     controller: 'humidityCtrl'
