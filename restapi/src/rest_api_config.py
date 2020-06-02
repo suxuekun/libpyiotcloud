@@ -3,9 +3,11 @@ import os
 
 
 class config:
-
+    debugging = True # config for debugging locally or not , not only windows local but mac local
     # Web server settings
-    if os.name == 'nt':
+    # if os.name == 'nt' or "posix":
+    #     debugging = True
+    if debugging:
         CONFIG_HTTP_USE_TLS     = True
     else:
         CONFIG_HTTP_USE_TLS     = False # Set to False when using GUnicorn (only in Linux)
@@ -38,7 +40,7 @@ class config:
 
     # Message broker settings
     CONFIG_USE_AMQP             = False
-    if os.name == 'nt':
+    if debugging:
         CONFIG_HOST             = "127.0.0.1"
     else:
         CONFIG_HOST             = "rabbitmq"
@@ -52,7 +54,7 @@ class config:
     # Database settings
     CONFIG_MONGODB_USERNAME          = os.environ["CONFIG_USE_MONGODB_USER"]
     CONFIG_MONGODB_PASSWORD          = os.environ["CONFIG_USE_MONGODB_PASS"]
-    if os.name == 'nt':
+    if debugging:
         CONFIG_MONGODB_HOST          = "127.0.0.1"
         # MongoDB Atlas is used for sensor-data database
         # to revert to containerized MongoDB, just set this to 127.0.0.1
@@ -93,7 +95,7 @@ class config:
     CONFIG_MONGODB_TB_LASTLOGIN              = "lastlogin"
 
     # Caching settings
-    if os.name == 'nt':
+    if debugging:
         CONFIG_REDIS_HOST            = "127.0.0.1"
     else:
         CONFIG_REDIS_HOST            = "redis"

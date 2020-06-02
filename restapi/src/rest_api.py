@@ -5906,7 +5906,7 @@ if os.name == 'posix':
 
 if __name__ == '__main__':
 
-    if os.name == 'nt':
+    if config.debugging:
         initialize()
 
     # Initialize HTTP server
