@@ -1,0 +1,2 @@
+blueprint = Blueprint()
+blueprint.add()
