@@ -37,6 +37,7 @@ from rest_api_device_hierarchies import device_hierarchies
 from rest_api_device_histories import device_histories
 from rest_api_other_stuffs import other_stuffs
 import rest_api_utils
+# from .dashboards_app.controllers.dashboards_controller import dashboards_controller
 
 
 
@@ -53,7 +54,6 @@ CONFIG_PREPEND_REPLY_TOPIC  = "server"
 CONFIG_USE_REDIS_FOR_MQTT_RESPONSE  = True
 
 
-
 ###################################################################################
 # global variables
 ###################################################################################
@@ -66,7 +66,7 @@ g_queue_dict  = {} # no longer used; replaced by redis
 g_event_dict  = {} # still used to trigger event from callback thread to rest api thread
 app = flask.Flask(__name__)
 CORS(app)
-
+# app.register_blueprint(dashboards_controller, url_prefix='/dashboards')
 
 
 ###################################################################################
