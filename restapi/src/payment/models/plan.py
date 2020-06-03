@@ -1,10 +1,10 @@
-import collections
+import datetime
 import json
 
 from schematics.types import StringType, DecimalType, IntType, BooleanType, ListType, ModelType
 
 from shared.core.model import BaseModel, TimeStampMixin
-from shared.core.utils.JsonSchemaUtils import to_jsonschema, jsonschema_for_model, create_schema
+from shared.utils.schema_util import create_schema, model_to_json_schema
 
 
 class TestModel(BaseModel):
@@ -38,6 +38,12 @@ if __name__ == "__main__":
     plan = PlanModel()
     plan.testList = [[TestModel(),TestModel()]]
     plan.testList2 = [[1,2]]
+    d = plan.to_primitive()
+    t = d.get('createdAt')
+    print (json.dumps(d, indent=4, sort_keys=True))// data
+    print(plan.createdAt)
+    print(datetime.datetime.fromtimestamp(t))
+    print(datetime.datetime.utcfromtimestamp(t))
     # print (plan.validate())
     # print (plan.createdAt)
     # print (PlanModel._fields)
@@ -50,8 +56,6 @@ if __name__ == "__main__":
 
     # print(PlanModel.testList.model_class)
 
-    a = ListType(IntType)
-    print(a.field)
-    di = create_schema(PlanModel)
-    print(json.dumps(di, indent=4, sort_keys=True))
+    ds = model_to_json_schema(PlanModel)
+    print(json.dumps(ds, indent=4, sort_keys=True)) // schema
 
