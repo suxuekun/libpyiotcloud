@@ -80,3 +80,6 @@ Peer Review of Payment APIs (06/03/2020) by Richmond
     backend create braintree customer if not exist in vault
     backend create braintree transaction 
     backend create braintree subscription
+
+17. GST information displays the currency conversion for SGD to USD.
+    backend needs to dynamically update the latest currency conversion from some website OR from a JSON file that can be updated by marketing department.
