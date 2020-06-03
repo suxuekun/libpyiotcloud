@@ -67,3 +67,16 @@ Peer Review of Payment APIs (06/03/2020) by Richmond
     If we handle the association in our backend, then it means user dont know which subscription to cancel in their Paypal page
     because they can cancel a recurring payment in their paypal page
 
+16. Create a UML sequence diagram to highlight the communication between backend, frontend and Braintree API.
+    This will help the frontend guys and other team members understanding the whole picture.
+    For sample reference, refer to the payment UML sequence with Paypal API.
+    https://github.com/richmondu/libpyiotcloud/blob/dev/_images/paypal_sequence_diagram.png
+    Include the following:
+    frontend gets client token API from backend 
+    frontend uses client token to communicate with Braintree
+    user approves payment in paypal 
+    frontend retrieves NONCE from Braintree
+    frontend checkout API (with NONCE)
+    backend create braintree customer if not exist in vault
+    backend create braintree transaction 
+    backend create braintree subscription
