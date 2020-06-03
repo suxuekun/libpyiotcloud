@@ -37,8 +37,7 @@ from rest_api_device_hierarchies import device_hierarchies
 from rest_api_device_histories import device_histories
 from rest_api_other_stuffs import other_stuffs
 import rest_api_utils
-# from dashboards_app.app import DashboardsApp
-from dashboards_app.routes.dashboards_route import dashboards_blueprint
+from dashboards_app.app import DashboardsApp
 ###################################################################################
 # Some configurations
 ###################################################################################
@@ -65,9 +64,7 @@ g_event_dict  = {} # still used to trigger event from callback thread to rest ap
 app = flask.Flask(__name__)
 CORS(app)
 
-# dashboardsApp = DashboardsApp()
-# dashboardsApp.build(app)
-app.register_blueprint(dashboards_blueprint, url_prefix='/dashboards')
+
 
 
 ###################################################################################
@@ -5898,6 +5895,9 @@ def initialize():
     g_device_histories        = device_histories(g_database_client)
     g_other_stuffs            = other_stuffs(g_database_client, g_storage_client)
     g_utils                   = rest_api_utils.utils()
+
+    dashboardsApp = DashboardsApp()
+    dashboardsApp.build(app)
 
 
 # Initialize globally so that no issue with GUnicorn integration

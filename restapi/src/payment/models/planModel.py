@@ -11,7 +11,7 @@ class TestModel(BaseModel):
     name = StringType()
     innerList = ListType(ListType(IntType))
 
-class PlanModel(BaseModel,TimeStampMixin):
+class PlanModel(BaseModel, TimeStampMixin):
     name = StringType()
     price = DecimalType()
     period = IntType()

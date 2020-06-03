@@ -4,10 +4,11 @@ from flask import Blueprint, request
 
 from dashboards_app.repositories.dashboard_repository import DashboardRepository
 from dashboards_app.services.dashboard_service import DashboardService
-
+from shared.services.cached_mongo_client_service import CachedMongoClientService
 
 #  Init injection
-dashboardRepository = DashboardRepository
+dashboardRepository = DashboardRepository(
+    mongoclient=CachedMongoClientService.get_instacne().get_mongo_client(), collection="dashboards")
 service = DashboardService(dashboardRepository)
 
 
@@ -28,18 +29,8 @@ def getDetail(id: str):
     return 'OK', 200
 
 
-
 @dashboards_blueprint.route("/charts", methods=['GET'])
 def getCharts(id: str):
     print(id)
     return 'OK', 200
-
-
-
-
-
-
-
-
-
 

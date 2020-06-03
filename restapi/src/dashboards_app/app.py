@@ -1,10 +1,10 @@
 
 
-# from dashboards_app.routes import dashboards_route
-# import flask
+from dashboards_app.routes.dashboards_route import dashboards_blueprint
+import flask
 
-# class DashboardsApp:
+class DashboardsApp:
 
-#     def build(self, app):
-#         app.register_blueprint(dashboards_route, url_prefix='/dashboards')
+    def build(self, app):
+        app.register_blueprint(dashboards_blueprint, url_prefix='/dashboards')
 
