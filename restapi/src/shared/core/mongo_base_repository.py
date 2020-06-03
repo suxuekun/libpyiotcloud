@@ -2,9 +2,10 @@ from pymongo import MongoClient
 from datetime import datetime
 from .base_repository import BaseRepository
 
+
 class MongoBaseRepository(BaseRepository):
 
-    def __init__(self, host: str = "", port: int = -1, database: str = "",  mongoclient: MongoClient = None, collection: str = ""):
+    def __init__(self, host: str = None, port: int = -1, database: str = None, mongoclient: MongoClient = None, collection: str = None):
 
         if mongoclient == None:
             self.mongoclient = MongoClient(host, port)

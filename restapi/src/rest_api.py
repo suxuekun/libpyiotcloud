@@ -37,7 +37,6 @@ from rest_api_device_hierarchies import device_hierarchies
 from rest_api_device_histories import device_histories
 from rest_api_other_stuffs import other_stuffs
 import rest_api_utils
-from dashboards_app.app import DashboardsApp
 ###################################################################################
 # Some configurations
 ###################################################################################
@@ -5827,6 +5826,7 @@ def on_amqp_message(ch, method, properties, body):
 ###################################################################################
 # Main entry point
 ###################################################################################
+from dashboards_app.app import DashboardsApp
 
 def initialize():
 

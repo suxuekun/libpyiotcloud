@@ -2,12 +2,11 @@
 from shared.core.base_repository import BaseRepository
 from shared.core.mongo_base_repository import MongoBaseRepository
 
+
 class IDashboardRepository(BaseRepository):
-    def getChartType():
-        pass
+    pass
 
 
-class DashboardRepository(MongoBaseRepository, IDashboardRepository):
-    def __init__(self, mongoclient=None, collection=''):
-        super().__init__( mongoclient=mongoclient, collection=collection)
-    
+class DashboardRepository(MongoBaseRepository):
+    def __init__(self, mongoclient=None):
+        super(DashboardRepository, self).__init__(mongoclient=mongoclient)

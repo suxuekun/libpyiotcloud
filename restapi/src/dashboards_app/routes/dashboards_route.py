@@ -4,11 +4,15 @@ from flask import Blueprint, request
 
 from dashboards_app.repositories.dashboard_repository import DashboardRepository
 from dashboards_app.services.dashboard_service import DashboardService
-from shared.services.cached_mongo_client_service import CachedMongoClientService
+from shared.services.bootstrap_application_service import BootstrapApplicationService
 
 #  Init injection
+
+mongo_client = BootstrapApplicationService.get_instance().get_mongo_client()
+print("dada Mongo client")
+print(mongo_client)
 dashboardRepository = DashboardRepository(
-    mongoclient=CachedMongoClientService.get_instacne().get_mongo_client(), collection="dashboards")
+    mongoclient=mongo_client)
 service = DashboardService(dashboardRepository)
 
 

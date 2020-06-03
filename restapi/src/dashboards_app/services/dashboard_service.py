@@ -4,7 +4,6 @@ from dashboards_app.repositories.dashboard_repository import IDashboardRepositor
 from dashboards_app.dtos.dashboard_dto import DashboardDto
 from dashboards_app.models.dashboard import Dashboard, DashboardModel
 from shared.core.response import Response
-from shared.core.utils import JsonSchemaUtils
 
 class DashboardService:
     def __init__(self, dashboardRepository: IDashboardRepository):
@@ -21,7 +20,6 @@ class DashboardService:
 
         entity = self.dashboardRepository.getById(id)
 
-        model = JsonSchemaUtils.create_model_schema(entity, _t)
         dashboard = Dashboard.toDomain(entity)
 
         dashboard.updateNameAndOption(name=dto.name, color=dto.color)
