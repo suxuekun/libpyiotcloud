@@ -31,6 +31,9 @@ schema_kwargs_to_schematics = {
     'maximum': 'max_value',
 }
 
+def model_to_json_schema(model):
+    return create_schema(model)
+
 def create_schema(something):
     if inspect.isclass(something) and issubclass(something, Model):
         return create_model_schema(something)
@@ -69,62 +72,3 @@ def create_basic_schema(type):
     return {
         "type": SCHEMATIC_TYPE_TO_JSON_TYPE.get(type, 'string')
     }
-
-
-def jsonschema_for_fields(model):
-    properties = {}
-    required = []
-    # Loop over each field and either evict it or convert it
-    for field_name, field_instance in model._fields.items():
-        # Break 3-tuple out
-        print (field_name, field_instance)
-        serialized_name = getattr(field_instance, 'serialized_name', None) or field_name
-        print ("--",isinstance(field_instance, ModelType),isinstance(field_instance, ListType))
-
-        properties[serialized_name] = {
-            "type": SCHEMATIC_TYPE_TO_JSON_TYPE.get(field_instance.__class__, 'string')
-        }
-        if isinstance(field_instance, ModelType):
-            properties[serialized_name][field_instance.model_class.__name__] = jsonschema_for_model(field_instance.model_class)
-
-        elif isinstance(field_instance, ListType):
-            properties[serialized_name] = jsonschema_for_model(field_instance.field.__class__, 'array')
-
-        # Convert field as single model
-        elif isinstance(field_instance, BaseType):
-            properties[serialized_name] = {
-                "type": SCHEMATIC_TYPE_TO_JSON_TYPE.get(field_instance.__class__, 'string')
-            }
-
-        if getattr(field_instance, 'required', False):
-            required.append(serialized_name)
-
-    return properties, required
-
-
-def jsonschema_for_model(model, _type='object'):
-    print (model)
-    properties, required = jsonschema_for_fields(model)
-
-    schema = {
-        'type': _type,
-        'title': model.__name__,
-        'properties': properties,
-    }
-
-    if required:
-        schema['required'] = required
-
-    # if _type == 'array':
-    #     schema = {
-    #         'type': 'array',
-    #         'title': '%s Set' % (model.__name__),
-    #         'items': schema,
-    #     }
-
-    return schema
-
-
-def to_jsonschema(model):
-    """Returns a representation of this schema class as a JSON schema."""
-    return json.dumps(jsonschema_for_model(model))
