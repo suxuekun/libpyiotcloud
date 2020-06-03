@@ -151,3 +151,4 @@ dmypy.json
 .pyre/
 amazon_credentials.py
 restapi/src/.idea
+.project

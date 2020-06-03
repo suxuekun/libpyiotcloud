@@ -51,7 +51,7 @@ DETAIL:
         - Request:
         GET: /payment/plan/
         headers: {'Content-Type': 'application/json'}
-        - Reponse:
+        - Response:
         { 
             'status': 'OK', 
             'message': string, 
@@ -74,7 +74,7 @@ DETAIL:
         - Request:
         GET: /payment/plan/{id}/
         headers: {'Content-Type': 'application/json'}
-        - Reponse:
+        - Response:
         { 
             'status': 'OK', 
             'message': string, 
@@ -95,7 +95,7 @@ DETAIL:
         - Request:
         GET: /payment/subscription/
         headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-        - Reponse:
+        - Response:
         { 
             'status': 'OK', 
             'message': string, 
@@ -103,7 +103,7 @@ DETAIL:
                 {
                     id:"id",
                     device_id:"id",
-                    device_uuid:"uuid",
+                    device_name:"device name",
                     current:{
                         plan:{
                             name:"Free Plan",
@@ -142,14 +142,15 @@ DETAIL:
         - Request:
         GET: /payment/subscription/{id}/
         headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-        - Reponse:
+        - Response:
         { 
             'status': 'OK', 
             'message': string, 
             'subscription':{
                 id:"id",
                 device_id:"id",
-                device_uuid:"uuid",
+                device_uuid:"device name",
+                status: int // 0 normal , 1 canceled , 2 downgraded
                 current:{ // current month subscription
                     plan:{
                         name:"Free Plan",
@@ -167,7 +168,7 @@ DETAIL:
                         storage:20, // in MB
                     }
                 },
-                next:{ // next month subscription , different from current subscription if cancelled or downgraded
+                next:{ // if status != 0  
                     plan:{
                         name:"Free Plan",
                         price:0,
@@ -186,7 +187,7 @@ DETAIL:
         - Request:
         GET: /payment/promocode/
         headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-        - Reponse:
+        - Response:
         { 
             'status': 'OK', 
             'message': string, 
@@ -222,7 +223,7 @@ DETAIL:
         - Request:
         GET: /payment/promocode/{id}/
         headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-        - Reponse:
+        - Response:
         { 
             'status': 'OK', 
             'message': string, 
@@ -244,7 +245,7 @@ DETAIL:
         POST: /payment/verify_promocode/
         headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
         data: { 'code': string }
-        - Reponse:
+        - Response:
         { 
             'status': 'OK', 
             'message': string, 
@@ -273,20 +274,25 @@ DETAIL:
             change: 4 ,
             promocode: 'promocode', // if have
         }
-        - Reponse:
+        - Response:
         {
             'status': 'OK', 
             'message': string,
+            'remaining_days': 15// days left
+            'total_days': 31 // total days of month
             "prorate": "38.67",
-            "discount": "1.33"
+            "discount": "1.33",
+            "gst":0.07 // 7%
         }
 
     6. payment setup and checkout
-        A. get client token   
+        A. get client token  
+        // client token is a one time token that client side get from backend side
+        // client side use this token to get a one time nonce from braintree 
         - Request:
         GET: /payment/client_token/
         headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-        - Reponse:
+        - Response:
         {
             'status': 'OK', 
             'message': string,
@@ -314,7 +320,7 @@ DETAIL:
                 {...} // can have more than one changes , so this api can apply one or more changes on upgrade / downgrade / cancel / recover 
             ]
         }
-        - Reponse:
+        - Response:
         {
             'status': 'OK', 
             'message': string,
@@ -325,7 +331,7 @@ DETAIL:
         - Request:
         GET: /payment/billing_address/
         headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-        - Reponse:
+        - Response:
         {
             'status': 'OK', 
             'message': string,
@@ -364,7 +370,7 @@ DETAIL:
             postal:'222222',
             region:'Singapore',
         }
-        - Reponse:
+        - Response:
         {
             'status': 'OK', 
             'message': string,
@@ -386,7 +392,7 @@ DETAIL:
             billing_address:'somewhere else in singapore',
             postal:'555555',
         }
-        - Reponse:
+        - Response:
         {
             'status': 'OK', 
             'message': string,
@@ -405,7 +411,7 @@ DETAIL:
         - Request:
         GET: /payment/transaction/{filter} // e.g. /payment/transaction/?start=2019-01-01&end=2020-01-01
         headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-        - Reponse:
+        - Response:
         {
             'status': 'OK', 
             'message': string,
@@ -413,13 +419,13 @@ DETAIL:
                 {
                     'id':'id',
                     'remark':'remark',
-                    'date':'2020-01-01',//payment date
+                    'date': string,//payment date timestamp
                     'device_id':'device_id',// if have
                     'payment_type':'',
                     'account':string,//paypal transaction id or other payment account if have
                     'recurring':true,
-                    'start':'2019-01-01', // if recurring , the period start date
-                    'end':'2019-01-31', // if recurring , the period end date
+                    'start':string, // if recurring , the period start date timestamp
+                    'end':string, // if recurring , the period end date timestamp string
                 },
                 {...} // more transactions
             ]
@@ -428,20 +434,20 @@ DETAIL:
         - Request:
         GET: /payment/transaction/{id}/
         headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-        - Reponse:
+        - Response:
         {
             'status': 'OK', 
             'message': string,
             "transaction": {
                 'id':'id',
                 'remark':'remark',
-                'date':'2020-01-01',//payment date
+                'date':string,//payment date timestamp
                 'device_id':'device_id',// if have
                 'payment_type':'',
                 'account':string,//paypal transaction id or other payment account if have
                 'recurring':true,
-                'start':'2019-01-01', // if recurring , the period start date
-                'end':'2019-01-31', // if recurring , the period end date
+                'start':string, // if recurring , the period start date timestamp
+                'end':string, // if recurring , the period end date timestamp string
             }
         }
 
