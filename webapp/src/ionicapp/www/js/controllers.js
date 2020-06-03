@@ -10443,11 +10443,13 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         'activeSection': $stateParams.activeSection,
     };
 
-    $scope.ldsbus = {
-        'ldsus': [],
-        'sensors': [],
-        'actuators': [],
-    };
+    $scope.ldsbus = [
+        {
+            'ldsus': [],
+            'sensors': [],
+            'actuators': [],
+        }
+    ];
     $scope.warning = "No items scanned for LDS BUS " + $scope.data.activeSection.toString();
 
 
@@ -10505,10 +10507,10 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
     // GET LDS BUS
     $scope.getLDSBUS = function() {
         console.log("getLDSBUS");
-        get_lds_bus();
+        $scope.get_lds_bus();
     };
 
-    get_lds_bus = function() {
+    $scope.get_lds_bus = function() {
         //
         // GET LDS BUS
         //
@@ -10528,6 +10530,31 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         .then(function (result) {
             console.log(result.data);
             $scope.ldsbus = result.data.ldsbus;
+            
+            console.log("xxxxxxxxx 0");
+            if  ($scope.ldsbus[0].sensors !== undefined) {
+                console.log("xxxxxxxxx 1");
+                for (let i in $scope.ldsbus[0].sensors) {
+                console.log("xxxxxxxxx 2");
+                    if ($scope.ldsbus[0].sensors[i].enabled === 1) {
+                        $scope.ldsbus[0].sensors[i].enabled_bool = true;
+                    }
+                    else {
+                        $scope.ldsbus[0].sensors[i].enabled_bool = false;
+                    }                    
+                console.log("xxxxxxxxx 3");
+                }
+            }
+            if  ($scope.ldsbus[0].actuators !== undefined) {
+                for (let i in $scope.ldsbus[0].actuators) {
+                    if ($scope.ldsbus[0].actuators[i].enabled === 1) {
+                        $scope.ldsbus[0].actuators[i].enabled_bool = true;
+                    }
+                    else {
+                        $scope.ldsbus[0].actuators[i].enabled_bool = false;
+                    }                    
+                }
+            }
         })
         .catch(function (error) {
             $scope.handle_error(error);
@@ -10538,10 +10565,10 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
     // SCAN LDS BUS
     $scope.scanLDSBUS = function() {
         console.log("scanLDSBUS");
-        scan_lds_bus();
+        $scope.scan_lds_bus();
     };
 
-    scan_lds_bus = function() {
+    $scope.scan_lds_bus = function() {
         //
         // SCAN LDS BUS
         //
@@ -10561,6 +10588,31 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         .then(function (result) {
             console.log(result.data);
             $scope.ldsbus = result.data.ldsbus;
+            
+            console.log("xxxxxxxxx 0");
+            if  ($scope.ldsbus[0].sensors !== undefined) {
+                console.log("xxxxxxxxx 1");
+                for (let i in $scope.ldsbus[0].sensors) {
+                console.log("xxxxxxxxx 2");
+                    if ($scope.ldsbus[0].sensors[i].enabled === 1) {
+                        $scope.ldsbus[0].sensors[i].enabled_bool = true;
+                    }
+                    else {
+                        $scope.ldsbus[0].sensors[i].enabled_bool = false;
+                    }                    
+                console.log("xxxxxxxxx 3");
+                }
+            }
+            if  ($scope.ldsbus[0].actuators !== undefined) {
+                for (let i in $scope.ldsbus[0].actuators) {
+                    if ($scope.ldsbus[0].actuators[i].enabled === 1) {
+                        $scope.ldsbus[0].actuators[i].enabled_bool = true;
+                    }
+                    else {
+                        $scope.ldsbus[0].actuators[i].enabled_bool = false;
+                    }                    
+                }
+            }
         })
         .catch(function (error) {
             $scope.handle_error(error);
@@ -10573,17 +10625,18 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
     };
 
     $scope.$on('$ionicView.enter', function(e) {
-        $scope.ldsbus.ldsus = [];
-        $scope.ldsbus.sensors = [];
-        $scope.ldsbus.actuators = [];
         $scope.warning = "No items scanned for LDS BUS " + $scope.data.activeSection.toString();
         $scope.submitRefresh();
     });
 
     $scope.$on('$ionicView.beforeLeave', function(e) {
-        $scope.ldsbus.ldsus = [];
-        $scope.ldsbus.sensors = [];
-        $scope.ldsbus.actuators = [];
+        $scope.ldsbus = [
+            {
+                'ldsus': [],
+                'sensors': [],
+                'actuators': [],
+            }
+        ];
         $scope.warning = "No items scanned for LDS BUS " + $scope.data.activeSection.toString();
    });
     
@@ -10859,6 +10912,56 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             $state.go('unknown', param);
         }
     };
+
+
+    // ENABLE SENSOR
+    $scope.changeDevice = function(sensor, i) {
+        console.log(i);
+        $scope.enable_xxx_sensor(sensor, i, sensor.source);
+    };    
+    
+    $scope.enable_xxx_sensor = function(sensor, enable, peripheral) {
+        var enable_int = 1;            
+        action = "enabled";
+        if (enable === false) {
+            enable_int = 0;
+            action = "disabled";
+        }
+        //
+        // ENABLE/DISABLE SENSOR
+        //
+        // - Request:
+        //   POST /devices/device/<devicename>/<peripheral>/<number>/sensors/sensor/<sensorname>/enable
+        //   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
+        //   data: {'enable': int}
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string }
+        //   { 'status': 'NG', 'message': string }        
+        //
+        $http({
+            method: 'POST',
+            url: server + '/devices/device/' + $scope.data.devicename + '/' + peripheral + '/' + sensor.number.toString()  + '/sensors/sensor/' + sensor.sensorname + '/enable',
+            headers: { 'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json' },
+            data: { 'enable': enable_int }
+        })
+        .then(function (result) {
+            console.log(result.data);
+            $ionicPopup.alert({
+                title: 'Device ' + peripheral.toUpperCase(),
+                template: peripheral.toUpperCase() + ' Device ' + sensor.sensorname + ' on ' + peripheral.toUpperCase() + ' ' + sensor.number.toString() + ' was ' + action + ' successfully!',
+            });
+            
+            // update
+            //get_i2c_sensors();
+        })
+        .catch(function (error) {
+            $scope.handle_error(error);
+            
+            $ionicPopup.alert({ title: 'Error', template: error.data.message, buttons: [{text: 'OK', type: 'button-assertive'}] });
+        }); 
+    };
+
 
 
     $scope.$on('$ionicView.enter', function(e) {
@@ -15093,6 +15196,38 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         }); 
     };
 
+    set_xxx_device_properties = function(peripheral) {
+        //
+        // SET XXX DEVICE PROPERTIES
+        //
+        // - Request:
+        //   POST /devices/device/<devicename>/i2c/<number>/sensors/sensor/<sensorname>/properties
+        //   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
+        //   data: 
+        //   { 
+        //   }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string }
+        //   { 'status': 'NG', 'message': string }        
+        //
+        $http({
+            method: 'POST',
+            url: server + '/devices/device/' + $scope.data.devicename + '/' + peripheral + '/' + $scope.data.sensor.number.toString() + '/sensors/sensor/' + $scope.data.sensor.sensorname + '/properties',
+            headers: { 'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json' },
+            data: $scope.data.attributes
+        })
+        .then(function (result) {
+            console.log(result.data);
+            $ionicPopup.alert({
+                title: peripheral.toUpperCase() + ' device',
+                template: $scope.data.sensor.sensorname + ' on ' + peripheral.toUpperCase() + ' ' + $scope.data.sensor.number.toString() + ' was configured successfully!',
+            });            
+        })
+        .catch(function (error) {
+            handle_error(error, true);
+        }); 
+    };
 
 
 
@@ -15148,119 +15283,23 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                     { text: 'Yes', type: 'button-positive',
                         onTap: function(e) {
                             
-                            if ($scope.data.source === "I2C") {
-                                set_i2c_properties();
+                            if ($scope.data.source === "LDSU") {
+                                set_xxx_device_properties($scope.data.sensor.source);
+                            }
+                            else if ($scope.data.source === "I2C") {
+                                set_xxx_device_properties("i2c");
                             }
                             else if ($scope.data.source === "TPROBE") {
-                                set_tprobe_properties();
+                                set_xxx_device_properties("tprobe");
                             }
                             else if ($scope.data.source === "1WIRE") {
-                                set_1wire_properties();
+                                set_xxx_device_properties("1wire");
                             }
                         }
                     }
                 ]            
             });
         }
-    };
-
-    set_i2c_properties = function() {
-        //
-        // SET I2C PROPERTIES
-        //
-        // - Request:
-        //   POST /devices/device/<devicename>/i2c/<number>/sensors/sensor/<sensorname>/properties
-        //   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
-        //   data: 
-        //   { 
-        //   }
-        //
-        // - Response:
-        //   { 'status': 'OK', 'message': string }
-        //   { 'status': 'NG', 'message': string }        
-        //
-        $http({
-            method: 'POST',
-            url: server + '/devices/device/' + $scope.data.devicename + '/i2c/' + $scope.data.sensor.number.toString() + '/sensors/sensor/' + $scope.data.sensor.sensorname + '/properties',
-            headers: { 'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json' },
-            data: $scope.data.attributes
-        })
-        .then(function (result) {
-            console.log(result.data);
-            $ionicPopup.alert({
-                title: 'I2C device',
-                template: $scope.data.sensor.sensorname + ' on I2C ' + $scope.data.sensor.number.toString() + ' was configured successfully!',
-            });            
-        })
-        .catch(function (error) {
-            handle_error(error, true);
-        }); 
-    };
-    
-    set_tprobe_properties = function() {
-        //
-        // SET TPROBE PROPERTIES
-        //
-        // - Request:
-        //   POST /devices/device/<devicename>/tprobe/<number>/sensors/sensor/<sensorname>/properties
-        //   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
-        //   data: 
-        //   { 
-        //   }
-        //
-        // - Response:
-        //   { 'status': 'OK', 'message': string }
-        //   { 'status': 'NG', 'message': string }        
-        //
-        $http({
-            method: 'POST',
-            url: server + '/devices/device/' + $scope.data.devicename + '/tprobe/' + $scope.data.sensor.number.toString() + '/sensors/sensor/' + $scope.data.sensor.sensorname + '/properties',
-            headers: { 'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json' },
-            data: $scope.data.attributes
-        })
-        .then(function (result) {
-            console.log(result.data);
-            $ionicPopup.alert({
-                title: 'TPROBE device',
-                template: $scope.data.sensor.sensorname + ' on TPROBE ' + $scope.data.sensor.number.toString() + ' was configured successfully!',
-            });            
-        })
-        .catch(function (error) {
-            handle_error(error, true);
-        }); 
-    };
-
-    set_1wire_properties = function() {
-        //
-        // SET 1WIRE PROPERTIES
-        //
-        // - Request:
-        //   POST /devices/device/<devicename>/1wire/<number>/sensors/sensor/<sensorname>/properties
-        //   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
-        //   data: 
-        //   { 
-        //   }
-        //
-        // - Response:
-        //   { 'status': 'OK', 'message': string }
-        //   { 'status': 'NG', 'message': string }        
-        //
-        $http({
-            method: 'POST',
-            url: server + '/devices/device/' + $scope.data.devicename + '/1wire/' + $scope.data.sensor.number.toString() + '/sensors/sensor/' + $scope.data.sensor.sensorname + '/properties',
-            headers: { 'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json' },
-            data: $scope.data.attributes
-        })
-        .then(function (result) {
-            console.log(result.data);
-            $ionicPopup.alert({
-                title: '1WIRE device',
-                template: $scope.data.sensor.sensorname + ' on 1WIRE ' + $scope.data.sensor.number.toString() + ' was configured successfully!',
-            });            
-        })
-        .catch(function (error) {
-            handle_error(error, true);
-        }); 
     };
 
 
@@ -15287,7 +15326,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             
             if (flag) {
                 if ($scope.data.source === "LDSU") {
-                    get_xxx_device_properties("ldsu");
+                    get_xxx_device_properties($scope.data.sensor.source);
                 }
                 else if ($scope.data.source === "I2C") {
                     get_xxx_device_properties("i2c");
@@ -15613,7 +15652,40 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         }); 
     };
 
-
+    set_xxx_device_properties = function(peripheral) {
+        //
+        // SET XXX DEVICE PROPERTIES
+        //
+        // - Request:
+        //   POST /devices/device/<devicename>/i2c/<number>/sensors/sensor/<sensorname>/properties
+        //   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
+        //   data: 
+        //   { 
+        //   }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string }
+        //   { 'status': 'NG', 'message': string }        
+        //
+        $http({
+            method: 'POST',
+            url: server + '/devices/device/' + $scope.data.devicename + '/' + peripheral + '/' + $scope.data.sensor.number.toString() + '/sensors/sensor/' + $scope.data.sensor.sensorname + '/properties',
+            headers: { 'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json' },
+            data: $scope.data.attributes
+        })
+        .then(function (result) {
+            console.log(result.data);
+            $ionicPopup.alert({
+                title: peripheral.toUpperCase() + ' device',
+                template: $scope.data.sensor.sensorname + ' on ' + peripheral.toUpperCase() + ' ' + $scope.data.sensor.number.toString() + ' was configured successfully!',
+            });            
+        })
+        .catch(function (error) {
+            handle_error(error, true);
+        }); 
+    };
+    
+    
     
     $scope.submit = function() {
         console.log("submit");
@@ -15664,14 +15736,17 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                     { text: 'Yes', type: 'button-positive',
                         onTap: function(e) {
                             
-                            if ($scope.data.source === "I2C") {
-                                set_i2c_properties();
+                            if ($scope.data.source === "LDSU") {
+                                set_xxx_device_properties($scope.data.sensor.source);
+                            }
+                            else if ($scope.data.source === "I2C") {
+                                set_xxx_device_properties("i2c");
                             }
                             else if ($scope.data.source === "TPROBE") {
-                                set_tprobe_properties();
+                                set_xxx_device_properties("tprobe");
                             }
                             else if ($scope.data.source === "1WIRE") {
-                                set_1wire_properties();
+                                set_xxx_device_properties("1wire");
                             }
                         }
                     }
@@ -15679,106 +15754,6 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             });
         }
     };
-
-    set_i2c_properties = function() {
-        //
-        // SET I2C PROPERTIES
-        //
-        // - Request:
-        //   POST /devices/device/<devicename>/i2c/<number>/sensors/sensor/<sensorname>/properties
-        //   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
-        //   data: 
-        //   { 
-        //   }
-        //
-        // - Response:
-        //   { 'status': 'OK', 'message': string }
-        //   { 'status': 'NG', 'message': string }        
-        //
-        $http({
-            method: 'POST',
-            url: server + '/devices/device/' + $scope.data.devicename + '/i2c/' + $scope.data.sensor.number.toString() + '/sensors/sensor/' + $scope.data.sensor.sensorname + '/properties',
-            headers: { 'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json' },
-            data: $scope.data.attributes
-        })
-        .then(function (result) {
-            console.log(result.data);
-            $ionicPopup.alert({
-                title: 'I2C device',
-                template: $scope.data.sensor.sensorname + ' on I2C ' + $scope.data.sensor.number.toString() + ' was configured successfully!',
-            });            
-        })
-        .catch(function (error) {
-            handle_error(error, true);
-        }); 
-    };
-    
-    set_tprobe_properties = function() {
-        //
-        // SET TPROBE PROPERTIES
-        //
-        // - Request:
-        //   POST /devices/device/<devicename>/tprobe/<number>/sensors/sensor/<sensorname>/properties
-        //   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
-        //   data: 
-        //   { 
-        //   }
-        //
-        // - Response:
-        //   { 'status': 'OK', 'message': string }
-        //   { 'status': 'NG', 'message': string }        
-        //
-        $http({
-            method: 'POST',
-            url: server + '/devices/device/' + $scope.data.devicename + '/tprobe/' + $scope.data.sensor.number.toString() + '/sensors/sensor/' + $scope.data.sensor.sensorname + '/properties',
-            headers: { 'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json' },
-            data: $scope.data.attributes
-        })
-        .then(function (result) {
-            console.log(result.data);
-            $ionicPopup.alert({
-                title: 'TPROBE device',
-                template: $scope.data.sensor.sensorname + ' on TPROBE ' + $scope.data.sensor.number.toString() + ' was configured successfully!',
-            });            
-        })
-        .catch(function (error) {
-            handle_error(error, true);
-        }); 
-    };
-
-    set_1wire_properties = function() {
-        //
-        // SET 1WIRE PROPERTIES
-        //
-        // - Request:
-        //   POST /devices/device/<devicename>/1wire/<number>/sensors/sensor/<sensorname>/properties
-        //   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
-        //   data: 
-        //   { 
-        //   }
-        //
-        // - Response:
-        //   { 'status': 'OK', 'message': string }
-        //   { 'status': 'NG', 'message': string }        
-        //
-        $http({
-            method: 'POST',
-            url: server + '/devices/device/' + $scope.data.devicename + '/1wire/' + $scope.data.sensor.number.toString() + '/sensors/sensor/' + $scope.data.sensor.sensorname + '/properties',
-            headers: { 'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json' },
-            data: $scope.data.attributes
-        })
-        .then(function (result) {
-            console.log(result.data);
-            $ionicPopup.alert({
-                title: '1WIRE device',
-                template: $scope.data.sensor.sensorname + ' on 1WIRE ' + $scope.data.sensor.number.toString() + ' was configured successfully!',
-            });            
-        })
-        .catch(function (error) {
-            handle_error(error, true);
-        }); 
-    };
-
 
 
 
@@ -15803,7 +15778,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             
             if (flag) {
                 if ($scope.data.source === "LDSU") {
-                    get_xxx_device_properties("ldsu");
+                    get_xxx_device_properties($scope.data.sensor.source);
                 }
                 else if ($scope.data.source === "I2C") {
                     get_xxx_device_properties("i2c");

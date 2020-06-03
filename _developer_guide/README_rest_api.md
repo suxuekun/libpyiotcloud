@@ -147,10 +147,14 @@ SUMMARY:
 
 	5. Device access and control APIs (LDSBUS)
 
-		A. GET LDS BUS                        - GET    /devices/device/DEVICENAME/ldsbus/PORTNUMBER
-		B. SCAN LDS BUS                       - POST   /devices/device/DEVICENAME/ldsbus/PORTNUMBER
-		C. CHANGE LDSU NAME                   - POST   /devices/device/DEVICENAME/ldsu/LDSUUUID/name
-		D. IDENTIFY LDSU                      - POST   /devices/device/DEVICENAME/ldsu/LDSUUUID/identify
+		A. GET LDS BUS                    - GET    /devices/device/DEVICENAME/ldsbus/PORTNUMBER
+		B. SCAN LDS BUS                   - POST   /devices/device/DEVICENAME/ldsbus/PORTNUMBER
+		C. CHANGE LDSU NAME               - POST   /devices/device/DEVICENAME/ldsu/LDSUUUID/name
+		D. IDENTIFY LDSU                  - POST   /devices/device/DEVICENAME/ldsu/LDSUUUID/identify
+
+		E. SET LDSU DEVICE PROPERTIES     - POST   /devices/device/DEVICENAME/LDSUUUID/NUMBER/sensors/sensor/SENSORNAME/properties
+		F. GET LDSU DEVICE PROPERTIES     - GET    /devices/device/DEVICENAME/LDSUUUID/NUMBER/sensors/sensor/SENSORNAME/properties
+		G. ENABLE/DISABLE LDSU DEVICE     - POST   /devices/device/DEVICENAME/LDSUUUID/NUMBER/sensors/sensor/SENSORNAME/enable
 
 
 	6. Device access and control APIs (STATUS, UART, GPIO)
@@ -1485,6 +1489,7 @@ DETAILED:
 		             "minmax":   [int, int], // minimum and maximum
 		             "type":     string,     // input, output
 		             "unit":     string,     // C, %, ppm, ...
+		             "address":  string,     // i2c address in LDSU
 		             "obj":      string,     // LDSU Object type: "32768", "32769", "32770", ...
 
 		             // for enabled/disabled/configured
@@ -1527,6 +1532,33 @@ DETAILED:
 		-  Request:
 		   POST /devices/device/DEVICENAME/ldsu/LDSUUUID/identify
 		   headers: {'Authorization': 'Bearer ' + token.access}
+		-  Response:
+		   { 'status': 'OK', 'message': string }
+		   { 'status': 'NG', 'message': string }
+
+		E. SET LDSU DEVICE PROPERTIES
+		-  Request:
+		   POST /devices/device/DEVICENAME/LDSUUUID/NUMBER/sensors/sensor/SENSORNAME/properties
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		   data: { ... } // same as SET I2C DEVICE PROPERTIES
+		-  Response:
+		   { 'status': 'OK', 'message': string }
+		   { 'status': 'NG', 'message': string }
+
+		F. GET LDSU DEVICE PROPERTIES
+		-  Request:
+		   GET /devices/device/DEVICENAME/LDSUUUID/NUMBER/sensors/sensor/SENSORNAME/properties
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		-  Response:
+		   { 'status': 'OK', 'message': string, 'value': json_object } // same as GET I2C DEVICE PROPERTIES
+		   { 'status': 'NG', 'message': string }
+
+		G. ENABLE/DISABLE LDSU DEVICE
+		-  Request:
+		   POST /devices/device/DEVICENAME/LDSUUUID/NUMBER/sensors/sensor/SENSORNAME/enable
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		   data: { 'enable': int }
+		   // enable is an int indicating if disabled (0) or enabled (1)
 		-  Response:
 		   { 'status': 'OK', 'message': string }
 		   { 'status': 'NG', 'message': string }

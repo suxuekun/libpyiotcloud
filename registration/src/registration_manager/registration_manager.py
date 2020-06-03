@@ -129,6 +129,7 @@ def set_ldsu_descs(database_client, deviceid, topic, payload):
                     'port'     : ldsu["PORT"],
                     'name'     : ldsu["LABL"],
                     'class'    : g_device_client.get_objidx_class(descriptor),
+                    'address'  : g_device_client.get_objidx_address(descriptor),
                     'format'   : g_device_client.get_objidx_format(descriptor),
                     'type'     : g_device_client.get_objidx_type(descriptor),
                     'unit'     : g_device_client.get_objidx_unit(descriptor),

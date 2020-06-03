@@ -2528,13 +2528,28 @@ class database_client_mongodb:
         device_all = {}
         device_all.update(device)
         device_all.update(data)
-        found = i2csensors.find_one({'deviceid': deviceid, 'source': source, 'number': number})
-        if found is None:
-            i2csensors.insert_one(device_all)
+
+        if data.get("address"):
+            found = i2csensors.find_one({'deviceid': deviceid, 'source': source, 'number': number, 'address': data["address"]})
+            if found is None:
+                i2csensors.insert_one(device_all)
+            else:
+                device_all["sensorname"] = found["sensorname"]
+                device_all["enabled"] = found["enabled"]
+                device_all["configured"] = found["configured"]
+                i2csensors.replace_one({'deviceid': deviceid, 'source': source, 'number': number, 'address': data["address"]}, device_all)
+            return True
+
         else:
-            device_all["sensorname"] = found["sensorname"]
-            i2csensors.replace_one({'deviceid': deviceid, 'source': source, 'number': number}, device_all)
-        return True
+            found = i2csensors.find_one({'deviceid': deviceid, 'source': source, 'number': number})
+            if found is None:
+                i2csensors.insert_one(device_all)
+            else:
+                device_all["sensorname"] = found["sensorname"]
+                device_all["enabled"] = found["enabled"]
+                device_all["configured"] = found["configured"]
+                i2csensors.replace_one({'deviceid': deviceid, 'source': source, 'number': number}, device_all)
+            return True
 
     def delete_device_sensors(self, deviceid):
         i2csensors = self.get_sensors_document();

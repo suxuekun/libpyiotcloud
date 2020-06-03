@@ -112,6 +112,10 @@ class device_client:
 	def get_objidx_unit(self, descriptor):
 		return descriptor["UNIT"]
 
+	# get address - "C", "%", "LUX", " "
+	def get_objidx_address(self, descriptor):
+		return descriptor["ADDRESS"]
+
 	# get accuracy - decimal place
 	def get_objidx_accuracy(self, descriptor, mode=0):
 		if descriptor.get("MODE"):
@@ -147,6 +151,7 @@ class device_client:
 					print("ACCURACY {}".format(self.get_objidx_accuracy(descriptor)))
 					print("MINMAX   {}".format(self.get_objidx_minmax(descriptor)))
 					print("CLASS    {}".format(self.get_objidx_class(descriptor)))
+					print("ADDRESS  {}".format(self.get_objidx_address(descriptor)))
 					print()
 			print()
 			print()

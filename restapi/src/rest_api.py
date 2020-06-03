@@ -2301,6 +2301,7 @@ def scan_lds_bus(devicename, portnumber):
                         'port'     : ldsu["PORT"],
                         'name'     : ldsu["LABL"],
                         'class'    : g_device_client.get_objidx_class(descriptor),
+                        'address'  : g_device_client.get_objidx_address(descriptor),
                         'format'   : g_device_client.get_objidx_format(descriptor),
                         'type'     : g_device_client.get_objidx_type(descriptor),
                         'unit'     : g_device_client.get_objidx_unit(descriptor),
@@ -5206,13 +5207,18 @@ def get_xxx_sensor_readings(devicename, xxx, number, sensorname):
 ########################################################################################################
 @app.route('/devices/device/<devicename>/<xxx>/<number>/sensors/sensor/<sensorname>/properties', methods=['POST'])
 def set_xxx_dev_prop(devicename, xxx, number, sensorname):
-    #print('set_{}_dev_prop'.format(xxx))
+    print('set_{}_dev_prop'.format(xxx))
 
     # check number parameter
-    if int(number) > 4 or int(number) < 1:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid parameters'})
-        print('\r\nERROR Invalid parameters\r\n')
-        return response, status.HTTP_400_BAD_REQUEST
+    #if int(number) > 4 or int(number) < 1:
+    #    response = json.dumps({'status': 'NG', 'message': 'Invalid parameters'})
+    #    print('\r\nERROR Invalid parameters\r\n')
+    #    return response, status.HTTP_400_BAD_REQUEST
+
+    if xxx == "i2c" or xxx == "adc" or xxx == "1wire" or xxx == "tprobe":
+        api = 'set_{}_dev_prop'.format(xxx)
+    else:
+        api = 'set_ldsu_dev_prop'
 
     # get token from Authorization header
     auth_header_token = g_utils.get_auth_header_token()
@@ -5227,7 +5233,7 @@ def set_xxx_dev_prop(devicename, xxx, number, sensorname):
         response = json.dumps({'status': 'NG', 'message': 'Token expired'})
         print('\r\nERROR Set {} Sensor: Token expired\r\n'.format(xxx))
         return response, status.HTTP_401_UNAUTHORIZED
-    print('set_{}_dev_prop {} devicename={} number={} sensorname={}'.format(xxx, username, devicename, number, sensorname))
+    print('{} {} devicename={} number={} sensorname={}'.format(api, username, devicename, number, sensorname))
 
     # check if a parameter is empty
     if len(username) == 0 or len(token) == 0 or len(devicename) == 0 or len(sensorname) == 0:
@@ -5277,11 +5283,11 @@ def set_xxx_dev_prop(devicename, xxx, number, sensorname):
         print('\r\nERROR Get {} Sensor: Sensor is not registered [{},{}]\r\n'.format(xxx, entityname, devicename))
         return response, status.HTTP_404_NOT_FOUND
 
-    api = 'set_{}_dev_prop'.format(xxx)
-    #print('set_{}_dev_prop {}'.format(xxx, data))
-    data['token'] = token
-    data['devicename'] = devicename
-    data['username'] = username
+    # removed for caching
+    #data['token'] = token
+    #data['devicename'] = devicename
+    #data['username'] = username
+
     if sensor.get('address'):
         data['address'] = sensor['address']
     data['class'] = int(g_utils.get_i2c_device_class(sensor['class']))
@@ -5289,21 +5295,22 @@ def set_xxx_dev_prop(devicename, xxx, number, sensorname):
         # handle subclasses
         data['subclass'] = int(g_utils.get_i2c_device_class(sensor['subclass']))
     data['number'] = int(number)
-    print('set_{}_dev_prop {} devicename={} number={}'.format(xxx, entityname, devicename, number))
+    print('{} {} devicename={} number={}'.format(api, entityname, devicename, number))
 
 
     # no notification data
     if not data.get("notification"):
         #print("no notification data")
 
-        response, status_return = g_messaging_requests.process(api, data)
-        if status_return != 200:
-            # set enabled to FALSE and configured to FALSE
-            g_database_client.set_enable_configure_sensor(entityname, devicename, xxx, number, sensorname, 0, 0)
-            return response, status_return
+        # removed for caching
+        #response, status_return = g_messaging_requests.process(api, data)
+        #if status_return != 200:
+        #    # set enabled to FALSE and configured to FALSE
+        #    g_database_client.set_enable_configure_sensor(entityname, devicename, xxx, number, sensorname, 0, 0)
+        #    return response, status_return
 
         # if ADC/1WIRE/TPROBE, set all other ADC/1WIRE/TPROBE to unconfigured and disabled
-        if xxx != "i2c":
+        if xxx == "adc" or xxx == "1wire" or xxx == "tprobe":
             g_database_client.disable_unconfigure_sensors_source(entityname, devicename, xxx, number)
         # set to disabled and configured
         g_database_client.set_enable_configure_sensor(entityname, devicename, xxx, number, sensorname, 0, 1)
@@ -5342,15 +5349,16 @@ def set_xxx_dev_prop(devicename, xxx, number, sensorname):
     else:
         subattributes_notification = None
 
+    # removed for caching
     # query device
-    response, status_return = g_messaging_requests.process(api, data)
-    if status_return != 200:
-        # set enabled to FALSE and configured to FALSE
-        g_database_client.set_enable_configure_sensor(entityname, devicename, xxx, number, sensorname, 0, 0)
-        return response, status_return
+    #response, status_return = g_messaging_requests.process(api, data)
+    #if status_return != 200:
+    #    # set enabled to FALSE and configured to FALSE
+    #    g_database_client.set_enable_configure_sensor(entityname, devicename, xxx, number, sensorname, 0, 0)
+    #    return response, status_return
 
     # if ADC/1WIRE/TPROBE, set all other ADC/1WIRE/TPROBE to unconfigured and disabled
-    if xxx != "i2c":
+    if xxx == "adc" or xxx == "1wire" or xxx == "tprobe":
         g_database_client.disable_unconfigure_sensors_source(entityname, devicename, xxx, number)
 
     # set to disabled and configured
@@ -5381,6 +5389,7 @@ def set_xxx_dev_prop(devicename, xxx, number, sensorname):
         subclassid = int(g_utils.get_i2c_device_class(sensor['subclass']))
     item = g_database_client.update_device_peripheral_configuration(entityname, devicename, xxx, int(number), address, classid, subclassid, data)
 
+    response = json.dumps({'status': 'OK', 'message': 'Sensor set successfully'})
     return response
 
 
@@ -5415,13 +5424,18 @@ def set_xxx_dev_prop(devicename, xxx, number, sensorname):
 ########################################################################################################
 @app.route('/devices/device/<devicename>/<xxx>/<number>/sensors/sensor/<sensorname>/properties', methods=['GET'])
 def get_xxx_dev_prop(devicename, xxx, number, sensorname):
-    #print('get_{}_dev_prop'.format(xxx))
+    print('get_{}_dev_prop'.format(xxx))
 
     # check number parameter
-    if int(number) > 4 or int(number) < 1:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid parameters'})
-        print('\r\nERROR Invalid parameters\r\n')
-        return response, status.HTTP_400_BAD_REQUEST
+    #if int(number) > 4 or int(number) < 1:
+    #    response = json.dumps({'status': 'NG', 'message': 'Invalid parameters'})
+    #    print('\r\nERROR Invalid parameters\r\n')
+    #    return response, status.HTTP_400_BAD_REQUEST
+
+    if xxx == "i2c" or xxx == "adc" or xxx == "1wire" or xxx == "tprobe":
+        api = 'get_{}_dev_prop'.format(xxx)
+    else:
+        api = 'get_ldsu_dev_prop'
 
     # get token from Authorization header
     auth_header_token = g_utils.get_auth_header_token()
@@ -5436,7 +5450,7 @@ def get_xxx_dev_prop(devicename, xxx, number, sensorname):
         response = json.dumps({'status': 'NG', 'message': 'Token expired'})
         print('\r\nERROR Get {} Sensor: Token expired\r\n'.format(xxx))
         return response, status.HTTP_401_UNAUTHORIZED
-    print('get_{}_dev_prop {} devicename={} number={} sensorname={}'.format(xxx, username, devicename, number, sensorname))
+    print('{} {} devicename={} number={} sensorname={}'.format(api, username, devicename, number, sensorname))
 
     # check if a parameter is empty
     if len(username) == 0 or len(token) == 0 or len(devicename) == 0 or len(sensorname) == 0:
@@ -5479,31 +5493,46 @@ def get_xxx_dev_prop(devicename, xxx, number, sensorname):
         print('\r\nERROR Get {} Sensor: Sensor is not registered [{},{}]\r\n'.format(xxx, entityname, devicename))
         return response, status.HTTP_404_NOT_FOUND
 
-    api = 'get_{}_dev_prop'.format(xxx)
-    data = {}
-    data['token'] = token
-    data['devicename'] = devicename
-    data['username'] = username
-    if sensor.get('address'):
-        data['address'] = sensor['address']
-    data['class'] = int(g_utils.get_i2c_device_class(sensor['class']))
-    data['number'] = int(number)
-    print('get_{}_dev_prop {} devicename={} number={}'.format(xxx, entityname, devicename, number))
 
-    # no notification object required
-    if data["class"] < rest_api_utils.classes().I2C_DEVICE_CLASS_POTENTIOMETER:
-        return g_messaging_requests.process(api, data)
+    if False:
+        # removed for caching
+        data = {}
+        data['token'] = token
+        data['devicename'] = devicename
+        data['username'] = username
+        if sensor.get('address'):
+            data['address'] = sensor['address']
+        data['class'] = int(g_utils.get_i2c_device_class(sensor['class']))
+        data['number'] = int(number)
+        print('{} {} devicename={} number={}'.format(api, entityname, devicename, number))
 
-    # has notification object required
-    response, status_return = g_messaging_requests.process(api, data)
-    if status_return != 200:
-        return response, status_return
+        # no notification object required
+        if data["class"] < rest_api_utils.classes().I2C_DEVICE_CLASS_POTENTIOMETER:
+            return g_messaging_requests.process(api, data)
+
+        # has notification object required
+        print("query device")
+        response, status_return = g_messaging_requests.process(api, data)
+        if status_return != 200:
+            return response, status_return
+        response = json.loads(response)
+        print(response)
+
+    else:
+        print("get_device_peripheral_configuration")
+        configuration = g_database_client.get_device_peripheral_configuration(entityname, devicename, xxx, int(number), None)
+        if configuration:
+            response = {'value': configuration["attributes"]}
+            print(configuration["attributes"])
+        else:
+            response = {'value': {}}
+
 
     source = "{}{}{}".format(xxx, number, sensorname)
     #notification = g_database_client.get_device_notification(entityname, devicename, source)
     (notification, subattributes_notification) = g_database_client.get_device_notification_with_notification_subclass(entityname, devicename, source)
     if notification is not None:
-        response = json.loads(response)
+        #response = json.loads(response)
         if response.get('value'):
             response['value']['notification'] = notification
         else:
@@ -5511,7 +5540,7 @@ def get_xxx_dev_prop(devicename, xxx, number, sensorname):
             response['value']['notification'] = notification
         response = json.dumps(response)
     else:
-        response = json.loads(response)
+        #response = json.loads(response)
         if response.get('value'):
             response['value']['notification'] = build_default_notifications(xxx, token)
         else:
@@ -5574,13 +5603,18 @@ def get_xxx_dev_prop(devicename, xxx, number, sensorname):
 ########################################################################################################
 @app.route('/devices/device/<devicename>/<xxx>/<number>/sensors/sensor/<sensorname>/enable', methods=['POST'])
 def enable_xxx_dev(devicename, xxx, number, sensorname):
-    api = 'enable_{}_dev'.format(xxx)
+    print('enable_{}_dev'.format(xxx))
+
+    if xxx == "i2c" or xxx == "adc" or xxx == "1wire" or xxx == "tprobe":
+        api = 'enable_{}_dev'.format(xxx)
+    else:
+        api = 'enable_ldsu_dev'
 
     # check number parameter
-    if int(number) > 4 or int(number) < 1:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid parameters'})
-        print('\r\nERROR Invalid parameters\r\n')
-        return response, status.HTTP_400_BAD_REQUEST
+    #if int(number) > 4 or int(number) < 1:
+    #    response = json.dumps({'status': 'NG', 'message': 'Invalid parameters'})
+    #    print('\r\nERROR Invalid parameters\r\n')
+    #    return response, status.HTTP_400_BAD_REQUEST
 
     # get token from Authorization header
     auth_header_token = g_utils.get_auth_header_token()
@@ -5645,9 +5679,22 @@ def enable_xxx_dev(devicename, xxx, number, sensorname):
 
     do_enable = data['enable']
 
+
+    # added for caching
+    if do_enable:
+        configuration = g_database_client.get_device_peripheral_configuration(entityname, devicename, xxx, int(number), None)
+        if configuration:
+            configuration["attributes"]["class"] = configuration["class"]
+            data = {**data, **configuration["attributes"]}
+    # added for LDSU
+    if api == 'enable_ldsu_dev':
+        data["source"] = xxx
+
+
     # communicate with device
     response, status_return = g_messaging_requests.process(api, data)
     if status_return != 200:
+        print('enable_xxx_dev 6')
         return response, status_return
 
     # set enabled to do_enable and configured to 1

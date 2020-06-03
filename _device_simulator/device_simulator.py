@@ -258,8 +258,37 @@ g_ldsu_descriptors = [
     }
 ]
 
+# LDSU DEVICE
+g_ldsu_properties = {
+    "BRT32768XXXXX781" : [
+        { 'enabled': 0, 'class': 255, 'attributes': {} },
+        { 'enabled': 0, 'class': 255, 'attributes': {} },
+        { 'enabled': 0, 'class': 255, 'attributes': {} },
+        { 'enabled': 0, 'class': 255, 'attributes': {} }
+    ],
+    "BRT32770XXXXX121" : [
+        { 'enabled': 0, 'class': 255, 'attributes': {} },
+        { 'enabled': 0, 'class': 255, 'attributes': {} },
+        { 'enabled': 0, 'class': 255, 'attributes': {} }
+    ],
+    "BRT32768XXXXX692" : [
+        { 'enabled': 0, 'class': 255, 'attributes': {} },
+        { 'enabled': 0, 'class': 255, 'attributes': {} },
+        { 'enabled': 0, 'class': 255, 'attributes': {} },
+        { 'enabled': 0, 'class': 255, 'attributes': {} }
+    ],
+    "BRT32770XXXXX453" : [
+        { 'enabled': 0, 'class': 255, 'attributes': {} },
+        { 'enabled': 0, 'class': 255, 'attributes': {} },
+        { 'enabled': 0, 'class': 255, 'attributes': {} }
+    ]
+}
+g__properties_enabled_output = [{},{},{},{}]
+
+
 g_sensor_classids = [256, 512, 769, 770, 1024, 1280]
 g_sensor_classes = ["temperature", "humidity", "eCo2 gas", "TVOC gas", "ambient light", "motion detection"]
+
 
 start_timeX = 0
 
@@ -356,6 +385,12 @@ API_SET_DESCRIPTOR               = "set_descriptor"
 API_SET_LDSU_DESCS               = "set_ldsu_descs"
 API_GET_LDSU_DESCS               = "get_ldsu_descs"
 API_IDENTIFY_LDSU                = "ide_ldsu"
+
+# ldsu
+API_GET_LDSU_DEVICES              = "get_ldsu_devs"
+API_ENABLE_LDSU_DEVICE            = "enable_ldsu_dev"
+API_GET_LDSU_DEVICE_PROPERTIES    = "get_ldsu_dev_prop"
+API_SET_LDSU_DEVICE_PROPERTIES    = "set_ldsu_dev_prop"
 
 
 
@@ -454,6 +489,8 @@ def setClassAttributes(device_class, class_attributes):
     # handle subclasses
     if class_attributes.get("subclass"):
         class_attributes.pop("subclass")
+    if class_attributes.get("source"):
+        class_attributes.pop("source")
     attributes = class_attributes
     return attributes
 
@@ -758,6 +795,99 @@ def handle_api(api, subtopic, subpayload):
 
 
     ####################################################
+    # LDSU
+    ####################################################
+    elif api == API_GET_LDSU_DEVICE_PROPERTIES:
+        if True:
+            pass
+        else:
+            topic = generate_pubtopic(subtopic)
+            subpayload = json.loads(subpayload)
+
+            number = int(subpayload["number"])
+            address = str(subpayload["address"])
+            source = str(subpayload["source"])
+            value = None 
+            try:
+                value = g_ldsu_properties[source][number]["attributes"]
+            except:
+                pass
+
+            payload = {}
+            if value is not None:
+                payload["value"] = value
+            publish(topic, payload)
+
+    elif api == API_SET_LDSU_DEVICE_PROPERTIES:
+        if True:
+            pass
+        else:
+            # no longer needed for caching case
+
+            topic = generate_pubtopic(subtopic)
+            printf(len(subpayload))
+            subpayload = json.loads(subpayload)
+            #printf(subpayload)
+
+            number = int(subpayload["number"])
+            address = str(subpayload["address"])
+            device_class = subpayload["class"]
+            g_ldsu_properties[source][number] = {
+                'address': address,
+                'class': device_class,
+                'attributes' : setClassAttributes(device_class, subpayload),
+                'enabled': 0
+            }
+            #printf()
+            printf(g_ldsu_properties[source])
+            #printf()
+
+            payload = {}
+            publish(topic, payload)
+
+    elif api == API_ENABLE_LDSU_DEVICE:
+        topic = generate_pubtopic(subtopic)
+        subpayload = json.loads(subpayload)
+        #printf(subpayload)
+
+        number = int(subpayload["number"])
+        address = str(subpayload["address"])
+        enable = int(subpayload["enable"])
+        source = str(subpayload["source"])
+
+        # support caching (device receives on enable, not on set)
+        if True:
+            if subpayload.get("class") and enable == 1:
+                device_class = subpayload["class"]
+                g_ldsu_properties[source][number] = {
+                    'address': address,
+                    'class': device_class,
+                    'attributes' : setClassAttributes(device_class, subpayload),
+                    'enabled': 0
+                }
+        try:
+            g_ldsu_properties[source][number]["enabled"] = enable
+            printf_json(g_ldsu_properties[source])
+
+            # if enabling output sensor, add properties to g_i2c_properties_enabled_output
+            # if disabling output sensor, remove properties from g_i2c_properties_enabled_output
+            if g_ldsu_properties[source][number]["class"] <= 2:
+                if enable:
+                    g_i2c_properties_enabled_output[source][number][address] = g_ldsu_properties[number][address]
+                    g_i2c_properties_enabled_output[source][number][address]["value"] = 0
+                else:
+                    del g_i2c_properties_enabled_output[number][address]
+        except:
+            pass
+        #printf()
+        #printf(g_ldsu_properties[number])
+        #printf()
+
+        payload = {}
+        publish(topic, payload)
+
+
+    ####################################################
     # UART
     ####################################################
     elif api == API_GET_UARTS:
@@ -936,11 +1066,20 @@ def handle_api(api, subtopic, subpayload):
     elif api == API_ENABLE_I2C_DEVICE:
         topic = generate_pubtopic(subtopic)
         subpayload = json.loads(subpayload)
-        #printf(subpayload)
 
         number = int(subpayload["number"])-1
         address = str(subpayload["address"])
         enable = int(subpayload["enable"])
+
+        # support caching (device receives on enable, not on set)
+        if subpayload.get("class") and enable == 1:
+            device_class = subpayload["class"]
+            g_i2c_properties[number][address] = {
+                'class': device_class,
+                'attributes' : setClassAttributes(device_class, subpayload),
+                'enabled': 0
+            }
+
         try:
             g_i2c_properties[number][address]["enabled"] = enable
 
@@ -2546,6 +2685,7 @@ def read_registered_sensors_eeprom():
     printf("Read registered sensors {}".format(len(sensors)))
     return sensors
 
+# OLD
 # Send registered sensors from .sns file
 def set_registration(sensors):
     topic = "{}{}{}{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_DEVICE_ID, CONFIG_SEPARATOR, API_SET_REGISTRATION)
@@ -2797,10 +2937,10 @@ def main(args):
         reg_ldsu_descriptors()
 
         # Scan sensor for configuration
-        if CONFIG_SCAN_SENSORS_AT_BOOTUP:
-            sensors = read_registered_sensors_eeprom()
-            if len(sensors):
-                set_registration(sensors)
+        #if CONFIG_SCAN_SENSORS_AT_BOOTUP:
+        #    sensors = read_registered_sensors_eeprom()
+        #    if len(sensors):
+        #        set_registration(sensors)
 
         # Delete device configuration
         if CONFIG_DELETE_CONFIGURATION:

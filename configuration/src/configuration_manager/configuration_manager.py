@@ -94,6 +94,7 @@ def get_configuration(database_client, deviceid, topic, payload):
     # set topic and payload template for the response
     new_topic = "{}{}{}".format(deviceid, CONFIG_SEPARATOR, API_RECEIVE_CONFIGURATION)
     new_payload = {
+        "ldsu"   : [],
         "uart"   : [{}],
         "gpio"   : [{}, {}, {}, {}],
         "i2c"    : [[], [], [], []],
@@ -119,18 +120,16 @@ def get_configuration(database_client, deviceid, topic, payload):
     count_adc = 0
     count_1wire = 0
     count_tprobe = 0
+    count_ldsu = 0
 
     # add configuration to the payload response
     for configuration in configurations:
-        number = configuration["number"] - 1
+        number = configuration["number"]
         source = configuration["source"]
-        configuration.pop("source")
-        configuration.pop("number")
-        if source == "i2c":
-            new_payload[source][number].append(configuration)
-            count_i2c += 1
-        else:
-            new_payload[source][number] = configuration
+        if source == "uart" or source == "gpio" or source == "adc" or source == "1wire" or source == "tprobe":
+            configuration.pop("source")
+            configuration.pop("number")
+            new_payload[source][number-1] = configuration
             if source == "uart":
                 count_uart += 1
             elif source == "gpio":
@@ -141,6 +140,17 @@ def get_configuration(database_client, deviceid, topic, payload):
                 count_1wire += 1
             elif source == "tprobe":
                 count_tprobe += 1
+        elif source == "i2c":
+            configuration.pop("source")
+            configuration.pop("number")
+            new_payload[source][number-1].append(configuration)
+            count_i2c += 1
+        else: #source == "i2c":
+            configuration.pop("address")
+            configuration.pop("class")
+            configuration.pop("attributes")
+            new_payload["ldsu"].append(configuration)
+            count_ldsu += 1
 
     # if GET_ALL_PERIPHERAL_CONFIGURATION,
     #   only peripherals with configured sensors will be included
@@ -154,6 +164,13 @@ def get_configuration(database_client, deviceid, topic, payload):
         # peripherals specified
         # remove if not specified
         # include if have data
+        if "ldsu" not in payload["peripherals"]:
+            new_payload.pop("ldsu")
+        else:
+            # include if have data
+            if count_ldsu == 0:
+                new_payload.pop("ldsu")
+
         if "uart" not in payload["peripherals"]:
             new_payload.pop("uart")
         else:
@@ -198,6 +215,8 @@ def get_configuration(database_client, deviceid, topic, payload):
     else:
         # no peripherals specified
         # include all if have data
+        if count_ldsu == 0:
+            new_payload.pop("ldsu")
         if count_uart == 0:
             new_payload.pop("uart")
         if count_gpio == 0:
