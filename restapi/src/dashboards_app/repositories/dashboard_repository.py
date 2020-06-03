@@ -8,5 +8,5 @@ class IDashboardRepository(BaseRepository):
 
 
 class DashboardRepository(MongoBaseRepository):
-    def __init__(self, mongoclient=None):
-        super(DashboardRepository, self).__init__(mongoclient=mongoclient)
+    def __init__(self, mongoclient, db, collectionName:str):
+        super().__init__(mongoclient=mongoclient, db=db, collectionName=collectionName)

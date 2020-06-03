@@ -5873,6 +5873,8 @@ def initialize():
             print("Could not connect to message broker! exception! {}".format(e))
 
     # Initialize Database client
+
+    print("g_database_client")
     g_database_client = database_client()
     g_database_client.initialize()
 
@@ -5896,8 +5898,8 @@ def initialize():
     g_other_stuffs            = other_stuffs(g_database_client, g_storage_client)
     g_utils                   = rest_api_utils.utils()
 
-    dashboardsApp = DashboardsApp()
-    dashboardsApp.build(app)
+    dashboardsApp = DashboardsApp(app)
+    dashboardsApp.build()
 
 
 # Initialize globally so that no issue with GUnicorn integration
@@ -5907,6 +5909,9 @@ if os.name == 'posix':
 
 if __name__ == '__main__':
 
+
+    print("Check Config")
+    print(config.debugging)
     if config.debugging:
         initialize()
 

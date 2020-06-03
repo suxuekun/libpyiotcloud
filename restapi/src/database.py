@@ -10,8 +10,7 @@ from pymongo import MongoClient # MongoDB
 from cognito_client import cognito_client
 from paypal_client import paypal_client
 import statistics
-from shared.services.bootstrap_application_service import BootstrapApplicationService
-
+from cached_mongo_client import CachedMongoClient
 class database_models:
 
     MONGODB    = 0
@@ -1273,9 +1272,10 @@ class database_client_mongodb:
     def initialize(self):
         #mongo_client = MongoClient(config.CONFIG_MONGODB_HOST, config.CONFIG_MONGODB_PORT, username=config.CONFIG_MONGODB_USERNAME, password=config.CONFIG_MONGODB_PASSWORD)
         mongo_client = MongoClient(config.CONFIG_MONGODB_HOST, config.CONFIG_MONGODB_PORT)
-        BootstrapApplicationService.get_instance().set_mongo_client(mongo_client)
-        print(mongo_client)
+
         self.client = mongo_client[config.CONFIG_MONGODB_DB]
+        CachedMongoClient.get_instance().set_mongo_client(mongo_client)
+        CachedMongoClient.get_instance().set_db(self.client)
 
         # different database for sensor dashboarding
         if "mongodb.net" in config.CONFIG_MONGODB_HOST2: 

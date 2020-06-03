@@ -10,10 +10,10 @@ class DashboardService:
         self.dashboardRepository = dashboardRepository
 
     def create(self, dto: DashboardDto):
-
         dashboard = Dashboard.create(name=dto.name, color=dto.color)
-        self.dashboardRepository.create(dashboard.model.to_primitive())
-
+        result = self.dashboardRepository.create(dashboard.model.to_primitive())
+        print("Check save")
+        print(result)
         return Response.success(True, "Create dashboard successfully")
 
     def updateNameAndOption(self, id: str, dto: DashboardDto):

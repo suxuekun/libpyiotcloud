@@ -22,7 +22,7 @@ class Response:
             'status': self.status
         }
 
-        if data != None:
-            response['data'] = data
+        if self.data is not None:
+            response['data'] = self.data
 
         return json.dumps(response)

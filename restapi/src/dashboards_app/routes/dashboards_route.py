@@ -4,17 +4,19 @@ from flask import Blueprint, request
 
 from dashboards_app.repositories.dashboard_repository import DashboardRepository
 from dashboards_app.services.dashboard_service import DashboardService
-from shared.services.bootstrap_application_service import BootstrapApplicationService
+from cached_mongo_client import CachedMongoClient
+from dashboards_app.dtos.dashboard_dto import DashboardDto
 
-#  Init injection
+service: DashboardService = None
 
-mongo_client = BootstrapApplicationService.get_instance().get_mongo_client()
-print("dada Mongo client")
-print(mongo_client)
-dashboardRepository = DashboardRepository(
-    mongoclient=mongo_client)
-service = DashboardService(dashboardRepository)
-
+def bootstrap():
+    global service
+    mongo_client = CachedMongoClient.get_instance().get_mongo_client()
+    db = CachedMongoClient.get_instance().get_db()
+    print(mongo_client)
+    dashboardRepository = DashboardRepository(mongoclient=mongo_client, db = db, collectionName="dashboards")
+    service = DashboardService(dashboardRepository)
+    
 
 # Init routes
 dashboards_blueprint = Blueprint('dashboards_blueprint', __name__)
@@ -34,7 +36,12 @@ def getDetail(id: str):
 
 
 @dashboards_blueprint.route("/charts", methods=['GET'])
-def getCharts(id: str):
-    print(id)
-    return 'OK', 200
+def getCharts():
+    print("Ok Service ne")
+    print(service)
+    dto = DashboardDto()
+    dto.name = "Dashboard 1"
+    dto.color = "Black"
+    response = service.create(dto)
+    return response, 200
 

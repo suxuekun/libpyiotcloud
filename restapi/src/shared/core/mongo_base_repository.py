@@ -5,21 +5,14 @@ from .base_repository import BaseRepository
 
 class MongoBaseRepository(BaseRepository):
 
-    def __init__(self, host: str = None, port: int = -1, database: str = None, mongoclient: MongoClient = None, collection: str = None):
-
-        if mongoclient == None:
-            self.mongoclient = MongoClient(host, port)
-
+    def __init__(self, mongoclient: MongoClient, db, collectionName: str):
         self.mongoclient = mongoclient
-        self.collection = mongoclient[collection]
-
-    def __init__(self, mongoclient: MongoClient):
-        self.mongo_client = mongoclient
+        self.db = db
+        self.collection = db[collectionName]
 
     def create(self, input) -> bool:
         try:
-            decodedObject = vars(input)
-            self.collection.insert_one(decodedObject)
+            self.collection.insert_one(input)
             return True
         except Exception as e:
             print(e)
