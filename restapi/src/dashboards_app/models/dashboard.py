@@ -20,45 +20,38 @@ class Chart(BaseModel, WithCreatedTimestamp):
     chartTypeId: str
     attribute: GatewayAttribute
 
-
-class Dashboard(BaseModel, WithCreatedTimestamp, WithUpdatedTimeStamp):
-
+class DashboardModel(BaseModel, WithCreatedTimestamp, WithUpdatedTimeStamp):
     name: str
     option: Option
     gateways: []
     sensors: []
 
-    def __init__(self, props: {}):
-        super().__init__(id)
-        self.name = props["name"]
-        self.option = props["options"]
-        self.createdAt = props["createdAt"]
-        self.updatedAt = props["updatedAt"]
-        self.gateways = props["gateways"] != None and props["gateways"] or []
-        self.sensors = props["sensors"] != None and props["sensors"] or []
-        
+class Dashboard:
+
+    def __init__(self, model: DashboardModel):
+        self.model = model
+
     @staticmethod
     def create(self, name: str, color: str):
-        props = {
-            "name": name,
-            "option": Option(color),
-            "createdAt": TimestampUtil.now(),
-            "updatedAt": TimestampUtil.now(),
-            "sensors": [],
-            "gateways": []
-        }
-        return Dashboard(ObjectId(), props)
+        model = DashboardModel()
+        model._id = ObjectId()
+        model.option = Option(color)
+        model.createdAt = TimestampUtil.now()
+        model.updatedAt = TimestampUtil.now()
+        model.sensors = []
+        model.gateways = []
+        return Dashboard(model)
 
     def updateNameAndOption(self, name: str, color: str):
-        self.name = name
-        self.option = Option(color)
+        self.model.name = name
+        self.model.option = Option(color)
 
     def addChartGateway(self, chart: Chart):
-        self.gateways.append(chart)
+        self.model.gateways.append(chart)
 
     def addChartSensor(self,  chart: Chart):
-        self.sensors.append(chart)
+        self.model.sensors.append(chart)
 
-    @staticmethod
-    def toModel(self, id, data: {}):
-        return Dashboard(id, data)
+    # @staticmethod
+    # def toModel(self, id, data: {}):
+    #     return Dashboard(id, data)

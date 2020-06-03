@@ -22,6 +22,9 @@ class PlanModel(BaseModel,TimeStampMixin):
     active = BooleanType(default=True)
 
 
+    def update(self, name):
+        self.name = 'dasd'
+
 if __name__ == "__main__":
     plan = PlanModel()
     a = collections.OrderedDict()
