@@ -201,7 +201,7 @@
                 <b>Type</b>
               </th>
               <th style="width:8%">
-                <b>Peripheral</b>
+                <b>LDSU</b>
               </th>
               <th style="width:17%">
                 <b>Class</b>
@@ -334,11 +334,11 @@
           </p>
         </div>
         <div id="sensorDashboard-markdown305" class="show-list-numbers-and-dots widget_button_half">
-          <p style="margin-top:0px;color:#3C5A99;font-size:10px;">{{ sensor.manufacturer }} - {{ sensor.model }}</p>
+          <p style="margin-top:0px;color:#3C5A99;font-size:10px;">LDS BUS {{ sensor.port }}</p>
         </div>
         <div id="sensorDashboard-markdown459" style="text-align:right;" class="show-list-numbers-and-dots widget_button_half">
           <p style="margin-top:0px;color:#888888;font-size:16px;">
-            <strong> {{ sensor.subclass ? sensor.readings.value + " " + sensor.units[0] + " | " + sensor.readings.subclass.value + " " + sensor.units[1] : sensor.readings.value + " " + sensor.units[0] }} </strong>
+            <strong> {{ sensor.subclass ? sensor.readings.value + " " + sensor.unit + " | " + sensor.readings.subclass.value + " " + sensor.unit : sensor.readings.value + " " + sensor.unit }} </strong>
           </p>
         </div>
         <div id="sensorDashboard-markdown310" class="show-list-numbers-and-dots widget_button_40">
@@ -346,8 +346,8 @@
             }}</p>
         </div>
         <div id="sensorDashboard-markdown458" style="text-align:right;" class="show-list-numbers-and-dots widget_button_60">
-          <p style="margin-top:0px;color:#3C5A99;font-size:10px;">{{ sensor.subclass ? "Low: " + sensor.readings.lowest + " " + sensor.units[0] + " High: " + sensor.readings.highest + " " + sensor.units[0] + " | " + "Low: " + sensor.readings.subclass.lowest + " " + sensor.units[1] + " High: " + sensor.readings.subclass.highest
-            + " " + sensor.units[1] : "Low: " + sensor.readings.lowest + " " + sensor.units[0] + " High: " + sensor.readings.highest + " " + sensor.units[0] }}</p>
+          <p style="margin-top:0px;color:#3C5A99;font-size:10px;">{{ sensor.subclass ? "Low: " + sensor.readings.lowest + " " + sensor.unit + " High: " + sensor.readings.highest + " " + sensor.unit + " | " + "Low: " + sensor.readings.subclass.lowest + " " + sensor.unit + " High: " + sensor.readings.subclass.highest
+            + " " + sensor.unit : "Low: " + sensor.readings.lowest + " " + sensor.unit + " High: " + sensor.readings.highest + " " + sensor.unit }}</p>
         </div>
       </div>
       <div id="sensorDashboard-container29" ng-show="sensor.show" class="widget_button_backward_forward_container">
@@ -369,23 +369,23 @@
       <div class="item item-body" id="sensorDashboard-list-item-container22" ng-click="changeSensorHide(sensor)">
         <div id="sensorDashboard-markdown435" class="show-list-numbers-and-dots">
           <p style="margin-top:0px;color:#888888;font-size:18px;">
-            <strong>{{ sensor.devicename + " - " + sensor.sensorname }}</strong>
+            <strong>{{ sensor.devicename + ": " + sensor.sensorname }}</strong>
           </p>
         </div>
         <div id="sensorDashboard-markdown436" class="show-list-numbers-and-dots widget_button_half">
-          <p style="margin-top:0px;color:#3C5A99;font-size:10px;">{{ sensor.manufacturer }} - {{ sensor.model }}</p>
+          <p style="margin-top:0px;color:#3C5A99;font-size:10px;">LDS BUS {{ sensor.port }}</p>
         </div>
         <div id="sensorDashboard-markdown438" style="text-align:right;" class="show-list-numbers-and-dots widget_button_half">
           <p style="margin-top:0px;color:#888888;font-size:28px;">
-            <strong> {{ sensor.subclass ? sensor.readings.value + " " + sensor.units[0] + " | " + sensor.readings.subclass.value + " " + sensor.units[1] : sensor.readings.value + " " + sensor.units[0] }} </strong>
+            <strong> {{ sensor.subclass ? sensor.readings.value + " " + sensor.unit + " | " + sensor.readings.subclass.value + " " + sensor.unit : sensor.readings.value + " " + sensor.unit }} </strong>
           </p>
         </div>
         <div id="sensorDashboard-markdown439" class="show-list-numbers-and-dots widget_button_half">
           <p style="margin-top:0px;color:#3C5A99;font-size:10px;">{{ sensor.subclass ? sensor.source.toUpperCase() + "" + sensor.number + " - " + sensor.class.toUpperCase() + " | " + sensor.subclass.toUpperCase() : sensor.source.toUpperCase() + "" + sensor.number + " - " + sensor.class.toUpperCase() }}</p>
         </div>
         <div id="sensorDashboard-markdown440" style="text-align:right;" class="show-list-numbers-and-dots widget_button_half">
-          <p style="margin-top:0px;color:#3C5A99;font-size:10px;">{{ sensor.subclass ? "Low: " + sensor.readings.lowest + " " + sensor.units[0] + " High: " + sensor.readings.highest + " " + sensor.units[0] + " | " + "Low: " + sensor.readings.subclass.lowest + " " + sensor.units[1] + " High: " + sensor.readings.subclass.highest
-            + " " + sensor.units[1] : "Low: " + sensor.readings.lowest + " " + sensor.units[0] + " High: " + sensor.readings.highest + " " + sensor.units[0] }}</p>
+          <p style="margin-top:0px;color:#3C5A99;font-size:10px;">{{ sensor.subclass ? "Low: " + sensor.readings.lowest + " " + sensor.unit + " High: " + sensor.readings.highest + " " + sensor.unit + " | " + "Low: " + sensor.readings.subclass.lowest + " " + sensor.unit + " High: " + sensor.readings.subclass.highest
+            + " " + sensor.unit : "Low: " + sensor.readings.lowest + " " + sensor.unit + " High: " + sensor.readings.highest + " " + sensor.unit }}</p>
         </div>
       </div>
       <div id="sensorDashboard-container21" ng-show="sensor.show" ng-click="submitViewSensorChart(sensor)">

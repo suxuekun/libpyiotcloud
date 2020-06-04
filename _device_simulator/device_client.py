@@ -6,7 +6,8 @@ FOLDER = "devices/"
 MASTER_LIST = "master_list.json"
 CLASS_ID = "class_id.json"
 
-# Sample LDS
+# Sample files
+SAMPLE_GW_DESC = "GW.json"
 SAMPLE_LDS_REG = "Reg.json"
 
 
@@ -21,6 +22,8 @@ class device_client:
 	def __init__(self):
 		self.master_list = None
 		self.class_id = None
+		self.gw_desc = None
+		self.sample_lds_reg = None
 		pass
 
 
@@ -65,14 +68,16 @@ class device_client:
 			print("Could not read file properly {}".format(CLASS_ID))
 			return
 
+		self.gw_desc = self._readfile(SAMPLE_GW_DESC)
 		self.sample_lds_reg = self._readfile(SAMPLE_LDS_REG)
-		if self.sample_lds_reg is None:
-			print("Could not read file properly {}".format(SAMPLE_LDS_REG))
-			return
 
 		#self.test()
 
 
+	def get_gw_desc(self):
+		if self.gw_desc is None:
+			return None
+		return self.gw_desc
 
 	def get_sample_lds_reg(self):
 		if self.sample_lds_reg is None:

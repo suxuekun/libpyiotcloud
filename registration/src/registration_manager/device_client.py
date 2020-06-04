@@ -6,6 +6,9 @@ FOLDER = "devices/"
 MASTER_LIST = "master_list.json"
 CLASS_ID = "class_id.json"
 
+# Sample LDS
+SAMPLE_LDS_REG = "Reg.json"
+
 
 
 class device_client_type:
@@ -62,7 +65,19 @@ class device_client:
 			print("Could not read file properly {}".format(CLASS_ID))
 			return
 
-		self.test()
+		self.sample_lds_reg = self._readfile(SAMPLE_LDS_REG)
+		if self.sample_lds_reg is None:
+			print("Could not read file properly {}".format(SAMPLE_LDS_REG))
+			return
+
+		#self.test()
+
+
+
+	def get_sample_lds_reg(self):
+		if self.sample_lds_reg is None:
+			return None
+		return self.sample_lds_reg["LDS"]
 
 
 	def get_obj(self, obj):

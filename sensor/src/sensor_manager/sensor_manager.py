@@ -64,7 +64,7 @@ CONFIG_SEPARATOR            = '/'
 
 API_RECEIVE_SENSOR_READING  = "rcv_sensor_reading"
 API_REQUEST_SENSOR_READING  = "req_sensor_reading"
-API_PUBLISH_SENSOR_READING  = "sensor_reading"
+API_PUBLISH_SENSOR_READING  = "pub_sensor_reading"
 
 
 
@@ -414,6 +414,34 @@ def process_sensor_reading(database_client, username, devicename, deviceid, sour
     thr2.join()
 
 
+def process_sensor_reading_ex(database_client, username, devicename, deviceid, payload):
+    #source = payload["UID"]
+    #timestamp = payload["TS"]
+    #values = payload["TS"]
+
+    thr_list = []
+    for address in range(len(payload["SNS"])):
+        value = payload["SNS"][address]
+        # Ignore if value is "NaN"
+        if payload["SNS"][address] != "NaN":
+            #
+            # store sensor reading
+            thr1 = threading.Thread(target = store_sensor_reading, args = (database_client, username, devicename, deviceid, payload["UID"], address, float(value), None, payload["TS"], ))
+            thr1.start()
+            thr_list.append(thr1)
+
+            #
+            # forward sensor reading (if applicable)
+            thr2 = threading.Thread(target = forward_sensor_reading, args = (database_client, username, devicename, deviceid, payload["UID"], address, float(value), None, ))
+            thr2.start()
+            thr_list.append(thr2)
+
+    for thr in thr_list:
+        thr.join()
+
+    pass
+
+
 def add_sensor_reading(database_client, deviceid, topic, payload):
 
     #start_time = time.time()
@@ -425,17 +453,19 @@ def add_sensor_reading(database_client, deviceid, topic, payload):
     if username is None or devicename is None:
         return
 
-    thr_list = []
+    if True:
+        process_sensor_reading_ex(database_client, username, devicename, deviceid, payload)
+    else:
+        thr_list = []
+        for source in payload["sensors"]:
+            for sensor in payload["sensors"][source]:
+                thr = threading.Thread(target = process_sensor_reading, args = (database_client, username, devicename, deviceid, source, sensor, ))
+                thr.start()
+                thr_list.append(thr)
+                #process_sensor_reading(database_client, deviceid, source, sensor)
 
-    for source in payload["sensors"]:
-        for sensor in payload["sensors"][source]:
-            thr = threading.Thread(target = process_sensor_reading, args = (database_client, username, devicename, deviceid, source, sensor, ))
-            thr.start()
-            thr_list.append(thr)
-            #process_sensor_reading(database_client, deviceid, source, sensor)
-
-    for thr in thr_list:
-        thr.join()
+        for thr in thr_list:
+            thr.join()
 
 
     # print elapsed time

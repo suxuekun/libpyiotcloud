@@ -7144,7 +7144,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
                 $scope.data.deviceversion = result.data.value.version;
             }
             
-            $scope.get_hierarchy($scope.data.devicename, 1, 1);
+            //$scope.get_hierarchy($scope.data.devicename, 1, 1);
         })
         .catch(function (error) {
             //console.log("ERRORXXXXXXXXXXXXXXXXXXXXXXXXXXX get_status");
@@ -7155,7 +7155,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
                 $scope.data.deviceversion = error.data.value.version;
             }
             
-            $scope.get_hierarchy($scope.data.devicename, 1, 0);
+            //$scope.get_hierarchy($scope.data.devicename, 1, 0);
         }); 
     };   
 
@@ -7343,7 +7343,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             $scope.eraseTreeChart2();
             $scope.treeData = null;
         }
-        $scope.get_hierarchy($scope.data.devicename);
+        //$scope.get_hierarchy($scope.data.devicename);
         
         //console.log($stateParams.location);
         //console.log($stateParams.location.latitude);
@@ -7684,7 +7684,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             }],
             "yAxes": [{
                 "ticks": {
-                    "beginAtZero": true,
+                    //"beginAtZero": false,
                     "max": 100,
                     "min": 0,
                 }
@@ -7735,6 +7735,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                     
                     var unit = null;
                     for (var sensor in $scope.sensors_datachart) {
+                        unit = $scope.sensors_datachart[sensor].unit;
+/*                        
                         if ($scope.sensors_datachart[sensor].devicename === devicename && 
                             $scope.sensors_datachart[sensor].sensorname === sensorname) {
                                 let index = tooltipItem.datasetIndex;
@@ -7744,6 +7746,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                                 }
                                 break;
                             }
+*/
                     }
                     
                     if (unit !== undefined && unit !== null && unit !== "") {
@@ -8235,7 +8238,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                         }
                     }
                     */
-                    console.log(result.data.sensors.length);
+                    //console.log(result.data.sensors.length);
                 }
                 if (result.data.sensors.length === 0) {
                     $scope.sensors_counthdr = "No sensor returned";
@@ -8339,8 +8342,10 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                     // devicename, sensorname, units, formats    
                     $scope.sensors[indexy].dataset.devicename = $scope.sensors[indexy].devicename;
                     $scope.sensors[indexy].dataset.sensorname = $scope.sensors[indexy].sensorname;
-                    $scope.sensors[indexy].dataset.units      = $scope.sensors[indexy].units;
-                    $scope.sensors[indexy].dataset.formats    = $scope.sensors[indexy].formats;
+                    $scope.sensors[indexy].dataset.unit       = $scope.sensors[indexy].unit;
+                    $scope.sensors[indexy].dataset.format     = $scope.sensors[indexy].format;
+                    //$scope.sensors[indexy].dataset.units      = $scope.sensors[indexy].unit;
+                    //$scope.sensors[indexy].dataset.formats    = $scope.sensors[indexy].format;
                     
                     // labels
                     $scope.sensors[indexy].dataset.labels_time = [];
@@ -8481,7 +8486,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             headers: { 'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json' },
         })
         .then(function (result) {
-            console.log(result.data);
+            //console.log(result.data);
             $scope.sensorsummary = result.data.summary.sensors;
             $scope.devicesummary = result.data.summary.devices;
         })
@@ -8664,10 +8669,16 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         for (indexy=0; indexy<$scope.sensors.length; indexy++) {
             if ($scope.sensors[indexy].sensorname === sensor.sensorname &&
                 $scope.sensors[indexy].devicename === sensor.devicename) {
-
-                let class_max = $scope.getMax(sensor.class);
-                let subclass_max = $scope.getMax(sensor.subclass);
-                $scope.sensors_datachart_options.scales.yAxes[0].ticks.max = Math.max(class_max, subclass_max);
+                
+                if ($scope.sensors[indexy].minmax !== undefined) {
+                    $scope.sensors_datachart_options.scales.yAxes[0].ticks.min = parseFloat($scope.sensors[indexy].minmax[0]);
+                    $scope.sensors_datachart_options.scales.yAxes[0].ticks.max = parseFloat($scope.sensors[indexy].minmax[1]);
+                }
+                else {
+                    let class_max = $scope.getMax(sensor.class);
+                    let subclass_max = $scope.getMax(sensor.subclass);
+                    $scope.sensors_datachart_options.scales.yAxes[0].ticks.max = Math.max(class_max, subclass_max);
+                }
                 found = true;
                 break;
             }
@@ -10531,18 +10542,14 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             console.log(result.data);
             $scope.ldsbus = result.data.ldsbus;
             
-            console.log("xxxxxxxxx 0");
             if  ($scope.ldsbus[0].sensors !== undefined) {
-                console.log("xxxxxxxxx 1");
                 for (let i in $scope.ldsbus[0].sensors) {
-                console.log("xxxxxxxxx 2");
                     if ($scope.ldsbus[0].sensors[i].enabled === 1) {
                         $scope.ldsbus[0].sensors[i].enabled_bool = true;
                     }
                     else {
                         $scope.ldsbus[0].sensors[i].enabled_bool = false;
                     }                    
-                console.log("xxxxxxxxx 3");
                 }
             }
             if  ($scope.ldsbus[0].actuators !== undefined) {
@@ -10589,18 +10596,14 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             console.log(result.data);
             $scope.ldsbus = result.data.ldsbus;
             
-            console.log("xxxxxxxxx 0");
             if  ($scope.ldsbus[0].sensors !== undefined) {
-                console.log("xxxxxxxxx 1");
                 for (let i in $scope.ldsbus[0].sensors) {
-                console.log("xxxxxxxxx 2");
                     if ($scope.ldsbus[0].sensors[i].enabled === 1) {
                         $scope.ldsbus[0].sensors[i].enabled_bool = true;
                     }
                     else {
                         $scope.ldsbus[0].sensors[i].enabled_bool = false;
                     }                    
-                console.log("xxxxxxxxx 3");
                 }
             }
             if  ($scope.ldsbus[0].actuators !== undefined) {
@@ -10785,12 +10788,14 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         }); 
     };
     
+    
     $scope.identifyLDSU = function() {
         console.log('Identify LDSU');
         $scope.identify_ldsu();
     };
     
     $scope.identify_ldsu = function() {
+        console.log("Identify LDSU " + $scope.ldsu.UID);
         //
         // IDENTIFY LDSU
         //
@@ -10816,6 +10821,90 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
     };
 
 
+    $scope.deleteLDSU = function() {
+        console.log('Delete LDSU ' + $scope.ldsu.UID);
+
+        $ionicPopup.alert({
+            title: 'Delete LDSU',
+            template: 'Are you sure you want to delete this LDSU - ' + $scope.ldsu.UID + '?',
+            buttons: [
+                { 
+                    text: 'No',
+                    type: 'button-negative',
+                },
+                {
+                    text: 'Yes',
+                    type: 'button-positive',
+                    onTap: function(e) {
+                        $scope.delete_ldsu();
+                    }
+                }
+            ]            
+        });        
+    };
+    
+    $scope.delete_ldsu = function() {
+        //
+        // DELETE LDSU
+        //
+        // - Request:
+        //   DELETE /devices/device/DEVICENAME/ldsu/LDSUUUID
+        //   headers: { 'Authorization': 'Bearer ' + token.access }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string, }
+        //   { 'status': 'NG', 'message': string }
+        //
+        $http({
+            method: 'DELETE',
+            url: server + '/devices/device/' + $scope.data.devicename + '/ldsu/' + $scope.ldsu.UID,
+            headers: {'Authorization': 'Bearer ' + $scope.data.token.access}
+        })
+        .then(function (result) {
+            console.log(result.data);
+            $ionicPopup.alert({
+                title: 'Delete LDSU',
+                template: 'Delete LDSU was successful!',
+            });
+            $scope.submitDeviceList();
+        })
+        .catch(function (error) {
+            $scope.handle_error(error);
+        }); 
+    };
+    
+
+    $scope.getLDSU = function() {
+        console.log('Get LDSU');
+        $scope.get_ldsu();
+    };
+    
+    $scope.get_ldsu = function() {
+        console.log('Get LDSU ' + $scope.ldsu.UID);
+        //
+        // GET LDSU
+        //
+        // - Request:
+        //   GET /devices/device/DEVICENAME/ldsu/LDSUUUID
+        //   headers: { 'Authorization': 'Bearer ' + token.access }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string, }
+        //   { 'status': 'NG', 'message': string }
+        //
+        $http({
+            method: 'GET',
+            url: server + '/devices/device/' + $scope.data.devicename + '/ldsu/' + $scope.ldsu.UID,
+            headers: {'Authorization': 'Bearer ' + $scope.data.token.access}
+        })
+        .then(function (result) {
+            console.log(result.data);
+        })
+        .catch(function (error) {
+            $scope.handle_error(error);
+        }); 
+    };
+    
 
     $scope.$on('$ionicView.enter', function(e) {
         console.log('enter');
@@ -10872,6 +10961,49 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         }
     };
 
+    // GET LDS BUS
+    $scope.getLDSBUSSensors = function() {
+        console.log("getLDSBUSSensors");
+        $scope.get_lds_bus_sensors($scope.data.activeSection);
+    };
+
+    $scope.get_lds_bus_sensors = function(activeSection) {
+        //
+        // GET LDS BUS SENSORS
+        //
+        // - Request:
+        //   GET /devices/device/DEVICENAME/ldsbus/PORTNUMBER/sensors
+        //   headers: { 'Authorization': 'Bearer ' + token.access }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string, }
+        //   { 'status': 'NG', 'message': string }
+        //
+        $http({
+            method: 'GET',
+            url: server + '/devices/device/' + $scope.data.devicename + '/ldsbus/' + $scope.data.activeSection.toString() + '/sensors',
+            headers: {'Authorization': 'Bearer ' + $scope.data.token.access}
+        })
+        .then(function (result) {
+            console.log(result.data);
+            $scope.data.sensors = result.data.sensors;
+            
+            if  ($scope.data.sensors !== undefined) {
+                for (let i in $scope.data.sensors) {
+                    if ($scope.data.sensors[i].enabled === 1) {
+                        $scope.data.sensors[i].enabled_bool = true;
+                    }
+                    else {
+                        $scope.data.sensors[i].enabled_bool = false;
+                    }                    
+                }
+            }
+        })
+        .catch(function (error) {
+            $scope.handle_error(error);
+        }); 
+    };
+    
 
     $scope.processSensor = function(sensor) {
         console.log("processSensor");
@@ -10915,7 +11047,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
 
 
     // ENABLE SENSOR
-    $scope.changeDevice = function(sensor, i) {
+    $scope.enableSensor = function(sensor, i) {
         console.log(i);
         $scope.enable_xxx_sensor(sensor, i, sensor.source);
     };    
@@ -10957,8 +11089,14 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         })
         .catch(function (error) {
             $scope.handle_error(error);
-            
             $ionicPopup.alert({ title: 'Error', template: error.data.message, buttons: [{text: 'OK', type: 'button-assertive'}] });
+            for (var x in $scope.data.sensors) {
+                if ($scope.data.sensors[x].source === sensor.source && 
+                    $scope.data.sensors[x].number === sensor.number) {
+                        $scope.data.sensors[x].enabled_bool = !enable;
+                        break;
+                    }
+            }
         }); 
     };
 
@@ -10967,6 +11105,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
     $scope.$on('$ionicView.enter', function(e) {
         console.log('enter');
         console.log($scope.data);
+        $scope.getLDSBUSSensors();
     });
 
     
@@ -15050,9 +15189,9 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         'attributes': {
             'mode': $scope.modes[0].id,
             'threshold': {
-                'value': 40,
-                'min': 0,
-                'max': 40,
+                'value': parseInt($stateParams.sensor.minmax[1], 10),
+                'min': parseInt($stateParams.sensor.minmax[0], 10),
+                'max': parseInt($stateParams.sensor.minmax[1], 10),
                 'activate': $scope.activates[0].id,
             },
             'alert': {
@@ -15467,9 +15606,9 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         'attributes': {
             'mode': $scope.modes[0].id,
             'threshold': {
-                'value': 100,
-                'min': 0,
-                'max': 100,
+                'value': parseInt($stateParams.sensor.minmax[1], 10),
+                'min': parseInt($stateParams.sensor.minmax[0], 10),
+                'max': parseInt($stateParams.sensor.minmax[1], 10),
                 'activate': $scope.activates[0].id,
             },
             'alert': {

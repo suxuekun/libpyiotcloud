@@ -236,6 +236,102 @@ def get_configuration(database_client, deviceid, topic, payload):
     g_messaging_client.publish(new_topic, new_payload, debug=False) # NOTE: enable to DEBUG
 
 
+def get_configuration_ex(database_client, deviceid, topic, payload):
+
+    print("{} {}".format(topic, deviceid))
+
+    # find if deviceid exists
+    devicename = database_client.get_devicename(deviceid)
+    if devicename is None:
+        # if no entry found, just send an empty json
+        new_payload = {}
+        new_payload = json.dumps(new_payload)
+        g_messaging_client.publish(new_topic, new_payload, debug=False) # NOTE: enable to DEBUG
+        return
+
+    # set topic and payload template for the response
+    new_topic = "{}{}{}".format(deviceid, CONFIG_SEPARATOR, API_RECEIVE_CONFIGURATION)
+    new_payload = {
+        "ldsu"   : [],
+        "uart"   : [{}],
+    }
+
+    # read configurations from the database
+    configurations = database_client.get_all_device_peripheral_configuration(deviceid)
+    if len(configurations) == 0:
+        # if no entry found, just send an empty json
+        new_payload = {}
+        new_payload = json.dumps(new_payload)
+        g_messaging_client.publish(new_topic, new_payload, debug=False) # NOTE: enable to DEBUG
+        return
+    #print_json(configurations)
+
+    # set all counters to 0
+    count_uart = 0
+    count_ldsu = 0
+
+    # add configuration to the payload response
+    for configuration in configurations:
+        number = configuration["number"]
+        source = configuration["source"]
+        if source == "uart":
+            configuration.pop("source")
+            configuration.pop("number")
+            new_payload[source][number-1] = configuration
+            if source == "uart":
+                count_uart += 1
+        else:
+            props = {
+                "enabled": configuration["enabled"],
+                "UID": source,
+                "SAID": str(number)
+            }
+            if configuration.get("mode") is not None:
+                props["MODE"] = configuration["mode"]
+            else:
+                props["MODE"] = 0
+            new_payload["ldsu"].append(props)
+            count_ldsu += 1
+
+    # if GET_ALL_PERIPHERAL_CONFIGURATION,
+    #   only peripherals with configured sensors will be included
+    #   peripherals with no configured sensors will NOT be included to reduce size
+    # if GET_SPECIFIED_PERIPHERAL_CONFIGURATION,
+    #   specify the peripherals using "peripheral" list parameter (ex. "peripherals": ["i2c", "adc"])
+    #   only specified peripherals with configured sensors will be included
+    #   specified peripherals with no configured sensors will NOT be included to reduce size
+    payload = json.loads(payload)
+    if payload.get("peripherals"):
+        # peripherals specified
+        # remove if not specified
+        # include if have data
+        if "ldsu" not in payload["peripherals"]:
+            new_payload.pop("ldsu")
+        else:
+            # include if have data
+            if count_ldsu == 0:
+                new_payload.pop("ldsu")
+
+        if "uart" not in payload["peripherals"]:
+            new_payload.pop("uart")
+        else:
+            # include if have data
+            if count_uart == 0:
+                new_payload.pop("uart")
+    else:
+        # no peripherals specified
+        # include all if have data
+        if count_ldsu == 0:
+            new_payload.pop("ldsu")
+        if count_uart == 0:
+            new_payload.pop("uart")
+
+    # publish packet response to device
+    #print_json(new_payload)
+    new_payload = json.dumps(new_payload)
+    g_messaging_client.publish(new_topic, new_payload, debug=False) # NOTE: enable to DEBUG
+
+
 def del_configuration(database_client, deviceid, topic, payload):
 
     print("{} {}".format(topic, deviceid))
@@ -438,7 +534,8 @@ def on_message(subtopic, subpayload):
 
     if topic == API_REQUEST_CONFIGURATION:
         try:
-            thr = threading.Thread(target = get_configuration, args = (g_database_client, deviceid, topic, payload ))
+            #thr = threading.Thread(target = get_configuration, args = (g_database_client, deviceid, topic, payload ))
+            thr = threading.Thread(target = get_configuration_ex, args = (g_database_client, deviceid, topic, payload ))
             thr.start()
         except Exception as e:
             print("exception API_REQUEST_CONFIGURATION")
