@@ -22,3 +22,4 @@ class DashboardRepository(MongoBaseRepository, IDashboardRepository):
             "modifiedAt": 0
         }
         return super().gets(query, projection)
+    

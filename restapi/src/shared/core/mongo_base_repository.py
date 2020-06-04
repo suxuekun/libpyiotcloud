@@ -4,6 +4,7 @@ from .base_repository import BaseRepository
 from shared.core.exceptions import CreatedExeception, DeletedException, QueriedByIdException, QueriedManyException, UpdatedException
 from bson.objectid import ObjectId
 from bson.json_util import dumps
+from shared.utils import timestamp_util
 
 class MongoBaseRepository(BaseRepository):
 
@@ -14,6 +15,9 @@ class MongoBaseRepository(BaseRepository):
 
     def create(self, input) -> bool:
         try:
+            if "_id" in input:
+                input.pop("_id")
+                
             self.collection.insert_one(input)
             return True
         except Exception as e:
@@ -24,14 +28,17 @@ class MongoBaseRepository(BaseRepository):
             query = {
                 "_id": ObjectId(id)
             }
-            print("Update")
-            print(input)
+            if input["_id"] is not None:
+                input.pop("_id")
+                
+            input["modifiedAt"] = timestamp_util.get_timestamp()
             self.collection.update_one(query, {"$set": input})
             return True
+        
         except Exception as e:
             print("Update failed")
             print(e)
-            raise UpdatedException(e.message)
+            raise UpdatedException(str(e))
 
     def getById(self, id: str):
         try:

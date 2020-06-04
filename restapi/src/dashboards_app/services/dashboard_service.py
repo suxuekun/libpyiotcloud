@@ -9,6 +9,8 @@ from schematics.exceptions import ValidationError, ModelValidationError
 from shared.core.exceptions import CreatedExeception, UpdatedException, QueriedByIdException, QueriedManyException
 from shared.services.logger_service import LoggerService
 from dashboards_app.utils.mapper_util import map_entities_to_summaries_response
+
+
 class DashboardService:
     def __init__(self, dashboardRepository: IDashboardRepository):
         self.dashboardRepository = dashboardRepository
@@ -32,9 +34,10 @@ class DashboardService:
         except Exception as e:
             LoggerService.get_instance().error(str(e))
             return Response.fail("Sorry, there is something wrong")
-
+        
+    
     def updateNameAndOption(self, id: str, dto: DashboardDto):
-
+        
         try:
             print("Update ne ")
             entity = self.dashboardRepository.getById(id)

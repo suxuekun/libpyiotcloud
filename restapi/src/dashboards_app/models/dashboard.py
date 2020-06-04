@@ -2,8 +2,9 @@
 from bson.objectid import ObjectId
 from dashboards_app.models.gateway_attribute import GatewayAttribute
 from schematics.types import StringType, DecimalType, IntType, BooleanType, ListType, ModelType
-from shared.core.model import BaseModel, TimeStampMixin
+from shared.core.model import BaseModel, TimeStampMixin, MongoIdMixin
 from dashboards_app.dtos.dashboard_dto import DashboardDto
+from schematics import Model
 
 class Option(BaseModel):
     color = StringType()
@@ -18,7 +19,7 @@ class Chart(BaseModel, TimeStampMixin):
     chartTypeId = StringType()
     attribute = ModelType(GatewayAttribute)
 
-class DashboardModel(BaseModel, TimeStampMixin):
+class DashboardModel(BaseModel, MongoIdMixin, TimeStampMixin):
     name = StringType()
     option = ModelType(Option)
     gateways = ListType(ModelType(Chart), default=[])
@@ -43,7 +44,6 @@ class Dashboard:
     def updateNameAndOption(self, dto: DashboardDto):
         self.model.name = dto.name
         self.model.option = Option({'color': dto.color})
-
 
     def addChartGateway(self, chart: Chart):
         self.model.gateways.append(chart)
