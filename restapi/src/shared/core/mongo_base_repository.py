@@ -1,7 +1,9 @@
 from pymongo import MongoClient
 from datetime import datetime
 from .base_repository import BaseRepository
-
+from shared.core.exceptions import CreatedExeception, DeletedException, QueriedByIdException, QueriedManyException, UpdatedException
+from bson.objectid import ObjectId
+from bson.json_util import dumps
 
 class MongoBaseRepository(BaseRepository):
 
@@ -15,30 +17,41 @@ class MongoBaseRepository(BaseRepository):
             self.collection.insert_one(input)
             return True
         except Exception as e:
-            print(e)
-            return False
+            raise CreatedExeception(e.message)
 
     def update(self, id: str, input) -> bool:
         try:
             query = {
-                "_id": id
+                "_id": ObjectId(id)
             }
-            decodedObject = vars(input)
-            self.collection.update_one(query, decodedObject)
+            print("Update")
+            print(input)
+            self.collection.update_one(query, {"$set": input})
             return True
         except Exception as e:
+            print("Update failed")
             print(e)
-            return False
+            raise UpdatedException(e.message)
 
     def getById(self, id: str):
-        query = {
-            "_id": id
-        }
-        result = self.collection.findOne(query)
-        return result
+        try:
+            query = {
+                "_id": ObjectId(id)
+            }
+            result = self.collection.find_one(query)
+            result["_id"] = str(result["_id"])
+            return result
+        except Exception as e:
+            print(e)
+            raise QueriedByIdException(e.message)
 
-    def gets(self, query, projection) -> []:
-        results = self.collection.find(query, projection)
+    def _cast_object_without_objectId(self, data):
+        data["_id"] = str(data["_id"])
+        return data
+    
+    def gets(self, query=None, projection=None):
+        cursors = self.collection.find(query, projection)
+        results = list(map(lambda r: self._cast_object_without_objectId(r), cursors))
         return results
 
     def delete(self, id: str) -> bool:
@@ -50,4 +63,4 @@ class MongoBaseRepository(BaseRepository):
             return True
         except Exception as e:
             print(e)
-            return False
+            raise DeletedException(e.message)

@@ -1,17 +1,18 @@
 import datetime
 
 from schematics import Model
-from schematics.types import DateTimeType, BooleanType, TimestampType
+from schematics.types import DateTimeType, BooleanType, TimestampType, StringType
 
 from shared.utils import timestamp_util
 
 
 class BaseModel(Model):
+    _id = StringType()
     pass
 
 class TimeStampMixin(Model):
-    createdAt = TimestampType(default=timestamp_util.get_timestamp)
-    modifiedAt = TimestampType(default=timestamp_util.get_timestamp)
+    createdAt = StringType(default=timestamp_util.get_timestamp)
+    modifiedAt = StringType(default=timestamp_util.get_timestamp)
 
 class ActiveMixin(Model):
     active = BooleanType(default=True)

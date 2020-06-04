@@ -1,5 +1,6 @@
 
 import json
+from flask import jsonify
 
 class Response:
 
@@ -10,11 +11,11 @@ class Response:
 
     @staticmethod
     def fail(message: str):
-        return Response(data = None, message=message, status="Fail").toJson()
+        return Response(data = None, message=message, status="Fail").toJson(), 500
 
     @staticmethod
     def success(data, message: str):
-        return Response(data = data, message=message, status="Ok").toJson()
+        return Response(data = data, message=message, status="Ok").toJson(), 200
     
     def toJson(self):
         response = {
@@ -25,4 +26,4 @@ class Response:
         if self.data is not None:
             response['data'] = self.data
 
-        return json.dumps(response)
+        return jsonify(response)
