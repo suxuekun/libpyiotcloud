@@ -74,6 +74,7 @@ API_REQUEST_FIRMWARE             = "req_firmware"
 API_RECEIVE_FIRMWARE             = "rcv_firmware"
 API_REQUEST_OTASTATUS            = "req_otastatus"
 API_REQUEST_TIME                 = "req_time"
+API_RECEIVE_TIME                 = "rcv_time"
 
 
 
@@ -115,7 +116,7 @@ def read_file_chunk(payload):
 
 def request_time(database_client, deviceid, topic, payload):
 
-    new_topic = "{}{}{}".format(deviceid, CONFIG_SEPARATOR, API_REQUEST_TIME)
+    new_topic = "{}{}{}".format(deviceid, CONFIG_SEPARATOR, API_RECEIVE_TIME)
     new_payload = {
         "time": int(time.time())
     }
