@@ -14,8 +14,5 @@ class BaseRepository():
     def getById(self, id: str):
         pass
 
-    def gets(self, query, projection) -> []:
-        pass
-    
     def delete(self, id: str) -> bool:
         pass
