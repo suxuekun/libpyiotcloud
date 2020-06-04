@@ -40,140 +40,88 @@ Below is a summary and a detailed list of the subtopics the device will receive 
 SUMMARY:
 
 	1. STATUS
-		A. GET STATUS                get_status
-		   - starting, running, restart, restarting, stop, stopping, stopped, start
-
-		B. SET STATUS                set_status
-		   - restart, stop, start
+		A. GET STATUS                       get_status
+		B. SET STATUS                       set_status
 
 	2. SETTINGS
-		A. GET SETTINGS              get_settings
-		   - sensorrate (can add more settings in the future)
-
-		B. SET SETTINGS              set_settings
-		   - sensorrate (can add more settings in the future)
+		A. GET SETTINGS                     get_settings
+		B. SET SETTINGS                     set_settings
 
 	2. UART
-		A. GET UARTS                 get_uarts
-		   - gets enabled status of the UART
-
-		B. GET UART PROPERTIES       get_uart_prop
-		   - gets structure data with correct value mapping (due to unexposed values)
-
-		C. SET UART PROPERTIES       set_uart_prop
-		   - sets structure data with correct value mapping
-		   - calls uart_close(), uart_soft_reset(), uart_open()
-		     * uart_soft_reset is needed to prevent distorted text when changing databits or parity
-		     * interrupt_attach, uart_enable_interrupt and uart_enable_interrupts_globally needs to be called because uart_soft_reset clears the interrupt
-
-		D. ENABLE/DISABLE UART       enable_uart
-		   - ENABLE: calls uart_open()
-		     * interrupt_attach, uart_enable_interrupt and uart_enable_interrupts_globally needs to be called because uart_soft_reset clears the interrupt
-		   - DISABLE: calls uart_close() and uart_soft_reset()
-		     * uart_soft_reset is needed to prevent distorted text when changing databits or parity
-
+		A. GET UARTS                        get_uarts
+		B. GET UART PROPERTIES              get_uart_prop
+		C. SET UART PROPERTIES              set_uart_prop
+		D. ENABLE/DISABLE UART              enable_uart
 		E. UART AT Commands
-		   - AT+M (Mobile)
-		           AT+M
-		           AT+M+6512345678
-		           AT+M++Hello World
-		           AT+M+6512345678+Hello World
-		   - AT+E (Email)
-		           AT+E
-		           AT+E+email@xyz.com
-		           AT+E++Hello World
-		           AT+E+email@xyz.com+Hello World
-		   - AT+N (Notification)
-		   - AT+O (mOdem)
-		           AT+O
-		           AT+O+DEVICEID
-		           AT+O++Hello World
-		           AT+O+DEVICEID+Hello World
-		   - AT+S (Storage)
-		   - AT+D (Default)
-		           AT+D
-		   - Others
 
 	3. GATEWAY AND LDSBUS
-		A. SET GATEWAY DESCRIPTOR    set_descriptor       // auto-register
-		B. GET GATEWAY DESCRIPTOR    get_descriptor       // query-based
-		C. SET LDSU DESCRIPTORS      set_ldsu_descriptors // auto-register
-		D. GET LDSU DESCRIPTOR       get_ldsu_descriptors // query-based
-		E. IDENTIFY LDSU             ide_ldsu
+		A. SET GATEWAY DESCRIPTOR           set_descriptor         // auto-register
+		B. GET GATEWAY DESCRIPTOR           get_descriptor         // query-based
+		C. SET LDSU DESCRIPTORS             set_ldsu_descriptors   // auto-register
+		D. GET LDSU DESCRIPTOR              get_ldsu_descriptors   // query-based
+		E. IDENTIFY LDSU                    identify_ldsu
+		F. ENABLE LDSU DEVICE               enable_ldsu_dev
 
-	4. GPIO
-		A. GET GPIOS                 get_gpios
-		   - gets enabled, direction and status of all 4 GPIO pins
+	4. Configurations
+		A. REQUEST CONFIGURATION            req_configuration
+		B. RECEIVE CONFIGURATION            rcv_configuration
+		C. DELETE CONFIGURATION             del_configuration
 
-		B. GET GPIO PROPERTIES       get_gpio_prop
-		C. SET GPIO PROPERTIES       set_gpio_prop
-		   - if input pin, disable OUTPUT ENABLE pin
-		   - else if output pin, enable OUTPUT ENABLE pin
-		     and set output pin to inactive state (opposite of specified polarity)
+	5. Sensor Reading
+		A. PUBLISH SENSOR READING           pub_sensor_reading
+		B. RECEIVE SENSOR READING           rcv_sensor_reading   // OBSOLETED
+		C. REQUEST SENSOR READING           req_sensor_reading   // OBSOLETED
 
-		D. ENABLE/DISABLE GPIO          enable_gpio
-		   - ENABLE:
-		     If INPUT
-		     - calls gpio_read() the creates a timer or interrupt
-		       timer if already in activation mode
-		       interrupt to wait to get to activation mode before create timer
-		     Else OUTPUT
-		     - if Level or Pulse mode, call gpio_write() and delayms()
-		       else if Clock, create a task that calls gpio_write() and delayms()
-		   - DISABLE:
-		     If INPUT
-		     - deletes timer and or interrupt
-		     Else OUTPUT
-		     - if Clock mode, delete the task
+	6. OTA Firmware Update
 
-		E. GET GPIO VOLTAGE             get_gpio_voltage
-		F. SET GPIO VOLTAGE             set_gpio_voltage
-		   - 3.3v: gpio_write(16, 0), gpio_write(17, 1)
-		   - 5v:   gpio_write(16, 1), gpio_write(17, 0)
+		A. UPGRADE FIRMWARE                 beg_ota
+		B. UPGRADE FIRMWARE COMPLETION      end_ota
+		C. REQUEST OTASTATUS                req_otastatus
+		D. REQUEST TIME                     req_time
+		E. RECEIVE TIME                     rcv_time
 
-	5. I2C
-		A. GET I2C DEVICES              get_i2c_devs
-		B. GET I2C DEVICE PROPERTIES    get_i2c_dev_prop
-		C. SET I2C DEVICE PROPERTIES    set_i2c_dev_prop
-		D. ENABLE/DISABLE I2C DEVICE    enable_i2c_dev
+	7. Notifications
+		A. SEND NOTIFICATION                trigger_notification
+		B. STATUS NOTIFICATION              status_notification
+		C. RECEIVE NOTIFICATION             recv_notification
 
-	6. ADC
-		A. GET ADC DEVICES              get_adc_devs
-		B. GET ADC DEVICE PROPERTIES    get_adc_dev_prop
-		C. SET ADC DEVICE PROPERTIES    set_adc_dev_prop
-		D. ENABLE/DISABLE ADC DEVICE    enable_adc_dev
-		E. GET ADC VOLTAGE              get_adc_voltage
-		F. SET ADC VOLTAGE              set_adc_voltage
 
-	7. 1WIRE
-		A. GET 1WIRE DEVICES            get_1wire_devs
-		B. GET 1WIRE DEVICE PROPERTIES  get_1wire_dev_prop
-		C. SET 1WIRE DEVICE PROPERTIES  set_1wire_dev_prop
-		D. ENABLE/DISABLE 1WIRE DEVICE  enable_1wire_dev
+	8. GPIO
+		A. GET GPIOS                        get_gpios            // OBSOLETED
+		B. GET GPIO PROPERTIES              get_gpio_prop        // OBSOLETED
+		C. SET GPIO PROPERTIES              set_gpio_prop        // OBSOLETED
+		D. ENABLE/DISABLE GPIO              enable_gpio          // OBSOLETED
+		E. GET GPIO VOLTAGE                 get_gpio_voltage     // OBSOLETED
+		F. SET GPIO VOLTAGE                 set_gpio_voltage     // OBSOLETED
 
-	8. TPROBE
-		A. GET TPROBE DEVICES           get_tprobe_devs
-		B. GET TPROBE DEVICE PROPERTIES get_tprobe_dev_prop
-		C. SET TPROBE DEVICE PROPERTIES set_tprobe_dev_prop
-		D. ENABLE/DISABLE TPROBE DEVICE enable_tprobe_dev
+	9. I2C
+		A. GET I2C DEVICES                  get_i2c_devs         // OBSOLETED
+		B. GET I2C DEVICE PROPERTIES        get_i2c_dev_prop     // OBSOLETED
+		C. SET I2C DEVICE PROPERTIES        set_i2c_dev_prop     // OBSOLETED
+		D. ENABLE/DISABLE I2C DEVICE        enable_i2c_dev       // OBSOLETED
 
-	9. PERIPHERALS
-		A. GET PERIPHERAL DEVICES       get_devs
+	10. ADC
+		A. GET ADC DEVICES                  get_adc_devs         // OBSOLETED
+		B. GET ADC DEVICE PROPERTIES        get_adc_dev_prop     // OBSOLETED
+		C. SET ADC DEVICE PROPERTIES        set_adc_dev_prop     // OBSOLETED
+		D. ENABLE/DISABLE ADC DEVICE        enable_adc_dev       // OBSOLETED
+		E. GET ADC VOLTAGE                  get_adc_voltage      // OBSOLETED
+		F. SET ADC VOLTAGE                  set_adc_voltage      // OBSOLETED
 
-	10. Notifications
-		A. SEND NOTIFICATION            trigger_notification
-		B. STATUS NOTIFICATION          status_notification
-		C. RECV NOTIFICATION            recv_notification
+	11. 1WIRE
+		A. GET 1WIRE DEVICES                get_1wire_devs       // OBSOLETED
+		B. GET 1WIRE DEVICE PROPERTIES      get_1wire_dev_prop   // OBSOLETED
+		C. SET 1WIRE DEVICE PROPERTIES      set_1wire_dev_prop   // OBSOLETED
+		D. ENABLE/DISABLE 1WIRE DEVICE      enable_1wire_dev     // OBSOLETED
 
-	11. Sensor Reading
-		A. RECEIVE SENSOR READING       rcv_sensor_reading
-		B. REQUEST SENSOR READING       req_sensor_reading
-		C. PUBLISH SENSOR READING       sensor_reading
+	12. TPROBE
+		A. GET TPROBE DEVICES               get_tprobe_devs      // OBSOLETED
+		B. GET TPROBE DEVICE PROPERTIES     get_tprobe_dev_prop  // OBSOLETED
+		C. SET TPROBE DEVICE PROPERTIES     set_tprobe_dev_prop  // OBSOLETED
+		D. ENABLE/DISABLE TPROBE DEVICE     enable_tprobe_dev    // OBSOLETED
 
-	12. Configurations
-		A. RECEIVE CONFIGURATION        rcv_configuration
-		B. REQUEST CONFIGURATION        req_configuration
-		C. DELETE CONFIGURATION         del_configuration
+	13. PERIPHERALS
+		A. GET PERIPHERAL DEVICES           get_devs             // OBSOLETED
 
 
 DETAILED:
@@ -215,6 +163,7 @@ DETAILED:
 		       ]
 		     }
 		   }
+		   // gets enabled status of the UART
 		   // enable is an int indicating if disabled (0) or enabled (1)
 
 		B. GET UART PROPERTIES
@@ -231,6 +180,7 @@ DETAILED:
 		       'databits': int, 
 		     } 
 		   }
+		   // gets structure data with correct value mapping (due to unexposed values)
 		   // baudrate is an index of the value in the list of baudrates
 		   //   ft900_uart_simple.h: UART_DIVIDER_XXX
 		   //   ["110", "150", "300", "1200", "2400", "4800", "9600", "19200", "31250", "38400", "57600", "115200", "230400", "460800", "921600", "1000000"]
@@ -261,6 +211,11 @@ DETAILED:
 		       'stopbits': int, 
 		       'databits': int, 
 		   }
+		   // sets structure data with correct value mapping
+		   // calls uart_close(), uart_soft_reset(), uart_open()
+		   // * uart_soft_reset is needed to prevent distorted text when changing databits or parity
+		   // * interrupt_attach, uart_enable_interrupt and uart_enable_interrupts_globally needs to be called because uart_soft_reset clears the interrupt
+		   //
 		   // baudrate is an index of the value in the list of baudrates
 		   //   ft900_uart_simple.h: UART_DIVIDER_XXX
 		   //   ["110", "150", "300", "1200", "2400", "4800", "9600", "19200", "31250", "38400", "57600", "115200", "230400", "460800", "921600", "1000000"]
@@ -292,6 +247,32 @@ DETAILED:
 		-  Publish:
 		   topic: server/DEVICEID/enable_uart
 		   payload: {}
+		   // - ENABLE: calls uart_open()
+		   //   * interrupt_attach, uart_enable_interrupt and uart_enable_interrupts_globally needs to be called because uart_soft_reset clears the interrupt
+		   // - DISABLE: calls uart_close() and uart_soft_reset()
+		   //   * uart_soft_reset is needed to prevent distorted text when changing databits or parity
+
+		E. UART AT Commands
+		   - AT+M (Mobile)
+		           AT+M
+		           AT+M+6512345678
+		           AT+M++Hello World
+		           AT+M+6512345678+Hello World
+		   - AT+E (Email)
+		           AT+E
+		           AT+E+email@xyz.com
+		           AT+E++Hello World
+		           AT+E+email@xyz.com+Hello World
+		   - AT+N (Notification)
+		   - AT+O (mOdem)
+		           AT+O
+		           AT+O+DEVICEID
+		           AT+O++Hello World
+		           AT+O+DEVICEID+Hello World
+		   - AT+S (Storage)
+		   - AT+D (Default)
+		           AT+D
+		   - Others
 
 
 	3. GATEWAY and LDSBUS
@@ -446,14 +427,173 @@ DETAILED:
 
 		E. IDENTIFY LDSU
 		-  Receive:
-		   topic: DEVICEID/ide_ldsu
+		   topic: DEVICEID/identify_ldsu
 		   payload: {'UID': string}
 		-  Publish:
-		   topic: server/DEVICEID/ide_ldsu
+		   topic: server/DEVICEID/identify_ldsu
+		   payload: {}
+
+		F. ENABLE LDSU DEVICE (SENSOR/ACTUATOR)
+		-  Receive:
+		   topic: DEVICEID/enable_ldsu_dev
+		   payload: 
+		   {
+		     'enable': int,
+		     'UID':    string,
+		     'SAID':   string,
+		     'MODE':   int
+		   }
+		-  Publish:
+		   topic: server/DEVICEID/enable_ldsu_dev
 		   payload: {}
 
 
-	4. GPIO
+	4. Configurations
+
+		A. REQUEST CONFIGURATION     req_configuration
+		-  Publish:
+		   topic: server/DEVICEID/req_configuration
+		   payload: {}
+
+		B. RECEIVE CONFIGURATION     rcv_configuration
+		-  Receive:
+		   topic: DEVICEID/rcv_configuration
+		   payload: 
+		   {
+		     'ldsu': [
+		       {
+		         'enable': int,
+		         'UID':    string,
+		         'SAID':   string,
+		         'MODE':   int
+		       },
+		       ...
+		     ]
+		   }
+
+		C. DELETE CONFIGURATION      del_configuration
+
+
+	5. Sensor Reading
+
+		C. PUBLISH SENSOR READING    pub_sensor_reading
+		-  Publish:
+		   topic: DEVICEID/pub_sensor_reading
+		   payload:
+		   // NEW
+		   {
+		     "UID": string, // LDSU UUID
+		     "TS":  string, // timestamp in epoch
+		     "SNS": [string, ...] // if disabled, use "NaN"
+		   }
+		
+		   // OLD
+		   {
+		     "timestamp": int,
+		     "sensors": { 
+		       "i2c1":    [{"class": 0, "value": 1, "address": 1}, ...],
+		       "i2c2":    [{"class": 1, "value": 2, "address": 2}, ...],
+		       "i2c3":    [{"class": 2, "value": 3, "address": 3}, ...],
+		       "i2c4":    [{"class": 3, "value": 4, "address": 4}, ...],
+		       "adc1":    [{"class": 0, "value": 1}],
+		       "adc2":    [{"class": 1, "value": 2}],
+		       "1wire1":  [{"class": 2, "value": 3}],
+		       "tprobe1": [{"class": 3, "value": 4, subclass: {"class": 4, "value": 5}}],
+		     }
+		   }
+		   // NOTE: multiple sensor data from different peripherals can be sent at the same time
+		   // class is the index of the sensor's class in the array
+		      ["speaker", "display", "light", "potentiometer", "temperature", "humidity", "anemometer", "battery", "fluid"]
+		   // address is optional and it only applies for I2C
+		   // timestamp is optional and it refers to epoch in seconds
+
+		B. RECEIVE SENSOR READING    rcv_sensor_reading
+		C. REQUEST SENSOR READING    req_sensor_reading
+
+
+	6. OTA Firmware Update
+
+		A. API_UPGRADE_FIRMWARE
+		-  Receive:
+		   topic: DEVICEID/beg_ota
+		   payload: 
+		   {
+		     "location": string, // used to download the firmware via HTTPS
+		     "size"    : int,    // used to verify if firmware is complete
+		     "version" : string, // used to compare with current firmware version
+		     "checksum": int,    // used to verify if firmware is not corrupted
+		   }
+		   // checksum is computed as CRC32 and is used to verify if the downloaded firmware is not corrupted.
+		   // This MQTT packet is sent to device when there is an OTA firmware update triggered/scheduled by user.
+		   // Once received, device shall proceed to download the firmware via HTTPS using the REST API "DOWNLOAD FIRMWARE"
+		   // Refer to DOWNLOAD FIRMWARE API
+		   //   HTTP_HOST: check dev or prod URL
+		   //   HTTP_TLS_PORT: 443
+		   //   GET /firmware/LOCATION (where LOCATION refers to location parameter in API_UPGRADE_FIRMWARE)
+		   // Also refer to the DEVICE SIMULATOR function http_get_firmware_binary() in device_simulator.py
+
+		B. API_UPGRADE_FIRMWARE_COMPLETION 
+		-  Publish:
+		   topic: server/DEVICEID/end_ota
+		   payload: 
+		   {
+		     "value": {"result": boolean},
+		   }
+		   // The device shall publish this MQTT packet once the device has downloaded and verified the firmware.
+
+		C. API_REQUEST_OTASTATUS
+		-  Publish:
+		   topic: server/DEVICEID/req_otastatus
+		   payload: 
+		   {
+		     "version": string
+		   }
+		   // this MQTT packet should ve called every device bootup to check if device is schedule for OTA update
+		   // if device is scheduled for OTA update, device shall receive API_UPGRADE_FIRMWARE call
+
+		D. API_REQUEST_TIME
+		-  Publish:
+		   topic: server/DEVICEID/req_time
+		   payload: {}
+
+		E. API_RECEIVE_TIME
+		-  Receive:
+		   topic: DEVICEID/rcv_time
+		   {
+		     "time": string
+		   }
+		   // this topic is for querying the current epoch time in seconds
+		   // device should probably add 1 second to accomodate any transmission delay
+
+
+	7. Notifications
+
+		A. SEND NOTIFICATION         trigger_notification
+		-  Receive:
+		   topic: DEVICEID/trigger_notification
+		   payload: { "recipient": string, "message": string }
+		-  Publish:
+		   topic: server/DEVICEID/trigger_notification
+		   topic: server/DEVICEID/trigger_notification/uart/MENOS
+		   topic: server/DEVICEID/trigger_notification/gpioX/MENOS
+		   topic: server/DEVICEID/trigger_notification/i2cX/MENOS
+		   // MENOS: mobile, email, notification, modem, storage
+		   payload: { "recipient": string, "message": string }
+
+		B. STATUS NOTIFICATION       status_notification
+		-  Receive:
+		   topic: DEVICEID/status_notification
+		   payload: { "status": string }
+		   // status is result of the trigger_notification
+
+		C. RECV NOTIFICATION         recv_notification
+		-  Receive:
+		   topic: DEVICEID/recv_notification
+		   payload: { "sender": string, "message": string }
+		   // sender is the DEVICEID of the sender device/mOdem
+
+
+	8. GPIO
 
 		A. GET GPIOS
 		-  Receive:
@@ -591,7 +731,7 @@ DETAILED:
 		   payload: {}
 
 
-	5. I2C
+	9. I2C
 
 		A. GET I2CS
 		-  Receive:
@@ -677,7 +817,7 @@ DETAILED:
 		   payload: {}
 
 
-	6. ADC
+	10. ADC
 
 		A. GET ADC DEVICE PROPERTIES
 		-  Receive:
@@ -712,7 +852,7 @@ DETAILED:
 		   payload: {}
 
 
-	7. 1WIRE
+	11. 1WIRE
 
 		A. GET 1WIRE DEVICE PROPERTIES
 		-  Receive:
@@ -747,7 +887,7 @@ DETAILED:
 		   payload: {}
 
 
-	8. TPROBE
+	12. TPROBE
 
 		A. GET TPROBE DEVICE PROPERTIES
 		-  Receive:
@@ -782,120 +922,11 @@ DETAILED:
 		   payload: {}
 
 
-	9. Peripherals
+	13. Peripherals
 
 		A. GET PERIPHERAL DEVICES    get_devs
 
 
-	10. Notifications
 
-		A. SEND NOTIFICATION         trigger_notification
-		-  Receive:
-		   topic: DEVICEID/trigger_notification
-		   payload: { "recipient": string, "message": string }
-		-  Publish:
-		   topic: server/DEVICEID/trigger_notification
-		   topic: server/DEVICEID/trigger_notification/uart/MENOS
-		   topic: server/DEVICEID/trigger_notification/gpioX/MENOS
-		   topic: server/DEVICEID/trigger_notification/i2cX/MENOS
-		   // MENOS: mobile, email, notification, modem, storage
-		   payload: { "recipient": string, "message": string }
-
-		B. STATUS NOTIFICATION       status_notification
-		-  Receive:
-		   topic: DEVICEID/status_notification
-		   payload: { "status": string }
-		   // status is result of the trigger_notification
-
-		C. RECV NOTIFICATION         recv_notification
-		-  Receive:
-		   topic: DEVICEID/recv_notification
-		   payload: { "sender": string, "message": string }
-		   // sender is the DEVICEID of the sender device/mOdem
-
-
-	11. Sensor Reading
-
-		A. RECEIVE SENSOR READING    rcv_sensor_reading
-		B. REQUEST SENSOR READING    req_sensor_reading
-		C. PUBLISH SENSOR READING    sensor_reading
-		   {
-		     "timestamp": int,
-		     "sensors": { 
-		       "i2c1":    [{"class": 0, "value": 1, "address": 1}, ...],
-		       "i2c2":    [{"class": 1, "value": 2, "address": 2}, ...],
-		       "i2c3":    [{"class": 2, "value": 3, "address": 3}, ...],
-		       "i2c4":    [{"class": 3, "value": 4, "address": 4}, ...],
-		       "adc1":    [{"class": 0, "value": 1}],
-		       "adc2":    [{"class": 1, "value": 2}],
-		       "1wire1":  [{"class": 2, "value": 3}],
-		       "tprobe1": [{"class": 3, "value": 4, subclass: {"class": 4, "value": 5}}],
-		     }
-		   }
-		   // NOTE: multiple sensor data from different peripherals can be sent at the same time
-		   // class is the index of the sensor's class in the array
-		      ["speaker", "display", "light", "potentiometer", "temperature", "humidity", "anemometer", "battery", "fluid"]
-		   // address is optional and it only applies for I2C
-		   // timestamp is optional and it refers to epoch in seconds
-
-
-	12. Configurations
-
-		A. RECEIVE CONFIGURATION     rcv_configuration
-		B. REQUEST CONFIGURATION     req_configuration
-		C. DELETE CONFIGURATION      del_configuration
-
-
-	13. OTA Firmware Update
-
-		A. API_UPGRADE_FIRMWARE
-		-  Receive:
-		   topic: DEVICEID/beg_ota
-		   payload: 
-		   {
-		     "location": string, // used to download the firmware via HTTPS
-		     "size"    : int,    // used to verify if firmware is complete
-		     "version" : string, // used to compare with current firmware version
-		     "checksum": int,    // used to verify if firmware is not corrupted
-		   }
-		   // checksum is computed as CRC32 and is used to verify if the downloaded firmware is not corrupted.
-		   // This MQTT packet is sent to device when there is an OTA firmware update triggered/scheduled by user.
-		   // Once received, device shall proceed to download the firmware via HTTPS using the REST API "DOWNLOAD FIRMWARE"
-		   // Refer to DOWNLOAD FIRMWARE API
-		   //   HTTP_HOST: check dev or prod URL
-		   //   HTTP_TLS_PORT: 443
-		   //   GET /firmware/LOCATION (where LOCATION refers to location parameter in API_UPGRADE_FIRMWARE)
-		   // Also refer to the DEVICE SIMULATOR function http_get_firmware_binary() in device_simulator.py
-
-		B. API_UPGRADE_FIRMWARE_COMPLETION 
-		-  Publish:
-		   topic: server/DEVICEID/end_ota
-		   payload: 
-		   {
-		     "value": {"result": boolean},
-		   }
-		   // The device shall publish this MQTT packet once the device has downloaded and verified the firmware.
-
-		C. API_REQUEST_OTASTATUS
-		-  Publish:
-		   topic: server/DEVICEID/req_otastatus
-		   payload: 
-		   {
-		     "version": string
-		   }
-		   // this MQTT packet should ve called every device bootup to check if device is schedule for OTA update
-		   // if device is scheduled for OTA update, device shall receive API_UPGRADE_FIRMWARE call
-
-		D. API_REQUEST_TIME
-		-  Publish:
-		   topic: server/DEVICEID/req_time
-		   payload: {}
-		-  Receive:
-		   topic: DEVICEID/req_time
-		   {
-		     "time": string
-		   }
-		   // this topic is for querying the current epoch time in seconds
-		   // device should probably add 1 second to accomodate any transmission delay
 
 
