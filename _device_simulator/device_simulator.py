@@ -748,10 +748,9 @@ def handle_api(api, subtopic, subpayload):
         else:
             g_ldsu_properties[source][number]["enabled"] = enable
 
-        printf("")
-        printf_json(g_ldsu_properties[source])
-        printf("")
-
+        #printf("")
+        #printf_json(g_ldsu_properties[source])
+        #printf("")
 
         payload = {}
         publish(topic, payload)
@@ -1499,7 +1498,7 @@ def handle_api(api, subtopic, subpayload):
         if subpayload.get("ldsu"):
             ldsus = subpayload["ldsu"]
             for ldsu in ldsus:
-                printf(ldsu)
+                #printf(ldsu)
                 source = ldsu["UID"]
                 number = int(ldsu["SAID"])
                 g_ldsu_properties[source][number]["enabled"] = ldsu["enabled"]
@@ -1527,7 +1526,7 @@ def handle_api(api, subtopic, subpayload):
                     g_ldsu_properties[source][number]["attributes"]["type"] = type
                     g_ldsu_properties[source][number]["attributes"]["accuracy"] = accuracy
 
-            printf_json(g_ldsu_properties[source])
+            #printf_json(g_ldsu_properties[source])
 
         # UART
         if subpayload.get("uart"):
@@ -1614,7 +1613,7 @@ def handle_api(api, subtopic, subpayload):
                             g_i2c_properties[x][address]["subclass"] = subpayload["i2c"][x][y]["subclass"]
 
         if CONFIG_REQUEST_CONFIGURATION_DEBUG:
-            printf_json(g_ldsu_properties,   "uart")
+            printf_json(g_ldsu_properties,   "ldsu")
             printf_json(g_uart_properties,   "uart")
             printf_json(g_gpio_properties,   "gpio")
             printf_json(g_adc_properties,    "adc")
@@ -1702,6 +1701,42 @@ def handle_api(api, subtopic, subpayload):
 
     else:
         printf("UNSUPPORTED")
+
+
+
+###################################################################################
+# LDSU helper functions
+###################################################################################
+
+def listLDSUs(port):
+    if port>0 and port<=3:
+        for ldsu in g_ldsu_descriptors:
+            if port == int(ldsu["PORT"]):
+                print("{} Port {} {}".format(ldsu["UID"], ldsu["PORT"], ldsu["OBJ"]))
+    else:
+        for ldsu in g_ldsu_descriptors:
+            print("{} Port {} {}".format(ldsu["UID"], ldsu["PORT"], ldsu["OBJ"]))
+    print()
+
+def moveLDSU(uid, port):
+    for ldsu in g_ldsu_descriptors:
+        if uid == ldsu["UID"]:
+            ldsu["PORT"] = str(port)
+            reg_ldsu_descriptors()
+            break
+    print()
+
+def plugLDSU(obj, port):
+    print("plugLDSU")
+    print()
+
+def unplugLDSU(uid):
+    for ldsu in g_ldsu_descriptors:
+        if uid == ldsu["UID"]:
+            g_ldsu_descriptors.remove(ldsu)
+            reg_ldsu_descriptors()
+            break
+    print()
 
 
 
@@ -2312,6 +2347,9 @@ UART_ATCOMMAND_RESET               = "ATR"
 UART_ATCOMMAND_UPDATE              = "ATU"
 UART_ATCOMMAND_STATUS              = "AT"
 
+UART_ATCOMMAND_LDSTEST             = "ATT"
+
+
 UART_ATCOMMAND_DESC_MOBILE         = "Send message as SMS to verified mobile number"
 UART_ATCOMMAND_DESC_EMAIL          = "Send message as email to verified email address"
 UART_ATCOMMAND_DESC_NOTIFY         = "Send message as mobile app notification to verified user"
@@ -2327,6 +2365,9 @@ UART_ATCOMMAND_DESC_PAUSE          = "Pause/Resume (toggle)"
 UART_ATCOMMAND_DESC_RESET          = "Reset device"
 UART_ATCOMMAND_DESC_UPDATE         = "Enter firmware update (UART entry point inside bootloader)"
 UART_ATCOMMAND_DESC_STATUS         = "Display device status"
+
+UART_ATCOMMAND_DESC_LDSTEST        = "Simulate tests for moving/adding/removing LDSU in LDS BUS"
+
 
 MENOS_MOBILE                       = "mobile"
 MENOS_EMAIL                        = "email"
@@ -2482,6 +2523,56 @@ def uart_cmdhdl_help(idx, cmd):
 def uart_cmdhdl_unsupported(idx, cmd):
     printf("uart_cmdhdl_unsupported")
 
+def uart_cmdhdl_ldstest(idx, cmd):
+    if len(cmd) == len(UART_ATCOMMANDS[idx]["command"]):
+        print("LDS Test commands")
+        print("ATT+LS+<PORT>        - to list LDSUs in specified LDS BUS port (1, 2, 3)")
+        print("ATT+MOV+<UID>+<PORT> - to move an LDSU to specified LDS BUS port")
+        print("ATT+ADD+<OBJ>+<PORT> - to plug an LDSU of type OBJ to specified LDS BUS port")
+        print("                     - available OBJ = [32768, 32770]")
+        print("ATT+REM+<UID>        - to unplug an LDSU")
+        print()
+        return
+
+    cmd_list = cmd.split("+")[1:]
+    if cmd_list[0] == "LS":
+        params = cmd_list[1:]
+        if len(params) != 1:
+            listLDSUs(0)
+            return
+        port = int(params[0])
+        listLDSUs(port)
+
+    elif cmd_list[0] == "MOV":
+        params = cmd_list[1:]
+        if len(params) != 2:
+            print("invalid {} parameters".format(cmd_list[0]))
+            return
+        uid = params[0]
+        port = int(params[1])
+        moveLDSU(uid, port)
+
+    elif cmd_list[0] == "ADD":
+        params = cmd_list[1:]
+        if len(params) != 2:
+            print("invalid {} parameters".format(cmd_list[0]))
+            return
+        obj = params[0]
+        port = int(params[1])
+        plugLDSU(obj, port)
+
+    elif cmd_list[0] == "REM":
+        params = cmd_list[1:]
+        if len(params) != 1:
+            print("invalid {} parameters".format(cmd_list[0]))
+            return
+        uid = params[0]
+        unplugLDSU(uid)
+
+    else:
+        print("invalid command")
+        return
+
 
 UART_ATCOMMANDS = [
     { "command": UART_ATCOMMAND_MOBILE,   "fxn": uart_cmdhdl_mobile,       "help": UART_ATCOMMAND_DESC_MOBILE  },
@@ -2491,16 +2582,17 @@ UART_ATCOMMANDS = [
     { "command": UART_ATCOMMAND_STORAGE,  "fxn": uart_cmdhdl_storage,      "help": UART_ATCOMMAND_DESC_STORAGE },
     { "command": UART_ATCOMMAND_DEFAULT,  "fxn": uart_cmdhdl_default,      "help": UART_ATCOMMAND_DESC_DEFAULT },
 
-    { "command": UART_ATCOMMAND_CONTINUE, "fxn": uart_cmdhdl_unsupported,  "help": UART_ATCOMMAND_DESC_CONTINUE },
-    { "command": UART_ATCOMMAND_ECHO,     "fxn": uart_cmdhdl_unsupported,  "help": UART_ATCOMMAND_DESC_ECHO     },
     { "command": UART_ATCOMMAND_HELP,     "fxn": uart_cmdhdl_help,         "help": UART_ATCOMMAND_DESC_HELP     },
-    { "command": UART_ATCOMMAND_INFO,     "fxn": uart_cmdhdl_unsupported,  "help": UART_ATCOMMAND_DESC_INFO     }, # = {software version, present configuration, present status, list of I2C devices and addresses, IP address, connection status to service, etc}" },
-    { "command": UART_ATCOMMAND_MORE,     "fxn": uart_cmdhdl_unsupported,  "help": UART_ATCOMMAND_DESC_MORE     },
-    { "command": UART_ATCOMMAND_PAUSE,    "fxn": uart_cmdhdl_unsupported,  "help": UART_ATCOMMAND_DESC_PAUSE    },
-    { "command": UART_ATCOMMAND_RESET,    "fxn": uart_cmdhdl_unsupported,  "help": UART_ATCOMMAND_DESC_RESET    },
-    { "command": UART_ATCOMMAND_UPDATE,   "fxn": uart_cmdhdl_unsupported,  "help": UART_ATCOMMAND_DESC_UPDATE   },
+    { "command": UART_ATCOMMAND_LDSTEST,  "fxn": uart_cmdhdl_ldstest,      "help": UART_ATCOMMAND_DESC_LDSTEST  },
+    #{ "command": UART_ATCOMMAND_CONTINUE, "fxn": uart_cmdhdl_unsupported,  "help": UART_ATCOMMAND_DESC_CONTINUE },
+    #{ "command": UART_ATCOMMAND_ECHO,     "fxn": uart_cmdhdl_unsupported,  "help": UART_ATCOMMAND_DESC_ECHO     },
+    #{ "command": UART_ATCOMMAND_INFO,     "fxn": uart_cmdhdl_unsupported,  "help": UART_ATCOMMAND_DESC_INFO     }, # = {software version, present configuration, present status, list of I2C devices and addresses, IP address, connection status to service, etc}" },
+    #{ "command": UART_ATCOMMAND_MORE,     "fxn": uart_cmdhdl_unsupported,  "help": UART_ATCOMMAND_DESC_MORE     },
+    #{ "command": UART_ATCOMMAND_PAUSE,    "fxn": uart_cmdhdl_unsupported,  "help": UART_ATCOMMAND_DESC_PAUSE    },
+    #{ "command": UART_ATCOMMAND_RESET,    "fxn": uart_cmdhdl_unsupported,  "help": UART_ATCOMMAND_DESC_RESET    },
+    #{ "command": UART_ATCOMMAND_UPDATE,   "fxn": uart_cmdhdl_unsupported,  "help": UART_ATCOMMAND_DESC_UPDATE   },
 
-    { "command": UART_ATCOMMAND_STATUS,   "fxn": uart_cmdhdl_mobile,       "help": UART_ATCOMMAND_DESC_STATUS   }, # OK if all is good, ERROR if device is in error state" },
+    #{ "command": UART_ATCOMMAND_STATUS,   "fxn": uart_cmdhdl_mobile,       "help": UART_ATCOMMAND_DESC_STATUS   }, # OK if all is good, ERROR if device is in error state" },
 ]
 
 def read_kbd_input(inputQueue):
@@ -2970,8 +3062,9 @@ def main(args):
 
 
     # Initialize LDSU device (sensor/actuator) client
+    lds_filename = CONFIG_DEVICE_ID + ".json"
     g_device_client = device_client.device_client()
-    g_device_client.initialize()
+    g_device_client.initialize(lds_filename=lds_filename)
 
 
     inputThread = None
