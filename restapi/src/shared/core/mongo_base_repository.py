@@ -21,7 +21,8 @@ class MongoBaseRepository(BaseRepository):
             self.collection.insert_one(input)
             return True
         except Exception as e:
-            raise CreatedExeception(e.message)
+            print(e)
+            raise CreatedExeception(str(e))
 
     def update(self, id: str, input) -> bool:
         try:
@@ -36,7 +37,6 @@ class MongoBaseRepository(BaseRepository):
             return True
         
         except Exception as e:
-            print("Update failed")
             print(e)
             raise UpdatedException(str(e))
 
@@ -50,7 +50,7 @@ class MongoBaseRepository(BaseRepository):
             return result
         except Exception as e:
             print(e)
-            raise QueriedByIdException(e.message)
+            raise QueriedByIdException(str(e))
 
     def _cast_object_without_objectId(self, data):
         data["_id"] = str(data["_id"])
@@ -70,4 +70,4 @@ class MongoBaseRepository(BaseRepository):
             return True
         except Exception as e:
             print(e)
-            raise DeletedException(e.message)
+            raise DeletedException(str(e))
