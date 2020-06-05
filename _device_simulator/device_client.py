@@ -23,7 +23,7 @@ class device_client:
 		self.master_list = None
 		self.class_id = None
 		self.gw_desc = None
-		self.sample_lds_reg = None
+		self.lds_reg = None
 		pass
 
 
@@ -34,7 +34,7 @@ class device_client:
 			f.close()
 			json_obj = json.loads(json_obj)
 		except Exception as e:
-			print(e)
+			#print(e)
 			return None
 		return json_obj
 
@@ -51,7 +51,7 @@ class device_client:
 			print(json_formatted_str)
 
 
-	def initialize(self):
+	def initialize(self, lds_filename=None):
 		self.master_list = self._readfile(MASTER_LIST)
 		if self.master_list is None:
 			print("Could not read file properly {}".format(MASTER_LIST))
@@ -69,7 +69,12 @@ class device_client:
 			return
 
 		self.gw_desc = self._readfile(SAMPLE_GW_DESC)
-		self.sample_lds_reg = self._readfile(SAMPLE_LDS_REG)
+		if lds_filename is None:
+			self.lds_reg = self._readfile(SAMPLE_LDS_REG)
+		else:
+			self.lds_reg = self._readfile(lds_filename)
+			if self.lds_reg is None:
+				self.lds_reg = self._readfile(SAMPLE_LDS_REG)
 
 		#self.test()
 
@@ -80,9 +85,9 @@ class device_client:
 		return self.gw_desc
 
 	def get_sample_lds_reg(self):
-		if self.sample_lds_reg is None:
+		if self.lds_reg is None:
 			return None
-		return self.sample_lds_reg["LDS"]
+		return self.lds_reg["LDS"]
 
 
 	def get_obj(self, obj):
