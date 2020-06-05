@@ -1,30 +1,18 @@
 
+from shared.utils.singleton_util import Singleton
 
-
-class LoggerService:
+class LoggerService(metaclass=Singleton):
     
-    __instance = None
+    # TODO: Setup some tool support logging error here
     
-    @staticmethod
-    def get_instance():
-        if LoggerService.__instance == None:
-            LoggerService()
-        return LoggerService.__instance
-
-
-    def __init__(self):
-        if LoggerService.__instance == None:
-            LoggerService.__instance = self
-
-    
-    def error(self, message:str):
-        print(message)
+    def error(self, message:str, tag=""):
+        print(tag + " " + message)
         # Add more tracings error
         
-    def debug(self, message: str):
-        print(message)
+    def debug(self, message: str, tag=""):
+        print(tag + " " + message)
         # Just for debug mode
         
-    def log(self, message: str):
-        print(message)
+    def log(self, message: str, tag=""):
+        print(tag + " " + message)
         # Show for all mode

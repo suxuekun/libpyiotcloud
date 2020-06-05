@@ -5899,8 +5899,6 @@ def initialize():
     g_utils                   = rest_api_utils.utils()
 
     dashboardsApp = DashboardsApp(app)
-    dashboardsApp.build()
-
 
 # Initialize globally so that no issue with GUnicorn integration
 if os.name == 'posix':

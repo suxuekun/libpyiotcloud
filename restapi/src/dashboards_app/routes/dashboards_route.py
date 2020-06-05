@@ -4,17 +4,16 @@ from flask import Blueprint, request
 
 from dashboards_app.repositories.dashboard_repository import DashboardRepository
 from dashboards_app.services.dashboard_service import DashboardService
-from cached_mongo_client import CachedMongoClient
 from dashboards_app.dtos.dashboard_dto import DashboardDto
-service: DashboardService = None
+from shared.client.connection.mongo import DefaultMongoConnection
+from shared.client.db.mongo.default import DefaultMongoDB
 
-def bootstrap():
-    global service
-    mongo_client = CachedMongoClient.get_instance().get_mongo_client()
-    db = CachedMongoClient.get_instance().get_db()
-    dashboardRepository = DashboardRepository(mongoclient=mongo_client, db = db, collectionName="dashboards")
-    service = DashboardService(dashboardRepository)
-    
+
+service: DashboardService = None
+mongo_client = DefaultMongoDB().conn
+db = DefaultMongoDB().db
+dashboardRepository = DashboardRepository(mongoclient=mongo_client, db = db, collectionName="dashboards")
+service = DashboardService(dashboardRepository)
 
 # Init routes
 dashboards_blueprint = Blueprint('dashboards_blueprint', __name__)
