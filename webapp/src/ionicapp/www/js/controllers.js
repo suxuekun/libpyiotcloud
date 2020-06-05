@@ -11091,7 +11091,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             console.log(result.data);
             $ionicPopup.alert({
                 title: 'Device ' + peripheral.toUpperCase(),
-                template: peripheral.toUpperCase() + ' Device ' + sensor.sensorname + ' on ' + peripheral.toUpperCase() + ' ' + sensor.number.toString() + ' was ' + action + ' successfully!',
+                template: sensor.sensorname + ' was ' + action + ' successfully!',
             });
             
             // update
@@ -15370,7 +15370,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             console.log(result.data);
             $ionicPopup.alert({
                 title: peripheral.toUpperCase() + ' device',
-                template: $scope.data.sensor.sensorname + ' on ' + peripheral.toUpperCase() + ' ' + $scope.data.sensor.number.toString() + ' was configured successfully!',
+                template: $scope.data.sensor.sensorname + ' was configured successfully!',
             });            
         })
         .catch(function (error) {
@@ -15826,7 +15826,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             console.log(result.data);
             $ionicPopup.alert({
                 title: peripheral.toUpperCase() + ' device',
-                template: $scope.data.sensor.sensorname + ' on ' + peripheral.toUpperCase() + ' ' + $scope.data.sensor.number.toString() + ' was configured successfully!',
+                template: $scope.data.sensor.sensorname + ' was configured successfully!',
             });            
         })
         .catch(function (error) {

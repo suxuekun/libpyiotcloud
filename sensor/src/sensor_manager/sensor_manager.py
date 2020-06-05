@@ -296,8 +296,8 @@ def forward_sensor_reading(database_client, username, devicename, deviceid, sour
     #
     # forward the packet to the specified recipient in the properties
     try:
-        peripheral = source[0:len(source)-1]
-        number = source[len(source)-1:]
+        peripheral = source
+        number = str(address)
         #print("source {} {} {} {}".format(source, peripheral, number, address))
 
         configuration = database_client.get_device_peripheral_configuration(deviceid, peripheral, int(number), address)
@@ -364,9 +364,6 @@ def forward_sensor_reading(database_client, username, devicename, deviceid, sour
                     sensor = database_client.get_sensor_by_deviceid(deviceid, peripheral, number, address)
                     if sensor is not None:
                         process_thresholding_notification(configuration["attributes"], value, sensor["class"], sensor, source, deviceid, peripheral, number, address)
-                        if subclass_value is not None:
-                            process_thresholding_notification(configuration["attributes"]["subattributes"], subclass_value, sensor["subclass"], sensor, source, deviceid, peripheral, number, address)
-                        #print("")
 
     except:
         print("exception forward_sensor_reading")
