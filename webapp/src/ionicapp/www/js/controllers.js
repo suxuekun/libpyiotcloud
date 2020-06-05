@@ -7144,7 +7144,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
                 $scope.data.deviceversion = result.data.value.version;
             }
             
-            //$scope.get_hierarchy($scope.data.devicename, 1, 1);
+            $scope.get_hierarchy($scope.data.devicename, 1, 1);
         })
         .catch(function (error) {
             //console.log("ERRORXXXXXXXXXXXXXXXXXXXXXXXXXXX get_status");
@@ -7155,7 +7155,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
                 $scope.data.deviceversion = error.data.value.version;
             }
             
-            //$scope.get_hierarchy($scope.data.devicename, 1, 0);
+            $scope.get_hierarchy($scope.data.devicename, 1, 0);
         }); 
     };   
 
@@ -7343,7 +7343,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             $scope.eraseTreeChart2();
             $scope.treeData = null;
         }
-        //$scope.get_hierarchy($scope.data.devicename);
+        $scope.get_hierarchy($scope.data.devicename);
         
         //console.log($stateParams.location);
         //console.log($stateParams.location.latitude);
@@ -7495,7 +7495,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         console.log($scope.data.devicename_ex);
         
         // set the dimensions and margins of the diagram
-        const margin = {top: 50, right: 100, bottom: 50, left: 250},
+        const margin = {top: 50, right: 50, bottom: 50, left: 200},
               width  = 800 - margin.left - margin.right,
               height = 450 - margin.top - margin.bottom;
         
@@ -7525,6 +7525,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
           .enter().append("path")
             .attr("class", "d3link")
             //.style("stroke", d => d.data.level)
+            .attr("d", d => { d.y = d.depth * 125; }) // control the line size
             .attr("d", d => {
                return "M" + d.y + "," + d.x
                  + "C" + (d.y + d.parent.y) / 2 + "," + d.x
@@ -10470,7 +10471,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         $scope.submitRefresh();
     };
 
-    $scope.handle_error = function(error, showerror) {
+    $scope.handle_error = function(error, showerror=true) {
         if (error.data !== null) {
             console.log("ERROR: Device I2C failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
 
@@ -10616,6 +10617,11 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
                     }                    
                 }
             }
+            
+            $ionicPopup.alert({
+                title: 'Scan LDS BUS',
+                template: 'Scan LDS BUS was successful!',
+            });
         })
         .catch(function (error) {
             $scope.handle_error(error);
@@ -10814,6 +10820,10 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         })
         .then(function (result) {
             console.log(result.data);
+            $ionicPopup.alert({
+                title: 'Identify LDSU',
+                template: 'Identify LDSU was successful! The LED light of the LDSU should be blinking.',
+            });
         })
         .catch(function (error) {
             $scope.handle_error(error);
