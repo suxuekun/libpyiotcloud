@@ -128,26 +128,40 @@ def send_notification_device(messaging_client, deviceid, recipient, message):
         return False
     return True
 
-def send_notification_storage(messaging_client, deviceid, recipient, message, source, sensorname, date_time, condition):
-    contents = date_time + ": " + message + " - " + source.upper()
-    if sensorname:
-        contents += ":" + sensorname
-    if condition:
-        contents += " (" + condition + ")"
+def send_notification_storage(messaging_client, deviceid, recipient, message, source, sensorname, date_time, condition, sensor):
+    if sensor is None:
+        contents = date_time + ": " + message + " - " + source.upper()
+        if sensorname:
+            contents += ":" + sensorname
+        if condition:
+            contents += " (" + condition + ")"
+    else:
+        contents = date_time + ": " + message + " - " + "LDS Bus " + sensor["port"] + ": " + sensor["name"]
+        if sensorname:
+            contents += ": " + sensorname
+        if condition:
+            contents += " (" + condition + ")"
 
     try:
         result = g_storage_client.append_to_file(recipient, deviceid, contents)
         if result:
             send_notification_status(messaging_client, deviceid, "OK. message sent to storage.")
-            try: 
-                source_new = source
-                if sensorname:
-                    source_new = "{}{}".format(source, sensorname)
-                notification = g_database_client.get_device_notification_by_deviceid(deviceid, source_new)
-                if notification:
-                    if notification["endpoints"][MENOS_STORAGE]["recipients"] == "":
-                        notification["endpoints"][MENOS_STORAGE]["recipients"] = result
-                        g_database_client.update_device_notification_by_deviceid(deviceid, source_new, notification)
+            try:
+                if source.startswith("uart"):
+                    source_new = source
+                    if sensorname:
+                        source_new = "{}{}".format(source, sensorname)
+                    notification = g_database_client.get_device_notification_by_deviceid(deviceid, source_new, None)
+                    if notification:
+                        if notification["endpoints"][MENOS_STORAGE]["recipients"] == "":
+                            notification["endpoints"][MENOS_STORAGE]["recipients"] = result
+                            g_database_client.update_device_notification_by_deviceid(deviceid, source_new, None, notification)
+                else:
+                    notification = g_database_client.get_device_notification_by_deviceid(deviceid, source[:-1], int(source[-1:]))
+                    if notification:
+                        if notification["endpoints"][MENOS_STORAGE]["recipients"] == "":
+                            notification["endpoints"][MENOS_STORAGE]["recipients"] = result
+                            g_database_client.update_device_notification_by_deviceid(deviceid, source[:-1], int(source[-1:]), notification)
             except:
                 print("exception")
                 pass
@@ -159,7 +173,7 @@ def send_notification_storage(messaging_client, deviceid, recipient, message, so
         return False, None
     return True, contents
 
-def construct_message(deviceid, message, source, sensorname, date_time, condition):
+def construct_message(deviceid, message, source, sensorname, date_time, condition, sensor):
 
     new_message = message
 
@@ -171,12 +185,12 @@ def construct_message(deviceid, message, source, sensorname, date_time, conditio
     devicename = g_database_client.get_devicename(deviceid)
     if devicename is None:
         return None
-    source = source.upper()
     from_source = ""
     if sensorname is None:
+        source = source.upper()
         from_source += "- from {}:{}".format(devicename, source)
     else:
-        from_source += "- from {}:{}:{}".format(devicename, source, sensorname)
+        from_source += "- from {}:LDS Bus {}:{}:{}".format(devicename, sensor["port"], sensor["name"], sensorname)
     new_message += "\r\n" + from_source
 
     # append timestamp on the message
@@ -208,11 +222,10 @@ def notification_thread(messaging_client, deviceid, recipient, message, subject,
     type_str = g_notification_client.get_notification_types_string(type)
 
     # append information to the message
-    message_updated, date_time = construct_message(deviceid, message, source, sensorname, date_time, condition)
+    message_updated, date_time = construct_message(deviceid, message, source, sensorname, date_time, condition, sensor)
     if message_updated is None:
         send_notification_status(messaging_client, deviceid, "NG")
         return
-
 
     # send message
     if type == notification_types.DEVICE:
@@ -220,7 +233,7 @@ def notification_thread(messaging_client, deviceid, recipient, message, subject,
         result = send_notification_device(messaging_client, deviceid, recipient, message_updated)
         print("{}: {} [{} {}] {}".format(deviceid, type_str, len(recipient), len(message_updated), result ))
     elif type == notification_types.STORAGE:
-        result, contents = send_notification_storage(messaging_client, deviceid, recipient, message, source, sensorname, date_time, condition)
+        result, contents = send_notification_storage(messaging_client, deviceid, recipient, message, source, sensorname, date_time, condition, sensor)
         print("{}: {} [{}] {}".format(deviceid, type_str, len(contents), result ))
     else:
 
@@ -313,6 +326,9 @@ def notification_thread(messaging_client, deviceid, recipient, message, subject,
                         send_notification_status(messaging_client, deviceid, "NG")
                 except:
                     print("{}: {} [{} {}] True".format(deviceid, type_str, len(recipient), len(message_updated) ))
+
+    if not source.startswith("uart"):
+        source = source[-1:]
 
     # record message in database
     if type == notification_types.PUSH_NOTIFICATION:
@@ -484,8 +500,12 @@ def on_message(subtopic, subpayload):
                         return
                     source_new = "{}{}".format(source, sensor["sensorname"])
                     notification = g_database_client.get_device_notification_by_deviceid(deviceid, source_new)
+                elif source.startswith("uart"):
+                    notification = g_database_client.get_device_notification_by_deviceid(deviceid, source, None)
                 else:
-                    notification = g_database_client.get_device_notification_by_deviceid(deviceid, source)
+                    #print("xxxxx {} {}".format(source[:-1], int(source[-1:]) ))
+                    sensor = g_database_client.get_sensor_by_deviceid(deviceid, source[:-1], source[-1:], None)
+                    notification = g_database_client.get_device_notification_by_deviceid(deviceid, source[:-1], int(source[-1:]) )
                 #print(notification)
 
             # recipient is not provided, process the notification info to get the recipient
