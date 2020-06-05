@@ -330,11 +330,11 @@
       <div class="item item-body" id="sensorDashboard-list-item-container19" ng-click="changeSensorHide(sensor)">
         <div id="sensorDashboard-markdown295" class="show-list-numbers-and-dots">
           <p style="margin-top:0px;color:#888888;font-size:16px;">
-            <strong>{{ sensor.devicename + " - " + sensor.sensorname }}</strong>
+            <strong>{{ sensor.sensorname }}</strong>
           </p>
         </div>
         <div id="sensorDashboard-markdown305" class="show-list-numbers-and-dots widget_button_half">
-          <p style="margin-top:0px;color:#3C5A99;font-size:10px;">LDS BUS {{ sensor.port }}</p>
+          <p style="margin-top:0px;color:#3C5A99;font-size:10px;">{{ sensor.devicename }} : LDS BUS {{ sensor.port }} : {{ sensor.name }}</p>
         </div>
         <div id="sensorDashboard-markdown459" style="text-align:right;" class="show-list-numbers-and-dots widget_button_half">
           <p style="margin-top:0px;color:#888888;font-size:16px;">
@@ -342,8 +342,7 @@
           </p>
         </div>
         <div id="sensorDashboard-markdown310" class="show-list-numbers-and-dots widget_button_40">
-          <p style="margin-top:0px;color:#3C5A99;font-size:10px;">{{ sensor.subclass ? sensor.source.toUpperCase() + "" + sensor.number + " - " + sensor.class.toUpperCase().substr(0, 4) + " | " + sensor.subclass.toUpperCase().substr(0, 4) : sensor.source.toUpperCase() + "" + sensor.number + " - " + sensor.class.toUpperCase()
-            }}</p>
+          <p style="margin-top:0px;color:#3C5A99;font-size:10px;">{{ sensor.source.toUpperCase() }}</p>
         </div>
         <div id="sensorDashboard-markdown458" style="text-align:right;" class="show-list-numbers-and-dots widget_button_60">
           <p style="margin-top:0px;color:#3C5A99;font-size:10px;">{{ sensor.subclass ? "Low: " + sensor.readings.lowest + " " + sensor.unit + " High: " + sensor.readings.highest + " " + sensor.unit + " | " + "Low: " + sensor.readings.subclass.lowest + " " + sensor.unit + " High: " + sensor.readings.subclass.highest
@@ -369,11 +368,11 @@
       <div class="item item-body" id="sensorDashboard-list-item-container22" ng-click="changeSensorHide(sensor)">
         <div id="sensorDashboard-markdown435" class="show-list-numbers-and-dots">
           <p style="margin-top:0px;color:#888888;font-size:18px;">
-            <strong>{{ sensor.devicename + ": " + sensor.sensorname }}</strong>
+            <strong>{{ sensor.sensorname }}</strong>
           </p>
         </div>
         <div id="sensorDashboard-markdown436" class="show-list-numbers-and-dots widget_button_half">
-          <p style="margin-top:0px;color:#3C5A99;font-size:10px;">LDS BUS {{ sensor.port }}</p>
+          <p style="margin-top:0px;color:#3C5A99;font-size:10px;">{{ sensor.devicename }} : LDS BUS {{ sensor.port }} : {{ sensor.name }}</p>
         </div>
         <div id="sensorDashboard-markdown438" style="text-align:right;" class="show-list-numbers-and-dots widget_button_half">
           <p style="margin-top:0px;color:#888888;font-size:28px;">
@@ -381,7 +380,7 @@
           </p>
         </div>
         <div id="sensorDashboard-markdown439" class="show-list-numbers-and-dots widget_button_half">
-          <p style="margin-top:0px;color:#3C5A99;font-size:10px;">{{ sensor.subclass ? sensor.source.toUpperCase() + "" + sensor.number + " - " + sensor.class.toUpperCase() + " | " + sensor.subclass.toUpperCase() : sensor.source.toUpperCase() + "" + sensor.number + " - " + sensor.class.toUpperCase() }}</p>
+          <p style="margin-top:0px;color:#3C5A99;font-size:10px;">{{ sensor.class.toUpperCase() }}</p>
         </div>
         <div id="sensorDashboard-markdown440" style="text-align:right;" class="show-list-numbers-and-dots widget_button_half">
           <p style="margin-top:0px;color:#3C5A99;font-size:10px;">{{ sensor.subclass ? "Low: " + sensor.readings.lowest + " " + sensor.unit + " High: " + sensor.readings.highest + " " + sensor.unit + " | " + "Low: " + sensor.readings.subclass.lowest + " " + sensor.unit + " High: " + sensor.readings.subclass.highest

@@ -121,6 +121,29 @@ class device_hierarchies:
         return hierarchy
 
 
+    def get_default_device_hierarchy_ex(self, devicename):
+
+        hierarchy = {
+            "name": devicename,
+            "children": [
+                {
+                    "name": "UART",
+                },
+                {
+                    "name": "LDS BUS 1",
+                },
+                {
+                    "name": "LDS BUS 2",
+                },
+                {
+                    "name": "LDS BUS 3",
+                }
+            ]
+        }
+
+        return hierarchy
+
+
     def get_running_sensors(self, token, username, devicename, device):
 
         # get entity using the active organization
@@ -247,6 +270,71 @@ class device_hierarchies:
         return hierarchy
 
 
+    def generate_device_hierarchy_ex(self, username, devicename, hierarchy, checkdevice=0, status=None, token=None):
+
+        # get entity using the active organization
+        orgname, orgid = self.database_client.get_active_organization(username)
+        if orgname is not None:
+            # has active organization
+            entityname = "{}.{}".format(orgname, orgid)
+        else:
+            # no active organization, just a normal user
+            entityname = username
+
+        if checkdevice == 1:
+            if status is not None:
+                hierarchy["active"] = status
+                #if status == 1:
+                #    device = {}
+                #    self.get_running_sensors(token, username, devicename, device)
+                #    hierarchy["active"] = device["status"]
+            #else:
+                #device = {}
+                #self.get_running_sensors(token, username, devicename, device)
+                #hierarchy["active"] = device["status"]
+
+        sensors = self.database_client.get_all_device_sensors(entityname, devicename)
+        for child in hierarchy["children"]:
+            #print("{} {} {}".format(sensor["sensorname"], sensor["source"], sensor["number"]))
+            for sensor in sensors:
+                if sensor["port"] == child["name"][-1:]:
+                    #print("{} {}".format(child["name"], sensor["sensorname"]))
+                    if child.get("children") is None:
+                        child["children"] = []
+                        grandgrandchild = {
+                            "name": sensor["sensorname"] + " - " + sensor["class"],
+                            "active": sensor["enabled"]
+                        }
+                        grandchild = {
+                            "name": sensor["name"],
+                            "children": [grandgrandchild]
+                        }
+                        child["children"].append(grandchild)
+                    else:
+                        found = False
+                        for granchild in child["children"]:
+                            if granchild["name"] == sensor["name"]:
+                                grandgrandchild = {
+                                    "name": sensor["sensorname"] + " - " + sensor["class"],
+                                    "active": sensor["enabled"]
+                                }
+                                granchild["children"].append(grandgrandchild)
+                                found = True
+                                break
+                        if not found:
+                            grandgrandchild = {
+                                "name": sensor["sensorname"] + " - " + sensor["class"],
+                                "active": sensor["enabled"]
+                            }
+                            grandchild = {
+                                "name": sensor["name"],
+                                "children": [grandgrandchild]
+                            }
+                            child["children"].append(grandchild)
+
+        return hierarchy
+
+
     ########################################################################################################
     #
     # GET DEVICE HIERARCHY TREE
@@ -320,8 +408,8 @@ class device_hierarchies:
 
 
         # generate hierarchy
-        hierarchy = self.get_default_device_hierarchy(devicename)
-        hierarchy = self.generate_device_hierarchy(username, devicename, hierarchy)
+        hierarchy = self.get_default_device_hierarchy_ex(devicename)
+        hierarchy = self.generate_device_hierarchy_ex(username, devicename, hierarchy)
 
 
         msg = {'status': 'OK', 'message': 'Get hierarchy tree successful.', 'hierarchy': hierarchy}
@@ -414,8 +502,8 @@ class device_hierarchies:
                 checkdevice = data["checkdevice"]
             if data.get("status") is not None:
                 status = data["status"]
-        hierarchy = self.get_default_device_hierarchy(devicename)
-        hierarchy = self.generate_device_hierarchy(username, devicename, hierarchy, checkdevice, status, token)
+        hierarchy = self.get_default_device_hierarchy_ex(devicename)
+        hierarchy = self.generate_device_hierarchy_ex(username, devicename, hierarchy, checkdevice, status, token)
 
 
         msg = {'status': 'OK', 'message': 'Get hierarchy tree successful.', 'hierarchy': hierarchy}
