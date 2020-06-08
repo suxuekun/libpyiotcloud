@@ -542,6 +542,9 @@ class database_client:
     def get_user_sensors_input(self, username):
         return self._devices.get_user_sensors_input(username)
 
+    def change_sensor_name(self, username, devicename, source, number, name):
+        return self._devices.change_sensor_name(self._devices.get_deviceid(username, devicename), source, number, name)
+
     def get_all_device_sensors_by_deviceid(self, deviceid):
         return self._devices.get_all_device_sensors(deviceid)
 
@@ -2219,6 +2222,16 @@ class database_client_mongodb:
 
     def get_sensors_document(self):
         return self.client[config.CONFIG_MONGODB_TB_I2CSENSORS]
+
+    def change_sensor_name(self, deviceid, source, number, name):
+        i2csensors = self.get_sensors_document();
+        if i2csensors:
+            found = i2csensors.find_one({'deviceid': deviceid, 'source': source, 'number': number})
+            if found:
+                found["sensorname"] = name
+                i2csensors.replace_one({'deviceid': deviceid, 'source': source, 'number': number}, found)
+                return True
+        return False
 
     def get_user_sensors_input(self, username):
         sensor_list = []

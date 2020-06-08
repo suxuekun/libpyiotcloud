@@ -828,6 +828,77 @@ class device_peripheral_properties:
         return response
 
 
+    ########################################################################################################
+    #
+    # CHANGE LDSU DEVICE NAME
+    #
+    # - Request:
+    #   POST /devices/device/DEVICENAME/UUID/NUMBER/sensors/sensor/SENSORNAME/enable
+    #   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
+    #   data: { 'enable': int }
+    #
+    # - Response:
+    #   { 'status': 'OK', 'message': string }
+    #   { 'status': 'NG', 'message': string }
+    #
+    ########################################################################################################
+    def change_xxx_dev_name(self, devicename, xxx, number, sensorname):
+        print('change_{}_dev_name'.format(xxx))
+
+        # check number parameter
+        #if int(number) > 4 or int(number) < 1:
+        #    response = json.dumps({'status': 'NG', 'message': 'Invalid parameters'})
+        #    print('\r\nERROR Invalid parameters\r\n')
+        #    return response, status.HTTP_400_BAD_REQUEST
+
+        # get token from Authorization header
+        auth_header_token = rest_api_utils.utils().get_auth_header_token()
+        if auth_header_token is None:
+            response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
+            print('\r\nERROR Invalid authorization header\r\n')
+            return response, status.HTTP_401_UNAUTHORIZED
+
+        # get username from token
+        data = flask.request.get_json()
+
+        # check parameter input
+        if data['name'] is None:
+            response = json.dumps({'status': 'NG', 'message': 'Invalid parameters'})
+            print('\r\nERROR Invalid parameters\r\n')
+            return response, status.HTTP_400_BAD_REQUEST
+
+        username = self.database_client.get_username_from_token({'access': auth_header_token})
+        if username is None:
+            response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+            print('\r\nERROR Token expired\r\n')
+            return response, status.HTTP_401_UNAUTHORIZED
+
+
+        # get entity using the active organization
+        orgname, orgid = self.database_client.get_active_organization(username)
+        if orgname is not None:
+            # check authorization
+            if self.database_client.is_authorized(username, orgname, orgid, database_categorylabel.DEVICES, database_crudindex.UPDATE) == False:
+                response = json.dumps({'status': 'NG', 'message': 'Authorization failed! User is not allowed to access resource. Please check with the organization owner regarding policies assigned.'})
+                print('\r\nERROR Change Peripheral Sensor Name: Authorization not allowed [{}]\r\n'.format(username))
+                return response, status.HTTP_401_UNAUTHORIZED
+
+            # has active organization
+            entityname = "{}.{}".format(orgname, orgid)
+        else:
+            # no active organization, just a normal user
+            entityname = username
+
+
+        # change name
+        result = self.database_client.change_sensor_name(entityname, devicename, xxx, number, data["name"])
+
+
+        msg = {'status': 'OK', 'message': 'Peripheral Sensor changed successfully.'}
+        response = json.dumps(msg)
+        print('\r\nDelete All Device Sensors Properties successful: {} {}\r\n'.format(username, devicename))
+        return response
+
 
     ########################################################################################################
     #
