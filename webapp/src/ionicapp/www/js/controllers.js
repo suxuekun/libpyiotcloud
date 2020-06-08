@@ -600,7 +600,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         }
     };
     
-    
+    // ng-model data.devices_filter
+    // ng-keypress submitSearch($event)
     $scope.submitSearch = function(keyEvent) {
         if (keyEvent.which === 13) {
             $scope.submitRefresh();
@@ -9788,7 +9789,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                 $scope.data.uart.databits = result.data.value.databits;
             }
             
-            get_uarts();
+            //get_uarts();
         })
         .catch(function (error) {
             handle_error(error);

@@ -48,10 +48,10 @@ SUMMARY:
 		B. SET SETTINGS                     set_settings
 
 	2. UART
-		A. GET UARTS                        get_uarts
-		B. GET UART PROPERTIES              get_uart_prop
-		C. SET UART PROPERTIES              set_uart_prop
-		D. ENABLE/DISABLE UART              enable_uart
+		A. SET UART PROPERTIES              set_uart_prop
+		B. GET UART PROPERTIES              get_uart_prop        // OBSOLETED
+		C. ENABLE/DISABLE UART              enable_uart          // OBSOLETED
+		D. GET UARTS                        get_uarts            // OBSOLETED
 		E. UART AT Commands
 
 	3. GATEWAY AND LDSBUS
@@ -151,57 +151,7 @@ DETAILED:
 
 	2. UART
 
-		A. GET UARTS
-		-  Receive:
-		   topic: DEVICEID/get_uarts
-		-  Publish:
-		   topic: server/DEVICEID/get_uarts
-		   payload: { 
-		     'value': { 
-		       'uarts': [ 
-		           {'enabled': int}, 
-		       ]
-		     }
-		   }
-		   // gets enabled status of the UART
-		   // enable is an int indicating if disabled (0) or enabled (1)
-
-		B. GET UART PROPERTIES
-		-  Receive:
-		   topic: DEVICEID/get_uart_prop
-		-  Publish:
-		   topic: server/DEVICEID/get_uart_prop
-		   payload: { 
-		     'value': { 
-		       'baudrate': int, 
-		       'parity': int, 
-		       'flowcontrol': int 
-		       'stopbits': int, 
-		       'databits': int, 
-		     } 
-		   }
-		   // gets structure data with correct value mapping (due to unexposed values)
-		   // baudrate is an index of the value in the list of baudrates
-		   //   ft900_uart_simple.h: UART_DIVIDER_XXX
-		   //   ["110", "150", "300", "1200", "2400", "4800", "9600", "19200", "31250", "38400", "57600", "115200", "230400", "460800", "921600", "1000000"]
-		   //      default = 7 (19200)
-		   // parity is an index of the value in the list of parities
-		   //   ft900_uart_simple.h: uart_parity_t enum
-		   //   ["None", "Odd", "Even"]
-		   //      default = 0 (None)
-		   // flowcontrol is an index of the value in the list of flowcontrols
-		   //   ["None", "Rts/Cts", "Xon/Xoff"]
-		   //      default = 0 (None)
-		   // stopbits is an index of the value in the list of stopbits
-		   //   ft900_uart_simple.h: uart_stop_bits_t enum
-		   //   ["1", "2"]
-		   //      default = 0 (1)
-		   // databits is an index of the value in the list of databits
-		   //   ft900_uart_simple.h: uart_data_bits_t enum
-		   //   ["7", "8"]
-		   //      default = 1 (8)
-
-		C. SET UART PROPERTIES
+		A. SET UART PROPERTIES
 		-  Receive:
 		   topic: DEVICEID/set_uart_prop
 		   payload: { 
@@ -239,7 +189,42 @@ DETAILED:
 		   topic: server/DEVICEID/set_uart_prop
 		   payload: {}
 
-		D. ENABLE/DISABLE UART
+		B. GET UART PROPERTIES
+		-  Receive:
+		   topic: DEVICEID/get_uart_prop
+		-  Publish:
+		   topic: server/DEVICEID/get_uart_prop
+		   payload: { 
+		     'value': { 
+		       'baudrate': int, 
+		       'parity': int, 
+		       'flowcontrol': int 
+		       'stopbits': int, 
+		       'databits': int, 
+		     } 
+		   }
+		   // gets structure data with correct value mapping (due to unexposed values)
+		   // baudrate is an index of the value in the list of baudrates
+		   //   ft900_uart_simple.h: UART_DIVIDER_XXX
+		   //   ["110", "150", "300", "1200", "2400", "4800", "9600", "19200", "31250", "38400", "57600", "115200", "230400", "460800", "921600", "1000000"]
+		   //      default = 7 (19200)
+		   // parity is an index of the value in the list of parities
+		   //   ft900_uart_simple.h: uart_parity_t enum
+		   //   ["None", "Odd", "Even"]
+		   //      default = 0 (None)
+		   // flowcontrol is an index of the value in the list of flowcontrols
+		   //   ["None", "Rts/Cts", "Xon/Xoff"]
+		   //      default = 0 (None)
+		   // stopbits is an index of the value in the list of stopbits
+		   //   ft900_uart_simple.h: uart_stop_bits_t enum
+		   //   ["1", "2"]
+		   //      default = 0 (1)
+		   // databits is an index of the value in the list of databits
+		   //   ft900_uart_simple.h: uart_data_bits_t enum
+		   //   ["7", "8"]
+		   //      default = 1 (8)
+
+		C. ENABLE/DISABLE UART
 		-  Receive:
 		   topic: DEVICEID/enable_uart
 		   payload: { 'enable': int }
@@ -251,6 +236,21 @@ DETAILED:
 		   //   * interrupt_attach, uart_enable_interrupt and uart_enable_interrupts_globally needs to be called because uart_soft_reset clears the interrupt
 		   // - DISABLE: calls uart_close() and uart_soft_reset()
 		   //   * uart_soft_reset is needed to prevent distorted text when changing databits or parity
+
+		D. GET UARTS
+		-  Receive:
+		   topic: DEVICEID/get_uarts
+		-  Publish:
+		   topic: server/DEVICEID/get_uarts
+		   payload: { 
+		     'value': { 
+		       'uarts': [ 
+		           {'enabled': int}, 
+		       ]
+		     }
+		   }
+		   // gets enabled status of the UART
+		   // enable is an int indicating if disabled (0) or enabled (1)
 
 		E. UART AT Commands
 		   - AT+M (Mobile)
