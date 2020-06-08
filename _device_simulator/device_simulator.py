@@ -2238,8 +2238,15 @@ class TimerThread(threading.Thread):
         #printf("TimerThread {}".format(g_messaging_client.is_connected()))
         while not self.stopped.wait(self.timeout) and g_messaging_client.is_connected():
             if self.pause == False:
-                self.process_ldsu_input_devices()
-                self.process_input_devices()
+
+                # For LDSU sensor
+                if True:
+                    self.process_ldsu_input_devices()
+
+                # For I2C, ADC, TPROBE, 1WIRE
+                if False:
+                    self.process_input_devices()
+
                 #self.process_output_devices()
                 if CONFIG_SEND_NOTIFICATION_PERIODICALLY:
                     self.process_trigger_notification()
