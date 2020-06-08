@@ -252,3 +252,89 @@ class utils:
             reason = "currepoch({}) > payload[exp]({})".format(currepoch, payload["exp"])
             return None, None, reason
         return payload["username"], payload["password"], payload
+
+
+    def build_default_notifications(self, type, token, database_client):
+        notifications = {}
+
+        if type == "uart":
+            notifications["messages"] = [
+                {
+                    "message": "Hello World", 
+                    "enable": True
+                }
+            ]
+        elif type == "gpio":
+            notifications["messages"] = [
+                {
+                    "message": "Hello World", 
+                    "enable": True
+                }, 
+                {
+                    "message": "Hi World", 
+                    "enable": True
+                }
+            ]
+        else:
+            notifications["messages"] = [
+                {
+                    "message": "Sensor threshold activated", 
+                    "enable": True
+                }, 
+                {
+                    "message": "Sensor threshold deactivated", 
+                    "enable": True
+                }
+            ]
+
+        notifications["endpoints"] = {
+            "mobile": {
+                "recipients": "",
+                "recipients_list" : [],
+                "enable": False
+            },
+            "email": {
+                "recipients": "",
+                "recipients_list" : [],
+                "enable": False
+            },
+            "notification": {
+                "recipients": "",
+                "recipients_list" : [],
+                "enable": False
+            },
+            "modem": {
+                "recipients": "",
+                "recipients_list" : [],
+                "enable": False
+            },
+            "storage": {
+                "recipients": "",
+                "recipients_list" : [],
+                "enable": False
+            },
+        }
+
+        info = database_client.get_user_info(token['access'])
+        if info is None:
+            return None
+
+        if info.get("email"):
+            notifications["endpoints"]["email"]["recipients"] = info["email"]
+            notifications["endpoints"]["email"]["recipients_list"].append({ "to": info["email"], "group": False })
+
+        if info.get("email_verified"):
+            notifications["endpoints"]["email"]["enable"] = info["email_verified"]
+
+        if info.get("phone_number"):
+            notifications["endpoints"]["mobile"]["recipients"] = info["phone_number"]
+            notifications["endpoints"]["mobile"]["recipients_list"].append({ "to": info["phone_number"], "group": False })
+            #notifications["endpoints"]["notification"]["recipients"] = info["phone_number"]
+            #notifications["endpoints"]["notification"]["recipients_list"].append({ "to": info["phone_number"], "group": False })
+
+        if type == "uart":
+            if info.get("phone_number_verified"):
+                notifications["endpoints"]["mobile"]["enable"] = info["phone_number_verified"]
+                #notifications["endpoints"]["notification"]["enable"] = False
+
+        return notifications
