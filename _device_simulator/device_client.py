@@ -24,12 +24,13 @@ class device_client:
 		self.class_id = None
 		self.gw_desc = None
 		self.lds_reg = None
+		self.lds_reg_file = None
 		pass
 
 
 	def _readfile(self, filename):
 		try:
-			f = open(FOLDER + filename)
+			f = open(FOLDER + filename, "r")
 			json_obj = f.read()
 			f.close()
 			json_obj = json.loads(json_obj)
@@ -37,6 +38,17 @@ class device_client:
 			#print(e)
 			return None
 		return json_obj
+
+	def _writefile(self, filename, json_obj):
+		print()
+		try:
+			f = open(FOLDER + filename, "w")
+			f.write(json_obj)
+			f.close()
+		except Exception as e:
+			print(e)
+			return False
+		return True
 
 	def _print_json(self, json_object, label=None):
 		json_formatted_str = json.dumps(json_object, indent=2)
@@ -71,11 +83,14 @@ class device_client:
 		self.gw_desc = self._readfile(SAMPLE_GW_DESC)
 		if lds_filename is None:
 			self.lds_reg = self._readfile(SAMPLE_LDS_REG)
+			self.lds_reg_file = SAMPLE_LDS_REG
 		else:
 			self.lds_reg = self._readfile(lds_filename)
 			if self.lds_reg is None:
 				self.lds_reg = self._readfile(SAMPLE_LDS_REG)
-
+				self.lds_reg_file = SAMPLE_LDS_REG
+			else:
+				self.lds_reg_file = lds_filename
 		#self.test()
 
 
@@ -84,10 +99,25 @@ class device_client:
 			return None
 		return self.gw_desc
 
-	def get_sample_lds_reg(self):
+	def get_lds_reg(self):
 		if self.lds_reg is None:
 			return None
 		return self.lds_reg["LDS"]
+
+	def save_lds_reg(self, filename, json_obj):
+		self._writefile(filename, json_obj)
+
+	def iscustom_lds_reg(self):
+		return self.lds_reg_file == SAMPLE_LDS_REG
+
+	def get_ldsu_reg_from_lds_reg_template(self, obj):
+		lds_reg = self._readfile(SAMPLE_LDS_REG)
+		if lds_reg is None:
+			return None
+		for item in lds_reg["LDS"]:
+			if int(item["OBJ"]) == int(obj):
+				return item
+		return None
 
 
 	def get_obj(self, obj):

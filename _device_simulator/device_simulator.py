@@ -1708,6 +1708,12 @@ def handle_api(api, subtopic, subpayload):
 # LDSU helper functions
 ###################################################################################
 
+def saveToLDSFile():
+    lds_filename = CONFIG_DEVICE_ID + ".json"
+    json_obj = { "LDS": g_ldsu_descriptors }
+    json_obj = json.dumps(json_obj, indent=2)
+    g_device_client.save_lds_reg(lds_filename, json_obj)
+
 def listLDSUs(port):
     if port>0 and port<=3:
         for ldsu in g_ldsu_descriptors:
@@ -1719,23 +1725,81 @@ def listLDSUs(port):
     print()
 
 def moveLDSU(uid, port):
+    found = False
     for ldsu in g_ldsu_descriptors:
         if uid == ldsu["UID"]:
             ldsu["PORT"] = str(port)
             reg_ldsu_descriptors()
+            found = True
             break
+    if not found:
+        print("{} not found.".format(uid))
+    else:
+        # save to file to make changes persistent on reboot
+        saveToLDSFile()
     print()
 
-def plugLDSU(obj, port):
-    print("plugLDSU")
+def plugLDSU(obj, port, uid):
+    ldsu_descriptor = g_device_client.get_ldsu_reg_from_lds_reg_template(obj)
+    if ldsu_descriptor is None:
+        print("{} is not found!".format(obj))
+        return
+    if port<=0 and port>3:
+        print("{} is not valid!".format(port))
+        return
+
+    if uid is None:
+        # generate a uid
+        uid = ""
+        while True:
+            found = False
+            uid = "{}{:02d}".format(CONFIG_DEVICE_ID, random.randint(0, 99))
+            for ldsu in g_ldsu_descriptors:
+                if ldsu["UID"] == uid:
+                    found = True
+                    break
+
+            if not found:
+                break
+    else:
+        # check if uid is not present
+        for ldsu in g_ldsu_descriptors:
+            if ldsu["UID"] == uid:
+                print("{} is not valid".format(uid))
+                return
+
+    # update LDSU descriptor and register it
+    ldsu_descriptor["UID"] = uid
+    ldsu_descriptor["PORT"] = str(port)
+    g_ldsu_descriptors.append(ldsu_descriptor)
+    reg_ldsu_descriptors()
+
+    # update LDSU properties to add for the new LDSU
+    if g_ldsu_properties.get(uid) is None:
+        obj = ldsu_descriptor["OBJ"]
+        numdevices = g_device_client.get_obj_numdevices(obj)
+        g_ldsu_properties[uid] = []
+        for device in range(numdevices):
+            g_ldsu_properties[uid].append({ 'enabled': 0, 'mode': 0 })
+
+
+    # save to file to make changes persistent on reboot
+    saveToLDSFile()
     print()
 
 def unplugLDSU(uid):
+    found = False
     for ldsu in g_ldsu_descriptors:
         if uid == ldsu["UID"]:
             g_ldsu_descriptors.remove(ldsu)
             reg_ldsu_descriptors()
+            found = True
             break
+    if not found:
+        print("{} not found.".format(uid))
+    else:
+        # save to file to make changes persistent on reboot
+        saveToLDSFile()
     print()
 
 
@@ -2527,9 +2591,11 @@ def uart_cmdhdl_ldstest(idx, cmd):
     if len(cmd) == len(UART_ATCOMMANDS[idx]["command"]):
         print("LDS Test commands")
         print("ATT+LS+<PORT>        - to list LDSUs in specified LDS BUS port (1, 2, 3)")
+        print("                     - if no port provided, will list LDSUs in all ports")
         print("ATT+MOV+<UID>+<PORT> - to move an LDSU to specified LDS BUS port")
         print("ATT+ADD+<OBJ>+<PORT> - to plug an LDSU of type OBJ to specified LDS BUS port")
         print("                     - available OBJ = [32768, 32770]")
+        print("                     - UID is optional (if you want to re-add what you removed)")
         print("ATT+REM+<UID>        - to unplug an LDSU")
         print()
         return
@@ -2554,12 +2620,16 @@ def uart_cmdhdl_ldstest(idx, cmd):
 
     elif cmd_list[0] == "ADD":
         params = cmd_list[1:]
-        if len(params) != 2:
+        if len(params) < 2:
             print("invalid {} parameters".format(cmd_list[0]))
             return
         obj = params[0]
         port = int(params[1])
-        plugLDSU(obj, port)
+        if len(params) == 2:
+            uid = None
+        elif len(params) == 3:
+            uid = params[2]
+        plugLDSU(obj, port, uid)
 
     elif cmd_list[0] == "REM":
         params = cmd_list[1:]
@@ -2856,6 +2926,7 @@ def reg_ldsu_descriptors(port=None, as_response=False):
 # Initialize Gateway descriptor
 def init_gw_descriptor():
     global g_gateway_descriptor
+    global g_device_client
     g_gateway_descriptor = g_device_client.get_gw_desc()
     if g_gateway_descriptor is None:
         g_gateway_descriptor = {}
@@ -2868,17 +2939,20 @@ def init_gw_descriptor():
 # Initialize LDSU descriptors to ensure unique UID
 def init_ldsu_descriptors():
     global g_ldsu_descriptors
-    g_ldsu_descriptors = g_device_client.get_sample_lds_reg()
+    global g_device_client
+    g_ldsu_descriptors = g_device_client.get_lds_reg()
     if g_ldsu_descriptors is None:
         g_ldsu_descriptors = []
         return False
     for x in range(len(g_ldsu_descriptors)):
-        g_ldsu_descriptors[x]["UID"] = "{}{:02d}".format(CONFIG_DEVICE_ID, x)
+        if g_ldsu_descriptors[x]["UID"] == "BRTXXXXXXXXXXXXX" or g_ldsu_descriptors[x]["UID"] == "":
+            g_ldsu_descriptors[x]["UID"] = "{}{:02d}".format(CONFIG_DEVICE_ID, x)
     return True
 
 # Initialize LDSU properties
 def init_ldsu_properties():
     global g_ldsu_properties
+    global g_device_client
     for ldsu_descriptor in g_ldsu_descriptors:
         source = ldsu_descriptor["UID"]
         obj = ldsu_descriptor["OBJ"]

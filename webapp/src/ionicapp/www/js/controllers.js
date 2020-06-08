@@ -708,10 +708,12 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             if (true) {
                 // DEVICE GROUPS AND UNGROUPED DEVICES
                 
-                // Fetch devicegroups
-                DeviceGroups.fetch($scope.data).then(function(res) {
-                    $scope.devicegroups = res;
+                DeviceGroups.get_mixed_devices($scope.data).then(function(res) {
+                    $scope.devicegroups = res.data.devicegroups;
+                    $scope.devices = res.data.devices;
                     $scope.data.token = User.get_token();
+                    
+                    
                     if ($scope.devicegroups.length !== 0) {
                         if ($scope.devicegroups.length === 1) {
                             $scope.devices_counthdr = $scope.devicegroups.length.toString() + " gateway group ";
@@ -723,16 +725,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                     else {
                         $scope.devices_counthdr = "No gateway group ";
                     }
-                })
-                .catch(function (error) {
-                    console.log("DeviceGroups.fetch failed!!!");
-                    $scope.handle_error(error);
-                });
-                
-                // Fetch ungrouped devices
-                DeviceGroups.get_ungrouped_devices($scope.data).then(function(res) {
-                    $scope.devices = res;
-                    $scope.data.token = User.get_token();
+                    
+                    
                     if ($scope.devices.length !== 0) {
                         if ($scope.devices.length === 1) {
                             $scope.devices_counthdr += "and 1 ungrouped gateway registered";
@@ -774,11 +768,90 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                     else {
                         $scope.devices_counthdr += "and no ungrouped gateway";
                     }
+                    
+                })
+                .catch(function (error) {
+                    console.log("DeviceGroups.fetch failed!!!");
+                    $scope.handle_error(error);
+                });
+                    
+                
+                /*
+                // Fetch devicegroups
+                DeviceGroups.fetch($scope.data).then(function(res) {
+                    $scope.devicegroups = res;
+                    $scope.data.token = User.get_token();
+                    if ($scope.devicegroups.length !== 0) {
+                        if ($scope.devicegroups.length === 1) {
+                            $scope.devices_counthdr = $scope.devicegroups.length.toString() + " gateway group ";
+                        }
+                        else {
+                            $scope.devices_counthdr = $scope.devicegroups.length.toString() + " gateway groups ";
+                        }
+                    }
+                    else {
+                        $scope.devices_counthdr = "No gateway group ";
+                    }
+                })
+                .catch(function (error) {
+                    console.log("DeviceGroups.fetch failed!!!");
+                    $scope.handle_error(error);
+                });
+                
+                // Fetch ungrouped devices
+                DeviceGroups.get_ungrouped_devices($scope.data).then(function(res) {
+                    $scope.devices = res;
+                    $scope.data.token = User.get_token();
+                    
+                    if ($scope.devices.length !== 0) {
+                        if ($scope.devices.length === 1) {
+                            $scope.devices_counthdr += "and 1 ungrouped gateway registered";
+                        }
+                        else {
+                            $scope.devices_counthdr += "and " + $scope.devices.length.toString() + " ungrouped gateways registered";
+                        }
+                        
+                        let currdate = parseInt(new Date().valueOf()/ 1000, 10);
+    
+                        if (livestatus === true) {
+                            //console.log($scope.devices.length);
+                            let indexy = 0;
+                            for (indexy=0; indexy<$scope.devices.length; indexy++) {
+                                //console.log("indexy=" + indexy.toString() + " " + $scope.devices[indexy].devicename);
+                                
+                                if ($scope.devices[indexy].heartbeat !== undefined) {
+                                    $scope.devices[indexy].devicestatus = $scope.getDiffString(currdate, $scope.devices[indexy].heartbeat);
+                                }
+                                else {
+                                    $scope.devices[indexy].devicestatus = "Last active: N/A";
+                                }
+                                
+                                query_device(indexy, $scope.devices[indexy].devicename);
+                            }
+                        }
+                        else {
+                            let indexy = 0;
+                            for (indexy=0; indexy<$scope.devices.length; indexy++) {
+                                if ($scope.devices[indexy].heartbeat !== undefined) {
+                                    $scope.devices[indexy].devicestatus = $scope.getDiffString(currdate, $scope.devices[indexy].heartbeat);
+                                }
+                                else {
+                                    $scope.devices[indexy].devicestatus = "Last active: N/A";
+                                }
+                            }
+                        }
+                    }
+                    else {
+                        $scope.devices_counthdr += "and no ungrouped gateway";
+                    }
+                    
                 })
                 .catch(function (error) {
                     console.log("Devices.get failed!!!");
                     $scope.handle_error(error);
                 }); 
+                
+                */
             } 
             else {
                 // DEVICES

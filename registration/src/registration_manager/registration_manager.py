@@ -106,11 +106,25 @@ def set_ldsu_descs(database_client, deviceid, topic, payload):
         return
 
     payload = json.loads(payload)
-    print_json(payload)
+    #print_json(payload)
+
+
+    # set status for non-present LDSUs
+    ldsus = database_client.get_ldsus_by_deviceid(username, deviceid)
+    for ldsu in ldsus:
+        found = False
+        for descriptor in payload["value"]:
+            if ldsu["UID"] == descriptor["UID"]:
+                found = True
+                break
+        if not found:
+            print("not found {}".format(ldsu["UID"]))
+            database_client.set_ldsu_status_by_deviceid(username, deviceid, ldsu["UID"], 0)
+
 
     # save each ldsu to database
     for descriptor in payload["value"]:
-        print_json(descriptor)
+        #print_json(descriptor)
 
         # add or update ldsu
         ldsu = database_client.set_ldsu_by_deviceid(username, deviceid, descriptor)
@@ -138,18 +152,18 @@ def set_ldsu_descs(database_client, deviceid, topic, payload):
                     'minmax'   : g_device_client.get_objidx_minmax(descriptor),
                     'obj'      : obj,
                 }
-                print("source     {}".format(source))
-                print("number     {}".format(number))
-                print("sensorname {}".format(sensorname))
-                print("class      {}".format(sensor["class"]))
-                print("port       {}".format(sensor["port"]))
-                print("format     {}".format(sensor["format"]))
-                print("type       {}".format(sensor["type"]))
-                print("unit       {}".format(sensor["unit"]))
-                print("accuracy   {}".format(sensor["accuracy"]))
-                print("minmax     {}".format(sensor["minmax"]))
-                print("obj        {}".format(sensor["obj"]))
-                print()
+                #print("source     {}".format(source))
+                #print("number     {}".format(number))
+                #print("sensorname {}".format(sensorname))
+                #print("class      {}".format(sensor["class"]))
+                #print("port       {}".format(sensor["port"]))
+                #print("format     {}".format(sensor["format"]))
+                #print("type       {}".format(sensor["type"]))
+                #print("unit       {}".format(sensor["unit"]))
+                #print("accuracy   {}".format(sensor["accuracy"]))
+                #print("minmax     {}".format(sensor["minmax"]))
+                #print("obj        {}".format(sensor["obj"]))
+                #print()
                 database_client.add_sensor_by_deviceid(username, deviceid, source, number, sensorname, sensor)
 
 
