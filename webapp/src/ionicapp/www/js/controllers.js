@@ -13615,6 +13615,169 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
     };
 }])
    
+.controller('viewLDSUDeviceCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+// You can include any angular dependencies as parameters for this function
+// TIP: Access Route Parameters for your page via $stateParams.parameterName
+function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token) {
+
+    var server = Server.rest_api;
+
+    $scope.data = {
+        'username': User.get_username(),
+        'token': User.get_token(),
+        'devicename': $stateParams.devicename,
+        'devicestatus': $stateParams.devicestatus,
+        'deviceid': $stateParams.deviceid,
+        'serialnumber': $stateParams.serialnumber,
+        
+        'location': $stateParams.location,
+        'activeSection': $stateParams.activeSection,
+        'sensors': $stateParams.sensors,                
+        
+        'sensor': $stateParams.sensor,
+        'source': $stateParams.source,
+
+        'multiclass': $stateParams.multiclass,    
+//        'attributes': $stateParams.attributes,
+//        'enabled': $stateParams.sensor.enabled ? true: false,
+    };
+    
+    $scope.newsensorname = $stateParams.sensor.sensorname;
+    
+    
+    
+    handle_error = function(error, showerror) {
+        if (error.data !== null) {
+            console.log("ERROR: Temperature failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
+
+            if (error.data.message === "Token expired") {
+                Token.refresh({'username': $scope.data.username, 'token': $scope.data.token});
+                $scope.data.token = User.get_token();
+            }
+            
+            if (error.status == 503 && showerror === true ) {
+                $ionicPopup.alert({ title: 'Error', template: 'Device is unreachable!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+            }            
+        }
+        else {
+            console.log("ERROR: Server is down!"); 
+            $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+        }
+    };
+    
+    
+    $scope.changeName = function(name) {
+        console.log('Change name ' + name + ' ' + $scope.data.sensor.sensorname);
+        if (name === $scope.data.sensor.sensorname) {
+            console.log('Same name');
+            return;
+        }
+        
+        $ionicPopup.alert({
+            title: 'Change LDSU Device Name',
+            template: 'Are you sure you want to change the LDSU Device name to ' + name + '?',
+            buttons: [
+                { 
+                    text: 'No',
+                    type: 'button-negative',
+                },
+                {
+                    text: 'Yes',
+                    type: 'button-positive',
+                    onTap: function(e) {
+                        $scope.newsensorname = name;
+                        $scope.change_name($scope.newsensorname);
+                    }
+                }
+            ]            
+        });          
+    };
+
+    $scope.change_name = function(name) {
+        console.log('change_name ' + $scope.data.sensor.source + ' ' + $scope.data.sensor.number.toString() + ' ' + $scope.data.sensor.sensorname);
+        //
+        // CHANGE LDSU DEVICE NAME
+        //
+        // - Request:
+        //   POST /devices/device/<devicename>/ldsu/<number>/sensors/sensor/<sensorname>/name
+        //   headers: { 'Authorization': 'Bearer ' + token.access }
+        //   data: {'name': string }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string, }
+        //   { 'status': 'NG', 'message': string }
+        //
+        $http({
+            method: 'POST',
+            url: server + '/devices/device/' + $scope.data.devicename + '/' + $scope.data.sensor.source + '/' + $scope.data.sensor.number.toString() + '/sensors/sensor/' + $scope.data.sensor.sensorname + '/name',
+            headers: {'Authorization': 'Bearer ' + $scope.data.token.access},
+            data: {'name': name}
+        })
+        .then(function (result) {
+            console.log(result.data);
+            $scope.data.sensor.sensorname = name;
+            for (var item in $scope.data.sensors) {
+                if (item.source == $scope.data.sensor.source && item.number == $scope.data.sensor.number) {
+                    item.sensorname = name;
+                    break;
+                }
+            }
+
+        })
+        .catch(function (error) {
+            $scope.handle_error(error);
+        }); 
+    };
+    
+    
+
+    // EXIT PAGE
+    $scope.submitDeviceList = function() {
+        console.log("submitDeviceList");
+        sensor = $scope.data.sensor;
+        param = $scope.data;
+        
+        if (sensor.class !== undefined) {
+            if (sensor.subclass !== undefined) {
+                $state.go('multiclass', param);
+            }
+            else {
+                if (sensor.class === "temperature") {
+                    $state.go('temperature', param);
+                }
+                else if (sensor.class === "humidity") {
+                    $state.go('humidity', param);
+                }
+                /*
+                else if (sensor.class === "speaker") {
+                    $state.go('speaker', param);
+                }
+                else if (sensor.class === "display") {
+                    $state.go('display', param);
+                }
+                else if (sensor.class === "potentiometer") {
+                    $state.go('potentiometer', param);
+                }
+                else if (sensor.class === "anemometer") {
+                    $state.go('anemometer', param);
+                }
+                else if (sensor.class === "light") {
+                    $state.go('light', param);
+                }
+                else {
+                    $state.go('multiclass', param);
+                }
+                */
+            }
+        }
+        else {
+            param.sensor.class = "multiclass";
+            param.sensor.attributes = [];
+            $state.go('multiclass', param);
+        }
+    };
+}])
+   
 .controller('unknownCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', 'Devices', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
 // You can include any angular dependencies as parameters for this function
 // TIP: Access Route Parameters for your page via $stateParams.parameterName
@@ -15576,11 +15739,21 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             'devicestatus': $scope.data.devicestatus,
             'deviceid': $scope.data.deviceid,
             'serialnumber': $scope.data.serialnumber,
+
+            'location': $scope.data.location,
+            'activeSection': $scope.data.activeSection,
+            'sensors': $scope.data.sensors,            
+    
             'sensor': $scope.data.sensor,
             'source': $scope.data.source,
-            'multiclass': $scope.data.multiclass,             
+
+            'multiclass': $scope.data.multiclass,
         };
-        if ($scope.data.source === "I2C") {
+        if ($scope.data.source === "LDSU") {
+            console.log("viewLDSUDevice");
+            $state.go('viewLDSUDevice', device_param);
+        }
+        else if ($scope.data.source === "I2C") {
             console.log("viewI2CDevice");
             $state.go('viewI2CDevice', device_param);
         }
@@ -16028,11 +16201,21 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             'devicestatus': $scope.data.devicestatus,
             'deviceid': $scope.data.deviceid,
             'serialnumber': $scope.data.serialnumber,
+    
+            'location': $scope.data.location,
+            'activeSection': $scope.data.activeSection,
+            'sensors': $scope.data.sensors,
+    
             'sensor': $scope.data.sensor,
             'source': $scope.data.source,
+
             'multiclass': $scope.data.multiclass,             
         };
-        if ($scope.data.source === "I2C") {
+        if ($scope.data.source === "LDSU") {
+            console.log("viewLDSUDevice");
+            $state.go('viewLDSUDevice', device_param);
+        }
+        else if ($scope.data.source === "I2C") {
             console.log("viewI2CDevice");
             $state.go('viewI2CDevice', device_param);
         }

@@ -780,6 +780,7 @@ def set_uart_prop(devicename):
 def enable_uart(devicename):
     return g_device_peripheral_properties.enable_uart(devicename)
 
+
 @app.route('/devices/device/<devicename>/<xxx>/<number>/sensors/sensor/<sensorname>/properties', methods=['GET'])
 def get_xxx_dev_prop(devicename, xxx, number, sensorname):
     return g_device_peripheral_properties.get_xxx_dev_prop(devicename, xxx, number, sensorname)
@@ -792,20 +793,28 @@ def set_xxx_dev_prop(devicename, xxx, number, sensorname):
 def enable_xxx_dev(devicename, xxx, number, sensorname):
     return g_device_peripheral_properties.enable_xxx_dev(devicename, xxx, number, sensorname)
 
+@app.route('/devices/device/<devicename>/<xxx>/<number>/sensors/sensor/<sensorname>/name', methods=['POST'])
+def change_xxx_dev_name(devicename, xxx, number, sensorname):
+    return g_device_peripheral_properties.change_xxx_dev_name(devicename, xxx, number, sensorname)
+
+
 @app.route('/devices/device/<devicename>/sensors/properties', methods=['DELETE'])
 def delete_all_device_sensors_properties(devicename):
     return g_device_peripheral_properties.delete_all_device_sensors_properties(devicename)
 
 
 g_device_peripheral_properties_list = [
-#    { "name": "GET UARTS",                    "func": get_uarts,     "api": "/devices/device/<devicename>/uarts",           "method": "GET"    },
-    { "name": "GET UART PROPERTIES",          "func": get_uart_prop, "api": "/devices/device/<devicename>/uart/properties", "method": "POST"   },
-    { "name": "SET UART PROPERTIES",          "func": set_uart_prop, "api": "/devices/device/<devicename>/uart/properties", "method": "GET"    },
-    { "name": "ENABLE UART",                  "func": enable_uart,   "api": "/devices/device/<devicename>/uart/enable",     "method": "POST"   },
-    { "name": "GET LDS DEVICE PROPERTIES",    "func": enable_uart,   "api": "/devices/device/<devicename>/<xxx>/<number>/sensors/sensor/<sensorname>/properties", "method": "POST"   },
-    { "name": "SET LDS DEVICE PROPERTIES",    "func": enable_uart,   "api": "/devices/device/<devicename>/<xxx>/<number>/sensors/sensor/<sensorname>/properties", "method": "POST"   },
-    { "name": "ENABLE LDS DEVICE",            "func": enable_uart,   "api": "/devices/device/<devicename>/<xxx>/<number>/sensors/sensor/<sensorname>/enable",     "method": "POST"   },
-    { "name": "ENABLE LDS DEVICE PROPERTIES", "func": enable_uart,   "api": "/devices/device/<devicename>/sensors/properties",                                    "method": "DELETE"   },
+#    { "name": "GET UARTS",                    "func": get_uarts,           "api": "/devices/device/<devicename>/uarts",           "method": "GET"    },
+    { "name": "GET UART PROPERTIES",          "func": get_uart_prop,       "api": "/devices/device/<devicename>/uart/properties", "method": "POST"   },
+    { "name": "SET UART PROPERTIES",          "func": set_uart_prop,       "api": "/devices/device/<devicename>/uart/properties", "method": "GET"    },
+    { "name": "ENABLE UART",                  "func": enable_uart,         "api": "/devices/device/<devicename>/uart/enable",     "method": "POST"   },
+
+    { "name": "GET LDS DEVICE PROPERTIES",    "func": get_xxx_dev_prop,    "api": "/devices/device/<devicename>/<xxx>/<number>/sensors/sensor/<sensorname>/properties", "method": "POST"   },
+    { "name": "SET LDS DEVICE PROPERTIES",    "func": set_xxx_dev_prop,    "api": "/devices/device/<devicename>/<xxx>/<number>/sensors/sensor/<sensorname>/properties", "method": "POST"   },
+    { "name": "ENABLE LDS DEVICE",            "func": enable_xxx_dev,      "api": "/devices/device/<devicename>/<xxx>/<number>/sensors/sensor/<sensorname>/enable",     "method": "POST"   },
+    { "name": "CHANGE LDS DEVICE NAME",       "func": change_xxx_dev_name, "api": "/devices/device/<devicename>/<xxx>/<number>/sensors/sensor/<sensorname>/name",       "method": "POST"   },
+
+    { "name": "ENABLE LDS DEVICE PROPERTIES", "func": delete_all_device_sensors_properties, "api": "/devices/device/<devicename>/sensors/properties",                   "method": "DELETE" },
 ]
 
 

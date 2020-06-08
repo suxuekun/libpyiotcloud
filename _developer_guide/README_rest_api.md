@@ -164,6 +164,7 @@ SUMMARY:
 		J. SET LDSU DEVICE PROPERTIES     - POST   /devices/device/DEVICENAME/LDSUUUID/NUMBER/sensors/sensor/SENSORNAME/properties
 		K. GET LDSU DEVICE PROPERTIES     - GET    /devices/device/DEVICENAME/LDSUUUID/NUMBER/sensors/sensor/SENSORNAME/properties
 		L. ENABLE/DISABLE LDSU DEVICE     - POST   /devices/device/DEVICENAME/LDSUUUID/NUMBER/sensors/sensor/SENSORNAME/enable
+		M. CHANGE LDSU DEVICE NAME        - POST   /devices/device/DEVICENAME/LDSUUUID/NUMBER/sensors/sensor/SENSORNAME/name
 
 
 	6. Device access and control APIs (STATUS, UART, GPIO)
@@ -1698,6 +1699,18 @@ DETAILED:
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		   data: { 'enable': int }
 		   // enable is an int indicating if disabled (0) or enabled (1)
+		-  Response:
+		   { 'status': 'OK', 'message': string }
+		   { 'status': 'NG', 'message': string }
+		   // LDSUUUID refers to the sensor["source"]. Refer to GET LDS BUS SENSORS.
+		   // NUMBER refers to the sensor["number"]. Refer to GET LDS BUS SENSORS.
+		   // SENSORNAME refers to the sensor["sensorname"]. Refer to GET LDS BUS SENSORS.
+
+		M. CHANGE LDSU DEVICE (SENSOR/ACTUATOR) NAME
+		-  Request:
+		   POST /devices/device/DEVICENAME/LDSUUUID/NUMBER/sensors/sensor/SENSORNAME/name
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		   data: { 'name': string }
 		-  Response:
 		   { 'status': 'OK', 'message': string }
 		   { 'status': 'NG', 'message': string }

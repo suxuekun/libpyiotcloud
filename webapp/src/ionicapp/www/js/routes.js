@@ -596,6 +596,26 @@ angular.module('app.routes', [])
     controller: 'view1WIREDeviceCtrl'
   })
 
+  .state('viewLDSUDevice', {
+    url: '/page_ldsu_device',
+	params: {
+		devicename: "",
+		username: "",
+		token: "",
+		devicestatus: "",
+		deviceid: "",
+		serialnumber: "",
+		location: "",
+		activeSection: "",
+		sensors: "",
+		sensor: "",
+		source: "",
+		multiclass: ""		
+},
+    templateUrl: 'templates/viewLDSUDevice.html',
+    controller: 'viewLDSUDeviceCtrl'
+  })
+
   .state('unknown', {
     url: '/page_unknown',
 	params: {
