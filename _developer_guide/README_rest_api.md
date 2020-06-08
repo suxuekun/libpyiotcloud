@@ -148,7 +148,7 @@ SUMMARY:
 	5. Device access and control APIs (LDSBUS)
 
 		A. GET LDS BUS                    - GET    /devices/device/DEVICENAME/ldsbus/PORT
-		B. GET LDS BUS SENSORS            - GET    /devices/device/DEVICENAME/ldsbus/PORT/ldsus
+		B. GET LDS BUS LDSUS              - GET    /devices/device/DEVICENAME/ldsbus/PORT/ldsus
 		C. GET LDS BUS SENSORS            - GET    /devices/device/DEVICENAME/ldsbus/PORT/sensors
 		D. GET LDS BUS ACTUATORS          - GET    /devices/device/DEVICENAME/ldsbus/PORT/actuators
 		E. SCAN LDS BUS                   - POST   /devices/device/DEVICENAME/ldsbus/PORT
@@ -159,6 +159,8 @@ SUMMARY:
 		H. GET LDSU                       - GET    /devices/device/DEVICENAME/ldsu/LDSUUUID
 		I. DELETE LDSU                    - DELETE /devices/device/DEVICENAME/ldsu/LDSUUUID
 
+		//
+		// LDSU DEVICE refers to SENSOR or ACTUATOR
 		J. SET LDSU DEVICE PROPERTIES     - POST   /devices/device/DEVICENAME/LDSUUUID/NUMBER/sensors/sensor/SENSORNAME/properties
 		K. GET LDSU DEVICE PROPERTIES     - GET    /devices/device/DEVICENAME/LDSUUUID/NUMBER/sensors/sensor/SENSORNAME/properties
 		L. ENABLE/DISABLE LDSU DEVICE     - POST   /devices/device/DEVICENAME/LDSUUUID/NUMBER/sensors/sensor/SENSORNAME/enable
@@ -1469,7 +1471,7 @@ DETAILED:
 		             "LABL":     string,  // LDSU Friendly name, value can be changed by user via CHANGE LDSU NAME api
 		             "UID":      string,  // LDSU UUID
 		             "PORT":     string,  // LDS Bus Port
-		             "status":   string,  // reachable or unreachable
+		             "status":   string,  // "reachable" or "unreachable"
 
 		             // just for displaying, not really important
 		             "descriptor": {
@@ -1515,6 +1517,7 @@ DETAILED:
 		   }
 		   // if port number is 1,2 or 3, ldsbus length is 1
 		   // if port number is 0, ldsbus contains all 3 ports so ldsbus is an arry of 3 items
+		   // "unreachable" means the LDSU is not currently present but was previously registered by the IoT Gateway (ex. the LDSU was unplugged)
 		   { 'status': 'NG', 'message': string }
 
 		B. GET LDS BUS LDSUS
@@ -1529,7 +1532,7 @@ DETAILED:
 		         "LABL":     string,  // LDSU Friendly name, value can be changed by user via CHANGE LDSU NAME api
 		         "UID":      string,  // LDSU UUID
 		         "PORT":     string,  // LDS Bus Port
-		         "status":   string,  // reachable or unreachable
+		         "status":   string,  // "reachable" or "unreachable"
 
 		         // just for displaying, not really important
 		         "descriptor": {
@@ -1547,6 +1550,7 @@ DETAILED:
 		   }
 		   // if port number is 1,2 or 3, ldsbus length is 1
 		   // if port number is 0, ldsbus contains all 3 ports so ldsbus is an arry of 3 items
+		   // "unreachable" means the LDSU is not currently present but was previously registered by the IoT Gateway (ex. the LDSU was unplugged)
 		   { 'status': 'NG', 'message': string }
 
 		C. GET LDS BUS SENSORS
@@ -1581,8 +1585,8 @@ DETAILED:
 		       ...
 		     ] 
 		   }
-		   // if port number is 1,2 or 3, ldsbus length is 1
-		   // if port number is 0, ldsbus contains all 3 ports so ldsbus is an arry of 3 items
+		   // if PORT_NUMBER is 1,2 or 3, ldsbus length is 1
+		   // if PORT_NUMBER is 0, ldsbus contains all 3 ports so ldsbus is an arry of 3 items
 		   { 'status': 'NG', 'message': string }
 
 		D. GET LDS BUS ACTUATORS
@@ -1597,8 +1601,8 @@ DETAILED:
 		       ...
 		     ] 
 		   }
-		   // if port number is 1,2 or 3, ldsbus length is 1
-		   // if port number is 0, ldsbus contains all 3 ports so ldsbus is an arry of 3 items
+		   // if PORT_NUMBER is 1,2 or 3, ldsbus length is 1
+		   // if PORT_NUMBER is 0, ldsbus contains all 3 ports so ldsbus is an arry of 3 items
 		   { 'status': 'NG', 'message': string }
 
 		E. SCAN LDS BUS
@@ -1621,6 +1625,7 @@ DETAILED:
 		-  Response:
 		   { 'status': 'OK', 'message': string }
 		   { 'status': 'NG', 'message': string }
+		   // LDSUUUID refers to ldsu["UID"]. Refer to GET LDSU.
 
 		G. IDENTIFY LDSU
 		-  Request:
@@ -1629,6 +1634,7 @@ DETAILED:
 		-  Response:
 		   { 'status': 'OK', 'message': string }
 		   { 'status': 'NG', 'message': string }
+		   // LDSUUUID refers to ldsu["UID"]. Refer to GET LDSU.
 
 		H. GET LDSU
 		-  Request:
@@ -1653,6 +1659,7 @@ DETAILED:
 		         }
 		       }
 		    }
+		   // LDSUUUID refers to ldsu["UID"]. Refer to GET LDSU.
 
 		I. DELETE LDSU
 		-  Request:
@@ -1660,8 +1667,9 @@ DETAILED:
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
 		   { 'status': 'OK', 'message': string }
+		   // LDSUUUID refers to ldsu["UID"]. Refer to GET LDSU.
 
-		J. SET LDSU DEVICE PROPERTIES
+		J. SET LDSU DEVICE (SENSOR/ACTUATOR) PROPERTIES
 		-  Request:
 		   POST /devices/device/DEVICENAME/LDSUUUID/NUMBER/sensors/sensor/SENSORNAME/properties
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -1669,16 +1677,22 @@ DETAILED:
 		-  Response:
 		   { 'status': 'OK', 'message': string }
 		   { 'status': 'NG', 'message': string }
+		   // LDSUUUID refers to the sensor["source"]. Refer to GET LDS BUS SENSORS.
+		   // NUMBER refers to the sensor["number"]. Refer to GET LDS BUS SENSORS.
+		   // SENSORNAME refers to the sensor["sensorname"]. Refer to GET LDS BUS SENSORS.
 
-		K. GET LDSU DEVICE PROPERTIES
+		K. GET LDSU DEVICE (SENSOR/ACTUATOR) PROPERTIES
 		-  Request:
 		   GET /devices/device/DEVICENAME/LDSUUUID/NUMBER/sensors/sensor/SENSORNAME/properties
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
 		   { 'status': 'OK', 'message': string, 'value': json_object } // same as GET I2C DEVICE PROPERTIES
 		   { 'status': 'NG', 'message': string }
+		   // LDSUUUID refers to the sensor["source"]. Refer to GET LDS BUS SENSORS.
+		   // NUMBER refers to the sensor["number"]. Refer to GET LDS BUS SENSORS.
+		   // SENSORNAME refers to the sensor["sensorname"]. Refer to GET LDS BUS SENSORS.
 
-		L. ENABLE/DISABLE LDSU DEVICE
+		L. ENABLE/DISABLE LDSU DEVICE (SENSOR/ACTUATOR)
 		-  Request:
 		   POST /devices/device/DEVICENAME/LDSUUUID/NUMBER/sensors/sensor/SENSORNAME/enable
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -1687,6 +1701,9 @@ DETAILED:
 		-  Response:
 		   { 'status': 'OK', 'message': string }
 		   { 'status': 'NG', 'message': string }
+		   // LDSUUUID refers to the sensor["source"]. Refer to GET LDS BUS SENSORS.
+		   // NUMBER refers to the sensor["number"]. Refer to GET LDS BUS SENSORS.
+		   // SENSORNAME refers to the sensor["sensorname"]. Refer to GET LDS BUS SENSORS.
 
 
 	6. Device access and control APIs (STATUS, UART, GPIO)
