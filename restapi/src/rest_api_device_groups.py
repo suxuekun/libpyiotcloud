@@ -544,7 +544,7 @@ class device_groups:
                         devicenames.append(device["devicename"])
                 devicegroup['devices'] = devicenames
 
-        msg = {'status': 'OK', 'message': 'Mixed devices retrieved successfully.', 'devices': devices, 'devicegroups': devicegroups}
+        msg = {'status': 'OK', 'message': 'Mixed devices retrieved successfully.', 'data': {'devices': devices, 'devicegroups': devicegroups} }
 
 
 
