@@ -11,9 +11,7 @@
     </div>
     <button id="viewLDSUDevice-button229" style="font-weight:500;font-size:18px;" class="button button-dark button-block button-clear">{{ data.sensor.sensorname }}</button>
     <form id="viewLDSUDevice-form188" class="list page_width_small">
-      <div id="viewLDSUDevice-markdown389" class="show-list-numbers-and-dots">
-        <p style="color:#3C5A99;">LDSU DEVICE NAME</p>
-      </div>
+      <ion-item class="item-divider" id="viewLDSUDevice-list-item-divider9"> LDSU DEVICE NAME</ion-item>
       <label class="item item-input" id="viewLDSUDevice-input180">
         <input type="text" placeholder="" ng-model="newsensorname">
       </label>
@@ -21,75 +19,53 @@
     </form>
     <form id="viewLDSUDevice-form190" class="list page_width_small">
       <div class="spacer" style="width: 747.778px; height: 25px;"></div>
-      <div id="viewLDSUDevice-markdown515" class="show-list-numbers-and-dots">
-        <p style="color:#3C5A99;">LDSU UUID</p>
-      </div>
-      <div id="viewLDSUDevice-markdown516" class="show-list-numbers-and-dots">
-        <p style="color:#444444;font-size:18px;">{{ data.sensor.source }}</p>
-      </div>
-      <div id="viewLDSUDevice-markdown518" class="show-list-numbers-and-dots">
-        <p style="color:#3C5A99;">LDSU NAME</p>
-      </div>
-      <div id="viewLDSUDevice-markdown526" class="show-list-numbers-and-dots">
-        <p style="color:#444444;font-size:18px;">{{ data.sensor.name }}</p>
-      </div>
-      <div id="viewLDSUDevice-markdown531" class="show-list-numbers-and-dots">
-        <p style="color:#3C5A99;">LDSU NUMBER</p>
-      </div>
-      <div id="viewLDSUDevice-markdown546" class="show-list-numbers-and-dots">
-        <p style="color:#444444;font-size:18px;">{{ data.sensor.number }}</p>
-      </div>
-      <div id="viewLDSUDevice-markdown554" class="show-list-numbers-and-dots">
-        <p style="color:#3C5A99;">LDS BUS PORT</p>
-      </div>
-      <div id="viewLDSUDevice-markdown555" class="show-list-numbers-and-dots">
-        <p style="color:#444444;font-size:18px;">{{ data.sensor.port }}</p>
-      </div>
+      <ion-item class="item-divider" id="viewLDSUDevice-list-item-divider24"> LDSU UUID</ion-item>
+      <label class="item item-input" id="viewLDSUDevice-input184">
+        <input type="text" placeholder="" ng-model="data.sensor.source" readonly="">
+      </label>
+      <ion-item class="item-divider" id="viewLDSUDevice-list-item-divider36"> LDSU NAME</ion-item>
+      <label class="item item-input" id="viewLDSUDevice-input185">
+        <input type="text" placeholder="" ng-model="data.sensor.name" readonly="">
+      </label>
+      <ion-item class="item-divider" id="viewLDSUDevice-list-item-divider37"> LDSU NUMBER</ion-item>
+      <label class="item item-input" id="viewLDSUDevice-input188">
+        <input type="text" placeholder="" ng-model="data.sensor.number" readonly="">
+      </label>
+      <ion-item class="item-divider" id="viewLDSUDevice-list-item-divider38"> LDS BUS PORT</ion-item>
+      <label class="item item-input" id="viewLDSUDevice-input187">
+        <input type="text" placeholder="" ng-model="data.sensor.port" readonly="">
+      </label>
     </form>
     <form id="viewLDSUDevice-form260" class="list page_width_small">
       <div class="spacer" style="width: 747.778px; height: 25px;"></div>
-      <div id="viewLDSUDevice-markdown556" class="show-list-numbers-and-dots">
-        <p style="color:#3C5A99;">Class</p>
-      </div>
-      <div id="viewLDSUDevice-markdown557" class="show-list-numbers-and-dots">
-        <p style="color:#444444;font-size:18px;">{{ data.sensor.class }}</p>
-      </div>
-      <div id="viewLDSUDevice-markdown558" class="show-list-numbers-and-dots">
-        <p style="color:#3C5A99;">Unit</p>
-      </div>
-      <div id="viewLDSUDevice-markdown560" class="show-list-numbers-and-dots">
-        <p style="color:#444444;font-size:18px;">{{ data.sensor.unit }}</p>
-      </div>
-      <div id="viewLDSUDevice-markdown561" class="show-list-numbers-and-dots">
-        <p style="color:#3C5A99;">Accuracy</p>
-      </div>
-      <div id="viewLDSUDevice-markdown564" class="show-list-numbers-and-dots">
-        <p style="color:#444444;font-size:18px;">{{ data.sensor.accuracy }}</p>
-      </div>
-      <div id="viewLDSUDevice-markdown572" class="show-list-numbers-and-dots">
-        <p style="color:#3C5A99;">Range</p>
-      </div>
-      <div id="viewLDSUDevice-markdown571" class="show-list-numbers-and-dots">
-        <p style="color:#444444;font-size:18px;">{{ data.sensor.minmax }}</p>
-      </div>
-      <div id="viewLDSUDevice-markdown565" class="show-list-numbers-and-dots">
-        <p style="color:#3C5A99;">Format</p>
-      </div>
-      <div id="viewLDSUDevice-markdown566" class="show-list-numbers-and-dots">
-        <p style="color:#444444;font-size:18px;">{{ data.sensor.format }}</p>
-      </div>
-      <div id="viewLDSUDevice-markdown567" class="show-list-numbers-and-dots">
-        <p style="color:#3C5A99;">Type</p>
-      </div>
-      <div id="viewLDSUDevice-markdown568" class="show-list-numbers-and-dots">
-        <p style="color:#444444;font-size:18px;">{{ data.sensor.type }}</p>
-      </div>
-      <div id="viewLDSUDevice-markdown573" class="show-list-numbers-and-dots">
-        <p style="color:#3C5A99;">Obj</p>
-      </div>
-      <div id="viewLDSUDevice-markdown574" class="show-list-numbers-and-dots">
-        <p style="color:#444444;font-size:18px;">{{ data.sensor.obj }}</p>
-      </div>
+      <ion-item class="item-divider" id="viewLDSUDevice-list-item-divider39"> CLASS</ion-item>
+      <label class="item item-input" id="viewLDSUDevice-input190">
+        <input type="text" placeholder="" ng-model="data.sensor.class" readonly="">
+      </label>
+      <ion-item class="item-divider" id="viewLDSUDevice-list-item-divider40"> UNIT</ion-item>
+      <label class="item item-input" id="viewLDSUDevice-input194">
+        <input type="text" placeholder="" ng-model="data.sensor.unit" readonly="">
+      </label>
+      <ion-item class="item-divider" id="viewLDSUDevice-list-item-divider42"> ACCURACY</ion-item>
+      <label class="item item-input" id="viewLDSUDevice-input191">
+        <input type="text" placeholder="" ng-model="data.sensor.accuracy" readonly="">
+      </label>
+      <ion-item class="item-divider" id="viewLDSUDevice-list-item-divider43"> RANGE</ion-item>
+      <label class="item item-input" id="viewLDSUDevice-input192">
+        <input type="text" placeholder="" ng-model="data.sensor.minmax" readonly="">
+      </label>
+      <ion-item class="item-divider" id="viewLDSUDevice-list-item-divider41"> FORMAT</ion-item>
+      <label class="item item-input" id="viewLDSUDevice-input193">
+        <input type="text" placeholder="" ng-model="data.sensor.format" readonly="">
+      </label>
+      <ion-item class="item-divider" id="viewLDSUDevice-list-item-divider44"> TYPE</ion-item>
+      <label class="item item-input" id="viewLDSUDevice-input196">
+        <input type="text" placeholder="" ng-model="data.sensor.type" readonly="">
+      </label>
+      <ion-item class="item-divider" id="viewLDSUDevice-list-item-divider45"> OBJID</ion-item>
+      <label class="item item-input" id="viewLDSUDevice-input195">
+        <input type="text" placeholder="" ng-model="data.sensor.obj" readonly="">
+      </label>
     </form>
     <form id="viewLDSUDevice-form251" class="list" ng-show="data.sensor.type==&quot;input&quot;">
       <div class="spacer" style="height: 100px;"></div>
