@@ -28,6 +28,8 @@ if __name__ == "__main__":
 
     class AChild(A):
         pass
+    class AChildB(A):
+        pass
 
 
     class B(Base):
@@ -54,7 +56,11 @@ if __name__ == "__main__":
 
     a_child = AChild(' i am a child')
     a_child_2 = AChild( 'i am a child 2')
-    print ('a child == a child 2',id(a_child) == id(a_child_2),' just one child!!!, child also singleton')
+
+    a_child_b = AChildB( 'i am a child B')
+
+    print('a child == a child 2',id(a_child) == id(a_child_2),' just one child!!!, child also singleton')
+    print('a child == a child B', id(a_child) == id(a_child_b), ' another child class will not share singleton')
 
 
 
