@@ -1,0 +1,17 @@
+
+
+
+
+
+
+.dashboard-item-main-column {
+  float: left;
+  width: 70%;
+  padding: 10px;
+}
+
+.dashboard-item-action-column {
+  float: left;
+  width: 30%;
+  padding: 10px;
+}
