@@ -1404,8 +1404,10 @@ DETAILED:
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
 		   { 'status': 'OK', 'message': string, 
-		     'devices': array[{'devicename': string, 'deviceid': string, 'serialnumber': string, 'timestamp': string, 'heartbeat': string, 'version': string}, ...],
-		     'devicegroups': array[{'groupname': string, 'timestamp': int, 'devices': ["devicename", ...]}, ...]
+		     'data': {
+		       'devices': array[{'devicename': string, 'deviceid': string, 'serialnumber': string, 'timestamp': string, 'heartbeat': string, 'version': string}, ...],
+		       'devicegroups': array[{'groupname': string, 'timestamp': int, 'devices': ["devicename", ...]}, ...]
+		     }
 		   }
 		   { 'status': 'NG', 'message': string}
 		   // Yes, this is a weird API because of the weird FIGMA UI (All, Groups, Standalone - WTF!)
@@ -1467,6 +1469,7 @@ DETAILED:
 		             "LABL":     string,  // LDSU Friendly name, value can be changed by user via CHANGE LDSU NAME api
 		             "UID":      string,  // LDSU UUID
 		             "PORT":     string,  // LDS Bus Port
+		             "status":   string,  // reachable or unreachable
 
 		             // just for displaying, not really important
 		             "descriptor": {
@@ -1526,6 +1529,7 @@ DETAILED:
 		         "LABL":     string,  // LDSU Friendly name, value can be changed by user via CHANGE LDSU NAME api
 		         "UID":      string,  // LDSU UUID
 		         "PORT":     string,  // LDS Bus Port
+		         "status":   string,  // reachable or unreachable
 
 		         // just for displaying, not really important
 		         "descriptor": {
