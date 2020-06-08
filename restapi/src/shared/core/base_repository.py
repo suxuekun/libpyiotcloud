@@ -5,7 +5,7 @@ import asyncio
 
 class BaseRepository():
 
-    def create(self, input) -> bool:
+    def create(self, input) -> str:
         pass
 
     def update(self, id: str, input) -> bool:

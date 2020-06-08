@@ -18,8 +18,8 @@ class MongoBaseRepository(BaseRepository):
             if "_id" in input:
                 input.pop("_id")
                 
-            self.collection.insert_one(input)
-            return True
+            res = self.collection.insert_one(input)
+            return res.inserted_id
         except Exception as e:
             print(e)
             raise CreatedExeception(str(e))
@@ -71,3 +71,5 @@ class MongoBaseRepository(BaseRepository):
         except Exception as e:
             print(e)
             raise DeletedException(str(e))
+
+

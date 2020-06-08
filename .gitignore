@@ -152,3 +152,4 @@ dmypy.json
 amazon_credentials.py
 restapi/src/.idea
 .project
+.pydevproject
