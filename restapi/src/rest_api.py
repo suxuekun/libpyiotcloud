@@ -1022,7 +1022,6 @@ def initialize():
     g_messaging_requests           = messaging_requests(g_database_client, g_messaging_client, g_redis_client, g_event_dict, g_queue_dict)
     g_identity_authentication      = identity_authentication(g_database_client, g_redis_client)
     g_access_control               = access_control(g_database_client, g_messaging_client)
-    g_payment_accounting           = payment_accounting(g_database_client, g_messaging_client, g_redis_client)
     g_device_locations             = device_locations(g_database_client)
     g_device_groups                = device_groups(g_database_client)
     g_device_otaupdates            = device_otaupdates(g_database_client, g_storage_client, g_messaging_requests)
@@ -1031,9 +1030,12 @@ def initialize():
     g_device                       = device(g_database_client, g_messaging_requests)
     g_device_ldsbus                = device_ldsbus(g_database_client, g_messaging_requests, g_device_client)
     g_device_peripheral_properties = device_peripheral_properties(g_database_client, g_messaging_requests)
-    g_device_dashboard_old         = device_dashboard_old(g_database_client, g_messaging_requests)
     g_other_stuffs                 = other_stuffs(g_database_client, g_storage_client)
     g_utils                        = rest_api_utils.utils()
+
+    # To be replaced
+    g_payment_accounting           = payment_accounting(g_database_client, g_messaging_client, g_redis_client)
+    g_device_dashboard_old         = device_dashboard_old(g_database_client, g_messaging_requests)
 
 
 # Initialize globally so that no issue with GUnicorn integration
