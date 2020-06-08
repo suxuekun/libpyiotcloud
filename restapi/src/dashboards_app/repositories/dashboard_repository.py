@@ -18,8 +18,6 @@ class DashboardRepository(MongoBaseRepository, IDashboardRepository):
             "sensors": 0,
             "gateways": 0,
             "actuators": 0,
-            "createdAt": 0,
-            "modifiedAt": 0
         }
         return super().gets(query, projection)
     

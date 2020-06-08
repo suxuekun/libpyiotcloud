@@ -97,7 +97,8 @@ class config:
 
     # Caching settings
     if debugging:
-        CONFIG_REDIS_HOST            = "127.0.0.1"
+        # CONFIG_REDIS_HOST            = "127.0.0.1"
+        CONFIG_REDIS_HOST            = "192.168.99.100"
     else:
         CONFIG_REDIS_HOST            = "redis"
     CONFIG_REDIS_PORT                = 6379

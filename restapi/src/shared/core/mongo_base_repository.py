@@ -64,7 +64,7 @@ class MongoBaseRepository(BaseRepository):
     def delete(self, id: str) -> bool:
         try:
             query = {
-                "_id": id
+                "_id": ObjectId(id)
             }
             self.collection.delete_one(query)
             return True

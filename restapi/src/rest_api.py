@@ -37,6 +37,8 @@ from rest_api_device_hierarchies import device_hierarchies
 from rest_api_device_histories import device_histories
 from rest_api_other_stuffs import other_stuffs
 import rest_api_utils
+from dashboards_app.app import DashboardsApp
+
 ###################################################################################
 # Some configurations
 ###################################################################################
@@ -63,7 +65,9 @@ g_event_dict  = {} # still used to trigger event from callback thread to rest ap
 app = flask.Flask(__name__)
 CORS(app)
 
-
+print("dasd adas adasd dadsadadasdsad")
+dashboardsApp = DashboardsApp(app)
+print("Dashboard App")
 
 
 ###################################################################################
@@ -5826,7 +5830,6 @@ def on_amqp_message(ch, method, properties, body):
 ###################################################################################
 # Main entry point
 ###################################################################################
-from dashboards_app.app import DashboardsApp
 
 def initialize():
 
@@ -5898,12 +5901,13 @@ def initialize():
     g_other_stuffs            = other_stuffs(g_database_client, g_storage_client)
     g_utils                   = rest_api_utils.utils()
 
-    dashboardsApp = DashboardsApp(app)
+  
 
 # Initialize globally so that no issue with GUnicorn integration
 if os.name == 'posix':
     initialize()
 
+initialize()
 
 if __name__ == '__main__':
 

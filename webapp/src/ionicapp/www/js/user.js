@@ -3,7 +3,7 @@
 angular.module('user', [])
 
 .service('User', [function(){
-    
+
     var ret = {
         set: function(user_data) {
             window.localStorage.setItem("user_data", JSON.stringify(user_data));
