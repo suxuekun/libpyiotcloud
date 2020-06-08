@@ -263,6 +263,15 @@ class database_client:
     def set_ldsu(self, username, devicename, descriptor):
         return self._devices.set_ldsu_by_deviceid(username, self._devices.get_deviceid(username, devicename), descriptor)
 
+    def set_ldsu_status_by_deviceid(self, username, deviceid, uid, is_reachable):
+        return self._devices.set_ldsu_status_by_deviceid(deviceid, uid, is_reachable)
+
+    def get_ldsus(self, username, devicename):
+        return self._devices.get_ldsus_by_deviceid(self._devices.get_deviceid(username, devicename))
+
+    def get_ldsus_by_deviceid(self, username, deviceid):
+        return self._devices.get_ldsus_by_deviceid(deviceid)
+
 
     ##########################################################
     # sensor
@@ -942,6 +951,7 @@ class database_client_mongodb:
         item = {}
         item['username'] = username
         item['deviceid'] = deviceid
+        item['status'] = "reachable"
         item['UID'] = descriptor["UID"]
         item['PORT'] = descriptor["PORT"]
         item['LABL'] = descriptor["NAME"]
@@ -955,6 +965,24 @@ class database_client_mongodb:
             item['LABL'] = found['LABL']
             ldsu_doc.replace_one({'deviceid': deviceid, 'UID': item['UID']}, item)
         return item
+
+    def set_ldsu_status_by_deviceid(self, deviceid, uid, is_reachable):
+        ldsu_doc = self.get_ldsu_document();
+        found = ldsu_doc.find_one({'deviceid': deviceid, 'UID': uid})
+        if found:
+            found['status'] = "unreachable" if is_reachable==0 else "reachable"
+            ldsu_doc.replace_one({'deviceid': deviceid, 'UID': uid}, found)
+
+    def get_ldsus_by_deviceid(self, deviceid):
+        ldsu_list = []
+        ldsu_doc = self.get_ldsu_document()
+        if ldsu_doc:
+            for ldsu in ldsu_doc.find({'deviceid': deviceid}):
+                ldsu.pop('_id')
+                ldsu.pop('username')
+                ldsu.pop('deviceid')
+                ldsu_list.append(ldsu)
+        return ldsu_list
 
 
 class database_client_postgresql:

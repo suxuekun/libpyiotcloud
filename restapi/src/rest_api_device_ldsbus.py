@@ -285,9 +285,22 @@ class device_ldsbus:
         response, status_return = self.messaging_requests.process(api, data)
         if status_return != 200:
             return response, status_return
-
         response = json.loads(response)
+
+
         if True:
+            # set status for non-present LDSUs
+            ldsus = self.database_client.get_ldsus(entityname, devicename)
+            for ldsu in ldsus:
+                found = False
+                for descriptor in response["value"]:
+                    if ldsu["UID"] == descriptor["UID"]:
+                        found = True
+                        break
+                if not found:
+                    print("not found {}".format(ldsu["UID"]))
+                    self.database_client.set_ldsu_status(entityname, devicename, ldsu["UID"], 0)
+
             # process response
             for descriptor in response["value"]:
                 # add or update ldsu
