@@ -108,6 +108,7 @@ SUMMARY:
 
 		//
 		// ota firmware update
+		https://github.com/richmondu/libpyiotcloud/blob/dev/_images/ota_firmware_update_sequence_diagram.png
 		N. UPDATE FIRMWARE                - POST   /devices/device/DEVICENAME/firmware
 		O. UPDATE FIRMWARES               - POST   /devices/firmware
 		P. GET UPDATE FIRMWARE            - GET    /devices/device/DEVICENAME/firmware
