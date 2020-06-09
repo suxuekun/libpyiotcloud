@@ -1240,6 +1240,9 @@ DETAILED:
 		   { 'status': 'NG', 'message': string}
 		   // version is the version of the firmware to use
 		   // note that user can select the latest version or the same version (as per Sree)
+		   // This API will return immediately if the device to be updated is online.
+		   //   If the device is offline, it takes 3 seconds to find out (timeout for waiting device response) so the API will only return after 3 seconds.
+		   // GET OTA STATUS should be polled to determine if the OTA update is completed.
 
 		O. UPDATE FIRMWARES
 		-  Request:
@@ -1251,6 +1254,9 @@ DETAILED:
 		   { 'status': 'NG', 'message': string}
 		   // version is the version of the firmware to use
 		   // note that user can select the latest version or the same version (as per Sree)
+		   // This API will return immediately if all devices to be updated are online.
+		   //   If atleast 1 is offline, it takes 3 seconds to find out (timeout for waiting device response) so the API will only return after 3 seconds.
+		   // GET OTA STATUSES should be polled to determine if the OTA update is completed.
 
 		P. GET UPDATE FIRMWARE
 		-  Request:
@@ -1275,6 +1281,7 @@ DETAILED:
 		   //   completed - device ota update is finished
 		   // time is the duration for the update
 		   // timestamp is the completion datetime in epoch of the update
+		   // This API should be polled until the device has completed or pending state.
 
 		R. GET OTA STATUSES
 		-  Request:
@@ -1290,6 +1297,7 @@ DETAILED:
 		   //   completed - device ota update is finished
 		   // time is the duration for the update
 		   // timestamp is the completion datetime in epoch of the update
+		   // This API should be polled until all devices have a completed or pending state (no ongoing state)
 
 		S. GET DEVICE HIERARCHY TREE
 		-  Request:
@@ -1463,6 +1471,7 @@ DETAILED:
 		   //   completed - device ota update is finished
 		   // time is the duration for the update
 		   // timestamp is the completion datetime in epoch of the update
+		   // This API should be polled until all devices have a completed or pending state (no ongoing state)
 
 
 	5. Device access and control APIs (LDSBUS)
