@@ -35,7 +35,7 @@ class BulkService():
         del self._dummy_data[int(id)-1]
         return True
 
-buld_service = BulkService()
+bulk_service = BulkService()
 
 
 

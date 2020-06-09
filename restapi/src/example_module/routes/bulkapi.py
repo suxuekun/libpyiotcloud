@@ -1,6 +1,6 @@
 from functools import wraps
 
-from example_module.services.bulk_example_service import buld_service
+from example_module.services.bulk_example_service import bulk_service
 from shared.simple_api.api import FullApi
 from shared.wrapper.response import IotHttpResponseWrapper
 
@@ -20,7 +20,7 @@ and each api map to each functions in the service
 '''
 
 class BulkApi(FullApi):# builkApi(SimpleApi,GetApiMixin,ListApiMixin): assemble your own api needed with SimpleApi + mixins
-    service = buld_service
+    service = bulk_service
     def __init__(self,api,prefix):
         self._api = api
         super(BulkApi,self).__init__(

@@ -6,7 +6,7 @@ from shared.wrapper.response import IotHttpResponseWrapper
 class TestAPI(Resource):
     # permission for this , you can add your cusomized premissions or checkings
     method_decorators = {
-        'get':[login_required]
+        'get':[login_required()]
     }
     def get(self,id):
         res = {

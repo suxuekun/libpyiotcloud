@@ -64,7 +64,7 @@ class BaseSimpleApi(BaseApi):
         self._list_resource = None
         if self._id_base:
             self._id_base.append(Resource)
-            self._id_resource = type('Resource_'+self._url+'_id', tuple(self._id_base), {
+            self._id_resource = type(self._url+'_id', tuple(self._id_base), {
                 # constructor
                 # data members
                 'method_decorators': self._id_decorators,
@@ -75,7 +75,7 @@ class BaseSimpleApi(BaseApi):
             })
         if self._list_base:
             self._list_base.append(Resource)
-            self._list_resource = type('Resource_' + self._url + '_list', tuple(self._list_base), {
+            self._list_resource = type('' + self._url, tuple(self._list_base), {
                 # constructor
                 # data members
                 'method_decorators':self._list_decorators,
