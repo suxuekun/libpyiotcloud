@@ -111,14 +111,13 @@ SUMMARY:
 		https://github.com/richmondu/libpyiotcloud/blob/dev/_images/ota_firmware_update_sequence_diagram.png
 		N. UPDATE FIRMWARE                - POST   /devices/device/DEVICENAME/firmware
 		O. UPDATE FIRMWARES               - POST   /devices/firmware
-		P. GET UPDATE FIRMWARE            - GET    /devices/device/DEVICENAME/firmware
-		Q. GET OTA STATUS                 - GET    /devices/device/DEVICENAME/ota
-		R. GET OTA STATUSES               - GET    /devices/ota
+		P. GET OTA STATUS                 - GET    /devices/device/DEVICENAME/ota
+		Q. GET OTA STATUSES               - GET    /devices/ota
 
 		//
 		// device-sensor hierarchy tree
-		S. GET DEVICE HIERARCHY TREE               - GET    /devices/device/DEVICENAME/hierarchy
-		T. GET DEVICE HIERARCHY TREE (WITH STATUS) - POST   /devices/device/DEVICENAME/hierarchy
+		R. GET DEVICE HIERARCHY TREE               - GET    /devices/device/DEVICENAME/hierarchy
+		S. GET DEVICE HIERARCHY TREE (WITH STATUS) - POST   /devices/device/DEVICENAME/hierarchy
 
 
 	4. Device group registration and management APIs
@@ -1259,16 +1258,7 @@ DETAILED:
 		   //   If atleast 1 is offline, it takes 3 seconds to find out (timeout for waiting device response) so the API will only return after 3 seconds.
 		   // GET OTA STATUSES should be polled to determine if the OTA update is completed.
 
-		P. GET UPDATE FIRMWARE
-		-  Request:
-		   GET /devices/device/DEVICENAME/firmware
-		   headers: {'Authorization': 'Bearer ' + token.access}
-		-  Response:
-		   { 'status': 'OK', 'message': string, 'result': string}
-		   { 'status': 'NG', 'message': string}
-		   // result can be ongoing, successful, failed
-
-		Q. GET OTA STATUS
+		P. GET OTA STATUS
 		-  Request:
 		   GET /devices/device/DEVICENAME/ota
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -1284,7 +1274,7 @@ DETAILED:
 		   // timestamp is the completion datetime in epoch of the update
 		   // This API should be polled until the device has completed or pending state.
 
-		R. GET OTA STATUSES
+		Q. GET OTA STATUSES
 		-  Request:
 		   GET /devices/ota
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -1300,7 +1290,7 @@ DETAILED:
 		   // timestamp is the completion datetime in epoch of the update
 		   // This API should be polled until all devices have a completed or pending state (no ongoing state)
 
-		S. GET DEVICE HIERARCHY TREE
+		R. GET DEVICE HIERARCHY TREE
 		-  Request:
 		   GET /devices/device/DEVICENAME/hierarchy
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -1308,7 +1298,7 @@ DETAILED:
 		   { 'status': 'OK', 'message': string, 'hierarchy': {"name": string, "children": [{"name": string, "children": []}, ...]} }
 		   { 'status': 'NG', 'message': string}
 
-		T. GET DEVICE HIERARCHY TREE (WITH STATUS)
+		S. GET DEVICE HIERARCHY TREE (WITH STATUS)
 		-  Request:
 		   POST /devices/device/DEVICENAME/hierarchy
 		   headers: {'Authorization': 'Bearer ' + token.access}
