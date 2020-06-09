@@ -1,7 +1,6 @@
 from flask_restful import Resource
-from shared.simple_api.resource import BaseIdResource, BaseListResource, GetMixin, PutMixin, DeleteMixin, ListMixin, \
-    PostMixin, BaseResource
-from shared.simple_api.service import BaseSimpleApiService
+from shared.simple_api.resource import GetMixin, PutMixin, DeleteMixin, ListMixin, \
+    PostMixin
 
 class BaseApi():
     def __init__(self,decorators=None,wrapper_class=None,filter=None,*args,**kwargs):
@@ -59,12 +58,10 @@ class BaseSimpleApi(BaseApi):
         self._service = service
         self._construct()
         self._add_resource()
-        print('api init')
 
     def _construct(self):
         self._id_resource = None
         self._list_resource = None
-        print (self._service)
         if self._id_base:
             self._id_base.append(Resource)
             self._id_resource = type('Resource_'+self._url+'_id', tuple(self._id_base), {
@@ -78,7 +75,6 @@ class BaseSimpleApi(BaseApi):
             })
         if self._list_base:
             self._list_base.append(Resource)
-            print('fi',self._filter)
             self._list_resource = type('Resource_' + self._url + '_list', tuple(self._list_base), {
                 # constructor
                 # data members
@@ -90,7 +86,7 @@ class BaseSimpleApi(BaseApi):
             })
     def _add_resource(self):
         if (self._id_resource):
-            self._api.add_resource(self._id_resource, '/'+self._url+'/<int:id>/')
+            self._api.add_resource(self._id_resource, '/'+self._url+'/<id>/')
         if (self._list_resource):
             self._api.add_resource(self._list_resource, '/'+self._url+'/')
 

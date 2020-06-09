@@ -9,7 +9,7 @@ class BaseSimpleApiService():
         return None
     def create(self,entity):
         return None
-    def update(self,entity):
+    def update(self,id,entity):
         return None
     def delete(self,id):
         return True#False
@@ -21,7 +21,7 @@ class BaseMongoService(BaseSimpleApiService):
         pass
     def create(self,entity):
         pass
-    def update(self,entity):
+    def update(self,id,entity):
         pass
     def delete(self,id):
         pass

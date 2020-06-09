@@ -153,3 +153,4 @@ amazon_credentials.py
 restapi/src/.idea
 .project
 .pydevproject
+restapi/src/test
