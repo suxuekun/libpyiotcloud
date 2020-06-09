@@ -89,7 +89,7 @@ def set_descriptor(database_client, deviceid, topic, payload):
         return
 
     payload = json.loads(payload)
-    print_json(payload)
+    #print_json(payload)
 
     # set the descriptor in the database
     if payload.get("value"):
@@ -118,7 +118,7 @@ def set_ldsu_descs(database_client, deviceid, topic, payload):
                 found = True
                 break
         if not found:
-            print("not found {}".format(ldsu["UID"]))
+            #print("not found {}".format(ldsu["UID"]))
             database_client.set_ldsu_status_by_deviceid(username, deviceid, ldsu["UID"], 0)
 
 
@@ -132,7 +132,9 @@ def set_ldsu_descs(database_client, deviceid, topic, payload):
         # add or update sensors
         #sensors_actuators = g_device_client.get_obj(ldsu["OBJ"])
         obj = ldsu["descriptor"]["OBJ"]
+        #print(ldsu["descriptor"]["OBJ"])
         num = g_device_client.get_obj_numdevices(obj)
+        #print(num)
         for x in range(num):
             descriptor = g_device_client.get_objidx(obj, x)
             if descriptor:
@@ -164,6 +166,7 @@ def set_ldsu_descs(database_client, deviceid, topic, payload):
                 #print("minmax     {}".format(sensor["minmax"]))
                 #print("obj        {}".format(sensor["obj"]))
                 #print()
+                #print("{} {} {} {}".format(source, number, sensorname, sensor["class"]))
                 database_client.add_sensor_by_deviceid(username, deviceid, source, number, sensorname, sensor)
 
 

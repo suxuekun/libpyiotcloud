@@ -39,6 +39,46 @@ class device_peripheral_properties:
         self.messaging_requests = messaging_requests
 
 
+    def is_email_list_valid(self, notification, users):
+        email = notification["endpoints"]["email"]
+        if email["enable"] == False:
+            return True
+        # email is enabled, so check the recipients
+        recipients = email["recipients"]
+        recipients = recipients.replace(" ", "").split(",")
+        for recipient in recipients:
+            found = False
+            for user in users:
+                if recipient == user["email"]:
+                    found = True
+                    break
+            if not found:
+                print("email {} not found".format(recipient))
+                return False
+        return True
+
+    def is_sms_list_valid(self, notification, users):
+        mobile = notification["endpoints"]["mobile"]
+        if mobile["enable"] == False:
+            return True
+        # mobile is enabled, so check the recipients
+        recipients = mobile["recipients"]
+        recipients = recipients.replace(" ", "").split(",")
+        for recipient in recipients:
+            found = False
+            for user in users:
+                if user.get("phone_number"):
+                    if recipient == user["phone_number"]:
+                        if user.get("phone_number_verified"):
+                            if user["phone_number_verified"] == True:
+                                found = True
+                                break
+            if not found:
+                print("email {} not found".format(recipient))
+                return False
+        return True
+
+
     #
     # GET UART PROPERTIES
     #
@@ -93,7 +133,15 @@ class device_peripheral_properties:
             response = {'value': configuration["attributes"]}
             print(configuration["attributes"])
         else:
-            response = {'value': {}}
+            response = {'value': 
+                {
+                    "baudrate": 7,
+                    "parity": 0,
+                    "flowcontrol": 0,
+                    "stopbits": 0,
+                    "databits": 1,
+                }
+            }
 
         #response, status_return = self.messaging_requests.process(api, data)
         #if status_return != 200:
@@ -178,6 +226,18 @@ class device_peripheral_properties:
         else:
             # no active organization, just a normal user
             entityname = username
+
+
+        # check list of email and sms are valid
+        users = self.database_client.get_registered_users()
+        if not self.is_email_list_valid(notification, users):
+            response = json.dumps({'status': 'NG', 'message': 'At least one of the emails do not belong to a verified user account. All email recipients should belong to a valid user account.'})
+            print('\r\nERROR Set Uart: Email list is not valid [{}]\r\n'.format(username))
+            return response, status.HTTP_401_UNAUTHORIZED
+        if not self.is_sms_list_valid(notification, users):
+            response = json.dumps({'status': 'NG', 'message': 'At least one of the mobile numbers do not belong to a verified user account. All SMS recipients should belong to a valid user account.'})
+            print('\r\nERROR Set Uart: Mobile number list is not valid [{}]\r\n'.format(username))
+            return response, status.HTTP_401_UNAUTHORIZED
 
 
         source = "uart"
@@ -461,6 +521,19 @@ class device_peripheral_properties:
         else:
             subattributes_notification = None
 
+
+        # check list of email and sms are valid
+        users = self.database_client.get_registered_users()
+        if not self.is_email_list_valid(notification, users):
+            response = json.dumps({'status': 'NG', 'message': 'At least one of the emails do not belong to a verified user account. All email recipients should belong to a valid user account.'})
+            print('\r\nERROR Set Peripheral Sensor: Email list is not valid [{}]\r\n'.format(username))
+            return response, status.HTTP_401_UNAUTHORIZED
+        if not self.is_sms_list_valid(notification, users):
+            response = json.dumps({'status': 'NG', 'message': 'At least one of the mobile numbers do not belong to a verified user account. All SMS recipients should belong to a valid user account.'})
+            print('\r\nERROR Set Peripheral Sensor: Mobile number list is not valid [{}]\r\n'.format(username))
+            return response, status.HTTP_401_UNAUTHORIZED
+
+
         # removed for caching
         # query device
         #response, status_return = self.messaging_requests.process(api, data)
@@ -479,6 +552,7 @@ class device_peripheral_properties:
         if api != 'set_ldsu_dev_prop':
             source = "{}{}{}".format(xxx, number, sensorname)
         #self.database_client.update_device_notification(entityname, devicename, source, notification)
+        #rest_api_utils.utils().print_json(notification)
         self.database_client.update_device_notification_with_notification_subclass(entityname, devicename, xxx, notification, subattributes_notification, int(number))
 
         # update device configuration database for device bootup

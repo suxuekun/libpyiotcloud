@@ -1615,7 +1615,7 @@ DETAILED:
 		   { 'status': 'OK', 'message': string, 'ldsbus': json_object }
 		   { 'status': 'NG', 'message': string }
 		   // This is exactly the same as GET LDS BUS
-		   // The only difference is that this API queries the device itself
+		   // The only difference is that this API queries the device itself (to get the latest information, ex. if an LDSU was unplugged)
 		   // Refer to the return value of GET LDS BUS
 
 		F. CHANGE LDSU NAME
@@ -1678,9 +1678,75 @@ DETAILED:
 		-  Response:
 		   { 'status': 'OK', 'message': string }
 		   { 'status': 'NG', 'message': string }
+		   //
 		   // LDSUUUID refers to the sensor["source"]. Refer to GET LDS BUS SENSORS.
 		   // NUMBER refers to the sensor["number"]. Refer to GET LDS BUS SENSORS.
 		   // SENSORNAME refers to the sensor["sensorname"]. Refer to GET LDS BUS SENSORS.
+		   //
+		   // NOTIFICATION structure inside the sensor class data => data["notification"]
+		        'notification': { // this notification object is generic for UART/GPIO/I2C
+		            'messages': [
+		                { 'message': string, 'enable': boolean }, // for GPIO, index 0 will always refer to message on activation
+		                { 'message': string, 'enable': boolean }  // for GPIO, index 1 will always refer to message on deactivation
+		            ],
+		            'endpoints' : {
+		                'mobile': {
+		                    'enable': boolean,
+		                    'recipients': string, // can be multiple items separated by comma
+		                },
+		                'email': {
+		                    'enable': boolean,
+		                    'recipients': string, // can be multiple items separated by comma
+		                },
+		                'notification': {
+		                    'enable': boolean,
+		                    'recipients': string, // can be multiple items separated by comma
+		                },
+		                'modem': {
+		                    'enable': boolean,
+		                    'recipients': string, // can be multiple items separated by comma
+		                },
+		                'storage': {
+		                    'enable': boolean,
+		                    'recipients': string, // can be multiple items separated by comma
+		                },
+		            }
+		        }
+		   //
+		   // TEMPERATURE class
+		   data: {
+		           "mode": int, 
+		           "threshold": {"value": int, "min": int, "max": int, "activate": int}, 
+		           "alert": {"type": int, 'period': int}, 
+		           "hardware": {"devicename": string}, 
+		           "notification": json_obj,
+		      }
+		   //
+		   // HUMIDITY class
+		   data: {
+		           "mode": int, 
+		           "threshold": {"value": int, "min": int, "max": int, "activate": int}, 
+		           "alert": {"type": int, 'period': int}, 
+		           "hardware": {"devicename": string}, 
+		           "notification": json_obj,
+		      }
+		   //
+		   //   mode is an index to the list of modes
+		   //     ["Single Threshold", "Dual Threshold", "Continuous"]
+		   //   threshold
+		   //     if Single Threshold:
+		   //       value is used
+		   //     if Dual Threshold:
+		   //       min and max are used
+		   //   activate is an index to the list of activates
+		   //     ["Out of range", "Within range"]
+		   //   alert type is an index of the value in the list of alerts
+		   //     ["Once", "Continuously"]
+		   //   alert period is the time in milliseconds for the alert when alert type points to Continuously
+		   //   notification refers to the the same notification settings for MENOS alerting
+		   //   hardware
+		   //     appears when mode is continuous
+		   //
 
 		K. GET LDSU DEVICE (SENSOR/ACTUATOR) PROPERTIES
 		-  Request:
@@ -1834,29 +1900,24 @@ DETAILED:
 		            ],
 		            'endpoints' : {
 		                'mobile': {
-		                    'recipients': string,   // can be multiple items separated by comma
 		                    'enable': boolean,
-		                    'recipients_list': []   // array of JSON object. example: [{'to': string, 'group': boolean}, ],
+		                    'recipients': string,   // can be multiple items separated by comma
 		                },
 		                'email': {
-		                    'recipients': string,   // can be multiple items separated by comma
 		                    'enable': boolean,
-		                    'recipients_list': []   // array of JSON object. example: [{'to': string, 'group': boolean}, ],
+		                    'recipients': string,   // can be multiple items separated by comma
 		                },
 		                'notification': {
-		                    'recipients': string,   // can be multiple items separated by comma
 		                    'enable': boolean,
-		                    'recipients_list': []   // array of JSON object. example: [{'to': string, 'group': boolean}, ],
+		                    'recipients': string,   // can be multiple items separated by comma
 		                },
 		                'modem': {
-		                    'recipients': string,   // can be multiple items separated by comma
 		                    'enable': boolean,
-		                    'recipients_list': []   // array of JSON object. example: [{'to': string, 'group': boolean}, ],
+		                    'recipients': string,   // can be multiple items separated by comma
 		                },
 		                'storage': {
-		                    'recipients': string,   // can be multiple items separated by comma
 		                    'enable': boolean,
-		                    'recipients_list': []   // array of JSON object. example: [{'to': string, 'group': boolean}, ],
+		                    'recipients': string,   // can be multiple items separated by comma
 		                },
 		            }
 		        }
@@ -1900,29 +1961,24 @@ DETAILED:
 		            ],
 		            'endpoints' : {
 		                'mobile': {
-		                    'recipients': string,   // can be multiple items separated by comma
 		                    'enable': boolean,
-		                    'recipients_list': []   // array of JSON object. example: [{'to': string, 'group': boolean}, ],
+		                    'recipients': string,   // can be multiple items separated by comma
 		                },
 		                'email': {
-		                    'recipients': string,   // can be multiple items separated by comma
 		                    'enable': boolean,
-		                    'recipients_list': []   // array of JSON object. example: [{'to': string, 'group': boolean}, ],
+		                    'recipients': string,   // can be multiple items separated by comma
 		                },
 		                'notification': {
-		                    'recipients': string,   // can be multiple items separated by comma
 		                    'enable': boolean,
-		                    'recipients_list': []   // array of JSON object. example: [{'to': string, 'group': boolean}, ],
+		                    'recipients': string,   // can be multiple items separated by comma
 		                },
 		                'modem': {
-		                    'recipients': string,   // can be multiple items separated by comma
 		                    'enable': boolean,
-		                    'recipients_list': []   // array of JSON object. example: [{'to': string, 'group': boolean}, ],
+		                    'recipients': string,   // can be multiple items separated by comma
 		                },
 		                'storage': {
-		                    'recipients': string,   // can be multiple items separated by comma
 		                    'enable': boolean,
-		                    'recipients_list': []   // array of JSON object. example: [{'to': string, 'group': boolean}, ],
+		                    'recipients': string,   // can be multiple items separated by comma
 		                },
 		            }
 		        }
@@ -2011,29 +2067,24 @@ DETAILED:
 		            ],
 		            'endpoints' : {
 		                'mobile': {
-		                    'recipients': string,   // can be multiple items separated by comma
 		                    'enable': boolean,
-		                    'recipients_list': []   // array of JSON object. example: [{'to': string, 'group': boolean}, ],
+		                    'recipients': string,   // can be multiple items separated by comma
 		                },
 		                'email': {
-		                    'recipients': string,   // can be multiple items separated by comma
 		                    'enable': boolean,
-		                    'recipients_list': []   // array of JSON object. example: [{'to': string, 'group': boolean}, ],
+		                    'recipients': string,   // can be multiple items separated by comma
 		                },
 		                'notification': {
-		                    'recipients': string,   // can be multiple items separated by comma
 		                    'enable': boolean,
-		                    'recipients_list': []   // array of JSON object. example: [{'to': string, 'group': boolean}, ],
+		                    'recipients': string,   // can be multiple items separated by comma
 		                },
 		                'modem': {
-		                    'recipients': string,   // can be multiple items separated by comma
 		                    'enable': boolean,
-		                    'recipients_list': []   // array of JSON object. example: [{'to': string, 'group': boolean}, ],
+		                    'recipients': string,   // can be multiple items separated by comma
 		                },
 		                'storage': {
-		                    'recipients': string,   // can be multiple items separated by comma
 		                    'enable': boolean,
-		                    'recipients_list': []   // array of JSON object. example: [{'to': string, 'group': boolean}, ],
+		                    'recipients': string,   // can be multiple items separated by comma
 		                },
 		            }
 		        }
@@ -2086,29 +2137,24 @@ DETAILED:
 		            ],
 		            'endpoints' : {
 		                'mobile': {
-		                    'recipients': string, // can be multiple items separated by comma
 		                    'enable': boolean,
-		                    'recipients_list': [] // array of JSON object. example: [{'to': string, 'group': boolean}, ],
+		                    'recipients': string, // can be multiple items separated by comma
 		                },
 		                'email': {
-		                    'recipients': string, // can be multiple items separated by comma
 		                    'enable': boolean,
-		                    'recipients_list': [] // array of JSON object. example: [{'to': string, 'group': boolean}, ],
+		                    'recipients': string, // can be multiple items separated by comma
 		                },
 		                'notification': {
-		                    'recipients': string, // can be multiple items separated by comma
 		                    'enable': boolean,
-		                    'recipients_list': [] // array of JSON object. example: [{'to': string, 'group': boolean}, ],
+		                    'recipients': string, // can be multiple items separated by comma
 		                },
 		                'modem': {
-		                    'recipients': string, // can be multiple items separated by comma
 		                    'enable': boolean,
-		                    'recipients_list': [] // array of JSON object. example: [{'to': string, 'group': boolean}, ],
+		                    'recipients': string, // can be multiple items separated by comma
 		                },
 		                'storage': {
-		                    'recipients': string, // can be multiple items separated by comma
 		                    'enable': boolean,
-		                    'recipients_list': [] // array of JSON object. example: [{'to': string, 'group': boolean}, ],
+		                    'recipients': string, // can be multiple items separated by comma
 		                },
 		            }
 		        }

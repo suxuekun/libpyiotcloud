@@ -40,6 +40,8 @@ class classes:
     I2C_DEVICE_CLASS_FLUID           = 8
     I2C_DEVICE_CLASS_AMBIENTLIGHT    = 9
     I2C_DEVICE_CLASS_MOTIONDETECTION = 10
+    I2C_DEVICE_CLASS_CO2GAS          = 11
+    I2C_DEVICE_CLASS_VOCGAS          = 12
 
 
 
@@ -71,7 +73,27 @@ class utils:
 
 
     def get_i2c_device_class(self, classname):
-        if classname == "speaker":
+        if classname == "temperature":
+            return classes.I2C_DEVICE_CLASS_TEMPERATURE
+        elif classname == "humidity":
+            return classes.I2C_DEVICE_CLASS_HUMIDITY
+        elif classname == "ambient light":
+            return classes.I2C_DEVICE_CLASS_AMBIENTLIGHT
+        elif classname == "motion detection":
+            return classes.I2C_DEVICE_CLASS_MOTIONDETECTION
+        elif classname == "Co2 gas":
+            return classes.I2C_DEVICE_CLASS_CO2GAS
+        elif classname == "VOC gas":
+            return classes.I2C_DEVICE_CLASS_VOCGAS
+
+        elif classname == "anemometer":
+            return classes.I2C_DEVICE_CLASS_ANEMOMETER
+        elif classname == "battery":
+            return classes.I2C_DEVICE_CLASS_BATTERY
+        elif classname == "fluid":
+            return classes.I2C_DEVICE_CLASS_FLUID
+
+        elif classname == "speaker":
             return classes.I2C_DEVICE_CLASS_SPEAKER
         elif classname == "display":
             return classes.I2C_DEVICE_CLASS_DISPLAY
@@ -79,16 +101,7 @@ class utils:
             return classes.I2C_DEVICE_CLASS_LIGHT
         elif classname == "potentiometer":
             return classes.I2C_DEVICE_CLASS_POTENTIOMETER
-        elif classname == "temperature":
-            return classes.I2C_DEVICE_CLASS_TEMPERATURE
-        elif classname == "humidity":
-            return classes.I2C_DEVICE_CLASS_HUMIDITY
-        elif classname == "anemometer":
-            return classes.I2C_DEVICE_CLASS_ANEMOMETER
-        elif classname == "battery":
-            return classes.I2C_DEVICE_CLASS_BATTERY
-        elif classname == "fluid":
-            return classes.I2C_DEVICE_CLASS_FLUID
+
         return 0xFF
 
 
@@ -289,29 +302,24 @@ class utils:
 
         notifications["endpoints"] = {
             "mobile": {
-                "recipients": "",
-                "recipients_list" : [],
-                "enable": False
+                "enable": False,
+                "recipients": ""
             },
             "email": {
-                "recipients": "",
-                "recipients_list" : [],
-                "enable": False
+                "enable": False,
+                "recipients": ""
             },
             "notification": {
-                "recipients": "",
-                "recipients_list" : [],
-                "enable": False
+                "enable": False,
+                "recipients": ""
             },
             "modem": {
-                "recipients": "",
-                "recipients_list" : [],
-                "enable": False
+                "enable": False,
+                "recipients": ""
             },
             "storage": {
-                "recipients": "",
-                "recipients_list" : [],
-                "enable": False
+                "enable": False,
+                "recipients": ""
             },
         }
 
@@ -321,14 +329,14 @@ class utils:
 
         if info.get("email"):
             notifications["endpoints"]["email"]["recipients"] = info["email"]
-            notifications["endpoints"]["email"]["recipients_list"].append({ "to": info["email"], "group": False })
+            #notifications["endpoints"]["email"]["recipients_list"].append(info["email"])
 
         if info.get("email_verified"):
             notifications["endpoints"]["email"]["enable"] = info["email_verified"]
 
         if info.get("phone_number"):
             notifications["endpoints"]["mobile"]["recipients"] = info["phone_number"]
-            notifications["endpoints"]["mobile"]["recipients_list"].append({ "to": info["phone_number"], "group": False })
+            #notifications["endpoints"]["mobile"]["recipients_list"].append(info["phone_number"])
             #notifications["endpoints"]["notification"]["recipients"] = info["phone_number"]
             #notifications["endpoints"]["notification"]["recipients_list"].append({ "to": info["phone_number"], "group": False })
 
