@@ -1270,6 +1270,9 @@ DETAILED:
 		   { 'status': 'NG', 'message': string}
 		   // version is the update version 
 		   // status is the update status 
+		   //   pending - device is offline; scheduled for update on device bootup
+		   //   ongoing - device ota update is not yet finished
+		   //   completed - device ota update is finished
 		   // time is the duration for the update
 		   // timestamp is the completion datetime in epoch of the update
 
@@ -1282,6 +1285,9 @@ DETAILED:
 		   { 'status': 'NG', 'message': string}
 		   // version is the update version 
 		   // status is the update status 
+		   //   pending - device is offline; scheduled for update on device bootup
+		   //   ongoing - device ota update is not yet finished
+		   //   completed - device ota update is finished
 		   // time is the duration for the update
 		   // timestamp is the completion datetime in epoch of the update
 
@@ -1452,6 +1458,9 @@ DETAILED:
 		   { 'status': 'NG', 'message': string}
 		   // version is the update version 
 		   // status is the update status 
+		   //   pending - device is offline; scheduled for update on device bootup
+		   //   ongoing - device ota update is not yet finished
+		   //   completed - device ota update is finished
 		   // time is the duration for the update
 		   // timestamp is the completion datetime in epoch of the update
 
