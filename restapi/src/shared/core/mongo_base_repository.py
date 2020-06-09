@@ -71,5 +71,5 @@ class MongoBaseRepository(BaseRepository):
         except Exception as e:
             print(e)
             raise DeletedException(str(e))
-
+        
 

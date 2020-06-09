@@ -19,5 +19,7 @@ class DashboardRepository(MongoBaseRepository, IDashboardRepository):
             "gateways": 0,
             "actuators": 0,
         }
-        return super().gets(query, projection)
+        cursors = self.collection.find(query, projection).sort("modifiedAt", -1)
+        results = list(map(lambda r: self._cast_object_without_objectId(r), cursors))
+        return results
     
