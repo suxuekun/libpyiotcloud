@@ -44,7 +44,7 @@ using bulk api on top of flask-restful example
 -POST     /bulk/
 -GET      /bulk/
 
-endpoints:( naming --  blueprint.url[_id])
+endpoints:( naming --  blueprint.url[_id]) the id here is '_id' not dynamic id
 example_blueprint.bulk_id           /bulk/id/     
 example_blueprint.bulk              /bulk/        
 '''
