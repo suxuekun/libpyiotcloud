@@ -8170,7 +8170,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         $scope.hide_settings = s;
     };
     
-    handle_error = function(error, showerror) {
+    $scope.handle_error = function(error, showerror) {
         if (error.data !== null) {
             console.log("ERROR: Sensor Dashboard failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
 
@@ -8185,7 +8185,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         }
     };
     
-    get_all_device_sensors_enabled_input = function() {
+    $scope.get_all_device_sensors_enabled_input = function() {
         //
         // GET ALL ENABLED DEVICE SENSORS (enabled input)
         //
@@ -8218,7 +8218,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             }
         })
         .catch(function (error) {
-            handle_error(error);
+            $scope.handle_error(error);
         }); 
     };
 
@@ -8243,7 +8243,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         comparison.show = !comparison.show;
     };
 
-    get_all_device_sensors_enabled_input_dataset = function() {
+    $scope.get_all_device_sensors_enabled_input_dataset = function() {
         //console.log($scope.peripheral);
         //console.log($scope.sensorclass);
         var points = 60;
@@ -8467,7 +8467,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         .catch(function (error) {
             $scope.sensors_counthdr = "No sensor returned";
             $scope.sensors = [];
-            handle_error(error);
+            $scope.handle_error(error);
         }); 
     };
 
@@ -8483,7 +8483,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         }        
     };
 */
-    delete_all_device_sensors_enabled_input = function(flag=false) {
+    $scope.delete_all_device_sensors_enabled_input = function(flag=false) {
         //
         // DELETE ALL ENABLED DEVICE SENSORS (enabled input)
         //
@@ -8508,11 +8508,11 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             }
         })
         .catch(function (error) {
-            handle_error(error);
+            $scope.handle_error(error);
         }); 
     };
     
-    delete_all_device_sensors = function(flag=false) {
+    $scope.delete_all_device_sensors = function(flag=false) {
         //
         // DELETE ALL ENABLED DEVICE SENSORS (enabled input)
         //
@@ -8539,11 +8539,11 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             }
         })
         .catch(function (error) {
-            handle_error(error);
+            $scope.handle_error(error);
         }); 
     };
 
-    get_all_sensor_configurationsummary = function() {
+    $scope.get_all_sensor_configurationsummary = function() {
         //
         // GET PERIPHERAL SENSOR CONFIGURATION SUMMARY
         //
@@ -8566,7 +8566,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             $scope.devicesummary = result.data.summary.devices;
         })
         .catch(function (error) {
-            handle_error(error);
+            $scope.handle_error(error);
         }); 
     };
     
@@ -8611,7 +8611,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         }
     };
 
-    get_devices = function(flag) {
+    $scope.get_devices = function(flag) {
         
         param = {
             'username': User.get_username(),
@@ -8866,8 +8866,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
     };
 
     $scope.submitDeleteAction = function() {
-        //delete_all_device_sensors_enabled_input();
-        delete_all_device_sensors(flag=true);
+        //$scope.delete_all_device_sensors_enabled_input();
+        $scope.delete_all_device_sensors(flag=true);
     };
 
     $scope.submitRefresh = function() {
@@ -8895,7 +8895,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             }
         }
         
-        get_all_device_sensors_enabled_input_dataset();
+        $scope.get_all_device_sensors_enabled_input_dataset();
     };
 
     $scope.submitViewSensorChart = function(sensor) {
@@ -8985,7 +8985,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         //console.log($scope.data);
         //console.log($state.params);
         //console.log($stateParams);
-        get_devices();
+        $scope.get_devices();
     });
     
     $scope.$on('$ionicView.beforeLeave', function(e) {
@@ -9751,7 +9751,10 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             
             if (error.status == 503 && showerror === true ) {
                 $ionicPopup.alert({ title: 'Error', template: 'Device is unreachable!', buttons: [{text: 'OK', type: 'button-assertive'}] });
-            }            
+            }
+            else if (error.status === 401) {
+                $ionicPopup.alert({ title: 'Error', template: error.data.message, buttons: [{text: 'OK', type: 'button-assertive'}] });
+            }
         }
         else {
             console.log("ERROR: Server is down!"); 
@@ -15451,34 +15454,35 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             
             'notification': {
                 'messages': [ 
-                    { 'message': 'Hello World!', 'enable': true },
-                    { 'message': 'Hi World!', 'enable': false },
+                    { 
+                        'message': 'Hello World!', 
+                        'enable': true 
+                    },
+                    { 
+                        'message': 'Hi World!', 
+                        'enable': false 
+                    },
                 ],
                 'endpoints' : {
                     'mobile': {
-                        'recipients': '',
                         'enable': false,
-                        'recipients_list': [],
+                        'recipients': '',
                     },
                     'email': {
-                        'recipients': '',
                         'enable': false,
-                        'recipients_list': [],
+                        'recipients': '',
                     },
                     'notification': {
-                        'recipients': '',
                         'enable': false,
-                        'recipients_list': [],
+                        'recipients': '',
                     },
                     'modem': {
-                        'recipients': '',
                         'enable': false,
-                        'recipients_list': [],
+                        'recipients': '',
                     },
                     'storage': {
-                        'recipients': '',
                         'enable': false,
-                        'recipients_list': [],
+                        'recipients': '',
                     },
                 }
             }
@@ -15504,7 +15508,10 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             
             if (error.status == 503 && showerror === true ) {
                 $ionicPopup.alert({ title: 'Error', template: 'Device is unreachable!', buttons: [{text: 'OK', type: 'button-assertive'}] });
-            }            
+            }
+            else if (error.status === 401) {
+                $ionicPopup.alert({ title: 'Error', template: error.data.message, buttons: [{text: 'OK', type: 'button-assertive'}] });
+            }
         }
         else {
             console.log("ERROR: Server is down!"); 
@@ -15878,34 +15885,35 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             
             'notification': {
                 'messages': [ 
-                    { 'message': 'Hello World!', 'enable': true },
-                    { 'message': 'Hi World!', 'enable': false },
+                    { 
+                        'message': 'Hello World!', 
+                        'enable': true 
+                    },
+                    { 
+                        'message': 'Hi World!', 
+                        'enable': false 
+                    },
                 ],
                 'endpoints' : {
                     'mobile': {
-                        'recipients': '',
                         'enable': false,
-                        'recipients_list': [],
+                        'recipients': '',
                     },
                     'email': {
-                        'recipients': '',
                         'enable': false,
-                        'recipients_list': [],
+                        'recipients': '',
                     },
                     'notification': {
-                        'recipients': '',
                         'enable': false,
-                        'recipients_list': [],
+                        'recipients': '',
                     },
                     'modem': {
-                        'recipients': '',
                         'enable': false,
-                        'recipients_list': [],
+                        'recipients': '',
                     },
                     'storage': {
-                        'recipients': '',
                         'enable': false,
-                        'recipients_list': [],
+                        'recipients': '',
                     },
                 }
             }
@@ -15931,6 +15939,9 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             if (error.status == 503 && showerror === true ) {
                 $ionicPopup.alert({ title: 'Error', template: 'Device is unreachable!', buttons: [{text: 'OK', type: 'button-assertive'}] });
             }            
+            else if (error.status === 401) {
+                $ionicPopup.alert({ title: 'Error', template: error.data.message, buttons: [{text: 'OK', type: 'button-assertive'}] });
+            }
         }
         else {
             console.log("ERROR: Server is down!"); 

@@ -10,11 +10,11 @@
 		},
 		{
 			"AttributeName":    "Co2 gas",
-			"AttributeID":      "0x0300"
+			"AttributeID":      "0x0301"
 		},
 		{
 			"AttributeName":    "VOC gas",
-			"AttributeID":      "0x0301"
+			"AttributeID":      "0x0302"
 		},
 		{
 			"AttributeName":    "ambient light",

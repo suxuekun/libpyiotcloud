@@ -811,9 +811,9 @@ def handle_api(api, subtopic, subpayload):
     #            'attributes' : setClassAttributes(device_class, subpayload),
     #            'enabled': 0
     #        }
-    #        #printf()
+    #        #printf("")
     #        printf(g_ldsu_properties[source])
-    #        #printf()
+    #        #printf("")
     #
     #        payload = {}
     #        publish(topic, payload)
@@ -1025,9 +1025,9 @@ def handle_api(api, subtopic, subpayload):
                     del g_i2c_properties_enabled_output[number][address]
         except:
             pass
-        #printf()
+        #printf("")
         #printf(g_i2c_properties[number])
-        #printf()
+        #printf("")
 
         payload = {}
         publish(topic, payload)
@@ -1042,9 +1042,9 @@ def handle_api(api, subtopic, subpayload):
         try:
             if g_i2c_properties[number].get(address):
                 value = g_i2c_properties[number][address]["attributes"]
-                #printf()
+                #printf("")
                 #printf(value)
-                #printf()
+                #printf("")
         except:
             pass
 
@@ -1067,9 +1067,9 @@ def handle_api(api, subtopic, subpayload):
             'attributes' : setClassAttributes(device_class, subpayload),
             'enabled': 0
         }
-        #printf()
+        #printf("")
         #printf(g_i2c_properties[number])
-        #printf()
+        #printf("")
 
         payload = {}
         publish(topic, payload)
@@ -1107,9 +1107,9 @@ def handle_api(api, subtopic, subpayload):
             g_adc_properties[number]["enabled"] = enable
         except:
             pass
-        #printf()
+        #printf("")
         #printf(g_adc_properties[number])
-        #printf()
+        #printf("")
 
         payload = {}
         publish(topic, payload)
@@ -1122,9 +1122,9 @@ def handle_api(api, subtopic, subpayload):
         value = None 
         try:
             value = g_adc_properties[number]["attributes"]
-            #printf()
+            #printf("")
             #printf(value)
-            #printf()
+            #printf("")
         except:
             pass
 
@@ -1145,9 +1145,9 @@ def handle_api(api, subtopic, subpayload):
             'attributes' : setClassAttributes(device_class, subpayload),
             'enabled': 0
         }
-        #printf()
+        #printf("")
         #printf(g_adc_properties[number])
-        #printf()
+        #printf("")
 
         payload = {}
         publish(topic, payload)
@@ -1204,9 +1204,9 @@ def handle_api(api, subtopic, subpayload):
             g_1wire_properties[number]["enabled"] = enable
         except:
             pass
-        #printf()
+        #printf("")
         #printf(g_1wire_properties[number])
-        #printf()
+        #printf("")
 
         payload = {}
         publish(topic, payload)
@@ -1219,9 +1219,9 @@ def handle_api(api, subtopic, subpayload):
         value = None 
         try:
             value = g_1wire_properties[number]["attributes"]
-            #printf()
+            #printf("")
             #printf(value)
-            #printf()
+            #printf("")
         except:
             pass
 
@@ -1242,9 +1242,9 @@ def handle_api(api, subtopic, subpayload):
             'attributes' : setClassAttributes(device_class, subpayload),
             'enabled': 0
         }
-        #printf()
+        #printf("")
         #printf(g_1wire_properties[number])
-        #printf()
+        #printf("")
 
         payload = {}
         publish(topic, payload)
@@ -1282,9 +1282,9 @@ def handle_api(api, subtopic, subpayload):
             g_tprobe_properties[number]["enabled"] = enable
         except:
             pass
-        #printf()
+        #printf("")
         #printf(g_tprobe_properties[number])
-        #printf()
+        #printf("")
 
         payload = {}
         publish(topic, payload)
@@ -1297,9 +1297,9 @@ def handle_api(api, subtopic, subpayload):
         value = None 
         try:
             value = g_tprobe_properties[number]["attributes"]
-            #printf()
+            #printf("")
             #printf("GET: {}".format(value))
-            #printf()
+            #printf("")
         except:
             pass
 
@@ -1330,9 +1330,9 @@ def handle_api(api, subtopic, subpayload):
         if device_subclass is not None:
             g_tprobe_properties[number]['subclass'] = device_subclass
 
-        #printf()
+        #printf("")
         #printf(g_tprobe_properties[number])
-        #printf()
+        #printf("")
 
         payload = {}
         publish(topic, payload)
@@ -1718,11 +1718,21 @@ def listLDSUs(port):
     if port>0 and port<=3:
         for ldsu in g_ldsu_descriptors:
             if port == int(ldsu["PORT"]):
-                print("{} Port {} {}".format(ldsu["UID"], ldsu["PORT"], ldsu["OBJ"]))
+                printf("{} Port {} [{}-{}]".format(ldsu["UID"], ldsu["PORT"], ldsu["OBJ"], ldsu["NAME"]))
+                numdevices = g_device_client.get_obj_numdevices(ldsu["OBJ"])
+                for number in range(numdevices):
+                    descriptor = g_device_client.get_objidx(ldsu["OBJ"], number)
+                    classname = g_device_client.get_objidx_class(descriptor)
+                    printf("  {} {}".format(number, classname))
     else:
         for ldsu in g_ldsu_descriptors:
-            print("{} Port {} {}".format(ldsu["UID"], ldsu["PORT"], ldsu["OBJ"]))
-    print()
+            printf("{} Port {} [{}-{}]".format(ldsu["UID"], ldsu["PORT"], ldsu["OBJ"], ldsu["NAME"]))
+            numdevices = g_device_client.get_obj_numdevices(ldsu["OBJ"])
+            for number in range(numdevices):
+                descriptor = g_device_client.get_objidx(ldsu["OBJ"], number)
+                classname = g_device_client.get_objidx_class(descriptor)
+                printf("  {} {}".format(number, classname))
+    printf("")
 
 def moveLDSU(uid, port):
     found = False
@@ -1733,39 +1743,43 @@ def moveLDSU(uid, port):
             found = True
             break
     if not found:
-        print("{} not found.".format(uid))
+        printf("{} not found.".format(uid))
     else:
         # save to file to make changes persistent on reboot
         saveToLDSFile()
-    print()
+    printf("")
+
+def generateUID():
+    uid = ""
+    while True:
+        found = False
+        uid = "{}{:02d}".format(CONFIG_DEVICE_ID, random.randint(0, 99))
+        for ldsu in g_ldsu_descriptors:
+            if ldsu["UID"] == uid:
+                found = True
+                break
+
+        if not found:
+            break
+    return uid
 
 def plugLDSU(obj, port, uid):
     ldsu_descriptor = g_device_client.get_ldsu_reg_from_lds_reg_template(obj)
     if ldsu_descriptor is None:
-        print("{} is not found!".format(obj))
+        printf("{} is not found!".format(obj))
         return
     if port<=0 and port>3:
-        print("{} is not valid!".format(port))
+        printf("{} is not valid!".format(port))
         return
 
     if uid is None:
         # generate a uid
-        uid = ""
-        while True:
-            found = False
-            uid = "{}{:02d}".format(CONFIG_DEVICE_ID, random.randint(0, 99))
-            for ldsu in g_ldsu_descriptors:
-                if ldsu["UID"] == uid:
-                    found = True
-                    break
-
-            if not found:
-                break
+        uid = generateUID()
     else:
         # check if uid is not present
         for ldsu in g_ldsu_descriptors:
             if ldsu["UID"] == uid:
-                print("{} is not valid".format(uid))
+                printf("{} is not valid".format(uid))
                 return
 
     # update LDSU descriptor and register it
@@ -1785,7 +1799,7 @@ def plugLDSU(obj, port, uid):
 
     # save to file to make changes persistent on reboot
     saveToLDSFile()
-    print()
+    printf("")
 
 def unplugLDSU(uid):
     found = False
@@ -1796,11 +1810,11 @@ def unplugLDSU(uid):
             found = True
             break
     if not found:
-        print("{} not found.".format(uid))
+        printf("{} not found.".format(uid))
     else:
         # save to file to make changes persistent on reboot
         saveToLDSFile()
-    print()
+    printf("")
 
 
 
@@ -2594,17 +2608,21 @@ def uart_cmdhdl_help(idx, cmd):
 def uart_cmdhdl_unsupported(idx, cmd):
     printf("uart_cmdhdl_unsupported")
 
+def uart_cmdhdl_ldstest_help():
+    printf("")
+    printf("LDS Test Commands:")
+    printf("ATT+LS+<PORT>                List LDSUs in LDS BUS port (1, 2, 3)")
+    printf("                             If no port, will list LDSUs in all ports")
+    printf("ATT+MOV+<UID>+<PORT>         Move an LDSU from one port to another port")
+    printf("ATT+ADD+<OBJ>+<PORT>+<UID>   Plug an LDSU of type OBJ to specified port")
+    printf("                             Available OBJ = [32768, 32770]")
+    printf("                             UID is optional (to re-add what you removed)")
+    printf("ATT+REM+<UID>                Unplug an LDSU")
+    printf("")
+
 def uart_cmdhdl_ldstest(idx, cmd):
     if len(cmd) == len(UART_ATCOMMANDS[idx]["command"]):
-        print("LDS Test commands")
-        print("ATT+LS+<PORT>        - to list LDSUs in specified LDS BUS port (1, 2, 3)")
-        print("                     - if no port provided, will list LDSUs in all ports")
-        print("ATT+MOV+<UID>+<PORT> - to move an LDSU to specified LDS BUS port")
-        print("ATT+ADD+<OBJ>+<PORT> - to plug an LDSU of type OBJ to specified LDS BUS port")
-        print("                     - available OBJ = [32768, 32770]")
-        print("                     - UID is optional (if you want to re-add what you removed)")
-        print("ATT+REM+<UID>        - to unplug an LDSU")
-        print()
+        uart_cmdhdl_ldstest_help()
         return
 
     cmd_list = cmd.split("+")[1:]
@@ -2619,7 +2637,7 @@ def uart_cmdhdl_ldstest(idx, cmd):
     elif cmd_list[0] == "MOV":
         params = cmd_list[1:]
         if len(params) != 2:
-            print("invalid {} parameters".format(cmd_list[0]))
+            printf("invalid {} parameters".format(cmd_list[0]))
             return
         uid = params[0]
         port = int(params[1])
@@ -2628,7 +2646,7 @@ def uart_cmdhdl_ldstest(idx, cmd):
     elif cmd_list[0] == "ADD":
         params = cmd_list[1:]
         if len(params) < 2:
-            print("invalid {} parameters".format(cmd_list[0]))
+            printf("invalid {} parameters".format(cmd_list[0]))
             return
         obj = params[0]
         port = int(params[1])
@@ -2641,13 +2659,13 @@ def uart_cmdhdl_ldstest(idx, cmd):
     elif cmd_list[0] == "REM":
         params = cmd_list[1:]
         if len(params) != 1:
-            print("invalid {} parameters".format(cmd_list[0]))
+            printf("invalid {} parameters".format(cmd_list[0]))
             return
         uid = params[0]
         unplugLDSU(uid)
 
     else:
-        print("invalid command")
+        printf("invalid command")
         return
 
 
@@ -2795,9 +2813,9 @@ def http_get_firmware_binary(filename, filesize):
     #headers = { "User-Agent": "PostmanRuntime/7.22.0", "Accept": "*/*", "Host": "ec2-54-166-169-66.compute-1.amazonaws.com", "Accept-Encoding": "gzip, deflate, br", "Connection": "keep-alive" }
     authcode = compute_ota_authcode(CONFIG_DEVICE_SECRETKEY, CONFIG_USERNAME, CONFIG_PASSWORD, debug=True)
     if authcode is None:
-        print(CONFIG_DEVICE_SECRETKEY)
-        print(CONFIG_USERNAME)
-        print(CONFIG_PASSWORD)
+        printf(CONFIG_DEVICE_SECRETKEY)
+        printf(CONFIG_USERNAME)
+        printf(CONFIG_PASSWORD)
         return False
     headers = { "Connection": "keep-alive", "Authorization": "Bearer " + authcode }
 
@@ -2885,7 +2903,8 @@ def set_registration(sensors):
 
 # Register gateway descriptor
 def reg_gateway_descriptor():
-    printf("\nRegister gateway descriptor")
+    printf("")
+    printf("Register gateway descriptor")
     topic = "{}{}{}{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_DEVICE_ID, CONFIG_SEPARATOR, API_SET_DESCRIPTOR)
     if g_gateway_descriptor["UUID"] == "":
         g_gateway_descriptor["UUID"] = CONFIG_DEVICE_ID
@@ -2896,7 +2915,8 @@ def reg_gateway_descriptor():
 
 # Register LDSU descriptors
 def reg_ldsu_descriptors(port=None, as_response=False):
-    printf("\nRegister LDSU descriptors")
+    printf("")
+    printf("Register LDSU descriptors")
     api = API_SET_LDSU_DESCS
     if as_response:
         api = API_GET_LDSU_DESCS
@@ -3206,39 +3226,25 @@ def main(args):
         # Delete device configuration
         # OPTIONAL This is not really needed.
         # This just simplifies deleting configuration of the sensors, which can be very useful when debugging configuration issues
-        if CONFIG_DELETE_CONFIGURATION:
-            del_configuration()
-            # can specify specific peripherals like below
-            # peripherals can be uart, gpio, i2c, adc, 1wire, tprobe
-            #del_configuration(["i2c"])
+        #if CONFIG_DELETE_CONFIGURATION:
+        #    del_configuration()
+        #    # can specify specific peripherals like below
+        #    # peripherals can be uart, gpio, i2c, adc, 1wire, tprobe
+        #    #del_configuration(["i2c"])
 
         # Load device configuration from file
         # OPTIONAL This is not really needed.
         # This just simplifies configuration of the sensors, which can be very useful when configuring several sensors
-        if CONFIG_LOAD_CONFIGURATION_FROM_FILE:
-            time.sleep(1)
-            set_configuration()
+        #if CONFIG_LOAD_CONFIGURATION_FROM_FILE:
+        #    time.sleep(1)
+        #    set_configuration()
+
 
         # Query device configuration
         if CONFIG_REQUEST_CONFIGURATION:
             g_device_status = DEVICE_STATUS_CONFIGURING
             req_configuration()
-            # can specify specific peripherals like below
-            # peripherals can be uart, gpio, i2c, adc, 1wire, tprobe
-            #req_configuration(["i2c"])
-
-        # Start the timer thread
-        if g_timer_thread_use:
-            g_timer_thread_stop = threading.Event()
-            g_timer_thread = TimerThread(g_timer_thread_stop, g_timer_thread_timeout)
-            g_timer_thread.start()
-
-        # Start keyboard input thread
-        if g_input_thread == None:
-            inputQueue = queue.Queue()
-            g_input_thread = threading.Thread(target=read_kbd_input, args=(inputQueue,), daemon=True)
-            g_input_thread.start()
-
+            time.sleep(1)
 
         # Check OTA status at bootup
         if CONFIG_OTA_AT_BOOTUP:
@@ -3246,6 +3252,20 @@ def main(args):
             time.sleep(1)
 
 
+        # Start the timer thread for sensor processing
+        if g_timer_thread_use:
+            g_timer_thread_stop = threading.Event()
+            g_timer_thread = TimerThread(g_timer_thread_stop, g_timer_thread_timeout)
+            g_timer_thread.start()
+
+        # Start keyboard input thread for AT commands processing
+        if g_input_thread == None:
+            inputQueue = queue.Queue()
+            g_input_thread = threading.Thread(target=read_kbd_input, args=(inputQueue,), daemon=True)
+            g_input_thread.start()
+
+
+        # Loop processing
         # Exit when disconnection happens
         while g_messaging_client.is_connected():
             time.sleep(1)
@@ -3266,15 +3286,15 @@ def main(args):
                             UART_ATCOMMANDS[idx]["fxn"](idx, cmd)
                             break
 
+
+        # Handle graceful disconnection
         g_messaging_client.subscribe(subtopic, subscribe=False)
         time.sleep(2)
         g_messaging_client.release()
-
         if g_timer_thread_use:
             g_timer_thread.set_exit()
             g_timer_thread_stop.set()
             g_timer_thread.join()
-
         # When disconnected, reset the configurations
         # and pull the configurations during reconnection
         # This is to prevent synchronization issues with local configuration with backend configuration

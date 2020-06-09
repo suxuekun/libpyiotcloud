@@ -294,34 +294,14 @@ class device_hierarchies:
                 #hierarchy["active"] = device["status"]
 
         sensors = self.database_client.get_all_device_sensors(entityname, devicename)
-        for child in hierarchy["children"]:
-            #print("{} {} {}".format(sensor["sensorname"], sensor["source"], sensor["number"]))
-            for sensor in sensors:
-                if sensor["port"] == child["name"][-1:]:
-                    #print("{} {}".format(child["name"], sensor["sensorname"]))
-                    if child.get("children") is None:
-                        child["children"] = []
-                        grandgrandchild = {
-                            "name": sensor["sensorname"] + " - " + sensor["class"],
-                            "active": sensor["enabled"]
-                        }
-                        grandchild = {
-                            "name": sensor["name"],
-                            "children": [grandgrandchild]
-                        }
-                        child["children"].append(grandchild)
-                    else:
-                        found = False
-                        for granchild in child["children"]:
-                            if granchild["name"] == sensor["name"]:
-                                grandgrandchild = {
-                                    "name": sensor["sensorname"] + " - " + sensor["class"],
-                                    "active": sensor["enabled"]
-                                }
-                                granchild["children"].append(grandgrandchild)
-                                found = True
-                                break
-                        if not found:
+        if sensors:
+            for child in hierarchy["children"]:
+                #print("{} {} {}".format(sensor["sensorname"], sensor["source"], sensor["number"]))
+                for sensor in sensors:
+                    if sensor["port"] == child["name"][-1:]:
+                        #print("{} {}".format(child["name"], sensor["sensorname"]))
+                        if child.get("children") is None:
+                            child["children"] = []
                             grandgrandchild = {
                                 "name": sensor["sensorname"] + " - " + sensor["class"],
                                 "active": sensor["enabled"]
@@ -331,6 +311,27 @@ class device_hierarchies:
                                 "children": [grandgrandchild]
                             }
                             child["children"].append(grandchild)
+                        else:
+                            found = False
+                            for granchild in child["children"]:
+                                if granchild["name"] == sensor["name"]:
+                                    grandgrandchild = {
+                                        "name": sensor["sensorname"] + " - " + sensor["class"],
+                                        "active": sensor["enabled"]
+                                    }
+                                    granchild["children"].append(grandgrandchild)
+                                    found = True
+                                    break
+                            if not found:
+                                grandgrandchild = {
+                                    "name": sensor["sensorname"] + " - " + sensor["class"],
+                                    "active": sensor["enabled"]
+                                }
+                                grandchild = {
+                                    "name": sensor["name"],
+                                    "children": [grandgrandchild]
+                                }
+                                child["children"].append(grandchild)
 
         return hierarchy
 
