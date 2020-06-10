@@ -678,9 +678,14 @@ def handle_api(api, subtopic, subpayload):
         topic = generate_pubtopic(subtopic)
         subpayload = json.loads(subpayload)
 
-        if subpayload.get("port"):
-            # if port number exist, then return LDSUs for specified port
-            reg_ldsu_descriptors(port=str(subpayload["port"]), as_response=True)
+        if subpayload.get("PORT") is not None:
+            port = int(subpayload["PORT"])
+            if port >= 1 and port <= 3:
+                # if port number exist, then return LDSUs for specified port
+                reg_ldsu_descriptors(port=str(port), as_response=True)
+            else:
+                # if port number not exist, then return LDSUs for all ports
+                reg_ldsu_descriptors(port=None, as_response=True)
         else:
             # if port number not exist, then return LDSUs for all ports
             reg_ldsu_descriptors(port=None, as_response=True)
