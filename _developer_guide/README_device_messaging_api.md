@@ -382,7 +382,7 @@ DETAILED:
 		-  Receive:
 		   topic: DEVICEID/get_ldsu_descs
 		   payload: {'port': int}
-		   // port can be 1,2,3. If not present, then query is for all ports
+		   // port can be 1,2,3. If 0, then query is for all ports
 		-  Publish:
 		   topic: server/DEVICEID/get_ldsu_descs
 		   payload: { 
