@@ -163,8 +163,10 @@ SUMMARY:
 		// LDSU DEVICE refers to SENSOR or ACTUATOR
 		J. SET LDSU DEVICE PROPERTIES     - POST   /devices/device/DEVICENAME/LDSUUUID/NUMBER/sensors/sensor/SENSORNAME/properties
 		K. GET LDSU DEVICE PROPERTIES     - GET    /devices/device/DEVICENAME/LDSUUUID/NUMBER/sensors/sensor/SENSORNAME/properties
-		L. ENABLE/DISABLE LDSU DEVICE     - POST   /devices/device/DEVICENAME/LDSUUUID/NUMBER/sensors/sensor/SENSORNAME/enable
-		M. CHANGE LDSU DEVICE NAME        - POST   /devices/device/DEVICENAME/LDSUUUID/NUMBER/sensors/sensor/SENSORNAME/name
+		L. DELETE LDSU DEVICE PROPERTIES  - DELETE /devices/device/DEVICENAME/LDSUUUID/NUMBER/sensors/sensor/SENSORNAME/properties
+
+		M. ENABLE/DISABLE LDSU DEVICE     - POST   /devices/device/DEVICENAME/LDSUUUID/NUMBER/sensors/sensor/SENSORNAME/enable
+		N. CHANGE LDSU DEVICE NAME        - POST   /devices/device/DEVICENAME/LDSUUUID/NUMBER/sensors/sensor/SENSORNAME/name
 
 
 	6. Device access and control APIs (STATUS, UART, GPIO)
@@ -290,15 +292,10 @@ SUMMARY:
 		   (NUMBER will always be 1 since there is only 1 tprobe)
 
 
-	11. Device sensor access and control
+	11. Device sensor dashboarding
 
-		//
-		// sensor readings (for dashboard)
-		A. GET PERIPHERAL SENSOR READINGS                  - GET    /devices/device/DEVICENAME/sensors/readings
-		B. DELETE PERIPHERAL SENSOR READINGS               - DELETE /devices/device/DEVICENAME/sensors/readings
-		C. GET PERIPHERAL SENSOR READINGS DATASET          - GET    /devices/device/DEVICENAME/sensors/readings/dataset
-		D. GET PERIPHERAL SENSOR READINGS DATASET FILTERED - POST   /devices/sensors/readings/dataset
-		E. DELETE PERIPHERAL SENSOR READINGS DATASET       - DELETE /devices/sensors/readings/dataset
+		A. GET SENSOR READINGS DATASET FILTERED - POST   /devices/sensors/readings/dataset
+		B. DELETE SENSOR READINGS DATASET       - DELETE /devices/sensors/readings/dataset
 
 
 	12. Device transaction recording APIs
@@ -1770,7 +1767,18 @@ DETAILED:
 		   // NUMBER refers to the sensor["number"]. Refer to GET LDS BUS SENSORS.
 		   // SENSORNAME refers to the sensor["sensorname"]. Refer to GET LDS BUS SENSORS.
 
-		L. ENABLE/DISABLE LDSU DEVICE (SENSOR/ACTUATOR)
+		L. DELETE LDSU DEVICE (SENSOR/ACTUATOR) PROPERTIES
+		-  Request:
+		   DELETE /devices/device/DEVICENAME/LDSUUUID/NUMBER/sensors/sensor/SENSORNAME/properties
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		-  Response:
+		   { 'status': 'OK', 'message': string }
+		   { 'status': 'NG', 'message': string }
+		   // LDSUUUID refers to the sensor["source"]. Refer to GET LDS BUS SENSORS.
+		   // NUMBER refers to the sensor["number"]. Refer to GET LDS BUS SENSORS.
+		   // SENSORNAME refers to the sensor["sensorname"]. Refer to GET LDS BUS SENSORS.
+
+		M. ENABLE/DISABLE LDSU DEVICE (SENSOR/ACTUATOR)
 		-  Request:
 		   POST /devices/device/DEVICENAME/LDSUUUID/NUMBER/sensors/sensor/SENSORNAME/enable
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -1783,7 +1791,7 @@ DETAILED:
 		   // NUMBER refers to the sensor["number"]. Refer to GET LDS BUS SENSORS.
 		   // SENSORNAME refers to the sensor["sensorname"]. Refer to GET LDS BUS SENSORS.
 
-		M. CHANGE LDSU DEVICE (SENSOR/ACTUATOR) NAME
+		N. CHANGE LDSU DEVICE (SENSOR/ACTUATOR) NAME
 		-  Request:
 		   POST /devices/device/DEVICENAME/LDSUUUID/NUMBER/sensors/sensor/SENSORNAME/name
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -3312,44 +3320,12 @@ DETAILED:
 
 	11. Device sensor access and control APIs
 
-		A. DELETE PERIPHERAL SENSOR PROPERTIES
-		-  Request:
-		   DELETE /devices/device/DEVICENAME/sensors/properties
-		   headers: {'Authorization': 'Bearer ' + token.access}
-		-  Response:
-		   { 'status': 'OK', 'message': string}
-		   { 'status': 'NG', 'message': string}
-
-		B. GET PERIPHERAL SENSOR READINGS
-		-  Request:
-		   GET /devices/device/DEVICENAME/sensors/readings
-		   headers: {'Authorization': 'Bearer ' + token.access}
-		-  Response:
-		   { 'status': 'OK', 'message': string, 
-		     'sensors': [{'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': string, 'enabled': int, 'configured': int, 'units': [], 'formats': [], 'attributes': [], 'readings': {'value': float, 'lowest': float, 'highest': float, 'subclass': {'value': float, 'lowest': float, 'highest': float}}] }
-		   { 'status': 'NG', 'message': string}
-		   // the subclass parameter of readings parameter will only appear if the sensor has a subclass
-
-		C. GET PERIPHERAL SENSOR READINGS DATASET
-		-  Request:
-		   GET /devices/device/DEVICENAME/sensors/readings/dataset
-		   headers: {'Authorization': 'Bearer ' + token.access}
-		-  Response:
-		   { 'status': 'OK', 'message': string, 
-		     'sensors': [{'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'timestamp': string, 'enabled': int, 'configured': int, 'units': [], 'formats': [], 'attributes': [], 'dataset': {'labels': [], 'data': [[],...]}] }
-		   { 'status': 'NG', 'message': string}
-		   // the subclass parameter of readings parameter will only appear if the sensor has a subclass
-		   // if sensor has a subclass:  'dataset': {'labels': [], 'data': [[],[]]}
-		      if sensor has no subclass: 'dataset': {'labels': [], 'data': [[]]}
-		      this make the dataset object directly useable by Chart.JS 
-
-		D. GET PERIPHERAL SENSOR READINGS DATASET FILTERED
+		A. GET SENSOR READINGS DATASET FILTERED
 		-  Request:
 		   POST /devices/sensors/readings/dataset
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-		   data: {'devicename': string, 'peripheral': string, 'class': string, 'status': string, 'timerange': string, 'points': int, 'checkdevice': int}
+		   data: {'devicename': string, 'class': string, 'status': string, 'timerange': string, 'points': int, 'checkdevice': int}
 		   // devicename can be "All devices" or the devicename of specific device
-		   // peripheral can be ["All peripherals", "I2C1", "I2C2", "I2C3", "I2C4", "ADC1", "ADC2", "1WIRE1", "TPROBE1"]
 		   // class can be ["All classes", "potentiometer", "temperature", "humidity", "anemometer", "battery", "fluid"]
 		   // status can be ["All online/offline", "online", "offline"]
 		   // timerange can be:
@@ -3416,15 +3392,7 @@ DETAILED:
 		   //     uses labels and data arrays to make object directly usable by Chart.JS doughnut/pie charts
 		   //   summary is for the table
 
-		E. DELETE PERIPHERAL SENSOR READINGS
-		-  Request:
-		   DELETE /devices/device/DEVICENAME/sensors/readings
-		   headers: {'Authorization': 'Bearer ' + token.access}
-		-  Response:
-		   { 'status': 'OK', 'message': string}
-		   { 'status': 'NG', 'message': string}
-
-		F. DELETE PERIPHERAL SENSOR READINGS DATASET
+		B. DELETE SENSOR READINGS DATASET
 		-  Request:
 		   DELETE /devices/sensors/readings/dataset
 		   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}

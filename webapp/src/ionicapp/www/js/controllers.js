@@ -7698,18 +7698,18 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
     $scope.devices = [{"devicename": "All devices"}];
 
     // Filter by peripherals
-    $scope.peripherals = [ 
-        "All peripherals",
-        "I2C1",
-        "I2C2",
-        "I2C3",
-        "I2C4",
-        "ADC1",
-        "ADC2",
-        "1WIRE1",
-        "TPROBE1"
-    ];
-    $scope.peripheral = $scope.peripherals[0];
+    //$scope.peripherals = [ 
+    //    "All peripherals",
+    //    "I2C1",
+    //    "I2C2",
+    //    "I2C3",
+    //    "I2C4",
+    //    "ADC1",
+    //    "ADC2",
+    //    "1WIRE1",
+    //    "TPROBE1"
+    //];
+    //$scope.peripheral = $scope.peripherals[0];
     
     // Filter by sensor class
     $scope.sensorclasses = [ 
@@ -8321,7 +8321,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             headers: { 'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json' },
             data: {
                 'devicename': $scope.data.devicename, 
-                'peripheral': $scope.peripheral, 
+                //'peripheral': $scope.peripheral, 
                 'class': $scope.sensorclass, 
                 'status': $scope.sensorstatus, 
                 'timerange': $scope.timerange, 
@@ -8613,10 +8613,10 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         }); 
     };
     
-    $scope.changePeripheral = function(peripheral) {
-        $scope.peripheral = peripheral;
-        $scope.submitQuery();
-    };
+    //$scope.changePeripheral = function(peripheral) {
+    //    $scope.peripheral = peripheral;
+    //    $scope.submitQuery();
+    //};
 
     $scope.changeSensorClass = function(sensorclass) {
         $scope.sensorclass = sensorclass;
@@ -15658,7 +15658,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             $ionicPopup.alert({
                 title: peripheral.toUpperCase() + ' device',
                 template: $scope.data.sensor.sensorname + ' was configured successfully!',
-            });            
+            });
         })
         .catch(function (error) {
             handle_error(error, true);
@@ -15666,7 +15666,44 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
     };
 
 
-
+    $scope.submitDelete = function() {
+        console.log("submitDelete");
+        $scope.delete_xxx_device_properties($scope.data.sensor.source);
+    };
+    
+    $scope.delete_xxx_device_properties = function(peripheral) {
+        //
+        // DELETE XXX DEVICE PROPERTIES
+        //
+        // - Request:
+        //   DELETE /devices/device/<devicename>/i2c/<number>/sensors/sensor/<sensorname>/properties
+        //   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
+        //   data: 
+        //   { 
+        //   }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string }
+        //   { 'status': 'NG', 'message': string }        
+        //
+        $http({
+            method: 'DELETE',
+            url: server + '/devices/device/' + $scope.data.devicename + '/' + peripheral + '/' + $scope.data.sensor.number.toString() + '/sensors/sensor/' + $scope.data.sensor.sensorname + '/properties',
+            headers: { 'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json' },
+            data: $scope.data.attributes
+        })
+        .then(function (result) {
+            console.log(result.data);
+            $ionicPopup.alert({
+                title: peripheral.toUpperCase() + ' device',
+                template: $scope.data.sensor.sensorname + ' configuration was deleted successfully!',
+            });            
+            get_xxx_device_properties(peripheral);
+        })
+        .catch(function (error) {
+            handle_error(error, true);
+        }); 
+    };
 
 
     
@@ -16136,6 +16173,45 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
     };
     
     
+    
+    $scope.submitDelete = function() {
+        console.log("submitDelete");
+        $scope.delete_xxx_device_properties($scope.data.sensor.source);
+    };
+    
+    $scope.delete_xxx_device_properties = function(peripheral) {
+        //
+        // DELETE XXX DEVICE PROPERTIES
+        //
+        // - Request:
+        //   DELETE /devices/device/<devicename>/i2c/<number>/sensors/sensor/<sensorname>/properties
+        //   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
+        //   data: 
+        //   { 
+        //   }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string }
+        //   { 'status': 'NG', 'message': string }        
+        //
+        $http({
+            method: 'DELETE',
+            url: server + '/devices/device/' + $scope.data.devicename + '/' + peripheral + '/' + $scope.data.sensor.number.toString() + '/sensors/sensor/' + $scope.data.sensor.sensorname + '/properties',
+            headers: { 'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json' },
+            data: $scope.data.attributes
+        })
+        .then(function (result) {
+            console.log(result.data);
+            $ionicPopup.alert({
+                title: peripheral.toUpperCase() + ' device',
+                template: $scope.data.sensor.sensorname + ' configuration was deleted successfully!',
+            });            
+            get_xxx_device_properties(peripheral);
+        })
+        .catch(function (error) {
+            handle_error(error, true);
+        }); 
+    };
     
     $scope.submit = function() {
         console.log("submit");

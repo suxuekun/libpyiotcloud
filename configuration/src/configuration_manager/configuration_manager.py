@@ -287,7 +287,7 @@ def get_configuration_ex(database_client, deviceid, topic, payload):
                 "SAID": str(number)
             }
             if configuration.get("mode") is not None:
-                props["MODE"] = configuration["mode"]
+                props["MODE"] = str(configuration["mode"])
             else:
                 props["MODE"] = str(0)
             new_payload["ldsu"].append(props)

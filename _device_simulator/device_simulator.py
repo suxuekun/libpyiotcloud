@@ -870,7 +870,7 @@ def handle_api(api, subtopic, subpayload):
             'stopbits': subpayload["stopbits"],
             'databits': subpayload["databits"],
         }
-        printf(g_uart_properties)
+        #printf(g_uart_properties)
         #printf(g_uart_baudrate[g_uart_properties['baudrate']])
         #printf(g_uart_parity[g_uart_properties['parity']])
         #printf(g_uart_flowcontrol[g_uart_properties['flowcontrol']])
@@ -895,86 +895,86 @@ def handle_api(api, subtopic, subpayload):
     ####################################################
     # GPIO
     ####################################################
-    elif api == API_GET_GPIOS:
-        topic = generate_pubtopic(subtopic)
-        subpayload = json.loads(subpayload)
-
-        value = {
-            'voltage': g_gpio_voltage,
-            'gpios': [
-                {'direction': g_gpio_properties[0]['direction'], 'status': g_gpio_status[0], 'enabled': g_gpio_enabled[0] },
-                {'direction': g_gpio_properties[1]['direction'], 'status': g_gpio_status[1], 'enabled': g_gpio_enabled[1] },
-                {'direction': g_gpio_properties[2]['direction'], 'status': g_gpio_status[2], 'enabled': g_gpio_enabled[2] },
-                {'direction': g_gpio_properties[3]['direction'], 'status': g_gpio_status[3], 'enabled': g_gpio_enabled[3] }
-            ]
-        }
-        #printf(g_gpio_enabled)
-
-        payload = {}
-        payload["value"] = value
-        publish(topic, payload)
-
-    elif api == API_GET_GPIO_PROPERTIES:
-        topic = generate_pubtopic(subtopic)
-        subpayload = json.loads(subpayload)
-
-        number = int(subpayload["number"])-1
-        value = g_gpio_properties[number]
-
-        payload = {}
-        payload["value"] = value
-        publish(topic, payload)
-
-    elif api == API_SET_GPIO_PROPERTIES:
-        topic = generate_pubtopic(subtopic)
-        subpayload = json.loads(subpayload)
-        #printf(subpayload)
-
-        number = int(subpayload["number"])-1
-        g_gpio_properties[number] = { 
-            'direction' : subpayload["direction"], 
-            'mode' : subpayload["mode"],
-            'alert': subpayload["alert"],
-            'alertperiod': subpayload["alertperiod"],
-            'polarity': subpayload["polarity"],
-            'width': subpayload["width"],
-            'mark': subpayload["mark"],
-            'space': subpayload["space"],
-            'count': subpayload["count"] }
-        value = g_gpio_properties[number]
-
-        payload = {}
-        publish(topic, payload)
-
-    elif api == API_ENABLE_GPIO:
-        topic = generate_pubtopic(subtopic)
-        subpayload = json.loads(subpayload)
-        #printf(subpayload)
-
-        g_gpio_enabled[int(subpayload["number"])-1] = subpayload["enable"]
-        #printf(g_gpio_enabled)
-
-        payload = {}
-        publish(topic, payload)
-
-    elif api == API_GET_GPIO_VOLTAGE:
-        topic = generate_pubtopic(subtopic)
-
-        payload = {}
-        payload["value"] = {"voltage": g_gpio_voltage}
-        publish(topic, payload)
-        #printf(g_gpio_voltages[g_gpio_voltage])
-
-    elif api == API_SET_GPIO_VOLTAGE:
-        topic = generate_pubtopic(subtopic)
-        subpayload = json.loads(subpayload)
-        #printf(subpayload)
-
-        g_gpio_voltage = subpayload["voltage"]
-        #printf(g_gpio_voltages[g_gpio_voltage])
-
-        payload = {}
-        publish(topic, payload)
+    #elif api == API_GET_GPIOS:
+    #    topic = generate_pubtopic(subtopic)
+    #    subpayload = json.loads(subpayload)
+    #
+    #    value = {
+    #        'voltage': g_gpio_voltage,
+    #        'gpios': [
+    #            {'direction': g_gpio_properties[0]['direction'], 'status': g_gpio_status[0], 'enabled': g_gpio_enabled[0] },
+    #            {'direction': g_gpio_properties[1]['direction'], 'status': g_gpio_status[1], 'enabled': g_gpio_enabled[1] },
+    #            {'direction': g_gpio_properties[2]['direction'], 'status': g_gpio_status[2], 'enabled': g_gpio_enabled[2] },
+    #            {'direction': g_gpio_properties[3]['direction'], 'status': g_gpio_status[3], 'enabled': g_gpio_enabled[3] }
+    #        ]
+    #    }
+    #    #printf(g_gpio_enabled)
+    #
+    #    payload = {}
+    #    payload["value"] = value
+    #    publish(topic, payload)
+    #
+    #elif api == API_GET_GPIO_PROPERTIES:
+    #    topic = generate_pubtopic(subtopic)
+    #    subpayload = json.loads(subpayload)
+    #
+    #    number = int(subpayload["number"])-1
+    #    value = g_gpio_properties[number]
+    #
+    #    payload = {}
+    #    payload["value"] = value
+    #    publish(topic, payload)
+    #
+    #elif api == API_SET_GPIO_PROPERTIES:
+    #    topic = generate_pubtopic(subtopic)
+    #    subpayload = json.loads(subpayload)
+    #    #printf(subpayload)
+    #
+    #    number = int(subpayload["number"])-1
+    #    g_gpio_properties[number] = { 
+    #        'direction' : subpayload["direction"], 
+    #        'mode' : subpayload["mode"],
+    #        'alert': subpayload["alert"],
+    #        'alertperiod': subpayload["alertperiod"],
+    #        'polarity': subpayload["polarity"],
+    #        'width': subpayload["width"],
+    #        'mark': subpayload["mark"],
+    #        'space': subpayload["space"],
+    #        'count': subpayload["count"] }
+    #    value = g_gpio_properties[number]
+    #
+    #    payload = {}
+    #    publish(topic, payload)
+    #
+    #elif api == API_ENABLE_GPIO:
+    #    topic = generate_pubtopic(subtopic)
+    #    subpayload = json.loads(subpayload)
+    #    #printf(subpayload)
+    #
+    #    g_gpio_enabled[int(subpayload["number"])-1] = subpayload["enable"]
+    #    #printf(g_gpio_enabled)
+    #
+    #    payload = {}
+    #    publish(topic, payload)
+    #
+    #elif api == API_GET_GPIO_VOLTAGE:
+    #    topic = generate_pubtopic(subtopic)
+    #
+    #    payload = {}
+    #    payload["value"] = {"voltage": g_gpio_voltage}
+    #    publish(topic, payload)
+    #    #printf(g_gpio_voltages[g_gpio_voltage])
+    #
+    #elif api == API_SET_GPIO_VOLTAGE:
+    #    topic = generate_pubtopic(subtopic)
+    #    subpayload = json.loads(subpayload)
+    #    #printf(subpayload)
+    #
+    #    g_gpio_voltage = subpayload["voltage"]
+    #    #printf(g_gpio_voltages[g_gpio_voltage])
+    #
+    #    payload = {}
+    #    publish(topic, payload)
 
 
     ####################################################
@@ -1537,7 +1537,7 @@ def handle_api(api, subtopic, subpayload):
         if subpayload.get("uart"):
             if subpayload["uart"][0].get("attributes"):
                 g_uart_properties = subpayload["uart"][0]["attributes"]
-                printf(g_uart_properties)
+                #printf(g_uart_properties)
 
         # GPIO
         if subpayload.get("gpio"):
@@ -1917,15 +1917,12 @@ def req_configuration(peripherals = None):
         payload = { "peripherals": peripherals }
     publish(topic, payload)
 
-def del_configuration(peripherals = None):
+def del_configuration():
     printf("")
     printf("")
     printf("\Delete device configuration")
     topic = "{}{}{}{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_DEVICE_ID, CONFIG_SEPARATOR, API_DELETE_CONFIGURATION)
-    if peripherals is None:
-        payload = {}
-    else:
-        payload = { "peripherals": peripherals }
+    payload = {}
     publish(topic, payload)
 
 def set_configuration(filename = None):
@@ -3232,11 +3229,8 @@ def main(args):
         # Delete device configuration
         # OPTIONAL This is not really needed.
         # This just simplifies deleting configuration of the sensors, which can be very useful when debugging configuration issues
-        #if CONFIG_DELETE_CONFIGURATION:
-        #    del_configuration()
-        #    # can specify specific peripherals like below
-        #    # peripherals can be uart, gpio, i2c, adc, 1wire, tprobe
-        #    #del_configuration(["i2c"])
+        if CONFIG_DELETE_CONFIGURATION:
+            del_configuration()
 
         # Load device configuration from file
         # OPTIONAL This is not really needed.

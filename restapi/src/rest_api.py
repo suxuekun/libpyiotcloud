@@ -789,6 +789,11 @@ def get_xxx_dev_prop(devicename, xxx, number, sensorname):
 def set_xxx_dev_prop(devicename, xxx, number, sensorname):
     return g_device_peripheral_properties.set_xxx_dev_prop(devicename, xxx, number, sensorname)
 
+@app.route('/devices/device/<devicename>/<xxx>/<number>/sensors/sensor/<sensorname>/properties', methods=['DELETE'])
+def delete_xxx_dev_prop(devicename, xxx, number, sensorname):
+    return g_device_peripheral_properties.delete_xxx_dev_prop(devicename, xxx, number, sensorname)
+
+
 @app.route('/devices/device/<devicename>/<xxx>/<number>/sensors/sensor/<sensorname>/enable', methods=['POST'])
 def enable_xxx_dev(devicename, xxx, number, sensorname):
     return g_device_peripheral_properties.enable_xxx_dev(devicename, xxx, number, sensorname)
@@ -809,8 +814,10 @@ g_device_peripheral_properties_list = [
     { "name": "SET UART PROPERTIES",          "func": set_uart_prop,       "api": "/devices/device/<devicename>/uart/properties", "method": "GET"    },
     { "name": "ENABLE UART",                  "func": enable_uart,         "api": "/devices/device/<devicename>/uart/enable",     "method": "POST"   },
 
-    { "name": "GET LDS DEVICE PROPERTIES",    "func": get_xxx_dev_prop,    "api": "/devices/device/<devicename>/<xxx>/<number>/sensors/sensor/<sensorname>/properties", "method": "POST"   },
+    { "name": "GET LDS DEVICE PROPERTIES",    "func": get_xxx_dev_prop,    "api": "/devices/device/<devicename>/<xxx>/<number>/sensors/sensor/<sensorname>/properties", "method": "GET"    },
     { "name": "SET LDS DEVICE PROPERTIES",    "func": set_xxx_dev_prop,    "api": "/devices/device/<devicename>/<xxx>/<number>/sensors/sensor/<sensorname>/properties", "method": "POST"   },
+    { "name": "DELETE LDS DEVICE PROPERTIES", "func": delete_xxx_dev_prop, "api": "/devices/device/<devicename>/<xxx>/<number>/sensors/sensor/<sensorname>/properties", "method": "DELETE" },
+
     { "name": "ENABLE LDS DEVICE",            "func": enable_xxx_dev,      "api": "/devices/device/<devicename>/<xxx>/<number>/sensors/sensor/<sensorname>/enable",     "method": "POST"   },
     { "name": "CHANGE LDS DEVICE NAME",       "func": change_xxx_dev_name, "api": "/devices/device/<devicename>/<xxx>/<number>/sensors/sensor/<sensorname>/name",       "method": "POST"   },
 
@@ -832,21 +839,6 @@ def get_all_device_sensors_enabled_input_readings_dataset_filtered():
 def delete_all_device_sensors_enabled_input_readings_dataset_filtered():
     return g_device_dashboard_old.get_all_device_sensors_enabled_input_readings_dataset_filtered()
 
-@app.route('/devices/device/<devicename>/sensors/readings/dataset', methods=['GET'])
-def get_all_device_sensors_enabled_input_readings_dataset(devicename):
-    return g_device_dashboard_old.get_all_device_sensors_enabled_input_readings_dataset(devicename)
-
-@app.route('/devices/device/<devicename>/sensors/readings', methods=['GET'])
-def get_all_device_sensors_enabled_input_readings(devicename):
-    return g_device_dashboard_old.get_all_device_sensors_enabled_input_readings(devicename)
-
-@app.route('/devices/device/<devicename>/sensors/readings', methods=['DELETE'])
-def delete_all_device_sensors_enabled_input_readings(devicename):
-    return g_device_dashboard_old.get_all_device_sensors_enabled_input_readings(devicename)
-
-@app.route('/devices/sensors/configurationsummary', methods=['GET'])
-def get_all_sensor_configurationsummary():
-    return g_device_dashboard_old.get_all_sensor_configurationsummary()
 
 @app.route('/devices/device/<devicename>/<xxx>/<number>/sensors/readings', methods=['GET'])
 def get_xxx_sensors_readings(devicename, xxx, number):
@@ -856,30 +848,13 @@ def get_xxx_sensors_readings(devicename, xxx, number):
 def delete_xxx_sensors_readings(devicename, xxx, number):
     return g_device_dashboard_old.get_xxx_sensors_readings(devicename, xxx, number)
 
-@app.route('/devices/device/<devicename>/<xxx>/<number>/sensors/sensor/<sensorname>/readings/dataset', methods=['GET'])
-def get_xxx_sensors_readings_dataset(devicename, xxx, number, sensorname):
-    return g_device_dashboard_old.get_xxx_sensors_readings_dataset(devicename, xxx, number, sensorname)
-
-@app.route('/devices/device/<devicename>/<xxx>/<number>/sensors/sensor/<sensorname>/readings', methods=['GET'])
-def get_xxx_sensor_readings(self, devicename, xxx, number, sensorname):
-    return g_device_dashboard_old.get_xxx_sensor_readings(self, devicename, xxx, number, sensorname)
-
-@app.route('/devices/device/<devicename>/<xxx>/<number>/sensors/sensor/<sensorname>/readings', methods=['DELETE'])
-def delete_xxx_sensor_readings(self, devicename, xxx, number, sensorname):
-    return g_device_dashboard_old.get_xxx_sensor_readings(self, devicename, xxx, number, sensorname)
 
 g_device_dashboard_old_list = [
-    { "name": "", "func": get_all_device_sensors_enabled_input_readings_dataset_filtered, "api": "/devices/sensors/readings/dataset",                            "method": "POST"   },
-    { "name": "", "func": get_all_device_sensors_enabled_input_readings_dataset_filtered, "api": "/devices/sensors/readings/dataset",                            "method": "DELETE" },
-    { "name": "", "func": get_all_device_sensors_enabled_input_readings_dataset,          "api": "/devices/device/<devicename>/sensors/readings/dataset",        "method": "GET"    },
-    { "name": "", "func": get_all_device_sensors_enabled_input_readings,                  "api": "/devices/device/<devicename>/sensors/readings",                "method": "GET"    },
-    { "name": "", "func": delete_all_device_sensors_enabled_input_readings,               "api": "/devices/device/<devicename>/sensors/readings",                "method": "DELETE" },
-    { "name": "", "func": get_all_sensor_configurationsummary,                            "api": "/devices/sensors/configurationsummary",                        "method": "POST"   },
-    { "name": "", "func": get_xxx_sensors_readings,                                       "api": "/devices/device/<devicename>/<xxx>/<number>/sensors/readings", "method": "GET"    },
-    { "name": "", "func": delete_xxx_sensors_readings,                                    "api": "/devices/device/<devicename>/<xxx>/<number>/sensors/readings", "method": "DELETE" },
-    { "name": "", "func": get_xxx_sensors_readings_dataset,                               "api": "/devices/device/<devicename>/sensors/properties",              "method": "GET"    },
-    { "name": "", "func": get_xxx_sensor_readings,                                        "api": "/devices/device/<devicename>/<xxx>/<number>/sensors/sensor/<sensorname>/readings", "method": "GET"    },
-    { "name": "", "func": delete_xxx_sensor_readings,                                     "api": "/devices/device/<devicename>/<xxx>/<number>/sensors/sensor/<sensorname>/readings", "method": "DELETE" },
+    { "name": "", "func": get_all_device_sensors_enabled_input_readings_dataset_filtered,    "api": "/devices/sensors/readings/dataset",                            "method": "POST"   },
+    { "name": "", "func": delete_all_device_sensors_enabled_input_readings_dataset_filtered, "api": "/devices/sensors/readings/dataset",                            "method": "DELETE" },
+
+    { "name": "", "func": get_xxx_sensors_readings,                                          "api": "/devices/device/<devicename>/<xxx>/<number>/sensors/readings", "method": "GET"    },
+    { "name": "", "func": delete_xxx_sensors_readings,                                       "api": "/devices/device/<devicename>/<xxx>/<number>/sensors/readings", "method": "DELETE" },
 ]
 
 

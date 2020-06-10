@@ -25,10 +25,6 @@
         <span class="input-label">Device</span>
         <select ng-options="device.devicename as device.devicename for device in devices" ng-model="data.devicename" ng-change="changeDevice(data.devicename)" ng-disabled="refresh_automatically"></select>
       </label>
-      <label class="item item-select widget_button_fifth_ex" id="sensorDashboard-select109">
-        <span class="input-label">Peripheral</span>
-        <select ng-options="peripheral for peripheral in peripherals" ng-model="peripheral" ng-change="changePeripheral(peripheral)" ng-disabled="refresh_automatically"></select>
-      </label>
       <label class="item item-select widget_button_fifth_ex" id="sensorDashboard-select110">
         <span class="input-label">Sensor Class</span>
         <select ng-options="sensorclass for sensorclass in sensorclasses" ng-model="sensorclass" ng-change="changeSensorClass(sensorclass)" ng-disabled="refresh_automatically"></select>
