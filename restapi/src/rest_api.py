@@ -36,7 +36,6 @@ import rest_api_utils
 ###################################################################################
 from shared.client.clients.database_client import db_client
 from shared.middlewares.default_middleware import DefaultMiddleWare
-from test.middleware import middleware
 
 CONFIG_DEVICE_ID            = "restapi_manager"
 
@@ -59,7 +58,7 @@ g_queue_dict  = {} # no longer used; replaced by redis
 g_event_dict  = {} # still used to trigger event from callback thread to rest api thread
 app = flask.Flask(__name__)
 CORS(app)
-app.wsgi_app = DefaultMiddleWare(app.wsgi_app)
+# app.wsgi_app = DefaultMiddleWare(app.wsgi_app)
 
 
 

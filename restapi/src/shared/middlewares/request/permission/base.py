@@ -60,10 +60,20 @@ def request_pass_test(test_func):
     return atholder
 
 def _is_exclude_endpoint(request,options = None):
+    def _condition(x):
+        if isinstance(x,str):
+            return x== request.endpoint
+        pass
     if options:
         excludes = options.get('excludes')
         if excludes and len(excludes)> 0 :
-            return request.endpoint in excludes
+            return any(_condition(x) for x in excludes)
+            # if isinstance(excludes,str):
+            #     return request.endpoint in excludes
+            #
+            # elif isinstance(excludes,dict):
+
+
     return False
 
 '''
