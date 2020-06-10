@@ -1,11 +1,11 @@
 {
-  "CLS": "1793",
+  "OBJ": "1793",
   "VER": "1.00",
   "CAP": "0",
   "SNS": [
     {
       "MFI": "BridgeTek Pte Ltd.",
-      "PART": "LTR-303ALS-01",
+      "PART": "Color lamp",
       "REGSIZE": "1",
       "ADDRESS": "64",
       "BOMID": "1234",
