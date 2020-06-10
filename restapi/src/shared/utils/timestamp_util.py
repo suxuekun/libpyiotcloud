@@ -1,4 +1,7 @@
 from datetime import datetime, timezone
+import time
+
+
 def get_timestamp_float():
     return datetime.now().timestamp()
 
@@ -35,5 +38,8 @@ if __name__ == "__main__":
     print('use datetime.fromtimestamp(timestamp) to get current local time')
     print('use datetime.utcfromtimestamp(timestamp) to get current utc time, this time is also no timezone awared, just naive time , so use carefully')
     print('unless you have a global time setting for the whole project')
+
+    print('also int(time.time()) is same with int(datetime.now().timestamp())')
+    print('int(time.time()) = ',int(time.time()),'int(datetime.now().timestamp()) =',int(datetime.now().timestamp()))
 
 

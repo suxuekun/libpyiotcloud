@@ -1,25 +1,30 @@
+import flask
+from shared.middlewares.response import make_error_response, make_custom_error_response
+
 class BaseResource():
     FILTER = None
     service = None
     wrapper_class = None
     def filtered(self):
         return
-    def to_result(self,res):
+    def to_result(self,res,status="OK"):
         if self.wrapper_class:
-            return self.wrapper_class(res).to_json_response()
+            return self.wrapper_class(res,status=status).to_json_response()
         return res
 
 class GetMixin(BaseResource):
     def get(self,id):
         res = self.service.get(id)
-        return self.to_result(res)
-
+        if res:
+            return self.to_result(res)
+        else:
+            return make_custom_error_response({'status': 'NG', 'message': 'data not found'}, 404)
 
 class PostMixin(BaseResource):
     def post(self,entity):
         res = self.service.create(entity)
         if (res):
-            return self.to_result(res),201
+            return self.to_result(res)
         else:
             return
 
@@ -36,8 +41,9 @@ class ListMixin(BaseResource):
         return self.to_result(res)
 
 class PutMixin(BaseResource):
-    def put(self,entity):
-        res = self.service.update(entity)
+    def put(self,id):
+        entity = flask.request.get_json()
+        res = self.service.update(id,entity)
         return self.to_result(res)
 
 class DeleteMixin(BaseResource):

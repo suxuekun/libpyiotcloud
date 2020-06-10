@@ -1,26 +1,20 @@
 import os
-import ssl
 import json
 import time
-import hmac
-import hashlib
 import flask
-import base64
 import datetime
 import calendar
-from flask_json import FlaskJSON, JsonError, json_response, as_json
-from certificate_generator import certificate_generator
+
+from example_module.app import ExampleApp
 from messaging_client import messaging_client
 from rest_api_config import config
-from database import database_client, database_categorylabel, database_crudindex
+from database import database_categorylabel, database_crudindex
 from flask_cors import CORS
 from flask_api import status
 import jwt
 #from jose import jwk, jwt
-import http.client
 from s3_client import s3_client
 import threading
-import copy
 from redis_client import redis_client
 import statistics
 
@@ -37,11 +31,12 @@ from rest_api_device_hierarchies import device_hierarchies
 from rest_api_device_histories import device_histories
 from rest_api_other_stuffs import other_stuffs
 import rest_api_utils
-from dashboards_app.app import DashboardsApp
-
 ###################################################################################
 # Some configurations
 ###################################################################################
+from shared.client.clients.database_client import db_client
+from shared.middlewares.default_middleware import DefaultMiddleWare
+from test.middleware import middleware
 
 CONFIG_DEVICE_ID            = "restapi_manager"
 
@@ -64,10 +59,8 @@ g_queue_dict  = {} # no longer used; replaced by redis
 g_event_dict  = {} # still used to trigger event from callback thread to rest api thread
 app = flask.Flask(__name__)
 CORS(app)
+app.wsgi_app = DefaultMiddleWare(app.wsgi_app)
 
-print("dasd adas adasd dadsadadasdsad")
-dashboardsApp = DashboardsApp(app)
-print("Dashboard App")
 
 
 ###################################################################################
@@ -1227,11 +1220,11 @@ def get_device_stats(entityname, devices, sensordevicename):
             stats['locations']['data'][1] += 1
 
 
-    stats['statuses'] = { 
-        'total': len(devices), 
-        'online': enabled_devices, 
-        'offline': len(devices)-enabled_devices, 
-        'labels': ['online', 'offline'], 
+    stats['statuses'] = {
+        'total': len(devices),
+        'online': enabled_devices,
+        'offline': len(devices)-enabled_devices,
+        'labels': ['online', 'offline'],
         'data': [enabled_devices, len(devices)-enabled_devices] }
 
     return stats
@@ -1280,17 +1273,17 @@ def get_sensor_stats(sensors_list):
                 stats['classes'][sensor["subclass"]] += 1
 
     len_sensors = len(sensors_list)
-    stats['types'] = { 
-        'total': len_sensors, 
-        'input': input_sensors, 
-        'output': len_sensors-input_sensors, 
-        'labels': ['input', 'output'], 
+    stats['types'] = {
+        'total': len_sensors,
+        'input': input_sensors,
+        'output': len_sensors-input_sensors,
+        'labels': ['input', 'output'],
         'data': [input_sensors, len_sensors-input_sensors] }
-    stats['statuses'] = { 
-        'total': len_sensors, 
-        'enabled': enabled_sensors, 
-        'disabled': len_sensors-enabled_sensors, 
-        'labels': ['enabled', 'disabled'], 
+    stats['statuses'] = {
+        'total': len_sensors,
+        'enabled': enabled_sensors,
+        'disabled': len_sensors-enabled_sensors,
+        'labels': ['enabled', 'disabled'],
         'data': [enabled_sensors, len_sensors-enabled_sensors] }
 
     if len(peripherals):
@@ -1355,13 +1348,13 @@ def get_usage():
 #        Last 6 months
 #        Last 12 months
 #   // points can be 60, 30 or 15 points (for mobile, since screen is small, should use 30 or 15 instead of 60)
-#   // index is 0 by default. 
+#   // index is 0 by default.
 #        To view the timeranges above, index is 0
 #        To view the next timerange, ex. "Last Last 5 minutes", the previous instance, index is 1. and so on...
 #   // checkdevice is 1 or 0. 1 if device status needs to be check if device is online and if sensor is active
 #
 # - Response:
-#   { 'status': 'OK', 'message': string, 
+#   { 'status': 'OK', 'message': string,
 #     'sensors': array[{'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'timestamp': string, 'readings': [{'timestamp': float, 'value': float, 'subclass': {'value': float}}], 'enabled': int}, ...] }
 #   { 'status': 'NG', 'message': string }
 #
@@ -1375,7 +1368,7 @@ def get_usage():
 #   // devicename can be "All devices" or the devicename of specific device
 #
 # - Response:
-#   { 'status': 'OK', 'message': string, 
+#   { 'status': 'OK', 'message': string,
 #     'sensors': array[{'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'timestamp': string, 'readings': [{'timestamp': float, 'value': float, 'subclass': {'value': float}}], 'enabled': int}, ...] }
 #   { 'status': 'NG', 'message': string }
 #
@@ -1469,7 +1462,7 @@ def get_all_device_sensors_enabled_input_readings_dataset_filtered():
             for device in devices:
                 devicename = device["devicename"]
                 thr = threading.Thread(target = get_running_sensors, args = (token, username, devicename, device, ))
-                thread_list.append(thr) 
+                thread_list.append(thr)
                 thr.start()
             for thr in thread_list:
                 thr.join()
@@ -1516,7 +1509,7 @@ def get_all_device_sensors_enabled_input_readings_dataset_filtered():
                 dateend -= filter["index"] * timerange
             #print(dateend)
             # add - period since we added 1 point
-            datebegin = dateend - timerange - period 
+            datebegin = dateend - timerange - period
         #print("datebegin={} dateend={} period={} maxpoints={}".format(datebegin, dateend, period, maxpoints))
 
         # add sensor properties to the result filtered sensors
@@ -1525,13 +1518,13 @@ def get_all_device_sensors_enabled_input_readings_dataset_filtered():
             readings = g_database_client.get_device_sensors_readings(entityname, filter["devicename"])
             for sensor in sensors_list:
                 thr = threading.Thread(target = get_sensor_data_threaded, args = (sensor, entityname, datebegin, dateend, period, maxpoints, readings, filter, ))
-                thread_list.append(thr) 
+                thread_list.append(thr)
                 thr.start()
         else:
             readings = g_database_client.get_user_sensors_readings(entityname)
             for sensor in sensors_list:
                 thr = threading.Thread(target = get_sensor_data_threaded_ex, args = (sensor, entityname, datebegin, dateend, period, maxpoints, readings, devices, ))
-                thread_list.append(thr) 
+                thread_list.append(thr)
                 thr.start()
         for thr in thread_list:
             thr.join()
@@ -1677,10 +1670,10 @@ def get_sensor_summary(entityname, devices, sensordevicename):
                         mode = configuration["attributes"]["mode"]
                         # check if continuous mode (sensor forwarding) or thresholding mode (notification triggering)
                         if configuration.get("attributes"):
-                            if mode == 2: #MODE_CONTINUOUS: 
+                            if mode == 2: #MODE_CONTINUOUS:
                                 value = configuration["attributes"]["hardware"]["devicename"]
                                 value = "forward: " + value
-                            else: 
+                            else:
                                 threshold = configuration["attributes"]["threshold"]
                                 if mode == 0: # MODE_THRESHOLD_SINGLE
                                     value = {"value": threshold["value"]}
@@ -1690,10 +1683,10 @@ def get_sensor_summary(entityname, devices, sensordevicename):
                             classes = sensor["class"]
                         # handle subclass
                         if configuration["attributes"].get("subattributes"):
-                            if mode == 2: #MODE_CONTINUOUS: 
+                            if mode == 2: #MODE_CONTINUOUS:
                                 subvalue = configuration["attributes"]["subattributes"]["hardware"]["devicename"]
                                 subvalue = "forward: " + value
-                            else: 
+                            else:
                                 threshold = configuration["attributes"]["subattributes"]["threshold"]
                                 if mode == 0: # MODE_THRESHOLD_SINGLE
                                     subvalue = {"value": threshold["value"]}
@@ -1758,12 +1751,12 @@ def get_sensor_summary(entityname, devices, sensordevicename):
                         classes += ", " + sensor["subclass"]
                 #print("{}, {}, {}, {}, {}, {}".format(sensor["sensorname"], device["devicename"], classes, value, sensor["enabled"], sensor["source"]))
                 sensors_list.append({
-                    "sensorname": sensor["sensorname"], 
-                    "devicename": device["devicename"], 
-                    "type": sensor["type"], 
-                    "peripheral": sensor["source"], 
-                    "classes": classes, 
-                    "configuration": value, 
+                    "sensorname": sensor["sensorname"],
+                    "devicename": device["devicename"],
+                    "type": sensor["type"],
+                    "peripheral": sensor["source"],
+                    "classes": classes,
+                    "configuration": value,
                     "enabled": sensor["enabled"]})
     return sensors_list
 
@@ -2120,7 +2113,7 @@ def get_xxx_sensors_readings_dataset(devicename, xxx, number, sensorname):
 
 
 ########################################################################################################
-# 
+#
 # GET LDS BUS
 #
 # - Request:
@@ -2205,36 +2198,36 @@ def get_lds_bus(devicename, portnumber):
     #            'productversion'   : '0.0.2',
     #            'productname'      : 'ldsuname 02'
     #        }
-    #    ], 
+    #    ],
     #    "sensors": [
     #        {
-    #            "name"    : "Sensor01", 
-    #            "class"   : "temperature", 
-    #            "ldsuname": "LDSU01", 
-    #            "ldsuuuid": "LDSUUUID01", 
+    #            "name"    : "Sensor01",
+    #            "class"   : "temperature",
+    #            "ldsuname": "LDSU01",
+    #            "ldsuuuid": "LDSUUUID01",
     #            "ldsuport": int(portnumber)
     #        },
     #        {
-    #            "name"    : "Sensor02", 
-    #            "class"   : "potentiometer", 
-    #            "ldsuname": "LDSU02", 
-    #            "ldsuuuid": "LDSUUUID02", 
+    #            "name"    : "Sensor02",
+    #            "class"   : "potentiometer",
+    #            "ldsuname": "LDSU02",
+    #            "ldsuuuid": "LDSUUUID02",
     #            "ldsuport": int(portnumber)
     #        }
-    #    ], 
+    #    ],
     #    "actuators": [
     #        {
-    #            "name"    : "Actuator01", 
-    #            "class"   : "display", 
-    #            "ldsuname": "LDSU01", 
-    #            "ldsuuuid": "LDSUUUID01", 
+    #            "name"    : "Actuator01",
+    #            "class"   : "display",
+    #            "ldsuname": "LDSU01",
+    #            "ldsuuuid": "LDSUUUID01",
     #            "ldsuport": int(portnumber)
     #        },
     #        {
-    #            "name"    : "Actuator02", 
-    #            "class"   : "led", 
-    #            "ldsuname": "LDSU02", 
-    #            "ldsuuuid": "LDSUUUID02", 
+    #            "name"    : "Actuator02",
+    #            "class"   : "led",
+    #            "ldsuname": "LDSU02",
+    #            "ldsuuuid": "LDSUUUID02",
     #            "ldsuport": int(portnumber)
     #        }
     #    ]
@@ -2252,7 +2245,7 @@ def get_lds_bus(devicename, portnumber):
 
 
 ########################################################################################################
-# 
+#
 # SCAN LDS BUS
 #
 # - Request:
@@ -2341,7 +2334,7 @@ def scan_lds_bus(devicename, portnumber):
 
 
 ########################################################################################################
-# 
+#
 # CHANGE LDSU NAME
 #
 # - Request:
@@ -2414,7 +2407,7 @@ def change_ldsu_name(devicename, ldsuuuid):
 
 
 ########################################################################################################
-# 
+#
 # IDENTIFY LDSU
 #
 # - Request:
@@ -2500,7 +2493,7 @@ def identify_ldsu(devicename, ldsuuuid):
 
 
 ########################################################################################################
-# 
+#
 # GET DEVICES
 #
 # - Request:
@@ -2574,7 +2567,7 @@ def get_device_list():
     return response
 
 ########################################################################################################
-# 
+#
 # GET DEVICES FILTERED
 #
 # - Request:
@@ -3361,7 +3354,7 @@ def get_statuses():
         data['devicename'] = device["devicename"]
         data['username'] = entityname
         thr = threading.Thread(target = get_status_threaded, args = (entityname, api, data, device, ))
-        thread_list.append(thr) 
+        thread_list.append(thr)
         thr.start()
     for thr in thread_list:
         thr.join()
@@ -3496,29 +3489,29 @@ def build_default_notifications(type, token):
     if type == "uart":
         notifications["messages"] = [
             {
-                "message": "Hello World", 
+                "message": "Hello World",
                 "enable": True
             }
         ]
     elif type == "gpio":
         notifications["messages"] = [
             {
-                "message": "Hello World", 
+                "message": "Hello World",
                 "enable": True
-            }, 
+            },
             {
-                "message": "Hi World", 
+                "message": "Hi World",
                 "enable": True
             }
         ]
     else:
         notifications["messages"] = [
             {
-                "message": "Sensor threshold activated", 
+                "message": "Sensor threshold activated",
                 "enable": True
-            }, 
+            },
             {
-                "message": "Sensor threshold deactivated", 
+                "message": "Sensor threshold deactivated",
                 "enable": True
             }
         ]
@@ -3584,10 +3577,10 @@ def build_default_notifications(type, token):
 #   headers: { 'Authorization': 'Bearer ' + token.access }
 #
 # - Response:
-#   { 'status': 'OK', 'message': string, 
-#     'value': { 
+#   { 'status': 'OK', 'message': string,
+#     'value': {
 #       'uarts': [
-#         {'enabled': int}, 
+#         {'enabled': int},
 #       ]
 #     }
 #   }
@@ -3827,13 +3820,13 @@ def enable_uart(devicename):
 #   headers: { 'Authorization': 'Bearer ' + token.access }
 #
 # - Response:
-#   { 'status': 'OK', 'message': string, 
-#     'value': { 
+#   { 'status': 'OK', 'message': string,
+#     'value': {
 #       'voltage': int,
 #       'gpios': [
-#         {'direction': int, 'status': int}, 
-#         {'direction': int, 'status': int}, 
-#         {'direction': int, 'status': int}, 
+#         {'direction': int, 'status': int},
+#         {'direction': int, 'status': int},
+#         {'direction': int, 'status': int},
 #         {'direction': int, 'status': int}
 #       ]
 #     }
@@ -4252,13 +4245,13 @@ def enable_gpio(devicename, number):
 #   headers: { 'Authorization': 'Bearer ' + token.access }
 #
 # - Response:
-#   { 'status': 'OK', 'message': string, 
-#     'value': { 
+#   { 'status': 'OK', 'message': string,
+#     'value': {
 #       'i2cs': [
-#         {'enabled': int}, 
-#         {'enabled': int}, 
-#         {'enabled': int}, 
-#         {'enabled': int}, 
+#         {'enabled': int},
+#         {'enabled': int},
+#         {'enabled': int},
+#         {'enabled': int},
 #       ]
 #     }
 #   }
@@ -5213,7 +5206,7 @@ def set_xxx_dev_prop(devicename, xxx, number, sensorname):
         response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
         print('\r\nERROR Set {} Sensor: Invalid authorization header\r\n'.format(xxx))
         return response, status.HTTP_401_UNAUTHORIZED
-    token = {'access': auth_header_token} 
+    token = {'access': auth_header_token}
     # get username from token
     username = g_database_client.get_username_from_token(token)
     if username is None:
@@ -5422,7 +5415,7 @@ def get_xxx_dev_prop(devicename, xxx, number, sensorname):
         response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
         print('\r\nERROR Get {} Sensor: Invalid authorization header\r\n'.format(xxx))
         return response, status.HTTP_401_UNAUTHORIZED
-    token = {'access': auth_header_token} 
+    token = {'access': auth_header_token}
     # get username from token
     username = g_database_client.get_username_from_token(token)
     if username is None:
@@ -5830,6 +5823,8 @@ def on_amqp_message(ch, method, properties, body):
 ###################################################################################
 # Main entry point
 ###################################################################################
+from dashboards_app.app import DashboardsApp
+from payment.app import PaymentApp
 
 def initialize():
 
@@ -5878,9 +5873,7 @@ def initialize():
     # Initialize Database client
 
     print("g_database_client")
-    g_database_client = database_client()
-    g_database_client.initialize()
-
+    g_database_client = db_client
     # Initialize S3 client
     g_storage_client = s3_client()
 
@@ -5901,13 +5894,14 @@ def initialize():
     g_other_stuffs            = other_stuffs(g_database_client, g_storage_client)
     g_utils                   = rest_api_utils.utils()
 
-  
+    dashboardsApp = DashboardsApp(app)
+    paymentapp = PaymentApp(app)
+    exampleapp = ExampleApp(app,prefix = "/example")
 
 # Initialize globally so that no issue with GUnicorn integration
 if os.name == 'posix':
     initialize()
 
-initialize()
 
 if __name__ == '__main__':
 
@@ -5925,9 +5919,9 @@ if __name__ == '__main__':
         context = None
         port = config.CONFIG_HTTP_PORT
     app.run(ssl_context = context,
-        host     = config.CONFIG_HTTP_HOST, 
-        port     = port, 
-        threaded = True, 
+        host     = config.CONFIG_HTTP_HOST,
+        port     = port,
+        threaded = True,
         debug    = True)
 
 
