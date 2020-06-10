@@ -112,58 +112,26 @@ class device_dashboard_old:
             return response, status_return
         return response, 200
 
-    def get_sensor_data_threaded(self, sensor, entityname, datebegin, dateend, period, maxpoints, readings, filter):
-        address = None
-        if sensor.get("address") is not None:
-            address = sensor["address"]
-        # ldsu
-        if address == int(sensor["number"]):
-            source = sensor["source"]
-        else:
-            source = "{}{}".format(sensor["source"], sensor["number"])
-        sensor["devicename"] = filter["devicename"]
-        dataset = self.database_client.get_sensor_reading_dataset_timebound(entityname, sensor["devicename"], source, address, datebegin, dateend, period, maxpoints)
-        if dataset is not None:
-            sensor['dataset'] = dataset
-
-        for reading in readings:
-            if source == reading["source"]:
-                if address is not None:
-                    if address == reading["address"]:
-                        sensor['readings'] = reading['sensor_readings']
-                        break
-                else:
-                    sensor['readings'] = reading['sensor_readings']
+    def get_sensor_data_threaded(self, sensor, entityname, datebegin, dateend, period, maxpoints, readings, devicename, devices):
+        if devicename is not None:
+            sensor["devicename"] = devicename
+        elif devices is not None:
+            for device in devices:
+                if device["deviceid"] == sensor["deviceid"]:
+                    sensor["devicename"] = device["devicename"]
                     break
 
-    def get_sensor_data_threaded_ex(self, sensor, entityname, datebegin, dateend, period, maxpoints, readings, devices):
-        address = None
-        if sensor.get("address") is not None:
-            address = sensor["address"]
-        # ldsu
-        if address == int(sensor["number"]):
-            source = sensor["source"]
-        else:
-            source = "{}{}".format(sensor["source"], sensor["number"])
-        for device in devices:
-            if device["deviceid"] == sensor["deviceid"]:
-                sensor["devicename"] = device["devicename"]
-                break
-        dataset = self.database_client.get_sensor_reading_dataset_timebound(entityname, sensor["devicename"], source, address, datebegin, dateend, period, maxpoints)
+        # add the dataset parameter
+        dataset = self.database_client.get_sensor_reading_dataset_timebound(entityname, sensor["devicename"], sensor["source"], int(sensor["number"]), datebegin, dateend, period, maxpoints)
         if dataset is not None:
             sensor['dataset'] = dataset
 
+        # add the readings parameter
         for reading in readings:
-            if sensor["deviceid"] == reading["deviceid"]:
-                if source == reading["source"]:
-                    if address is not None:
-                        if address == reading["address"]:
-                            sensor['readings'] = reading['sensor_readings']
-                            break
-                    else:
-                        sensor['readings'] = reading['sensor_readings']
-                        break
-        sensor.pop("deviceid")
+            if sensor["source"] == reading["source"]:
+                if int(sensor["number"]) == reading["number"]:
+                    sensor['readings'] = reading['sensor_readings']
+                    break
 
     def get_sensor_comparisons(self, devices, sensors_list):
         classes = []
@@ -555,314 +523,13 @@ class device_dashboard_old:
 
     ########################################################################################################
     #
-    # GET PERIPHERAL SENSOR READINGS
-    #
-    # - Request:
-    #   GET /devices/device/DEVICENAME/sensors/readings
-    #   headers: { 'Authorization': 'Bearer ' + token.access }
-    #
-    # - Response:
-    #   { 'status': 'OK', 'message': string, 'sensors': array[{'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'timestamp': string, 'readings': {'value': int, 'lowest': int, 'highest': int}, 'enabled': int}, ...] }
-    #   { 'status': 'NG', 'message': string }
-    #
-    #
-    # DELETE PERIPHERAL SENSOR READINGS
-    #
-    # - Request:
-    #   DELETE /devices/device/DEVICENAME/sensors/readings
-    #   headers: { 'Authorization': 'Bearer ' + token.access }
-    #
-    # - Response:
-    #   { 'status': 'OK', 'message': string }
-    #   { 'status': 'NG', 'message': string }
-    #
-    ########################################################################################################
-    def get_all_device_sensors_enabled_input_readings(self, devicename):
-
-        # get token from Authorization header
-        auth_header_token = rest_api_utils.utils().get_auth_header_token()
-        if auth_header_token is None:
-            response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-            print('\r\nERROR Get All Device Sensors: Invalid authorization header\r\n')
-            return response, status.HTTP_401_UNAUTHORIZED
-        token = {'access': auth_header_token}
-
-        # get username from token
-        username = self.database_client.get_username_from_token(token)
-        if username is None:
-            response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-            print('\r\nERROR Get All Device Sensors: Token expired\r\n')
-            return response, status.HTTP_401_UNAUTHORIZED
-        #print('get_all_device_sensors_enabled_input {} devicename={}'.format(username, devicename))
-
-        # check if a parameter is empty
-        if len(username) == 0 or len(token) == 0:
-            response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-            print('\r\nERROR Get All Device Sensors: Empty parameter found\r\n')
-            return response, status.HTTP_400_BAD_REQUEST
-
-        # check if username and token is valid
-        verify_ret, new_token = self.database_client.verify_token(username, token)
-        if verify_ret == 2:
-            response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-            print('\r\nERROR Get All Device Sensors: Token expired [{} {}] DATETIME {}\r\n'.format(username, devicename, datetime.datetime.now()))
-            return response, status.HTTP_401_UNAUTHORIZED
-        elif verify_ret != 0:
-            response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
-            print('\r\nERROR Get All Device Sensors: Token is invalid [{} {}]\r\n'.format(username, devicename))
-            return response, status.HTTP_401_UNAUTHORIZED
-
-
-        # get entity using the active organization
-        orgname, orgid = self.database_client.get_active_organization(username)
-        if orgname is not None:
-            # has active organization
-            entityname = "{}.{}".format(orgname, orgid)
-        else:
-            # no active organization, just a normal user
-            entityname = username
-
-        if flask.request.method == 'GET':
-            if orgname is not None:
-                # check authorization
-                if self.database_client.is_authorized(username, orgname, orgid, database_categorylabel.DASHBOARDS, database_crudindex.READ) == False:
-                    response = json.dumps({'status': 'NG', 'message': 'Authorization failed! User is not allowed to access resource. Please check with the organization owner regarding policies assigned.'})
-                    print('\r\nERROR Get All Device Sensors: Authorization not allowed [{}]\r\n'.format(username))
-                    return response, status.HTTP_401_UNAUTHORIZED
-
-            # query device
-            api = "get_devs"
-            data = {}
-            data['token'] = token
-            data['devicename'] = devicename
-            data['username'] = username
-            response, status_return = self.messaging_requests.process(api, data)
-            if status_return == 200:
-                # query database
-                sensors = self.database_client.get_all_device_sensors_input(entityname, devicename)
-
-                # map queried result with database result
-                #print("from device")
-                response = json.loads(response)
-                #print(response["value"])
-
-                for sensor in sensors:
-                    #print(sensor)
-                    found = False
-                    peripheral = "{}{}".format(sensor['source'], sensor['number'])
-
-                    if sensor["source"] == "i2c":
-                        if response["value"].get(peripheral):
-                            for item in response["value"][peripheral]:
-                                # match found for database result and actual device result
-                                # set database record to configured and actual device item["enabled"]
-                                if sensor["address"] == item["address"]:
-                                    self.database_client.set_enable_configure_sensor(entityname, devicename, sensor['source'], sensor['number'], sensor['sensorname'], item["enabled"], 1)
-                                    found = True
-                                    break
-                    else:
-                        if response["value"].get(peripheral):
-                            for item in response["value"][peripheral]:
-                                if item["class"] == rest_api_utils.utils().get_i2c_device_class(sensor["class"]):
-                                    self.database_client.set_enable_configure_sensor(entityname, devicename, sensor['source'], sensor['number'], sensor['sensorname'], item["enabled"], 1)
-                                    found = True
-                                    break
-
-                    # no match found
-                    # set database record to unconfigured and disabled
-                    if found == False:
-                        self.database_client.set_enable_configure_sensor(entityname, devicename, sensor['source'], sensor['number'], sensor['sensorname'], 0, 0)
-                #print()
-            else:
-                # cannot communicate with device so set database record to unconfigured and disabled
-                self.database_client.disable_unconfigure_sensors(entityname, devicename)
-
-            # query database
-            sensors = self.database_client.get_all_device_sensors_enabled_input(entityname, devicename)
-            for sensor in sensors:
-                address = None
-                if sensor.get("address") is not None:
-                    address = sensor["address"]
-                source = "{}{}".format(sensor["source"], sensor["number"])
-                #sensor["devicename"] = devicename
-                sensor.pop("deviceid")
-                sensor_reading = self.database_client.get_sensor_reading(entityname, devicename, source, address)
-                if sensor_reading is not None:
-                    sensor['readings'] = sensor_reading
-            msg = {'status': 'OK', 'message': 'Get All Device Sensors queried successfully.', 'sensors': sensors}
-
-        elif flask.request.method == 'DELETE':
-            if orgname is not None:
-                # check authorization
-                if self.database_client.is_authorized(username, orgname, orgid, database_categorylabel.DASHBOARDS, database_crudindex.DELETE) == False:
-                    response = json.dumps({'status': 'NG', 'message': 'Authorization failed! User is not allowed to access resource. Please check with the organization owner regarding policies assigned.'})
-                    print('\r\nERROR Delete All Device Sensors: Authorization not allowed [{}]\r\n'.format(username))
-                    return response, status.HTTP_401_UNAUTHORIZED
-
-            #sensors = self.database_client.get_all_device_sensors_input(entityname, devicename)
-            #for sensor in sensors:
-            #    address = None
-            #    if sensor.get("address") is not None:
-            #        address = sensor["address"]
-            #    source = "{}{}".format(sensor["source"], sensor["number"])
-            #    self.database_client.delete_sensor_reading(entityname, devicename, source, address)
-            self.database_client.delete_device_sensor_reading(entityname, devicename)
-            msg = {'status': 'OK', 'message': 'Delete All Device Sensors queried successfully.'}
-
-
-        if new_token:
-            msg['new_token'] = new_token
-        response = json.dumps(msg)
-        #print('\r\nGet All Device Sensors successful: {} {} {} sensors\r\n'.format(username, devicename, len(sensors)))
-        return response
-
-
-    ########################################################################################################
-    #
-    # GET PERIPHERAL SENSOR READINGS DATASET
-    #
-    # - Request:
-    #   GET /devices/device/DEVICENAME/sensors/readings/dataset
-    #   headers: { 'Authorization': 'Bearer ' + token.access }
-    #
-    # - Response:
-    #   { 'status': 'OK', 'message': string, 'sensors': array[{'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'timestamp': string, 'readings': [{'timestamp': float, 'value': float, 'subclass': {'value': float}}], 'enabled': int}, ...] }
-    #   { 'status': 'NG', 'message': string }
-    #
-    ########################################################################################################
-    def get_all_device_sensors_enabled_input_readings_dataset(self, devicename):
-
-        # get token from Authorization header
-        auth_header_token = rest_api_utils.utils().get_auth_header_token()
-        if auth_header_token is None:
-            response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-            print('\r\nERROR Get All Device Sensors Dataset: Invalid authorization header\r\n')
-            return response, status.HTTP_401_UNAUTHORIZED
-        token = {'access': auth_header_token}
-
-        # get username from token
-        username = self.database_client.get_username_from_token(token)
-        if username is None:
-            response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-            print('\r\nERROR Get All Device Sensors Dataset: Token expired\r\n')
-            return response, status.HTTP_401_UNAUTHORIZED
-        #print('get_all_device_sensors_enabled_input_readings_dataset {} devicename={}'.format(username, devicename))
-
-        # check if a parameter is empty
-        if len(username) == 0 or len(token) == 0:
-            response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-            print('\r\nERROR Get All Device Sensors Dataset: Empty parameter found\r\n')
-            return response, status.HTTP_400_BAD_REQUEST
-
-        # check if username and token is valid
-        verify_ret, new_token = self.database_client.verify_token(username, token)
-        if verify_ret == 2:
-            response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-            print('\r\nERROR Get All Device Sensors Dataset: Token expired [{} {}] DATETIME {}\r\n'.format(username, devicename, datetime.datetime.now()))
-            return response, status.HTTP_401_UNAUTHORIZED
-        elif verify_ret != 0:
-            response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
-            print('\r\nERROR Get All Device Sensors Dataset: Token is invalid [{} {}]\r\n'.format(username, devicename))
-            return response, status.HTTP_401_UNAUTHORIZED
-
-
-        # get entity using the active organization
-        orgname, orgid = self.database_client.get_active_organization(username)
-        if orgname is not None:
-            # check authorization
-            if self.database_client.is_authorized(username, orgname, orgid, database_categorylabel.DASHBOARDS, database_crudindex.READ) == False:
-                response = json.dumps({'status': 'NG', 'message': 'Authorization failed! User is not allowed to access resource. Please check with the organization owner regarding policies assigned.'})
-                print('\r\nERROR Get All Device Sensors Dataset: Authorization not allowed [{}]\r\n'.format(username))
-                return response, status.HTTP_401_UNAUTHORIZED
-            # has active organization
-            entityname = "{}.{}".format(orgname, orgid)
-        else:
-            # no active organization, just a normal user
-            entityname = username
-
-        if flask.request.method == 'GET':
-            # query device
-            api = "get_devs"
-            data = {}
-            data['token'] = token
-            data['devicename'] = devicename
-            data['username'] = username
-            response, status_return = self.messaging_requests.process(api, data)
-            if status_return == 200:
-                # query database
-                sensors = self.database_client.get_all_device_sensors_input(entityname, devicename)
-
-                # map queried result with database result
-                #print("from device")
-                response = json.loads(response)
-                #print(response["value"])
-
-                for sensor in sensors:
-                    #print(sensor)
-                    found = False
-                    peripheral = "{}{}".format(sensor['source'], sensor['number'])
-
-                    if sensor["source"] == "i2c":
-                        if response["value"].get(peripheral):
-                            for item in response["value"][peripheral]:
-                                # match found for database result and actual device result
-                                # set database record to configured and actual device item["enabled"]
-                                if sensor["address"] == item["address"]:
-                                    self.database_client.set_enable_configure_sensor(entityname, devicename, sensor['source'], sensor['number'], sensor['sensorname'], item["enabled"], 1)
-                                    found = True
-                                    break
-                    else:
-                        if response["value"].get(peripheral):
-                            for item in response["value"][peripheral]:
-                                if item["class"] == rest_api_utils.utils().get_i2c_device_class(sensor["class"]):
-                                    self.database_client.set_enable_configure_sensor(entityname, devicename, sensor['source'], sensor['number'], sensor['sensorname'], item["enabled"], 1)
-                                    found = True
-                                    break
-
-                    # no match found
-                    # set database record to unconfigured and disabled
-                    if found == False:
-                        self.database_client.set_enable_configure_sensor(entityname, devicename, sensor['source'], sensor['number'], sensor['sensorname'], 0, 0)
-                #print()
-            else:
-                # cannot communicate with device so set database record to unconfigured and disabled
-                self.database_client.disable_unconfigure_sensors(entityname, devicename)
-
-            # query database
-            sensors = self.database_client.get_all_device_sensors_enabled_input(entityname, devicename)
-            for sensor in sensors:
-                address = None
-                if sensor.get("address") is not None:
-                    address = sensor["address"]
-                source = "{}{}".format(sensor["source"], sensor["number"])
-                sensor.pop("deviceid")
-                sensor_reading = self.database_client.get_sensor_reading_dataset(entityname, devicename, source, address)
-                if sensor_reading is not None:
-                    sensor['dataset'] = sensor_reading
-                readings = self.database_client.get_sensor_reading(entityname, sensor["devicename"], source, address)
-                if readings is not None:
-                    sensor['readings'] = readings
-
-
-        msg = {'status': 'OK', 'message': 'Get All Device Sensors Dataset queried successfully.', 'sensors': sensors}
-        if new_token:
-            msg['new_token'] = new_token
-        response = json.dumps(msg)
-        #print('\r\nGet All Device Sensors Dataset successful: {} {} {} sensors\r\n'.format(username, devicename, len(sensors)))
-        return response
-
-
-
-    ########################################################################################################
-    #
     # GET PERIPHERAL SENSOR READINGS DATASET (FILTERED)
     #
     # - Request:
     #   POST /devices/sensors/readings/dataset
     #   headers: { 'Authorization': 'Bearer ' + token.access }
-    #   data: {'devicename': string, 'peripheral': string, 'class': string, 'status': string, 'timerange': string, 'points': int, 'index': int, 'checkdevice': int}
+    #   data: {'devicename': string, 'class': string, 'status': string, 'timerange': string, 'points': int, 'index': int, 'checkdevice': int}
     #   // devicename can be "All devices" or the devicename of specific device
-    #   // peripheral can be ["All peripherals", "I2C1", "I2C2", "I2C3", "I2C4", "ADC1", "ADC2", "1WIRE1", "TPROBE1"]
     #   // class can be ["All classes", "potentiometer", "temperature", "humidity", "anemometer", "battery", "fluid"]
     #   // status can be ["All online/offline", "online", "offline"]
     #   // timerange can be:
@@ -902,8 +569,7 @@ class device_dashboard_old:
     #   // devicename can be "All devices" or the devicename of specific device
     #
     # - Response:
-    #   { 'status': 'OK', 'message': string, 
-    #     'sensors': array[{'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'timestamp': string, 'readings': [{'timestamp': float, 'value': float, 'subclass': {'value': float}}], 'enabled': int}, ...] }
+    #   { 'status': 'OK', 'message': string }
     #   { 'status': 'NG', 'message': string }
     #
     ########################################################################################################
@@ -965,7 +631,7 @@ class device_dashboard_old:
 
             # get filter parameters
             filter = flask.request.get_json()
-            if filter.get("devicename") is None or filter.get("peripheral") is None or filter.get("class") is None or filter.get("status") is None or filter.get("timerange") is None or filter.get("points") is None or filter.get("index") is None:
+            if filter.get("devicename") is None or filter.get("class") is None or filter.get("status") is None or filter.get("timerange") is None or filter.get("points") is None or filter.get("index") is None:
                 response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
                 print('\r\nERROR Get All Device Sensors Dataset: Empty parameter found\r\n')
                 return response, status.HTTP_400_BAD_REQUEST
@@ -1009,9 +675,10 @@ class device_dashboard_old:
             sensordevicename = filter["devicename"]
             if sensordevicename == "All devices":
                 sensordevicename = None
-            if filter["peripheral"] != "All peripherals":
-                source = filter["peripheral"][:len(filter["peripheral"])-1].lower()
-                number = filter["peripheral"][len(filter["peripheral"])-1:]
+            filter["peripheral"] = "All peripherals" # updated for LDSU
+            #if filter["peripheral"] != "All peripherals":
+            #    source = filter["peripheral"][:len(filter["peripheral"])-1].lower()
+            #    number = filter["peripheral"][len(filter["peripheral"])-1:]
             if filter["class"] != "All classes":
                 sensorclass = filter["class"]
             if filter["status"] != "All online/offline":
@@ -1053,13 +720,13 @@ class device_dashboard_old:
                 #print("xxxxxxxxxxxx")
                 readings = self.database_client.get_device_sensors_readings(entityname, filter["devicename"])
                 for sensor in sensors_list:
-                    thr = threading.Thread(target = self.get_sensor_data_threaded, args = (sensor, entityname, datebegin, dateend, period, maxpoints, readings, filter, ))
+                    thr = threading.Thread(target = self.get_sensor_data_threaded, args = (sensor, entityname, datebegin, dateend, period, maxpoints, readings, filter["devicename"], None, ))
                     thread_list.append(thr) 
                     thr.start()
             else:
                 readings = self.database_client.get_user_sensors_readings(entityname)
                 for sensor in sensors_list:
-                    thr = threading.Thread(target = self.get_sensor_data_threaded_ex, args = (sensor, entityname, datebegin, dateend, period, maxpoints, readings, devices, ))
+                    thr = threading.Thread(target = self.get_sensor_data_threaded, args = (sensor, entityname, datebegin, dateend, period, maxpoints, readings, None, devices, ))
                     thread_list.append(thr) 
                     thr.start()
             for thr in thread_list:
@@ -1143,80 +810,6 @@ class device_dashboard_old:
             msg['new_token'] = new_token
         response = json.dumps(msg)
         #print('\r\nGet All Device Sensors Dataset successful: {} {} {} sensors\r\n'.format(username, devicename, len(sensors)))
-        return response
-
-
-    ########################################################################################################
-    #
-    # GET PERIPHERAL SENSOR CONFIGURATION SUMMARY
-    #
-    # - Request:
-    #   GET /devices/sensors/configurationsummary
-    #   headers: { 'Authorization': 'Bearer ' + token.access }
-    #
-    # - Response:
-    #   { 'status': 'OK', 'message': string, 'summary': [{'sensorname': string, 'devicename': string, 'classes': string, 'configuration': string, 'enabled': int}] }
-    #   { 'status': 'NG', 'message': string }
-    #
-    ########################################################################################################
-    def get_all_sensor_configurationsummary(self):
-
-        # get token from Authorization header
-        auth_header_token = rest_api_utils.utils().get_auth_header_token()
-        if auth_header_token is None:
-            response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-            print('\r\nERROR Get All Sensor Thresholds: Invalid authorization header\r\n')
-            return response, status.HTTP_401_UNAUTHORIZED
-        token = {'access': auth_header_token}
-
-        # get username from token
-        username = self.database_client.get_username_from_token(token)
-        if username is None:
-            response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-            print('\r\nERROR Get All Sensor Thresholds: Token expired\r\n')
-            return response, status.HTTP_401_UNAUTHORIZED
-        #print('get_all_sensor_configurationsummary {}'.format(username))
-
-        # check if a parameter is empty
-        if len(username) == 0 or len(token) == 0:
-            response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-            print('\r\nERROR Get All Sensor Thresholds: Empty parameter found\r\n')
-            return response, status.HTTP_400_BAD_REQUEST
-
-        # check if username and token is valid
-        verify_ret, new_token = self.database_client.verify_token(username, token)
-        if verify_ret == 2:
-            response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-            print('\r\nERROR Get All Sensor Thresholds: Token expired [{}]\r\n'.format(username))
-            return response, status.HTTP_401_UNAUTHORIZED
-        elif verify_ret != 0:
-            response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
-            print('\r\nERROR Get All Sensor Thresholds: Token is invalid [{}]\r\n'.format(username))
-            return response, status.HTTP_401_UNAUTHORIZED
-
-
-        # get entity using the active organization
-        orgname, orgid = self.database_client.get_active_organization(username)
-        if orgname is not None:
-            # check authorization
-            if self.database_client.is_authorized(username, orgname, orgid, database_categorylabel.DASHBOARDS, database_crudindex.READ) == False:
-                response = json.dumps({'status': 'NG', 'message': 'Authorization failed! User is not allowed to access resource. Please check with the organization owner regarding policies assigned.'})
-                print('\r\nERROR Get All Sensor Thresholds: Authorization not allowed [{}]\r\n'.format(username))
-                return response, status.HTTP_401_UNAUTHORIZED
-            # has active organization
-            entityname = "{}.{}".format(orgname, orgid)
-        else:
-            # no active organization, just a normal user
-            entityname = username
-
-        summary = self.get_sensor_summary(entityname)
-
-
-        msg = {'status': 'OK', 'message': 'All Sensor Thresholds queried successfully.', 'summary': summary}
-        if new_token:
-            msg['new_token'] = new_token
-        response = json.dumps(msg)
-        print('\r\nAll Sensor Thresholds queried successful: {}\r\n'.format(username))
         return response
 
 
@@ -1380,264 +973,3 @@ class device_dashboard_old:
             print('\r\nSensors readings deleted successful: {}\r\n{}\r\n'.format(entityname, response))
             return response
 
-
-    ########################################################################################################
-    #
-    # GET I2C DEVICES READINGS DATASET (per peripheral slot)
-    #
-    # - Request:
-    #   GET /devices/device/<devicename>/i2c/NUMBER/sensors/sensor/SENSORNAME/readings/dataset
-    #   headers: {'Authorization': 'Bearer ' + token.access}
-    #
-    # - Response:
-    #   {'status': 'OK', 'message': string, 'sensor_readings': [{'timestamp': int, 'value': int}] }
-    #   {'status': 'NG', 'message': string }
-    #
-    # GET ADC DEVICES READINGS DATASET (per peripheral slot)
-    # GET 1WIRE DEVICES READINGS DATASET (per peripheral slot)
-    # GET TPROBE DEVICES READINGS DATASET (per peripheral slot)
-    #
-    # - Request:
-    #   GET /devices/device/<devicename>/adc/NUMBER/sensors/sensor/SENSORNAME/readings/dataset
-    #   GET /devices/device/<devicename>/1wire/NUMBER/sensors/sensor/SENSORNAME/readings/dataset
-    #   GET /devices/device/<devicename>/tprobe/NUMBER/sensors/sensor/SENSORNAME/readings/dataset
-    #   headers: {'Authorization': 'Bearer ' + token.access}
-    #
-    # - Response:
-    #   {'status': 'OK', 'message': string, 'sensor_readings': [{'timestamp': int, 'value': int}] }
-    #   {'status': 'NG', 'message': string }
-    #
-    ########################################################################################################
-    def get_xxx_sensors_readings_dataset(self, devicename, xxx, number, sensorname):
-
-        print('get_{}_sensor_readings_dataset'.format(xxx))
-
-        # check number parameter
-        if int(number) > 4 or int(number) < 1:
-            response = json.dumps({'status': 'NG', 'message': 'Invalid parameters'})
-            print('\r\nERROR Invalid parameters\r\n')
-            return response, status.HTTP_400_BAD_REQUEST
-
-        # get token from Authorization header
-        auth_header_token = rest_api_utils.utils().get_auth_header_token()
-        if auth_header_token is None:
-            response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-            print('\r\nERROR Get {} Sensor: Invalid authorization header\r\n'.format(xxx))
-            return response, status.HTTP_401_UNAUTHORIZED
-        token = {'access': auth_header_token}
-
-        # get username from token
-        username = self.database_client.get_username_from_token(token)
-        if username is None:
-            response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-            print('\r\nERROR Get {} Sensor: Token expired\r\n'.format(xxx))
-            return response, status.HTTP_401_UNAUTHORIZED
-        print('get_{}_sensor_readings_dataset {} devicename={} number={}'.format(xxx, username, devicename, number))
-
-        # check if a parameter is empty
-        if len(username) == 0 or len(token) == 0 or len(devicename) == 0:
-            response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-            print('\r\nERROR Get {} Sensor: Empty parameter found\r\n'.format(xxx))
-            return response, status.HTTP_400_BAD_REQUEST
-
-        # check if username and token is valid
-        verify_ret, new_token = self.database_client.verify_token(username, token)
-        if verify_ret == 2:
-            response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-            print('\r\nERROR Get {} Sensor: Token expired [{}]\r\n'.format(xxx, username))
-            return response, status.HTTP_401_UNAUTHORIZED
-        elif verify_ret != 0:
-            response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
-            print('\r\nERROR Get {} Sensor: Token is invalid [{}]\r\n'.format(xxx, username))
-            return response, status.HTTP_401_UNAUTHORIZED
-
-
-        # get entity using the active organization
-        orgname, orgid = self.database_client.get_active_organization(username)
-        if orgname is not None:
-            # has active organization
-            entityname = "{}.{}".format(orgname, orgid)
-        else:
-            # no active organization, just a normal user
-            entityname = username
-
-
-        # get sensor
-        sensor = self.database_client.get_sensor(entityname, devicename, xxx, number, sensorname)
-
-        source = "{}{}".format(xxx, number)
-        address = None
-        if sensor.get("address") is not None:
-            address = sensor["address"]
-        sensor_reading = self.database_client.get_sensor_reading_dataset(entityname, devicename, source, address)
-        sensor['readings'] = sensor_reading
-
-        msg = {'status': 'OK', 'message': 'Sensors readings dataset queried successfully.', 'sensor_readings': sensor}
-        if new_token:
-            msg['new_token'] = new_token
-        response = json.dumps(msg)
-        print('\r\nSensors readings dataset queried successful: {}\r\n{}\r\n'.format(username, response))
-        return response
-
-    ########################################################################################################
-    #
-    # GET I2C DEVICE READINGS (per sensor)
-    #
-    # - Request:
-    #   GET /devices/device/<devicename>/i2c/NUMBER/sensors/sensor/<sensorname>/readings
-    #   headers: {'Authorization': 'Bearer ' + token.access}
-    #
-    # - Response:
-    #   {'status': 'OK', 'message': string, 'sensor_readings': {'value': int, 'lowest': int, 'highest': int} }
-    #   {'status': 'NG', 'message': string }
-    #
-    # GET ADC DEVICE READINGS (per sensor)
-    # GET 1WIRE DEVICE READINGS (per sensor)
-    # GET TPROBE DEVICE READINGS (per sensor)
-    #
-    # - Request:
-    #   GET /devices/device/<devicename>/adc/NUMBER/sensors/sensor/<sensorname>/readings
-    #   GET /devices/device/<devicename>/1wire/NUMBER/sensors/sensor/<sensorname>/readings
-    #   GET /devices/device/<devicename>/tprobe/NUMBER/sensors/sensor/<sensorname>/readings
-    #   headers: {'Authorization': 'Bearer ' + token.access}
-    #
-    # - Response:
-    #   {'status': 'OK', 'message': string, 'sensor_readings': {'value': int, 'lowest': int, 'highest': int} }
-    #   {'status': 'NG', 'message': string }
-    #
-    #
-    # DELETE I2C DEVICE READINGS (per sensor)
-    #
-    # - Request:
-    #   DELETE /devices/device/<devicename>/i2c/NUMBER/sensors/sensor/<sensorname>/readings
-    #   headers: {'Authorization': 'Bearer ' + token.access}
-    #
-    # - Response:
-    #   {'status': 'OK', 'message': string }
-    #   {'status': 'NG', 'message': string }
-    #
-    # DELETE ADC DEVICE READINGS (per sensor)
-    # DELETE 1WIRE DEVICE READINGS (per sensor)
-    # DELETE TPROBE DEVICE READINGS (per sensor)
-    #
-    # - Request:
-    #   DELETE /devices/device/<devicename>/adc/NUMBER/sensors/sensor/<sensorname>/readings
-    #   DELETE /devices/device/<devicename>/1wire/NUMBER/sensors/sensor/<sensorname>/readings
-    #   DELETE /devices/device/<devicename>/tprobe/NUMBER/sensors/sensor/<sensorname>/readings
-    #   headers: {'Authorization': 'Bearer ' + token.access}
-    #
-    # - Response:
-    #   {'status': 'OK', 'message': string }
-    #   {'status': 'NG', 'message': string }
-    #
-    ########################################################################################################
-    def get_xxx_sensor_readings(self, devicename, xxx, number, sensorname):
-
-        # check number parameter
-        if int(number) > 4 or int(number) < 1:
-            response = json.dumps({'status': 'NG', 'message': 'Invalid parameters'})
-            print('\r\nERROR Invalid parameters\r\n')
-            return response, status.HTTP_400_BAD_REQUEST
-
-        # get token from Authorization header
-        auth_header_token = rest_api_utils.utils().get_auth_header_token()
-        if auth_header_token is None:
-            response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-            print('\r\nERROR Get {} Sensor: Invalid authorization header\r\n'.format(xxx))
-            return response, status.HTTP_401_UNAUTHORIZED
-        token = {'access': auth_header_token}
-
-        # get username from token
-        username = self.database_client.get_username_from_token(token)
-        if username is None:
-            response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-            print('\r\nERROR Get {} Sensor: Token expired\r\n'.format(xxx))
-            return response, status.HTTP_401_UNAUTHORIZED
-        print('get_{}_sensor_readings {} devicename={} number={} sensorname={}'.format(xxx, username, devicename, number, sensorname))
-
-        # check if a parameter is empty
-        if len(username) == 0 or len(token) == 0 or len(devicename) == 0 or len(sensorname) == 0:
-            response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-            print('\r\nERROR Get {} Sensor: Empty parameter found\r\n'.format(xxx))
-            return response, status.HTTP_400_BAD_REQUEST
-
-        # check if username and token is valid
-        verify_ret, new_token = self.database_client.verify_token(username, token)
-        if verify_ret == 2:
-            response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-            print('\r\nERROR Get {} Sensor: Token expired [{}]\r\n'.format(xxx, username))
-            return response, status.HTTP_401_UNAUTHORIZED
-        elif verify_ret != 0:
-            response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
-            print('\r\nERROR Get {} Sensor: Token is invalid [{}]\r\n'.format(xxx, username))
-            return response, status.HTTP_401_UNAUTHORIZED
-
-
-        # get entity using the active organization
-        orgname, orgid = self.database_client.get_active_organization(username)
-        if orgname is not None:
-            # has active organization
-            entityname = "{}.{}".format(orgname, orgid)
-        else:
-            # no active organization, just a normal user
-            entityname = username
-
-
-        # check if sensor is registered
-        sensor = self.database_client.get_sensor(entityname, devicename, xxx, number, sensorname)
-        if not sensor:
-            response = json.dumps({'status': 'NG', 'message': 'Sensor is not registered'})
-            print('\r\nERROR Get {} Sensor: Sensor is not registered [{},{}]\r\n'.format(xxx, entityname, devicename))
-            return response, status.HTTP_404_NOT_FOUND
-
-        # check if sensor type is valid
-        if sensor["type"] != "input":
-            response = json.dumps({'status': 'NG', 'message': 'Sensor type is invalid'})
-            print('\r\nERROR Get {} Sensor: Sensor type is invalid [{},{}]\r\n'.format(xxx, entityname, devicename))
-            return response, status.HTTP_404_NOT_FOUND
-
-        address = None
-        if sensor.get("address") is not None:
-            address = sensor["address"]
-        source = "{}{}".format(xxx, number)
-        if flask.request.method == 'GET':
-            if orgname is not None:
-                # check authorization
-                if self.database_client.is_authorized(username, orgname, orgid, database_categorylabel.DEVICES, database_crudindex.READ) == False:
-                    response = json.dumps({'status': 'NG', 'message': 'Authorization failed! User is not allowed to access resource. Please check with the organization owner regarding policies assigned.'})
-                    print('\r\nERROR Get Peripheral Sensor: Authorization not allowed [{}]\r\n'.format(username))
-                    return response, status.HTTP_401_UNAUTHORIZED
-
-            # get sensor reading
-            sensor_readings = self.database_client.get_sensor_reading(entityname, devicename, source, address)
-            if not sensor_readings:
-                # no readings yet
-                sensor_readings = {}
-                sensor_readings["value"] = "0"
-                sensor_readings["lowest"] = "0"
-                sensor_readings["highest"] = "0"
-
-            msg = {'status': 'OK', 'message': 'Sensor reading queried successfully.', 'sensor_readings': sensor_readings}
-            if new_token:
-                msg['new_token'] = new_token
-            response = json.dumps(msg)
-            print('\r\nSensor reading queried successful: {}\r\n{}\r\n'.format(entityname, response))
-            return response
-
-        elif flask.request.method == 'DELETE':
-            if orgname is not None:
-                # check authorization
-                if self.database_client.is_authorized(username, orgname, orgid, database_categorylabel.DEVICES, database_crudindex.DELETE) == False:
-                    response = json.dumps({'status': 'NG', 'message': 'Authorization failed! User is not allowed to access resource. Please check with the organization owner regarding policies assigned.'})
-                    print('\r\nERROR Delete Peripheral Sensor: Authorization not allowed [{}]\r\n'.format(username))
-                    return response, status.HTTP_401_UNAUTHORIZED
-
-            # delete sensor reading
-            self.database_client.delete_sensor_reading(entityname, devicename, source, address)
-
-            msg = {'status': 'OK', 'message': 'Sensor reading deleted successfully.'}
-            if new_token:
-                msg['new_token'] = new_token
-            response = json.dumps(msg)
-            print('\r\nSensor reading deleted successful: {}\r\n{}\r\n'.format(entityname, response))
-            return response
