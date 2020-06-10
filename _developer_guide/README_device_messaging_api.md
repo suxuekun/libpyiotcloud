@@ -381,8 +381,8 @@ DETAILED:
 		D. GET LDSU DESCRIPTORS
 		-  Receive:
 		   topic: DEVICEID/get_ldsu_descs
-		   payload: {'port': int}
-		   // port can be 1,2,3. If 0, then query is for all ports
+		   payload: {'PORT': string}
+		   // port can be "1","2","3". If "0", then query is for all ports
 		-  Publish:
 		   topic: server/DEVICEID/get_ldsu_descs
 		   payload: { 

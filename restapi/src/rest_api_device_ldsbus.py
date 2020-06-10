@@ -280,7 +280,7 @@ class device_ldsbus:
         data['token'] = token
         data['devicename'] = devicename
         data['username'] = username
-        data['port'] = int(portnumber)
+        data['PORT'] = portnumber
         api = 'get_ldsu_descs'
         response, status_return = self.messaging_requests.process(api, data)
         if status_return != 200:

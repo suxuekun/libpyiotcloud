@@ -7387,6 +7387,49 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         $state.go('gatewayLocation', device_param, {reload: true});    
     };
     
+    
+    // SCAN LDS BUS
+    $scope.scanLDSBUS = function() {
+        console.log("scanLDSBUS");
+        $scope.scan_lds_bus();
+    };
+
+    $scope.scan_lds_bus = function() {
+        //
+        // SCAN LDS BUS
+        //
+        // - Request:
+        //   POST /devices/device/DEVICENAME/ldsbus/PORTNUMBER
+        //   headers: { 'Authorization': 'Bearer ' + token.access }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string, }
+        //   { 'status': 'NG', 'message': string }
+        //
+        $http({
+            method: 'POST',
+            url: server + '/devices/device/' + $scope.data.devicename + '/ldsbus/0',
+            headers: {'Authorization': 'Bearer ' + $scope.data.token.access}
+        })
+        .then(function (result) {
+            console.log(result.data);
+            $ionicPopup.alert({
+                title: 'Scan LDS BUS',
+                template: 'Scan LDS BUS was successful!',
+            });
+        })
+        .catch(function (error) {
+            $scope.handle_error(error);
+            $ionicPopup.alert({
+                title: 'Scan LDS BUS',
+                template: 'Scan LDS BUS failed!',
+                buttons: [{text: 'OK', type: 'button-assertive'}]
+            });
+        }); 
+    };
+    
+    
+    
     // EXIT PAGE
     $scope.exitPage = function() {
         var device_param = {
