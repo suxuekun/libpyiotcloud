@@ -13,8 +13,8 @@ class MongoIdMixin(Model):
     pass
 
 class TimeStampMixin(Model):
-    createdAt = TimestampType(default=timestamp_util.get_timestamp)
-    modifiedAt = TimestampType(default=timestamp_util.get_timestamp)
+    createdAt = StringType(default=timestamp_util.get_timestamp)
+    modifiedAt = StringType(default=timestamp_util.get_timestamp)
 
 class ActiveMixin(Model):
     active = BooleanType(default=True)

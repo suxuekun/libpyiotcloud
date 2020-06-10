@@ -16,10 +16,10 @@ class DashboardService:
         self.dashboardRepository = dashboardRepository
         self.tag = type(self).__name__
 
-    def create(self, dto: DashboardDto):
+    def create(self, userId: str, dto: DashboardDto):
         try:
             dto.validate()
-            dashboard = Dashboard.create(dto)
+            dashboard = Dashboard.create(userId, dto)
             result = self.dashboardRepository.create(
                 dashboard.model.to_primitive())
             return Response.success(True, "Create dashboard successfully")
@@ -66,24 +66,18 @@ class DashboardService:
             entity.pop("_id")
             return Response.success(data=entity, message="Get dashboard detail successfully")
 
-        except QueriedByIdException as e:
-            LoggerService().error(str(e), tag=self.tag)
-            return Response.fail("Sorry, get dashboard detail wrong")
-
         except Exception as e:
             LoggerService().error(str(e), tag=self.tag)
             return Response.fail("Sorry, there is something wrong")
 
-    def gets(self, query={}):
-
+    def gets(self, userId: str):
         try:
-            entities = self.dashboardRepository.get_summaried_dashboards()
+            query = {
+                "userId": userId
+            }
+            entities = self.dashboardRepository.get_summaried_dashboards(query = query)
             responses = map_entities_to_summaries_response(entities)
             return Response.success(data=responses, message="Get dashboards successfully")
-
-        except QueriedManyException as e:
-            LoggerService().error(str(e), tag=self.tag)
-            return Response.fail("Sorry, there is something wrong")
 
         except Exception as e:
             LoggerService().error(str(e), tag=self.tag)

@@ -1,6 +1,6 @@
 
 from bson.objectid import ObjectId
-from dashboards_app.models.gateway_attribute import GatewayAttribute
+from dashboards_app.models.gateway_attribute import GatewayAttributeModel
 from schematics.types import StringType, DecimalType, IntType, BooleanType, ListType, ModelType
 from shared.core.model import BaseModel, TimeStampMixin, MongoIdMixin
 from dashboards_app.dtos.dashboard_dto import DashboardDto
@@ -17,11 +17,12 @@ class Chart(BaseModel, TimeStampMixin):
     dashboardId = StringType()
     device = ModelType(DashboardDevice)
     chartTypeId = StringType()
-    attribute = ModelType(GatewayAttribute)
+    attribute = StringType()
 
 class DashboardModel(BaseModel, MongoIdMixin, TimeStampMixin):
     name = StringType()
     option = ModelType(Option)
+    userId = StringType()
     gateways = ListType(ModelType(Chart), default=[])
     sensors = ListType(ModelType(Chart), default=[])
     actuators = ListType(ModelType(Chart), default=[])
@@ -32,9 +33,10 @@ class Dashboard:
         self.model = model
 
     @staticmethod
-    def create(dto: DashboardDto):
+    def create(userId: str, dto: DashboardDto):
         model = DashboardModel()
         model.name = dto.name
+        model.userId = userId
         model.option = Option({'color': dto.color})
         model.gateways = []
         model.sensors = []
@@ -44,7 +46,7 @@ class Dashboard:
     def updateNameAndOption(self, dto: DashboardDto):
         self.model.name = dto.name
         self.model.option = Option({'color': dto.color})
-
+    
     def addChartGateway(self, chart: Chart):
         self.model.gateways.append(chart)
 

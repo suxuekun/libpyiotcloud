@@ -36,7 +36,6 @@ import rest_api_utils
 ###################################################################################
 from shared.client.clients.database_client import db_client
 from shared.middlewares.default_middleware import DefaultMiddleWare
-from test.middleware import middleware
 
 CONFIG_DEVICE_ID            = "restapi_manager"
 
@@ -5824,7 +5823,7 @@ def on_amqp_message(ch, method, properties, body):
 # Main entry point
 ###################################################################################
 from dashboards_app.app import DashboardsApp
-from payment.app import PaymentApp
+# from payment.app import PaymentApp
 
 def initialize():
 
@@ -5895,13 +5894,13 @@ def initialize():
     g_utils                   = rest_api_utils.utils()
 
     dashboardsApp = DashboardsApp(app)
-    paymentapp = PaymentApp(app)
+    # paymentapp = PaymentApp(app)
     exampleapp = ExampleApp(app,prefix = "/example")
 
 # Initialize globally so that no issue with GUnicorn integration
 if os.name == 'posix':
     initialize()
-
+initialize()
 
 if __name__ == '__main__':
 

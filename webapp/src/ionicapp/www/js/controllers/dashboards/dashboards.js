@@ -3,7 +3,8 @@ angular.module('app.dashboardsCtrl', [])
     function ($scope, $stateParams, $state, $filter, $ionicPopup, $http, Server, User, DateTimeUtil) {
 
       $scope.data = {
-        'search': ''
+        'search': '',
+        'token': User.get_token(),
       };
 
       const server = Server.rest_api;
@@ -40,7 +41,7 @@ angular.module('app.dashboardsCtrl', [])
                 $http({
                   method: 'DELETE',
                   url: `${server}/dashboards/${id}`,
-                  headers: { 'Content-Type': 'application/json' }
+                  headers: { 'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json' }
                 })
                   .then(function (result) {
                     console.log(result.data);
@@ -93,7 +94,7 @@ angular.module('app.dashboardsCtrl', [])
         $http({
           method: 'GET',
           url: server + '/dashboards',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json' },
         })
           .then(function (result) {
             cachedDashboards = result.data.data;
@@ -111,7 +112,6 @@ angular.module('app.dashboardsCtrl', [])
 
       const server = Server.rest_api;
       $scope.data = {
-        'username': User.get_username(),
         'token': User.get_token(),
         'name': '',
         'selectedColor': '#00c0ef',
@@ -144,12 +144,13 @@ angular.module('app.dashboardsCtrl', [])
         $http({
           method: 'POST',
           url: server + '/dashboards',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json' },
           data: request
         })
           .then(function (result) {
             console.log(result.data);
             $scope.data.name = '';
+            $scope.data.selectedColor = "#00c0ef";
             $state.go('menu.dashboards', {}, { reload: true })
 
           })
@@ -171,7 +172,6 @@ angular.module('app.dashboardsCtrl', [])
       const dashboard = $stateParams.dashboard
 
       $scope.data = {
-        'username': User.get_username(),
         'token': User.get_token(),
         'name': dashboard.name,
         'selectedColor': dashboard.color ? dashboard.color : '#00c0ef',
@@ -204,7 +204,7 @@ angular.module('app.dashboardsCtrl', [])
         $http({
           method: 'PUT',
           url: `${server}/dashboards/${dashboard.id}`,
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json' },
           data: request
         })
           .then(function (result) {

@@ -9,7 +9,7 @@ def get_timestamp_int():
     return int(get_timestamp_float())
 
 def get_timestamp():
-    return str(int(datetime.utcnow().timestamp()))
+    return str((datetime.now().timestamp()))
 
 if __name__ == "__main__":
     d_now = datetime.now()# get local time naive time , no time zone awared

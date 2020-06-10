@@ -11,9 +11,10 @@ class MongoBaseRepository(BaseRepository):
     def __init__(self, mongoclient: MongoClient, db, collectionName: str):
         self.mongoclient = mongoclient
         self.db = db
+        self.collectionName = collectionName
         self.collection = db[collectionName]
 
-    def create(self, input) -> bool:
+    def create(self, input) -> str:
         try:
             if "_id" in input:
                 input.pop("_id")
