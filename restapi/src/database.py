@@ -2020,7 +2020,8 @@ class database_client_mongodb:
         if number is not None:
             item['number'] = number
         item['notification'] = notification
-        item['notification_subclass'] = notification_subclass
+        if notification_subclass:
+            item['notification_subclass'] = notification_subclass
         #print("update_device_notification_with_notification_subclass find_one")
         if number is not None:
             found = notifications.find_one({'deviceid': deviceid, 'source': source, 'number': number})
