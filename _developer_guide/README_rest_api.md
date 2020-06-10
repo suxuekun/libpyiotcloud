@@ -1372,9 +1372,11 @@ DETAILED:
 		-  Request:
 		   POST /devicegroups/group/DEVICEGROUPNAME/device/DEVICENAME
 		   headers: {'Authorization': 'Bearer ' + token.access}
+		   data: {'destdevicegroupname': string}
 		-  Response:
 		   { 'status': 'OK', 'message': string}
 		   { 'status': 'NG', 'message': string}
+		   // destdevicegroupname is optional and appears if device is to be transferred from DEVICEGROUPNAME group to destdevicegroupname group
 		   // HTTP_400_BAD_REQUEST is returned if device already added in group
 
 		H. REMOVE DEVICE FROM GROUP
