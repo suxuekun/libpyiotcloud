@@ -441,7 +441,7 @@ DETAILED:
 		     'enable': int,
 		     'UID':    string,
 		     'SAID':   string,
-		     'MODE':   int
+		     'MODE':   string
 		   }
 		-  Publish:
 		   topic: server/DEVICEID/enable_ldsu_dev
@@ -462,12 +462,24 @@ DETAILED:
 		   {
 		     'ldsu': [
 		       {
-		         'enable': int,
+		         'enabled': int,
 		         'UID':    string,
 		         'SAID':   string,
-		         'MODE':   int
+		         'MODE':   string
 		       },
 		       ...
+		     ],
+		     'uart': [
+		       {
+		         'enabled': int,
+		         'attributes': {
+		           'baudrate': int,
+		           'parity': int,
+		           'flowcontrol': int,
+		           'stopbits': int,
+		           'databits': int,
+		         }
+		       }
 		     ]
 		   }
 

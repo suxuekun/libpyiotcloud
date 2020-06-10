@@ -827,36 +827,36 @@ def handle_api(api, subtopic, subpayload):
     ####################################################
     # UART
     ####################################################
-    elif api == API_GET_UARTS:
-        topic = generate_pubtopic(subtopic)
-        subpayload = json.loads(subpayload)
-
-        value = {
-            'uarts': [
-                {'enabled': g_uart_enabled },
-            ]
-        }
-        #printf(g_uart_enabled)
-
-        payload = {}
-        payload["value"] = value
-        publish(topic, payload)
-
-    elif api == API_GET_UART_PROPERTIES:
-        topic = generate_pubtopic(subtopic)
-        subpayload = json.loads(subpayload)
-
-        value = g_uart_properties
-        #printf(g_uart_properties)
-        #printf(g_uart_baudrate[g_uart_properties['baudrate']])
-        #printf(g_uart_parity[g_uart_properties['parity']])
-        #printf(g_uart_flowcontrol[g_uart_properties['flowcontrol']])
-        #printf(g_uart_stopbits[g_uart_properties['stopbits']])
-        #printf(g_uart_databits[g_uart_properties['databits']])
-
-        payload = {}
-        payload["value"] = value
-        publish(topic, payload)
+    #elif api == API_GET_UARTS:
+    #    topic = generate_pubtopic(subtopic)
+    #    subpayload = json.loads(subpayload)
+    #
+    #    value = {
+    #        'uarts': [
+    #            {'enabled': g_uart_enabled },
+    #        ]
+    #    }
+    #    #printf(g_uart_enabled)
+    #
+    #    payload = {}
+    #    payload["value"] = value
+    #    publish(topic, payload)
+    #
+    #elif api == API_GET_UART_PROPERTIES:
+    #    topic = generate_pubtopic(subtopic)
+    #    subpayload = json.loads(subpayload)
+    #
+    #    value = g_uart_properties
+    #    #printf(g_uart_properties)
+    #    #printf(g_uart_baudrate[g_uart_properties['baudrate']])
+    #    #printf(g_uart_parity[g_uart_properties['parity']])
+    #    #printf(g_uart_flowcontrol[g_uart_properties['flowcontrol']])
+    #    #printf(g_uart_stopbits[g_uart_properties['stopbits']])
+    #    #printf(g_uart_databits[g_uart_properties['databits']])
+    #
+    #    payload = {}
+    #    payload["value"] = value
+    #    publish(topic, payload)
 
     elif api == API_SET_UART_PROPERTIES:
         topic = generate_pubtopic(subtopic)
@@ -870,7 +870,7 @@ def handle_api(api, subtopic, subpayload):
             'stopbits': subpayload["stopbits"],
             'databits': subpayload["databits"],
         }
-        #printf(g_uart_properties)
+        printf(g_uart_properties)
         #printf(g_uart_baudrate[g_uart_properties['baudrate']])
         #printf(g_uart_parity[g_uart_properties['parity']])
         #printf(g_uart_flowcontrol[g_uart_properties['flowcontrol']])
@@ -1433,12 +1433,12 @@ def handle_api(api, subtopic, subpayload):
     # NOTIFICATION
     ####################################################
 
-    elif api == API_TRIGGER_NOTIFICATION:
-        topic = generate_pubtopic(subtopic)
-        subpayload = json.loads(subpayload)
-        # Notification from cloud
-        publish(topic, subpayload)
-        printf("Notification triggered to email/SMS recipient!")
+    #elif api == API_TRIGGER_NOTIFICATION:
+    #    topic = generate_pubtopic(subtopic)
+    #    subpayload = json.loads(subpayload)
+    #    # Notification from cloud
+    #    publish(topic, subpayload)
+    #    printf("Notification triggered to email/SMS recipient!")
 
     elif api == API_RECEIVE_NOTIFICATION:
         topic = generate_pubtopic(subtopic)
@@ -1506,9 +1506,9 @@ def handle_api(api, subtopic, subpayload):
                 #printf(ldsu)
                 source = ldsu["UID"]
                 number = int(ldsu["SAID"])
+                mode = int(ldsu["MODE"])
                 g_ldsu_properties[source][number]["enabled"] = ldsu["enabled"]
-                g_ldsu_properties[source][number]["mode"] = ldsu["MODE"]
-                mode = ldsu["MODE"]
+                g_ldsu_properties[source][number]["mode"] = mode
 
                 if g_ldsu_properties[source][number].get("attributes") is None:
                     # get OBJ given UID
@@ -1537,6 +1537,7 @@ def handle_api(api, subtopic, subpayload):
         if subpayload.get("uart"):
             if subpayload["uart"][0].get("attributes"):
                 g_uart_properties = subpayload["uart"][0]["attributes"]
+                printf(g_uart_properties)
 
         # GPIO
         if subpayload.get("gpio"):

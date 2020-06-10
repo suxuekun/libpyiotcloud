@@ -881,7 +881,7 @@ class device_peripheral_properties:
         else:
             data["UID"] = xxx
             data['SAID'] = number
-            data['MODE'] = 0
+            data['MODE'] = str(0)
 
 
         # communicate with device

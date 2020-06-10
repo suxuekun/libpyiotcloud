@@ -289,7 +289,7 @@ def get_configuration_ex(database_client, deviceid, topic, payload):
             if configuration.get("mode") is not None:
                 props["MODE"] = configuration["mode"]
             else:
-                props["MODE"] = 0
+                props["MODE"] = str(0)
             new_payload["ldsu"].append(props)
             count_ldsu += 1
 
