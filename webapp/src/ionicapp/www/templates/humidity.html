@@ -12,7 +12,7 @@
         <strong> {{ data.devicename }} </strong>
       </p>
     </div>
-    <button id="humidity-button139" ng-click="viewXXXDevice()" style="font-weight:500;font-size:18px;" class="button button-dark button-block button-clear icon-right ion-android-settings">{{ data.sensor.sensorname }} - {{data.source}} {{ data.sensor.number }}</button>
+    <button id="humidity-button139" ng-click="viewXXXDevice()" style="font-weight:500;font-size:18px;" class="button button-dark button-block button-clear icon-right ion-android-settings">{{ data.sensor.sensorname }}</button>
     <div class="spacer" style="width: 300px; height: 20px;"></div>
     <form id="humidity-form169" class="list">
       <div id="humidity-markdown306" class="show-list-numbers-and-dots">
@@ -94,11 +94,11 @@
       </div>
       <ion-checkbox id="humidity-checkbox7" ng-model="data.attributes.notification.endpoints.email.enable">Send email to</ion-checkbox>
       <label class="item item-input" id="humidity-input139">
-        <input type="text" placeholder="Email address(es)" ng-model="data.attributes.notification.endpoints.email.recipients" readonly="">
+        <input type="text" placeholder="Email address(es)" ng-model="data.attributes.notification.endpoints.email.recipients">
       </label>
       <ion-checkbox id="humidity-checkbox8" ng-model="data.attributes.notification.endpoints.mobile.enable">Send SMS to</ion-checkbox>
       <label class="item item-input" id="humidity-input140">
-        <input type="text" placeholder="Phone number(s)" ng-model="data.attributes.notification.endpoints.mobile.recipients" readonly="">
+        <input type="text" placeholder="Phone number(s)" ng-model="data.attributes.notification.endpoints.mobile.recipients">
       </label>
       <ion-checkbox id="humidity-checkbox9" ng-model="data.attributes.notification.endpoints.notification.enable">Send notification to</ion-checkbox>
       <label class="item item-input" id="humidity-input141">
@@ -123,7 +123,8 @@
       </div>
     </form>
     <form id="humidity-form177" class="list">
-      <button id="humidity-button140" ng-click="submit()" class="button button-positive button-block">{{ data.sensor.subclass ? "DONE" : "SAVE" }}</button>
+      <button id="humidity-button140" ng-click="submit()" class="button button-positive button-block">SAVE</button>
+      <button id="humidity-button233" ng-click="submitDelete()" class="button button-assertive button-block">DELETE</button>
       <div class="spacer" style="height: 100px;"></div>
     </form>
   </ion-content>

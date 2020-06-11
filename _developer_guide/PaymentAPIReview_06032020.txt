@@ -1,0 +1,85 @@
+Peer Review of Payment APIs (06/03/2020) by Richmond
+
+
+1. all dates return should be in epoch format because of timezone issues.
+   backend always return epoch so front end can display based on the user's timezone.
+
+2. device_id:"id",
+   device_uuid:"uuid",
+   - this is just the same
+
+3. for Get Subscription, there's no flag to determine if its cancelled
+   the issue with this is its too big packet with repeated information if just the same plan
+
+4. calculate prorate should also return the remaining days
+   because the remaining days is based on the backend's timezone, not the users timezone
+   timezone is based on the backends timezone because frontend will have different timezone based on user's country or phone settings
+
+5. can't find GST. (GST is applicable if user billing address is in SG)
+   backend should provide api related to GST
+   because the decision for GST is currently just for SG country but later if we change the decision to include all a number of countries, 
+   then there should be no changes in the frontend. only in the backend
+   so backend decides if GST is applicable or not
+
+6. so combining prorate remaining days with gst will be good for the frontend,
+   just 1 api call instead of multiple API calls for 1 page
+
+7. improve the documentation of checkout
+   checkout api is generic for all checkouts. thats good.
+   but please provide some actual examples to make things more clear 
+   provide examples for cancel, upgrade.
+
+8. improve documentation of get client token 
+   assume they are not familiar with braintree. assume they are not familiar with CLIENT TOKEN and NONCE. 
+   so this needs to be described. 
+
+9. the checkout API is also a crucial API since it is when the transaction with Braintree/paypal can fail. 
+   so adding the errors is very important for this API. 
+   promocode and invalid new_plan_id
+
+10. GET transactions API should have the transaction amount and URL for the PDF receipt
+    GET transaction reciept should not in separate, it can simply be a URL in GET transactions API (one API call for frontend)
+
+11. Please check the PDF receipt format from the marketing team (see attached - also in PRD). 
+    In case you there is some item you need to store in the database to asynchronusly create the PDF in another docker microservice.
+
+12. for Get Subscription, in addition to adding a flag for cancellation. 
+    There should also in a reason for cancellation because it can be:
+    a cancellation by user in iotportal
+    a cancellation by user in Paypal account
+    a cancellation by us (ex. recurring payment failed. so we cancel it) 
+
+13. in the receipt, there should be a breakdown (especially important for prorated current month)
+
+14. for braintree transactions for multiple devices: (2 device example below)
+    a) 1 transaction for device A - prorated current month
+       1 transaction for device B - prorated current month 
+       1 subscription for device A - recurring months
+       1 subscription for device B - recurring months
+    b) 1 transaction for device A and B
+       1 subscription for device A - recurring months
+       1 subscription for device B - recurring months
+    1 trasnaction is ok but we need to add supply the breakdown so that when customer checks the Paypal page, the he can see the breakdown too
+
+
+15. In braintree, is each subscription associated with the specific deviceid?
+    or do we do it in the association in our backend?
+    If we handle the association in our backend, then it means user dont know which subscription to cancel in their Paypal page
+    because they can cancel a recurring payment in their paypal page
+
+16. Create a UML sequence diagram to highlight the communication between backend, frontend and Braintree API.
+    This will help the frontend guys and other team members understanding the whole picture.
+    For sample reference, refer to the payment UML sequence with Paypal API.
+    https://github.com/richmondu/libpyiotcloud/blob/dev/_images/paypal_sequence_diagram.png
+    Include the following:
+    frontend gets client token API from backend 
+    frontend uses client token to communicate with Braintree
+    user approves payment in paypal 
+    frontend retrieves NONCE from Braintree
+    frontend checkout API (with NONCE)
+    backend create braintree customer if not exist in vault
+    backend create braintree transaction 
+    backend create braintree subscription
+
+17. GST information displays the currency conversion for SGD to USD.
+    backend needs to dynamically update the latest currency conversion from some website OR from a JSON file that can be updated by marketing department.

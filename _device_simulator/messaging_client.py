@@ -305,6 +305,7 @@ class messaging_client:
                     client.subscribe(topic, qos=CONFIG_QOS)
                     printf("")
                     printf("Device is now ready! Control this device from IoT Portal https://{}".format(self.host))
+                    printf("")
                 except:
                     return False
             else:

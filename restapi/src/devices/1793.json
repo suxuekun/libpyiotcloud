@@ -1,0 +1,54 @@
+{
+  "OBJ": "1793",
+  "VER": "1.00",
+  "CAP": "0",
+  "SNS": [
+    {
+      "MFI": "BridgeTek Pte Ltd.",
+      "PART": "Color lamp",
+      "REGSIZE": "1",
+      "ADDRESS": "64",
+      "BOMID": "1234",
+      "CLS": "1538",
+      "VSPEC": "12345678",
+      "SAID": "0",
+      "FORMAT": "",
+      "TYPE": "OUTPUT",
+      "UNIT": "",
+      "ACCURACY": "0",
+      "OPTIONS": ["PARAMS", "MODE"],
+      "PARAMS": [
+        {
+          "ID": "256",
+          "Name": "OnOff",
+          "Min": "false",
+          "Max": "true",
+          "Description": "",
+          "Valuetype": "boolean",
+          "Stepsize": "1",
+          "Default": "true"
+        },
+        {
+          "ID": "257",
+          "Name": "Brightness",
+          "Min": "0",
+          "Max": "100",
+          "Description": "",
+          "Valuetype": "integer",
+          "Stepsize": "1",
+          "Default": "50"
+        },
+        {
+          "ID": "258",
+          "Name": "Color",
+          "Min": "0",
+          "Max": "65535",
+          "Description": "",
+          "Valuetype": "integer",
+          "Stepsize": "1",
+          "Default": "65535"
+        }
+      ]
+    }
+  ]
+}

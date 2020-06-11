@@ -462,32 +462,67 @@ Paypal payment merchant account
         B. GET DEVICES FILTERED           - GET    /devices/filter/FILTERSTRING
         C. ADD DEVICE                     - POST   /devices/device/DEVICENAME
         D. DELETE DEVICE                  - DELETE /devices/device/DEVICENAME
-        E. GET DEVICE                     - GET    /devices/device/DEVICENAME
-        F. UPDATE DEVICE NAME             - POST   /devices/device/DEVICENAME/name
+        E. UPDATE DEVICE NAME             - POST   /devices/device/DEVICENAME/name
+        F. GET DEVICE                     - GET    /devices/device/DEVICENAME
+        G. GET DEVICE DESCRIPTOR          - GET    /devices/device/DEVICENAME/descriptor
         //
         // location
-        G. GET DEVICES LOCATION           - GET    /devices/location
-        H. SET DEVICES LOCATION           - POST   /devices/location
-        I. DELETE DEVICES LOCATION        - DELETE /devices/location
-        J. GET DEVICE LOCATION            - GET    /devices/device/DEVICENAME/location
-        K. SET DEVICE LOCATION            - POST   /devices/device/DEVICENAME/location
-        L. DELETE DEVICE LOCATION         - DELETE /devices/device/DEVICENAME/location
+        H. GET DEVICES LOCATION           - GET    /devices/location
+        I. SET DEVICES LOCATION           - POST   /devices/location
+        J. DELETE DEVICES LOCATION        - DELETE /devices/location
+        K. GET DEVICE LOCATION            - GET    /devices/device/DEVICENAME/location
+        L. SET DEVICE LOCATION            - POST   /devices/device/DEVICENAME/location
+        M. DELETE DEVICE LOCATION         - DELETE /devices/device/DEVICENAME/location
         //
-        // ota firmware upgrade
-        M. UPGRADE DEVICE FIRMWARE        - POST   /devices/device/DEVICENAME/firmware
-        N. GET UPGRADE DEVICE FIRMWARE    - GET    /devices/device/DEVICENAME/firmware
+        // ota firmware update
+        N. UPDATE FIRMWARE                - POST   /devices/device/DEVICENAME/firmware
+        O. UPDATE FIRMWARES               - POST   /devices/firmware
+        P. GET OTA STATUS                 - GET    /devices/device/DEVICENAME/ota
+        Q. GET OTA STATUSES               - GET    /devices/ota
+        //
+        // device-sensor hierarchy tree
+        R. GET DEVICE HIERARCHY TREE               - GET    /devices/device/DEVICENAME/hierarchy
+        S. GET DEVICE HIERARCHY TREE (WITH STATUS) - POST   /devices/device/DEVICENAME/hierarchy
 
     4. Device group registration and management APIs
         A. GET DEVICE GROUPS              - GET    /devicegroups
-        B. ADD DEVICE GROUP               - POST   /devicegroups/DEVICEGROUPNAME
-        C. DELETE DEVICE GROUP            - DELETE /devicegroups/DEVICEGROUPNAME
-        D. GET DEVICE GROUP               - GET    /devicegroups/DEVICEGROUPNAME
-        E. UPDATE DEVICE GROUP NAME       - POST   /devicegroups/DEVICEGROUPNAME/name
-        F. ADD DEVICE TO GROUP            - POST   /devicegroups/DEVICEGROUPNAME/device/DEVICENAME
-        G. DELETE DEVICE FROM GROUP       - DELETE /devicegroups/DEVICEGROUPNAME/device/DEVICENAME
-        H. SET DEVICES IN DEVICE GROUP    - POST   /devicegroups/DEVICEGROUPNAME/devices
+        B. ADD DEVICE GROUP               - POST   /devicegroups/group/DEVICEGROUPNAME
+        C. REMOVE DEVICE GROUP            - DELETE /devicegroups/group/DEVICEGROUPNAME
+        D. GET DEVICE GROUP               - GET    /devicegroups/group/DEVICEGROUPNAME
+        E. GET DEVICE GROUP DETAILED      - GET    /devicegroups/group/DEVICEGROUPNAME/devices
+        F. UPDATE DEVICE GROUP NAME       - POST   /devicegroups/group/DEVICEGROUPNAME/name
+        G. ADD DEVICE TO GROUP            - POST   /devicegroups/group/DEVICEGROUPNAME/device/DEVICENAME
+        H. REMOVE DEVICE FROM GROUP       - DELETE /devicegroups/group/DEVICEGROUPNAME/device/DEVICENAME
+        I. SET DEVICES IN DEVICE GROUP    - POST   /devicegroups/group/DEVICEGROUPNAME/devices
+        J. GET UNGROUPED DEVICES          - GET    /devicegroups/ungrouped
+        K. GET DEVICE GROUPS & UNGROUPED DEVICES   - GET    /devicegroups/mixed
+        //
+        // location
+        L. GET DEVICE GROUP LOCATION      - GET    /devicegroups/group/DEVICEGROUPNAME/location
+        M. SET DEVICE GROUP LOCATION      - POST   /devicegroups/group/DEVICEGROUPNAME/location
+        N. DELETE DEVICE GROUP LOCATION   - DELETE /devicegroups/group/DEVICEGROUPNAME/location
+        //
+        // ota firmware update
+        O. GET DEVICE GROUP OTA STATUSES  - GET    /devicegroups/group/DEVICEGROUPNAME/ota
 
-    5. Device access and control APIs (STATUS, UART, GPIO)
+    5. Device access and control APIs (LDSBUS)
+        A. GET LDS BUS                    - GET    /devices/device/DEVICENAME/ldsbus/PORT
+        B. GET LDS BUS LDSUS              - GET    /devices/device/DEVICENAME/ldsbus/PORT/ldsus
+        C. GET LDS BUS SENSORS            - GET    /devices/device/DEVICENAME/ldsbus/PORT/sensors
+        D. GET LDS BUS ACTUATORS          - GET    /devices/device/DEVICENAME/ldsbus/PORT/actuators
+        E. SCAN LDS BUS                   - POST   /devices/device/DEVICENAME/ldsbus/PORT
+        F. CHANGE LDSU NAME               - POST   /devices/device/DEVICENAME/ldsu/LDSUUUID/name
+        G. IDENTIFY LDSU                  - POST   /devices/device/DEVICENAME/ldsu/LDSUUUID/identify
+        H. GET LDSU                       - GET    /devices/device/DEVICENAME/ldsu/LDSUUUID
+        I. DELETE LDSU                    - DELETE /devices/device/DEVICENAME/ldsu/LDSUUUID
+        //
+        // LDSU DEVICE refers to SENSOR or ACTUATOR
+        J. SET LDSU DEVICE PROPERTIES     - POST   /devices/device/DEVICENAME/LDSUUUID/NUMBER/sensors/sensor/SENSORNAME/properties
+        K. GET LDSU DEVICE PROPERTIES     - GET    /devices/device/DEVICENAME/LDSUUUID/NUMBER/sensors/sensor/SENSORNAME/properties
+        L. ENABLE/DISABLE LDSU DEVICE     - POST   /devices/device/DEVICENAME/LDSUUUID/NUMBER/sensors/sensor/SENSORNAME/enable
+        M. CHANGE LDSU DEVICE NAME        - POST   /devices/device/DEVICENAME/LDSUUUID/NUMBER/sensors/sensor/SENSORNAME/name
+
+    6. Device access and control APIs (STATUS, UART, GPIO)
         // status
         A. GET STATUS                     - GET    /devices/device/DEVICENAME/status
         B. SET STATUS                     - POST   /devices/device/DEVICENAME/status
@@ -516,7 +551,7 @@ Paypal payment merchant account
         // sensor properties
         T. DELETE PERIPHERAL SENSOR PROPERTIES             - DELETE /devices/device/DEVICENAME/sensors/properties
 
-    6. Device access and control APIs (I2C)
+    7. Device access and control APIs (I2C)
         A. ADD I2C DEVICE                 - POST   /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME
         B. DELETE I2C DEVICE              - DELETE /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME
         C. GET I2C DEVICE                 - GET    /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME
@@ -533,7 +568,7 @@ Paypal payment merchant account
         N. DELETE I2C DEVICES READINGS    - DELETE /devices/device/DEVICENAME/i2c/NUMBER/sensors/readings
            (NUMBER can be 1-4 only and corresponds to I2C1,I2C2,I2C3,I2C4)
 
-    7. Device access and control APIs (ADC)
+    8. Device access and control APIs (ADC)
         A. ADD ADC DEVICE                 - POST   /devices/device/DEVICENAME/adc/NUMBER/sensors/sensor/SENSORNAME
         B. DELETE ADC DEVICE              - DELETE /devices/device/DEVICENAME/adc/NUMBER/sensors/sensor/SENSORNAME
         C. GET ADC DEVICE                 - GET    /devices/device/DEVICENAME/adc/NUMBER/sensors/sensor/SENSORNAME
@@ -550,7 +585,7 @@ Paypal payment merchant account
         M. GET ADC VOLTAGE                - GET    /devices/device/DEVICENAME/adc/voltage
         N. SET ADC VOLTAGE                - POST   /devices/device/DEVICENAME/adc/voltage
 
-    8. Device access and control APIs (1WIRE)
+    9. Device access and control APIs (1WIRE)
         A. ADD 1WIRE DEVICE               - POST   /devices/device/DEVICENAME/1wire/NUMBER/sensors/sensor/SENSORNAME
         B. DELETE 1WIRE DEVICE            - DELETE /devices/device/DEVICENAME/1wire/NUMBER/sensors/sensor/SENSORNAME
         C. GET 1WIRE DEVICE               - GET    /devices/device/DEVICENAME/1wire/NUMBER/sensors/sensor/SENSORNAME
@@ -565,7 +600,7 @@ Paypal payment merchant account
         L. DELETE 1WIRE DEVICES READINGS  - DELETE /devices/device/DEVICENAME/1wire/NUMBER/sensors/readings
            (NUMBER will always be 1 since there is only 1 1wire)
 
-    9. Device access and control APIs (TPROBE)
+    10. Device access and control APIs (TPROBE)
         A. ADD TPROBE DEVICE              - POST   /devices/device/DEVICENAME/tprobe/NUMBER/sensors/sensor/SENSORNAME
         B. DELETE TPROBE DEVICE           - DELETE /devices/device/DEVICENAME/tprobe/NUMBER/sensors/sensor/SENSORNAME
         C. GET TPROBE DEVICE              - GET    /devices/device/DEVICENAME/tprobe/NUMBER/sensors/sensor/SENSORNAME
@@ -580,34 +615,34 @@ Paypal payment merchant account
         L. DELETE TPROBE DEVICES READINGS - DELETE /devices/device/DEVICENAME/tprobe/NUMBER/sensors/readings
            (NUMBER will always be 1 since there is only 1 tprobe)
 
-    10. Device transaction recording APIs
+    11. Device transaction recording APIs
         A. GET HISTORIES                  - GET    /devices/histories
         B. GET HISTORIES FILTERED         - POST   /devices/histories
            (filter by device name, direction, topic, date start, date end)
         C. GET MENOS HISTORIES            - GET    /devices/menos
         D. GET MENOS HISTORIES FILTERED   - POST   /devices/menos
 
-    11. Account subscription and payment APIs
+    12. Account subscription and payment APIs
         A. GET SUBSCRIPTION               - GET    /account/subscription
         B. SET SUBSCRIPTION               - POST   /account/subscription
         C. PAYPAL SETUP                   - POST   /account/payment/paypalsetup
         D. PAYPAL EXECUTE                 - POST   /account/payment/paypalexecute
         E. PAYPAL VERIFY                  - POST   /account/payment/paypalverify
 
-    12. Mobile services
+    13. Mobile services
         A. REGISTER DEVICE TOKEN          - POST   /mobile/devicetoken
 
-    13. Supported devices and firmware updates
+    14. Supported devices and firmware updates
         A. GET SUPPORTED I2C DEVICES      - GET    /others/i2cdevices [OBSOLETED, use GET SUPPORTED SENSOR DEVICES instead]
         B. GET SUPPORTED SENSOR DEVICES   - GET    /others/sensordevices
         C. GET DEVICE FIRMWARE UPDATES    - GET    /others/firmwareupdates
 
-    14. Others
+    15. Others
         A. SEND FEEDBACK                  - POST   /others/feedback
         B. GET FAQS                       - GET    /others/faqs
         C. GET ABOUT                      - GET    /others/about
 
-    15. HTTP error codes
+    16. HTTP error codes
         A. HTTP_400_BAD_REQUEST           - Invalid input
         B. HTTP_401_UNAUTHORIZED          - Invalid password or invalid/expired token
         C. HTTP_404_NOT_FOUND             - User or device not found

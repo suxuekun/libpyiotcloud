@@ -1,5 +1,6 @@
 from registration_config import config as registration_config
 from web_server_database import database_client
+from device_client import device_client
 from datetime import datetime
 import json
 import time
@@ -33,6 +34,7 @@ CONFIG_DBHOST = registration_config.CONFIG_MONGODB_HOST
 g_messaging_client = None
 g_sensor_client = None
 g_database_client = None
+g_device_client = None
 
 
 
@@ -87,11 +89,11 @@ def set_descriptor(database_client, deviceid, topic, payload):
         return
 
     payload = json.loads(payload)
-    print_json(payload)
+    #print_json(payload)
 
     # set the descriptor in the database
-    if payload.get("descriptor"):
-        database_client.set_device_descriptor_by_deviceid(deviceid, payload["descriptor"])
+    if payload.get("value"):
+        database_client.set_device_descriptor_by_deviceid(deviceid, payload["value"])
 
 
 def set_ldsu_descs(database_client, deviceid, topic, payload):
@@ -99,14 +101,73 @@ def set_ldsu_descs(database_client, deviceid, topic, payload):
     print("{} {}".format(topic, deviceid))
 
     # find if deviceid exists
-    devicename = database_client.get_devicename(deviceid)
+    devicename, username = database_client.get_devicename_username(deviceid)
     if devicename is None:
         return
 
     payload = json.loads(payload)
-    print_json(payload)
+    #print_json(payload)
 
-    # TODO save to database
+
+    # set status for non-present LDSUs
+    ldsus = database_client.get_ldsus_by_deviceid(username, deviceid)
+    for ldsu in ldsus:
+        found = False
+        for descriptor in payload["value"]:
+            if ldsu["UID"] == descriptor["UID"]:
+                found = True
+                break
+        if not found:
+            #print("not found {}".format(ldsu["UID"]))
+            database_client.set_ldsu_status_by_deviceid(username, deviceid, ldsu["UID"], 0)
+
+
+    # save each ldsu to database
+    for descriptor in payload["value"]:
+        #print_json(descriptor)
+
+        # add or update ldsu
+        ldsu = database_client.set_ldsu_by_deviceid(username, deviceid, descriptor)
+
+        # add or update sensors
+        #sensors_actuators = g_device_client.get_obj(ldsu["OBJ"])
+        obj = ldsu["descriptor"]["OBJ"]
+        #print(ldsu["descriptor"]["OBJ"])
+        num = g_device_client.get_obj_numdevices(obj)
+        #print(num)
+        for x in range(num):
+            descriptor = g_device_client.get_objidx(obj, x)
+            if descriptor:
+                source = ldsu["UID"]
+                number = g_device_client.get_objidx_said(descriptor)
+                sensorname = ldsu["LABL"] + " " + descriptor["SAID"]
+                sensor = {
+                    'port'     : ldsu["PORT"],
+                    'name'     : ldsu["LABL"],
+                    'class'    : g_device_client.get_objidx_class(descriptor),
+                    #'address'  : g_device_client.get_objidx_address(descriptor),
+                    'address'  : int(g_device_client.get_objidx_said(descriptor)), # use said to fix sensor data compatibility
+                    'format'   : g_device_client.get_objidx_format(descriptor),
+                    'type'     : g_device_client.get_objidx_type(descriptor),
+                    'unit'     : g_device_client.get_objidx_unit(descriptor),
+                    'accuracy' : g_device_client.get_objidx_accuracy(descriptor),
+                    'minmax'   : g_device_client.get_objidx_minmax(descriptor),
+                    'obj'      : obj,
+                }
+                #print("source     {}".format(source))
+                #print("number     {}".format(number))
+                #print("sensorname {}".format(sensorname))
+                #print("class      {}".format(sensor["class"]))
+                #print("port       {}".format(sensor["port"]))
+                #print("format     {}".format(sensor["format"]))
+                #print("type       {}".format(sensor["type"]))
+                #print("unit       {}".format(sensor["unit"]))
+                #print("accuracy   {}".format(sensor["accuracy"]))
+                #print("minmax     {}".format(sensor["minmax"]))
+                #print("obj        {}".format(sensor["obj"]))
+                #print()
+                #print("{} {} {} {}".format(source, number, sensorname, sensor["class"]))
+                database_client.add_sensor_by_deviceid(username, deviceid, source, number, sensorname, sensor)
 
 
 def set_registration(database_client, deviceid, topic, payload):
@@ -121,7 +182,7 @@ def set_registration(database_client, deviceid, topic, payload):
     payload = json.loads(payload)
     print_json(payload)
 
-    for sensor in payload["sensors"]:
+    for sensor in payload["value"]:
         # parse sensor
         peripheral = sensor["source"]
         sensor.pop("source")
@@ -278,6 +339,9 @@ if __name__ == '__main__':
     g_database_client = database_client(host=CONFIG_DBHOST)
     g_database_client.initialize()
 
+    # Initialize Sensor/Actuator Client
+    g_device_client = device_client()
+    g_device_client.initialize()
 
     # Initialize MQTT/AMQP client
     print("Using {} for device-messagebroker communication!".format("AMQP" if CONFIG_USE_AMQP else "MQTT"))

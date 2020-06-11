@@ -161,8 +161,8 @@ class database_client:
         deviceid = self._devices.get_deviceid(username, devicename)
         return self._devices.update_device_notification(username, devicename, deviceid, source, notification)
 
-    def update_device_notification_by_deviceid(self, deviceid, source, notification):
-        return self._devices.update_device_notification_by_deviceid(deviceid, source, notification)
+    def update_device_notification_by_deviceid(self, deviceid, source, number, notification):
+        return self._devices.update_device_notification_by_deviceid(deviceid, source, number, notification)
 
     def delete_device_notification(self, username, devicename):
         return self._devices.delete_device_notification(username, devicename)
@@ -170,8 +170,8 @@ class database_client:
     def get_device_notification(self, username, devicename, source):
         return self._devices.get_device_notification(username, devicename, source)
 
-    def get_device_notification_by_deviceid(self, deviceid, source):
-        return self._devices.get_device_notification_by_deviceid(deviceid, source)
+    def get_device_notification_by_deviceid(self, deviceid, source, number):
+        return self._devices.get_device_notification_by_deviceid(deviceid, source, number)
 
 
     ##########################################################
@@ -572,13 +572,19 @@ class database_client_mongodb:
             #print("update_device_notification replace_one")
             notifications.replace_one({'username': username, 'devicename': devicename, 'deviceid': deviceid, 'source': source}, item)
 
-    def update_device_notification_by_deviceid(self, deviceid, source, notification):
+    def update_device_notification_by_deviceid(self, deviceid, source, number, notification):
         notifications = self.get_notifications_document()
         if notifications:
-            found = notifications.find_one({'deviceid': deviceid, 'source': source})
-            if found:
-                found["notification"] = notification
-                notifications.replace_one({'deviceid': deviceid, 'source': source}, found)
+            if number is None:
+                found = notifications.find_one({'deviceid': deviceid, 'source': source})
+                if found:
+                    found["notification"] = notification
+                    notifications.replace_one({'deviceid': deviceid, 'source': source}, found)
+            else:
+                found = notifications.find_one({'deviceid': deviceid, 'source': source, 'number': number})
+                if found:
+                    found["notification"] = notification
+                    notifications.replace_one({'deviceid': deviceid, 'source': source, 'number': number}, found)
 
     def delete_device_notification(self, username, devicename):
         notifications = self.get_notifications_document();
@@ -597,13 +603,19 @@ class database_client_mongodb:
                 return notification['notification']
         return None
 
-    def get_device_notification_by_deviceid(self, deviceid, source):
+    def get_device_notification_by_deviceid(self, deviceid, source, number):
         notifications = self.get_notifications_document();
         if notifications:
-            for notification in notifications.find({'deviceid': deviceid, 'source': source}):
-                notification.pop('_id')
-                #print(notification['notification'])
-                return notification['notification']
+            if number is None:
+                for notification in notifications.find({'deviceid': deviceid, 'source': source}):
+                    notification.pop('_id')
+                    #print(notification['notification'])
+                    return notification['notification']
+            else:
+                for notification in notifications.find({'deviceid': deviceid, 'source': source, 'number': number}):
+                    notification.pop('_id')
+                    #print(notification['notification'])
+                    return notification['notification']
         return None
 
 

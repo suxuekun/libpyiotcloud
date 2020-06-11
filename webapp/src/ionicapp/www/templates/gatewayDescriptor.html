@@ -15,43 +15,102 @@
     <form id="gatewayDescriptor-form258" class="list">
       <div id="gatewayDescriptor-markdown446" class="show-list-numbers-and-dots"></div>
       <div class="spacer" style="width: 480px; height: 25px;"></div>
-      <div id="gatewayDescriptor-markdown448" class="show-list-numbers-and-dots">
-        <p style="color:#444444;">{{ descriptor }}</p>
-      </div>
+      <ion-item class="item-divider" id="gatewayDescriptor-list-item-divider46"> UUID</ion-item>
+      <label class="item item-input" id="gatewayDescriptor-input197">
+        <input type="text" placeholder="" ng-model="descriptor.UUID" readonly="">
+      </label>
+      <ion-item class="item-divider" id="gatewayDescriptor-list-item-divider47"> Serial Number</ion-item>
+      <label class="item item-input" id="gatewayDescriptor-input204">
+        <input type="text" placeholder="" ng-model="descriptor.SNO" readonly="">
+      </label>
+      <ion-item class="item-divider" id="gatewayDescriptor-list-item-divider48"> PoE Mac Address</ion-item>
+      <label class="item item-input" id="gatewayDescriptor-input205">
+        <input type="text" placeholder="" ng-model="descriptor.PMAC" readonly="">
+      </label>
+      <ion-item class="item-divider" id="gatewayDescriptor-list-item-divider49"> WiFi Mac Address</ion-item>
+      <label class="item item-input" id="gatewayDescriptor-input203">
+        <input type="text" placeholder="" ng-model="descriptor.WMAC" readonly="">
+      </label>
+      <ion-item class="item-divider" id="gatewayDescriptor-list-item-divider50"> Model Number</ion-item>
+      <label class="item item-input" id="gatewayDescriptor-input202">
+        <input type="text" placeholder="" ng-model="descriptor.MOD" readonly="">
+      </label>
+      <ion-item class="item-divider" id="gatewayDescriptor-list-item-divider51"> Product Version</ion-item>
+      <label class="item item-input" id="gatewayDescriptor-input201">
+        <input type="text" placeholder="" ng-model="descriptor.PRV" readonly="">
+      </label>
+      <ion-item class="item-divider" id="gatewayDescriptor-list-item-divider52"> Firmware Version</ion-item>
+      <label class="item item-input" id="gatewayDescriptor-input199">
+        <input type="text" placeholder="" ng-model="descriptor.FWV" readonly="">
+      </label>
+      <ion-item class="item-divider" id="gatewayDescriptor-list-item-divider53"> Sensor Cache Storage Size</ion-item>
+      <label class="item item-input" id="gatewayDescriptor-input200">
+        <input type="text" placeholder="" ng-model="descriptor.ICAC" readonly="">
+      </label>
+      <ion-item class="item-divider" id="gatewayDescriptor-list-item-divider54"> Number of LDS Ports</ion-item>
+      <label class="item item-input" id="gatewayDescriptor-input198">
+        <input type="text" placeholder="" ng-model="descriptor.IPRT" readonly="">
+      </label>
+      <ion-item class="item-divider" id="gatewayDescriptor-list-item-divider55"> Configuration Storage</ion-item>
+      <label class="item item-input" id="gatewayDescriptor-input206">
+        <input type="text" placeholder="" ng-model="descriptor.ICFG" readonly="">
+      </label>
+      <ion-item class="item-divider" id="gatewayDescriptor-list-item-divider56"> Maximum LDSUs per Gateway</ion-item>
+      <label class="item item-input" id="gatewayDescriptor-input209">
+        <input type="text" placeholder="" ng-model="descriptor.MLG" readonly="">
+      </label>
+      <ion-item class="item-divider" id="gatewayDescriptor-list-item-divider57"> Machine to Machine Config</ion-item>
+      <label class="item item-input" id="gatewayDescriptor-input208">
+        <input type="text" placeholder="" ng-model="descriptor.M2M" readonly="">
+      </label>
+      <ion-item class="item-divider" id="gatewayDescriptor-list-item-divider58"> GPS Location</ion-item>
+      <label class="item item-input" id="gatewayDescriptor-input207">
+        <input type="text" placeholder="" ng-model="descriptor.WGPS" readonly="">
+      </label>
+      <ion-item class="item-divider" id="gatewayDescriptor-list-item-divider59"> Auto-Scan</ion-item>
+      <label class="item item-input" id="gatewayDescriptor-input212">
+        <input type="text" placeholder="" ng-model="descriptor.WASC" readonly="">
+      </label>
+      <ion-item class="item-divider" id="gatewayDescriptor-list-item-divider60"> Sensor Cache Status</ion-item>
+      <label class="item item-input" id="gatewayDescriptor-input210">
+        <input type="text" placeholder="" ng-model="descriptor.WSCS" readonly="">
+      </label>
+      <ion-item class="item-divider" id="gatewayDescriptor-list-item-divider61"> Object Identifier</ion-item>
+      <label class="item item-input" id="gatewayDescriptor-input211">
+        <input type="text" placeholder="" ng-model="descriptor.OBJ" readonly="">
+      </label>
       <div id="gatewayDescriptor-markdown445" class="show-list-numbers-and-dots">
-        <p style="color:#444444;">UUID: {{ descriptor.UUID }}</p>
+        <p style="color:#444444;">UUID: {{ descriptor.UUID }} // UUID</p>
 
-        <p style="color:#444444;">SNO: {{ descriptor.SNO }}</p>
+        <p style="color:#444444;">SNO: {{ descriptor.SNO }} // Serial Number</p>
 
-        <p style="color:#444444;">PMAC: {{ descriptor.PMAC }}</p>
+        <p style="color:#444444;">PMAC: {{ descriptor.PMAC }} // PoE MAC ID</p>
 
-        <p style="color:#444444;">WMAC: {{ descriptor.WMAC }}</p>
+        <p style="color:#444444;">WMAC: {{ descriptor.WMAC }} // WiFi MAC ID</p>
 
-        <p style="color:#444444;">MOD: {{ descriptor.MOD }}</p>
+        <p style="color:#444444;">MOD: {{ descriptor.MOD }} // Model Number</p>
 
-        <p style="color:#444444;">PRV: {{ descriptor.PRV }}</p>
+        <p style="color:#444444;">PRV: {{ descriptor.PRV }} // Product Version</p>
 
-        <p style="color:#444444;">FWV: {{ descriptor.FWV }}</p>
+        <p style="color:#444444;">FWV: {{ descriptor.FWV }} // Firmware Version and date</p>
 
-        <p style="color:#444444;">ICAC: {{ descriptor.ICAC }}</p>
+        <p style="color:#444444;">ICAC: {{ descriptor.ICAC }} // Sensor Cache Storage Size</p>
 
-        <p style="color:#444444;">IPRT: {{ descriptor.IPRT }}</p>
+        <p style="color:#444444;">IPRT: {{ descriptor.IPRT }} // Number of LDS Ports</p>
 
-        <p style="color:#444444;">ICFG: {{ descriptor.ICFG }}</p>
+        <p style="color:#444444;">ICFG: {{ descriptor.ICFG }} // Configuration Storage</p>
 
-        <p style="color:#444444;">WGPS: {{ descriptor.WGPS }}</p>
+        <p style="color:#444444;">MLG: {{ descriptor.MLG }} // Maximum LDSUs per Gateway</p>
 
-        <p style="color:#444444;">WMLP: {{ descriptor.WMLP }}</p>
+        <p style="color:#444444;">M2M: {{ descriptor.M2M }} // Machine to machine config </p>
 
-        <p style="color:#444444;">IUPC: {{ descriptor.IUPC }}</p>
+        <p style="color:#444444;">WGPS: {{ descriptor.WGPS }} // GPS Location</p>
 
-        <p style="color:#444444;">IUPE: {{ descriptor.IUPE }}</p>
+        <p style="color:#444444;">WASC: {{ descriptor.WASC }} // Auto-scan</p>
 
-        <p style="color:#444444;">WASC: {{ descriptor.WASC }}</p>
+        <p style="color:#444444;">WSCS: {{ descriptor.WSCS }} // Sensor Cache Status</p>
 
-        <p style="color:#444444;">WSCS: {{ descriptor.WSCS }}</p>
-
-        <p style="color:#444444;">OBJ: {{ descriptor.OBJ }}</p>
+        <p style="color:#444444;">OBJ: {{ descriptor.OBJ }} // Sensor Cache Status</p>
       </div>
     </form>
   </ion-content>

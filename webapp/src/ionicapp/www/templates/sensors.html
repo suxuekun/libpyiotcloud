@@ -20,15 +20,20 @@
         <p style="color:#AAAAAA;font-size:12px;">{{ data.sensors.length }} sensors detected on LDS BUS port {{ data.activeSection }}</p>
       </div>
       <div class="list card" id="sensors-card230" ng-repeat="sensor in data.sensors">
-        <div class="item item-body card_top" id="sensors-list-item-container52" ng-click="changeLDSU(ldsu)">
+        <div class="item item-body" id="sensors-list-item-container52" ng-click="processSensor(sensor)">
           <div id="sensors-markdown545" class="show-list-numbers-and-dots">
-            <p style="margin-top:0px;color:#FFFFFF;font-size:18px;">
-              <strong> {{ sensor.name }} </strong>
+            <p style="margin-top:0px;color:#3C5A99;font-size:18px;">
+              <strong> {{ sensor.sensorname }} </strong>
             </p>
           </div>
+          <div id="sensors-markdown333" class="show-list-numbers-and-dots">
+            <p style="margin-top:0px;color:#888888;font-size:12px;">{{ sensor.class }}</p>
+          </div>
         </div>
-        <div id="sensors-markdown546" class="show-list-numbers-and-dots card_label_devicegroups">
-          <p style="margin-top:0px;color:#888888;font-size:12px;">{{ sensor.class }}</p>
+        <div id="sensors-container97">
+          <form id="sensors-form259" class="list">
+            <ion-toggle toggle-class="toggle-positive" id="sensors-toggle33" ng-show="sensor.configured" ng-model="sensor.enabled_bool" ng-click="enableSensor(sensor, sensor.enabled_bool)">.</ion-toggle>
+          </form>
         </div>
       </div>
     </form>
