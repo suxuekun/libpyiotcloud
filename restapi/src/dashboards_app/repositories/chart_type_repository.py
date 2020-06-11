@@ -5,7 +5,7 @@ from shared.core.mongo_base_repository import MongoBaseRepository, IMongoBaseRep
 from shared.core.exceptions import CreatedExeception
 from dashboards_app.models.chart_type import PIE_CHART, DONUT_CHART, LINE_CHART, BAR_CHART
 
-class IChartTypeRepository(BaseRepository):
+class IChartTypeRepository(BaseRepository, IMongoBaseRepository):
     
     def create_many(self, inputs):
         pass

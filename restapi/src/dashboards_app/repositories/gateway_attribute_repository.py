@@ -3,7 +3,7 @@ from shared.core.mongo_base_repository import MongoBaseRepository, IMongoBaseRep
 from shared.core.base_repository import BaseRepository
 from shared.core.exceptions import CreatedExeception
 
-class IGatewayAttributeRepository(BaseRepository):
+class IGatewayAttributeRepository(BaseRepository, IMongoBaseRepository):
     def create_many(self, inputs):
         pass
     

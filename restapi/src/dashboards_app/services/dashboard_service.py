@@ -9,7 +9,7 @@ from schematics.exceptions import ValidationError, ModelValidationError
 from shared.core.exceptions import CreatedExeception, UpdatedException, QueriedByIdException, QueriedManyException, DeletedException
 from shared.services.logger_service import LoggerService
 from dashboards_app.utils.mapper_util import map_entities_to_summaries_response
-
+from dashboards_app.dtos.chart_gateway_dto import ChartGatewayDto
 
 class DashboardService:
     def __init__(self, dashboardRepository: IDashboardRepository):
@@ -41,8 +41,8 @@ class DashboardService:
         try:
             dto.validate()
             entity = self.dashboardRepository.getById(id)
-            dashboard = Dashboard.toDomain(entity)
-            dashboard.updateNameAndOption(dto)
+            dashboard = Dashboard.to_domain(entity)
+            dashboard.update_name_and_option(dto)
             self.dashboardRepository.update(id, dashboard.model.to_primitive())
             return Response.success(True, "Update dashboard successfully")
 
@@ -95,3 +95,40 @@ class DashboardService:
         except Exception as e:
             LoggerService().error(str(e), tag=self.tag)
             return Response.fail("Sorry, there is something wrong")
+        
+    def addNewChartGateway(self, dashboardId: str, dto: ChartGatewayDto):
+        try:
+            dto.validate()
+            entity = self.dashboardRepository.getById(dashboardId)
+            dashoard = Dashboard.to_domain(entity)
+            dashoard.add_chart_gateway(dto)
+            self.dashboardRepository.update(dashboardId, dashoard.model.gateways.to_primitive())
+            return Response.success(data=True, message="Add new dashboard successfully")
+        
+        except ModelValidationError as e:
+            LoggerService().error(str(e), tag=self.tag)
+            return Response.fail(str(e))
+
+        except UpdatedException as e:
+            LoggerService().error(str(e), tag=self.tag)
+            return Response.fail("Sorry, Add gateway failed")
+
+        except Exception as e:
+            LoggerService().error(str(e), tag=self.tag)
+            return Response.fail("Sorry, there is something wrong")
+        
+    def deleteChartGateway(self, dashboardId: str, chartId: str):
+        try:
+            entity = self.dashboardRepository.getById(dashboardId)
+            dashoard = Dashboard.to_domain(entity)
+            dashoard.remove_chart_gateway(chartId)
+            self.dashboardRepository.update(dashboardId, dashoard.model.gateways.to_primitive())
+            return Response.success(data=True, message="Delete dashboards successfully")
+
+        except DeletedException as e:
+            LoggerService().error(str(e), tag=self.tag)
+            return Response.fail("Sorry, delete chart gateway failed")
+
+        except Exception as e:
+            LoggerService().error(str(e), tag=self.tag)
+            return Response.fail("Sorry, there is something wrong")    

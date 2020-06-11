@@ -15,7 +15,6 @@ class GatewayAttributeService:
         try:
             isExisted = self.gatewayAttributeRepo.check_collection_existed()
             if isExisted:
-                print("Check new")
                 return False
             
             inputs = [

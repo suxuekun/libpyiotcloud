@@ -23,6 +23,8 @@ class MongoBaseRepository(BaseRepository, IMongoBaseRepository):
         self.collection = db[collectionName]
 
     def check_collection_existed(self):
+        print(self.collectionName)
+        print(self.db.list_collection_names())
         return self.collectionName in self.db.list_collection_names()
 
     def create(self, input) -> str:

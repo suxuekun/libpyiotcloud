@@ -2,7 +2,6 @@
 
 from schematics.types import StringType, DecimalType, IntType, BooleanType, ListType, ModelType
 from shared.core.model import BaseModel, TimeStampMixin
-from shared.core.model import BaseModel, TimeStampMixin, MongoIdMixin
 
 
 PIE_CHART = "PIE"
@@ -41,5 +40,6 @@ class FactoryChartTypeModel:
             model._id = LINE_CHART_ID
             model.name = LINE_CHART
             return model
+        return ChartTypeModel()
     
     

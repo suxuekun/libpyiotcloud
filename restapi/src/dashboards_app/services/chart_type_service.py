@@ -18,7 +18,7 @@ class ChartTypeService:
             isExisted = self.chartTypeRepo.check_collection_existed()
             if isExisted:
                 return False
-            
+           
             # Create charts types
             inputs = [
                 FactoryChartTypeModel.create(PIE_CHART).to_primitive(),
