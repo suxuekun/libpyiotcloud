@@ -7,6 +7,9 @@ class IGatewayAttributeRepository(BaseRepository):
     def create_many(self, inputs):
         pass
     
+    def gets_summary(self):
+        pass
+    
 class GatewayAttributeRepository(MongoBaseRepository, IGatewayAttributeRepository):
     
     def __init__(self, mongoclient, db, collectionName):
@@ -22,3 +25,12 @@ class GatewayAttributeRepository(MongoBaseRepository, IGatewayAttributeRepositor
         except Exception as e:
             print(e)
             raise CreatedExeception(str(e))
+    
+    def gets_summary(self):
+        projection = {
+            "lables": 0,
+            "filters": 0,
+            "createdAt": 0,
+            "modifiedAt": 0
+        }
+        return super().gets(projection=projection)

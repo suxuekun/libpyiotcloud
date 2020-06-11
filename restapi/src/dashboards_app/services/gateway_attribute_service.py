@@ -31,7 +31,7 @@ class GatewayAttributeService:
         
     def gets(self):
         try:
-            results = self.gatewayAttributeRepo.gets()
+            results = self.gatewayAttributeRepo.gets_summary()
             return Response.success(data=results, message="Get attributes successully")
         except Exception as e:
             LoggerService().error(str(e), tag=self.tag)

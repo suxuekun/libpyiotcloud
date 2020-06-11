@@ -7,7 +7,6 @@ from dashboards_app.models.chart_type import PIE_CHART, DONUT_CHART, LINE_CHART,
 
 class IChartTypeRepository(BaseRepository):
     
-    
     def create_many(self, inputs):
         pass
     
@@ -16,7 +15,6 @@ class IChartTypeRepository(BaseRepository):
     
     def gets_for_sensor(self):
         pass
-    
 
 class ChartTypeRepository(MongoBaseRepository, IChartTypeRepository):
     

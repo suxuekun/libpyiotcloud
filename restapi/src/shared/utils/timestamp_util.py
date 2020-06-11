@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 import time
-
+import calendar
 
 def get_timestamp_float():
     return datetime.now().timestamp()
@@ -10,6 +10,26 @@ def get_timestamp_int():
 
 def get_timestamp():
     return str((datetime.now().timestamp()))
+
+def totalday_of_month(from_date=None):
+    from_date = from_date or  datetime.now()
+    total_days = calendar.monthrange(from_date.year, from_date.month)[1]
+    return total_days
+
+def remaining_days_of_month(from_date=None):
+    from_date = from_date or datetime.now()
+    total_days = totalday_of_month()
+    return total_days - from_date.day + 1
+
+def percent_of_month_left(from_date=None):
+    from_date = from_date or datetime.now()
+    total_days = totalday_of_month(from_date)
+    remaining_days = total_days - from_date.day + 1
+    return remaining_days/total_days,remaining_days,total_days
+
+if __name__ == "__main__":
+    r = percent_of_month_left()
+    print (r)
 
 if __name__ == "__main__":
     d_now = datetime.now()# get local time naive time , no time zone awared

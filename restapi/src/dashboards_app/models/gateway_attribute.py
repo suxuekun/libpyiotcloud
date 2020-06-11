@@ -19,7 +19,6 @@ class GatewayAttributeModel(BaseModel, MongoIdMixin, TimeStampMixin):
     lables = ListType(ModelType(AttributeValue), default=[])
     filters = ListType(ModelType(AttributeValue), default=[])
 
-
 class FactoryGatewayAttribute:
 
     @staticmethod

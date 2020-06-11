@@ -6,8 +6,15 @@ from bson.objectid import ObjectId
 from bson.json_util import dumps
 from shared.utils import timestamp_util
 
+class IMongoBaseRepository:
+    
+    def check_collection_existed(self):
+        pass
+    
+    def gets(self, query=None, projection=None):
+        pass
 
-class MongoBaseRepository(BaseRepository):
+class MongoBaseRepository(BaseRepository, IMongoBaseRepository):
 
     def __init__(self, mongoclient: MongoClient, db, collectionName: str):
         self.mongoclient = mongoclient
