@@ -240,7 +240,8 @@ angular.module('app.routes', [])
 		timestamp: "",
 		heartbeat: "",
 		version: "",
-		poemacaddress: ""		
+		poemacaddress: "",
+		location: ""		
 },
     templateUrl: 'templates/viewGateway.html',
     controller: 'viewGatewayCtrl'
@@ -296,7 +297,8 @@ angular.module('app.routes', [])
 		timestamp: "",
 		heartbeat: "",
 		version: "",
-		firmware: ""		
+		firmware: "",
+		location: ""		
 },
     templateUrl: 'templates/oTAFirmwareUpdate.html',
     controller: 'oTAFirmwareUpdateCtrl'
@@ -312,7 +314,8 @@ angular.module('app.routes', [])
 		serialnumber: "",
 		timestamp: "",
 		heartbeat: "",
-		version: ""		
+		version: "",
+		location: ""		
 },
     templateUrl: 'templates/gatewayGeneralSettings.html',
     controller: 'gatewayGeneralSettingsCtrl'
@@ -328,7 +331,8 @@ angular.module('app.routes', [])
 		serialnumber: "",
 		timestamp: "",
 		heartbeat: "",
-		version: ""		
+		version: "",
+		location: ""		
 },
     templateUrl: 'templates/gatewayDescriptor.html',
     controller: 'gatewayDescriptorCtrl'

@@ -723,6 +723,7 @@ class database_client:
     def delete_devices_location(self, username):
         self._devices.delete_devices_location(username)
 
+
     # org-ready
     def add_device_location(self, username, devicename, location):
         deviceid = self._devices.get_deviceid(username, devicename)
@@ -732,6 +733,7 @@ class database_client:
     def get_device_location(self, username, devicename):
         deviceid = self._devices.get_deviceid(username, devicename)
         return self._devices.get_device_location(deviceid)
+
 
     # org-ready
     def delete_device_location(self, username, devicename):
@@ -3274,53 +3276,53 @@ class database_client_mongodb:
     # device location
     ##########################################################
 
-    def get_device_location_document(self):
-        return self.client[config.CONFIG_MONGODB_TB_DEVICELOCATION]
+    #def get_device_location_document(self):
+    #    return self.client[config.CONFIG_MONGODB_TB_DEVICELOCATION]
 
-    def add_device_location(self, username, deviceid, location):
-        devicelocations = self.get_device_location_document()
-        item = {}
-        item['username'] = username
-        item['deviceid'] = deviceid
-        item['location'] = location
-        found = devicelocations.find_one({'deviceid': deviceid})
-        if found is None:
-            devicelocations.insert_one(item)
-        else:
-            devicelocations.replace_one({'deviceid': deviceid}, item)
+    #def add_device_location(self, username, deviceid, location):
+    #    devicelocations = self.get_device_location_document()
+    #    item = {}
+    #    item['username'] = username
+    #    item['deviceid'] = deviceid
+    #    item['location'] = location
+    #    found = devicelocations.find_one({'deviceid': deviceid})
+    #    if found is None:
+    #        devicelocations.insert_one(item)
+    #    else:
+    #        devicelocations.replace_one({'deviceid': deviceid}, item)
 
-    def get_device_location(self, deviceid):
-        devicelocations = self.get_device_location_document()
-        if devicelocations:
-            for devicelocation in devicelocations.find({'deviceid': deviceid}):
-                return devicelocation["location"]
-        return None
+    #def get_device_location(self, deviceid):
+    #    devicelocations = self.get_device_location_document()
+    #    if devicelocations:
+    #        for devicelocation in devicelocations.find({'deviceid': deviceid}):
+    #            return devicelocation["location"]
+    #    return None
 
-    def get_devices_location(self, username):
-        location_list = []
-        devicelocations = self.get_device_location_document()
-        if devicelocations:
-            for devicelocation in devicelocations.find({'username': username}):
-                devicelocation.pop('_id')
-                devicelocation.pop('username')
-                location_list.append(devicelocation)
-        return location_list
+    #def get_devices_location(self, username):
+    #    location_list = []
+    #    devicelocations = self.get_device_location_document()
+    #    if devicelocations:
+    #        for devicelocation in devicelocations.find({'username': username}):
+    #            devicelocation.pop('_id')
+    #            devicelocation.pop('username')
+    #            location_list.append(devicelocation)
+    #    return location_list
 
-    def delete_device_location(self, deviceid):
-        devicelocations = self.get_device_location_document()
-        if devicelocations:
-            try:
-                devicelocations.delete_one({ 'deviceid': deviceid })
-            except:
-                print("delete_device_location: Exception occurred")
+    #def delete_device_location(self, deviceid):
+    #    devicelocations = self.get_device_location_document()
+    #    if devicelocations:
+    #        try:
+    #            devicelocations.delete_one({ 'deviceid': deviceid })
+    #        except:
+    #            print("delete_device_location: Exception occurred")
 
-    def delete_devices_location(self, username):
-        devicelocations = self.get_device_location_document()
-        if devicelocations:
-            try:
-                devicelocations.delete_many({ 'username': username })
-            except:
-                print("delete_devices_location: Exception occurred")
+    #def delete_devices_location(self, username):
+    #    devicelocations = self.get_device_location_document()
+    #    if devicelocations:
+    #        try:
+    #            devicelocations.delete_many({ 'username': username })
+    #        except:
+    #            print("delete_devices_location: Exception occurred")
 
 
     ##########################################################
@@ -4367,8 +4369,8 @@ class database_client_mongodb:
         if devices and devices.count():
             for device in devices.find({'username': username},{'username': 0}): #,{'devicename':1, 'deviceid': 1, 'serialnumber':1, 'timestamp':1, 'heartbeat':1, 'version': 1}):
                 device.pop('_id')
-                if device.get('descriptor'):
-                    device.pop('descriptor')
+                #if device.get('descriptor'):
+                #    device.pop('descriptor')
                 device_list.append(device)
         return device_list
         #devices = self.get_registered_devices()
@@ -4431,6 +4433,7 @@ class database_client_mongodb:
         if poemacaddress is not None:
             device['poemacaddress']= poemacaddress
         device['timestamp']    = timestamp
+        device['location']     = {"latitude": 0, "longitude": 0}
         self.client.devices.insert_one(device)
         return True
 
@@ -4532,6 +4535,46 @@ class database_client_mongodb:
                 new_device['descriptor'] = descriptor
                 devices.replace_one(device, new_device)
                 break
+
+
+    def add_device_location(self, username, deviceid, location):
+        devices = self.get_registered_devices()
+        if devices:
+            for device in devices.find({'username': username, 'deviceid': deviceid}):
+                device.pop('_id')
+                new_device = copy.deepcopy(device)
+                new_device['location'] = location
+                devices.replace_one(device, new_device)
+                break
+
+
+    def get_device_location(self, deviceid):
+        devices = self.get_registered_devices()
+        if devices:
+            for device in devices.find({'deviceid': deviceid}):
+                return device['location']
+        return None
+
+    def get_devices_location(self, username):
+        location_list = []
+        devices = self.get_registered_devices()
+        if devices:
+            for device in devices.find({'username': username}):
+                device.pop('_id')
+                device.pop('username')
+                location_list.append({'deviceid': device['deviceid'], 'location': device['location']})
+        return location_list
+
+
+    def delete_device_location(self, deviceid):
+        devices = self.get_registered_devices()
+        if devices:
+            devices.delete_one({'deviceid': deviceid})
+
+    def delete_devices_location(self, deviceid):
+        devices = self.get_registered_devices()
+        if devices:
+            devices.delete_many({'username': username})
 
 
     ##########################################################

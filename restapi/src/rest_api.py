@@ -493,12 +493,16 @@ g_device_groups_list = [
 #
 ########################################################################################################
 
-@app.route('/devices/location', methods=['GET'])
-def get_deviceslocations():
-    return g_device_locations.get_deviceslocations()
-
 @app.route('/devices/location', methods=['POST'])
 def set_deviceslocations():
+    return g_device_locations.get_deviceslocations()
+
+@app.route('/devices/device/<devicename>/location', methods=['POST'])
+def set_devicelocation(devicename):
+    return g_device_locations.get_devicelocation(devicename)
+
+@app.route('/devices/location', methods=['GET'])
+def get_deviceslocations():
     return g_device_locations.get_deviceslocations()
 
 @app.route('/devices/location', methods=['DELETE'])
@@ -509,20 +513,17 @@ def delete_deviceslocations():
 def get_devicelocation(devicename):
     return g_device_locations.get_devicelocation(devicename)
 
-@app.route('/devices/device/<devicename>/location', methods=['POST'])
-def set_devicelocation(devicename):
-    return g_device_locations.get_devicelocation(devicename)
-
 @app.route('/devices/device/<devicename>/location', methods=['DELETE'])
 def delete_devicelocation(devicename):
     return g_device_locations.get_devicelocation(devicename)
 
 g_device_locations_list = [
-    { "name": "GET DEVICES LOCATIONS",    "func": get_deviceslocations,    "api": "/devices/location",                     "method": "GET"    },
     { "name": "SET DEVICES LOCATIONS",    "func": set_deviceslocations,    "api": "/devices/location",                     "method": "POST"   },
+    { "name": "SET DEVICE LOCATION",      "func": set_devicelocation,      "api": "/devices/device/<devicename>/location", "method": "POST"    },
+
+    { "name": "GET DEVICES LOCATIONS",    "func": get_deviceslocations,    "api": "/devices/location",                     "method": "GET"    },
     { "name": "DELETE DEVICES LOCATIONS", "func": delete_deviceslocations, "api": "/devices/location",                     "method": "DELETE" },
     { "name": "GET DEVICE LOCATION",      "func": get_devicelocation,      "api": "/devices/device/<devicename>/location", "method": "POST"   },
-    { "name": "SET DEVICE LOCATION",      "func": set_devicelocation,      "api": "/devices/device/<devicename>/location", "method": "GET"    },
     { "name": "DELETE DEVICE LOCATION",   "func": delete_devicelocation,   "api": "/devices/device/<devicename>/location", "method": "DELETE" },
 ]
 

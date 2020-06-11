@@ -883,9 +883,7 @@ class device:
             # if device is unreachable, get the cached heartbeat and version
             cached_value = self.database_client.get_device_cached_values(entityname, devicename)
             if not cached_value:
-                response = json.dumps({'status': 'NG', 'message': 'Device is not registered'})
-                print('\r\nERROR Device is not registered [{},{}]\r\n'.format(username, devicename))
-                return response, status.HTTP_404_NOT_FOUND
+                return response, status_return
             response = json.loads(response)
             response['value'] = cached_value
             response = json.dumps(response)

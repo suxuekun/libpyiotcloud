@@ -1316,7 +1316,18 @@ DETAILED:
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
 		   { 'status': 'OK', 'message': string, 
-		     'devicegroups': array[{'groupname': string, 'timestamp': int, 'devices': ["devicename", ...]}, ...] }
+		     'devicegroups': array[
+		       {
+		         'groupname': string, 'timestamp': int, 
+		         'devices': [
+		           {
+		             'devicename': string, 'deviceid': string, 'serialnumber': string, 'timestamp': string, 'heartbeat': string, 'version': string,
+		             'location': {'latitude': float, 'longitude': float}
+		           },...
+		         ]
+		       }, ...
+		     ] 
+		   }
 		   { 'status': 'NG', 'message': string}
 
 		B. ADD DEVICE GROUP
@@ -1353,7 +1364,16 @@ DETAILED:
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
 		   { 'status': 'OK', 'message': string, 
-		     'devicegroup': {'groupname': string, 'timestamp': int, 'devices': array[{'devicename': string, 'deviceid': string, 'serialnumber': string, 'timestamp': string, 'heartbeat': string, 'version': string}, ...]} }
+		     'devicegroup': {
+		       'groupname': string, 'timestamp': int, 
+		       'devices': array[
+		         {
+		           'devicename': string, 'deviceid': string, 'serialnumber': string, 'timestamp': string, 'heartbeat': string, 'version': string,
+		           'location': {'latitude': float, 'longitude': float}
+		         }, ...
+		       ]
+		     }
+		   }
 		   { 'status': 'NG', 'message': string}
 
 		F. UPDATE DEVICE GROUP NAME
@@ -1401,7 +1421,13 @@ DETAILED:
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
 		   { 'status': 'OK', 'message': string, 
-		     'devices': array[{'devicename': string, 'deviceid': string, 'serialnumber': string, 'timestamp': string, 'heartbeat': string, 'version': string}, ...]}
+		     'devices': array[
+		       {
+		         'devicename': string, 'deviceid': string, 'serialnumber': string, 'timestamp': string, 'heartbeat': string, 'version': string,
+		         'location': {'latitude': float, 'longitude': float}
+		       }, ...
+		     ]
+		   }
 		   { 'status': 'NG', 'message': string}
 		   // The return value is similar to GET DEVICES api
 
@@ -1412,8 +1438,23 @@ DETAILED:
 		-  Response:
 		   { 'status': 'OK', 'message': string, 
 		     'data': {
-		       'devices': array[{'devicename': string, 'deviceid': string, 'serialnumber': string, 'timestamp': string, 'heartbeat': string, 'version': string}, ...],
-		       'devicegroups': array[{'groupname': string, 'timestamp': int, 'devices': ["devicename", ...]}, ...]
+		       'devices': array[
+		         {
+		           'devicename': string, 'deviceid': string, 'serialnumber': string, 'timestamp': string, 'heartbeat': string, 'version': string, 
+		           'location': {'latitude': float, 'longitude': float}
+		         }, ...
+		       ],
+		       'devicegroups': array[
+		         {
+		           'groupname': string, 'timestamp': int, 
+		           'devices': [
+		             {
+		               'devicename': string, 'deviceid': string, 'serialnumber': string, 'timestamp': string, 'heartbeat': string, 'version': string, 
+		               'location': {'latitude': float, 'longitude': float}
+		             }, ...
+		           ]
+		         }, ...
+		       ]
 		     }
 		   }
 		   { 'status': 'NG', 'message': string}
