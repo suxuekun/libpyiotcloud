@@ -83,64 +83,8 @@
         </div>
       </div>
     </div>
-    <div class="spacer" style="width: 747.778px; height: 50px;"></div>
-    <div class="list card widget_button_half_device" id="gateway-card224" ng-click="submitUART()">
-      <div class="item item-body" id="gateway-list-item-container45">
-        <div id="gateway-markdown531" style="text-align:center;" class="show-list-numbers-and-dots">
-          <p style="margin-top:0px;color:#3C5A99;font-size:18px;">
-            <strong> UART </strong>
-          </p>
-        </div>
-      </div>
-    </div>
-    <div class="list card widget_button_half_device" id="gateway-card222" ng-click="submitGPIO()">
-      <div class="item item-body" id="gateway-list-item-container36">
-        <div id="gateway-markdown526" style="text-align:center;" class="show-list-numbers-and-dots">
-          <p style="margin-top:0px;color:#3C5A99;font-size:18px;">
-            <strong> GPIO </strong>
-          </p>
-        </div>
-      </div>
-    </div>
-    <div class="spacer" style="height: 3px;"></div>
-    <div class="list card widget_button_half_device" id="gateway-card213" ng-click="submitI2C()">
-      <div class="item item-body" id="gateway-list-item-container46">
-        <div id="gateway-markdown514" style="text-align:center;" class="show-list-numbers-and-dots">
-          <p style="margin-top:0px;color:#3C5A99;font-size:18px;">
-            <strong> I2C </strong>
-          </p>
-        </div>
-      </div>
-    </div>
-    <div class="list card widget_button_half_device" id="gateway-card214" ng-click="submitADC()">
-      <div class="item item-body" id="gateway-list-item-container47">
-        <div id="gateway-markdown515" style="text-align:center;" class="show-list-numbers-and-dots">
-          <p style="margin-top:0px;color:#3C5A99;font-size:18px;">
-            <strong> ADC </strong>
-          </p>
-        </div>
-      </div>
-    </div>
-    <div class="spacer" style="width: 747.778px; height: 3px;"></div>
-    <div class="list card widget_button_half_device" id="gateway-card215" ng-click="submit1WIRE()">
-      <div class="item item-body" id="gateway-list-item-container48">
-        <div id="gateway-markdown516" style="text-align:center;" class="show-list-numbers-and-dots">
-          <p style="margin-top:0px;color:#3C5A99;font-size:18px;">
-            <strong> Onewire </strong>
-          </p>
-        </div>
-      </div>
-    </div>
-    <div class="list card widget_button_half_device" id="gateway-card216" ng-click="submitTPROBE()">
-      <div class="item item-body" id="gateway-list-item-container49">
-        <div id="gateway-markdown518" style="text-align:center;" class="show-list-numbers-and-dots">
-          <p style="margin-top:0px;color:#3C5A99;font-size:18px;">
-            <strong> TProbe </strong>
-          </p>
-        </div>
-      </div>
-    </div>
-    <div class="list card d3container" id="gateway-card219">
+    <button id="gateway-button231" ng-click="scanLDSBUS()" class="button button-positive button-block">Scan</button>
+    <div class="list card d3container" id="gateway-card219" ng-show="1">
       <div class="hierarchychart" width="1000" height="450">
         <svg id="{{data.devicename_ex}}" width="1000" height="450">
         </svg>

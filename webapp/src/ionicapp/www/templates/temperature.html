@@ -12,7 +12,7 @@
         <strong> {{ data.devicename }} </strong>
       </p>
     </div>
-    <button id="temperature-button93" ng-click="viewXXXDevice()" style="font-weight:500;font-size:18px;" class="button button-dark button-block button-clear icon-right ion-android-settings">{{ data.sensor.sensorname }} - {{data.source}} {{ data.sensor.number }}</button>
+    <button id="temperature-button93" ng-click="viewXXXDevice()" style="font-weight:500;font-size:18px;" class="button button-dark button-block button-clear icon-right ion-android-settings">{{ data.sensor.sensorname }}</button>
     <div class="spacer" style="width: 300px; height: 20px;"></div>
     <form id="temperature-form83" class="list">
       <div id="temperature-markdown111" class="show-list-numbers-and-dots">
@@ -94,11 +94,11 @@
       </div>
       <ion-checkbox id="temperature-checkbox21" ng-model="data.attributes.notification.endpoints.email.enable">Send email to</ion-checkbox>
       <label class="item item-input" id="temperature-input129">
-        <input type="text" placeholder="Email address(es)" ng-model="data.attributes.notification.endpoints.email.recipients" readonly="">
+        <input type="text" placeholder="Email address(es)" ng-model="data.attributes.notification.endpoints.email.recipients">
       </label>
       <ion-checkbox id="temperature-checkbox22" ng-model="data.attributes.notification.endpoints.mobile.enable">Send SMS to</ion-checkbox>
       <label class="item item-input" id="temperature-input130">
-        <input type="text" placeholder="Phone number(s)" ng-model="data.attributes.notification.endpoints.mobile.recipients" readonly="">
+        <input type="text" placeholder="Phone number(s)" ng-model="data.attributes.notification.endpoints.mobile.recipients">
       </label>
       <ion-checkbox id="temperature-checkbox23" ng-model="data.attributes.notification.endpoints.notification.enable">Send notification to</ion-checkbox>
       <label class="item item-input" id="temperature-input131">
@@ -123,7 +123,8 @@
       </div>
     </form>
     <form id="temperature-form92" class="list">
-      <button id="temperature-button90" ng-click="submit()" class="button button-positive button-block">{{ data.sensor.subclass ? "DONE" : "SAVE" }}</button>
+      <button id="temperature-button90" ng-click="submit()" class="button button-positive button-block">SAVE</button>
+      <button id="temperature-button232" ng-click="submitDelete()" class="button button-assertive button-block">DELETE</button>
       <div class="spacer" style="height: 100px;"></div>
     </form>
   </ion-content>

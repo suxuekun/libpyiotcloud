@@ -6,6 +6,10 @@ import datetime
 import calendar
 
 from example_module.app import ExampleApp
+from flask_json import FlaskJSON, JsonError, json_response, as_json
+from flask_cors import CORS
+from flask_api import status
+#from certificate_generator import certificate_generator
 from messaging_client import messaging_client
 from rest_api_config import config
 from database import database_categorylabel, database_crudindex
@@ -16,19 +20,35 @@ import jwt
 from s3_client import s3_client
 import threading
 from redis_client import redis_client
+from device_client import device_client
+#import ssl
+#import json
+#import time
+#import hmac
+#import hashlib
+#import base64
+#import datetime
+#import calendar
+#import jwt
+#from jose import jwk, jwt
+#import http.client
+#import threading
+#import copy
 import statistics
-
 from message_broker_api import message_broker_api
-
 from rest_api_messaging_requests import messaging_requests
 from rest_api_identity_authentication import identity_authentication
 from rest_api_access_control import access_control
 from rest_api_payment_accounting import payment_accounting
+from rest_api_device import device
 from rest_api_device_groups import device_groups
 from rest_api_device_locations import device_locations
 from rest_api_device_otaupdates import device_otaupdates
 from rest_api_device_hierarchies import device_hierarchies
 from rest_api_device_histories import device_histories
+from rest_api_device_peripheral_properties import device_peripheral_properties
+from rest_api_device_ldsbus import device_ldsbus
+from rest_api_device_dashboard_old import device_dashboard_old
 from rest_api_other_stuffs import other_stuffs
 import rest_api_utils
 ###################################################################################
@@ -38,55 +58,56 @@ from shared.client.clients.database_client import db_client
 from shared.middlewares.default_middleware import DefaultMiddleWare
 
 CONFIG_DEVICE_ID            = "restapi_manager"
-
-CONFIG_USE_ECC              = True if int(os.environ["CONFIG_USE_ECC"]) == 1 else False
 CONFIG_SEPARATOR            = '/'
 CONFIG_PREPEND_REPLY_TOPIC  = "server"
-
+CONFIG_USE_ECC              = True if int(os.environ["CONFIG_USE_ECC"]) == 1 else False
 CONFIG_USE_REDIS_FOR_MQTT_RESPONSE  = True
 
 
 ###################################################################################
 # global variables
-###################################################################################
+########################################################################################################
 
 g_messaging_client          = None
 g_database_client           = None
 g_storage_client            = None
 g_redis_client              = None
+g_device_client             = None
 g_queue_dict  = {} # no longer used; replaced by redis
 g_event_dict  = {} # still used to trigger event from callback thread to rest api thread
 app = flask.Flask(__name__)
 CORS(app)
 # app.wsgi_app = DefaultMiddleWare(app.wsgi_app)
 
-
-
-###################################################################################
+########################################################################################################
 # Class instances
-###################################################################################
+########################################################################################################
 
-g_messaging_requests        = None
-g_identity_authentication   = None
-g_access_control            = None
-g_payment_accounting        = None
-g_device_locations          = None
-g_device_groups             = None
-g_device_otaupdates         = None
-g_device_hierarchies        = None
-g_device_histories          = None
-g_other_stuffs              = None
-g_utils                     = None
+g_messaging_requests           = None
+g_identity_authentication      = None
+g_access_control               = None
+g_payment_accounting           = None
+g_device                       = None
+g_device_locations             = None
+g_device_groups                = None
+g_device_otaupdates            = None
+g_device_hierarchies           = None
+g_device_histories             = None
+g_device_ldsbus                = None
+g_device_peripheral_properties = None
+g_device_dashboard_old         = None
+g_other_stuffs                 = None
+g_utils                        = None
 
 
-###################################################################################
+
+########################################################################################################
 # HTTP REST APIs
-###################################################################################
+########################################################################################################
 
 @app.route('/')
 def index():
     return "", status.HTTP_401_UNAUTHORIZED
-
 
 
 ########################################################################################################
@@ -606,54 +627,6 @@ g_device_histories_list = [
     { "name": "GET MENOS HISTORIES",          "func": get_device_menos_histories,          "api": "/devices/menos",     "method": "GET"    },
     { "name": "GET MENOS HISTORIES FILTERED", "func": get_device_menos_histories_filtered, "api": "/devices/menos",     "method": "POST"   },
 ]
-
-
-########################################################################################################
-#
-# OTHERS
-#
-########################################################################################################
-
-@app.route('/others/feedback', methods=['POST'])
-def send_feedback():
-    return g_other_stuffs.send_feedback()
-
-@app.route('/others/<item>', methods=['GET'])
-def get_item(item):
-    return g_other_stuffs.get_item(item)
-
-@app.route('/others/sensordevices', methods=['GET'])
-def get_supported_sensors():
-    return g_other_stuffs.get_supported_sensors()
-
-@app.route('/others/firmwareupdates', methods=['GET'])
-def get_device_firmware_updates():
-    return g_other_stuffs.get_device_firmware_updates()
-
-@app.route('/mobile/devicetoken', methods=['POST'])
-def register_mobile_device_token():
-    return g_other_stuffs.register_mobile_device_token()
-
-g_other_stuffs_list = [
-    { "name": "SEND FEEDBACK",         "func": send_feedback,                "api": "/others/feedback",        "method": "POST"   },
-    { "name": "GET ITEM",              "func": get_item,                     "api": "/others/<item>",          "method": "GET"    },
-    { "name": "GET SUPPORTED SENSORS", "func": get_supported_sensors,        "api": "/others/sensordevices",   "method": "GET"    },
-    { "name": "GET FIRMWARE UPDATES",  "func": get_device_firmware_updates,  "api": "/others/firmwareupdates", "method": "GET"    },
-    { "name": "REGISTER MOBILE TOKEN", "func": register_mobile_device_token, "api": "/mobile/devicetoken",     "method": "POST"   },
-]
-
-
-
-def sort_by_timestamp(elem):
-    return elem['timestamp']
-
-def sort_by_devicename(elem):
-    return elem['devicename']
-
-def sort_by_sensorname(elem):
-    return elem['sensorname']
-
-
 
 ########################################################################################################
 #
@@ -1372,246 +1345,6 @@ def get_usage():
 #   { 'status': 'NG', 'message': string }
 #
 ########################################################################################################
-@app.route('/devices/sensors/readings/dataset', methods=['POST', 'DELETE'])
-def get_all_device_sensors_enabled_input_readings_dataset_filtered():
-
-    #start_time = time.time()
-
-    # get token from Authorization header
-    auth_header_token = g_utils.get_auth_header_token()
-    if auth_header_token is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Get All Device Sensors Dataset: Invalid authorization header\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    token = {'access': auth_header_token}
-
-    # get username from token
-    username = g_database_client.get_username_from_token(token)
-    if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Get All Device Sensors Dataset: Token expired\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    #print('get_all_device_sensors_enabled_input_readings_dataset_filtered {}'.format(username))
-
-    # check if a parameter is empty
-    if len(username) == 0 or len(token) == 0:
-        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-        print('\r\nERROR Get All Device Sensors Dataset: Empty parameter found\r\n')
-        return response, status.HTTP_400_BAD_REQUEST
-
-    # check if username and token is valid
-    verify_ret, new_token = g_database_client.verify_token(username, token)
-    if verify_ret == 2:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Get All Device Sensors Dataset: Token expired [{}] DATETIME {}\r\n'.format(username, datetime.datetime.now()))
-        return response, status.HTTP_401_UNAUTHORIZED
-    elif verify_ret != 0:
-        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
-        print('\r\nERROR Get All Device Sensors Dataset: Token is invalid [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
-
-
-    # get entity using the active organization
-    orgname, orgid = g_database_client.get_active_organization(username)
-    if orgname is not None:
-        # has active organization
-        entityname = "{}.{}".format(orgname, orgid)
-    else:
-        # no active organization, just a normal user
-        entityname = username
-
-
-    if flask.request.method == 'POST':
-        if orgname is not None:
-            # check authorization
-            if g_database_client.is_authorized(username, orgname, orgid, database_categorylabel.DASHBOARDS, database_crudindex.READ) == False:
-                response = json.dumps({'status': 'NG', 'message': 'Authorization failed! User is not allowed to access resource. Please check with the organization owner regarding policies assigned.'})
-                print('\r\nERROR Get All Device Sensors Dataset: Authorization not allowed [{}]\r\n'.format(username))
-                return response, status.HTTP_401_UNAUTHORIZED
-
-        # get filter parameters
-        filter = flask.request.get_json()
-        if filter.get("devicename") is None or filter.get("peripheral") is None or filter.get("class") is None or filter.get("status") is None or filter.get("timerange") is None or filter.get("points") is None or filter.get("index") is None:
-            response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-            print('\r\nERROR Get All Device Sensors Dataset: Empty parameter found\r\n')
-            return response, status.HTTP_400_BAD_REQUEST
-
-        #print(filter["timerange"])
-        timerange = [int(s) for s in filter["timerange"].split() if s.isdigit()][0]
-        timeranges = ["minute", "hour", "day", "week", "month", "year"]
-        multiplier = [60, 3600, 86400, 604800, 2592000, 31536000]
-        for x in range(len(timeranges)):
-            if timeranges[x] in filter["timerange"]:
-                timerange *= multiplier[x]
-                break
-
-        devices = []
-        if filter["devicename"] == "All devices":
-            devices = g_database_client.get_devices(entityname)
-        else:
-            devices.append({"devicename": filter["devicename"]})
-
-        # get active sensors for each device
-        checkdevice = 1
-        if filter.get("checkdevice") is not None:
-            checkdevice = filter["checkdevice"]
-        #print(checkdevice)
-        if checkdevice != 0:
-            thread_list = []
-            for device in devices:
-                devicename = device["devicename"]
-                thr = threading.Thread(target = get_running_sensors, args = (token, username, devicename, device, ))
-                thread_list.append(thr)
-                thr.start()
-            for thr in thread_list:
-                thr.join()
-
-        # get all sensors based on specified filter
-        sensors_list = []
-        source = None
-        number = None
-        sensorclass = None
-        sensorstatus = None
-        sensordevicename = filter["devicename"]
-        if sensordevicename == "All devices":
-            sensordevicename = None
-        if filter["peripheral"] != "All peripherals":
-            source = filter["peripheral"][:len(filter["peripheral"])-1].lower()
-            number = filter["peripheral"][len(filter["peripheral"])-1:]
-        if filter["class"] != "All classes":
-            sensorclass = filter["class"]
-        if filter["status"] != "All online/offline":
-            sensorstatus = 1 if filter["status"] == "online" else 0
-        sensors_list = g_database_client.get_all_device_sensors_enabled_input(entityname, sensordevicename, source, number, sensorclass, sensorstatus)
-        if len(sensors_list):
-            sensors_list.sort(key=sort_by_sensorname)
-
-        # get time bound
-        maxpoints = filter["points"] # tested with 60 points
-        if (maxpoints != 60 and maxpoints != 30 and maxpoints != 15):
-            maxpoints = 60
-        period = int(timerange/maxpoints)
-        maxpoints += 1
-        dateend = int(time.time())
-        #print(dateend)
-        if period == 5:
-            dateend = int(dateend/period) * period + period
-            # adjust based on specified index
-            if filter["index"] != 0:
-                dateend -= filter["index"] * timerange
-            datebegin = dateend - timerange - period
-        else:
-            # adjust for adaptive begin and end "shift to left"
-            dateend = int(dateend/period) * period# + period
-            # adjust based on specified index
-            if filter["index"] != 0:
-                dateend -= filter["index"] * timerange
-            #print(dateend)
-            # add - period since we added 1 point
-            datebegin = dateend - timerange - period
-        #print("datebegin={} dateend={} period={} maxpoints={}".format(datebegin, dateend, period, maxpoints))
-
-        # add sensor properties to the result filtered sensors
-        thread_list = []
-        if filter["devicename"] != "All devices":
-            readings = g_database_client.get_device_sensors_readings(entityname, filter["devicename"])
-            for sensor in sensors_list:
-                thr = threading.Thread(target = get_sensor_data_threaded, args = (sensor, entityname, datebegin, dateend, period, maxpoints, readings, filter, ))
-                thread_list.append(thr)
-                thr.start()
-        else:
-            readings = g_database_client.get_user_sensors_readings(entityname)
-            for sensor in sensors_list:
-                thr = threading.Thread(target = get_sensor_data_threaded_ex, args = (sensor, entityname, datebegin, dateend, period, maxpoints, readings, devices, ))
-                thread_list.append(thr)
-                thr.start()
-        for thr in thread_list:
-            thr.join()
-
-        if len(sensors_list):
-            sensors_list.sort(key=sort_by_devicename)
-
-
-        # compute stats, summary and comparisons
-        stats = None
-        summary = None
-        comparisons = None
-        usages = None
-        if checkdevice != 0:
-            # stats
-            output_sensors_list = g_database_client.get_all_device_sensors_enabled_input(entityname, sensordevicename, source, number, sensorclass, sensorstatus, type="output")
-            stats = {"sensors": {}, "devices": {}}
-            try:
-                stats["sensors"] = get_sensor_stats(sensors_list+output_sensors_list)
-            except:
-                pass
-            try:
-                stats["devices"] = get_device_stats(entityname, devices, sensordevicename)
-            except:
-                pass
-
-            # summary
-            summary = {"sensors": [], "devices": []}
-            try:
-                summary["sensors"] = get_sensor_summary(entityname, devices, sensordevicename)
-            except:
-                pass
-            try:
-                summary["devices"] = get_device_summary(entityname, devices, sensordevicename)
-            except:
-                pass
-
-            # comparisons
-            try:
-                comparisons = get_sensor_comparisons(devices, sensors_list)
-            except:
-                pass
-
-            usages = get_usage()
-
-        #print(time.time()-start_time)
-        msg = {'status': 'OK', 'message': 'Get All Device Sensors Dataset queried successfully.', 'sensors': sensors_list}
-        if stats:
-            msg['stats'] = stats
-        if summary:
-            msg['summary'] = summary
-        if comparisons:
-            msg['comparisons'] = comparisons
-        if usages:
-            msg['usages'] = usages
-
-    elif flask.request.method == 'DELETE':
-        if orgname is not None:
-            # check authorization
-            if g_database_client.is_authorized(username, orgname, orgid, database_categorylabel.DASHBOARDS, database_crudindex.DELETE) == False:
-                response = json.dumps({'status': 'NG', 'message': 'Authorization failed! User is not allowed to access resource. Please check with the organization owner regarding policies assigned.'})
-                print('\r\nERROR Delete All Device Sensors Dataset: Authorization not allowed [{}]\r\n'.format(username))
-                return response, status.HTTP_401_UNAUTHORIZED
-
-        filter = flask.request.get_json()
-        if filter.get("devicename") is None:
-            response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-            print('\r\nERROR Get All Device Sensors Dataset: Empty parameter found\r\n')
-            return response, status.HTTP_400_BAD_REQUEST
-
-        if filter["devicename"] == "All devices":
-            g_database_client.delete_user_sensor_reading(entityname)
-        else:
-            g_database_client.delete_device_sensor_reading(entityname, filter["devicename"])
-
-        msg = {'status': 'OK', 'message': 'Delete All Device Sensors Dataset queried successfully.'}
-
-
-    if new_token:
-        msg['new_token'] = new_token
-    response = json.dumps(msg)
-    #print('\r\nGet All Device Sensors Dataset successful: {} {} {} sensors\r\n'.format(username, devicename, len(sensors)))
-    return response
-
-
-
-
-
 def get_device_summary(entityname, devices, sensordevicename):
     devices_list = []
 
@@ -1834,169 +1567,6 @@ def get_all_sensor_configurationsummary():
     print('\r\nAll Sensor Thresholds queried successful: {}\r\n'.format(username))
     return response
 
-
-########################################################################################################
-#
-# GET I2C DEVICES READINGS (per peripheral slot)
-#
-# - Request:
-#   GET /devices/device/<devicename>/i2c/NUMBER/sensors/readings
-#   headers: {'Authorization': 'Bearer ' + token.access}
-#
-# - Response:
-#   {'status': 'OK', 'message': string, 'sensor_readings': {'value': int, 'lowest': int, 'highest': int} }
-#   {'status': 'NG', 'message': string }
-#
-# GET ADC DEVICES READINGS (per peripheral slot)
-# GET 1WIRE DEVICES READINGS (per peripheral slot)
-# GET TPROBE DEVICES READINGS (per peripheral slot)
-#
-# - Request:
-#   GET /devices/device/<devicename>/adc/NUMBER/sensors/readings
-#   GET /devices/device/<devicename>/1wire/NUMBER/sensors/readings
-#   GET /devices/device/<devicename>/tprobe/NUMBER/sensors/readings
-#   headers: {'Authorization': 'Bearer ' + token.access}
-#
-# - Response:
-#   {'status': 'OK', 'message': string, 'sensor_readings': {'value': int, 'lowest': int, 'highest': int} }
-#   {'status': 'NG', 'message': string }
-#
-#
-# DELETE I2C DEVICES READINGS (per peripheral slot)
-#
-# - Request:
-#   DELETE /devices/device/<devicename>/i2c/NUMBER/sensors/readings
-#   headers: {'Authorization': 'Bearer ' + token.access}
-#
-# - Response:
-#   {'status': 'OK', 'message': string }
-#   {'status': 'NG', 'message': string }
-#
-# DELETE ADC DEVICES READINGS (per peripheral slot)
-# DELETE 1WIRE DEVICES READINGS (per peripheral slot)
-# DELETE TPROBE DEVICES READINGS (per peripheral slot)
-#
-# - Request:
-#   DELETE /devices/device/<devicename>/adc/NUMBER/sensors/readings
-#   DELETE /devices/device/<devicename>/1wire/NUMBER/sensors/readings
-#   DELETE /devices/device/<devicename>/tprobe/NUMBER/sensors/readings
-#   headers: {'Authorization': 'Bearer ' + token.access}
-#
-# - Response:
-#   {'status': 'OK', 'message': string }
-#   {'status': 'NG', 'message': string }
-#
-########################################################################################################
-@app.route('/devices/device/<devicename>/<xxx>/<number>/sensors/readings', methods=['GET', 'DELETE'])
-def get_xxx_sensors_readings(devicename, xxx, number):
-
-    # check number parameter
-    if int(number) > 4 or int(number) < 1:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid parameters'})
-        print('\r\nERROR Invalid parameters\r\n')
-        return response, status.HTTP_400_BAD_REQUEST
-
-    # get token from Authorization header
-    auth_header_token = g_utils.get_auth_header_token()
-    if auth_header_token is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Get {} Sensor: Invalid authorization header\r\n'.format(xxx))
-        return response, status.HTTP_401_UNAUTHORIZED
-    token = {'access': auth_header_token}
-
-    # get username from token
-    username = g_database_client.get_username_from_token(token)
-    if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Get {} Sensor: Token expired\r\n'.format(xxx))
-        return response, status.HTTP_401_UNAUTHORIZED
-    print('get_{}_sensor_readings {} devicename={} number={}'.format(xxx, username, devicename, number))
-
-    # check if a parameter is empty
-    if len(username) == 0 or len(token) == 0 or len(devicename) == 0:
-        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-        print('\r\nERROR Get {} Sensor: Empty parameter found\r\n'.format(xxx))
-        return response, status.HTTP_400_BAD_REQUEST
-
-    # check if username and token is valid
-    verify_ret, new_token = g_database_client.verify_token(username, token)
-    if verify_ret == 2:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Get {} Sensor: Token expired [{}]\r\n'.format(xxx, username))
-        return response, status.HTTP_401_UNAUTHORIZED
-    elif verify_ret != 0:
-        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
-        print('\r\nERROR Get {} Sensor: Token is invalid [{}]\r\n'.format(xxx, username))
-        return response, status.HTTP_401_UNAUTHORIZED
-
-
-    # get entity using the active organization
-    orgname, orgid = g_database_client.get_active_organization(username)
-    if orgname is not None:
-        # has active organization
-        entityname = "{}.{}".format(orgname, orgid)
-    else:
-        # no active organization, just a normal user
-        entityname = username
-
-
-    source = "{}{}".format(xxx, number)
-    if flask.request.method == 'GET':
-        if orgname is not None:
-            # check authorization
-            if g_database_client.is_authorized(username, orgname, orgid, database_categorylabel.DASHBOARDS, database_crudindex.READ) == False:
-                response = json.dumps({'status': 'NG', 'message': 'Authorization failed! User is not allowed to access resource. Please check with the organization owner regarding policies assigned.'})
-                print('\r\nERROR Get Peripheral Sensor Readings: Authorization not allowed [{}]\r\n'.format(username))
-                return response, status.HTTP_401_UNAUTHORIZED
-
-        if True:
-            # get enabled input sensors
-            sensors = g_database_client.get_sensors_enabled_input(entityname, devicename, xxx, number)
-
-            # get sensor reading for each enabled input sensors
-            for sensor in sensors:
-                address = None
-                if sensor.get("address"):
-                    address = sensor["address"]
-                sensor_reading = g_database_client.get_sensor_reading(entityname, devicename, source, address)
-                sensor['readings'] = sensor_reading
-
-            msg = {'status': 'OK', 'message': 'Sensors readings queried successfully.', 'sensor_readings': sensors}
-            if new_token:
-                msg['new_token'] = new_token
-            response = json.dumps(msg)
-            print('\r\nSensors readings queried successful: {}\r\n{}\r\n'.format(entityname, response))
-            return response
-        else:
-            # get sensors readings
-            sensor_readings = g_database_client.get_sensors_readings(entityname, devicename, source)
-
-            msg = {'status': 'OK', 'message': 'Sensors readings queried successfully.', 'sensor_readings': sensor_readings}
-            if new_token:
-                msg['new_token'] = new_token
-            response = json.dumps(msg)
-            print('\r\nSensors readings queried successful: {}\r\n{}\r\n'.format(entityname, response))
-            return response
-
-    elif flask.request.method == 'DELETE':
-        if orgname is not None:
-            # check authorization
-            if g_database_client.is_authorized(username, orgname, orgid, database_categorylabel.DASHBOARDS, database_crudindex.DELETE) == False:
-                response = json.dumps({'status': 'NG', 'message': 'Authorization failed! User is not allowed to access resource. Please check with the organization owner regarding policies assigned.'})
-                print('\r\nERROR Get Peripheral Sensor Readings: Authorization not allowed [{}]\r\n'.format(username))
-                return response, status.HTTP_401_UNAUTHORIZED
-
-        # delete sensors readings
-        g_database_client.delete_sensors_readings(entityname, devicename, source)
-
-        msg = {'status': 'OK', 'message': 'Sensors readings deleted successfully.'}
-        if new_token:
-            msg['new_token'] = new_token
-        response = json.dumps(msg)
-        print('\r\nSensors readings deleted successful: {}\r\n{}\r\n'.format(entityname, response))
-        return response
-
-
 ########################################################################################################
 #
 # GET I2C DEVICES READINGS DATASET (per peripheral slot)
@@ -2109,3673 +1679,274 @@ def get_xxx_sensors_readings_dataset(devicename, xxx, number, sensorname):
 #
 ########################################################################################################
 
-
-
-########################################################################################################
-#
-# GET LDS BUS
-#
-# - Request:
-#   GET /devices/device/DEVICENAME/ldsbus/PORTNUMBER
-#   headers: {'Authorization': 'Bearer ' + token.access}
-#   // PORT_NUMBER can be 1, 2, 3, or 0 (0 if all lds bus)
-#
-# - Response:
-#   {'status': 'OK', 'message': string, 'ldsbus': obj }
-#   {'status': 'NG', 'message': string}
-#
-########################################################################################################
-@app.route('/devices/device/<devicename>/ldsbus/<portnumber>', methods=['GET'])
-def get_lds_bus(devicename, portnumber):
-    # get token from Authorization header
-    auth_header_token = g_utils.get_auth_header_token()
-    if auth_header_token is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Get LDSBUS: Invalid authorization header\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    token = {'access': auth_header_token}
-
-    # get username from token
-    username = g_database_client.get_username_from_token(token)
-    if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Get LDSBUS: Token expired\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    #print('get_lds_bus {}'.format(username))
-
-    # check if a parameter is empty
-    if len(username) == 0 or len(token) == 0:
-        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-        print('\r\nERROR Get LDSBUS: Empty parameter found\r\n')
-        return response, status.HTTP_400_BAD_REQUEST
-
-    # check if username and token is valid
-    verify_ret, new_token = g_database_client.verify_token(username, token)
-    if verify_ret == 2:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Get LDSBUS: Token expired [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
-    elif verify_ret != 0:
-        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
-        print('\r\nERROR Get LDSBUS: Token is invalid [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
-
-
-    # get entity using the active organization
-    orgname, orgid = g_database_client.get_active_organization(username)
-    if orgname is not None:
-        # check authorization
-        if g_database_client.is_authorized(username, orgname, orgid, database_categorylabel.DEVICES, database_crudindex.READ) == False:
-            response = json.dumps({'status': 'NG', 'message': 'Authorization failed! User is not allowed to access resource. Please check with the organization owner regarding policies assigned.'})
-            print('\r\nERROR Get LDSBUS: Authorization not allowed [{}]\r\n'.format(username))
-            return response, status.HTTP_401_UNAUTHORIZED
-        # has active organization
-        entityname = "{}.{}".format(orgname, orgid)
-    else:
-        # no active organization, just a normal user
-        entityname = username
-
-
-    ldsbus = []
-    #[
-    #{
-    #    "port": int(portnumber),
-    #    "ldsus": [
-    #        {
-    #            'name'             : 'LDSU01',
-    #            'uuid'             : 'LDSUUUID',
-    #            'serialnumber'     : 'asdasdasd',
-    #            'manufacturingdate': 'erwrwer',
-    #            'productversion'   : '0.0.1',
-    #            'productname'      : 'ldsuname 01'
-    #        },
-    #        {
-    #            'name'             : 'LDSU02',
-    #            'uuid'             : 'LDSUUUID02',
-    #            'serialnumber'     : 'asdasdasd',
-    #            'manufacturingdate': 'erwrwer',
-    #            'productversion'   : '0.0.2',
-    #            'productname'      : 'ldsuname 02'
-    #        }
-    #    ],
-    #    "sensors": [
-    #        {
-    #            "name"    : "Sensor01",
-    #            "class"   : "temperature",
-    #            "ldsuname": "LDSU01",
-    #            "ldsuuuid": "LDSUUUID01",
-    #            "ldsuport": int(portnumber)
-    #        },
-    #        {
-    #            "name"    : "Sensor02",
-    #            "class"   : "potentiometer",
-    #            "ldsuname": "LDSU02",
-    #            "ldsuuuid": "LDSUUUID02",
-    #            "ldsuport": int(portnumber)
-    #        }
-    #    ],
-    #    "actuators": [
-    #        {
-    #            "name"    : "Actuator01",
-    #            "class"   : "display",
-    #            "ldsuname": "LDSU01",
-    #            "ldsuuuid": "LDSUUUID01",
-    #            "ldsuport": int(portnumber)
-    #        },
-    #        {
-    #            "name"    : "Actuator02",
-    #            "class"   : "led",
-    #            "ldsuname": "LDSU02",
-    #            "ldsuuuid": "LDSUUUID02",
-    #            "ldsuport": int(portnumber)
-    #        }
-    #    ]
-    #}
-    #]
-
-
-    msg = {'status': 'OK', 'message': 'LDSBUS queried successfully.'}
-    if ldsbus:
-        msg['ldsbus'] = ldsbus
-    if new_token:
-        msg['new_token'] = new_token
-    response = json.dumps(msg)
-    return response
-
-
-########################################################################################################
-#
-# SCAN LDS BUS
-#
-# - Request:
-#   POST /devices/device/DEVICENAME/ldsbus/PORTNUMBER
-#   headers: {'Authorization': 'Bearer ' + token.access}
-#   // PORT_NUMBER can be 1, 2, 3, or 0 (0 if all lds bus)
-#
-# - Response:
-#   {'status': 'OK', 'message': string, 'ldsbus': obj }
-#   {'status': 'NG', 'message': string}
-#
-########################################################################################################
-@app.route('/devices/device/<devicename>/ldsbus/<portnumber>', methods=['POST'])
-def scan_lds_bus(devicename, portnumber):
-    # get token from Authorization header
-    auth_header_token = g_utils.get_auth_header_token()
-    if auth_header_token is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Get LDSBUS: Invalid authorization header\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    token = {'access': auth_header_token}
-
-    # get username from token
-    username = g_database_client.get_username_from_token(token)
-    if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Get LDSBUS: Token expired\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    #print('scan_lds_bus {}'.format(username))
-
-    # check if a parameter is empty
-    if len(username) == 0 or len(token) == 0:
-        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-        print('\r\nERROR Get LDSBUS: Empty parameter found\r\n')
-        return response, status.HTTP_400_BAD_REQUEST
-
-    # check if username and token is valid
-    verify_ret, new_token = g_database_client.verify_token(username, token)
-    if verify_ret == 2:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Get LDSBUS: Token expired [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
-    elif verify_ret != 0:
-        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
-        print('\r\nERROR Get LDSBUS: Token is invalid [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
-
-
-    # get entity using the active organization
-    orgname, orgid = g_database_client.get_active_organization(username)
-    if orgname is not None:
-        # check authorization
-        if g_database_client.is_authorized(username, orgname, orgid, database_categorylabel.DEVICES, database_crudindex.READ) == False:
-            response = json.dumps({'status': 'NG', 'message': 'Authorization failed! User is not allowed to access resource. Please check with the organization owner regarding policies assigned.'})
-            print('\r\nERROR Get LDSBUS: Authorization not allowed [{}]\r\n'.format(username))
-            return response, status.HTTP_401_UNAUTHORIZED
-        # has active organization
-        entityname = "{}.{}".format(orgname, orgid)
-    else:
-        # no active organization, just a normal user
-        entityname = username
-
-
-    # get username from token
-    data = {}
-    data['token'] = token
-    data['devicename'] = devicename
-    data['username'] = username
-    data['port'] = int(portnumber)
-    api = 'get_ldsu_descriptors'
-    response, status_return = g_messaging_requests.process(api, data)
-    if status_return != 200:
-        ldsbus = None
-    else:
-        response = json.loads(response)
-        ldsbus = response["value"]
-
-
-    msg = {'status': 'OK', 'message': 'LDSBUS queried successfully.'}
-    if ldsbus:
-        msg['ldsbus'] = ldsbus
-    if new_token:
-        msg['new_token'] = new_token
-    response = json.dumps(msg)
-    return response
-
-
-########################################################################################################
-#
-# CHANGE LDSU NAME
-#
-# - Request:
-#   GET /devices/device/DEVICENAME/ldsu/LDSUUUID/name
-#   headers: {'Authorization': 'Bearer ' + token.access}
-#   data: {'name': string}
-#   // PORT_NUMBER can be 1, 2, 3, or 0 (0 if all lds bus)
-#
-# - Response:
-#   {'status': 'OK', 'message': string, 'ldsbus': obj }
-#   {'status': 'NG', 'message': string}
-#
-########################################################################################################
-@app.route('/devices/device/<devicename>/ldsu/<ldsuuuid>/name', methods=['POST'])
-def change_ldsu_name(devicename, ldsuuuid):
-    # get token from Authorization header
-    auth_header_token = g_utils.get_auth_header_token()
-    if auth_header_token is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Change LDSU name: Invalid authorization header\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    token = {'access': auth_header_token}
-
-    # get username from token
-    username = g_database_client.get_username_from_token(token)
-    if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Change LDSU name: Token expired\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    #print('change_ldsu_name {}'.format(username))
-
-    # check if a parameter is empty
-    if len(username) == 0 or len(token) == 0:
-        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-        print('\r\nERROR Change LDSU name: Empty parameter found\r\n')
-        return response, status.HTTP_400_BAD_REQUEST
-
-    # check if username and token is valid
-    verify_ret, new_token = g_database_client.verify_token(username, token)
-    if verify_ret == 2:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Change LDSU name: Token expired [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
-    elif verify_ret != 0:
-        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
-        print('\r\nERROR Change LDSU name: Token is invalid [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
-
-
-    # get entity using the active organization
-    orgname, orgid = g_database_client.get_active_organization(username)
-    if orgname is not None:
-        # check authorization
-        if g_database_client.is_authorized(username, orgname, orgid, database_categorylabel.DEVICES, database_crudindex.UPDATE) == False:
-            response = json.dumps({'status': 'NG', 'message': 'Authorization failed! User is not allowed to access resource. Please check with the organization owner regarding policies assigned.'})
-            print('\r\nERROR Change LDSU name: Authorization not allowed [{}]\r\n'.format(username))
-            return response, status.HTTP_401_UNAUTHORIZED
-        # has active organization
-        entityname = "{}.{}".format(orgname, orgid)
-    else:
-        # no active organization, just a normal user
-        entityname = username
-
-
-    msg = {'status': 'OK', 'message': 'LDSU name changed successfully.'}
-    if new_token:
-        msg['new_token'] = new_token
-    response = json.dumps(msg)
-    return response
-
-
-########################################################################################################
-#
-# IDENTIFY LDSU
-#
-# - Request:
-#   GET /devices/device/DEVICENAME/ldsu/LDSUUUID/identify
-#   headers: {'Authorization': 'Bearer ' + token.access}
-#   data: {'name': string}
-#
-# - Response:
-#   {'status': 'OK', 'message': string, 'ldsbus': obj }
-#   {'status': 'NG', 'message': string}
-#
-########################################################################################################
-@app.route('/devices/device/<devicename>/ldsu/<ldsuuuid>/identify', methods=['POST'])
-def identify_ldsu(devicename, ldsuuuid):
-    # get token from Authorization header
-    auth_header_token = g_utils.get_auth_header_token()
-    if auth_header_token is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Identify LDSU: Invalid authorization header\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    token = {'access': auth_header_token}
-
-    # get username from token
-    username = g_database_client.get_username_from_token(token)
-    if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Identify LDSU: Token expired\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    #print('identify_ldsu {}'.format(username))
-
-    # check if a parameter is empty
-    if len(username) == 0 or len(token) == 0:
-        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-        print('\r\nERROR Identify LDSU: Empty parameter found\r\n')
-        return response, status.HTTP_400_BAD_REQUEST
-
-    # check if username and token is valid
-    verify_ret, new_token = g_database_client.verify_token(username, token)
-    if verify_ret == 2:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Identify LDSU: Token expired [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
-    elif verify_ret != 0:
-        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
-        print('\r\nERROR Identify LDSU: Token is invalid [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
-
-
-    # get entity using the active organization
-    orgname, orgid = g_database_client.get_active_organization(username)
-    if orgname is not None:
-        # check authorization
-        if g_database_client.is_authorized(username, orgname, orgid, database_categorylabel.DEVICES, database_crudindex.UPDATE) == False:
-            response = json.dumps({'status': 'NG', 'message': 'Authorization failed! User is not allowed to access resource. Please check with the organization owner regarding policies assigned.'})
-            print('\r\nERROR Identify LDSU: Authorization not allowed [{}]\r\n'.format(username))
-            return response, status.HTTP_401_UNAUTHORIZED
-        # has active organization
-        entityname = "{}.{}".format(orgname, orgid)
-    else:
-        # no active organization, just a normal user
-        entityname = username
-
-
-    # get username from token
-    data = {}
-    data['token'] = token
-    data['devicename'] = devicename
-    data['username'] = username
-    data['uuid'] = ldsuuuid
-    api = 'ide_ldsu'
-    response, status_return = g_messaging_requests.process(api, data)
-    if status_return != 200:
-        return response, status_return
-
-
-    msg = {'status': 'OK', 'message': 'LDSU identified successfully.'}
-    if new_token:
-        msg['new_token'] = new_token
-    response = json.dumps(msg)
-    return response
-
-
-
-
-########################################################################################################
-#
-# GET DEVICES
-#
-# - Request:
-#   GET /devices
-#   headers: {'Authorization': 'Bearer ' + token.access}
-#
-# - Response:
-#   {'status': 'OK', 'message': string, 'devices': array[{'devicename': string, 'deviceid': string, 'serialnumber': string, 'timestamp': string, 'heartbeat': string, 'version': string, location: {'latitude': float, 'longitude': float}}, ...]}
-#   {'status': 'NG', 'message': string}
-#
-########################################################################################################
 @app.route('/devices', methods=['GET'])
 def get_device_list():
-    # get token from Authorization header
-    auth_header_token = g_utils.get_auth_header_token()
-    if auth_header_token is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Get Devices: Invalid authorization header\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    token = {'access': auth_header_token}
+    return g_device.get_device_list()
 
-    # get username from token
-    username = g_database_client.get_username_from_token(token)
-    if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Get Devices: Token expired\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    #print('get_device_list {}'.format(username))
-
-    # check if a parameter is empty
-    if len(username) == 0 or len(token) == 0:
-        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-        print('\r\nERROR Get Devices: Empty parameter found\r\n')
-        return response, status.HTTP_400_BAD_REQUEST
-
-    # check if username and token is valid
-    verify_ret, new_token = g_database_client.verify_token(username, token)
-    if verify_ret == 2:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Get Devices: Token expired [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
-    elif verify_ret != 0:
-        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
-        print('\r\nERROR Get Devices: Token is invalid [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
-
-
-    # get entity using the active organization
-    orgname, orgid = g_database_client.get_active_organization(username)
-    if orgname is not None:
-        # check authorization
-        if g_database_client.is_authorized(username, orgname, orgid, database_categorylabel.DEVICES, database_crudindex.READ) == False:
-            response = json.dumps({'status': 'NG', 'message': 'Authorization failed! User is not allowed to access resource. Please check with the organization owner regarding policies assigned.'})
-            print('\r\nERROR Get Devices: Authorization not allowed [{}]\r\n'.format(username))
-            return response, status.HTTP_401_UNAUTHORIZED
-        # has active organization
-        entityname = "{}.{}".format(orgname, orgid)
-    else:
-        # no active organization, just a normal user
-        entityname = username
-
-
-    devices = g_database_client.get_devices(entityname)
-
-
-    msg = {'status': 'OK', 'message': 'Devices queried successfully.', 'devices': devices}
-    if new_token:
-        msg['new_token'] = new_token
-    response = json.dumps(msg)
-    print('get_device_list {} {} devices'.format(username, len(devices)))
-    return response
-
-########################################################################################################
-#
-# GET DEVICES FILTERED
-#
-# - Request:
-#   GET /devices/filter/FILTERSTRING
-#   headers: {'Authorization': 'Bearer ' + token.access}
-#
-# - Response:
-#   {'status': 'OK', 'message': string, 'devices': array[{'devicename': string, 'deviceid': string, 'serialnumber': string, 'timestamp': string, 'heartbeat': string, 'version': string, location: {'latitude': float, 'longitude': float}}, ...]}
-#   {'status': 'NG', 'message': string}
-#
-########################################################################################################
 @app.route('/devices/filter/<filter>', methods=['GET'])
 def get_device_list_filtered(filter):
-    # get token from Authorization header
-    auth_header_token = g_utils.get_auth_header_token()
-    if auth_header_token is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Get Devices: Invalid authorization header\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    token = {'access': auth_header_token}
+    return g_device.get_device_list_filtered(filter)
 
-    # get username from token
-    username = g_database_client.get_username_from_token(token)
-    if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Get Devices: Token expired\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    print('get_device_list_filtered {}'.format(username))
-
-    # check if a parameter is empty
-    if len(username) == 0 or len(token) == 0 or len(filter) == 0:
-        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-        print('\r\nERROR Get Devices: Empty parameter found\r\n')
-        return response, status.HTTP_400_BAD_REQUEST
-
-    # check if username and token is valid
-    verify_ret, new_token = g_database_client.verify_token(username, token)
-    if verify_ret == 2:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Get Devices: Token expired [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
-    elif verify_ret != 0:
-        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
-        print('\r\nERROR Get Devices: Token is invalid [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
-
-
-    # get entity using the active organization
-    orgname, orgid = g_database_client.get_active_organization(username)
-    if orgname is not None:
-        # check authorization
-        if g_database_client.is_authorized(username, orgname, orgid, database_categorylabel.DEVICES, database_crudindex.READ) == False:
-            response = json.dumps({'status': 'NG', 'message': 'Authorization failed! User is not allowed to access resource. Please check with the organization owner regarding policies assigned.'})
-            print('\r\nERROR Get Devices: Authorization not allowed [{}]\r\n'.format(username))
-            return response, status.HTTP_401_UNAUTHORIZED
-        # has active organization
-        entityname = "{}.{}".format(orgname, orgid)
-    else:
-        # no active organization, just a normal user
-        entityname = username
-
-
-    devices = g_database_client.get_devices_with_filter(entityname, filter)
-
-    # get the location from database
-    #for device in devices:
-    #    location  = g_database_client.get_device_location(username, device["devicename"])
-    #    if location:
-    #        device["location"] = location
-
-
-    msg = {'status': 'OK', 'message': 'Devices queried successfully.', 'devices': devices}
-    if new_token:
-        msg['new_token'] = new_token
-    response = json.dumps(msg)
-    print('\r\nGet Devices successful: {}\r\n{} devices\r\n'.format(username, len(devices)))
-    return response
-
-def decode_password(secret_key, password):
-
-    return jwt.decode(password, secret_key, algorithms=['HS256'])
-
-def compute_password(secret_key, uuid, serial_number, mac_address, debug=False):
-
-    if secret_key=='' or uuid=='' or serial_number=='' or mac_address=='':
-        printf("secret key, uuid, serial number and mac address should not be empty!")
-        return None
-
-    current_time = int(time.time())
-    params = {
-        "uuid": uuid,                  # device uuid
-        "serialnumber": serial_number, # device serial number
-        "poemacaddress": mac_address,  # device mac address in uppercase string ex. AA:BB:CC:DD:EE:FF
-    }
-    password = jwt.encode(params, secret_key, algorithm='HS256')
-
-    # pyjwt returns bytes while jose returns string
-    # if bytes is returned, then convert to string
-    if type(password) == bytes:
-        password = password.decode("utf-8")
-
-    if debug:
-        print("")
-        print("compute_password")
-        g_utils.print_json(params)
-        print(password)
-        print("")
-
-        payload = decode_password(secret_key, password)
-        print("")
-        print("decode_password")
-        g_utils.print_json(payload)
-        print("")
-
-    return password
-
-
-def device_cleanup(entityname, deviceid):
-
-    # delete device sensor-related information
-    sensors = g_database_client.get_all_device_sensors_by_deviceid(deviceid)
-    if sensors is not None:
-        for sensor in sensors:
-            if sensor.get("source") and sensor.get("number") and sensor.get("sensorname"):
-                sensor_cleanup(None, None, deviceid, sensor["source"], sensor["number"], sensor["sensorname"], sensor)
-
-    # delete device-related information
-    g_database_client.delete_device_history_by_deviceid(deviceid)
-    g_database_client.delete_ota_status_by_deviceid(deviceid)
-    g_database_client.delete_device_notification_by_deviceid(deviceid)
-    g_database_client.delete_device_location_by_deviceid(deviceid)
-    g_database_client.remove_device_from_devicegroups(entityname, deviceid)
-    g_database_client.delete_menos_transaction_by_deviceid(deviceid)
-
-    # delete device from database
-    g_database_client.delete_device_by_deviceid(deviceid)
-
-    # delete device from message broker
-    try:
-        message_broker_api().unregister(deviceid)
-    except:
-        pass
-
-
-########################################################################################################
-#
-# ADD DEVICE
-#
-# - Request:
-#   POST /devices/device/<devicename>
-#   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-#   data: {'deviceid': string, 'serialnumber': string, 'poemacaddress': string}
-#   // poemacaddress is a mac address in uppercase string ex. AA:BB:CC:DD:EE:FF
-#
-# - Response:
-#   {'status': 'OK', 'message': string}
-#   {'status': 'NG', 'message': string}
-#
-#
-# DELETE DEVICE
-#
-# - Request:
-#   DELETE /devices/device/<devicename>
-#   headers: {'Authorization': 'Bearer ' + token.access}
-#
-# - Response:
-#   {'status': 'OK', 'message': string}
-#   {'status': 'NG', 'message': string}
-#
-########################################################################################################
-@app.route('/devices/device/<devicename>', methods=['POST', 'DELETE'])
+@app.route('/devices/device/<devicename>', methods=['POST'])
 def register_device(devicename):
-    # get token from Authorization header
-    auth_header_token = g_utils.get_auth_header_token()
-    if auth_header_token is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Add/Delete Device: Invalid authorization header\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    token = {'access': auth_header_token}
+    return g_device.register_device(devicename)
 
-    # get username from token
-    username = g_database_client.get_username_from_token(token)
-    if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Add/Delete Device: Token expired\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    print('register_device {} devicename={}'.format(username, devicename))
+@app.route('/devices/device/<devicename>', methods=['DELETE'])
+def unregister_device(devicename):
+    return g_device.register_device(devicename)
 
-    # check if a parameter is empty
-    if len(username) == 0 or len(token) == 0 or len(devicename) == 0:
-        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-        print('\r\nERROR Add/Delete Device: Empty parameter found\r\n')
-        return response, status.HTTP_400_BAD_REQUEST
-
-    # check if username and token is valid
-    verify_ret, new_token = g_database_client.verify_token(username, token)
-    if verify_ret == 2:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Add/Delete Device: Token expired [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
-    elif verify_ret != 0:
-        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
-        print('\r\nERROR Add/Delete Device: Token is invalid [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
-
-
-    # get entity using the active organization
-    orgname, orgid = g_database_client.get_active_organization(username)
-    if orgname is not None:
-        # has active organization
-        entityname = "{}.{}".format(orgname, orgid)
-    else:
-        # no active organization, just a normal user
-        entityname = username
-
-
-    if flask.request.method == 'POST':
-        if orgname is not None:
-            # check authorization
-            if g_database_client.is_authorized(username, orgname, orgid, database_categorylabel.DEVICES, database_crudindex.CREATE) == False:
-                response = json.dumps({'status': 'NG', 'message': 'Authorization failed! User is not allowed to access resource. Please check with the organization owner regarding policies assigned.'})
-                print('\r\nERROR Add Device: Authorization not allowed [{}]\r\n'.format(username))
-                return response, status.HTTP_401_UNAUTHORIZED
-
-        # check parameters
-        data = flask.request.get_json()
-        #print(data)
-        if not data.get("deviceid") or not data.get("serialnumber") or not data.get("poemacaddress"):
-            response = json.dumps({'status': 'NG', 'message': 'Parameters not included'})
-            print('\r\nERROR Add Device: Parameters not included [{},{}]\r\n'.format(entityname, devicename))
-            return response, status.HTTP_400_BAD_REQUEST
-        #print(data["deviceid"])
-        #print(data["serialnumber"])
-
-        # check if device is registered
-        # a user cannot register the same device name
-        if g_database_client.find_device(entityname, devicename):
-            response = json.dumps({'status': 'NG', 'message': 'Device name is already taken'})
-            print('\r\nERROR Add Device: Device name is already taken [{},{}]\r\n'.format(entityname, devicename))
-            return response, status.HTTP_409_CONFLICT
-
-        # check if UUID is unique
-        # a user cannot register a device if it is already registered by another user
-        if g_database_client.find_device_by_id(data["deviceid"]):
-            response = json.dumps({'status': 'NG', 'message': 'Device UUID is already registered'})
-            print('\r\nERROR Add Device: Device uuid is already registered[{}]\r\n'.format(data["deviceid"]))
-            return response, status.HTTP_409_CONFLICT
-
-        # TODO: check if serial number matches UUID
-
-        # check if poe mac address is unique
-        if g_database_client.find_device_by_poemacaddress(data["poemacaddress"]):
-            response = json.dumps({'status': 'NG', 'message': 'Device POE MAC Address is already registered'})
-            print('\r\nERROR Add Device: Device POE MAC Address is already registered[{}]\r\n'.format(data["deviceid"]))
-            return response, status.HTTP_409_CONFLICT
-
-        # add device to database
-        result = g_database_client.add_device(entityname, devicename, data["deviceid"], data["serialnumber"], data['poemacaddress'])
-        #print(result)
-        if not result:
-            response = json.dumps({'status': 'NG', 'message': 'Device could not be registered'})
-            print('\r\nERROR Add Device: Device could not be registered [{},{}]\r\n'.format(entityname, devicename))
-            return response, status.HTTP_400_BAD_REQUEST
-
-        # add and configure message broker user
-        try:
-            # Password is now a combination of UUID, Serial Number and POE Mac Address
-            # Previously, PASSWORD is just the DEVICE_SERIAL
-            #devicepass = data["serialnumber"]
-            deviceuser = data["deviceid"]
-            devicepass = compute_password(config.CONFIG_JWT_SECRET_KEY_DEVICE, data["deviceid"], data["serialnumber"], data['poemacaddress'], debug=False)
-            #print(devicepass)
-
-            # if secure is True, device will only be able to publish and subscribe to server/<deviceid>/# and <deviceid>/# respectively
-            # this means a hacker can only hack that particular device and will not be able to eavesdrop on other devices
-            # if secure is False, device will be able to publish and subscribe to/from other devices which enables multi-subscriptions
-            secure = True
-            result = message_broker_api().register(deviceuser, devicepass, secure)
-            #print(result)
-            if not result:
-                response = json.dumps({'status': 'NG', 'message': 'Device could not be registered in message broker'})
-                print('\r\nERROR Add Device: Device could not be registered  in message broker [{},{}]\r\n'.format(entityname, devicename))
-                return response, status.HTTP_500_INTERNAL_SERVER_ERROR
-        except Exception as e:
-            print("Exception encountered {}".format(e))
-            response = json.dumps({'status': 'NG', 'message': 'Device could not be registered in message broker'})
-            print('\r\nERROR Add Device: Device could not be registered in message broker [{},{}]\r\n'.format(entityname, devicename))
-            return response, status.HTTP_500_INTERNAL_SERVER_ERROR
-
-        # add default uart notification recipients
-        # this is necessary so that an entry exist for consumption of notification manager
-        source = "uart"
-        notification = g_database_client.get_device_notification(entityname, devicename, source)
-        if notification is None:
-            notification = build_default_notifications(source, token)
-            if notification is not None:
-                g_database_client.update_device_notification(entityname, devicename, source, notification)
-
-        msg = {'status': 'OK', 'message': 'Devices registered successfully.'}
-        if new_token:
-            msg['new_token'] = new_token
-        response = json.dumps(msg)
-        print('\r\nDevice registered successful: {}\r\n{}\r\n'.format(username, response))
-        return response
-
-    elif flask.request.method == 'DELETE':
-        if orgname is not None:
-            # check authorization
-            if g_database_client.is_authorized(username, orgname, orgid, database_categorylabel.DEVICES, database_crudindex.DELETE) == False:
-                response = json.dumps({'status': 'NG', 'message': 'Authorization failed! User is not allowed to access resource. Please check with the organization owner regarding policies assigned.'})
-                print('\r\nERROR Delete Device: Authorization not allowed [{}]\r\n'.format(username))
-                return response, status.HTTP_401_UNAUTHORIZED
-
-        # check if device is registered
-        device = g_database_client.find_device(entityname, devicename)
-        if not device:
-            response = json.dumps({'status': 'NG', 'message': 'Device is not registered'})
-            print('\r\nERROR Delete Device: Device is not registered [{},{}]\r\n'.format(entityname, devicename))
-            return response, status.HTTP_404_NOT_FOUND
-
-
-        # cleanup device
-        device_cleanup(entityname, device['deviceid'])
-
-
-        msg = {'status': 'OK', 'message': 'Devices unregistered successfully.'}
-        if new_token:
-            msg['new_token'] = new_token
-        response = json.dumps(msg)
-        print('\r\nDevice unregistered successful: {}\r\n{}\r\n'.format(username, response))
-        return response
-
-
-########################################################################################################
-#
-# GET DEVICE
-#
-# - Request:
-#   GET /devices/device/<devicename>
-#   headers: {'Authorization': 'Bearer ' + token.access}
-#
-# - Response:
-#   {'status': 'OK', 'message': string, 'device': {'devicename': string, 'deviceid': string, 'serialnumber': string, 'timestamp': string, 'heartbeat': string, 'version': string, location: {'latitude': float, 'longitude': float} }}
-#   {'status': 'NG', 'message': string}
-#
-########################################################################################################
 @app.route('/devices/device/<devicename>', methods=['GET'])
 def get_device(devicename):
-    # get token from Authorization header
-    auth_header_token = g_utils.get_auth_header_token()
-    if auth_header_token is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Get Device: Invalid authorization header\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    token = {'access': auth_header_token}
+    return g_device.get_device(devicename)
 
-    # get username from token
-    username = g_database_client.get_username_from_token(token)
-    if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Get Device: Token expired\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    print('get_device {} devicename={}'.format(username, devicename))
-
-    # check if a parameter is empty
-    if len(username) == 0 or len(token) == 0 or len(devicename) == 0:
-        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-        print('\r\nERROR Get Device: Empty parameter found\r\n')
-        return response, status.HTTP_400_BAD_REQUEST
-
-    # check if username and token is valid
-    verify_ret, new_token = g_database_client.verify_token(username, token)
-    if verify_ret == 2:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Get Device: Token expired [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
-    elif verify_ret != 0:
-        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
-        print('\r\nERROR Get Device: Token is invalid [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
-
-
-    # get entity using the active organization
-    orgname, orgid = g_database_client.get_active_organization(username)
-    if orgname is not None:
-        # check authorization
-        if g_database_client.is_authorized(username, orgname, orgid, database_categorylabel.DEVICES, database_crudindex.READ) == False:
-            response = json.dumps({'status': 'NG', 'message': 'Authorization failed! User is not allowed to access resource. Please check with the organization owner regarding policies assigned.'})
-            print('\r\nERROR Get Device: Authorization not allowed [{}]\r\n'.format(username))
-            return response, status.HTTP_401_UNAUTHORIZED
-        # has active organization
-        entityname = "{}.{}".format(orgname, orgid)
-    else:
-        # no active organization, just a normal user
-        entityname = username
-
-
-    # check if device is registered
-    device = g_database_client.find_device(entityname, devicename)
-    if not device:
-        response = json.dumps({'status': 'NG', 'message': 'Device is not registered'})
-        print('\r\nERROR Get Device: Device is not registered [{},{}]\r\n'.format(entityname, devicename))
-        return response, status.HTTP_404_NOT_FOUND
-
-
-    msg = {'status': 'OK', 'message': 'Devices queried successfully.', 'device': device}
-    if new_token:
-        msg['new_token'] = new_token
-    response = json.dumps(msg)
-    print('\r\nDevice queried successful: {}\r\n{}\r\n'.format(username, response))
-    return response
-
-
-########################################################################################################
-#
-# GET DEVICE DESCRIPTOR
-#
-# - Request:
-#   GET /devices/device/<devicename>/descriptor
-#   headers: {'Authorization': 'Bearer ' + token.access}
-#
-# - Response:
-#   {'status': 'OK', 'message': string, 'descriptor': {} }}
-#   {'status': 'NG', 'message': string}
-#
-########################################################################################################
 @app.route('/devices/device/<devicename>/descriptor', methods=['GET'])
 def get_device_descriptor(devicename):
-    # get token from Authorization header
-    auth_header_token = g_utils.get_auth_header_token()
-    if auth_header_token is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Get Device Descriptor: Invalid authorization header\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    token = {'access': auth_header_token}
+    return g_device.get_device_descriptor(devicename)
 
-    # get username from token
-    username = g_database_client.get_username_from_token(token)
-    if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Get Device Descriptor: Token expired\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    print('get_device_descriptor {} devicename={}'.format(username, devicename))
-
-    # check if a parameter is empty
-    if len(username) == 0 or len(token) == 0 or len(devicename) == 0:
-        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-        print('\r\nERROR Get Device Descriptor: Empty parameter found\r\n')
-        return response, status.HTTP_400_BAD_REQUEST
-
-    # check if username and token is valid
-    verify_ret, new_token = g_database_client.verify_token(username, token)
-    if verify_ret == 2:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Get Device Descriptor: Token expired [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
-    elif verify_ret != 0:
-        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
-        print('\r\nERROR Get Device Descriptor: Token is invalid [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
-
-
-    # get entity using the active organization
-    orgname, orgid = g_database_client.get_active_organization(username)
-    if orgname is not None:
-        # check authorization
-        if g_database_client.is_authorized(username, orgname, orgid, database_categorylabel.DEVICES, database_crudindex.READ) == False:
-            response = json.dumps({'status': 'NG', 'message': 'Authorization failed! User is not allowed to access resource. Please check with the organization owner regarding policies assigned.'})
-            print('\r\nERROR Get Device Descriptor: Authorization not allowed [{}]\r\n'.format(username))
-            return response, status.HTTP_401_UNAUTHORIZED
-        # has active organization
-        entityname = "{}.{}".format(orgname, orgid)
-    else:
-        # no active organization, just a normal user
-        entityname = username
-
-
-    if True:
-        # get descriptor from database
-        # this assumes that the device sends the descriptor during device bootup
-        descriptor = g_database_client.get_device_descriptor(entityname, devicename)
-        if descriptor is None:
-            # device did not send descriptor on bootup, so query the device
-            api = "get_descriptor"
-            data = {}
-            data['token'] = {'access': auth_header_token}
-            data['devicename'] = devicename
-            data['username'] = username
-            response, status_return = g_messaging_requests.process(api, data)
-            if status_return == 503: # HTTP_503_SERVICE_UNAVAILABLE
-                return response, status_return
-            else:
-                # get the descriptor in response
-                response = json.loads(response)
-                descriptor = response['value']
-                g_database_client.set_device_descriptor(entityname, devicename, descriptor)
-                response = json.dumps(response)
-    else:
-        # get latest descriptor from device
-        # this assumes that the device does not send the descriptor during device bootup
-        # and that it can change everytime so device must be queried instead of checking database
-        api = "get_descriptor"
-        data = {}
-        data['token'] = {'access': auth_header_token}
-        data['devicename'] = devicename
-        data['username'] = username
-        response, status_return = g_messaging_requests.process(api, data)
-        if status_return == 503: # HTTP_503_SERVICE_UNAVAILABLE
-            # if device is not available get descriptor from database
-            descriptor = g_database_client.get_device_descriptor(entityname, devicename)
-            if descriptor is None:
-                return response, status_return
-        else:
-            # get the descriptor in response
-            response = json.loads(response)
-            descriptor = response['value']
-            g_database_client.set_device_descriptor(entityname, devicename, descriptor)
-            response = json.dumps(response)
-
-
-    msg = {'status': 'OK', 'message': 'Device Descriptor queried successfully.', 'descriptor': descriptor}
-    if new_token:
-        msg['new_token'] = new_token
-    response = json.dumps(msg)
-    print('\r\nDevice Descriptor queried successful: {}\r\n{}\r\n'.format(username, response))
-    return response
-
-
-########################################################################################################
-#
-# UPDATE DEVICE NAME
-#
-# - Request:
-#   POST /devices/device/<devicename>/name
-#   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-#   data: {'new_devicename': string}
-#
-# - Response:
-#   {'status': 'OK', 'message': string}}
-#   {'status': 'NG', 'message': string}
-#
-########################################################################################################
 @app.route('/devices/device/<devicename>/name', methods=['POST'])
 def update_devicename(devicename):
-    # get token from Authorization header
-    auth_header_token = g_utils.get_auth_header_token()
-    if auth_header_token is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Update Device Name: Invalid authorization header\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    token = {'access': auth_header_token}
-
-    # get username from token
-    username = g_database_client.get_username_from_token(token)
-    if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Update Device Name: Token expired\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    print('get_device {} devicename={}'.format(username, devicename))
-
-    # check if a parameter is empty
-    if len(username) == 0 or len(token) == 0 or len(devicename) == 0:
-        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-        print('\r\nERROR Update Device Name: Empty parameter found\r\n')
-        return response, status.HTTP_400_BAD_REQUEST
-
-    # check if username and token is valid
-    verify_ret, new_token = g_database_client.verify_token(username, token)
-    if verify_ret == 2:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Update Device Name: Token expired [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
-    elif verify_ret != 0:
-        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
-        print('\r\nERROR Update Device Name: Token is invalid [{}]\r\n'.format(username))
-        return response, status.HTTP_401_UNAUTHORIZED
+    return g_device.update_devicename(devicename)
 
 
-    # get entity using the active organization
-    orgname, orgid = g_database_client.get_active_organization(username)
-    if orgname is not None:
-        # check authorization
-        if g_database_client.is_authorized(username, orgname, orgid, database_categorylabel.DEVICES, database_crudindex.UPDATE) == False:
-            response = json.dumps({'status': 'NG', 'message': 'Authorization failed! User is not allowed to access resource. Please check with the organization owner regarding policies assigned.'})
-            print('\r\nERROR Get Device: Authorization not allowed [{}]\r\n'.format(username))
-            return response, status.HTTP_401_UNAUTHORIZED
-
-        # has active organization
-        entityname = "{}.{}".format(orgname, orgid)
-    else:
-        # no active organization, just a normal user
-        entityname = username
-
-    # check if device is registered
-    device = g_database_client.find_device(entityname, devicename)
-    if not device:
-        response = json.dumps({'status': 'NG', 'message': 'Device is not registered'})
-        print('\r\nERROR Update Device Name: Device is not registered [{},{}]\r\n'.format(entityname, devicename))
-        return response, status.HTTP_404_NOT_FOUND
-
-
-    # check if new device name is already registered
-    data = flask.request.get_json()
-    if not data.get("new_devicename"):
-        response = json.dumps({'status': 'NG', 'message': 'Parameters not included'})
-        print('\r\nERROR Update Device Name: Parameters not included [{},{}]\r\n'.format(entityname, devicename))
-        return response, status.HTTP_400_BAD_REQUEST
-    if len(data["new_devicename"]) == 0:
-        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-        print('\r\nERROR Update Device Name: Empty parameter found\r\n')
-        return response, status.HTTP_400_BAD_REQUEST
-    device = g_database_client.find_device(entityname, data["new_devicename"])
-    if device:
-        response = json.dumps({'status': 'NG', 'message': 'Device name is already registered'})
-        print('\r\nERROR Update Device Name: Device name is already registered [{},{}]\r\n'.format(entityname, devicename))
-        return response, status.HTTP_400_BAD_REQUEST
-
-
-    # update the device name
-    g_database_client.update_devicename(entityname, devicename, data["new_devicename"])
-
-
-    msg = {'status': 'OK', 'message': 'Device name updated successfully.', 'device': device}
-    if new_token:
-        msg['new_token'] = new_token
-    response = json.dumps(msg)
-    print('\r\nDevice name updated successful: {}\r\n{}\r\n'.format(username, response))
-    return response
-
-
-#########################
-
-
-
-
-
-#########################
-
-
-########################################################################################################
-# GET  /devices/device/<devicename>/xxx
-# POST /devices/device/<devicename>/xxx
-########################################################################################################
-#
-# GET STATUS
-# - Request:
-#   GET /devices/device/<devicename>/status
-#   headers: {'Authorization': 'Bearer ' + token.access}
-#
-# - Response:
-#   { 'status': 'OK', 'message': string, 'value': { 'status': int, 'version': string } }
-#   { 'status': 'NG', 'message': string, 'value': { 'heartbeat': string, 'version': string} }
-#
-@app.route('/devices/device/<devicename>/status', methods=['GET'])
-def get_status(devicename):
-    api = 'get_status'
-
-    # get token from Authorization header
-    auth_header_token = g_utils.get_auth_header_token()
-    if auth_header_token is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Invalid authorization header\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-
-    # get username from token
-    data = {}
-    data['token'] = {'access': auth_header_token}
-    data['devicename'] = devicename
-    username = g_database_client.get_username_from_token(data['token'])
-    if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Token expired\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    data['username'] = username
-    #print('get_status {} devicename={}'.format(data['username'], data['devicename']))
-
-
-    # get entity using the active organization
-    orgname, orgid = g_database_client.get_active_organization(username)
-    if orgname is not None:
-        # check authorization
-        if g_database_client.is_authorized(username, orgname, orgid, database_categorylabel.DEVICES, database_crudindex.READ) == False:
-            response = json.dumps({'status': 'NG', 'message': 'Authorization failed! User is not allowed to access resource. Please check with the organization owner regarding policies assigned.'})
-            print('\r\nERROR Get Status: Authorization not allowed [{}]\r\n'.format(username))
-            return response, status.HTTP_401_UNAUTHORIZED
-        # has active organization
-        entityname = "{}.{}".format(orgname, orgid)
-    else:
-        # no active organization, just a normal user
-        entityname = username
-
-    response, status_return = g_messaging_requests.process(api, data)
-    if status_return == 503: # HTTP_503_SERVICE_UNAVAILABLE
-        # if device is unreachable, get the cached heartbeat and version
-        cached_value = g_database_client.get_device_cached_values(entityname, devicename)
-        if not cached_value:
-            response = json.dumps({'status': 'NG', 'message': 'Device is not registered'})
-            print('\r\nERROR Device is not registered [{},{}]\r\n'.format(username, devicename))
-            return response, status.HTTP_404_NOT_FOUND
-        response = json.loads(response)
-        response['value'] = cached_value
-        response = json.dumps(response)
-        return response, status_return
-
-    if status_return == 200:
-        response = json.loads(response)
-        version = response["value"]["version"]
-        response = json.dumps(response)
-        g_database_client.save_device_version(entityname, devicename, version)
-
-    return response
-
-def get_status_threaded(entityname, api, data, device):
-    response, status_return = g_messaging_requests.process(api, data)
-    if status_return == 503: # HTTP_503_SERVICE_UNAVAILABLE
-        # if device is unreachable, get the cached heartbeat and version
-        cached_value = g_database_client.get_device_cached_values(entityname, device["devicename"])
-        if cached_value:
-            if cached_value.get("heartbeat"):
-                device["heartbeat"] = cached_value["heartbeat"]
-            if cached_value.get("version"):
-                device["version"] = cached_value["version"]
-
-    if status_return == 200:
-        response = json.loads(response)
-        version = response["value"]["version"]
-        status = response["value"]["status"]
-        response = json.dumps(response)
-        g_database_client.save_device_version(entityname, device["devicename"], version)
-        device["version"] = version
-        device["status"] = status
-
-#
-# GET STATUSES
-# - Request:
-#   GET /devices/status
-#   headers: {'Authorization': 'Bearer ' + token.access}
-#
-# - Response:
-#   { 'status': 'OK', 'message': string, 'value': [{ "devicename": string, 'status': int, 'version': string }] }
-#   { 'status': 'NG', 'message': string, 'value': [{ "devicename": string, 'heartbeat': string, 'version': string}] }
-#
 @app.route('/devices/status', methods=['GET'])
 def get_statuses():
-    api = 'get_status'
+    return g_device.get_statuses()
 
-    # get token from Authorization header
-    auth_header_token = g_utils.get_auth_header_token()
-    if auth_header_token is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Invalid authorization header\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
+@app.route('/devices/device/<devicename>/status', methods=['GET'])
+def get_status(devicename):
+    return g_device.get_status(devicename)
 
-    # get username from token
-    token = {'access': auth_header_token}
-    username = g_database_client.get_username_from_token(token)
-    if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Token expired\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    #print('get_status {} devicename={}'.format(data['username'], data['devicename']))
-
-
-    # get entity using the active organization
-    orgname, orgid = g_database_client.get_active_organization(username)
-    if orgname is not None:
-        # check authorization
-        if g_database_client.is_authorized(username, orgname, orgid, database_categorylabel.DEVICES, database_crudindex.READ) == False:
-            response = json.dumps({'status': 'NG', 'message': 'Authorization failed! User is not allowed to access resource. Please check with the organization owner regarding policies assigned.'})
-            print('\r\nERROR Get Statuses: Authorization not allowed [{}]\r\n'.format(username))
-            return response, status.HTTP_401_UNAUTHORIZED
-        # has active organization
-        entityname = "{}.{}".format(orgname, orgid)
-    else:
-        # no active organization, just a normal user
-        entityname = username
-
-
-    thread_list = []
-    devices = g_database_client.get_devicenames(entityname)
-    for device in devices:
-        data = {}
-        data['token'] = token
-        data['devicename'] = device["devicename"]
-        data['username'] = entityname
-        thr = threading.Thread(target = get_status_threaded, args = (entityname, api, data, device, ))
-        thread_list.append(thr)
-        thr.start()
-    for thr in thread_list:
-        thr.join()
-    #print(devices)
-
-    msg = {'status': 'OK', 'message': 'Device statuses queried successfully.', 'devices': devices}
-    response = json.dumps(msg)
-    return response
-
-#
-# SET STATUS
-# - Request:
-#   POST /devices/device/<devicename>/status
-#   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-#   data: { 'status': int }
-#
-# - Response:
-#   { 'status': 'OK', 'message': string, 'value': {'status': string} }
-#   { 'status': 'NG', 'message': string}
-#
 @app.route('/devices/device/<devicename>/status', methods=['POST'])
 def set_status(devicename):
-    api = 'set_status'
+    return g_device.set_status(devicename)
 
-    # get token from Authorization header
-    auth_header_token = g_utils.get_auth_header_token()
-    if auth_header_token is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Invalid authorization header\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-
-    # get parameter input
-    data = flask.request.get_json()
-
-    # check parameter input
-    if data['status'] is None:
-        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-        print('\r\nERROR Set status: Empty parameter found\r\n')
-        return response, status.HTTP_400_BAD_REQUEST
-
-    # get username from token
-    data['token'] = {'access': auth_header_token}
-    data['devicename'] = devicename
-    data['username'] = g_database_client.get_username_from_token(data['token'])
-    if data['username'] is None:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Token expired\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    print('set_status {} devicename={}'.format(data['username'], data['devicename']))
-
-    return g_messaging_requests.process(api, data)
-
-#
-# GET SETTINGS
-# - Request:
-#   GET /devices/device/<devicename>/settings
-#   headers: {'Authorization': 'Bearer ' + token.access}
-#
-# - Response:
-#   { 'status': 'OK', 'message': string }
-#   { 'status': 'NG', 'message': string }
-#
 @app.route('/devices/device/<devicename>/settings', methods=['GET'])
 def get_settings(devicename):
-    api = 'get_settings'
+    return g_device.get_settings(devicename)
 
-    # get token from Authorization header
-    auth_header_token = g_utils.get_auth_header_token()
-    if auth_header_token is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Invalid authorization header\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-
-    # get username from token
-    data = {}
-    data['token'] = {'access': auth_header_token}
-    data['devicename'] = devicename
-    username = g_database_client.get_username_from_token(data['token'])
-    if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Token expired\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    data['username'] = username
-    print('get_settings {} devicename={}'.format(data['username'], data['devicename']))
-
-    return g_messaging_requests.process(api, data)
-
-#
-# SET SETTINGS
-# - Request:
-#   POST /devices/device/<devicename>/settings
-#   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-#   data: { 'status': int }
-#
-# - Response:
-#   { 'status': 'OK', 'message': string, 'value': { 'sensorrate': int } }
-#   { 'status': 'NG', 'message': string}
-#
 @app.route('/devices/device/<devicename>/settings', methods=['POST'])
 def set_settings(devicename):
-    api = 'set_settings'
+    return g_device.set_settings(devicename)
 
-    # get token from Authorization header
-    auth_header_token = g_utils.get_auth_header_token()
-    if auth_header_token is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Invalid authorization header\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
 
-    # get parameter input
-    data = flask.request.get_json()
-
-    # get username from token
-    data['token'] = {'access': auth_header_token}
-    data['devicename'] = devicename
-    data['username'] = g_database_client.get_username_from_token(data['token'])
-    if data['username'] is None:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Token expired\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    print('set_settings {} devicename={}'.format(data['username'], data['devicename']))
-
-    return g_messaging_requests.process(api, data)
-
-
-
-#########################
-
-def build_default_notifications(type, token):
-    notifications = {}
-
-    if type == "uart":
-        notifications["messages"] = [
-            {
-                "message": "Hello World",
-                "enable": True
-            }
-        ]
-    elif type == "gpio":
-        notifications["messages"] = [
-            {
-                "message": "Hello World",
-                "enable": True
-            },
-            {
-                "message": "Hi World",
-                "enable": True
-            }
-        ]
-    else:
-        notifications["messages"] = [
-            {
-                "message": "Sensor threshold activated",
-                "enable": True
-            },
-            {
-                "message": "Sensor threshold deactivated",
-                "enable": True
-            }
-        ]
-
-    notifications["endpoints"] = {
-        "mobile": {
-            "recipients": "",
-            "recipients_list" : [],
-            "enable": False
-        },
-        "email": {
-            "recipients": "",
-            "recipients_list" : [],
-            "enable": False
-        },
-        "notification": {
-            "recipients": "",
-            "recipients_list" : [],
-            "enable": False
-        },
-        "modem": {
-            "recipients": "",
-            "recipients_list" : [],
-            "enable": False
-        },
-        "storage": {
-            "recipients": "",
-            "recipients_list" : [],
-            "enable": False
-        },
-    }
-
-    info = g_database_client.get_user_info(token['access'])
-    if info is None:
-        return None
-
-    if info.get("email"):
-        notifications["endpoints"]["email"]["recipients"] = info["email"]
-        notifications["endpoints"]["email"]["recipients_list"].append({ "to": info["email"], "group": False })
-
-    if info.get("email_verified"):
-        notifications["endpoints"]["email"]["enable"] = info["email_verified"]
-
-    if info.get("phone_number"):
-        notifications["endpoints"]["mobile"]["recipients"] = info["phone_number"]
-        notifications["endpoints"]["mobile"]["recipients_list"].append({ "to": info["phone_number"], "group": False })
-        #notifications["endpoints"]["notification"]["recipients"] = info["phone_number"]
-        #notifications["endpoints"]["notification"]["recipients_list"].append({ "to": info["phone_number"], "group": False })
-
-    if type == "uart":
-        if info.get("phone_number_verified"):
-            notifications["endpoints"]["mobile"]["enable"] = info["phone_number_verified"]
-            #notifications["endpoints"]["notification"]["enable"] = False
-
-    return notifications
-
-
-#
-# GET UARTS
-#
-# - Request:
-#   GET /devices/device/<devicename>/uarts
-#   headers: { 'Authorization': 'Bearer ' + token.access }
-#
-# - Response:
-#   { 'status': 'OK', 'message': string,
-#     'value': {
-#       'uarts': [
-#         {'enabled': int},
-#       ]
-#     }
-#   }
-#   { 'status': 'NG', 'message': string }
-#
-@app.route('/devices/device/<devicename>/uarts', methods=['GET'])
-def get_uarts(devicename):
-    api = 'get_uarts'
-
-    # get token from Authorization header
-    auth_header_token = g_utils.get_auth_header_token()
-    if auth_header_token is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Invalid authorization header\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    token = {'access': auth_header_token}
-
-    # get username from token
-    data = {}
-    data['token'] = token
-    data['devicename'] = devicename
-    username = g_database_client.get_username_from_token(data['token'])
-    if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Token expired\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    data['username'] = username
-    print('get_uarts {} devicename={}'.format(data['username'], data['devicename']))
-
-    return g_messaging_requests.process(api, data)
-
-
-#
-# GET UART PROPERTIES
-#
-# - Request:
-#   GET /devices/device/<devicename>/uart/properties
-#   headers: { 'Authorization': 'Bearer ' + token.access }
-#
-# - Response:
-#   { 'status': 'OK', 'message': string, 'value': { 'baudrate': int, 'parity': int, 'flowcontrol': int, 'stopbits': int, 'databits': int } }
-#   { 'status': 'NG', 'message': string }
-#
-@app.route('/devices/device/<devicename>/uart/properties', methods=['GET'])
-def get_uart_prop(devicename):
-    api = 'get_uart_prop'
-
-    # get token from Authorization header
-    auth_header_token = g_utils.get_auth_header_token()
-    if auth_header_token is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Invalid authorization header\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    token = {'access': auth_header_token}
-
-    # get username from token
-    data = {}
-    data['token'] = token
-    data['devicename'] = devicename
-    username = g_database_client.get_username_from_token(data['token'])
-    if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Token expired\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    data['username'] = username
-    print('get_uart_prop {} devicename={}'.format(data['username'], data['devicename']))
-
-
-    # get entity using the active organization
-    orgname, orgid = g_database_client.get_active_organization(username)
-    if orgname is not None:
-        if g_database_client.is_authorized(username, orgname, orgid, database_categorylabel.DEVICES, database_crudindex.READ) == False:
-            response = json.dumps({'status': 'NG', 'message': 'Authorization failed! User is not allowed to access resource. Please check with the organization owner regarding policies assigned.'})
-            print('\r\nERROR Set Uart: Authorization not allowed [{}]\r\n'.format(username))
-            return response, status.HTTP_401_UNAUTHORIZED
-        # has active organization
-        entityname = "{}.{}".format(orgname, orgid)
-    else:
-        # no active organization, just a normal user
-        entityname = username
-
-
-    response, status_return = g_messaging_requests.process(api, data)
-    if status_return != 200:
-        return response, status_return
-
-    source = "uart"
-    notification = g_database_client.get_device_notification(entityname, devicename, source)
-    if notification is not None:
-        if notification["endpoints"]["modem"].get("recipients_id"):
-            notification["endpoints"]["modem"].pop("recipients_id")
-        #print(notification)
-        # notification recipients should be empty
-        if notification["endpoints"]["notification"].get("recipients"):
-            notification["endpoints"]["notification"]["recipients"] = ""
-        response = json.loads(response)
-        response['value']['notification'] = notification
-        response = json.dumps(response)
-    else:
-        response = json.loads(response)
-        response['value']['notification'] = build_default_notifications("uart", token)
-        response = json.dumps(response)
-
-    return response
-
-
-#
-# SET UART PROPERTIES
-#
-# - Request:
-#   POST /devices/device/<devicename>/uart/properties
-#   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
-#   data: { 'baudrate': int, 'parity': int, 'flowcontrol': int, 'stopbits': int, 'databits': int }
-#
-# - Response:
-#   { 'status': 'OK', 'message': string }
-#   { 'status': 'NG', 'message': string }
-#
-@app.route('/devices/device/<devicename>/uart/properties', methods=['POST'])
-def set_uart_prop(devicename):
-    api = 'set_uart_prop'
-
-    # get token from Authorization header
-    auth_header_token = g_utils.get_auth_header_token()
-    if auth_header_token is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Invalid authorization header\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-
-    # get username from token
-    data = flask.request.get_json()
-    #print(data)
-    if data['baudrate'] is None or data['parity'] is None or data['databits'] is None or data['stopbits'] is None or data['flowcontrol'] is None or data['notification'] is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid parameters'})
-        print('\r\nERROR Invalid parameters\r\n')
-        return response, status.HTTP_400_BAD_REQUEST
-    #print(data['baudrate'])
-    #print(data['parity'])
-    #print(data['notification'])
-
-    # get notifications and remove from list
-    notification = data['notification']
-    #print(notification)
-    data.pop('notification')
-    #print(notification)
-    #print(data)
-
-    data['token'] = {'access': auth_header_token}
-    data['devicename'] = devicename
-    username = g_database_client.get_username_from_token(data['token'])
-    if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Token expired\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    data['username'] = username
-    print('set_uart_prop {} devicename={}'.format(data['username'], data['devicename']))
-
-    response, status_return = g_messaging_requests.process(api, data)
-    if status_return != 200:
-        return response, status_return
-
-
-    # get entity using the active organization
-    orgname, orgid = g_database_client.get_active_organization(username)
-    if orgname is not None:
-        # check authorization
-        if g_database_client.is_authorized(username, orgname, orgid, database_categorylabel.DEVICES, database_crudindex.UPDATE) == False:
-            response = json.dumps({'status': 'NG', 'message': 'Authorization failed! User is not allowed to access resource. Please check with the organization owner regarding policies assigned.'})
-            print('\r\nERROR Set Uart: Authorization not allowed [{}]\r\n'.format(username))
-            return response, status.HTTP_401_UNAUTHORIZED
-        # has active organization
-        entityname = "{}.{}".format(orgname, orgid)
-    else:
-        # no active organization, just a normal user
-        entityname = username
-
-    source = "uart"
-    item = g_database_client.update_device_notification(entityname, devicename, source, notification)
-
-    # update device configuration database for device bootup
-    #print("data={}".format(data))
-    item = g_database_client.update_device_peripheral_configuration(entityname, devicename, "uart", 1, None, None, None, data)
-
-    return response
-
-
-#
-# ENABLE/DISABLE UART
-#
-# - Request:
-#   POST /devices/device/DEVICENAME/uart/enable
-#   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
-#   data: { 'enable': int }
-#
-# - Response:
-#   { 'status': 'OK', 'message': string }
-#   { 'status': 'NG', 'message': string }
-#
-@app.route('/devices/device/<devicename>/uart/enable', methods=['POST'])
-def enable_uart(devicename):
-    api = 'enable_uart'
-
-    # get token from Authorization header
-    auth_header_token = g_utils.get_auth_header_token()
-    if auth_header_token is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Invalid authorization header\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-
-    # get username from token
-    data = flask.request.get_json()
-
-    # check parameter input
-    if data['enable'] is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid parameters'})
-        print('\r\nERROR Invalid parameters\r\n')
-        return response, status.HTTP_400_BAD_REQUEST
-
-    data['token'] = {'access': auth_header_token}
-    data['devicename'] = devicename
-    username = g_database_client.get_username_from_token(data['token'])
-    if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Token expired\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    data['username'] = username
-    print('enable_uart {} devicename={}'.format(data['username'], data['devicename']))
-
-    return g_messaging_requests.process(api, data)
-
-
-#
-# GET GPIOS
-#
-# - Request:
-#   GET /devices/device/<devicename>/gpios
-#   headers: { 'Authorization': 'Bearer ' + token.access }
-#
-# - Response:
-#   { 'status': 'OK', 'message': string,
-#     'value': {
-#       'voltage': int,
-#       'gpios': [
-#         {'direction': int, 'status': int},
-#         {'direction': int, 'status': int},
-#         {'direction': int, 'status': int},
-#         {'direction': int, 'status': int}
-#       ]
-#     }
-#   }
-#   { 'status': 'NG', 'message': string }
-#
-@app.route('/devices/device/<devicename>/gpios', methods=['GET'])
-def get_gpios(devicename):
-    api = 'get_gpios'
-
-    # get token from Authorization header
-    auth_header_token = g_utils.get_auth_header_token()
-    if auth_header_token is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Invalid authorization header\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    token = {'access': auth_header_token}
-
-    # get username from token
-    data = {}
-    data['token'] = token
-    data['devicename'] = devicename
-    username = g_database_client.get_username_from_token(data['token'])
-    if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Token expired\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    data['username'] = username
-    print('get_gpios {} devicename={}'.format(data['username'], data['devicename']))
-
-    return g_messaging_requests.process(api, data)
-
-
-#
-# GET GPIO PROPERTIES
-#
-# - Request:
-#   GET /devices/device/<devicename>/gpio/<number>/properties
-#   headers: { 'Authorization': 'Bearer ' + token.access }
-#
-# - Response:
-#   { 'status': 'OK', 'message': string, 'value': { 'direction': int, 'mode': int, 'alert': int, 'alertperiod': int } }
-#   { 'status': 'NG', 'message': string }
-#
-@app.route('/devices/device/<devicename>/gpio/<number>/properties', methods=['GET'])
-def get_gpio_prop(devicename, number):
-    api = 'get_gpio_prop'
-
-    # check number parameter
-    number = int(number)
-    if number > 4 or number < 1:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid parameters'})
-        print('\r\nERROR Invalid parameters\r\n')
-        return response, status.HTTP_400_BAD_REQUEST
-
-    # get token from Authorization header
-    auth_header_token = g_utils.get_auth_header_token()
-    if auth_header_token is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Invalid authorization header\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    token = {'access': auth_header_token}
-
-    # get username from token
-    data = {}
-    data['token'] = token
-    data['devicename'] = devicename
-    username = g_database_client.get_username_from_token(data['token'])
-    if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Token expired\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    data['username'] = username
-    data['number'] = number
-    print('get_gpio_prop {} devicename={}'.format(data['username'], data['devicename']))
-
-    response, status_return = g_messaging_requests.process(api, data)
-    if status_return != 200:
-        return response, status_return
-
-
-    # get entity using the active organization
-    orgname, orgid = g_database_client.get_active_organization(username)
-    if orgname is not None:
-        # check authorization
-        if g_database_client.is_authorized(username, orgname, orgid, database_categorylabel.DEVICES, database_crudindex.READ) == False:
-            response = json.dumps({'status': 'NG', 'message': 'Authorization failed! User is not allowed to access resource. Please check with the organization owner regarding policies assigned.'})
-            print('\r\nERROR Get Gpio Props: Authorization not allowed [{}]\r\n'.format(username))
-            return response, status.HTTP_401_UNAUTHORIZED
-        # has active organization
-        entityname = "{}.{}".format(orgname, orgid)
-    else:
-        # no active organization, just a normal user
-        entityname = username
-
-    source = "gpio{}".format(number)
-    notification = g_database_client.get_device_notification(entityname, devicename, source)
-    if notification is not None:
-        response = json.loads(response)
-        response['value']['notification'] = notification
-        response = json.dumps(response)
-    else:
-        response = json.loads(response)
-        response['value']['notification'] = build_default_notifications("gpio", token)
-        response = json.dumps(response)
-
-    return response
-
-
-#
-# SET GPIO PROPERTIES
-#
-# - Request:
-#   POST /devices/device/<devicename>/gpio/<number>/properties
-#   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
-#   data: { 'direction': int, 'mode': int, 'alert': int, 'alertperiod': int }
-#
-# - Response:
-#   { 'status': 'OK', 'message': string }
-#   { 'status': 'NG', 'message': string }
-#
-@app.route('/devices/device/<devicename>/gpio/<number>/properties', methods=['POST'])
-def set_gpio_prop(devicename, number):
-    api = 'set_gpio_prop'
-
-    # check number parameter
-    number = int(number)
-    if number > 4 or number < 1:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid parameters'})
-        print('\r\nERROR Invalid parameters\r\n')
-        return response, status.HTTP_400_BAD_REQUEST
-
-    # get token from Authorization header
-    auth_header_token = g_utils.get_auth_header_token()
-    if auth_header_token is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Invalid authorization header\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-
-    # get username from token
-    data = flask.request.get_json()
-    #print(data)
-    if data['direction'] is None or data['mode'] is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid parameters'})
-        print('\r\nERROR Invalid parameters\r\n')
-        return response, status.HTTP_400_BAD_REQUEST
-    if data['direction'] == 0: # INPUT
-        if data['alert'] is None or data['alertperiod'] is None:
-            response = json.dumps({'status': 'NG', 'message': 'Invalid parameters'})
-            print('\r\nERROR Invalid parameters\r\n')
-            return response, status.HTTP_400_BAD_REQUEST
-        if data['alertperiod'] < 5000:
-            response = json.dumps({'status': 'NG', 'message': 'Invalid parameters: alert period should be >= 5000 milliseconds'})
-            print('\r\nERROR Invalid parameters\r\n')
-            return response, status.HTTP_400_BAD_REQUEST
-    elif data['direction'] == 1: # OUTPUT
-        # If OUTPUT, polarity must be present
-        if data['polarity'] is None:
-            response = json.dumps({'status': 'NG', 'message': 'Invalid parameters'})
-            print('\r\nERROR Invalid parameters\r\n')
-            return response, status.HTTP_400_BAD_REQUEST
-        # If MODE is PULSE, width must be present
-        # If MODE is CLOCK, mark and space must be present
-        if data['mode'] == 1: # PULSE
-            if data['width'] is None:
-                response = json.dumps({'status': 'NG', 'message': 'Invalid parameters: width should be present'})
-                print('\r\nERROR Invalid parameters\r\n')
-                return response, status.HTTP_400_BAD_REQUEST
-            if data['width'] == 0:
-                response = json.dumps({'status': 'NG', 'message': 'Invalid parameters: width should be > 0 when mode is 1'})
-                print('\r\nERROR Invalid parameters\r\n')
-                return response, status.HTTP_400_BAD_REQUEST
-        elif data['mode'] == 2: # CLOCK
-            if data['mark'] is None or data['space'] is None or data['count'] is None:
-                response = json.dumps({'status': 'NG', 'message': 'Invalid parameters: mark, space, count should be present'})
-                print('\r\nERROR Invalid parameters\r\n')
-                return response, status.HTTP_400_BAD_REQUEST
-            if data['mark'] == 0 or data['space'] == 0 or data['count'] == 0:
-                response = json.dumps({'status': 'NG', 'message': 'Invalid parameters: mark, space, count should be > 0 when mode is 2'})
-                print('\r\nERROR Invalid parameters\r\n')
-                return response, status.HTTP_400_BAD_REQUEST
-    #print(data['direction'])
-    #print(data['mode'])
-    #print(data['alert'])
-    #print(data['alertperiod'])
-    #print(data['polarity'])
-    #print(data['width'])
-    #print(data['mark'])
-    #print(data['space'])
-
-
-    # get notifications and remove from list
-    notification = data['notification']
-    data.pop('notification')
-    #print(data)
-    #print(notification)
-
-    #print(api)
-    #print(data)
-    data['token'] = {'access': auth_header_token}
-    data['devicename'] = devicename
-    username = g_database_client.get_username_from_token(data['token'])
-    if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Token expired\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    data['username'] = username
-
-    # note: python dict maintains insertion order so number will always be the last key
-    data['number'] = number
-    print('set_gpio_prop {} devicename={}'.format(data['username'], data['devicename']))
-
-    response, status_return = g_messaging_requests.process(api, data)
-    if status_return != 200:
-        return response, status_return
-
-
-    # get entity using the active organization
-    orgname, orgid = g_database_client.get_active_organization(username)
-    if orgname is not None:
-        # check authorization
-        if g_database_client.is_authorized(username, orgname, orgid, database_categorylabel.DEVICES, database_crudindex.UPDATE) == False:
-            response = json.dumps({'status': 'NG', 'message': 'Authorization failed! User is not allowed to access resource. Please check with the organization owner regarding policies assigned.'})
-            print('\r\nERROR Set Gpio Props: Authorization not allowed [{}]\r\n'.format(username))
-            return response, status.HTTP_401_UNAUTHORIZED
-        # has active organization
-        entityname = "{}.{}".format(orgname, orgid)
-    else:
-        # no active organization, just a normal user
-        entityname = username
-
-    source = "gpio{}".format(number)
-    g_database_client.update_device_notification(entityname, devicename, source, notification)
-
-    # update device configuration database for device bootup
-    #print("data={}".format(data))
-    data.pop('number')
-    item = g_database_client.update_device_peripheral_configuration(entityname, devicename, "gpio", int(number), None, None, None, data)
-
-    return response
-
-
-
-#
-# GET GPIO VOLTAGE
-#
-# - Request:
-#   GET /devices/device/<devicename>/gpio/voltage
-#   headers: { 'Authorization': 'Bearer ' + token.access }
-#
-# - Response:
-#   { 'status': 'OK', 'message': string, 'value': { 'voltage': int } }
-#   { 'status': 'NG', 'message': string }
-#   voltage is an index of the value in the list of voltages
-#     ["3.3 V", "5 V"]
-#
-# GET ADC VOLTAGE
-#
-# - Request:
-#   GET /devices/device/<devicename>/adc/voltage
-#   headers: { 'Authorization': 'Bearer ' + token.access }
-#
-# - Response:
-#   { 'status': 'OK', 'message': string, 'value': { 'voltage': int } }
-#   { 'status': 'NG', 'message': string }
-#   voltage is an index of the value in the list of voltages
-#     ["-5/+5V Range", "-10/+10V Range", "0/10V Range"]
-#
-@app.route('/devices/device/<devicename>/<xxx>/voltage', methods=['GET'])
-def get_xxx_voltage(devicename, xxx):
-    api = 'get_{}_voltage'.format(xxx)
-
-    # get token from Authorization header
-    auth_header_token = g_utils.get_auth_header_token()
-    if auth_header_token is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Invalid authorization header\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-
-    # get username from token
-    data = {}
-    data['token'] = {'access': auth_header_token}
-    data['devicename'] = devicename
-    data['username'] = g_database_client.get_username_from_token(data['token'])
-    if data['username'] is None:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Token expired\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    print('get_{}_voltage {} devicename={}'.format(xxx, data['username'], data['devicename']))
-
-    return g_messaging_requests.process(api, data)
-
-#
-# SET GPIO VOLTAGE
-#
-# - Request:
-#   POST /devices/device/<devicename>/gpio/voltage
-#   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
-#   data: { 'voltage': int }
-#   voltage is an index of the value in the list of voltages
-#     ["3.3 V", "5 V"]
-#
-# - Response:
-#   { 'status': 'OK', 'message': string }
-#   { 'status': 'NG', 'message': string }
-#
-# SET ADC VOLTAGE
-#
-# - Request:
-#   POST /devices/device/<devicename>/adc/voltage
-#   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
-#   data: { 'voltage': int }
-#   voltage is an index of the value in the list of voltages
-#     ["-5/+5V Range", "-10/+10V Range", "0/10V Range"]
-#
-# - Response:
-#   { 'status': 'OK', 'message': string }
-#   { 'status': 'NG', 'message': string }
-#
-@app.route('/devices/device/<devicename>/<xxx>/voltage', methods=['POST'])
-def set_xxx_voltage(devicename, xxx):
-    api = 'set_{}_voltage'.format(xxx)
-
-    # get token from Authorization header
-    auth_header_token = g_utils.get_auth_header_token()
-    if auth_header_token is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Invalid authorization header\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-
-    # get parameter inputs
-    data = flask.request.get_json()
-
-    # check parameter input
-    if data['voltage'] is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid parameters'})
-        print('\r\nERROR Invalid parameters\r\n')
-        return response, status.HTTP_400_BAD_REQUEST
-    if data['voltage'] > 2:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid parameters'})
-        print('\r\nERROR Invalid parameters\r\n')
-        return response, status.HTTP_400_BAD_REQUEST
-
-    data['token'] = {'access': auth_header_token}
-    data['devicename'] = devicename
-    data['username'] = g_database_client.get_username_from_token(data['token'])
-    if data['username'] is None:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Token expired\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    print('set_{}_voltage {} devicename={}'.format(xxx, data['username'], data['devicename']))
-
-    return g_messaging_requests.process(api, data)
-
-
-#
-# ENABLE/DISABLE GPIO
-#
-# - Request:
-#   POST /devices/device/DEVICENAME/gpio/NUMBER/enable
-#   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
-#   data: { 'enable': int }
-#
-# - Response:
-#   { 'status': 'OK', 'message': string }
-#   { 'status': 'NG', 'message': string }
-#
-@app.route('/devices/device/<devicename>/gpio/<number>/enable', methods=['POST'])
-def enable_gpio(devicename, number):
-    api = 'enable_gpio'
-
-    # check number parameter
-    number = int(number)
-    if number > 4 or number < 1:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid parameters'})
-        print('\r\nERROR Invalid parameters\r\n')
-        return response, status.HTTP_400_BAD_REQUEST
-
-    # get token from Authorization header
-    auth_header_token = g_utils.get_auth_header_token()
-    if auth_header_token is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Invalid authorization header\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-
-    # get parameter inputs
-    data = flask.request.get_json()
-
-    # check parameter input
-    if data['enable'] is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid parameters'})
-        print('\r\nERROR Invalid parameters\r\n')
-        return response, status.HTTP_400_BAD_REQUEST
-
-    data['token'] = {'access': auth_header_token}
-    data['devicename'] = devicename
-    username = g_database_client.get_username_from_token(data['token'])
-    if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Token expired\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    data['username'] = username
-
-    # note: python dict maintains insertion order so number will always be the last key
-    data['number'] = number
-    print('enable_gpio {} devicename={} number={}'.format(username, devicename, number))
-
-    return g_messaging_requests.process(api, data)
-
-
-#
-# GET I2CS
-#
-# - Request:
-#   GET /devices/device/<devicename>/i2cs
-#   headers: { 'Authorization': 'Bearer ' + token.access }
-#
-# - Response:
-#   { 'status': 'OK', 'message': string,
-#     'value': {
-#       'i2cs': [
-#         {'enabled': int},
-#         {'enabled': int},
-#         {'enabled': int},
-#         {'enabled': int},
-#       ]
-#     }
-#   }
-#   { 'status': 'NG', 'message': string }
-#
-@app.route('/devices/device/<devicename>/i2cs', methods=['GET'])
-def get_i2cs(devicename):
-    api = 'get_i2cs'
-
-    # get token from Authorization header
-    auth_header_token = g_utils.get_auth_header_token()
-    if auth_header_token is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Invalid authorization header\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    token = {'access': auth_header_token}
-
-    # get username from token
-    data = {}
-    data['token'] = token
-    data['devicename'] = devicename
-    username = g_database_client.get_username_from_token(data['token'])
-    if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Token expired\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    data['username'] = username
-    print('get_i2cs {} devicename={}'.format(data['username'], data['devicename']))
-
-    return g_messaging_requests.process(api, data)
-
-
-########################################################################################################
-#
-# GET ALL I2C DEVICES
-#
-# - Request:
-#   GET /devices/device/DEVICENAME/i2c/sensors
-#   headers: { 'Authorization': 'Bearer ' + token.access }
-#
-# - Response:
-#   { 'status': 'OK', 'message': string, 'sensors': array[{'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'timestamp': string}, ...] }
-#   { 'status': 'NG', 'message': string }
-#
-#
-# GET ALL ADC DEVICES
-# GET ALL 1WIRE DEVICES
-# GET ALL TPROBE DEVICES
-#
-# - Request:
-#   GET /devices/device/DEVICENAME/adc/sensors
-#   GET /devices/device/DEVICENAME/1wire/sensors
-#   GET /devices/device/DEVICENAME/tprobe/sensors
-#   headers: { 'Authorization': 'Bearer ' + token.access }
-#
-# - Response:
-#   { 'status': 'OK', 'message': string, 'sensors': array[{'sensorname': string, 'manufacturer': string, 'model': string, 'timestamp': string}, ...] }
-#   { 'status': 'NG', 'message': string }
-#
-########################################################################################################
 @app.route('/devices/device/<devicename>/<xxx>/sensors', methods=['GET'])
 def get_all_xxx_sensors(devicename, xxx):
+    return g_device.get_all_xxx_sensors(devicename, xxx)
 
-    # get token from Authorization header
-    auth_header_token = g_utils.get_auth_header_token()
-    if auth_header_token is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Get All {} Sensors: Invalid authorization header\r\n'.format(xxx))
-        return response, status.HTTP_401_UNAUTHORIZED
-    token = {'access': auth_header_token}
-
-    # get username from token
-    username = g_database_client.get_username_from_token(token)
-    if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Get All {} Sensors: Token expired\r\n'.format(xxx))
-        return response, status.HTTP_401_UNAUTHORIZED
-    print('get_all_i2c_sensors {} devicename={}'.format(username, devicename))
-
-    # check if a parameter is empty
-    if len(username) == 0 or len(token) == 0:
-        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-        print('\r\nERROR Get All {} Sensors: Empty parameter found\r\n'.format(xxx))
-        return response, status.HTTP_400_BAD_REQUEST
-
-    # check if username and token is valid
-    verify_ret, new_token = g_database_client.verify_token(username, token)
-    if verify_ret == 2:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Get All {} Sensors: Token expired [{}]\r\n'.format(xxx, username))
-        return response, status.HTTP_401_UNAUTHORIZED
-    elif verify_ret != 0:
-        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
-        print('\r\nERROR Get All {} Sensors: Token is invalid [{}]\r\n'.format(xxx, username))
-        return response, status.HTTP_401_UNAUTHORIZED
-
-
-    # get entity using the active organization
-    orgname, orgid = g_database_client.get_active_organization(username)
-    if orgname is not None:
-        # check authorization
-        if g_database_client.is_authorized(username, orgname, orgid, database_categorylabel.DEVICES, database_crudindex.READ) == False:
-            response = json.dumps({'status': 'NG', 'message': 'Authorization failed! User is not allowed to access resource. Please check with the organization owner regarding policies assigned.'})
-            print('\r\nERROR Get All Sensors: Authorization not allowed [{}]\r\n'.format(username))
-            return response, status.HTTP_401_UNAUTHORIZED
-        # has active organization
-        entityname = "{}.{}".format(orgname, orgid)
-    else:
-        # no active organization, just a normal user
-        entityname = username
-
-    sensors = g_database_client.get_all_sensors(entityname, devicename, xxx)
-
-
-    msg = {'status': 'OK', 'message': 'All Sensors queried successfully.', 'sensors': sensors}
-    if new_token:
-        msg['new_token'] = new_token
-    response = json.dumps(msg)
-    print('\r\nGet All {} Sensors successful: {}\r\n{} sensors\r\n'.format(xxx, username, len(sensors)))
-    return response
-
-
-########################################################################################################
-#
-# GET ALL I2C INPUT/OUTPUT DEVICES
-#
-# - Request:
-#   GET /devices/device/DEVICENAME/i2c/sensors/DEVICETYPE
-#   headers: { 'Authorization': 'Bearer ' + token.access }
-#
-# - Response:
-#   { 'status': 'OK', 'message': string, 'sensors': array[{'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'timestamp': string}, ...] }
-#   { 'status': 'NG', 'message': string }
-#
-########################################################################################################
-@app.route('/devices/device/<devicename>/i2c/sensors/<devicetype>', methods=['GET'])
-def get_all_i2c_type_sensors(devicename, devicetype):
-
-    # get token from Authorization header
-    auth_header_token = g_utils.get_auth_header_token()
-    if auth_header_token is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Get All {} Sensors: Invalid authorization header\r\n'.format("i2c"))
-        return response, status.HTTP_401_UNAUTHORIZED
-    token = {'access': auth_header_token}
-
-    # get username from token
-    username = g_database_client.get_username_from_token(token)
-    if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Get All {} Sensors: Token expired\r\n'.format("i2c"))
-        return response, status.HTTP_401_UNAUTHORIZED
-    print('get_all_i2c_sensors {} devicename={}'.format(username, devicename))
-
-    # check if a parameter is empty
-    if len(username) == 0 or len(token) == 0:
-        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-        print('\r\nERROR Get All {} Sensors: Empty parameter found\r\n'.format("i2c"))
-        return response, status.HTTP_400_BAD_REQUEST
-
-    # check if username and token is valid
-    verify_ret, new_token = g_database_client.verify_token(username, token)
-    if verify_ret == 2:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Get All {} Sensors: Token expired [{}]\r\n'.format("i2c", username))
-        return response, status.HTTP_401_UNAUTHORIZED
-    elif verify_ret != 0:
-        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
-        print('\r\nERROR Get All {} Sensors: Token is invalid [{}]\r\n'.format("i2c", username))
-        return response, status.HTTP_401_UNAUTHORIZED
-
-
-    # get entity using the active organization
-    orgname, orgid = g_database_client.get_active_organization(username)
-    if orgname is not None:
-        # check authorization
-        if g_database_client.is_authorized(username, orgname, orgid, database_categorylabel.DEVICES, database_crudindex.READ) == False:
-            response = json.dumps({'status': 'NG', 'message': 'Authorization failed! User is not allowed to access resource. Please check with the organization owner regarding policies assigned.'})
-            print('\r\nERROR Get All Sensors: Authorization not allowed [{}]\r\n'.format(username))
-            return response, status.HTTP_401_UNAUTHORIZED
-        # has active organization
-        entityname = "{}.{}".format(orgname, orgid)
-    else:
-        # no active organization, just a normal user
-        entityname = username
-
-    sensors = g_database_client.get_all_type_sensors(entityname, devicename, "i2c", devicetype)
-
-
-    msg = {'status': 'OK', 'message': 'All Sensors queried successfully.', 'sensors': sensors}
-    if new_token:
-        msg['new_token'] = new_token
-    response = json.dumps(msg)
-    print('\r\nGet All {} Sensors successful: {}\r\n{} sensors\r\n'.format("i2c", username, len(sensors)))
-    return response
-
-
-########################################################################################################
-#
-# GET I2C DEVICES
-#
-# - Request:
-#   GET /devices/device/DEVICENAME/i2c/NUMBER/sensors
-#   headers: { 'Authorization': 'Bearer ' + token.access }
-#
-# - Response:
-#   { 'status': 'OK', 'message': string, 'sensors': array[{'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'timestamp': string, 'enabled': int}, ...] }
-#   { 'status': 'NG', 'message': string }
-#
-#
-# GET ADC DEVICES
-# GET 1WIRE DEVICES
-# GET TPROBE DEVICES
-#
-# - Request:
-#   GET /devices/device/DEVICENAME/adc/NUMBER/sensors
-#   GET /devices/device/DEVICENAME/1wire/NUMBER/sensors
-#   GET /devices/device/DEVICENAME/tprobe/NUMBER/sensors
-#   headers: { 'Authorization': 'Bearer ' + token.access }
-#
-# - Response:
-#   { 'status': 'OK', 'message': string, 'sensors': array[{'sensorname': string, 'manufacturer': string, 'model': string, 'timestamp': string, 'enabled': int}, ...] }
-#   { 'status': 'NG', 'message': string }
-#
-########################################################################################################
 @app.route('/devices/device/<devicename>/<xxx>/<number>/sensors', methods=['GET'])
 def get_xxx_sensors(devicename, xxx, number):
+    return g_device.get_xxx_sensors(devicename, xxx, number)
 
-    # check number parameter
-    if int(number) > 4 or int(number) < 1:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid parameters'})
-        print('\r\nERROR Invalid parameters\r\n')
-        return response, status.HTTP_400_BAD_REQUEST
-
-    # get token from Authorization header
-    auth_header_token = g_utils.get_auth_header_token()
-    if auth_header_token is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Get {} Sensors: Invalid authorization header\r\n'.format(xxx))
-        return response, status.HTTP_401_UNAUTHORIZED
-    token = {'access': auth_header_token}
-
-    # get username from token
-    username = g_database_client.get_username_from_token(token)
-    if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Get {} Sensors: Token expired\r\n'.format(xxx))
-        return response, status.HTTP_401_UNAUTHORIZED
-    print('get_{}_sensors {} devicename={} number={}'.format(xxx, username, devicename, number))
-
-    # check if a parameter is empty
-    if len(username) == 0 or len(token) == 0:
-        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-        print('\r\nERROR Get {} Sensors: Empty parameter found\r\n'.format(xxx))
-        return response, status.HTTP_400_BAD_REQUEST
-
-    # check if username and token is valid
-    verify_ret, new_token = g_database_client.verify_token(username, token)
-    if verify_ret == 2:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Get {} Sensors: Token expired [{}]\r\n'.format(xxx, username))
-        return response, status.HTTP_401_UNAUTHORIZED
-    elif verify_ret != 0:
-        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
-        print('\r\nERROR Get {} Sensors: Token is invalid [{}]\r\n'.format(xxx, username))
-        return response, status.HTTP_401_UNAUTHORIZED
-
-
-    # get entity using the active organization
-    orgname, orgid = g_database_client.get_active_organization(username)
-    if orgname is not None:
-        # check authorization
-        if g_database_client.is_authorized(username, orgname, orgid, database_categorylabel.DEVICES, database_crudindex.READ) == False:
-            response = json.dumps({'status': 'NG', 'message': 'Authorization failed! User is not allowed to access resource. Please check with the organization owner regarding policies assigned.'})
-            print('\r\nERROR Get Peripheral Sensors: Authorization not allowed [{}]\r\n'.format(username))
-            return response, status.HTTP_401_UNAUTHORIZED
-        # has active organization
-        entityname = "{}.{}".format(orgname, orgid)
-    else:
-        # no active organization, just a normal user
-        entityname = username
-
-
-    # query peripheral sensors
-    sensors = g_database_client.get_sensors(entityname, devicename, xxx, number)
-
-    # set to query device
-    api = "get_{}_devs".format(xxx)
-    data = {}
-    data['token'] = token
-    data['devicename'] = devicename
-    data['username'] = username
-    data["number"] = int(number)
-
-    # query device
-    response, status_return = g_messaging_requests.process(api, data)
-
-    if status_return == 200:
-        # map queried result with database result
-        #print("from device")
-        response = json.loads(response)
-        #print(response["value"])
-        if xxx == "i2c":
-            # if I2C
-            #print("I2C")
-            for sensor in sensors:
-                found = False
-                for item in response["value"]:
-                    # match found for database result and actual device result
-                    # set database record to configured and actual device item["enabled"]
-                    if sensor["address"] == item["address"]:
-                        # device is configured
-                        g_database_client.set_enable_configure_sensor(entityname, devicename, sensor['source'], sensor['number'], sensor['sensorname'], item["enabled"], 1)
-                        sensor["enabled"] = item["enabled"]
-                        sensor["configured"] = 1
-                        found = True
-                        break
-                # no match found
-                # set database record to unconfigured and disabled
-                if found == False:
-                    g_database_client.set_enable_configure_sensor(entityname, devicename, sensor['source'], sensor['number'], sensor['sensorname'], 0, 0)
-                    sensor["enabled"] = 0
-                    sensor["configured"] = 0
-        else:
-            # if ADC/1WIRE/TPROBE
-            #print("ADC/1WIRE/TPROBE")
-            for sensor in sensors:
-                found = False
-                # check if this is the active sensor
-                # if not the active sensor, then set database record to unconfigured and disabled
-                #print(sensor)
-#                if sensor['configured']:
-                for item in response["value"]:
-                    if item["class"] == g_utils.get_i2c_device_class(sensor["class"]):
-                        g_database_client.set_enable_configure_sensor(entityname, devicename, sensor['source'], sensor['number'], sensor['sensorname'], item["enabled"], 1)
-                        sensor["enabled"] = item["enabled"]
-                        sensor["configured"] = 1
-                        found = True
-                        break
-                if found == False:
-                    # set database record to unconfigured and disabled
-                    g_database_client.set_enable_configure_sensor(entityname, devicename, sensor['source'], sensor['number'], sensor['sensorname'], 0, 0)
-                    sensor["enabled"] = 0
-                    sensor["configured"] = 0
-#                else:
-#                    # set database record to unconfigured and disabled
-#                    g_database_client.set_enable_configure_sensor(entityname, devicename, sensor['source'], sensor['number'], sensor['sensorname'], 0, 0)
-#                    sensor["enabled"] = 0
-#                    sensor["configured"] = 0
-        #print()
-    else:
-        # cannot communicate with device so set database record to unconfigured and disabled
-        g_database_client.disable_unconfigure_sensors(entityname, devicename)
-        for sensor in sensors:
-            sensor["enabled"] = 0
-            sensor["configured"] = 0
-
-    # get sensor readings for enabled input devices
-    for sensor in sensors:
-        if sensor['type'] == 'input' and sensor['enabled']:
-            address = None
-            if sensor.get("address"):
-                address = sensor["address"]
-            source = "{}{}".format(xxx, number)
-            sensor_reading = g_database_client.get_sensor_reading(entityname, devicename, source, address)
-            if sensor_reading is not None:
-                sensor['readings'] = sensor_reading
-
-    if status_return == 200:
-        msg = {'status': 'OK', 'message': 'Sensors queried successfully.', 'sensors': sensors}
-    else:
-        msg = {'status': 'OK', 'message': 'Sensors queried successfully but device is offline.', 'sensors': sensors}
-    if new_token:
-        msg['new_token'] = new_token
-    response = json.dumps(msg)
-    print('\r\nGet {} Sensors successful: {}\r\n{} sensors\r\n'.format(xxx, username, len(sensors)))
-    return response
-
-
-#
-# when deleting a sensor,
-# make sure the sensor configurations, sensor readings and sensor registration are also deleted
-#
-def sensor_cleanup(entityname, devicename, deviceid, xxx, number, sensorname, sensor):
-
-    print("\r\ndelete_sensor {}".format(sensorname))
-    address = None
-    if sensor.get("address"):
-        address = sensor["address"]
-
-    print("")
-
-    # delete sensor notifications
-    print("Deleting sensor notifications...")
-    source = "{}{}{}".format(xxx, number, sensorname)
-    #notification = g_database_client.get_device_notification(entityname, devicename, source)
-    #print(notification)
-    if deviceid:
-        g_database_client.delete_device_notification_sensor_by_deviceid(deviceid, source)
-    else:
-        g_database_client.delete_device_notification_sensor(entityname, devicename, source)
-    #notification = g_database_client.get_device_notification(entityname, devicename, source)
-    #print(notification)
-    #print("")
-
-    # delete sensor configurations
-    print("Deleting sensor configurations...")
-    #config = g_database_client.get_device_peripheral_configuration(entityname, devicename, xxx, int(number), address)
-    #print(config)
-    if deviceid:
-        g_database_client.delete_device_peripheral_configuration_by_deviceid(deviceid, xxx, int(number), address)
-    else:
-        g_database_client.delete_device_peripheral_configuration(entityname, devicename, xxx, int(number), address)
-    #config = g_database_client.get_device_peripheral_configuration(entityname, devicename, xxx, int(number), address)
-    #print(config)
-    #print("")
-
-    # delete sensor readings
-    print("Deleting sensor readings...")
-    source = "{}{}".format(xxx, number)
-    #readings = g_database_client.get_sensor_reading(entityname, devicename, source, address)
-    #print(readings)
-    #readings_dataset = g_database_client.get_sensor_reading_dataset(entityname, devicename, source, address)
-    #print(readings_dataset)
-    if deviceid:
-        g_database_client.delete_sensor_reading_by_deviceid(deviceid, source, address)
-    else:
-        g_database_client.delete_sensor_reading(entityname, devicename, source, address)
-    #readings = g_database_client.get_sensor_reading(entityname, devicename, source, address)
-    #print(readings)
-    #readings_dataset = g_database_client.get_sensor_reading_dataset(entityname, devicename, source, address)
-    #print(readings_dataset)
-    #print("")
-
-    # delete sensor from database
-    print("Deleting sensor registration...")
-    if deviceid:
-        g_database_client.delete_sensor_by_deviceid(deviceid, xxx, number, sensorname)
-    else:
-        g_database_client.delete_sensor(entityname, devicename, xxx, number, sensorname)
-    #result = g_database_client.get_sensor(entityname, devicename, xxx, number, sensorname)
-    #print(result)
-    #print("")
-
-
-########################################################################################################
-#
-# ADD I2C DEVICE
-#
-# - Request:
-#   POST /devices/device/<devicename>/i2c/NUMBER/sensors/sensor/<sensorname>
-#   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-#   data: {'address': int, 'manufacturer': string, 'model': string, 'class': string, 'type': string, 'attributes': []}
-#
-# - Response:
-#   {'status': 'OK', 'message': string}
-#   {'status': 'NG', 'message': string}
-#
-# ADD ADC DEVICE
-# ADD 1WIRE DEVICE
-# ADD TPROBE DEVICE
-#
-# - Request:
-#   POST /devices/device/<devicename>/adc/NUMBER/sensors/sensor/<sensorname>
-#   POST /devices/device/<devicename>/1wire/NUMBER/sensors/sensor/<sensorname>
-#   POST /devices/device/<devicename>/tprobe/NUMBER/sensors/sensor/<sensorname>
-#   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-#   data: {'manufacturer': string, 'model': string, 'class': string, 'type': string, 'attributes': []}
-#
-# - Response:
-#   {'status': 'OK', 'message': string}
-#   {'status': 'NG', 'message': string}
-#
-#
-# DELETE I2C DEVICE
-#
-# - Request:
-#   DELETE /devices/device/<devicename>/i2c/NUMBER/sensors/sensor/<sensorname>
-#   headers: {'Authorization': 'Bearer ' + token.access}
-#
-# - Response:
-#   {'status': 'OK', 'message': string}
-#   {'status': 'NG', 'message': string}
-#
-# DELETE ADC DEVICE
-# DELETE 1WIRE DEVICE
-# DELETE TPROBE DEVICE
-#
-# - Request:
-#   DELETE /devices/device/<devicename>/adc/NUMBER/sensors/sensor/<sensorname>
-#   DELETE /devices/device/<devicename>/1wire/NUMBER/sensors/sensor/<sensorname>
-#   DELETE /devices/device/<devicename>/tprobe/NUMBER/sensors/sensor/<sensorname>
-#   headers: {'Authorization': 'Bearer ' + token.access}
-#
-# - Response:
-#   {'status': 'OK', 'message': string}
-#   {'status': 'NG', 'message': string}
-#
-########################################################################################################
 @app.route('/devices/device/<devicename>/<xxx>/<number>/sensors/sensor/<sensorname>', methods=['POST', 'DELETE'])
 def register_xxx_sensor(devicename, xxx, number, sensorname):
+    return g_device.register_xxx_sensor(devicename, xxx, number, sensorname)
 
-    # check number parameter
-    if int(number) > 4 or int(number) < 1:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid parameters'})
-        print('\r\nERROR Invalid parameters\r\n')
-        return response, status.HTTP_400_BAD_REQUEST
-
-    # get token from Authorization header
-    auth_header_token = g_utils.get_auth_header_token()
-    if auth_header_token is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Add/Delete {} Sensor: Invalid authorization header\r\n'.format(xxx))
-        return response, status.HTTP_401_UNAUTHORIZED
-    token = {'access': auth_header_token}
-
-    # get username from token
-    username = g_database_client.get_username_from_token(token)
-    if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Add/Delete {} Sensor: Token expired\r\n'.format(xxx))
-        return response, status.HTTP_401_UNAUTHORIZED
-    print('register_{}_sensor {} devicename={} number={} sensorname={}'.format(xxx, username, devicename, number, sensorname))
-
-    # check if a parameter is empty
-    if len(username) == 0 or len(token) == 0 or len(devicename) == 0 or len(sensorname) == 0:
-        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-        print('\r\nERROR Add/Delete {} Sensor: Empty parameter found\r\n'.format(xxx))
-        return response, status.HTTP_400_BAD_REQUEST
-
-    # check if username and token is valid
-    verify_ret, new_token = g_database_client.verify_token(username, token)
-    if verify_ret == 2:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Add/Delete {} Sensor: Token expired [{}]\r\n'.format(xxx, username))
-        return response, status.HTTP_401_UNAUTHORIZED
-    elif verify_ret != 0:
-        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
-        print('\r\nERROR Add/Delete {} Sensor: Token is invalid [{}]\r\n'.format(xxx, username))
-        return response, status.HTTP_401_UNAUTHORIZED
-
-
-    # get entity using the active organization
-    orgname, orgid = g_database_client.get_active_organization(username)
-    if orgname is not None:
-        # has active organization
-        entityname = "{}.{}".format(orgname, orgid)
-    else:
-        # no active organization, just a normal user
-        entityname = username
-
-
-    if flask.request.method == 'POST':
-        if orgname is not None:
-            # check authorization
-            if g_database_client.is_authorized(username, orgname, orgid, database_categorylabel.DEVICES, database_crudindex.UPDATE) == False:
-                response = json.dumps({'status': 'NG', 'message': 'Authorization failed! User is not allowed to access resource. Please check with the organization owner regarding policies assigned.'})
-                print('\r\nERROR Add Peripheral Sensor: Authorization not allowed [{}]\r\n'.format(username))
-                return response, status.HTTP_401_UNAUTHORIZED
-
-        # get parameters
-        data = flask.request.get_json()
-        #print(data)
-        if xxx == 'i2c':
-            if data['address'] is None:
-                response = json.dumps({'status': 'NG', 'message': 'Parameters not included'})
-                print('\r\nERROR Add {} Sensor: Parameters not included [{},{}]\r\n'.format(xxx, entityname, devicename))
-                return response, status.HTTP_400_BAD_REQUEST
-            data["address"] = int(data["address"])
-            if data["address"] == 0:
-                response = json.dumps({'status': 'NG', 'message': 'Invalid address'})
-                print('\r\nERROR Add {} Sensor: Invalid address [{},{}]\r\n'.format(xxx, entityname, devicename))
-                return response, status.HTTP_400_BAD_REQUEST
-            # check if sensor address is registered
-            # address should be unique within a slot
-            if g_database_client.get_sensor_by_address(entityname, devicename, xxx, number, data["address"]):
-                response = json.dumps({'status': 'NG', 'message': 'Sensor address is already taken'})
-                print('\r\nERROR Add {} Sensor: Sensor address is already taken [{},{},{}]\r\n'.format(xxx, entityname, devicename, data["address"]))
-                return response, status.HTTP_409_CONFLICT
-
-        if data["manufacturer"] is None or data["model"] is None or data["class"] is None or data["type"] is None or data["units"] is None or data["formats"] is None or data["attributes"] is None:
-            response = json.dumps({'status': 'NG', 'message': 'Parameters not included'})
-            print('\r\nERROR Add {} Sensor: Parameters not included [{},{}]\r\n'.format(xxx, entityname, devicename))
-            return response, status.HTTP_400_BAD_REQUEST
-        #print(data["manufacturer"])
-        #print(data["model"])
-
-        # check if sensor is registered
-        # name should be unique all throughout the slots
-        if g_database_client.check_sensor(entityname, devicename, sensorname):
-            response = json.dumps({'status': 'NG', 'message': 'Sensor name is already taken'})
-            print('\r\nERROR Add {} Sensor: Sensor name is already taken [{},{},{}]\r\n'.format(xxx, entityname, devicename, sensorname))
-            return response, status.HTTP_409_CONFLICT
-
-        # can only register 1 device for adc/1wire/tprobe
-        if xxx != 'i2c':
-            if g_database_client.get_sensors_count(entityname, devicename, xxx, number) > 0:
-                response = json.dumps({'status': 'NG', 'message': 'Cannot add more than 1 sensor for {}'.format(xxx)})
-                print('\r\nERROR Add {} Sensor: Cannot add more than 1 sensor [{},{},{}]\r\n'.format(xxx, entityname, devicename, sensorname))
-                return response, status.HTTP_400_BAD_REQUEST
-
-        # add sensor to database
-        result = g_database_client.add_sensor(entityname, devicename, xxx, number, sensorname, data)
-        #print(result)
-        if not result:
-            response = json.dumps({'status': 'NG', 'message': 'Sensor could not be registered'})
-            print('\r\nERROR Add {} Sensor: Sensor could not be registered [{},{}]\r\n'.format(xxx, entityname, devicename))
-            return response, status.HTTP_500_INTERNAL_SERVER_ERROR
-
-        msg = {'status': 'OK', 'message': 'Sensor registered successfully.'}
-        if new_token:
-            msg['new_token'] = new_token
-        response = json.dumps(msg)
-        print('\r\n{} Sensor registered successful: {}\r\n{}\r\n'.format(xxx, entityname, response))
-        return response
-
-    elif flask.request.method == 'DELETE':
-        if orgname is not None:
-            # check authorization
-            if g_database_client.is_authorized(username, orgname, orgid, database_categorylabel.DEVICES, database_crudindex.DELETE) == False:
-                response = json.dumps({'status': 'NG', 'message': 'Authorization failed! User is not allowed to access resource. Please check with the organization owner regarding policies assigned.'})
-                print('\r\nERROR Delete Peripheral Sensor: Authorization not allowed [{}]\r\n'.format(username))
-                return response, status.HTTP_401_UNAUTHORIZED
-
-        # check if sensor is registered
-        sensor = g_database_client.get_sensor(entityname, devicename, xxx, number, sensorname)
-        if not sensor:
-            response = json.dumps({'status': 'NG', 'message': 'Sensor is not registered'})
-            print('\r\nERROR Delete {} Sensor: Sensor is not registered [{},{}]\r\n'.format(xxx, entityname, devicename))
-            return response, status.HTTP_404_NOT_FOUND
-
-        # delete necessary sensor-related database information
-        sensor_cleanup(entityname, devicename, None, xxx, number, sensorname, sensor)
-
-        msg = {'status': 'OK', 'message': 'Sensor unregistered successfully.'}
-        if new_token:
-            msg['new_token'] = new_token
-        response = json.dumps(msg)
-        print('\r\n{} Sensor unregistered successful: {}\r\n{}\r\n'.format(xxx, username, response))
-        return response
-
-
-########################################################################################################
-#
-# GET I2C DEVICE
-#
-# - Request:
-#   GET /devices/device/<devicename>/i2c/NUMBER/sensors/sensor/<sensorname>
-#   headers: {'Authorization': 'Bearer ' + token.access}
-#
-# - Response:
-#   {'status': 'OK', 'message': string, 'sensor': {'sensorname': string, 'address': int, 'manufacturer': string, 'model': string, 'timestamp': string}}
-#   {'status': 'NG', 'message': string}
-#
-# GET ADC DEVICE
-# GET 1WIRE DEVICE
-# GET TPROBE DEVICE
-#
-# - Request:
-#   GET /devices/device/<devicename>/adc/NUMBER/sensors/sensor/<sensorname>
-#   GET /devices/device/<devicename>/1wire/NUMBER/sensors/sensor/<sensorname>
-#   GET /devices/device/<devicename>/tprobe/NUMBER/sensors/sensor/<sensorname>
-#   headers: {'Authorization': 'Bearer ' + token.access}
-#
-# - Response:
-#   {'status': 'OK', 'message': string, 'sensor': {'sensorname': string, 'manufacturer': string, 'model': string, 'timestamp': string}}
-#   {'status': 'NG', 'message': string}
-#
-########################################################################################################
 @app.route('/devices/device/<devicename>/<xxx>/<number>/sensors/sensor/<sensorname>', methods=['GET'])
 def get_xxx_sensor(devicename, xxx, number, sensorname):
-
-    # check number parameter
-    if int(number) > 4 or int(number) < 1:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid parameters'})
-        print('\r\nERROR Invalid parameters\r\n')
-        return response, status.HTTP_400_BAD_REQUEST
-
-    # get token from Authorization header
-    auth_header_token = g_utils.get_auth_header_token()
-    if auth_header_token is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Get {} Sensor: Invalid authorization header\r\n'.format(xxx))
-        return response, status.HTTP_401_UNAUTHORIZED
-    token = {'access': auth_header_token}
-
-    # get username from token
-    username = g_database_client.get_username_from_token(token)
-    if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Get {} Sensor: Token expired\r\n'.format(xxx))
-        return response, status.HTTP_401_UNAUTHORIZED
-    print('get_{}_sensor {} devicename={} number={} sensorname={}'.format(xxx, username, devicename, number, sensorname))
-
-    # check if a parameter is empty
-    if len(username) == 0 or len(token) == 0 or len(devicename) == 0 or len(sensorname) == 0:
-        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-        print('\r\nERROR Get {} Sensor: Empty parameter found\r\n'.format(xxx))
-        return response, status.HTTP_400_BAD_REQUEST
-
-    # check if username and token is valid
-    verify_ret, new_token = g_database_client.verify_token(username, token)
-    if verify_ret == 2:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Get {} Sensor: Token expired [{}]\r\n'.format(xxx, username))
-        return response, status.HTTP_401_UNAUTHORIZED
-    elif verify_ret != 0:
-        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
-        print('\r\nERROR Get {} Sensor: Token is invalid [{}]\r\n'.format(xxx, username))
-        return response, status.HTTP_401_UNAUTHORIZED
+    return g_device.get_xxx_sensor(devicename, xxx, number, sensorname)
 
 
-    # get entity using the active organization
-    orgname, orgid = g_database_client.get_active_organization(username)
-    if orgname is not None:
-        # check authorization
-        if g_database_client.is_authorized(username, orgname, orgid, database_categorylabel.DEVICES, database_crudindex.READ) == False:
-            response = json.dumps({'status': 'NG', 'message': 'Authorization failed! User is not allowed to access resource. Please check with the organization owner regarding policies assigned.'})
-            print('\r\nERROR Get Peripheral Sensor: Authorization not allowed [{}]\r\n'.format(username))
-            return response, status.HTTP_401_UNAUTHORIZED
-        # has active organization
-        entityname = "{}.{}".format(orgname, orgid)
-    else:
-        # no active organization, just a normal user
-        entityname = username
+g_device_list = [
+    { "name": "GET DEVICES",                  "func": get_device_list,           "api": "/devices",                                "method": "GET"    },
+    { "name": "GET DEVICES (FILTERED)",       "func": get_device_list_filtered,  "api": "/devices/filter/<filter>",                "method": "GET"    },
+    { "name": "REGISTER DEVICE",              "func": register_device,           "api": "/devices/device/<devicename>",            "method": "POST"   },
+    { "name": "UNREGISTER DEVICE",            "func": unregister_device,         "api": "/devices/device/<devicename>",            "method": "DELETE" },
+    { "name": "GET DEVICE",                   "func": get_device,                "api": "/devices/device/<devicename>",            "method": "GET"    },
+    { "name": "GET DEVICE DESCRIPTOR",        "func": get_device_descriptor,     "api": "/devices/device/<devicename>/descriptor", "method": "GET"    },
+    { "name": "UPDATE DEVICE NAME",           "func": update_devicename,         "api": "/devices/device/<devicename>/name",       "method": "GET"    },
 
+    { "name": "GET DEVICES STATUSES",         "func": get_statuses,              "api": "/devices/status",                         "method": "GET"    },
+    { "name": "GET DEVICE STATUS",            "func": get_status,                "api": "/devices/device/<devicename>/status",     "method": "GET"    },
+    { "name": "SET DEVICE STATUS",            "func": set_status,                "api": "/devices/device/<devicename>/status",     "method": "POST"   },
+    { "name": "GET DEVICE SETTINGS",          "func": get_settings,              "api": "/devices/device/<devicename>/settings",   "method": "GET"    },
+    { "name": "SET DEVICE SETTINGS",          "func": set_settings,              "api": "/devices/device/<devicename>/settings",   "method": "POST"   },
 
-    # check if sensor is registered
-    sensor = g_database_client.get_sensor(entityname, devicename, xxx, number, sensorname)
-    if not sensor:
-        response = json.dumps({'status': 'NG', 'message': 'Sensor is not registered'})
-        print('\r\nERROR Get {} Sensor: Sensor is not registered [{},{}]\r\n'.format(xxx, entityname, devicename))
-        return response, status.HTTP_404_NOT_FOUND
-
-
-    msg = {'status': 'OK', 'message': 'Sensor queried successfully.', 'sensor': sensor}
-    if new_token:
-        msg['new_token'] = new_token
-    response = json.dumps(msg)
-    print('\r\n{} Sensor queried successful: {}\r\n{}\r\n'.format(xxx, username, response))
-    return response
+    { "name": "GET ALL PERIPHERAL SENSORS",   "func": get_all_xxx_sensors,       "api": "/devices/device/<devicename>/<xxx>/sensors",                              "method": "GET"    },
+    { "name": "GET PERIPHERAL SENSORS",       "func": get_xxx_sensors,           "api": "/devices/device/<devicename>/<xxx>/<number>/sensors",                     "method": "GET"    },
+    { "name": "REGISTER PERIPHERAL SENSOR",   "func": register_xxx_sensor,       "api": "/devices/device/<devicename>/<xxx>/<number>/sensors/sensor/<sensorname>", "method": "POST"   },
+    { "name": "UNREGISTER PERIPHERAL SENSOR", "func": register_xxx_sensor,       "api": "/devices/device/<devicename>/<xxx>/<number>/sensors/sensor/<sensorname>", "method": "DELETE" },
+    { "name": "GET PERIPHERAL SENSOR",        "func": get_xxx_sensor,            "api": "/devices/device/<devicename>/<xxx>/<number>/sensors/sensor/<sensorname>", "method": "GET"    },
+]
 
 
 ########################################################################################################
 #
-# GET I2C DEVICE READINGS (per sensor)
-#
-# - Request:
-#   GET /devices/device/<devicename>/i2c/NUMBER/sensors/sensor/<sensorname>/readings
-#   headers: {'Authorization': 'Bearer ' + token.access}
-#
-# - Response:
-#   {'status': 'OK', 'message': string, 'sensor_readings': {'value': int, 'lowest': int, 'highest': int} }
-#   {'status': 'NG', 'message': string }
-#
-# GET ADC DEVICE READINGS (per sensor)
-# GET 1WIRE DEVICE READINGS (per sensor)
-# GET TPROBE DEVICE READINGS (per sensor)
-#
-# - Request:
-#   GET /devices/device/<devicename>/adc/NUMBER/sensors/sensor/<sensorname>/readings
-#   GET /devices/device/<devicename>/1wire/NUMBER/sensors/sensor/<sensorname>/readings
-#   GET /devices/device/<devicename>/tprobe/NUMBER/sensors/sensor/<sensorname>/readings
-#   headers: {'Authorization': 'Bearer ' + token.access}
-#
-# - Response:
-#   {'status': 'OK', 'message': string, 'sensor_readings': {'value': int, 'lowest': int, 'highest': int} }
-#   {'status': 'NG', 'message': string }
-#
-#
-# DELETE I2C DEVICE READINGS (per sensor)
-#
-# - Request:
-#   DELETE /devices/device/<devicename>/i2c/NUMBER/sensors/sensor/<sensorname>/readings
-#   headers: {'Authorization': 'Bearer ' + token.access}
-#
-# - Response:
-#   {'status': 'OK', 'message': string }
-#   {'status': 'NG', 'message': string }
-#
-# DELETE ADC DEVICE READINGS (per sensor)
-# DELETE 1WIRE DEVICE READINGS (per sensor)
-# DELETE TPROBE DEVICE READINGS (per sensor)
-#
-# - Request:
-#   DELETE /devices/device/<devicename>/adc/NUMBER/sensors/sensor/<sensorname>/readings
-#   DELETE /devices/device/<devicename>/1wire/NUMBER/sensors/sensor/<sensorname>/readings
-#   DELETE /devices/device/<devicename>/tprobe/NUMBER/sensors/sensor/<sensorname>/readings
-#   headers: {'Authorization': 'Bearer ' + token.access}
-#
-# - Response:
-#   {'status': 'OK', 'message': string }
-#   {'status': 'NG', 'message': string }
+# DEVICE LDS BUS
 #
 ########################################################################################################
-@app.route('/devices/device/<devicename>/<xxx>/<number>/sensors/sensor/<sensorname>/readings', methods=['GET', 'DELETE'])
-def get_xxx_sensor_readings(devicename, xxx, number, sensorname):
 
-    # check number parameter
-    if int(number) > 4 or int(number) < 1:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid parameters'})
-        print('\r\nERROR Invalid parameters\r\n')
-        return response, status.HTTP_400_BAD_REQUEST
+@app.route('/devices/device/<devicename>/ldsbus/<portnumber>', methods=['GET'])
+def get_lds_bus(devicename, portnumber):
+    return g_device_ldsbus.get_lds_bus(devicename, portnumber)
 
-    # get token from Authorization header
-    auth_header_token = g_utils.get_auth_header_token()
-    if auth_header_token is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Get {} Sensor: Invalid authorization header\r\n'.format(xxx))
-        return response, status.HTTP_401_UNAUTHORIZED
-    token = {'access': auth_header_token}
+@app.route('/devices/device/<devicename>/ldsbus/<portnumber>/<component>', methods=['GET'])
+def get_lds_bus_component(devicename, portnumber, component):
+    return g_device_ldsbus.get_lds_bus_component(devicename, portnumber, component)
 
-    # get username from token
-    username = g_database_client.get_username_from_token(token)
-    if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Get {} Sensor: Token expired\r\n'.format(xxx))
-        return response, status.HTTP_401_UNAUTHORIZED
-    print('get_{}_sensor_readings {} devicename={} number={} sensorname={}'.format(xxx, username, devicename, number, sensorname))
+@app.route('/devices/device/<devicename>/ldsbus/<portnumber>', methods=['POST'])
+def scan_lds_bus(devicename, portnumber):
+    return g_device_ldsbus.scan_lds_bus(devicename, portnumber)
 
-    # check if a parameter is empty
-    if len(username) == 0 or len(token) == 0 or len(devicename) == 0 or len(sensorname) == 0:
-        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-        print('\r\nERROR Get {} Sensor: Empty parameter found\r\n'.format(xxx))
-        return response, status.HTTP_400_BAD_REQUEST
+@app.route('/devices/device/<devicename>/ldsu/<ldsuuuid>', methods=['GET'])
+def get_ldsu(devicename, ldsuuuid):
+    return g_device_ldsbus.get_ldsu(devicename, ldsuuuid)
 
-    # check if username and token is valid
-    verify_ret, new_token = g_database_client.verify_token(username, token)
-    if verify_ret == 2:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Get {} Sensor: Token expired [{}]\r\n'.format(xxx, username))
-        return response, status.HTTP_401_UNAUTHORIZED
-    elif verify_ret != 0:
-        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
-        print('\r\nERROR Get {} Sensor: Token is invalid [{}]\r\n'.format(xxx, username))
-        return response, status.HTTP_401_UNAUTHORIZED
+@app.route('/devices/device/<devicename>/ldsu/<ldsuuuid>', methods=['DELETE'])
+def delete_ldsu(devicename, ldsuuuid):
+    return g_device_ldsbus.get_ldsu(devicename, ldsuuuid)
 
+@app.route('/devices/device/<devicename>/ldsu/<ldsuuuid>/name', methods=['POST'])
+def change_ldsu_name(devicename, ldsuuuid):
+    return g_device_ldsbus.change_ldsu_name(devicename, ldsuuuid)
 
-    # get entity using the active organization
-    orgname, orgid = g_database_client.get_active_organization(username)
-    if orgname is not None:
-        # has active organization
-        entityname = "{}.{}".format(orgname, orgid)
-    else:
-        # no active organization, just a normal user
-        entityname = username
+@app.route('/devices/device/<devicename>/ldsu/<ldsuuuid>/identify', methods=['POST'])
+def identify_ldsu(devicename, ldsuuuid):
+    return g_device_ldsbus.identify_ldsu(devicename, ldsuuuid)
 
-
-    # check if sensor is registered
-    sensor = g_database_client.get_sensor(entityname, devicename, xxx, number, sensorname)
-    if not sensor:
-        response = json.dumps({'status': 'NG', 'message': 'Sensor is not registered'})
-        print('\r\nERROR Get {} Sensor: Sensor is not registered [{},{}]\r\n'.format(xxx, entityname, devicename))
-        return response, status.HTTP_404_NOT_FOUND
-
-    # check if sensor type is valid
-    if sensor["type"] != "input":
-        response = json.dumps({'status': 'NG', 'message': 'Sensor type is invalid'})
-        print('\r\nERROR Get {} Sensor: Sensor type is invalid [{},{}]\r\n'.format(xxx, entityname, devicename))
-        return response, status.HTTP_404_NOT_FOUND
-
-    address = None
-    if sensor.get("address"):
-        address = sensor["address"]
-    source = "{}{}".format(xxx, number)
-    if flask.request.method == 'GET':
-        if orgname is not None:
-            # check authorization
-            if g_database_client.is_authorized(username, orgname, orgid, database_categorylabel.DEVICES, database_crudindex.READ) == False:
-                response = json.dumps({'status': 'NG', 'message': 'Authorization failed! User is not allowed to access resource. Please check with the organization owner regarding policies assigned.'})
-                print('\r\nERROR Get Peripheral Sensor: Authorization not allowed [{}]\r\n'.format(username))
-                return response, status.HTTP_401_UNAUTHORIZED
-
-        # get sensor reading
-        sensor_readings = g_database_client.get_sensor_reading(entityname, devicename, source, address)
-        if not sensor_readings:
-            # no readings yet
-            sensor_readings = {}
-            sensor_readings["value"] = "0"
-            sensor_readings["lowest"] = "0"
-            sensor_readings["highest"] = "0"
-
-        msg = {'status': 'OK', 'message': 'Sensor reading queried successfully.', 'sensor_readings': sensor_readings}
-        if new_token:
-            msg['new_token'] = new_token
-        response = json.dumps(msg)
-        print('\r\nSensor reading queried successful: {}\r\n{}\r\n'.format(entityname, response))
-        return response
-
-    elif flask.request.method == 'DELETE':
-        if orgname is not None:
-            # check authorization
-            if g_database_client.is_authorized(username, orgname, orgid, database_categorylabel.DEVICES, database_crudindex.DELETE) == False:
-                response = json.dumps({'status': 'NG', 'message': 'Authorization failed! User is not allowed to access resource. Please check with the organization owner regarding policies assigned.'})
-                print('\r\nERROR Delete Peripheral Sensor: Authorization not allowed [{}]\r\n'.format(username))
-                return response, status.HTTP_401_UNAUTHORIZED
-
-        # delete sensor reading
-        g_database_client.delete_sensor_reading(entityname, devicename, source, address)
-
-        msg = {'status': 'OK', 'message': 'Sensor reading deleted successfully.'}
-        if new_token:
-            msg['new_token'] = new_token
-        response = json.dumps(msg)
-        print('\r\nSensor reading deleted successful: {}\r\n{}\r\n'.format(entityname, response))
-        return response
+g_device_ldsbus_list = [
+    { "name": "GET LDS BUS",           "func": get_lds_bus,           "api": "/devices/device/<devicename>/ldsbus/<portnumber>",             "method": "GET"    },
+    { "name": "GET LDS BUS COMPONENT", "func": get_lds_bus_component, "api": "/devices/device/<devicename>/ldsbus/<portnumber>/<component>", "method": "GET"    },
+    { "name": "SCAN LDS BUS",          "func": scan_lds_bus,          "api": "/devices/device/<devicename>/ldsbus/<portnumber>",             "method": "POST"   },
+    { "name": "GET LDSU",              "func": get_ldsu,              "api": "/devices/device/<devicename>/ldsu/<ldsuuuid>",                 "method": "GET"    },
+    { "name": "DELETE LDSU",           "func": delete_ldsu,           "api": "/devices/device/<devicename>/ldsu/<ldsuuuid>",                 "method": "DELETE" },
+    { "name": "CHANGE LDSU NAME",      "func": change_ldsu_name,      "api": "/devices/device/<devicename>/ldsu/<ldsuuuid>/name",            "method": "POST"   },
+    { "name": "IDENTIFY",              "func": identify_ldsu,         "api": "/devices/device/<devicename>/ldsu/<ldsuuuid>/identify",        "method": "POST"   },
+]
 
 
 ########################################################################################################
 #
-# SET I2C DEVICE PROPERTIES
-#
-# - Request:
-#   POST /devices/device/<devicename>/i2c/number/sensors/sensor/<sensorname>/properties
-#   headers: {'Authorization': 'Bearer ' + token.access}
-#   data: adsasdasdasdasdasdasdasd
-#
-# - Response:
-#   {'status': 'OK', 'message': string}
-#   {'status': 'NG', 'message': string}
-#
-#
-# SET ADC DEVICE PROPERTIES
-# SET 1WIRE DEVICE PROPERTIES
-# SET TPROBE DEVICE PROPERTIES
-#
-# - Request:
-#   POST /devices/device/<devicename>/adc/number/sensors/sensor/<sensorname>/properties
-#   POST /devices/device/<devicename>/1wire/number/sensors/sensor/<sensorname>/properties
-#   POST /devices/device/<devicename>/tprobe/number/sensors/sensor/<sensorname>/properties
-#   headers: {'Authorization': 'Bearer ' + token.access}
-#   data: adsasdasdasdasdasdasdasd
-#
-# - Response:
-#   {'status': 'OK', 'message': string}
-#   {'status': 'NG', 'message': string}
+# DEVICE PERIPHERAL PROPERTIES
 #
 ########################################################################################################
-@app.route('/devices/device/<devicename>/<xxx>/<number>/sensors/sensor/<sensorname>/properties', methods=['POST'])
-def set_xxx_dev_prop(devicename, xxx, number, sensorname):
-    #print('set_{}_dev_prop'.format(xxx))
 
-    # check number parameter
-    if int(number) > 4 or int(number) < 1:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid parameters'})
-        print('\r\nERROR Invalid parameters\r\n')
-        return response, status.HTTP_400_BAD_REQUEST
+#@app.route('/devices/device/<devicename>/uarts', methods=['GET'])
+#def get_uarts(devicename):
+#    return g_device_peripheral_properties.get_uarts(devicename)
 
-    # get token from Authorization header
-    auth_header_token = g_utils.get_auth_header_token()
-    if auth_header_token is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Set {} Sensor: Invalid authorization header\r\n'.format(xxx))
-        return response, status.HTTP_401_UNAUTHORIZED
-    token = {'access': auth_header_token}
-    # get username from token
-    username = g_database_client.get_username_from_token(token)
-    if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Set {} Sensor: Token expired\r\n'.format(xxx))
-        return response, status.HTTP_401_UNAUTHORIZED
-    print('set_{}_dev_prop {} devicename={} number={} sensorname={}'.format(xxx, username, devicename, number, sensorname))
+@app.route('/devices/device/<devicename>/uart/properties', methods=['GET'])
+def get_uart_prop(devicename):
+    return g_device_peripheral_properties.get_uart_prop(devicename)
 
-    # check if a parameter is empty
-    if len(username) == 0 or len(token) == 0 or len(devicename) == 0 or len(sensorname) == 0:
-        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-        print('\r\nERROR Set {} Sensor: Empty parameter found\r\n'.format(xxx))
-        return response, status.HTTP_400_BAD_REQUEST
+@app.route('/devices/device/<devicename>/uart/properties', methods=['POST'])
+def set_uart_prop(devicename):
+    return g_device_peripheral_properties.set_uart_prop(devicename)
 
-    # check if username and token is valid
-    verify_ret, new_token = g_database_client.verify_token(username, token)
-    if verify_ret == 2:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Set {} Sensor: Token expired [{}]\r\n'.format(xxx, username))
-        return response, status.HTTP_401_UNAUTHORIZED
-    elif verify_ret != 0:
-        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
-        print('\r\nERROR Set {} Sensor: Token is invalid [{}]\r\n'.format(xxx, username))
-        return response, status.HTTP_401_UNAUTHORIZED
-
-    # get username from token
-    data = flask.request.get_json()
-    if data is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid parameters'})
-        print('\r\nERROR Invalid parameters\r\n')
-        return response, status.HTTP_400_BAD_REQUEST
+@app.route('/devices/device/<devicename>/uart/enable', methods=['POST'])
+def enable_uart(devicename):
+    return g_device_peripheral_properties.enable_uart(devicename)
 
 
-    # get entity using the active organization
-    orgname, orgid = g_database_client.get_active_organization(username)
-    if orgname is not None:
-        # check authorization
-        if g_database_client.is_authorized(username, orgname, orgid, database_categorylabel.DEVICES, database_crudindex.UPDATE) == False:
-            response = json.dumps({'status': 'NG', 'message': 'Authorization failed! User is not allowed to access resource. Please check with the organization owner regarding policies assigned.'})
-            print('\r\nERROR Set Peripheral Sensor: Authorization not allowed [{}]\r\n'.format(username))
-            return response, status.HTTP_401_UNAUTHORIZED
-
-        # has active organization
-        entityname = "{}.{}".format(orgname, orgid)
-    else:
-        # no active organization, just a normal user
-        entityname = username
-
-
-    # check if sensor is registered
-    sensor = g_database_client.get_sensor(entityname, devicename, xxx, number, sensorname)
-    if not sensor:
-        response = json.dumps({'status': 'NG', 'message': 'Sensor is not registered'})
-        print('\r\nERROR Get {} Sensor: Sensor is not registered [{},{}]\r\n'.format(xxx, entityname, devicename))
-        return response, status.HTTP_404_NOT_FOUND
-
-    api = 'set_{}_dev_prop'.format(xxx)
-    #print('set_{}_dev_prop {}'.format(xxx, data))
-    data['token'] = token
-    data['devicename'] = devicename
-    data['username'] = username
-    if sensor.get('address'):
-        data['address'] = sensor['address']
-    data['class'] = int(g_utils.get_i2c_device_class(sensor['class']))
-    if sensor.get('subclass'):
-        # handle subclasses
-        data['subclass'] = int(g_utils.get_i2c_device_class(sensor['subclass']))
-    data['number'] = int(number)
-    print('set_{}_dev_prop {} devicename={} number={}'.format(xxx, entityname, devicename, number))
-
-
-    # no notification data
-    if not data.get("notification"):
-        #print("no notification data")
-
-        response, status_return = g_messaging_requests.process(api, data)
-        if status_return != 200:
-            # set enabled to FALSE and configured to FALSE
-            g_database_client.set_enable_configure_sensor(entityname, devicename, xxx, number, sensorname, 0, 0)
-            return response, status_return
-
-        # if ADC/1WIRE/TPROBE, set all other ADC/1WIRE/TPROBE to unconfigured and disabled
-        if xxx != "i2c":
-            g_database_client.disable_unconfigure_sensors_source(entityname, devicename, xxx, number)
-        # set to disabled and configured
-        g_database_client.set_enable_configure_sensor(entityname, devicename, xxx, number, sensorname, 0, 1)
-
-        # update device configuration database for device bootup
-        #print("data={}".format(data))
-        data.pop('number')
-        if data.get('address'):
-            data.pop('address')
-        if data.get('class'):
-            data.pop('class')
-        if data.get('subclass'):
-            data.pop('subclass')
-
-        address = None
-        if sensor.get('address'):
-            address = sensor['address']
-        classid = None
-        if sensor.get('class'):
-            classid = int(g_utils.get_i2c_device_class(sensor['class']))
-        subclassid = None
-        if sensor.get('subclass'):
-            subclassid = int(g_utils.get_i2c_device_class(sensor['subclass']))
-        item = g_database_client.update_device_peripheral_configuration(entityname, devicename, xxx, int(number), address, classid, subclassid, data)
-
-        return response
-
-
-    # has notification parameter (for class and subclass)
-    notification = data['notification']
-    data.pop('notification')
-    # handle subclasses
-    if data.get("subattributes"):
-        subattributes_notification = data['subattributes']['notification']
-        data['subattributes'].pop('notification')
-    else:
-        subattributes_notification = None
-
-    # query device
-    response, status_return = g_messaging_requests.process(api, data)
-    if status_return != 200:
-        # set enabled to FALSE and configured to FALSE
-        g_database_client.set_enable_configure_sensor(entityname, devicename, xxx, number, sensorname, 0, 0)
-        return response, status_return
-
-    # if ADC/1WIRE/TPROBE, set all other ADC/1WIRE/TPROBE to unconfigured and disabled
-    if xxx != "i2c":
-        g_database_client.disable_unconfigure_sensors_source(entityname, devicename, xxx, number)
-
-    # set to disabled and configured
-    g_database_client.set_enable_configure_sensor(entityname, devicename, xxx, number, sensorname, 0, 1)
-
-    source = "{}{}{}".format(xxx, number, sensorname)
-    #g_database_client.update_device_notification(entityname, devicename, source, notification)
-    g_database_client.update_device_notification_with_notification_subclass(entityname, devicename, source, notification, subattributes_notification)
-
-    # update device configuration database for device bootup
-    #print("data={}".format(data))
-    data.pop('number')
-    if data.get('address'):
-        data.pop('address')
-    if data.get('class'):
-        data.pop('class')
-    if data.get('subclass'):
-        data.pop('subclass')
-
-    address = None
-    if sensor.get('address'):
-        address = sensor['address']
-    classid = None
-    if sensor.get('class'):
-        classid = int(g_utils.get_i2c_device_class(sensor['class']))
-    subclassid = None
-    if sensor.get('subclass'):
-        subclassid = int(g_utils.get_i2c_device_class(sensor['subclass']))
-    item = g_database_client.update_device_peripheral_configuration(entityname, devicename, xxx, int(number), address, classid, subclassid, data)
-
-    return response
-
-
-
-########################################################################################################
-#
-# GET I2C DEVICE PROPERTIES
-#
-# - Request:
-#   POST /devices/device/<devicename>/i2c/number/sensors/sensor/<sensorname>/properties
-#   headers: {'Authorization': 'Bearer ' + token.access}
-#
-# - Response:
-#   {'status': 'OK', 'message': string, 'value': {}}
-#   {'status': 'NG', 'message': string}
-#
-#
-# GET ADC DEVICE PROPERTIES
-# GET 1WIRE DEVICE PROPERTIES
-# GET TPROBE DEVICE PROPERTIES
-#
-# - Request:
-#   POST /devices/device/<devicename>/adc/number/sensors/sensor/<sensorname>/properties
-#   POST /devices/device/<devicename>/1wire/number/sensors/sensor/<sensorname>/properties
-#   POST /devices/device/<devicename>/tprobe/number/sensors/sensor/<sensorname>/properties
-#   headers: {'Authorization': 'Bearer ' + token.access}
-#
-# - Response:
-#   {'status': 'OK', 'message': string, 'value': {}}
-#   {'status': 'NG', 'message': string}
-#
-########################################################################################################
 @app.route('/devices/device/<devicename>/<xxx>/<number>/sensors/sensor/<sensorname>/properties', methods=['GET'])
 def get_xxx_dev_prop(devicename, xxx, number, sensorname):
-    #print('get_{}_dev_prop'.format(xxx))
+    return g_device_peripheral_properties.get_xxx_dev_prop(devicename, xxx, number, sensorname)
 
-    # check number parameter
-    if int(number) > 4 or int(number) < 1:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid parameters'})
-        print('\r\nERROR Invalid parameters\r\n')
-        return response, status.HTTP_400_BAD_REQUEST
+@app.route('/devices/device/<devicename>/<xxx>/<number>/sensors/sensor/<sensorname>/properties', methods=['POST'])
+def set_xxx_dev_prop(devicename, xxx, number, sensorname):
+    return g_device_peripheral_properties.set_xxx_dev_prop(devicename, xxx, number, sensorname)
 
-    # get token from Authorization header
-    auth_header_token = g_utils.get_auth_header_token()
-    if auth_header_token is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Get {} Sensor: Invalid authorization header\r\n'.format(xxx))
-        return response, status.HTTP_401_UNAUTHORIZED
-    token = {'access': auth_header_token}
-    # get username from token
-    username = g_database_client.get_username_from_token(token)
-    if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Get {} Sensor: Token expired\r\n'.format(xxx))
-        return response, status.HTTP_401_UNAUTHORIZED
-    print('get_{}_dev_prop {} devicename={} number={} sensorname={}'.format(xxx, username, devicename, number, sensorname))
-
-    # check if a parameter is empty
-    if len(username) == 0 or len(token) == 0 or len(devicename) == 0 or len(sensorname) == 0:
-        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-        print('\r\nERROR Get {} Sensor: Empty parameter found\r\n'.format(xxx))
-        return response, status.HTTP_400_BAD_REQUEST
-
-    # check if username and token is valid
-    verify_ret, new_token = g_database_client.verify_token(username, token)
-    if verify_ret == 2:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Get {} Sensor: Token expired [{}]\r\n'.format(xxx, username))
-        return response, status.HTTP_401_UNAUTHORIZED
-    elif verify_ret != 0:
-        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
-        print('\r\nERROR Get {} Sensor: Token is invalid [{}]\r\n'.format(xxx, username))
-        return response, status.HTTP_401_UNAUTHORIZED
+@app.route('/devices/device/<devicename>/<xxx>/<number>/sensors/sensor/<sensorname>/properties', methods=['DELETE'])
+def delete_xxx_dev_prop(devicename, xxx, number, sensorname):
+    return g_device_peripheral_properties.delete_xxx_dev_prop(devicename, xxx, number, sensorname)
 
 
-    # get entity using the active organization
-    orgname, orgid = g_database_client.get_active_organization(username)
-    if orgname is not None:
-        # check authorization
-        if g_database_client.is_authorized(username, orgname, orgid, database_categorylabel.DEVICES, database_crudindex.READ) == False:
-            response = json.dumps({'status': 'NG', 'message': 'Authorization failed! User is not allowed to access resource. Please check with the organization owner regarding policies assigned.'})
-            print('\r\nERROR Get Peripheral Sensor: Authorization not allowed [{}]\r\n'.format(username))
-            return response, status.HTTP_401_UNAUTHORIZED
-
-        # has active organization
-        entityname = "{}.{}".format(orgname, orgid)
-    else:
-        # no active organization, just a normal user
-        entityname = username
-
-
-    # check if sensor is registered
-    sensor = g_database_client.get_sensor(entityname, devicename, xxx, number, sensorname)
-    if not sensor:
-        response = json.dumps({'status': 'NG', 'message': 'Sensor is not registered'})
-        print('\r\nERROR Get {} Sensor: Sensor is not registered [{},{}]\r\n'.format(xxx, entityname, devicename))
-        return response, status.HTTP_404_NOT_FOUND
-
-    api = 'get_{}_dev_prop'.format(xxx)
-    data = {}
-    data['token'] = token
-    data['devicename'] = devicename
-    data['username'] = username
-    if sensor.get('address'):
-        data['address'] = sensor['address']
-    data['class'] = int(g_utils.get_i2c_device_class(sensor['class']))
-    data['number'] = int(number)
-    print('get_{}_dev_prop {} devicename={} number={}'.format(xxx, entityname, devicename, number))
-
-    # no notification object required
-    if data["class"] < rest_api_utils.classes().I2C_DEVICE_CLASS_POTENTIOMETER:
-        return g_messaging_requests.process(api, data)
-
-    # has notification object required
-    response, status_return = g_messaging_requests.process(api, data)
-    if status_return != 200:
-        return response, status_return
-
-    source = "{}{}{}".format(xxx, number, sensorname)
-    #notification = g_database_client.get_device_notification(entityname, devicename, source)
-    (notification, subattributes_notification) = g_database_client.get_device_notification_with_notification_subclass(entityname, devicename, source)
-    if notification is not None:
-        response = json.loads(response)
-        if response.get('value'):
-            response['value']['notification'] = notification
-        else:
-            response['value'] = {}
-            response['value']['notification'] = notification
-        response = json.dumps(response)
-    else:
-        response = json.loads(response)
-        if response.get('value'):
-            response['value']['notification'] = build_default_notifications(xxx, token)
-        else:
-            response['value'] = {}
-            response['value']['notification'] = build_default_notifications(xxx, token)
-        response = json.dumps(response)
-
-    # handle subclasses
-    if subattributes_notification is not None:
-        response = json.loads(response)
-        if response.get('value'):
-            if response['value'].get('subattributes'):
-                response['value']['subattributes']['notification'] = subattributes_notification
-        else:
-            response['value'] = {}
-            response['value']['subattributes']['notification'] = subattributes_notification
-        response = json.dumps(response)
-    else:
-        response = json.loads(response)
-        if response.get('value'):
-            if response['value'].get('subattributes'):
-                response['value']['subattributes']['notification'] = build_default_notifications(xxx, token)
-        else:
-            response['value'] = {}
-            response['value']['subattributes']['notification'] = build_default_notifications(xxx, token)
-        response = json.dumps(response)
-
-    return response
-
-
-########################################################################################################
-#
-# ENABLE/DISABLE I2C DEVICE
-#
-# - Request:
-#   POST /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME/enable
-#   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
-#   data: { 'enable': int }
-#
-# - Response:
-#   { 'status': 'OK', 'message': string }
-#   { 'status': 'NG', 'message': string }
-#
-#
-# ENABLE/DISABLE ADC DEVICE
-# ENABLE/DISABLE 1WIRE DEVICE
-# ENABLE/DISABLE TPROBE DEVICE
-#
-# - Request:
-#   POST /devices/device/DEVICENAME/adc/NUMBER/sensors/sensor/SENSORNAME/enable
-#   POST /devices/device/DEVICENAME/1wire/NUMBER/sensors/sensor/SENSORNAME/enable
-#   POST /devices/device/DEVICENAME/tprobe/NUMBER/sensors/sensor/SENSORNAME/enable
-#   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
-#   data: { 'enable': int }
-#
-# - Response:
-#   { 'status': 'OK', 'message': string }
-#   { 'status': 'NG', 'message': string }
-#
-########################################################################################################
 @app.route('/devices/device/<devicename>/<xxx>/<number>/sensors/sensor/<sensorname>/enable', methods=['POST'])
 def enable_xxx_dev(devicename, xxx, number, sensorname):
-    api = 'enable_{}_dev'.format(xxx)
+    return g_device_peripheral_properties.enable_xxx_dev(devicename, xxx, number, sensorname)
 
-    # check number parameter
-    if int(number) > 4 or int(number) < 1:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid parameters'})
-        print('\r\nERROR Invalid parameters\r\n')
-        return response, status.HTTP_400_BAD_REQUEST
-
-    # get token from Authorization header
-    auth_header_token = g_utils.get_auth_header_token()
-    if auth_header_token is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Invalid authorization header\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-
-    # get username from token
-    data = flask.request.get_json()
-
-    # check parameter input
-    if data['enable'] is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid parameters'})
-        print('\r\nERROR Invalid parameters\r\n')
-        return response, status.HTTP_400_BAD_REQUEST
-
-    data['token'] = {'access': auth_header_token}
-    data['devicename'] = devicename
-    username = g_database_client.get_username_from_token(data['token'])
-    if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Token expired\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    data['username'] = username
+@app.route('/devices/device/<devicename>/<xxx>/<number>/sensors/sensor/<sensorname>/name', methods=['POST'])
+def change_xxx_dev_name(devicename, xxx, number, sensorname):
+    return g_device_peripheral_properties.change_xxx_dev_name(devicename, xxx, number, sensorname)
 
 
-    # get entity using the active organization
-    orgname, orgid = g_database_client.get_active_organization(username)
-    if orgname is not None:
-        # check authorization
-        if g_database_client.is_authorized(username, orgname, orgid, database_categorylabel.DEVICES, database_crudindex.UPDATE) == False:
-            response = json.dumps({'status': 'NG', 'message': 'Authorization failed! User is not allowed to access resource. Please check with the organization owner regarding policies assigned.'})
-            print('\r\nERROR Enable Peripheral Sensor: Authorization not allowed [{}]\r\n'.format(username))
-            return response, status.HTTP_401_UNAUTHORIZED
-
-        # has active organization
-        entityname = "{}.{}".format(orgname, orgid)
-    else:
-        # no active organization, just a normal user
-        entityname = username
-
-
-    # check if sensor is registered
-    sensor = g_database_client.get_sensor(entityname, devicename, xxx, number, sensorname)
-    if not sensor:
-        response = json.dumps({'status': 'NG', 'message': 'Sensor is not registered'})
-        print('\r\nERROR Get {} Sensor: Sensor is not registered [{},{}]\r\n'.format(xxx, entityname, devicename))
-        return response, status.HTTP_404_NOT_FOUND
-
-    #print(sensor)
-    if sensor["configured"] == 0:
-        response = json.dumps({'status': 'NG', 'message': 'Sensor is not yet configured'})
-        print('\r\nERROR Get {} Sensor: Sensor is yet configured [{},{}]\r\n'.format(xxx, entityname, devicename))
-        return response, status.HTTP_400_BAD_REQUEST
-
-    if sensor.get('address'):
-        data['address'] = sensor['address']
-    # note: python dict maintains insertion order so number will always be the last key
-    data['number'] = int(number)
-    print('enable_{}_dev {} devicename={} number={}'.format(xxx, entityname, devicename, number))
-
-    do_enable = data['enable']
-
-    # communicate with device
-    response, status_return = g_messaging_requests.process(api, data)
-    if status_return != 200:
-        return response, status_return
-
-    # set enabled to do_enable and configured to 1
-    g_database_client.set_enable_configure_sensor(entityname, devicename, xxx, number, sensorname, do_enable, 1)
-
-    # set enabled
-    address = None
-    if sensor.get('address'):
-        address = sensor["address"]
-    g_database_client.set_enable_device_peripheral_configuration(entityname, devicename, xxx, int(number), address, do_enable)
-
-    return response
-
-
-#
-# ENABLE/DISABLE I2C
-#
-# - Request:
-#   POST /devices/device/DEVICENAME/i2c/NUMBER/enable
-#   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
-#   data: { 'enable': int }
-#
-# - Response:
-#   { 'status': 'OK', 'message': string }
-#   { 'status': 'NG', 'message': string }
-#
-@app.route('/devices/device/<devicename>/i2c/<number>/enable', methods=['POST'])
-def enable_i2c(devicename, number):
-    api = 'enable_i2c'
-
-    # check number parameter
-    number = int(number)
-    if number > 4 or number < 1:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid parameters'})
-        print('\r\nERROR Invalid parameters\r\n')
-        return response, status.HTTP_400_BAD_REQUEST
-
-    # get token from Authorization header
-    auth_header_token = g_utils.get_auth_header_token()
-    if auth_header_token is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Invalid authorization header\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-
-    # get username from token
-    data = flask.request.get_json()
-
-    # check parameter input
-    if data['enable'] is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid parameters'})
-        print('\r\nERROR Invalid parameters\r\n')
-        return response, status.HTTP_400_BAD_REQUEST
-
-    data['token'] = {'access': auth_header_token}
-    data['devicename'] = devicename
-    username = g_database_client.get_username_from_token(data['token'])
-    if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Token expired\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    data['username'] = username
-
-    # note: python dict maintains insertion order so number will always be the last key
-    data['number'] = number
-    print('enable_i2c {} devicename={} number={}'.format(username, devicename, number))
-
-    return g_messaging_requests.process(api, data)
-
-
-########################################################################################################
-#
-# DELETE PERIPHERAL SENSOR PROPERTIES
-#
-# - Request:
-#   DELETE /devices/device/DEVICENAME/sensors/properties
-#   headers: { 'Authorization': 'Bearer ' + token.access }
-#
-# - Response:
-#   { 'status': 'OK', 'message': string }
-#   { 'status': 'NG', 'message': string }
-#
-########################################################################################################
 @app.route('/devices/device/<devicename>/sensors/properties', methods=['DELETE'])
 def delete_all_device_sensors_properties(devicename):
-
-    # get token from Authorization header
-    auth_header_token = g_utils.get_auth_header_token()
-    if auth_header_token is None:
-        response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
-        print('\r\nERROR Delete All Device Sensors Properties: Invalid authorization header\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    token = {'access': auth_header_token}
-
-    # get username from token
-    username = g_database_client.get_username_from_token(token)
-    if username is None:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Delete All Device Sensors Properties: Token expired\r\n')
-        return response, status.HTTP_401_UNAUTHORIZED
-    print('delete_all_device_sensors_properties {} devicename={}'.format(username, devicename))
-
-    # check if a parameter is empty
-    if len(username) == 0 or len(token) == 0:
-        response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
-        print('\r\nERROR Delete All Device Sensors Properties: Empty parameter found\r\n')
-        return response, status.HTTP_400_BAD_REQUEST
-
-    # check if username and token is valid
-    verify_ret, new_token = g_database_client.verify_token(username, token)
-    if verify_ret == 2:
-        response = json.dumps({'status': 'NG', 'message': 'Token expired'})
-        print('\r\nERROR Delete All Device Sensors Properties: Token expired [{} {}]\r\n'.format(username, devicename))
-        return response, status.HTTP_401_UNAUTHORIZED
-    elif verify_ret != 0:
-        response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
-        print('\r\nERROR Delete All Device Sensors Properties: Token is invalid [{} {}]\r\n'.format(username, devicename))
-        return response, status.HTTP_401_UNAUTHORIZED
+    return g_device_peripheral_properties.delete_all_device_sensors_properties(devicename)
 
 
-    # get entity using the active organization
-    orgname, orgid = g_database_client.get_active_organization(username)
-    if orgname is not None:
-        # check authorization
-        if g_database_client.is_authorized(username, orgname, orgid, database_categorylabel.DEVICES, database_crudindex.DELETE) == False:
-            response = json.dumps({'status': 'NG', 'message': 'Authorization failed! User is not allowed to access resource. Please check with the organization owner regarding policies assigned.'})
-            print('\r\nERROR Delete All Device Sensors Properties: Authorization not allowed [{}]\r\n'.format(username))
-            return response, status.HTTP_401_UNAUTHORIZED
+g_device_peripheral_properties_list = [
+#    { "name": "GET UARTS",                    "func": get_uarts,           "api": "/devices/device/<devicename>/uarts",           "method": "GET"    },
+    { "name": "GET UART PROPERTIES",          "func": get_uart_prop,       "api": "/devices/device/<devicename>/uart/properties", "method": "POST"   },
+    { "name": "SET UART PROPERTIES",          "func": set_uart_prop,       "api": "/devices/device/<devicename>/uart/properties", "method": "GET"    },
+    { "name": "ENABLE UART",                  "func": enable_uart,         "api": "/devices/device/<devicename>/uart/enable",     "method": "POST"   },
 
-        # has active organization
-        entityname = "{}.{}".format(orgname, orgid)
-    else:
-        # no active organization, just a normal user
-        entityname = username
+    { "name": "GET LDS DEVICE PROPERTIES",    "func": get_xxx_dev_prop,    "api": "/devices/device/<devicename>/<xxx>/<number>/sensors/sensor/<sensorname>/properties", "method": "GET"    },
+    { "name": "SET LDS DEVICE PROPERTIES",    "func": set_xxx_dev_prop,    "api": "/devices/device/<devicename>/<xxx>/<number>/sensors/sensor/<sensorname>/properties", "method": "POST"   },
+    { "name": "DELETE LDS DEVICE PROPERTIES", "func": delete_xxx_dev_prop, "api": "/devices/device/<devicename>/<xxx>/<number>/sensors/sensor/<sensorname>/properties", "method": "DELETE" },
 
-    g_database_client.delete_all_device_peripheral_configuration(entityname, devicename)
+    { "name": "ENABLE LDS DEVICE",            "func": enable_xxx_dev,      "api": "/devices/device/<devicename>/<xxx>/<number>/sensors/sensor/<sensorname>/enable",     "method": "POST"   },
+    { "name": "CHANGE LDS DEVICE NAME",       "func": change_xxx_dev_name, "api": "/devices/device/<devicename>/<xxx>/<number>/sensors/sensor/<sensorname>/name",       "method": "POST"   },
+
+    { "name": "ENABLE LDS DEVICE PROPERTIES", "func": delete_all_device_sensors_properties, "api": "/devices/device/<devicename>/sensors/properties",                   "method": "DELETE" },
+]
 
 
-    msg = {'status': 'OK', 'message': 'Delete All Device Sensors Properties deleted successfully.',}
-    if new_token:
-        msg['new_token'] = new_token
-    response = json.dumps(msg)
-    print('\r\nDelete All Device Sensors Properties successful: {} {}\r\n'.format(username, devicename))
-    return response
+########################################################################################################
+#
+# DASHBOARD
+#
+########################################################################################################
+
+@app.route('/devices/sensors/readings/dataset', methods=['POST'])
+def get_all_device_sensors_enabled_input_readings_dataset_filtered():
+    return g_device_dashboard_old.get_all_device_sensors_enabled_input_readings_dataset_filtered()
+
+@app.route('/devices/sensors/readings/dataset', methods=['DELETE'])
+def delete_all_device_sensors_enabled_input_readings_dataset_filtered():
+    return g_device_dashboard_old.get_all_device_sensors_enabled_input_readings_dataset_filtered()
+
+
+@app.route('/devices/device/<devicename>/<xxx>/<number>/sensors/readings', methods=['GET'])
+def get_xxx_sensors_readings(devicename, xxx, number):
+    return g_device_dashboard_old.get_xxx_sensors_readings(devicename, xxx, number)
+
+@app.route('/devices/device/<devicename>/<xxx>/<number>/sensors/readings', methods=['DELETE'])
+def delete_xxx_sensors_readings(devicename, xxx, number):
+    return g_device_dashboard_old.get_xxx_sensors_readings(devicename, xxx, number)
+
+
+g_device_dashboard_old_list = [
+    { "name": "", "func": get_all_device_sensors_enabled_input_readings_dataset_filtered,    "api": "/devices/sensors/readings/dataset",                            "method": "POST"   },
+    { "name": "", "func": delete_all_device_sensors_enabled_input_readings_dataset_filtered, "api": "/devices/sensors/readings/dataset",                            "method": "DELETE" },
+
+    { "name": "", "func": get_xxx_sensors_readings,                                          "api": "/devices/device/<devicename>/<xxx>/<number>/sensors/readings", "method": "GET"    },
+    { "name": "", "func": delete_xxx_sensors_readings,                                       "api": "/devices/device/<devicename>/<xxx>/<number>/sensors/readings", "method": "DELETE" },
+]
+
+
+########################################################################################################
+#
+# OTHERS
+#
+########################################################################################################
+
+@app.route('/others/feedback', methods=['POST'])
+def send_feedback():
+    return g_other_stuffs.send_feedback()
+
+@app.route('/others/<item>', methods=['GET'])
+def get_item(item):
+    return g_other_stuffs.get_item(item)
+
+@app.route('/others/sensordevices', methods=['GET'])
+def get_supported_sensors():
+    return g_other_stuffs.get_supported_sensors()
+
+@app.route('/others/firmwareupdates', methods=['GET'])
+def get_device_firmware_updates():
+    return g_other_stuffs.get_device_firmware_updates()
+
+@app.route('/mobile/devicetoken', methods=['POST'])
+def register_mobile_device_token():
+    return g_other_stuffs.register_mobile_device_token()
+
+g_other_stuffs_list = [
+    { "name": "SEND FEEDBACK",         "func": send_feedback,                "api": "/others/feedback",        "method": "POST"   },
+    { "name": "GET ITEM",              "func": get_item,                     "api": "/others/<item>",          "method": "GET"    },
+    { "name": "GET SUPPORTED SENSORS", "func": get_supported_sensors,        "api": "/others/sensordevices",   "method": "GET"    },
+    { "name": "GET FIRMWARE UPDATES",  "func": get_device_firmware_updates,  "api": "/others/firmwareupdates", "method": "GET"    },
+    { "name": "REGISTER MOBILE TOKEN", "func": register_mobile_device_token, "api": "/mobile/devicetoken",     "method": "POST"   },
+]
 
 
 
@@ -5832,16 +2003,21 @@ def initialize():
     global g_database_client
     global g_storage_client
     global g_redis_client
+    global g_device_client
 
     global g_messaging_requests
     global g_identity_authentication
     global g_access_control
     global g_payment_accounting
+    global g_device
     global g_device_locations
     global g_device_groups
     global g_device_otaupdates
     global g_device_hierarchies
     global g_device_histories
+    global g_device_ldsbus
+    global g_device_peripheral_properties
+    global g_device_dashboard_old
     global g_other_stuffs
     global g_utils
 
@@ -5880,22 +2056,32 @@ def initialize():
     g_redis_client = redis_client()
     g_redis_client.initialize()
 
+    # Initialize device client
+    g_device_client = device_client()
+    g_device_client.initialize()
+
     # Classes
-    g_messaging_requests      = messaging_requests(g_database_client, g_messaging_client, g_redis_client, g_event_dict, g_queue_dict)
-    g_identity_authentication = identity_authentication(g_database_client, g_redis_client)
-    g_access_control          = access_control(g_database_client, g_messaging_client)
-    g_payment_accounting      = payment_accounting(g_database_client, g_messaging_client, g_redis_client)
-    g_device_locations        = device_locations(g_database_client)
-    g_device_groups           = device_groups(g_database_client)
-    g_device_otaupdates       = device_otaupdates(g_database_client, g_storage_client, g_messaging_requests)
-    g_device_hierarchies      = device_hierarchies(g_database_client, g_messaging_requests)
-    g_device_histories        = device_histories(g_database_client)
-    g_other_stuffs            = other_stuffs(g_database_client, g_storage_client)
-    g_utils                   = rest_api_utils.utils()
+    g_messaging_requests           = messaging_requests(g_database_client, g_messaging_client, g_redis_client, g_event_dict, g_queue_dict)
+    g_identity_authentication      = identity_authentication(g_database_client, g_redis_client)
+    g_access_control               = access_control(g_database_client, g_messaging_client)
+    g_device_locations             = device_locations(g_database_client)
+    g_device_groups                = device_groups(g_database_client)
+    g_device_otaupdates            = device_otaupdates(g_database_client, g_storage_client, g_messaging_requests)
+    g_device_hierarchies           = device_hierarchies(g_database_client, g_messaging_requests)
+    g_device_histories             = device_histories(g_database_client)
+    g_device                       = device(g_database_client, g_messaging_requests)
+    g_device_ldsbus                = device_ldsbus(g_database_client, g_messaging_requests, g_device_client)
+    g_device_peripheral_properties = device_peripheral_properties(g_database_client, g_messaging_requests)
+    g_other_stuffs                 = other_stuffs(g_database_client, g_storage_client)
+    g_utils                        = rest_api_utils.utils()
 
     dashboardsApp = DashboardsApp(app)
     # paymentapp = PaymentApp(app)
     exampleapp = ExampleApp(app,prefix = "/example")
+    # To be replaced
+    g_payment_accounting           = payment_accounting(g_database_client, g_messaging_client, g_redis_client)
+    g_device_dashboard_old         = device_dashboard_old(g_database_client, g_messaging_requests)
+
 
 # Initialize globally so that no issue with GUnicorn integration
 if os.name == 'posix':

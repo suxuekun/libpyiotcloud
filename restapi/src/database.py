@@ -436,13 +436,17 @@ class database_client:
         deviceid = self._devices.get_deviceid(username, devicename)
         return self._devices.update_device_notification(deviceid, source, notification)
 
-    def update_device_notification_with_notification_subclass(self, username, devicename, source, notification, notification_subclass):
+    def update_device_notification_with_notification_subclass(self, username, devicename, source, notification, notification_subclass, number=None):
         deviceid = self._devices.get_deviceid(username, devicename)
-        return self._devices.update_device_notification_with_notification_subclass(deviceid, source, notification, notification_subclass)
+        return self._devices.update_device_notification_with_notification_subclass(deviceid, source, notification, notification_subclass, number)
 
     def delete_device_notification_sensor(self, username, devicename, source):
         deviceid = self._devices.get_deviceid(username, devicename)
         return self._devices.delete_device_notification_sensor(deviceid, source)
+
+    def delete_device_notification_sensor_ex(self, username, devicename, source, number):
+        deviceid = self._devices.get_deviceid(username, devicename)
+        return self._devices.delete_device_notification_sensor_ex(deviceid, source, number)
 
     def delete_device_notification_sensor_by_deviceid(self, deviceid, source):
         return self._devices.delete_device_notification_sensor(deviceid, source)
@@ -458,9 +462,9 @@ class database_client:
         deviceid = self._devices.get_deviceid(username, devicename)
         return self._devices.get_device_notification(deviceid, source)
 
-    def get_device_notification_with_notification_subclass(self, username, devicename, source):
+    def get_device_notification_with_notification_subclass(self, username, devicename, source, number=None):
         deviceid = self._devices.get_deviceid(username, devicename)
-        return self._devices.get_device_notification_with_notification_subclass(deviceid, source)
+        return self._devices.get_device_notification_with_notification_subclass(deviceid, source, number)
 
     def get_device_notification_with_notification_subclass_by_deviceid(self, deviceid, source):
         return self._devices.get_device_notification_with_notification_subclass_by_deviceid(deviceid, source)
@@ -476,8 +480,11 @@ class database_client:
     def update_device_peripheral_configuration(self, username, devicename, source, number, address, classid, subclassid, properties):
         return self._devices.update_device_peripheral_configuration(self._devices.get_deviceid(username, devicename), source, number, address, classid, subclassid, properties)
 
-    def delete_device_peripheral_configuration(self, username, devicename, source, number, address):
+    def delete_device_peripheral_configuration(self, username, devicename, source, number, address=None):
         return self._devices.delete_device_peripheral_configuration(self._devices.get_deviceid(username, devicename), source, number, address)
+
+    def delete_device_peripheral_configuration_by_source(self, username, devicename, source):
+        return self._devices.delete_device_peripheral_configuration_by_source(self._devices.get_deviceid(username, devicename), source)
 
     def delete_device_peripheral_configuration_by_deviceid(self, deviceid, source, number, address):
         return self._devices.delete_device_peripheral_configuration(deviceid, source, number, address)
@@ -499,11 +506,49 @@ class database_client:
 
 
     ##########################################################
+    # ldsu
+    ##########################################################
+
+    def set_ldsu_by_deviceid(self, username, deviceid, descriptor):
+        return self._devices.set_ldsu_by_deviceid(username, deviceid, descriptor)
+
+    def set_ldsu(self, username, devicename, descriptor):
+        return self._devices.set_ldsu_by_deviceid(username, self._devices.get_deviceid(username, devicename), descriptor)
+
+    def get_ldsus(self, username, devicename):
+        return self._devices.get_ldsus_by_deviceid(self._devices.get_deviceid(username, devicename))
+
+    def get_ldsus_by_deviceid(self, username, deviceid):
+        return self._devices.get_ldsus_by_deviceid(deviceid)
+
+    def set_ldsu_status(self, username, devicename, uid, is_reachable):
+        return self._devices.set_ldsu_status_by_deviceid(self._devices.get_deviceid(username, devicename), uid, is_reachable)
+
+    def set_ldsu_status_by_deviceid(self, username, deviceid, uid, is_reachable):
+        return self._devices.set_ldsu_status_by_deviceid(deviceid, uid, is_reachable)
+
+    def get_ldsus_by_port(self, username, devicename, port):
+        return self._devices.get_ldsus_by_port(self._devices.get_deviceid(username, devicename), port)
+
+    def change_ldsu_name(self, username, devicename, uid, name):
+        self._devices.change_ldsu_name_by_deviceid(self._devices.get_deviceid(username, devicename), uid, name)
+
+    def get_ldsu(self, username, devicename, uid):
+        return self._devices.get_ldsu(self._devices.get_deviceid(username, devicename), uid)
+
+    def delete_ldsu(self, username, devicename, uid):
+        self._devices.delete_ldsu(self._devices.get_deviceid(username, devicename), uid)
+
+
+    ##########################################################
     # sensors
     ##########################################################
 
     def get_user_sensors_input(self, username):
         return self._devices.get_user_sensors_input(username)
+
+    def change_sensor_name(self, username, devicename, source, number, name):
+        return self._devices.change_sensor_name(self._devices.get_deviceid(username, devicename), source, number, name)
 
     def get_all_device_sensors_by_deviceid(self, deviceid):
         return self._devices.get_all_device_sensors(deviceid)
@@ -541,6 +586,9 @@ class database_client:
     def get_sensors_with_enabled(self, username, devicename, source, number):
         return self._devices.get_sensors_with_enabled(self._devices.get_deviceid(username, devicename), source, number)
 
+    def get_sensors_by_port(self, username, devicename, port):
+        return self._devices.get_sensors_by_port(self._devices.get_deviceid(username, devicename), port)
+
     def add_sensor(self, username, devicename, source, number, sensorname, data):
         return self._devices.add_sensor(username, self._devices.get_deviceid(username, devicename), source, number, sensorname, data)
 
@@ -549,6 +597,9 @@ class database_client:
 
     def delete_device_sensors(self, username, devicename):
         self._devices.delete_device_sensors(self._devices.get_deviceid(username, devicename))
+
+    def delete_device_sensors_by_source(self, username, devicename, source):
+        self._devices.delete_device_sensors_by_source(self._devices.get_deviceid(username, devicename), source)
 
     def delete_device_sensor(self, username, devicename, sensorname):
         self._devices.delete_device_sensor(username, devicename, sensorname)
@@ -585,17 +636,17 @@ class database_client:
     # sensor readings
     ##########################################################
 
-    def add_sensor_reading(self, username, deviceid, source, address, sensor_readings):
-        self._devices.update_sensor_reading(username, deviceid, source, address, sensor_readings)
+    def add_sensor_reading(self, username, deviceid, source, number, sensor_readings):
+        self._devices.update_sensor_reading(username, deviceid, source, number, sensor_readings)
 
-    def delete_sensor_reading(self, username, devicename, source, address):
+    def delete_sensor_reading(self, username, devicename, source, number):
         deviceid = self._devices.get_deviceid(username, devicename)
-        self._devices.delete_sensor_reading(deviceid, source, address)
-        self._devices.delete_sensor_reading_dataset(deviceid, source, address)
+        self._devices.delete_sensor_reading(deviceid, source, number)
+        self._devices.delete_sensor_reading_dataset(deviceid, source, number)
 
-    def delete_sensor_reading_by_deviceid(self, deviceid, source, address):
-        self._devices.delete_sensor_reading(deviceid, source, address)
-        self._devices.delete_sensor_reading_dataset(deviceid, source, address)
+    def delete_sensor_reading_by_deviceid(self, deviceid, source, number):
+        self._devices.delete_sensor_reading(deviceid, source, number)
+        self._devices.delete_sensor_reading_dataset(deviceid, source, number)
 
     def delete_sensors_readings(self, username, devicename, source):
         deviceid = self._devices.get_deviceid(username, devicename)
@@ -611,8 +662,8 @@ class database_client:
         self._devices.delete_user_sensor_reading(username)
         self._devices.delete_user_sensor_reading_dataset(username)
 
-    def get_sensor_reading(self, username, devicename, source, address):
-        return self._devices.get_sensor_reading_by_deviceid(self._devices.get_deviceid(username, devicename), source, address)
+    def get_sensor_reading(self, username, devicename, source, number):
+        return self._devices.get_sensor_reading_by_deviceid(self._devices.get_deviceid(username, devicename), source, number)
 
     def get_sensors_readings(self, username, devicename, source):
         return self._devices.get_sensors_readings_by_deviceid(self._devices.get_deviceid(username, devicename), source)
@@ -623,19 +674,19 @@ class database_client:
     def get_user_sensors_readings(self, username):
         return self._devices.get_user_sensors_readings(username)
 
-    def get_sensor_reading_by_deviceid(self, deviceid, source, address):
-        return self._devices.get_sensor_reading_by_deviceid(deviceid, source, address)
+    def get_sensor_reading_by_deviceid(self, deviceid, source, number):
+        return self._devices.get_sensor_reading_by_deviceid(deviceid, source, number)
 
     # sensor readings datasets
 
-    def add_sensor_reading_dataset(self, username, deviceid, source, address, value, subclass_value):
-        self._devices.add_sensor_reading_dataset(username, deviceid, source, address, value, subclass_value)
+    def add_sensor_reading_dataset(self, username, deviceid, source, number, value, subclass_value):
+        self._devices.add_sensor_reading_dataset(username, deviceid, source, number, value, subclass_value)
 
-    def get_sensor_reading_dataset(self, username, devicename, source, address):
-        return self._devices.get_sensor_reading_dataset_by_deviceid(self._devices.get_deviceid(username, devicename), source, address)
+    def get_sensor_reading_dataset(self, username, devicename, source, number):
+        return self._devices.get_sensor_reading_dataset_by_deviceid(self._devices.get_deviceid(username, devicename), source, number)
 
-    def get_sensor_reading_dataset_timebound(self, username, devicename, source, address, datebegin, dateend, period, maxpoints):
-        return self._devices.get_sensor_reading_dataset_by_deviceid_timebound(self._devices.get_deviceid(username, devicename), source, address, datebegin, dateend, period, maxpoints)
+    def get_sensor_reading_dataset_timebound(self, username, devicename, source, number, datebegin, dateend, period, maxpoints):
+        return self._devices.get_sensor_reading_dataset_by_deviceid_timebound(self._devices.get_deviceid(username, devicename), source, number, datebegin, dateend, period, maxpoints)
 
 
     ##########################################################
@@ -1964,24 +2015,37 @@ class database_client_mongodb:
             notifications.replace_one({'deviceid': deviceid, 'source': source}, item)
         return item
 
-    def update_device_notification_with_notification_subclass(self, deviceid, source, notification, notification_subclass):
+    def update_device_notification_with_notification_subclass(self, deviceid, source, notification, notification_subclass, number):
         notifications = self.get_notifications_document();
         item = {}
         #item['username'] = username
         #item['devicename'] = devicename
         item['deviceid'] = deviceid
         item['source'] = source
+        if number is not None:
+            item['number'] = number
         item['notification'] = notification
-        item['notification_subclass'] = notification_subclass
+        if notification_subclass:
+            item['notification_subclass'] = notification_subclass
         #print("update_device_notification_with_notification_subclass find_one")
-        found = notifications.find_one({'deviceid': deviceid, 'source': source})
-        if found is None:
-            print("update_device_notification_with_notification_subclass insert_one")
-            #print(found)
-            notifications.insert_one(item)
+        if number is not None:
+            found = notifications.find_one({'deviceid': deviceid, 'source': source, 'number': number})
+            if found is None:
+                print("update_device_notification_with_notification_subclass insert_one")
+                #print(found)
+                notifications.insert_one(item)
+            else:
+                print("update_device_notification_with_notification_subclass replace_one")
+                notifications.replace_one({'deviceid': deviceid, 'source': source}, item)
         else:
-            print("update_device_notification_with_notification_subclass replace_one")
-            notifications.replace_one({'deviceid': deviceid, 'source': source}, item)
+            found = notifications.find_one({'deviceid': deviceid, 'source': source})
+            if found is None:
+                print("update_device_notification_with_notification_subclass insert_one")
+                #print(found)
+                notifications.insert_one(item)
+            else:
+                print("update_device_notification_with_notification_subclass replace_one")
+                notifications.replace_one({'deviceid': deviceid, 'source': source}, item)
         return item
 
     def delete_device_notification_sensor(self, deviceid, source):
@@ -1990,6 +2054,14 @@ class database_client_mongodb:
             notifications.delete_many({'deviceid': deviceid, 'source': source})
         except:
             print("delete_device_notification_sensor: Exception occurred")
+            pass
+
+    def delete_device_notification_sensor_ex(self, deviceid, source, number):
+        notifications = self.get_notifications_document();
+        try:
+            notifications.delete_one({'deviceid': deviceid, 'source': source, 'number': number})
+        except:
+            print("delete_device_notification_sensor_ex: Exception occurred")
             pass
 
     def delete_device_notification(self, deviceid):
@@ -2009,16 +2081,25 @@ class database_client_mongodb:
                 return notification['notification']
         return None
 
-    def get_device_notification_with_notification_subclass(self, deviceid, source):
+    def get_device_notification_with_notification_subclass(self, deviceid, source, number):
         notifications = self.get_notifications_document();
         if notifications:
-            for notification in notifications.find({'deviceid': deviceid, 'source': source}):
-                notification.pop('_id')
-                #print(notification['notification'])
-                if notification.get('notification_subclass'):
-                    return notification['notification'], notification['notification_subclass']
-                else:
-                    return notification['notification'], None
+            if number is not None:
+                for notification in notifications.find({'deviceid': deviceid, 'source': source, 'number': number}):
+                    notification.pop('_id')
+                    #print(notification['notification'])
+                    if notification.get('notification_subclass'):
+                        return notification['notification'], notification['notification_subclass']
+                    else:
+                        return notification['notification'], None
+            else:
+                for notification in notifications.find({'deviceid': deviceid, 'source': source}):
+                    notification.pop('_id')
+                    #print(notification['notification'])
+                    if notification.get('notification_subclass'):
+                        return notification['notification'], notification['notification_subclass']
+                    else:
+                        return notification['notification'], None
         return None, None
 
     def get_device_notification_with_notification_subclass_by_deviceid(self, deviceid, source):
@@ -2092,6 +2173,14 @@ class database_client_mongodb:
             print("delete_device_peripheral_configuration: Exception occurred")
             pass
 
+    def delete_device_peripheral_configuration_by_source(self, deviceid, source):
+        configurations = self.get_configurations_document();
+        try:
+            configurations.delete_many({'deviceid': deviceid, 'source': source})
+        except:
+            print("delete_device_peripheral_configuration_by_source: Exception occurred")
+            pass
+
     def delete_all_device_peripheral_configuration(self, deviceid):
         configurations = self.get_configurations_document();
         try:
@@ -2147,6 +2236,16 @@ class database_client_mongodb:
 
     def get_sensors_document(self):
         return self.client[config.CONFIG_MONGODB_TB_I2CSENSORS]
+
+    def change_sensor_name(self, deviceid, source, number, name):
+        i2csensors = self.get_sensors_document();
+        if i2csensors:
+            found = i2csensors.find_one({'deviceid': deviceid, 'source': source, 'number': number})
+            if found:
+                found["sensorname"] = name
+                i2csensors.replace_one({'deviceid': deviceid, 'source': source, 'number': number}, found)
+                return True
+        return False
 
     def get_user_sensors_input(self, username):
         sensor_list = []
@@ -2483,12 +2582,23 @@ class database_client_mongodb:
                 sensor_list.append(i2csensor)
         return sensor_list
 
+    def get_sensors_by_port(self, deviceid, port):
+        sensor_list = []
+        i2csensors = self.get_sensors_document();
+        if i2csensors:
+            for i2csensor in i2csensors.find({'deviceid': deviceid, 'port': port}):
+                #i2csensor['enabled'] = 0
+                i2csensor.pop('_id')
+                i2csensor.pop('deviceid')
+                i2csensor.pop('username')
+                sensor_list.append(i2csensor)
+        return sensor_list
+
     def add_sensor(self, username, deviceid, source, number, sensorname, data):
         i2csensors = self.get_sensors_document();
         timestamp = str(int(time.time()))
         device = {}
         device['username']     = username
-        #device['devicename']   = devicename
         device['deviceid']     = deviceid
         device['source']       = source
         device['number']       = number
@@ -2498,9 +2608,28 @@ class database_client_mongodb:
         device_all = {}
         device_all.update(device)
         device_all.update(data)
-        #print(device_all)
-        i2csensors.insert_one(device_all)
-        return True
+
+        if data.get("address"):
+            found = i2csensors.find_one({'deviceid': deviceid, 'source': source, 'number': number, 'address': data["address"]})
+            if found is None:
+                i2csensors.insert_one(device_all)
+            else:
+                device_all["sensorname"] = found["sensorname"]
+                device_all["enabled"] = found["enabled"]
+                device_all["configured"] = found["configured"]
+                i2csensors.replace_one({'deviceid': deviceid, 'source': source, 'number': number, 'address': data["address"]}, device_all)
+            return True
+
+        else:
+            found = i2csensors.find_one({'deviceid': deviceid, 'source': source, 'number': number})
+            if found is None:
+                i2csensors.insert_one(device_all)
+            else:
+                device_all["sensorname"] = found["sensorname"]
+                device_all["enabled"] = found["enabled"]
+                device_all["configured"] = found["configured"]
+                i2csensors.replace_one({'deviceid': deviceid, 'source': source, 'number': number}, device_all)
+            return True
 
     def delete_device_sensors(self, deviceid):
         i2csensors = self.get_sensors_document();
@@ -2508,6 +2637,14 @@ class database_client_mongodb:
             i2csensors.delete_many({'deviceid': deviceid})
         except:
             print("delete_device_sensors: Exception occurred")
+            pass
+
+    def delete_device_sensors_by_source(self, deviceid, source):
+        i2csensors = self.get_sensors_document();
+        try:
+            i2csensors.delete_many({'deviceid': deviceid, 'source': source})
+        except:
+            print("delete_device_sensors_by_source: Exception occurred")
             pass
 
     def delete_device_sensor(self, username, devicename, sensorname):
@@ -2622,43 +2759,28 @@ class database_client_mongodb:
         #return self.client[config.CONFIG_MONGODB_TB_SENSORREADINGS]
         return self.client_sensor[config.CONFIG_MONGODB_TB_SENSORREADINGS]
 
-    def update_sensor_reading(self, username, deviceid, source, address, sensor_readings):
+    def update_sensor_reading(self, username, deviceid, source, number, sensor_readings):
         sensorreadings = self.get_sensorreadings_document();
         item = {}
         item['username'] = username
         item['deviceid'] = deviceid
         item['source'] = source
-        if address is not None:
-            item['address'] = address
+        item['number'] = number
         item['sensor_readings'] = sensor_readings
 
-        if address is None:
-            found = sensorreadings.find_one({'deviceid': deviceid, 'source': source})
-            if found is None:
-                #print("update_sensor_reading insert_one")
-                #print(found)
-                sensorreadings.insert_one(item)
-            else:
-                #print("update_sensor_reading replace_one")
-                sensorreadings.replace_one({'deviceid': deviceid, 'source': source}, item)
+        found = sensorreadings.find_one({'deviceid': deviceid, 'source': source, 'number': number})
+        if found is None:
+            sensorreadings.insert_one(item)
         else:
-            found = sensorreadings.find_one({'deviceid': deviceid, 'source': source, 'address': address})
-            if found is None:
-                #print("update_sensor_reading insert_one")
-                #print(found)
-                sensorreadings.insert_one(item)
-            else:
-                #print("update_sensor_reading replace_one")
-                sensorreadings.replace_one({'deviceid': deviceid, 'source': source, 'address': address}, item)
-        #print("update_sensor_reading")
+            sensorreadings.replace_one({'deviceid': deviceid, 'source': source, 'number': number}, item)
 
-    def delete_sensor_reading(self, deviceid, source, address):
+    def delete_sensor_reading(self, deviceid, source, number):
         sensorreadings = self.get_sensorreadings_document();
         try:
-            if address is None:
+            if number is None:
                 sensorreadings.delete_many({'deviceid': deviceid, 'source': source})
             else:
-                sensorreadings.delete_many({'deviceid': deviceid, 'source': source, 'address': address})
+                sensorreadings.delete_many({'deviceid': deviceid, 'source': source, 'number': number})
         except:
             print("delete_sensor_reading: Exception occurred")
             pass
@@ -2687,21 +2809,14 @@ class database_client_mongodb:
             print("delete_sensors_readings: Exception occurred")
             pass
 
-    def get_sensor_reading_by_deviceid(self, deviceid, source, address):
+    def get_sensor_reading_by_deviceid(self, deviceid, source, number):
         sensorreadings = self.get_sensorreadings_document();
         if sensorreadings:
-            if address is None:
-                for sensorreading in sensorreadings.find({'deviceid': deviceid, 'source': source}):
-                    sensorreading.pop('_id')
-                    sensorreading.pop('username')
-                    #print(sensorreading['sensor_readings'])
-                    return sensorreading['sensor_readings']
-            else:
-                for sensorreading in sensorreadings.find({'deviceid': deviceid, 'source': source, 'address': address}):
-                    sensorreading.pop('_id')
-                    sensorreading.pop('username')
-                    #print(sensorreading['sensor_readings'])
-                    return sensorreading['sensor_readings']
+            for sensorreading in sensorreadings.find({'deviceid': deviceid, 'source': source, 'number': number}):
+                sensorreading.pop('_id')
+                sensorreading.pop('username')
+                #print(sensorreading['sensor_readings'])
+                return sensorreading['sensor_readings']
         return None
 
     def get_sensors_readings_by_deviceid(self, deviceid, source):
@@ -2808,7 +2923,7 @@ class database_client_mongodb:
         #print(dataset)
         return dataset
 
-    def get_sensor_reading_dataset_by_deviceid_timebound(self, deviceid, source, address, datebegin, dateend, period, maxpoints):
+    def get_sensor_reading_dataset_by_deviceid_timebound(self, deviceid, source, number, datebegin, dateend, period, maxpoints):
         # if sensor has a subclass data becomes  [[], [], ...]
         # if sensor has no subclass data becomes [[]]
         dataset  = {"labels": [], "data": []}
@@ -2817,8 +2932,7 @@ class database_client_mongodb:
             #print("begin:{} end:{}".format(datebegin, dateend))
             filter = {'deviceid': deviceid, 'source': source}
             filter['timestamp'] = {'$gte': datebegin, '$lt': dateend}
-            if address is not None:
-                filter['address'] = address
+            filter['number'] = number
             readings = sensorreadings.find(filter)
             #print(readings.count())
 
@@ -4419,6 +4533,88 @@ class database_client_mongodb:
                 new_device['descriptor'] = descriptor
                 devices.replace_one(device, new_device)
                 break
+
+
+    ##########################################################
+    # ldsu
+    ##########################################################
+
+    def get_ldsu_document(self):
+        return self.client[config.CONFIG_MONGODB_TB_LDSUS]
+
+    def set_ldsu_by_deviceid(self, username, deviceid, descriptor):
+        ldsu_doc = self.get_ldsu_document();
+        item = {}
+        item['username'] = username
+        item['deviceid'] = deviceid
+        item['status'] = "reachable"
+        item['UID'] = descriptor["UID"]
+        item['PORT'] = descriptor["PORT"]
+        item['LABL'] = descriptor["NAME"]
+        descriptor.pop('UID')
+        descriptor.pop('PORT')
+        item['descriptor'] = descriptor
+        found = ldsu_doc.find_one({'deviceid': deviceid, 'UID': item['UID']})
+        if found is None:
+            ldsu_doc.insert_one(item)
+        else:
+            item['LABL'] = found['LABL']
+            ldsu_doc.replace_one({'deviceid': deviceid, 'UID': item['UID']}, item)
+        return item
+
+    def get_ldsus_by_deviceid(self, deviceid):
+        ldsu_list = []
+        ldsu_doc = self.get_ldsu_document()
+        if ldsu_doc:
+            for ldsu in ldsu_doc.find({'deviceid': deviceid}):
+                ldsu.pop('_id')
+                ldsu.pop('username')
+                ldsu.pop('deviceid')
+                ldsu_list.append(ldsu)
+        return ldsu_list
+
+    def set_ldsu_status_by_deviceid(self, deviceid, uid, is_reachable):
+        ldsu_doc = self.get_ldsu_document();
+        found = ldsu_doc.find_one({'deviceid': deviceid, 'UID': uid})
+        if found:
+            found['status'] = "unreachable" if is_reachable==0 else "reachable"
+            ldsu_doc.replace_one({'deviceid': deviceid, 'UID': uid}, found)
+
+    def get_ldsus_by_port(self, deviceid, port):
+        ldsu_list = []
+        ldsu_doc = self.get_ldsu_document()
+        if ldsu_doc:
+            for ldsu in ldsu_doc.find({'deviceid': deviceid, 'PORT': port}):
+                ldsu.pop('_id')
+                ldsu.pop('username')
+                ldsu.pop('deviceid')
+                ldsu_list.append(ldsu)
+        return ldsu_list
+
+    def change_ldsu_name_by_deviceid(self, deviceid, uid, name):
+        ldsu_doc = self.get_ldsu_document()
+        found = ldsu_doc.find_one({'deviceid': deviceid, 'UID': uid})
+        if found:
+            found['LABL'] = name
+            ldsu_doc.replace_one({'deviceid': deviceid, 'UID': uid}, found)
+
+    def get_ldsu(self, deviceid, uid):
+        ldsu_doc = self.get_ldsu_document()
+        if ldsu_doc:
+            for ldsu in ldsu_doc.find({'deviceid': deviceid, 'UID': uid}):
+                ldsu.pop('_id')
+                ldsu.pop('username')
+                ldsu.pop('deviceid')
+                return ldsu
+        return None
+
+    def delete_ldsu(self, deviceid, uid):
+        ldsu_doc = self.get_ldsu_document()
+        if ldsu_doc:
+            try:
+                ldsu_doc.delete_one({ 'deviceid': deviceid, 'UID': uid })
+            except:
+                print("delete_ldsu: Exception occurred")
 
 
     ##########################################################

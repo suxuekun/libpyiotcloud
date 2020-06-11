@@ -128,26 +128,40 @@ def send_notification_device(messaging_client, deviceid, recipient, message):
         return False
     return True
 
-def send_notification_storage(messaging_client, deviceid, recipient, message, source, sensorname, date_time, condition):
-    contents = date_time + ": " + message + " - " + source.upper()
-    if sensorname:
-        contents += ":" + sensorname
-    if condition:
-        contents += " (" + condition + ")"
+def send_notification_storage(messaging_client, deviceid, recipient, message, source, sensorname, date_time, condition, sensor):
+    if sensor is None:
+        contents = date_time + ": " + message + " - " + source.upper()
+        if sensorname:
+            contents += ":" + sensorname
+        if condition:
+            contents += " (" + condition + ")"
+    else:
+        contents = date_time + ": " + message + " - " + "LDS Bus " + sensor["port"] + ": " + sensor["name"]
+        if sensorname:
+            contents += ": " + sensorname
+        if condition:
+            contents += " (" + condition + ")"
 
     try:
         result = g_storage_client.append_to_file(recipient, deviceid, contents)
         if result:
             send_notification_status(messaging_client, deviceid, "OK. message sent to storage.")
-            try: 
-                source_new = source
-                if sensorname:
-                    source_new = "{}{}".format(source, sensorname)
-                notification = g_database_client.get_device_notification_by_deviceid(deviceid, source_new)
-                if notification:
-                    if notification["endpoints"][MENOS_STORAGE]["recipients"] == "":
-                        notification["endpoints"][MENOS_STORAGE]["recipients"] = result
-                        g_database_client.update_device_notification_by_deviceid(deviceid, source_new, notification)
+            try:
+                if source.startswith("uart"):
+                    source_new = source
+                    if sensorname:
+                        source_new = "{}{}".format(source, sensorname)
+                    notification = g_database_client.get_device_notification_by_deviceid(deviceid, source_new, None)
+                    if notification:
+                        if notification["endpoints"][MENOS_STORAGE]["recipients"] == "":
+                            notification["endpoints"][MENOS_STORAGE]["recipients"] = result
+                            g_database_client.update_device_notification_by_deviceid(deviceid, source_new, None, notification)
+                else:
+                    notification = g_database_client.get_device_notification_by_deviceid(deviceid, source[:-1], int(source[-1:]))
+                    if notification:
+                        if notification["endpoints"][MENOS_STORAGE]["recipients"] == "":
+                            notification["endpoints"][MENOS_STORAGE]["recipients"] = result
+                            g_database_client.update_device_notification_by_deviceid(deviceid, source[:-1], int(source[-1:]), notification)
             except:
                 print("exception")
                 pass
@@ -159,7 +173,7 @@ def send_notification_storage(messaging_client, deviceid, recipient, message, so
         return False, None
     return True, contents
 
-def construct_message(deviceid, message, source, sensorname, date_time, condition):
+def construct_message(deviceid, message, source, sensorname, date_time, condition, sensor):
 
     new_message = message
 
@@ -171,12 +185,12 @@ def construct_message(deviceid, message, source, sensorname, date_time, conditio
     devicename = g_database_client.get_devicename(deviceid)
     if devicename is None:
         return None
-    source = source.upper()
     from_source = ""
     if sensorname is None:
+        source = source.upper()
         from_source += "- from {}:{}".format(devicename, source)
     else:
-        from_source += "- from {}:{}:{}".format(devicename, source, sensorname)
+        from_source += "- from {}:LDS Bus {}:{}:{}".format(devicename, sensor["port"], sensor["name"], sensorname)
     new_message += "\r\n" + from_source
 
     # append timestamp on the message
@@ -196,6 +210,9 @@ def get_sms_details(phonenumber):
 
 def notification_thread(messaging_client, deviceid, recipient, message, subject, type, options, source, sensor, payload):
 
+    if not source.startswith("uart"):
+        source = source[-1:]
+
     # generate information to append to the message
     timestamp = int(time.time())
     date_time = "[" + datetime.datetime.utcfromtimestamp(timestamp).strftime("%Y-%m-%d %H:%M:%S") + " UTC]"
@@ -208,7 +225,7 @@ def notification_thread(messaging_client, deviceid, recipient, message, subject,
     type_str = g_notification_client.get_notification_types_string(type)
 
     # append information to the message
-    message_updated, date_time = construct_message(deviceid, message, source, sensorname, date_time, condition)
+    message_updated, date_time = construct_message(deviceid, message, source, sensorname, date_time, condition, sensor)
     if message_updated is None:
         send_notification_status(messaging_client, deviceid, "NG")
         return
@@ -216,114 +233,93 @@ def notification_thread(messaging_client, deviceid, recipient, message, subject,
 
     # send message
     if type == notification_types.DEVICE:
-        # Send to another device
+        #
+        # Device
+        #
         result = send_notification_device(messaging_client, deviceid, recipient, message_updated)
         print("{}: {} [{} {}] {}".format(deviceid, type_str, len(recipient), len(message_updated), result ))
+
+        g_database_client.add_menos_transaction(deviceid, recipient, message, type_str, source.upper(), sensorname, timestamp, condition, result)
+
     elif type == notification_types.STORAGE:
-        result, contents = send_notification_storage(messaging_client, deviceid, recipient, message, source, sensorname, date_time, condition)
+        #
+        # Storage
+        #
+        result, contents = send_notification_storage(messaging_client, deviceid, recipient, message, source, sensorname, date_time, condition, sensor)
         print("{}: {} [{}] {}".format(deviceid, type_str, len(contents), result ))
-    else:
 
-        if type == notification_types.EMAIL or type == notification_types.PUSH_NOTIFICATION:
-            # Email or Notification (push notification)
+        g_database_client.add_menos_transaction(deviceid, recipient, message, type_str, source.upper(), sensorname, timestamp, condition, result)
 
+    elif type == notification_types.PUSH_NOTIFICATION:
+        #
+        # Notification (push notification)
+        #
+        if recipient.get("devicetoken") is None or recipient.get("service") is None:
+            return
+        devicetokens = recipient["devicetoken"]
+        services = recipient["service"]
+
+        for x in range(len(devicetokens)):
+            rec = {"devicetoken": devicetokens[x], "service": services[x]}
+            try:
+                response = g_notification_client.send_message(rec, message_updated, subject=subject, type=type)
+            except:
+                response = ""
+
+            if response != "":
+                result = response["ResponseMetadata"]["HTTPStatusCode"]==200
+                send_notification_status(messaging_client, deviceid, "NG" if result == False else "OK. message sent to mobile phone/s.".format(rec))
+            else:
+                result = False
+                send_notification_status(messaging_client, deviceid, "NG")
+
+            recipient_label = "Android" if rec["service"] == "GCM" else "iOS"
+            g_database_client.add_menos_transaction(deviceid, recipient_label, message, type_str, source, sensorname, timestamp, condition, result)
+            print("{} {} {}".format(deviceid, recipient_label, result))
+
+    elif type == notification_types.EMAIL:
+        #
+        # Email
+        #
+        recipients = recipient.replace(" ", "").split(",")
+        for recipient in recipients:
             try:
                 response = g_notification_client.send_message(recipient, message_updated, subject=subject, type=type)
-                #print(response)
             except:
-                print("exception")
-                send_notification_status(messaging_client, deviceid, "NG")
-                return
+                response = ""
 
-        elif type == notification_types.SMS:
-            # Mobile (sms)
-
-            country, isocode, networkcarrier = get_sms_details(recipient)
-            print("{} {} {}".format(country, isocode, networkcarrier))
-
-            if options >= 0:
-                # With options parameter
-                print("OPTIONS = {}".format(options))
-
-                if options == 1:
-                    options = 0
-                new_client = notification_client(notification_models.PINPOINT, options)
-                new_client.initialize()
-                try:
-                    response = new_client.send_message(recipient, message_updated, subject=subject, type=type)
-                except:
-                    send_notification_status(messaging_client, deviceid, "NG")
-                    return
+            if response != "":
+                result = response["ResponseMetadata"]["HTTPStatusCode"]==200
+                send_notification_status(messaging_client, deviceid, "NG" if result == False else "OK. message sent to {}.".format(recipient))
             else:
-                # No options parameter
-                #print(recipient)
-                #print(message)
-                #print(type)
-                try:
-                    response = g_notification_client.send_message(recipient, message_updated, subject=subject, type=type)
-                    #print(response)
-                except:
-                    print("exception")
-                    send_notification_status(messaging_client, deviceid, "NG")
-                    return
-
-        # Display result
-        if notification_config.CONFIG_DEBUG_NOTIFICATION:
-            try:
-                print("\r\nSending message='{}' to recipient='{}' done. {} {}\r\n\r\n".format(
-                    message_updated, recipient,
-                    response["ResponseMetadata"]["HTTPStatusCode"]==200, 
-                    response["MessageResponse"]["Result"][recipient]["StatusCode"]==200))
-                send_notification_status(messaging_client, deviceid, "OK. message sent to {}.".format(recipient))
-            except:
-                try:
-                    print("\r\nSending message='{}' to recipient='{}' done. {}\r\n\r\n".format(
-                        message_updated, recipient,
-                        response["ResponseMetadata"]["HTTPStatusCode"]==200))
-                    send_notification_status(messaging_client, deviceid, "OK. message sent to {}.".format(recipient))
-                except:
-                    print("\r\nSending message='{}' to recipient='{}' done.\r\n\r\n".format(
-                        message_updated, recipient))
-        else:
-            if response == "":
+                result = False
                 send_notification_status(messaging_client, deviceid, "NG")
-                return
 
+            g_database_client.add_menos_transaction(deviceid, recipient, message, type_str, source.upper(), sensorname, timestamp, condition, result)
+            print("{} {} {}".format(deviceid, recipient, result))
+
+    elif type == notification_types.SMS:
+        #
+        # Mobile (sms)
+        #
+        recipients = recipient.replace(" ", "").split(",")
+        for recipient in recipients:
+            country, isocode, networkcarrier = get_sms_details(recipient)
             try:
-                result = response["ResponseMetadata"]["HTTPStatusCode"]==200 and response["MessageResponse"]["Result"][recipient]["StatusCode"]==200
-                if result == True:
-                    print("{}: {} [{} {}] {}".format(deviceid, type_str, len(recipient), len(message_updated), result))
-                    if type == notification_types.PUSH_NOTIFICATION:
-                        send_notification_status(messaging_client, deviceid, "OK. message sent to mobile phone/s.")
-                    else:
-                        send_notification_status(messaging_client, deviceid, "OK. message sent to {}.".format(recipient))
-                else:
-                    print("{}: {} [{} {}] {} [{} {}]".format(deviceid, type_str, len(recipient), len(message_updated), result, response["ResponseMetadata"]["HTTPStatusCode"], response["MessageResponse"]["Result"][recipient]["StatusMessage"]))
-                    send_notification_status(messaging_client, deviceid, "NG. {}".format(response["MessageResponse"]["Result"][recipient]["StatusMessage"]))
+                response = g_notification_client.send_message(recipient, message_updated, subject=subject, type=type)
             except:
-                try:
-                    result = response["ResponseMetadata"]["HTTPStatusCode"]==200
-                    print("{}: {} [{} {}] {}".format(deviceid, type_str, len(recipient), len(message_updated), result))
-                    if result == True:
-                        if type == notification_types.PUSH_NOTIFICATION:
-                            send_notification_status(messaging_client, deviceid, "OK. message sent to mobile phone/s.")
-                        else:
-                            send_notification_status(messaging_client, deviceid, "OK. message sent to {}.".format(recipient))
-                    else:
-                        send_notification_status(messaging_client, deviceid, "NG")
-                except:
-                    print("{}: {} [{} {}] True".format(deviceid, type_str, len(recipient), len(message_updated) ))
+                response = ""
 
-    # record message in database
-    if type == notification_types.PUSH_NOTIFICATION:
-        if recipient.get("devicetoken") and recipient.get("service"):
-            for recipient_item in recipient["service"]:
-                recipient_label = "Android" if recipient["service"] == "GCM" else "iOS"
-                g_database_client.add_menos_transaction(deviceid, recipient_label, message, type_str, source, sensorname, timestamp, condition, result)
-                #print("{}: {} {} {} {} [{} UTC]".format(deviceid, type_str, recipient_label, len(message), result, datetime.datetime.utcfromtimestamp(timestamp).strftime("%Y-%m-%d %H:%M:%S")))
-    else:
-        g_database_client.add_menos_transaction(deviceid, recipient, message, type_str, source.upper(), sensorname, timestamp, condition, result)
-        #print("{}: {} {} {} {} [{} UTC]".format(deviceid, type_str, recipient, len(message), result, datetime.datetime.utcfromtimestamp(timestamp).strftime("%Y-%m-%d %H:%M:%S")))
+            if response != "":
+                result = response["ResponseMetadata"]["HTTPStatusCode"]==200
+                send_notification_status(messaging_client, deviceid, "NG" if result == False else "OK. message sent to {}.".format(recipient))
+            else:
+                result = False
+                send_notification_status(messaging_client, deviceid, "NG")
+
+            g_database_client.add_menos_transaction(deviceid, recipient, message, type_str, source.upper(), sensorname, timestamp, condition, result)
+            print("{} {} {} [{}-{}-{}]".format(deviceid, recipient, result, country, isocode, networkcarrier))
+
 
     #print(g_database_client.get_menos_transaction(deviceid))
     #g_database_client.delete_menos_transaction(deviceid)
@@ -484,8 +480,12 @@ def on_message(subtopic, subpayload):
                         return
                     source_new = "{}{}".format(source, sensor["sensorname"])
                     notification = g_database_client.get_device_notification_by_deviceid(deviceid, source_new)
+                elif source.startswith("uart"):
+                    notification = g_database_client.get_device_notification_by_deviceid(deviceid, source, None)
                 else:
-                    notification = g_database_client.get_device_notification_by_deviceid(deviceid, source)
+                    #print("xxxxx {} {}".format(source[:-1], int(source[-1:]) ))
+                    sensor = g_database_client.get_sensor_by_deviceid(deviceid, source[:-1], source[-1:], None)
+                    notification = g_database_client.get_device_notification_by_deviceid(deviceid, source[:-1], int(source[-1:]) )
                 #print(notification)
 
             # recipient is not provided, process the notification info to get the recipient

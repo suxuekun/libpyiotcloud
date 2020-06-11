@@ -18,6 +18,7 @@ import logging
 from logging.handlers import RotatingFileHandler
 from logging import handlers
 import jwt # now using pyjwt instead of jose
+import device_client
 
 
 
@@ -97,6 +98,7 @@ g_download_thread = None
 g_download_thread_stop = None
 
 g_messaging_client = None
+g_device_client = None
 
 # FIRMWARE VERSION
 g_firmware_version_MAJOR = 0
@@ -180,81 +182,17 @@ g_tprobe_properties = [
 ]
 
 # GW DESCRIPTOR
-g_gateway_descriptor = {
-    # RO
-    'UUID': '', # UUID
-    'SNO': '',  # Serial Number
-    'PMAC': '', # PoE MAC ID
-    'WMAC': '', # WiFi MAC ID
-    'MOD': '',  # Model Number
-    'PRV': '',  # Product Version
-    'FWV': '',  # Firmware Version and date
-    'ICAC': '', # Sensor Cache Storage Size
-    'IPRT': '', # Number of LDS Ports
-    'ICFG': '', # Configuration Storage
-    'MLG': '',  # Maximum LDSUs Allowed for Gateway 80
-    'M2M': '',  # Machine-to-machine config
-    # RW
-    'WGPS': '', # GPS Location
-    'WASC': '', # Auto-scan
-    'WSCS': '', # Sensor Cache Status
-    'OBJ': '',  # Sensor Cache Status
-}
+# Dynamically created based on gateway UUID
+g_gateway_descriptor = {}
 
-# FIXED LDSU DESCRIPTORS
-# LDS PORT 1
-#   BRT 4-in-1 Sensor  - BRT32768XXXXX781
-#   Air Quality Sensor - BRT32770XXXXX121
-# LDS PORT 2
-#   BRT 4-in-1 Sensor  - BRT32768XXXXX692
-# LDS PORT 3
-#   Air Quality Sensor - BRT32770XXXXX453
-g_ldsu_descriptors = [
-{
-    "IID": "12345",              # LDSU Instance ID.      IID is unique within the GW
-    "PORT": "1",                 # Port number
-    "DID": "1",                  # LDS device ID from eeprom.  DID is unique within the Port
-    "PRV": "1.0",                # Product version
-    "MFG": "01062020",           # Manufacturing date
-    "SNO": "BRT12345",           # Serial Number
-    "UID": "BRT32768XXXXX781",   # UUID
-    "NAME": "BRT 4-in-1 Sensor", # Name of the Sensor
-    "OBJ": "32768"               # LDSU Object type
-},
-{
-    "IID": "11246",
-    "PORT": "1",
-    "DID": "1",
-    "PRV": "1.0",
-    "MFG": "02062020",
-    "SNO": "BRT12345",
-    "UID": "BRT32770XXXXX121",
-    "NAME": "Air Quality Sensor",
-    "OBJ": "32770"
-},
-{
-    "IID": "12346",
-    "PORT": "2",
-    "DID": "1",
-    "PRV": "1.0",
-    "MFG": "01062020",
-    "SNO": "BRT12345",
-    "UID": "BRT32768XXXXX692",
-    "NAME": "BRT 4-in-1 Sensor",
-    "OBJ": "32768"
-},
-{
-    "IID": "11247",
-    "PORT": "3",
-    "DID": "1",
-    "PRV": "1.0",
-    "MFG": "02062020",
-    "SNO": "BRT12345",
-    "UID": "BRT32770XXXXX453",
-    "NAME": "Air Quality Sensor",
-    "OBJ": "32770"
-}
-]
+# LDSU DESCRIPTORS
+# UID is dynamically created based on gateway UUID + running number to ensure unique UID across device simulators
+g_ldsu_descriptors = []
+
+# LDSU DEVICE Properties
+# Dynamically created based on g_ldsu_descriptors
+g_ldsu_properties = {}
+
 
 start_timeX = 0
 
@@ -324,11 +262,11 @@ API_STATUS_NOTIFICATION          = "status_notification"
 # sensor reading
 API_RECEIVE_SENSOR_READING       = "rcv_sensor_reading"
 API_REQUEST_SENSOR_READING       = "req_sensor_reading"
-API_PUBLISH_SENSOR_READING       = "sensor_reading"
+API_PUBLISH_SENSOR_READING       = "pub_sensor_reading"
 
 # configuration
-API_RECEIVE_CONFIGURATION        = "rcv_configuration"
 API_REQUEST_CONFIGURATION        = "req_configuration"
+API_RECEIVE_CONFIGURATION        = "rcv_configuration"
 API_DELETE_CONFIGURATION         = "del_configuration"
 API_SET_CONFIGURATION            = "set_configuration"
 
@@ -339,6 +277,7 @@ API_REQUEST_FIRMWARE             = "req_firmware"
 API_RECEIVE_FIRMWARE             = "rcv_firmware"
 API_REQUEST_OTASTATUS            = "req_otastatus"
 API_REQUEST_TIME                 = "req_time"
+API_RECEIVE_TIME                 = "rcv_time"
 
 # sensor registration 
 API_SET_REGISTRATION             = "set_registration"
@@ -346,11 +285,17 @@ API_SET_REGISTRATION             = "set_registration"
 # descriptor
 API_GET_DESCRIPTOR               = "get_descriptor"
 API_SET_DESCRIPTOR               = "set_descriptor"
-API_SET_LDSU_DESCS               = "set_ldsu_descs"
 
 # lds bus
-API_IDENTIFY_LDSU                = "ide_ldsu"
-API_REQUEST_LDSUS                = "get_ldsu_descriptors"
+API_SET_LDSU_DESCS               = "set_ldsu_descs"
+API_GET_LDSU_DESCS               = "get_ldsu_descs"
+API_IDENTIFY_LDSU                = "identify_ldsu"
+
+# ldsu
+API_GET_LDSU_DEVICES              = "get_ldsu_devs"
+API_ENABLE_LDSU_DEVICE            = "enable_ldsu_dev"
+API_GET_LDSU_DEVICE_PROPERTIES    = "get_ldsu_dev_prop"
+API_SET_LDSU_DEVICE_PROPERTIES    = "set_ldsu_dev_prop"
 
 
 
@@ -449,6 +394,8 @@ def setClassAttributes(device_class, class_attributes):
     # handle subclasses
     if class_attributes.get("subclass"):
         class_attributes.pop("subclass")
+    if class_attributes.get("source"):
+        class_attributes.pop("source")
     attributes = class_attributes
     return attributes
 
@@ -499,6 +446,14 @@ def reset_local_configurations():
     g_tprobe_properties = [
         { 'enabled': 0, 'class': 255, 'attributes': {} }
     ]
+
+
+def get_sensors_descriptors(obj, prv):
+    descriptor = None
+    for sensor in g_sensors:
+        if obj == sensor["OBJ"] and float(prv) == float(sensor["VER"]):
+            return sensor["SNS"]
+    return None
 
 
 def handle_api(api, subtopic, subpayload):
@@ -701,17 +656,14 @@ def handle_api(api, subtopic, subpayload):
         publish(topic, payload)
 
     ####################################################
-    # DESCRIPTOR
+    # GATEWAY DESCRIPTOR
     ####################################################
     elif api == API_GET_DESCRIPTOR:
         topic = generate_pubtopic(subtopic)
-        if g_gateway_descriptor["UUID"] == "":
-            g_gateway_descriptor["UUID"] = CONFIG_DEVICE_ID
-            g_gateway_descriptor["SNO"]  = CONFIG_DEVICE_SERIAL
-            g_gateway_descriptor["PMAC"] = CONFIG_DEVICE_MACADD
         payload = {}
         payload["value"] = g_gateway_descriptor
         publish(topic, payload)
+
 
     ####################################################
     # LDS BUS
@@ -722,107 +674,189 @@ def handle_api(api, subtopic, subpayload):
         payload = {}
         publish(topic, payload)
 
-    elif api == API_REQUEST_LDSUS:
+    elif api == API_GET_LDSU_DESCS:
         topic = generate_pubtopic(subtopic)
         subpayload = json.loads(subpayload)
 
-        # TODO
-        # Temporary code only
-        # Please ignore the current structure
-        # This structure is basically what the frontend receives
-        # But the firmware will send this in different structure and backend needs to convert into this format
-        payload = {'value': [
-        {
-            "port": subpayload["port"],
-            "ldsus": [
-                {
-                    'name'             : 'LDSU01',
-                    'uuid'             : 'LDSUUUID',
-                    'serialnumber'     : 'asdasdasd',
-                    'manufacturingdate': 'erwrwer',
-                    'productversion'   : '0.0.1',
-                    'productname'      : 'ldsuname 01'
-                },
-                {
-                    'name'             : 'LDSU02',
-                    'uuid'             : 'LDSUUUID02',
-                    'serialnumber'     : 'asdasdasd',
-                    'manufacturingdate': 'erwrwer',
-                    'productversion'   : '0.0.2',
-                    'productname'      : 'ldsuname 02'
-                }
-            ], 
-            "sensors": [
-                {
-                    "name"    : "Sensor01", 
-                    "class"   : "temperature", 
-                    "ldsuname": "LDSU01", 
-                    "ldsuuuid": "LDSUUUID01", 
-                    "ldsuport": subpayload["port"]
-                },
-                {
-                    "name"    : "Sensor02", 
-                    "class"   : "potentiometer", 
-                    "ldsuname": "LDSU02", 
-                    "ldsuuuid": "LDSUUUID02", 
-                    "ldsuport": subpayload["port"]
-                }
-            ], 
-            "actuators": [
-                {
-                    "name"    : "Actuator01", 
-                    "class"   : "display", 
-                    "ldsuname": "LDSU01", 
-                    "ldsuuuid": "LDSUUUID01", 
-                    "ldsuport": subpayload["port"]
-                },
-                {
-                    "name"    : "Actuator02", 
-                    "class"   : "led", 
-                    "ldsuname": "LDSU02", 
-                    "ldsuuuid": "LDSUUUID02", 
-                    "ldsuport": subpayload["port"]
-                }
-            ]
-        }
-        ]
-        }
+        if subpayload.get("PORT") is not None:
+            port = int(subpayload["PORT"])
+            if port >= 1 and port <= 3:
+                # if port number exist, then return LDSUs for specified port
+                reg_ldsu_descriptors(port=str(port), as_response=True)
+            else:
+                # if port number not exist, then return LDSUs for all ports
+                reg_ldsu_descriptors(port=None, as_response=True)
+        else:
+            # if port number not exist, then return LDSUs for all ports
+            reg_ldsu_descriptors(port=None, as_response=True)
+
+
+    ####################################################
+    # LDSU
+    ####################################################
+
+    elif api == API_ENABLE_LDSU_DEVICE:
+        topic = generate_pubtopic(subtopic)
+        subpayload = json.loads(subpayload)
+        #printf(subpayload)
+
+
+        # get parameters
+        #   enable
+        #   source
+        #   number
+        #   mode
+        enable = int(subpayload["enable"])
+        source = str(subpayload["UID"])
+        number = int(subpayload["SAID"])
+        if subpayload.get("MODE"):
+            mode = int(subpayload["MODE"])
+        else:
+            mode = 0
+
+        # support caching (device receives on enable, not on set)
+        if enable == 1:
+            g_ldsu_properties[source][number]["enabled"] = enable
+            g_ldsu_properties[source][number]["mode"] = mode
+
+            if g_ldsu_properties[source][number].get("attributes") is None:
+                # get OBJ given UID
+                obj = None
+                for ldsu_descriptor in g_ldsu_descriptors:
+                    if ldsu_descriptor["UID"] == source:
+                        obj = ldsu_descriptor["OBJ"]
+                        break
+                # get classname, minmax (given OBJ and number)
+                descriptor = g_device_client.get_objidx(obj, number)
+                classname = g_device_client.get_objidx_class(descriptor)
+                minmax = g_device_client.get_objidx_minmax(descriptor, mode)
+                format = g_device_client.get_objidx_format(descriptor)
+                type = g_device_client.get_objidx_type(descriptor)
+                accuracy = g_device_client.get_objidx_accuracy(descriptor)
+                g_ldsu_properties[source][number]["attributes"] = {}
+                g_ldsu_properties[source][number]["attributes"]["class"] = classname
+                g_ldsu_properties[source][number]["attributes"]["minmax"] = minmax
+                g_ldsu_properties[source][number]["attributes"]["format"] = format
+                g_ldsu_properties[source][number]["attributes"]["type"] = type
+                g_ldsu_properties[source][number]["attributes"]["accuracy"] = accuracy
+
+
+            # actuator
+            # if enabling output sensor, add properties to g_i2c_properties_enabled_output
+            # if disabling output sensor, remove properties from g_i2c_properties_enabled_output
+            #if g_ldsu_properties[source][number]["class"] <= 2:
+            #    if enable:
+            #        g_i2c_properties_enabled_output[source][number][address] = g_ldsu_properties[number][address]
+            #        g_i2c_properties_enabled_output[source][number][address]["value"] = 0
+            #    else:
+            #        del g_i2c_properties_enabled_output[number][address]
+        else:
+            g_ldsu_properties[source][number]["enabled"] = enable
+
+        #printf("")
+        #printf_json(g_ldsu_properties[source])
+        #printf("")
+
+        payload = {}
         publish(topic, payload)
+
+    elif api == API_GET_LDSU_DEVICES:
+        topic = generate_pubtopic(subtopic)
+        subpayload = json.loads(subpayload)
+
+        ldsu_properties = g_ldsu_properties.copy()
+        ldsu_keys = list(ldsu_properties.keys())
+        for ldsu_key in ldsu_keys:
+            for ldsu_device in ldsu_properties[ldsu_key]:
+                if ldsu_device.get("attributes"):
+                    del ldsu_device["attributes"]
+
+        payload = {}
+        payload["value"] = ldsu_properties
+        publish(topic, payload)
+
+    #elif api == API_GET_LDSU_DEVICE_PROPERTIES:
+    #    if True:
+    #        pass
+    #    else:
+    #        topic = generate_pubtopic(subtopic)
+    #        subpayload = json.loads(subpayload)
+    #
+    #        number = int(subpayload["number"])
+    #        address = str(subpayload["address"])
+    #        source = str(subpayload["source"])
+    #        value = None 
+    #        try:
+    #            value = g_ldsu_properties[source][number]["attributes"]
+    #        except:
+    #            pass
+    #
+    #        payload = {}
+    #        if value is not None:
+    #            payload["value"] = value
+    #        publish(topic, payload)
+
+    #elif api == API_SET_LDSU_DEVICE_PROPERTIES:
+    #    if True:
+    #        pass
+    #    else:
+    #        # no longer needed for caching case
+    #
+    #        topic = generate_pubtopic(subtopic)
+    #        printf(len(subpayload))
+    #        subpayload = json.loads(subpayload)
+    #        #printf(subpayload)
+    #
+    #        number = int(subpayload["number"])
+    #        address = str(subpayload["address"])
+    #        device_class = subpayload["class"]
+    #        g_ldsu_properties[source][number] = {
+    #            'address': address,
+    #            'class': device_class,
+    #            'attributes' : setClassAttributes(device_class, subpayload),
+    #            'enabled': 0
+    #        }
+    #        #printf("")
+    #        printf(g_ldsu_properties[source])
+    #        #printf("")
+    #
+    #        payload = {}
+    #        publish(topic, payload)
 
 
     ####################################################
     # UART
     ####################################################
-    elif api == API_GET_UARTS:
-        topic = generate_pubtopic(subtopic)
-        subpayload = json.loads(subpayload)
-
-        value = {
-            'uarts': [
-                {'enabled': g_uart_enabled },
-            ]
-        }
-        #printf(g_uart_enabled)
-
-        payload = {}
-        payload["value"] = value
-        publish(topic, payload)
-
-    elif api == API_GET_UART_PROPERTIES:
-        topic = generate_pubtopic(subtopic)
-        subpayload = json.loads(subpayload)
-
-        value = g_uart_properties
-        #printf(g_uart_properties)
-        #printf(g_uart_baudrate[g_uart_properties['baudrate']])
-        #printf(g_uart_parity[g_uart_properties['parity']])
-        #printf(g_uart_flowcontrol[g_uart_properties['flowcontrol']])
-        #printf(g_uart_stopbits[g_uart_properties['stopbits']])
-        #printf(g_uart_databits[g_uart_properties['databits']])
-
-        payload = {}
-        payload["value"] = value
-        publish(topic, payload)
+    #elif api == API_GET_UARTS:
+    #    topic = generate_pubtopic(subtopic)
+    #    subpayload = json.loads(subpayload)
+    #
+    #    value = {
+    #        'uarts': [
+    #            {'enabled': g_uart_enabled },
+    #        ]
+    #    }
+    #    #printf(g_uart_enabled)
+    #
+    #    payload = {}
+    #    payload["value"] = value
+    #    publish(topic, payload)
+    #
+    #elif api == API_GET_UART_PROPERTIES:
+    #    topic = generate_pubtopic(subtopic)
+    #    subpayload = json.loads(subpayload)
+    #
+    #    value = g_uart_properties
+    #    #printf(g_uart_properties)
+    #    #printf(g_uart_baudrate[g_uart_properties['baudrate']])
+    #    #printf(g_uart_parity[g_uart_properties['parity']])
+    #    #printf(g_uart_flowcontrol[g_uart_properties['flowcontrol']])
+    #    #printf(g_uart_stopbits[g_uart_properties['stopbits']])
+    #    #printf(g_uart_databits[g_uart_properties['databits']])
+    #
+    #    payload = {}
+    #    payload["value"] = value
+    #    publish(topic, payload)
 
     elif api == API_SET_UART_PROPERTIES:
         topic = generate_pubtopic(subtopic)
@@ -861,86 +895,86 @@ def handle_api(api, subtopic, subpayload):
     ####################################################
     # GPIO
     ####################################################
-    elif api == API_GET_GPIOS:
-        topic = generate_pubtopic(subtopic)
-        subpayload = json.loads(subpayload)
-
-        value = {
-            'voltage': g_gpio_voltage,
-            'gpios': [
-                {'direction': g_gpio_properties[0]['direction'], 'status': g_gpio_status[0], 'enabled': g_gpio_enabled[0] },
-                {'direction': g_gpio_properties[1]['direction'], 'status': g_gpio_status[1], 'enabled': g_gpio_enabled[1] },
-                {'direction': g_gpio_properties[2]['direction'], 'status': g_gpio_status[2], 'enabled': g_gpio_enabled[2] },
-                {'direction': g_gpio_properties[3]['direction'], 'status': g_gpio_status[3], 'enabled': g_gpio_enabled[3] }
-            ]
-        }
-        #printf(g_gpio_enabled)
-
-        payload = {}
-        payload["value"] = value
-        publish(topic, payload)
-
-    elif api == API_GET_GPIO_PROPERTIES:
-        topic = generate_pubtopic(subtopic)
-        subpayload = json.loads(subpayload)
-
-        number = int(subpayload["number"])-1
-        value = g_gpio_properties[number]
-
-        payload = {}
-        payload["value"] = value
-        publish(topic, payload)
-
-    elif api == API_SET_GPIO_PROPERTIES:
-        topic = generate_pubtopic(subtopic)
-        subpayload = json.loads(subpayload)
-        #printf(subpayload)
-
-        number = int(subpayload["number"])-1
-        g_gpio_properties[number] = { 
-            'direction' : subpayload["direction"], 
-            'mode' : subpayload["mode"],
-            'alert': subpayload["alert"],
-            'alertperiod': subpayload["alertperiod"],
-            'polarity': subpayload["polarity"],
-            'width': subpayload["width"],
-            'mark': subpayload["mark"],
-            'space': subpayload["space"],
-            'count': subpayload["count"] }
-        value = g_gpio_properties[number]
-
-        payload = {}
-        publish(topic, payload)
-
-    elif api == API_ENABLE_GPIO:
-        topic = generate_pubtopic(subtopic)
-        subpayload = json.loads(subpayload)
-        #printf(subpayload)
-
-        g_gpio_enabled[int(subpayload["number"])-1] = subpayload["enable"]
-        #printf(g_gpio_enabled)
-
-        payload = {}
-        publish(topic, payload)
-
-    elif api == API_GET_GPIO_VOLTAGE:
-        topic = generate_pubtopic(subtopic)
-
-        payload = {}
-        payload["value"] = {"voltage": g_gpio_voltage}
-        publish(topic, payload)
-        #printf(g_gpio_voltages[g_gpio_voltage])
-
-    elif api == API_SET_GPIO_VOLTAGE:
-        topic = generate_pubtopic(subtopic)
-        subpayload = json.loads(subpayload)
-        #printf(subpayload)
-
-        g_gpio_voltage = subpayload["voltage"]
-        #printf(g_gpio_voltages[g_gpio_voltage])
-
-        payload = {}
-        publish(topic, payload)
+    #elif api == API_GET_GPIOS:
+    #    topic = generate_pubtopic(subtopic)
+    #    subpayload = json.loads(subpayload)
+    #
+    #    value = {
+    #        'voltage': g_gpio_voltage,
+    #        'gpios': [
+    #            {'direction': g_gpio_properties[0]['direction'], 'status': g_gpio_status[0], 'enabled': g_gpio_enabled[0] },
+    #            {'direction': g_gpio_properties[1]['direction'], 'status': g_gpio_status[1], 'enabled': g_gpio_enabled[1] },
+    #            {'direction': g_gpio_properties[2]['direction'], 'status': g_gpio_status[2], 'enabled': g_gpio_enabled[2] },
+    #            {'direction': g_gpio_properties[3]['direction'], 'status': g_gpio_status[3], 'enabled': g_gpio_enabled[3] }
+    #        ]
+    #    }
+    #    #printf(g_gpio_enabled)
+    #
+    #    payload = {}
+    #    payload["value"] = value
+    #    publish(topic, payload)
+    #
+    #elif api == API_GET_GPIO_PROPERTIES:
+    #    topic = generate_pubtopic(subtopic)
+    #    subpayload = json.loads(subpayload)
+    #
+    #    number = int(subpayload["number"])-1
+    #    value = g_gpio_properties[number]
+    #
+    #    payload = {}
+    #    payload["value"] = value
+    #    publish(topic, payload)
+    #
+    #elif api == API_SET_GPIO_PROPERTIES:
+    #    topic = generate_pubtopic(subtopic)
+    #    subpayload = json.loads(subpayload)
+    #    #printf(subpayload)
+    #
+    #    number = int(subpayload["number"])-1
+    #    g_gpio_properties[number] = { 
+    #        'direction' : subpayload["direction"], 
+    #        'mode' : subpayload["mode"],
+    #        'alert': subpayload["alert"],
+    #        'alertperiod': subpayload["alertperiod"],
+    #        'polarity': subpayload["polarity"],
+    #        'width': subpayload["width"],
+    #        'mark': subpayload["mark"],
+    #        'space': subpayload["space"],
+    #        'count': subpayload["count"] }
+    #    value = g_gpio_properties[number]
+    #
+    #    payload = {}
+    #    publish(topic, payload)
+    #
+    #elif api == API_ENABLE_GPIO:
+    #    topic = generate_pubtopic(subtopic)
+    #    subpayload = json.loads(subpayload)
+    #    #printf(subpayload)
+    #
+    #    g_gpio_enabled[int(subpayload["number"])-1] = subpayload["enable"]
+    #    #printf(g_gpio_enabled)
+    #
+    #    payload = {}
+    #    publish(topic, payload)
+    #
+    #elif api == API_GET_GPIO_VOLTAGE:
+    #    topic = generate_pubtopic(subtopic)
+    #
+    #    payload = {}
+    #    payload["value"] = {"voltage": g_gpio_voltage}
+    #    publish(topic, payload)
+    #    #printf(g_gpio_voltages[g_gpio_voltage])
+    #
+    #elif api == API_SET_GPIO_VOLTAGE:
+    #    topic = generate_pubtopic(subtopic)
+    #    subpayload = json.loads(subpayload)
+    #    #printf(subpayload)
+    #
+    #    g_gpio_voltage = subpayload["voltage"]
+    #    #printf(g_gpio_voltages[g_gpio_voltage])
+    #
+    #    payload = {}
+    #    publish(topic, payload)
 
 
     ####################################################
@@ -969,11 +1003,20 @@ def handle_api(api, subtopic, subpayload):
     elif api == API_ENABLE_I2C_DEVICE:
         topic = generate_pubtopic(subtopic)
         subpayload = json.loads(subpayload)
-        #printf(subpayload)
 
         number = int(subpayload["number"])-1
         address = str(subpayload["address"])
         enable = int(subpayload["enable"])
+
+        # support caching (device receives on enable, not on set)
+        if subpayload.get("class") and enable == 1:
+            device_class = subpayload["class"]
+            g_i2c_properties[number][address] = {
+                'class': device_class,
+                'attributes' : setClassAttributes(device_class, subpayload),
+                'enabled': 0
+            }
+
         try:
             g_i2c_properties[number][address]["enabled"] = enable
 
@@ -987,9 +1030,9 @@ def handle_api(api, subtopic, subpayload):
                     del g_i2c_properties_enabled_output[number][address]
         except:
             pass
-        #printf()
+        #printf("")
         #printf(g_i2c_properties[number])
-        #printf()
+        #printf("")
 
         payload = {}
         publish(topic, payload)
@@ -1004,9 +1047,9 @@ def handle_api(api, subtopic, subpayload):
         try:
             if g_i2c_properties[number].get(address):
                 value = g_i2c_properties[number][address]["attributes"]
-                #printf()
+                #printf("")
                 #printf(value)
-                #printf()
+                #printf("")
         except:
             pass
 
@@ -1029,9 +1072,9 @@ def handle_api(api, subtopic, subpayload):
             'attributes' : setClassAttributes(device_class, subpayload),
             'enabled': 0
         }
-        #printf()
+        #printf("")
         #printf(g_i2c_properties[number])
-        #printf()
+        #printf("")
 
         payload = {}
         publish(topic, payload)
@@ -1069,9 +1112,9 @@ def handle_api(api, subtopic, subpayload):
             g_adc_properties[number]["enabled"] = enable
         except:
             pass
-        #printf()
+        #printf("")
         #printf(g_adc_properties[number])
-        #printf()
+        #printf("")
 
         payload = {}
         publish(topic, payload)
@@ -1084,9 +1127,9 @@ def handle_api(api, subtopic, subpayload):
         value = None 
         try:
             value = g_adc_properties[number]["attributes"]
-            #printf()
+            #printf("")
             #printf(value)
-            #printf()
+            #printf("")
         except:
             pass
 
@@ -1107,9 +1150,9 @@ def handle_api(api, subtopic, subpayload):
             'attributes' : setClassAttributes(device_class, subpayload),
             'enabled': 0
         }
-        #printf()
+        #printf("")
         #printf(g_adc_properties[number])
-        #printf()
+        #printf("")
 
         payload = {}
         publish(topic, payload)
@@ -1166,9 +1209,9 @@ def handle_api(api, subtopic, subpayload):
             g_1wire_properties[number]["enabled"] = enable
         except:
             pass
-        #printf()
+        #printf("")
         #printf(g_1wire_properties[number])
-        #printf()
+        #printf("")
 
         payload = {}
         publish(topic, payload)
@@ -1181,9 +1224,9 @@ def handle_api(api, subtopic, subpayload):
         value = None 
         try:
             value = g_1wire_properties[number]["attributes"]
-            #printf()
+            #printf("")
             #printf(value)
-            #printf()
+            #printf("")
         except:
             pass
 
@@ -1204,9 +1247,9 @@ def handle_api(api, subtopic, subpayload):
             'attributes' : setClassAttributes(device_class, subpayload),
             'enabled': 0
         }
-        #printf()
+        #printf("")
         #printf(g_1wire_properties[number])
-        #printf()
+        #printf("")
 
         payload = {}
         publish(topic, payload)
@@ -1244,9 +1287,9 @@ def handle_api(api, subtopic, subpayload):
             g_tprobe_properties[number]["enabled"] = enable
         except:
             pass
-        #printf()
+        #printf("")
         #printf(g_tprobe_properties[number])
-        #printf()
+        #printf("")
 
         payload = {}
         publish(topic, payload)
@@ -1259,9 +1302,9 @@ def handle_api(api, subtopic, subpayload):
         value = None 
         try:
             value = g_tprobe_properties[number]["attributes"]
-            #printf()
+            #printf("")
             #printf("GET: {}".format(value))
-            #printf()
+            #printf("")
         except:
             pass
 
@@ -1292,9 +1335,9 @@ def handle_api(api, subtopic, subpayload):
         if device_subclass is not None:
             g_tprobe_properties[number]['subclass'] = device_subclass
 
-        #printf()
+        #printf("")
         #printf(g_tprobe_properties[number])
-        #printf()
+        #printf("")
 
         payload = {}
         publish(topic, payload)
@@ -1390,12 +1433,12 @@ def handle_api(api, subtopic, subpayload):
     # NOTIFICATION
     ####################################################
 
-    elif api == API_TRIGGER_NOTIFICATION:
-        topic = generate_pubtopic(subtopic)
-        subpayload = json.loads(subpayload)
-        # Notification from cloud
-        publish(topic, subpayload)
-        printf("Notification triggered to email/SMS recipient!")
+    #elif api == API_TRIGGER_NOTIFICATION:
+    #    topic = generate_pubtopic(subtopic)
+    #    subpayload = json.loads(subpayload)
+    #    # Notification from cloud
+    #    publish(topic, subpayload)
+    #    printf("Notification triggered to email/SMS recipient!")
 
     elif api == API_RECEIVE_NOTIFICATION:
         topic = generate_pubtopic(subtopic)
@@ -1425,6 +1468,9 @@ def handle_api(api, subtopic, subpayload):
 
         if CONFIG_REQUEST_CONFIGURATION_DEBUG:
             printf("")
+            if subpayload.get("ldsu"):
+                printf("ldsu   {} - {}".format(subpayload["ldsu"],   len(subpayload["ldsu"])   ))
+                printf("")
             if subpayload.get("uart"):
                 printf("uart   {} - {}".format(subpayload["uart"],   len(subpayload["uart"])   ))
                 printf("")
@@ -1453,10 +1499,45 @@ def handle_api(api, subtopic, subpayload):
                 printf("")
             printf("")
 
+        # LDSU
+        if subpayload.get("ldsu"):
+            ldsus = subpayload["ldsu"]
+            for ldsu in ldsus:
+                #printf(ldsu)
+                source = ldsu["UID"]
+                number = int(ldsu["SAID"])
+                mode = int(ldsu["MODE"])
+                g_ldsu_properties[source][number]["enabled"] = ldsu["enabled"]
+                g_ldsu_properties[source][number]["mode"] = mode
+
+                if g_ldsu_properties[source][number].get("attributes") is None:
+                    # get OBJ given UID
+                    obj = None
+                    for ldsu_descriptor in g_ldsu_descriptors:
+                        if ldsu_descriptor["UID"] == source:
+                            obj = ldsu_descriptor["OBJ"]
+                            break
+                    # get classname, minmax (given OBJ and number)
+                    descriptor = g_device_client.get_objidx(obj, number)
+                    classname = g_device_client.get_objidx_class(descriptor)
+                    minmax = g_device_client.get_objidx_minmax(descriptor, mode)
+                    format = g_device_client.get_objidx_format(descriptor)
+                    type = g_device_client.get_objidx_type(descriptor)
+                    accuracy = g_device_client.get_objidx_accuracy(descriptor)
+                    g_ldsu_properties[source][number]["attributes"] = {}
+                    g_ldsu_properties[source][number]["attributes"]["class"] = classname
+                    g_ldsu_properties[source][number]["attributes"]["minmax"] = minmax
+                    g_ldsu_properties[source][number]["attributes"]["format"] = format
+                    g_ldsu_properties[source][number]["attributes"]["type"] = type
+                    g_ldsu_properties[source][number]["attributes"]["accuracy"] = accuracy
+
+            #printf_json(g_ldsu_properties[source])
+
         # UART
         if subpayload.get("uart"):
             if subpayload["uart"][0].get("attributes"):
                 g_uart_properties = subpayload["uart"][0]["attributes"]
+                #printf(g_uart_properties)
 
         # GPIO
         if subpayload.get("gpio"):
@@ -1538,6 +1619,7 @@ def handle_api(api, subtopic, subpayload):
                             g_i2c_properties[x][address]["subclass"] = subpayload["i2c"][x][y]["subclass"]
 
         if CONFIG_REQUEST_CONFIGURATION_DEBUG:
+            printf_json(g_ldsu_properties,   "ldsu")
             printf_json(g_uart_properties,   "uart")
             printf_json(g_gpio_properties,   "gpio")
             printf_json(g_adc_properties,    "adc")
@@ -1613,7 +1695,7 @@ def handle_api(api, subtopic, subpayload):
         g_download_thread_stop.set()
 
 
-    elif api == API_REQUEST_TIME:
+    elif api == API_RECEIVE_TIME:
         topic = generate_pubtopic(subtopic)
         subpayload = json.loads(subpayload)
         printf("")
@@ -1625,6 +1707,120 @@ def handle_api(api, subtopic, subpayload):
 
     else:
         printf("UNSUPPORTED")
+
+
+
+###################################################################################
+# LDSU helper functions
+###################################################################################
+
+def saveToLDSFile():
+    lds_filename = CONFIG_DEVICE_ID + ".json"
+    json_obj = { "LDS": g_ldsu_descriptors }
+    json_obj = json.dumps(json_obj, indent=2)
+    g_device_client.save_lds_reg(lds_filename, json_obj)
+
+def listLDSUs(port):
+    if port>0 and port<=3:
+        for ldsu in g_ldsu_descriptors:
+            if port == int(ldsu["PORT"]):
+                printf("{} Port {} [{}-{}]".format(ldsu["UID"], ldsu["PORT"], ldsu["OBJ"], ldsu["NAME"]))
+                numdevices = g_device_client.get_obj_numdevices(ldsu["OBJ"])
+                for number in range(numdevices):
+                    descriptor = g_device_client.get_objidx(ldsu["OBJ"], number)
+                    classname = g_device_client.get_objidx_class(descriptor)
+                    printf("  {} {}".format(number, classname))
+    else:
+        for ldsu in g_ldsu_descriptors:
+            printf("{} Port {} [{}-{}]".format(ldsu["UID"], ldsu["PORT"], ldsu["OBJ"], ldsu["NAME"]))
+            numdevices = g_device_client.get_obj_numdevices(ldsu["OBJ"])
+            for number in range(numdevices):
+                descriptor = g_device_client.get_objidx(ldsu["OBJ"], number)
+                classname = g_device_client.get_objidx_class(descriptor)
+                printf("  {} {}".format(number, classname))
+    printf("")
+
+def moveLDSU(uid, port):
+    found = False
+    for ldsu in g_ldsu_descriptors:
+        if uid == ldsu["UID"]:
+            ldsu["PORT"] = str(port)
+            reg_ldsu_descriptors()
+            found = True
+            break
+    if not found:
+        printf("{} not found.".format(uid))
+    else:
+        # save to file to make changes persistent on reboot
+        saveToLDSFile()
+    printf("")
+
+def generateUID():
+    uid = ""
+    while True:
+        found = False
+        uid = "{}{:02d}".format(CONFIG_DEVICE_ID, random.randint(0, 99))
+        for ldsu in g_ldsu_descriptors:
+            if ldsu["UID"] == uid:
+                found = True
+                break
+
+        if not found:
+            break
+    return uid
+
+def plugLDSU(obj, port, uid):
+    ldsu_descriptor = g_device_client.get_ldsu_reg_from_lds_reg_template(obj)
+    if ldsu_descriptor is None:
+        printf("{} is not found!".format(obj))
+        return
+    if port<=0 and port>3:
+        printf("{} is not valid!".format(port))
+        return
+
+    if uid is None:
+        # generate a uid
+        uid = generateUID()
+    else:
+        # check if uid is not present
+        for ldsu in g_ldsu_descriptors:
+            if ldsu["UID"] == uid:
+                printf("{} is not valid".format(uid))
+                return
+
+    # update LDSU descriptor and register it
+    ldsu_descriptor["UID"] = uid
+    ldsu_descriptor["PORT"] = str(port)
+    g_ldsu_descriptors.append(ldsu_descriptor)
+    reg_ldsu_descriptors()
+
+    # update LDSU properties to add for the new LDSU
+    if g_ldsu_properties.get(uid) is None:
+        obj = ldsu_descriptor["OBJ"]
+        numdevices = g_device_client.get_obj_numdevices(obj)
+        g_ldsu_properties[uid] = []
+        for device in range(numdevices):
+            g_ldsu_properties[uid].append({ 'enabled': 0, 'mode': 0 })
+
+
+    # save to file to make changes persistent on reboot
+    saveToLDSFile()
+    printf("")
+
+def unplugLDSU(uid):
+    found = False
+    for ldsu in g_ldsu_descriptors:
+        if uid == ldsu["UID"]:
+            g_ldsu_descriptors.remove(ldsu)
+            reg_ldsu_descriptors()
+            found = True
+            break
+    if not found:
+        printf("{} not found.".format(uid))
+    else:
+        # save to file to make changes persistent on reboot
+        saveToLDSFile()
+    printf("")
 
 
 
@@ -1721,15 +1917,12 @@ def req_configuration(peripherals = None):
         payload = { "peripherals": peripherals }
     publish(topic, payload)
 
-def del_configuration(peripherals = None):
+def del_configuration():
     printf("")
     printf("")
     printf("\Delete device configuration")
     topic = "{}{}{}{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_DEVICE_ID, CONFIG_SEPARATOR, API_DELETE_CONFIGURATION)
-    if peripherals is None:
-        payload = {}
-    else:
-        payload = { "peripherals": peripherals }
+    payload = {}
     publish(topic, payload)
 
 def set_configuration(filename = None):
@@ -1809,6 +2002,17 @@ def get_random_data(peripheral_class):
     else:
         return float("{0:.1f}".format(random.uniform(0, 100)))
 
+def get_random_data_ex(format, accuracy, min, max):
+    if format == "integer":
+        return random.randint(min, max)
+    elif format == "float":
+        if accuracy == 1:
+            return float("{0:.1f}".format(random.uniform(min, max)))
+        elif accuracy == 2:
+            return float("{0:.2f}".format(random.uniform(min, max)))
+        return random.randint(min, max)
+    elif format == "boolean":
+        return True if random.randint(0, 1) else False
 
 class TimerThread(threading.Thread):
 
@@ -1832,6 +2036,44 @@ class TimerThread(threading.Thread):
 
     def set_exit(self):
         self.exit = True
+
+    def process_ldsu_input_devices(self):
+        topic = "{}{}{}{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_DEVICE_ID, CONFIG_SEPARATOR, API_PUBLISH_SENSOR_READING)
+
+#        sensors = { 
+#            "UID": string,          # LDSU UUID
+#            "TS": string,           # TIMESTAMP
+#            "SNS": ["", "", "", ""] # VALUES
+#        }
+
+        ldsu_keys = list(g_ldsu_properties.keys())
+        for ldsu_key in ldsu_keys:
+            has_enabled = False
+            values = []
+            # generate random value for enabled sensors of the LDSU
+            for ldsu_device in g_ldsu_properties[ldsu_key]:
+                if ldsu_device.get("attributes"):
+                    attributes = ldsu_device["attributes"]
+                    # generate random value if sensor is enabled
+                    if ldsu_device["enabled"] and attributes["type"] == "input":
+                        value = get_random_data_ex(attributes["format"], int(attributes["accuracy"]), int(attributes["minmax"][0]), int(attributes["minmax"][1]))
+                        value = str(value)
+                        printf("{} {} {} {} {} {}".format(value, attributes["class"], attributes["format"], int(attributes["accuracy"]), int(attributes["minmax"][0]), int(attributes["minmax"][1]) ))
+                        has_enabled = True
+                    else:
+                        value = "NaN"
+                else:
+                    value = "NaN"
+                values.append(value)
+
+            # if one of the LDSU device is enabled, then publish
+            if has_enabled:
+                payload = {}
+                payload["UID"] = ldsu_key
+                payload["TS"] = int(time.time())
+                payload["SNS"] = values
+                printf_json(payload)
+                publish(topic, payload)
 
     def process_input_devices(self):
         topic = "{}{}{}{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_DEVICE_ID, CONFIG_SEPARATOR, API_PUBLISH_SENSOR_READING)
@@ -2013,7 +2255,15 @@ class TimerThread(threading.Thread):
         #printf("TimerThread {}".format(g_messaging_client.is_connected()))
         while not self.stopped.wait(self.timeout) and g_messaging_client.is_connected():
             if self.pause == False:
-                self.process_input_devices()
+
+                # For LDSU sensor
+                if True:
+                    self.process_ldsu_input_devices()
+
+                # For I2C, ADC, TPROBE, 1WIRE
+                if False:
+                    self.process_input_devices()
+
                 #self.process_output_devices()
                 if CONFIG_SEND_NOTIFICATION_PERIODICALLY:
                     self.process_trigger_notification()
@@ -2185,6 +2435,9 @@ UART_ATCOMMAND_RESET               = "ATR"
 UART_ATCOMMAND_UPDATE              = "ATU"
 UART_ATCOMMAND_STATUS              = "AT"
 
+UART_ATCOMMAND_LDSTEST             = "ATT"
+
+
 UART_ATCOMMAND_DESC_MOBILE         = "Send message as SMS to verified mobile number"
 UART_ATCOMMAND_DESC_EMAIL          = "Send message as email to verified email address"
 UART_ATCOMMAND_DESC_NOTIFY         = "Send message as mobile app notification to verified user"
@@ -2200,6 +2453,9 @@ UART_ATCOMMAND_DESC_PAUSE          = "Pause/Resume (toggle)"
 UART_ATCOMMAND_DESC_RESET          = "Reset device"
 UART_ATCOMMAND_DESC_UPDATE         = "Enter firmware update (UART entry point inside bootloader)"
 UART_ATCOMMAND_DESC_STATUS         = "Display device status"
+
+UART_ATCOMMAND_DESC_LDSTEST        = "Simulate tests for moving/adding/removing LDSU in LDS BUS"
+
 
 MENOS_MOBILE                       = "mobile"
 MENOS_EMAIL                        = "email"
@@ -2355,6 +2611,66 @@ def uart_cmdhdl_help(idx, cmd):
 def uart_cmdhdl_unsupported(idx, cmd):
     printf("uart_cmdhdl_unsupported")
 
+def uart_cmdhdl_ldstest_help():
+    printf("")
+    printf("LDS Test Commands:")
+    printf("ATT+LS+<PORT>                List LDSUs in LDS BUS port (1, 2, 3)")
+    printf("                             If no port, will list LDSUs in all ports")
+    printf("ATT+MOV+<UID>+<PORT>         Move an LDSU from one port to another port")
+    printf("ATT+ADD+<OBJ>+<PORT>+<UID>   Plug an LDSU of type OBJ to specified port")
+    printf("                             Available OBJ = [32768, 32770]")
+    printf("                             UID is optional (to re-add what you removed)")
+    printf("ATT+REM+<UID>                Unplug an LDSU")
+    printf("")
+
+def uart_cmdhdl_ldstest(idx, cmd):
+    if len(cmd) == len(UART_ATCOMMANDS[idx]["command"]):
+        uart_cmdhdl_ldstest_help()
+        return
+
+    cmd_list = cmd.split("+")[1:]
+    if cmd_list[0] == "LS":
+        params = cmd_list[1:]
+        if len(params) != 1:
+            listLDSUs(0)
+            return
+        port = int(params[0])
+        listLDSUs(port)
+
+    elif cmd_list[0] == "MOV":
+        params = cmd_list[1:]
+        if len(params) != 2:
+            printf("invalid {} parameters".format(cmd_list[0]))
+            return
+        uid = params[0]
+        port = int(params[1])
+        moveLDSU(uid, port)
+
+    elif cmd_list[0] == "ADD":
+        params = cmd_list[1:]
+        if len(params) < 2:
+            printf("invalid {} parameters".format(cmd_list[0]))
+            return
+        obj = params[0]
+        port = int(params[1])
+        if len(params) == 2:
+            uid = None
+        elif len(params) == 3:
+            uid = params[2]
+        plugLDSU(obj, port, uid)
+
+    elif cmd_list[0] == "REM":
+        params = cmd_list[1:]
+        if len(params) != 1:
+            printf("invalid {} parameters".format(cmd_list[0]))
+            return
+        uid = params[0]
+        unplugLDSU(uid)
+
+    else:
+        printf("invalid command")
+        return
+
 
 UART_ATCOMMANDS = [
     { "command": UART_ATCOMMAND_MOBILE,   "fxn": uart_cmdhdl_mobile,       "help": UART_ATCOMMAND_DESC_MOBILE  },
@@ -2364,16 +2680,17 @@ UART_ATCOMMANDS = [
     { "command": UART_ATCOMMAND_STORAGE,  "fxn": uart_cmdhdl_storage,      "help": UART_ATCOMMAND_DESC_STORAGE },
     { "command": UART_ATCOMMAND_DEFAULT,  "fxn": uart_cmdhdl_default,      "help": UART_ATCOMMAND_DESC_DEFAULT },
 
-    { "command": UART_ATCOMMAND_CONTINUE, "fxn": uart_cmdhdl_unsupported,  "help": UART_ATCOMMAND_DESC_CONTINUE },
-    { "command": UART_ATCOMMAND_ECHO,     "fxn": uart_cmdhdl_unsupported,  "help": UART_ATCOMMAND_DESC_ECHO     },
     { "command": UART_ATCOMMAND_HELP,     "fxn": uart_cmdhdl_help,         "help": UART_ATCOMMAND_DESC_HELP     },
-    { "command": UART_ATCOMMAND_INFO,     "fxn": uart_cmdhdl_unsupported,  "help": UART_ATCOMMAND_DESC_INFO     }, # = {software version, present configuration, present status, list of I2C devices and addresses, IP address, connection status to service, etc}" },
-    { "command": UART_ATCOMMAND_MORE,     "fxn": uart_cmdhdl_unsupported,  "help": UART_ATCOMMAND_DESC_MORE     },
-    { "command": UART_ATCOMMAND_PAUSE,    "fxn": uart_cmdhdl_unsupported,  "help": UART_ATCOMMAND_DESC_PAUSE    },
-    { "command": UART_ATCOMMAND_RESET,    "fxn": uart_cmdhdl_unsupported,  "help": UART_ATCOMMAND_DESC_RESET    },
-    { "command": UART_ATCOMMAND_UPDATE,   "fxn": uart_cmdhdl_unsupported,  "help": UART_ATCOMMAND_DESC_UPDATE   },
+    { "command": UART_ATCOMMAND_LDSTEST,  "fxn": uart_cmdhdl_ldstest,      "help": UART_ATCOMMAND_DESC_LDSTEST  },
+    #{ "command": UART_ATCOMMAND_CONTINUE, "fxn": uart_cmdhdl_unsupported,  "help": UART_ATCOMMAND_DESC_CONTINUE },
+    #{ "command": UART_ATCOMMAND_ECHO,     "fxn": uart_cmdhdl_unsupported,  "help": UART_ATCOMMAND_DESC_ECHO     },
+    #{ "command": UART_ATCOMMAND_INFO,     "fxn": uart_cmdhdl_unsupported,  "help": UART_ATCOMMAND_DESC_INFO     }, # = {software version, present configuration, present status, list of I2C devices and addresses, IP address, connection status to service, etc}" },
+    #{ "command": UART_ATCOMMAND_MORE,     "fxn": uart_cmdhdl_unsupported,  "help": UART_ATCOMMAND_DESC_MORE     },
+    #{ "command": UART_ATCOMMAND_PAUSE,    "fxn": uart_cmdhdl_unsupported,  "help": UART_ATCOMMAND_DESC_PAUSE    },
+    #{ "command": UART_ATCOMMAND_RESET,    "fxn": uart_cmdhdl_unsupported,  "help": UART_ATCOMMAND_DESC_RESET    },
+    #{ "command": UART_ATCOMMAND_UPDATE,   "fxn": uart_cmdhdl_unsupported,  "help": UART_ATCOMMAND_DESC_UPDATE   },
 
-    { "command": UART_ATCOMMAND_STATUS,   "fxn": uart_cmdhdl_mobile,       "help": UART_ATCOMMAND_DESC_STATUS   }, # OK if all is good, ERROR if device is in error state" },
+    #{ "command": UART_ATCOMMAND_STATUS,   "fxn": uart_cmdhdl_mobile,       "help": UART_ATCOMMAND_DESC_STATUS   }, # OK if all is good, ERROR if device is in error state" },
 ]
 
 def read_kbd_input(inputQueue):
@@ -2499,9 +2816,9 @@ def http_get_firmware_binary(filename, filesize):
     #headers = { "User-Agent": "PostmanRuntime/7.22.0", "Accept": "*/*", "Host": "ec2-54-166-169-66.compute-1.amazonaws.com", "Accept-Encoding": "gzip, deflate, br", "Connection": "keep-alive" }
     authcode = compute_ota_authcode(CONFIG_DEVICE_SECRETKEY, CONFIG_USERNAME, CONFIG_PASSWORD, debug=True)
     if authcode is None:
-        print(CONFIG_DEVICE_SECRETKEY)
-        print(CONFIG_USERNAME)
-        print(CONFIG_PASSWORD)
+        printf(CONFIG_DEVICE_SECRETKEY)
+        printf(CONFIG_USERNAME)
+        printf(CONFIG_PASSWORD)
         return False
     headers = { "Connection": "keep-alive", "Authorization": "Bearer " + authcode }
 
@@ -2579,30 +2896,100 @@ def read_registered_sensors_eeprom():
     printf("Read registered sensors {}".format(len(sensors)))
     return sensors
 
+# OLD
 # Send registered sensors from .sns file
 def set_registration(sensors):
     topic = "{}{}{}{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_DEVICE_ID, CONFIG_SEPARATOR, API_SET_REGISTRATION)
-    payload = {"sensors": sensors}
+    payload = {"value": sensors}
     #payload = json.dumps(payload)
     publish(topic, payload)
 
 # Register gateway descriptor
 def reg_gateway_descriptor():
+    printf("")
+    printf("Register gateway descriptor")
     topic = "{}{}{}{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_DEVICE_ID, CONFIG_SEPARATOR, API_SET_DESCRIPTOR)
     if g_gateway_descriptor["UUID"] == "":
         g_gateway_descriptor["UUID"] = CONFIG_DEVICE_ID
         g_gateway_descriptor["SNO"]  = CONFIG_DEVICE_SERIAL
         g_gateway_descriptor["PMAC"] = CONFIG_DEVICE_MACADD
-    payload = {"descriptor": g_gateway_descriptor}
+    payload = {"value": g_gateway_descriptor}
     publish(topic, payload)
 
 # Register LDSU descriptors
-def reg_ldsu_descriptors():
-    # TODO: send LDSU descriptors in multiple chunks (ex. 80 LDSUs)
-    topic = "{}{}{}{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_DEVICE_ID, CONFIG_SEPARATOR, API_SET_LDSU_DESCS)
-    payload = {"ldsu_descs": g_ldsu_descriptors}
-    publish(topic, payload)
+def reg_ldsu_descriptors(port=None, as_response=False):
+    printf("")
+    printf("Register LDSU descriptors")
+    api = API_SET_LDSU_DESCS
+    if as_response:
+        api = API_GET_LDSU_DESCS
 
+    if port is None:
+        # send all LDSUs
+        if False:
+            # send LDSU descriptors in multiple chunks 
+            # (ex. if 80 LDSUs, then can send by port or by any number of LDSUs)
+            topic = "{}{}{}{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_DEVICE_ID, CONFIG_SEPARATOR, api)
+            for port in range(3):
+                ldsu_descriptors = []
+                for ldsu_descriptor in g_ldsu_descriptors:
+                    if ldsu_descriptor["PORT"] == str(port+1):
+                        ldsu_descriptors.append(ldsu_descriptor)
+                payload = {"value": ldsu_descriptors}
+                publish(topic, payload)
+        else:
+            # send in 1 MQTT packet
+            topic = "{}{}{}{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_DEVICE_ID, CONFIG_SEPARATOR, api)
+            payload = {"value": g_ldsu_descriptors}
+            publish(topic, payload)
+    else:
+        # send all LDSUs for specified port
+        topic = "{}{}{}{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_DEVICE_ID, CONFIG_SEPARATOR, api)
+        ldsu_descriptors = []
+        for ldsu_descriptor in g_ldsu_descriptors:
+            if ldsu_descriptor["PORT"] == port:
+                ldsu_descriptors.append(ldsu_descriptor)
+        payload = {"value": ldsu_descriptors}
+        publish(topic, payload)
+
+
+# Initialize Gateway descriptor
+def init_gw_descriptor():
+    global g_gateway_descriptor
+    global g_device_client
+    g_gateway_descriptor = g_device_client.get_gw_desc()
+    if g_gateway_descriptor is None:
+        g_gateway_descriptor = {}
+        return False
+    g_gateway_descriptor["UUID"] = CONFIG_DEVICE_ID
+    g_gateway_descriptor["SNO"]  = CONFIG_DEVICE_SERIAL
+    g_gateway_descriptor["PMAC"] = CONFIG_DEVICE_MACADD
+    return True
+
+# Initialize LDSU descriptors to ensure unique UID
+def init_ldsu_descriptors():
+    global g_ldsu_descriptors
+    global g_device_client
+    g_ldsu_descriptors = g_device_client.get_lds_reg()
+    if g_ldsu_descriptors is None:
+        g_ldsu_descriptors = []
+        return False
+    for x in range(len(g_ldsu_descriptors)):
+        if g_ldsu_descriptors[x]["UID"] == "BRTXXXXXXXXXXXXX" or g_ldsu_descriptors[x]["UID"] == "":
+            g_ldsu_descriptors[x]["UID"] = "{}{:02d}".format(CONFIG_DEVICE_ID, x)
+    return True
+
+# Initialize LDSU properties
+def init_ldsu_properties():
+    global g_ldsu_properties
+    global g_device_client
+    for ldsu_descriptor in g_ldsu_descriptors:
+        source = ldsu_descriptor["UID"]
+        obj = ldsu_descriptor["OBJ"]
+        numdevices = g_device_client.get_obj_numdevices(obj)
+        g_ldsu_properties[source] = []
+        for device in range(numdevices):
+            g_ldsu_properties[source].append({ 'enabled': 0, 'mode': 0 })
 
 
 ###################################################################################
@@ -2672,6 +3059,7 @@ def main(args):
 
     global g_firmware_version_STR
     global g_messaging_client
+    global g_device_client
     global g_device_status
     global g_timer_thread_use
     global g_timer_thread_stop
@@ -2777,6 +3165,12 @@ def main(args):
     g_messaging_client.set_tls(CONFIG_TLS_CA, CONFIG_TLS_CERT, CONFIG_TLS_PKEY)
 
 
+    # Initialize LDSU device (sensor/actuator) client
+    lds_filename = CONFIG_DEVICE_ID + ".json"
+    g_device_client = device_client.device_client()
+    g_device_client.initialize(lds_filename=lds_filename)
+
+
     inputThread = None
     while True:
 
@@ -2807,57 +3201,71 @@ def main(args):
         # Get epoch time
         # Not needed for the device simulator
         # This is just for demonstration to device firmware (to be used as last resort in case SNTP fails for some reason)
-        req_epochtime()
+        #req_epochtime()
+
+
+        # Initialize Gateway and LDSU descriptors and properties to ensure uniqueness per device simulator
+        if init_gw_descriptor() == False:
+            printf("ERROR: Could not locate GW descriptor template file!")
+            return
+        if init_ldsu_descriptors() == False:
+            printf("ERROR: Could not locate Sample LDS Reg template file!")
+            return
+        init_ldsu_properties()
 
         # Register gateway descriptor and ldsu descriptors
         # TODO: send LDSU descriptors in multiple chunks (ex. 80 LDSUs)
         reg_gateway_descriptor()
         reg_ldsu_descriptors()
+        time.sleep(1)
+
 
         # Scan sensor for configuration
-        if CONFIG_SCAN_SENSORS_AT_BOOTUP:
-            sensors = read_registered_sensors_eeprom()
-            if len(sensors):
-                set_registration(sensors)
+        #if CONFIG_SCAN_SENSORS_AT_BOOTUP:
+        #    sensors = read_registered_sensors_eeprom()
+        #    if len(sensors):
+        #        set_registration(sensors)
 
         # Delete device configuration
+        # OPTIONAL This is not really needed.
+        # This just simplifies deleting configuration of the sensors, which can be very useful when debugging configuration issues
         if CONFIG_DELETE_CONFIGURATION:
             del_configuration()
-            # can specify specific peripherals like below
-            # peripherals can be uart, gpio, i2c, adc, 1wire, tprobe
-            #del_configuration(["i2c"])
 
         # Load device configuration from file
-        if CONFIG_LOAD_CONFIGURATION_FROM_FILE:
-            time.sleep(1)
-            set_configuration()
+        # OPTIONAL This is not really needed.
+        # This just simplifies configuration of the sensors, which can be very useful when configuring several sensors
+        #if CONFIG_LOAD_CONFIGURATION_FROM_FILE:
+        #    time.sleep(1)
+        #    set_configuration()
+
 
         # Query device configuration
         if CONFIG_REQUEST_CONFIGURATION:
             g_device_status = DEVICE_STATUS_CONFIGURING
             req_configuration()
-            # can specify specific peripherals like below
-            # peripherals can be uart, gpio, i2c, adc, 1wire, tprobe
-            #req_configuration(["i2c"])
+            time.sleep(1)
 
-        # Start the timer thread
+        # Check OTA status at bootup
+        if CONFIG_OTA_AT_BOOTUP:
+            req_otastatus(g_firmware_version_STR)
+            time.sleep(1)
+
+
+        # Start the timer thread for sensor processing
         if g_timer_thread_use:
             g_timer_thread_stop = threading.Event()
             g_timer_thread = TimerThread(g_timer_thread_stop, g_timer_thread_timeout)
             g_timer_thread.start()
 
-        # Start keyboard input thread
+        # Start keyboard input thread for AT commands processing
         if g_input_thread == None:
             inputQueue = queue.Queue()
             g_input_thread = threading.Thread(target=read_kbd_input, args=(inputQueue,), daemon=True)
             g_input_thread.start()
 
 
-        # Check OTA status at bootup
-        if CONFIG_OTA_AT_BOOTUP:
-            req_otastatus(g_firmware_version_STR)
-
-
+        # Loop processing
         # Exit when disconnection happens
         while g_messaging_client.is_connected():
             time.sleep(1)
@@ -2878,15 +3286,15 @@ def main(args):
                             UART_ATCOMMANDS[idx]["fxn"](idx, cmd)
                             break
 
+
+        # Handle graceful disconnection
         g_messaging_client.subscribe(subtopic, subscribe=False)
         time.sleep(2)
         g_messaging_client.release()
-
         if g_timer_thread_use:
             g_timer_thread.set_exit()
             g_timer_thread_stop.set()
             g_timer_thread.join()
-
         # When disconnected, reset the configurations
         # and pull the configurations during reconnection
         # This is to prevent synchronization issues with local configuration with backend configuration

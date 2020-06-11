@@ -20,6 +20,7 @@ _device_simulator/*.ver
 _device_simulator/*.sns
 _device_simulator/*.txt
 _device_simulator/*.log
+_device_simulator/ew2020_cfg
 _kubernetes/environment_private.yaml
 _kubernetes/environment_private_prod.yaml
 _kubernetes/notes.txt

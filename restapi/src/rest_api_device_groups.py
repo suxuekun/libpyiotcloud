@@ -544,7 +544,7 @@ class device_groups:
                         devicenames.append(device["devicename"])
                 devicegroup['devices'] = devicenames
 
-        msg = {'status': 'OK', 'message': 'Mixed devices retrieved successfully.', 'devices': devices, 'devicegroups': devicegroups}
+        msg = {'status': 'OK', 'message': 'Mixed devices retrieved successfully.', 'data': {'devices': devices, 'devicegroups': devicegroups} }
 
 
 
@@ -665,6 +665,7 @@ class device_groups:
     # - Request:
     #   POST /devicegroups/<devicegroupname>/device/<devicename>
     #   headers: {'Authorization': 'Bearer ' + token.access}
+    #   data: {'destdevicegroupname': string}
     #
     # - Response:
     #   {'status': 'OK', 'message': string}
@@ -746,26 +747,55 @@ class device_groups:
             return response, status.HTTP_404_NOT_FOUND
 
         if flask.request.method == 'POST':
-            msg = {'status': 'OK', 'message': 'Device added to device group successfully.'}
+            msg = {'status': 'OK', 'message': ''}
 
-            # check if the devices dont belong to a group already
-            ungrouped_devices = self.database_client.get_ungroupeddevices(entityname)
-            found = False
-            for ungrouped_device in ungrouped_devices:
-                if devicename == ungrouped_device["devicename"]:
-                    found = True
-                    break
-            if found == False:
-                response = json.dumps({'status': 'NG', 'message': 'The device already belong to a group'})
-                print('\r\nERROR Add DeviceGroup: The device already belong to a group\r\n')
-                return response, status.HTTP_400_BAD_REQUEST
+            # check if new device name is already registered
+            destdevicegroupname = None
+            data = flask.request.get_json()
+            if data is not None:
+                if data.get("destdevicegroupname") is not None:
+                    destdevicegroupname = data["destdevicegroupname"]
 
-            # add device to device group
-            result = self.database_client.add_device_to_devicegroup(entityname, devicegroupname, device['deviceid'])
-            if result == False:
-                response = json.dumps({'status': 'NG', 'message': 'Device already in device group'})
-                print('\r\nERROR Add/Delete Device To/From DeviceGroup: Device already in device group\r\n')
-                return response, status.HTTP_400_BAD_REQUEST
+            if destdevicegroupname is None:
+                msg['message'] = 'Device added to device group successfully.'
+
+                # check if the devices dont belong to a group already
+                ungrouped_devices = self.database_client.get_ungroupeddevices(entityname)
+                found = False
+                for ungrouped_device in ungrouped_devices:
+                    if devicename == ungrouped_device["devicename"]:
+                        found = True
+                        break
+                if found == False:
+                    response = json.dumps({'status': 'NG', 'message': 'The device already belong to a group'})
+                    print('\r\nERROR Add DeviceGroup: The device already belong to a group\r\n')
+                    return response, status.HTTP_400_BAD_REQUEST
+
+                # add device to device group
+                result = self.database_client.add_device_to_devicegroup(entityname, devicegroupname, device['deviceid'])
+                if result == False:
+                    response = json.dumps({'status': 'NG', 'message': 'Device already in device group'})
+                    print('\r\nERROR Add/Delete Device To/From DeviceGroup: Device already in device group\r\n')
+                    return response, status.HTTP_400_BAD_REQUEST
+
+            else:
+                msg['message'] = 'Device transferred to device group successfully.'
+
+                # check if destination group is valid
+                if self.database_client.get_devicegroup(entityname, destdevicegroupname) is None:
+                    response = json.dumps({'status': 'NG', 'message': 'Device group is not registered'})
+                    print('\r\nERROR Transfer Device To/From DeviceGroup: Device group is not registered [{},{}]\r\n'.format(entityname, destdevicegroupname))
+                    return response, status.HTTP_404_NOT_FOUND
+
+                # remove device from device group
+                self.database_client.remove_device_from_devicegroup(entityname, devicegroupname, device['deviceid'])
+
+                # add device to device group
+                result = self.database_client.add_device_to_devicegroup(entityname, destdevicegroupname, device['deviceid'])
+                if result == False:
+                    response = json.dumps({'status': 'NG', 'message': 'Device already in device group'})
+                    print('\r\nERROR Transfer Device To/From DeviceGroup: Device already in device group\r\n')
+                    return response, status.HTTP_400_BAD_REQUEST
 
         elif flask.request.method == 'DELETE':
             msg = {'status': 'OK', 'message': 'Device removed from device group successfully.'}

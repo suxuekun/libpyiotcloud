@@ -29,15 +29,19 @@ from jose import jwk, jwt
 #CONFIG_PREPEND_REPLY_TOPIC  = "server"
 
 class classes:
-    I2C_DEVICE_CLASS_SPEAKER       = 0
-    I2C_DEVICE_CLASS_DISPLAY       = 1
-    I2C_DEVICE_CLASS_LIGHT         = 2
-    I2C_DEVICE_CLASS_POTENTIOMETER = 3
-    I2C_DEVICE_CLASS_TEMPERATURE   = 4
-    I2C_DEVICE_CLASS_HUMIDITY      = 5
-    I2C_DEVICE_CLASS_ANEMOMETER    = 6
-    I2C_DEVICE_CLASS_BATTERY       = 7
-    I2C_DEVICE_CLASS_FLUID         = 8
+    I2C_DEVICE_CLASS_SPEAKER         = 0
+    I2C_DEVICE_CLASS_DISPLAY         = 1
+    I2C_DEVICE_CLASS_LIGHT           = 2
+    I2C_DEVICE_CLASS_POTENTIOMETER   = 3
+    I2C_DEVICE_CLASS_TEMPERATURE     = 4
+    I2C_DEVICE_CLASS_HUMIDITY        = 5
+    I2C_DEVICE_CLASS_ANEMOMETER      = 6
+    I2C_DEVICE_CLASS_BATTERY         = 7
+    I2C_DEVICE_CLASS_FLUID           = 8
+    I2C_DEVICE_CLASS_AMBIENTLIGHT    = 9
+    I2C_DEVICE_CLASS_MOTIONDETECTION = 10
+    I2C_DEVICE_CLASS_CO2GAS          = 11
+    I2C_DEVICE_CLASS_VOCGAS          = 12
 
 
 
@@ -69,7 +73,27 @@ class utils:
 
 
     def get_i2c_device_class(self, classname):
-        if classname == "speaker":
+        if classname == "temperature":
+            return classes.I2C_DEVICE_CLASS_TEMPERATURE
+        elif classname == "humidity":
+            return classes.I2C_DEVICE_CLASS_HUMIDITY
+        elif classname == "ambient light":
+            return classes.I2C_DEVICE_CLASS_AMBIENTLIGHT
+        elif classname == "motion detection":
+            return classes.I2C_DEVICE_CLASS_MOTIONDETECTION
+        elif classname == "Co2 gas":
+            return classes.I2C_DEVICE_CLASS_CO2GAS
+        elif classname == "VOC gas":
+            return classes.I2C_DEVICE_CLASS_VOCGAS
+
+        elif classname == "anemometer":
+            return classes.I2C_DEVICE_CLASS_ANEMOMETER
+        elif classname == "battery":
+            return classes.I2C_DEVICE_CLASS_BATTERY
+        elif classname == "fluid":
+            return classes.I2C_DEVICE_CLASS_FLUID
+
+        elif classname == "speaker":
             return classes.I2C_DEVICE_CLASS_SPEAKER
         elif classname == "display":
             return classes.I2C_DEVICE_CLASS_DISPLAY
@@ -77,16 +101,7 @@ class utils:
             return classes.I2C_DEVICE_CLASS_LIGHT
         elif classname == "potentiometer":
             return classes.I2C_DEVICE_CLASS_POTENTIOMETER
-        elif classname == "temperature":
-            return classes.I2C_DEVICE_CLASS_TEMPERATURE
-        elif classname == "humidity":
-            return classes.I2C_DEVICE_CLASS_HUMIDITY
-        elif classname == "anemometer":
-            return classes.I2C_DEVICE_CLASS_ANEMOMETER
-        elif classname == "battery":
-            return classes.I2C_DEVICE_CLASS_BATTERY
-        elif classname == "fluid":
-            return classes.I2C_DEVICE_CLASS_FLUID
+
         return 0xFF
 
 
@@ -250,3 +265,84 @@ class utils:
             reason = "currepoch({}) > payload[exp]({})".format(currepoch, payload["exp"])
             return None, None, reason
         return payload["username"], payload["password"], payload
+
+
+    def build_default_notifications(self, type, token, database_client):
+        notifications = {}
+
+        if type == "uart":
+            notifications["messages"] = [
+                {
+                    "message": "Hello World", 
+                    "enable": True
+                }
+            ]
+        elif type == "gpio":
+            notifications["messages"] = [
+                {
+                    "message": "Hello World", 
+                    "enable": True
+                }, 
+                {
+                    "message": "Hi World", 
+                    "enable": True
+                }
+            ]
+        else:
+            notifications["messages"] = [
+                {
+                    "message": "Sensor threshold activated", 
+                    "enable": True
+                }, 
+                {
+                    "message": "Sensor threshold deactivated", 
+                    "enable": True
+                }
+            ]
+
+        notifications["endpoints"] = {
+            "mobile": {
+                "enable": False,
+                "recipients": ""
+            },
+            "email": {
+                "enable": False,
+                "recipients": ""
+            },
+            "notification": {
+                "enable": False,
+                "recipients": ""
+            },
+            "modem": {
+                "enable": False,
+                "recipients": ""
+            },
+            "storage": {
+                "enable": False,
+                "recipients": ""
+            },
+        }
+
+        info = database_client.get_user_info(token['access'])
+        if info is None:
+            return None
+
+        if info.get("email"):
+            notifications["endpoints"]["email"]["recipients"] = info["email"]
+            #notifications["endpoints"]["email"]["recipients_list"].append(info["email"])
+
+        if info.get("email_verified"):
+            notifications["endpoints"]["email"]["enable"] = info["email_verified"]
+
+        if info.get("phone_number"):
+            notifications["endpoints"]["mobile"]["recipients"] = info["phone_number"]
+            #notifications["endpoints"]["mobile"]["recipients_list"].append(info["phone_number"])
+            #notifications["endpoints"]["notification"]["recipients"] = info["phone_number"]
+            #notifications["endpoints"]["notification"]["recipients_list"].append({ "to": info["phone_number"], "group": False })
+
+        if type == "uart":
+            if info.get("phone_number_verified"):
+                notifications["endpoints"]["mobile"]["enable"] = info["phone_number_verified"]
+                #notifications["endpoints"]["notification"]["enable"] = False
+
+        return notifications

@@ -635,20 +635,40 @@ angular.module('app.routes', [])
         controller: 'view1WIREDeviceCtrl'
       })
 
-      .state('unknown', {
-        url: '/page_unknown',
-        params: {
-          devicename: "",
-          username: "",
-          token: "",
-          devicestatus: "",
-          deviceid: "",
-          serialnumber: "",
-          sensor: ""
-        },
-        templateUrl: 'templates/unknown.html',
-        controller: 'unknownCtrl'
-      })
+  .state('viewLDSUDevice', {
+    url: '/page_ldsu_device',
+	params: {
+		devicename: "",
+		username: "",
+		token: "",
+		devicestatus: "",
+		deviceid: "",
+		serialnumber: "",
+		location: "",
+		activeSection: "",
+		sensors: "",
+		sensor: "",
+		source: "",
+		multiclass: ""
+},
+    templateUrl: 'templates/viewLDSUDevice.html',
+    controller: 'viewLDSUDeviceCtrl'
+  })
+
+  .state('unknown', {
+    url: '/page_unknown',
+	params: {
+		devicename: "",
+		username: "",
+		token: "",
+		devicestatus: "",
+		deviceid: "",
+		serialnumber: "",
+		sensor: ""
+},
+    templateUrl: 'templates/unknown.html',
+    controller: 'unknownCtrl'
+  })
 
       .state('multiclass', {
         url: '/page_multiclass',
@@ -703,39 +723,45 @@ angular.module('app.routes', [])
         controller: 'lightRGBCtrl'
       })
 
-      .state('temperature', {
-        url: '/page_temperature',
-        params: {
-          devicename: "",
-          username: "",
-          token: "",
-          devicestatus: "",
-          deviceid: "",
-          serialnumber: "",
-          sensor: "",
-          source: "",
-          multiclass: ""
-        },
-        templateUrl: 'templates/temperature.html',
-        controller: 'temperatureCtrl'
-      })
+  .state('temperature', {
+    url: '/page_temperature',
+	params: {
+		devicename: "",
+		username: "",
+		token: "",
+		devicestatus: "",
+		deviceid: "",
+		serialnumber: "",
+		sensor: "",
+		source: "",
+		multiclass: "",
+		location: "",
+		activeSection: "",
+		sensors: ""
+},
+    templateUrl: 'templates/temperature.html',
+    controller: 'temperatureCtrl'
+  })
 
-      .state('humidity', {
-        url: '/page_humidity',
-        params: {
-          devicename: "",
-          username: "",
-          token: "",
-          devicestatus: "",
-          deviceid: "",
-          serialnumber: "",
-          sensor: "",
-          source: "",
-          multiclass: ""
-        },
-        templateUrl: 'templates/humidity.html',
-        controller: 'humidityCtrl'
-      })
+  .state('humidity', {
+    url: '/page_humidity',
+	params: {
+		devicename: "",
+		username: "",
+		token: "",
+		devicestatus: "",
+		deviceid: "",
+		serialnumber: "",
+		sensor: "",
+		source: "",
+		multiclass: "",
+		location: "",
+		activeSection: "",
+		sensors: ""
+},
+    templateUrl: 'templates/humidity.html',
+    controller: 'humidityCtrl'
+  })
 
       .state('display', {
         url: '/page_display',
