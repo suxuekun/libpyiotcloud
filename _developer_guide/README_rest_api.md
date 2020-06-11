@@ -1477,10 +1477,10 @@ DETAILED:
 		       {
 		         "ldsus"     : [
 		           {
+		             "status":   string,  // "reachable" or "unreachable"
 		             "LABL":     string,  // LDSU Friendly name, value can be changed by user via CHANGE LDSU NAME api
 		             "UID":      string,  // LDSU UUID
 		             "PORT":     string,  // LDS Bus Port
-		             "status":   string,  // "reachable" or "unreachable"
 
 		             // just for displaying, not really important
 		             "descriptor": {
@@ -1538,10 +1538,10 @@ DETAILED:
 		   { 'status': 'OK', 'message': string, 'ldsus': 
 		     [ 
 		       {
+		         "status":   string,  // "reachable" or "unreachable"
 		         "LABL":     string,  // LDSU Friendly name, value can be changed by user via CHANGE LDSU NAME api
 		         "UID":      string,  // LDSU UUID
 		         "PORT":     string,  // LDS Bus Port
-		         "status":   string,  // "reachable" or "unreachable"
 
 		         // just for displaying, not really important
 		         "descriptor": {
@@ -1573,6 +1573,7 @@ DETAILED:
 		       {
 		         "sensorname":   string,
 		         "class":        string, // Class - "temperature", "humidity", "ambient light", "motion detection", "VOC gas"
+
 		         "source":       string, // Refers to LDSU UUID
 		         "number":       string, // Refers to the index in LDUS (Note: An LDSU can be composed of more than 1 sensor. This is the index of the sensor in the LDSU.)
 		         "port":         string, // LDS PORT
@@ -1652,6 +1653,7 @@ DETAILED:
 		-  Response:
 		   { 'status': 'OK', 'message': string, 'ldsu': 
 		       {
+		         "status":   string,  // "reachable" or "unreachable"
 		         "LABL":     string,  // LDSU Friendly name, value can be changed by user via CHANGE LDSU NAME api
 		         "UID":      string,  // LDSU UUID
 		         "PORT":     string,  // LDS Bus Port
