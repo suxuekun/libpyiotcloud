@@ -3320,7 +3320,7 @@ DETAILED:
 		   { 'status': 'NG', 'message': string }
 
 
-	11. Device sensor access and control APIs
+	11. Device sensor dashboarding
 
 		A. GET SENSOR READINGS DATASET FILTERED
 		-  Request:
