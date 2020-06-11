@@ -1,6 +1,5 @@
 
 from bson.objectid import ObjectId
-from dashboards_app.models.gateway_attribute import GatewayAttributeModel
 from schematics.types import StringType, DecimalType, IntType, BooleanType, ListType, ModelType
 from shared.core.model import BaseModel, TimeStampMixin, MongoIdMixin
 from dashboards_app.dtos.dashboard_dto import DashboardDto

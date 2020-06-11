@@ -4,7 +4,7 @@ from dashboards_app.repositories.chart_type_repository import IChartTypeReposito
 from shared.core.response import Response
 from shared.core.exceptions import CreatedExeception, UpdatedException, QueriedByIdException, QueriedManyException, DeletedException
 from shared.services.logger_service import LoggerService
-from dashboards_app.models.chart_type import ChartType, PIE_CHART, DONUT_CHART, LINE_CHART, BAR_CHART
+from dashboards_app.models.chart_type import FactoryChartTypeModel, PIE_CHART, DONUT_CHART, LINE_CHART, BAR_CHART
 import json
 
 class ChartTypeService:
@@ -21,11 +21,12 @@ class ChartTypeService:
             
             # Create charts types
             inputs = [
-                ChartType.create(id = 0, name= PIE_CHART).model.to_primitive(),
-                ChartType.create(id = 1, name=DONUT_CHART).model.to_primitive(),
-                ChartType.create(id = 2, name=BAR_CHART).model.to_primitive(),
-                ChartType.create(id = 3, name =LINE_CHART).model.to_primitive()
+                FactoryChartTypeModel.create(PIE_CHART).to_primitive(),
+                FactoryChartTypeModel.create(DONUT_CHART).to_primitive(),
+                FactoryChartTypeModel.create(LINE_CHART).to_primitive(),
+                FactoryChartTypeModel.create(BAR_CHART).to_primitive(),
             ]
+            print(inputs)
             self.chartTypeRepo.create_many(inputs)
             return True
        except Exception as e:

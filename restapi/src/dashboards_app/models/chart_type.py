@@ -6,27 +6,40 @@ from shared.core.model import BaseModel, TimeStampMixin, MongoIdMixin
 
 
 PIE_CHART = "PIE"
-DONUT_CHART = "DONUT"
-BAR_CHART = "BAR"
-LINE_CHART = "LINE"
+PIE_CHART_ID = 0
 
+DONUT_CHART = "DONUT"
+DONUT_CHART_ID = 1
+
+BAR_CHART = "BAR"
+BAR_CHART_ID = 2
+
+LINE_CHART = "LINE"
+LINE_CHART_ID = 3
 
 class ChartTypeModel(BaseModel):
     _id = IntType()
     name = StringType(required=True)
     parrentId = StringType()
+
+class FactoryChartTypeModel:
     
-class ChartType:
-    
-    def __init__(self, model: ChartTypeModel):
-        self.model = model
-        
     @staticmethod
-    def create(id: int, name: str):
-        model = ChartTypeModel()
-        model.name = name
-        model._id = id
-        return ChartType(model)
-    
+    def create(type: str):
+        if type == PIE_CHART:
+            model = ChartTypeModel()
+            model._id = PIE_CHART_ID
+            model.name = PIE_CHART
+            return model
+        if type == BAR_CHART:
+            model = ChartTypeModel()
+            model._id = BAR_CHART_ID
+            model.name = BAR_CHART
+            return model
+        if type == LINE_CHART:
+            model = ChartTypeModel()
+            model._id = LINE_CHART_ID
+            model.name = LINE_CHART
+            return model
     
     

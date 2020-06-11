@@ -9,23 +9,27 @@ from shared.client.connection.mongo import DefaultMongoConnection
 from shared.client.db.mongo.default import DefaultMongoDB
 from shared.middlewares.request.permission.login import login_required
 from dashboards_app.services.chart_type_service import ChartTypeService
+from dashboards_app.services.gateway_attribute_service import GatewayAttributeService
 from dashboards_app.repositories.chart_type_repository import ChartTypeRepository
+from dashboards_app.repositories.gateway_attribute_repository import GatewayAttributeRepository
 
 #  Get config mongodb
 mongo_client = DefaultMongoDB().conn
 db = DefaultMongoDB().db
 
 # Init Dashboard Service
-service: DashboardService = None
-
 dashboardRepository = DashboardRepository(mongoclient=mongo_client, db = db, collectionName="dashboards")
 service = DashboardService(dashboardRepository)
 
 # Init ChartTypeService
-chartTypeService: ChartTypeService = None
 chartTypeRepo = ChartTypeRepository(mongoclient=mongo_client, db = db, collectionName="chartTypes")
 chartTypeService = ChartTypeService(chartTypeRepo)
 chartTypeService.setup_chart_types()
+
+# Init Dashboard Gateway Attributes services
+attributeRepo = GatewayAttributeRepository(mongoclient=mongo_client, db = db, collectionName="gatewayAttributes")
+gatewayAttributeService = GatewayAttributeService(attributeRepo)
+gatewayAttributeService.setup_attributes()
 
 # Init routes
 dashboards_blueprint = Blueprint('dashboards_blueprint', __name__)
@@ -73,5 +77,10 @@ def get_charrts_types_for_gateway():
 @dashboards_blueprint.route("/charts/types/sensor", methods=['GET'])
 def get_charts_tyoes_for_sensor():
     response = chartTypeService.gets_for_sensor()
+    return response
+
+@dashboards_blueprint.route("/gateways/attributes", methods=['GET'])
+def get_attributes():
+    response = gatewayAttributeService.gets()
     return response
 

@@ -6,6 +6,7 @@ from bson.objectid import ObjectId
 from bson.json_util import dumps
 from shared.utils import timestamp_util
 
+
 class MongoBaseRepository(BaseRepository):
 
     def __init__(self, mongoclient: MongoClient, db, collectionName: str):
@@ -13,6 +14,9 @@ class MongoBaseRepository(BaseRepository):
         self.db = db
         self.collectionName = collectionName
         self.collection = db[collectionName]
+
+    def check_collection_existed(self):
+        return self.collectionName in self.db.list_collection_names()
 
     def create(self, input) -> str:
         try:
