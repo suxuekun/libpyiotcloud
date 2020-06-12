@@ -30,6 +30,11 @@ class FactoryChartTypeModel:
             model._id = PIE_CHART_ID
             model.name = PIE_CHART
             return model
+        if type == DONUT_CHART:
+            model = ChartTypeModel()
+            model._id = DONUT_CHART_ID
+            model.name = DONUT_CHART 
+            return model
         if type == BAR_CHART:
             model = ChartTypeModel()
             model._id = BAR_CHART_ID
@@ -40,6 +45,7 @@ class FactoryChartTypeModel:
             model._id = LINE_CHART_ID
             model.name = LINE_CHART
             return model
+    
         return ChartTypeModel()
     
     

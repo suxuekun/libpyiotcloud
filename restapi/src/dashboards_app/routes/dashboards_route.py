@@ -14,6 +14,7 @@ from dashboards_app.services.gateway_attribute_service import GatewayAttributeSe
 from dashboards_app.repositories.chart_type_repository import ChartTypeRepository
 from dashboards_app.repositories.gateway_attribute_repository import GatewayAttributeRepository
 from dashboards_app.services.gateway_service import GatewayService
+from shared.middlewares.default_middleware import default_middleware
 
 
 #  Get config mongodb
@@ -40,8 +41,10 @@ gatewayService = GatewayService(dashboardRepository)
 # Init routes
 dashboards_blueprint = Blueprint('dashboards_blueprint', __name__)
 
+
 # Dashboards
 @dashboards_blueprint.route("", methods=['POST'])
+@default_middleware
 @login_required()
 def create():
     body = request.get_json()
@@ -51,6 +54,7 @@ def create():
     return response
 
 @dashboards_blueprint.route("", methods=['GET'])
+@default_middleware
 @login_required()
 def gets():
     user = request.environ.get('user')
@@ -58,11 +62,13 @@ def gets():
     return dashboardService.gets(user["username"])
 
 @dashboards_blueprint.route("/<id>", methods=['GET'])
+@default_middleware
 @login_required()
 def get(id: str):
     return dashboardService.get(id)
 
 @dashboards_blueprint.route("/<id>", methods=['PUT'])
+@default_middleware
 @login_required()
 def update(id: str):
     body = request.get_json()
@@ -71,7 +77,6 @@ def update(id: str):
     return response
 
 @dashboards_blueprint.route("/<id>", methods=['DELETE'])
-@login_required()
 def delete(id: str):
     response = dashboardService.delete(id)
     return response
