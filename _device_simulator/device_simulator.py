@@ -3051,8 +3051,11 @@ def parse_arguments(argv):
 
     parser.add_argument('--USE_HOST',             required=False, default=CONFIG_HOST,          help='Host server to connect to')
     parser.add_argument('--USE_PORT',             required=False, default=CONFIG_MQTT_TLS_PORT, help='Host port to connect to')
+
+    # for backward compatibility and troubleshooting purposes
     parser.add_argument('--USE_USERNAME',         required=False, default='',                   help='Username to use in connection', nargs='?', const='') # added nargs and const for device restart
     parser.add_argument('--USE_PASSWORD',         required=False, default='',                   help='Password to use in connection', nargs='?', const='') # added nargs and const for device restart
+
     return parser.parse_args(argv)
 
 def main(args):
