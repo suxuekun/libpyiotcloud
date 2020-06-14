@@ -19,6 +19,8 @@
 
 [MQTTS Device Messaging API Documentation](https://github.com/richmondu/libpyiotcloud/blob/dev/_developer_guide/README_device_messaging_api.md)
 
+[OTA Firmware Uploader tool](https://github.com/richmondu/libpyiotcloud/tree/dev/_ota_uploader)
+
 
 ### For frontend team:
 
