@@ -728,6 +728,86 @@ angular.module('app.routes', [])
     controller: 'humidityCtrl'
   })
 
+  .state('ambientLight', {
+    url: '/page_ambient_light',
+	params: {
+		devicename: "",
+		username: "",
+		token: "",
+		devicestatus: "",
+		deviceid: "",
+		serialnumber: "",
+		sensor: "",
+		source: "",
+		multiclass: "",
+		location: "",
+		activeSection: "",
+		sensors: ""		
+},
+    templateUrl: 'templates/ambientLight.html',
+    controller: 'ambientLightCtrl'
+  })
+
+  .state('motionDetection', {
+    url: '/page_motion_detection',
+	params: {
+		devicename: "",
+		username: "",
+		token: "",
+		devicestatus: "",
+		deviceid: "",
+		serialnumber: "",
+		sensor: "",
+		source: "",
+		multiclass: "",
+		location: "",
+		activeSection: "",
+		sensors: ""		
+},
+    templateUrl: 'templates/motionDetection.html',
+    controller: 'motionDetectionCtrl'
+  })
+
+  .state('cO2Gas', {
+    url: '/page_co2_gas',
+	params: {
+		devicename: "",
+		username: "",
+		token: "",
+		devicestatus: "",
+		deviceid: "",
+		serialnumber: "",
+		sensor: "",
+		source: "",
+		multiclass: "",
+		location: "",
+		activeSection: "",
+		sensors: ""		
+},
+    templateUrl: 'templates/cO2Gas.html',
+    controller: 'cO2GasCtrl'
+  })
+
+  .state('vOCGas', {
+    url: '/page_voc_gas',
+	params: {
+		devicename: "",
+		username: "",
+		token: "",
+		devicestatus: "",
+		deviceid: "",
+		serialnumber: "",
+		sensor: "",
+		source: "",
+		multiclass: "",
+		location: "",
+		activeSection: "",
+		sensors: ""		
+},
+    templateUrl: 'templates/vOCGas.html',
+    controller: 'vOCGasCtrl'
+  })
+
   .state('display', {
     url: '/page_display',
 	params: {

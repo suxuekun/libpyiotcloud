@@ -1,0 +1,131 @@
+<ion-view title="Motion Detection" hide-back-button="true" cache-view="false" nav-transition="none" id="page79" class="page_width">
+  <ion-nav-buttons side="left" class="has-header">
+    <button class="button button-icon icon ion-android-close" ng-click="submitDeviceList()"></button>
+  </ion-nav-buttons>
+  <ion-nav-buttons side="right" class="has-header">
+    <button class="button button-positive icon ion-refresh" ng-click="submitRefresh()"></button>
+  </ion-nav-buttons>
+  <ion-content padding="true" class="has-header">
+    <div class="spacer" style="width: 300px; height: 12px;"></div>
+    <div id="motionDetection-markdown546" style="text-align:center;" class="show-list-numbers-and-dots">
+      <p style="color:#3C5A99;font-size:18px;">
+        <strong> {{ data.devicename }} </strong>
+      </p>
+    </div>
+    <button id="motionDetection-button237" ng-click="viewXXXDevice()" style="font-weight:500;font-size:18px;" class="button button-dark button-block button-clear icon-right ion-android-settings">{{ data.sensor.sensorname }}</button>
+    <div class="spacer" style="width: 300px; height: 20px;"></div>
+    <form id="motionDetection-form270" class="list">
+      <div id="motionDetection-markdown554" class="show-list-numbers-and-dots">
+        <p style="color:#3C5A99;">Mode</p>
+      </div>
+      <label class="item item-select" id="motionDetection-select122">
+        <span class="input-label"></span>
+        <select ng-model="data.attributes.mode" ng-options="mode.id as mode.label for mode in modes" ng-change="changeMode()"></select>
+      </label>
+    </form>
+    <form id="motionDetection-form271" class="list" ng-show="data.attributes.mode==0">
+      <div id="motionDetection-markdown555" class="show-list-numbers-and-dots">
+        <p style="color:#3C5A99;">Threshold</p>
+      </div>
+      <label class="item item-input" id="motionDetection-input220">
+        <span class="input-label">Value</span>
+        <input type="number" placeholder="" ng-model="data.attributes.threshold.value">
+      </label>
+    </form>
+    <form id="motionDetection-form272" class="list" ng-show="data.attributes.mode==1">
+      <div id="motionDetection-markdown556" class="show-list-numbers-and-dots">
+        <p style="color:#3C5A99;">Threshold</p>
+      </div>
+      <label class="item item-input" id="motionDetection-input221">
+        <span class="input-label">Minimum Limit</span>
+        <input type="number" placeholder="" ng-model="data.attributes.threshold.min">
+      </label>
+      <label class="item item-input" id="motionDetection-input222">
+        <span class="input-label">Maximum Limit</span>
+        <input type="number" placeholder="" ng-model="data.attributes.threshold.max">
+      </label>
+      <label class="item item-select" id="motionDetection-select123">
+        <span class="input-label">Activate when</span>
+        <select ng-model="data.attributes.threshold.activate" ng-options="activate.id as activate.label for activate in activates"></select>
+      </label>
+    </form>
+    <form id="motionDetection-form273" class="list">
+      <div id="motionDetection-markdown557" class="show-list-numbers-and-dots">
+        <p style="color:#3C5A99;">Alert</p>
+      </div>
+      <label class="item item-select" id="motionDetection-select124">
+        <span class="input-label">Type</span>
+        <select ng-model="data.attributes.alert.type" ng-options="alert.id as alert.label for alert in alerts"></select>
+      </label>
+      <label class="item item-input" id="motionDetection-input223">
+        <span class="input-label">Period (milliseconds)</span>
+        <input type="number" placeholder="" ng-model="data.attributes.alert.period">
+      </label>
+    </form>
+    <form id="motionDetection-form274" class="list" ng-show="data.attributes.mode==2">
+      <div id="motionDetection-markdown558" class="show-list-numbers-and-dots">
+        <p style="color:#3C5A99;">Hardware</p>
+      </div>
+      <label class="item item-select" id="motionDetection-select125">
+        <span class="input-label">IoT Modem</span>
+        <select ng-model="data.hardware_devicename" ng-options="device.id as device.devicename for device in devices"></select>
+      </label>
+    </form>
+    <form id="motionDetection-form275" class="list" ng-show="data.attributes.mode!=2">
+      <div id="motionDetection-markdown560" class="show-list-numbers-and-dots">
+        <p style="color:#3C5A99;">Notification settings</p>
+      </div>
+      <ion-toggle toggle-class="toggle-positive" id="motionDetection-toggle30" ng-change="changeNotification(data.showNotification)" ng-model="data.showNotification">Show</ion-toggle>
+    </form>
+    <form id="motionDetection-form276" class="list" ng-show="data.showNotification==1 &amp;&amp; data.attributes.mode!=2">
+      <div id="motionDetection-markdown561" class="show-list-numbers-and-dots">
+        <p style="color:#3C5A99;">Messages</p>
+      </div>
+      <ion-checkbox id="motionDetection-checkbox67" ng-model="data.attributes.notification.messages[0].enable">Message on activation</ion-checkbox>
+      <label class="item item-input" id="motionDetection-textarea26">
+        <span class="input-label"></span><textarea placeholder="" ng-model="data.attributes.notification.messages[0].message"></textarea></label>
+      <ion-checkbox id="motionDetection-checkbox68" ng-model="data.attributes.notification.messages[1].enable">Message on deactivation</ion-checkbox>
+      <label class="item item-input" id="motionDetection-textarea27">
+        <span class="input-label"></span><textarea placeholder="" ng-model="data.attributes.notification.messages[1].message"></textarea></label>
+    </form>
+    <form id="motionDetection-form277" class="list" ng-show="data.showNotification==1 &amp;&amp; data.attributes.mode!=2">
+      <div id="motionDetection-markdown564" class="show-list-numbers-and-dots">
+        <p style="color:#3C5A99;">Recipients</p>
+      </div>
+      <ion-checkbox id="motionDetection-checkbox69" ng-model="data.attributes.notification.endpoints.email.enable">Send email to</ion-checkbox>
+      <label class="item item-input" id="motionDetection-input224">
+        <input type="text" placeholder="Email address(es)" ng-model="data.attributes.notification.endpoints.email.recipients">
+      </label>
+      <ion-checkbox id="motionDetection-checkbox70" ng-model="data.attributes.notification.endpoints.mobile.enable">Send SMS to</ion-checkbox>
+      <label class="item item-input" id="motionDetection-input225">
+        <input type="text" placeholder="Phone number(s)" ng-model="data.attributes.notification.endpoints.mobile.recipients">
+      </label>
+      <ion-checkbox id="motionDetection-checkbox71" ng-model="data.attributes.notification.endpoints.notification.enable">Send notification to</ion-checkbox>
+      <label class="item item-input" id="motionDetection-input226">
+        <input type="text" placeholder="****************" ng-model="data.attributes.notification.endpoints.notification.recipients" readonly="">
+      </label>
+      <ion-checkbox id="motionDetection-checkbox72" ng-model="data.attributes.notification.endpoints.modem.enable">Send to IoT Modem</ion-checkbox>
+      <label class="item item-select" id="motionDetection-select126">
+        <span class="input-label"></span>
+        <select ng-options="device.id as device.devicename for device in devices" ng-model="data.hardware_devicename"></select>
+      </label>
+      <ion-checkbox id="motionDetection-checkbox73" ng-model="data.attributes.notification.endpoints.storage.enable">Send to storage</ion-checkbox>
+      <div id="motionDetection-container99" ng-show="data.attributes.notification.endpoints.storage.recipients != &quot;&quot;" class="tab_margin_1">
+        <div>
+          <br>
+          <p>
+            <a href="https://ft900-iot-portal.s3.amazonaws.com/{{ data.attributes.notification.endpoints.storage.recipients }}">
+              Storage URL
+            </a>
+          </p>
+          <br>
+        </div>
+      </div>
+    </form>
+    <form id="motionDetection-form278" class="list">
+      <button id="motionDetection-button238" ng-click="submit()" class="button button-positive button-block">SAVE</button>
+      <button id="motionDetection-button239" ng-click="submitDelete()" class="button button-assertive button-block">DELETE</button>
+      <div class="spacer" style="height: 100px;"></div>
+    </form>
+  </ion-content>
+</ion-view>
