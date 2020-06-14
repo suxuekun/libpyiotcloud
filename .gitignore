@@ -35,6 +35,7 @@ webapp/src/ionicapp/www/js/env.js
 get_logs.py
 _test_regression/*
 .idea/*
+_ota_uploader/*.sh
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
