@@ -8,8 +8,7 @@ This tool allows the firmware device team to easily upload new firmware files fo
 0. Install requirements.txt
    - pip install -r requirements.txt
 
-1. Check the OTA Firmware JSON file at 
-   - https://ft900-iot-portal.s3.amazonaws.com/latest_firmware_updates.json
+1. Check the [OTA Firmware JSON file](https://ft900-iot-portal.s3.amazonaws.com/latest_firmware_updates.json) at 
 
 2. <b>Add the FIRMWARE BINARY</b> in new_firmware/<newfirmware.bin>
 
