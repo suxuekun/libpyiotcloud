@@ -19,5 +19,5 @@ This tool allows the firmware device team to easily upload new firmware files fo
    - Update the firmware filename and description filename
    - Add the PASSCODE [please ask Richmond]
 
-5. Check the <b>OTA Firmware JSON file</b>
+5. Verify the OTA Firmware JSON file
 
