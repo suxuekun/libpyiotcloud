@@ -13,7 +13,7 @@ This tool allows the firmware device team to easily upload new firmware files fo
 
 3. <b>Update the FIRMWARE DESCRIPTION</b> in new_firmware/new_firmware.json
 
-4. <b>Update the script</b> ota_uploader.bat
+4. <b>Update and run the script</b> ota_uploader.bat
    - Update the firmware filename and description filename
    - Add the PASSCODE [please ask Richmond]
 
