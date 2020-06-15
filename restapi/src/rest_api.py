@@ -5,7 +5,6 @@ import flask
 import datetime
 import calendar
 
-from example_module.app import ExampleApp
 from flask_json import FlaskJSON, JsonError, json_response, as_json
 from flask_cors import CORS
 from flask_api import status
@@ -2077,8 +2076,6 @@ def initialize():
 
     dashboardsApp = DashboardsApp(app)
     # paymentapp = PaymentApp(app)
-    exampleapp = ExampleApp(app,prefix = "/example")
-    # To be replaced
     g_payment_accounting           = payment_accounting(g_database_client, g_messaging_client, g_redis_client)
     g_device_dashboard_old         = device_dashboard_old(g_database_client, g_messaging_requests)
 

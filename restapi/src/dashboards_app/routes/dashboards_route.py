@@ -21,26 +21,28 @@ from shared.middlewares.default_middleware import default_middleware
 mongo_client = DefaultMongoDB().conn
 db = DefaultMongoDB().db
 
-# Init Dashboard Service
+# Init Repositories
 dashboardRepository = DashboardRepository(mongoclient=mongo_client, db = db, collectionName="dashboards")
+chartTypeRepo = ChartTypeRepository(mongoclient=mongo_client, db = db, collectionName="chartTypes")
+attributeRepo = GatewayAttributeRepository(mongoclient=mongo_client, db = db, collectionName="gatewayAttributes")
+
+
+# Init Dashboard Service
 dashboardService = DashboardService(dashboardRepository)
 
 # Init ChartTypeService
-chartTypeRepo = ChartTypeRepository(mongoclient=mongo_client, db = db, collectionName="chartTypes")
 chartTypeService = ChartTypeService(chartTypeRepo)
 chartTypeService.setup_chart_types()
 
 # Init Dashboard Gateway Attributes services
-attributeRepo = GatewayAttributeRepository(mongoclient=mongo_client, db = db, collectionName="gatewayAttributes")
 gatewayAttributeService = GatewayAttributeService(attributeRepo)
 gatewayAttributeService.setup_attributes()
 
 # Init Gateway service 
-gatewayService = GatewayService(dashboardRepository)
+gatewayService = GatewayService(dashboardRepository, attributeRepo)
 
 # Init routes
 dashboards_blueprint = Blueprint('dashboards_blueprint', __name__)
-
 
 # Dashboards
 @dashboards_blueprint.route("", methods=['POST'])
@@ -100,6 +102,8 @@ def get_attributes():
 
 #  Chart Gateways
 @dashboards_blueprint.route("/<dashboardId>/gateways", methods=['POST'])
+@default_middleware
+@login_required()
 def add_chart_gateway(dashboardId: str):
     body = request.get_json()
     dto = ChartGatewayDto(body)
@@ -107,7 +111,15 @@ def add_chart_gateway(dashboardId: str):
     return response
 
 @dashboards_blueprint.route("/<dashboardId>/gateways/<id>", methods=['DELETE'])
+@default_middleware
+@login_required()
 def delete_chart_gateway(dashboardId: str, id: str):
     response = gatewayService.delete(dashboardId, id)
     return response
 
+@dashboards_blueprint.route("/<dashboardId>/gateways", methods=['GET'])
+@default_middleware
+@login_required()
+def get_charts_gateway(dashboardId: str):
+    response = gatewayService.gets(dashboardId=dashboardId)
+    return response

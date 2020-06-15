@@ -5,17 +5,22 @@ from schematics.types import StringType, DecimalType, IntType, BooleanType, List
 from shared.core.model import BaseModel, TimeStampMixin, MongoIdMixin
 
 STORAGE_USAGE = "Storage Usage"
+STORAGE_USAGE_ID = 0
+
 ON_OFF_LINE = "On-line/Offline status"
+ON_OFF_LINE_ID = 1
+
 COUNT_OF_ALERTS = "Count of alerts"
+COUNT_OF_ALERTS_ID = 2
 
 
 class AttributeValue(BaseModel):
     name = StringType()
     id = IntType()
 
-
-class GatewayAttributeModel(BaseModel, MongoIdMixin, TimeStampMixin):
+class GatewayAttributeModel(BaseModel, TimeStampMixin):
     name = StringType()
+    _id = IntType()
     lables = ListType(ModelType(AttributeValue), default=[])
     filters = ListType(ModelType(AttributeValue), default=[])
 
@@ -31,13 +36,12 @@ class FactoryGatewayAttribute:
             return CountOfAlertsAttribute.create()
         return GatewayAttributeModel()
 
-
 # LABELS
-USED_VALUE = "Used"
-USED_ID = 0
+USED_STORAGE_VALUE = "Used"
+USED_STORAGE_ID = 0
 
-FREE_VALUE = "Free"
-FREE_ID = 1
+FREE_STORAGE_VALUE = "Free"
+FREE_STORAGE_ID = 1
 
 
 class StorageUsageAttribute(GatewayAttributeModel):
@@ -45,10 +49,11 @@ class StorageUsageAttribute(GatewayAttributeModel):
     @staticmethod
     def create():
         model = GatewayAttributeModel()
+        model._id = STORAGE_USAGE_ID
         model.name = STORAGE_USAGE
         model.lables = [
-            AttributeValue({"id": USED_ID, "name": USED_VALUE}),
-            AttributeValue({"id": FREE_ID, "name": FREE_VALUE})
+            AttributeValue({"id": USED_STORAGE_ID, "name": USED_STORAGE_VALUE}),
+            AttributeValue({"id": FREE_STORAGE_ID, "name": FREE_STORAGE_VALUE})
         ]
         model.filters = []
         return model
@@ -77,6 +82,7 @@ class OnOffLineStatusAttribute(GatewayAttributeModel):
     @staticmethod
     def create():
         model = GatewayAttributeModel()
+        model._id = ON_OFF_LINE_ID
         model.name = ON_OFF_LINE
         model.lables = [
             AttributeValue({"id": ONLINE_ID, "name": ONLINE_VALUE}),
@@ -113,6 +119,7 @@ class CountOfAlertsAttribute(GatewayAttributeModel):
     @staticmethod
     def create() -> GatewayAttributeModel:
         model = GatewayAttributeModel()
+        model._id = COUNT_OF_ALERTS_ID
         model.name = COUNT_OF_ALERTS
         model.lables = [
             AttributeValue({"id": SENT_ID, "name": SENT_VALUE}),

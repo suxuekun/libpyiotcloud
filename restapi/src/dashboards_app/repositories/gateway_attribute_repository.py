@@ -17,14 +17,16 @@ class GatewayAttributeRepository(MongoBaseRepository, IGatewayAttributeRepositor
         
     def create_many(self, inputs):
         try:
-            for input in inputs:
-                input.pop("_id")
-            
             result = self.collection.insert_many(inputs)
             return True
         except Exception as e:
             print(e)
             raise CreatedExeception(str(e))
+    
+    def gets(self, query=None, projection=None):
+        cursors = self.collection.find(query, projection)
+        results = list(cursors)
+        return results
     
     def gets_summary(self):
         projection = {
@@ -33,4 +35,4 @@ class GatewayAttributeRepository(MongoBaseRepository, IGatewayAttributeRepositor
             "createdAt": 0,
             "modifiedAt": 0
         }
-        return super().gets(projection=projection)
+        return self.gets(projection=projection)

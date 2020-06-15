@@ -12,20 +12,22 @@ class Option(BaseModel):
 class DashboardDevice(BaseModel, MongoIdMixin):
     type = StringType(default="")
 
-class Chart(BaseModel, TimeStampMixin):
+class ChartModel(BaseModel, TimeStampMixin):
     userId = StringType()
     dashboardId = StringType()
     device = ModelType(DashboardDevice)
-    typeId = StringType()
-    attributeId = StringType()
+    typeId = IntType()
+
+    # Attribute is optional
+    attributeId = IntType() 
 
 class DashboardModel(BaseModel, MongoIdMixin, TimeStampMixin):
     name = StringType()
     option = ModelType(Option)
     userId = StringType()
-    gateways = ListType(ModelType(Chart), default=[])
-    sensors = ListType(ModelType(Chart), default=[])
-    actuators = ListType(ModelType(Chart), default=[])
+    gateways = ListType(ModelType(ChartModel), default=[])
+    sensors = ListType(ModelType(ChartModel), default=[])
+    actuators = ListType(ModelType(ChartModel), default=[])
 
 GATEWAYS = "GATEWAY"
 SENSORS = "SENSORS"
@@ -51,11 +53,11 @@ class Dashboard:
         self.model.option = Option({'color': dto.color})
 
     def add_chart_gateway(self, dto: ChartGatewayDto):
-        chart = Chart()
+        chart = ChartModel()
         chart.userId = self.model.userId
         chart.dashboardId = self.model._id
         chart.device = DashboardDevice({"_id": dto.gatewayId, "type": GATEWAYS})
-        chart.chartTypeId = dto.chartTypeId
+        chart.typeId = dto.chartTypeId
         chart.attributeId = dto.attributeId
         self.model.gateways.append(chart)
     
@@ -65,7 +67,7 @@ class Dashboard:
                 model.gateways.remove(chart)
                 return
     
-    def addChartSensor(self,  chart: Chart):
+    def addChartSensor(self,  chart: ChartModel):
         self.model.sensors.append(chart)
 
     @staticmethod

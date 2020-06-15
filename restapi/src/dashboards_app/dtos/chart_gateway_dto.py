@@ -3,5 +3,5 @@ from schematics.types import StringType, DecimalType, IntType, BooleanType, List
 
 class ChartGatewayDto(Model):
     gatewayId = StringType()
-    attributeId = StringType()
-    chartTypeId = StringType()
+    attributeId = IntType()
+    chartTypeId = IntType()
