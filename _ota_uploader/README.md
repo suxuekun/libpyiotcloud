@@ -1,6 +1,9 @@
 # OTA Firmware Uploader
 
-This tool allows the firmware device team to easily upload new firmware files for testing.
+This tool allows you to easily upload new firmware files to AWS S3.
+The backend automatically synchronizes with the changes in AWS S3.
+
+Please read the instructions below for more details.
 
 
 ### Instructions:
