@@ -12,6 +12,7 @@ This tool allows the firmware device team to easily upload new firmware files fo
 2. <b>Add the FIRMWARE BINARY</b> in new_firmware/<newfirmware.bin>
 
 3. <b>Update the FIRMWARE DESCRIPTION</b> in new_firmware/new_firmware.json
+   - Make sure to verify that the JSON file is valid via https://jsonlint.com/
 
 4. <b>Update and run the script</b> ota_uploader.bat
    - Update the firmware filename and description filename
