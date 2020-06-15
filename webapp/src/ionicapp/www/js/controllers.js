@@ -15532,6 +15532,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         'hardware_devicename': $scope.devices[0].id,
         
         'attributes': {
+            'opmode': 0,
             'mode': $scope.modes[0].id,
             'threshold': {
                 'value': parseInt($stateParams.sensor.minmax[1], 10),
@@ -15994,6 +15995,10 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         get_devices(false);    
     };    
     
+    $scope.changeOpmode = function() {
+        console.log("changeOpmode " + $scope.data.attributes.opmode);
+    };
+    
     $scope.submitRefresh();  
 }])
    
@@ -16041,6 +16046,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         'hardware_devicename': $scope.devices[0].id,
         
         'attributes': {
+            'opmode': 0,
             'mode': $scope.modes[0].id,
             'threshold': {
                 'value': parseInt($stateParams.sensor.minmax[1], 10),
@@ -16219,10 +16225,10 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                         $scope.data.attributes.notification = result.data.value.subattributes.notification;
                     }
                     
-                    if ($scope.data.sensor.class === "humidity") {
+                    if ($scope.data.sensor.class === "vOCGas") {
                         $scope.data.multiclass.attributes = $scope.data.attributes;
                     }
-                    else if ($scope.data.sensor.subclass === "humidity") {
+                    else if ($scope.data.sensor.subclass === "vOCGas") {
                         $scope.data.multiclass.subattributes = $scope.data.attributes;
                     }
                 }
@@ -16502,6 +16508,10 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         console.log("changeMode");
         get_devices(false);    
     };    
+    
+    $scope.changeOpmode = function() {
+        console.log("changeOpmode " + $scope.data.attributes.opmode);
+    };
     
     $scope.submitRefresh();  
 }])
@@ -16550,6 +16560,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         'hardware_devicename': $scope.devices[0].id,
         
         'attributes': {
+            'opmode': 0,
             'mode': $scope.modes[0].id,
             'threshold': {
                 'value': parseInt($stateParams.sensor.minmax[1], 10),
@@ -16728,10 +16739,10 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                         $scope.data.attributes.notification = result.data.value.subattributes.notification;
                     }
                     
-                    if ($scope.data.sensor.class === "humidity") {
+                    if ($scope.data.sensor.class === "vOCGas") {
                         $scope.data.multiclass.attributes = $scope.data.attributes;
                     }
-                    else if ($scope.data.sensor.subclass === "humidity") {
+                    else if ($scope.data.sensor.subclass === "vOCGas") {
                         $scope.data.multiclass.subattributes = $scope.data.attributes;
                     }
                 }
@@ -17011,6 +17022,10 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         console.log("changeMode");
         get_devices(false);    
     };    
+    
+    $scope.changeOpmode = function() {
+        console.log("changeOpmode " + $scope.data.attributes.opmode);
+    };
     
     $scope.submitRefresh();  
 }])
@@ -17059,6 +17074,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         'hardware_devicename': $scope.devices[0].id,
         
         'attributes': {
+            'opmode': 0,
             'mode': $scope.modes[0].id,
             'threshold': {
                 'value': parseInt($stateParams.sensor.minmax[1], 10),
@@ -17237,10 +17253,10 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                         $scope.data.attributes.notification = result.data.value.subattributes.notification;
                     }
                     
-                    if ($scope.data.sensor.class === "humidity") {
+                    if ($scope.data.sensor.class === "vOCGas") {
                         $scope.data.multiclass.attributes = $scope.data.attributes;
                     }
-                    else if ($scope.data.sensor.subclass === "humidity") {
+                    else if ($scope.data.sensor.subclass === "vOCGas") {
                         $scope.data.multiclass.subattributes = $scope.data.attributes;
                     }
                 }
@@ -17520,6 +17536,10 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         console.log("changeMode");
         get_devices(false);    
     };    
+    
+    $scope.changeOpmode = function() {
+        console.log("changeOpmode " + $scope.data.attributes.opmode);
+    };
     
     $scope.submitRefresh();  
 }])
@@ -17568,6 +17588,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         'hardware_devicename': $scope.devices[0].id,
         
         'attributes': {
+            'opmode': 0,
             'mode': $scope.modes[0].id,
             'threshold': {
                 'value': parseInt($stateParams.sensor.minmax[1], 10),
@@ -17746,10 +17767,10 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                         $scope.data.attributes.notification = result.data.value.subattributes.notification;
                     }
                     
-                    if ($scope.data.sensor.class === "humidity") {
+                    if ($scope.data.sensor.class === "vOCGas") {
                         $scope.data.multiclass.attributes = $scope.data.attributes;
                     }
-                    else if ($scope.data.sensor.subclass === "humidity") {
+                    else if ($scope.data.sensor.subclass === "vOCGas") {
                         $scope.data.multiclass.subattributes = $scope.data.attributes;
                     }
                 }
@@ -18029,6 +18050,10 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         console.log("changeMode");
         get_devices(false);    
     };    
+    
+    $scope.changeOpmode = function() {
+        console.log("changeOpmode " + $scope.data.attributes.opmode);
+    };
     
     $scope.submitRefresh();  
 }])
@@ -18077,6 +18102,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         'hardware_devicename': $scope.devices[0].id,
         
         'attributes': {
+            'opmode': 0,
             'mode': $scope.modes[0].id,
             'threshold': {
                 'value': parseInt($stateParams.sensor.minmax[1], 10),
@@ -18255,10 +18281,10 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                         $scope.data.attributes.notification = result.data.value.subattributes.notification;
                     }
                     
-                    if ($scope.data.sensor.class === "humidity") {
+                    if ($scope.data.sensor.class === "vOCGas") {
                         $scope.data.multiclass.attributes = $scope.data.attributes;
                     }
-                    else if ($scope.data.sensor.subclass === "humidity") {
+                    else if ($scope.data.sensor.subclass === "vOCGas") {
                         $scope.data.multiclass.subattributes = $scope.data.attributes;
                     }
                 }
@@ -18538,6 +18564,10 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         console.log("changeMode");
         get_devices(false);    
     };    
+    
+    $scope.changeOpmode = function() {
+        console.log("changeOpmode " + $scope.data.attributes.opmode);
+    };
     
     $scope.submitRefresh();  
 }])

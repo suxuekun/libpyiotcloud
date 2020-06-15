@@ -154,6 +154,17 @@ def set_ldsu_descs(database_client, deviceid, topic, payload):
                     'minmax'   : g_device_client.get_objidx_minmax(descriptor),
                     'obj'      : obj,
                 }
+                opmodes = g_device_client.get_objidx_modes(descriptor)
+                if opmodes:
+                    sensor['opmodes'] = []
+                    for opmode in opmodes:
+                        sensor['opmodes'].append({
+                            'id'         : int(opmode['ID']),
+                            'name'       : opmode['Name'],
+                            'minmax'     : [opmode['Min'], opmode['Max']],
+                            'accuracy'   : opmode['Accuracy'],
+                            'description': opmode['Description']
+                        })
                 #print("source     {}".format(source))
                 #print("number     {}".format(number))
                 #print("sensorname {}".format(sensorname))

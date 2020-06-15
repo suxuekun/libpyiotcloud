@@ -14,11 +14,20 @@
     </div>
     <button id="motionDetection-button237" ng-click="viewXXXDevice()" style="font-weight:500;font-size:18px;" class="button button-dark button-block button-clear icon-right ion-android-settings">{{ data.sensor.sensorname }}</button>
     <div class="spacer" style="width: 300px; height: 20px;"></div>
-    <form id="motionDetection-form270" class="list">
+    <form id="motionDetection-form270" class="list" ng-show="data.sensor.opmodes">
       <div id="motionDetection-markdown554" class="show-list-numbers-and-dots">
-        <p style="color:#3C5A99;">Mode</p>
+        <p style="color:#3C5A99;">Opmode</p>
       </div>
       <label class="item item-select" id="motionDetection-select122">
+        <span class="input-label"></span>
+        <select ng-model="data.attributes.opmode" ng-options="opmode.id as opmode.name for opmode in data.sensor.opmodes" ng-change="changeOpmode()"></select>
+      </label>
+    </form>
+    <form id="motionDetection-form300" class="list">
+      <div id="motionDetection-markdown586" class="show-list-numbers-and-dots">
+        <p style="color:#3C5A99;">Mode</p>
+      </div>
+      <label class="item item-select" id="motionDetection-select141">
         <span class="input-label"></span>
         <select ng-model="data.attributes.mode" ng-options="mode.id as mode.label for mode in modes" ng-change="changeMode()"></select>
       </label>

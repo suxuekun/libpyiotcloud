@@ -327,6 +327,17 @@ class device_ldsbus:
                             'minmax'   : self.device_client.get_objidx_minmax(descriptor),
                             'obj'      : obj,
                         }
+                        opmodes = g_device_client.get_objidx_modes(descriptor)
+                        if opmodes:
+                            sensor['opmodes'] = []
+                            for opmode in opmodes:
+                                sensor['opmodes'].append({
+                                    'id'         : int(opmode['ID']),
+                                    'name'       : opmode['Name'],
+                                    'minmax'     : [opmode['Min'], opmode['Max']],
+                                    'accuracy'   : opmode['Accuracy'],
+                                    'description': opmode['Description']
+                                })
                         self.database_client.add_sensor(entityname, devicename, source, number, sensorname, sensor)
 
             # get ldsus and sensors in database

@@ -1548,11 +1548,23 @@ DETAILED:
 		             // for sensor displaying
 		             "accuracy": string,     // number of decimal places
 		             "format":   string,     // float, integer, boolean
-		             "minmax":   [int, int], // minimum and maximum
+		             "minmax":   [string, string], // minimum and maximum
 		             "type":     string,     // input, output
 		             "unit":     string,     // C, %, ppm, ...
 		             "address":  string,     // i2c address in LDSU
 		             "obj":      string,     // LDSU Object type: "32768", "32769", "32770", ...
+
+		             // optional, appears if sensor has various modes
+		             "opmodes":  [
+		               {
+		                 "id":          int,
+		                 "name":        string,
+		                 "minmax":      [string, string],
+		                 "accuracy":    string,
+		                 "description": string,
+		               }
+		               , ...
+		             ],
 
 		             // for enabled/disabled/configured
 		             "configured": int, 
@@ -1623,11 +1635,23 @@ DETAILED:
 		         // for sensor displaying
 		         "accuracy": string,     // number of decimal places
 		         "format":   string,     // float, integer, boolean
-		         "minmax":   [int, int], // minimum and maximum
+		         "minmax":   [string, string], // minimum and maximum
 		         "type":     string,     // input, output
 		         "unit":     string,     // C, %, ppm, ...
 		         "address":  string,     // i2c address in LDSU
 		         "obj":      string,     // LDSU Object type: "32768", "32769", "32770", ...
+
+		         // optional, appears if sensor has various modes
+		         "opmodes":  [
+		           {
+		             "id":          int,
+		             "name":        string,
+		             "minmax":      [string, string]
+		             "accuracy":    string,
+		             "description": string,
+		           }
+		           , ...
+		         ],
 
 		         // for enabled/disabled/configured
 		         "configured": int, 
@@ -1766,6 +1790,7 @@ DETAILED:
 		   //
 		   // TEMPERATURE class
 		   data: {
+		           "opmode": int,
 		           "mode": int, 
 		           "threshold": {"value": int, "min": int, "max": int, "activate": int}, 
 		           "alert": {"type": int, 'period': int}, 
@@ -1775,6 +1800,7 @@ DETAILED:
 		   //
 		   // HUMIDITY class
 		   data: {
+		           "opmode": int,
 		           "mode": int, 
 		           "threshold": {"value": int, "min": int, "max": int, "activate": int}, 
 		           "alert": {"type": int, 'period': int}, 
@@ -1804,7 +1830,29 @@ DETAILED:
 		   GET /devices/device/DEVICENAME/LDSUUUID/NUMBER/sensors/sensor/SENSORNAME/properties
 		   headers: {'Authorization': 'Bearer ' + token.access}
 		-  Response:
-		   { 'status': 'OK', 'message': string, 'value': json_object } // same as GET I2C DEVICE PROPERTIES
+		   { 'status': 'OK', 'message': string, 'value': 
+		   //
+		   // TEMPERATURE class
+		     {
+		           "opmode": int,
+		           "mode": int, 
+		           "threshold": {"value": int, "min": int, "max": int, "activate": int}, 
+		           "alert": {"type": int, 'period': int}, 
+		           "hardware": {"devicename": string}, 
+		           "notification": json_obj,
+		      }
+		   //
+		   // HUMIDITY class
+		     {
+		           "opmode": int,
+		           "mode": int, 
+		           "threshold": {"value": int, "min": int, "max": int, "activate": int}, 
+		           "alert": {"type": int, 'period': int}, 
+		           "hardware": {"devicename": string}, 
+		           "notification": json_obj,
+		      }
+
+		   }
 		   { 'status': 'NG', 'message': string }
 		   // LDSUUUID refers to the sensor["source"]. Refer to GET LDS BUS SENSORS.
 		   // NUMBER refers to the sensor["number"]. Refer to GET LDS BUS SENSORS.

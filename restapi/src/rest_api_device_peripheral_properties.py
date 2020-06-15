@@ -792,11 +792,19 @@ class device_peripheral_properties:
         print('enable_{}_dev {} devicename={} number={}'.format(xxx, entityname, devicename, number))
 
 
+        # get opmode
+        mode = str(0)
+        configuration = self.database_client.get_device_peripheral_configuration(entityname, devicename, xxx, int(number), None)
+        if configuration:
+            if configuration["attributes"].get("opmode") is not None:
+                mode = str(configuration["attributes"]["opmode"])
+
+
         # communicate with device
         do_enable = data['enable']
         data["UID"] = xxx
         data['SAID'] = number
-        data['MODE'] = str(0)
+        data['MODE'] = mode
         response, status_return = self.messaging_requests.process(api, data)
         if status_return != 200:
             return response, status_return

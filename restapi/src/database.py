@@ -2618,6 +2618,8 @@ class database_client_mongodb:
                 device_all["sensorname"] = found["sensorname"]
                 device_all["enabled"] = found["enabled"]
                 device_all["configured"] = found["configured"]
+                if found.get("opmode"):
+                    device_all["opmode"] = found["opmode"]
                 i2csensors.replace_one({'deviceid': deviceid, 'source': source, 'number': number, 'address': data["address"]}, device_all)
             return True
 
@@ -2629,6 +2631,8 @@ class database_client_mongodb:
                 device_all["sensorname"] = found["sensorname"]
                 device_all["enabled"] = found["enabled"]
                 device_all["configured"] = found["configured"]
+                if found.get("opmode"):
+                    device_all["opmode"] = found["opmode"]
                 i2csensors.replace_one({'deviceid': deviceid, 'source': source, 'number': number}, device_all)
             return True
 
