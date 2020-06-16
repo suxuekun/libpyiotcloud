@@ -79,7 +79,12 @@ def get_firmware(filename_desc, filename_bin):
     # Verify the checksum
     checksum = bin_compute_checksum(bin)
     if checksum != desc["checksum"]:
-        print("Error: Checksum does not match! {} {}".format(checksum, desc["checksum"]))
+        print("Error: Checksum does not match! Please update firmware description! {} {}".format(checksum, desc["checksum"]))
+        return None, None
+
+    # Verify the size
+    if len(bin) != desc["size"]:
+        print("Error: Size does not match! Please update firmware description! {} {}".format(len(bin), desc["size"]))
         return None, None
 
     print_json(desc)
