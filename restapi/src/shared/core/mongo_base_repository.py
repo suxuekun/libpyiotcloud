@@ -31,7 +31,7 @@ class MongoBaseRepository(BaseRepository, IMongoBaseRepository):
                 input.pop("_id")
                 
             res = self.collection.insert_one(input)
-            return res.inserted_id
+            return str(res.inserted_id)
         except Exception as e:
             print(e)
             raise CreatedExeception(str(e))

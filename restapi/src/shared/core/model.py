@@ -1,4 +1,5 @@
 import datetime
+from bson.objectid import ObjectId
 
 from schematics import Model
 from schematics.types import DateTimeType, BooleanType, TimestampType, StringType
@@ -12,6 +13,7 @@ class MongoIdMixin(Model):
     _id = StringType()
     pass
 
+    
 class TimeStampMixin(Model):
     createdAt = StringType(default=timestamp_util.get_timestamp)
     modifiedAt = StringType(default=timestamp_util.get_timestamp)

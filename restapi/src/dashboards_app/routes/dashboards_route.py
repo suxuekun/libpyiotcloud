@@ -13,9 +13,9 @@ from dashboards_app.services.chart_type_service import ChartTypeService
 from dashboards_app.services.gateway_attribute_service import GatewayAttributeService
 from dashboards_app.repositories.chart_type_repository import ChartTypeRepository
 from dashboards_app.repositories.gateway_attribute_repository import GatewayAttributeRepository
-from dashboards_app.services.gateway_service import GatewayService
+from dashboards_app.repositories.chart_repository import ChartRepository
 from shared.middlewares.default_middleware import default_middleware
-
+from dashboards_app.services.chart_gateway_service import ChartGatewayService
 
 #  Get config mongodb
 mongo_client = DefaultMongoDB().conn
@@ -23,23 +23,23 @@ db = DefaultMongoDB().db
 
 # Init Repositories
 dashboardRepository = DashboardRepository(mongoclient=mongo_client, db = db, collectionName="dashboards")
-chartTypeRepo = ChartTypeRepository(mongoclient=mongo_client, db = db, collectionName="chartTypes")
-attributeRepo = GatewayAttributeRepository(mongoclient=mongo_client, db = db, collectionName="gatewayAttributes")
-
+chartTypeRepository = ChartTypeRepository(mongoclient=mongo_client, db = db, collectionName="chartTypes")
+attributeRepository = GatewayAttributeRepository(mongoclient=mongo_client, db = db, collectionName="gatewayAttributes")
+chartRepository = ChartRepository(mongoclient=mongo_client, db = db, collectionName="charts")
 
 # Init Dashboard Service
 dashboardService = DashboardService(dashboardRepository)
 
 # Init ChartTypeService
-chartTypeService = ChartTypeService(chartTypeRepo)
+chartTypeService = ChartTypeService(chartTypeRepository)
 chartTypeService.setup_chart_types()
 
 # Init Dashboard Gateway Attributes services
-gatewayAttributeService = GatewayAttributeService(attributeRepo)
+gatewayAttributeService = GatewayAttributeService(attributeRepository)
 gatewayAttributeService.setup_attributes()
 
 # Init Gateway service 
-gatewayService = GatewayService(dashboardRepository, attributeRepo)
+chartGatewayService = ChartGatewayService(dashboardRepository, chartRepository, attributeRepository)
 
 # Init routes
 dashboards_blueprint = Blueprint('dashboards_blueprint', __name__)
@@ -60,7 +60,6 @@ def create():
 @login_required()
 def gets():
     user = request.environ.get('user')
-    print(user)
     return dashboardService.gets(user["username"])
 
 @dashboards_blueprint.route("/<id>", methods=['GET'])
@@ -107,19 +106,27 @@ def get_attributes():
 def add_chart_gateway(dashboardId: str):
     body = request.get_json()
     dto = ChartGatewayDto(body)
-    response = gatewayService.add(dashboardId, dto)
+    response = chartGatewayService.create(dashboardId, dto)
     return response
 
 @dashboards_blueprint.route("/<dashboardId>/gateways/<id>", methods=['DELETE'])
 @default_middleware
 @login_required()
 def delete_chart_gateway(dashboardId: str, id: str):
-    response = gatewayService.delete(dashboardId, id)
+    response = chartGatewayService.delete(dashboardId, id)
     return response
 
 @dashboards_blueprint.route("/<dashboardId>/gateways", methods=['GET'])
 @default_middleware
 @login_required()
 def get_charts_gateway(dashboardId: str):
-    response = gatewayService.gets(dashboardId=dashboardId)
+    response = chartGatewayService.gets(dashboardId=dashboardId)
+    return response
+
+
+@dashboards_blueprint.route("/<dashboardId>/gateways/<id>", methods=['GET'])
+@default_middleware
+@login_required()
+def get_chart_gateway(dashboardId: str, id: str):
+    response = chartGatewayService.get(id)
     return response

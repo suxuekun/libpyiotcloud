@@ -6,3 +6,4 @@ class ChartGatewayResponse:
     dataset: []
     typeId: int
     userId: str
+    id: str

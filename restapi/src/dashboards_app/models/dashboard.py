@@ -5,31 +5,18 @@ from shared.core.model import BaseModel, TimeStampMixin, MongoIdMixin
 from dashboards_app.dtos.dashboard_dto import DashboardDto
 from dashboards_app.dtos.chart_gateway_dto import ChartGatewayDto
 
-
 class Option(BaseModel):
     color = StringType()
-
-class DashboardDevice(BaseModel, MongoIdMixin):
-    type = StringType(default="")
-
-class ChartModel(BaseModel, TimeStampMixin):
-    userId = StringType()
-    dashboardId = StringType()
-    device = ModelType(DashboardDevice)
-    typeId = IntType()
-
-    # Attribute is optional
-    attributeId = IntType() 
 
 class DashboardModel(BaseModel, MongoIdMixin, TimeStampMixin):
     name = StringType()
     option = ModelType(Option)
     userId = StringType()
-    gateways = ListType(ModelType(ChartModel), default=[])
-    sensors = ListType(ModelType(ChartModel), default=[])
-    actuators = ListType(ModelType(ChartModel), default=[])
+    gateways = ListType(StringType, default=[])
+    sensors = ListType(StringType, default=[])
+    actuators = ListType(StringType, default=[])
 
-GATEWAYS = "GATEWAY"
+GATEWAYS = "GATEWAYS"
 SENSORS = "SENSORS"
 
 class Dashboard:
@@ -52,25 +39,19 @@ class Dashboard:
         self.model.name = dto.name
         self.model.option = Option({'color': dto.color})
 
-    def add_chart_gateway(self, dto: ChartGatewayDto):
-        chart = ChartModel()
-        chart.userId = self.model.userId
-        chart.dashboardId = self.model._id
-        chart.device = DashboardDevice({"_id": dto.gatewayId, "type": GATEWAYS})
-        chart.typeId = dto.chartTypeId
-        chart.attributeId = dto.attributeId
-        self.model.gateways.append(chart)
+    def add_chart_gateway(self, chartId: str):
+        self.model.gateways.append(chartId)
     
     def remove_chart_gateway(self, chartId: str):
-        for chart in self.model.gateways:
-            if chart._id == chartId:
-                model.gateways.remove(chart)
+        for id in self.model.gateways:
+            if id == chartId:
+                self.model.gateways.remove(id)
                 return
     
-    def addChartSensor(self,  chart: ChartModel):
-        self.model.sensors.append(chart)
+    def addChartSensor(self, chartId: str):
+        self.model.sensors.append(chartId)
 
     @staticmethod
     def to_domain(data):
-        model = DashboardModel(data)
+        model = DashboardModel(data, strict=False)
         return Dashboard(model)

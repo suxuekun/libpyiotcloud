@@ -27,6 +27,7 @@ def map_charts_gateway_to_response(chartGateway, attributes: []):
     chartResponse.userId = chartGateway["userId"]
     chartResponse.dashboardId = chartGateway["dashboardId"]
     chartResponse.typeId = chartGateway["typeId"]
+    chartResponse.id = chartGateway["_id"]
     chartResponse.attribute = list(
         filter(lambda a: a["_id"] == chartGateway["attributeId"], attributes))[0]
     if chartGateway["attributeId"] == STORAGE_USAGE_ID:
