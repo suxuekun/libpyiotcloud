@@ -1,7 +1,6 @@
 
 from shared.core.base_repository import BaseRepository
 from shared.core.mongo_base_repository import MongoBaseRepository, IMongoBaseRepository
-from dashboards_app.models.dashboard import GATEWAYS
 from bson.objectid import ObjectId
 
 class IChartRepository(BaseRepository, IMongoBaseRepository):
@@ -16,7 +15,7 @@ class ChartRepository(MongoBaseRepository, IChartRepository):
 
     def get_charts_gateways(self, dashboardId):
         query = {
-            "device.type": GATEWAYS,
+            "device.type": "GATEWAYS",
             "dashboardId": dashboardId
         }
         return super().gets(query)

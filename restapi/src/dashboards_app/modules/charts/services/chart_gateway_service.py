@@ -1,15 +1,15 @@
 
-from dashboards_app.repositories.dashboard_repository import IDashboardRepository
-from dashboards_app.repositories.chart_repository import IChartRepository
-from dashboards_app.dtos.chart_gateway_dto import ChartGatewayDto
-from dashboards_app.models.dashboard import Dashboard
+from dashboards_app.modules.dashboards.repositories.dashboard_repository import IDashboardRepository
+from dashboards_app.modules.charts.repositories.chart_repository import IChartRepository
+from dashboards_app.modules.charts.dtos.chart_gateway_dto import ChartGatewayDto
+from dashboards_app.modules.dashboards.models.dashboard import Dashboard
 from shared.core.exceptions import CreatedExeception, UpdatedException, QueriedByIdException, QueriedManyException, DeletedException
 from shared.services.logger_service import LoggerService
-from dashboards_app.models.chart import Chart
+from dashboards_app.modules.charts.models.chart import Chart
 from shared.core.response import Response
 from schematics.exceptions import ValidationError, ModelValidationError
-from dashboards_app.utils.mapper_util import map_charts_gateway_to_response
-from dashboards_app.repositories.gateway_attribute_repository import IGatewayAttributeRepository
+from dashboards_app.modules.charts.utils.mapper_util import map_charts_gateway_to_response
+from dashboards_app.modules.charts.repositories.gateway_attribute_repository import IGatewayAttributeRepository
 
 class ChartGatewayService:
     

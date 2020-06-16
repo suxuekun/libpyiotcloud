@@ -1,21 +1,27 @@
 
 from flask import Blueprint, request
 
-
-from dashboards_app.repositories.dashboard_repository import DashboardRepository
-from dashboards_app.services.dashboard_service import DashboardService
-from dashboards_app.dtos.dashboard_dto import DashboardDto
-from dashboards_app.dtos.chart_gateway_dto import ChartGatewayDto
+# Import config mongo
 from shared.client.connection.mongo import DefaultMongoConnection
 from shared.client.db.mongo.default import DefaultMongoDB
-from shared.middlewares.request.permission.login import login_required
-from dashboards_app.services.chart_type_service import ChartTypeService
-from dashboards_app.services.gateway_attribute_service import GatewayAttributeService
-from dashboards_app.repositories.chart_type_repository import ChartTypeRepository
-from dashboards_app.repositories.gateway_attribute_repository import GatewayAttributeRepository
-from dashboards_app.repositories.chart_repository import ChartRepository
+
+# Import dashboards
+from dashboards_app.modules.dashboards.repositories.dashboard_repository import DashboardRepository
+from dashboards_app.modules.dashboards.services.dashboard_service import DashboardService
+from dashboards_app.modules.dashboards.dtos.dashboard_dto import DashboardDto
+
+# Import middleware and Auth
 from shared.middlewares.default_middleware import default_middleware
-from dashboards_app.services.chart_gateway_service import ChartGatewayService
+from shared.middlewares.request.permission.login import login_required
+
+#  Import charts
+from dashboards_app.modules.charts.services.gateway_attribute_service import GatewayAttributeService
+from dashboards_app.modules.charts.dtos.chart_gateway_dto import ChartGatewayDto
+from dashboards_app.modules.charts.services.chart_type_service import ChartTypeService
+from dashboards_app.modules.charts.repositories.chart_type_repository import ChartTypeRepository
+from dashboards_app.modules.charts.repositories.chart_repository import ChartRepository
+from dashboards_app.modules.charts.repositories.gateway_attribute_repository import GatewayAttributeRepository
+from dashboards_app.modules.charts.services.chart_gateway_service import ChartGatewayService
 
 #  Get config mongodb
 mongo_client = DefaultMongoDB().conn

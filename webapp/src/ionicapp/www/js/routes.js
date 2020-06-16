@@ -50,7 +50,7 @@ angular.module('app.routes', [])
           token: "",
           dashboard: {}
         },
-        templateUrl: 'templates/addDashboard.html',
+        templateUrl: 'templates/dashboardDetail.html',
         controller: 'updateDashboardCtrl'
       })
 

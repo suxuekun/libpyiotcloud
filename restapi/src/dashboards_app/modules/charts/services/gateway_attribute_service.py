@@ -1,6 +1,6 @@
 
-from dashboards_app.repositories.gateway_attribute_repository import IGatewayAttributeRepository
-from dashboards_app.models.gateway_attribute import FactoryGatewayAttribute, STORAGE_USAGE, COUNT_OF_ALERTS, ON_OFF_LINE
+from dashboards_app.modules.charts.repositories.gateway_attribute_repository import IGatewayAttributeRepository
+from dashboards_app.modules.charts.models.gateway_attribute import FactoryGatewayAttribute, STORAGE_USAGE, COUNT_OF_ALERTS, ON_OFF_LINE
 from shared.services.logger_service import LoggerService
 from shared.core.response import Response
 

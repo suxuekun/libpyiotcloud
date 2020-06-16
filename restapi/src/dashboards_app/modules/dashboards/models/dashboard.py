@@ -2,8 +2,7 @@
 from bson.objectid import ObjectId
 from schematics.types import StringType, DecimalType, IntType, BooleanType, ListType, ModelType
 from shared.core.model import BaseModel, TimeStampMixin, MongoIdMixin
-from dashboards_app.dtos.dashboard_dto import DashboardDto
-from dashboards_app.dtos.chart_gateway_dto import ChartGatewayDto
+from dashboards_app.modules.dashboards.dtos.dashboard_dto import DashboardDto
 
 class Option(BaseModel):
     color = StringType()

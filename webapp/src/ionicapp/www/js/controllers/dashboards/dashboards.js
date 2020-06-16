@@ -134,7 +134,6 @@ angular.module('app.dashboardsCtrl', [])
 
       $scope.close = () => $state.go('menu.dashboards')
 
-
       $scope.save = () => {
         const request = {
           'name': $scope.data.name,

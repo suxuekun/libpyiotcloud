@@ -1,7 +1,6 @@
 
 from shared.core.base_repository import BaseRepository
 from shared.core.mongo_base_repository import MongoBaseRepository, IMongoBaseRepository
-from dashboards_app.repositories.gateway_attribute_repository import IGatewayAttributeRepository
 from bson.objectid import ObjectId
 from shared.core.exceptions import CreatedExeception, DeletedException, QueriedByIdException, QueriedManyException, UpdatedException
 

@@ -2,8 +2,7 @@
 
 from schematics.types import StringType, DecimalType, IntType, BooleanType, ListType, ModelType
 from shared.core.model import BaseModel, TimeStampMixin, MongoIdMixin
-from dashboards_app.dtos.chart_gateway_dto import ChartGatewayDto
-
+from dashboards_app.modules.charts.dtos.chart_gateway_dto import ChartGatewayDto
 
 GATEWAYS = "GATEWAYS"
 SENSORS = "SENSORS"
