@@ -1,0 +1,80 @@
+<ion-view title="{{data.ui.title}}" hide-back-button="true" nav-transition="none" id="pagesubchange" class="page_width">
+  <ion-nav-buttons side="left" class="has-header">
+    <button class="button button-icon icon ion-android-close" ng-click="back()"></button>
+  </ion-nav-buttons>
+  <ion-content padding="true" class="has-header" overflow-scroll="true">
+    <div class="item card item-clam">
+      <div class="item item-header">
+        <p style="margin-top:0px;color:#3C5A99;font-size:18px;">
+            <strong> Current Plan : {{ data.subscription.current.plan.name }} </strong>
+          </p>
+      </div>
+      <div class="item item-body" >
+        <div class="list">
+
+          <label class="item item-input item-divider">
+            <span class="input-label">Email</span>
+            <span class="input-label">{{data.subscription.current.plan.email}}</span>
+          </label>
+          <label class="item item-input item-divider">
+            <span class="input-label">Notification</span>
+            <span class="input-label">{{data.subscription.current.plan.notification}}</span>
+          </label>
+          <label class="item item-input item-divider">
+            <span class="input-label">SMS</span>
+            <span class="input-label">{{data.subscription.current.plan.sms | currency}}</span>
+          </label>
+          <label class="item item-input item-divider">
+            <span class="input-label">Storage</span>
+            <span class="input-label">{{data.subscription.current.plan.storage}}</span>
+          </label>
+
+        </div>
+        
+      </div>
+    </div>
+      
+    <label class="item item-input">
+      <span class="input-label">Choose {{data.ui.name}} </span>
+    </label>
+    <div class = "list">
+      <div class="item card" ng-repeat = "plan in data.plans" ng-click="choosePlan(plan)" ng-class="{'item-balanced':plan.choose}">
+        <div class="item item-header">
+          <p style="margin-top:0px;color:#3C5A99;font-size:18px;">
+            <strong> {{plan.name }} </strong>
+            <span>   -   </span>
+            <span>{{plan.price | currency}} / month</span>
+          </p>
+
+        </div>
+        <div class="item item-body" >
+          <div class="list">
+
+            <label class="item item-input item-divider">
+              <span class="input-label">Email</span>
+              <span class="input-label">{{plan.email}}</span>
+            </label>
+            <label class="item item-input item-divider">
+              <span class="input-label">Notification</span>
+              <span class="input-label">{{plan.notification}}</span>
+            </label>
+            <label class="item item-input item-divider">
+              <span class="input-label">SMS</span>
+              <span class="input-label">{{plan.sms | currency}}</span>
+            </label>
+            <label class="item item-input item-divider">
+              <span class="input-label">Storage</span>
+              <span class="input-label">{{plan.storage}}</span>
+            </label>
+
+          </div>
+        
+        </div>
+
+      </div>
+    </div>
+
+    <button id="topUpCredits-button123" ng-show ="data.plan" ng-click="changePlan()" class="button button-positive button-block">{{data.ui.name}}</button>
+    
+  </ion-content>
+</ion-view>

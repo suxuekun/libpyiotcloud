@@ -97,6 +97,64 @@ angular.module('app.routes', [])
           }
         }
       })
+      .state('menu.subscription', {
+        url: '/page_subscription',
+        params: {
+          username: "",
+          token: ""
+        },
+        views: {
+          'side-menu21': {
+            templateUrl: 'templates/payment/subscription.html',
+            controller: 'subscriptionCtrl'
+          }
+        }
+      })
+      .state('menu.subscription_detail', {
+        url: '/page_subscription_detail',
+        params: {
+          subscription:null,
+        },
+        views: {
+          'side-menu21': {
+            templateUrl: 'templates/payment/subscription_detail.html',
+            controller: 'subscriptionDetailCtrl'
+          }
+        }
+      })
+      .state('menu.subscription_change', {
+        url: '/page_subscription_change',
+        params: {
+          ui:{
+            title:"",
+            name:""
+          },
+          subscription:null,
+        },
+        views: {
+          'side-menu21': {
+            templateUrl: 'templates/payment/subscription_change.html',
+            controller: 'subscriptionChangeCtrl'
+          }
+        }
+      })
+      .state('menu.subscription_change_confirm', {
+        url: '/page_subscription_change_confirm',
+        params: {
+          ui:{
+            title:"",
+            name:""
+          },
+          subscription:null,
+          plan:null,
+        },
+        views: {
+          'side-menu21': {
+            templateUrl: 'templates/payment/confirm_subscription_change.html',
+            controller: 'subscriptionConfirmChangeCtrl'
+          }
+        }
+      })
 
       .state('topUpCredits', {
         url: '/page_topup',

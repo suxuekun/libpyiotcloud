@@ -1,0 +1,20 @@
+from flask_restful import Resource
+
+from payment.services import payment_service
+from shared.middlewares.request.informations import requestWrap, get_entityname_query
+from shared.middlewares.response import http5xx, make_error_response
+from shared.simple_api.resource import BaseResource
+from shared.wrapper.response import IotHttpResponseWrapper
+
+
+class TokenResource(Resource,BaseResource):
+    FILTER = requestWrap(get_entityname_query)
+    service = payment_service
+    wrapper_class = IotHttpResponseWrapper
+    def get(self):
+        token = payment_service.get_client_token()
+        if token:
+            res = self.to_api_data(token)
+            return self.to_result(res)
+        else:
+            return make_error_response(http5xx.BRAINTREE_TOKEN_ERROR)

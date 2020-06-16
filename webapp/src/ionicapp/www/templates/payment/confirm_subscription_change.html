@@ -1,0 +1,89 @@
+<ion-view title="{{data.ui.title}}" hide-back-button="true" nav-transition="none" id="pagesubchange" class="page_width">
+  <ion-nav-buttons side="left" class="has-header">
+    <button class="button button-icon icon ion-android-close" ng-click="back()"></button>
+  </ion-nav-buttons>
+  <ion-content padding="true" class="has-header" overflow-scroll="true">
+    <div class="item card item-balanced">
+      <div class="item item-header">
+        <p style="margin-top:0px;color:#3C5A99;font-size:18px;">
+            <strong> Current Plan : {{ data.subscription.current.plan.name }} </strong>
+          </p>
+      </div>
+      <div class="item item-body" >
+        <div class="list">
+
+          <label class="item item-input item-divider">
+            <span class="input-label">Email</span>
+            <span class="input-label">{{data.subscription.current.plan.email}}</span>
+          </label>
+          <label class="item item-input item-divider">
+            <span class="input-label">Notification</span>
+            <span class="input-label">{{data.subscription.current.plan.notification}}</span>
+          </label>
+          <label class="item item-input item-divider">
+            <span class="input-label">SMS</span>
+            <span class="input-label">{{data.subscription.current.plan.sms | currency}}</span>
+          </label>
+
+          <label class="item item-input item-divider">
+            <span class="input-label">Storage</span>
+            <span class="input-label">{{data.subscription.current.plan.storage}}</span>
+          </label>
+
+        </div>
+
+        
+      </div>
+    </div>
+
+    <div class="list">
+        <p>make payment for this month:</p>
+        <ion-item class="item item-input">
+          <span class="input-label">remaining days</span>
+          <span class="input-label">15</span>
+        </ion-item>
+        <label class="item item-input">
+          <span class="input-label">Subscription Amount</span>
+          <span class="input-label" slot='end'>15</span>
+        </label>
+        
+
+    </div>
+    
+    <div class="list">
+        <ion-item class="item" ng-click = "applyPromoCode()" ng-show="data.promoCode">
+          Apply Promocode
+        </ion-item>
+        <ion-item class="item" ng-click = "applyPromoCode()" ng-show="!data.promoCode">
+          Promocode {{data.promoCode.info.name}} Applied!
+          <div class="item-icon-right"><i class = "icon ion-ios-close" > </i></div>
+        </ion-item>
+        <label class="item item-input">
+          <span class="input-label">Discount Amount</span>
+          <span class="input-label">15</span>
+        </label>
+        
+
+    </div>
+
+    <div class="list">
+        
+        <label class="item item-input">
+          <span class="input-label">Total Amount</span>
+          <span class="input-label">15</span>
+        </label>
+
+        <p style="color:#AAAAAA;font-size:12px;" class="ng-binding">GST 7 % percent</p>
+
+    </div>
+
+    <div class="list">
+        <div id="dropin-container"></div>
+    </div>
+
+
+    
+    <button ng-click="pay()" class="button button-positive button-block">Pay</button>
+    
+  </ion-content>
+</ion-view>
