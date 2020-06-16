@@ -33,6 +33,9 @@ CONFIG_USE_AMQP = False
 # global variables
 ###################################################################################
 
+# query backend to compute device password
+CONFIG_QUERY_BACKEND_TO_COMPUTE_DEVICE_PASSWORD = True
+
 # add timestamp to sensor data
 CONFIG_ADD_SENSOR_DATA_TIMESTAMP = True
 
@@ -2894,7 +2897,7 @@ def http_compute_device_password(uuid, serial_number, mac_address):
 
     password = None
 
-    conn = http_initialize_connection()#host="dev.brtchip-iotportal.com")
+    conn = http_initialize_connection(host="dev.brtchip-iotportal.com")
     headers = { "Connection": "keep-alive", "Content-Type": "application/json" }
     params = json.dumps({ "uuid": uuid, "serialnumber": serial_number, "poemacaddress": mac_address })
     api = "/devicesimulator/devicepassword"
@@ -3090,7 +3093,7 @@ def decode_password(secret_key, password):
 
 def compute_password(secret_key, uuid, serial_number, mac_address, debug=False):
 
-    if True:
+    if not CONFIG_QUERY_BACKEND_TO_COMPUTE_DEVICE_PASSWORD:
         if secret_key=='' or uuid=='' or serial_number=='' or mac_address=='':
             printf("secret key, uuid, serial number and mac address should not be empty!")
             return None
@@ -3116,9 +3119,14 @@ def compute_password(secret_key, uuid, serial_number, mac_address, debug=False):
             printf_json(payload)
             printf("")
     else:
+        printf("CONFIG_QUERY_BACKEND_TO_COMPUTE_DEVICE_PASSWORD")
+        # in order for the device secret key to not be compromise easily,
+        # we now retrieve the password via an HTTPS API
+        # this prevents from compromising the device secret_key
+        # later we disable the API in nginx.conf so that the API cannot be used in production
         password = http_compute_device_password(uuid, serial_number, mac_address)
         if password is None:
-            print("Failed retrieving password")
+            printf("ERROR: Failed retrieving password!")
 
     return password
 
