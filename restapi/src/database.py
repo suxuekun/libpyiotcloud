@@ -329,6 +329,46 @@ class database_client:
 
 
     ##########################################################
+    # heartbeat
+    ##########################################################
+
+    def record_device_heartbeat(self, deviceid, timestamp):
+        if not self._devices.find_device_heartbeats_by_timestamp(deviceid, timestamp):
+            self._devices.record_device_heartbeat(deviceid, timestamp)
+
+    def delete_device_heartbeats_by_timestamp(self, deviceid, timestamp):
+        self._devices.delete_device_heartbeats_by_timestamp(deviceid, timestamp)
+
+    def get_num_device_heartbeats_by_timestamp_by_day(self, deviceid, timestamp):
+        self._devices.delete_device_heartbeats_by_timestamp(deviceid, timestamp)
+        return self._devices.get_num_device_heartbeats_by_timestamp(deviceid, timestamp-config.CONFIG_HEARBEAT_DAY_RANGE), config.CONFIG_HEARBEAT_DAY_MAX
+
+    def get_num_device_heartbeats_by_timestamp_by_week(self, deviceid, timestamp):
+        self._devices.delete_device_heartbeats_by_timestamp(deviceid, timestamp)
+        return self._devices.get_num_device_heartbeats_by_timestamp(deviceid, timestamp-config.CONFIG_HEARBEAT_WEEK_RANGE), config.CONFIG_HEARBEAT_WEEK_MAX
+
+    def get_num_device_heartbeats_by_timestamp_by_month(self, deviceid, timestamp):
+        self._devices.delete_device_heartbeats_by_timestamp(deviceid, timestamp)
+        return self._devices.get_num_device_heartbeats_by_timestamp(deviceid, timestamp-config.CONFIG_HEARBEAT_MONTH_RANGE), config.CONFIG_HEARBEAT_MONTH_MAX
+
+
+    def get_num_device_heartbeats_by_devicename_by_timestamp_by_day(self, username, devicename, timestamp):
+        deviceid = self._devices.get_deviceid(username, devicename)
+        self._devices.delete_device_heartbeats_by_timestamp(deviceid, timestamp)
+        return self._devices.get_num_device_heartbeats_by_timestamp(deviceid, timestamp-config.CONFIG_HEARBEAT_DAY_RANGE), config.CONFIG_HEARBEAT_DAY_MAX
+
+    def get_num_device_heartbeats_by_devicename_by_timestamp_by_week(self, username, devicename, timestamp):
+        deviceid = self._devices.get_deviceid(username, devicename)
+        self._devices.delete_device_heartbeats_by_timestamp(deviceid, timestamp)
+        return self._devices.get_num_device_heartbeats_by_timestamp(deviceid, timestamp-config.CONFIG_HEARBEAT_WEEK_RANGE), config.CONFIG_HEARBEAT_WEEK_MAX
+
+    def get_num_device_heartbeats_by_devicename_by_timestamp_by_month(self, username, devicename, timestamp):
+        deviceid = self._devices.get_deviceid(username, devicename)
+        self._devices.delete_device_heartbeats_by_timestamp(deviceid, timestamp)
+        return self._devices.get_num_device_heartbeats_by_timestamp(deviceid, timestamp-config.CONFIG_HEARBEAT_MONTH_RANGE), config.CONFIG_HEARBEAT_MONTH_MAX
+
+
+    ##########################################################
     # history
     ##########################################################
 
@@ -1872,6 +1912,51 @@ class database_client_mongodb:
 
     def confirm_forgot_password(self, username, confirmation_code, new_password):
         return False
+
+
+    ##########################################################
+    # heartbeat
+    ##########################################################
+
+    def get_heartbeat_document(self):
+        return self.client[config.CONFIG_MONGODB_TB_HEARTBEAT]
+
+    def record_device_heartbeat(self, deviceid, timestamp):
+        heartbeat = self.get_heartbeat_document()
+        item = {}
+        item['timestamp'] = timestamp
+        item['deviceid'] = deviceid
+        heartbeat.insert_one(item)
+
+    def delete_device_heartbeats(self, deviceid):
+        heartbeat = self.get_heartbeat_document()
+        try:
+            heartbeat.delete_many({'deviceid': deviceid})
+        except:
+            print("delete_device_heartbeats: Exception occurred")
+
+    def delete_device_heartbeats_by_timestamp(self, deviceid, timestamp):
+        heartbeat = self.get_heartbeat_document()
+        try:
+            heartbeat.delete_many({'deviceid': deviceid, 'timestamp': { '$lte': timestamp-config.CONFIG_HEARBEAT_MAX_RANGE } })
+        except:
+            print("delete_device_heartbeats_by_timestamp: Exception occurred")
+
+    def find_device_heartbeats_by_timestamp(self, deviceid, timestamp):
+        heartbeat = self.get_heartbeat_document()
+        if heartbeat:
+            items = heartbeat.find({'deviceid': deviceid, 'timestamp': { '$gt': timestamp-config.CONFIG_HEARBEAT_MIN_RANGE } })
+            if items and items.count():
+                return True
+        return False
+
+    def get_num_device_heartbeats_by_timestamp(self, deviceid, timestamp):
+        heartbeat = self.get_heartbeat_document()
+        if heartbeat:
+            items = heartbeat.find({'deviceid': deviceid, 'timestamp': { '$gt': timestamp } })
+            if items:
+                return items.count()
+        return 0
 
 
     ##########################################################

@@ -92,6 +92,7 @@ class config:
     CONFIG_MONGODB_TB_DEFAULT_POLICIES       = "defaultpolicies"
     CONFIG_MONGODB_TB_LASTLOGIN              = "lastlogin"
     CONFIG_MONGODB_TB_LDSUS                  = "ldsus"
+    CONFIG_MONGODB_TB_HEARTBEAT              = "heartbeat"
 
     # Caching settings
     if os.name == 'nt':
@@ -114,3 +115,16 @@ class config:
     CONFIG_JWT_SECRET_KEY            = os.environ["CONFIG_USE_JWT_SECRET_KEY"]
     CONFIG_JWT_EXPIRATION            = 10
     CONFIG_JWT_ADJUSTMENT            = 60
+
+    # Heartbeat settings
+    CONFIG_HEARBEAT_RATE             = 60      # 1minute: 60 seconds
+    CONFIG_HEARBEAT_DAY_RANGE        = 86400   # 1day   : 60*60*24*1  seconds
+    CONFIG_HEARBEAT_WEEK_RANGE       = 604800  # 7days  : 60*60*24*7  seconds
+    CONFIG_HEARBEAT_MONTH_RANGE      = 2592000 # 30days : 60*60*24*30 seconds
+    CONFIG_HEARBEAT_MIN_RANGE        = CONFIG_HEARBEAT_RATE
+    CONFIG_HEARBEAT_MAX_RANGE        = CONFIG_HEARBEAT_MONTH_RANGE
+    CONFIG_HEARBEAT_DAY_MAX          = int(CONFIG_HEARBEAT_DAY_RANGE/CONFIG_HEARBEAT_RATE)
+    CONFIG_HEARBEAT_WEEK_MAX         = int(CONFIG_HEARBEAT_WEEK_RANGE/CONFIG_HEARBEAT_RATE)
+    CONFIG_HEARBEAT_MONTH_MAX        = int(CONFIG_HEARBEAT_MONTH_RANGE/CONFIG_HEARBEAT_RATE)
+
+

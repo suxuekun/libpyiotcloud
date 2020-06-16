@@ -89,7 +89,11 @@ CONFIG_SEND_NOTIFICATION_PERIOD = 3600 # 1 hour
 g_timer_thread_timeout = 5
 g_timer_thread = None
 g_timer_thread_stop = None
-g_timer_thread_use = True
+
+# heartbeat thread for publishing heartbeat
+g_heartbeat_thread_timeout = 60
+g_heartbeat_thread = None
+g_heartbeat_thread_stop = None
 
 g_input_thread = None
 
@@ -263,6 +267,9 @@ API_STATUS_NOTIFICATION          = "status_notification"
 API_RECEIVE_SENSOR_READING       = "rcv_sensor_reading"
 API_REQUEST_SENSOR_READING       = "req_sensor_reading"
 API_PUBLISH_SENSOR_READING       = "pub_sensor_reading"
+
+# heartbeat
+API_PUBLISH_HEARTBEAT            = "pub_heartbeat"
 
 # configuration
 API_REQUEST_CONFIGURATION        = "req_configuration"
@@ -1649,8 +1656,9 @@ def handle_api(api, subtopic, subpayload):
         topic = generate_pubtopic(subtopic)
         subpayload = json.loads(subpayload)
 
-        # stop the timer thread
+        # stop the timer thread and heartbeat thread
         g_timer_thread.set_pause(True)
+        g_heartbeat_thread.set_pause(True)
 
         # reply
         payload = {}
@@ -1886,22 +1894,22 @@ def process_restart():
         restart()
 
 def process_stop():
-    global g_device_status, g_timer_thread
+    global g_device_status, g_timer_thread, g_heartbeat_thread
     if g_device_status == DEVICE_STATUS_STOPPING:
         printf("")
         printf("Device will be stopped...")
-        if g_timer_thread_use:
-            g_timer_thread.set_pause(True)
+        g_timer_thread.set_pause(True)
+        g_heartbeat_thread.set_pause(True)
         g_device_status = DEVICE_STATUS_STOPPED
         printf("Device stopped successfully!\n")
 
 def process_start():
-    global g_device_status, g_timer_thread
+    global g_device_status, g_timer_thread, g_heartbeat_thread
     if g_device_status == DEVICE_STATUS_STARTING:
         printf("")
         printf("Device will be started...")
-        if g_timer_thread_use:
-            g_timer_thread.set_pause(False)
+        g_timer_thread.set_pause(False)
+        g_heartbeat_thread.set_pause(False)
         g_device_status = DEVICE_STATUS_RUNNING
         printf("Device started successfully!\n")
 
@@ -2070,7 +2078,7 @@ class TimerThread(threading.Thread):
             if has_enabled:
                 payload = {}
                 payload["UID"] = ldsu_key
-                payload["TS"] = int(time.time())
+                payload["TS"] = str(int(time.time()))
                 payload["SNS"] = values
                 printf_json(payload)
                 publish(topic, payload)
@@ -2265,16 +2273,48 @@ class TimerThread(threading.Thread):
                     self.process_input_devices()
 
                 #self.process_output_devices()
-                if CONFIG_SEND_NOTIFICATION_PERIODICALLY:
-                    self.process_trigger_notification()
+                if False:
+                    if CONFIG_SEND_NOTIFICATION_PERIODICALLY:
+                        self.process_trigger_notification()
             else:
                 #printf("Device is currently stopped! Not sending any sensor data.")
                 pass
 
+            # receovery when backend is down but comes back
             if g_device_status == DEVICE_STATUS_CONFIGURING:
                 req_configuration()
         #printf("")
-        #printf("TimerThread exit! {}".format(g_messaging_client.is_connected()))
+        printf("TimerThread exit! {}".format(g_messaging_client.is_connected()))
+
+
+class HeartbeatThread(threading.Thread):
+
+    def __init__(self, event, timeout):
+        threading.Thread.__init__(self)
+        self.stopped = event
+        self.timeout = timeout
+        self.pause = False
+        self.exit = False
+
+    def set_timeout(self, timeout):
+        self.timeout = timeout
+
+    def set_pause(self, pause=True):
+        self.pause = pause
+
+    def set_exit(self):
+        self.exit = True
+
+    def run(self):
+        #printf("")
+        #printf("HeartbeatThread {}".format(g_messaging_client.is_connected()))
+        pub_heartbeat()
+        while not self.stopped.wait(self.timeout) and g_messaging_client.is_connected():
+            if self.pause == False:
+                pub_heartbeat()
+
+        #printf("")
+        printf("HeartbeatThread exit! {}".format(g_messaging_client.is_connected()))
 
 
 class DownloadThread(threading.Thread):
@@ -2410,9 +2450,10 @@ class DownloadThread(threading.Thread):
             g_firmware_version_STR = self.fileversion
             write_file_version(g_firmware_version_STR)
 
-        # start the timer thread
+        # start the timer thread and heartbeat thread
         time.sleep(g_timer_thread_timeout)
         g_timer_thread.set_pause(False)
+        g_heartbeat_thread.set_pause(False)
 
 
 ###################################################################################
@@ -2828,15 +2869,15 @@ def http_get_firmware_binary(filename, filesize):
         length, response = http_recv_response(conn)
         if length == 0:
             printf("http_recv_response error")
-            return False
+            return False, length
         if length != filesize:
             printf("error length {} != filesize {}".format(length, filesize))
-            return False
+            return False, length
         try:
             http_write_to_file(filename, response)
         except Exception as e:
             printf("exception {}".format(e))
-            return False
+            return False, length
     return result, length
 
 
@@ -2993,6 +3034,17 @@ def init_ldsu_properties():
 
 
 ###################################################################################
+# Heartbeat
+###################################################################################
+
+# Publish heartbeat
+def pub_heartbeat():
+    topic = "{}{}{}{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_DEVICE_ID, CONFIG_SEPARATOR, API_PUBLISH_HEARTBEAT)
+    payload = { "TS": str(int(time.time())) }
+    publish(topic, payload)
+
+
+###################################################################################
 # Password generation
 ###################################################################################
 
@@ -3064,10 +3116,12 @@ def main(args):
     global g_messaging_client
     global g_device_client
     global g_device_status
-    global g_timer_thread_use
     global g_timer_thread_stop
     global g_timer_thread_timeout
     global g_timer_thread
+    global g_heartbeat_thread_stop
+    global g_heartbeat_thread_timeout
+    global g_heartbeat_thread
     global g_input_thread
 
     global CONFIG_USE_AMQP
@@ -3255,11 +3309,15 @@ def main(args):
             time.sleep(1)
 
 
+        # Start the heartbeat thread
+        g_heartbeat_thread_stop = threading.Event()
+        g_heartbeat_thread = HeartbeatThread(g_heartbeat_thread_stop, g_heartbeat_thread_timeout)
+        g_heartbeat_thread.start()
+
         # Start the timer thread for sensor processing
-        if g_timer_thread_use:
-            g_timer_thread_stop = threading.Event()
-            g_timer_thread = TimerThread(g_timer_thread_stop, g_timer_thread_timeout)
-            g_timer_thread.start()
+        g_timer_thread_stop = threading.Event()
+        g_timer_thread = TimerThread(g_timer_thread_stop, g_timer_thread_timeout)
+        g_timer_thread.start()
 
         # Start keyboard input thread for AT commands processing
         if g_input_thread == None:
@@ -3294,10 +3352,14 @@ def main(args):
         g_messaging_client.subscribe(subtopic, subscribe=False)
         time.sleep(2)
         g_messaging_client.release()
-        if g_timer_thread_use:
+        if g_timer_thread:
             g_timer_thread.set_exit()
             g_timer_thread_stop.set()
             g_timer_thread.join()
+        if g_heartbeat_thread:
+            g_heartbeat_thread.set_exit()
+            g_heartbeat_thread_stop.set()
+            g_heartbeat_thread.join()
         # When disconnected, reset the configurations
         # and pull the configurations during reconnection
         # This is to prevent synchronization issues with local configuration with backend configuration

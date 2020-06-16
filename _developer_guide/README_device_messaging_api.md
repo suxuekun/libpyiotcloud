@@ -42,6 +42,7 @@ SUMMARY:
 	1. STATUS
 		A. GET STATUS                       get_status
 		B. SET STATUS                       set_status
+		C. PUBLISH HEARTBEAT                pub_heartbeat
 
 	2. SETTINGS
 		A. GET SETTINGS                     get_settings
@@ -147,6 +148,11 @@ DETAILED:
 		-  Publish:
 		   topic: server/DEVICEID/set_status
 		   payload: { 'value': {'status': int} }
+		   
+		C. PUBLISH HEARTBEAT
+		-  Publish:
+		   topic: server/DEVICEID/pub_heartbeat
+		   payload: { 'TS': string } // TimeStamp
 
 
 	2. UART

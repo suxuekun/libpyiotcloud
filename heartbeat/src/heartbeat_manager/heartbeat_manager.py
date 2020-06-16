@@ -1,4 +1,6 @@
+from heartbeat_config import config as heartbeat_config
 from web_server_database import database_client
+from datetime import datetime
 import json
 import time
 import argparse
@@ -10,7 +12,6 @@ currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentfram
 parentdir = os.path.dirname(currentdir)
 sys.path.insert(0,parentdir)
 from messaging_client import messaging_client
-from history_config import config
 
 
 
@@ -20,7 +21,7 @@ CONFIG_USE_ECC = True if int(os.environ["CONFIG_USE_ECC"]) == 1 else False
 # Enable to use AMQP for webserver-to-messagebroker communication
 # Disable to use MQTT for webserver-to-messagebroker communication
 CONFIG_USE_AMQP = False
-CONFIG_DBHOST = config.CONFIG_MONGODB_HOST
+CONFIG_DBHOST = heartbeat_config.CONFIG_MONGODB_HOST
 ###################################################################################
 
 
@@ -30,27 +31,28 @@ CONFIG_DBHOST = config.CONFIG_MONGODB_HOST
 ###################################################################################
 
 g_messaging_client = None
-g_history_client = None
-g_gpio_values = {}
+g_sensor_client = None
+g_database_client = None
+
 
 
 ###################################################################################
 # MQTT and AMQP default configurations
 ###################################################################################
 
-CONFIG_DEVICE_ID            = "history_manager"
+CONFIG_DEVICE_ID            = "heartbeat_manager"
 
-CONFIG_USERNAME             = config.CONFIG_MQTT_DEFAULT_USER
-CONFIG_PASSWORD             = config.CONFIG_MQTT_DEFAULT_PASS
+CONFIG_USERNAME             = heartbeat_config.CONFIG_MQTT_DEFAULT_USER
+CONFIG_PASSWORD             = heartbeat_config.CONFIG_MQTT_DEFAULT_PASS
 
 if CONFIG_USE_ECC:
     CONFIG_TLS_CA           = "../cert_ecc/rootca.pem"
-    CONFIG_TLS_CERT         = "../cert_ecc/history_manager_cert.pem"
-    CONFIG_TLS_PKEY         = "../cert_ecc/history_manager_pkey.pem"
+    CONFIG_TLS_CERT         = "../cert_ecc/heartbeat_manager_cert.pem"
+    CONFIG_TLS_PKEY         = "../cert_ecc/heartbeat_manager_pkey.pem"
 else:
     CONFIG_TLS_CA           = "../cert/rootca.pem"
-    CONFIG_TLS_CERT         = "../cert/history_manager_cert.pem"
-    CONFIG_TLS_PKEY         = "../cert/history_manager_pkey.pem"
+    CONFIG_TLS_CERT         = "../cert/heartbeat_manager_cert.pem"
+    CONFIG_TLS_PKEY         = "../cert/heartbeat_manager_pkey.pem"
 
 CONFIG_HOST                 = "localhost"
 CONFIG_MQTT_TLS_PORT        = 8883
@@ -58,93 +60,85 @@ CONFIG_AMQP_TLS_PORT        = 5671
 
 CONFIG_PREPEND_REPLY_TOPIC  = "server"
 CONFIG_SEPARATOR            = '/'
-CONFIG_WILDCARD             = '#'
 
-CONFIG_SENSOR_READING_TOPIC = "sensor_reading"
+API_PUBLISH_HEARTBEAT       = "pub_heartbeat"
+
+
+
+###################################################################################
+# Main logic handling
+###################################################################################
+
+def publish_heartbeat(database_client, deviceid, topic, payload):
+
+    payload = json.loads(payload)
+
+    # find if deviceid exists
+    devicename = database_client.get_devicename(deviceid)
+    if devicename is None:
+        return
+
+    # get time stamp
+    if payload.get("TS"):
+        timestamp = int(payload["TS"])
+    else:
+        timestamp = int(time.time())
+    print("{} {}".format(deviceid, time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(timestamp)) ))
+
+    # record the heartbeat
+    database_client.record_device_heartbeat(deviceid, timestamp)
+
+    # delete heartbeats past the maximum range to prevent from database record from growing too big
+    database_client.delete_device_heartbeats_by_timestamp(deviceid, timestamp)
+
+    #print(database_client.get_num_device_heartbeats_by_timestamp_by_day(deviceid, timestamp))
+    #print(database_client.get_num_device_heartbeats_by_timestamp_by_week(deviceid, timestamp))
+    #print(database_client.get_num_device_heartbeats_by_timestamp_by_month(deviceid, timestamp))
+
+    # this is for the device status last active
+    database_client.add_device_heartbeat(deviceid)
 
 
 ###################################################################################
 # MQTT/AMQP callback functions
 ###################################################################################
 
-
-def add_history_publish(history_client, deviceid, topic, payload, direction="From"):
-
-    # Write publish/subscribe message to database
-    # TODO: temporarily disable
-    history_client.add_device_history(deviceid, topic, payload, direction)
-
-    # Write publish heartbeat to database
-    try:
-        heartbeat = history_client.add_device_heartbeat(deviceid)
-    except:
-        print("exception add_device_heartbeat")
-    
-    # Display database
-    if config.CONFIG_DEBUG_HISTORY:
-        histories = history_client.get_device_history(deviceid)
-        print("{}".format(len(histories) ))
-        for history in histories:
-            if history["direction"]=="From":
-                print("{}: {} {} {} [{}]".format(history["timestamp"], history["direction"], history["devicename"], history["topic"], len(history["payload"]) ))
-            else:
-                print("{}: {}   {} {} [{}]".format(history["timestamp"], history["direction"], history["devicename"], history["topic"], len(history["payload"]) ))
-        print("")
-
-
-def add_history_receive(history_client, deviceid, topic, payload, direction="To"):
-
-    # Write publish/subscribe message to database
-    # TODO: temporarily disable
-    #history_client.add_device_history(deviceid, topic, payload, direction)
-
-    # Display database
-    if config.CONFIG_DEBUG_HISTORY:
-        histories = history_client.get_device_history(deviceid)
-        print("{}".format(len(histories) ))
-        for history in histories:
-            if history["direction"]=="From":
-                print("{}: {} {} {} [{}]".format(history["timestamp"], history["direction"], history["devicename"], history["topic"], len(history["payload"]) ))
-            else:
-                print("{}: {}   {} {} [{}]".format(history["timestamp"], history["direction"], history["devicename"], history["topic"], len(history["payload"]) ))
-        print("")
-
-
 def on_message(subtopic, subpayload):
 
-    try:
-        item = {}
-        if subtopic.startswith(CONFIG_PREPEND_REPLY_TOPIC):
-            #print(subtopic)
-            arr_subtopic = subtopic.split("/", 2)
-
-            # Do NOT record sensor readings
-            #if arr_subtopic[2].startswith(CONFIG_SENSOR_READING_TOPIC):
-            #   return
-
-            #add_history_publish(g_history_client, arr_subtopic[1], arr_subtopic[2], subpayload.decode("utf-8"), "From")
-            thr = threading.Thread(target = add_history_publish, args = (g_history_client, arr_subtopic[1], arr_subtopic[2], subpayload.decode("utf-8"), ))
-            thr.start()
-        else:
-            arr_subtopic = subtopic.split("/", 1)
-            #add_history_receive(g_history_client, arr_subtopic[0], arr_subtopic[1], subpayload.decode("utf-8"), "To")
-            thr = threading.Thread(target = add_history_receive, args = (g_history_client, arr_subtopic[0], arr_subtopic[1], subpayload.decode("utf-8"), ))
-            thr.start()
-    except:
-        print("exception")
+    arr_subtopic = subtopic.split(CONFIG_SEPARATOR, 2)
+    if len(arr_subtopic) != 3:
         return
 
+    deviceid = arr_subtopic[1]
+    topic = arr_subtopic[2]
+    payload = subpayload.decode("utf-8")
+
+    if topic == API_PUBLISH_HEARTBEAT:
+        try:
+            thr = threading.Thread(target = publish_heartbeat, args = (g_database_client, deviceid, topic, payload ))
+            thr.start()
+        except Exception as e:
+            print("exception API_PUBLISH_HEARTBEAT")
+            print(e)
+            return
 
 def on_mqtt_message(client, userdata, msg):
 
-    #print("RCV: MQTT {} {}".format(msg.topic, msg.payload))
-    on_message(msg.topic, msg.payload)
-
+    try:
+        if heartbeat_config.CONFIG_DEBUG:
+            print("RCV: MQTT {} {}".format(msg.topic, msg.payload))
+        on_message(msg.topic, msg.payload)
+    except:
+        return
 
 def on_amqp_message(ch, method, properties, body):
 
-    #print("RCV: AMQP {} {}".format(method.routing_key, body))
-    on_message(method.routing_key, body)
+    try:
+        if heartbeat_config.CONFIG_DEBUG:
+            print("RCV: AMQP {} {}".format(method.routing_key, body))
+        on_message(method.routing_key, body)
+    except:
+        return
 
 
 
@@ -194,8 +188,8 @@ if __name__ == '__main__':
 
 
     # Initialize MongoDB
-    g_history_client = database_client(host=CONFIG_DBHOST)
-    g_history_client.initialize()
+    g_database_client = database_client(host=CONFIG_DBHOST)
+    g_database_client.initialize()
 
 
     # Initialize MQTT/AMQP client
@@ -222,9 +216,7 @@ if __name__ == '__main__':
 
     # Subscribe to messages sent for this device
     time.sleep(1)
-    # TODO: process publish packets only, not device requests from web/mobile apps
-    #subtopic = "#"
-    subtopic = "{}{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_WILDCARD)
+    subtopic = "{}{}+{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_SEPARATOR, API_PUBLISH_HEARTBEAT)
     g_messaging_client.subscribe(subtopic, subscribe=True, declare=True, consume_continuously=True)
 
 
