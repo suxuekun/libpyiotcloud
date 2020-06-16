@@ -1,6 +1,8 @@
 
 
-from dashboards_app.routes.dashboards_route import dashboards_blueprint
+
+
+from dashboards.routes.dashboards_route import dashboards_blueprint
 import flask
 
 class DashboardsApp:

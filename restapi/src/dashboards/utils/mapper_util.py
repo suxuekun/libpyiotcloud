@@ -1,6 +1,6 @@
 
 
-from dashboards_app.modules.dashboards.dtos.dashboard_summary_response import DashboardSummaryResponse
+from dashboards.dtos.dashboard_summary_response import DashboardSummaryResponse
 import json
 
 def map_entity_to_summary_response(entity):

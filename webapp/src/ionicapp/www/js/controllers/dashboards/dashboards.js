@@ -10,7 +10,8 @@ angular.module('app.dashboardsCtrl', [])
       const server = Server.rest_api;
       let cachedDashboards = [];
       $scope.$on('$ionicView.enter', (e) => {
-        getDashboards();
+        $scope.data.token = User.get_token();
+        $scope.getDashboards();
       });
 
       $scope.add = () => {
@@ -90,7 +91,7 @@ angular.module('app.dashboardsCtrl', [])
         });
       }
 
-      getDashboards = () => {
+      $scope.getDashboards = () => {
         $http({
           method: 'GET',
           url: server + '/dashboards',
@@ -188,6 +189,11 @@ angular.module('app.dashboardsCtrl', [])
           '#F012BE'
         ]
       };
+      $scope.activeTab = 0
+      $scope.tabLength = 2
+      $scope.changeActiveTab = (index) => {
+        $scope.activeTab = index
+      }
 
       $scope.selectColor = (color) => $scope.data.selectedColor = color
 
@@ -218,5 +224,6 @@ angular.module('app.dashboardsCtrl', [])
             });
           });
       }
+
     }
   ])

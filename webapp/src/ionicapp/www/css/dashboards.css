@@ -100,3 +100,15 @@
 .text-fuchsia {
   background-color: #F012BE !important;
 }
+
+.dashboard-border {
+  border: 1px solid #ccc!important;
+}
+
+.dashboard-container {
+  padding: 10px;
+}
+
+.dashboard-round-border {
+  border-radius: 5px;
+}

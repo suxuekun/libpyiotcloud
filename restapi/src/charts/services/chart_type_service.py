@@ -1,10 +1,10 @@
 
 
-from dashboards_app.modules.charts.repositories.chart_type_repository import IChartTypeRepository
+from charts.repositories.chart_type_repository import IChartTypeRepository
 from shared.core.response import Response
 from shared.core.exceptions import CreatedExeception, UpdatedException, QueriedByIdException, QueriedManyException, DeletedException
 from shared.services.logger_service import LoggerService
-from dashboards_app.modules.charts.models.chart_type import FactoryChartTypeModel, PIE_CHART, DONUT_CHART, LINE_CHART, BAR_CHART
+from charts.models.chart_type import FactoryChartTypeModel, PIE_CHART, DONUT_CHART, LINE_CHART, BAR_CHART
 import json
 
 class ChartTypeService:

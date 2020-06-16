@@ -1,13 +1,13 @@
 
 
-from dashboards_app.modules.dashboards.repositories.dashboard_repository import IDashboardRepository
-from dashboards_app.modules.dashboards.models.dashboard import Dashboard, DashboardModel
+from dashboards.repositories.dashboard_repository import IDashboardRepository
+from dashboards.models.dashboard import Dashboard, DashboardModel
 from shared.core.response import Response
-from dashboards_app.modules.dashboards.dtos.dashboard_dto import DashboardDto
+from dashboards.dtos.dashboard_dto import DashboardDto
 from schematics.exceptions import ValidationError, ModelValidationError
 from shared.core.exceptions import CreatedExeception, UpdatedException, QueriedByIdException, QueriedManyException, DeletedException
 from shared.services.logger_service import LoggerService
-from dashboards_app.modules.dashboards.utils.mapper_util import map_entities_to_summaries_response
+from dashboards.utils.mapper_util import map_entities_to_summaries_response
 
 class DashboardService:
     def __init__(self, dashboardRepository: IDashboardRepository):
