@@ -55,7 +55,9 @@ def request_pass_test(test_func):
         @wraps(f)
         def func(*args,**kwargs):
             request = getRequest()
-            res, error = test_func(request)
+            res = True
+            if request.method.lower() != "options":
+                res, error = test_func(request)
             if res:
                 ret = f(*args, **kwargs)
             else:
