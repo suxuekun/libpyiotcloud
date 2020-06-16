@@ -13,6 +13,7 @@ _device_simulator/device_simulator.py_guest.bat
 _device_simulator/device_simulator.js_localhost.bat
 _device_simulator/device_simulator.py_localhost.bat
 _device_simulator/localhost/*.cfg
+_device_simulator/javascript
 _device_simulator/*.cfg
 _device_simulator/*.bat
 _device_simulator/*.bin
