@@ -939,6 +939,9 @@ class database_client_mongodb:
             for device in devices.find({'deviceid': deviceid}):
                 new_device = copy.deepcopy(device)
                 new_device['descriptor'] = descriptor
+                if device.get("poemacaddress") is None:
+                    if descriptor.get("PMAC") is not None:
+                        new_device['poemacaddress'] = descriptor['PMAC']
                 devices.replace_one(device, new_device)
                 break
 

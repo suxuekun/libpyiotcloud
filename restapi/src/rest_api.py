@@ -865,6 +865,10 @@ g_device_dashboard_old_list = [
 #
 ########################################################################################################
 
+@app.route('/mobile/devicetoken', methods=['POST'])
+def register_mobile_device_token():
+    return g_other_stuffs.register_mobile_device_token()
+
 @app.route('/others/feedback', methods=['POST'])
 def send_feedback():
     return g_other_stuffs.send_feedback()
@@ -881,16 +885,21 @@ def get_supported_sensors():
 def get_device_firmware_updates():
     return g_other_stuffs.get_device_firmware_updates()
 
-@app.route('/mobile/devicetoken', methods=['POST'])
-def register_mobile_device_token():
-    return g_other_stuffs.register_mobile_device_token()
+# This is for the device simulator. 
+# This can be easily blocked by removing entry in nginx.conf.
+@app.route('/devicesimulator/devicepassword', methods=['GET'])
+def compute_device_password():
+    return g_other_stuffs.compute_device_password()
+
+
+
 
 g_other_stuffs_list = [
+    { "name": "REGISTER MOBILE TOKEN", "func": register_mobile_device_token, "api": "/mobile/devicetoken",     "method": "POST"   },
     { "name": "SEND FEEDBACK",         "func": send_feedback,                "api": "/others/feedback",        "method": "POST"   },
     { "name": "GET ITEM",              "func": get_item,                     "api": "/others/<item>",          "method": "GET"    },
     { "name": "GET SUPPORTED SENSORS", "func": get_supported_sensors,        "api": "/others/sensordevices",   "method": "GET"    },
     { "name": "GET FIRMWARE UPDATES",  "func": get_device_firmware_updates,  "api": "/others/firmwareupdates", "method": "GET"    },
-    { "name": "REGISTER MOBILE TOKEN", "func": register_mobile_device_token, "api": "/mobile/devicetoken",     "method": "POST"   },
 ]
 
 

@@ -11,11 +11,12 @@ import flask
 #from flask_json import FlaskJSON, JsonError, json_response, as_json
 #from certificate_generator import certificate_generator
 #from messaging_client import messaging_client
-#from rest_api_config import config
+from rest_api_config import config
 #from database import database_client
 #from flask_cors import CORS
 from flask_api import status
 #from jose import jwk, jwt
+import jwt
 #import http.client
 #from s3_client import s3_client
 #import threading
@@ -429,5 +430,45 @@ class other_stuffs:
 
         response = json.dumps({'status': 'OK', 'message': 'Register mobile device token successful'})
         print('\r\nRegister mobile device token successful: {} {} {}\r\n'.format(username, service, devicetoken))
+        return response
+
+
+    ########################################################################################################
+    #
+    # COMPUTE PASSWORD
+    #
+    # - Request:
+    #   POST /devicesimulator/devicepassword
+    #   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+    #   data: {'uuid': string, 'serialnumber': string, 'poemacaddress': string}
+    # - Response:
+    #   {'status': 'OK', 'message': string}
+    #   {'status': 'NG', 'message': string}
+    #
+    ########################################################################################################
+    def compute_device_password(self):
+
+        # decode the devicetoken and service
+        data = flask.request.get_json()
+        if data is None:
+            response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+            print('\r\nERROR Compute password: Empty parameter found\r\n')
+            return response, status.HTTP_400_BAD_REQUEST
+        if data.get("uuid") is None or data.get("serialnumber") is None or data.get("poemacaddress") is None:
+            response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+            print('\r\nERROR Compute password: Empty parameter found\r\n')
+            return response, status.HTTP_400_BAD_REQUEST
+
+        # compute the password
+        params = {
+            "uuid": data["uuid"],                  # device uuid
+            "serialnumber": data["serialnumber"], # device serial number
+            "poemacaddress": data["poemacaddress"],  # device mac address in uppercase string ex. AA:BB:CC:DD:EE:FF
+        }
+        password = jwt.encode(params, config.CONFIG_JWT_SECRET_KEY_DEVICE, algorithm='HS256')
+        password = password.decode("utf-8")
+
+        response = json.dumps({'status': 'OK', 'message': 'Compute password successful', 'password': password})
+        print('\r\nCompute password successful: {}\r\n'.format(data["uuid"]))
         return response
 

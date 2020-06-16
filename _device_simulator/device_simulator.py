@@ -2772,7 +2772,7 @@ def http_write_to_file(filename, contents):
     f.write(contents)
     f.close()
 
-def http_initialize_connection():
+def http_initialize_connection(host=CONFIG_HTTP_HOST):
     if True:
         context = ssl._create_unverified_context()
     else:
@@ -2782,19 +2782,23 @@ def http_initialize_connection():
         #context.load_verify_locations(
         #    config.CONFIG_TLS_CERT, config.CONFIG_TLS_CERT, config.CONFIG_TLS_PKEY)
         #context.check_hostname = False
-    conn = http.client.HTTPSConnection(CONFIG_HTTP_HOST, CONFIG_HTTP_TLS_PORT, context=context, timeout=CONFIG_HTTP_TIMEOUT)
+    conn = http.client.HTTPSConnection(host, CONFIG_HTTP_TLS_PORT, context=context, timeout=CONFIG_HTTP_TIMEOUT)
     return conn
 
-def http_send_request(conn, req_type, req_api, params, headers):
+def http_send_request(conn, req_type, req_api, params, headers, debug=True):
     try:
         if headers:
-            printf("http_send_request")
-            printf("  {}:{}".format(CONFIG_HTTP_HOST, CONFIG_HTTP_TLS_PORT))
-            printf("  {} {}".format(req_type, req_api))
-            printf("  {}".format(headers))
+            if debug:
+                printf("http_send_request")
+                printf("  {}:{}".format(CONFIG_HTTP_HOST, CONFIG_HTTP_TLS_PORT))
+                printf("  {} {}".format(req_type, req_api))
+                printf("  {}".format(headers))
+                if params:
+                    printf("  {}".format(params))
             conn.request(req_type, req_api, params, headers)
-            printf("http_send_request")
-            printf("")
+            if debug:
+                printf("http_send_request")
+                printf("")
         else:
             conn.request(req_type, req_api, params)
         return True
@@ -2802,13 +2806,15 @@ def http_send_request(conn, req_type, req_api, params, headers):
         printf("REQ: Could not communicate with WEBSERVER! {}".format(""))
     return False
 
-def http_recv_response(conn):
+def http_recv_response(conn, debug=True):
     try:
-        printf("http_recv_response")
+        if debug:
+            printf("http_recv_response")
         r1 = conn.getresponse()
-        printf("http_recv_response")
-        printf("  {} {} {}".format(r1.status, r1.reason, r1.length))
-        printf("")
+        if debug:
+            printf("http_recv_response")
+            printf("  {} {} {}".format(r1.status, r1.reason, r1.length))
+            printf("")
         if r1.status == 200:
             file_size = r1.length
             #printf("response = {} {} [{}]".format(r1.status, r1.reason, r1.length))
@@ -2869,16 +2875,46 @@ def http_get_firmware_binary(filename, filesize):
         length, response = http_recv_response(conn)
         if length == 0:
             printf("http_recv_response error")
+            conn.close()
             return False, length
         if length != filesize:
             printf("error length {} != filesize {}".format(length, filesize))
+            conn.close()
             return False, length
         try:
             http_write_to_file(filename, response)
         except Exception as e:
             printf("exception {}".format(e))
+            conn.close()
             return False, length
+    conn.close()
     return result, length
+
+def http_compute_device_password(uuid, serial_number, mac_address):
+
+    password = None
+
+    conn = http_initialize_connection()#host="dev.brtchip-iotportal.com")
+    headers = { "Connection": "keep-alive", "Content-Type": "application/json" }
+    params = json.dumps({ "uuid": uuid, "serialnumber": serial_number, "poemacaddress": mac_address })
+    api = "/devicesimulator/devicepassword"
+
+    result = http_send_request(conn, "GET", api, params, headers, debug=False)
+    if result:
+        length, response = http_recv_response(conn, debug=False)
+        if length == 0:
+            printf("http_recv_response error")
+            conn.close()
+            return None
+        try:
+            response = json.loads(response)
+            password = response["password"]
+        except Exception as e:
+            printf("exception {}".format(e))
+            conn.close()
+            return None
+    conn.close()
+    return password
 
 
 ###################################################################################
@@ -3054,30 +3090,35 @@ def decode_password(secret_key, password):
 
 def compute_password(secret_key, uuid, serial_number, mac_address, debug=False):
 
-    if secret_key=='' or uuid=='' or serial_number=='' or mac_address=='':
-        printf("secret key, uuid, serial number and mac address should not be empty!")
-        return None
+    if True:
+        if secret_key=='' or uuid=='' or serial_number=='' or mac_address=='':
+            printf("secret key, uuid, serial number and mac address should not be empty!")
+            return None
 
-    params = {
-        "uuid": uuid,                  # device uuid
-        "serialnumber": serial_number, # device serial number
-        "poemacaddress": mac_address,  # device mac address in uppercase string ex. AA:BB:CC:DD:EE:FF
-    }
-    password = jwt.encode(params, secret_key, algorithm='HS256')
-    password = password.decode("utf-8")
+        params = {
+            "uuid": uuid,                  # device uuid
+            "serialnumber": serial_number, # device serial number
+            "poemacaddress": mac_address,  # device mac address in uppercase string ex. AA:BB:CC:DD:EE:FF
+        }
+        password = jwt.encode(params, secret_key, algorithm='HS256')
+        password = password.decode("utf-8")
 
-    if debug:
-        printf("")
-        printf("compute_password")
-        printf_json(params)
-        printf(password)
-        printf("")
+        if debug:
+            printf("")
+            printf("compute_password")
+            printf_json(params)
+            printf(password)
+            printf("")
 
-        payload = decode_password(secret_key, password)
-        printf("")
-        printf("decode_password")
-        printf_json(payload)
-        printf("")
+            payload = decode_password(secret_key, password)
+            printf("")
+            printf("decode_password")
+            printf_json(payload)
+            printf("")
+    else:
+        password = http_compute_device_password(uuid, serial_number, mac_address)
+        if password is None:
+            print("Failed retrieving password")
 
     return password
 

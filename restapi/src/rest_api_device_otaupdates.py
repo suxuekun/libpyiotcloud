@@ -641,7 +641,7 @@ class device_otaupdates:
                 return response, status.HTTP_401_UNAUTHORIZED
         else:
             # if has macaddress, password must be the JWT(uuid, serialnumber, macaddress)
-            devicepass_computed = self.compute_password(config.CONFIG_JWT_SECRET_KEY_DEVICE, device["deviceid"], device["serialnumber"], device['poemacaddress'], debug=True)
+            devicepass_computed = self.compute_password(config.CONFIG_JWT_SECRET_KEY_DEVICE, device["deviceid"], device["serialnumber"], device['poemacaddress'], debug=False)
             if devicepass_computed != devicepass:
                 response = json.dumps({'status': 'NG', 'message': 'Invalid password'})
                 print('\r\nERROR Get Device Firmware Updates: Invalid password\r\n')
