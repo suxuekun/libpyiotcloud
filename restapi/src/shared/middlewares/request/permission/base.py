@@ -1,13 +1,22 @@
 from functools import wraps
 
 import flask
+from werkzeug.wrappers import Request
 from shared.middlewares.response import http4xx, make_error_response, make_custom_error_response
 
 
 def getRequest(*args,**kwargs):
+    '''
+    :param args:
+    :param kwargs:
+    :return: Request Instance from parameters
+    '''
+    request = None
     if len(args)>0:
-        request = args[0]
-    else:
+        filtered_args = list(filter(lambda x:isinstance(x,Request)))
+        if (filtered_args and len(filtered_args) > 0):
+            request = filtered_args[0]
+    if not request:
         request = kwargs.get('request')
     if not request:
         request = flask.request
@@ -45,7 +54,7 @@ def request_pass_test(test_func):
     def atholder(f):
         @wraps(f)
         def func(*args,**kwargs):
-            request = getRequest(*args,**kwargs)
+            request = getRequest()
             res, error = test_func(request)
             if res:
                 ret = f(*args, **kwargs)
@@ -62,18 +71,23 @@ def request_pass_test(test_func):
 def _is_exclude_endpoint(request,options = None):
     def _condition(x):
         if isinstance(x,str):
-            return x== request.endpoint
+            return x == request.endpoint
+        if isinstance(x,dict):
+            if x.get('endpoint') == request.endpoint:
+                if x.get('method') and isinstance(x.get('method'),str):
+                    if request.method.lower() == x.get('method').lower():
+                        return True
+                methods = x.get('methods')
+                if methods:
+                    if isinstance(methods,list) or isinstance(methods,tuple):
+                        methods = [method.lower() for method in methods]
+                        return request.method.lower() in methods
+            return False
         pass
     if options:
         excludes = options.get('excludes')
         if excludes and len(excludes)> 0 :
             return any(_condition(x) for x in excludes)
-            # if isinstance(excludes,str):
-            #     return request.endpoint in excludes
-            #
-            # elif isinstance(excludes,dict):
-
-
     return False
 
 '''

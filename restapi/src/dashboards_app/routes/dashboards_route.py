@@ -128,5 +128,5 @@ def get_charts_gateway(dashboardId: str):
 @default_middleware
 @login_required()
 def get_chart_gateway(dashboardId: str, id: str):
-    response = chartGatewayService.get(id)
+    response = chartGatewayService.get(dashboardId, id)
     return response

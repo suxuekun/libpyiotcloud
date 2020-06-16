@@ -62,13 +62,13 @@ endpoint:( naming -- blueprint.func)
 example_blueprint.raw
 
 '''
-@example_blueprint.route("/raw/", methods=['GET'])
+@example_blueprint.route("/raw/<id>/", methods=['GET'])
 @login_required()# remember () after login_required, the decorator is login_required(options=None) not login_required
-def raw():
-    result = 'this is a raw api' # result = someService.someFunc()
+def raw(id):
+    result = 'this is a raw api '+id # result = someService.someFunc()
     return result
 
-@example_blueprint.route("/raw2/", methods=['GET'])
-def raw2():
-    result = 'this is a raw api' # result = someService.someFunc()
+@example_blueprint.route("/raw2/<id>/", methods=['GET'])
+def raw2(id):
+    result = 'this is a raw2 api ' + id # result = someService.someFunc()
     return result

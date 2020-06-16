@@ -3,7 +3,7 @@ from shared.simple_api.resource import GetMixin, PutMixin, DeleteMixin, ListMixi
     PostMixin
 
 class BaseApi():
-    def __init__(self,decorators=None,wrapper_class=None,filter=None,*args,**kwargs):
+    def __init__(self,decorators=None,wrapper_class=None,filter=None,postdto=None,entitydto=None,*args,**kwargs):
         self._id_base = []
         self._list_base = []
         self._id_decorators = {}
@@ -11,6 +11,8 @@ class BaseApi():
         self._decorators = decorators or {}
         self._wrapper_class = wrapper_class
         self._filter = filter
+        self._postdto = postdto
+        self._entitydto = entitydto
 
 class ApiMixin(BaseApi):
     pass
@@ -71,6 +73,8 @@ class BaseSimpleApi(BaseApi):
                 'service':self._service,
                 # member functions
                 "FILTER": self._filter,
+                'POSTDTO':self._postdto,
+                'ENTITYDTO':self._entitydto,
                 'wrapper_class': self._wrapper_class,
             })
         if self._list_base:
@@ -82,6 +86,8 @@ class BaseSimpleApi(BaseApi):
                 'service': self._service,
                 # member functions
                 "FILTER": self._filter,
+                'POSTDTO': self._postdto,
+                'ENTITYDTO': self._entitydto,
                 'wrapper_class': self._wrapper_class
             })
     def _add_resource(self):

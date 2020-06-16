@@ -1,9 +1,7 @@
 from pymongo import MongoClient
-from datetime import datetime
 from .base_repository import BaseRepository
 from shared.core.exceptions import CreatedExeception, DeletedException, QueriedByIdException, QueriedManyException, UpdatedException
 from bson.objectid import ObjectId
-from bson.json_util import dumps
 from shared.utils import timestamp_util
 
 class IMongoBaseRepository:
@@ -12,6 +10,12 @@ class IMongoBaseRepository:
         pass
     
     def gets(self, query=None, projection=None):
+        pass
+    
+    def drop(self):
+        pass
+    
+    def get_one(self,query):
         pass
 
 class MongoBaseRepository(BaseRepository, IMongoBaseRepository):
@@ -44,7 +48,9 @@ class MongoBaseRepository(BaseRepository, IMongoBaseRepository):
             if input["_id"] is not None:
                 input.pop("_id")
                 
-            input["modifiedAt"] = timestamp_util.get_timestamp()
+            input["modifiedAt"] = timestamp_util.get_timestamp()# always update modifiedAt
+            if 'createdAt' in input:# no touch create for update , so will be no changes on this field
+                input.pop('createdAt')
             self.collection.update_one(query, {"$set": input})
             return True
         
@@ -58,7 +64,7 @@ class MongoBaseRepository(BaseRepository, IMongoBaseRepository):
                 "_id": ObjectId(id)
             }
             result = self.collection.find_one(query)
-            result["_id"] = str(result["_id"])
+            result["_id"] = str(result.get("_id"))
             return result
         except Exception as e:
             print(e)
@@ -83,5 +89,19 @@ class MongoBaseRepository(BaseRepository, IMongoBaseRepository):
         except Exception as e:
             print(e)
             raise DeletedException(str(e))
-        
+
+    def drop(self):
+        self.collection.drop()
+
+    def get_one(self,query):
+        try:
+            result = self.collection.find_one(query)
+            if (result):
+                result['_id'] = str(result.get('_id'))
+            return result
+        except Exception as e:
+            print('get_one',e)
+            raise QueriedByIdException(str(e))
+
+
 

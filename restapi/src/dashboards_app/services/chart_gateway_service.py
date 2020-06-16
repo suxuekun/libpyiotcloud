@@ -76,10 +76,10 @@ class ChartGatewayService:
             LoggerService().error(str(e), tag=self.tag)
             return Response.fail("Sorry, there is something wrong")
         
-    def get(self, chartId: str):
+    def get(self, dashboardId: str, chartId: str):
         try:
             attributes = self.attributeRepository.gets()
-            chartEntity = self.chartRepository.getById(chartId)
+            chartEntity = self.chartRepository.get_detail(dashboardId, chartId)
             response = map_charts_gateway_to_response(chartEntity, attributes)
             return Response.success(data = response, message="Get chart responses successfully")
         except Exception as e:
