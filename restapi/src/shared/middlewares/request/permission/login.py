@@ -3,7 +3,7 @@ example assume all request is ok
 '''
 from functools import wraps
 
-from shared.middlewares.request.permission.base import request_pass_test, getRequest, request_pass_test_ignore_excludes
+from shared.middlewares.request.permission.base import request_pass_test_ignore_excludes
 
 
 def _is_authenticated(request):

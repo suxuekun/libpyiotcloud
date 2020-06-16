@@ -1,6 +1,6 @@
 from flask import Response
 
-from shared.middlewares.response import http2xx,http3xx,http4xx
+from shared.middlewares.response import http2xx, http3xx, http4xx, http5xx
 from shared.utils.json_util import to_json
 
 DEFAULT_MIMETYPE = "application/json"
@@ -9,6 +9,7 @@ responses = {}
 responses.update(http2xx.responses)
 responses.update(http3xx.responses)
 responses.update(http4xx.responses)
+responses.update(http5xx.responses)
 
 def register_error_responses(resposes):
     global responses
