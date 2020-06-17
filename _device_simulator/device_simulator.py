@@ -3017,11 +3017,54 @@ def reg_ldsu_descriptors(port=None, as_response=False):
                         ldsu_descriptors.append(ldsu_descriptor)
                 payload = {"value": ldsu_descriptors}
                 publish(topic, payload)
-        else:
+        elif True:
             # send in 1 MQTT packet
             topic = "{}{}{}{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_DEVICE_ID, CONFIG_SEPARATOR, api)
             payload = {"value": g_ldsu_descriptors}
+            for ldsu_descriptor in g_ldsu_descriptors:
+                printf(len(json.dumps(ldsu_descriptor)))
+            printf(len(json.dumps(payload)))
             publish(topic, payload)
+        else:
+            # send in multiple MQTT packets in 1kb chunks
+            # (about 5 LDSUs possible, 172 each = 860)
+            topic = "{}{}{}{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_DEVICE_ID, CONFIG_SEPARATOR, api)
+            chunks = 0
+            maxchunksize = 1024
+            size = 0
+            ldsu_descriptors = []
+
+            for x in range(len(g_ldsu_descriptors)):
+                estimated_len = len(json.dumps(ldsu_descriptors)) + len(json.dumps(g_ldsu_descriptors[x])) + len("{value:[]}")
+                if estimated_len < maxchunksize:
+                    # adding the descriptor will still fit the maxchunksize
+                    ldsu_descriptors.append(g_ldsu_descriptors[x])
+                    size = len(json.dumps(ldsu_descriptors))
+                else:
+                    # adding the descriptor will no longer fit the maxchunksize
+                    # so send the descriptors in the list
+                    payload = {"value": ldsu_descriptors}
+                    printf(estimated_len)
+                    printf(len(json.dumps(payload)))
+                    publish(topic, payload)
+                    # reset size counter
+                    size = 0
+                    ldsu_descriptors = []
+                    chunks += 1
+
+                    # add current descriptor
+                    ldsu_descriptors.append(g_ldsu_descriptors[x])
+                    size = len(json.dumps(ldsu_descriptors))
+            if size:
+                # send the last chunk
+                payload = {"value": ldsu_descriptors}
+                printf(len(json.dumps(payload)))
+                publish(topic, payload)
+                # reset size counter
+                size = 0
+                ldsu_descriptors = []
+                chunks += 1
+            printf("{} LDSUs registered in {} chunks of max size {}".format(len(g_ldsu_descriptors), chunks, maxchunksize))
     else:
         # send all LDSUs for specified port
         topic = "{}{}{}{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_DEVICE_ID, CONFIG_SEPARATOR, api)
