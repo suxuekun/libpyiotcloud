@@ -336,6 +336,13 @@ class database_client:
         if not self._devices.find_device_heartbeats_by_timestamp(deviceid, timestamp):
             self._devices.record_device_heartbeat(deviceid, timestamp)
 
+    def delete_device_heartbeats_by_deviceid(self, deviceid):
+        self._devices.delete_device_heartbeats(deviceid)
+
+    def delete_device_heartbeats(self, username, devicename):
+        self._devices.delete_device_heartbeats(self._devices.get_deviceid(username, devicename))
+
+
     def delete_device_heartbeats_by_timestamp(self, deviceid, timestamp):
         self._devices.delete_device_heartbeats_by_timestamp(deviceid, timestamp)
 
@@ -479,16 +486,16 @@ class database_client:
         deviceid = self._devices.get_deviceid(username, devicename)
         return self._devices.update_device_notification_with_notification_subclass(deviceid, source, notification, notification_subclass, number)
 
-    def delete_device_notification_sensor(self, username, devicename, source):
+    def delete_device_notification_sensor(self, username, devicename, source, number):
         deviceid = self._devices.get_deviceid(username, devicename)
-        return self._devices.delete_device_notification_sensor(deviceid, source)
+        return self._devices.delete_device_notification_sensor(deviceid, source, number)
 
     def delete_device_notification_sensor_ex(self, username, devicename, source, number):
         deviceid = self._devices.get_deviceid(username, devicename)
         return self._devices.delete_device_notification_sensor_ex(deviceid, source, number)
 
-    def delete_device_notification_sensor_by_deviceid(self, deviceid, source):
-        return self._devices.delete_device_notification_sensor(deviceid, source)
+    def delete_device_notification_sensor_by_deviceid(self, deviceid, source, number):
+        return self._devices.delete_device_notification_sensor(deviceid, source, number)
 
     def delete_device_notification(self, username, devicename):
         deviceid = self._devices.get_deviceid(username, devicename)
@@ -578,6 +585,12 @@ class database_client:
     def delete_ldsu(self, username, devicename, uid):
         self._devices.delete_ldsu(self._devices.get_deviceid(username, devicename), uid)
 
+    def delete_ldsus(self, username, devicename):
+        self._devices.delete_ldsus(self._devices.get_deviceid(username, devicename))
+
+    def delete_ldsus_by_deviceid(self, deviceid):
+        self._devices.delete_ldsus(deviceid)
+
 
     ##########################################################
     # sensors
@@ -639,6 +652,12 @@ class database_client:
 
     def delete_device_sensors_by_source(self, username, devicename, source):
         self._devices.delete_device_sensors_by_source(self._devices.get_deviceid(username, devicename), source)
+
+    def delete_device_sensors_by_source_number(self, username, devicename, source, number):
+        self._devices.delete_device_sensors_by_source_number(self._devices.get_deviceid(username, devicename), source, number)
+
+    def delete_device_sensors_by_source_number_by_deviceid(self, deviceid, source, number):
+        self._devices.delete_device_sensors_by_source_number(deviceid, source, number)
 
     def delete_device_sensor(self, username, devicename, sensorname):
         self._devices.delete_device_sensor(username, devicename, sensorname)
@@ -2134,10 +2153,10 @@ class database_client_mongodb:
                 notifications.replace_one({'deviceid': deviceid, 'source': source}, item)
         return item
 
-    def delete_device_notification_sensor(self, deviceid, source):
+    def delete_device_notification_sensor(self, deviceid, source, number):
         notifications = self.get_notifications_document();
         try:
-            notifications.delete_many({'deviceid': deviceid, 'source': source})
+            notifications.delete_many({'deviceid': deviceid, 'source': source, 'number': number})
         except:
             print("delete_device_notification_sensor: Exception occurred")
             pass
@@ -2737,6 +2756,14 @@ class database_client_mongodb:
             print("delete_device_sensors_by_source: Exception occurred")
             pass
 
+    def delete_device_sensors_by_source_number(self, deviceid, source, number):
+        i2csensors = self.get_sensors_document();
+        try:
+            i2csensors.delete_many({'deviceid': deviceid, 'source': source, 'number': number})
+        except:
+            print("delete_device_sensors_by_source: Exception occurred")
+            pass
+
     def delete_device_sensor(self, username, devicename, sensorname):
         i2csensors = self.get_sensors_document();
         try:
@@ -3257,13 +3284,13 @@ class database_client_mongodb:
 #        print(len(dataset["high"][0]))
         return dataset
 
-    def delete_sensor_reading_dataset(self, deviceid, source, address):
+    def delete_sensor_reading_dataset(self, deviceid, source, number):
         sensorreadings = self.get_sensorreadings_dataset_document()
         try:
-            if address is None:
+            if number is None:
                 sensorreadings.delete_many({'deviceid': deviceid, 'source': source})
             else:
-                sensorreadings.delete_many({'deviceid': deviceid, 'source': source, 'address': address})
+                sensorreadings.delete_many({'deviceid': deviceid, 'source': source, 'number': number})
         except:
             print("delete_sensor_reading_dataset: Exception occurred")
             pass
@@ -4746,6 +4773,14 @@ class database_client_mongodb:
                 ldsu_doc.delete_one({ 'deviceid': deviceid, 'UID': uid })
             except:
                 print("delete_ldsu: Exception occurred")
+
+    def delete_ldsus(self, deviceid):
+        ldsu_doc = self.get_ldsu_document()
+        if ldsu_doc:
+            try:
+                ldsu_doc.delete_many({ 'deviceid': deviceid })
+            except:
+                print("delete_ldsus: Exception occurred")
 
 
     ##########################################################

@@ -95,7 +95,10 @@ class device:
         self.database_client.delete_device_notification_by_deviceid(deviceid)
         self.database_client.delete_device_location_by_deviceid(deviceid)
         self.database_client.remove_device_from_devicegroups(entityname, deviceid)
-        self.database_client.delete_menos_transaction_by_deviceid(deviceid)
+        self.database_client.delete_device_heartbeats_by_deviceid(deviceid)
+        self.database_client.delete_ldsus_by_deviceid(deviceid)
+        self.database_client.delete_ota_status_by_deviceid(deviceid)
+        #self.database_client.delete_menos_transaction_by_deviceid(deviceid)
 
         # delete device from database
         self.database_client.delete_device_by_deviceid(deviceid)
@@ -125,7 +128,7 @@ class device:
         #notification = self.database_client.get_device_notification(entityname, devicename, source)
         #print(notification)
         if deviceid:
-            self.database_client.delete_device_notification_sensor_by_deviceid(deviceid, xxx)
+            self.database_client.delete_device_notification_sensor_by_deviceid(deviceid, xxx, int(number))
         else:
             self.database_client.delete_device_notification_sensor(entityname, devicename, xxx, int(number))
         #notification = self.database_client.get_device_notification(entityname, devicename, source)
@@ -137,9 +140,9 @@ class device:
         #config = self.database_client.get_device_peripheral_configuration(entityname, devicename, xxx, int(number), address)
         #print(config)
         if deviceid:
-            self.database_client.delete_device_peripheral_configuration_by_deviceid(deviceid, xxx, int(number), address)
+            self.database_client.delete_device_peripheral_configuration_by_deviceid(deviceid, xxx, int(number), None)
         else:
-            self.database_client.delete_device_peripheral_configuration(entityname, devicename, xxx, int(number), address)
+            self.database_client.delete_device_peripheral_configuration(entityname, devicename, xxx, int(number), None)
         #config = self.database_client.get_device_peripheral_configuration(entityname, devicename, xxx, int(number), address)
         #print(config)
         #print("")
@@ -151,9 +154,9 @@ class device:
         #readings_dataset = self.database_client.get_sensor_reading_dataset(entityname, devicename, source, address)
         #print(readings_dataset)
         if deviceid:
-            self.database_client.delete_sensor_reading_by_deviceid(deviceid, xxx, address)
+            self.database_client.delete_sensor_reading_by_deviceid(deviceid, xxx, int(number))
         else:
-            self.database_client.delete_sensor_reading(entityname, devicename, xxx, address)
+            self.database_client.delete_sensor_reading(entityname, devicename, xxx, int(number))
         #readings = self.database_client.get_sensor_reading(entityname, devicename, source, address)
         #print(readings)
         #readings_dataset = self.database_client.get_sensor_reading_dataset(entityname, devicename, source, address)
@@ -163,9 +166,10 @@ class device:
         # delete sensor from database
         print("Deleting sensor registration...")
         if deviceid:
-            self.database_client.delete_sensor_by_deviceid(deviceid, xxx, number, sensorname)
+            self.database_client.delete_device_sensors_by_source_number_by_deviceid(deviceid, xxx, number)
+            #self.database_client.delete_sensor_by_deviceid(deviceid, xxx, number, sensorname)
         else:
-            self.database_client.delete_sensor(entityname, devicename, xxx, number, sensorname)
+            self.database_client.delete_device_sensors_by_source_number_by(entityname, devicename, xxx, number)
         #result = self.database_client.get_sensor(entityname, devicename, xxx, number, sensorname)
         #print(result)
         #print("")
