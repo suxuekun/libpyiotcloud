@@ -298,8 +298,14 @@ class device_ldsbus:
                         found = True
                         break
                 if not found:
-                    print("not found {}".format(ldsu["UID"]))
-                    self.database_client.set_ldsu_status(entityname, devicename, ldsu["UID"], 0)
+                    if portnumber == "0":
+                        print("not found {}".format(ldsu["UID"]))
+                        self.database_client.set_ldsu_status(entityname, devicename, ldsu["UID"], 0)
+                    else:
+                        if portnumber == ldsu["PORT"]:
+                            # set unreachable if different port
+                            print("not found {}".format(ldsu["UID"]))
+                            self.database_client.set_ldsu_status(entityname, devicename, ldsu["UID"], 0)
 
             # process response
             for descriptor in response["value"]:
@@ -327,7 +333,7 @@ class device_ldsbus:
                             'minmax'   : self.device_client.get_objidx_minmax(descriptor),
                             'obj'      : obj,
                         }
-                        opmodes = g_device_client.get_objidx_modes(descriptor)
+                        opmodes = self.device_client.get_objidx_modes(descriptor)
                         if opmodes:
                             sensor['opmodes'] = []
                             for opmode in opmodes:
