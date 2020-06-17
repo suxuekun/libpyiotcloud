@@ -3184,7 +3184,7 @@ def parse_arguments(argv):
     parser.add_argument('--USE_ECC',              required=False, default=1 if CONFIG_USE_ECC else 0, help='Use ECC instead of RSA')
     parser.add_argument('--USE_AMQP',             required=False, default=1 if CONFIG_USE_AMQP else 0, help='Use AMQP instead of MQTT')
 
-    parser.add_argument('--USE_DEVICE_SECRETKEY', required=False, default='',                   help='Device Secret Key to use')
+    parser.add_argument('--USE_DEVICE_SECRETKEY', required=False, default='',                   help='Device Secret Key to use', nargs='?', const='') # added nargs and const for device restart
     parser.add_argument('--USE_DEVICE_ID',        required=False, default='',                   help='Device ID to use')
     parser.add_argument('--USE_DEVICE_SERIAL',    required=False, default='',                   help='Device Serial Number to use')
     parser.add_argument('--USE_DEVICE_MACADD',    required=False, default='',                   help='Device POE MAC Address to use')
