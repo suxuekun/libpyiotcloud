@@ -19,42 +19,49 @@ class PromocodeService(BaseMongoService):
                 "name": '10 discount',
                 "type": 'percent_discount',
                 "period": 1,
-                "value": "10"
+                "value": "10",
+                "remark": "get 10% discount for first month",
             },{
                 "createdAt": "1592186175",
                 "modifiedAt": "1592186175",
                 "name": '20 discount',
                 "type": 'percent_discount',
                 "period": 1,
-                "value": "20"
+                "value": "20",
+                "remark": "get 20% discount for first month",
+
             },{
                 "createdAt": "1592186175",
                 "modifiedAt": "1592186175",
                 "name": '50 discount',
                 "type": 'percent_discount',
                 "period": 1,
-                "value": "50"
+                "value": "50",
+                "remark": "get 50% discount for first month",
             },{
                 "createdAt": "1592186175",
                 "modifiedAt": "1592186175",
                 "name": '$5 discount',
                 "type": 'discount',
                 "period": 1,
-                "value": "5"
+                "value": "5",
+                "remark": "get $5 discount for first month",
             },{
                 "createdAt": "1592186175",
                 "modifiedAt": "1592186175",
                 "name": '$10 discount',
                 "type": 'discount',
                 "period": 1,
-                "value": "10"
+                "value": "10",
+                "remark": "get $10 discount for first month",
             },{
                 "createdAt": "1592186175",
                 "modifiedAt": "1592186175",
                 "name": '$20 discount',
                 "type": 'discount',
                 "period": 1,
-                "value": "20"
+                "value": "20",
+                "remark": "get $20 discount for first month",
             }
         ]
 
@@ -66,10 +73,9 @@ class PromocodeService(BaseMongoService):
                 "expire": '1592186175',
                 "username": entityname,
                 "info": promos[i].to_primitive(),
-            } for i in range(len(promos)) for _ in range(2)
+            } for i in range(len(promos)) for _ in range(1)
         ]
         self.repo.drop()
-
 
         [self.get_or_create_one(x) for x in dummy]
 

@@ -4,7 +4,7 @@
   </ion-nav-buttons>
   <ion-content padding="true" class="has-header" overflow-scroll="true">
     <label class="item item-input">
-      <span class="input-label"><strong>{{data.subscription.current.plan.name}}</strong></span><span class="pull-right"> {{data.subscription.current.plan.price | currency}}/month</span>
+      <span class="input-label"><strong>{{data.subscription.current.plan.name}}</strong><span ng-if ="data.subscription.status == 'cancel'" style="color:red">(CANCELLED)</span></span><span class="pull-right"> {{data.subscription.current.plan.price | currency}}/month</span>
     
     </label>
     <hr/>
@@ -32,6 +32,6 @@
         <span class="input-label"></span>
       </label>
     <button id="topUpCredits-button13" ng-click="upgrade()" class="button button-positive button-block">UPGRADE SUBSCRIPTION</button>
-    <button ng-if="!(data.subscription.status == cancel) && !(data.subscription.current.plan.price ==0) " ng-click="cancel()" class="button button-assertive button-block">CANCEL SUBSCRIPTION</button>
+    <button ng-if="!(data.subscription.status == 'cancel') && !(data.subscription.current.plan.price ==0) " ng-click="cancel()" class="button button-assertive button-block">CANCEL SUBSCRIPTION</button>
   </ion-content>
 </ion-view>

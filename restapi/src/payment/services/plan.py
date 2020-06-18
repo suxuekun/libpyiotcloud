@@ -1,3 +1,4 @@
+from payment.core import payment_client
 from payment.models.plan import Plan
 from shared.services.logger_service import LoggerService
 from shared.simple_api.service import BaseSimpleApiService, BaseMongoService
@@ -7,6 +8,8 @@ class PlanService(BaseMongoService):
     def __init__(self,*args,**kwargs):
         super(PlanService,self).__init__(*args,**kwargs)
         self.create_dummy()
+        plans = payment_client.plans
+        print("--plans-- ",[plan.id for plan in plans])
 
     def get_free_plan(self):
         return self._free
@@ -23,12 +26,12 @@ class PlanService(BaseMongoService):
 
             },
             {
-                'bt_plan_id': '',
+                'bt_plan_id': 'Pro30',
                 'name': 'Plan C',
 
             },
             {
-                'bt_plan_id': '',
+                'bt_plan_id': 'Enterprise50',
                 'name': 'Plan D',
 
             },
@@ -57,7 +60,7 @@ class PlanService(BaseMongoService):
                 'storage':1000,
             },
             {
-                'bt_plan_id': '',
+                'bt_plan_id': 'Pro30',
                 'name': 'Plan C',
                 'price': "30",
                 'period': 1,
@@ -68,7 +71,7 @@ class PlanService(BaseMongoService):
                 'storage': 3000,
             },
             {
-                'bt_plan_id': '',
+                'bt_plan_id': 'Enterprise50',
                 'name': 'Plan D',
                 'price': "50",
                 'period': 1,

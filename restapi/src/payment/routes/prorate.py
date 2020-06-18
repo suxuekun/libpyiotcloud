@@ -21,6 +21,7 @@ class ProrateResource(Resource,BaseResource):
         promocode = request.args.get('promocode')
         query = self.filtered()
         data = self.service.prorate(old_plan_id=old_plan_id,new_plan_id=new_plan_id,query=query,promocode=promocode)
+
         res = self.to_api_data(data)
         return self.to_result(res)
 

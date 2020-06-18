@@ -1,4 +1,5 @@
 from payment.repositories.billing_address import BillingAddressRepository
+from payment.repositories.customer import CustomerRepository
 from payment.repositories.device import DeviceRepository
 from payment.repositories.plan import PlanRepository
 from payment.repositories.promocode import PromoCodeRepository
@@ -11,13 +12,17 @@ from shared.client.db.mongo.test import TestMongoDB
 payment_db = DefaultMongoDB()#TestMongoDB()
 
 # will config later in config file
-PLAN_COLLECTION = "plan"
-PROMO_CODE_COLLECTION = "promocode"
-SUBSCRIPTION_COLLECTION = 'subscription'
-BILLING_ADDRESS_COLLECTION = 'billing_address'
-TRANSACTION_COLLECTION = "transaction"
+PLAN_COLLECTION = "payment_plan"
+PROMO_CODE_COLLECTION = "payment_promocode"
+SUBSCRIPTION_COLLECTION = 'payment_subscription'
+BILLING_ADDRESS_COLLECTION = 'payment_billing_address'
+TRANSACTION_COLLECTION = "payment_transaction"
+USER_CUSTOMER = 'payment_user_customer'
+
 
 device_repo = DeviceRepository(payment_db,config.CONFIG_MONGODB_TB_DEVICES)
+
+customer_repo = CustomerRepository(payment_db,USER_CUSTOMER)
 
 # will change to s3
 plan_repo = PlanRepository(payment_db,PLAN_COLLECTION)

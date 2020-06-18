@@ -19,6 +19,7 @@ class AbstractPromo(BaseModel,MongoIdMixin):
     type = StringType()
     period = IntType()  # 1 is one time, , x is last for x month
     value = DecimalType()
+    remark = StringType()
 
     def __str__(self):
         return self.name

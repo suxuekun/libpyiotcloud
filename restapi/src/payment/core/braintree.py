@@ -1,6 +1,11 @@
+from decimal import Decimal
+
 import braintree
 from payment.config import braintree_config
 from payment.core.payment import PaymentClient
+from shared.utils.decimal_util import two_decimal_str
+
+
 class BrainTreeClient(PaymentClient):
     def __init__(self):
         mode = braintree.Environment.Production if braintree_config.CONFIG_MODE == "live" else braintree.Environment.Sandbox
@@ -14,8 +19,9 @@ class BrainTreeClient(PaymentClient):
     '''
     ' authentication
     '''
-    def generate_client_token(self):
-        client_token = self.gateway.client_token.generate()
+    def generate_client_token(self,option=None):
+        print('token',option)
+        client_token = self.gateway.client_token.generate(option)
         return client_token
     '''
     ' transaction
@@ -23,49 +29,70 @@ class BrainTreeClient(PaymentClient):
     def find_transaction(self,tid):
         return self.gateway.transaction.find(tid)
     
-    def create_transaction(self, AMOUNT, payment_method_token, device_data = None,submit = True):
+    def create_transaction(self, amount, payment_method_token, device_data = None,submit = True):
+        str(Decimal(amount))
         options = {
-            'amount': str(AMOUNT),
+            'amount': two_decimal_str(amount),
             'payment_method_token': payment_method_token,
             'options': {
                 "submit_for_settlement": submit
             }
         }
+        print(options)
         if device_data:
             options['device_data'] = device_data
         result = self.gateway.transaction.sale(options)
-        return result
+        if (result.is_success):
+            return result.transaction
+        return None
     def commit_transaction(self,tid):
         return self.gateway.transaction.submit_for_settlement(tid)
     '''
     ' plan
     '''
     @property
-    def plan(self):
+    def plans(self):
         plans = self.gateway.plan.all()
         return plans
     
     '''
     ' subscription
     '''
-    def create_subscription(self,options,payment_method_token):
+    def create_subscription(self,options):
         '''
         option = {
-            'payment_method_token': payment_method_token, 
-            'plan_id': plan,
-            'amount' : amount,
+            'id': "create id", # if needed
+            'payment_method_token': "payment_method_token",
+            'plan_id': "new_plan",
+            'price' : "14.00",
         }
         '''
         result = self.gateway.subscription.create(options)
-        return result
+        print("--create--",result)
+        if result.is_success:
+            return result.subscription
+        return None
     
     def update_subscription(self,sub_id,options):
+        '''
+        options = {
+            "id": "new_id",# if change
+            "payment_method_token": "new_payment_method_token",
+            "price": "14.00",
+            "plan_id": "new_plan",
+        }
+        '''
         result = self.gateway.subscription.update(sub_id,options)
-        return result
+        print("--update--", result)
+        if result.is_success:
+            return result.subscription
+        return None
     
     def cancel_subscription(self,sub_id):
         result = self.gateway.subscription.cancel(sub_id)
-        return result
+        if result.is_success:
+            return result.subscription
+        return None
     
     '''
     ' customer
@@ -77,15 +104,25 @@ class BrainTreeClient(PaymentClient):
         return None
     
     def create_customer(self,options=None):
+        '''
+        options={
+            'id':'id',
+            'first_name':user.username
+        }
+        '''
         result = self.gateway.customer.create(options)
         if result.is_success:
             return result.customer
         return None
     
     def create_payment_method(self,customer_id,nonce):
-        return self.gateway.payment_method.create({
+        result = self.gateway.payment_method.create({
             "customer_id": customer_id,
             "payment_method_nonce": nonce
         })
+        print("--create payment method--",result)
+        if result.is_success:
+            return result.payment_method
+        return None
     
         

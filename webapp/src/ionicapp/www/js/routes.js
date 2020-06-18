@@ -97,6 +97,32 @@ angular.module('app.routes', [])
           }
         }
       })
+      .state('menu.transaction', {
+        url: '/page_transaction',
+        params: {
+          username: "",
+          token: ""
+        },
+        views: {
+          'side-menu21': {
+            templateUrl: 'templates/payment/transaction.html',
+            controller: 'transactionCtrl'
+          }
+        }
+      })
+      .state('menu.billing_address', {
+        url: '/page_billing_address',
+        params: {
+          username: "",
+          token: ""
+        },
+        views: {
+          'side-menu21': {
+            templateUrl: 'templates/payment/billing_address.html',
+            controller: 'billingAddressCtrl'
+          }
+        }
+      })
       .state('menu.subscription', {
         url: '/page_subscription',
         params: {
@@ -147,11 +173,49 @@ angular.module('app.routes', [])
           },
           subscription:null,
           plan:null,
+          promocode:null,
         },
         views: {
           'side-menu21': {
             templateUrl: 'templates/payment/confirm_subscription_change.html',
             controller: 'subscriptionConfirmChangeCtrl'
+          }
+        }
+      })
+      .state('menu.subscription_promocode', {
+        url: '/page_subscription_promocode',
+        params: {
+          ui:{
+            title:"",
+            name:""
+          },
+          subscription:null,
+          plan:null,
+          promocode:null,
+        },
+        views: {
+          'side-menu21': {
+            templateUrl: 'templates/payment/promocode.html',
+            controller: 'subscriptionPromocodeCtrl'
+          }
+        }
+      })
+      .state('menu.subscription_payment', {
+        url: '/page_subscription_payment',
+        params: {
+          ui:{
+            title:"",
+            name:""
+          },
+          subscription:null,
+          plan:null,
+          promocode:null,
+          prorate:null,
+        },
+        views: {
+          'side-menu21': {
+            templateUrl: 'templates/payment/pay.html',
+            controller: 'subscriptionPaymentCtrl'
           }
         }
       })

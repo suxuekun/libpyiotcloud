@@ -1,5 +1,5 @@
-CONFIG_MODE='sandbox'
-CONFIG_MERCHANT_ID=''
-CONFIG_PUBLIC_KEY=''
-CONFIG_PRIVATE_KEY=''
-# APP_SECRET_KEY='your unique secret key; a long, random set of characters'
+import os
+CONFIG_MODE = os.environ.get('BRAINTREE_MODE')
+CONFIG_MERCHANT_ID = os.environ.get('BRAINTREE_MERCHANT_ID')
+CONFIG_PUBLIC_KEY = os.environ.get('BRAINTREE_PUBLIC_KEY')
+CONFIG_PRIVATE_KEY = os.environ.get('BRAINTREE_PRIVATE_KEY')

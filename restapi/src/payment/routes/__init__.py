@@ -3,7 +3,7 @@ from flask import Blueprint
 from flask_restful import Api
 
 from payment.routes.billing_address import BillingAddressResource
-from payment.routes.checkout import CheckoutResource
+from payment.routes.checkout import CheckoutResource, CancelSubscriptionResource
 from payment.routes.plan import PlanResource, PlanListResource
 from payment.routes.promocode import PromocodeListResource, PromocodeResource
 from payment.routes.prorate import ProrateResource
@@ -76,6 +76,7 @@ api.add_resource(TokenResource,'/client_token/',endpoint='client_token')
 
 '''B. checkout                        - POST   /payment/checkout/'''
 api.add_resource(CheckoutResource,'/checkout/',endpoint='checkout')
+api.add_resource(CancelSubscriptionResource,'/cancel_subscription/',endpoint="cancel_subscription")
 #
 # api.add_resource(PlanListResource,'/plan/')
 # api.add_resource(PlanResource,'/plan/<id>/')

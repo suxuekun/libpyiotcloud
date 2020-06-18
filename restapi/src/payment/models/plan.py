@@ -1,10 +1,14 @@
 import datetime
 import json
+from decimal import Decimal
+
 from schematics import Model
 from schematics.types import StringType, DecimalType, IntType, BooleanType, ListType, ModelType
 
 from shared.core.model import BaseModel, TimeStampMixin, BaseIotModel
 from shared.utils.schema_util import create_schema, model_to_json_schema
+
+TWOPLACES = Decimal('0.01')
 
 class Usage(Model):
     sms = DecimalType(default=0)
@@ -17,6 +21,10 @@ class AbstractPlan(BaseIotModel,Usage):
     price = DecimalType()
     period = IntType()
     currency = StringType()
+
+    def get_price_str(self,gst=0):
+        price = self.price * Decimal(1+gst/100)
+        return str(price.quantize(TWOPLACES))
 
     def __str__(self):
         return self.name

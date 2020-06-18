@@ -25,6 +25,9 @@ class SubscriptionItem(BaseIotModel):
     plan = ModelType(Plan)
     bt_sub = StringType()
 
+    def get_braintree_subscription_id(self):
+        return self.bt_sub
+
 class SubscripionHistory(SubscriptionItem,AbstractSubscriptionHistory):
     pass
 
@@ -51,6 +54,9 @@ class Subscription(AbstractSubscription,UserMixin):
             self.next.validate()
             self.validate()
         self.draft = None
+
+    def cancel(self):
+        self.status == SubScriptionStatus.CANCEL
 
     def __str__(self):
         return self.device.__str__()

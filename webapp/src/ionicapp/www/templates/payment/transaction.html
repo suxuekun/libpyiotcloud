@@ -1,0 +1,47 @@
+<ion-view title="Transaction" hide-back-button="true" nav-transition="none" id="page61" class="page_width">
+  <ion-nav-buttons side="right" class="has-header">
+    <button class="button button-positive icon ion-refresh" ng-click=""></button>
+  </ion-nav-buttons>
+
+  <ion-content padding="true" class="has-header">
+    <div class = list>
+      <div class="item card" ng-repeat = "transaction in data.transactions" ng-click="viewSubscription(subscription)">
+        <div class="item item-header">
+          <a class="item" href="#" style="margin-top:0px;color:#3C5A99;font-size:18px;">
+            <strong > {{ transaction.name}} </strong>
+            <span class="item-note" style="margin-top:0px;color:#3C5A99;font-size:18px;">
+              {{transaction.value | currency}}
+            </span>
+          </a>
+        </div>
+        <div class="item item-body" >
+          <a class="item" href="#" ng-if="transaction.start">
+            Period:
+            <span class="item-note">
+              {{transaction.start*1000 | date: 'yyyy-MM-dd'}} - {{transaction.end*1000 | date: 'yyyy-MM-dd'}}
+            </span>
+          </a>
+          <a class="item" href="#">
+            Transaction ID :
+            <span class="item-note">
+              {{transaction.bt_trans_id}}
+            </span>
+          </a>
+          <a class="item" href="#">
+            Date:
+            <span class="item-note">
+              {{transaction.date*1000 | date: 'yyyy-MM-dd'}}
+            </span>
+          </a>
+          <a class="item" href="#">
+            Remark:
+            <span class="item-note">
+              {{transaction.remark}}
+            </span>
+          </a>
+
+        </div>
+      </div>
+    </div>
+  </ion-content>
+</ion-view>

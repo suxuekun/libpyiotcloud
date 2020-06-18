@@ -24,7 +24,7 @@ class PaymentClient(object):
     ' plan
     '''
     @property
-    def plan(self):
+    def plans(self):
         return None
     
     '''

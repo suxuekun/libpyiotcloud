@@ -1,0 +1,30 @@
+<ion-view title="Promocode" hide-back-button="true" nav-transition="none" id="pagesubdetail" class="page_width">
+  <ion-nav-buttons side="left" class="has-header">
+    <button class="button button-icon icon ion-android-close" ng-click="back()"></button>
+  </ion-nav-buttons>
+  <ion-content padding="true" class="has-header" overflow-scroll="true">
+    <label class="item item-input">
+      <input ng-model = "promocode"/>
+      <button ng-click="verifyCode()"><i class="icon ion-ios-search"></i></button>
+    </label>
+    <hr/>
+    <div class = list>
+      <div class="item card" ng-repeat = "promocode in data.promocodes" ng-click="chooseCode(promocode)">
+        <div class="item item-header">
+          <p style="margin-top:0px;color:#3C5A99;font-size:18px;">
+              <strong> {{ promocode.info.name }} </strong>
+            </p>
+        </div>
+        <div class="item item-body" >
+          <div class="show-list-numbers-and-dots">
+            <strong><p style="margin-top:0px;color:#444444;font-size:16px;">{{ promocode.code }}</p><strong>
+          </div>
+          <div class="show-list-numbers-and-dots">
+            <p style="margin-top:0px;color:#444444;font-size:12px;">{{ promocode.info.remark }}</p>
+          </div>
+          
+        </div>
+      </div>
+    </div>
+  </ion-content>
+</ion-view>
