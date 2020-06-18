@@ -10722,6 +10722,66 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
     };
 
 
+    // DELETE LDS BUS
+    $scope.deleteLDSBUS = function() {
+        console.log("deleteLDSBUS");
+
+        $ionicPopup.alert({
+            title: 'Delete LDSU',
+            template: 'Are you sure you want to delete all LDSUs in LDS BUS Port ' + $scope.data.activeSection.toString() + '?' + 'This will delete all associated sensors and actuators information.',
+            buttons: [
+                { 
+                    text: 'No',
+                    type: 'button-negative',
+                },
+                {
+                    text: 'Yes',
+                    type: 'button-positive',
+                    onTap: function(e) {
+                        $scope.delete_lds_bus();
+                    }
+                }
+            ]            
+        });
+    };
+
+    $scope.delete_lds_bus = function() {
+        //
+        // DELETE LDS BUS
+        //
+        // - Request:
+        //   DELETE /devices/device/DEVICENAME/ldsbus/PORTNUMBER
+        //   headers: { 'Authorization': 'Bearer ' + token.access }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string }
+        //   { 'status': 'NG', 'message': string }
+        //
+        $http({
+            method: 'DELETE',
+            url: server + '/devices/device/' + $scope.data.devicename + '/ldsbus/' + $scope.data.activeSection.toString(),
+            headers: {'Authorization': 'Bearer ' + $scope.data.token.access}
+        })
+        .then(function (result) {
+            console.log(result.data);
+            $scope.ldsbus = [
+                {
+                    'ldsus': [],
+                    'sensors': [],
+                    'actuators': [],
+                }
+            ];
+            $ionicPopup.alert({
+                title: 'Delete LDS BUS',
+                template: 'Delete LDS BUS was successful!',
+            });
+        })
+        .catch(function (error) {
+            $scope.handle_error(error);
+        }); 
+    };    
+
+
     // SCAN LDS BUS
     $scope.scanLDSBUS = function() {
         console.log("scanLDSBUS");

@@ -24,6 +24,7 @@ from jose import jwk, jwt
 #import statistics
 import rest_api_utils
 from database import database_categorylabel, database_crudindex
+from rest_api_device import device
 
 
 
@@ -44,6 +45,18 @@ class device_ldsbus:
     ########################################################################################################
     # 
     # GET LDS BUS
+    #
+    # - Request:
+    #   GET /devices/device/DEVICENAME/ldsbus/PORTNUMBER
+    #   headers: {'Authorization': 'Bearer ' + token.access}
+    #   // PORT_NUMBER can be 1, 2, 3, or 0 (0 if all lds bus)
+    #
+    # - Response:
+    #   {'status': 'OK', 'message': string, 'ldsbus': obj }
+    #   {'status': 'NG', 'message': string}
+    #
+    # 
+    # DELETE LDS BUS
     #
     # - Request:
     #   GET /devices/device/DEVICENAME/ldsbus/PORTNUMBER
@@ -105,21 +118,40 @@ class device_ldsbus:
             entityname = username
 
 
-        # get ldsus and sensors in database
-        ldsus = self.database_client.get_ldsus_by_port(entityname, devicename, portnumber)
-        sensors = self.database_client.get_sensors_by_port(entityname, devicename, portnumber)
-        ldsbus = [
-            {
-                "ldsus": ldsus,
-                "sensors": sensors,
-                "actuators": [],
-            }
-        ]
+        if flask.request.method == 'GET':
+            # get ldsus and sensors in database
+            ldsus = self.database_client.get_ldsus_by_port(entityname, devicename, portnumber)
+            sensors = self.database_client.get_sensors_by_port(entityname, devicename, portnumber)
+            ldsbus = [
+                {
+                    "ldsus": ldsus,
+                    "sensors": sensors,
+                    "actuators": [],
+                }
+            ]
+            msg = {'status': 'OK', 'message': 'LDSBUS queried successfully.', 'ldsbus': ldsbus}
+
+        elif flask.request.method == 'DELETE':
+            # check if device is registered
+            deviceinfo = self.database_client.find_device(entityname, devicename)
+            if not deviceinfo:
+                response = json.dumps({'status': 'NG', 'message': 'Device is not registered'})
+                print('\r\nERROR Get LDSBUS: Device is not registered [{},{}]\r\n'.format(entityname, devicename))
+                return response, status.HTTP_404_NOT_FOUND
+
+            # cleanup sensors of the LDSUs in the specified port
+            device_client = device(self.database_client, self.messaging_requests)
+            sensors = self.database_client.get_all_device_sensors_by_port_by_deviceid(deviceinfo["deviceid"], portnumber)
+            if sensors is not None:
+                for sensor in sensors:
+                    if sensor.get("source") and sensor.get("number") and sensor.get("sensorname"):
+                        device_client.sensor_cleanup(None, None, deviceinfo["deviceid"], sensor["source"], sensor["number"], sensor["sensorname"], sensor)
+
+            # cleanup LDSUs in the specified port
+            self.database_client.delete_ldsus_by_port_by_deviceid(deviceinfo["deviceid"], portnumber)
+            msg = {'status': 'OK', 'message': 'LDSBUS deleted successfully.'}
 
 
-        msg = {'status': 'OK', 'message': 'LDSBUS queried successfully.'}
-        if ldsbus:
-            msg['ldsbus'] = ldsbus
         if new_token:
             msg['new_token'] = new_token
         response = json.dumps(msg)

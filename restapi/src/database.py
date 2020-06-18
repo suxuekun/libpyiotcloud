@@ -591,6 +591,12 @@ class database_client:
     def delete_ldsus_by_deviceid(self, deviceid):
         self._devices.delete_ldsus(deviceid)
 
+    def delete_ldsus_by_port(self, username, devicename, port):
+        self._devices.delete_ldsus_by_port(self._devices.get_deviceid(username, devicename), port)
+
+    def delete_ldsus_by_port_by_deviceid(self, deviceid, port):
+        self._devices.delete_ldsus_by_port(deviceid, port)
+
 
     ##########################################################
     # sensors
@@ -605,11 +611,11 @@ class database_client:
     def get_all_device_sensors_by_deviceid(self, deviceid):
         return self._devices.get_all_device_sensors(deviceid)
 
+    def get_all_device_sensors_by_port_by_deviceid(self, deviceid, port):
+        return self._devices.get_all_device_sensors_by_port(deviceid, port)
+
     def get_all_device_sensors_enabled_input(self, username, devicename, source=None, number=None, sensorclass=None, sensorstatus=1, type="input"):
         return self._devices.get_all_device_sensors_enabled_input(username, self._devices.get_deviceid(username, devicename), source, number, sensorclass, sensorstatus, type)
-
-    def get_all_device_sensors_by_deviceid(self, deviceid):
-        return self._devices.get_all_device_sensors(deviceid)
 
     def get_all_device_sensors(self, username, devicename):
         return self._devices.get_all_device_sensors(self._devices.get_deviceid(username, devicename))
@@ -2578,6 +2584,17 @@ class database_client_mongodb:
                     i2csensor.pop('devicename')
                 if i2csensor.get('deviceid'):
                     i2csensor.pop('deviceid')
+                sensor_list.append(i2csensor)
+        return sensor_list
+
+    def get_all_device_sensors_by_port(self, deviceid, port):
+        sensor_list = []
+        i2csensors = self.get_sensors_document();
+        if i2csensors:
+            for i2csensor in i2csensors.find({'deviceid': deviceid, 'port': port}):
+                i2csensor.pop('_id')
+                if i2csensor.get('username'):
+                    i2csensor.pop('username')
                 sensor_list.append(i2csensor)
         return sensor_list
 
@@ -4781,6 +4798,14 @@ class database_client_mongodb:
                 ldsu_doc.delete_many({ 'deviceid': deviceid })
             except:
                 print("delete_ldsus: Exception occurred")
+
+    def delete_ldsus_by_port(self, deviceid, port):
+        ldsu_doc = self.get_ldsu_document()
+        if ldsu_doc:
+            try:
+                ldsu_doc.delete_many({ 'deviceid': deviceid, 'PORT': port })
+            except:
+                print("delete_ldsus_by_port: Exception occurred")
 
 
     ##########################################################

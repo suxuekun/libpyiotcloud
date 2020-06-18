@@ -724,6 +724,10 @@ g_device_list = [
 def get_lds_bus(devicename, portnumber):
     return g_device_ldsbus.get_lds_bus(devicename, portnumber)
 
+@app.route('/devices/device/<devicename>/ldsbus/<portnumber>', methods=['DELETE'])
+def delete_lds_bus(devicename, portnumber):
+    return g_device_ldsbus.get_lds_bus(devicename, portnumber)
+
 @app.route('/devices/device/<devicename>/ldsbus/<portnumber>/<component>', methods=['GET'])
 def get_lds_bus_component(devicename, portnumber, component):
     return g_device_ldsbus.get_lds_bus_component(devicename, portnumber, component)
@@ -750,6 +754,7 @@ def identify_ldsu(devicename, ldsuuuid):
 
 g_device_ldsbus_list = [
     { "name": "GET LDS BUS",           "func": get_lds_bus,           "api": "/devices/device/<devicename>/ldsbus/<portnumber>",             "method": "GET"    },
+    { "name": "DELETE LDS BUS",        "func": get_lds_bus,           "api": "/devices/device/<devicename>/ldsbus/<portnumber>",             "method": "DELETE" },
     { "name": "GET LDS BUS COMPONENT", "func": get_lds_bus_component, "api": "/devices/device/<devicename>/ldsbus/<portnumber>/<component>", "method": "GET"    },
     { "name": "SCAN LDS BUS",          "func": scan_lds_bus,          "api": "/devices/device/<devicename>/ldsbus/<portnumber>",             "method": "POST"   },
     { "name": "GET LDSU",              "func": get_ldsu,              "api": "/devices/device/<devicename>/ldsu/<ldsuuuid>",                 "method": "GET"    },
