@@ -148,25 +148,27 @@ SUMMARY:
 	5. Device access and control APIs (LDSBUS)
 
 		A. GET LDS BUS                    - GET    /devices/device/DEVICENAME/ldsbus/PORT
-		B. GET LDS BUS LDSUS              - GET    /devices/device/DEVICENAME/ldsbus/PORT/ldsus
-		C. GET LDS BUS SENSORS            - GET    /devices/device/DEVICENAME/ldsbus/PORT/sensors
-		D. GET LDS BUS ACTUATORS          - GET    /devices/device/DEVICENAME/ldsbus/PORT/actuators
-		E. SCAN LDS BUS                   - POST   /devices/device/DEVICENAME/ldsbus/PORT
+		B. DELETE LDS BUS                 - DELETE /devices/device/DEVICENAME/ldsbus/PORT
+		C. SCAN LDS BUS                   - POST   /devices/device/DEVICENAME/ldsbus/PORT
 
-		F. CHANGE LDSU NAME               - POST   /devices/device/DEVICENAME/ldsu/LDSUUUID/name
-		G. IDENTIFY LDSU                  - POST   /devices/device/DEVICENAME/ldsu/LDSUUUID/identify
+		D. GET LDS BUS LDSUS              - GET    /devices/device/DEVICENAME/ldsbus/PORT/ldsus
+		E. GET LDS BUS SENSORS            - GET    /devices/device/DEVICENAME/ldsbus/PORT/sensors
+		F. GET LDS BUS ACTUATORS          - GET    /devices/device/DEVICENAME/ldsbus/PORT/actuators
 
-		H. GET LDSU                       - GET    /devices/device/DEVICENAME/ldsu/LDSUUUID
-		I. DELETE LDSU                    - DELETE /devices/device/DEVICENAME/ldsu/LDSUUUID
+		G. CHANGE LDSU NAME               - POST   /devices/device/DEVICENAME/ldsu/LDSUUUID/name
+		H. IDENTIFY LDSU                  - POST   /devices/device/DEVICENAME/ldsu/LDSUUUID/identify
+
+		I. GET LDSU                       - GET    /devices/device/DEVICENAME/ldsu/LDSUUUID
+		J. DELETE LDSU                    - DELETE /devices/device/DEVICENAME/ldsu/LDSUUUID
 
 		//
 		// LDSU DEVICE refers to SENSOR or ACTUATOR
-		J. SET LDSU DEVICE PROPERTIES     - POST   /devices/device/DEVICENAME/LDSUUUID/NUMBER/sensors/sensor/SENSORNAME/properties
-		K. GET LDSU DEVICE PROPERTIES     - GET    /devices/device/DEVICENAME/LDSUUUID/NUMBER/sensors/sensor/SENSORNAME/properties
-		L. DELETE LDSU DEVICE PROPERTIES  - DELETE /devices/device/DEVICENAME/LDSUUUID/NUMBER/sensors/sensor/SENSORNAME/properties
+		K. SET LDSU DEVICE PROPERTIES     - POST   /devices/device/DEVICENAME/LDSUUUID/NUMBER/sensors/sensor/SENSORNAME/properties
+		L. GET LDSU DEVICE PROPERTIES     - GET    /devices/device/DEVICENAME/LDSUUUID/NUMBER/sensors/sensor/SENSORNAME/properties
+		M. DELETE LDSU DEVICE PROPERTIES  - DELETE /devices/device/DEVICENAME/LDSUUUID/NUMBER/sensors/sensor/SENSORNAME/properties
 
-		M. ENABLE/DISABLE LDSU DEVICE     - POST   /devices/device/DEVICENAME/LDSUUUID/NUMBER/sensors/sensor/SENSORNAME/enable
-		N. CHANGE LDSU DEVICE NAME        - POST   /devices/device/DEVICENAME/LDSUUUID/NUMBER/sensors/sensor/SENSORNAME/name
+		N. ENABLE/DISABLE LDSU DEVICE     - POST   /devices/device/DEVICENAME/LDSUUUID/NUMBER/sensors/sensor/SENSORNAME/enable
+		O. CHANGE LDSU DEVICE NAME        - POST   /devices/device/DEVICENAME/LDSUUUID/NUMBER/sensors/sensor/SENSORNAME/name
 
 
 	6. Device access and control APIs (STATUS, UART, GPIO)
@@ -1582,7 +1584,28 @@ DETAILED:
 		   // "unreachable" means the LDSU is not currently present but was previously registered by the IoT Gateway (ex. the LDSU was unplugged)
 		   { 'status': 'NG', 'message': string }
 
-		B. GET LDS BUS LDSUS
+		B. DELETE LDS BUS
+		-  Request:
+		   DELETE /devices/device/DEVICENAME/ldsbus/PORT
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		   // PORT_NUMBER can be 1, 2, 3, or 0 (0 if all lds bus)
+		-  Response:
+		   { 'status': 'OK', 'message': string}
+		   { 'status': 'NG', 'message': string}
+
+		C. SCAN LDS BUS
+		-  Request:
+		   POST /devices/device/DEVICENAME/ldsbus/PORT
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		   // PORT_NUMBER can be 1, 2, 3, or 0 (0 if all lds bus)
+		-  Response:
+		   { 'status': 'OK', 'message': string, 'ldsbus': json_object }
+		   { 'status': 'NG', 'message': string }
+		   // This is exactly the same as GET LDS BUS
+		   // The only difference is that this API queries the device itself (to get the latest information, ex. if an LDSU was unplugged)
+		   // Refer to the return value of GET LDS BUS
+
+		D. GET LDS BUS LDSUS
 		-  Request:
 		   GET /devices/device/DEVICENAME/ldsbus/PORT/ldsus
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -1615,7 +1638,7 @@ DETAILED:
 		   // "unreachable" means the LDSU is not currently present but was previously registered by the IoT Gateway (ex. the LDSU was unplugged)
 		   { 'status': 'NG', 'message': string }
 
-		C. GET LDS BUS SENSORS
+		E. GET LDS BUS SENSORS
 		-  Request:
 		   GET /devices/device/DEVICENAME/ldsbus/PORT/sensors
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -1664,7 +1687,7 @@ DETAILED:
 		   // if PORT_NUMBER is 0, ldsbus contains all 3 ports so ldsbus is an arry of 3 items
 		   { 'status': 'NG', 'message': string }
 
-		D. GET LDS BUS ACTUATORS
+		F. GET LDS BUS ACTUATORS
 		-  Request:
 		   GET /devices/device/DEVICENAME/ldsbus/PORT/actuators
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -1680,19 +1703,7 @@ DETAILED:
 		   // if PORT_NUMBER is 0, ldsbus contains all 3 ports so ldsbus is an arry of 3 items
 		   { 'status': 'NG', 'message': string }
 
-		E. SCAN LDS BUS
-		-  Request:
-		   POST /devices/device/DEVICENAME/ldsbus/PORT
-		   headers: {'Authorization': 'Bearer ' + token.access}
-		   // PORT_NUMBER can be 1, 2, 3, or 0 (0 if all lds bus)
-		-  Response:
-		   { 'status': 'OK', 'message': string, 'ldsbus': json_object }
-		   { 'status': 'NG', 'message': string }
-		   // This is exactly the same as GET LDS BUS
-		   // The only difference is that this API queries the device itself (to get the latest information, ex. if an LDSU was unplugged)
-		   // Refer to the return value of GET LDS BUS
-
-		F. CHANGE LDSU NAME
+		G. CHANGE LDSU NAME
 		-  Request:
 		   POST /devices/device/DEVICENAME/ldsu/LDSUUUID/name
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -1702,7 +1713,7 @@ DETAILED:
 		   { 'status': 'NG', 'message': string }
 		   // LDSUUUID refers to ldsu["UID"]. Refer to GET LDSU.
 
-		G. IDENTIFY LDSU
+		H. IDENTIFY LDSU
 		-  Request:
 		   POST /devices/device/DEVICENAME/ldsu/LDSUUUID/identify
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -1711,7 +1722,7 @@ DETAILED:
 		   { 'status': 'NG', 'message': string }
 		   // LDSUUUID refers to ldsu["UID"]. Refer to GET LDSU.
 
-		H. GET LDSU
+		I. GET LDSU
 		-  Request:
 		   GET /devices/device/DEVICENAME/ldsu/LDSUUUID
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -1737,7 +1748,7 @@ DETAILED:
 		    }
 		   // LDSUUUID refers to ldsu["UID"]. Refer to GET LDSU.
 
-		I. DELETE LDSU
+		J. DELETE LDSU
 		-  Request:
 		   DELETE /devices/device/DEVICENAME/ldsu/LDSUUUID
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -1745,7 +1756,7 @@ DETAILED:
 		   { 'status': 'OK', 'message': string }
 		   // LDSUUUID refers to ldsu["UID"]. Refer to GET LDSU.
 
-		J. SET LDSU DEVICE (SENSOR/ACTUATOR) PROPERTIES
+		K. SET LDSU DEVICE (SENSOR/ACTUATOR) PROPERTIES
 		-  Request:
 		   POST /devices/device/DEVICENAME/LDSUUUID/NUMBER/sensors/sensor/SENSORNAME/properties
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -1825,7 +1836,7 @@ DETAILED:
 		   //     appears when mode is continuous
 		   //
 
-		K. GET LDSU DEVICE (SENSOR/ACTUATOR) PROPERTIES
+		L. GET LDSU DEVICE (SENSOR/ACTUATOR) PROPERTIES
 		-  Request:
 		   GET /devices/device/DEVICENAME/LDSUUUID/NUMBER/sensors/sensor/SENSORNAME/properties
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -1858,7 +1869,7 @@ DETAILED:
 		   // NUMBER refers to the sensor["number"]. Refer to GET LDS BUS SENSORS.
 		   // SENSORNAME refers to the sensor["sensorname"]. Refer to GET LDS BUS SENSORS.
 
-		L. DELETE LDSU DEVICE (SENSOR/ACTUATOR) PROPERTIES
+		M. DELETE LDSU DEVICE (SENSOR/ACTUATOR) PROPERTIES
 		-  Request:
 		   DELETE /devices/device/DEVICENAME/LDSUUUID/NUMBER/sensors/sensor/SENSORNAME/properties
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -1869,7 +1880,7 @@ DETAILED:
 		   // NUMBER refers to the sensor["number"]. Refer to GET LDS BUS SENSORS.
 		   // SENSORNAME refers to the sensor["sensorname"]. Refer to GET LDS BUS SENSORS.
 
-		M. ENABLE/DISABLE LDSU DEVICE (SENSOR/ACTUATOR)
+		N. ENABLE/DISABLE LDSU DEVICE (SENSOR/ACTUATOR)
 		-  Request:
 		   POST /devices/device/DEVICENAME/LDSUUUID/NUMBER/sensors/sensor/SENSORNAME/enable
 		   headers: {'Authorization': 'Bearer ' + token.access}
@@ -1882,7 +1893,7 @@ DETAILED:
 		   // NUMBER refers to the sensor["number"]. Refer to GET LDS BUS SENSORS.
 		   // SENSORNAME refers to the sensor["sensorname"]. Refer to GET LDS BUS SENSORS.
 
-		N. CHANGE LDSU DEVICE (SENSOR/ACTUATOR) NAME
+		O. CHANGE LDSU DEVICE (SENSOR/ACTUATOR) NAME
 		-  Request:
 		   POST /devices/device/DEVICENAME/LDSUUUID/NUMBER/sensors/sensor/SENSORNAME/name
 		   headers: {'Authorization': 'Bearer ' + token.access}
