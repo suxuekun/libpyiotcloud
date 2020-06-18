@@ -59,7 +59,7 @@ SUMMARY:
 		A. SET GATEWAY DESCRIPTOR           set_descriptor         // auto-register
 		B. GET GATEWAY DESCRIPTOR           get_descriptor         // query-based
 		C. SET LDSU DESCRIPTORS             set_ldsu_descriptors   // auto-register
-		D. GET LDSU DESCRIPTOR              get_ldsu_descriptors   // query-based
+		D. GET LDSU DESCRIPTORS             get_ldsu_descriptors   // query-based
 		E. IDENTIFY LDSU                    identify_ldsu
 		F. ENABLE LDSU DEVICE               enable_ldsu_dev
 
@@ -340,47 +340,50 @@ DETAILED:
 		C. SET LDSU DESCRIPTORS
 		-  Publish:
 		   topic: server/DEVICEID/set_ldsu_descs
-		   topic: server/DEVICEID/set_ldsu_descs/PORTNUM // if /PORTNUM is present, then all PORT in payload should be equal to PORTNUM
 		   payload: { 
-		     'value': {
-		       "LDS": [
-		       {
-		         "IID":  "12345",             // LDSU Instance ID. IID is unique within the GW
-		         "PORT": "1",                 // Port number
-		         "DID":  "1",                 // LDS device ID from eeprom. DID is unique within the Port
+		     'value': [
+		         {
+		           "IID":  "12345",             // LDSU Instance ID. IID is unique within the GW
+		           "PORT": "1",                 // Port number
+		           "DID":  "1",                 // LDS device ID from eeprom. DID is unique within the Port
 
-		         "PRV":  "1.0",               // Product version
-		         "MFG":  "DDMMYYYY",          // Manufacturing date
-		         "SNO":  "BRT12345",          // Serial Number
-		         "UID":  "BRTXXXXXXXXXXXXX",  // UUID
-		         "NAME": "BRT 4-in-1 Sensor", // Name of the Sensor //"BRT 4-in-1 Sensor", "Thermocouple", "Air Quality Sensor"
+		           "PRV":  "1.0",               // Product version
+		           "MFG":  "DDMMYYYY",          // Manufacturing date
+		           "SNO":  "BRT12345",          // Serial Number
+		           "UID":  "BRTXXXXXXXXXXXXX",  // UUID
+		           "NAME": "BRT 4-in-1 Sensor", // Name of the Sensor //"BRT 4-in-1 Sensor", "Thermocouple", "Air Quality Sensor"
 
-		         "OBJ":  "32768"              // LDSU Object type   //"32768", "32769", "32770"
-		       },
-		       {
-		         "IID":  string,
-		         "PORT": string,
-		         "DID":  string,
-		         "PRV":  string,
-		         "MFG":  string,
-		         "SNO":  string,
-		         "UID":  string,
-		         "NAME": string,
-		         "OBJ":  string,
-		       },
-		       {
-		         "IID":  string,
-		         "PORT": string,
-		         "DID":  string,
-		         "PRV":  string,
-		         "MFG":  string,
-		         "SNO":  string,
-		         "UID":  string,
-		         "NAME": string,
-		         "OBJ":  string,
-		       },
-		       ...
-		       ]
+		           "OBJ":  "32768"              // LDSU Object type   //"32768", "32769", "32770"
+		         },
+		         {
+		           "IID":  string,
+		           "PORT": string,
+		           "DID":  string,
+		           "PRV":  string,
+		           "MFG":  string,
+		           "SNO":  string,
+		           "UID":  string,
+		           "NAME": string,
+		           "OBJ":  string,
+		         },
+		         {
+		           "IID":  string,
+		           "PORT": string,
+		           "DID":  string,
+		           "PRV":  string,
+		           "MFG":  string,
+		           "SNO":  string,
+		           "UID":  string,
+		           "NAME": string,
+		           "OBJ":  string,
+		         },
+		         ...
+		       ],
+		     ],
+		     "chunk": {
+		       "TSEQ": string // total num of chunks in the sequence (ex. 16 chunks)
+		       "SEQN": string // sequence number (ex. 0-15)
+		       "TOT": string  // total num of LDSUs in the sequence (used for verification)
 		     }
 		   }
 		
@@ -390,10 +393,17 @@ DETAILED:
 		   payload: {'PORT': string}
 		   // port can be "1","2","3". If "0", then query is for all ports
 		-  Publish:
-		   topic: server/DEVICEID/get_ldsu_descs
+
+		   // This api is used is SCAN LDS BUS
+		   // To support multiple chunks, the response is composed of 2 parts:
+		   // 1. Send the multiple chunks via set_ldsu_descs
+		   // 2. Send the empty response to get_ldsu_descs
+
+		   // PART 1. 
+		   // Before sending empty response get_ldsu_descs, send the multiple chunks via set_ldsu_descs
+		   topic: server/DEVICEID/set_ldsu_descs
 		   payload: { 
-		     'value': {
-		       "LDS": [
+		     'value': [
 		       {
 		         "IID":  "12345",             // LDSU Instance ID
 		         "PORT": "1",                 // Port number
@@ -428,8 +438,17 @@ DETAILED:
 		         "OBJ":  string,
 		       },
 		       ...
+		     ],
+		     "chunk": {
+		       "TSEQ": string // total num of chunks in the sequence (ex. 16 chunks)
+		       "SEQN": string // sequence number (ex. 0-15)
+		       "TOT": string  // total num of LDSUs in the sequence (used for verification)
 		     }
 		   }
+		   // PART 2. 
+		   // After sending the multiple chunks via set_ldsu_descs, need to respond with get_ldsu_descs
+		   topic: server/DEVICEID/get_ldsu_descs
+		   payload: {}
 
 		E. IDENTIFY LDSU
 		-  Receive:

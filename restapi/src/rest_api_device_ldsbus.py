@@ -1,7 +1,7 @@
 #import os
 #import ssl
 import json
-#import time
+import time
 #import hmac
 #import hashlib
 import flask
@@ -106,11 +106,6 @@ class device_ldsbus:
         # get entity using the active organization
         orgname, orgid = self.database_client.get_active_organization(username)
         if orgname is not None:
-            # check authorization
-            if self.database_client.is_authorized(username, orgname, orgid, database_categorylabel.DEVICES, database_crudindex.READ) == False:
-                response = json.dumps({'status': 'NG', 'message': 'Authorization failed! User is not allowed to access resource. Please check with the organization owner regarding policies assigned.'})
-                print('\r\nERROR Get LDSBUS: Authorization not allowed [{}]\r\n'.format(username))
-                return response, status.HTTP_401_UNAUTHORIZED
             # has active organization
             entityname = "{}.{}".format(orgname, orgid)
         else:
@@ -119,6 +114,13 @@ class device_ldsbus:
 
 
         if flask.request.method == 'GET':
+            if orgname is not None:
+                # check authorization
+                if self.database_client.is_authorized(username, orgname, orgid, database_categorylabel.DEVICES, database_crudindex.READ) == False:
+                    response = json.dumps({'status': 'NG', 'message': 'Authorization failed! User is not allowed to access resource. Please check with the organization owner regarding policies assigned.'})
+                    print('\r\nERROR Get LDSBUS: Authorization not allowed [{}]\r\n'.format(username))
+                    return response, status.HTTP_401_UNAUTHORIZED
+
             # get ldsus and sensors in database
             ldsus = self.database_client.get_ldsus_by_port(entityname, devicename, portnumber)
             sensors = self.database_client.get_sensors_by_port(entityname, devicename, portnumber)
@@ -132,6 +134,13 @@ class device_ldsbus:
             msg = {'status': 'OK', 'message': 'LDSBUS queried successfully.', 'ldsbus': ldsbus}
 
         elif flask.request.method == 'DELETE':
+            if orgname is not None:
+                # check authorization
+                if self.database_client.is_authorized(username, orgname, orgid, database_categorylabel.DEVICES, database_crudindex.DELETE) == False:
+                    response = json.dumps({'status': 'NG', 'message': 'Authorization failed! User is not allowed to access resource. Please check with the organization owner regarding policies assigned.'})
+                    print('\r\nERROR Get LDSBUS: Authorization not allowed [{}]\r\n'.format(username))
+                    return response, status.HTTP_401_UNAUTHORIZED
+
             # check if device is registered
             deviceinfo = self.database_client.find_device(entityname, devicename)
             if not deviceinfo:
@@ -320,7 +329,14 @@ class device_ldsbus:
         response = json.loads(response)
 
 
-        if True:
+        if response.get("value") is None:
+            # async handling for multiple chunks
+            # do nothing
+            time.sleep(1)
+            pass
+        else:
+            # sync handling for single chunk
+
             # set status for non-present LDSUs
             ldsus = self.database_client.get_ldsus(entityname, devicename)
             for ldsu in ldsus:
@@ -378,23 +394,21 @@ class device_ldsbus:
                                 })
                         self.database_client.add_sensor(entityname, devicename, source, number, sensorname, sensor)
 
-            # get ldsus and sensors in database
-            ldsus = self.database_client.get_ldsus_by_port(entityname, devicename, portnumber)
+
+        # get ldsus and sensors in database
+        ldsus = self.database_client.get_ldsus_by_port(entityname, devicename, portnumber)
+        print(len(ldsus))
+        if len(ldsus):
             sensors = self.database_client.get_sensors_by_port(entityname, devicename, portnumber)
-            ldsbus = [
-                {
-                    "ldsus": ldsus,
-                    "sensors": sensors,
-                    "actuators": [],
-                }
-            ]
         else:
-            ldsbus = response["value"]
-            ldsus = ldsbus[0]["ldsus"]
-            for ldsu in ldsus:
-                ldsu["LABL"] = ldsu["NAME"]
-                print(ldsu)
-            print(ldsbus)
+            sensors = []
+        ldsbus = [
+            {
+                "ldsus": ldsus,
+                "sensors": sensors,
+                "actuators": [],
+            }
+        ]
 
 
         msg = {'status': 'OK', 'message': 'LDSBUS queried successfully.'}

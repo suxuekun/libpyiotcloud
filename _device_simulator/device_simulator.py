@@ -19,6 +19,7 @@ from logging.handlers import RotatingFileHandler
 from logging import handlers
 import jwt # now using pyjwt instead of jose
 import device_client
+import math
 
 
 
@@ -302,10 +303,10 @@ API_GET_LDSU_DESCS               = "get_ldsu_descs"
 API_IDENTIFY_LDSU                = "identify_ldsu"
 
 # ldsu
-API_GET_LDSU_DEVICES              = "get_ldsu_devs"
-API_ENABLE_LDSU_DEVICE            = "enable_ldsu_dev"
-API_GET_LDSU_DEVICE_PROPERTIES    = "get_ldsu_dev_prop"
-API_SET_LDSU_DEVICE_PROPERTIES    = "set_ldsu_dev_prop"
+API_GET_LDSU_DEVICES             = "get_ldsu_devs"
+API_ENABLE_LDSU_DEVICE           = "enable_ldsu_dev"
+API_GET_LDSU_DEVICE_PROPERTIES   = "get_ldsu_dev_prop"
+API_SET_LDSU_DEVICE_PROPERTIES   = "set_ldsu_dev_prop"
 
 
 
@@ -3000,39 +3001,17 @@ def reg_gateway_descriptor():
 def reg_ldsu_descriptors(port=None, as_response=False):
     printf("")
     printf("Register LDSU descriptors")
-    api = API_SET_LDSU_DESCS
-    if as_response:
-        api = API_GET_LDSU_DESCS
 
-    if port is None:
-        # send all LDSUs
-        if False:
-            # send LDSU descriptors in multiple chunks 
-            # (ex. if 80 LDSUs, then can send by port or by any number of LDSUs)
-            topic = "{}{}{}{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_DEVICE_ID, CONFIG_SEPARATOR, api)
-            for port in range(3):
-                ldsu_descriptors = []
-                for ldsu_descriptor in g_ldsu_descriptors:
-                    if ldsu_descriptor["PORT"] == str(port+1):
-                        ldsu_descriptors.append(ldsu_descriptor)
-                payload = {"value": ldsu_descriptors}
-                publish(topic, payload)
-        elif True:
-            # send in 1 MQTT packet
-            topic = "{}{}{}{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_DEVICE_ID, CONFIG_SEPARATOR, api)
-            payload = {"value": g_ldsu_descriptors}
-            for ldsu_descriptor in g_ldsu_descriptors:
-                printf(len(json.dumps(ldsu_descriptor)))
-            printf(len(json.dumps(payload)))
-            publish(topic, payload)
-        else:
-            # send in multiple MQTT packets in 1kb chunks
-            # (about 5 LDSUs possible, 172 each = 860)
-            topic = "{}{}{}{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_DEVICE_ID, CONFIG_SEPARATOR, api)
+    if True: #port is None:
+        # send all LDSUs in chunks
+        if True:
+            # send LDSU descriptors in multiple MQTT packets of 1kb chunks (about 5 LDSUs possible, 172 each = 860)
+            topic = "{}{}{}{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_DEVICE_ID, CONFIG_SEPARATOR, API_SET_LDSU_DESCS)
             chunks = 0
             maxchunksize = 1024
             size = 0
             ldsu_descriptors = []
+            total_chunks = math.ceil(len(g_ldsu_descriptors)/5)
 
             for x in range(len(g_ldsu_descriptors)):
                 estimated_len = len(json.dumps(ldsu_descriptors)) + len(json.dumps(g_ldsu_descriptors[x])) + len("{value:[]}")
@@ -3043,7 +3022,10 @@ def reg_ldsu_descriptors(port=None, as_response=False):
                 else:
                     # adding the descriptor will no longer fit the maxchunksize
                     # so send the descriptors in the list
-                    payload = {"value": ldsu_descriptors}
+                    payload = {
+                        "value": ldsu_descriptors, 
+                        "chunk": { "SEQN": str(chunks), "TSEQ": str(total_chunks), "TOT": str(len(g_ldsu_descriptors)) } 
+                    }
                     printf(estimated_len)
                     printf(len(json.dumps(payload)))
                     publish(topic, payload)
@@ -3057,15 +3039,58 @@ def reg_ldsu_descriptors(port=None, as_response=False):
                     size = len(json.dumps(ldsu_descriptors))
             if size:
                 # send the last chunk
-                payload = {"value": ldsu_descriptors}
+                payload = {
+                    "value": ldsu_descriptors, 
+                    "chunk": { "SEQN": str(chunks), "TSEQ": str(total_chunks), "TOT": str(len(g_ldsu_descriptors)) } 
+                }
                 printf(len(json.dumps(payload)))
                 publish(topic, payload)
                 # reset size counter
                 size = 0
                 ldsu_descriptors = []
                 chunks += 1
+
+            # respond to API_GET_LDSU_DESCS (note that above was all to API_SET_LDSU_DESCS)
+            if as_response:
+                topic = "{}{}{}{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_DEVICE_ID, CONFIG_SEPARATOR, API_GET_LDSU_DESCS)
+                payload = {}
+                publish(topic, payload)
+
             printf("{} LDSUs registered in {} chunks of max size {}".format(len(g_ldsu_descriptors), chunks, maxchunksize))
+
+        elif False:
+            # send LDSU descriptors in 1 MQTT packet
+            api = API_SET_LDSU_DESCS
+            if as_response:
+                api = API_GET_LDSU_DESCS
+
+            topic = "{}{}{}{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_DEVICE_ID, CONFIG_SEPARATOR, api)
+            payload = {"value": g_ldsu_descriptors}
+            for ldsu_descriptor in g_ldsu_descriptors:
+                printf(len(json.dumps(ldsu_descriptor)))
+            printf(len(json.dumps(payload)))
+            publish(topic, payload)
+
+        elif False:
+            # send LDSU descriptors in 3 multiple chunks per port
+            # (ex. if 80 LDSUs, then can send by port or by any number of LDSUs)
+            api = API_SET_LDSU_DESCS
+            if as_response:
+                api = API_GET_LDSU_DESCS
+
+            topic = "{}{}{}{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_DEVICE_ID, CONFIG_SEPARATOR, api)
+            for port in range(3):
+                ldsu_descriptors = []
+                for ldsu_descriptor in g_ldsu_descriptors:
+                    if ldsu_descriptor["PORT"] == str(port+1):
+                        ldsu_descriptors.append(ldsu_descriptor)
+                payload = {"value": ldsu_descriptors}
+                publish(topic, payload)
     else:
+        api = API_SET_LDSU_DESCS
+        if as_response:
+            api = API_GET_LDSU_DESCS
+
         # send all LDSUs for specified port
         topic = "{}{}{}{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_DEVICE_ID, CONFIG_SEPARATOR, api)
         ldsu_descriptors = []
