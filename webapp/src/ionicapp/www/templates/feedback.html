@@ -2,28 +2,27 @@
   <ion-content padding="true" class="has-header">
     <div class="spacer" style="width: 300px; height: 12px;"></div>
     <form id="feedback-form57" class="list">
+      <div id="feedback-markdown71" class="show-list-numbers-and-dots">
+        <p style="color:#444444;">How likely would you recommend this product to your colleagues and friends?</p>
+      </div>
+      <form id="feedback-form58" class="list">
+        <div id="feedback-button-bar5" class="button-bar">
+          <button id="feedback-button73" ng-class="{'active': data.feedback.rating==1}" class="button button-energized button-block button-clear"></button>
+          <button id="feedback-button166" ng-class="{'active': data.feedback.rating==1}" class="button button-energized button-block button-clear"></button>
+          <button id="feedback-button162" ng-class="{'active': data.feedback.rating==1}" ng-click="changeSection(1)" class="button button-energized button-block button-clear icon ion-android-star-outline"></button>
+          <button id="feedback-button67" ng-class="{'active': data.feedback.rating==2}" ng-click="changeSection(2)" class="button button-energized button-block button-clear icon ion-android-star-outline"></button>
+          <button id="feedback-button68" ng-class="{'active': data.feedback.rating==3}" ng-click="changeSection(3)" class="button button-energized button-block button-clear icon ion-android-star-outline"></button>
+          <button id="feedback-button70" ng-class="{'active': data.feedback.rating==4}" ng-click="changeSection(4)" class="button button-energized button-block button-clear icon ion-android-star-outline"></button>
+          <button id="feedback-button71" ng-class="{'active': data.feedback.rating==5}" ng-click="changeSection(5)" class="button button-energized button-block button-clear icon ion-android-star-outline"></button>
+          <button id="feedback-button163" ng-class="{'active': data.feedback.rating==5}" class="button button-energized button-block button-clear"></button>
+          <button id="feedback-button168" ng-class="{'active': data.feedback.rating==5}" class="button button-energized button-block button-clear"></button>
+        </div>
+      </form>
       <div id="feedback-markdown26" class="show-list-numbers-and-dots">
         <p style="color:#444444;">What would you like to share with us?</p>
       </div>
       <label class="item item-input message_textarea" id="feedback-textarea9">
         <span class="input-label"></span><textarea placeholder="Your thoughts ..." ng-model="data.feedback.feedback"></textarea></label>
-    </form>
-    <form id="feedback-form58" class="list">
-      <div id="feedback-markdown71" class="show-list-numbers-and-dots">
-        <p style="color:#444444;">How likely would you recommend this product to your colleagues and friends?</p>
-      </div>
-      <div id="feedback-button-bar5" class="button-bar">
-        <button id="feedback-button73" ng-class="{'active': data.feedback.rating==1}" ng-click="changeSection(1)" class="button button-positive button-small button-block">1</button>
-        <button id="feedback-button67" ng-class="{'active': data.feedback.rating==2}" ng-click="changeSection(2)" class="button button-positive button-small button-block">2</button>
-        <button id="feedback-button68" ng-class="{'active': data.feedback.rating==3}" ng-click="changeSection(3)" class="button button-positive button-small button-block">3</button>
-        <button id="feedback-button70" ng-class="{'active': data.feedback.rating==4}" ng-click="changeSection(4)" class="button button-positive button-small button-block">4</button>
-        <button id="feedback-button71" ng-class="{'active': data.feedback.rating==5}" ng-click="changeSection(5)" class="button button-positive button-small button-block">5</button>
-        <button id="feedback-button72" ng-class="{'active': data.feedback.rating==6}" ng-click="changeSection(6)" class="button button-positive button-small button-block">6</button>
-        <button id="feedback-button78" ng-class="{'active': data.feedback.rating==7}" ng-click="changeSection(7)" class="button button-positive button-small button-block">7</button>
-        <button id="feedback-button83" ng-class="{'active': data.feedback.rating==8}" ng-click="changeSection(8)" class="button button-positive button-small button-block">8</button>
-        <button id="feedback-button85" ng-class="{'active': data.feedback.rating==9}" ng-click="changeSection(9)" class="button button-positive button-small button-block">9</button>
-        <button id="feedback-button86" ng-class="{'active': data.feedback.rating==10}" ng-click="changeSection(10)" class="button button-positive button-small button-block">10</button>
-      </div>
     </form>
     <form id="feedback-form60" class="list">
       <ion-checkbox id="feedback-checkbox11" ng-model="data.feedback.contactme">OK to contact me</ion-checkbox>

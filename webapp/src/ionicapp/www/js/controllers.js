@@ -1,22 +1,521 @@
 angular.module('app.controllers', [])
   
-.controller('homeCtrl', ['$scope', '$stateParams', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+.controller('homeCtrl', ['$scope', '$stateParams', '$state', '$ionicPopup', '$http', 'Server', 'User', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
 // You can include any angular dependencies as parameters for this function
 // TIP: Access Route Parameters for your page via $stateParams.parameterName
-function ($scope, $stateParams) {
+function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
 
+    var server = Server.rest_api;
+
+    $scope.oauthorization_code = null;
+    $scope.waiting_login = false;
+    $scope.win = null;
+    $scope.timer = null;
+    $scope.runtime_max = 120;
+    $scope.savetokens = false;
+    
+    // Support for Login via social accounts like Facebook, Google, Amazon
+    function GetURLParameter(sParam) {
+        var sPageURL = window.location.href.substring(1);
+        try {
+            var sPageParameters = sPageURL.split('?');
+            if (sPageParameters !== null) {
+                var sURLVariables = sPageParameters[1].split('&');
+                if (sURLVariables !== null) {
+                    for (var i = 0; i < sURLVariables.length; i++) {
+                        var sParameterName = sURLVariables[i].split('=');
+                        if (sParameterName[0] == sParam) {
+                            return (sParameterName[1].split('#'))[0];
+                        }
+                    }
+                }
+            }
+        }
+        catch(err) {
+        }
+        return null;
+    }
+
+    // Support for Login via social accounts like Facebook, Google, Amazon
+    // This will be called during the completion of the OAuth authorization code
+    // Once called, it retrieves the code from the url parameters, together with the stateid random number
+    // and then retrieves the tokens using the code
+    // Once the token is retrieved, it saves it to the backend database
+    // and then closes the window
+    function GetURLParameters() {
+        var state_id = GetURLParameter('state');
+        $scope.oauthorization_code = GetURLParameter('code');
+
+        if ($scope.savetokens) {
+            if ($scope.oauthorization_code !== null && state_id !== null) {
+                // successful login via social idp
+                if (window.__env.apiUrl === "localhost") {
+                    $scope.get_tokens_from_oauthcode($scope.oauthorization_code, state_id, window.__env.clientId, 'http://localhost:8100');
+                    //$scope.login_idp($scope.oauthorization_code, 'http://localhost:8100');
+                }
+                else {
+                    $scope.get_tokens_from_oauthcode($scope.oauthorization_code, state_id, window.__env.clientId, server);
+                    //$scope.login_idp($scope.oauthorization_code, server);
+                }
+            }
+            else if ($scope.oauthorization_code !== null) {
+                // successful login via social idp
+                if (window.__env.apiUrl === "localhost") {
+                    $scope.get_tokens_from_oauthcode($scope.oauthorization_code, 0, window.__env.clientId, 'http://localhost:8100');
+                }
+                else {
+                    $scope.get_tokens_from_oauthcode($scope.oauthorization_code, 0, window.__env.clientId, server);
+                }
+            }
+            else if (state_id !== null) {
+                // error login via social idp
+                let error = GetURLParameter('error');
+                if (error !== null) {
+                    $scope.login_idp_storetoken(state_id, {});
+                }
+            }
+            else {
+                // regular login, do nothing
+            }
+        }
+        else {
+            if ($scope.oauthorization_code !== null && state_id !== null) {
+                // successful login via social idp
+                $scope.login_idp_storecode(state_id, $scope.oauthorization_code);
+            }
+            else if (state_id !== null) {
+                // failed login via social idp
+                let error = GetURLParameter('error');
+                if (error !== null) {
+                    $scope.login_idp_storecode(state_id, "");
+                }
+            }
+            else {
+                // regular login, do nothing
+            }    
+        }
+    }
+
+    // Support for Login via social accounts like Facebook, Google, Amazon
+    // "The /oauth2/token endpoint only supports HTTPS POST. 
+    //  The user pool client makes requests to this endpoint directly and not through the system browser."    
+    $scope.get_tokens_from_oauthcode = function(oauthorization_code, state_id, client_id, redirect_uri, spinner=null) {
+        //
+        // GET TOKENS
+        // - Request:
+        //   POST 'https://' + window.__env.oauthDomain + '/oauth2/token'
+        //   headers: {'Content-Type': 'application/x-www-form-urlencoded' }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string}
+        //   { 'status': 'NG', 'message': string}
+        //
+        
+        url = 'https://' + window.__env.oauthDomain + '/oauth2/token';
+        data = 'grant_type=authorization_code' + '&client_id=' + client_id + '&code=' + oauthorization_code + '&redirect_uri=' + redirect_uri;
+        //console.log(url);
+        //console.log(data);
+        
+        $http({
+            method: 'POST',
+            url: url,
+            headers: {'Content-Type': 'application/x-www-form-urlencoded' },
+            data: data
+        })
+        .then(function (result) {
+            console.log(result.data);
+
+            if ($scope.savetokens) {
+                // Set username and tokens
+                if (state_id !== 0) {
+                    $scope.login_idp_storetoken(state_id, { 'id': result.data.id_token, 'refresh': result.data.refresh_token, 'access': result.data.access_token });
+                }
+                else {
+                    let user_data = {
+                        'username': 'SocialIDPLogin',
+                        'token': { 'id': result.data.id_token, 'refresh': result.data.refresh_token, 'access': result.data.access_token },
+                        'name': 'SocialIDPLogin'
+                    };
+                    User.set(user_data);
+                    $state.go('menu.gateways', user_data);
+                }
+            }
+            else {
+                $scope.get_profile({ 'id': result.data.id_token, 'refresh': result.data.refresh_token, 'access': result.data.access_token }, spinner);
+            }
+        })
+        .catch(function (error) {
+            if ($scope.savetokens) {
+                // Handle failed
+                if (error.data !== null) {
+                    console.log(error.status + " " + error.statusText);
+                    $ionicPopup.alert({ title: 'Login Error', template: error.data.message });
+                }
+                else {
+                    $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+                }
+            }
+            else {
+                spinner[0].style.visibility = "hidden";
+                $scope.waiting_login = false;
+                
+                if (error.data !== null) {
+                    console.log(error.status + " " + error.statusText);
+                    $ionicPopup.alert({ title: 'Login Error', template: error.data.message });
+                }
+                else {
+                    $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+                }
+            }
+        }); 
+    };
+
+    // Support for Login via social accounts like Facebook, Google, Amazon
+    // When user clicks on the login via social accounts, 
+    // a new window is opened which handles getting of the authorization code (OAuth process)
+    // The specified callback url will be called containing the authorization.
+    // Given the authorization code, the app requests for the tokens.
+    $scope.getOAuthCode = function(socialidp=null) {
+        
+        // "The /login endpoint only supports HTTPS GET. 
+        //  The user pool client makes this request through a system browser. 
+        //  System browsers for JavaScript include Chrome or Firefox. 
+        //  Android browsers include Custom Chrome Tab. iOS browsers include Safari View Control."        
+        if (true) {
+            var state = Math.floor(Math.random() * 8999999999 + 1000000000);
+            
+            var url = "https://" + window.__env.oauthDomain + "/login";
+            url += "?client_id=" + window.__env.clientId;
+            url += "&response_type=code";
+            url += "&scope=email+openid+phone+aws.cognito.signin.user.admin";
+            url += "&state=" + state;
+            if (socialidp !== null) {
+                url += "&identity_provider=" + socialidp;
+            }
+            
+            if (window.__env.apiUrl === "localhost") {
+                url += '&redirect_uri=http://localhost:8100';
+            }
+            else {
+                url += '&redirect_uri=' + server;
+            }
+            
+            $scope.win = window.open(url,"_blank",
+                'width=1000,height=475,left=100,top=100,resizable=no,scrollbars=no,toolbar=no,menubar=no,location=no,directories=no,status=no,titlebar=no',replace=false);
+            if ($scope.win !== null) {
+                // Display spinner
+                var spinner = document.getElementsByClassName("spinner");
+                spinner[0].style.visibility = "visible";
+                $scope.waiting_login = true;
+                var runtime = 0;
+                
+                $scope.timer = setInterval(function() {
+                    if ($scope.win.closed) {
+                        //console.log("exited");
+                        runtime = 0;
+                        clearInterval($scope.timer);
+                        $scope.timer = null;
+                        
+                        if ($scope.savetokens) {
+                            $scope.login_idp_querytoken(spinner, state.toString());
+                        }
+                        else {
+                            $scope.login_idp_querycode(spinner, state.toString());
+                        }
+                    }
+                    else {
+                        runtime += 1;
+                        console.log(runtime);
+                        if (runtime >= $scope.runtime_max) {
+                            $scope.win.close();
+                            $scope.win = null;
+                            
+                            spinner[0].style.visibility = "hidden";
+                            $scope.waiting_login = false;
+                            
+                            runtime = 0;
+                            clearInterval($scope.timer);
+                            $scope.timer = null;
+                            
+                            $ionicPopup.alert({ title: 'Error', template: 'Login with social account timed out!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+                        }
+                    }
+                }, 1000);
+            }
+            else {
+                $ionicPopup.alert({ title: 'Error', template: 'Cannot open a new window! Check if popup window is blocked!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+            }
+        }
+    };
+
+
+
+    // Support for Login via social accounts like Facebook, Google, Amazon
+    $scope.login_idp_storetoken = function(id, token) {
+        // 
+        // LOGIN IDP STORE TOKEN
+        // 
+        // - Request:
+        //   POST /user/login/idp/token/<id>
+        //   headers: {'Content-Type': 'application/json'}
+        //   data: {'token': json_obj}
+        // 
+        // - Response:
+        //   {'status': 'OK', 'message': string}
+        //   {'status': 'NG', 'message': string}
+        //
+        $http({
+            method: 'POST',
+            url: server + '/user/login/idp/token/' + id,
+            headers: {'Content-Type': 'application/json'},
+            data: {'token': token}
+        })
+        .then(function (result) {
+            console.log(result.data);
+            window.close();
+        })
+        .catch(function (error) {
+            window.close();
+            // Handle failed
+            if (error.data !== null) {
+                console.log(error.status + " " + error.statusText);
+                $ionicPopup.alert({ title: 'Login Error', template: error.data.message });
+            }
+            else {
+                $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+            }
+        });
+    };
+
+
+    // Support for Login via social accounts like Facebook, Google, Amazon
+    $scope.login_idp_querytoken = function(spinner, id) {
+        // 
+        // LOGIN IDP QUERY TOKEN
+        // 
+        // - Request:
+        //   GET /user/login/idp/token/<id>
+        //   headers: {'Content-Type': 'application/json'}
+        // 
+        // - Response:
+        //   {'status': 'OK', 'message': string}
+        //   {'status': 'NG', 'message': string}
+        //
+        $http({
+            method: 'GET',
+            url: server + '/user/login/idp/token/' + id,
+            headers: {'Content-Type': 'application/json'},
+        })
+        .then(function (result) {
+            spinner[0].style.visibility = "hidden";
+            $scope.waiting_login = false;
+            
+            console.log(result.data);
+
+            if (result.data.token !== undefined) {
+                if (result.data.token.access === undefined) {
+                    $ionicPopup.alert({ title: 'Error', template: 'Login with social account failed!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+                    return;
+                }
+                
+                var user_data = {
+                    'username': result.data.username,
+                    'token': result.data.token,
+                    'name': result.data.name,
+                };
+                
+                User.set(user_data);
+                $state.go('menu.gateways', user_data);
+            }
+            else {
+                $ionicPopup.alert({ title: 'Error', template: 'Login with social account failed due to cancellation or timeout!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+            }
+        })
+        .catch(function (error) {
+            spinner[0].style.visibility = "hidden";
+            $scope.waiting_login = false;
+            
+            // Handle failed
+            if (error.data !== null) {
+                console.log(error.status + " " + error.statusText);
+                $ionicPopup.alert({ title: 'Login Error', template: error.data.message });
+            }
+            else {
+                $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+            }
+        });
+    };
+
+
+    // Support for Login via social accounts like Facebook, Google, Amazon
+    $scope.login_idp_storecode = function(id, code) {
+        // 
+        // LOGIN IDP STORE CODE
+        // 
+        // - Request:
+        //   POST /user/login/idp/code/<id>
+        //   headers: {'Content-Type': 'application/json'}
+        //   data: {'code': string}
+        // 
+        // - Response:
+        //   {'status': 'OK', 'message': string}
+        //   {'status': 'NG', 'message': string}
+        //
+        $http({
+            method: 'POST',
+            url: server + '/user/login/idp/code/' + id,
+            headers: {'Content-Type': 'application/json'},
+            data: {'code': code}
+        })
+        .then(function (result) {
+            console.log(result.data);
+
+            $scope.oauthorization_code = null;
+            window.close();
+        })
+        .catch(function (error) {
+            $scope.oauthorization_code = null;
+            window.close();
+
+            // Handle failed
+            if (error.data !== null) {
+                console.log(error.status + " " + error.statusText);
+                $ionicPopup.alert({ title: 'Login Error', template: error.data.message });
+            }
+            else {
+                $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+            }
+        });
+    };
+
+    // Support for Login via social accounts like Facebook, Google, Amazon
+    $scope.login_idp_querycode = function(spinner, id) {
+        // 
+        // LOGIN IDP QUERY CODE
+        // 
+        // - Request:
+        //   GET /user/login/idp/code/<id>
+        //   headers: {'Content-Type': 'application/json'}
+        // 
+        // - Response:
+        //   {'status': 'OK', 'message': string}
+        //   {'status': 'NG', 'message': string}
+        //
+        $http({
+            method: 'GET',
+            url: server + '/user/login/idp/code/' + id,
+            headers: {'Content-Type': 'application/json'},
+        })
+        .then(function (result) {
+            console.log(result.data);
+
+            // Handle failed login
+            if (result.data.code === "") {
+                spinner[0].style.visibility = "hidden";
+                $scope.waiting_login = false;
+                $ionicPopup.alert({ title: 'Error', template: 'Login with social account failed!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+                return;
+            }
+            
+            //$scope.oauthorization_code = result.data.code;
+            if (window.__env.apiUrl === "localhost") {
+                $scope.get_tokens_from_oauthcode(result.data.code, id, window.__env.clientId, 'http://localhost:8100', spinner);
+            }
+            else {
+                $scope.get_tokens_from_oauthcode(result.data.code, id, window.__env.clientId, server, spinner);
+            }
+        })
+        .catch(function (error) {
+            spinner[0].style.visibility = "hidden";
+            $scope.waiting_login = false;
+            
+            // Handle failed
+            if (error.data !== null) {
+                $ionicPopup.alert({ title: 'Error', template: 'Login with social account failed due to cancellation!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+            }
+            else {
+                $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+            }
+        });
+    };
+
+    $scope.get_profile = function(token, spinner) {
+        //        
+        // GET USER INFO
+        //
+        // - Request:
+        //   GET /user
+        //   headers: {'Authorization': 'Bearer ' + token.access}
+        //
+        // - Response:
+        //   {'status': 'OK', 'message': string, 'info': {'email': string, 'phone_number': string, 'name': string} }
+        //   {'status': 'NG', 'message': string}
+        //         
+        $http({
+            method: 'GET',
+            url: server + '/user',
+            headers: {'Authorization': 'Bearer ' + token.access}
+        })
+        .then(function (result) {
+            console.log("ACCOUNT OK");
+            console.log(result.data);
+            
+            spinner[0].style.visibility = "hidden";
+            $scope.waiting_login = false;
+
+            let user_data = {
+                'username': result.data.info.username,
+                'token': token,
+                'name': result.data.info.name
+            };
+            User.set(user_data);
+            $state.go('menu.gateways', user_data);
+        })
+        .catch(function (error) {
+            spinner[0].style.visibility = "hidden";
+            $scope.waiting_login = false;
+            
+            if (error.data !== null) {
+                $ionicPopup.alert({ title: 'Error', template: 'Login with social account failed!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+            }
+            else {
+                $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+            }
+        }); 
+    };
+    
+    // Support for Login via social accounts like Facebook
+    $scope.$on('$ionicView.enter', function(e) {
+        $scope.oauthorization_code = null;
+        $scope.waiting_login = false;
+        $scope.win = null;
+        $scope.timer = null;
+        $scope.runtime_max = 120;
+        $scope.savetokens = false;        
+        GetURLParameters();
+    });
+    
+    $scope.$on('$ionicView.beforeLeave', function(e) {
+        if ($scope.timer !== null) {
+            clearTimeout($scope.timer);
+            $scope.timer = null;
+        }
+    });
+    
 }
 ])
    
-.controller('devicesCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Devices', 'Token',     // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+.controller('gatewaysCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', 'Devices', 'DeviceGroups',     // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
 // You can include any angular dependencies as parameters for this function
 // TIP: Access Route Parameters for your page via $stateParams.parameterName
-function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Devices, Token) {
+function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token, Devices, DeviceGroups) {
 
     var server = Server.rest_api;
 
     $scope.devices = [];
-    $scope.devices_counthdr = "No device registered" ;
+    $scope.devicegroups = [];
+    $scope.devices_counthdr = "No gateway registered" ;
+    $scope.activeSection = parseInt($stateParams.activeSection, 10);
     
     $scope.data = {
         'username': User.get_username(),
@@ -24,19 +523,27 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Device
         
         'devices_filter': "",
     };
-
     
-    $scope.submitTest = function(device) {
 
+    $scope.changeActiveSection = function(s) {
+        $scope.activeSection = s;
+        $scope.submitRefresh(livestatus=true);
+    };
+    
+    $scope.viewDevice = function(device) {
+
+        // DEVICE
         console.log("devicename=" + device.devicename);
-        var device_param = {
+        let device_param = {
             'username': User.get_username(),
             'token': User.get_token(),
             'devicename': device.devicename,
             'deviceid': device.deviceid,
             'serialnumber': device.serialnumber,
+            'poemacaddress': device.poemacaddress === undefined || device.poemacaddress === "" ? 'UNKNOWN' : device.poemacaddress,
             'devicestatus': "Status: UNKNOWN",
             'deviceversion': "UNKNOWN",
+            'location': device.location
         };
 
         if (device.heartbeat !== undefined) {
@@ -46,8 +553,33 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Device
         if (device.version !== undefined) {
             device_param.deviceversion = device.version;    
         }
+        if (device.location !== undefined) {
+            device_param.location = device.location;    
+        }
 
-        $state.go('device', device_param, {reload:true} );
+        $state.go('gateway', device_param, {reload:true} );
+    };
+
+    $scope.viewDeviceGroup = function(devicegroup) {
+
+        // DEVICE GROUP
+        let device_param = {
+            'username': User.get_username(),
+            'token': User.get_token(),
+            'devicegroupname': devicegroup.groupname
+        };
+        $state.go('viewGatewayGroup', device_param, {reload:true} );
+    };
+    
+    $scope.updateDeviceGroup = function(devicegroup) {
+
+        // DEVICE GROUP
+        let device_param = {
+            'username': User.get_username(),
+            'token': User.get_token(),
+            'devicegroupname': devicegroup.groupname
+        };
+        $state.go('updateGatewayGroup', device_param, {reload:true} );
     };
     
     $scope.submitAdd = function() {
@@ -56,74 +588,496 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Device
             'username': User.get_username(),
             'token': User.get_token()
         };
-        $state.go('addDevice', device_param);
+        
+        if ($scope.activeSection === 1) {
+            $state.go('addGateway', device_param);
+        }
+        else if ($scope.activeSection === 2) {
+            $state.go('addGatewayGroup', device_param);
+        }
+        else {
+            $state.go('addGateway', device_param);
+        }
     };
     
-    
+    // ng-model data.devices_filter
+    // ng-keypress submitSearch($event)
     $scope.submitSearch = function(keyEvent) {
         if (keyEvent.which === 13) {
-            $scope.submitRefresh(false);
+            $scope.submitRefresh();
         }
     };
 
+    $scope.getDiffString = function(currdate, devicedate, offline=false) {
+        let diffString = "";
+        
+        if (devicedate === null) {
+            return "Last active: N/A";
+        }
+        
+        
+        let diff = currdate-devicedate;
 
-    $scope.submitRefresh = function(livestatus) {
-
-        // Fetch devices
-        Devices.fetch($scope.data, $scope.data.devices_filter).then(function(res) {
-            $scope.devices = res;
-            $scope.data.token = User.get_token();
-            if ($scope.devices.length !== 0) {
-                if ($scope.devices.length == 1) {
-                    $scope.devices_counthdr = $scope.devices.length.toString() + " device registered";
-                }
-                else {
-                    $scope.devices_counthdr = $scope.devices.length.toString() + " devices registered";
-                }
-                
-                if (livestatus === true) {
-                    //console.log($scope.devices.length);
-                    let indexy = 0;
-                    for (indexy=0; indexy<$scope.devices.length; indexy++) {
-                        //console.log("indexy=" + indexy.toString() + " " + $scope.devices[indexy].devicename);
-                        
-                        if ($scope.devices[indexy].heartbeat !== undefined) {
-                            let heartbeat = new Date($scope.devices[indexy].heartbeat * 1000);
-                            $scope.devices[indexy].devicestatus = "Last active: " + heartbeat;
-                        }
-                        else {
-                            $scope.devices[indexy].devicestatus = "Last active: N/A";
-                        }
-                        
-                        query_device(indexy, $scope.devices[indexy].devicename);
-                    }
-                }
-                else {
-                    let indexy = 0;
-                    for (indexy=0; indexy<$scope.devices.length; indexy++) {
-                        if ($scope.devices[indexy].heartbeat !== undefined) {
-                            let heartbeat = new Date($scope.devices[indexy].heartbeat * 1000);
-                            $scope.devices[indexy].devicestatus = "Last active: " + heartbeat;
-                        }
-                        else {
-                            $scope.devices[indexy].devicestatus = "Last active: N/A";
-                        }
-                    }
-                }
+        //console.log(diff);
+        if (diff < 60) {
+            diffString = diff + " second";
+            if (diff > 1) {
+                diffString += "s";
+            }
+            diffString += " ago";
+            // since heartbeat rate is 60 seconds, just make it online
+            if (diff < 60 && offline === false) {
+                diffString = "Online";
+            }
+        }
+        else if (diff < 3600) {
+            diff = parseInt(diff/60, 10);
+            diffString = diff + " minute";
+            if (diff > 1) {
+                diffString += "s";
+            }
+            diffString += " ago";
+        }
+        else if (diff < 86400) {
+            diff = parseInt(diff/3600, 10);
+            diffString = diff + " hour";
+            if (diff > 1) {
+                diffString += "s";
+            }
+            diffString += " ago";
+        }
+        else if (diff < 604800) {
+            /*
+            diff = parseInt(diff/86400, 10);
+            diffString = diff + " day";
+            if (diff > 1) {
+                diffString += "s";
+            }
+            diffString += " ago";
+            */
+            let devicedatetime = new Date(devicedate * 1000);
+            let currdatetime = new Date(currdate * 1000);
+            diff = currdatetime.getDate()-devicedatetime.getDate();
+            if (diff === 1) {
+                diffString = "Yesterday";
+            }
+            else if (diff === 7) {
+                diffString = "1 week ago";
             }
             else {
-                $scope.devices_counthdr = "No device registered";
+                diffString = devicedatetime.toLocaleString('en-us', {  weekday: 'long' });
             }
-            
-            // TEST CODE ONLY
-            //register_device_token("1234", "GCM");
-            //register_device_token("5678", "APNS");
-        })
-        .catch(function (error) {
-            console.log("Devices.fetch failed!!!");
-            handle_error(error);
-        }); 
+        }
+        else if (diff < 2419200) {
+            /*
+            diff = parseInt(diff/604800, 10);
+            diffString = diff + " week";
+            if (diff > 1) {
+                diffString += "s";
+            }
+            diffString += " ago";
+            */
+            let devicedatetime = new Date(devicedate * 1000);
+            //console.log(devicedatetime);
+            diffString = devicedatetime.toLocaleString('en-us', {  month: 'long', day: 'numeric' });
+        }
+        else if (diff < 29030400) {
+            diff = parseInt(diff/2419200, 10);
+            diffString = diff + " month";
+            if (diff > 1) {
+                diffString += "s";
+            }
+            diffString += " ago";
+        }
+        else {
+            diff = parseInt(diff/29030400, 10);
+            diffString = diff + " year";
+            if (diff > 1) {
+                diffString += "s";
+            }
+            diffString += " ago";
+        }
+        
+        //let heartbeat = new Date(devicedate * 1000);
+        //diffString += " (" + heartbeat + ")";
+        if (diffString !== "Online") {
+            diffString = "Last active: " + diffString;
+        }
+        return diffString;
     };
+
+    $scope.submitRefresh = function(livestatus=false) {
+
+        if ($scope.activeSection === 1) {
+            // DEVICES
+            
+            if (true) {
+                // DEVICE GROUPS AND UNGROUPED DEVICES
+                
+                DeviceGroups.get_mixed_devices($scope.data).then(function(res) {
+
+                    // copy the devicestatus    
+                    for (let devicex in res.data.devices) {
+                        if ($scope.devices.length > 0) {
+                            for (let device in $scope.devices) {
+                                if ($scope.devices[device].devicename === res.data.devices[devicex].devicename) {
+                                    if ($scope.devices[device].devicestatus !== undefined) {
+                                        res.data.devices[devicex].devicestatus = $scope.devices[device].devicestatus;
+                                    }
+                                    else {
+                                        res.data.devices[devicex].devicestatus = "Last active: N/A";
+                                    }
+                                    break;
+                                }
+                            }
+                        }
+                        else {
+                            res.data.devices[devicex].devicestatus = "Last active: N/A";
+                        }
+                    }
+
+                    $scope.devicegroups = res.data.devicegroups;
+                    $scope.devices = res.data.devices;
+                    $scope.data.token = User.get_token();
+                    
+                    
+                    if ($scope.devicegroups.length !== 0) {
+                        if ($scope.devicegroups.length === 1) {
+                            $scope.devices_counthdr = $scope.devicegroups.length.toString() + " gateway group ";
+                        }
+                        else {
+                            $scope.devices_counthdr = $scope.devicegroups.length.toString() + " gateway groups ";
+                        }
+                    }
+                    else {
+                        $scope.devices_counthdr = "No gateway group ";
+                    }
+                    
+                    
+                    if ($scope.devices.length !== 0) {
+                        if ($scope.devices.length === 1) {
+                            $scope.devices_counthdr += "and 1 ungrouped gateway registered";
+                        }
+                        else {
+                            $scope.devices_counthdr += "and " + $scope.devices.length.toString() + " ungrouped gateways registered";
+                        }
+                        
+                        let currdate = parseInt(new Date().valueOf()/ 1000, 10);
+    
+                        if (livestatus === true) {
+                            //console.log($scope.devices.length);
+                            let indexy = 0;
+                            for (indexy=0; indexy<$scope.devices.length; indexy++) {
+                                //console.log("indexy=" + indexy.toString() + " " + $scope.devices[indexy].devicename);
+                                
+                                /*
+                                if ($scope.devices[indexy].heartbeat !== undefined) {
+                                    $scope.devices[indexy].devicestatus = $scope.getDiffString(currdate, $scope.devices[indexy].heartbeat);
+                                }
+                                else {
+                                    $scope.devices[indexy].devicestatus = "Last active: N/A";
+                                }
+                                */
+                                
+                                query_device(indexy, $scope.devices[indexy].devicename);
+                            }
+                        }
+                        else {
+                            let indexy = 0;
+                            for (indexy=0; indexy<$scope.devices.length; indexy++) {
+                                if ($scope.devices[indexy].heartbeat !== undefined) {
+                                    $scope.devices[indexy].devicestatus = $scope.getDiffString(currdate, $scope.devices[indexy].heartbeat);
+                                }
+                                else {
+                                    $scope.devices[indexy].devicestatus = "Last active: N/A";
+                                }
+                            }
+                        }
+                    }
+                    else {
+                        $scope.devices_counthdr += "and no ungrouped gateway";
+                    }
+                    
+                })
+                .catch(function (error) {
+                    console.log("DeviceGroups.fetch failed!!!");
+                    $scope.handle_error(error);
+                });
+                    
+                
+                /*
+                // Fetch devicegroups
+                DeviceGroups.fetch($scope.data).then(function(res) {
+                    $scope.devicegroups = res;
+                    $scope.data.token = User.get_token();
+                    if ($scope.devicegroups.length !== 0) {
+                        if ($scope.devicegroups.length === 1) {
+                            $scope.devices_counthdr = $scope.devicegroups.length.toString() + " gateway group ";
+                        }
+                        else {
+                            $scope.devices_counthdr = $scope.devicegroups.length.toString() + " gateway groups ";
+                        }
+                    }
+                    else {
+                        $scope.devices_counthdr = "No gateway group ";
+                    }
+                })
+                .catch(function (error) {
+                    console.log("DeviceGroups.fetch failed!!!");
+                    $scope.handle_error(error);
+                });
+                
+                // Fetch ungrouped devices
+                DeviceGroups.get_ungrouped_devices($scope.data).then(function(res) {
+                    $scope.devices = res;
+                    $scope.data.token = User.get_token();
+                    
+                    if ($scope.devices.length !== 0) {
+                        if ($scope.devices.length === 1) {
+                            $scope.devices_counthdr += "and 1 ungrouped gateway registered";
+                        }
+                        else {
+                            $scope.devices_counthdr += "and " + $scope.devices.length.toString() + " ungrouped gateways registered";
+                        }
+                        
+                        let currdate = parseInt(new Date().valueOf()/ 1000, 10);
+    
+                        if (livestatus === true) {
+                            //console.log($scope.devices.length);
+                            let indexy = 0;
+                            for (indexy=0; indexy<$scope.devices.length; indexy++) {
+                                //console.log("indexy=" + indexy.toString() + " " + $scope.devices[indexy].devicename);
+                                
+                                if ($scope.devices[indexy].heartbeat !== undefined) {
+                                    $scope.devices[indexy].devicestatus = $scope.getDiffString(currdate, $scope.devices[indexy].heartbeat);
+                                }
+                                else {
+                                    $scope.devices[indexy].devicestatus = "Last active: N/A";
+                                }
+                                
+                                query_device(indexy, $scope.devices[indexy].devicename);
+                            }
+                        }
+                        else {
+                            let indexy = 0;
+                            for (indexy=0; indexy<$scope.devices.length; indexy++) {
+                                if ($scope.devices[indexy].heartbeat !== undefined) {
+                                    $scope.devices[indexy].devicestatus = $scope.getDiffString(currdate, $scope.devices[indexy].heartbeat);
+                                }
+                                else {
+                                    $scope.devices[indexy].devicestatus = "Last active: N/A";
+                                }
+                            }
+                        }
+                    }
+                    else {
+                        $scope.devices_counthdr += "and no ungrouped gateway";
+                    }
+                    
+                })
+                .catch(function (error) {
+                    console.log("Devices.get failed!!!");
+                    $scope.handle_error(error);
+                }); 
+                
+                */
+            } 
+            else {
+                // DEVICES
+                
+                // Fetch devices
+                Devices.fetch($scope.data, $scope.data.devices_filter).then(function(res) {
+                    
+                    // copy the devicestatus    
+                    for (let device in $scope.devices) {
+                        if ($scope.devices[device].devicestatus !== undefined) {
+                            for (let devicex in res.data.devices) {
+                                if ($scope.devices[devicex].devicename === res.data.devices[device].devicename) {
+                                    res.data.devices[device].devicestatus = $scope.devices[devicex].devicestatus;
+                                    break;
+                                }
+                            }
+                        }
+                        else {
+                            res.data.devices[device].devicestatus = "Last active: N/A";
+                        }
+                    }                    
+                    
+                    $scope.devices = res;
+                    $scope.data.token = User.get_token();
+                    if ($scope.devices.length !== 0) {
+                        if ($scope.devices.length === 1) {
+                            $scope.devices_counthdr = $scope.devices.length.toString() + " gateway registered";
+                        }
+                        else {
+                            $scope.devices_counthdr = $scope.devices.length.toString() + " gateways registered";
+                        }
+                        
+                        let currdate = parseInt(new Date().valueOf()/ 1000, 10);
+                        console.log(currdate);
+                        
+                        if (livestatus === true) {
+                            //console.log($scope.devices.length);
+                            let indexy = 0;
+                            for (indexy=0; indexy<$scope.devices.length; indexy++) {
+                                //console.log("indexy=" + indexy.toString() + " " + $scope.devices[indexy].devicename);
+                                
+                                /*
+                                if ($scope.devices[indexy].heartbeat !== undefined) {
+                                    $scope.devices[indexy].devicestatus = $scope.getDiffString(currdate, $scope.devices[indexy].heartbeat);
+                                }
+                                else {
+                                    $scope.devices[indexy].devicestatus = "Last active: N/A";
+                                }
+                                */
+                                
+                                query_device(indexy, $scope.devices[indexy].devicename);
+                            }
+                        }
+                        else {
+                            let indexy = 0;
+                            for (indexy=0; indexy<$scope.devices.length; indexy++) {
+                                if ($scope.devices[indexy].heartbeat !== undefined) {
+                                    $scope.devices[indexy].devicestatus = $scope.getDiffString(currdate, $scope.devices[indexy].heartbeat);
+                                }
+                                else {
+                                    $scope.devices[indexy].devicestatus = "Last active: N/A";
+                                }
+                            }
+                        }
+                    }
+                    else {
+                        $scope.devices_counthdr = "no gateway registered";
+                    }
+                    
+                    // TEST CODE ONLY
+                    //register_device_token("1234", "GCM");
+                    //register_device_token("5678", "APNS");
+                })
+                .catch(function (error) {
+                    console.log("Devices.fetch failed!!!");
+                    $scope.handle_error(error);
+                }); 
+            }
+        }
+        else if ($scope.activeSection === 2) {
+            // DEVICE GROUPS
+            
+            // Fetch devicegroups
+            DeviceGroups.fetch($scope.data).then(function(res) {
+                
+                $scope.devicegroups = res;
+                $scope.data.token = User.get_token();
+                if ($scope.devicegroups.length !== 0) {
+                    if ($scope.devicegroups.length === 1) {
+                        $scope.devices_counthdr = $scope.devicegroups.length.toString() + " gateway group registered";
+                    }
+                    else {
+                        $scope.devices_counthdr = $scope.devicegroups.length.toString() + " gateway groups registered";
+                    }
+                }
+                else {
+                    $scope.devices_counthdr = "No gateway group registered";
+                }
+            })
+            .catch(function (error) {
+                console.log("DeviceGroups.fetch failed!!!");
+                $scope.handle_error(error);
+            }); 
+            
+
+            // Just for testing
+            if (false) {
+                // Fetch devicegroups
+                let groupname = $scope.devicegroups[1].groupname;
+                DeviceGroups.get_detailed($scope.data, groupname).then(function(res) {
+                    console.log(res);
+                })
+                .catch(function (error) {
+                    console.log("DeviceGroups.fetch failed!!!");
+                    $scope.handle_error(error);
+                }); 
+            }
+        }
+        else {
+            // STANDALONE/UNGROUPED DEVICE GROUPS
+            
+            // Fetch devices
+            DeviceGroups.get_ungrouped_devices($scope.data).then(function(res) {
+                
+                // copy the devicestatus    
+                for (let devicex in res) {
+                    if ($scope.devices.length > 0) {
+                        for (let device in $scope.devices) {
+                            if ($scope.devices[device].devicename === res[devicex].devicename) {
+                                if ($scope.devices[device].devicestatus !== undefined) {
+                                    res[devicex].devicestatus = $scope.devices[device].devicestatus;
+                                }
+                                else {
+                                    res[devicex].devicestatus = "Last active: N/A";
+                                }
+                                break;
+                            }
+                        }
+                    }
+                    else {
+                        res[devicex].devicestatus = "Last active: N/A";
+                    }
+                }
+
+                $scope.devices = res;
+                $scope.data.token = User.get_token();
+                if ($scope.devices.length !== 0) {
+                    if ($scope.devices.length === 1) {
+                        $scope.devices_counthdr = $scope.devices.length.toString() + " ungrouped gateway registered";
+                    }
+                    else {
+                        $scope.devices_counthdr = $scope.devices.length.toString() + " ungrouped gateways registered";
+                    }
+                    
+                    let currdate = parseInt(new Date().valueOf()/ 1000, 10);
+
+                    if (livestatus === true) {
+                        //console.log($scope.devices.length);
+                        let indexy = 0;
+                        for (indexy=0; indexy<$scope.devices.length; indexy++) {
+                            //console.log("indexy=" + indexy.toString() + " " + $scope.devices[indexy].devicename);
+                            
+                            /*
+                            if ($scope.devices[indexy].heartbeat !== undefined) {
+                                $scope.devices[indexy].devicestatus = $scope.getDiffString(currdate, $scope.devices[indexy].heartbeat);
+                            }
+                            else {
+                                $scope.devices[indexy].devicestatus = "Last active: N/A";
+                            }
+                            */
+                            
+                            query_device(indexy, $scope.devices[indexy].devicename);
+                        }
+                    }
+                    else {
+                        let indexy = 0;
+                        for (indexy=0; indexy<$scope.devices.length; indexy++) {
+                            if ($scope.devices[indexy].heartbeat !== undefined) {
+                                $scope.devices[indexy].devicestatus = $scope.getDiffString(currdate, $scope.devices[indexy].heartbeat);
+                            }
+                            else {
+                                $scope.devices[indexy].devicestatus = "Last active: N/A";
+                            }
+                        }
+                    }
+                }
+                else {
+                    $scope.devices_counthdr = "No ungrouped gateway";
+                }
+            })
+            .catch(function (error) {
+                console.log("Devices.get_ungrouped_devices failed!!!");
+                $scope.handle_error(error);
+            }); 
+        }
+    };
+    
     
     base64Encode = function(str) {
         return window.btoa(str);
@@ -214,14 +1168,21 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Device
         .then(function (result) {
             console.log(result.data);
             //console.log(devicename + ": Online");
-            $scope.devices[index].devicestatus = 'Online';    
+            $scope.devices[index].devicestatus = 'Online';
         })
         .catch(function (error) {
-            handle_error(error);
+            let currdate = parseInt(new Date().valueOf()/ 1000, 10);
+            if ($scope.devices[index].heartbeat !== undefined) {
+                $scope.devices[index].devicestatus = $scope.getDiffString(currdate, $scope.devices[index].heartbeat, true);
+            }
+            else {
+                $scope.devices[index].devicestatus = $scope.getDiffString(currdate, null, true);
+            }
+            $scope.handle_error(error);
         }); 
     };    
     
-    handle_error = function(error) {
+    $scope.handle_error = function(error) {
         // Handle failed login
         if (error.data !== null) {
             console.log("ERROR: Get Device failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
@@ -231,6 +1192,12 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Device
                 $scope.data.token = User.get_token();
                 //$ionicPopup.alert({ title: 'Error', template: 'Token expired!', buttons: [{text: 'OK', type: 'button-assertive'}] });
             }
+            else if (error.status == 401 && error.data.message.includes('Please check with the organization owner') === true ) {
+                $ionicPopup.alert({ title: 'Error', template: error.data.message, buttons: [{text: 'OK', type: 'button-assertive'}] });
+            }         
+            //else {
+            //    $ionicPopup.alert({ title: 'Error', template: error.data.message, buttons: [{text: 'OK', type: 'button-assertive'}] });
+            //}
         }
         else {
             console.log("ERROR: Server is down!"); 
@@ -240,28 +1207,21 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Device
     
 
     $scope.$on('$ionicView.enter', function(e) {
-        //console.log("DEVICES enter ionicView REFRESH LIST");
-        $scope.submitRefresh(false);
+        $scope.devices = [];
+        $scope.devicegroups = [];
+        $scope.devices_counthdr = "No gateway registered" ;
+        $scope.activeSection = 1;
+        
+        //console.log($state.params);
+        //console.log($stateParams);
+        if ($state.params.activeSection !== undefined) {
+            $scope.activeSection = parseInt($state.params.activeSection, 10);
+        }
+        $scope.submitRefresh();
     });
-    
-    
-    $scope.getStyle = function(devicestatus) {
-        //console.log("getStyle " + devicestatus);
-        if (devicestatus === "Online") {
-            return 'item-online';
-        }
-        else if (devicestatus === "Offline") {
-            return 'item-offline';
-        }
-        else if (devicestatus === "Detecting...") {
-            return 'item-detecting';
-        }
-        return 'item-lastactive';
-    };
-
 }])
    
-.controller('accountCtrl', ['$scope', '$stateParams', '$state', '$ionicPopup', '$http', 'Server', 'User', 'Token', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+.controller('profileCtrl', ['$scope', '$stateParams', '$state', '$ionicPopup', '$http', 'Server', 'User', 'Token', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
 // You can include any angular dependencies as parameters for this function
 // TIP: Access Route Parameters for your page via $stateParams.parameterName
 function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token) {
@@ -269,29 +1229,28 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token)
     var server = Server.rest_api;
 
     $scope.data = {
-        'username': "", //User.get_username(),
-        'token': "",//User.get_token(),
+        'username': User.get_username(),
+        'token': User.get_token(),
 
         'fullname': 'Unknown',
         'email': 'Unknown',
         'phonenumber': 'Unknown',
-
-        'subscription_type': 'Unknown',
-        'subscription_credits': 'Unknown',
+        'identityprovider': 'Unknown',
+        'country': 'Unknown',
         
-        'activeSection': 1,
+        'lastlogin': 'Unknown',
+        'lastfailedlogin': 'Unknown',
     };
 
-    $scope.changeSection = function(s) {
-        $scope.data.activeSection = s;
-    };
+    $scope.enable_2fa = false;
     
-    handle_error = function(error) {
+
+    
+    
+    $scope.handle_error = function(error) {
         // Handle failed login
         if (error.data !== null) {
-            console.log("ERROR: Control Device failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
-            // TODO: replace alert with ionic alert
-            alert("ERROR: Control Device failed with " + error.status + " " + error.statusText +"! " + error.data.message); 
+            $ionicPopup.alert({title: 'Error', template: error.data.message});
             
             if (error.data.message === "Token expired") {
                 Token.refresh({'username': $scope.data.username, 'token': $scope.data.token});
@@ -304,36 +1263,50 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token)
         }
     };
 
-    get_subscription = function() {
+    $scope.enable2FA = function(flag) {
+        $scope.enable_2fa = flag;
+        $scope.enable_mfa($scope.enable_2fa);
+    };
+    
+    $scope.enable_mfa = function(enable) {
         //
-        // GET SUBSCRIPTION
+        // ENABLE MFA
         //
         // - Request:
-        //   GET /account/subscription
+        //   POST /user/mfa
         //   headers: {'Authorization': 'Bearer ' + token.access}
         //
         // - Response:
-        //   {'status': 'OK', 'message': string, 'subscription': {'credits': string, 'type': paid} }
+        //   {'status': 'OK', 'message': string}
         //   {'status': 'NG', 'message': string}
         //  
         $http({
-            method: 'GET',
-            url: server + '/account/subscription',
-            headers: {'Authorization': 'Bearer ' + $scope.data.token.access}
+            method: 'POST',
+            url: server + '/user/mfa',
+            headers: {'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json'},
+            data: {'enable': enable }
         })
         .then(function (result) {
-            console.log("get_subscription");
             console.log(result.data);
-
-            $scope.data.subscription_type = result.data.subscription.type;
-            $scope.data.subscription_credits = result.data.subscription.credits;
+            if (enable === true) {
+                $ionicPopup.alert({ title: 'MFA', template: 'MFA was enabled successfully!', buttons: [{text: 'OK', type: 'button-positive'}] });
+            }
+            else {
+                $ionicPopup.alert({ title: 'MFA', template: 'MFA was disabled successfully!', buttons: [{text: 'OK', type: 'button-positive'}] });
+            }
         })
         .catch(function (error) {
-            handle_error(error);
+            $scope.handle_error(error);
         }); 
     };
 
-    get_profile = function() {
+    $scope.getProfile = function() {
+        $scope.data.username = User.get_username();
+        $scope.data.token = User.get_token();
+        $scope.get_profile();
+    };
+    
+    $scope.get_profile = function() {
         //        
         // GET USER INFO
         //
@@ -351,28 +1324,59 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token)
             headers: {'Authorization': 'Bearer ' + $scope.data.token.access}
         })
         .then(function (result) {
-            console.log("ACCOUNT OK");
+            //console.log("ACCOUNT OK");
             console.log(result.data);
             $scope.data.fullname = result.data.info.name;
             $scope.data.email = result.data.info.email;
             if (result.data.info.phone_number !== undefined) {
                 $scope.data.phonenumber = result.data.info.phone_number;
+                if (result.data.info.phone_number_verified !== undefined) {
+                    if (result.data.info.phone_number_verified === false) {
+                        $scope.data.phonenumber +=  " (Click to VERIFY)";
+                    }
+                }
             }
             else {
                 $scope.data.phonenumber = "Unknown";
             }
-            if (result.data.info.phone_number_verified !== undefined) {
-                if (result.data.info.phone_number_verified === false) {
-                    $scope.data.phonenumber +=  " (Unverified)";
-                }
+            
+            if (result.data.info.phone_number_country !== undefined) {
+                $scope.data.country = result.data.info.phone_number_country + " (" + result.data.info.phone_number_isocode + ") - " + result.data.info.phone_number_carrier;
+            }
+            else {
+                $scope.data.country = "Unknown";
+            }
+            
+            if (result.data.info.mfa_enabled !== undefined) {
+                $scope.enable_2fa = result.data.info.mfa_enabled;
+            }
+            else {
+                $scope.enable_2fa = false;
+            }
+            
+            if (result.data.info.identity !== undefined) {
+                $scope.data.identityprovider = result.data.info.identity.providerName + " (" + result.data.info.identity.userId + ")";
+            }
+            else {
+                $scope.data.identityprovider = "None";
+            }
+            
+            
+            if (result.data.info.last_login !== undefined) {
+                let timestamp = new Date(result.data.info.last_login * 1000); 
+                $scope.data.lastlogin = "" + timestamp;
+            }
+            if (result.data.info.last_failed_login !== undefined) {
+                let timestamp = new Date(result.data.info.last_failed_login * 1000); 
+                $scope.data.lastfailedlogin = "" + timestamp;
             }
         })
         .catch(function (error) {
-            handle_error(error);
+            $scope.handle_error(error);
         }); 
     };
 
-    delete_account = function() {
+    $scope.delete_account = function() {
         //
         // DELETE USER
         //
@@ -396,59 +1400,11 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token)
             }
         })
         .catch(function (error) {
-            handle_error(error);
+            $scope.handle_error(error);
         });        
     };
     
 
-    $scope.$on('$ionicView.enter', function(e) {
-
-        $scope.data.username = User.get_username();
-        $scope.data.token = User.get_token();
-
-        console.log("ACCOUNT ionicView get_profile");
-        get_profile({
-            'username': $scope.data.username,
-            'token': $scope.data.token
-        });
-
-
-        if (($scope.data.username === "") || ($scope.data.username === undefined)) {
-
-            $scope.data.username = User.get_username();
-            $scope.data.token = User.get_token();
-
-            console.log("ACCOUNT ionicView get_profile");
-            get_profile({
-                'username': $scope.data.username,
-                'token': $scope.data.token
-            });
-        }
-
-        console.log("ACCOUNT ionicView get_subscription");
-        get_subscription();
-
-    });
-
-
-//    console.log("ACCOUNT get_profile");
-//    get_profile();
-
-//    console.log("ACCOUNT get_subscription");
-//    get_subscription();
-
-
-    $scope.submitBuycredits = function() {
-        console.log("username=" + $scope.data.username);
-        console.log("token=" + $scope.data.token);
-     
-        device_param = {
-            'username': $scope.data.username,
-            'token': $scope.data.token
-        };
-        $state.go('order', device_param, {reload: true});   
-    };
-    
     $scope.submitDeleteaccount = function() {
         $ionicPopup.alert({
             title: 'Delete Account',
@@ -471,7 +1427,7 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token)
     
 
     $scope.submitVerifynumber = function() {
-        console.log("submitVerifynumber");
+        //console.log("submitVerifynumber");
 
         // Handle invalid input        
         if ($scope.data.username === undefined) {
@@ -483,6 +1439,12 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token)
             return;
         }
 
+        if ($scope.data.phonenumber === "Unknown") {
+            return;
+        }
+        if ($scope.data.phonenumber.includes("Click to VERIFY") === false) {
+            return;
+        }
         
         // 
         // VERIFY PHONE NUMBER
@@ -505,12 +1467,12 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token)
             $state.go('confirmPhoneNumber', {'username': $scope.data.username, 'token': $scope.data.token});
         })
         .catch(function (error) {
-            handle_error(error);
+            $scope.handle_error(error);
         });
     };
     
     $scope.submitSavechanges = function() {
-        console.log("submitSavechanges");
+        //console.log("submitSavechanges");
         
         // Handle invalid input
         if ($scope.data.username === undefined) {
@@ -533,19 +1495,22 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token)
             $ionicPopup.alert({title: 'Save Changes Error', template: 'Phone Number is empty!'});
             return;
         }
+        else if ($scope.data.phonenumber === "Unknown") {
+            return;
+        }
+        
+        /*
         else if ($scope.data.phonenumber.length === 0) {
             $ionicPopup.alert({title: 'Save Changes Error', template: 'Phone Number is empty!'});
             return;
         }
-        else if ($scope.data.phonenumber === "Unknown") {
-            $scope.data.phonenumber = "";
-        }
-        
+        */
         
         var param = { 'name': $scope.data.fullname };
-        if ($scope.data.phonenumber.length > 0) {
-            param.phone_number = $scope.data.phonenumber.split(" ")[0];   
-        }
+        //if ($scope.data.phonenumber.length > 0) {
+        param.phone_number = $scope.data.phonenumber.split(" ")[0];
+        console.log(param.phone_number);
+        //}
         
         // 
         // UPDATE USER INFO
@@ -576,7 +1541,7 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token)
                         text: 'OK',
                         type: 'button-positive',
                         onTap: function(e) {
-                            get_profile({
+                            $scope.get_profile({
                                 'username': $scope.data.username,
                                 'token': $scope.data.token
                             });
@@ -586,196 +1551,84 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token)
             });
         })
         .catch(function (error) {
-            handle_error(error);
+            $scope.data.phonenumber = "Unknown";
+            $scope.handle_error(error);
         });        
     };
 
     $scope.submitChangepassword = function() {
-        console.log("submitChangepassword");
+        //console.log("submitChangepassword");
+        
+        // Cannot change password if login with social accounts
+        if ($scope.data.identityprovider !== "Unknown" && $scope.data.identityprovider !== "None") {
+            $ionicPopup.alert({title: 'Change Password', template: 'Cannot change password if you login via Facebook or Google!'});
+            return;
+        }
+        
         $state.go('changePassword', {'username': $scope.data.username, 'token': $scope.data.token});
     };
 
     $scope.submitDeleteaccountAction = function() {
-        console.log("username=" + $scope.data.username);
-        console.log("token=" + $scope.data.token);
+        //console.log("username=" + $scope.data.username);
+        //console.log("token=" + $scope.data.token);
         
-        delete_account(); 
+        $scope.delete_account(); 
     };
+
+    
+    $scope.$on('$ionicView.enter', function(e) {
+        $scope.enable_2fa = false;
+        $scope.get_profile();
+    });
+
+    $scope.$on('$ionicView.beforeLeave', function(e) {
+        $scope.data.fullname = 'Unknown';
+        $scope.data.email = 'Unknown';
+        $scope.data.phonenumber = 'Unknown';
+        $scope.data.identityprovider = 'Unknown';
+        $scope.data.lastlogin = 'Unknown';
+        $scope.data.lastfailedlogin = 'Unknown';
+    });
 }
 ])
    
-.controller('orderCtrl', ['$scope', '$stateParams', '$state', '$ionicPopup', '$http', 'Server', 'User', 'Token', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+.controller('creditsCtrl', ['$scope', '$stateParams', '$state', '$ionicPopup', '$http', 'Server', 'User', 'Token', 'Payments', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
 // You can include any angular dependencies as parameters for this function
 // TIP: Access Route Parameters for your page via $stateParams.parameterName
-function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token) {
+function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token, Payments) {
 
     var server = Server.rest_api;
-
-    $scope.credits = [
-        {
-            "id": "CREDS500USD5", "points": "500", "price": "1",
-            "label": "500 credits - $1",
-        },
-        {
-            "id": "CREDS1000USD9", "points": "1000", "price": "9",
-            "label": "1000 credits - $9",
-        },
-        {
-            "id": "CREDS5000USD40", "points": "5000", "price": "40",
-            "label": "5000 credits - $40",
-        },
-        {
-            "id": "CREDS10000USD70", "points": "10000", "price": "70",
-            "label": "10000 credits - $70",
-        },
-    ];
-
 
     $scope.data = {
         'username': User.get_username(),
         'token': User.get_token(),
-        
-        'id': $scope.credits[0].id,
-        'price': $scope.credits[0].price,
-        'label': $scope.credits[0].label,
-        'points': $scope.credits[0].points,
+
+        'subscription_type': 'Unknown',
+        'subscription_credits': 'Unknown',
     };
 
-
-    $scope.submitCancel = function() {
-        device_param = {
-            'username': $scope.data.username,
-            'token': $scope.data.token
-        };
-        $state.go('menu.account', device_param, {reload: true});   
-    };
+    $scope.topups = [];
+    $scope.usages = [];
     
-    $scope.submitBuycredits = function() {
-        
-        //var spinner = document.getElementsByClassName("spinner");
-        //spinner[0].style.visibility = "visible";
-        
-        for (var i=0; i<$scope.credits.length; i++) {
-            if ($scope.data.id === $scope.credits[i].id) {
-                $scope.data.price = $scope.credits[i].price;
-                $scope.data.label = $scope.credits[i].label;
-                $scope.data.points = $scope.credits[i].points;
-                break;
+    
+    $scope.handle_error = function(error) {
+        // Handle failed login
+        if (error.data !== null) {
+            if (error.data.message === "Token expired") {
+                Token.refresh({'username': $scope.data.username, 'token': $scope.data.token});
+                $scope.data.token = User.get_token();
             }
+            else if (error.status == 401 && error.data.message.includes('Please check with the organization owner') === true ) {
+                $ionicPopup.alert({ title: 'Error', template: error.data.message, buttons: [{text: 'OK', type: 'button-assertive'}] });
+            }         
         }
-        console.log(
-            "id=" + $scope.data.id + " " +
-            "points=" + $scope.data.points + " " +
-            "price=" + $scope.data.price
-            );
-        
-        $ionicPopup.alert({
-            title: 'Subscription',
-            template: 'You have selected to buy ' + 
-                $scope.data.points + ' credits at $' + $scope.data.price + ' USD. ' +
-                'Would you like to proceed payment via Paypal?',
-                
-            buttons: [
-                { 
-                    text: 'No',
-                    type: 'button-negative',
-                },
-                {
-                    text: 'Yes',
-                    type: 'button-positive',
-                    onTap: function(e) {
-                        console.log("YES!");
-                        process_payment_paypal();
-                    }
-                }
-            ]
-        });
-    };
-    
-    process_payment_paypal = function() {
-
-        console.log("process_payment_paypal");
-
-        var host_url = server; //"http://localhost:8100";
-        var return_url = host_url + '/#/page_payment_confirmation?' + 'username=' + 
-            $scope.data.username + '&access=' + $scope.data.token.access + '&credits=' + $scope.data.points;
-        var cancel_url = host_url + '/#/page_payment_confirmation?' + 'username=' + 
-            $scope.data.username + '&access=' + $scope.data.token.access;
-
-        console.log(return_url);
-        console.log(cancel_url);
-
-        var paypal_param = {
-            'return_url': return_url,
-            'cancel_url': cancel_url,
-            'item_sku': $scope.data.id,
-            'item_credits': $scope.data.points,
-            'item_price': $scope.data.price,
-        };
-
-
-        //       
-        // PAYPAL SETUP
-        //
-        // - Request:
-        //   POST /account/payment/paypalsetup
-        //   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-        //   data: { 'return_url': string, 'cancel_url', string, 'item_sku': string, 'item_credits': string, 'item_price': string }
-        //
-        // - Response:
-        //   {'status': 'OK', 'message': string, 'approval_url': string, 'paymentId': string, 'token': string}
-        //   {'status': 'NG', 'message': string}    
-        //
-        $http({
-            method: 'POST',
-            url: server + '/account/payment/paypalsetup',
-            headers: {'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json'},
-            data: paypal_param
-        })
-        .then(function (result) {
-            console.log(result.data);
-            console.log(result.data.approval_url);
-            console.log(result.data.paymentId);
-            console.log(result.data.token);
-
-            var win = window.open(result.data.approval_url,"_blank",
-                'height=600,width=800,left=100,top=100,resizable=yes,scrollbars=yes,toolbar=no,menubar=no,location=no,directories=no,status=no',replace=false);
-
-            var timer = setInterval(function() {
-                if (win.closed) {
-                    clearInterval(timer);
-                    verifyPayment({ 
-						"payment": {
-							"paymentId": result.data.paymentId
-						} 
-					});
-                }
-            }, 1000);
-
-            //window.open(result.data.approval_url);
-        })
-        .catch(function (error) {
-            if (error.data !== null) {
-                console.log("ERROR: Paypal Setup failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
-                // TODO: replace alert with ionic alert
-                alert("ERROR: Paypal Setup failed with " + error.status + " " + error.statusText +"! " + error.data.message); 
-                
-                if (error.data.message === "Token expired") {
-                    Token.refresh({'username': $scope.data.username, 'token': $scope.data.token});
-                    $scope.data.token = User.get_token();
-                }
-            }
-            else {
-                console.log("ERROR: Server is down!"); 
-                // TODO: replace alert with ionic alert
-                alert("ERROR: Server is down!");
-            }
-        });
-        
-        // TODO Update database credits
+        else {
+            console.log("ERROR: Server is down!"); 
+            $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+        }
     };
 
-    getSubscription = function() {
+    $scope.get_subscription = function() {
         //
         // GET SUBSCRIPTION
         //
@@ -793,74 +1646,276 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token)
             headers: {'Authorization': 'Bearer ' + $scope.data.token.access}
         })
         .then(function (result) {
-            console.log("get_subscription");
+            //console.log("get_subscription");
             console.log(result.data);
 
+            $scope.data.subscription_type = result.data.subscription.type;
+            $scope.data.subscription_credits = result.data.subscription.credits;
+            $scope.getTopups();
+        })
+        .catch(function (error) {
+            $scope.handle_error(error);
+        }); 
+    };
+
+    $scope.getTopups = function() {
+        $scope.topups = [];
+        $scope.usages = [];
+        Payments.fetch_paypal_payments($scope.data).then(function(res) {
+            $scope.topups = res;
+            $scope.data.token = User.get_token();
+        });        
+    };
+    
+    $scope.$on('$ionicView.enter', function(e) {
+        $scope.topups = [];
+        $scope.usages = [];
+        $scope.get_subscription();
+    });
+
+    $scope.$on('$ionicView.beforeLeave', function(e) {
+        $scope.topups = [];
+        $scope.usages = [];
+        $scope.data.subscription_type = 'Unknown';
+        $scope.data.subscription_credits = 'Unknown';        
+    });
+    
+    $scope.submitViewTransactionTopup = function(topup) {
+        
+        console.log(topup);
+        param = {
+            'username': $scope.data.username,
+            'token': $scope.data.token,
+            'transaction': topup
+        };
+        $state.go('transactionDetails', param, {reload: true});
+    };
+
+
+
+    $scope.submitBuyCredits = function() {
+        param = {
+            'username': $scope.data.username,
+            'token': $scope.data.token,
+            'credits': $scope.data.subscription_credits
+        };
+        $state.go('topUpCredits', param, {reload: true});   
+    };
+
+/*    
+    $scope.submitViewCreditPurchases = function() {
+        
+        param = {
+            'username': $scope.data.username,
+            'token': $scope.data.token,
+            'credits': $scope.data.subscription_credits
+        };
+        $state.go('creditPurchases', param, {reload: true});
+    };
+
+    $scope.submitViewCreditUsage = function() {
+        param = {
+            'username': $scope.data.username,
+            'token': $scope.data.token
+        };
+        //$state.go('creditUsage', param, {reload: true});   
+    };
+*/
+}
+])
+   
+.controller('topUpCreditsCtrl', ['$scope', '$stateParams', '$state', '$ionicPopup', '$http', 'Server', 'User', 'Token', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+// You can include any angular dependencies as parameters for this function
+// TIP: Access Route Parameters for your page via $stateParams.parameterName
+function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token) {
+
+    var server = Server.rest_api;
+
+    $scope.data = {
+        'username': User.get_username(),
+        'token': User.get_token(),
+        'credits': $stateParams.credits,
+    };
+
+    $scope.topup = {
+        'credits': 100,
+        'amount': 1,
+    };
+
+    $scope.timer = null;
+    $scope.notice = "";
+    
+    
+    $scope.computeAmount = function(credits) {
+        $scope.topup.amount = credits/100;
+    };
+    
+    $scope.submitCancel = function() {
+        device_param = {
+            'username': $scope.data.username,
+            'token': $scope.data.token
+        };
+        $state.go('menu.credits', device_param, {reload: true});   
+    };
+    
+    
+    $scope.submitBuycredits = function() {
+
+        // Check if atleast minimum value
+        let minimum = 100;
+        if ($scope.topup.credits < minimum) {
             $ionicPopup.alert({
-                title: 'Payment Confirmation',
-                template: 'Payment transaction was successful. Your new credit balance is ' + result.data.subscription.credits + '.',
-                buttons: [
-                    {
-                        text: 'OK',
-                        type: 'button-positive',
-                        onTap: function(e) {
-                            param = {
-                                'username': $scope.data.username,
-                                'token': $scope.data.token
-                            };
-                            $state.go('menu.account', param, {reload: true});   
-                        }
-                    }
-                ]
+                title: 'Error',
+                template: 'Minimum allowed topup is ' + minimum + ' credits!',
             });
+            return;
+        }   
+        
+        $scope.notice = "";
+
+        $ionicPopup.alert({
+            title: 'Subscription',
+            template: 'You have selected to buy ' + 
+                $scope.topup.credits + ' credits at $' + $scope.topup.amount + ' USD. ' +
+                'Would you like to proceed payment via Paypal?',
+                
+            buttons: [
+                { 
+                    text: 'No',
+                    type: 'button-negative',
+                },
+                {
+                    text: 'Yes',
+                    type: 'button-positive',
+                    onTap: function(e) {
+                        //console.log("YES!");
+                        process_payment_paypal();
+                    }
+                }
+            ]
+        });
+    };
+    
+    process_payment_paypal = function() {
+
+        //console.log("process_payment_paypal");
+
+        var host_url = "";
+        if (window.__env.apiUrl === "localhost") {
+            host_url = "http://localhost:8100";
+        }
+        else {
+            host_url = server;
+        }
+        var paypal_param = {
+            'returnurl': host_url + '/#/page_payment_confirmation',
+            'cancelurl': host_url + '/#/page_payment_confirmation',
+            'amount': $scope.topup.amount,
+        };
+
+
+
+        //       
+        // PAYPAL SETUP
+        //
+        // - Request:
+        //   POST /account/payment/paypalsetup
+        //   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+        //   data: { 'returnurl': string, 'cancelurl', string, 'amount': int }
+        //
+        // - Response:
+        //   {'status': 'OK', 'message': string, 'payment': {'approvalurl': string, 'paymentid': string}}
+        //   {'status': 'NG', 'message': string}    
+        //
+        $http({
+            method: 'POST',
+            url: server + '/account/payment/paypalsetup',
+            headers: {'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json'},
+            data: paypal_param
+        })
+        .then(function (result) {
+            console.log(result.data);
+
+            var win = window.open(result.data.payment.approvalurl,"_blank",
+                'height=600,width=800,left=100,top=100,resizable=yes,scrollbars=yes,toolbar=no,menubar=no,location=no,directories=no,status=no',replace=false);
+            if (win !== null) {
+                $scope.notice = "Waiting for user to approve the Paypal transaction ...";
+                $scope.timer = setInterval(function() {
+                    if (win.closed) {
+                        clearInterval($scope.timer);
+                        //$scope.timer = null; // NOTE: delay the setting to null inside executePayment
+                        
+                        $scope.notice = "Please wait while we verify the Paypal transaction ...";
+                        executePayment(result.data.payment.paymentid);
+                        //verifyPayment(result.data.payment.paymentid);
+                    }
+                }, 1000);
+            }
         })
         .catch(function (error) {
             if (error.data !== null) {
-                console.log("ERROR: Get Subscription failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
-                // TODO: replace alert with ionic alert
-                alert("ERROR: Get Subscription failed with " + error.status + " " + error.statusText +"! " + error.data.message); 
-                
+                $ionicPopup.alert({ title: 'Error', template: "Paypal Setup failed with " + error.status + " " + error.statusText + "! " + error.data.message, buttons: [{text: 'OK', type: 'button-assertive'}] });
+
                 if (error.data.message === "Token expired") {
                     Token.refresh({'username': $scope.data.username, 'token': $scope.data.token});
                     $scope.data.token = User.get_token();
                 }
             }
             else {
-                console.log("ERROR: Server is down!"); 
-                // TODO: replace alert with ionic alert
-                alert("ERROR: Server is down!");
+                $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
             }
-        }); 
+        });
     };
 
-    verifyPayment = function(paypal_param) {
+    executePayment = function(paymentid) {
         //
-        // PAYPAL VERIFY
+        // PAYPAL EXECUTE
         //
         // - Request:
-        //   POST /account/payment/paypalverify
+        //   POST /account/payment/paypalexecute/PAYMENTID
         //   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-        //   data: { 'paymentId': string }
         //
         // - Response:
-        //   {'status': 'OK', 'message': string}
+        //   {'status': 'OK', 'message': string, 'subscription': {'type': string, 'credits': int, 'prevcredits': int}}
         //   {'status': 'NG', 'message': string}
-        //
-        console.log("paypalverify");
-        console.log(paypal_param.payment);
+        //  
+        //console.log("paypalexecute " + paymentid);
+        //console.log(paypal_param);
         $http({
             method: 'POST',
-            url: server + '/account/payment/paypalverify',
+            url: server + '/account/payment/paypalexecute/' + paymentid,
             headers: {'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json'},
-            data: paypal_param.payment
         })
         .then(function (result) {
             console.log(result.data);
+            $scope.notice = "";
+            $scope.timer = null;
+            
             if (result.data.status === "OK") {
-                getSubscription();
+                $scope.data.credits = result.data.subscription.credits;
+                var added_credits = result.data.subscription.credits - result.data.subscription.prevcredits;
+                $ionicPopup.alert({
+                    title: 'Payment Confirmation',
+                    template: 'The payment transaction has been verified. ' + 
+                        added_credits + ' credits has been successfully added to your account! ' + 
+                        'Your new credit balance is ' + result.data.subscription.credits + '.',
+                    buttons: [
+                        {
+                            text: 'OK',
+                            type: 'button-positive',
+                            onTap: function(e) {
+                                param = {
+                                    'username': $scope.data.username,
+                                    'token': $scope.data.token
+                                };
+                                $state.go('menu.credits', param, {reload: true});   
+                            }
+                        }
+                    ]
+                });
             }
             else {
-                $ionicPopup.alert({
+                 $ionicPopup.alert({
                     title: 'Payment Confirmation',
                     template: 'Payment transaction was not successful. Please try again!',
                     buttons: [
@@ -875,25 +1930,195 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token)
             }
         })
         .catch(function (error) {
+            $scope.timer = null;
+            $scope.notice = "";
+            
             // Handle failed
             if (error.data !== null) {
-                console.log("ERROR: Paypal Verification failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
-                // TODO: replace alert with ionic alert
-                alert("ERROR: Paypal Setup Verification with " + error.status + " " + error.statusText +"! " + error.data.message); 
-                
+                $ionicPopup.alert({ title: 'Error', template: "Paypal Verify failed with " + error.status + " " + error.statusText + "! " + error.data.message, buttons: [{text: 'OK', type: 'button-assertive'}] });
+
                 if (error.data.message === "Token expired") {
                     Token.refresh({'username': $scope.data.username, 'token': $scope.data.token});
                     $scope.data.token = User.get_token();
                 }
             }
             else {
-                console.log("ERROR: Server is down!"); 
-                // TODO: replace alert with ionic alert
-                alert("ERROR: Server is down!");
+                $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+            }
+        });
+    };
+    
+    $scope.$on('$ionicView.enter', function(e) {
+        $scope.topup = {
+            'credits': 100,
+            'amount': 1,
+        };
+        $scope.timer = null;
+        $scope.notice = "";
+    });    
+    
+    $scope.$on('$ionicView.beforeLeave', function(e) {
+        if ($scope.timer !== null) {
+            clearTimeout($scope.timer);
+            $scope.timer = null;
+        }
+        $scope.notice = "";
+    });    
+}])
+   
+.controller('creditPurchasesCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Payments', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+// You can include any angular dependencies as parameters for this function
+// TIP: Access Route Parameters for your page via $stateParams.parameterName
+function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Payments) {
+
+    var server = Server.rest_api;
+    
+    $scope.data = {
+        'username': User.get_username(),
+        'token': User.get_token(),
+        'credits': $stateParams.credits
+    };
+    
+    $scope.items = []; // items to be shown
+
+    
+    $scope.getTransactionDetails = function(item) {
+        device_param = {
+            'username': $scope.data.username,
+            'token': $scope.data.token,
+            'credits': $scope.data.credits,
+            'id': item.id
+        };
+        $state.go('transactionDetails', device_param, {reload: true});   
+    };  
+    
+    $scope.submitRefresh = function() {
+        $scope.items = [];
+        Payments.fetch_paypal_payments($scope.data).then(function(res) {
+            $scope.items = res;
+            $scope.data.token = User.get_token();
+        });
+        
+    };
+    
+    $scope.submitCancel = function() {
+        device_param = {
+            'username': $scope.data.username,
+            'token': $scope.data.token,
+            'activeSection': 2
+        };
+        $state.go('menu.account', device_param, {reload: true});   
+    };    
+    
+    $scope.$on('$ionicView.enter', function(e) {
+        $scope.submitRefresh();
+    });
+}])
+   
+.controller('purchaseDetailsCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Payments', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+// You can include any angular dependencies as parameters for this function
+// TIP: Access Route Parameters for your page via $stateParams.parameterName
+function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Payments) {
+
+    var server = Server.rest_api;
+    
+    $scope.data = {
+        'username': User.get_username(),
+        'token': User.get_token(),
+        
+        
+        'credits': $stateParams.credits,
+        'id': $stateParams.id,
+    };
+    
+    $scope.paypal = {};
+
+    $scope.submitRefresh = function() {
+        //console.log("retrievePaypalTransaction " + $scope.data.id);
+        retrievePaypalTransaction($scope.data.id);
+    };
+   
+    retrievePaypalTransaction = function(id) {
+        //
+        // RETRIEVE PAYPAL TRANSACTION
+        //
+        // - Request:
+        //   GET /account/payment/paypal/TRANSACTIONID
+        //   headers: {'Authorization': 'Bearer ' + token.access}
+        //
+        // - Response:
+        //   {'status': 'OK', 'message': string}
+        //   {'status': 'NG', 'message': string}
+        //
+        $http({
+            method: 'GET',
+            url: server + '/account/payment/paypal/' + id,
+            headers: {'Authorization': 'Bearer ' + $scope.data.token.access}
+        })
+        .then(function (result) {
+            console.log(result.data);
+        })
+        .catch(function (error) {
+            // Handle failed
+            if (error.data !== null) {
+                $ionicPopup.alert({ title: 'Error', template: "Retrieve Paypal Transaction failed with " + error.status + " " + error.statusText + "! " + error.data.message, buttons: [{text: 'OK', type: 'button-assertive'}] });
+
+                if (error.data.message === "Token expired") {
+                    Token.refresh({'username': $scope.data.username, 'token': $scope.data.token});
+                    $scope.data.token = User.get_token();
+                }
+            }
+            else {
+                $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
             }
             window.close();
         });
     };
+       
+    
+    $scope.submitCancel = function() {
+        device_param = {
+            'username': $scope.data.username,
+            'token': $scope.data.token,
+            'credits': $scope.data.credits,
+        };
+        $state.go('creditPurchases', device_param, {reload: true});   
+    };    
+    
+    $scope.$on('$ionicView.enter', function(e) {
+        $scope.submitRefresh();
+    });
+}])
+   
+.controller('transactionDetailsCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Payments', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+// You can include any angular dependencies as parameters for this function
+// TIP: Access Route Parameters for your page via $stateParams.parameterName
+function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Payments) {
+
+    var server = Server.rest_api;
+    
+    $scope.data = {
+        'username': User.get_username(),
+        'token': User.get_token(),
+        
+        'transaction': $state.params.transaction,
+    };
+
+    $scope.submitCancel = function() {
+        param = {
+            'username': $scope.data.username,
+            'token': $scope.data.token,
+        };
+        $state.go('menu.credits', param, {reload: true});   
+    };    
+    
+    $scope.$on('$ionicView.enter', function(e) {
+        console.log("enter");
+        $scope.data.transaction = $state.params.transaction;
+        //console.log($stateParams.transaction);
+        //console.log($state.params.transaction);
+        //console.log($scope.data.transaction);
+    });
 }])
    
 .controller('paymentConfirmationCtrl', ['$scope', '$stateParams', '$ionicPopup', '$http', 'Server', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
@@ -904,11 +2129,7 @@ function ($scope, $stateParams, $ionicPopup, $http, Server) {
     var server = Server.rest_api;
     var spinner = document.getElementsByClassName("spinner2");
     
-    $scope.data = {
-        'token': {'access': ''},
-        'credits': ''
-    }    
-        
+
     function GetURLParameter(sParam) {
         var sPageURL = window.location.href.substring(1);
         try {
@@ -931,194 +2152,73 @@ function ($scope, $stateParams, $ionicPopup, $http, Server) {
     }
 
     function GetURLParameters() {
-        var username = GetURLParameter('username');
-        var access = GetURLParameter('access');
-        var credits = GetURLParameter('credits');
-        var payment_paymentId = GetURLParameter('paymentId');
-        var payment_token = GetURLParameter('token');
-        var payment_PayerID = GetURLParameter('PayerID');
-
-        if (username !== null && access !== null) {
-            $scope.data.token.access = access;
-            if (credits !== null) {
-                $scope.data.credits = credits;
-            }
-
-            params = { 
-                "username": username
-            };
-            if (payment_token !== null) {
-                params.payment = {
-                    "token": payment_token
-                };
-            }
-            if (payment_paymentId !== null && payment_PayerID !== null) {
-                params.payment.paymentId = payment_paymentId;
-                params.payment.PayerID = payment_PayerID;
-            }
-            return params;
+        var paymentid = GetURLParameter('paymentId');
+        var payerid = GetURLParameter('PayerID');
+        var params = {};
+        if (paymentid !== null) {
+            params.paymentid = paymentid;
         }
-        return null;
+        if (payerid !== null) {
+            params.payerid = payerid;
+        }
+        return params;
     }
 
-    function setSubscription(param) {
-        //
-        // SET SUBSCRIPTION
-        //
-        // - Request:
-        //   POST /account/subscription
-        //   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-        //   data: { 'credits': string }
-        //
-        // - Response:
-        //   {'status': 'OK', 'message': string, 'subscription': {'credits': string, 'type': paid}}
-        //   {'status': 'NG', 'message': string}        
-        //  
-        console.log("set_subscription");
-        console.log(param);
-        $http({
-            method: 'POST',
-            url: server + '/account/subscription',
-            headers: {'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json'},
-            data: param
-        })
-        .then(function (result) {
-            console.log(result.data);
-            if (result.data.status === "OK") {
-                spinner[0].style.visibility = "hidden";
-                
-                $ionicPopup.alert({
-                    title: 'Payment Confirmation',
-                    template: 'The payment transaction has been verified. ' + 
-                        param.credits + ' credits has been successfully added to your account! ' + 
-                        'Your new credit balance is ' + result.data.subscription.credits + '.',
-                    buttons: [
-                        {
-                            text: 'OK',
-                            type: 'button-positive',
-                            onTap: function(e) {
-                                window.close();
-                            }
-                        }
-                    ]
-                });
-            }
-        })
-        .catch(function (error) {
-            // Handle failed
-            if (error.data !== null) {
-                console.log("ERROR: Set Subscription failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
-                // TODO: replace alert with ionic alert
-                alert("ERROR: Paypal Set Subscription with " + error.status + " " + error.statusText +"! " + error.data.message); 
-            }
-            else {
-                console.log("ERROR: Server is down!"); 
-                // TODO: replace alert with ionic alert
-                alert("ERROR: Server is down!");
-            }
-            window.close();
-        }); 
-    }
 
-    function verifyPayment(paypal_param) {
+    function storePaymentPayerID(paypal_param) {
         //
-        // PAYPAL VERIFY
-        //
-        // - Request:
-        //   POST /account/payment/paypalverify
-        //   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-        //   data: { 'paymentId': string }
-        //
-        // - Response:
-        //   {'status': 'OK', 'message': string}
-        //   {'status': 'NG', 'message': string}
-        //        
-        console.log("paypalverify");
-        console.log(paypal_param.payment);
-        $http({
-            method: 'POST',
-            url: server + '/account/payment/paypalverify',
-            headers: {'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json'},
-            data: paypal_param.payment
-        })
-        .then(function (result) {
-            console.log(result.data);
-            if (result.data.status === "OK") {
-                setSubscription({ 'credits': $scope.data.credits });
-            }
-        })
-        .catch(function (error) {
-            // Handle failed
-            if (error.data !== null) {
-                console.log("ERROR: Paypal Verification failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
-                // TODO: replace alert with ionic alert
-                alert("ERROR: Paypal Setup Verification with " + error.status + " " + error.statusText +"! " + error.data.message); 
-            }
-            else {
-                console.log("ERROR: Server is down!"); 
-                // TODO: replace alert with ionic alert
-                alert("ERROR: Server is down!");
-            }
-            window.close();
-        });
-    }
-
-    function executePayment(paypal_param) {
-        //
-        // PAYPAL EXECUTE
+        // PAYPAL STORE PAYERID
         //
         // - Request:
-        //   POST /account/payment/paypalexecute
-        //   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-        //   data: { 'paymentId': string, 'payerId': string, 'token': string }
+        //   POST /account/payment/paypalpayerid/PAYMENTID
+        //   headers: {'Content-Type': 'application/json'}
+        //   data: { 'payerid': string }
         //
         // - Response:
         //   {'status': 'OK', 'message': string}
         //   {'status': 'NG', 'message': string}
         //  
-        console.log("paypalexecute");
-        console.log(paypal_param);
+        //console.log("paypalexecute " + paypal_param.paymentid);
+        //console.log(paypal_param);
         $http({
             method: 'POST',
-            url: server + '/account/payment/paypalexecute',
-            headers: {'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json'},
-            data: paypal_param.payment
+            url: server + '/account/payment/paypalpayerid/' + paypal_param.paymentid,
+            headers: {'Content-Type': 'application/json'},
+            data: {'payerid': paypal_param.payerid}
         })
         .then(function (result) {
             console.log(result.data);
-            if (result.data.status === "OK") {
-                verifyPayment(paypal_param);
-            }
+            spinner[0].style.visibility = "hidden";
+            window.close();
         })
         .catch(function (error) {
             // Handle failed
             if (error.data !== null) {
-                console.log("ERROR: Paypal Execution failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
-                // TODO: replace alert with ionic alert
-                alert("ERROR: Paypal Setup Execution with " + error.status + " " + error.statusText +"! " + error.data.message); 
+                $ionicPopup.alert({ title: 'Error', template: "Paypal Store Token failed with " + error.status + " " + error.statusText + "! " + error.data.message, buttons: [{text: 'OK', type: 'button-assertive'}] });
             }
             else {
-                console.log("ERROR: Server is down!"); 
-                // TODO: replace alert with ionic alert
-                alert("ERROR: Server is down!");
+                $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
             }
+            spinner[0].style.visibility = "hidden";
             window.close();
         });
     }
+
 
     spinner[0].style.visibility = "visible";
     paypal_param = GetURLParameters();
     if (paypal_param !== null) {
-        console.log("GetURLParameters: ");
+        //console.log("GetURLParameters: ");
         console.log(paypal_param);
-        console.log(paypal_param.payment);
 
-        if (paypal_param.payment.PayerID !== undefined) {
+        if (paypal_param.payerid !== undefined) {
             console.log("Customer approved the transaction!");
-            executePayment(paypal_param);
+            //executePayment(paypal_param);
+            storePaymentPayerID(paypal_param);
         }
         else {
-            console.log("Customer cancelled the transaction! token=" + paypal_param.payment.token);
+            console.log("Customer cancelled the transaction!");
+            spinner[0].style.visibility = "hidden";
             window.close();
         }
     }
@@ -1132,8 +2232,9 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
     var server = Server.rest_api;
 
     $scope.data = {
-        'username': User.get_username(), //$stateParams.username,
-        'token': User.get_token()        //$stateParams.token
+        'username': User.get_username(),
+        'token': User.get_token(),
+        'name': User.get_name()
     };
 
     $scope.$on('$ionicView.enter', function(e) {
@@ -1143,6 +2244,9 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
         }
         if ($scope.data.token === "") {
             $scope.data.token = User.get_token();
+        }
+        if ($scope.data.name === "") {
+            $scope.data.name = User.get_name();
         }
     });
 
@@ -1203,15 +2307,17 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
             console.log(result.data);
             $scope.data.username = "";        
             $scope.data.token = "";        
+            $scope.data.name = "";        
             User.clear();
-            $state.go('login');
+            $state.go('home', {}, {reload: true});
         })
         .catch(function (error) {
             console.log("logout failed!");
             $scope.data.username = "";        
             $scope.data.token = "";        
+            $scope.data.name = "";        
             User.clear();
-            $state.go('login');
+            $state.go('home', {}, {reload: true});
         });    
     }    
 }
@@ -1228,10 +2334,17 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
     var server = Server.rest_api;
     
     $scope.data = {
-        'username': $scope.username,
-        'password': $scope.password
+        'username': '',
+        'password': ''
     };
     
+    $scope.oauthorization_code = null;
+    $scope.waiting_login = false;
+    $scope.win = null;
+    $scope.timer = null;
+    $scope.runtime_max = 120;
+    $scope.savetokens = false;
+
     base64Encode = function(str) {
         return window.btoa(str);
     };
@@ -1293,6 +2406,7 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
         // Display spinner
         var spinner = document.getElementsByClassName("spinner");
         spinner[0].style.visibility = "visible";
+        $scope.waiting_login = true;
 
         var start_time = Math.floor(Date.now() / 1000);
         //console.log("login: " + $scope.data.username);
@@ -1315,6 +2429,7 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
         })
         .then(function (result) {
             spinner[0].style.visibility = "hidden";
+            $scope.waiting_login = false;
             
             console.log("login: OK " + (Math.floor(Date.now() / 1000)-start_time) + " secs");
             // Handle successful
@@ -1322,15 +2437,373 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
 
             var user_data = {
                 'username': $scope.data.username,
-                'token': result.data.token
+                'token': result.data.token,
+                'name': result.data.name
             };
             
+            User.clear();
             User.set(user_data);
-        
-            $state.go('menu.devices', user_data);
+            $state.go('menu.gateways', user_data);
         })
         .catch(function (error) {
             spinner[0].style.visibility = "hidden";
+            $scope.waiting_login = false;
+            
+            // Handle failed
+            if (error.data !== null) {
+                if (error.status == 401) {
+                    if (error.data.message === "PasswordResetRequiredException") {
+                        let data = {
+                            'username': error.data.username
+                        };
+                        $state.go('resetPassword', data); 
+                    }
+                    else if (error.data.message === "MFARequiredException") {
+                        let data = {
+                            'username': error.data.username
+                        };
+                        $state.go('confirmMFA', data); 
+                    }
+                    else {
+                        console.log(error.status + " " + error.statusText);
+                        $ionicPopup.alert({ title: 'Login Error', template: error.data.message });
+                    }
+                }
+                else {
+                    console.log(error.status + " " + error.statusText);
+                    $ionicPopup.alert({ title: 'Login Error', template: error.data.message });
+                }
+            }
+            else {
+                $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+            }
+        });
+    };
+    
+    
+    // Support for Login via social accounts like Facebook, Google, Amazon
+    function GetURLParameter(sParam) {
+        var sPageURL = window.location.href.substring(1);
+        try {
+            var sPageParameters = sPageURL.split('?');
+            if (sPageParameters !== null) {
+                var sURLVariables = sPageParameters[1].split('&');
+                if (sURLVariables !== null) {
+                    for (var i = 0; i < sURLVariables.length; i++) {
+                        var sParameterName = sURLVariables[i].split('=');
+                        if (sParameterName[0] == sParam) {
+                            return (sParameterName[1].split('#'))[0];
+                        }
+                    }
+                }
+            }
+        }
+        catch(err) {
+        }
+        return null;
+    }
+
+    // Support for Login via social accounts like Facebook, Google, Amazon
+    // This will be called during the completion of the OAuth authorization code
+    // Once called, it retrieves the code from the url parameters, together with the stateid random number
+    // and then retrieves the tokens using the code
+    // Once the token is retrieved, it saves it to the backend database
+    // and then closes the window
+    function GetURLParameters() {
+        var state_id = GetURLParameter('state');
+        $scope.oauthorization_code = GetURLParameter('code');
+
+        if ($scope.savetokens) {
+            if ($scope.oauthorization_code !== null && state_id !== null) {
+                // successful login via social idp
+                if (window.__env.apiUrl === "localhost") {
+                    $scope.get_tokens_from_oauthcode($scope.oauthorization_code, state_id, window.__env.clientId, 'http://localhost:8100');
+                    //$scope.login_idp($scope.oauthorization_code, 'http://localhost:8100');
+                }
+                else {
+                    $scope.get_tokens_from_oauthcode($scope.oauthorization_code, state_id, window.__env.clientId, server);
+                    //$scope.login_idp($scope.oauthorization_code, server);
+                }
+            }
+            else if ($scope.oauthorization_code !== null) {
+                // successful login via social idp
+                if (window.__env.apiUrl === "localhost") {
+                    $scope.get_tokens_from_oauthcode($scope.oauthorization_code, 0, window.__env.clientId, 'http://localhost:8100');
+                }
+                else {
+                    $scope.get_tokens_from_oauthcode($scope.oauthorization_code, 0, window.__env.clientId, server);
+                }
+            }
+            else if (state_id !== null) {
+                // error login via social idp
+                let error = GetURLParameter('error');
+                if (error !== null) {
+                    $scope.login_idp_storetoken(state_id, {});
+                }
+            }
+            else {
+                // regular login, do nothing
+            }
+        }
+        else {
+            if ($scope.oauthorization_code !== null && state_id !== null) {
+                // successful login via social idp
+                $scope.login_idp_storecode(state_id, $scope.oauthorization_code);
+            }
+            else if (state_id !== null) {
+                // failed login via social idp
+                let error = GetURLParameter('error');
+                if (error !== null) {
+                    $scope.login_idp_storecode(state_id, "");
+                }
+            }
+            else {
+                // regular login, do nothing
+            }    
+        }
+    }
+
+    // Support for Login via social accounts like Facebook, Google, Amazon
+    // "The /oauth2/token endpoint only supports HTTPS POST. 
+    //  The user pool client makes requests to this endpoint directly and not through the system browser."    
+    $scope.get_tokens_from_oauthcode = function(oauthorization_code, state_id, client_id, redirect_uri, spinner=null) {
+        //
+        // GET TOKENS
+        // - Request:
+        //   POST 'https://' + window.__env.oauthDomain + '/oauth2/token'
+        //   headers: {'Content-Type': 'application/x-www-form-urlencoded' }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string}
+        //   { 'status': 'NG', 'message': string}
+        //
+        
+        url = 'https://' + window.__env.oauthDomain + '/oauth2/token';
+        data = 'grant_type=authorization_code' + '&client_id=' + client_id + '&code=' + oauthorization_code + '&redirect_uri=' + redirect_uri;
+        //console.log(url);
+        //console.log(data);
+        
+        $http({
+            method: 'POST',
+            url: url,
+            headers: {'Content-Type': 'application/x-www-form-urlencoded' },
+            data: data
+        })
+        .then(function (result) {
+            console.log(result.data);
+
+            if ($scope.savetokens) {
+                // Set username and tokens
+                if (state_id !== 0) {
+                    $scope.login_idp_storetoken(state_id, { 'id': result.data.id_token, 'refresh': result.data.refresh_token, 'access': result.data.access_token });
+                }
+                else {
+                    let user_data = {
+                        'username': 'SocialIDPLogin',
+                        'token': { 'id': result.data.id_token, 'refresh': result.data.refresh_token, 'access': result.data.access_token },
+                        'name': 'SocialIDPLogin'
+                    };
+                    
+                    User.clear();                    
+                    User.set(user_data);
+                    $state.go('menu.gateways', user_data);
+                }
+            }
+            else {
+                $scope.get_profile({ 'id': result.data.id_token, 'refresh': result.data.refresh_token, 'access': result.data.access_token }, spinner);
+            }
+        })
+        .catch(function (error) {
+            if ($scope.savetokens) {
+                // Handle failed
+                if (error.data !== null) {
+                    console.log(error.status + " " + error.statusText);
+                    $ionicPopup.alert({ title: 'Login Error', template: error.data.message });
+                }
+                else {
+                    $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+                }
+            }
+            else {
+                spinner[0].style.visibility = "hidden";
+                $scope.waiting_login = false;
+                
+                if (error.data !== null) {
+                    console.log(error.status + " " + error.statusText);
+                    $ionicPopup.alert({ title: 'Login Error', template: error.data.message });
+                }
+                else {
+                    $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+                }
+            }
+        }); 
+    };
+
+    // Support for Login via social accounts like Facebook, Google, Amazon
+    // When user clicks on the login via social accounts, 
+    // a new window is opened which handles getting of the authorization code (OAuth process)
+    // The specified callback url will be called containing the authorization.
+    // Given the authorization code, the app requests for the tokens.
+    $scope.getOAuthCode = function(socialidp=null) {
+        
+        // "The /login endpoint only supports HTTPS GET. 
+        //  The user pool client makes this request through a system browser. 
+        //  System browsers for JavaScript include Chrome or Firefox. 
+        //  Android browsers include Custom Chrome Tab. iOS browsers include Safari View Control."        
+        if (true) {
+            var state = Math.floor(Math.random() * 8999999999 + 1000000000);
+            
+            var url = "https://" + window.__env.oauthDomain + "/login";
+            url += "?client_id=" + window.__env.clientId;
+            url += "&response_type=code";
+            url += "&scope=email+openid+phone+aws.cognito.signin.user.admin";
+            url += "&state=" + state;
+            if (socialidp !== null) {
+                url += "&identity_provider=" + socialidp;
+            }
+            
+            if (window.__env.apiUrl === "localhost") {
+                url += '&redirect_uri=http://localhost:8100';
+            }
+            else {
+                url += '&redirect_uri=' + server;
+            }
+            
+            $scope.win = window.open(url,"_blank",
+                'width=1000,height=475,left=100,top=100,resizable=no,scrollbars=no,toolbar=no,menubar=no,location=no,directories=no,status=no,titlebar=no',replace=false);
+            if ($scope.win !== null) {
+                // Display spinner
+                var spinner = document.getElementsByClassName("spinner");
+                spinner[0].style.visibility = "visible";
+                $scope.waiting_login = true;
+                var runtime = 0;
+                
+                $scope.timer = setInterval(function() {
+                    if ($scope.win.closed) {
+                        //console.log("exited");
+                        runtime = 0;
+                        clearInterval($scope.timer);
+                        $scope.timer = null;
+                        
+                        if ($scope.savetokens) {
+                            $scope.login_idp_querytoken(spinner, state.toString());
+                        }
+                        else {
+                            $scope.login_idp_querycode(spinner, state.toString());
+                        }
+                    }
+                    else {
+                        runtime += 1;
+                        console.log(runtime);
+                        if (runtime >= $scope.runtime_max) {
+                            $scope.win.close();
+                            $scope.win = null;
+                            
+                            spinner[0].style.visibility = "hidden";
+                            $scope.waiting_login = false;
+                            
+                            runtime = 0;
+                            clearInterval($scope.timer);
+                            $scope.timer = null;
+                            
+                            $ionicPopup.alert({ title: 'Error', template: 'Login with social account timed out!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+                        }
+                    }
+                }, 1000);
+            }
+            else {
+                $ionicPopup.alert({ title: 'Error', template: 'Cannot open a new window! Check if popup window is blocked!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+            }
+        }
+    };
+
+
+
+    // Support for Login via social accounts like Facebook, Google, Amazon
+    $scope.login_idp_storetoken = function(id, token) {
+        // 
+        // LOGIN IDP STORE TOKEN
+        // 
+        // - Request:
+        //   POST /user/login/idp/token/<id>
+        //   headers: {'Content-Type': 'application/json'}
+        //   data: {'token': json_obj}
+        // 
+        // - Response:
+        //   {'status': 'OK', 'message': string}
+        //   {'status': 'NG', 'message': string}
+        //
+        $http({
+            method: 'POST',
+            url: server + '/user/login/idp/token/' + id,
+            headers: {'Content-Type': 'application/json'},
+            data: {'token': token}
+        })
+        .then(function (result) {
+            console.log(result.data);
+            window.close();
+        })
+        .catch(function (error) {
+            window.close();
+            // Handle failed
+            if (error.data !== null) {
+                console.log(error.status + " " + error.statusText);
+                $ionicPopup.alert({ title: 'Login Error', template: error.data.message });
+            }
+            else {
+                $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+            }
+        });
+    };
+
+
+    // Support for Login via social accounts like Facebook, Google, Amazon
+    $scope.login_idp_querytoken = function(spinner, id) {
+        // 
+        // LOGIN IDP QUERY TOKEN
+        // 
+        // - Request:
+        //   GET /user/login/idp/token/<id>
+        //   headers: {'Content-Type': 'application/json'}
+        // 
+        // - Response:
+        //   {'status': 'OK', 'message': string}
+        //   {'status': 'NG', 'message': string}
+        //
+        $http({
+            method: 'GET',
+            url: server + '/user/login/idp/token/' + id,
+            headers: {'Content-Type': 'application/json'},
+        })
+        .then(function (result) {
+            spinner[0].style.visibility = "hidden";
+            $scope.waiting_login = false;
+            
+            console.log(result.data);
+
+            if (result.data.token !== undefined) {
+                if (result.data.token.access === undefined) {
+                    $ionicPopup.alert({ title: 'Error', template: 'Login with social account failed!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+                    return;
+                }
+                
+                var user_data = {
+                    'username': result.data.username,
+                    'token': result.data.token,
+                    'name': result.data.name,
+                };
+                
+                User.clear();
+                User.set(user_data);
+                $state.go('menu.gateways', user_data);
+            }
+            else {
+                $ionicPopup.alert({ title: 'Error', template: 'Login with social account failed due to cancellation or timeout!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+            }
+        })
+        .catch(function (error) {
+            spinner[0].style.visibility = "hidden";
+            $scope.waiting_login = false;
             
             // Handle failed
             if (error.data !== null) {
@@ -1342,6 +2815,161 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
             }
         });
     };
+
+
+    // Support for Login via social accounts like Facebook, Google, Amazon
+    $scope.login_idp_storecode = function(id, code) {
+        // 
+        // LOGIN IDP STORE CODE
+        // 
+        // - Request:
+        //   POST /user/login/idp/code/<id>
+        //   headers: {'Content-Type': 'application/json'}
+        //   data: {'code': string}
+        // 
+        // - Response:
+        //   {'status': 'OK', 'message': string}
+        //   {'status': 'NG', 'message': string}
+        //
+        $http({
+            method: 'POST',
+            url: server + '/user/login/idp/code/' + id,
+            headers: {'Content-Type': 'application/json'},
+            data: {'code': code}
+        })
+        .then(function (result) {
+            console.log(result.data);
+
+            $scope.oauthorization_code = null;
+            window.close();
+        })
+        .catch(function (error) {
+            $scope.oauthorization_code = null;
+            window.close();
+
+            // Handle failed
+            if (error.data !== null) {
+                console.log(error.status + " " + error.statusText);
+                $ionicPopup.alert({ title: 'Login Error', template: error.data.message });
+            }
+            else {
+                $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+            }
+        });
+    };
+
+    // Support for Login via social accounts like Facebook, Google, Amazon
+    $scope.login_idp_querycode = function(spinner, id) {
+        // 
+        // LOGIN IDP QUERY CODE
+        // 
+        // - Request:
+        //   GET /user/login/idp/code/<id>
+        //   headers: {'Content-Type': 'application/json'}
+        // 
+        // - Response:
+        //   {'status': 'OK', 'message': string}
+        //   {'status': 'NG', 'message': string}
+        //
+        $http({
+            method: 'GET',
+            url: server + '/user/login/idp/code/' + id,
+            headers: {'Content-Type': 'application/json'},
+        })
+        .then(function (result) {
+            console.log(result.data);
+
+            // Handle failed login
+            if (result.data.code === "") {
+                spinner[0].style.visibility = "hidden";
+                $scope.waiting_login = false;
+                $ionicPopup.alert({ title: 'Error', template: 'Login with social account failed!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+                return;
+            }
+            
+            //$scope.oauthorization_code = result.data.code;
+            if (window.__env.apiUrl === "localhost") {
+                $scope.get_tokens_from_oauthcode(result.data.code, id, window.__env.clientId, 'http://localhost:8100', spinner);
+            }
+            else {
+                $scope.get_tokens_from_oauthcode(result.data.code, id, window.__env.clientId, server, spinner);
+            }
+        })
+        .catch(function (error) {
+            spinner[0].style.visibility = "hidden";
+            $scope.waiting_login = false;
+            
+            // Handle failed
+            if (error.data !== null) {
+                $ionicPopup.alert({ title: 'Error', template: 'Login with social account failed due to cancellation!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+            }
+            else {
+                $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+            }
+        });
+    };
+
+    $scope.get_profile = function(token, spinner) {
+        //        
+        // GET USER INFO
+        //
+        // - Request:
+        //   GET /user
+        //   headers: {'Authorization': 'Bearer ' + token.access}
+        //
+        // - Response:
+        //   {'status': 'OK', 'message': string, 'info': {'email': string, 'phone_number': string, 'name': string} }
+        //   {'status': 'NG', 'message': string}
+        //         
+        $http({
+            method: 'GET',
+            url: server + '/user',
+            headers: {'Authorization': 'Bearer ' + token.access}
+        })
+        .then(function (result) {
+            console.log("ACCOUNT OK");
+            console.log(result.data);
+            
+            spinner[0].style.visibility = "hidden";
+            $scope.waiting_login = false;
+
+            let user_data = {
+                'username': result.data.info.username,
+                'token': token,
+                'name': result.data.info.name
+            };
+            
+            User.clear();
+            User.set(user_data);
+            $state.go('menu.gateways', user_data);
+        })
+        .catch(function (error) {
+            spinner[0].style.visibility = "hidden";
+            $scope.waiting_login = false;
+            
+            if (error.data !== null) {
+                $ionicPopup.alert({ title: 'Error', template: 'Login with social account failed!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+            }
+            else {
+                $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+            }
+        }); 
+    };
+    
+    // Support for Login via social accounts like Facebook
+    $scope.$on('$ionicView.enter', function(e) {
+        console.log("enter");
+        GetURLParameters();
+    });
+    
+    $scope.$on('$ionicView.beforeLeave', function(e) {
+        console.log("beforeLeave");
+        if ($scope.timer !== null) {
+            clearTimeout($scope.timer);
+            $scope.timer = null;
+        }
+    });
+    
 }])
    
 .controller('signupCtrl', ['$scope', '$stateParams', '$state', '$ionicPopup', '$http', 'Server', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
@@ -1352,12 +2980,12 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server) {
     var server = Server.rest_api;
 
     $scope.data = {
-        'username': $scope.username,
-        'password': $scope.password,
-        'password2': $scope.password2,
-        'name'        : $scope.name,
-        'phonenumber' : $scope.phonenumber,
-        'email'       : $scope.email,
+        'username': '',
+        'password': '',
+        'password2': '',
+        'name'        : '',
+        'phonenumber' : '',
+        'email'       : '',
     };
     
     base64Encode = function(str) {
@@ -1409,8 +3037,8 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server) {
             $ionicPopup.alert({title: 'Signup Error', template: 'Password is empty!'});
             return;
         }
-        else if ($scope.data.password.length < 6) {
-            $ionicPopup.alert({title: 'Signup Error', template: 'Password should be at least 6 characters!'});
+        else if ($scope.data.password.length < 8) {
+            $ionicPopup.alert({title: 'Signup Error', template: 'Password should be at least 8 characters!'});
             return;
         }        
         else if ($scope.data.password2 !== $scope.data.password) {
@@ -1514,7 +3142,7 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server) {
     var server = Server.rest_api;
 
     $scope.data = {
-        'email': $scope.email
+        'email': ''
     };
     
     $scope.submit = function() {
@@ -1522,11 +3150,11 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server) {
 
         // Handle invalid input
         if ($scope.data.email === undefined) {
-            $ionicPopup.alert({title: 'Recovery Error', template: 'Email is empty!'});
+            $ionicPopup.alert({title: 'Recovery Error', template: 'Field is empty!'});
             return;
         }          
-        else if ($scope.data.email.trim().length === 0) {
-            $ionicPopup.alert({title: 'Recovery Error', template: 'Email is empty!'});
+        else if ($scope.data.email.length === 0) {
+            $ionicPopup.alert({title: 'Recovery Error', template: 'Field is empty!'});
             return;
         }
 
@@ -1535,7 +3163,6 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server) {
         var spinner = document.getElementsByClassName("spinner5");
         spinner[0].style.visibility = "visible";
         
-
         //
         // FORGOT PASSWORD
         //
@@ -1594,9 +3221,9 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server) {
 
     $scope.data = {
         'username': $stateParams.username,
-        'confirmationcode': $scope.confirmationcode,
-        'password': $scope.password,
-        'password2': $scope.password2
+        'confirmationcode': '',
+        'password': '',
+        'password2': ''
     };
     
     base64Encode = function(str) {
@@ -1651,7 +3278,7 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server) {
             $ionicPopup.alert({title: 'Recovery Error', template: 'Username is empty!'});
             return;
         }
-        else if ($scope.data.username.trim().length === 0) {
+        else if ($scope.data.username.length === 0) {
             $ionicPopup.alert({title: 'Recovery Error', template: 'Username is empty!'});
             return;
         }
@@ -1659,7 +3286,7 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server) {
             $ionicPopup.alert({title: 'Recovery Error', template: 'Code is empty!'});
             return;
         }
-        else if ($scope.data.confirmationcode.trim().length === 0) {
+        else if ($scope.data.confirmationcode.length === 0) {
             $ionicPopup.alert({title: 'Recovery Error', template: 'Code is empty!'});
             return;
         }
@@ -1667,11 +3294,11 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server) {
             $ionicPopup.alert({title: 'Recovery Error', template: 'Password is empty!'});
             return;
         }
-        else if ($scope.data.password.trim().length === 0) {
+        else if ($scope.data.password.length === 0) {
             $ionicPopup.alert({title: 'Recovery Error', template: 'Password is empty!'});
             return;
         }
-        else if ($scope.data.password.trim().length < 6) {
+        else if ($scope.data.password.length < 6) {
             $ionicPopup.alert({title: 'Recovery Error', template: 'Password should be at least 6 characters!'});
             return;
         } 
@@ -1890,7 +3517,7 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token)
     };
     
     $scope.submitCancel = function() {
-        $state.go('menu.account', {'username': $scope.data.username, 'token': $scope.data.token} );
+        $state.go('menu.profile', {'username': $scope.data.username, 'token': $scope.data.token} );
     };
 }])
    
@@ -1903,7 +3530,7 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server) {
     
     $scope.data = {
         'username': $stateParams.username,
-        'confirmationcode': $scope.confirmationcode
+        'confirmationcode': ''
     };
     
     $scope.submit = function() {
@@ -1986,10 +3613,10 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server) {
 
 
         // 
-        // CONFIRM REGISTRATION
+        // RESEND CONFIRMATION CODE
         // 
         // - Request:
-        //   POST /user/confirm_signup
+        //   POST /user/resend_confirmation_code
         // 
         // - Response:
         //   {'status': 'OK', 'message': string}
@@ -1997,7 +3624,7 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server) {
         // 
         $http({
             method: 'POST',
-            url: server + '/user/confirm_signup',
+            url: server + '/user/resend_confirmation_code',
             headers: {'Content-Type': 'application/json'},
             data: param
         })
@@ -2021,6 +3648,93 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server) {
     
     $scope.submitCancel = function() {
         $state.go('signup');
+    };
+    
+}])
+   
+.controller('confirmMFACtrl', ['$scope', '$stateParams', '$state', '$ionicPopup', '$http', 'Server', 'User', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+// You can include any angular dependencies as parameters for this function
+// TIP: Access Route Parameters for your page via $stateParams.parameterName
+function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User) {
+
+    var server = Server.rest_api;
+    
+    $scope.data = {
+        'username': $stateParams.username,
+        'confirmationcode': ''
+    };
+    
+    $scope.submit = function() {
+        console.log("username=" + $scope.data.username);
+        console.log("confirmationcode=" + $scope.data.confirmationcode);
+        
+        // Handle invalid input        
+        if ($scope.data.confirmationcode === undefined) {
+            $ionicPopup.alert({title: 'MFA Error', template: 'Code is empty!'});
+            return;
+        }
+        else if ($scope.data.confirmationcode.length === 0) {
+            $ionicPopup.alert({title: 'MFA Error', template: 'Code is empty!'});
+            return;
+        }
+
+
+        // Display spinner
+        var spinner = document.getElementsByClassName("spinner4");
+        spinner[0].style.visibility = "visible";
+
+
+        //
+        // LOGIN MFA
+        //
+        // - Request:
+        //   POST /user/login/mfa
+        //   { 'username': string, 'confirmationcode': string }
+        //
+        // - Response:
+        //   {'status': 'OK', 'message': string}
+        //   {'status': 'NG', 'message': string}
+        //
+        $http({
+            method: 'POST',
+            url: server + '/user/login/mfa',
+            headers: {'Content-Type': 'application/json'},
+            data: $scope.data
+        })
+        .then(function (result) {
+            spinner[0].style.visibility = "hidden";
+            
+            // Handle successful
+            console.log(result.data);
+
+            var user_data = {
+                'username': $scope.data.username,
+                'token': result.data.token,
+                'name': result.data.name
+            };
+            
+            User.set(user_data);
+        
+            $state.go('menu.gateways', user_data);
+        })
+        .catch(function (error) {
+            spinner[0].style.visibility = "hidden";
+            
+            // Handle failed
+            console.log(error);
+            if (error.data !== null) {
+                console.log(error.status + " " + error.statusText);
+                $ionicPopup.alert({title: 'MFA Error', template: error.data.message});
+            }
+            else {
+                $ionicPopup.alert({title: 'MFA Error', template: 'Server is down!'});
+            }
+            return;
+        });       
+    };
+
+    $scope.submitCancel = function() {
+        $state.go('login');
     };
     
 }])
@@ -2075,7 +3789,7 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token)
         .then(function (result) {
             console.log(result.data);
             $ionicPopup.alert({title: 'Verify phone number', template: 'Your phone number has been verified successfully!'});
-            $state.go('menu.account', {'username': $scope.data.username, 'token': $scope.data.token} );
+            $state.go('menu.profile', {'username': $scope.data.username, 'token': $scope.data.token} );
         })
         .catch(function (error) {
             console.log(error);
@@ -2128,7 +3842,7 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token)
     };    
     
     $scope.submitCancel = function() {
-        $state.go('menu.account', {'username': $scope.data.username, 'token': $scope.data.token} );
+        $state.go('menu.profile', {'username': $scope.data.username, 'token': $scope.data.token} );
     };
 }])
    
@@ -2178,9 +3892,18 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token)
         get_item("license");
     };
 
-
+    // GET TERMS AND CONDITIONS
+    $scope.getFAQs = function() {
+        console.log("getFAQs");
+        get_item("faqs");
+    };
+    
     get_item = function(item) {
         console.log(item);
+        var resource = "faqs";
+        if (item !== "faqs") {
+            resource = "about";
+        }
         //
         // GET FAQS/TERMS AND CONDITIONS/PRIVACY STATEMENTS/LICENSE
         //
@@ -2194,7 +3917,7 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token)
         //
         $http({
             method: 'GET',
-            url: server + '/others/about',
+            url: server + '/others/' + resource,
             headers: {'Authorization': 'Bearer ' + $scope.data.token.access}
         })
         .then(function (result) {
@@ -2299,74 +4022,7 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token)
     
 }])
    
-.controller('helpSupportCtrl', ['$scope', '$stateParams', '$state', '$ionicPopup', '$http', 'Server', 'User', 'Token', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
-// You can include any angular dependencies as parameters for this function
-// TIP: Access Route Parameters for your page via $stateParams.parameterName
-function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token) {
-
-    var server = Server.rest_api;
-
-    $scope.data = {
-        'username': User.get_username(), //$stateParams.username,
-        'token': User.get_token()        //$stateParams.token
-    };
-    
-    handle_error = function(error) {
-        if (error.data !== null) {
-            console.log("ERROR: Failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
-
-            if (error.data.message === "Token expired") {
-                Token.refresh({'username': $scope.data.username, 'token': $scope.data.token});
-                $scope.data.token = User.get_token();
-            }
-        }
-        else {
-            console.log("ERROR: Server is down!"); 
-            $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
-        }
-    };
-    
-    
-    // GET TERMS AND CONDITIONS
-    $scope.getFAQs = function() {
-        console.log("getFAQs");
-        get_item("faqs");
-    };
-
-
-    get_item = function(item) {
-        console.log(item);
-        //
-        // GET FAQS/TERMS AND CONDITIONS/PRIVACY STATEMENTS/LICENSE
-        //
-        // - Request:
-        //   GET /others/ITEM
-        //   headers: { 'Authorization': 'Bearer ' + token.access }
-        //
-        // - Response:
-        //   { 'status': 'OK', 'message': string, 'ITEM': string }
-        //   { 'status': 'NG', 'message': string }
-        //
-        $http({
-            method: 'GET',
-            url: server + '/others/' + item,
-            headers: {'Authorization': 'Bearer ' + $scope.data.token.access}
-        })
-        .then(function (result) {
-            console.log(result.data);
-            
-            $ionicPopup.alert({ title: 'Success', template: result.data.url[item],
-                buttons: [{ text: "OK", type: 'button-positive' }]
-            });
-        })
-        .catch(function (error) {
-            handle_error(error);
-        }); 
-    };
-    
-}])
-   
-.controller('addDeviceCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'Devices', 'User', 'Token', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+.controller('addGatewayCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'Devices', 'User', 'Token', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
 // You can include any angular dependencies as parameters for this function
 // TIP: Access Route Parameters for your page via $stateParams.parameterName
 function ($scope, $stateParams, $state, $http, $ionicPopup, Server, Devices, User, Token) {
@@ -2380,11 +4036,13 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, Devices, Use
         'devicename': "",
         'uuid': "",
         'serialnumber': "",
+        'poemacaddress': "",
     };
 
     $scope.generate = function() {
         uuid = "PH80XXRRMMDDYYSS";
         serialnumber = "SSSSS";
+        poemacaddress = ""
         
         var today = new Date();
         month = today.getMonth() + 1;
@@ -2406,11 +4064,25 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, Devices, Use
         uuid = uuid.replace("YY", year.toString());
         uuid = uuid.replace("SS", random.toString());
         uuid = uuid.toUpperCase();
+
+        poemacaddress = "";
+        for (var i=0; i<6; i++) {
+            random = Math.floor(Math.random() * 256);
+            random = random.toString(16);
+            random = ("0" + random).slice(-2);
+            poemacaddress += random;
+            if (i<5) {
+                poemacaddress += ":";
+            }
+        }
+        poemacaddress = poemacaddress.toUpperCase();
         
         $scope.data.uuid = uuid;
         $scope.data.serialnumber = serialnumber;
-        
+        $scope.data.poemacaddress = poemacaddress;
+
         console.log(uuid);
+        console.log(serialnumber);
         console.log(serialnumber);
     };       
 
@@ -2468,11 +4140,24 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, Devices, Use
             alert("ERROR: Register Device devicename is empty!");
             return;
         }
+        else if ($scope.data.poemacaddress === undefined) {
+            console.log("ERROR: Register Device POE MAC address is undefined!");
+            // TODO: replace alert with ionic alert
+            alert("ERROR: Register Device POE MAC address is undefined!");
+            return;
+        }
+        else if ($scope.data.poemacaddress.trim().length === 0) {
+            console.log("ERROR: Register Device POE MAC address is empty!");
+            // TODO: replace alert with ionic alert
+            alert("ERROR: Register Device POE MAC address is empty!");
+            return;
+        }
         
        
         param = {
             'deviceid': $scope.data.uuid,
             'serialnumber': $scope.data.serialnumber,
+            'poemacaddress': $scope.data.poemacaddress,
         };
 
         //
@@ -2481,7 +4166,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, Devices, Use
         // - Request:
         //   POST /devices/device/<devicename>
         //   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-        //   data: {'deviceid': string, 'serialnumber': string}
+        //   data: {'deviceid': string, 'serialnumber': string, 'poemacaddress': string}
         //
         // - Response:
         //   {'status': 'OK', 'message': string}
@@ -2504,7 +4189,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, Devices, Use
                         text: 'OK',
                         type: 'button-positive',
                         onTap: function(e) {
-                            $state.go('menu.devices', {'username': $scope.data.username, 'token': $scope.data.token});
+                            $state.go('menu.gateways', {'username': $scope.data.username, 'token': $scope.data.token});
                         }
                     }
                 ]
@@ -2538,7 +4223,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, Devices, Use
             'username': $scope.data.username,
             'token': $scope.data.token
         };
-        $state.go('menu.devices', device_param, {reload: true});
+        $state.go('menu.gateways', device_param, {reload: true});
     };
     
     $scope.$on('$ionicView.enter', function(e) {
@@ -2550,7 +4235,120 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, Devices, Use
     
 }])
    
-.controller('viewDeviceCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+.controller('addGatewayGroupCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', 'Devices', 'DeviceGroups', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+// You can include any angular dependencies as parameters for this function
+// TIP: Access Route Parameters for your page via $stateParams.parameterName
+function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token, Devices, DeviceGroups) {
+
+    var server = Server.rest_api;
+
+    $scope.data = {
+        'username': User.get_username(),
+        'token': User.get_token(),
+
+        'devicegroupname': "",
+    };
+
+    $scope.devices = [];
+
+
+    $scope.submit = function() {
+        console.log("username=" + $scope.data.username);
+        console.log("token=" + $scope.data.token);
+        console.log("devicegroupname=" + $scope.data.devicegroupname);
+
+        if ($scope.data.devicegroupname === undefined) {
+            console.log("ERROR: Register DeviceGroup devicegroupname is undefined!");
+            // TODO: replace alert with ionic alert
+            alert("ERROR: Register DeviceGroup devicegroupname is undefined!");
+            return;
+        }
+        else if ($scope.data.devicegroupname.trim().length === 0) {
+            console.log("ERROR: Register DeviceGroup devicegroupname is empty!");
+            // TODO: replace alert with ionic alert
+            alert("ERROR: Register DeviceGroup devicegroupname is empty!");
+            return;
+        }
+        
+
+        var devices = [];        
+        for (indexy=0; indexy<$scope.devices.length; indexy++) {
+            if ($scope.devices[indexy].enabled === true) {
+                devices.push($scope.devices[indexy].devicename);
+            }
+        }      
+
+        DeviceGroups.add($scope.data, $scope.data.devicegroupname, devices).then(function(res) {
+            console.log(res);
+            
+            if (res.data !== null) {
+                if (res.data.status === "OK") {
+                    $ionicPopup.alert({
+                        title: 'Success',
+                        template: 'Device group added successfully!',
+                        buttons: [
+                            {
+                                text: 'OK',
+                                type: 'button-positive',
+                                onTap: function(e) {
+                                    $state.go('menu.gateways', 
+                                        {
+                                            'username': $scope.data.username, 
+                                            'token': $scope.data.token,
+                                            'activeSection': "2"
+                                        });
+                                }
+                            }
+                        ]
+                    });
+                }
+                else {
+                    if (res.status == 409 || res.status == 400) {
+                        $ionicPopup.alert({ title: 'Error', template: res.data.message, buttons: [{text: 'OK', type: 'button-assertive'}] });
+                    }
+                    else {
+                        $ionicPopup.alert({ title: 'Error', template: 'Failed to process device group!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+                    }
+                }
+            }
+            else {
+                console.log("ERROR: Server is down!"); 
+                $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{ text: 'OK', type: 'button-assertive' }] });
+            }
+        }); 
+    };
+    
+    $scope.getDevices = function() {
+        Devices.fetch($scope.data, "").then(function(res) {
+            $scope.data.token = User.get_token();
+            
+            // populate the list of devices
+            $scope.devices = res;
+            let indexy = 0;
+            for (indexy=0; indexy<$scope.devices.length; indexy++) {
+                $scope.devices[indexy].enabled = false;
+            }
+        });
+    };
+    
+    $scope.$on('$ionicView.enter', function(e) {
+        $scope.devices = [];
+        $scope.getDevices();
+    });     
+    
+    
+    $scope.submitDeviceList = function() {
+        var device_param = {
+            'username': $scope.data.username,
+            'token': $scope.data.token,
+            'activeSection': "2"
+        };
+        $state.go('menu.gateways', device_param, {reload: true});
+    };
+    
+}])
+   
+.controller('viewGatewayCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
 // You can include any angular dependencies as parameters for this function
 // TIP: Access Route Parameters for your page via $stateParams.parameterName
 
@@ -2560,19 +4358,31 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
     var server = Server.rest_api;
 
     $scope.data = {
-        'username'    : User.get_username(),
-        'token'       : User.get_token(),
-        'devicename'  : $stateParams.devicename,
-        'deviceid'    : $stateParams.deviceid,
-        'serialnumber': $stateParams.serialnumber,
-        'timestamp'   : $stateParams.timestamp,
-        'heartbeat'   : $stateParams.heartbeat,
-        'version'     : $stateParams.version
+        'username'     : User.get_username(),
+        'token'        : User.get_token(),
+        'devicename'   : $stateParams.devicename,
+        'deviceid'     : $stateParams.deviceid,
+        'serialnumber' : $stateParams.serialnumber,
+        'poemacaddress': $stateParams.poemacaddress === undefined || $stateParams.poemacaddress === "" ? "UNKNOWN" : $stateParams.poemacaddress,
+        'timestamp'    : $stateParams.timestamp,
+        'heartbeat'    : $stateParams.heartbeat,
+        'version'      : $stateParams.version,
+        'location'     : $stateParams.location,
     };
 
+    $scope.newfirmwareavailable = false;
+    $scope.newfirmwareversion = 0;
+    $scope.newfirmwareupdates = null;
+    
     $scope.new_devicename = $stateParams.devicename;
     var device_statuses = ["starting", "running", "restart", "restarting", "stop", "stopping", "stopped", "start"];
 
+
+    $scope.onChangeDevicename = function(keyEvent, new_devicename) {
+        if (keyEvent.which === 13) {
+            $scope.changeDevicename($scope.data.devicename, new_devicename);
+        }
+    };
     
     // CHANGE DEVICENAME
     $scope.changeDevicename = function(devicename, new_devicename) {
@@ -2627,6 +4437,48 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             console.log("ERROR: Server is down!");
             $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
         }
+    }; 
+
+
+    // GET DEVICE FIRMWARE UPDATES
+    $scope.get_latest_firmware = function() {
+        //
+        // GET STATUS
+        // - Request:
+        //   GET /others/firmwareupdates
+        //   headers: {'Authorization': 'Bearer ' + token.access}
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string, 'document': json_object }
+        //   { 'status': 'NG', 'message': string}
+        //        
+        $http({
+            method: 'GET',
+            url: server + '/others/firmwareupdates',
+            headers: {'Authorization': 'Bearer ' +  $scope.data.token.access}
+        })
+        .then(function (result) {
+            console.log(result.data);
+            console.log(result.data.document.ft900.latest);
+            
+            if ($scope.data.version !== "UNKNOWN") {
+                if (result.data.document.ft900.latest > $scope.data.version) {
+                    $scope.newfirmwareavailable = true;
+                }
+                else {
+                    $scope.newfirmwareavailable = false;
+                }
+            }
+            else {
+                $scope.newfirmwareavailable = true;
+            }
+            
+            $scope.newfirmwareupdates = result.data.document;
+            $scope.newfirmwareversion = result.data.document.ft900.latest;
+        })
+        .catch(function (error) {
+            $scope.handle_error(error);
+        }); 
     }; 
 
 
@@ -2712,12 +4564,29 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             'timestamp'    : $scope.data.timestamp,
             'heartbeat'    : $scope.data.heartbeat,
             'version'      : $scope.data.version,
+            'location'     : $scope.data.location,
         };
        
-        $state.go('deviceGeneralSettings', device_param);    
+        $state.go('gatewayGeneralSettings', device_param);    
     };
 
-
+    $scope.viewGatewayDescriptor = function() {
+        console.log("viewGatewayDescriptor=");
+        
+        var device_param = {
+            'username'     : $scope.data.username,
+            'token'        : $scope.data.token,
+            'devicename'   : $scope.data.devicename,
+            'deviceid'     : $scope.data.deviceid,
+            'serialnumber' : $scope.data.serialnumber,
+            'timestamp'    : $scope.data.timestamp,
+            'heartbeat'    : $scope.data.heartbeat,
+            'version'      : $scope.data.version,
+            'location'     : $scope.data.location,
+        };
+       
+        $state.go('gatewayDescriptor', device_param);    
+    };
     
     // RESTART DEVICE/START DEVICE/STOP DEVICE
     $scope.setDevice = function(devicename, status) {
@@ -2768,10 +4637,11 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             'deviceid'     : $scope.data.deviceid,
             'serialnumber' : $scope.data.serialnumber,
             'deviceversion': $scope.data.version,
-            'devicestatus' : "Last active: " + $scope.data.heartbeat
+            'devicestatus' : "Last active: " + $scope.data.heartbeat,
+            'location'     : $scope.data.location,
         };
-       
-        $state.go('device', device_param);    
+
+        $state.go('gateway', device_param);    
     };
 
 
@@ -2817,13 +4687,39 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         })
         .then(function (result) {
             console.log(result.data);
-            $state.go('menu.devices', {'username': $scope.data.username, 'token': $scope.data.token});
+            $state.go('menu.gateways', {'username': $scope.data.username, 'token': $scope.data.token});
         })
         .catch(function (error) {
             $scope.handle_error(error);
         });    
     };
     
+
+    // UPGRADE DEVICE FIRMWARE
+    $scope.upgradeDeviceFirmware = function() {
+        console.log("upgradeDeviceFirmware= " + $scope.data.devicename);
+        
+        var device_param = {
+            'username'     : $scope.data.username,
+            'token'        : $scope.data.token,
+            'devicename'   : $scope.data.devicename,
+            'deviceid'     : $scope.data.deviceid,
+            'serialnumber' : $scope.data.serialnumber,
+            'timestamp'    : $scope.data.timestamp,
+            'heartbeat'    : $scope.data.heartbeat,
+            'version'      : $scope.data.version,
+            'location'     : $scope.data.location,
+            'firmware'     : $scope.newfirmwareupdates
+        };
+       
+        $state.go('oTAFirmwareUpdate', device_param);    
+    };
+    
+
+    $scope.$on('$ionicView.enter', function(e) {
+        console.log($scope.data.poemacaddress);
+        $scope.get_latest_firmware();
+    });   
     
     // EXIT PAGE
     $scope.exitPage = function() {
@@ -2831,11 +4727,2229 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             'username': $scope.data.username,
             'token'   : $scope.data.token
         };
-        $state.go('menu.devices', device_param, {reload: true});
+        $state.go('menu.gateways', device_param, {reload: true});
     };
 }])
    
-.controller('deviceGeneralSettingsCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+.controller('updateGatewayGroupCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', 'Devices', 'DeviceGroups', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+// You can include any angular dependencies as parameters for this function
+// TIP: Access Route Parameters for your page via $stateParams.parameterName
+
+
+function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token, Devices, DeviceGroups) {
+
+    var server = Server.rest_api;
+
+    $scope.data = {
+        'username'        : User.get_username(),
+        'token'           : User.get_token(),
+        'devicegroupname' : $state.params.devicegroupname,
+    };
+
+    $scope.devices = [ {"id":0, "devicename": ""} ];
+    $scope.deviceSelected = -1;
+    $scope.devicegroup = [];
+    $scope.new_devicegroupname = $state.params.devicegroupname;
+
+
+    // CHANGE DEVICENAME
+    $scope.changeName = function(devicegroupname, new_devicegroupname) {
+        if ($scope.data.devicegroupname === new_devicegroupname) {
+            $ionicPopup.alert({ title: 'Error', template: 'Device group name is the same!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+        }
+        else {
+            
+            $ionicPopup.alert({
+                title: 'Change Device Group Name',
+                template: 'Are you sure you want to change the device group name from ' + devicegroupname + ' to ' + new_devicegroupname + '?',
+                buttons: [
+                    { 
+                        text: 'No',
+                        type: 'button-negative',
+                        onTap: function(e) {
+                            $scope.new_devicegroupname = devicegroupname;
+                        }
+                    },
+                    {
+                        text: 'Yes',
+                        type: 'button-positive',
+                        onTap: function(e) {
+                            $scope.new_devicegroupname = new_devicegroupname;
+                            $scope.update_devicegroupname(devicegroupname, new_devicegroupname);
+                        }
+                    }
+                ]            
+            });            
+        }
+    };
+
+
+
+    $scope.handle_error = function(error) {
+        if (error.data !== null) {
+            console.log("ERROR: Failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
+
+            if (error.data.message === "Token expired") {
+                Token.refresh({'username': $scope.data.username, 'token': $scope.data.token});
+                $scope.data.token = User.get_token();
+            }
+            
+            if (error.status == 503) {
+                $ionicPopup.alert({ title: 'Error', template: 'Device is unreachable!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+            }
+            else if (error.status >= 400 && error.status < 500) {
+                $ionicPopup.alert({ title: 'Error', template: error.data.message, buttons: [{text: 'OK', type: 'button-assertive'}] });
+            }
+        }
+        else {
+            console.log("ERROR: Server is down!");
+            $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+        }
+    }; 
+
+
+    // UPDATE DEVICE GROUP NAME
+    $scope.update_devicegroupname = function(devicegroupname, new_devicegroupname) {
+        //
+        // UPDATE DEVICE GROUP NAME
+        // - Request:
+        //   POST /devicegroups/<devicegroupname>/name
+        //   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+        //   data: {'new_groupname': string}
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string }
+        //   { 'status': 'NG', 'message': string}
+        //        
+        $http({
+            method: 'POST',
+            url: server + '/devicegroups/' + devicegroupname + '/name',
+            headers: {'Authorization': 'Bearer ' +  $scope.data.token.access, 'Content-Type': 'application/json' },
+            data: {'new_groupname': new_devicegroupname}
+        })
+        .then(function (result) {
+            console.log(result.data);
+            
+            $ionicPopup.alert({
+                title: 'Change Device Group Name',
+                template: 'Change Device Name Group was successful!',
+            });
+            
+            $scope.data.devicegroupname = new_devicegroupname;
+        })
+        .catch(function (error) {
+            $scope.handle_error(error);
+        }); 
+    }; 
+
+
+    // DELETE DEVICE
+    $scope.deleteDeviceGroup = function(devicegroupname) {
+        $ionicPopup.alert({
+            title: 'Delete Device Group',
+            template: 'Are you sure you want to delete this device group - ' + devicegroupname + '?',
+            buttons: [
+                { 
+                    text: 'No',
+                    type: 'button-negative',
+                },
+                {
+                    text: 'Yes',
+                    type: 'button-positive',
+                    onTap: function(e) {
+                        $scope.deleteDeviceGroupAction(devicegroupname);
+                    }
+                }
+            ]            
+        });            
+    };
+    
+    $scope.deleteDeviceGroupAction = function(devicegroupname) {
+        
+        DeviceGroups.delete($scope.data, $scope.data.devicegroupname).then(function(res) {
+            console.log(res);
+            
+            if (res.data !== null) {
+                if (res.data.status === "OK") {
+                    $ionicPopup.alert({
+                        title: 'Success',
+                        template: 'Device group deleted successfully!',
+                        buttons: [
+                            {
+                                text: 'OK',
+                                type: 'button-positive',
+                                onTap: function(e) {
+                                    $state.go('menu.gateways', 
+                                        {
+                                            'username': $scope.data.username, 
+                                            'token': $scope.data.token,
+                                            'activeSection': "2"
+                                        });
+                                }
+                            }
+                        ]
+                    });
+                }
+                else {
+                    if (res.status == 409) {
+                        $ionicPopup.alert({ title: 'Error', template: res.data.message, buttons: [{text: 'OK', type: 'button-assertive'}] });
+                    }
+                    else {
+                        $ionicPopup.alert({ title: 'Error', template: 'Failed to process device group!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+                    }
+                }
+            }
+            else {
+                console.log("ERROR: Server is down!"); 
+                $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{ text: 'OK', type: 'button-assertive' }] });
+            }
+        });    
+    };
+    
+
+    $scope.getDeviceGroup = function(devicegroupname) {
+        
+        DeviceGroups.get($scope.data, $scope.data.devicegroupname).then(function(res) {
+            console.log("getDeviceGroups");
+            console.log(res);
+            
+            if (res.data !== null) {
+                if (res.data.status === "OK") {
+                    $scope.devicegroup = [];
+                    for (var device in res.data.devicegroup.devices) {
+                        $scope.devicegroup.push({'devicename': res.data.devicegroup.devices[device].devicename, 'enabled': true});
+                    }
+                }
+                else {
+                    if (res.status == 409) {
+                        $ionicPopup.alert({ title: 'Error', template: res.data.message, buttons: [{text: 'OK', type: 'button-assertive'}] });
+                    }
+                    else {
+                        $ionicPopup.alert({ title: 'Error', template: 'Failed to process device group!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+                    }
+                }
+            }
+            else {
+                console.log("ERROR: Server is down!"); 
+                $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{ text: 'OK', type: 'button-assertive' }] });
+            }
+        });    
+    };
+ 
+    $scope.changeDevice = function(id) {
+        $scope.deviceSelected = id;
+        console.log("changeDevice");
+        console.log($scope.deviceSelected);
+    };
+    
+    $scope.addDeviceToDeviceGroup = function(devicegroupname) {
+        console.log("addDeviceToDeviceGroup");
+        console.log($scope.deviceSelected);
+        if ($scope.deviceSelected === -1) {
+            return;
+        }
+        devicename = $scope.devices[$scope.deviceSelected].devicename;
+        console.log(devicename);
+        
+        DeviceGroups.add_device($scope.data, $scope.data.devicegroupname, devicename).then(function(res) {
+            console.log(res);
+            
+            if (res.data !== null) {
+                if (res.data.status === "OK") {
+                    $ionicPopup.alert({ title: 'Device Group', template: 'Device was added to device group successfully!', buttons: [{text: 'OK', type: 'button-positive'}] });
+                    $scope.getDeviceGroup($scope.data.devicegroupname);
+                }
+                else {
+                    if (res.status === 409 || res.status === 400) {
+                        $ionicPopup.alert({ title: 'Error', template: res.data.message, buttons: [{text: 'OK', type: 'button-assertive'}] });
+                    }
+                }
+            }
+            else {
+                console.log("ERROR: Server is down!"); 
+                $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{ text: 'OK', type: 'button-assertive' }] });
+            }
+        });    
+    };
+
+    $scope.setDevicesToDeviceGroup = function(devicegroupname) {
+        console.log("setDevicesToDeviceGroup");
+        var devices = [];
+        for (var device in $scope.devicegroup) {
+            if ($scope.devicegroup[device].enabled === true) {
+                devices.push($scope.devicegroup[device].devicename);
+            }
+        }
+
+        DeviceGroups.set_devices($scope.data, $scope.data.devicegroupname, devices).then(function(res) {
+            console.log(res);
+            
+            if (res.data !== null) {
+                if (res.data.status === "OK") {
+                    $ionicPopup.alert({ title: 'Device Group', template: 'Devices was set to device group successfully!', buttons: [{text: 'OK', type: 'button-positive'}] });
+                    $scope.getDeviceGroup($scope.data.devicegroupname);
+                }
+                else {
+                    if (res.status === 409 || res.status === 400) {
+                        $ionicPopup.alert({ title: 'Error', template: res.data.message, buttons: [{text: 'OK', type: 'button-assertive'}] });
+                    }
+                }
+            }
+            else {
+                console.log("ERROR: Server is down!"); 
+                $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{ text: 'OK', type: 'button-assertive' }] });
+            }
+        });    
+    };
+    
+    $scope.getDevices = function() {
+        Devices.fetch($scope.data, "").then(function(res) {
+            $scope.data.token = User.get_token();
+            
+            // populate the list of devices
+            $scope.devices = res;
+            let indexy = 0;
+            for (indexy=0; indexy<$scope.devices.length; indexy++) {
+                $scope.devices[indexy].id = indexy;
+            }
+            if ($scope.devices.length > 0) {
+                $scope.deviceSelected = 0;
+            }
+            
+            $scope.getDeviceGroup($scope.data.devicegroupname);
+        });
+    };
+    
+    $scope.$on('$ionicView.enter', function(e) {
+        $scope.devicegroup = [];
+        $scope.deviceSelected = -1;
+        $scope.devices = [ {"id":0, "devicename": ""} ];
+        $scope.getDevices();
+    });   
+    
+    // EXIT PAGE
+    $scope.exitPage = function() {
+        var device_param = {
+            'username': $scope.data.username,
+            'token'   : $scope.data.token,
+            'activeSection': '2',
+        };
+        $state.go('menu.gateways', device_param, {reload: true});
+    };
+}])
+   
+.controller('viewGatewayGroupCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', 'Devices', 'DeviceGroups',     // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+// You can include any angular dependencies as parameters for this function
+// TIP: Access Route Parameters for your page via $stateParams.parameterName
+function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token, Devices, DeviceGroups) {
+
+    var server = Server.rest_api;
+
+    $scope.devices = [];
+    $scope.devices_counthdr = "No gateway registered" ;
+    $scope.activeSection = parseInt($stateParams.activeSection, 10);
+    
+    $scope.data = {
+        'username': User.get_username(),
+        'token': User.get_token(),
+
+        'devicegroupname': $stateParams.devicegroupname
+    };
+    
+
+    $scope.changeActiveSection = function(s) {
+        $scope.activeSection = s;
+        $scope.submitRefresh(true);
+    };
+    
+    $scope.viewDevice = function(device) {
+
+        // DEVICE
+        console.log("devicename=" + device.devicename);
+        let device_param = {
+            'username': User.get_username(),
+            'token': User.get_token(),
+            'devicename': device.devicename,
+            'deviceid': device.deviceid,
+            'serialnumber': device.serialnumber,
+            'poemacaddress': device.poemacaddress === undefined || device.poemacaddress === "" ? 'UNKNOWN' : device.poemacaddress,
+            'devicestatus': "Status: UNKNOWN",
+            'deviceversion': "UNKNOWN",
+            'location': "UNKNOWN"
+        };
+
+        if (device.heartbeat !== undefined) {
+            let heartbeat = new Date(device.heartbeat * 1000);
+            device_param.devicestatus = "Last active: " + heartbeat;    
+        }
+        if (device.version !== undefined) {
+            device_param.deviceversion = device.version;    
+        }
+        if (device.location !== undefined) {
+            device_param.location = device.location;    
+        }
+
+        $state.go('gateway', device_param, {reload:true} );
+    };
+
+    $scope.updateDeviceGroup = function() {
+
+        // DEVICE GROUP
+        let device_param = {
+            'username': User.get_username(),
+            'token': User.get_token(),
+            'devicegroupname': $scope.data.devicegroupname
+        };
+        $state.go('updateGatewayGroup', device_param, {reload:true} );
+    };    
+    
+    $scope.getDiffString = function(currdate, devicedate, offline=false) {
+        let diffString = "";
+        
+        if (devicedate === null) {
+            return "Last active: N/A";
+        }
+        
+        
+        let diff = currdate-devicedate;
+
+        //console.log(diff);
+        if (diff < 60) {
+            diffString = diff + " second";
+            if (diff > 1) {
+                diffString += "s";
+            }
+            diffString += " ago";
+            // since heartbeat rate is 60 seconds, just make it online
+            if (diff < 60 && offline === false) {
+                diffString = "Online";
+            }
+        }
+        else if (diff < 3600) {
+            diff = parseInt(diff/60, 10);
+            diffString = diff + " minute";
+            if (diff > 1) {
+                diffString += "s";
+            }
+            diffString += " ago";
+        }
+        else if (diff < 86400) {
+            diff = parseInt(diff/3600, 10);
+            diffString = diff + " hour";
+            if (diff > 1) {
+                diffString += "s";
+            }
+            diffString += " ago";
+        }
+        else if (diff < 604800) {
+            /*
+            diff = parseInt(diff/86400, 10);
+            diffString = diff + " day";
+            if (diff > 1) {
+                diffString += "s";
+            }
+            diffString += " ago";
+            */
+            let devicedatetime = new Date(devicedate * 1000);
+            let currdatetime = new Date(currdate * 1000);
+            diff = currdatetime.getDate()-devicedatetime.getDate();
+            if (diff === 1) {
+                diffString = "Yesterday";
+            }
+            else if (diff === 7) {
+                diffString = "1 week ago";
+            }
+            else {
+                diffString = devicedatetime.toLocaleString('en-us', {  weekday: 'long' });
+            }
+        }
+        else if (diff < 2419200) {
+            /*
+            diff = parseInt(diff/604800, 10);
+            diffString = diff + " week";
+            if (diff > 1) {
+                diffString += "s";
+            }
+            diffString += " ago";
+            */
+            let devicedatetime = new Date(devicedate * 1000);
+            //console.log(devicedatetime);
+            diffString = devicedatetime.toLocaleString('en-us', {  month: 'long', day: 'numeric' });
+        }
+        else if (diff < 29030400) {
+            diff = parseInt(diff/2419200, 10);
+            diffString = diff + " month";
+            if (diff > 1) {
+                diffString += "s";
+            }
+            diffString += " ago";
+        }
+        else {
+            diff = parseInt(diff/29030400, 10);
+            diffString = diff + " year";
+            if (diff > 1) {
+                diffString += "s";
+            }
+            diffString += " ago";
+        }
+        
+        //let heartbeat = new Date(devicedate * 1000);
+        //diffString += " (" + heartbeat + ")";
+        if (diffString !== "Online") {
+            diffString = "Last active: " + diffString;
+        }
+        return diffString;
+    };
+
+    $scope.submitRefresh = function(livestatus=false) {
+
+        if ($scope.activeSection === 1) {
+            // DEVICE GROUP DETAILED
+            
+            // Fetch devices
+            DeviceGroups.get_detailed($scope.data, $scope.data.devicegroupname).then(function(res) {
+                
+                // copy the devicestatus    
+                for (let devicex in res) {
+                    if ($scope.devices.length > 0) {
+                        for (let device in $scope.devices) {
+                            if ($scope.devices[device].devicename === res[devicex].devicename) {
+                                if ($scope.devices[device].devicestatus !== undefined) {
+                                    res[devicex].devicestatus = $scope.devices[device].devicestatus;
+                                }
+                                else {
+                                    res[devicex].devicestatus = "Last active: N/A";
+                                }
+                                break;
+                            }
+                        }
+                    }
+                    else {
+                        res[devicex].devicestatus = "Last active: N/A";
+                    }
+                }
+                
+                $scope.devices = res;
+                $scope.data.token = User.get_token();
+                if ($scope.devices.length !== 0) {
+                    if ($scope.devices.length === 1) {
+                        $scope.devices_counthdr = $scope.devices.length.toString() + " gateway registered";
+                    }
+                    else {
+                        $scope.devices_counthdr = $scope.devices.length.toString() + " gateways registered";
+                    }
+                    
+                    
+                    let currdate = parseInt(new Date().valueOf()/ 1000, 10);
+
+                    if (livestatus === true) {
+                        //console.log($scope.devices.length);
+                        let indexy = 0;
+                        for (indexy=0; indexy<$scope.devices.length; indexy++) {
+                            //console.log("indexy=" + indexy.toString() + " " + $scope.devices[indexy].devicename);
+                            
+                            /*
+                            if ($scope.devices[indexy].heartbeat !== undefined) {
+                                $scope.devices[indexy].devicestatus = $scope.getDiffString(currdate, $scope.devices[indexy].heartbeat);
+                            }
+                            else {
+                                $scope.devices[indexy].devicestatus = "Last active: N/A";
+                            }
+                            */
+                            
+                            $scope.query_device(indexy, $scope.devices[indexy].devicename);
+                        }
+                    }
+                    else {
+                        let indexy = 0;
+                        for (indexy=0; indexy<$scope.devices.length; indexy++) {
+                            if ($scope.devices[indexy].heartbeat !== undefined) {
+                                $scope.devices[indexy].devicestatus = $scope.getDiffString(currdate, $scope.devices[indexy].heartbeat);
+                            }
+                            else {
+                                $scope.devices[indexy].devicestatus = "Last active: N/A";
+                            }
+                        }
+                    }                    
+                }
+                else {
+                    $scope.devices_counthdr = "No gateways registered";
+                }
+            })
+            .catch(function (error) {
+                console.log("DeviceGroups.get_Detailed failed!!!");
+                $scope.handle_error(error);
+            });
+        }
+    };
+    
+    $scope.query_device = function(index, devicename) {
+        //
+        // GET STATUS
+        // - Request:
+        //   GET /devices/device/<devicename>/status
+        //   headers: {'Authorization': 'Bearer ' + token.access}
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string, 'value': { "status": string, "version": string } }
+        //   { 'status': 'NG', 'message': string}
+        //        
+        $http({
+            method: 'GET',
+            url: server + '/devices/device/' + devicename + '/status',
+            headers: {'Authorization': 'Bearer ' +  $scope.data.token.access}
+        })
+        .then(function (result) {
+            console.log(result.data);
+            //console.log(devicename + ": Online");
+            $scope.devices[index].devicestatus = 'Online';    
+        })
+        .catch(function (error) {
+            let currdate = parseInt(new Date().valueOf()/ 1000, 10);
+            if ($scope.devices[index].heartbeat !== undefined) {
+                $scope.devices[index].devicestatus = $scope.getDiffString(currdate, $scope.devices[index].heartbeat, true);
+            }
+            else {
+                $scope.devices[index].devicestatus = $scope.getDiffString(currdate, null, true);
+            }
+            $scope.handle_error(error);
+        }); 
+    };    
+    
+    $scope.handle_error = function(error) {
+        // Handle failed login
+        if (error.data !== null) {
+            console.log("ERROR: Get Device failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
+
+            if (error.data.message === "Token expired") {
+                Token.refresh({'username': $scope.data.username, 'token': $scope.data.token});
+                $scope.data.token = User.get_token();
+                //$ionicPopup.alert({ title: 'Error', template: 'Token expired!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+            }
+            else if (error.status == 401 && error.data.message.includes('Please check with the organization owner') === true ) {
+                $ionicPopup.alert({ title: 'Error', template: error.data.message, buttons: [{text: 'OK', type: 'button-assertive'}] });
+            }         
+            else if (error.status !== 503) {
+                $ionicPopup.alert({ title: 'Error', template: error.data.message, buttons: [{text: 'OK', type: 'button-assertive'}] });
+            }
+        }
+        else {
+            console.log("ERROR: Server is down!"); 
+            $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+        }
+    };    
+    
+
+    $scope.$on('$ionicView.enter', function(e) {
+        $scope.devices = [];
+        $scope.devices_counthdr = "No gateway registered" ;
+        $scope.activeSection = 1;
+        
+        //console.log($state.params);
+        //console.log($stateParams);
+        if ($state.params.activeSection !== undefined) {
+            $scope.activeSection = parseInt($state.params.activeSection, 10);
+        }
+        $scope.submitRefresh(true);
+    });
+    
+    // EXIT PAGE
+    $scope.exitPage = function() {
+        var device_param = {
+            'username': $scope.data.username,
+            'token'   : $scope.data.token,
+            'activeSection': '1',
+        };
+        $state.go('menu.gateways', device_param, {reload: true});
+    };    
+    
+}])
+   
+.controller('gatewayLocationCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', 'Devices', 'DeviceGroups', 'uiGmapGoogleMapApi', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+// You can include any angular dependencies as parameters for this function
+// TIP: Access Route Parameters for your page via $stateParams.parameterName
+
+
+function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token, Devices, DeviceGroups, uiGmapGoogleMapApi) {
+
+    var server = Server.rest_api;
+
+    $scope.data = {
+        'username'      : User.get_username(),
+        'token'         : User.get_token(),
+        'devicename'    : $stateParams.devicename,
+        'deviceid'      : $stateParams.deviceid,
+        'serialnumber'  : $stateParams.serialnumber,
+        'devicestatus'  : $stateParams.devicestatus,
+        'deviceversion' : $stateParams.deviceversion,
+        'location'      : $stateParams.location,
+        'devicelocation': $stateParams.location,
+        'zoom': 18,
+        
+        'locations': []
+    };
+
+    $scope.devices = [{"devicename": "All devices"}];
+    $scope.devicegroups = [{"groupname": ""}];
+
+    $scope.timer = null;
+    $scope.run_time = 0;
+    $scope.refresh_time = 5;
+    
+    
+    $scope.handle_error = function(error) {
+        if (error.data !== null) {
+            console.log("ERROR: Failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
+
+            if (error.data.message === "Token expired") {
+                Token.refresh({'username': $scope.data.username, 'token': $scope.data.token});
+                $scope.data.token = User.get_token();
+            }
+            
+            if (error.status == 503) {
+                $ionicPopup.alert({ title: 'Error', template: 'Device is unreachable!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+            }
+            else if (error.status >= 400 && error.status < 500) {
+                $ionicPopup.alert({ title: 'Error', template: error.data.message, buttons: [{text: 'OK', type: 'button-assertive'}] });
+            }
+        }
+        else {
+            console.log("ERROR: Server is down!");
+            $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+        }
+    }; 
+
+
+    $scope.changeDevice = function(devicename) {
+        for (indexy=0; indexy<$scope.devices.length; indexy++) {
+            if (devicename === $scope.devices[indexy].devicename) {
+                $scope.data.devicename = $scope.devices[indexy].devicename;
+                if ($scope.data.devicename !== "All devices") {
+                    $scope.data.deviceid = $scope.devices[indexy].deviceid;
+                    $scope.data.serialnumber = $scope.devices[indexy].serialnumber;
+                    $scope.data.devicestatus = $scope.devices[indexy].devicestatus;
+                    $scope.data.version = $scope.devices[indexy].version;
+                }
+                //$scope.map = null;
+                $scope.markers = [];
+                
+                $scope.getDeviceLocation($scope.data.devicename);
+                break;
+            }
+        }
+    };
+    
+    $scope.changeDeviceGroup = function(devicegroupname) {
+        if ($scope.devicegroups.length === 1) {
+            DeviceGroups.fetch($scope.data).then(function(res) {
+                //$scope.devicegroups = res;
+                $scope.data.token = User.get_token();
+                
+                $scope.devicegroups = [{"groupname": ""}];
+                for (var item in res) {
+                    $scope.devicegroups.push({"groupname": res[item].groupname});
+                }
+            })
+            .catch(function (error) {
+                console.log("DeviceGroups.fetch failed!!!");
+            });
+        }
+        else {
+            console.log(devicegroupname);
+            $scope.markers = [];
+            $scope.data.locations = [];
+            $scope.getDeviceGroupLocations(devicegroupname);
+        }
+    };    
+    
+    $scope.get_devices = function() {
+        
+        param = {
+            'username': $scope.data.username,
+            'token': $scope.data.token     
+        };
+        
+        // Fetch devices
+        Devices.fetch(param, "").then(function(res) {
+            console.log($scope.devices);
+            $scope.devices = $scope.devices.concat(res);
+
+            console.log($scope.devices);
+            $scope.data.token = User.get_token();
+
+            if ($scope.data.devicename !== $stateParams.devicename) {
+                $scope.data.devicename = $stateParams.devicename;
+                $scope.changeDevice($scope.data.devicename);
+            }
+            else {
+                $scope.getDeviceLocation($scope.data.devicename);
+            }
+        });
+    };
+
+
+    // GET DEVICE LOCATION
+    $scope.getDeviceGroupLocations = function(devicegroupname) {
+        if ($scope.timer !== null) {
+            clearTimeout($scope.timer);
+            console.log("clearTimeout");
+            $scope.timer = null;
+        }
+        
+        if (devicegroupname !== "") {
+            $scope.get_devicegroup_locations(devicegroupname);
+        }
+    };
+
+    // GET DEVICE GROUP LOCATION
+    $scope.get_devicegroup_locations = function(devicegroupname) {
+        //console.log("get_devicegroup_locations ");
+        //
+        // GET DEVICE GROUP LOCATIONS
+        // - Request:
+        //   GET /devicegroups/group/DEVICEGROUPNAME/location
+        //   headers: {'Authorization': 'Bearer ' + token.access}
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string, 'locations': ['devicename': string, 'location:{'latitude': float, 'longitude': float}, ...] }
+        //   { 'status': 'NG', 'message': string}
+        //        
+        $http({
+            method: 'GET',
+            url: server + '/devicegroups/group/' + devicegroupname + '/location',
+            headers: {'Authorization': 'Bearer ' +  $scope.data.token.access },
+        })
+        .then(function (result) {
+            console.log("xxx");
+            console.log(result.data);
+            $scope.process_devices_location(result);
+        });
+    };
+    
+
+    // GET DEVICE LOCATION
+    $scope.getDeviceLocation = function(devicename) {
+        if ($scope.timer !== null) {
+            clearTimeout($scope.timer);
+            console.log("clearTimeout");
+            $scope.timer = null;
+        }
+        
+        if (devicename === "All devices") {
+            //$scope.get_devices_location();
+            
+            for (let device in $scope.devices) {
+                if ($scope.devices[device].location != undefined) {
+                    $scope.data.locations.push({
+                        'devicename': $scope.devices[device].devicename,
+                        'location': {
+                            "latitude": $scope.devices[device].location.latitude, 
+                            "longitude": $scope.devices[device].location.longitude
+                        }
+                    });
+                }
+            }
+            console.log($scope.data.locations);
+            $scope.maplocations();
+        }
+        else {
+            //$scope.get_device_location(devicename);
+            
+            for (let device in $scope.devices) {
+                if ($scope.devices[device].devicename === devicename) {
+                    $scope.data.location.latitude = $scope.devices[device].location.latitude;
+                    $scope.data.location.longitude = $scope.devices[device].location.longitude;
+                    $scope.maplocation();
+                    break;
+                }
+            }
+            
+        }
+    };
+
+    // GET DEVICES LOCATION
+    $scope.get_devices_location = function() {
+        //console.log("get_devices_location ");
+        //
+        // GET DEVICES LOCATION
+        // - Request:
+        //   GET /devices/location
+        //   headers: {'Authorization': 'Bearer ' + token.access}
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string, 'locations': ['devicename': string, 'location:{'latitude': float, 'longitude': float}, ...] }
+        //   { 'status': 'NG', 'message': string}
+        //        
+        $http({
+            method: 'GET',
+            url: server + '/devices/location',
+            headers: {'Authorization': 'Bearer ' +  $scope.data.token.access },
+        })
+        .then(function (result) {
+            console.log("xxx");
+            console.log(result.data);
+            $scope.process_devices_location(result);
+        });
+    };
+    
+    $scope.maplocations = function() {
+        
+        
+        //console.log($scope.data.locations);
+     
+        // find the center
+        var center = {'latitude': 0, 'longitude':0};
+        for (let indexy=0; indexy<$scope.data.locations.length; indexy++)
+        {
+            center.latitude += $scope.data.locations[indexy].location.latitude;
+            center.longitude += $scope.data.locations[indexy].location.longitude;
+        }
+        center.latitude /= $scope.data.locations.length;
+        center.longitude /= $scope.data.locations.length;
+        //console.log(center);
+     
+        //$scope.infowindow = new google.maps.InfoWindow();
+        
+        // uiGmapGoogleMapApi is a promise.
+        // The "then" callback function provides the google.maps object.
+        uiGmapGoogleMapApi.then(function(maps) {
+            
+            // Configuration needed to display the road-map with traffic
+            // Displaying Ile-de-france (Paris neighbourhood)
+            $scope.map = {
+                center: center,
+                zoom: $scope.data.zoom,
+                options: {
+                    mapTypeId: google.maps.MapTypeId.ROADMAP, // This is an example of a variable that cannot be placed outside of uiGmapGooogleMapApi without forcing of calling the google.map helper outside of the function
+                    streetViewControl: true, // streetview
+                    mapTypeControl: true, // satellite
+                    scaleControl: true,
+                    rotateControl: true,
+                    zoomControl: true,
+                    panControl: true
+                }, 
+                showTraficLayer:false
+            };
+
+            $scope.windowOptions = {
+                show: false
+            };
+
+            // add markers
+            $scope.markers = [];
+            for (var indexy=0; indexy<$scope.data.locations.length; indexy++)
+            {
+                $scope.markers.push({
+                    id: $scope.data.locations[indexy].devicename,
+                    coords: $scope.data.locations[indexy].location,
+                    data: [],//$scope.data.locations[indexy].devicename,
+                    options: { draggable: true, animation: google.maps.Animation.DROP },
+                    icon: "https://maps.google.com/mapfiles/ms/icons/red-dot.png",
+                    //draggable: true
+                });
+            }
+
+            $scope.getFit = function() {
+              return true;  
+            };
+            
+            $scope.onClickMarker = function(marker, eventName, markerobj) {
+                console.log("onClickMarker");
+                //alert(markerobj.data);
+                $scope.windowOptions.show = !$scope.windowOptions.show;
+                $scope.selectedCoords = markerobj.coords;
+                $scope.info = markerobj.data;                        
+            };
+
+            $scope.onCloseClick = function () {
+                $scope.windowOptions.show = false;
+            };                    
+        });        
+        
+    };
+    
+    
+    $scope.process_devices_location = function(result) {
+        if ( result.data.locations === undefined ) {
+            $ionicPopup.alert({ 
+                title: 'No location set yet', 
+                template: 'Using Bridgetek office as default location!', 
+                buttons: [{text: 'OK', type: 'button-assertive'}] });
+
+            // set SG office as default location
+            result.data.locations = [];
+            
+            for (let indexy=0; indexy<$scope.devices.length; indexy++)
+            {
+                if ($scope.devices[indexy].devicename !== "All devices") {
+                    result.data.locations.push({
+                        'devicename': $scope.devices[indexy].devicename,
+                        'location': {
+                            'latitude': 1.33000,
+                            'longitude': 103.89000
+                        }
+                    });
+                }
+            }
+            
+            //console.log(result.data.locations);
+        }           
+
+        if (result.data.locations !== undefined) {
+            ///$scope.data.locations = result.data.locations;
+            //console.log("xxx");
+            //console.log($scope.data.locations);
+            for (var location in result.data.locations) {
+                $scope.data.locations.push({
+                    'devicename': result.data.locations[location].devicename,
+                    'location': {
+                        "latitude": result.data.locations[location].location.latitude, 
+                        "longitude": result.data.locations[location].location.longitude
+                    }
+                });
+            }
+            //console.log($scope.data.locations);
+         
+            $scope.maplocations();
+        }
+        
+        $scope.get_statuses();        
+    };
+
+
+
+    $scope.maplocation = function() {
+        uiGmapGoogleMapApi.then(function(maps){
+            $scope.map = {
+                center: $scope.data.location,
+                zoom: $scope.data.zoom,
+                options: {
+                    mapTypeId: google.maps.MapTypeId.ROADMAP, // This is an example of a variable that cannot be placed outside of uiGmapGooogleMapApi without forcing of calling the google.map helper outside of the function
+                    streetViewControl: true, // streetview
+                    mapTypeControl: true, // satellite
+                    scaleControl: true,
+                    rotateControl: true,
+                    zoomControl: true,
+                    panControl: true
+                }, 
+                showTraficLayer:false
+            };
+            
+            $scope.windowOptions = {
+                show: false
+            };
+
+            // add markers
+            $scope.markers = [{
+                id: $scope.data.devicename,
+                coords: $scope.data.location,
+                data: [],
+                options: { draggable: true, animation: google.maps.Animation.DROP },
+                icon: "https://maps.google.com/mapfiles/ms/icons/red-dot.png",
+            }];
+            
+            $scope.getFit = function() {
+                return false;  
+            };
+
+            $scope.onClickMarker = function(marker, eventName, markerobj) {
+                $scope.windowOptions.show = !$scope.windowOptions.show;
+                $scope.selectedCoords = markerobj.coords;
+                $scope.info = markerobj.id;
+            };
+
+            $scope.onCloseClick = function () {
+                $scope.windowOptions.show = false;
+            };
+            
+        });
+        
+    };
+
+    // GET DEVICE LOCATION
+    $scope.get_device_location = function(devicename) {
+        console.log("get_device_location " + devicename);
+        //
+        // GET DEVICE LOCATION
+        // - Request:
+        //   GET /devices/device/DEVICENAME/location
+        //   headers: {'Authorization': 'Bearer ' + token.access}
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string, 'location': {'latitude': float, 'longitude': float} }
+        //   { 'status': 'NG', 'message': string}
+        //        
+        $http({
+            method: 'GET',
+            url: server + '/devices/device/' + devicename + '/location',
+            headers: {'Authorization': 'Bearer ' +  $scope.data.token.access },
+        })
+        .then(function (result) {
+            console.log(result.data);
+            
+            // if no coordinates yet, use SG office as defaut address
+            if ( result.data.location === undefined ||
+                (result.data.location !== undefined && (result.data.location.latitude === 0 && result.data.location.longitude === 0)) ) {
+
+                // set SG office as default location
+                result.data.location = {
+                    'latitude': 1.33000,
+                    'longitude': 103.89000
+                };
+                
+                $ionicPopup.alert({ title: 'No location set yet', template: 'Using Bridgetek office as default location!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+            }
+            else {
+                $scope.data.devicelocation.latitude = result.data.location.latitude;
+                $scope.data.devicelocation.longitude = result.data.location.longitude;
+            }
+
+
+            if (result.data.location !== undefined) {
+                $scope.data.location = {};
+                $scope.data.location.latitude = result.data.location.latitude;
+                $scope.data.location.longitude = result.data.location.longitude;
+             
+                $scope.maplocation(devicename);            
+            }
+            
+            $scope.get_status($scope.data.devicename);
+        })
+        .catch(function (error) {
+            $scope.handle_error(error);
+        }); 
+    }; 
+
+
+    $scope.get_status = function(devicename) {
+        //$scope.data.devicestatus = 'Status: Detecting...';
+        //
+        // GET STATUS
+        // - Request:
+        //   GET /devices/device/<devicename>/status
+        //   headers: {'Authorization': 'Bearer ' + token.access}
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string, 'value': { "status": string, "version": string } }
+        //   { 'status': 'NG', 'message': string}
+        //        
+        $http({
+            method: 'GET',
+            url: server + '/devices/device/' + devicename + '/status',
+            headers: {'Authorization': 'Bearer ' +  $scope.data.token.access}
+        })
+        .then(function (result) {
+            //console.log(result.data.status === "OK");
+            for (var marker in $scope.markers) {
+                if ($scope.markers[marker].id === devicename) {
+                    $scope.markers[marker].icon = "https://maps.google.com/mapfiles/ms/icons/green-dot.png";
+                    break;
+                }
+            }
+        })
+        .catch(function (error) {
+        }); 
+    };
+    
+    $scope.get_statuses = function() {
+        //$scope.data.devicestatus = 'Status: Detecting...';
+        //
+        // GET STATUS
+        // - Request:
+        //   GET /devices/device/<devicename>/status
+        //   headers: {'Authorization': 'Bearer ' + token.access}
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string, 'value': { "status": string, "version": string } }
+        //   { 'status': 'NG', 'message': string}
+        //        
+        $http({
+            method: 'GET',
+            url: server + '/devices/status',
+            headers: {'Authorization': 'Bearer ' +  $scope.data.token.access}
+        })
+        .then(function (result) {
+            //console.log(result.data.devices);
+            
+            for (var marker in $scope.markers) {
+                //console.log($scope.markers[marker].id);
+                
+                for (var device in result.data.devices) {
+                    if ($scope.markers[marker].id === result.data.devices[device].devicename) {
+                        //console.log(result.data.devices[device].devicename);
+                        if (result.data.devices[device].status !== undefined) {
+                            $scope.markers[marker].icon = "https://maps.google.com/mapfiles/ms/icons/green-dot.png";
+                            //console.log(true);
+                        }
+                        else {
+                            $scope.markers[marker].icon = "https://maps.google.com/mapfiles/ms/icons/red-dot.png";
+                            //console.log(false);
+                        }
+                        break;
+                    }
+                }
+            }
+        })
+        .catch(function (error) {
+        }); 
+    };
+    
+    // SET DEVICE LOCATION
+    $scope.setDeviceLocation = function(devicename) {
+        if (devicename === "All devices") {
+            $scope.set_devices_location();
+        }
+        else {
+            $scope.set_device_location(devicename);
+        }
+    };
+
+    // SET DEVICES LOCATION
+    $scope.set_devices_location = function() {
+        console.log("set_devices_location ");
+        //
+        // SET DEVICES LOCATION
+        // - Request:
+        //   POST /devices/location
+        //   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
+        //   data: { 'locations': [{devicename: string, location: {'latitude': float, 'longitude': float}}, ...] }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string}
+        //   { 'status': 'NG', 'message': string}
+        //        
+        $http({
+            method: 'POST',
+            url: server + '/devices/location',
+            headers: {'Authorization': 'Bearer ' +  $scope.data.token.access, 'Content-Type': 'application/json' },
+            data: { 'locations': $scope.data.locations }
+        })
+        .then(function (result) {
+            console.log(result.data);
+            $ionicPopup.alert({ title: 'Device location', template: 'Devices locations have been saved!', buttons: [{text: 'OK', type: 'button-positive'}] });
+        })
+        .catch(function (error) {
+            $scope.handle_error(error);
+        }); 
+    }; 
+
+    // SET DEVICE LOCATION
+    $scope.set_device_location = function(devicename) {
+        console.log("set_device_location " + devicename);
+        //
+        // SET DEVICE LOCATION
+        // - Request:
+        //   POST /devices/device/DEVICENAME/location
+        //   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
+        //   data: { 'latitude': float, 'longitude': float }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string}
+        //   { 'status': 'NG', 'message': string}
+        //        
+        $http({
+            method: 'POST',
+            url: server + '/devices/device/' + devicename + '/location',
+            headers: {'Authorization': 'Bearer ' +  $scope.data.token.access, 'Content-Type': 'application/json' },
+            data: $scope.data.location
+        })
+        .then(function (result) {
+            console.log(result.data);
+            console.log($scope.data.location);
+            console.log($scope.data.devicelocation);
+            //$scope.data.devicelocation.latitude = $scope.data.location.latitude;
+            //$scope.data.devicelocation.longitude = $scope.data.location.longitude;
+            $ionicPopup.alert({ title: 'Device location', template: 'Device location has been saved!', buttons: [{text: 'OK', type: 'button-positive'}] });
+        })
+        .catch(function (error) {
+            $scope.handle_error(error);
+        }); 
+    }; 
+
+
+
+    // DELETE DEVICE LOCATION
+    $scope.deleteDeviceLocation = function(devicename) {
+        if (devicename === "All devices") {
+            $scope.delete_devices_location();
+        }
+        else {        
+            $scope.delete_device_location(devicename);
+        }
+    };
+
+    // DELETE DEVICES LOCATION
+    $scope.delete_devices_location = function() {
+        console.log("delete_devices_location ");
+        //
+        // DELETE DEVICES LOCATION
+        // - Request:
+        //   DELETE /devices/location
+        //   headers: { 'Authorization': 'Bearer ' + token.access }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string}
+        //   { 'status': 'NG', 'message': string}
+        //        
+        $http({
+            method: 'DELETE',
+            url: server + '/devices/location',
+            headers: {'Authorization': 'Bearer ' +  $scope.data.token.access }
+        })
+        .then(function (result) {
+            console.log(result.data);
+            $ionicPopup.alert({ 
+                title: 'Device location', 
+                template: 'Devices locations have been deleted!', 
+                buttons: [{
+                    text: 'OK', 
+                    type: 'button-positive', 
+                    onTap: function(e) {
+                        $scope.get_devices_location();
+                    }
+                }] 
+            });
+        })
+        .catch(function (error) {
+            $scope.handle_error(error);
+        }); 
+    }; 
+
+    // DELETE DEVICE LOCATION
+    $scope.delete_device_location = function(devicename) {
+        console.log("delete_device_location " + devicename);
+        //
+        // DELETE DEVICE LOCATION
+        // - Request:
+        //   DELETE /devices/device/DEVICENAME/location
+        //   headers: { 'Authorization': 'Bearer ' + token.access }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string}
+        //   { 'status': 'NG', 'message': string}
+        //        
+        $http({
+            method: 'DELETE',
+            url: server + '/devices/device/' + devicename + '/location',
+            headers: {'Authorization': 'Bearer ' +  $scope.data.token.access }
+        })
+        .then(function (result) {
+            console.log(result.data);
+            $ionicPopup.alert({ 
+                title: 'Device location', 
+                template: 'Device location has been deleted!', 
+                buttons: [{
+                    text: 'OK', 
+                    type: 'button-positive',
+                    onTap: function(e) {
+                        $scope.data.location.latitude = 0;
+                        $scope.data.location.longitude = 0;                        
+                        $scope.get_device_location(devicename);
+                    }
+                }] 
+            });
+        })
+        .catch(function (error) {
+            $scope.handle_error(error);
+        }); 
+    }; 
+
+
+    get_all_device_sensors_enabled_input = function() {
+        if ($scope.data.devicename === "All devices") {
+            return;
+        }
+        
+        //
+        // GET ALL ENABLED DEVICE SENSORS (enabled input)
+        //
+        // - Request:
+        //   GET /devices/device/DEVICENAME/sensors/readings
+        //   headers: { 'Authorization': 'Bearer ' + token.access }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string }
+        //   { 'status': 'NG', 'message': string }        
+        //
+        $http({
+            method: 'GET',
+            url: server + '/devices/device/' + $scope.data.devicename + '/sensors/readings',
+            headers: { 'Authorization': 'Bearer ' + $scope.data.token.access },
+        })
+        .then(function (result) {
+            console.log(result.data);
+            
+            console.log($scope.markers);
+            for (var marker in $scope.markers) {
+                console.log($scope.markers[marker].id);
+                if ($scope.data.devicename === $scope.markers[marker].id) {
+                    $scope.markers[marker].data = result.data.sensors;
+                    //$scope.sensornames = [];
+                    //for (var sensor in result.data.sensors) {
+                    //    $scope.sensornames.push(result.data.sensors[sensor].sensorname);
+                    //}
+
+                    $scope.windowParams = {
+                        sensors: $scope.markers[marker].data,
+                        //doIt: function() {
+                        //  return $scope.doIt()
+                        //}
+                    }
+                    /*
+                    var data = $scope.markers[marker].id;
+                    for (var sensor in result.data.sensors) {
+                        data += "\n" + result.data.sensors[sensor].sensorname;
+                    }
+                    $scope.markers[marker].data = data;
+                    */
+                    console.log($scope.markers[marker].data);
+                    break;
+                }
+            }
+        })
+        .catch(function (error) {
+            $scope.handle_error(error);
+        }); 
+    };
+    
+    
+    $scope.$on('$ionicView.enter', function(e) {
+        $scope.timer = null;
+        $scope.run_time = 0;
+        $scope.devices = [{"devicename": "All devices"}];
+        $scope.devicegroups = [{"groupname": ""}];
+        $scope.get_devices();
+    });
+    
+    $scope.$on('$ionicView.beforeLeave', function(e) {
+        console.log("beforeLeave");
+        if ($scope.timer !== null) {
+            clearTimeout($scope.timer);
+            console.log("clearTimeout");
+            $scope.timer = null;
+        }
+        $scope.run_time = 0;
+    });
+    
+    
+    // VIEW DEVICE
+    $scope.viewDevice = function() {
+        console.log("viewDevice= " + $scope.data.devicename);
+        
+        if ($scope.data.devicename === "All devices") {
+            let device_param = {
+                'username': $scope.data.username,
+                'token'   : $scope.data.token
+            };
+            $state.go('menu.gateways', device_param, {reload: true});
+            return;    
+        }
+
+        /*
+        var device_param = {
+            'username'      : $scope.data.username,
+            'token'         : $scope.data.token,
+            'devicename'    : $scope.data.devicename,
+            'deviceid'      : $scope.data.deviceid,
+            'serialnumber'  : $scope.data.serialnumber,
+            'devicestatus'  : $scope.data.devicestatus,
+            'deviceversion' : $scope.data.deviceversion,
+            'location'      : $scope.data.devicelocation,
+        };
+        console.log("viewDevice");
+        console.log($scope.data.devicelocation.latitude);
+        console.log($scope.data.devicelocation.longitude);
+        $state.go('gateway', device_param, {reload: true});    
+        */
+
+        let device_param = {
+            'username'     : $scope.data.username,
+            'token'        : $scope.data.token,
+            'devicename'   : $scope.data.devicename,
+            'deviceid'     : $scope.data.deviceid,
+            'serialnumber' : $scope.data.serialnumber,
+            'timestamp'    : $scope.data.timestamp,
+            'heartbeat'    : $scope.data.heartbeat,
+            'version'      : $scope.data.version,
+            'location'     : $scope.data.location,
+        };
+        $state.go('viewGateway', device_param);    
+    };    
+    
+    // EXIT PAGE
+    $scope.exitPage = function() {
+        var device_param = {
+            'username': $scope.data.username,
+            'token'   : $scope.data.token
+        };
+        $state.go('menu.gateways', device_param, {reload: true});
+    };
+}])
+   
+.controller('oTAFirmwareUpdateCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', 'Devices', 'DeviceGroups', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+// You can include any angular dependencies as parameters for this function
+// TIP: Access Route Parameters for your page via $stateParams.parameterName
+
+
+function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token, Devices, DeviceGroups) {
+
+    var server = Server.rest_api;
+
+    $scope.data = {
+        'username'    : User.get_username(),
+        'token'       : User.get_token(),
+        'devicename'  : $stateParams.devicename,
+        'deviceid'    : $stateParams.deviceid,
+        'serialnumber': $stateParams.serialnumber,
+        'timestamp'   : $stateParams.timestamp,
+        'heartbeat'   : $stateParams.heartbeat,
+        'version'     : $stateParams.version,
+        'firmwares'   : $stateParams.firmware,
+        'location'    : $stateParams.location,
+    };
+
+    $scope.ota_status = {
+        'version': '',
+        'status': '',
+        'time': '',
+        'timestamp': '',
+    };
+    
+    $scope.disable = false;
+    $scope.timer = null;
+    $scope.runtime = 0;
+    $scope.runtime_max = 300; // 5 minutes
+
+    $scope.versiontouse = $stateParams.firmware.ft900.latest;
+    $scope.descriptiontouse = [];
+    $scope.datetouse = "";
+
+    $scope.devices = [{"devicename": "All devices"}];
+    $scope.devicegroups = [{"groupname": ""}];    
+    $scope.devices_ota = [];
+    
+
+    $scope.changeDescription = function(version) {
+        console.log("changeDescription " + version);
+        for (var indexy=0; indexy<$scope.data.firmwares.ft900.firmware.length; indexy++) {
+            console.log($scope.data.firmwares.ft900.firmware[indexy]);
+            if ($scope.data.firmwares.ft900.firmware[indexy].version === version) {
+                $scope.descriptiontouse = $scope.data.firmwares.ft900.firmware[indexy].description;
+                $scope.datetouse = $scope.data.firmwares.ft900.firmware[indexy].date;
+                console.log("changeDescription " + $scope.descriptiontouse);
+                break;
+            }
+        }
+    };
+
+    $scope.handle_error = function(error) {
+        if (error.data !== null) {
+            console.log("ERROR: Failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
+
+            if (error.data.message === "Token expired") {
+                Token.refresh({'username': $scope.data.username, 'token': $scope.data.token});
+                $scope.data.token = User.get_token();
+            }
+            
+            if (error.status == 503) {
+                //$ionicPopup.alert({ title: 'Error', template: 'Device is unreachable!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+            }
+            else if (error.status >= 400 && error.status < 500) {
+                $ionicPopup.alert({ title: 'Error', template: error.data.message, buttons: [{text: 'OK', type: 'button-assertive'}] });
+            }
+        }
+        else {
+            console.log("ERROR: Server is down!");
+            $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+        }
+    }; 
+
+    $scope.onChecked = function(device) {
+        console.log("onChecked " + device.devicename + " " + device.checked);
+    };
+
+    $scope.changeDevice = function(devicename) {
+        for (indexy=0; indexy<$scope.devices.length; indexy++) {
+            if (devicename === $scope.devices[indexy].devicename) {
+                $scope.data.devicename = $scope.devices[indexy].devicename;
+                if ($scope.data.devicename !== "All devices") {
+                    $scope.data.deviceid = $scope.devices[indexy].deviceid;
+                    $scope.data.serialnumber = $scope.devices[indexy].serialnumber;
+                    $scope.data.devicestatus = $scope.devices[indexy].devicestatus;
+                    if ($scope.devices[indexy].version === undefined) {
+                        $scope.data.version = "UNKNOWN";
+                    }
+                    else {
+                        $scope.data.version = $scope.devices[indexy].version;
+                    }
+                    //$scope.query_device(devicename);
+                    $scope.get_ota_status($scope.versiontouse, $scope.data.devicename);
+                }
+                else {
+                    $scope.data.devicegroupname = "";
+                    $scope.get_ota_statuses($scope.versiontouse);
+                }
+                break;
+            }
+        }
+    };
+    
+    $scope.changeDeviceGroup = function(devicegroupname) {
+        if ($scope.devicegroups.length === 1) {
+            DeviceGroups.fetch($scope.data).then(function(res) {
+                //$scope.devicegroups = res;
+                $scope.data.token = User.get_token();
+                
+                $scope.devicegroups = [{"groupname": ""}];
+                for (var item in res) {
+                    $scope.devicegroups.push({"groupname": res[item].groupname});
+                }
+                $scope.data.devicename = "All devices";
+            })
+            .catch(function (error) {
+                console.log("DeviceGroups.fetch failed!!!");
+            });
+        }
+        else {
+            console.log(devicegroupname);
+            $scope.data.devicegroupname = devicegroupname;
+            $scope.data.devicename = "All devices";
+            $scope.devices_ota = [];
+            $scope.get_devicegroup_ota_statuses($scope.versiontouse);
+        }
+    };    
+    
+    $scope.get_devices = function() {
+        
+        param = {
+            'username': $scope.data.username,
+            'token': $scope.data.token     
+        };
+        
+        // Fetch devices
+        Devices.fetch(param, "").then(function(res) {
+            $scope.devices = $scope.devices.concat(res);
+
+            console.log($scope.devices);
+            $scope.data.token = User.get_token();
+
+            
+            $scope.changeDescription($scope.versiontouse);
+
+            console.log($scope.data.devicename);
+            if ($scope.data.devicename !== "All devices") {
+                $scope.get_ota_status($scope.versiontouse, $scope.data.devicename);
+            }
+            else {
+                $scope.get_ota_statuses($scope.versiontouse);                
+            }
+        });
+    };
+
+
+    $scope.process_ota_statuses = function(result, version) {
+        if ($scope.timer !== null) {
+        
+            for (let device in $scope.devices_ota) {
+                $scope.devices_ota[device].checked = false;
+            }
+        
+            var has_ongoing = false;
+            var has_pending = false;
+            var has_completed = false;
+            for (let device in $scope.devices_ota) {
+                console.log($scope.devices_ota[device]);
+                if ($scope.devices_ota[device].status === "pending") {
+                    has_pending = true;
+                }
+                else if ($scope.devices_ota[device].status === "ongoing") {
+                    has_ongoing = true;
+                    break;
+                }
+                else if ($scope.devices_ota[device].status === "completed") {
+                    has_completed = true;
+                }
+            }
+            
+            if (has_ongoing === false) {
+                if ($scope.timer !== null) {
+                    clearTimeout($scope.timer);
+                    $scope.timer = null;
+                }
+                $scope.runtime = 0;
+                $scope.disable = false;
+                
+                var template = '';
+                if (has_completed === true && has_pending === true) {
+                    template = 'Updating the firmware of selected online devices to version ' + version + ' was completed! All selected devices that are offline have been scheduled for update upon device bootup.';
+                }
+                else if (has_completed === false && has_pending === true) {
+                    template = 'Updating the firmware of all devices to version ' + version + ' was pended! All devices are offline and have been scheduled for update upon device bootup.';
+                }
+                else {
+                    template = 'Updating the firmware of all devices to version ' + version + ' was completed!';
+                }
+                $ionicPopup.alert({
+                    title: 'OTA Firmware Update',
+                    template: template
+                });            
+            }
+            else {
+                $scope.runtime += 1;
+                if ($scope.runtime >= $scope.runtime_max) {
+                    if ($scope.timer !== null) {
+                        clearTimeout($scope.timer);
+                        $scope.timer = null;
+                    }
+                    $scope.runtime = 0;
+                    $scope.disable = false;
+                }
+            }
+        }
+        else {
+            for (let device in $scope.devices_ota) {
+                $scope.devices_ota[device].checked = true;
+            }
+        }        
+    };
+
+    $scope.get_devicegroup_ota_statuses = function(version) {
+        //
+        // GET DEVICE GROUP OTA STATUSES
+        // - Request:
+        //   GET /devicegroups/group/<devicegroupname>/ota
+        //   headers: {'Authorization': 'Bearer ' + token.access}
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string, 'value': { "status": string, "version": string } }
+        //   { 'status': 'NG', 'message': string}
+        //        
+        $http({
+            method: 'GET',
+            url: server + '/devicegroups/group/' + $scope.data.devicegroupname + '/ota',
+            headers: {'Authorization': 'Bearer ' +  $scope.data.token.access}
+        })
+        .then(function (result) {
+            console.log(result.data);
+            $scope.devices_ota = result.data.ota;
+            
+            $scope.process_ota_statuses(result, version);
+        })
+        .catch(function (error) {
+            $scope.disable = false;
+            $scope.handle_error(error);
+        }); 
+    };
+
+    $scope.get_ota_statuses = function(version) {
+        //
+        // GET OTA STATUSES
+        // - Request:
+        //   GET /devices/ota
+        //   headers: {'Authorization': 'Bearer ' + token.access}
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string, 'value': { "status": string, "version": string } }
+        //   { 'status': 'NG', 'message': string}
+        //        
+        $http({
+            method: 'GET',
+            url: server + '/devices/ota',
+            headers: {'Authorization': 'Bearer ' +  $scope.data.token.access}
+        })
+        .then(function (result) {
+            console.log(result.data);
+            $scope.devices_ota = result.data.ota;
+            
+            $scope.process_ota_statuses(result, version);
+        })
+        .catch(function (error) {
+            $scope.disable = false;
+            $scope.handle_error(error);
+        }); 
+    };
+
+    $scope.get_ota_status = function(version) {
+        console.log("get_ota_status");
+        //
+        // GET OTA STATUS
+        // - Request:
+        //   GET /devices/device/<devicename>/ota
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string}
+        //   { 'status': 'NG', 'message': string}
+        //        
+        $http({
+            method: 'GET',
+            url: server + '/devices/device/' + $scope.data.devicename + '/ota',
+            headers: {'Authorization': 'Bearer ' +  $scope.data.token.access}
+        })
+        .then(function (result) {
+            console.log(result.data);
+            
+            $scope.ota_status = result.data.ota;
+            if ($scope.ota_status.timestamp !== "n/a") {
+                let timestamp = new Date($scope.ota_status.timestamp * 1000); 
+                $scope.ota_status.timestamp = "" + timestamp;
+            }
+            
+            if ($scope.disable) {
+                if (result.data.ota.status !== "ongoing") {
+                    if ($scope.timer !== null) {
+                        clearTimeout($scope.timer);
+                        $scope.timer = null;
+                    }
+                    $scope.runtime = 0;
+                    $scope.disable = false;
+                    
+                    $ionicPopup.alert({
+                        title: 'OTA Firmware Update',
+                        template: 'Updating the firmware of this device - ' + $scope.data.devicename + ' - to version ' + version + ' was ' + result.data.ota.status + '!',
+                        buttons: [
+                            {
+                                text: 'OK',
+                                type: 'button-positive',
+                                onTap: function(e) {
+                                    $scope.data.version = version;
+                                    //$scope.get_devices();
+                                }
+                            }
+                        ]            
+                    });            
+                }
+                else {
+                    $scope.runtime += 1;
+                    if ($scope.runtime >= $scope.runtime_max) {
+                        if ($scope.timer !== null) {
+                            clearTimeout($scope.timer);
+                            $scope.timer = null;
+                        }
+                        $scope.runtime = 0;
+                        $scope.disable = false;
+                    }
+                }
+            }
+        })
+        .catch(function (error) {
+            $scope.handle_error(error);
+            
+            if ($scope.timer !== null) {
+                clearTimeout($scope.timer);
+                $scope.timer = null;
+            }
+            $scope.runtime = 0;
+            $scope.disable = false;
+            
+            $ionicPopup.alert({
+                title: 'OTA Firmware Update',
+                template: 'Updating the firmware of this device - ' + $scope.data.devicename + ' failed!',
+                buttons: [
+                    {
+                        text: 'OK',
+                        type: 'button-positive'
+                    }
+                ]            
+            });            
+            
+        }); 
+    };
+
+
+    $scope.queryDevice = function(devicename) {
+        if ($scope.data.devicename !== "All devices") {
+            $scope.query_device(devicename);
+        }
+        else {
+            $scope.get_ota_statuses();
+        }        
+    };
+
+    $scope.query_device = function(devicename) {
+        //
+        // GET STATUS
+        // - Request:
+        //   GET /devices/device/<devicename>/status
+        //   headers: {'Authorization': 'Bearer ' + token.access}
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string, 'value': { "status": string, "version": string } }
+        //   { 'status': 'NG', 'message': string}
+        //        
+        $http({
+            method: 'GET',
+            url: server + '/devices/device/' + devicename + '/status',
+            headers: {'Authorization': 'Bearer ' +  $scope.data.token.access}
+        })
+        .then(function (result) {
+            console.log(result.data);
+        })
+        .catch(function (error) {
+            $scope.handle_error(error);
+        }); 
+    };    
+
+
+    $scope.cancelFirmware = function() {
+        
+        var prompt = 'Are you sure you want to cancel the firmware update?';
+        
+        $ionicPopup.alert({
+            title: 'OTA Firmware Update',
+            template: prompt,
+            buttons: [
+                { 
+                    text: 'No',
+                    type: 'button-negative',
+                },
+                {
+                    text: 'Yes',
+                    type: 'button-positive',
+                    onTap: function(e) {
+                        
+                        if ($scope.timer !== null) {
+                            clearTimeout($scope.timer);
+                            $scope.timer = null;
+                        }
+                        $scope.runtime = 0;
+                        $scope.disable = false;
+                    }
+                }
+            ]            
+        });            
+        
+    };
+
+
+    $scope.upgradeFirmware = function(version, devicename) {
+
+        // Note: Device can be offline    
+        var prompt = '';
+        
+        if (devicename === "All devices") {
+            
+            var devices = [];
+            for (let device in $scope.devices_ota) {
+                if ($scope.devices_ota[device].checked) {
+                    devices.push($scope.devices_ota[device].devicename);
+                }
+            }
+    
+            if (devices.length === 0) {
+                prompt = 'No device is selected. Please select 1 or more devices.';
+                $ionicPopup.alert({
+                    title: 'Error',
+                    template: prompt
+                });
+                return;
+            }
+
+            prompt = 'Are you sure you want to update the firmware of selected devices to version ' + version + '?';
+            $ionicPopup.alert({
+                title: 'OTA Firmware Update',
+                template: prompt,
+                buttons: [
+                    { 
+                        text: 'No',
+                        type: 'button-negative',
+                    },
+                    {
+                        text: 'Yes',
+                        type: 'button-positive',
+                        onTap: function(e) {
+                            $scope.disable = true;
+                            $scope.upgrade_firmwares(version, devices);
+                        }
+                    }
+                ]            
+            });            
+        }
+        else {
+            if ($scope.data.version > version) {
+                prompt = 'Are you sure you want to downgrade the firmware of this device - ' + devicename + ' - to version ' + version + '?';
+            }
+            else if ($scope.data.version < version) {
+                prompt = 'Are you sure you want to upgrade the firmware of this device - ' + devicename + ' - to version ' + version + '?';
+                if (version != $scope.data.firmwares.ft900.latest) {
+                    prompt += ' The latest version is ' + $scope.data.firmwares.ft900.latest + '.';
+                }
+            }
+            else {
+                prompt = 'Are you sure you want to update the firmware of this device - ' + devicename + ' - to version ' + version + '? The current version of the device is the same.';
+            }
+            
+            $ionicPopup.alert({
+                title: 'OTA Firmware Update',
+                template: prompt,
+                buttons: [
+                    { 
+                        text: 'No',
+                        type: 'button-negative',
+                    },
+                    {
+                        text: 'Yes',
+                        type: 'button-positive',
+                        onTap: function(e) {
+                            $scope.disable = true;
+                            $scope.upgrade_firmware(version, devicename);
+                        }
+                    }
+                ]            
+            });            
+        }    
+    };
+
+    $scope.upgrade_firmware = function(version, devicename) {
+        //
+        // UPGRADE DEVICE FIRMWARE
+        // - Request:
+        //   POST /devices/device/<devicename>/firmware
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string}
+        //   { 'status': 'NG', 'message': string}
+        //        
+        $http({
+            method: 'POST',
+            url: server + '/devices/device/' + devicename + '/firmware',
+            headers: {'Authorization': 'Bearer ' +  $scope.data.token.access, 'Content-Type': 'application/json'},
+            data: { 'version': version }
+        })
+        .then(function (result) {
+            console.log(result.data);
+
+            if (result.data.status === "OK") {
+                if ($scope.timer !== null) {
+                    clearTimeout($scope.timer);
+                    $scope.timer = null;
+                }
+    
+                $scope.runtime = 0;
+                //$scope.timer = setInterval($scope.get_upgrade_firmware, 1000, version);
+                $scope.timer = setInterval($scope.get_ota_status, 1000, version);
+            }
+            else {
+                $scope.disable = false;
+                $ionicPopup.alert({ title: 'Error', template: result.data.message, buttons: [{text: 'OK', type: 'button-positive'}] });
+            }
+        })
+        .catch(function (error) {
+            $scope.disable = false;
+            $scope.handle_error(error);
+        }); 
+    };    
+
+    $scope.upgrade_firmwares = function(version, devices_list) {
+        
+        var param = { 'version': version };
+        if (devices_list.length > 0) {
+            param.devices = devices_list;
+        }
+        
+        //
+        // UPGRADE FIRMWARES
+        // - Request:
+        //   POST /devices/firmwares
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string}
+        //   { 'status': 'NG', 'message': string}
+        //        
+        $http({
+            method: 'POST',
+            url: server + '/devices/firmware',
+            headers: {'Authorization': 'Bearer ' +  $scope.data.token.access, 'Content-Type': 'application/json'},
+            data: param
+        })
+        .then(function (result) {
+            console.log(result.data);
+
+            if (result.data.status === "OK") {
+                if ($scope.timer !== null) {
+                    clearTimeout($scope.timer);
+                    $scope.timer = null;
+                }
+    
+                $scope.runtime = 0;
+                //$scope.timer = setInterval($scope.get_upgrade_firmware, 1000, version);
+                if  ($scope.data.devicegroupname === "") {
+                    $scope.timer = setInterval($scope.get_ota_statuses, 1000, version);
+                }
+                else {
+                    $scope.timer = setInterval($scope.get_devicegroup_ota_statuses, 1000, version);
+                }
+            }
+            else {
+                $scope.disable = false;
+                $ionicPopup.alert({ title: 'Error', template: result.data.message, buttons: [{text: 'OK', type: 'button-positive'}] });
+            }
+        })
+        .catch(function (error) {
+            $scope.disable = false;
+            $scope.handle_error(error);
+        }); 
+    };    
+
+    $scope.get_upgrade_firmware = function(version) {
+        console.log("get_upgrade_firmware");
+        //
+        // GET UPGRADE DEVICE FIRMWARE
+        // - Request:
+        //   GET /devices/device/<devicename>/firmware
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string}
+        //   { 'status': 'NG', 'message': string}
+        //        
+        $http({
+            method: 'GET',
+            url: server + '/devices/device/' + $scope.data.devicename + '/firmware',
+            headers: {'Authorization': 'Bearer ' +  $scope.data.token.access}
+        })
+        .then(function (result) {
+            console.log(result.data);
+            
+            console.log(result.data.result);
+            if (result.data.result !== "ongoing") {
+                if ($scope.timer !== null) {
+                    clearTimeout($scope.timer);
+                    $scope.timer = null;
+                }
+                $scope.runtime = 0;
+                
+                $ionicPopup.alert({
+                    title: 'OTA Firmware Update',
+                    template: 'Updating the firmware of this device - ' + $scope.data.devicename + ' - to version ' + version + ' was ' + result.data.result + '!',
+                    buttons: [
+                        {
+                            text: 'OK',
+                            type: 'button-positive',
+                            onTap: function(e) {
+                                $scope.data.version = version;
+                                //$scope.get_devices();
+                            }
+                        }
+                    ]            
+                });            
+            }
+            else {
+                $scope.runtime += 1;
+                if ($scope.runtime >= $scope.runtime_max) {
+                    if ($scope.timer !== null) {
+                        clearTimeout($scope.timer);
+                        $scope.timer = null;
+                    }
+                    $scope.runtime = 0;
+                }
+            }
+        })
+        .catch(function (error) {
+            $scope.handle_error(error);
+            
+            if ($scope.timer !== null) {
+                clearTimeout($scope.timer);
+                $scope.timer = null;
+            }
+            $scope.runtime = 0;
+            
+            $ionicPopup.alert({
+                title: 'OTA Firmware Update',
+                template: 'Updating the firmware of this device - ' + $scope.data.devicename + ' failed!',
+                buttons: [
+                    {
+                        text: 'OK',
+                        type: 'button-positive'
+                    }
+                ]            
+            });            
+            
+        }); 
+    };    
+
+
+    $scope.$on('$ionicView.enter', function(e) {
+        $scope.devices = [{"devicename": "All devices"}];
+        $scope.devicegroups = [{"groupname": ""}];  
+        $scope.devices_ota = [];
+        $scope.disable = false;
+        $scope.timer = null;
+        console.log("xxxxxxxxxx " + $scope.data.version);
+        $scope.get_devices();
+    });
+
+    $scope.$on('$ionicView.beforeLeave', function(e) {
+        if ($scope.timer !== null) {
+            clearTimeout($scope.timer);
+            $scope.timer = null;
+        }
+        $scope.runtime = 0;
+    });   
+
+
+    // VIEW DEVICE
+    $scope.viewDevice = function() {
+        console.log("viewDevice= " + $scope.data.devicename);
+        
+        var device_param = {
+            'username'     : $scope.data.username,
+            'token'        : $scope.data.token,
+            'devicename'   : $scope.data.devicename,
+            'deviceid'     : $scope.data.deviceid,
+            'serialnumber' : $scope.data.serialnumber,
+            'timestamp'    : $scope.data.timestamp,
+            'heartbeat'    : $scope.data.heartbeat,
+            'version'      : $scope.data.version,
+        };
+       
+        $state.go('viewGateway', device_param);    
+    };    
+    
+    // EXIT PAGE
+    $scope.exitPage = function() {
+        
+        if ($scope.data.devicename !== "All devices") {
+
+            var device_param = {
+                'username'     : $scope.data.username,
+                'token'        : $scope.data.token,
+                'devicename'   : $scope.data.devicename,
+                'deviceid'     : $scope.data.deviceid,
+                'serialnumber' : $scope.data.serialnumber,
+                'timestamp'    : $scope.data.timestamp,
+                'heartbeat'    : $scope.data.heartbeat,
+                'version'      : $scope.data.version,
+                'location'     : $scope.data.location,
+            };
+           
+            $state.go('viewGateway', device_param); 
+        
+            /*
+            let device_param = {
+                'username': User.get_username(),
+                'token': User.get_token(),
+                'devicename': $scope.data.devicename,
+                'deviceid': $scope.data.deviceid,
+                'serialnumber': $scope.data.serialnumber,
+                'devicestatus': "Last active: " + $scope.data.heartbeat,
+                'deviceversion': $scope.data.version,
+            };
+    
+            $state.go('gateway', device_param, {reload:true} );
+            */
+        }
+        else {
+            
+            let device_param = {
+                'username': User.get_username(),
+                'token': User.get_token()
+            };
+    
+            $state.go('menu.gateways', device_param, {reload:true} );        
+        }
+    };
+}])
+   
+.controller('gatewayGeneralSettingsCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
 // You can include any angular dependencies as parameters for this function
 // TIP: Access Route Parameters for your page via $stateParams.parameterName
 
@@ -2852,7 +6966,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         'serialnumber': $stateParams.serialnumber,
         'timestamp'   : $stateParams.timestamp,
         'heartbeat'   : $stateParams.heartbeat,
-        'version'     : $stateParams.version
+        'version'     : $stateParams.version,
+        'location'    : $stateParams.location,
     };
 
     $scope.settings =  {
@@ -2974,15 +7089,116 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             'timestamp'    : $scope.data.timestamp,
             'heartbeat'    : $scope.data.heartbeat,
             'version'      : $scope.data.version,
+            'location'     : $scope.data.location,
         };
        
-        $state.go('viewDevice', device_param);    
+        $state.go('viewGateway', device_param);    
     };
     
     $scope.getSettings($scope.data.devicename);
 }])
    
-.controller('deviceCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+.controller('gatewayDescriptorCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+// You can include any angular dependencies as parameters for this function
+// TIP: Access Route Parameters for your page via $stateParams.parameterName
+
+
+function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token) {
+
+    var server = Server.rest_api;
+
+    $scope.data = {
+        'username'    : User.get_username(),
+        'token'       : User.get_token(),
+        'devicename'  : $stateParams.devicename,
+        'deviceid'    : $stateParams.deviceid,
+        'serialnumber': $stateParams.serialnumber,
+        'timestamp'   : $stateParams.timestamp,
+        'heartbeat'   : $stateParams.heartbeat,
+        'version'     : $stateParams.version,
+        'location'    : $stateParams.location
+    };
+
+    $scope.descriptor = "";
+
+
+
+    $scope.handle_error = function(error) {
+        // Handle failed login
+        if (error.data !== null) {
+            console.log("ERROR: Gateway Descriptor failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
+
+            if (error.data.message === "Token expired") {
+                Token.refresh({'username': $scope.data.username, 'token': $scope.data.token});
+                $scope.data.token = User.get_token();
+            }
+        }
+        else {
+            console.log("ERROR: Server is down!"); 
+            $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+        }
+    }; 
+    
+    
+
+    // GET DESCRIPTOR
+    $scope.getDescriptor = function(devicename) {
+        get_descriptor(devicename);
+    };
+
+    get_descriptor = function(devicename) {
+        //
+        // GET DESCRIPTOR
+        // - Request:
+        //   GET /devices/device/<devicename>/descriptor
+        //   headers: {'Authorization': 'Bearer ' + token.access}
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string, 'descriptor': {  } }
+        //   { 'status': 'NG', 'message': string}
+        //        
+        $http({
+            method: 'GET',
+            url: server + '/devices/device/' + devicename + '/descriptor',
+            headers: {'Authorization': 'Bearer ' +  $scope.data.token.access}
+        })
+        .then(function (result) {
+            console.log(result.data);
+            $scope.descriptor = result.data.descriptor; //JSON.stringify(result.data.descriptor, null, 10);
+        })
+        .catch(function (error) {
+            $scope.handle_error(error);
+        }); 
+    }; 
+
+
+    
+    $scope.exitPage = function() {
+        console.log("setDeviceGeneralSettings=");
+        
+        var device_param = {
+            'username'     : $scope.data.username,
+            'token'        : $scope.data.token,
+            'devicename'   : $scope.data.devicename,
+            'deviceid'     : $scope.data.deviceid,
+            'serialnumber' : $scope.data.serialnumber,
+            'timestamp'    : $scope.data.timestamp,
+            'heartbeat'    : $scope.data.heartbeat,
+            'version'      : $scope.data.version,
+            'location'     : $scope.data.location
+        };
+       
+        $state.go('viewGateway', device_param);    
+    };
+   
+    $scope.$on('$ionicView.enter', function(e) {
+       $scope.descriptor = "";
+       $scope.getDescriptor($scope.data.devicename);
+    });   
+    
+}])
+   
+.controller('gatewayCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
 // You can include any angular dependencies as parameters for this function
 // TIP: Access Route Parameters for your page via $stateParams.parameterName
 function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token) {
@@ -2993,30 +7209,40 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         'username': User.get_username(),
         'token': User.get_token(),
         'devicename': $stateParams.devicename,
+        'devicename_ex': $stateParams.devicename.trim().replace(/ +/g, ''),
         'deviceid': $stateParams.deviceid,
         'serialnumber': $stateParams.serialnumber,
+        'poemacaddress': $stateParams.poemacaddress === undefined || $stateParams.poemacaddress === "" ? 'UNKNOWN' : $stateParams.poemacaddress,
         'devicestatus': $stateParams.devicestatus,
         'deviceversion': $stateParams.deviceversion,
-        
+        'location': $state.params.location,
+        //'devicelocation': $state.params.location, // !== "UNKNOWN" && $state.params.location !== undefined ? $state.params.location.latitude.toFixed(4) + "... , " + $state.params.location.longitude.toFixed(4) + "..." : "UNKNOWN",
         'status': $stateParams.devicestatus,
     };
+    $scope.treeData = null;
 
     console.log("xxx " + $scope.data.devicename);
 
     $scope.submitDashboard = function() {
         console.log("devicename=" + $scope.data.devicename);
-        $state.go('sensorDashboard', $scope.data, {animate: false} );
+        $state.go('menu.sensorDashboard', $scope.data, {animate: false} );
     };   
 
-    $scope.submitGPIO = function() {
-        console.log("devicename=" + $scope.data.devicename);
-        $state.go('deviceGPIO', $scope.data, {animate: false} );
-    };   
+    $scope.submitLDSBUS = function(number) {
+        console.log("submitLDSBUS=" + number);
+        $scope.data.activeSection = number;
+        $state.go('deviceLDSBUS', $scope.data, {animate: false} );
+    };    
 
     $scope.submitUART = function() {
         console.log("devicename=" + $scope.data.devicename);
         $state.go('deviceUART', $scope.data, {animate: false} );
     };    
+
+    $scope.submitGPIO = function() {
+        console.log("devicename=" + $scope.data.devicename);
+        $state.go('deviceGPIO', $scope.data, {animate: false} );
+    };   
 
     $scope.submitI2C = function() {
         console.log("devicename=" + $scope.data.devicename);
@@ -3093,9 +7319,9 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             headers: {'Authorization': 'Bearer ' +  $scope.data.token.access}
         })
         .then(function (result) {
-            console.log("OK XXXXXXXXXXXXXXXXXXX");
+            //console.log("OK XXXXXXXXXXXXXXXXXXX");
             console.log(result.data);
-            
+        
             if (result.data.status === "OK") {
                 $scope.data.status = 'Online';
             }
@@ -3105,14 +7331,62 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             if (result.data.value !== undefined) {
                 $scope.data.deviceversion = result.data.value.version;
             }
+            
+            $scope.get_hierarchy($scope.data.devicename, 1, 1);
         })
         .catch(function (error) {
-            console.log("ERRORXXXXXXXXXXXXXXXXXXXXXXXXXXX");
+            //console.log("ERRORXXXXXXXXXXXXXXXXXXXXXXXXXXX get_status");
             console.log($scope.data);
             $scope.data.status = 'Offline';
-            $scope.handle_error(error);
+            
+            if (error.data.value !== undefined) {
+                $scope.data.deviceversion = error.data.value.version;
+            }
+            
+            $scope.get_hierarchy($scope.data.devicename, 1, 0);
         }); 
     };   
+
+    $scope.get_hierarchy = function(devicename, checkdevice=0, status=null) {
+        console.log("get_hierarchy " + devicename);
+        var data = undefined;
+        if (checkdevice === 1) {
+            data = {};
+            data.checkdevice = checkdevice;
+            if (status !== null) {
+                data.status = status;
+            }
+        }
+        //
+        // GET DEVICE HIERARCHY
+        // - Request:
+        //   POST /devices/device/<devicename>/hierarchy
+        //   headers: {'Authorization': 'Bearer ' + token.access}
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string, 'hierarchy': { "name": string, "children": ["name": string, "children": [...]] } }
+        //   { 'status': 'NG', 'message': string}
+        //        
+        $http({
+            method: 'POST',
+            url: server + '/devices/device/' + devicename + '/hierarchy',
+            headers: {'Authorization': 'Bearer ' +  $scope.data.token.access},
+            data: data
+        })
+        .then(function (result) {
+            console.log(result.data);
+
+            if ($scope.treeData !== null) {
+                $scope.eraseTreeChart2();
+                $scope.treeData = null;
+            }
+            $scope.treeData = result.data.hierarchy;
+            $scope.drawTreeChart($scope.treeData);
+        })
+        .catch(function (error) {
+            $scope.handle_error(error);
+        }); 
+    };
 
 
     // GET DEVICE
@@ -3157,12 +7431,15 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
                 'devicename': result.data.device.devicename,
                 'deviceid': result.data.device.deviceid,
                 'serialnumber': result.data.device.serialnumber,
-                'timestamp': timestamp,
-                'heartbeat': heartbeat,
-                'version': $scope.data.deviceversion
+                'poemacaddress': result.data.device.poemacaddress === undefined ? 'UNKNOWN' : result.data.device.poemacaddress,
+                'timestamp': "" + timestamp,
+                'heartbeat': "" + heartbeat,
+                'version': $scope.data.deviceversion,
+                'location': result.data.device.location
             };
             
-            $state.go('viewDevice', device_param, {reload:true});
+//            $state.go('menu.mapsExample', device_param, {reload:true});
+            $state.go('viewGateway', device_param, {reload:true});
         })
         .catch(function (error) {
             $scope.handle_error(error);
@@ -3170,20 +7447,347 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
     };
 
 
+/*
+    // GET DEVICE LOCATION
+    $scope.get_device_location = function(devicename) {
+        console.log("get_device_location " + devicename);
+        //
+        // GET DEVICE LOCATION
+        // - Request:
+        //   GET /devices/device/DEVICENAME/location
+        //   headers: {'Authorization': 'Bearer ' + token.access}
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string, 'location': {'latitude': float, 'longitude': float} }
+        //   { 'status': 'NG', 'message': string}
+        //        
+        $http({
+            method: 'GET',
+            url: server + '/devices/device/' + devicename + '/location',
+            headers: {'Authorization': 'Bearer ' +  $scope.data.token.access },
+        })
+        .then(function (result) {
+            console.log(result.data);
+            if (result.data.location !== undefined) {
+                $scope.data.location = result.data.location;
+                $scope.data.devicelocation = result.data.location !== "UNKNOWN" ? result.data.location.latitude.toFixed(4) + "..., " + result.data.location.longitude.toFixed(4) + "..." : "UNKNOWN";
+            }
+            $scope.getStatus($scope.data.devicename);
+        })
+        .catch(function (error) {
+            $scope.handle_error(error);
+        });         
+    };
+*/
+
+
+    // VIEW DEVICE LOCATION
+    $scope.viewDeviceLocation = function(device) {
+        console.log("viewDeviceLocation= " + device.devicename);
+        
+        var device_param = {
+            'username'     : $scope.data.username,
+            'token'        : $scope.data.token,
+            'devicename'   : $scope.data.devicename,
+            'deviceid'     : $scope.data.deviceid,
+            'serialnumber' : $scope.data.serialnumber,
+            'devicestatus' : $scope.data.devicestatus,
+            'deviceversion': $scope.data.deviceversion,
+            'location'     : $scope.data.location,
+        };
+       
+        $state.go('gatewayLocation', device_param, {reload: true});    
+    };
+    
+    
+    // SCAN LDS BUS
+    $scope.scanLDSBUS = function() {
+        console.log("scanLDSBUS");
+        $scope.scan_lds_bus();
+    };
+
+    $scope.scan_lds_bus = function() {
+        //
+        // SCAN LDS BUS
+        //
+        // - Request:
+        //   POST /devices/device/DEVICENAME/ldsbus/PORTNUMBER
+        //   headers: { 'Authorization': 'Bearer ' + token.access }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string, }
+        //   { 'status': 'NG', 'message': string }
+        //
+        $http({
+            method: 'POST',
+            url: server + '/devices/device/' + $scope.data.devicename + '/ldsbus/0',
+            headers: {'Authorization': 'Bearer ' + $scope.data.token.access}
+        })
+        .then(function (result) {
+            console.log(result.data);
+            $ionicPopup.alert({
+                title: 'Scan LDS BUS',
+                template: 'Scan LDS BUS was successful!',
+            });
+        })
+        .catch(function (error) {
+            $scope.handle_error(error);
+            $ionicPopup.alert({
+                title: 'Scan LDS BUS',
+                template: 'Scan LDS BUS failed!',
+                buttons: [{text: 'OK', type: 'button-assertive'}]
+            });
+        }); 
+    };
+    
+    
+    
     // EXIT PAGE
     $scope.exitPage = function() {
         var device_param = {
             'username': $scope.data.username,
             'token': $scope.data.token
         };
-        $state.go('menu.devices', device_param, {reload: true});
+        
+        if ($scope.data.status === "Online") {
+            if ($scope.treeData !== null) {
+                $scope.eraseTreeChart();
+                $scope.treeData = null;
+            }
+        }
+        else { //if ($scope.data.status !== "Online") {
+            if ($scope.treeData !== null) {
+                $scope.eraseTreeChart2();
+                $scope.treeData = null;
+            }
+        }
+        
+        $state.go('menu.gateways', device_param, {reload: true});
     };
    
     $scope.$on('$ionicView.enter', function(e) {
+        console.log("DEVICE enter");
+        console.log($scope.data.poemacaddress);
+        if ($scope.treeData !== null) { 
+            $scope.eraseTreeChart2();
+            $scope.treeData = null;
+        }
+        $scope.get_hierarchy($scope.data.devicename);
+        
+        //console.log($stateParams.location);
+        //console.log($stateParams.location.latitude);
+        //console.log($stateParams.location.longitude);
+        //console.log($state.params.location.latitude);
+        //console.log($state.params.location.longitude);
+        //console.log($scope.data.devicename_ex);
+        
+        /*
+        if ($state.params.location === "" || $state.params.location === "UNKNOWN" || $state.params.location === undefined) {
+            $scope.data.devicelocation = "UNKNOWN";
+            $scope.get_device_location($scope.data.devicename);
+        }
+        else if ($stateParams.location === "" || $stateParams.location === "UNKNOWN" || $stateParams.location === undefined) {
+            $scope.data.devicelocation = "UNKNOWN";
+            $scope.get_device_location($scope.data.devicename);
+        }
+        else {
+        */
+        //$stateParams.location = $state.params.location;
+        //$scope.data.location = $state.params.location;
+        //$scope.data.devicelocation = $stateParams.location !== "UNKNOWN" ? $stateParams.location.latitude.toFixed(4) + "..., " + $stateParams.location.longitude.toFixed(4) + "..." : "UNKNOWN";
         $scope.getStatus($scope.data.devicename);
+        //}
     });   
    
+    $scope.$on('$ionicView.beforeLeave', function(e) {
+        console.log("DEVICE beforeLeave");
+        if ($scope.data.status === "Online") {
+            if ($scope.treeData !== null) {
+                $scope.eraseTreeChart();
+                $scope.treeData = null;
+            }
+        }
+        else { //if ($scope.data.status !== "Online") {
+            if ($scope.treeData !== null) {
+                $scope.eraseTreeChart2();
+                $scope.treeData = null;
+            }
+        }
+        //if ($scope.treeData !== null) {
+        //    $scope.eraseTreeChart();
+        //    $scope.treeData = null;
+        //}
+    });
     
+/*
+    $scope.treeData = {
+      "name": "Demo1Device1",
+      "active": 1,  // online/offline
+      "children": [
+        {
+          "name": "UART",
+          "children": [
+            {
+              "name": "UART 1",
+            },
+          ]
+        },
+        {
+          "name": "GPIO",
+          "children": [
+            {
+              "name": "GPIO 1",
+            },
+            {
+              "name": "GPIO 2",
+            },
+            {
+              "name": "GPIO 3",
+            },
+            {
+              "name": "GPIO 4",
+            },
+          ]
+        },
+        {
+          "name": "I2C",
+          "children": [
+            {
+              "name": "I2C 1",
+              "children": [
+                {
+                  "name": "POT 1",
+                  "active": 0,  // online/offline
+                  "children": [
+                    {
+                      "name": "Temperature",
+                      "active": 0,  // online/offline
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "I2C 2",
+            },
+            {
+              "name": "I2C 3",
+            },
+            {
+              "name": "I2C 4",
+            },
+          ]
+        },
+        {
+          "name": "ADC",
+          "children": [
+            {
+              "name": "ADC 1",
+            },
+            {
+              "name": "ADC 2",
+            },
+          ]
+        },
+        {
+          "name": "Onewire",
+          "children": [
+            {
+              "name": "Onewire 1",
+            },
+          ]
+        },
+        {
+          "name": "TProbe",
+          "children": [
+            {
+              "name": "TProbe 1",
+            },
+          ]
+        },
+      ]
+    };
+*/
+    
+    $scope.eraseTreeChart = function(){
+        const svg_id = "#" + $scope.data.devicename_ex;
+        var svg = d3.select(svg_id);
+        svg.data([]).exit().remove();
+    };
+
+    $scope.eraseTreeChart2 = function(){
+        const svg_id = "#" + $scope.data.devicename_ex;
+        var svg = d3.select(svg_id);
+        svg.select("svg").remove();
+    };
+   
+    $scope.drawTreeChart = function(treeData) { // Function for creating bar chart
+        //console.log(document.getElementsByClassName("hierarchychart"));
+        console.log($scope.data.devicename_ex);
+        
+        // set the dimensions and margins of the diagram
+        const margin = {top: 50, right: 50, bottom: 50, left: 200},
+              width  = 800 - margin.left - margin.right,
+              height = 450 - margin.top - margin.bottom;
+        
+        // declares a tree layout and assigns the size
+        const treemap = d3.tree().size([height, width]);
+        
+        //  assigns the data to a hierarchy using parent-child relationships
+        let nodes = d3.hierarchy(treeData, d => d.children);
+        
+        // maps the node data to the tree layout
+        nodes = treemap(nodes);
+        
+        // append the svg object to the body of the page
+        // appends a 'group' element to 'svg'
+        // moves the 'group' element to the top left margin
+        const svg_id = "#" + $scope.data.devicename_ex;
+        //console.log(d3.select(svg_id));
+        
+        const svg = d3.select(svg_id).append("svg")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom);
+        g = svg.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+        
+        // adds the links between the nodes
+        const link = g.selectAll(".d3link")
+            .data( nodes.descendants().slice(1))
+          .enter().append("path")
+            .attr("class", "d3link")
+            //.style("stroke", d => d.data.level)
+            .attr("d", d => { d.y = d.depth * 125; }) // control the line size
+            .attr("d", d => {
+               return "M" + d.y + "," + d.x
+                 + "C" + (d.y + d.parent.y) / 2 + "," + d.x
+                 + " " + (d.y + d.parent.y) / 2 + "," + d.parent.x
+                 + " " + d.parent.y + "," + d.parent.x;
+               });
+        
+        // adds each node as a group
+        const node = g.selectAll(".d3node")
+            .data(nodes.descendants())
+            .enter().append("g")
+            .attr("class", d => "d3node" + (d.children ? " node--internal" : " node--leaf"))
+            .attr("transform", d => "translate(" + d.y + "," + d.x + ")");
+        
+        // adds the circle to the node
+        node.append("circle")
+          .attr("r", d => 4)//d.data.value) // hardcode value to 4
+          .style("stroke", d => d.data.type)
+          .style("fill", d => /*d.data.level*/ {
+                return d.data.active===1 ? "green" : (d.data.active===0 ? "red" : "#DDDDDD"); 
+              }
+          );
+          
+        // adds the text to the node
+        node.append("text")
+          .attr("dy", ".35em")
+          .attr("x", d => d.children ? (/*d.data.value*/4 + 5) * -1 : /*d.data.value*/4 + 5)
+          .attr("y", d => d.children && d.depth !== 0 ? -(/*d.data.value*/4 + 5) : 0)
+          .style("text-anchor", d => d.children ? "end" : "start")
+          .text(d => d.data.name);
+    };
 }])
    
 .controller('sensorDashboardCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', 'Devices', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
@@ -3193,18 +7797,6 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
 
     var server = Server.rest_api;
 
-    $scope.hide_settings = false;
-    $scope.sensors = [];
-    $scope.sensors_counthdr = "No sensor enabled" ;
-    $scope.refresh_automatically = false;
-    $scope.refresh_time = 5;
-    $scope.run_time = 0;
-    
-    $scope.sensors_datachart_colors = ['#387EF5', '#EF473A'];
-    $scope.sensors_datachart = [{"labels": [], "data": []}];
-    $scope.sensors_datachart_empty = {"labels": [], "data": []};
-    $scope.sensors_datachart_options = {"animation": false};
-
     $scope.data = {
         'username': User.get_username(),
         'token': User.get_token(),
@@ -3212,32 +7804,530 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         'devicestatus': $stateParams.devicestatus,
         'deviceid': $stateParams.deviceid,
         'serialnumber': $stateParams.serialnumber,
-        
-        'activeSection': 2,
+        'location': $stateParams.location,
     };
 
     $scope.timer = null;
+        
+    $scope.devices = [{"devicename": "All devices"}];
 
-    $scope.changeSection = function(s) {
-        $scope.data.activeSection = s;
-        
-        if ($scope.timer !== null) {
-            clearTimeout($scope.timer);
-            console.log("clearTimeout");
-            $scope.timer = null;
-            $scope.run_time = 0;
-            $scope.refresh_automatically = false;
+    // Filter by peripherals
+    //$scope.peripherals = [ 
+    //    "All peripherals",
+    //    "I2C1",
+    //    "I2C2",
+    //    "I2C3",
+    //    "I2C4",
+    //    "ADC1",
+    //    "ADC2",
+    //    "1WIRE1",
+    //    "TPROBE1"
+    //];
+    //$scope.peripheral = $scope.peripherals[0];
+    
+    // Filter by sensor class
+    $scope.sensorclasses = [ 
+        "All classes",
+        //"speaker", 
+        //"display",
+        //"light",
+        "potentiometer",
+        "temperature",
+        "humidity",
+        "anemometer",
+        "battery",
+        "fluid",
+    ];
+    $scope.sensorclass = $scope.sensorclasses[0];
+    
+    // Filter by sensor status
+    $scope.sensorstatuses = [ 
+        "All online/offline",
+        "online",
+        "offline",
+    ];
+    $scope.sensorstatus = $scope.sensorstatuses[0];
+
+    $scope.timeranges = [ 
+        "Last 5 minutes",
+        "Last 15 minutes",
+        "Last 30 minutes",
+        "Last 60 minutes",
+        "Last 3 hours",
+        "Last 6 hours",
+        "Last 12 hours",
+        "Last 24 hours",
+        "Last 3 days",
+        "Last 7 days",
+        "Last 2 weeks",
+        "Last 4 weeks",
+        "Last 3 months",
+        "Last 6 months",
+        "Last 12 months",
+    ];
+    $scope.timerange = $scope.timeranges[0];
+    $scope.timerangeindex = 0;
+    $scope.checkdevice = 1;
+    
+    
+    $scope.hide_settings = false;
+    $scope.sensors = [];
+    $scope.sensorsummary = [];
+    $scope.sensorsummaryshow = false;
+    $scope.devicesummary = [];
+    $scope.devicesummaryshow = false;
+    $scope.usages = [];
+    $scope.usagesshow = false;
+    $scope.comparisons = [];
+    $scope.sensors_counthdr = "No sensor returned" ;
+    $scope.refresh_automatically = false;
+    $scope.refresh_time = 5;
+    $scope.run_time = 0;
+    $scope.big_charts = false;
+    $scope.online_charts = false;
+
+    $scope.stats = {};
+    
+    // colorful palette    
+    $scope.sensors_datachart_colors_options     = ['#11C1F3', '#33CD5F', '#FFC900', '#F38124', '#EF473A', '#F58CF6', '#B6A2FC', '#3C5A99'];
+    $scope.sensors_datachart_colors_options_ex  = ['#EF473A', '#F38124', '#FFC900', '#33CD5F', '#11C1F3', '#3C5A99', '#B6A2FC', '#F58CF6'];
+    $scope.sensors_datachart_colors_options_ex2 = ['#F58CF6', '#B6A2FC', '#3C5A99', '#EF473A', '#F38124', '#FFC900', '#33CD5F', '#11C1F3'];
+    // sunburst palette
+    //$scope.sensors_datachart_colors_options     = ['#A78FC9', '#D98DCC', '#FF94B4', '#FFAD94', '#EFD38F', '#CFF5A7', '#93F8AD', '#66EBCA', '#66CDE6'];
+    //$scope.sensors_datachart_colors_options_ex  = ['#FFAD94', '#EFD38F', '#CFF5A7', '#93F8AD', '#66EBCA', '#66CDE6', '#A78FC9', '#D98DCC', '#FF94B4'];
+    //$scope.sensors_datachart_colors_options_ex2 = ['#93F8AD', '#66EBCA', '#66CDE6', '#A78FC9', '#D98DCC', '#FF94B4', '#FFAD94', '#EFD38F', '#CFF5A7'];    
+    
+    $scope.sensors_datachart = [{"labels": [], "data": [], "series": [], "colors": []}];
+    $scope.sensors_datachart_empty = {"labels": [], "data": [], "series": [], "colors": []};
+    
+    $scope.sensors_datachart_options = {
+        "animation": false, 
+        "legend": {
+            "display": true,
+            "position": 'bottom'
+        },
+        "scales": {
+            "xAxes": [{
+                "ticks": {
+                    //"autoSkip": false,
+                    "maxRotation": 90,
+                    "minRotation": 90
+                }
+            }],
+            "yAxes": [{
+                "ticks": {
+                    //"beginAtZero": false,
+                    "max": 100,
+                    "min": 0,
+                }
+            }],
+        },
+        "tooltips": {
+            "enabled": true,
+            "callbacks": {
+                "beforeTitle": function(tooltipItem, data) {
+                    //console.log("beforeTitle");
+                    //console.log(data);
+                    //console.log(data.datasets[0]._meta);
+                    var key = Object.keys(data.datasets[0]._meta)[0];
+                    var canvasid = data.datasets[0]._meta[key].controller.chart.ctx.canvas.id;
+                    return canvasid + "\r\n";
+                },
+                "title": function(tooltipItem, data) {
+                    //console.log("title");
+                    //console.log(tooltipItem);
+                    //console.log(data);
+                    var key = Object.keys(data.datasets[0]._meta)[0];
+                    var canvasid = data.datasets[0]._meta[key].controller.chart.ctx.canvas.id;
+                    var devicename = canvasid.split(".")[0];
+                    var sensorname = canvasid.split(".")[1];
+                    //console.log(devicename);
+                    //console.log(sensorname);
+                    var date = "";
+                    for (var sensor in $scope.sensors_datachart) {
+                        if ($scope.sensors_datachart[sensor].devicename === devicename && 
+                            $scope.sensors_datachart[sensor].sensorname === sensorname) {
+                                key = tooltipItem[0].index;
+                                //console.log(key);
+                                date = $scope.sensors_datachart[sensor].labels_date[key];
+                                break;
+                            }
+                    }
+                    
+                    return "Date: " + date + "\r\nTime: " + tooltipItem[0].label;
+                },
+                "label": function(tooltipItem, data) {
+                    //console.log("label");
+                    var label = data.datasets[tooltipItem.datasetIndex].label || '';
+                    
+                    var key = Object.keys(data.datasets[0]._meta)[0];
+                    var canvasid = data.datasets[0]._meta[key].controller.chart.ctx.canvas.id;
+                    var devicename = canvasid.split(".")[0];
+                    var sensorname = canvasid.split(".")[1];
+                    
+                    var unit = null;
+                    for (var sensor in $scope.sensors_datachart) {
+                        unit = $scope.sensors_datachart[sensor].unit;
+/*                        
+                        if ($scope.sensors_datachart[sensor].devicename === devicename && 
+                            $scope.sensors_datachart[sensor].sensorname === sensorname) {
+                                let index = tooltipItem.datasetIndex;
+                                if ($scope.sensors_datachart[sensor].data !== undefined) {
+                                    unit = $scope.sensors_datachart[sensor].units[index];
+                                    //console.log(unit);
+                                }
+                                break;
+                            }
+*/
+                    }
+                    
+                    if (unit !== undefined && unit !== null && unit !== "") {
+                        label += " (" + unit + ")";
+                    }
+                    
+                    return label;
+                }, 
+                "afterLabel": function(tooltipItem, data) {
+                    //console.log("afterLabel");
+                    //console.log(tooltipItem);
+                    //console.log(data);
+                    var key = Object.keys(data.datasets[0]._meta)[0];
+                    //console.log(key);
+                    var canvasid = data.datasets[0]._meta[key].controller.chart.ctx.canvas.id;
+                    var devicename = canvasid.split(".")[0];
+                    var sensorname = canvasid.split(".")[1];
+                    //console.log(devicename);
+                    //console.log(sensorname);
+                    var val = null;
+                    var low = null;
+                    var high = null;
+
+                    for (var sensor in $scope.sensors_datachart) {
+                        if ($scope.sensors_datachart[sensor].devicename === devicename && 
+                            $scope.sensors_datachart[sensor].sensorname === sensorname) {
+                                key = tooltipItem.index;
+                                //console.log(key);
+                                let index = tooltipItem.datasetIndex;
+                                if ($scope.sensors_datachart[sensor].data !== undefined) {
+                                    val = $scope.sensors_datachart[sensor].data[index][key];
+                                    //console.log(val);
+                                }
+                                if ($scope.sensors_datachart[sensor].low !== undefined) {
+                                    low = $scope.sensors_datachart[sensor].low[index][key];
+                                    //console.log(low);
+                                }
+                                if ($scope.sensors_datachart[sensor].high !== undefined) {
+                                    high = $scope.sensors_datachart[sensor].high[index][key];
+                                    //console.log(high);
+                                }
+                                break;
+                            }
+                    }
+                    
+                    var append = "";
+                    if (val !== undefined && val !== null) {
+                        append += "value: " + val.toString();
+                    }
+                    if (low !== undefined && low !== null) {
+                        append += "\r\n" + "low: " + low.toString();
+                    }
+                    if (high !== undefined && high !== null) {
+                        append += "\r\n" + "high: " + high.toString();
+                    }
+                    return append;
+                },
+/*                
+                "afterBody": function(tooltipItem, data) {
+                    var key = Object.keys(data.datasets[0]._meta)[0];
+                    var canvasid = data.datasets[0]._meta[key].controller.chart.ctx.canvas.id;
+                    var devicename = canvasid.split(".")[0];
+                    var sensorname = canvasid.split(".")[1];
+                    //console.log(devicename);
+                    //console.log(sensorname);
+                    var low = null;
+                    var high = null;
+                    
+                    for (var sensor in $scope.sensors_datachart) {
+                        if ($scope.sensors_datachart[sensor].devicename === devicename && 
+                            $scope.sensors_datachart[sensor].sensorname === sensorname) {
+                                key = tooltipItem[0].index;
+                                //console.log(key);
+                                if ($scope.sensors_datachart[sensor].low !== undefined) {
+                                    low = $scope.sensors_datachart[sensor].low[0][key];
+                                }
+                                if ($scope.sensors_datachart[sensor].high !== undefined) {
+                                    high = $scope.sensors_datachart[sensor].high[0][key];
+                                }
+                                break;
+                            }
+                    }
+                    
+                    if (low === undefined || high === undefined || low === null || high === null) {
+                        return "";
+                    }
+                    
+                    var append = "\r\n";
+                    append += "low: " + low.toString() + "\r\n";
+                    append += "high: " + high.toString() + "\r\n";
+                    return append;
+                },
+*/                
+            }            
+        },
+    
+/*        "title": {
+            "display": true,
+            "position": 'bottom'
+        },*/
+
+/*        "elements": {
+            "line": {
+                "fill": false
+            }
+        },*/
+
+/*        "onClick": function(e) {
+            //console.log(e);
+            console.log(e.srcElement.id);
+            var element = this.getElementAtEvent(e);
+            if (element.length) {
+                //console.log(element[0]);
+                console.log(element[0]._index);
+            }
+        },*/           
+    };
+    
+    $scope.sensors_datachart_piechart_devices_statuses_options = {
+        "title": {
+            "display": true,
+            "text": 'Status'
+        },
+        "legend": {
+            "display": true,
+            "position": 'left'
+        },
+    };
+    $scope.sensors_datachart_piechart_devices_groups_options = {
+        "title": {
+            "display": true,
+            "text": 'Groups'
+        },
+        "legend": {
+            "display": true,
+            "position": 'left'
+        },
+    };
+    $scope.sensors_datachart_piechart_devices_versions_options = {
+        "title": {
+            "display": true,
+            "text": 'Versions'
+        },
+        "legend": {
+            "display": true,
+            "position": 'left'
+        },
+    };
+    $scope.sensors_datachart_piechart_devices_locations_options = {
+        "title": {
+            "display": true,
+            "text": 'Locations'
+        },
+        "legend": {
+            "display": true,
+            "position": 'left'
+        },
+    };
+    
+    
+    $scope.sensors_datachart_piechart_sensors_statuses_options = {
+        "title": {
+            "display": true,
+            "text": 'Status'
+        },
+        "legend": {
+            "display": true,
+            "position": 'left'
+        },
+    };
+    $scope.sensors_datachart_piechart_sensors_types_options = {
+        "title": {
+            "display": true,
+            "text": 'Types'
+        },
+        "legend": {
+            "display": true,
+            "position": 'left'
+        },
+    };
+    $scope.sensors_datachart_piechart_sensors_peripherals_options = {
+        "title": {
+            "display": true,
+            "text": 'Peripherals'
+        },
+        "legend": {
+            "display": true,
+            "position": 'left'
+        },
+    };
+    $scope.sensors_datachart_piechart_sensors_classes_options = {
+        "title": {
+            "display": true,
+            "text": 'Classes'
+        },
+        "legend": {
+            "display": true,
+            "position": 'left'
+        },
+    };
+    
+    $scope.sensors_datachart_barchart_usages_alerts_series = ["sms", "email", "notification"];
+    $scope.sensors_datachart_barchart_usages_alerts_options = {
+        "title": {
+            "display": true,
+            "text": 'Alerts'
+        },
+        "animation": false, 
+        "scales": {
+            "xAxes": [{
+                "ticks": {
+                    "beginAtZero": true,
+                    "max": 100,
+                    "min": 0,                    
+                }
+            }]
+        },
+        "tooltips": {
+            "enabled": true,
+            "callbacks": {
+                "title": function(tooltipItem, data) {
+                    return "Alerts usage for " + tooltipItem[0].label;
+                },
+                "label": function(tooltipItem, data) {
+                    return tooltipItem.xLabel + "%";
+                }
+            }
+        },
+        "legend": {
+            "display": true,
+            "position": 'left'
         }
-        
-        $scope.sensors = [];
-        $scope.submitQuery();
+    };
+    $scope.sensors_datachart_barchart_usages_storage_series = ["sensor data", "alert data"];
+    $scope.sensors_datachart_barchart_usages_storage_options = {
+        "title": {
+            "display": true,
+            "text": 'Storage'
+        },
+        "animation": false, 
+        "scales": {
+            "xAxes": [{
+                "ticks": {
+                    "beginAtZero": true,
+                    "max": 100,
+                    "min": 0,                    
+                }
+            }]
+        },
+        "tooltips": {
+            "enabled": true,
+            "callbacks": {
+                "title": function(tooltipItem, data) {
+                    return "Storage usage";
+                },                
+                "label": function(tooltipItem, data) {
+                    return tooltipItem.xLabel + "%";
+                }
+            }
+        },
+        "legend": {
+            "display": true,
+            "position": 'left'
+        }
+    };
+    $scope.sensors_datachart_barchart_usages_login_series = ["via email", "via sms"];
+    $scope.sensors_datachart_barchart_usages_login_options = {
+        "title": {
+            "display": true,
+            "text": 'Logins'
+        },
+        "animation": false, 
+        "scales": {
+            "xAxes": [{
+                "ticks": {
+                    "beginAtZero": true,
+                    "max": 100,
+                    "min": 0,                    
+                }
+            }]
+        },
+        "tooltips": {
+            "enabled": true,
+            "callbacks": {
+                "title": function(tooltipItem, data) {
+                    return "Login success rate for " + tooltipItem[0].label;
+                },
+                "label": function(tooltipItem, data) {
+                    return tooltipItem.xLabel + "%";
+                }
+            }
+        },
+        "legend": {
+            "display": true,
+            "position": 'left'
+        }
+    };
+    $scope.sensors_datachart_barchart_options = {
+        "animation": false, 
+        "scales": {
+            //"xAxes": [{
+            //    "ticks": {
+            //        //"autoSkip": false,
+            //        "maxRotation": 90,
+            //        "minRotation": 90
+            //    }
+            //}],
+            "yAxes": [{
+                "ticks": {
+                    "beginAtZero": true,
+                }
+            }],
+        }
+    };
+
+    
+    $scope.changeTimeRangeIndexBackward = function() {
+        $scope.timerangeindex += 1;
+        //console.log($scope.timerangeindex);
+        if ($scope.refresh_automatically === false) {
+            $scope.submitQuery();            
+        }
+    };
+
+    $scope.changeTimeRangeIndexForward = function() {
+        if ($scope.timerangeindex > 0) {
+            $scope.timerangeindex -= 1;
+            //console.log($scope.timerangeindex);
+            if ($scope.refresh_automatically === false) {
+                $scope.submitQuery();            
+            }
+        }    
+    };
+
+    $scope.changeBigChart = function(s) {
+        $scope.big_charts = s;
+        //console.log($scope.big_charts);
+    };
+
+    $scope.changeOnlineChart = function(s) {
+        $scope.online_charts = s;
+        //console.log($scope.online_charts);
     };
 
     $scope.changeHideSettings = function(s) {
         $scope.hide_settings = s;
     };
     
-    handle_error = function(error, showerror) {
+    $scope.handle_error = function(error, showerror) {
         if (error.data !== null) {
             console.log("ERROR: Sensor Dashboard failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
 
@@ -3245,10 +8335,14 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                 Token.refresh({'username': $scope.data.username, 'token': $scope.data.token});
                 $scope.data.token = User.get_token();
             }
+            
+            else if (error.status == 401 && error.data.message.includes('Please check with the organization owner') === true ) {
+                $ionicPopup.alert({ title: 'Error', template: error.data.message, buttons: [{text: 'OK', type: 'button-assertive'}] });
+            }                
         }
     };
     
-    get_all_device_sensors_enabled_input = function() {
+    $scope.get_all_device_sensors_enabled_input = function() {
         //
         // GET ALL ENABLED DEVICE SENSORS (enabled input)
         //
@@ -3271,21 +8365,49 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             $scope.sensors = result.data.sensors;
             
             if ($scope.sensors.length === 0) {
-                $scope.sensors_counthdr = "No sensor enabled";
+                $scope.sensors_counthdr = "No sensor returned";
             }
             else if ($scope.sensors.length === 1) {
-                $scope.sensors_counthdr = "1 sensor enabled";
+                $scope.sensors_counthdr = "1 sensor returned";
             }
             else {
-                $scope.sensors_counthdr = $scope.sensors.length.toString() + " sensors enabled";
+                $scope.sensors_counthdr = $scope.sensors.length.toString() + " sensors returned";
             }
         })
         .catch(function (error) {
-            handle_error(error);
+            $scope.handle_error(error);
         }); 
     };
 
-    get_all_device_sensors_enabled_input_dataset = function() {
+
+    $scope.changeSensorHide = function(sensor) {
+        sensor.show = !sensor.show;
+    };
+
+    $scope.changeSensorTableHide = function() {
+        $scope.sensorsummaryshow = !$scope.sensorsummaryshow;
+    };
+    
+    $scope.changeDeviceTableHide = function() {
+        $scope.devicesummaryshow = !$scope.devicesummaryshow;
+    };
+
+    $scope.changeUsageTableHide = function() {
+        $scope.usagesshow = !$scope.usagesshow;
+    };
+
+    $scope.changeSensorComparisonsHide = function(comparison) {
+        comparison.show = !comparison.show;
+    };
+
+    $scope.get_all_device_sensors_enabled_input_dataset = function() {
+        //console.log($scope.peripheral);
+        //console.log($scope.sensorclass);
+        var points = 60;
+        if ($scope.big_charts === false) {
+            points = 30;   
+        }
+        
         //
         // GET ALL ENABLED DEVICE SENSORS (enabled input) DATASETS
         //
@@ -3293,85 +8415,238 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         //   GET /devices/device/DEVICENAME/sensors/readings/dataset
         //   headers: { 'Authorization': 'Bearer ' + token.access }
         //
+        // - Request:
+        //   POST /devices/sensors/readings/dataset
+        //   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
+        //   data: {'devicename': string, 'peripheral': string, 'class': string, 'status': string, 'timerange': string, 'points': int, 'index': int}
+        //
         // - Response:
         //   { 'status': 'OK', 'message': string }
         //   { 'status': 'NG', 'message': string }        
         //
+        //$http({
+        //    method: 'GET',
+        //    url: server + '/devices/device/' + $scope.data.devicename + '/sensors/readings/dataset',
+        //    headers: { 'Authorization': 'Bearer ' + $scope.data.token.access },
+        //})
         $http({
-            method: 'GET',
-            url: server + '/devices/device/' + $scope.data.devicename + '/sensors/readings/dataset',
-            headers: { 'Authorization': 'Bearer ' + $scope.data.token.access },
+            method: 'POST',
+            url: server + '/devices/sensors/readings/dataset',
+            headers: { 'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json' },
+            data: {
+                'devicename': $scope.data.devicename, 
+                //'peripheral': $scope.peripheral, 
+                'class': $scope.sensorclass, 
+                'status': $scope.sensorstatus, 
+                'timerange': $scope.timerange, 
+                'points': points,
+                'index': $scope.timerangeindex,
+                'checkdevice': $scope.checkdevice,
+            }
         })
         .then(function (result) {
-            //console.log(result.data);
-            
+            console.log(result.data);
             
             if (result.data.sensors.length === 0) {
-                $scope.sensors_counthdr = "No sensor enabled";
+                $scope.sensors_counthdr = "No sensor returned";
+                $scope.sensors = [];
                 return;
             }
-            else if ($scope.sensors.length === 1) {
-                $scope.sensors_counthdr = "1 sensor enabled";
-            }
             else {
-                $scope.sensors_counthdr = result.data.sensors.length.toString() + " sensors enabled";
+                // delete 
+                if ($scope.online_charts === true) {
+                    let count = result.data.sensors.length;
+                    
+                    for (let indexy=count-1; indexy>=0; indexy--) {
+                        if (result.data.sensors[indexy].enabled === 0) {
+                            //delete result.data.sensors[indexy];
+                            result.data.sensors.splice(indexy, 1);
+                        }
+                    }
+                    /*
+                    for (let indexy=0; indexy<count; indexy++) {
+                        if (result.data.sensors[indexy].enabled === 0) {
+                            result.data.sensors.splice(indexy, 1);
+                        }
+                    }
+                    */
+                    //console.log(result.data.sensors.length);
+                }
+                if (result.data.sensors.length === 0) {
+                    $scope.sensors_counthdr = "No sensor returned";
+                    $scope.sensors = [];
+                    return;
+                }
+                else if (result.data.sensors.length === 1) {
+                    $scope.sensors_counthdr = "1 sensor returned";
+                }
+                else {
+                    $scope.sensors_counthdr = result.data.sensors.length.toString() + " sensors returned";
+                }
+            }
+            
+            // handle show parameter for sensor
+            for (let indexy=0; indexy<result.data.sensors.length; indexy++) {
+                let found = false;
+                for (let indexz=0; indexz<$scope.sensors.length; indexz++) {
+                    if ($scope.sensors[indexz].devicename === result.data.sensors[indexy].devicename &&
+                        $scope.sensors[indexz].sensorname === result.data.sensors[indexy].sensorname) {
+                            if ($scope.sensors[indexz].show === undefined) {
+                                result.data.sensors[indexy].show = true;
+                            }
+                            else {
+                                result.data.sensors[indexy].show = $scope.sensors[indexz].show;
+                            }
+                            found = true;
+                            break;
+                        }
+                }
+                if (found === false) {
+                    result.data.sensors[indexy].show = true;
+                }
+            }
+            $scope.sensors = result.data.sensors;
+            // handle show parameter for comparison
+            if (result.data.comparisons !== undefined) {
+                for (let indexy=0; indexy<result.data.comparisons.length; indexy++) {
+                    result.data.comparisons[indexy].show = true;
+                    /*
+                    let found = false;
+                    if ($scope.comparisons !== undefined) {
+                        for (let indexz=0; indexz<$scope.comparisons.length; indexz++) {
+                            if ($scope.comparisons[indexz].class === result.data.comparisons[indexy].class) {
+                                if ($scope.comparisons[indexz].show === undefined) {
+                                    result.data.comparisons[indexy].show = true;
+                                }
+                                else {
+                                    result.data.comparisons[indexy].show = $scope.comparisons[indexz].show;
+                                }
+                                found = true;
+                                break;
+                            }
+                        }
+                    }
+                    if (found === false) {
+                        result.data.comparisons[indexy].show = true;
+                    }
+                    */
+                }
+                $scope.comparisons = result.data.comparisons;
+            }
+            
+            if (result.data.stats !== undefined) {
+                $scope.stats = result.data.stats;
+            }
+            if (result.data.summary !== undefined) {
+                $scope.sensorsummary = result.data.summary.sensors;
+                $scope.devicesummary = result.data.summary.devices;
+            }
+            if (result.data.usages !== undefined) {
+                $scope.usages = result.data.usages;
             }
 
-            $scope.sensors = result.data.sensors;
-            
             if ($scope.sensors.length > 0) {
                 
                 // set default labels and data
                 $scope.sensors_datachart = [];
-                for (var indexy=0; indexy<$scope.sensors.length; indexy++) {
+                let color_index = 0;
                 
-                    $scope.sensors_datachart.push( $scope.sensors[indexy].dataset );
+                let show_seconds = false;
+                if ($scope.timerange.includes("minutes") && $scope.timerange !== "Last 60 minutes") {
+                    show_seconds = true;
+                }
+                
+                for (let indexy=0; indexy<$scope.sensors.length; indexy++) {
+                    // colors, series
+                    $scope.sensors[indexy].dataset.colors = [];
+                    if (color_index >= $scope.sensors_datachart_colors_options.length) {
+                        color_index = 0;
+                    }
+                    $scope.sensors[indexy].dataset.colors.push($scope.sensors_datachart_colors_options[color_index++]);
+                    $scope.sensors[indexy].dataset.series = [];
+                    $scope.sensors[indexy].dataset.series.push($scope.sensors[indexy].class);
+                    if ($scope.sensors[indexy].subclass) {
+                        $scope.sensors[indexy].dataset.series.push($scope.sensors[indexy].subclass);
+                        $scope.sensors[indexy].dataset.colors.push($scope.sensors_datachart_colors_options[color_index++]);
+                    }
+                    //console.log("xxxxxxx" + indexy + " " + color_index + " " + $scope.sensors[indexy].dataset.colors);
 
-                    for (var indexz=0; indexz<$scope.sensors[indexy].dataset.labels.length; indexz++) {
-                        var timestamp = new Date($scope.sensors[indexy].dataset.labels[indexz] * 1000);
-                        var timestamp_str = timestamp.getHours() + ":" + timestamp.getMinutes() + ":" + timestamp.getSeconds();
-                        $scope.sensors[indexy].dataset.labels[indexz] = timestamp_str;
-                    }    
-/*                
-                    if ($scope.sensors[indexy].subclass === undefined) {
-                        $scope.sensors_datachart.push( { "labels": [], "data": []});
-                    }
-                    else {
-                        $scope.sensors_datachart.push({ "labels": [], "data": [[],[]]});
-                    }
+                    // devicename, sensorname, units, formats    
+                    $scope.sensors[indexy].dataset.devicename = $scope.sensors[indexy].devicename;
+                    $scope.sensors[indexy].dataset.sensorname = $scope.sensors[indexy].sensorname;
+                    $scope.sensors[indexy].dataset.unit       = $scope.sensors[indexy].unit;
+                    $scope.sensors[indexy].dataset.format     = $scope.sensors[indexy].format;
+                    //$scope.sensors[indexy].dataset.units      = $scope.sensors[indexy].unit;
+                    //$scope.sensors[indexy].dataset.formats    = $scope.sensors[indexy].format;
                     
-                    var readings = $scope.sensors[indexy].readings;
-                    for (var reading in readings) {
-                        var timestamp = new Date(readings[reading].timestamp * 1000);
-                        var timestamp_str = timestamp.getHours() + ":" + timestamp.getMinutes() + ":" + timestamp.getSeconds();
-                        
-                        if ($scope.sensors[indexy].subclass === undefined) {
-                            $scope.sensors_datachart[indexy].data.push(readings[reading].sensor_readings.value);
+                    // labels
+                    $scope.sensors[indexy].dataset.labels_time = [];
+                    $scope.sensors[indexy].dataset.labels_date = [];
+                
+                    
+                    for (let indexz=0; indexz<$scope.sensors[indexy].dataset.labels.length; indexz++) {
+                        var timestamp = new Date($scope.sensors[indexy].dataset.labels[indexz] * 1000);
+                        //console.log(timestamp);
+                        var timestamp_time = 
+                            ('0'+timestamp.getHours()).slice(-2) + ":" + 
+                            ('0'+timestamp.getMinutes()).slice(-2);
+                        if (show_seconds) {    
+                            timestamp_time += ":" + ('0'+timestamp.getSeconds()).slice(-2);
                         }
-                        else {
-                            $scope.sensors_datachart[indexy].data[0].push(readings[reading].sensor_readings.value);
-                            $scope.sensors_datachart[indexy].data[1].push(readings[reading].sensor_readings.subclass.value);
-                        }
-                        
-                        $scope.sensors_datachart[indexy].labels.push(timestamp_str);
+                        //console.log(timestamp_time);
+                        var timestamp_date = 
+                            timestamp.getFullYear() + "/" + 
+                            ('0'+(timestamp.getMonth()+1)).slice(-2) + "/" + 
+                            ('0'+timestamp.getDate()).slice(-2);
+                        //console.log(timestamp_date);
+                        $scope.sensors[indexy].dataset.labels_time.push(timestamp_time);
+                        $scope.sensors[indexy].dataset.labels_date.push(timestamp_date);
                     }
-*/                    
+
+                    $scope.sensors_datachart.push( $scope.sensors[indexy].dataset );
                 }
                 //console.log($scope.sensors_datachart);
             }
+            
+
+            if ($scope.timer !== null /* && $scope.data.devicename === "All devices" */) {
+                if ($scope.checkdevice === 1) {
+                    $scope.checkdevice = 0;
+                    //get_all_sensor_thresholdsforwards();
+                }
+            }
+            else {
+                if ($scope.checkdevice === 1) {
+                    //get_all_sensor_thresholdsforwards();
+                }
+            }
         })
         .catch(function (error) {
-            handle_error(error);
+            $scope.sensors_counthdr = "No sensor returned";
+            $scope.sensors = [];
+            $scope.handle_error(error);
         }); 
     };
 
-    delete_all_device_sensors_enabled_input = function(flag=false) {
+/*
+    $scope.chartOnClick = function(evt, sensor) {
+        console.log("chartOnClick");
+        console.log(evt);
+        console.log(sensor);
+        
+        var element = evt.getPointsAtEvent();
+        if (element.length) {
+            console.log(element[0]);
+        }        
+    };
+*/
+    $scope.delete_all_device_sensors_enabled_input = function(flag=false) {
         //
         // DELETE ALL ENABLED DEVICE SENSORS (enabled input)
         //
         // - Request:
         //   DELETE /devices/device/DEVICENAME/sensors/readings
-        //   headers: { 'Authorization': 'Bearer ' + token.access }
+        //   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
         //
         // - Response:
         //   { 'status': 'OK', 'message': string }
@@ -3380,7 +8655,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         $http({
             method: 'DELETE',
             url: server + '/devices/device/' + $scope.data.devicename + '/sensors/readings',
-            headers: { 'Authorization': 'Bearer ' + $scope.data.token.access },
+            headers: { 'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json' },
         })
         .then(function (result) {
             console.log(result.data);
@@ -3390,59 +8665,123 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             }
         })
         .catch(function (error) {
-            handle_error(error);
+            $scope.handle_error(error);
+        }); 
+    };
+    
+    $scope.delete_all_device_sensors = function(flag=false) {
+        //
+        // DELETE ALL ENABLED DEVICE SENSORS (enabled input)
+        //
+        // - Request:
+        //   DELETE /devices/sensors/readings/dataset
+        //   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
+        //   data: {'devicename': string}
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string }
+        //   { 'status': 'NG', 'message': string }        
+        //
+        $http({
+            method: 'DELETE',
+            url: server + '/devices/sensors/readings/dataset',
+            headers: { 'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json' },
+            data: {'devicename': $scope.data.devicename}
+        })
+        .then(function (result) {
+            console.log(result.data);
+            
+            if (flag === true) {
+                $scope.submitQuery();
+            }
+        })
+        .catch(function (error) {
+            $scope.handle_error(error);
         }); 
     };
 
+    $scope.get_all_sensor_configurationsummary = function() {
+        //
+        // GET PERIPHERAL SENSOR CONFIGURATION SUMMARY
+        //
+        // - Request:
+        //   GET /devices/sensors/configurationsummary
+        //   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string, 'summary': {'sensorname': string, 'devicename': string, 'classes': string, 'configuration': string, 'enabled': int} }
+        //   { 'status': 'NG', 'message': string }        
+        //
+        $http({
+            method: 'GET',
+            url: server + '/devices/sensors/configurationsummary',
+            headers: { 'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json' },
+        })
+        .then(function (result) {
+            //console.log(result.data);
+            $scope.sensorsummary = result.data.summary.sensors;
+            $scope.devicesummary = result.data.summary.devices;
+        })
+        .catch(function (error) {
+            $scope.handle_error(error);
+        }); 
+    };
+    
+    //$scope.changePeripheral = function(peripheral) {
+    //    $scope.peripheral = peripheral;
+    //    $scope.submitQuery();
+    //};
 
-    $scope.changeDevice = function(devicename) {
+    $scope.changeSensorClass = function(sensorclass) {
+        $scope.sensorclass = sensorclass;
+        $scope.submitQuery();
+    };
+
+    $scope.changeSensorStatus = function(sensorstatus) {
+        $scope.sensorstatus = sensorstatus;
+        $scope.submitQuery();
+    };
+
+    $scope.changeTimeRange = function(timerange) {
+        $scope.timerange = timerange;
+        $scope.submitQuery();
+    };
+
+    $scope.changeDevice = function(devicename, refresh=false) {
+        var found = false;
         for (indexy=0; indexy<$scope.devices.length; indexy++) {
             if (devicename === $scope.devices[indexy].devicename) {
                 $scope.data.devicename = $scope.devices[indexy].devicename;
-                $scope.data.deviceid = $scope.devices[indexy].deviceid;
-                $scope.data.serialnumber = $scope.devices[indexy].serialnumber;
-                $scope.data.devicestatus = $scope.devices[indexy].devicestatus;
-                
-                if ($scope.timer !== null) {
-                    clearTimeout($scope.timer);
-                    console.log("clearTimeout");
-                    $scope.timer = null;
-                    $scope.run_time = 0;
-                    $scope.refresh_automatically = false;
+                if ($scope.data.devicename !== "All devices") {
+                    $scope.data.deviceid = $scope.devices[indexy].deviceid;
+                    $scope.data.serialnumber = $scope.devices[indexy].serialnumber;
+                    $scope.data.devicestatus = $scope.devices[indexy].devicestatus;
                 }
                 
-                $scope.sensors = [];
-                $scope.submitQuery();
+                found = true;
+                $scope.submitQuery(refresh=refresh);
                 break;
             }
         }
+        if (found === false) {
+            $scope.submitQuery(refresh=refresh);
+        }
     };
 
-    get_devices = function(flag) {
+    $scope.get_devices = function(flag) {
         
         param = {
-            'username': $scope.data.username,
-            'token': $scope.data.token     
+            'username': User.get_username(),
+            'token': User.get_token()     
         };
         
         // Fetch devices
         Devices.fetch(param, "").then(function(res) {
-            $scope.devices = res;
-            
-            let indexy = 0;
-            for (indexy=0; indexy<$scope.devices.length; indexy++) {
-                $scope.devices[indexy].id = indexy;
-            }
-            
-            console.log($scope.devices);
+            $scope.devices = $scope.devices.concat(res);
             $scope.data.token = User.get_token();
-            
-            
-            //delete_all_device_sensors_enabled_input(true);            
-            $scope.submitQuery();
+            $scope.changeDevice($scope.data.devicename, refresh=true);
         });
     };
-
 
     $scope.chartLabels = function(sensor) {
         //console.log("chartLabels " + sensor.sensorname);  
@@ -3453,7 +8792,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         
         let indexy = 0;
         for (indexy=0; indexy<$scope.sensors.length; indexy++) {
-            if ($scope.sensors[indexy].sensorname === sensor.sensorname) {
+            if ($scope.sensors[indexy].sensorname === sensor.sensorname &&
+                $scope.sensors[indexy].devicename === sensor.devicename) {
                 break;
             }
         }
@@ -3462,7 +8802,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             return $scope.sensors_datachart_empty.labels;
         }
         
-        return $scope.sensors_datachart[indexy].labels;
+        return $scope.sensors_datachart[indexy].labels_time;
     };
 
     $scope.chartData = function(sensor) {
@@ -3474,7 +8814,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         
         let indexy = 0;
         for (indexy=0; indexy<$scope.sensors.length; indexy++) {
-            if ($scope.sensors[indexy].sensorname === sensor.sensorname) {
+            if ($scope.sensors[indexy].sensorname === sensor.sensorname &&
+                $scope.sensors[indexy].devicename === sensor.devicename) {
                 break;
             }
         }
@@ -3491,18 +8832,98 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         //console.log("chartData " + sensor.sensorname);
 
         if ($scope.sensors.length === 0) {
-            return $scope.sensors_datachart_empty.data;
+            return $scope.sensors_datachart_empty.series;
         }
         
         let indexy = 0;
         for (indexy=0; indexy<$scope.sensors.length; indexy++) {
-            if ($scope.sensors[indexy].sensorname === sensor.sensorname) {
+            if ($scope.sensors[indexy].sensorname === sensor.sensorname &&
+                $scope.sensors[indexy].devicename === sensor.devicename) {
                 break;
             }
+        }
+
+        if (indexy >= $scope.sensors_datachart.length) {
+            return $scope.sensors_datachart_empty.series;
         }
         
         return $scope.sensors_datachart[indexy].series;
     };
+    
+    $scope.chartColors = function(sensor) {
+        //console.log("chartData " + sensor.sensorname);
+
+        if ($scope.sensors.length === 0) {
+            return $scope.sensors_datachart_empty.colors;
+        }
+        
+        let indexy = 0;
+        for (indexy=0; indexy<$scope.sensors.length; indexy++) {
+            if ($scope.sensors[indexy].sensorname === sensor.sensorname &&
+                $scope.sensors[indexy].devicename === sensor.devicename) {
+                break;
+            }
+        }
+
+        if (indexy >= $scope.sensors_datachart.length) {
+            return $scope.sensors_datachart_empty.colors;
+        }
+        
+        return $scope.sensors_datachart[indexy].colors;
+    };    
+
+
+    $scope.getMax = function(sensorclass) {
+        let max = 0;
+        if (sensorclass !== undefined) {
+            if (sensorclass === "potentiometer") {
+                max = 255;
+            }
+            else if (sensorclass === "temperature") {
+                max = 40;
+            }
+            else {
+                max = 100;
+            }
+        }
+        return max;
+    };
+
+    $scope.chartOptions = function(sensor) {
+        //console.log("chartOptions " + sensor.sensorname);
+        //console.log(sensor);
+
+        if ($scope.sensors.length === 0) {
+            return $scope.sensors_datachart_options;
+        }
+        
+        let found = false;
+        for (indexy=0; indexy<$scope.sensors.length; indexy++) {
+            if ($scope.sensors[indexy].sensorname === sensor.sensorname &&
+                $scope.sensors[indexy].devicename === sensor.devicename) {
+                
+                if ($scope.sensors[indexy].minmax !== undefined) {
+                    $scope.sensors_datachart_options.scales.yAxes[0].ticks.min = parseFloat($scope.sensors[indexy].minmax[0]);
+                    $scope.sensors_datachart_options.scales.yAxes[0].ticks.max = parseFloat($scope.sensors[indexy].minmax[1]);
+                }
+                else {
+                    let class_max = $scope.getMax(sensor.class);
+                    let subclass_max = $scope.getMax(sensor.subclass);
+                    $scope.sensors_datachart_options.scales.yAxes[0].ticks.max = Math.max(class_max, subclass_max);
+                }
+                found = true;
+                break;
+            }
+        }
+
+        if (found === false) {
+            $scope.sensors_datachart_options.scales.yAxes[0].ticks.max = 100;
+        }
+        
+        return $scope.sensors_datachart_options;
+    };    
+
+
 
     $scope.changeRefresh = function(refresh, timeout) {
         $scope.refresh_automatically = refresh;
@@ -3522,7 +8943,10 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                         text: 'OK',
                         type: 'button-positive',
                         onTap: function(e) {
+                            $scope.timerangeindex = 0;
+                            $scope.checkdevice = 1;
                             $scope.timer = setInterval($scope.pollSensorData, $scope.refresh_time * 1000);
+                            $scope.submitQuery(clear=false);
                         }
                     }
                 ]            
@@ -3544,9 +8968,10 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         if ($scope.run_time > run_time_max) {
             
             clearTimeout($scope.timer);
-            console.log("clearTimeout");
+            //console.log("clearTimeout");
             $scope.timer = null;
             $scope.run_time = 0;
+            $scope.checkdevice = 1;
             $scope.refresh_automatically = !$scope.refresh_automatically;
             
             $ionicPopup.alert({
@@ -3564,13 +8989,23 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             });            
             return;
         }
-        $scope.submitQuery();
+        $scope.submitQuery(clear=false);
     };
 
     $scope.submitDelete = function() {
+
+        var template;
+                
+        if ($scope.data.devicename === "All devices") {
+            template = 'Are you sure you want to clear database values for sensor readings of all sensors for all devices?';
+        }
+        else {
+            template = 'Are you sure you want to clear database values for sensor readings of all sensors for ' + $scope.data.devicename + ' ?';
+        }
+        
         $ionicPopup.alert({
             title: 'Reset Sensor Readings',
-            template: 'Are you sure you want to clear database values for sensor readings of all sensors?',
+            template: template,
             buttons: [
                 { 
                     text: 'No',
@@ -3588,22 +9023,49 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
     };
 
     $scope.submitDeleteAction = function() {
-        delete_all_device_sensors_enabled_input();
+        //$scope.delete_all_device_sensors_enabled_input();
+        $scope.delete_all_device_sensors(flag=true);
     };
 
-    $scope.submitQuery = function() {
-        if ($scope.data.activeSection === 1) {
-            get_all_device_sensors_enabled_input();
+    $scope.submitRefresh = function() {
+        if ($scope.refresh_automatically) {
+            console.log("Its already running!");
+            return;
         }
-        else {
-            get_all_device_sensors_enabled_input_dataset();
+        $scope.submitQuery();
+    };
+
+    $scope.submitQuery = function(clear=true, refresh=false) {
+        
+        if (clear) {
+            if ($scope.timer !== null) {
+                clearTimeout($scope.timer);
+                //console.log("clearTimeout");
+                $scope.timer = null;
+            }
+            $scope.run_time = 0;
+            $scope.refresh_automatically = false;
+            
+            if (refresh) {
+                $scope.sensors = [];
+                $scope.sensors_counthdr = "No sensor returned";
+            }
         }
+        
+        $scope.get_all_device_sensors_enabled_input_dataset();
     };
 
     $scope.submitViewSensorChart = function(sensor) {
         
         // TODO: temporariy disable
         return;
+
+        if ($scope.timer !== null) {
+            clearTimeout($scope.timer);
+            //console.log("clearTimeout");
+            $scope.timer = null;
+        }
+        $scope.run_time = 0;
         
         var device_param = {
             'username': $scope.data.username,
@@ -3612,6 +9074,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             'devicestatus': $scope.data.devicestatus,
             'deviceid': $scope.data.deviceid,
             'serialnumber': $scope.data.serialnumber,
+            'location': $scope.data.location,
             'sensor': sensor,
         };
         $state.go('sensorChart', device_param);
@@ -3619,327 +9082,79 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
 
     $scope.submitExit = function() {
         console.log("hello");
-        var device_param = {
-            'username': $scope.data.username,
-            'token': $scope.data.token,
-            'devicename': $scope.data.devicename,
-            'devicestatus': $scope.data.devicestatus,
-            'deviceid': $scope.data.deviceid,
-            'serialnumber': $scope.data.serialnumber,
-        };
-        $state.go('device', device_param);
+        
+        if ($scope.data.devicename !== "All devices") {
+            let device_param = {
+                'username': $scope.data.username,
+                'token': $scope.data.token,
+                'devicename': $scope.data.devicename,
+                'devicestatus': $scope.data.devicestatus,
+                'deviceid': $scope.data.deviceid,
+                'serialnumber': $scope.data.serialnumber,
+                'location': $scope.data.location,
+            };
+            $state.go('gateway', device_param);
+        }
+        else {
+            let device_param = {
+                'username': $scope.data.username,
+                'token': $scope.data.token,
+            };
+            $state.go('menu.gateways', device_param);
+        }
     };
     
     $scope.$on('$ionicView.enter', function(e) {
-        get_devices();
-        //$scope.submitQuery();
+        console.log("enter sensor dashboard");
+        $scope.devices = [{"devicename": "All devices"}];
+        $scope.sensors = [];
+        $scope.sensorsummary = [];
+        $scope.sensorsummaryshow = false;
+        $scope.devicesummary = [];
+        $scope.devicesummaryshow = false;
+        $scope.usages = [];
+        $scope.usagesshow = false;
+    
+        $scope.comparisons = [];
+        $scope.sensors_counthdr = "No sensor returned";
+        
+        $scope.timer = null;
+        $scope.run_time = 0;
+        
+        //$scope.peripheral = $scope.peripherals[0];
+        //$scope.sensorclass = $scope.sensorclasses[0];
+        //$scope.sensorstatus = $scope.sensorstatuses[0];
+        //$scope.timerange = $scope.timeranges[0];
+        //$scope.timerangeindex = 0;
+        $scope.checkdevice = 1;
+        
+        
+        $scope.hide_settings = false;
+        $scope.refresh_automatically = false;
+        $scope.refresh_time = 5;
+        $scope.run_time = 0;
+        $scope.big_charts = false;
+        $scope.online_charts = false;
+    
+        $scope.stats = {};        
+        
+        $scope.sensors_datachart = [{"labels": [], "data": [], "series": [], "colors": []}];
+        //console.log($scope.data);
+        //console.log($state.params);
+        //console.log($stateParams);
+        $scope.get_devices();
     });
     
     $scope.$on('$ionicView.beforeLeave', function(e) {
-        console.log("beforeLeave");
+        //console.log("beforeLeave");
         if ($scope.timer !== null) {
             clearTimeout($scope.timer);
-            console.log("clearTimeout");
-            $scope.timer = null;
-            $scope.run_time = 0;
-        }
-    });
-}])
-   
-.controller('sensorChartCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', 'Devices', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
-// You can include any angular dependencies as parameters for this function
-// TIP: Access Route Parameters for your page via $stateParams.parameterName
-function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token, Devices) {
-
-    var server = Server.rest_api;
-
-    //$scope.sensors = [];
-    //$scope.sensors_counthdr = "No sensor enabled" ;
-    //$scope.refresh_automatically = false;
-    //$scope.refresh_time = 3;
-    //$scope.run_time = 0;
-    
-    $scope.data = {
-        'username': User.get_username(),
-        'token': User.get_token(),
-        'devicename': $stateParams.devicename,
-        'devicestatus': $stateParams.devicestatus,
-        'deviceid': $stateParams.deviceid,
-        'serialnumber': $stateParams.serialnumber,
-        'sensor': $stateParams.sensor,
-    };
-
-
-    $scope.datachart = {
-        'labels' : [],
-        'data': [], 
-        'colors' : ['#387EF5'],
-    };
-   // $scope.timer = null;
-    
-    handle_error = function(error, showerror) {
-        if (error.data !== null) {
-            console.log("ERROR: Sensor Dashboard failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
-
-            if (error.data.message === "Token expired") {
-                Token.refresh({'username': $scope.data.username, 'token': $scope.data.token});
-                $scope.data.token = User.get_token();
-            }
-            
-            if (error.status == 503 && showerror === true ) {
-                $ionicPopup.alert({ title: 'Error', template: 'Device is unreachable!', buttons: [{text: 'OK', type: 'button-assertive'}] });
-            }            
-        }
-        else {
-            console.log("ERROR: Server is down!"); 
-            $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
-        }
-    };
-
-    get_xxx_device_readings_dataset = function() {
-        //
-        // GET XXX DEVICE READINGS DATASET
-        //
-        // - Request:
-        //   GET /devices/device/DEVICENAME/xxx/NUMBER/sensors/sensor/SENSORNAME/readings/dataset
-        //   headers: { 'Authorization': 'Bearer ' + token.access }
-        //
-        // - Response:
-        //   { 'status': 'OK', 'message': string }
-        //   { 'status': 'NG', 'message': string }        
-        //
-        $http({
-            method: 'GET',
-            url: server + '/devices/device/' + $scope.data.devicename + '/' + $scope.data.sensor.source + '/' + $scope.data.sensor.number + '/sensors/sensor/' + $scope.data.sensor.sensorname + '/readings/dataset',
-            headers: { 'Authorization': 'Bearer ' + $scope.data.token.access },
-        })
-        .then(function (result) {
-            console.log(result.data);
-            
-            var readings = result.data.sensor_readings.readings;
-            //console.log(readings);
-            $scope.datachart.data = [];
-            $scope.datachart.labels = [];
-            for (var reading in readings) {
-                //console.log(readings[reading]);
-                var timestamp = new Date(readings[reading].timestamp * 1000);
-                var timestamp_str = timestamp.getHours() + ":" + timestamp.getMinutes() + ":" + timestamp.getSeconds();
-                $scope.datachart.data.push(readings[reading].sensor_readings.value);
-                $scope.datachart.labels.push(timestamp_str);
-            }
-        })
-        .catch(function (error) {
-            handle_error(error);
-        }); 
-    };
-
-    delete_xxx_device_readings = function() {
-        //
-        // DELETE XXX DEVICE READINGS
-        //
-        // - Request:
-        //   DELETE /devices/device/DEVICENAME/xxx/NUMBER/sensors/sensor/SENSORNAME/readings
-        //   headers: { 'Authorization': 'Bearer ' + token.access }
-        //
-        // - Response:
-        //   { 'status': 'OK', 'message': string }
-        //   { 'status': 'NG', 'message': string }        
-        //
-        $http({
-            method: 'DELETE',
-            url: server + '/devices/device/' + $scope.data.devicename + '/' + $scope.data.sensor.source + '/' + $scope.data.sensor.number + '/sensors/sensor/' + $scope.data.sensor.sensorname + '/readings',
-            headers: { 'Authorization': 'Bearer ' + $scope.data.token.access },
-        })
-        .then(function (result) {
-            console.log(result.data);
-        })
-        .catch(function (error) {
-            handle_error(error);
-        }); 
-    };
-    
-/*    
-    get_all_device_sensors_enabled_input = function() {
-        //
-        // GET ALL ENABLED DEVICE SENSORS (enabled input)
-        //
-        // - Request:
-        //   GET /devices/device/DEVICENAME/sensors/readings
-        //   headers: { 'Authorization': 'Bearer ' + token.access }
-        //
-        // - Response:
-        //   { 'status': 'OK', 'message': string }
-        //   { 'status': 'NG', 'message': string }        
-        //
-        $http({
-            method: 'GET',
-            url: server + '/devices/device/' + $scope.data.devicename + '/sensors/readings',
-            headers: { 'Authorization': 'Bearer ' + $scope.data.token.access },
-        })
-        .then(function (result) {
-            console.log(result.data);
-            
-            $scope.sensors = result.data.sensors;
-            
-            if ($scope.sensors.length === 0) {
-                $scope.sensors_counthdr = "No sensor enabled";
-            }
-            else if ($scope.sensors.length === 1) {
-                $scope.sensors_counthdr = "1 sensor enabled";
-            }
-            else {
-                $scope.sensors_counthdr = $scope.sensors.length.toString() + " sensors enabled";
-            }            
-        })
-        .catch(function (error) {
-            handle_error(error);
-        }); 
-    };
-
-    delete_all_device_sensors_enabled_input = function() {
-        //
-        // DELETE ALL ENABLED DEVICE SENSORS (enabled input)
-        //
-        // - Request:
-        //   DELETE /devices/device/DEVICENAME/sensors/readings
-        //   headers: { 'Authorization': 'Bearer ' + token.access }
-        //
-        // - Response:
-        //   { 'status': 'OK', 'message': string }
-        //   { 'status': 'NG', 'message': string }        
-        //
-        $http({
-            method: 'DELETE',
-            url: server + '/devices/device/' + $scope.data.devicename + '/sensors/readings',
-            headers: { 'Authorization': 'Bearer ' + $scope.data.token.access },
-        })
-        .then(function (result) {
-            console.log(result.data);
-        })
-        .catch(function (error) {
-            handle_error(error);
-        }); 
-    };
-*/
-
-/*
-    $scope.changeRefresh = function(refresh, timeout) {
-        $scope.refresh_automatically = refresh;
-        $scope.refresh_time = timeout;
-        console.log(refresh);
-        console.log(timeout);
-        
-        if (refresh === true) {
-            if ($scope.refresh_time < 1) {
-                $scope.refresh_time = 1;
-            }
-            $ionicPopup.alert({
-                title: 'Refresh values automatically',
-                template: 'The values will be refreshed automatically every ' + $scope.refresh_time + ' seconds.',
-                buttons: [
-                    {
-                        text: 'OK',
-                        type: 'button-positive',
-                        onTap: function(e) {
-                            $scope.timer = setInterval($scope.pollSensorData, $scope.refresh_time * 1000);
-                        }
-                    }
-                ]            
-            });            
-        }
-        else {
-            clearTimeout($scope.timer);
-            $scope.timer = null;
-            $scope.run_time = 0;
-        }
-    };
-
-    $scope.pollSensorData = function() {
-        $scope.run_time += 1;
-        
-        // auto-stop in 1hour 3600/$scope.refresh_time
-        let run_time_max = Math.round(3600/$scope.refresh_time);
-        if ($scope.run_time > run_time_max) {
-            
-            $scope.run_time = 0;
-            clearTimeout($scope.timer);
-            console.log("clearTimeout");
-            $scope.timer = null;
-            $scope.refresh_automatically = !$scope.refresh_automatically;
-            
-            $ionicPopup.alert({
-                title: 'Refresh values automatically',
-                template: 'The polling has been stopped after 1 hour!',
-                buttons: [
-                    {
-                        text: 'OK',
-                        type: 'button-positive',
-                        onTap: function(e) {
-                            $scope.refresh_automatically = false;
-                        }
-                    }
-                ]            
-            });            
-            return;
-        }
-        $scope.submitQuery();
-    };
-*/
-
-    $scope.submitDelete = function() {
-        $ionicPopup.alert({
-            title: 'Reset Sensor Readings',
-            template: 'Are you sure you want to clear database values for sensor readings of all sensors?',
-            buttons: [
-                { 
-                    text: 'No',
-                    type: 'button-assertive',
-                },
-                {
-                    text: 'Yes',
-                    type: 'button-positive',
-                    onTap: function(e) {
-                        $scope.submitDeleteAction();
-                    }
-                }
-            ]            
-        });              
-    };
-
-    $scope.submitDeleteAction = function() {
-        delete_xxx_device_readings();
-        //delete_all_device_sensors_enabled_input();
-    };
-
-    $scope.submitQuery = function() {
-        get_xxx_device_readings_dataset();
-        //get_all_device_sensors_enabled_input();
-    };
-
-    $scope.submitExit = function() {
-        console.log("hello");
-        var device_param = {
-            'username': $scope.data.username,
-            'token': $scope.data.token,
-            'devicename': $scope.data.devicename,
-            'devicestatus': $scope.data.devicestatus,
-            'deviceid': $scope.data.deviceid,
-            'serialnumber': $scope.data.serialnumber,
-        };
-        $state.go('sensorDashboard', device_param);
-    };
-    
-    $scope.$on('$ionicView.enter', function(e) {
-        $scope.submitQuery();
-    });
-    
-    $scope.$on('$ionicView.beforeLeave', function(e) {
-        console.log("beforeLeave");
-        if ($scope.timer !== null) {
-            clearTimeout($scope.timer);
-            console.log("clearTimeout");
+            //console.log("clearTimeout");
             $scope.timer = null;
         }
+        $scope.run_time = 0;
+        $scope.timerangeindex = 0;
+        $scope.checkdevice = 1;
     });
 }])
    
@@ -3995,6 +9210,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         'devicestatus': $stateParams.devicestatus,
         'deviceid': $stateParams.deviceid,
         'serialnumber': $stateParams.serialnumber,
+        'location': $stateParams.location,
 
         'activeSection': 1,
         'showNotification': 0,
@@ -4513,8 +9729,9 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             'devicestatus': $scope.data.devicestatus,
             'deviceid': $scope.data.deviceid,
             'serialnumber': $scope.data.serialnumber,
+            'location': $scope.data.location === "" ? "UNKNOWN" : $scope.data.location,
         };
-        $state.go('device', device_param);
+        $state.go('gateway', device_param);
     };
     
     
@@ -4586,6 +9803,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         'devicestatus': $stateParams.devicestatus,
         'deviceid': $stateParams.deviceid,
         'serialnumber': $stateParams.serialnumber,
+        'location': $stateParams.location,
         
         'activeSection': 1,
         'showNotification': 0,
@@ -4690,7 +9908,10 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             
             if (error.status == 503 && showerror === true ) {
                 $ionicPopup.alert({ title: 'Error', template: 'Device is unreachable!', buttons: [{text: 'OK', type: 'button-assertive'}] });
-            }            
+            }
+            else if (error.status === 401) {
+                $ionicPopup.alert({ title: 'Error', template: error.data.message, buttons: [{text: 'OK', type: 'button-assertive'}] });
+            }
         }
         else {
             console.log("ERROR: Server is down!"); 
@@ -4801,7 +10022,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                 $scope.data.uart.databits = result.data.value.databits;
             }
             
-            get_uarts();
+            //get_uarts();
         })
         .catch(function (error) {
             handle_error(error);
@@ -4984,8 +10205,9 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             'devicestatus': $scope.data.devicestatus,
             'deviceid': $scope.data.deviceid,
             'serialnumber': $scope.data.serialnumber,
+            'location': $scope.data.location === "" ? "UNKNOWN" : $scope.data.location,
         };
-        $state.go('device', device_param);
+        $state.go('gateway', device_param);
     };
 
     $scope.submitQuery();
@@ -5008,6 +10230,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         'devicestatus': $stateParams.devicestatus,
         'deviceid': $stateParams.deviceid,
         'serialnumber': $stateParams.serialnumber,
+        'location': $stateParams.location,
         
         'activeSection': 1,
         'enableI2C': true,
@@ -5414,15 +10637,22 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             
             'i2cnumber': $scope.data.activeSection,
         };
-        $state.go('addI2CDevice', device_param);        
+        $state.go('addI2CDevice', device_param);
     };
 
 
     $scope.$on('$ionicView.enter', function(e) {
+        $scope.sensors = [];
+        $scope.sensors_counthdr = "No I2C device registered for I2C " + $scope.data.activeSection.toString();        
         $scope.getI2CSensors();
     });
 
-
+    $scope.$on('$ionicView.beforeLeave', function(e) {
+        $scope.sensors = [];
+        $scope.sensors_counthdr = "No I2C device registered for I2C " + $scope.data.activeSection.toString();
+    });
+    
+    
     // EXIT PAGE
     $scope.submitDeviceList = function() {
         console.log("submitDeviceList");
@@ -5434,8 +10664,869 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             'devicestatus': $scope.data.devicestatus,
             'deviceid': $scope.data.deviceid,
             'serialnumber': $scope.data.serialnumber,
+            'location': $scope.data.location === "" ? "UNKNOWN" : $scope.data.location,
         };
-        $state.go('device', device_param);
+        $state.go('gateway', device_param);
+    };
+}])
+   
+.controller('deviceLDSBUSCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+// You can include any angular dependencies as parameters for this function
+// TIP: Access Route Parameters for your page via $stateParams.parameterName
+function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token) {
+
+    var server = Server.rest_api;
+
+    $scope.data = {
+        'username': User.get_username(),
+        'token': User.get_token(),
+        'devicename': $stateParams.devicename,
+        'devicestatus': $stateParams.devicestatus,
+        'deviceid': $stateParams.deviceid,
+        'serialnumber': $stateParams.serialnumber,
+        'location': $stateParams.location,
+        
+        'activeSection': $stateParams.activeSection,
+    };
+
+    $scope.ldsbus = [
+        {
+            'ldsus': [],
+            'sensors': [],
+            'actuators': [],
+        }
+    ];
+    $scope.warning = "No items scanned for LDS BUS " + $scope.data.activeSection.toString();
+
+
+
+    $scope.changeSection = function(s) {
+        $scope.data.activeSection = s;
+        $scope.submitRefresh();
+    };
+
+    $scope.handle_error = function(error, showerror=true) {
+        if (error.data !== null) {
+            console.log("ERROR: Device I2C failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
+
+            if (error.data.message === "Token expired") {
+                Token.refresh({'username': $scope.data.username, 'token': $scope.data.token});
+                $scope.data.token = User.get_token();
+            }
+            
+            if (error.status == 503 && showerror === true ) {
+                $ionicPopup.alert({ title: 'Error', template: 'Device is unreachable!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+            }            
+        }
+        else {
+            console.log("ERROR: Server is down!"); 
+            $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+        }
+    };
+
+
+
+    $scope.getLDSUs = function() {
+        var param = $scope.data;
+        param.ldsus = $scope.ldsbus[0].ldsus;  
+        console.log(param);
+        $state.go('lDSUs', param, {reload: true});          
+    };
+
+    $scope.getSensors = function() {
+        var param = $scope.data;
+        param.sensors = $scope.ldsbus[0].sensors;  
+        console.log(param);
+        $state.go('sensors', param, {reload: true});          
+    };
+
+    $scope.getActuators = function() {
+        var param = $scope.data;
+        param.actuators = $scope.ldsbus[0].actuators;  
+        console.log(param);
+        $state.go('actuators', param, {reload: true});          
+        
+    };
+
+
+    
+    // GET LDS BUS
+    $scope.getLDSBUS = function() {
+        console.log("getLDSBUS");
+        $scope.get_lds_bus();
+    };
+
+    $scope.get_lds_bus = function() {
+        //
+        // GET LDS BUS
+        //
+        // - Request:
+        //   GET /devices/device/DEVICENAME/ldsbus/PORTNUMBER
+        //   headers: { 'Authorization': 'Bearer ' + token.access }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string, }
+        //   { 'status': 'NG', 'message': string }
+        //
+        $http({
+            method: 'GET',
+            url: server + '/devices/device/' + $scope.data.devicename + '/ldsbus/' + $scope.data.activeSection.toString(),
+            headers: {'Authorization': 'Bearer ' + $scope.data.token.access}
+        })
+        .then(function (result) {
+            console.log(result.data);
+            $scope.ldsbus = result.data.ldsbus;
+            
+            if  ($scope.ldsbus[0].sensors !== undefined) {
+                for (let i in $scope.ldsbus[0].sensors) {
+                    if ($scope.ldsbus[0].sensors[i].enabled === 1) {
+                        $scope.ldsbus[0].sensors[i].enabled_bool = true;
+                    }
+                    else {
+                        $scope.ldsbus[0].sensors[i].enabled_bool = false;
+                    }                    
+                }
+            }
+            if  ($scope.ldsbus[0].actuators !== undefined) {
+                for (let i in $scope.ldsbus[0].actuators) {
+                    if ($scope.ldsbus[0].actuators[i].enabled === 1) {
+                        $scope.ldsbus[0].actuators[i].enabled_bool = true;
+                    }
+                    else {
+                        $scope.ldsbus[0].actuators[i].enabled_bool = false;
+                    }                    
+                }
+            }
+        })
+        .catch(function (error) {
+            $scope.handle_error(error);
+        }); 
+    };
+
+
+    // DELETE LDS BUS
+    $scope.deleteLDSBUS = function() {
+        console.log("deleteLDSBUS");
+
+        $ionicPopup.alert({
+            title: 'Delete LDSU',
+            template: 'Are you sure you want to delete all LDSUs in LDS BUS Port ' + $scope.data.activeSection.toString() + '?' + 'This will delete all associated sensors and actuators information.',
+            buttons: [
+                { 
+                    text: 'No',
+                    type: 'button-negative',
+                },
+                {
+                    text: 'Yes',
+                    type: 'button-positive',
+                    onTap: function(e) {
+                        $scope.delete_lds_bus();
+                    }
+                }
+            ]            
+        });
+    };
+
+    $scope.delete_lds_bus = function() {
+        //
+        // DELETE LDS BUS
+        //
+        // - Request:
+        //   DELETE /devices/device/DEVICENAME/ldsbus/PORTNUMBER
+        //   headers: { 'Authorization': 'Bearer ' + token.access }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string }
+        //   { 'status': 'NG', 'message': string }
+        //
+        $http({
+            method: 'DELETE',
+            url: server + '/devices/device/' + $scope.data.devicename + '/ldsbus/' + $scope.data.activeSection.toString(),
+            headers: {'Authorization': 'Bearer ' + $scope.data.token.access}
+        })
+        .then(function (result) {
+            console.log(result.data);
+            $scope.ldsbus = [
+                {
+                    'ldsus': [],
+                    'sensors': [],
+                    'actuators': [],
+                }
+            ];
+            $ionicPopup.alert({
+                title: 'Delete LDS BUS',
+                template: 'Delete LDS BUS was successful!',
+            });
+        })
+        .catch(function (error) {
+            $scope.handle_error(error);
+        }); 
+    };    
+
+
+    // SCAN LDS BUS
+    $scope.scanLDSBUS = function() {
+        console.log("scanLDSBUS");
+        $scope.scan_lds_bus();
+    };
+
+    $scope.scan_lds_bus = function() {
+        //
+        // SCAN LDS BUS
+        //
+        // - Request:
+        //   POST /devices/device/DEVICENAME/ldsbus/PORTNUMBER
+        //   headers: { 'Authorization': 'Bearer ' + token.access }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string, }
+        //   { 'status': 'NG', 'message': string }
+        //
+        $http({
+            method: 'POST',
+            url: server + '/devices/device/' + $scope.data.devicename + '/ldsbus/' + $scope.data.activeSection.toString(),
+            headers: {'Authorization': 'Bearer ' + $scope.data.token.access}
+        })
+        .then(function (result) {
+            console.log(result.data);
+            $scope.ldsbus = result.data.ldsbus;
+            
+            if  ($scope.ldsbus[0].sensors !== undefined) {
+                for (let i in $scope.ldsbus[0].sensors) {
+                    if ($scope.ldsbus[0].sensors[i].enabled === 1) {
+                        $scope.ldsbus[0].sensors[i].enabled_bool = true;
+                    }
+                    else {
+                        $scope.ldsbus[0].sensors[i].enabled_bool = false;
+                    }                    
+                }
+            }
+            if  ($scope.ldsbus[0].actuators !== undefined) {
+                for (let i in $scope.ldsbus[0].actuators) {
+                    if ($scope.ldsbus[0].actuators[i].enabled === 1) {
+                        $scope.ldsbus[0].actuators[i].enabled_bool = true;
+                    }
+                    else {
+                        $scope.ldsbus[0].actuators[i].enabled_bool = false;
+                    }                    
+                }
+            }
+            
+            $ionicPopup.alert({
+                title: 'Scan LDS BUS',
+                template: 'Scan LDS BUS was successful!',
+            });
+        })
+        .catch(function (error) {
+            $scope.handle_error(error);
+        }); 
+    };
+
+
+    $scope.submitRefresh = function() {
+        $scope.getLDSBUS();
+    };
+
+    $scope.$on('$ionicView.enter', function(e) {
+        $scope.warning = "No items scanned for LDS BUS " + $scope.data.activeSection.toString();
+        $scope.submitRefresh();
+    });
+
+    $scope.$on('$ionicView.beforeLeave', function(e) {
+        $scope.ldsbus = [
+            {
+                'ldsus': [],
+                'sensors': [],
+                'actuators': [],
+            }
+        ];
+        $scope.warning = "No items scanned for LDS BUS " + $scope.data.activeSection.toString();
+   });
+    
+    
+    // EXIT PAGE
+    $scope.submitDeviceList = function() {
+        console.log("submitDeviceList");
+
+        var device_param = {
+            'username': $scope.data.username,
+            'token': $scope.data.token,
+            'devicename': $scope.data.devicename,
+            'devicestatus': $scope.data.devicestatus,
+            'deviceid': $scope.data.deviceid,
+            'serialnumber': $scope.data.serialnumber,
+            'location': $scope.data.location === "" ? "UNKNOWN" : $scope.data.location,
+        };
+        $state.go('gateway', device_param);
+    };
+}])
+   
+.controller('lDSUsCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+// You can include any angular dependencies as parameters for this function
+// TIP: Access Route Parameters for your page via $stateParams.parameterName
+function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token) {
+
+    var server = Server.rest_api;
+
+    $scope.data = {
+        'username': User.get_username(),
+        'token': User.get_token(),
+        'devicename': $stateParams.devicename,
+        'devicestatus': $stateParams.devicestatus,
+        'deviceid': $stateParams.deviceid,
+        'serialnumber': $stateParams.serialnumber,
+        'location': $stateParams.location,
+        'activeSection': $stateParams.activeSection.toString(),
+        'ldsus': $stateParams.ldsus,
+    };
+
+
+    console.log($scope.data);
+    $scope.ldsu = null;
+    $scope.newlabel = "";
+
+
+    $scope.handle_error = function(error, showerror) {
+        if (error.data !== null) {
+            console.log("ERROR: Device I2C failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
+
+            if (error.data.message === "Token expired") {
+                Token.refresh({'username': $scope.data.username, 'token': $scope.data.token});
+                $scope.data.token = User.get_token();
+            }
+            
+            if (error.status == 503 && showerror === true ) {
+                $ionicPopup.alert({ title: 'Error', template: 'Device is unreachable!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+            }            
+        }
+        else {
+            console.log("ERROR: Server is down!"); 
+            $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+        }
+    };
+
+
+    $scope.changeLDSU = function(s) {
+        if ($scope.ldsu === null) {
+            $scope.ldsu = s;
+            $scope.newlabel = s.LABL;
+            console.log("1");
+        }
+        else {
+            if ($scope.ldsu.LABL === s.LABL) {
+                $scope.ldsu = null;
+                $scope.newlabel = "";
+            console.log("2");
+            }
+            else {
+                $scope.ldsu = s;
+                $scope.newlabel = $scope.ldsu.LABL;
+            console.log("3 " + $scope.newlabel + ' ' + $scope.ldsu.LABL + ' ' + s.LABL );
+            }
+        }
+    };
+
+    $scope.changeName = function(name) {
+        console.log('Change name ' + name + ' ' + $scope.ldsu.LABL);
+        if (name === $scope.ldsu.LABL) {
+            console.log('Same name');
+            return;
+        }
+        
+        $ionicPopup.alert({
+            title: 'Change LDSU Name',
+            template: 'Are you sure you want to change the LDSU name to ' + name + '?',
+            buttons: [
+                { 
+                    text: 'No',
+                    type: 'button-negative',
+                },
+                {
+                    text: 'Yes',
+                    type: 'button-positive',
+                    onTap: function(e) {
+                        $scope.newlabel = name;
+                        $scope.change_name($scope.newlabel);
+                    }
+                }
+            ]            
+        });          
+    };
+
+    $scope.change_name = function(name) {
+        //
+        // CHANGE LDSU NAME
+        //
+        // - Request:
+        //   POST /devices/device/DEVICENAME/ldsu/LDSUUUID/name
+        //   headers: { 'Authorization': 'Bearer ' + token.access }
+        //   data: {'name': string }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string, }
+        //   { 'status': 'NG', 'message': string }
+        //
+        $http({
+            method: 'POST',
+            url: server + '/devices/device/' + $scope.data.devicename + '/ldsu/' + $scope.ldsu.UID + '/name',
+            headers: {'Authorization': 'Bearer ' + $scope.data.token.access},
+            data: {'name': name}
+        })
+        .then(function (result) {
+            console.log(result.data);
+            $scope.ldsu.LABL = name;
+            for (var item in $scope.data.ldsus) {
+                if (item.UID == $scope.ldsu.UID) {
+                    item.LABL = name;
+                    break;
+                }
+            }
+
+        })
+        .catch(function (error) {
+            $scope.handle_error(error);
+        }); 
+    };
+    
+    
+    $scope.identifyLDSU = function() {
+        console.log('Identify LDSU');
+        $scope.identify_ldsu();
+    };
+    
+    $scope.identify_ldsu = function() {
+        console.log("Identify LDSU " + $scope.ldsu.UID);
+        //
+        // IDENTIFY LDSU
+        //
+        // - Request:
+        //   POST /devices/device/DEVICENAME/ldsu/LDSUUUID/identify
+        //   headers: { 'Authorization': 'Bearer ' + token.access }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string, }
+        //   { 'status': 'NG', 'message': string }
+        //
+        $http({
+            method: 'POST',
+            url: server + '/devices/device/' + $scope.data.devicename + '/ldsu/' + $scope.ldsu.UID + '/identify',
+            headers: {'Authorization': 'Bearer ' + $scope.data.token.access}
+        })
+        .then(function (result) {
+            console.log(result.data);
+            $ionicPopup.alert({
+                title: 'Identify LDSU',
+                template: 'Identify LDSU was successful! The LED light of the LDSU should be blinking.',
+            });
+        })
+        .catch(function (error) {
+            $scope.handle_error(error);
+        }); 
+    };
+
+
+    $scope.deleteLDSU = function() {
+        console.log('Delete LDSU ' + $scope.ldsu.UID);
+
+        $ionicPopup.alert({
+            title: 'Delete LDSU',
+            template: 'Are you sure you want to delete this LDSU - ' + $scope.ldsu.UID + '?',
+            buttons: [
+                { 
+                    text: 'No',
+                    type: 'button-negative',
+                },
+                {
+                    text: 'Yes',
+                    type: 'button-positive',
+                    onTap: function(e) {
+                        $scope.delete_ldsu();
+                    }
+                }
+            ]            
+        });        
+    };
+    
+    $scope.delete_ldsu = function() {
+        //
+        // DELETE LDSU
+        //
+        // - Request:
+        //   DELETE /devices/device/DEVICENAME/ldsu/LDSUUUID
+        //   headers: { 'Authorization': 'Bearer ' + token.access }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string, }
+        //   { 'status': 'NG', 'message': string }
+        //
+        $http({
+            method: 'DELETE',
+            url: server + '/devices/device/' + $scope.data.devicename + '/ldsu/' + $scope.ldsu.UID,
+            headers: {'Authorization': 'Bearer ' + $scope.data.token.access}
+        })
+        .then(function (result) {
+            console.log(result.data);
+            $ionicPopup.alert({
+                title: 'Delete LDSU',
+                template: 'Delete LDSU was successful!',
+            });
+            $scope.submitDeviceList();
+        })
+        .catch(function (error) {
+            $scope.handle_error(error);
+        }); 
+    };
+    
+
+    $scope.getLDSU = function() {
+        console.log('Get LDSU');
+        $scope.get_ldsu();
+    };
+    
+    $scope.get_ldsu = function() {
+        console.log('Get LDSU ' + $scope.ldsu.UID);
+        //
+        // GET LDSU
+        //
+        // - Request:
+        //   GET /devices/device/DEVICENAME/ldsu/LDSUUUID
+        //   headers: { 'Authorization': 'Bearer ' + token.access }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string, }
+        //   { 'status': 'NG', 'message': string }
+        //
+        $http({
+            method: 'GET',
+            url: server + '/devices/device/' + $scope.data.devicename + '/ldsu/' + $scope.ldsu.UID,
+            headers: {'Authorization': 'Bearer ' + $scope.data.token.access}
+        })
+        .then(function (result) {
+            console.log(result.data);
+        })
+        .catch(function (error) {
+            $scope.handle_error(error);
+        }); 
+    };
+    
+
+    $scope.$on('$ionicView.enter', function(e) {
+        console.log('enter');
+        console.log($scope.data);
+        //$scope.changeLDSU($scope.data.ldsus[0]);
+    });
+
+    
+    // EXIT PAGE
+    $scope.submitDeviceList = function() {
+        console.log("submitDeviceList");
+        $scope.ldsu = null;
+        $scope.newname = "";
+        $state.go('deviceLDSBUS', $scope.data);
+    };
+}])
+   
+.controller('sensorsCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+// You can include any angular dependencies as parameters for this function
+// TIP: Access Route Parameters for your page via $stateParams.parameterName
+function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token) {
+
+    var server = Server.rest_api;
+
+    $scope.data = {
+        'username': User.get_username(),
+        'token': User.get_token(),
+        'devicename': $stateParams.devicename,
+        'devicestatus': $stateParams.devicestatus,
+        'deviceid': $stateParams.deviceid,
+        'serialnumber': $stateParams.serialnumber,
+        'location': $stateParams.location,
+        'activeSection': $stateParams.activeSection.toString(),
+        'sensors': $stateParams.sensors,
+    };
+
+
+    $scope.handle_error = function(error, showerror) {
+        if (error.data !== null) {
+            console.log("ERROR: Device I2C failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
+
+            if (error.data.message === "Token expired") {
+                Token.refresh({'username': $scope.data.username, 'token': $scope.data.token});
+                $scope.data.token = User.get_token();
+            }
+            
+            if (error.status == 503 && showerror === true ) {
+                $ionicPopup.alert({ title: 'Error', template: 'Device is unreachable!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+            }            
+        }
+        else {
+            console.log("ERROR: Server is down!"); 
+            $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+        }
+    };
+
+
+    $scope.getSensorReadings = function(sensor) {
+        console.log("getSensorReadings!"); 
+        if (sensor.enabled === 0) {
+            return;
+        }
+        
+        $scope.get_lds_bus_sensor_reading(sensor);
+    };
+    
+    $scope.get_lds_bus_sensor_reading = function(sensor) {
+        //
+        // GET LDS BUS SENSOR READING
+        //
+        // - Request:
+        //   GET /devices/device/<devicename>/<peripheral>/<number>/sensors/sensor/<sensorname>/readings
+        //   headers: { 'Authorization': 'Bearer ' + token.access }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string, }
+        //   { 'status': 'NG', 'message': string }
+        //
+        $http({
+            method: 'GET',
+            url: server + '/devices/device/' + $scope.data.devicename + '/' + sensor.source + '/' + sensor.number.toString() + '/sensors/sensor/' + sensor.sensorname + '/readings',
+            headers: {'Authorization': 'Bearer ' + $scope.data.token.access}
+        })
+        .then(function (result) {
+            console.log(result.data);
+            
+            if  ($scope.data.sensors !== undefined) {
+                for (let x in $scope.data.sensors) {
+                    if ($scope.data.sensors[x].source === result.data.sensor.source && 
+                        $scope.data.sensors[x].number === result.data.sensor.number) 
+                        {
+                            $scope.data.sensors[x].readings = result.data.sensor.readings;
+                            break;
+                        }
+                }
+            }
+        })
+        .catch(function (error) {
+            $scope.handle_error(error);
+        }); 
+    };
+
+
+    // GET LDS BUS
+    $scope.getLDSBUSSensors = function() {
+        console.log("getLDSBUSSensors");
+        $scope.get_lds_bus_sensors($scope.data.activeSection);
+    };
+
+    $scope.get_lds_bus_sensors = function(activeSection) {
+        //
+        // GET LDS BUS SENSORS
+        //
+        // - Request:
+        //   GET /devices/device/DEVICENAME/ldsbus/PORTNUMBER/sensors
+        //   headers: { 'Authorization': 'Bearer ' + token.access }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string, }
+        //   { 'status': 'NG', 'message': string }
+        //
+        $http({
+            method: 'GET',
+            url: server + '/devices/device/' + $scope.data.devicename + '/ldsbus/' + $scope.data.activeSection.toString() + '/sensors',
+            headers: {'Authorization': 'Bearer ' + $scope.data.token.access}
+        })
+        .then(function (result) {
+            console.log(result.data);
+            $scope.data.sensors = result.data.sensors;
+            
+            if  ($scope.data.sensors !== undefined) {
+                for (let i in $scope.data.sensors) {
+                    if ($scope.data.sensors[i].enabled === 1) {
+                        $scope.data.sensors[i].enabled_bool = true;
+                    }
+                    else {
+                        $scope.data.sensors[i].enabled_bool = false;
+                    }                    
+                }
+            }
+        })
+        .catch(function (error) {
+            $scope.handle_error(error);
+        }); 
+    };
+    
+
+    $scope.processSensor = function(sensor) {
+        console.log("processSensor");
+        console.log(sensor);
+        
+        param = {
+            'username': $scope.data.username,
+            'token':$scope.data.token,
+            'devicename': $scope.data.devicename,
+            'devicestatus': $scope.data.devicestatus,
+            'deviceid': $scope.data.deviceid,
+            'serialnumber': $scope.data.serialnumber,
+            
+            'location': $scope.data.location,
+            'activeSection': $scope.data.activeSection,
+            'sensors': $scope.data.sensors,
+            
+            'sensor' : sensor,
+            'source' : 'LDSU',
+        };
+
+        if (sensor.class === "temperature") {
+            $state.go('temperature', param);
+        }
+        else if (sensor.class === "humidity") {
+            $state.go('humidity', param);
+        }
+        else if (sensor.class === "ambient light") {
+            $state.go('ambientLight', param);
+        }
+        else if (sensor.class === "motion detection") {
+            $state.go('motionDetection', param);
+        }
+        else if (sensor.class === "Co2 gas") {
+            $state.go('cO2Gas', param);
+        }
+        else if (sensor.class === "VOC gas") {
+            $state.go('vOCGas', param);
+        }
+        else {
+            $state.go('unknown', param);
+        }
+    };
+
+
+    // ENABLE SENSOR
+    $scope.enableSensor = function(sensor, i) {
+        console.log(i);
+        $scope.enable_xxx_sensor(sensor, i, sensor.source);
+    };    
+    
+    $scope.enable_xxx_sensor = function(sensor, enable, peripheral) {
+        var enable_int = 1;            
+        action = "enabled";
+        if (enable === false) {
+            enable_int = 0;
+            action = "disabled";
+        }
+        //
+        // ENABLE/DISABLE SENSOR
+        //
+        // - Request:
+        //   POST /devices/device/<devicename>/<peripheral>/<number>/sensors/sensor/<sensorname>/enable
+        //   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
+        //   data: {'enable': int}
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string }
+        //   { 'status': 'NG', 'message': string }        
+        //
+        $http({
+            method: 'POST',
+            url: server + '/devices/device/' + $scope.data.devicename + '/' + peripheral + '/' + sensor.number.toString()  + '/sensors/sensor/' + sensor.sensorname + '/enable',
+            headers: { 'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json' },
+            data: { 'enable': enable_int }
+        })
+        .then(function (result) {
+            console.log(result.data);
+            $ionicPopup.alert({
+                title: 'Device ' + peripheral.toUpperCase(),
+                template: sensor.sensorname + ' was ' + action + ' successfully!',
+            });
+            
+            // update
+            //get_i2c_sensors();
+            sensor.enabled = enable_int;
+            if (sensor.enabled === 1) {
+                $scope.getSensorReadings(sensor);
+            }
+            else {
+                delete sensor.readings;
+            }
+        })
+        .catch(function (error) {
+            $scope.handle_error(error);
+            $ionicPopup.alert({ title: 'Error', template: error.data.message, buttons: [{text: 'OK', type: 'button-assertive'}] });
+            if (enable_int === 1) {
+                sensor.enabled_bool = !enable;
+            }
+            else {
+                delete sensor.readings;
+            }
+        }); 
+    };
+
+
+
+    $scope.$on('$ionicView.enter', function(e) {
+        console.log('enter');
+        console.log($scope.data);
+        $scope.getLDSBUSSensors();
+    });
+
+    
+    // EXIT PAGE
+    $scope.submitDeviceList = function() {
+        console.log("submitDeviceList");
+        $state.go('deviceLDSBUS', $scope.data);
+    };
+}])
+   
+.controller('actuatorsCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+// You can include any angular dependencies as parameters for this function
+// TIP: Access Route Parameters for your page via $stateParams.parameterName
+function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token) {
+
+    var server = Server.rest_api;
+
+    $scope.data = {
+        'username': User.get_username(),
+        'token': User.get_token(),
+        'devicename': $stateParams.devicename,
+        'devicestatus': $stateParams.devicestatus,
+        'deviceid': $stateParams.deviceid,
+        'serialnumber': $stateParams.serialnumber,
+        'location': $stateParams.location,
+        'activeSection': $stateParams.activeSection.toString(),
+        'actuators': $stateParams.actuators,
+    };
+
+
+    $scope.handle_error = function(error, showerror) {
+        if (error.data !== null) {
+            console.log("ERROR: Device I2C failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
+
+            if (error.data.message === "Token expired") {
+                Token.refresh({'username': $scope.data.username, 'token': $scope.data.token});
+                $scope.data.token = User.get_token();
+            }
+            
+            if (error.status == 503 && showerror === true ) {
+                $ionicPopup.alert({ title: 'Error', template: 'Device is unreachable!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+            }            
+        }
+        else {
+            console.log("ERROR: Server is down!"); 
+            $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+        }
+    };
+
+
+
+    $scope.$on('$ionicView.enter', function(e) {
+        console.log('enter');
+        console.log($scope.data);
+    });
+
+    
+    // EXIT PAGE
+    $scope.submitDeviceList = function() {
+        console.log("submitDeviceList");
+        $state.go('deviceLDSBUS', $scope.data);
     };
 }])
    
@@ -5459,6 +11550,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         'devicestatus': $stateParams.devicestatus,
         'deviceid': $stateParams.deviceid,
         'serialnumber': $stateParams.serialnumber,
+        'location': $stateParams.location,
         
         'activeSection': 1,
         'enableADC': true,
@@ -5884,8 +11976,9 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             'devicestatus': $scope.data.devicestatus,
             'deviceid': $scope.data.deviceid,
             'serialnumber': $scope.data.serialnumber,
+            'location': $scope.data.location === "" ? "UNKNOWN" : $scope.data.location,
         };
-        $state.go('device', device_param);
+        $state.go('gateway', device_param);
     };
 }])
    
@@ -5909,6 +12002,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         'devicestatus': $stateParams.devicestatus,
         'deviceid': $stateParams.deviceid,
         'serialnumber': $stateParams.serialnumber,
+        'location': $stateParams.location,
         
         'activeSection': 1,
         'enableTPROBE': true,
@@ -6270,8 +12364,9 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             'devicestatus': $scope.data.devicestatus,
             'deviceid': $scope.data.deviceid,
             'serialnumber': $scope.data.serialnumber,
+            'location': $scope.data.location === "" ? "UNKNOWN" : $scope.data.location,
         };
-        $state.go('device', device_param);
+        $state.go('gateway', device_param);
     };
 }])
    
@@ -6295,6 +12390,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         'devicestatus': $stateParams.devicestatus,
         'deviceid': $stateParams.deviceid,
         'serialnumber': $stateParams.serialnumber,
+        'location': $stateParams.location,
         
         'activeSection': 1,
         'enable1WIRE': true,
@@ -6652,8 +12748,9 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             'devicestatus': $scope.data.devicestatus,
             'deviceid': $scope.data.deviceid,
             'serialnumber': $scope.data.serialnumber,
+            'location': $scope.data.location === "" ? "UNKNOWN" : $scope.data.location,
         };
-        $state.go('device', device_param);
+        $state.go('gateway', device_param);
     };
 }])
    
@@ -7791,6 +13888,184 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             'serialnumber': $scope.data.serialnumber,
         };
         $state.go('device1WIRE', device_param);
+    };
+}])
+   
+.controller('viewLDSUDeviceCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+// You can include any angular dependencies as parameters for this function
+// TIP: Access Route Parameters for your page via $stateParams.parameterName
+function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token) {
+
+    var server = Server.rest_api;
+
+    $scope.data = {
+        'username': User.get_username(),
+        'token': User.get_token(),
+        'devicename': $stateParams.devicename,
+        'devicestatus': $stateParams.devicestatus,
+        'deviceid': $stateParams.deviceid,
+        'serialnumber': $stateParams.serialnumber,
+        
+        'location': $stateParams.location,
+        'activeSection': $stateParams.activeSection,
+        'sensors': $stateParams.sensors,                
+        
+        'sensor': $stateParams.sensor,
+        'source': $stateParams.source,
+
+        'multiclass': $stateParams.multiclass,    
+//        'attributes': $stateParams.attributes,
+//        'enabled': $stateParams.sensor.enabled ? true: false,
+    };
+    
+    $scope.newsensorname = $stateParams.sensor.sensorname;
+    
+    
+    
+    handle_error = function(error, showerror) {
+        if (error.data !== null) {
+            console.log("ERROR: Temperature failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
+
+            if (error.data.message === "Token expired") {
+                Token.refresh({'username': $scope.data.username, 'token': $scope.data.token});
+                $scope.data.token = User.get_token();
+            }
+            
+            if (error.status == 503 && showerror === true ) {
+                $ionicPopup.alert({ title: 'Error', template: 'Device is unreachable!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+            }            
+        }
+        else {
+            console.log("ERROR: Server is down!"); 
+            $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+        }
+    };
+    
+    
+    $scope.changeName = function(name) {
+        console.log('Change name ' + name + ' ' + $scope.data.sensor.sensorname);
+        if (name === $scope.data.sensor.sensorname) {
+            console.log('Same name');
+            return;
+        }
+        
+        $ionicPopup.alert({
+            title: 'Change LDSU Device Name',
+            template: 'Are you sure you want to change the LDSU Device name to ' + name + '?',
+            buttons: [
+                { 
+                    text: 'No',
+                    type: 'button-negative',
+                },
+                {
+                    text: 'Yes',
+                    type: 'button-positive',
+                    onTap: function(e) {
+                        $scope.newsensorname = name;
+                        $scope.change_name($scope.newsensorname);
+                    }
+                }
+            ]            
+        });          
+    };
+
+    $scope.change_name = function(name) {
+        console.log('change_name ' + $scope.data.sensor.source + ' ' + $scope.data.sensor.number.toString() + ' ' + $scope.data.sensor.sensorname);
+        //
+        // CHANGE LDSU DEVICE NAME
+        //
+        // - Request:
+        //   POST /devices/device/<devicename>/ldsu/<number>/sensors/sensor/<sensorname>/name
+        //   headers: { 'Authorization': 'Bearer ' + token.access }
+        //   data: {'name': string }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string, }
+        //   { 'status': 'NG', 'message': string }
+        //
+        $http({
+            method: 'POST',
+            url: server + '/devices/device/' + $scope.data.devicename + '/' + $scope.data.sensor.source + '/' + $scope.data.sensor.number.toString() + '/sensors/sensor/' + $scope.data.sensor.sensorname + '/name',
+            headers: {'Authorization': 'Bearer ' + $scope.data.token.access},
+            data: {'name': name}
+        })
+        .then(function (result) {
+            console.log(result.data);
+            $scope.data.sensor.sensorname = name;
+            for (var item in $scope.data.sensors) {
+                if (item.source == $scope.data.sensor.source && item.number == $scope.data.sensor.number) {
+                    item.sensorname = name;
+                    break;
+                }
+            }
+
+        })
+        .catch(function (error) {
+            $scope.handle_error(error);
+        }); 
+    };
+    
+    
+
+    // EXIT PAGE
+    $scope.submitDeviceList = function() {
+        console.log("submitDeviceList");
+        sensor = $scope.data.sensor;
+        param = $scope.data;
+        
+        if (sensor.class !== undefined) {
+            if (sensor.subclass !== undefined) {
+                $state.go('multiclass', param);
+            }
+            else {
+                if (sensor.class === "temperature") {
+                    $state.go('temperature', param);
+                }
+                else if (sensor.class === "humidity") {
+                    $state.go('humidity', param);
+                }
+                else if (sensor.class === "ambient light") {
+                    $state.go('ambientLight', param);
+                }
+                else if (sensor.class === "motion detection") {
+                    $state.go('motionDetection', param);
+                }
+                else if (sensor.class === "Co2 gas") {
+                    $state.go('cO2Gas', param);
+                }
+                else if (sensor.class === "VOC gas") {
+                    $state.go('vOCGas', param);
+                }
+                else {
+                    $state.go('unknown', param);
+                }
+                /*
+                else if (sensor.class === "speaker") {
+                    $state.go('speaker', param);
+                }
+                else if (sensor.class === "display") {
+                    $state.go('display', param);
+                }
+                else if (sensor.class === "potentiometer") {
+                    $state.go('potentiometer', param);
+                }
+                else if (sensor.class === "anemometer") {
+                    $state.go('anemometer', param);
+                }
+                else if (sensor.class === "light") {
+                    $state.go('light', param);
+                }
+                else {
+                    $state.go('multiclass', param);
+                }
+                */
+            }
+        }
+        else {
+            param.sensor.class = "multiclass";
+            param.sensor.attributes = [];
+            $state.go('multiclass', param);
+        }
     };
 }])
    
@@ -9415,473 +15690,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
 
     var server = Server.rest_api;
 
-    $scope.modes = [
-        { "id":0,  "label": "Single Threshold"  },
-        { "id":1,  "label": "Dual Threshold"  },
-        { "id":2,  "label": "Continuous" },
-    ];
-
-    $scope.activates = [
-        { "id":0,  "label": "Out of range" },
-        { "id":1,  "label": "Within range" },
-    ];
-    
-    $scope.alerts = [
-        { "id":0,  "label": "Once"         },
-        { "id":1,  "label": "Continuously" },
-    ];    
-    
-    $scope.devices = [ {"id":0, "devicename": ""} ];
-    
-    $scope.data = {
-        'username': User.get_username(),
-        'token': User.get_token(),
-        'devicename': $stateParams.devicename,
-        'devicestatus': $stateParams.devicestatus,
-        'deviceid': $stateParams.deviceid,
-        'serialnumber': $stateParams.serialnumber,
-        
-        'sensor': $stateParams.sensor,
-        'source': $stateParams.source,
-        'hardware_devicename': $scope.devices[0].id,
-        
-        'attributes': {
-            'mode': $scope.modes[0].id,
-            'threshold': {
-                'value': 0,
-                'min': 0,
-                'max': 100,
-                'activate': $scope.activates[0].id,
-            },
-            'alert': {
-                'type': $scope.alerts[0].id,
-                'period': 60000,
-            },
-            'hardware': {
-                'devicename': '',  
-            },
-            
-            'notification': {
-                'messages': [ 
-                    { 'message': 'Hello World!', 'enable': true },
-                    { 'message': 'Hi World!', 'enable': false },
-                ],
-                'endpoints' : {
-                    'mobile': {
-                        'recipients': '',
-                        'enable': false,
-                        'recipients_list': [],
-                    },
-                    'email': {
-                        'recipients': '',
-                        'enable': false,
-                        'recipients_list': [],
-                    },
-                    'notification': {
-                        'recipients': '',
-                        'enable': false,
-                        'recipients_list': [],
-                    },
-                    'modem': {
-                        'recipients': '',
-                        'enable': false,
-                        'recipients_list': [],
-                    },
-                    'storage': {
-                        'recipients': '',
-                        'enable': false,
-                        'recipients_list': [],
-                    },
-                }
-            }
-        },
-        
-        'showNotification': 0,       
-        
-        // support for multiclasses
-        //'multiclass_attributes': $stateParams.multiclass_attributes,
-        //'multiclass_subattributes': $stateParams.multiclass_subattributes,
-        'multiclass': $stateParams.multiclass
-    };
-
-
-    handle_error = function(error, showerror) {
-        if (error.data !== null) {
-            console.log("ERROR: Temperature failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
-
-            if (error.data.message === "Token expired") {
-                Token.refresh({'username': $scope.data.username, 'token': $scope.data.token});
-                $scope.data.token = User.get_token();
-            }
-            
-            if (error.status == 503 && showerror === true ) {
-                $ionicPopup.alert({ title: 'Error', template: 'Device is unreachable!', buttons: [{text: 'OK', type: 'button-assertive'}] });
-            }            
-        }
-        else {
-            console.log("ERROR: Server is down!"); 
-            $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
-        }
-    };
-    
-    $scope.changeNotification = function(i) {
-        $scope.data.showNotification = i;
-        if (i===true) {
-            get_devices(false);    
-        }    
-    };
-    
-    
-    $scope.submitRefresh = function() {
-        console.log("submitRefresh");
-        console.log($scope.data.attributes);
-        get_devices(true);
-    };
-
-    get_xxx_device_properties = function(peripheral) {
-        //
-        // GET XXX DEVICE PROPERTIES
-        //
-        // - Request:
-        //   GET /devices/device/<devicename>/<peripheral>/<number>/sensors/sensor/<sensorname>/properties
-        //   headers: { 'Authorization': 'Bearer ' + token.access }
-        //
-        // - Response:
-        //   { 'status': 'OK', 'message': string }
-        //   { 'status': 'NG', 'message': string }        
-        //
-        $http({
-            method: 'GET',
-            url: server + '/devices/device/' + $scope.data.devicename + '/' + peripheral + '/' + $scope.data.sensor.number.toString() + '/sensors/sensor/' + $scope.data.sensor.sensorname + '/properties',
-            headers: { 'Authorization': 'Bearer ' + $scope.data.token.access },
-        })
-        .then(function (result) {
-            console.log(result.data);
-            if (result.data.value !== undefined) {
-                if (result.data.value.threshold !== undefined) {
-                    $scope.data.attributes = result.data.value;
-                    
-                    $scope.data.hardware_devicename = 0;
-                    let indexy = 0;
-                    
-                    if ($scope.data.attributes.mode != 2) {
-                        // SINGLE/DUAL THRESHOLD modes - use notification.endpoints.modem.recipients
-                        for (indexy=0; indexy<$scope.devices.length; indexy++) {
-                            if ($scope.devices[indexy].devicename === $scope.data.attributes.notification.endpoints.modem.recipients) {
-                                $scope.data.hardware_devicename = indexy;
-                                break;
-                            }
-                        }
-                    }
-                    else {
-                        // CONTINUOUS mode - use hardware.devicename
-                        for (indexy=0; indexy<$scope.devices.length; indexy++) {
-                            if ($scope.devices[indexy].devicename === $scope.data.attributes.hardware.devicename) {
-                                $scope.data.hardware_devicename = indexy;
-                                break;
-                            }
-                        }
-                        $scope.data.attributes.alert.type = 1; // always be continuous
-                    }
-                }
-                else {
-                    $scope.data.attributes.notification = result.data.value.notification;
-                }
-            }
-        })
-        .catch(function (error) {
-            handle_error(error, true);
-        }); 
-    };
-
-
-
-
-
-
-    
-    $scope.submit = function() {
-        console.log("submit");
-        console.log($scope.data.attributes);
-        if ($scope.data.hardware_devicename >= $scope.devices.length) {
-            return;
-        }
-        if ($scope.data.attributes.mode!=2) {
-            // SINGLE/DUAL THRESHOLD modes
-            $scope.data.attributes.notification.endpoints.modem.recipients = $scope.devices[$scope.data.hardware_devicename].devicename;
-        }
-        else {
-            // CONTINUOUS mode
-            $scope.data.attributes.hardware.devicename = $scope.devices[$scope.data.hardware_devicename].devicename;
-        }
-        
-        
-        if ($scope.data.sensor.subclass !== undefined) {
-            var classname = "temperature";
-            
-            // support for multiclasses
-            var param = {
-                'username': $scope.data.username,
-                'token': $scope.data.token,
-                'devicename': $scope.data.devicename,
-                'devicestatus': $scope.data.devicestatus,
-                'deviceid': $scope.data.deviceid,
-                'serialnumber': $scope.data.serialnumber,
-                'sensor': $scope.data.sensor,
-                'source': $scope.data.source,
-                'multiclass': $scope.data.multiclass,             
-            };
-
-            if ($scope.data.sensor.class === classname) {
-                param.multiclass.attributes = $scope.data.attributes;
-            }
-            else if ($scope.data.sensor.subclass === classname) {
-                param.multiclass.subattributes = $scope.data.attributes;
-            }
-            $state.go('multiclass', param, {reload: true});
-        }
-        else {
-            
-            // Add prompt when setting properties
-            $ionicPopup.alert({ title: 'Set Properties', template: 'Are you sure you want to set this properties?',
-                buttons: [
-                    { text: 'No', type: 'button-assertive', },
-                    { text: 'Yes', type: 'button-positive',
-                        onTap: function(e) {
-                            
-                            if ($scope.data.source === "I2C") {
-                                set_i2c_properties();
-                            }
-                            else if ($scope.data.source === "TPROBE") {
-                                set_tprobe_properties();
-                            }
-                            else if ($scope.data.source === "1WIRE") {
-                                set_1wire_properties();
-                            }
-                        }
-                    }
-                ]            
-            });
-        }
-    };
-
-    set_i2c_properties = function() {
-        //
-        // SET I2C PROPERTIES
-        //
-        // - Request:
-        //   POST /devices/device/<devicename>/i2c/<number>/sensors/sensor/<sensorname>/properties
-        //   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
-        //   data: 
-        //   { 
-        //   }
-        //
-        // - Response:
-        //   { 'status': 'OK', 'message': string }
-        //   { 'status': 'NG', 'message': string }        
-        //
-        $http({
-            method: 'POST',
-            url: server + '/devices/device/' + $scope.data.devicename + '/i2c/' + $scope.data.sensor.number.toString() + '/sensors/sensor/' + $scope.data.sensor.sensorname + '/properties',
-            headers: { 'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json' },
-            data: $scope.data.attributes
-        })
-        .then(function (result) {
-            console.log(result.data);
-            $ionicPopup.alert({
-                title: 'I2C device',
-                template: $scope.data.sensor.sensorname + ' on I2C ' + $scope.data.sensor.number.toString() + ' was configured successfully!',
-            });            
-        })
-        .catch(function (error) {
-            handle_error(error, true);
-        }); 
-    };
-    
-    set_tprobe_properties = function() {
-        //
-        // SET TPROBE PROPERTIES
-        //
-        // - Request:
-        //   POST /devices/device/<devicename>/tprobe/<number>/sensors/sensor/<sensorname>/properties
-        //   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
-        //   data: 
-        //   { 
-        //   }
-        //
-        // - Response:
-        //   { 'status': 'OK', 'message': string }
-        //   { 'status': 'NG', 'message': string }        
-        //
-        $http({
-            method: 'POST',
-            url: server + '/devices/device/' + $scope.data.devicename + '/tprobe/' + $scope.data.sensor.number.toString() + '/sensors/sensor/' + $scope.data.sensor.sensorname + '/properties',
-            headers: { 'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json' },
-            data: $scope.data.attributes
-        })
-        .then(function (result) {
-            console.log(result.data);
-            $ionicPopup.alert({
-                title: 'TPROBE device',
-                template: $scope.data.sensor.sensorname + ' on TPROBE ' + $scope.data.sensor.number.toString() + ' was configured successfully!',
-            });            
-        })
-        .catch(function (error) {
-            handle_error(error, true);
-        }); 
-    };
-
-    set_1wire_properties = function() {
-        //
-        // SET 1WIRE PROPERTIES
-        //
-        // - Request:
-        //   POST /devices/device/<devicename>/1wire/<number>/sensors/sensor/<sensorname>/properties
-        //   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
-        //   data: 
-        //   { 
-        //   }
-        //
-        // - Response:
-        //   { 'status': 'OK', 'message': string }
-        //   { 'status': 'NG', 'message': string }        
-        //
-        $http({
-            method: 'POST',
-            url: server + '/devices/device/' + $scope.data.devicename + '/1wire/' + $scope.data.sensor.number.toString() + '/sensors/sensor/' + $scope.data.sensor.sensorname + '/properties',
-            headers: { 'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json' },
-            data: $scope.data.attributes
-        })
-        .then(function (result) {
-            console.log(result.data);
-            $ionicPopup.alert({
-                title: '1WIRE device',
-                template: $scope.data.sensor.sensorname + ' on 1WIRE ' + $scope.data.sensor.number.toString() + ' was configured successfully!',
-            });            
-        })
-        .catch(function (error) {
-            handle_error(error, true);
-        }); 
-    };
-
-
-
-
-    get_devices = function(flag) {
-        
-        param = {
-            'username': $scope.data.username,
-            'token': $scope.data.token     
-        };
-        
-        // Fetch devices
-        Devices.fetch(param, "").then(function(res) {
-            $scope.devices = res;
-            
-            let indexy = 0;
-            for (indexy=0; indexy<$scope.devices.length; indexy++) {
-                $scope.devices[indexy].id = indexy;
-            }
-            
-            console.log($scope.devices);
-            $scope.data.token = User.get_token();
-            
-            if (flag) {
-                if ($scope.data.source === "I2C") {
-                    get_xxx_device_properties("i2c");
-                }
-                else if ($scope.data.source === "ADC") {
-                    get_xxx_device_properties("adc");
-                }
-                else if ($scope.data.source === "TPROBE") {
-                    get_xxx_device_properties("tprobe");
-                }
-                else if ($scope.data.source === "1WIRE") {
-                    get_xxx_device_properties("1wire");
-                }
-            }
-        });
-    };
-
-    // VIEW I2C DEVICE
-    $scope.viewXXXDevice = function() {
-        var device_param = {
-            'username': $scope.data.username,
-            'token': $scope.data.token,
-            'devicename': $scope.data.devicename,
-            'devicestatus': $scope.data.devicestatus,
-            'deviceid': $scope.data.deviceid,
-            'serialnumber': $scope.data.serialnumber,
-            'sensor': $scope.data.sensor,
-            'source': $scope.data.source,
-            'multiclass': $scope.data.multiclass,             
-        };
-        if ($scope.data.source === "I2C") {
-            console.log("viewI2CDevice");
-            $state.go('viewI2CDevice', device_param);
-        }
-        else if ($scope.data.source === "ADC") {
-            console.log("viewADCDevice");
-            $state.go('viewADCDevice', device_param);
-        }
-        else if ($scope.data.source === "TPROBE") {
-            console.log("viewTPROBEDevice");
-            $state.go('viewTPROBEDevice', device_param);
-        }
-        else if ($scope.data.source === "1WIRE") {
-            console.log("view1WIREDevice");
-            $state.go('view1WIREDevice', device_param);
-        }
-    };
-
-    // EXIT PAGE
-    $scope.submitDeviceList = function() {
-        console.log("submitDeviceList");
-        var device_param = {
-            'username': $scope.data.username,
-            'token': $scope.data.token,
-            'devicename': $scope.data.devicename,
-            'devicestatus': $scope.data.devicestatus,
-            'deviceid': $scope.data.deviceid,
-            'serialnumber': $scope.data.serialnumber,
-        };
-        
-        if ($scope.data.sensor.subclass !== undefined) {
-            device_param.sensor = $scope.data.sensor;
-            device_param.source = $scope.data.source;
-            device_param.multiclass = $scope.data.multiclass;
-            $state.go('multiclass', device_param);
-        }
-        else {
-            if ($scope.data.source === "I2C") {
-               $state.go('deviceI2C', device_param);
-            }
-            else if ($scope.data.source === "ADC") {
-               $state.go('deviceADC', device_param);
-            }
-            else if ($scope.data.source === "TPROBE") {
-               $state.go('deviceTPROBE', device_param);
-            }
-            else if ($scope.data.source === "1WIRE") {
-               $state.go('device1WIRE', device_param);
-            }
-        }
-    };
-    
-    $scope.changeMode = function() {
-        console.log("changeMode");
-        get_devices(false);    
-    };    
-    
-    $scope.submitRefresh();  
-}])
-   
-.controller('humidityCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', 'Devices', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
-// You can include any angular dependencies as parameters for this function
-// TIP: Access Route Parameters for your page via $stateParams.parameterName
-function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token, Devices) {
-
-    var server = Server.rest_api;
+    $scope.classname = "temperature";
 
     $scope.modes = [
         { "id":0,  "label": "Single Threshold"  },
@@ -9908,17 +15717,22 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         'devicestatus': $stateParams.devicestatus,
         'deviceid': $stateParams.deviceid,
         'serialnumber': $stateParams.serialnumber,
+
+        'location': $stateParams.location,
+        'activeSection': $stateParams.activeSection,
+        'sensors': $stateParams.sensors,        
         
         'sensor': $stateParams.sensor,
         'source': $stateParams.source,
         'hardware_devicename': $scope.devices[0].id,
         
         'attributes': {
+            'opmode': 0,
             'mode': $scope.modes[0].id,
             'threshold': {
-                'value': 0,
-                'min': 0,
-                'max': 100,
+                'value': parseInt($stateParams.sensor.minmax[1], 10),
+                'min': parseInt($stateParams.sensor.minmax[0], 10),
+                'max': parseInt($stateParams.sensor.minmax[1], 10),
                 'activate': $scope.activates[0].id,
             },
             'alert': {
@@ -9931,34 +15745,35 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             
             'notification': {
                 'messages': [ 
-                    { 'message': 'Hello World!', 'enable': true },
-                    { 'message': 'Hi World!', 'enable': false },
+                    { 
+                        'message': 'Hello World!', 
+                        'enable': true 
+                    },
+                    { 
+                        'message': 'Hi World!', 
+                        'enable': false 
+                    },
                 ],
                 'endpoints' : {
                     'mobile': {
-                        'recipients': '',
                         'enable': false,
-                        'recipients_list': [],
+                        'recipients': '',
                     },
                     'email': {
-                        'recipients': '',
                         'enable': false,
-                        'recipients_list': [],
+                        'recipients': '',
                     },
                     'notification': {
-                        'recipients': '',
                         'enable': false,
-                        'recipients_list': [],
+                        'recipients': '',
                     },
                     'modem': {
-                        'recipients': '',
                         'enable': false,
-                        'recipients_list': [],
+                        'recipients': '',
                     },
                     'storage': {
-                        'recipients': '',
                         'enable': false,
-                        'recipients_list': [],
+                        'recipients': '',
                     },
                 }
             }
@@ -9974,7 +15789,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
 
     handle_error = function(error, showerror) {
         if (error.data !== null) {
-            console.log("ERROR: Humidity failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
+            console.log("ERROR: " + $scope.classname + " failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
 
             if (error.data.message === "Token expired") {
                 Token.refresh({'username': $scope.data.username, 'token': $scope.data.token});
@@ -9984,6 +15799,9 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             if (error.status == 503 && showerror === true ) {
                 $ionicPopup.alert({ title: 'Error', template: 'Device is unreachable!', buttons: [{text: 'OK', type: 'button-assertive'}] });
             }            
+            else if (error.status === 401) {
+                $ionicPopup.alert({ title: 'Error', template: error.data.message, buttons: [{text: 'OK', type: 'button-assertive'}] });
+            }
         }
         else {
             console.log("ERROR: Server is down!"); 
@@ -10056,6 +15874,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                         $scope.data.attributes.notification = result.data.value.notification;
                     }
                 }
+                /*
                 else {
                     if (result.data.value.subattributes.threshold !== undefined) {
                         $scope.data.attributes = result.data.value.subattributes;
@@ -10087,13 +15906,14 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                         $scope.data.attributes.notification = result.data.value.subattributes.notification;
                     }
                     
-                    if ($scope.data.sensor.class === "humidity") {
+                    if ($scope.data.sensor.class === "vOCGas") {
                         $scope.data.multiclass.attributes = $scope.data.attributes;
                     }
-                    else if ($scope.data.sensor.subclass === "humidity") {
+                    else if ($scope.data.sensor.subclass === "vOCGas") {
                         $scope.data.multiclass.subattributes = $scope.data.attributes;
                     }
                 }
+                */
             }
         })
         .catch(function (error) {
@@ -10101,7 +15921,79 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         }); 
     };
 
-
+    set_xxx_device_properties = function(peripheral) {
+        //
+        // SET XXX DEVICE PROPERTIES
+        //
+        // - Request:
+        //   POST /devices/device/<devicename>/i2c/<number>/sensors/sensor/<sensorname>/properties
+        //   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
+        //   data: 
+        //   { 
+        //   }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string }
+        //   { 'status': 'NG', 'message': string }        
+        //
+        $http({
+            method: 'POST',
+            url: server + '/devices/device/' + $scope.data.devicename + '/' + peripheral + '/' + $scope.data.sensor.number.toString() + '/sensors/sensor/' + $scope.data.sensor.sensorname + '/properties',
+            headers: { 'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json' },
+            data: $scope.data.attributes
+        })
+        .then(function (result) {
+            console.log(result.data);
+            $ionicPopup.alert({
+                title: peripheral.toUpperCase() + ' device',
+                template: $scope.data.sensor.sensorname + ' was configured successfully!',
+            });            
+        })
+        .catch(function (error) {
+            handle_error(error, true);
+        }); 
+    };
+    
+    
+    
+    $scope.submitDelete = function() {
+        console.log("submitDelete");
+        $scope.delete_xxx_device_properties($scope.data.sensor.source);
+    };
+    
+    $scope.delete_xxx_device_properties = function(peripheral) {
+        //
+        // DELETE XXX DEVICE PROPERTIES
+        //
+        // - Request:
+        //   DELETE /devices/device/<devicename>/i2c/<number>/sensors/sensor/<sensorname>/properties
+        //   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
+        //   data: 
+        //   { 
+        //   }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string }
+        //   { 'status': 'NG', 'message': string }        
+        //
+        $http({
+            method: 'DELETE',
+            url: server + '/devices/device/' + $scope.data.devicename + '/' + peripheral + '/' + $scope.data.sensor.number.toString() + '/sensors/sensor/' + $scope.data.sensor.sensorname + '/properties',
+            headers: { 'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json' },
+            data: $scope.data.attributes
+        })
+        .then(function (result) {
+            console.log(result.data);
+            $ionicPopup.alert({
+                title: peripheral.toUpperCase() + ' device',
+                template: $scope.data.sensor.sensorname + ' configuration was deleted successfully!',
+            });            
+            get_xxx_device_properties(peripheral);
+        })
+        .catch(function (error) {
+            handle_error(error, true);
+        }); 
+    };
     
     $scope.submit = function() {
         console.log("submit");
@@ -10120,7 +16012,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         
         
         if ($scope.data.sensor.subclass !== undefined) {
-            var classname = "humidity";
+            var classname = $scope.classname;
             
             // support for multiclasses
             var param = {
@@ -10152,14 +16044,17 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                     { text: 'Yes', type: 'button-positive',
                         onTap: function(e) {
                             
-                            if ($scope.data.source === "I2C") {
-                                set_i2c_properties();
+                            if ($scope.data.source === "LDSU") {
+                                set_xxx_device_properties($scope.data.sensor.source);
+                            }
+                            else if ($scope.data.source === "I2C") {
+                                set_xxx_device_properties("i2c");
                             }
                             else if ($scope.data.source === "TPROBE") {
-                                set_tprobe_properties();
+                                set_xxx_device_properties("tprobe");
                             }
                             else if ($scope.data.source === "1WIRE") {
-                                set_1wire_properties();
+                                set_xxx_device_properties("1wire");
                             }
                         }
                     }
@@ -10167,106 +16062,6 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             });
         }
     };
-
-    set_i2c_properties = function() {
-        //
-        // SET I2C PROPERTIES
-        //
-        // - Request:
-        //   POST /devices/device/<devicename>/i2c/<number>/sensors/sensor/<sensorname>/properties
-        //   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
-        //   data: 
-        //   { 
-        //   }
-        //
-        // - Response:
-        //   { 'status': 'OK', 'message': string }
-        //   { 'status': 'NG', 'message': string }        
-        //
-        $http({
-            method: 'POST',
-            url: server + '/devices/device/' + $scope.data.devicename + '/i2c/' + $scope.data.sensor.number.toString() + '/sensors/sensor/' + $scope.data.sensor.sensorname + '/properties',
-            headers: { 'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json' },
-            data: $scope.data.attributes
-        })
-        .then(function (result) {
-            console.log(result.data);
-            $ionicPopup.alert({
-                title: 'I2C device',
-                template: $scope.data.sensor.sensorname + ' on I2C ' + $scope.data.sensor.number.toString() + ' was configured successfully!',
-            });            
-        })
-        .catch(function (error) {
-            handle_error(error, true);
-        }); 
-    };
-    
-    set_tprobe_properties = function() {
-        //
-        // SET TPROBE PROPERTIES
-        //
-        // - Request:
-        //   POST /devices/device/<devicename>/tprobe/<number>/sensors/sensor/<sensorname>/properties
-        //   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
-        //   data: 
-        //   { 
-        //   }
-        //
-        // - Response:
-        //   { 'status': 'OK', 'message': string }
-        //   { 'status': 'NG', 'message': string }        
-        //
-        $http({
-            method: 'POST',
-            url: server + '/devices/device/' + $scope.data.devicename + '/tprobe/' + $scope.data.sensor.number.toString() + '/sensors/sensor/' + $scope.data.sensor.sensorname + '/properties',
-            headers: { 'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json' },
-            data: $scope.data.attributes
-        })
-        .then(function (result) {
-            console.log(result.data);
-            $ionicPopup.alert({
-                title: 'TPROBE device',
-                template: $scope.data.sensor.sensorname + ' on TPROBE ' + $scope.data.sensor.number.toString() + ' was configured successfully!',
-            });            
-        })
-        .catch(function (error) {
-            handle_error(error, true);
-        }); 
-    };
-
-    set_1wire_properties = function() {
-        //
-        // SET 1WIRE PROPERTIES
-        //
-        // - Request:
-        //   POST /devices/device/<devicename>/1wire/<number>/sensors/sensor/<sensorname>/properties
-        //   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
-        //   data: 
-        //   { 
-        //   }
-        //
-        // - Response:
-        //   { 'status': 'OK', 'message': string }
-        //   { 'status': 'NG', 'message': string }        
-        //
-        $http({
-            method: 'POST',
-            url: server + '/devices/device/' + $scope.data.devicename + '/1wire/' + $scope.data.sensor.number.toString() + '/sensors/sensor/' + $scope.data.sensor.sensorname + '/properties',
-            headers: { 'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json' },
-            data: $scope.data.attributes
-        })
-        .then(function (result) {
-            console.log(result.data);
-            $ionicPopup.alert({
-                title: '1WIRE device',
-                template: $scope.data.sensor.sensorname + ' on 1WIRE ' + $scope.data.sensor.number.toString() + ' was configured successfully!',
-            });            
-        })
-        .catch(function (error) {
-            handle_error(error, true);
-        }); 
-    };
-
 
 
 
@@ -10290,7 +16085,10 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             $scope.data.token = User.get_token();
             
             if (flag) {
-                if ($scope.data.source === "I2C") {
+                if ($scope.data.source === "LDSU") {
+                    get_xxx_device_properties($scope.data.sensor.source);
+                }
+                else if ($scope.data.source === "I2C") {
                     get_xxx_device_properties("i2c");
                 }
                 else if ($scope.data.source === "ADC") {
@@ -10315,11 +16113,21 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             'devicestatus': $scope.data.devicestatus,
             'deviceid': $scope.data.deviceid,
             'serialnumber': $scope.data.serialnumber,
+    
+            'location': $scope.data.location,
+            'activeSection': $scope.data.activeSection,
+            'sensors': $scope.data.sensors,
+    
             'sensor': $scope.data.sensor,
             'source': $scope.data.source,
+
             'multiclass': $scope.data.multiclass,             
         };
-        if ($scope.data.source === "I2C") {
+        if ($scope.data.source === "LDSU") {
+            console.log("viewLDSUDevice");
+            $state.go('viewLDSUDevice', device_param);
+        }
+        else if ($scope.data.source === "I2C") {
             console.log("viewI2CDevice");
             $state.go('viewI2CDevice', device_param);
         }
@@ -10356,7 +16164,13 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             $state.go('multiclass', device_param);
         }
         else {
-            if ($scope.data.source === "I2C") {
+            if ($scope.data.source === "LDSU") {
+                device_param.location = $scope.data.location;
+                device_param.activeSection = $scope.data.activeSection;
+                device_param.sensors = $scope.data.sensors;
+                $state.go('sensors', device_param);
+            }
+            else if ($scope.data.source === "I2C") {
                $state.go('deviceI2C', device_param);
             }
             else if ($scope.data.source === "ADC") {
@@ -10375,6 +16189,2580 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         console.log("changeMode");
         get_devices(false);    
     };    
+    
+    $scope.changeOpmode = function() {
+        console.log("changeOpmode " + $scope.data.attributes.opmode);
+    };
+    
+    $scope.submitRefresh();  
+}])
+   
+.controller('humidityCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', 'Devices', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+// You can include any angular dependencies as parameters for this function
+// TIP: Access Route Parameters for your page via $stateParams.parameterName
+function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token, Devices) {
+
+    var server = Server.rest_api;
+
+    $scope.classname = "humidity";
+
+    $scope.modes = [
+        { "id":0,  "label": "Single Threshold"  },
+        { "id":1,  "label": "Dual Threshold"  },
+        { "id":2,  "label": "Continuous" },
+    ];
+
+    $scope.activates = [
+        { "id":0,  "label": "Out of range" },
+        { "id":1,  "label": "Within range" },
+    ];
+    
+    $scope.alerts = [
+        { "id":0,  "label": "Once"         },
+        { "id":1,  "label": "Continuously" },
+    ];    
+    
+    $scope.devices = [ {"id":0, "devicename": ""} ];
+    
+    $scope.data = {
+        'username': User.get_username(),
+        'token': User.get_token(),
+        'devicename': $stateParams.devicename,
+        'devicestatus': $stateParams.devicestatus,
+        'deviceid': $stateParams.deviceid,
+        'serialnumber': $stateParams.serialnumber,
+
+        'location': $stateParams.location,
+        'activeSection': $stateParams.activeSection,
+        'sensors': $stateParams.sensors,        
+        
+        'sensor': $stateParams.sensor,
+        'source': $stateParams.source,
+        'hardware_devicename': $scope.devices[0].id,
+        
+        'attributes': {
+            'opmode': 0,
+            'mode': $scope.modes[0].id,
+            'threshold': {
+                'value': parseInt($stateParams.sensor.minmax[1], 10),
+                'min': parseInt($stateParams.sensor.minmax[0], 10),
+                'max': parseInt($stateParams.sensor.minmax[1], 10),
+                'activate': $scope.activates[0].id,
+            },
+            'alert': {
+                'type': $scope.alerts[0].id,
+                'period': 60000,
+            },
+            'hardware': {
+                'devicename': '',  
+            },
+            
+            'notification': {
+                'messages': [ 
+                    { 
+                        'message': 'Hello World!', 
+                        'enable': true 
+                    },
+                    { 
+                        'message': 'Hi World!', 
+                        'enable': false 
+                    },
+                ],
+                'endpoints' : {
+                    'mobile': {
+                        'enable': false,
+                        'recipients': '',
+                    },
+                    'email': {
+                        'enable': false,
+                        'recipients': '',
+                    },
+                    'notification': {
+                        'enable': false,
+                        'recipients': '',
+                    },
+                    'modem': {
+                        'enable': false,
+                        'recipients': '',
+                    },
+                    'storage': {
+                        'enable': false,
+                        'recipients': '',
+                    },
+                }
+            }
+        },
+        
+        'showNotification': 0,  
+        
+        // support for multiclasses
+        //'multiclass_attributes': $stateParams.multiclass_attributes,
+        //'multiclass_subattributes': $stateParams.multiclass_subattributes,
+        'multiclass': $stateParams.multiclass
+    };
+
+    handle_error = function(error, showerror) {
+        if (error.data !== null) {
+            console.log("ERROR: " + $scope.classname + " failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
+
+            if (error.data.message === "Token expired") {
+                Token.refresh({'username': $scope.data.username, 'token': $scope.data.token});
+                $scope.data.token = User.get_token();
+            }
+            
+            if (error.status == 503 && showerror === true ) {
+                $ionicPopup.alert({ title: 'Error', template: 'Device is unreachable!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+            }            
+            else if (error.status === 401) {
+                $ionicPopup.alert({ title: 'Error', template: error.data.message, buttons: [{text: 'OK', type: 'button-assertive'}] });
+            }
+        }
+        else {
+            console.log("ERROR: Server is down!"); 
+            $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+        }
+    };
+
+    $scope.changeNotification = function(i) {
+        $scope.data.showNotification = i;
+        if (i===true) {
+            get_devices(false);    
+        }    
+    };
+    
+    
+    $scope.submitRefresh = function() {
+        console.log("submitRefresh");
+        console.log($scope.data.attributes);
+        get_devices(true); 
+    };
+
+    get_xxx_device_properties = function(peripheral) {
+        //
+        // GET xxx DEVICE PROPERTIES
+        //
+        // - Request:
+        //   GET /devices/device/<devicename>/<peripheral>/<number>/sensors/sensor/<sensorname>/properties
+        //   headers: { 'Authorization': 'Bearer ' + token.access }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string }
+        //   { 'status': 'NG', 'message': string }        
+        //
+        $http({
+            method: 'GET',
+            url: server + '/devices/device/' + $scope.data.devicename + '/' + peripheral + '/' + $scope.data.sensor.number.toString() + '/sensors/sensor/' + $scope.data.sensor.sensorname + '/properties',
+            headers: { 'Authorization': 'Bearer ' + $scope.data.token.access },
+        })
+        .then(function (result) {
+            console.log(result.data);
+            if (result.data.value !== undefined) {
+                if (result.data.value.subattributes === undefined) {
+                    if (result.data.value.threshold !== undefined) {
+                        $scope.data.attributes = result.data.value;
+                        
+                        $scope.data.hardware_devicename = 0;
+                        let indexy = 0;
+
+                        if ($scope.data.attributes.mode != 2) {
+                            // SINGLE/DUAL THRESHOLD modes - use notification.endpoints.modem.recipients
+                            for (indexy=0; indexy<$scope.devices.length; indexy++) {
+                                if ($scope.devices[indexy].devicename === $scope.data.attributes.notification.endpoints.modem.recipients) {
+                                    $scope.data.hardware_devicename = indexy;
+                                    break;
+                                }
+                            }
+                        }
+                        else {
+                            // CONTINUOUS mode - use hardware.devicename
+                            for (indexy=0; indexy<$scope.devices.length; indexy++) {
+                                if ($scope.devices[indexy].devicename === $scope.data.attributes.hardware.devicename) {
+                                    $scope.data.hardware_devicename = indexy;
+                                    break;
+                                }
+                            }
+                            $scope.data.attributes.alert.type = 1; // always be continuous
+                        }                        
+                    }
+                    else {
+                        $scope.data.attributes.notification = result.data.value.notification;
+                    }
+                }
+                /*
+                else {
+                    if (result.data.value.subattributes.threshold !== undefined) {
+                        $scope.data.attributes = result.data.value.subattributes;
+                        
+                        $scope.data.hardware_devicename = 0;
+                        let indexy = 0;
+                        
+                        if ($scope.data.attributes.mode != 2) {
+                            // SINGLE/DUAL THRESHOLD modes - use notification.endpoints.modem.recipients
+                            for (indexy=0; indexy<$scope.devices.length; indexy++) {
+                                if ($scope.devices[indexy].devicename === $scope.data.attributes.notification.endpoints.modem.recipients) {
+                                    $scope.data.hardware_devicename = indexy;
+                                    break;
+                                }
+                            }
+                        }
+                        else {
+                            // CONTINUOUS mode - use hardware.devicename
+                            for (indexy=0; indexy<$scope.devices.length; indexy++) {
+                                if ($scope.devices[indexy].devicename === $scope.data.attributes.hardware.devicename) {
+                                    $scope.data.hardware_devicename = indexy;
+                                    break;
+                                }
+                            }
+                            $scope.data.attributes.alert.type = 1; // always be continuous
+                        }                        
+                    }
+                    else {
+                        $scope.data.attributes.notification = result.data.value.subattributes.notification;
+                    }
+                    
+                    if ($scope.data.sensor.class === "vOCGas") {
+                        $scope.data.multiclass.attributes = $scope.data.attributes;
+                    }
+                    else if ($scope.data.sensor.subclass === "vOCGas") {
+                        $scope.data.multiclass.subattributes = $scope.data.attributes;
+                    }
+                }
+                */
+            }
+        })
+        .catch(function (error) {
+            handle_error(error, true);
+        }); 
+    };
+
+    set_xxx_device_properties = function(peripheral) {
+        //
+        // SET XXX DEVICE PROPERTIES
+        //
+        // - Request:
+        //   POST /devices/device/<devicename>/i2c/<number>/sensors/sensor/<sensorname>/properties
+        //   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
+        //   data: 
+        //   { 
+        //   }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string }
+        //   { 'status': 'NG', 'message': string }        
+        //
+        $http({
+            method: 'POST',
+            url: server + '/devices/device/' + $scope.data.devicename + '/' + peripheral + '/' + $scope.data.sensor.number.toString() + '/sensors/sensor/' + $scope.data.sensor.sensorname + '/properties',
+            headers: { 'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json' },
+            data: $scope.data.attributes
+        })
+        .then(function (result) {
+            console.log(result.data);
+            $ionicPopup.alert({
+                title: peripheral.toUpperCase() + ' device',
+                template: $scope.data.sensor.sensorname + ' was configured successfully!',
+            });            
+        })
+        .catch(function (error) {
+            handle_error(error, true);
+        }); 
+    };
+    
+    
+    
+    $scope.submitDelete = function() {
+        console.log("submitDelete");
+        $scope.delete_xxx_device_properties($scope.data.sensor.source);
+    };
+    
+    $scope.delete_xxx_device_properties = function(peripheral) {
+        //
+        // DELETE XXX DEVICE PROPERTIES
+        //
+        // - Request:
+        //   DELETE /devices/device/<devicename>/i2c/<number>/sensors/sensor/<sensorname>/properties
+        //   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
+        //   data: 
+        //   { 
+        //   }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string }
+        //   { 'status': 'NG', 'message': string }        
+        //
+        $http({
+            method: 'DELETE',
+            url: server + '/devices/device/' + $scope.data.devicename + '/' + peripheral + '/' + $scope.data.sensor.number.toString() + '/sensors/sensor/' + $scope.data.sensor.sensorname + '/properties',
+            headers: { 'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json' },
+            data: $scope.data.attributes
+        })
+        .then(function (result) {
+            console.log(result.data);
+            $ionicPopup.alert({
+                title: peripheral.toUpperCase() + ' device',
+                template: $scope.data.sensor.sensorname + ' configuration was deleted successfully!',
+            });            
+            get_xxx_device_properties(peripheral);
+        })
+        .catch(function (error) {
+            handle_error(error, true);
+        }); 
+    };
+    
+    $scope.submit = function() {
+        console.log("submit");
+        console.log($scope.data.attributes);
+        if ($scope.data.hardware_devicename >= $scope.devices.length) {
+            return;
+        }
+        if ($scope.data.attributes.mode!=2) {
+            // SINGLE/DUAL THRESHOLD modes
+            $scope.data.attributes.notification.endpoints.modem.recipients = $scope.devices[$scope.data.hardware_devicename].devicename;
+        }
+        else {
+            // CONTINUOUS mode
+            $scope.data.attributes.hardware.devicename = $scope.devices[$scope.data.hardware_devicename].devicename;
+        }
+        
+        
+        if ($scope.data.sensor.subclass !== undefined) {
+            var classname = $scope.classname;
+            
+            // support for multiclasses
+            var param = {
+                'username': $scope.data.username,
+                'token': $scope.data.token,
+                'devicename': $scope.data.devicename,
+                'devicestatus': $scope.data.devicestatus,
+                'deviceid': $scope.data.deviceid,
+                'serialnumber': $scope.data.serialnumber,
+                'sensor': $scope.data.sensor,
+                'source': $scope.data.source,
+                'multiclass': $scope.data.multiclass,             
+            };
+
+            if ($scope.data.sensor.class === classname) {
+                param.multiclass.attributes = $scope.data.attributes;
+            }
+            else if ($scope.data.sensor.subclass === classname) {
+                param.multiclass.subattributes = $scope.data.attributes;
+            }
+            $state.go('multiclass', param, {reload: true});
+        }
+        else {
+            
+            // Add prompt when setting properties
+            $ionicPopup.alert({ title: 'Set Properties', template: 'Are you sure you want to set this properties?',
+                buttons: [
+                    { text: 'No', type: 'button-assertive', },
+                    { text: 'Yes', type: 'button-positive',
+                        onTap: function(e) {
+                            
+                            if ($scope.data.source === "LDSU") {
+                                set_xxx_device_properties($scope.data.sensor.source);
+                            }
+                            else if ($scope.data.source === "I2C") {
+                                set_xxx_device_properties("i2c");
+                            }
+                            else if ($scope.data.source === "TPROBE") {
+                                set_xxx_device_properties("tprobe");
+                            }
+                            else if ($scope.data.source === "1WIRE") {
+                                set_xxx_device_properties("1wire");
+                            }
+                        }
+                    }
+                ]            
+            });
+        }
+    };
+
+
+
+    get_devices = function(flag) {
+        
+        param = {
+            'username': $scope.data.username,
+            'token': $scope.data.token     
+        };
+        
+        // Fetch devices
+        Devices.fetch(param, "").then(function(res) {
+            $scope.devices = res;
+            
+            let indexy = 0;
+            for (indexy=0; indexy<$scope.devices.length; indexy++) {
+                $scope.devices[indexy].id = indexy;
+            }
+            
+            console.log($scope.devices);
+            $scope.data.token = User.get_token();
+            
+            if (flag) {
+                if ($scope.data.source === "LDSU") {
+                    get_xxx_device_properties($scope.data.sensor.source);
+                }
+                else if ($scope.data.source === "I2C") {
+                    get_xxx_device_properties("i2c");
+                }
+                else if ($scope.data.source === "ADC") {
+                    get_xxx_device_properties("adc");
+                }
+                else if ($scope.data.source === "TPROBE") {
+                    get_xxx_device_properties("tprobe");
+                }
+                else if ($scope.data.source === "1WIRE") {
+                    get_xxx_device_properties("1wire");
+                }
+            }
+        });
+    };
+
+    // VIEW I2C DEVICE
+    $scope.viewXXXDevice = function() {
+        var device_param = {
+            'username': $scope.data.username,
+            'token': $scope.data.token,
+            'devicename': $scope.data.devicename,
+            'devicestatus': $scope.data.devicestatus,
+            'deviceid': $scope.data.deviceid,
+            'serialnumber': $scope.data.serialnumber,
+    
+            'location': $scope.data.location,
+            'activeSection': $scope.data.activeSection,
+            'sensors': $scope.data.sensors,
+    
+            'sensor': $scope.data.sensor,
+            'source': $scope.data.source,
+
+            'multiclass': $scope.data.multiclass,             
+        };
+        if ($scope.data.source === "LDSU") {
+            console.log("viewLDSUDevice");
+            $state.go('viewLDSUDevice', device_param);
+        }
+        else if ($scope.data.source === "I2C") {
+            console.log("viewI2CDevice");
+            $state.go('viewI2CDevice', device_param);
+        }
+        else if ($scope.data.source === "ADC") {
+            console.log("viewADCDevice");
+            $state.go('viewADCDevice', device_param);
+        }
+        else if ($scope.data.source === "TPROBE") {
+            console.log("viewTPROBEDevice");
+            $state.go('viewTPROBEDevice', device_param);
+        }
+        else if ($scope.data.source === "1WIRE") {
+            console.log("view1WIREDevice");
+            $state.go('view1WIREDevice', device_param);
+        }
+    };
+
+    // EXIT PAGE
+    $scope.submitDeviceList = function() {
+        console.log("submitDeviceList");
+        var device_param = {
+            'username': $scope.data.username,
+            'token': $scope.data.token,
+            'devicename': $scope.data.devicename,
+            'devicestatus': $scope.data.devicestatus,
+            'deviceid': $scope.data.deviceid,
+            'serialnumber': $scope.data.serialnumber,
+        };
+        
+        if ($scope.data.sensor.subclass !== undefined) {
+            device_param.sensor = $scope.data.sensor;
+            device_param.source = $scope.data.source;
+            device_param.multiclass = $scope.data.multiclass;
+            $state.go('multiclass', device_param);
+        }
+        else {
+            if ($scope.data.source === "LDSU") {
+                device_param.location = $scope.data.location;
+                device_param.activeSection = $scope.data.activeSection;
+                device_param.sensors = $scope.data.sensors;
+                $state.go('sensors', device_param);
+            }
+            else if ($scope.data.source === "I2C") {
+               $state.go('deviceI2C', device_param);
+            }
+            else if ($scope.data.source === "ADC") {
+               $state.go('deviceADC', device_param);
+            }
+            else if ($scope.data.source === "TPROBE") {
+               $state.go('deviceTPROBE', device_param);
+            }
+            else if ($scope.data.source === "1WIRE") {
+               $state.go('device1WIRE', device_param);
+            }
+        }
+    };
+    
+    $scope.changeMode = function() {
+        console.log("changeMode");
+        get_devices(false);    
+    };    
+    
+    $scope.changeOpmode = function() {
+        console.log("changeOpmode " + $scope.data.attributes.opmode);
+    };
+    
+    $scope.submitRefresh();  
+}])
+   
+.controller('ambientLightCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', 'Devices', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+// You can include any angular dependencies as parameters for this function
+// TIP: Access Route Parameters for your page via $stateParams.parameterName
+function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token, Devices) {
+
+    var server = Server.rest_api;
+
+    $scope.classname = "ambient light";
+
+    $scope.modes = [
+        { "id":0,  "label": "Single Threshold"  },
+        { "id":1,  "label": "Dual Threshold"  },
+        { "id":2,  "label": "Continuous" },
+    ];
+
+    $scope.activates = [
+        { "id":0,  "label": "Out of range" },
+        { "id":1,  "label": "Within range" },
+    ];
+    
+    $scope.alerts = [
+        { "id":0,  "label": "Once"         },
+        { "id":1,  "label": "Continuously" },
+    ];    
+    
+    $scope.devices = [ {"id":0, "devicename": ""} ];
+    
+    $scope.data = {
+        'username': User.get_username(),
+        'token': User.get_token(),
+        'devicename': $stateParams.devicename,
+        'devicestatus': $stateParams.devicestatus,
+        'deviceid': $stateParams.deviceid,
+        'serialnumber': $stateParams.serialnumber,
+
+        'location': $stateParams.location,
+        'activeSection': $stateParams.activeSection,
+        'sensors': $stateParams.sensors,        
+        
+        'sensor': $stateParams.sensor,
+        'source': $stateParams.source,
+        'hardware_devicename': $scope.devices[0].id,
+        
+        'attributes': {
+            'opmode': 0,
+            'mode': $scope.modes[0].id,
+            'threshold': {
+                'value': parseInt($stateParams.sensor.minmax[1], 10),
+                'min': parseInt($stateParams.sensor.minmax[0], 10),
+                'max': parseInt($stateParams.sensor.minmax[1], 10),
+                'activate': $scope.activates[0].id,
+            },
+            'alert': {
+                'type': $scope.alerts[0].id,
+                'period': 60000,
+            },
+            'hardware': {
+                'devicename': '',  
+            },
+            
+            'notification': {
+                'messages': [ 
+                    { 
+                        'message': 'Hello World!', 
+                        'enable': true 
+                    },
+                    { 
+                        'message': 'Hi World!', 
+                        'enable': false 
+                    },
+                ],
+                'endpoints' : {
+                    'mobile': {
+                        'enable': false,
+                        'recipients': '',
+                    },
+                    'email': {
+                        'enable': false,
+                        'recipients': '',
+                    },
+                    'notification': {
+                        'enable': false,
+                        'recipients': '',
+                    },
+                    'modem': {
+                        'enable': false,
+                        'recipients': '',
+                    },
+                    'storage': {
+                        'enable': false,
+                        'recipients': '',
+                    },
+                }
+            }
+        },
+        
+        'showNotification': 0,  
+        
+        // support for multiclasses
+        //'multiclass_attributes': $stateParams.multiclass_attributes,
+        //'multiclass_subattributes': $stateParams.multiclass_subattributes,
+        'multiclass': $stateParams.multiclass
+    };
+
+    handle_error = function(error, showerror) {
+        if (error.data !== null) {
+            console.log("ERROR: " + $scope.classname + " failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
+
+            if (error.data.message === "Token expired") {
+                Token.refresh({'username': $scope.data.username, 'token': $scope.data.token});
+                $scope.data.token = User.get_token();
+            }
+            
+            if (error.status == 503 && showerror === true ) {
+                $ionicPopup.alert({ title: 'Error', template: 'Device is unreachable!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+            }            
+            else if (error.status === 401) {
+                $ionicPopup.alert({ title: 'Error', template: error.data.message, buttons: [{text: 'OK', type: 'button-assertive'}] });
+            }
+        }
+        else {
+            console.log("ERROR: Server is down!"); 
+            $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+        }
+    };
+
+    $scope.changeNotification = function(i) {
+        $scope.data.showNotification = i;
+        if (i===true) {
+            get_devices(false);    
+        }    
+    };
+    
+    
+    $scope.submitRefresh = function() {
+        console.log("submitRefresh");
+        console.log($scope.data.attributes);
+        get_devices(true); 
+    };
+
+    get_xxx_device_properties = function(peripheral) {
+        //
+        // GET xxx DEVICE PROPERTIES
+        //
+        // - Request:
+        //   GET /devices/device/<devicename>/<peripheral>/<number>/sensors/sensor/<sensorname>/properties
+        //   headers: { 'Authorization': 'Bearer ' + token.access }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string }
+        //   { 'status': 'NG', 'message': string }        
+        //
+        $http({
+            method: 'GET',
+            url: server + '/devices/device/' + $scope.data.devicename + '/' + peripheral + '/' + $scope.data.sensor.number.toString() + '/sensors/sensor/' + $scope.data.sensor.sensorname + '/properties',
+            headers: { 'Authorization': 'Bearer ' + $scope.data.token.access },
+        })
+        .then(function (result) {
+            console.log(result.data);
+            if (result.data.value !== undefined) {
+                if (result.data.value.subattributes === undefined) {
+                    if (result.data.value.threshold !== undefined) {
+                        $scope.data.attributes = result.data.value;
+                        
+                        $scope.data.hardware_devicename = 0;
+                        let indexy = 0;
+
+                        if ($scope.data.attributes.mode != 2) {
+                            // SINGLE/DUAL THRESHOLD modes - use notification.endpoints.modem.recipients
+                            for (indexy=0; indexy<$scope.devices.length; indexy++) {
+                                if ($scope.devices[indexy].devicename === $scope.data.attributes.notification.endpoints.modem.recipients) {
+                                    $scope.data.hardware_devicename = indexy;
+                                    break;
+                                }
+                            }
+                        }
+                        else {
+                            // CONTINUOUS mode - use hardware.devicename
+                            for (indexy=0; indexy<$scope.devices.length; indexy++) {
+                                if ($scope.devices[indexy].devicename === $scope.data.attributes.hardware.devicename) {
+                                    $scope.data.hardware_devicename = indexy;
+                                    break;
+                                }
+                            }
+                            $scope.data.attributes.alert.type = 1; // always be continuous
+                        }                        
+                    }
+                    else {
+                        $scope.data.attributes.notification = result.data.value.notification;
+                    }
+                }
+                /*
+                else {
+                    if (result.data.value.subattributes.threshold !== undefined) {
+                        $scope.data.attributes = result.data.value.subattributes;
+                        
+                        $scope.data.hardware_devicename = 0;
+                        let indexy = 0;
+                        
+                        if ($scope.data.attributes.mode != 2) {
+                            // SINGLE/DUAL THRESHOLD modes - use notification.endpoints.modem.recipients
+                            for (indexy=0; indexy<$scope.devices.length; indexy++) {
+                                if ($scope.devices[indexy].devicename === $scope.data.attributes.notification.endpoints.modem.recipients) {
+                                    $scope.data.hardware_devicename = indexy;
+                                    break;
+                                }
+                            }
+                        }
+                        else {
+                            // CONTINUOUS mode - use hardware.devicename
+                            for (indexy=0; indexy<$scope.devices.length; indexy++) {
+                                if ($scope.devices[indexy].devicename === $scope.data.attributes.hardware.devicename) {
+                                    $scope.data.hardware_devicename = indexy;
+                                    break;
+                                }
+                            }
+                            $scope.data.attributes.alert.type = 1; // always be continuous
+                        }                        
+                    }
+                    else {
+                        $scope.data.attributes.notification = result.data.value.subattributes.notification;
+                    }
+                    
+                    if ($scope.data.sensor.class === "vOCGas") {
+                        $scope.data.multiclass.attributes = $scope.data.attributes;
+                    }
+                    else if ($scope.data.sensor.subclass === "vOCGas") {
+                        $scope.data.multiclass.subattributes = $scope.data.attributes;
+                    }
+                }
+                */
+            }
+        })
+        .catch(function (error) {
+            handle_error(error, true);
+        }); 
+    };
+
+    set_xxx_device_properties = function(peripheral) {
+        //
+        // SET XXX DEVICE PROPERTIES
+        //
+        // - Request:
+        //   POST /devices/device/<devicename>/i2c/<number>/sensors/sensor/<sensorname>/properties
+        //   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
+        //   data: 
+        //   { 
+        //   }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string }
+        //   { 'status': 'NG', 'message': string }        
+        //
+        $http({
+            method: 'POST',
+            url: server + '/devices/device/' + $scope.data.devicename + '/' + peripheral + '/' + $scope.data.sensor.number.toString() + '/sensors/sensor/' + $scope.data.sensor.sensorname + '/properties',
+            headers: { 'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json' },
+            data: $scope.data.attributes
+        })
+        .then(function (result) {
+            console.log(result.data);
+            $ionicPopup.alert({
+                title: peripheral.toUpperCase() + ' device',
+                template: $scope.data.sensor.sensorname + ' was configured successfully!',
+            });            
+        })
+        .catch(function (error) {
+            handle_error(error, true);
+        }); 
+    };
+    
+    
+    
+    $scope.submitDelete = function() {
+        console.log("submitDelete");
+        $scope.delete_xxx_device_properties($scope.data.sensor.source);
+    };
+    
+    $scope.delete_xxx_device_properties = function(peripheral) {
+        //
+        // DELETE XXX DEVICE PROPERTIES
+        //
+        // - Request:
+        //   DELETE /devices/device/<devicename>/i2c/<number>/sensors/sensor/<sensorname>/properties
+        //   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
+        //   data: 
+        //   { 
+        //   }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string }
+        //   { 'status': 'NG', 'message': string }        
+        //
+        $http({
+            method: 'DELETE',
+            url: server + '/devices/device/' + $scope.data.devicename + '/' + peripheral + '/' + $scope.data.sensor.number.toString() + '/sensors/sensor/' + $scope.data.sensor.sensorname + '/properties',
+            headers: { 'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json' },
+            data: $scope.data.attributes
+        })
+        .then(function (result) {
+            console.log(result.data);
+            $ionicPopup.alert({
+                title: peripheral.toUpperCase() + ' device',
+                template: $scope.data.sensor.sensorname + ' configuration was deleted successfully!',
+            });            
+            get_xxx_device_properties(peripheral);
+        })
+        .catch(function (error) {
+            handle_error(error, true);
+        }); 
+    };
+    
+    $scope.submit = function() {
+        console.log("submit");
+        console.log($scope.data.attributes);
+        if ($scope.data.hardware_devicename >= $scope.devices.length) {
+            return;
+        }
+        if ($scope.data.attributes.mode!=2) {
+            // SINGLE/DUAL THRESHOLD modes
+            $scope.data.attributes.notification.endpoints.modem.recipients = $scope.devices[$scope.data.hardware_devicename].devicename;
+        }
+        else {
+            // CONTINUOUS mode
+            $scope.data.attributes.hardware.devicename = $scope.devices[$scope.data.hardware_devicename].devicename;
+        }
+        
+        
+        if ($scope.data.sensor.subclass !== undefined) {
+            var classname = $scope.classname;
+            
+            // support for multiclasses
+            var param = {
+                'username': $scope.data.username,
+                'token': $scope.data.token,
+                'devicename': $scope.data.devicename,
+                'devicestatus': $scope.data.devicestatus,
+                'deviceid': $scope.data.deviceid,
+                'serialnumber': $scope.data.serialnumber,
+                'sensor': $scope.data.sensor,
+                'source': $scope.data.source,
+                'multiclass': $scope.data.multiclass,             
+            };
+
+            if ($scope.data.sensor.class === classname) {
+                param.multiclass.attributes = $scope.data.attributes;
+            }
+            else if ($scope.data.sensor.subclass === classname) {
+                param.multiclass.subattributes = $scope.data.attributes;
+            }
+            $state.go('multiclass', param, {reload: true});
+        }
+        else {
+            
+            // Add prompt when setting properties
+            $ionicPopup.alert({ title: 'Set Properties', template: 'Are you sure you want to set this properties?',
+                buttons: [
+                    { text: 'No', type: 'button-assertive', },
+                    { text: 'Yes', type: 'button-positive',
+                        onTap: function(e) {
+                            
+                            if ($scope.data.source === "LDSU") {
+                                set_xxx_device_properties($scope.data.sensor.source);
+                            }
+                            else if ($scope.data.source === "I2C") {
+                                set_xxx_device_properties("i2c");
+                            }
+                            else if ($scope.data.source === "TPROBE") {
+                                set_xxx_device_properties("tprobe");
+                            }
+                            else if ($scope.data.source === "1WIRE") {
+                                set_xxx_device_properties("1wire");
+                            }
+                        }
+                    }
+                ]            
+            });
+        }
+    };
+
+
+
+    get_devices = function(flag) {
+        
+        param = {
+            'username': $scope.data.username,
+            'token': $scope.data.token     
+        };
+        
+        // Fetch devices
+        Devices.fetch(param, "").then(function(res) {
+            $scope.devices = res;
+            
+            let indexy = 0;
+            for (indexy=0; indexy<$scope.devices.length; indexy++) {
+                $scope.devices[indexy].id = indexy;
+            }
+            
+            console.log($scope.devices);
+            $scope.data.token = User.get_token();
+            
+            if (flag) {
+                if ($scope.data.source === "LDSU") {
+                    get_xxx_device_properties($scope.data.sensor.source);
+                }
+                else if ($scope.data.source === "I2C") {
+                    get_xxx_device_properties("i2c");
+                }
+                else if ($scope.data.source === "ADC") {
+                    get_xxx_device_properties("adc");
+                }
+                else if ($scope.data.source === "TPROBE") {
+                    get_xxx_device_properties("tprobe");
+                }
+                else if ($scope.data.source === "1WIRE") {
+                    get_xxx_device_properties("1wire");
+                }
+            }
+        });
+    };
+
+    // VIEW I2C DEVICE
+    $scope.viewXXXDevice = function() {
+        var device_param = {
+            'username': $scope.data.username,
+            'token': $scope.data.token,
+            'devicename': $scope.data.devicename,
+            'devicestatus': $scope.data.devicestatus,
+            'deviceid': $scope.data.deviceid,
+            'serialnumber': $scope.data.serialnumber,
+    
+            'location': $scope.data.location,
+            'activeSection': $scope.data.activeSection,
+            'sensors': $scope.data.sensors,
+    
+            'sensor': $scope.data.sensor,
+            'source': $scope.data.source,
+
+            'multiclass': $scope.data.multiclass,             
+        };
+        if ($scope.data.source === "LDSU") {
+            console.log("viewLDSUDevice");
+            $state.go('viewLDSUDevice', device_param);
+        }
+        else if ($scope.data.source === "I2C") {
+            console.log("viewI2CDevice");
+            $state.go('viewI2CDevice', device_param);
+        }
+        else if ($scope.data.source === "ADC") {
+            console.log("viewADCDevice");
+            $state.go('viewADCDevice', device_param);
+        }
+        else if ($scope.data.source === "TPROBE") {
+            console.log("viewTPROBEDevice");
+            $state.go('viewTPROBEDevice', device_param);
+        }
+        else if ($scope.data.source === "1WIRE") {
+            console.log("view1WIREDevice");
+            $state.go('view1WIREDevice', device_param);
+        }
+    };
+
+    // EXIT PAGE
+    $scope.submitDeviceList = function() {
+        console.log("submitDeviceList");
+        var device_param = {
+            'username': $scope.data.username,
+            'token': $scope.data.token,
+            'devicename': $scope.data.devicename,
+            'devicestatus': $scope.data.devicestatus,
+            'deviceid': $scope.data.deviceid,
+            'serialnumber': $scope.data.serialnumber,
+        };
+        
+        if ($scope.data.sensor.subclass !== undefined) {
+            device_param.sensor = $scope.data.sensor;
+            device_param.source = $scope.data.source;
+            device_param.multiclass = $scope.data.multiclass;
+            $state.go('multiclass', device_param);
+        }
+        else {
+            if ($scope.data.source === "LDSU") {
+                device_param.location = $scope.data.location;
+                device_param.activeSection = $scope.data.activeSection;
+                device_param.sensors = $scope.data.sensors;
+                $state.go('sensors', device_param);
+            }
+            else if ($scope.data.source === "I2C") {
+               $state.go('deviceI2C', device_param);
+            }
+            else if ($scope.data.source === "ADC") {
+               $state.go('deviceADC', device_param);
+            }
+            else if ($scope.data.source === "TPROBE") {
+               $state.go('deviceTPROBE', device_param);
+            }
+            else if ($scope.data.source === "1WIRE") {
+               $state.go('device1WIRE', device_param);
+            }
+        }
+    };
+    
+    $scope.changeMode = function() {
+        console.log("changeMode");
+        get_devices(false);    
+    };    
+    
+    $scope.changeOpmode = function() {
+        console.log("changeOpmode " + $scope.data.attributes.opmode);
+    };
+    
+    $scope.submitRefresh();  
+}])
+   
+.controller('motionDetectionCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', 'Devices', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+// You can include any angular dependencies as parameters for this function
+// TIP: Access Route Parameters for your page via $stateParams.parameterName
+function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token, Devices) {
+
+    var server = Server.rest_api;
+
+    $scope.classname = "motion detection";
+
+    $scope.modes = [
+        { "id":0,  "label": "Single Threshold"  },
+        { "id":1,  "label": "Dual Threshold"  },
+        { "id":2,  "label": "Continuous" },
+    ];
+
+    $scope.activates = [
+        { "id":0,  "label": "Out of range" },
+        { "id":1,  "label": "Within range" },
+    ];
+    
+    $scope.alerts = [
+        { "id":0,  "label": "Once"         },
+        { "id":1,  "label": "Continuously" },
+    ];    
+    
+    $scope.devices = [ {"id":0, "devicename": ""} ];
+    
+    $scope.data = {
+        'username': User.get_username(),
+        'token': User.get_token(),
+        'devicename': $stateParams.devicename,
+        'devicestatus': $stateParams.devicestatus,
+        'deviceid': $stateParams.deviceid,
+        'serialnumber': $stateParams.serialnumber,
+
+        'location': $stateParams.location,
+        'activeSection': $stateParams.activeSection,
+        'sensors': $stateParams.sensors,        
+        
+        'sensor': $stateParams.sensor,
+        'source': $stateParams.source,
+        'hardware_devicename': $scope.devices[0].id,
+        
+        'attributes': {
+            'opmode': 0,
+            'mode': $scope.modes[0].id,
+            'threshold': {
+                'value': parseInt($stateParams.sensor.minmax[1], 10),
+                'min': parseInt($stateParams.sensor.minmax[0], 10),
+                'max': parseInt($stateParams.sensor.minmax[1], 10),
+                'activate': $scope.activates[0].id,
+            },
+            'alert': {
+                'type': $scope.alerts[0].id,
+                'period': 60000,
+            },
+            'hardware': {
+                'devicename': '',  
+            },
+            
+            'notification': {
+                'messages': [ 
+                    { 
+                        'message': 'Hello World!', 
+                        'enable': true 
+                    },
+                    { 
+                        'message': 'Hi World!', 
+                        'enable': false 
+                    },
+                ],
+                'endpoints' : {
+                    'mobile': {
+                        'enable': false,
+                        'recipients': '',
+                    },
+                    'email': {
+                        'enable': false,
+                        'recipients': '',
+                    },
+                    'notification': {
+                        'enable': false,
+                        'recipients': '',
+                    },
+                    'modem': {
+                        'enable': false,
+                        'recipients': '',
+                    },
+                    'storage': {
+                        'enable': false,
+                        'recipients': '',
+                    },
+                }
+            }
+        },
+        
+        'showNotification': 0,  
+        
+        // support for multiclasses
+        //'multiclass_attributes': $stateParams.multiclass_attributes,
+        //'multiclass_subattributes': $stateParams.multiclass_subattributes,
+        'multiclass': $stateParams.multiclass
+    };
+
+    handle_error = function(error, showerror) {
+        if (error.data !== null) {
+            console.log("ERROR: " + $scope.classname + " failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
+
+            if (error.data.message === "Token expired") {
+                Token.refresh({'username': $scope.data.username, 'token': $scope.data.token});
+                $scope.data.token = User.get_token();
+            }
+            
+            if (error.status == 503 && showerror === true ) {
+                $ionicPopup.alert({ title: 'Error', template: 'Device is unreachable!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+            }            
+            else if (error.status === 401) {
+                $ionicPopup.alert({ title: 'Error', template: error.data.message, buttons: [{text: 'OK', type: 'button-assertive'}] });
+            }
+        }
+        else {
+            console.log("ERROR: Server is down!"); 
+            $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+        }
+    };
+
+    $scope.changeNotification = function(i) {
+        $scope.data.showNotification = i;
+        if (i===true) {
+            get_devices(false);    
+        }    
+    };
+    
+    
+    $scope.submitRefresh = function() {
+        console.log("submitRefresh");
+        console.log($scope.data.attributes);
+        get_devices(true); 
+    };
+
+    get_xxx_device_properties = function(peripheral) {
+        //
+        // GET xxx DEVICE PROPERTIES
+        //
+        // - Request:
+        //   GET /devices/device/<devicename>/<peripheral>/<number>/sensors/sensor/<sensorname>/properties
+        //   headers: { 'Authorization': 'Bearer ' + token.access }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string }
+        //   { 'status': 'NG', 'message': string }        
+        //
+        $http({
+            method: 'GET',
+            url: server + '/devices/device/' + $scope.data.devicename + '/' + peripheral + '/' + $scope.data.sensor.number.toString() + '/sensors/sensor/' + $scope.data.sensor.sensorname + '/properties',
+            headers: { 'Authorization': 'Bearer ' + $scope.data.token.access },
+        })
+        .then(function (result) {
+            console.log(result.data);
+            if (result.data.value !== undefined) {
+                if (result.data.value.subattributes === undefined) {
+                    if (result.data.value.threshold !== undefined) {
+                        $scope.data.attributes = result.data.value;
+                        
+                        $scope.data.hardware_devicename = 0;
+                        let indexy = 0;
+
+                        if ($scope.data.attributes.mode != 2) {
+                            // SINGLE/DUAL THRESHOLD modes - use notification.endpoints.modem.recipients
+                            for (indexy=0; indexy<$scope.devices.length; indexy++) {
+                                if ($scope.devices[indexy].devicename === $scope.data.attributes.notification.endpoints.modem.recipients) {
+                                    $scope.data.hardware_devicename = indexy;
+                                    break;
+                                }
+                            }
+                        }
+                        else {
+                            // CONTINUOUS mode - use hardware.devicename
+                            for (indexy=0; indexy<$scope.devices.length; indexy++) {
+                                if ($scope.devices[indexy].devicename === $scope.data.attributes.hardware.devicename) {
+                                    $scope.data.hardware_devicename = indexy;
+                                    break;
+                                }
+                            }
+                            $scope.data.attributes.alert.type = 1; // always be continuous
+                        }                        
+                    }
+                    else {
+                        $scope.data.attributes.notification = result.data.value.notification;
+                    }
+                }
+                /*
+                else {
+                    if (result.data.value.subattributes.threshold !== undefined) {
+                        $scope.data.attributes = result.data.value.subattributes;
+                        
+                        $scope.data.hardware_devicename = 0;
+                        let indexy = 0;
+                        
+                        if ($scope.data.attributes.mode != 2) {
+                            // SINGLE/DUAL THRESHOLD modes - use notification.endpoints.modem.recipients
+                            for (indexy=0; indexy<$scope.devices.length; indexy++) {
+                                if ($scope.devices[indexy].devicename === $scope.data.attributes.notification.endpoints.modem.recipients) {
+                                    $scope.data.hardware_devicename = indexy;
+                                    break;
+                                }
+                            }
+                        }
+                        else {
+                            // CONTINUOUS mode - use hardware.devicename
+                            for (indexy=0; indexy<$scope.devices.length; indexy++) {
+                                if ($scope.devices[indexy].devicename === $scope.data.attributes.hardware.devicename) {
+                                    $scope.data.hardware_devicename = indexy;
+                                    break;
+                                }
+                            }
+                            $scope.data.attributes.alert.type = 1; // always be continuous
+                        }                        
+                    }
+                    else {
+                        $scope.data.attributes.notification = result.data.value.subattributes.notification;
+                    }
+                    
+                    if ($scope.data.sensor.class === "vOCGas") {
+                        $scope.data.multiclass.attributes = $scope.data.attributes;
+                    }
+                    else if ($scope.data.sensor.subclass === "vOCGas") {
+                        $scope.data.multiclass.subattributes = $scope.data.attributes;
+                    }
+                }
+                */
+            }
+        })
+        .catch(function (error) {
+            handle_error(error, true);
+        }); 
+    };
+
+    set_xxx_device_properties = function(peripheral) {
+        //
+        // SET XXX DEVICE PROPERTIES
+        //
+        // - Request:
+        //   POST /devices/device/<devicename>/i2c/<number>/sensors/sensor/<sensorname>/properties
+        //   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
+        //   data: 
+        //   { 
+        //   }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string }
+        //   { 'status': 'NG', 'message': string }        
+        //
+        $http({
+            method: 'POST',
+            url: server + '/devices/device/' + $scope.data.devicename + '/' + peripheral + '/' + $scope.data.sensor.number.toString() + '/sensors/sensor/' + $scope.data.sensor.sensorname + '/properties',
+            headers: { 'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json' },
+            data: $scope.data.attributes
+        })
+        .then(function (result) {
+            console.log(result.data);
+            $ionicPopup.alert({
+                title: peripheral.toUpperCase() + ' device',
+                template: $scope.data.sensor.sensorname + ' was configured successfully!',
+            });            
+        })
+        .catch(function (error) {
+            handle_error(error, true);
+        }); 
+    };
+    
+    
+    
+    $scope.submitDelete = function() {
+        console.log("submitDelete");
+        $scope.delete_xxx_device_properties($scope.data.sensor.source);
+    };
+    
+    $scope.delete_xxx_device_properties = function(peripheral) {
+        //
+        // DELETE XXX DEVICE PROPERTIES
+        //
+        // - Request:
+        //   DELETE /devices/device/<devicename>/i2c/<number>/sensors/sensor/<sensorname>/properties
+        //   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
+        //   data: 
+        //   { 
+        //   }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string }
+        //   { 'status': 'NG', 'message': string }        
+        //
+        $http({
+            method: 'DELETE',
+            url: server + '/devices/device/' + $scope.data.devicename + '/' + peripheral + '/' + $scope.data.sensor.number.toString() + '/sensors/sensor/' + $scope.data.sensor.sensorname + '/properties',
+            headers: { 'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json' },
+            data: $scope.data.attributes
+        })
+        .then(function (result) {
+            console.log(result.data);
+            $ionicPopup.alert({
+                title: peripheral.toUpperCase() + ' device',
+                template: $scope.data.sensor.sensorname + ' configuration was deleted successfully!',
+            });            
+            get_xxx_device_properties(peripheral);
+        })
+        .catch(function (error) {
+            handle_error(error, true);
+        }); 
+    };
+    
+    $scope.submit = function() {
+        console.log("submit");
+        console.log($scope.data.attributes);
+        if ($scope.data.hardware_devicename >= $scope.devices.length) {
+            return;
+        }
+        if ($scope.data.attributes.mode!=2) {
+            // SINGLE/DUAL THRESHOLD modes
+            $scope.data.attributes.notification.endpoints.modem.recipients = $scope.devices[$scope.data.hardware_devicename].devicename;
+        }
+        else {
+            // CONTINUOUS mode
+            $scope.data.attributes.hardware.devicename = $scope.devices[$scope.data.hardware_devicename].devicename;
+        }
+        
+        
+        if ($scope.data.sensor.subclass !== undefined) {
+            var classname = $scope.classname;
+            
+            // support for multiclasses
+            var param = {
+                'username': $scope.data.username,
+                'token': $scope.data.token,
+                'devicename': $scope.data.devicename,
+                'devicestatus': $scope.data.devicestatus,
+                'deviceid': $scope.data.deviceid,
+                'serialnumber': $scope.data.serialnumber,
+                'sensor': $scope.data.sensor,
+                'source': $scope.data.source,
+                'multiclass': $scope.data.multiclass,             
+            };
+
+            if ($scope.data.sensor.class === classname) {
+                param.multiclass.attributes = $scope.data.attributes;
+            }
+            else if ($scope.data.sensor.subclass === classname) {
+                param.multiclass.subattributes = $scope.data.attributes;
+            }
+            $state.go('multiclass', param, {reload: true});
+        }
+        else {
+            
+            // Add prompt when setting properties
+            $ionicPopup.alert({ title: 'Set Properties', template: 'Are you sure you want to set this properties?',
+                buttons: [
+                    { text: 'No', type: 'button-assertive', },
+                    { text: 'Yes', type: 'button-positive',
+                        onTap: function(e) {
+                            
+                            if ($scope.data.source === "LDSU") {
+                                set_xxx_device_properties($scope.data.sensor.source);
+                            }
+                            else if ($scope.data.source === "I2C") {
+                                set_xxx_device_properties("i2c");
+                            }
+                            else if ($scope.data.source === "TPROBE") {
+                                set_xxx_device_properties("tprobe");
+                            }
+                            else if ($scope.data.source === "1WIRE") {
+                                set_xxx_device_properties("1wire");
+                            }
+                        }
+                    }
+                ]            
+            });
+        }
+    };
+
+
+
+    get_devices = function(flag) {
+        
+        param = {
+            'username': $scope.data.username,
+            'token': $scope.data.token     
+        };
+        
+        // Fetch devices
+        Devices.fetch(param, "").then(function(res) {
+            $scope.devices = res;
+            
+            let indexy = 0;
+            for (indexy=0; indexy<$scope.devices.length; indexy++) {
+                $scope.devices[indexy].id = indexy;
+            }
+            
+            console.log($scope.devices);
+            $scope.data.token = User.get_token();
+            
+            if (flag) {
+                if ($scope.data.source === "LDSU") {
+                    get_xxx_device_properties($scope.data.sensor.source);
+                }
+                else if ($scope.data.source === "I2C") {
+                    get_xxx_device_properties("i2c");
+                }
+                else if ($scope.data.source === "ADC") {
+                    get_xxx_device_properties("adc");
+                }
+                else if ($scope.data.source === "TPROBE") {
+                    get_xxx_device_properties("tprobe");
+                }
+                else if ($scope.data.source === "1WIRE") {
+                    get_xxx_device_properties("1wire");
+                }
+            }
+        });
+    };
+
+    // VIEW I2C DEVICE
+    $scope.viewXXXDevice = function() {
+        var device_param = {
+            'username': $scope.data.username,
+            'token': $scope.data.token,
+            'devicename': $scope.data.devicename,
+            'devicestatus': $scope.data.devicestatus,
+            'deviceid': $scope.data.deviceid,
+            'serialnumber': $scope.data.serialnumber,
+    
+            'location': $scope.data.location,
+            'activeSection': $scope.data.activeSection,
+            'sensors': $scope.data.sensors,
+    
+            'sensor': $scope.data.sensor,
+            'source': $scope.data.source,
+
+            'multiclass': $scope.data.multiclass,             
+        };
+        if ($scope.data.source === "LDSU") {
+            console.log("viewLDSUDevice");
+            $state.go('viewLDSUDevice', device_param);
+        }
+        else if ($scope.data.source === "I2C") {
+            console.log("viewI2CDevice");
+            $state.go('viewI2CDevice', device_param);
+        }
+        else if ($scope.data.source === "ADC") {
+            console.log("viewADCDevice");
+            $state.go('viewADCDevice', device_param);
+        }
+        else if ($scope.data.source === "TPROBE") {
+            console.log("viewTPROBEDevice");
+            $state.go('viewTPROBEDevice', device_param);
+        }
+        else if ($scope.data.source === "1WIRE") {
+            console.log("view1WIREDevice");
+            $state.go('view1WIREDevice', device_param);
+        }
+    };
+
+    // EXIT PAGE
+    $scope.submitDeviceList = function() {
+        console.log("submitDeviceList");
+        var device_param = {
+            'username': $scope.data.username,
+            'token': $scope.data.token,
+            'devicename': $scope.data.devicename,
+            'devicestatus': $scope.data.devicestatus,
+            'deviceid': $scope.data.deviceid,
+            'serialnumber': $scope.data.serialnumber,
+        };
+        
+        if ($scope.data.sensor.subclass !== undefined) {
+            device_param.sensor = $scope.data.sensor;
+            device_param.source = $scope.data.source;
+            device_param.multiclass = $scope.data.multiclass;
+            $state.go('multiclass', device_param);
+        }
+        else {
+            if ($scope.data.source === "LDSU") {
+                device_param.location = $scope.data.location;
+                device_param.activeSection = $scope.data.activeSection;
+                device_param.sensors = $scope.data.sensors;
+                $state.go('sensors', device_param);
+            }
+            else if ($scope.data.source === "I2C") {
+               $state.go('deviceI2C', device_param);
+            }
+            else if ($scope.data.source === "ADC") {
+               $state.go('deviceADC', device_param);
+            }
+            else if ($scope.data.source === "TPROBE") {
+               $state.go('deviceTPROBE', device_param);
+            }
+            else if ($scope.data.source === "1WIRE") {
+               $state.go('device1WIRE', device_param);
+            }
+        }
+    };
+    
+    $scope.changeMode = function() {
+        console.log("changeMode");
+        get_devices(false);    
+    };    
+    
+    $scope.changeOpmode = function() {
+        console.log("changeOpmode " + $scope.data.attributes.opmode);
+    };
+    
+    $scope.submitRefresh();  
+}])
+   
+.controller('cO2GasCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', 'Devices', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+// You can include any angular dependencies as parameters for this function
+// TIP: Access Route Parameters for your page via $stateParams.parameterName
+function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token, Devices) {
+
+    var server = Server.rest_api;
+
+    $scope.classname = "co2 gas";
+
+    $scope.modes = [
+        { "id":0,  "label": "Single Threshold"  },
+        { "id":1,  "label": "Dual Threshold"  },
+        { "id":2,  "label": "Continuous" },
+    ];
+
+    $scope.activates = [
+        { "id":0,  "label": "Out of range" },
+        { "id":1,  "label": "Within range" },
+    ];
+    
+    $scope.alerts = [
+        { "id":0,  "label": "Once"         },
+        { "id":1,  "label": "Continuously" },
+    ];    
+    
+    $scope.devices = [ {"id":0, "devicename": ""} ];
+    
+    $scope.data = {
+        'username': User.get_username(),
+        'token': User.get_token(),
+        'devicename': $stateParams.devicename,
+        'devicestatus': $stateParams.devicestatus,
+        'deviceid': $stateParams.deviceid,
+        'serialnumber': $stateParams.serialnumber,
+
+        'location': $stateParams.location,
+        'activeSection': $stateParams.activeSection,
+        'sensors': $stateParams.sensors,        
+        
+        'sensor': $stateParams.sensor,
+        'source': $stateParams.source,
+        'hardware_devicename': $scope.devices[0].id,
+        
+        'attributes': {
+            'opmode': 0,
+            'mode': $scope.modes[0].id,
+            'threshold': {
+                'value': parseInt($stateParams.sensor.minmax[1], 10),
+                'min': parseInt($stateParams.sensor.minmax[0], 10),
+                'max': parseInt($stateParams.sensor.minmax[1], 10),
+                'activate': $scope.activates[0].id,
+            },
+            'alert': {
+                'type': $scope.alerts[0].id,
+                'period': 60000,
+            },
+            'hardware': {
+                'devicename': '',  
+            },
+            
+            'notification': {
+                'messages': [ 
+                    { 
+                        'message': 'Hello World!', 
+                        'enable': true 
+                    },
+                    { 
+                        'message': 'Hi World!', 
+                        'enable': false 
+                    },
+                ],
+                'endpoints' : {
+                    'mobile': {
+                        'enable': false,
+                        'recipients': '',
+                    },
+                    'email': {
+                        'enable': false,
+                        'recipients': '',
+                    },
+                    'notification': {
+                        'enable': false,
+                        'recipients': '',
+                    },
+                    'modem': {
+                        'enable': false,
+                        'recipients': '',
+                    },
+                    'storage': {
+                        'enable': false,
+                        'recipients': '',
+                    },
+                }
+            }
+        },
+        
+        'showNotification': 0,  
+        
+        // support for multiclasses
+        //'multiclass_attributes': $stateParams.multiclass_attributes,
+        //'multiclass_subattributes': $stateParams.multiclass_subattributes,
+        'multiclass': $stateParams.multiclass
+    };
+
+    handle_error = function(error, showerror) {
+        if (error.data !== null) {
+            console.log("ERROR: " + $scope.classname + " failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
+
+            if (error.data.message === "Token expired") {
+                Token.refresh({'username': $scope.data.username, 'token': $scope.data.token});
+                $scope.data.token = User.get_token();
+            }
+            
+            if (error.status == 503 && showerror === true ) {
+                $ionicPopup.alert({ title: 'Error', template: 'Device is unreachable!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+            }            
+            else if (error.status === 401) {
+                $ionicPopup.alert({ title: 'Error', template: error.data.message, buttons: [{text: 'OK', type: 'button-assertive'}] });
+            }
+        }
+        else {
+            console.log("ERROR: Server is down!"); 
+            $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+        }
+    };
+
+    $scope.changeNotification = function(i) {
+        $scope.data.showNotification = i;
+        if (i===true) {
+            get_devices(false);    
+        }    
+    };
+    
+    
+    $scope.submitRefresh = function() {
+        console.log("submitRefresh");
+        console.log($scope.data.attributes);
+        get_devices(true); 
+    };
+
+    get_xxx_device_properties = function(peripheral) {
+        //
+        // GET xxx DEVICE PROPERTIES
+        //
+        // - Request:
+        //   GET /devices/device/<devicename>/<peripheral>/<number>/sensors/sensor/<sensorname>/properties
+        //   headers: { 'Authorization': 'Bearer ' + token.access }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string }
+        //   { 'status': 'NG', 'message': string }        
+        //
+        $http({
+            method: 'GET',
+            url: server + '/devices/device/' + $scope.data.devicename + '/' + peripheral + '/' + $scope.data.sensor.number.toString() + '/sensors/sensor/' + $scope.data.sensor.sensorname + '/properties',
+            headers: { 'Authorization': 'Bearer ' + $scope.data.token.access },
+        })
+        .then(function (result) {
+            console.log(result.data);
+            if (result.data.value !== undefined) {
+                if (result.data.value.subattributes === undefined) {
+                    if (result.data.value.threshold !== undefined) {
+                        $scope.data.attributes = result.data.value;
+                        
+                        $scope.data.hardware_devicename = 0;
+                        let indexy = 0;
+
+                        if ($scope.data.attributes.mode != 2) {
+                            // SINGLE/DUAL THRESHOLD modes - use notification.endpoints.modem.recipients
+                            for (indexy=0; indexy<$scope.devices.length; indexy++) {
+                                if ($scope.devices[indexy].devicename === $scope.data.attributes.notification.endpoints.modem.recipients) {
+                                    $scope.data.hardware_devicename = indexy;
+                                    break;
+                                }
+                            }
+                        }
+                        else {
+                            // CONTINUOUS mode - use hardware.devicename
+                            for (indexy=0; indexy<$scope.devices.length; indexy++) {
+                                if ($scope.devices[indexy].devicename === $scope.data.attributes.hardware.devicename) {
+                                    $scope.data.hardware_devicename = indexy;
+                                    break;
+                                }
+                            }
+                            $scope.data.attributes.alert.type = 1; // always be continuous
+                        }                        
+                    }
+                    else {
+                        $scope.data.attributes.notification = result.data.value.notification;
+                    }
+                }
+                /*
+                else {
+                    if (result.data.value.subattributes.threshold !== undefined) {
+                        $scope.data.attributes = result.data.value.subattributes;
+                        
+                        $scope.data.hardware_devicename = 0;
+                        let indexy = 0;
+                        
+                        if ($scope.data.attributes.mode != 2) {
+                            // SINGLE/DUAL THRESHOLD modes - use notification.endpoints.modem.recipients
+                            for (indexy=0; indexy<$scope.devices.length; indexy++) {
+                                if ($scope.devices[indexy].devicename === $scope.data.attributes.notification.endpoints.modem.recipients) {
+                                    $scope.data.hardware_devicename = indexy;
+                                    break;
+                                }
+                            }
+                        }
+                        else {
+                            // CONTINUOUS mode - use hardware.devicename
+                            for (indexy=0; indexy<$scope.devices.length; indexy++) {
+                                if ($scope.devices[indexy].devicename === $scope.data.attributes.hardware.devicename) {
+                                    $scope.data.hardware_devicename = indexy;
+                                    break;
+                                }
+                            }
+                            $scope.data.attributes.alert.type = 1; // always be continuous
+                        }                        
+                    }
+                    else {
+                        $scope.data.attributes.notification = result.data.value.subattributes.notification;
+                    }
+                    
+                    if ($scope.data.sensor.class === "vOCGas") {
+                        $scope.data.multiclass.attributes = $scope.data.attributes;
+                    }
+                    else if ($scope.data.sensor.subclass === "vOCGas") {
+                        $scope.data.multiclass.subattributes = $scope.data.attributes;
+                    }
+                }
+                */
+            }
+        })
+        .catch(function (error) {
+            handle_error(error, true);
+        }); 
+    };
+
+    set_xxx_device_properties = function(peripheral) {
+        //
+        // SET XXX DEVICE PROPERTIES
+        //
+        // - Request:
+        //   POST /devices/device/<devicename>/i2c/<number>/sensors/sensor/<sensorname>/properties
+        //   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
+        //   data: 
+        //   { 
+        //   }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string }
+        //   { 'status': 'NG', 'message': string }        
+        //
+        $http({
+            method: 'POST',
+            url: server + '/devices/device/' + $scope.data.devicename + '/' + peripheral + '/' + $scope.data.sensor.number.toString() + '/sensors/sensor/' + $scope.data.sensor.sensorname + '/properties',
+            headers: { 'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json' },
+            data: $scope.data.attributes
+        })
+        .then(function (result) {
+            console.log(result.data);
+            $ionicPopup.alert({
+                title: peripheral.toUpperCase() + ' device',
+                template: $scope.data.sensor.sensorname + ' was configured successfully!',
+            });            
+        })
+        .catch(function (error) {
+            handle_error(error, true);
+        }); 
+    };
+    
+    
+    
+    $scope.submitDelete = function() {
+        console.log("submitDelete");
+        $scope.delete_xxx_device_properties($scope.data.sensor.source);
+    };
+    
+    $scope.delete_xxx_device_properties = function(peripheral) {
+        //
+        // DELETE XXX DEVICE PROPERTIES
+        //
+        // - Request:
+        //   DELETE /devices/device/<devicename>/i2c/<number>/sensors/sensor/<sensorname>/properties
+        //   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
+        //   data: 
+        //   { 
+        //   }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string }
+        //   { 'status': 'NG', 'message': string }        
+        //
+        $http({
+            method: 'DELETE',
+            url: server + '/devices/device/' + $scope.data.devicename + '/' + peripheral + '/' + $scope.data.sensor.number.toString() + '/sensors/sensor/' + $scope.data.sensor.sensorname + '/properties',
+            headers: { 'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json' },
+            data: $scope.data.attributes
+        })
+        .then(function (result) {
+            console.log(result.data);
+            $ionicPopup.alert({
+                title: peripheral.toUpperCase() + ' device',
+                template: $scope.data.sensor.sensorname + ' configuration was deleted successfully!',
+            });            
+            get_xxx_device_properties(peripheral);
+        })
+        .catch(function (error) {
+            handle_error(error, true);
+        }); 
+    };
+    
+    $scope.submit = function() {
+        console.log("submit");
+        console.log($scope.data.attributes);
+        if ($scope.data.hardware_devicename >= $scope.devices.length) {
+            return;
+        }
+        if ($scope.data.attributes.mode!=2) {
+            // SINGLE/DUAL THRESHOLD modes
+            $scope.data.attributes.notification.endpoints.modem.recipients = $scope.devices[$scope.data.hardware_devicename].devicename;
+        }
+        else {
+            // CONTINUOUS mode
+            $scope.data.attributes.hardware.devicename = $scope.devices[$scope.data.hardware_devicename].devicename;
+        }
+        
+        
+        if ($scope.data.sensor.subclass !== undefined) {
+            var classname = $scope.classname;
+            
+            // support for multiclasses
+            var param = {
+                'username': $scope.data.username,
+                'token': $scope.data.token,
+                'devicename': $scope.data.devicename,
+                'devicestatus': $scope.data.devicestatus,
+                'deviceid': $scope.data.deviceid,
+                'serialnumber': $scope.data.serialnumber,
+                'sensor': $scope.data.sensor,
+                'source': $scope.data.source,
+                'multiclass': $scope.data.multiclass,             
+            };
+
+            if ($scope.data.sensor.class === classname) {
+                param.multiclass.attributes = $scope.data.attributes;
+            }
+            else if ($scope.data.sensor.subclass === classname) {
+                param.multiclass.subattributes = $scope.data.attributes;
+            }
+            $state.go('multiclass', param, {reload: true});
+        }
+        else {
+            
+            // Add prompt when setting properties
+            $ionicPopup.alert({ title: 'Set Properties', template: 'Are you sure you want to set this properties?',
+                buttons: [
+                    { text: 'No', type: 'button-assertive', },
+                    { text: 'Yes', type: 'button-positive',
+                        onTap: function(e) {
+                            
+                            if ($scope.data.source === "LDSU") {
+                                set_xxx_device_properties($scope.data.sensor.source);
+                            }
+                            else if ($scope.data.source === "I2C") {
+                                set_xxx_device_properties("i2c");
+                            }
+                            else if ($scope.data.source === "TPROBE") {
+                                set_xxx_device_properties("tprobe");
+                            }
+                            else if ($scope.data.source === "1WIRE") {
+                                set_xxx_device_properties("1wire");
+                            }
+                        }
+                    }
+                ]            
+            });
+        }
+    };
+
+
+
+    get_devices = function(flag) {
+        
+        param = {
+            'username': $scope.data.username,
+            'token': $scope.data.token     
+        };
+        
+        // Fetch devices
+        Devices.fetch(param, "").then(function(res) {
+            $scope.devices = res;
+            
+            let indexy = 0;
+            for (indexy=0; indexy<$scope.devices.length; indexy++) {
+                $scope.devices[indexy].id = indexy;
+            }
+            
+            console.log($scope.devices);
+            $scope.data.token = User.get_token();
+            
+            if (flag) {
+                if ($scope.data.source === "LDSU") {
+                    get_xxx_device_properties($scope.data.sensor.source);
+                }
+                else if ($scope.data.source === "I2C") {
+                    get_xxx_device_properties("i2c");
+                }
+                else if ($scope.data.source === "ADC") {
+                    get_xxx_device_properties("adc");
+                }
+                else if ($scope.data.source === "TPROBE") {
+                    get_xxx_device_properties("tprobe");
+                }
+                else if ($scope.data.source === "1WIRE") {
+                    get_xxx_device_properties("1wire");
+                }
+            }
+        });
+    };
+
+    // VIEW I2C DEVICE
+    $scope.viewXXXDevice = function() {
+        var device_param = {
+            'username': $scope.data.username,
+            'token': $scope.data.token,
+            'devicename': $scope.data.devicename,
+            'devicestatus': $scope.data.devicestatus,
+            'deviceid': $scope.data.deviceid,
+            'serialnumber': $scope.data.serialnumber,
+    
+            'location': $scope.data.location,
+            'activeSection': $scope.data.activeSection,
+            'sensors': $scope.data.sensors,
+    
+            'sensor': $scope.data.sensor,
+            'source': $scope.data.source,
+
+            'multiclass': $scope.data.multiclass,             
+        };
+        if ($scope.data.source === "LDSU") {
+            console.log("viewLDSUDevice");
+            $state.go('viewLDSUDevice', device_param);
+        }
+        else if ($scope.data.source === "I2C") {
+            console.log("viewI2CDevice");
+            $state.go('viewI2CDevice', device_param);
+        }
+        else if ($scope.data.source === "ADC") {
+            console.log("viewADCDevice");
+            $state.go('viewADCDevice', device_param);
+        }
+        else if ($scope.data.source === "TPROBE") {
+            console.log("viewTPROBEDevice");
+            $state.go('viewTPROBEDevice', device_param);
+        }
+        else if ($scope.data.source === "1WIRE") {
+            console.log("view1WIREDevice");
+            $state.go('view1WIREDevice', device_param);
+        }
+    };
+
+    // EXIT PAGE
+    $scope.submitDeviceList = function() {
+        console.log("submitDeviceList");
+        var device_param = {
+            'username': $scope.data.username,
+            'token': $scope.data.token,
+            'devicename': $scope.data.devicename,
+            'devicestatus': $scope.data.devicestatus,
+            'deviceid': $scope.data.deviceid,
+            'serialnumber': $scope.data.serialnumber,
+        };
+        
+        if ($scope.data.sensor.subclass !== undefined) {
+            device_param.sensor = $scope.data.sensor;
+            device_param.source = $scope.data.source;
+            device_param.multiclass = $scope.data.multiclass;
+            $state.go('multiclass', device_param);
+        }
+        else {
+            if ($scope.data.source === "LDSU") {
+                device_param.location = $scope.data.location;
+                device_param.activeSection = $scope.data.activeSection;
+                device_param.sensors = $scope.data.sensors;
+                $state.go('sensors', device_param);
+            }
+            else if ($scope.data.source === "I2C") {
+               $state.go('deviceI2C', device_param);
+            }
+            else if ($scope.data.source === "ADC") {
+               $state.go('deviceADC', device_param);
+            }
+            else if ($scope.data.source === "TPROBE") {
+               $state.go('deviceTPROBE', device_param);
+            }
+            else if ($scope.data.source === "1WIRE") {
+               $state.go('device1WIRE', device_param);
+            }
+        }
+    };
+    
+    $scope.changeMode = function() {
+        console.log("changeMode");
+        get_devices(false);    
+    };    
+    
+    $scope.changeOpmode = function() {
+        console.log("changeOpmode " + $scope.data.attributes.opmode);
+    };
+    
+    $scope.submitRefresh();  
+}])
+   
+.controller('vOCGasCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', 'Devices', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+// You can include any angular dependencies as parameters for this function
+// TIP: Access Route Parameters for your page via $stateParams.parameterName
+function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token, Devices) {
+
+    var server = Server.rest_api;
+
+    $scope.classname = "voc gas";
+
+    $scope.modes = [
+        { "id":0,  "label": "Single Threshold"  },
+        { "id":1,  "label": "Dual Threshold"  },
+        { "id":2,  "label": "Continuous" },
+    ];
+
+    $scope.activates = [
+        { "id":0,  "label": "Out of range" },
+        { "id":1,  "label": "Within range" },
+    ];
+    
+    $scope.alerts = [
+        { "id":0,  "label": "Once"         },
+        { "id":1,  "label": "Continuously" },
+    ];    
+    
+    $scope.devices = [ {"id":0, "devicename": ""} ];
+    
+    $scope.data = {
+        'username': User.get_username(),
+        'token': User.get_token(),
+        'devicename': $stateParams.devicename,
+        'devicestatus': $stateParams.devicestatus,
+        'deviceid': $stateParams.deviceid,
+        'serialnumber': $stateParams.serialnumber,
+
+        'location': $stateParams.location,
+        'activeSection': $stateParams.activeSection,
+        'sensors': $stateParams.sensors,        
+        
+        'sensor': $stateParams.sensor,
+        'source': $stateParams.source,
+        'hardware_devicename': $scope.devices[0].id,
+        
+        'attributes': {
+            'opmode': 0,
+            'mode': $scope.modes[0].id,
+            'threshold': {
+                'value': parseInt($stateParams.sensor.minmax[1], 10),
+                'min': parseInt($stateParams.sensor.minmax[0], 10),
+                'max': parseInt($stateParams.sensor.minmax[1], 10),
+                'activate': $scope.activates[0].id,
+            },
+            'alert': {
+                'type': $scope.alerts[0].id,
+                'period': 60000,
+            },
+            'hardware': {
+                'devicename': '',  
+            },
+            
+            'notification': {
+                'messages': [ 
+                    { 
+                        'message': 'Hello World!', 
+                        'enable': true 
+                    },
+                    { 
+                        'message': 'Hi World!', 
+                        'enable': false 
+                    },
+                ],
+                'endpoints' : {
+                    'mobile': {
+                        'enable': false,
+                        'recipients': '',
+                    },
+                    'email': {
+                        'enable': false,
+                        'recipients': '',
+                    },
+                    'notification': {
+                        'enable': false,
+                        'recipients': '',
+                    },
+                    'modem': {
+                        'enable': false,
+                        'recipients': '',
+                    },
+                    'storage': {
+                        'enable': false,
+                        'recipients': '',
+                    },
+                }
+            }
+        },
+        
+        'showNotification': 0,  
+        
+        // support for multiclasses
+        //'multiclass_attributes': $stateParams.multiclass_attributes,
+        //'multiclass_subattributes': $stateParams.multiclass_subattributes,
+        'multiclass': $stateParams.multiclass
+    };
+
+    handle_error = function(error, showerror) {
+        if (error.data !== null) {
+            console.log("ERROR: " + $scope.classname + " failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
+
+            if (error.data.message === "Token expired") {
+                Token.refresh({'username': $scope.data.username, 'token': $scope.data.token});
+                $scope.data.token = User.get_token();
+            }
+            
+            if (error.status == 503 && showerror === true ) {
+                $ionicPopup.alert({ title: 'Error', template: 'Device is unreachable!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+            }            
+            else if (error.status === 401) {
+                $ionicPopup.alert({ title: 'Error', template: error.data.message, buttons: [{text: 'OK', type: 'button-assertive'}] });
+            }
+        }
+        else {
+            console.log("ERROR: Server is down!"); 
+            $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+        }
+    };
+
+    $scope.changeNotification = function(i) {
+        $scope.data.showNotification = i;
+        if (i===true) {
+            get_devices(false);    
+        }    
+    };
+    
+    
+    $scope.submitRefresh = function() {
+        console.log("submitRefresh");
+        console.log($scope.data.attributes);
+        get_devices(true); 
+    };
+
+    get_xxx_device_properties = function(peripheral) {
+        //
+        // GET xxx DEVICE PROPERTIES
+        //
+        // - Request:
+        //   GET /devices/device/<devicename>/<peripheral>/<number>/sensors/sensor/<sensorname>/properties
+        //   headers: { 'Authorization': 'Bearer ' + token.access }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string }
+        //   { 'status': 'NG', 'message': string }        
+        //
+        $http({
+            method: 'GET',
+            url: server + '/devices/device/' + $scope.data.devicename + '/' + peripheral + '/' + $scope.data.sensor.number.toString() + '/sensors/sensor/' + $scope.data.sensor.sensorname + '/properties',
+            headers: { 'Authorization': 'Bearer ' + $scope.data.token.access },
+        })
+        .then(function (result) {
+            console.log(result.data);
+            if (result.data.value !== undefined) {
+                if (result.data.value.subattributes === undefined) {
+                    if (result.data.value.threshold !== undefined) {
+                        $scope.data.attributes = result.data.value;
+                        
+                        $scope.data.hardware_devicename = 0;
+                        let indexy = 0;
+
+                        if ($scope.data.attributes.mode != 2) {
+                            // SINGLE/DUAL THRESHOLD modes - use notification.endpoints.modem.recipients
+                            for (indexy=0; indexy<$scope.devices.length; indexy++) {
+                                if ($scope.devices[indexy].devicename === $scope.data.attributes.notification.endpoints.modem.recipients) {
+                                    $scope.data.hardware_devicename = indexy;
+                                    break;
+                                }
+                            }
+                        }
+                        else {
+                            // CONTINUOUS mode - use hardware.devicename
+                            for (indexy=0; indexy<$scope.devices.length; indexy++) {
+                                if ($scope.devices[indexy].devicename === $scope.data.attributes.hardware.devicename) {
+                                    $scope.data.hardware_devicename = indexy;
+                                    break;
+                                }
+                            }
+                            $scope.data.attributes.alert.type = 1; // always be continuous
+                        }                        
+                    }
+                    else {
+                        $scope.data.attributes.notification = result.data.value.notification;
+                    }
+                }
+                /*
+                else {
+                    if (result.data.value.subattributes.threshold !== undefined) {
+                        $scope.data.attributes = result.data.value.subattributes;
+                        
+                        $scope.data.hardware_devicename = 0;
+                        let indexy = 0;
+                        
+                        if ($scope.data.attributes.mode != 2) {
+                            // SINGLE/DUAL THRESHOLD modes - use notification.endpoints.modem.recipients
+                            for (indexy=0; indexy<$scope.devices.length; indexy++) {
+                                if ($scope.devices[indexy].devicename === $scope.data.attributes.notification.endpoints.modem.recipients) {
+                                    $scope.data.hardware_devicename = indexy;
+                                    break;
+                                }
+                            }
+                        }
+                        else {
+                            // CONTINUOUS mode - use hardware.devicename
+                            for (indexy=0; indexy<$scope.devices.length; indexy++) {
+                                if ($scope.devices[indexy].devicename === $scope.data.attributes.hardware.devicename) {
+                                    $scope.data.hardware_devicename = indexy;
+                                    break;
+                                }
+                            }
+                            $scope.data.attributes.alert.type = 1; // always be continuous
+                        }                        
+                    }
+                    else {
+                        $scope.data.attributes.notification = result.data.value.subattributes.notification;
+                    }
+                    
+                    if ($scope.data.sensor.class === "vOCGas") {
+                        $scope.data.multiclass.attributes = $scope.data.attributes;
+                    }
+                    else if ($scope.data.sensor.subclass === "vOCGas") {
+                        $scope.data.multiclass.subattributes = $scope.data.attributes;
+                    }
+                }
+                */
+            }
+        })
+        .catch(function (error) {
+            handle_error(error, true);
+        }); 
+    };
+
+    set_xxx_device_properties = function(peripheral) {
+        //
+        // SET XXX DEVICE PROPERTIES
+        //
+        // - Request:
+        //   POST /devices/device/<devicename>/i2c/<number>/sensors/sensor/<sensorname>/properties
+        //   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
+        //   data: 
+        //   { 
+        //   }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string }
+        //   { 'status': 'NG', 'message': string }        
+        //
+        $http({
+            method: 'POST',
+            url: server + '/devices/device/' + $scope.data.devicename + '/' + peripheral + '/' + $scope.data.sensor.number.toString() + '/sensors/sensor/' + $scope.data.sensor.sensorname + '/properties',
+            headers: { 'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json' },
+            data: $scope.data.attributes
+        })
+        .then(function (result) {
+            console.log(result.data);
+            $ionicPopup.alert({
+                title: peripheral.toUpperCase() + ' device',
+                template: $scope.data.sensor.sensorname + ' was configured successfully!',
+            });            
+        })
+        .catch(function (error) {
+            handle_error(error, true);
+        }); 
+    };
+    
+    
+    
+    $scope.submitDelete = function() {
+        console.log("submitDelete");
+        $scope.delete_xxx_device_properties($scope.data.sensor.source);
+    };
+    
+    $scope.delete_xxx_device_properties = function(peripheral) {
+        //
+        // DELETE XXX DEVICE PROPERTIES
+        //
+        // - Request:
+        //   DELETE /devices/device/<devicename>/i2c/<number>/sensors/sensor/<sensorname>/properties
+        //   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
+        //   data: 
+        //   { 
+        //   }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string }
+        //   { 'status': 'NG', 'message': string }        
+        //
+        $http({
+            method: 'DELETE',
+            url: server + '/devices/device/' + $scope.data.devicename + '/' + peripheral + '/' + $scope.data.sensor.number.toString() + '/sensors/sensor/' + $scope.data.sensor.sensorname + '/properties',
+            headers: { 'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json' },
+            data: $scope.data.attributes
+        })
+        .then(function (result) {
+            console.log(result.data);
+            $ionicPopup.alert({
+                title: peripheral.toUpperCase() + ' device',
+                template: $scope.data.sensor.sensorname + ' configuration was deleted successfully!',
+            });            
+            get_xxx_device_properties(peripheral);
+        })
+        .catch(function (error) {
+            handle_error(error, true);
+        }); 
+    };
+    
+    $scope.submit = function() {
+        console.log("submit");
+        console.log($scope.data.attributes);
+        if ($scope.data.hardware_devicename >= $scope.devices.length) {
+            return;
+        }
+        if ($scope.data.attributes.mode!=2) {
+            // SINGLE/DUAL THRESHOLD modes
+            $scope.data.attributes.notification.endpoints.modem.recipients = $scope.devices[$scope.data.hardware_devicename].devicename;
+        }
+        else {
+            // CONTINUOUS mode
+            $scope.data.attributes.hardware.devicename = $scope.devices[$scope.data.hardware_devicename].devicename;
+        }
+        
+        
+        if ($scope.data.sensor.subclass !== undefined) {
+            var classname = $scope.classname;
+            
+            // support for multiclasses
+            var param = {
+                'username': $scope.data.username,
+                'token': $scope.data.token,
+                'devicename': $scope.data.devicename,
+                'devicestatus': $scope.data.devicestatus,
+                'deviceid': $scope.data.deviceid,
+                'serialnumber': $scope.data.serialnumber,
+                'sensor': $scope.data.sensor,
+                'source': $scope.data.source,
+                'multiclass': $scope.data.multiclass,             
+            };
+
+            if ($scope.data.sensor.class === classname) {
+                param.multiclass.attributes = $scope.data.attributes;
+            }
+            else if ($scope.data.sensor.subclass === classname) {
+                param.multiclass.subattributes = $scope.data.attributes;
+            }
+            $state.go('multiclass', param, {reload: true});
+        }
+        else {
+            
+            // Add prompt when setting properties
+            $ionicPopup.alert({ title: 'Set Properties', template: 'Are you sure you want to set this properties?',
+                buttons: [
+                    { text: 'No', type: 'button-assertive', },
+                    { text: 'Yes', type: 'button-positive',
+                        onTap: function(e) {
+                            
+                            if ($scope.data.source === "LDSU") {
+                                set_xxx_device_properties($scope.data.sensor.source);
+                            }
+                            else if ($scope.data.source === "I2C") {
+                                set_xxx_device_properties("i2c");
+                            }
+                            else if ($scope.data.source === "TPROBE") {
+                                set_xxx_device_properties("tprobe");
+                            }
+                            else if ($scope.data.source === "1WIRE") {
+                                set_xxx_device_properties("1wire");
+                            }
+                        }
+                    }
+                ]            
+            });
+        }
+    };
+
+
+
+    get_devices = function(flag) {
+        
+        param = {
+            'username': $scope.data.username,
+            'token': $scope.data.token     
+        };
+        
+        // Fetch devices
+        Devices.fetch(param, "").then(function(res) {
+            $scope.devices = res;
+            
+            let indexy = 0;
+            for (indexy=0; indexy<$scope.devices.length; indexy++) {
+                $scope.devices[indexy].id = indexy;
+            }
+            
+            console.log($scope.devices);
+            $scope.data.token = User.get_token();
+            
+            if (flag) {
+                if ($scope.data.source === "LDSU") {
+                    get_xxx_device_properties($scope.data.sensor.source);
+                }
+                else if ($scope.data.source === "I2C") {
+                    get_xxx_device_properties("i2c");
+                }
+                else if ($scope.data.source === "ADC") {
+                    get_xxx_device_properties("adc");
+                }
+                else if ($scope.data.source === "TPROBE") {
+                    get_xxx_device_properties("tprobe");
+                }
+                else if ($scope.data.source === "1WIRE") {
+                    get_xxx_device_properties("1wire");
+                }
+            }
+        });
+    };
+
+    // VIEW I2C DEVICE
+    $scope.viewXXXDevice = function() {
+        var device_param = {
+            'username': $scope.data.username,
+            'token': $scope.data.token,
+            'devicename': $scope.data.devicename,
+            'devicestatus': $scope.data.devicestatus,
+            'deviceid': $scope.data.deviceid,
+            'serialnumber': $scope.data.serialnumber,
+    
+            'location': $scope.data.location,
+            'activeSection': $scope.data.activeSection,
+            'sensors': $scope.data.sensors,
+    
+            'sensor': $scope.data.sensor,
+            'source': $scope.data.source,
+
+            'multiclass': $scope.data.multiclass,             
+        };
+        if ($scope.data.source === "LDSU") {
+            console.log("viewLDSUDevice");
+            $state.go('viewLDSUDevice', device_param);
+        }
+        else if ($scope.data.source === "I2C") {
+            console.log("viewI2CDevice");
+            $state.go('viewI2CDevice', device_param);
+        }
+        else if ($scope.data.source === "ADC") {
+            console.log("viewADCDevice");
+            $state.go('viewADCDevice', device_param);
+        }
+        else if ($scope.data.source === "TPROBE") {
+            console.log("viewTPROBEDevice");
+            $state.go('viewTPROBEDevice', device_param);
+        }
+        else if ($scope.data.source === "1WIRE") {
+            console.log("view1WIREDevice");
+            $state.go('view1WIREDevice', device_param);
+        }
+    };
+
+    // EXIT PAGE
+    $scope.submitDeviceList = function() {
+        console.log("submitDeviceList");
+        var device_param = {
+            'username': $scope.data.username,
+            'token': $scope.data.token,
+            'devicename': $scope.data.devicename,
+            'devicestatus': $scope.data.devicestatus,
+            'deviceid': $scope.data.deviceid,
+            'serialnumber': $scope.data.serialnumber,
+        };
+        
+        if ($scope.data.sensor.subclass !== undefined) {
+            device_param.sensor = $scope.data.sensor;
+            device_param.source = $scope.data.source;
+            device_param.multiclass = $scope.data.multiclass;
+            $state.go('multiclass', device_param);
+        }
+        else {
+            if ($scope.data.source === "LDSU") {
+                device_param.location = $scope.data.location;
+                device_param.activeSection = $scope.data.activeSection;
+                device_param.sensors = $scope.data.sensors;
+                $state.go('sensors', device_param);
+            }
+            else if ($scope.data.source === "I2C") {
+               $state.go('deviceI2C', device_param);
+            }
+            else if ($scope.data.source === "ADC") {
+               $state.go('deviceADC', device_param);
+            }
+            else if ($scope.data.source === "TPROBE") {
+               $state.go('deviceTPROBE', device_param);
+            }
+            else if ($scope.data.source === "1WIRE") {
+               $state.go('device1WIRE', device_param);
+            }
+        }
+    };
+    
+    $scope.changeMode = function() {
+        console.log("changeMode");
+        get_devices(false);    
+    };    
+    
+    $scope.changeOpmode = function() {
+        console.log("changeOpmode " + $scope.data.attributes.opmode);
+    };
     
     $scope.submitRefresh();  
 }])
@@ -11349,9 +19737,9 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             'range': $scope.ranges[0].id,
             'mode': $scope.modes[0].id,
             'threshold': {
-                'value': 0,
+                'value': 255,
                 'min': 0,
-                'max': 100,
+                'max': 255,
                 'activate': $scope.activates[0].id,
             },
             'alert': {
@@ -11728,7 +20116,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         'attributes': {
             'mode': $scope.modes[0].id,
             'threshold': {
-                'value': 0,
+                'value': 100,
                 'min': 0,
                 'max': 100,
                 'activate': $scope.activates[0].id,
@@ -12088,7 +20476,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         'attributes': {
             'mode': $scope.modes[0].id,
             'threshold': {
-                'value': 0,
+                'value': 100,
                 'min': 0,
                 'max': 100,
                 'activate': $scope.activates[0].id,
@@ -12448,7 +20836,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         'attributes': {
             'mode': $scope.modes[0].id,
             'threshold': {
-                'value': 0,
+                'value': 100,
                 'min': 0,
                 'max': 100,
                 'activate': $scope.activates[0].id,
@@ -14294,7 +22682,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
     
 }])
    
-.controller('historyCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Devices', 'Histories', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+.controller('troubleshootingCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Devices', 'Histories', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
 // You can include any angular dependencies as parameters for this function
 // TIP: Access Route Parameters for your page via $stateParams.parameterName
 function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Devices, Histories) {
@@ -14481,10 +22869,10 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Device
     });    
 }])
    
-.controller('notificationCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Devices', 'Histories', 'Notifications', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+.controller('alertsCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Devices', 'Notifications', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
 // You can include any angular dependencies as parameters for this function
 // TIP: Access Route Parameters for your page via $stateParams.parameterName
-function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Devices, Histories, Notifications) {
+function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Devices, Notifications) {
 
     var server = Server.rest_api;
     
@@ -14628,5 +23016,1701 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Device
         console.log("DEVICES enter ionicView REFRESH LIST");
         $scope.submitRefresh();
     });    
+}])
+   
+.controller('organizationsCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', 'Devices', 'DeviceGroups', 'Organizations', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+// You can include any angular dependencies as parameters for this function
+// TIP: Access Route Parameters for your page via $stateParams.parameterName
+function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token, Devices, DeviceGroups, Organizations) {
+
+    var server = Server.rest_api;
+    
+    $scope.data = {
+        'username': User.get_username(), //$stateParams.username,
+        'token': User.get_token(),        //$stateParams.token
+        
+        'orgname': ''
+    };
+    
+    console.log($state.params.section);
+    console.log($stateParams.section);
+    $scope.section = parseInt($state.params.section, 10);
+    $scope.organizations = null;
+    $scope.organization = null;
+    $scope.activeorg = 0;
+    $scope.groups = null;
+    $scope.policies = null;
+    $scope.warning = '';
+    
+    
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Get organizations
+    // Get organization
+    // Create organization
+    // Delete organization
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    $scope.updateOrganizations = function() {
+        let param = {
+            'username': User.get_username(),
+            'token': User.get_token()
+        };
+        $state.go('updateOrganizations', param, {reload:true} );            
+    };
+
+
+    $scope.getOrganizations = function() {
+        Organizations.get_all($scope.data).then(function(res) {
+            if (res.organizations !== undefined) {
+                
+                if (res.organizations.length > 0) {
+                    $scope.warning = "No organization is active.";
+                }
+                else {
+                    $scope.warning = "No organization.";
+                }
+                
+                $ionicPopup.alert({
+                    title: 'Set Active Organization',
+                    template: 'You have ' + res.organizations.length + ' organizations but none is set active. Would you like to set an active organization?',
+                    buttons: [
+                        {
+                            text: 'No',
+                            type: 'button-negative',
+                        },
+                        {
+                            text: 'Yes',
+                            type: 'button-positive',
+                            onTap: function(e) {
+                                $scope.updateOrganizations();
+                            }
+                        }
+                    ]
+                });
+            }
+            else {
+                $scope.warning = "No organization.";
+            }
+        });
+    };
+
+
+    $scope.getOrganization = function() {
+        Organizations.get($scope.data).then(function(res) {
+            if (res.organization !== undefined) {
+                $scope.organization = res.organization;
+                
+                if ($scope.organization.members !== undefined) {
+                    for (var indexy=0; indexy<$scope.organization.members.length; indexy++) {
+                        let timestamp = new Date($scope.organization.members[indexy].date * 1000); 
+                        $scope.organization.members[indexy].date = timestamp.getFullYear() + "/" + (timestamp.getMonth()+1) + "/" + timestamp.getDate();
+                        $scope.organization.members[indexy].checked = false;
+                    }
+                }
+                if ($scope.organization.date !== undefined) {
+                    let timestamp = new Date($scope.organization.date * 1000); 
+                    $scope.organization.date = timestamp.getFullYear() + "/" + (timestamp.getMonth()+1) + "/" + timestamp.getDate();
+                }
+
+                $scope.changeSection($scope.section);
+            }
+            else {
+                //$scope.warning = "No organization or no organization is active.";
+                // Inform user if he has no active organization.
+                $scope.getOrganizations();
+            }
+        });
+    };
+    
+
+    $scope.deleteOrganization = function() {
+        console.log('deleteOrganization');
+        if ($scope.organization.orgname === '') {
+            $ionicPopup.alert({title: 'Delete Organization', template: 'Organization name is empty!'});
+            return;
+        }
+        
+        $ionicPopup.alert({
+            title: 'Delete Organization',
+            template: 'Are you sure you want to delete the organization named ' + $scope.organization.orgname + "? This will delete all resources of the organization including device configurations and all sensor data.",
+            buttons: [
+                {
+                    text: 'No',
+                    type: 'button-negative',
+                },
+                {
+                    text: 'Yes',
+                    type: 'button-positive',
+                    onTap: function(e) {
+                        $scope.deleteOrganizationAction();
+                    }
+                }
+            ]
+        });
+    };
+
+    $scope.deleteOrganizationAction = function() {
+        console.log('deleteOrganization');
+        if ($scope.organization.orgname === '') {
+            $ionicPopup.alert({title: 'Delete Organization', template: 'Organization name is empty!'});
+            return;
+        }
+        
+        Organizations.delete($scope.data).then(function(res) {
+            if (res.status === 'OK') {
+                 $ionicPopup.alert({
+                    title: 'Delete Organization',
+                    template: 'You have successfully deleted the organization named ' + $scope.organization.orgname + ".",
+                    buttons: [
+                        {
+                            text: 'Yes',
+                            type: 'button-positive',
+                            onTap: function(e) {
+                                $scope.organizations = null;
+                                $scope.activeorg = 0;
+                                $scope.organization = null;
+                                $scope.groups = null;
+                                $scope.policies = null;
+                                $scope.getOrganization();
+                            }
+                        }
+                    ]
+                });
+            }
+        });
+    };
+    
+    
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Add user
+    // Remove user
+    // Cancel invitation
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    
+    $scope.addUser = function() {
+        let param = {
+            'username': User.get_username(),
+            'token': User.get_token(),
+            'orgname': $scope.organization.orgname
+        };
+        $state.go('addOrganizationUser', param, {reload:true} );    
+    };    
+    
+    $scope.removeMemberships = function() {
+        var emails = [];
+        for (var indexy=0; indexy<$scope.organization.members.length; indexy++) {
+            if ($scope.organization.members[indexy].checked === true) {
+                emails.push($scope.organization.members[indexy].username);
+            }
+        }
+        console.log(emails);
+        
+        if (emails.length === 0) {
+            return;
+        }
+        
+        $ionicPopup.alert({
+            title: 'Remove memberships',
+            template: 'Are you sure you want to remove the membership for specified members in ' + $scope.organization.orgname + " organization?",
+            buttons: [
+                {
+                    text: 'No',
+                    type: 'button-negative',
+                },
+                {
+                    text: 'Yes',
+                    type: 'button-positive',
+                    onTap: function(e) {
+                        $scope.removeMembershipsAction(emails);
+                    }
+                }
+            ]
+        });        
+        
+    };    
+
+    $scope.removeMembershipsAction = function(emails) {
+        console.log(emails);
+        Organizations.update_membership($scope.data, emails, remove=1).then(function(res) {
+            if (res.status === 'OK') {
+                $ionicPopup.alert({
+                    title: 'Remove Membership',
+                    template: 'Removal of memberships in the organization for selected members was successful.',
+                    buttons: [
+                        {
+                            text: 'Yes',
+                            type: 'button-positive',
+                            onTap: function(e) {
+                                $scope.organization = null;
+                                $scope.getOrganization();
+                            }
+                        }
+                    ]
+                });
+            }
+            else {
+                $ionicPopup.alert({
+                    title: 'Remove Membership',
+                    template: 'Removal of memberships in the organization for selected members failed. Some of the emails are invalid.',
+                    buttons: [
+                        {
+                            text: 'Yes',
+                            type: 'button-positive'
+                        }
+                    ]
+                });
+            }
+        });
+    };
+    
+    $scope.cancelInvitations = function() {
+        var emails = [];
+        for (var indexy=0; indexy<$scope.organization.members.length; indexy++) {
+            if ($scope.organization.members[indexy].checked === true) {
+                emails.push($scope.organization.members[indexy].username);
+            }
+        }
+        console.log(emails);
+        
+        if (emails.length === 0) {
+            return;
+        }
+        
+        $ionicPopup.alert({
+            title: 'Cancel Invitation',
+            template: 'Are you sure you want to cancel the invitation for specified members to join ' + $scope.organization.orgname + " organization?",
+            buttons: [
+                {
+                    text: 'No',
+                    type: 'button-negative',
+                },
+                {
+                    text: 'Yes',
+                    type: 'button-positive',
+                    onTap: function(e) {
+                        $scope.cancelInvitationAction(emails);
+                    }
+                }
+            ]
+        });        
+    };    
+   
+    $scope.cancelInvitationAction = function(emails) {
+        console.log(emails);
+        Organizations.create_invitation($scope.data, emails, cancel=1).then(function(res) {
+            if (res.status === 'OK') {
+                $ionicPopup.alert({
+                    title: 'Cancel Invitation',
+                    template: 'Cancelation of invitations to join the organization for selected members was successful.',
+                    buttons: [
+                        {
+                            text: 'Yes',
+                            type: 'button-positive',
+                            onTap: function(e) {
+                                $scope.organization = null;
+                                $scope.getOrganization();
+                            }
+                        }
+                    ]
+                });
+            }
+            else {
+                $ionicPopup.alert({
+                    title: 'Cancel Invitation',
+                    template: 'Cancelation of invitations to join the organization for selected members failed. Some of the emails are invalid.',
+                    buttons: [
+                        {
+                            text: 'Yes',
+                            type: 'button-positive'
+                        }
+                    ]
+                });
+            }
+        });
+    };      
+    
+    
+
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Accept invitation
+    // Decline invitation
+    // Leave organization
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    
+    $scope.acceptInvitation = function() {
+        Organizations.accept_invitation($scope.data).then(function(res) {
+            if (res.status === 'OK') {
+                 $ionicPopup.alert({
+                    title: 'Accept Invitation',
+                    template: 'You are now a member of ' + $scope.organization.orgname + " organization.",
+                    buttons: [
+                        {
+                            text: 'Yes',
+                            type: 'button-positive',
+                            onTap: function(e) {
+                                $scope.organization = null;
+                                $scope.getOrganization();
+                            }
+                        }
+                    ]
+                });
+            }
+        });
+    };    
+
+    $scope.declineInvitation = function() {
+        $ionicPopup.alert({
+            title: 'Decline Invitation',
+            template: 'Are you sure you want to decline the invitation to join ' + $scope.organization.orgname + " organization?",
+            buttons: [
+                {
+                    text: 'No',
+                    type: 'button-negative',
+                },
+                {
+                    text: 'Yes',
+                    type: 'button-positive',
+                    onTap: function(e) {
+                        $scope.declineInvitationAction();
+                    }
+                }
+            ]
+        });
+    };    
+
+    $scope.declineInvitationAction = function() {
+        Organizations.decline_invitation($scope.data).then(function(res) {
+            if (res.status === 'OK') {
+                 $ionicPopup.alert({
+                    title: 'Decline Invitation',
+                    template: 'You have successfully declined to join the organization named ' + $scope.organization.orgname + ".",
+                    buttons: [
+                        {
+                            text: 'Yes',
+                            type: 'button-positive',
+                            onTap: function(e) {
+                                $scope.organizations = null;
+                                $scope.activeorg = 0;
+                                $scope.organization = null;
+                                $scope.groups = null;
+                                $scope.policies = null;
+                                $scope.getOrganization();
+                            }
+                        }
+                    ]
+                });
+            }
+        });
+    };    
+    
+    $scope.leaveOrganization = function() {
+        $ionicPopup.alert({
+            title: 'Leave Organization',
+            template: 'Are you sure you want to leave the organization named ' + $scope.organization.orgname + "?",
+            buttons: [
+                {
+                    text: 'No',
+                    type: 'button-negative',
+                },
+                {
+                    text: 'Yes',
+                    type: 'button-positive',
+                    onTap: function(e) {
+                        $scope.leaveOrganizationAction();
+                    }
+                }
+            ]
+        });
+    };
+    
+    $scope.leaveOrganizationAction = function() {
+        Organizations.leave($scope.data).then(function(res) {
+            if (res.status === 'OK') {
+                 $ionicPopup.alert({
+                    title: 'Leave Organization',
+                    template: 'You have successfully left the organization named ' + $scope.organization.orgname + ".",
+                    buttons: [
+                        {
+                            text: 'Yes',
+                            type: 'button-positive',
+                            onTap: function(e) {
+                                $scope.organizations = null;
+                                $scope.activeorg = 0;
+                                $scope.organization = null;
+                                $scope.groups = null;
+                                $scope.policies = null;
+                                $scope.getOrganization();
+                            }
+                        }
+                    ]
+                });
+            }
+        });
+    };
+
+
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Get organization groups
+    // Create organization group
+    // Delete organization group
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    $scope.getGroups = function() {
+        
+        Organizations.get_groups($scope.data).then(function(res) {
+            
+            if (res.status === 'OK') {
+                
+                if (res.groups !== undefined) {
+                    $scope.groups = res.groups;
+                    
+                    for (var indexy=0; indexy<$scope.groups.length; indexy++) {
+                        $scope.groups[indexy].checked = false;
+                        
+                        if ($scope.groups[indexy].members !== undefined) {
+                            if ($scope.groups[indexy].members.length) {
+                                $scope.groups[indexy].members_ex = $scope.groups[indexy].members.join(", ");
+                            }
+                            else {
+                                $scope.groups[indexy].members_ex = "None";
+                            }
+                        }
+                        else {
+                            $scope.groups[indexy].members_ex = "None";
+                        }
+                        
+                        if ($scope.groups[indexy].policies !== undefined) {
+                            if ($scope.groups[indexy].policies.length) {
+                                $scope.groups[indexy].policies_ex = $scope.groups[indexy].policies.join(", ");
+                            }
+                            else {
+                                $scope.groups[indexy].policies_ex = "None";
+                            }
+                        }
+                        else {
+                            $scope.groups[indexy].policies_ex = "None";
+                        }
+                    }
+                }
+                else {
+                    $scope.groups = null;
+                }
+            }
+        });
+    };
+
+    $scope.addGroup = function() {
+        
+        let param = {
+            'username': User.get_username(),
+            'token': User.get_token(),
+            'orgname': $scope.organization.orgname
+        };
+        $state.go('addOrganizationGroup', param, {reload:true} );    
+        
+    };    
+
+    $scope.deleteGroup = function() {
+        
+        var groups = [];
+        for (var indexy=0; indexy<$scope.groups.length; indexy++) {
+            if ($scope.groups[indexy].checked === true) {
+                groups.push($scope.groups[indexy].groupname);
+            }
+        }
+        if (groups.length > 1) {
+            $ionicPopup.alert({
+                title: 'Delete Group',
+                template: 'Error. You have selected more than 1 group.',
+                buttons: [{ text: 'Yes', type: 'button-positive' }]
+            });
+            return;
+        }
+        else if (groups.length === 0) {
+            $ionicPopup.alert({
+                title: 'Delete Group',
+                template: 'Error. You have not selected a group.',
+                buttons: [{ text: 'Yes', type: 'button-positive' }]
+            });
+            return;
+        }
+
+        $ionicPopup.alert({
+            title: 'Delete Group',
+            template: 'Are you sure you want to delete the group ' + groups[0] + "?",
+            buttons: [
+                {
+                    text: 'No',
+                    type: 'button-negative',
+                },
+                {
+                    text: 'Yes',
+                    type: 'button-positive',
+                    onTap: function(e) {
+                        $scope.deleteGroupAction(groups[0]);
+                    }
+                }
+            ]
+        });        
+    };
+
+    $scope.deleteGroupAction = function(groupname) {
+        
+        Organizations.delete_group($scope.data, groupname).then(function(res) {
+            
+            if (res.status === 'OK') {
+                $ionicPopup.alert({
+                    title: 'Delete Group',
+                    template: 'You have successfully deleted the group named ' + groupname + ".",
+                    buttons: [
+                        {
+                            text: 'Yes',
+                            type: 'button-positive',
+                            onTap: function(e) {
+                                $scope.groups = null;
+                                $scope.getGroups();
+                            }
+                        }
+                    ]
+                });
+            }
+            
+        });
+    };
+
+    $scope.updateGroupMembers = function() {
+        
+        var groups = [];
+        for (var indexy=0; indexy<$scope.groups.length; indexy++) {
+            if ($scope.groups[indexy].checked === true) {
+                groups.push($scope.groups[indexy].groupname);
+            }
+        }
+        if (groups.length > 1) {
+            $ionicPopup.alert({
+                title: 'Update Members',
+                template: 'Error. You have selected more than 1 group.',
+                buttons: [{ text: 'Yes', type: 'button-positive' }]
+            });
+            return;
+        }
+        else if (groups.length === 0) {
+            $ionicPopup.alert({
+                title: 'Update Members',
+                template: 'Error. You have not selected a group.',
+                buttons: [{ text: 'Yes', type: 'button-positive' }]
+            });
+            return;
+        }        
+        
+        let param = {
+            'username': User.get_username(),
+            'token': User.get_token(),
+            'orgname': $scope.organization.orgname,
+            'groupname': groups[0]
+        };
+        $state.go('updateOrganizationGroupUsers', param, {reload:true} );    
+        
+    };    
+    
+    $scope.updateGroupPolicies = function() {
+        
+        var groups = [];
+        for (var indexy=0; indexy<$scope.groups.length; indexy++) {
+            if ($scope.groups[indexy].checked === true) {
+                groups.push($scope.groups[indexy].groupname);
+            }
+        }
+        if (groups.length > 1) {
+            $ionicPopup.alert({
+                title: 'Update Policies',
+                template: 'Error. You have selected more than 1 group.',
+                buttons: [{ text: 'Yes', type: 'button-positive' }]
+            });
+            return;
+        }
+        else if (groups.length === 0) {
+            $ionicPopup.alert({
+                title: 'Update Policies',
+                template: 'Error. You have not selected a group.',
+                buttons: [{ text: 'Yes', type: 'button-positive' }]
+            });
+            return;
+        }
+        
+        let param = {
+            'username': User.get_username(),
+            'token': User.get_token(),
+            'orgname': $scope.organization.orgname,
+            'groupname': groups[0]
+        };
+        $state.go('updateOrganizationGroupPolicies', param, {reload:true} );    
+        
+    };    
+
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Get organization policies
+    // Create organization policy
+    // Delete organization policy
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    
+    $scope.getPolicies = function() {
+        
+        Organizations.get_policies($scope.data).then(function(res) {
+            
+            if (res.status === 'OK') {
+                
+                if (res.policies !== undefined) {
+                    $scope.policies = res.policies;
+                    
+                    for (var indexy=0; indexy<$scope.policies.length; indexy++) {
+                        $scope.policies[indexy].checked = false;
+                        //if ($scope.policies[indexy].members.length) {
+                        //    $scope.policies[indexy].members_ex = $scope.policies[indexy].members.join(", ");
+                        //}
+                        //else {
+                        //    $scope.policies[indexy].members_ex = "None";
+                        //}
+                    }
+                }
+                else {
+                    $scope.policies = null;
+                }
+            }
+        });
+    };
+    
+    $scope.addPolicy = function() {
+        
+        let param = {
+            'username': User.get_username(),
+            'token': User.get_token(),
+            'orgname': $scope.organization.orgname
+        };
+        $state.go('addOrganizationPolicy', param, {reload:true} );    
+        
+    };    
+
+    $scope.updatePolicy = function() {
+
+        var policies = [];
+        for (var indexy=0; indexy<$scope.policies.length; indexy++) {
+            if ($scope.policies[indexy].checked === true) {
+                policies.push({'policyname': $scope.policies[indexy].policyname, 'settings': $scope.policies[indexy].settings, 'type': $scope.policies[indexy].type});
+            }
+        }
+        if (policies.length > 1) {
+            $ionicPopup.alert({
+                title: 'Update Policy',
+                template: 'Error. You have selected more than 1 policy.',
+                buttons: [{ text: 'Yes', type: 'button-positive' }]
+            });
+            return;
+        }
+        else if (policies.length === 0) {
+            $ionicPopup.alert({
+                title: 'Update Policy',
+                template: 'Error. You have not selected a policy.',
+                buttons: [{ text: 'Yes', type: 'button-positive' }]
+            });
+            return;
+        }
+
+        console.log(policies[0]);
+        let param = {
+            'username': User.get_username(),
+            'token': User.get_token(),
+            'orgname': $scope.organization.orgname,
+            'policyname': policies[0].policyname,
+            'settings': policies[0].settings,
+            'type': policies[0].type,
+        };
+        $state.go('updateOrganizationPolicy', param, {reload:true} );    
+        
+    };    
+    
+    $scope.deletePolicy = function() {
+        
+        var policies = [];
+        for (var indexy=0; indexy<$scope.policies.length; indexy++) {
+            if ($scope.policies[indexy].checked === true) {
+                policies.push($scope.policies[indexy].policyname);
+            }
+        }
+        if (policies.length > 1) {
+            $ionicPopup.alert({
+                title: 'Delete Policy',
+                template: 'Error. You have selected more than 1 policy.',
+                buttons: [{ text: 'Yes', type: 'button-positive' }]
+            });
+            return;
+        }
+        else if (policies.length === 0) {
+            $ionicPopup.alert({
+                title: 'Delete Policy',
+                template: 'Error. You have not selected a policy.',
+                buttons: [{ text: 'Yes', type: 'button-positive' }]
+            });
+            return;
+        }
+
+        $ionicPopup.alert({
+            title: 'Delete Policy',
+            template: 'Are you sure you want to delete the policy ' + policies[0] + "?",
+            buttons: [
+                {
+                    text: 'No',
+                    type: 'button-negative',
+                },
+                {
+                    text: 'Yes',
+                    type: 'button-positive',
+                    onTap: function(e) {
+                        $scope.deletePolicyAction(policies[0]);
+                    }
+                }
+            ]
+        });        
+    };
+
+    $scope.deletePolicyAction = function(policyname) {
+        
+        Organizations.delete_policy($scope.data, policyname).then(function(res) {
+            
+            if (res.status === 'OK') {
+                $ionicPopup.alert({
+                    title: 'Delete Policy',
+                    template: 'You have successfully deleted the policy named ' + policyname + ".",
+                    buttons: [
+                        {
+                            text: 'Yes',
+                            type: 'button-positive',
+                            onTap: function(e) {
+                                $scope.groups = null;
+                                $scope.getPolicies();
+                            }
+                        }
+                    ]
+                });
+            }
+            else {
+                $ionicPopup.alert({
+                    title: 'Delete Policy',
+                    template: 'Deleting the policy named ' + policyname + " failed! " + res.message,
+                    buttons: [{text: 'Yes', type: 'button-positive'}]
+                });
+            }
+            
+        });
+    };
+    
+    
+    
+    
+
+    $scope.onCheckedOrgMember = function(member) {
+        console.log("onCheckedOrgMember " + member.username + " " + member.checked);        
+    };
+    
+    
+    $scope.changeSection = function(s) {
+        $scope.section = s;
+        if (s === 2) {
+            $scope.getGroups();
+        }
+        else if (s === 3) {
+            $scope.getPolicies();
+        }
+    };
+    
+    $scope.submitRefresh = function() {
+        console.log("submitRefresh");
+        $scope.data.username = User.get_username();
+        $scope.data.token = User.get_token();
+        
+        $scope.organizations = null;
+        $scope.activeorg = 0;
+        $scope.organization = null;
+        $scope.groups = null;
+        $scope.policies = null;
+        $scope.getOrganization();
+    };
+    
+    $scope.$on('$ionicView.enter', function(e) {
+        console.log("enter");
+        $scope.section = parseInt($state.params.section, 10);
+        console.log($scope.section);
+        $scope.submitRefresh();
+    }); 
+    
+    $scope.$on('$ionicView.beforeLeave', function(e) {
+        console.log("beforeLeave");
+        $scope.organizations = null;
+        $scope.activeorg = 0;
+        $scope.organization = null;
+        $scope.groups = null;
+        $scope.policies = null;
+    });
+}])
+   
+.controller('addOrganizationUserCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', 'Devices', 'DeviceGroups', 'Organizations', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+// You can include any angular dependencies as parameters for this function
+// TIP: Access Route Parameters for your page via $stateParams.parameterName
+function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token, Devices, DeviceGroups, Organizations) {
+
+    var server = Server.rest_api;
+    
+    $scope.data = {
+        'username': User.get_username(),
+        'token': User.get_token(),
+        
+        'orgname': $stateParams.orgname,
+        'emails': ''
+    };
+
+
+    $scope.inviteUsers = function() {
+        
+        var emails = $scope.data.emails.split(",");
+        for (var email in emails) {
+            emails[email] = emails[email].trim();
+        }
+        console.log(emails);
+        
+        Organizations.create_invitation($scope.data, emails).then(function(res) {
+            
+            if (res.status === "OK") {
+                $ionicPopup.alert({
+                    title: 'Create Invitation',
+                    template: 'Inviting specified user/s to the organization was successful.',
+                    buttons: [
+                        {
+                            text: 'Yes',
+                            type: 'button-positive',
+                            onTap: function(e) {
+                                $scope.exitPage();
+                            }
+                        }
+                    ]
+                });
+            }
+            else {
+                $ionicPopup.alert({
+                    title: 'Create Invitation',
+                    template: 'Inviting specified user/s to the organization failed. Some of the emails are invalid.',
+                    buttons: [
+                        {
+                            text: 'Yes',
+                            type: 'button-positive',
+                            onTap: function(e) {
+                                $scope.exitPage();
+                            }
+                        }
+                    ]
+                });
+            }
+        });
+    };
+    
+    $scope.exitPage = function() {
+        let param = {
+            'username': User.get_username(),
+            'token': User.get_token(),
+            'section': "1"
+        };
+        $state.go('menu.organizations', param, {reload:true} );    
+    };   
+}])
+   
+.controller('addOrganizationGroupCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', 'Devices', 'DeviceGroups', 'Organizations', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+// You can include any angular dependencies as parameters for this function
+// TIP: Access Route Parameters for your page via $stateParams.parameterName
+function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token, Devices, DeviceGroups, Organizations) {
+
+    var server = Server.rest_api;
+    
+    $scope.data = {
+        'username': User.get_username(),
+        'token': User.get_token(),
+        
+        'orgname': $stateParams.orgname,
+        'groupname': '',
+    };
+
+
+    $scope.createGroup = function() {
+        console.log("createGroup " + $scope.data.groupname);
+        
+        Organizations.create_group($scope.data, $scope.data.groupname).then(function(res) {
+            
+            if (res.status === 'OK') {
+                $ionicPopup.alert({
+                    title: 'Create Group',
+                    template: 'Creating user group in the organization was successful.',
+                    buttons: [
+                        {
+                            text: 'Yes',
+                            type: 'button-positive',
+                            onTap: function(e) {
+                                $scope.exitPage();
+                            }
+                        }
+                    ]
+                });
+            }
+            else {
+                $ionicPopup.alert({
+                    title: 'Create Group',
+                    template: 'Creating user group in the organization failed.' + ' ' + res.message,
+                    buttons: [{ text: 'Yes', type: 'button-positive' }]
+                });
+            }            
+        });
+    };
+
+    $scope.exitPage = function() {
+        let param = {
+            'username': User.get_username(),
+            'token': User.get_token(),
+            'section': "2"
+        };
+        $state.go('menu.organizations', param, {reload:true} );    
+    };   
+}])
+   
+.controller('addOrganizationPolicyCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', 'Devices', 'DeviceGroups', 'Organizations', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+// You can include any angular dependencies as parameters for this function
+// TIP: Access Route Parameters for your page via $stateParams.parameterName
+function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token, Devices, DeviceGroups, Organizations) {
+
+    var server = Server.rest_api;
+    
+    $scope.data = {
+        'username': User.get_username(),
+        'token': User.get_token(),
+        
+        'orgname': $stateParams.orgname,
+        'policyname': '',
+        'settings': []
+    };
+
+
+    $scope.createPolicy = function() {
+        console.log("createPolicy " + $scope.data.policyname);
+        
+        Organizations.create_policy($scope.data, $scope.data.policyname, $scope.data.settings).then(function(res) {
+            
+            if (res.status === 'OK') {
+                $ionicPopup.alert({
+                    title: 'Create Policy',
+                    template: 'Creating policy in the organization was successful.',
+                    buttons: [
+                        {
+                            text: 'Yes',
+                            type: 'button-positive',
+                            onTap: function(e) {
+                                $scope.exitPage();
+                            }
+                        }
+                    ]
+                });
+            }
+            else {
+                $ionicPopup.alert({
+                    title: 'Create Group',
+                    template: 'Creating policy in the organization failed.' + ' ' + res.message,
+                    buttons: [{ text: 'Yes', type: 'button-positive' }]
+                });
+            }            
+        });
+    };
+
+    $scope.getPolicySettings = function() {
+        console.log("getPolicySettings");
+        
+        Organizations.get_policy_settings($scope.data).then(function(res) {
+            if (res.status === 'OK') {
+                $scope.data.settings = res.settings;
+            }
+            else {
+                $scope.data.settings = [];
+            }
+        });
+    };
+
+
+    $scope.submitRefresh = function() {
+        console.log("submitRefresh");
+        $scope.data.username = User.get_username();
+        $scope.data.token = User.get_token();
+        $scope.getPolicySettings();
+    };
+    
+    $scope.$on('$ionicView.enter', function(e) {
+        console.log("enter");
+        $scope.submitRefresh();
+    }); 
+    
+    $scope.exitPage = function() {
+        let param = {
+            'username': User.get_username(),
+            'token': User.get_token(),
+            'section': "3"
+        };
+        $state.go('menu.organizations', param, {reload:true} );    
+    };   
+}])
+   
+.controller('updateOrganizationPolicyCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', 'Devices', 'DeviceGroups', 'Organizations', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+// You can include any angular dependencies as parameters for this function
+// TIP: Access Route Parameters for your page via $stateParams.parameterName
+function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token, Devices, DeviceGroups, Organizations) {
+
+    var server = Server.rest_api;
+    
+    $scope.data = {
+        'username': User.get_username(),
+        'token': User.get_token(),
+        
+        'orgname': $stateParams.orgname,
+        'policyname': $stateParams.policyname,
+        'settings': $stateParams.settings,
+        'type': $stateParams.type,
+    };
+
+    $scope.policySelected = 0;
+    $scope.policies = [];
+
+
+
+    $scope.changePolicy = function(id) {
+        $scope.policySelected = id;
+        console.log("changePolicy " + id);
+        console.log($scope.policySelected);
+        
+        $scope.data.policyname = $scope.policies[id].policyname;
+        $scope.data.settings   = $scope.policies[id].settings;
+        $scope.data.type       = $scope.policies[id].type;
+    };
+    
+    $scope.updatePolicy = function() {
+        console.log("updatePolicy " + $scope.data.policyname);
+        
+        Organizations.create_policy($scope.data, $scope.data.policyname, $scope.data.settings).then(function(res) {
+            
+            if (res.status === 'OK') {
+                $ionicPopup.alert({
+                    title: 'Update Policy',
+                    template: 'Updating policy in the organization was successful.',
+                    buttons: [
+                        {
+                            text: 'Yes',
+                            type: 'button-positive',
+                            onTap: function(e) {
+                                $scope.exitPage();
+                            }
+                        }
+                    ]
+                });
+            }
+            else {
+                $ionicPopup.alert({
+                    title: 'Update Policy',
+                    template: 'Updating policy in the organization failed.' + ' ' + res.message,
+                    buttons: [{ text: 'Yes', type: 'button-positive' }]
+                });
+            }            
+        });
+    };
+
+    $scope.getPolicy = function() {
+        console.log("getPolicy");
+        
+        Organizations.get_policy($scope.data, $scope.data.policyname).then(function(res) {
+            if (res.status === 'OK') {
+                $scope.data.settings = res.settings;
+            }
+            else {
+                $scope.data.settings = [];
+            }
+        });
+    };
+
+    $scope.getPolicies = function() {
+        console.log("getPolicies");
+        
+        Organizations.get_policies($scope.data).then(function(res) {
+            
+            if (res.status === 'OK') {
+                
+                if (res.policies !== undefined) {
+                    $scope.policies = res.policies;
+                    
+                    for (var indexy=0; indexy<$scope.policies.length; indexy++) {
+                        $scope.policies[indexy].id = indexy;
+                        if ($scope.policies[indexy].policyname === $scope.data.policyname) {
+                            $scope.policySelected = indexy;
+                        }
+                    }
+                }
+                else {
+                    $scope.policySelected = 0;
+                    $scope.policies = [];
+                }
+            }
+        });
+    };
+    
+    $scope.submitRefresh = function() {
+        console.log("submitRefresh");
+        $scope.data.username = User.get_username();
+        $scope.data.token = User.get_token();
+        $scope.getPolicies();
+    };
+    
+    $scope.$on('$ionicView.enter', function(e) {
+        console.log("enter");
+        $scope.submitRefresh();
+    }); 
+    
+    $scope.exitPage = function() {
+        let param = {
+            'username': User.get_username(),
+            'token': User.get_token(),
+            'section': "3"
+        };
+        $state.go('menu.organizations', param, {reload:true} );    
+    };   
+}])
+   
+.controller('updateOrganizationsCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', 'Devices', 'DeviceGroups', 'Organizations', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+// You can include any angular dependencies as parameters for this function
+// TIP: Access Route Parameters for your page via $stateParams.parameterName
+function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token, Devices, DeviceGroups, Organizations) {
+
+    var server = Server.rest_api;
+    
+    $scope.data = {
+        'username': User.get_username(), //$stateParams.username,
+        'token': User.get_token(),        //$stateParams.token
+        
+        'orgname': ''
+    };
+    
+    $scope.organizations = [];
+    
+
+    $scope.createOrganization = function() {
+        console.log('createOrganization ' + $scope.data.orgname);
+        if ($scope.data.orgname === '') {
+            $ionicPopup.alert({title: 'Create Organization', template: 'Organization name is empty!'});
+            return;
+        }
+        
+        Organizations.create($scope.data, $scope.data.orgname).then(function(res) {
+            if (res.status === 'OK') {
+
+                $ionicPopup.alert({
+                    title: 'Create Organization',
+                    template: 'You have successfully created the organization named ' + $scope.data.orgname,
+                    buttons: [
+                        {
+                            text: 'Yes',
+                            type: 'button-positive',
+                            onTap: function(e) {
+                                let param = {
+                                    'username': User.get_username(),
+                                    'token': User.get_token(),
+                                    'section': "1"
+                                };
+                                $scope.submitRefresh();
+                                //$state.go('menu.organizations', param, {reload:true} );    
+                            }
+                        }
+                    ]
+                });
+            }
+            else {
+                
+                console.log("ERROR");
+                $ionicPopup.alert({
+                    title: 'Create Organization',
+                    template: 'Creating of new organization failed. ' + res.message,
+                    buttons: [
+                        {
+                            text: 'Yes',
+                            type: 'button-positive'
+                        }
+                    ]
+                });                
+            }
+        });
+    };
+   
+    $scope.setActiveOrganization = function() {
+
+        if ($scope.organizations.length === 0) {
+            $ionicPopup.alert({
+                title: 'Set Active Organization',
+                template: 'Error. You have no organizations.',
+                buttons: [{ text: 'Yes', type: 'button-positive' }]
+            });
+            return;
+        }
+
+        var org_list = [];    
+        for (var organization in $scope.organizations) {
+            if ($scope.organizations[organization].checked) {
+                org_list.push({'orgname': $scope.organizations[organization].orgname, 'orgid': $scope.organizations[organization].orgid});
+            }
+        }
+        if (org_list.length > 1) {
+            $ionicPopup.alert({
+                title: 'Set Active Organization',
+                template: 'Error. You have selected more than 1 organization.',
+                buttons: [{ text: 'Yes', type: 'button-positive' }]
+            });
+            return;
+        }
+        else if (org_list.length === 0) {
+            $scope.setActiveOrganizationAction('None', 'None');
+        }
+        else {
+            $scope.setActiveOrganizationAction(org_list[0].orgname, org_list[0].orgid);
+        }
+    };
+        
+    $scope.setActiveOrganizationAction = function(orgname, orgid) {
+        
+        Organizations.set_active($scope.data, orgname, orgid).then(function(res) {
+            $ionicPopup.alert({
+                title: 'Set Active Organization',
+                template: 'You have successfully set the active organization to ' + orgname + ' (id:' + orgid + ')',
+                buttons: [
+                    {
+                        text: 'Yes',
+                        type: 'button-positive',
+                        onTap: function(e) {
+                            let param = {
+                                'username': User.get_username(),
+                                'token': User.get_token(),
+                                'section': "1"
+                            };
+                            $state.go('menu.organizations', param, {reload:true} );    
+                        }
+                    }
+                ]
+            });
+        });
+    };
+   
+    $scope.getOrganizations = function() {
+        
+        Organizations.get_all($scope.data).then(function(res) {
+            
+            if (res.organizations !== undefined) {
+                $scope.organizations = res.organizations;
+                
+                var hasActiveOrg = false;
+                for (var organization in $scope.organizations) {
+                    
+                    let timestamp = new Date($scope.organizations[organization].date * 1000); 
+                    $scope.organizations[organization].date = timestamp.getFullYear() + "/" + (timestamp.getMonth()+1) + "/" + timestamp.getDate();                    
+                    if ($scope.organizations[organization].active) {
+                        $scope.organizations[organization].checked = true;
+                        hasActiveOrg = true;
+                    }
+                    else {
+                        $scope.organizations[organization].checked = false;
+                    }
+                }
+                
+                /*
+                if (hasActiveOrg === false && $scope.organizations.length > 0) {
+                    $ionicPopup.alert({
+                        title: 'Set Active Organization',
+                        template: 'You have NO active organization. Please set an active organization.',
+                        buttons: [{ text: 'Yes', type: 'button-positive' }]
+                    });  
+                }
+                else if ($scope.organizations.length === 0) {
+                    $ionicPopup.alert({
+                        title: 'Create Organization',
+                        template: 'You have NO organization..',
+                        buttons: [{ text: 'Yes', type: 'button-positive' }]
+                    });  
+                }
+                */
+            }
+        });
+    };
+    
+    $scope.submitRefresh = function() {
+        $scope.data.username = User.get_username();
+        $scope.data.token = User.get_token();
+        $scope.organizations = [];
+        $scope.getOrganizations();
+    };
+    
+    $scope.$on('$ionicView.enter', function(e) {
+        $scope.submitRefresh();
+    }); 
+    
+    $scope.$on('$ionicView.beforeLeave', function(e) {
+        $scope.organizations = [];
+        $scope.data.orgname = '';
+    });
+    
+    $scope.exitPage = function() {
+        let param = {
+            'username': User.get_username(),
+            'token': User.get_token(),
+            'section': "1"
+        };
+        $state.go('menu.organizations', param, {reload:true} );    
+    }; 
+}
+])
+   
+.controller('updateOrganizationGroupUsersCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', 'Devices', 'DeviceGroups', 'Organizations', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+// You can include any angular dependencies as parameters for this function
+// TIP: Access Route Parameters for your page via $stateParams.parameterName
+function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token, Devices, DeviceGroups, Organizations) {
+
+    var server = Server.rest_api;
+    
+    $scope.data = {
+        'username': User.get_username(),
+        'token': User.get_token(),
+        
+        'orgname': $stateParams.orgname,
+        'groupname': $stateParams.groupname,
+    };
+
+    $scope.members = [];
+    $scope.ungrouped = [];
+    $scope.memberSelected = 0;
+
+
+
+    $scope.changeMember = function(id) {
+        $scope.memberSelected = id;
+        console.log("changeMember");
+        console.log($scope.memberSelected);
+    };
+    
+    $scope.getGroupMembers = function(groupname="Ungrouped", flag=false) {
+        
+        console.log("getGroupMembers " + groupname);
+        
+        Organizations.get_group_members($scope.data, groupname).then(function(res) {
+
+            if (res.status === 'OK') {
+                
+                if (groupname === "Ungrouped") {
+                    $scope.ungrouped = [];
+                    let id=0;
+                    for (let member in res.members) {
+                        $scope.ungrouped.push({ "id": id, 'membername': res.members[member] });
+                        id+=1;
+                    }
+                }
+                else {
+                    $scope.members = [];
+                    let id=0;
+                    for (let member in res.members) {
+                        $scope.members.push({ "id": id, 'membername': res.members[member], 'enabled': true });
+                        id+=1;
+                    }
+                }
+                
+                if (flag === true) {
+                    $scope.getGroupMembers($scope.data.groupname, false);
+                }
+            }
+        });        
+    };
+
+    $scope.addGroupMember = function() {
+        
+        var membername = $scope.ungrouped[$scope.memberSelected].membername;
+
+        console.log("addGroupMember " + $scope.data.orgname + " " + $scope.data.groupname + " " + membername);
+        
+        Organizations.add_group_member($scope.data, $scope.data.groupname, membername).then(function(res) {
+
+            if (res.status === 'OK') {
+                $ionicPopup.alert({
+                    title: 'Add Group Member',
+                    template: 'Adding member to the organization group was successful.',
+                    buttons: [{ text: 'Yes', type: 'button-positive', 
+                        onTap: function(e) {
+                            $scope.submitRefresh(true);
+                        } 
+                    }]
+                });
+            }
+            else {
+                $scope.submitRefresh(true);
+            }
+            
+        });        
+    };
+    
+    $scope.updateGroupMembers = function() {
+        
+        var members = [];
+
+        for (var member in $scope.members) {
+            if ($scope.members[member].enabled) {
+                members.push($scope.members[member].membername);
+            }
+        }
+        
+        $ionicPopup.alert({
+            title: 'Update Group Members',
+            template: 'Are you sure you want to update the group members?' + ' ' + 'Unchecked users will be removed from the group.',
+            buttons: [
+                {
+                    text: 'No',
+                    type: 'button-negative',
+                },
+                {
+                    text: 'Yes',
+                    type: 'button-positive',
+                    onTap: function(e) {
+                        $scope.updateGroupMembersAction(members);
+                    }
+                }
+            ]
+        });           
+    };
+    
+    $scope.updateGroupMembersAction = function(members) {
+        
+        Organizations.update_group_members($scope.data, $scope.data.groupname, members).then(function(res) {
+
+            if (res.status === 'OK') {
+                $ionicPopup.alert({
+                    title: 'Update Group Members',
+                    template: 'Updating members of the organization group was successful.',
+                    buttons: [{ text: 'Yes', type: 'button-positive', 
+                        onTap: function(e) {
+                            $scope.submitRefresh(true);
+                        } 
+                    }]
+                });
+            }
+            else {
+                $scope.submitRefresh(true);
+            }
+            
+        });        
+    };
+
+
+    $scope.submitRefresh = function(flag) {
+        $scope.getGroupMembers("Ungrouped", flag);
+    };
+
+
+    $scope.$on('$ionicView.enter', function(e) {
+        console.log("enter");
+        $scope.members = [];
+        $scope.ungrouped = [];
+        $scope.memberSelected = 0;
+        $scope.submitRefresh(true);
+    }); 
+    
+    $scope.$on('$ionicView.beforeLeave', function(e) {
+        console.log("beforeLeave");
+    });
+
+    $scope.exitPage = function() {
+        let param = {
+            'username': User.get_username(),
+            'token': User.get_token(),
+            'section': "2"
+        };
+        $state.go('menu.organizations', param, {reload:true} );    
+    };  
+}])
+   
+.controller('updateOrganizationGroupPoliciesCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', 'Devices', 'DeviceGroups', 'Organizations', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+// You can include any angular dependencies as parameters for this function
+// TIP: Access Route Parameters for your page via $stateParams.parameterName
+function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token, Devices, DeviceGroups, Organizations) {
+
+    var server = Server.rest_api;
+    
+    $scope.data = {
+        'username': User.get_username(),
+        'token': User.get_token(),
+        
+        'orgname': $stateParams.orgname,
+        'groupname': $stateParams.groupname,
+    };
+
+    $scope.policies = [];
+    $scope.orgPolicies = [];
+    $scope.policySelected = 0;
+
+
+
+    $scope.changePolicy = function(id) {
+        $scope.policySelected = id;
+        console.log("changePolicy");
+        console.log($scope.policySelected);
+    };
+
+    $scope.getOrgPolicies = function() {
+        
+        console.log("getOrgPolicies");
+        
+        Organizations.get_policies($scope.data).then(function(res) {
+
+            if (res.status === 'OK') {
+                
+                console.log("xxx ");
+                console.log(res.policies);
+                
+                $scope.orgPolicies = [];
+                let id=0;
+                for (let policy in res.policies) {
+                    $scope.orgPolicies.push({ "id": id, 'policyname': res.policies[policy].policyname, 'enabled': true });
+                    id+=1;
+                }
+            }
+            else {
+                $scope.orgPolicies = [];
+            }
+        });        
+    };
+    
+    $scope.getGroupPolicies = function(groupname, flag=false) {
+        
+        console.log("getGroupPolicies " + groupname);
+        
+        Organizations.get_group_policies($scope.data, groupname).then(function(res) {
+
+            if (res.status === 'OK') {
+                
+                $scope.policies = [];
+                let id=0;
+                for (let policy in res.policies) {
+                    $scope.policies.push({ "id": id, 'policyname': res.policies[policy], 'enabled': true });
+                    id+=1;
+                }
+
+                if (flag === true) {
+                    $scope.getOrgPolicies();
+                }
+            }
+        });        
+    };
+
+    $scope.addGroupPolicy = function() {
+        
+        var policyname = $scope.orgPolicies[$scope.policySelected].policyname;
+
+        console.log("addGroupPolicy " + $scope.data.groupname + " " + policyname);
+        
+        Organizations.add_group_policy($scope.data, $scope.data.groupname, policyname).then(function(res) {
+
+            if (res.status === 'OK') {
+                $ionicPopup.alert({
+                    title: 'Add Group Policy',
+                    template: 'Adding Policy to the organization group was successful.',
+                    buttons: [{ text: 'Yes', type: 'button-positive', 
+                        onTap: function(e) {
+                            $scope.submitRefresh(true);
+                        } 
+                    }]
+                });
+            }
+            else {
+                $scope.submitRefresh(true);
+            }
+            
+        });        
+    };
+    
+    $scope.updateGroupPolicies = function() {
+        
+        var policies = [];
+
+        for (var policy in $scope.policies) {
+            if ($scope.policies[policy].enabled) {
+                policies.push($scope.policies[policy].policyname);
+            }
+        }
+        
+        $ionicPopup.alert({
+            title: 'Update Group Policies',
+            template: 'Are you sure you want to update the group policy?' + ' ' + 'Unchecked policies will be removed from the group.',
+            buttons: [
+                {
+                    text: 'No',
+                    type: 'button-negative',
+                },
+                {
+                    text: 'Yes',
+                    type: 'button-positive',
+                    onTap: function(e) {
+                        $scope.updateGroupPoliciesAction(policies);
+                    }
+                }
+            ]
+        });           
+    };
+    
+    $scope.updateGroupPoliciesAction = function(policies) {
+        
+        Organizations.update_group_policies($scope.data, $scope.data.groupname, policies).then(function(res) {
+
+            if (res.status === 'OK') {
+                $ionicPopup.alert({
+                    title: 'Update Group Policies',
+                    template: 'Updating policies of the organization group was successful.',
+                    buttons: [{ text: 'Yes', type: 'button-positive', 
+                        onTap: function(e) {
+                            $scope.submitRefresh(true);
+                        } 
+                    }]
+                });
+            }
+            else {
+                $scope.submitRefresh(true);
+            }
+            
+        });        
+    };
+
+
+    $scope.submitRefresh = function(flag) {
+        $scope.getGroupPolicies($scope.data.groupname, flag);
+    };
+
+
+    $scope.$on('$ionicView.enter', function(e) {
+        console.log("enter");
+        $scope.policies = [];
+        $scope.orgPolicies = [];
+        $scope.policySelected = 0;
+        $scope.submitRefresh(true);
+    }); 
+    
+    $scope.$on('$ionicView.beforeLeave', function(e) {
+        console.log("beforeLeave");
+    });
+
+    $scope.exitPage = function() {
+        let param = {
+            'username': User.get_username(),
+            'token': User.get_token(),
+            'section': "2"
+        };
+        $state.go('menu.organizations', param, {reload:true} );    
+    };  
 }])
  

@@ -1,0 +1,36 @@
+<ion-view title="Add Gateway" hide-back-button="true" nav-transition="none" id="page12" style="background-color:#FFFFFF;" class="page_width_small">
+  <ion-nav-buttons side="left" class="has-header">
+    <button class="button button-icon icon ion-android-close" ng-click="submitDeviceList()"></button>
+  </ion-nav-buttons>
+  <ion-content padding="true" class="has-header">
+    <form id="addGateway-form13" class="list">
+      <div class="spacer" style="width: 300px; height: 20px;"></div>
+      <div id="addGateway-markdown493" class="show-list-numbers-and-dots">
+        <p style="color:#AAAAAA;">Please enter the UUID, Serial Number and POE MAC Address of your gateway. Check the sticker with QR code.</p>
+      </div>
+      <ion-item class="item-divider" id="addGateway-list-item-divider19"> UUID</ion-item>
+      <label class="item item-input" id="addGateway-input56" name="input-uuid">
+        <input type="text" placeholder="PH80XXRRMMDDYYSS" ng-model="data.uuid">
+      </label>
+      <ion-item class="item-divider" id="addGateway-list-item-divider20"> Serial Number</ion-item>
+      <label class="item item-input" id="addGateway-input57" name="input-serialnumber">
+        <input type="text" placeholder="SSSSS" ng-model="data.serialnumber">
+      </label>
+      <ion-item class="item-divider" id="addGateway-list-item-divider21"> POE MAC Address</ion-item>
+      <label class="item item-input" id="addGateway-input177" name="input-macaddress">
+        <input type="text" placeholder="00:00:00:00:00:00" ng-model="data.poemacaddress">
+      </label>
+      <button id="addGateway-button31" ng-click="generate()" class="button button-positive button-block button-outline">Generate random values</button>
+    </form>
+    <div id="addGateway-markdown494" class="show-list-numbers-and-dots">
+      <p style="color:#AAAAAA;">Please assign a name for this gateway.</p>
+    </div>
+    <form id="addGateway-form21" class="list">
+      <ion-item class="item-divider" id="addGateway-list-item-divider22"> Name</ion-item>
+      <label class="item item-input" id="addGateway-input28" name="input-name">
+        <input type="text" placeholder="My Gateway" ng-model="data.devicename">
+      </label>
+    </form>
+    <button id="addGateway-button55" ng-click="submit()" class="button button-positive button-block">SAVE</button>
+  </ion-content>
+</ion-view>

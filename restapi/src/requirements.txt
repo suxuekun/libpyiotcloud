@@ -14,3 +14,7 @@ flask_cors==3.0.8
 flask_api==1.1.0
 paypalrestsdk==1.13.1
 redis==3.4.1
+dnspython==1.16.0
+pyjwt==1.7.1
+pycountry==19.8.18
+phonenumbers==8.12.2

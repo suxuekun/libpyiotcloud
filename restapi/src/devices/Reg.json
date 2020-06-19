@@ -1,0 +1,49 @@
+{
+  "LDS": [
+    {
+      "IID": "12345",
+      "PORT": "1",
+      "DID": "1",
+      "PRV": "1.0",
+      "MFG": "DDMMYYYY",
+      "SNO": "BRT12345",
+      "UID": "BRTXXXXXXXXXXXXX",
+      "NAME": "BRT 4-in-1 Sensor",
+      "OBJ": "32768"
+    },
+    {
+      "IID": "11246",
+      "PORT": "1",
+      "DID": "1",
+      "PRV": "1.0",
+      "MFG": "DDMMYYYY",
+      "SNO": "BRT12345",
+      "UID": "BRTXXXXXXXXXXXXX",
+      "NAME": "Air Quality Sensor",
+      "OBJ": "32770"
+    },
+    {
+      "IID": "12345",
+      "PORT": "2",
+      "DID": "1",
+      "PRV": "1.0",
+      "MFG": "DDMMYYYY",
+      "SNO": "BRT12345",
+      "UID": "BRTXXXXXXXXXXXXX",
+      "NAME": "BRT 4-in-1 Sensor",
+      "OBJ": "32768"
+    },
+    {
+      "IID": "11246",
+      "PORT": "3",
+      "DID": "1",
+      "PRV": "1.0",
+      "MFG": "DDMMYYYY",
+      "SNO": "BRT12345",
+      "UID": "BRTXXXXXXXXXXXXX",
+      "NAME": "Air Quality Sensor",
+      "OBJ": "32770"
+    }
+  ]
+}
+

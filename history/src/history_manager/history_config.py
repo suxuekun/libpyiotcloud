@@ -6,9 +6,11 @@ class config:
     # General settings
     CONFIG_DEBUG_HISTORY          = False
     CONFIG_ENABLE_MAX_HISTORY     = True
-    CONFIG_MAX_HISTORY_PER_DEVICE = 50
+    CONFIG_MAX_HISTORY_PER_DEVICE = 20
 
     # Database settings
+    CONFIG_MONGODB_USERNAME       = os.environ["CONFIG_USE_MONGODB_USER"]
+    CONFIG_MONGODB_PASSWORD       = os.environ["CONFIG_USE_MONGODB_PASS"]
     CONFIG_MONGODB_HOST           = "mongodb"
     CONFIG_MONGODB_PORT           = 27017
     CONFIG_MONGODB_DB             = "iotcloud-database"

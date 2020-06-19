@@ -1,0 +1,23 @@
+<ion-view title="Add Gateway Group" hide-back-button="true" nav-transition="none" id="page63" style="background-color:#FFFFFF;" class="page_width">
+  <ion-nav-buttons side="left" class="has-header">
+    <button class="button button-icon icon ion-android-close" ng-click="submitDeviceList()"></button>
+  </ion-nav-buttons>
+  <ion-content padding="true" class="has-header">
+    <form id="addGatewayGroup-form233" class="list">
+      <div class="spacer" style="width: 300px; height: 20px;"></div>
+      <div id="addGatewayGroup-markdown519" class="show-list-numbers-and-dots">
+        <p style="color:#AAAAAA;">Please enter a name for this gateway group.</p>
+      </div>
+      <label class="item item-input item-stacked-label" id="addGatewayGroup-input176" name="input-name">
+        <input type="text" placeholder="My Gateway Group" ng-model="data.devicegroupname">
+      </label>
+    </form>
+    <div id="addGatewayGroup-markdown553" class="show-list-numbers-and-dots">
+      <p style="color:#AAAAAA;">Please select gateways to be added to the gateway group.</p>
+    </div>
+    <form id="addGatewayGroup-form256" class="list">
+      <ion-checkbox id="addGatewayGroup-checkbox60" ng-repeat="device in devices" ng-model="device.enabled">{{ device.devicename }}</ion-checkbox>
+      <button id="addGatewayGroup-button228" ng-click="submit()" class="button button-positive button-block">SAVE</button>
+    </form>
+  </ion-content>
+</ion-view>

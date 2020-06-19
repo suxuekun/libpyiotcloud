@@ -1,0 +1,22 @@
+<ion-view title="Confirm MFA" hide-nav-bar="true" hide-back-button="true" cache-view="false" nav-transition="none" id="page65" class="page_width_small">
+  <ion-content padding="true" class="manual-ios-statusbar-padding">
+    <div class="spacer" style="height: 20px;"></div>
+    <h3 id="confirmMFA-heading15" style="color:#3C5A99;text-align:center;">Confirm MFA</h3>
+    <div class="spacer" style="height: 10px;"></div>
+    <form id="confirmMFA-form237" class="list">
+      <div id="confirmMFA-markdown471" style="text-align:center;" class="show-list-numbers-and-dots">
+        <p style="color:#000000;">Please enter the 6-digit code sent to your SMS.</p>
+      </div>
+      <ion-list id="confirmMFA-list15">
+        <label class="item item-input" id="confirmMFA-input175" name="input-confirmationcode">
+          <span class="input-label">Code</span>
+          <input type="text" placeholder="" ng-model="data.confirmationcode">
+        </label>
+      </ion-list>
+      <div class="spacer" style="height: 10px;"></div>
+      <button id="confirmMFA-button170" ng-click="submit()" class="button button-positive button-block">Submit</button>
+      <button id="confirmMFA-button177" ng-click="submitCancel()" class="button button-dark button-small button-block button-clear">Cancel</button>
+    </form>
+    <div id="confirmMFA-container27" class="spinner4 creator-container"></div>
+  </ion-content>
+</ion-view>

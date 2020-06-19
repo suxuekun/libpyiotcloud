@@ -1,6 +1,16 @@
 # libpyiotcloud
 
-libpyiotcloud is a dockerized IoT platform for secure remote access, control and management of microcontroller-based smart devices via Android/iOS hybrid mobile apps and web app with backend RESTful APIs accessing 3rd party APIs (Cognito user signup/login, Twilio SMS messaging, Nexmo SMS messaging, Pinpoint email/SMS messaging, Paypal payment gateway), integrated to containerized microservices (RabbitMQ message broker, Nginx web server, MongoDB database) and deployed to Amazon AWS EC2 utilizing Kubernetes orchestration, Docker containerization and Jenkins CI/CD automation.
+libpyiotcloud is a dockerized IoT platform for secure remote access, control and management of microcontroller-based smart devices via Android/iOS hybrid mobile apps and web app with backend RESTful APIs accessing 3rd party APIs (Cognito user signup/login, Twilio SMS messaging, Nexmo SMS messaging, Pinpoint email/SMS messaging, Paypal payment gateway), integrated to containerized microservices (RabbitMQ message broker, Nginx web server, MongoDB database) and deployed to Amazon AWS EC2 utilizing Docker containerization, Kubernetes orchestration and Jenkins CI/CD automation.
+
+
+# Notices
+
+Readers are responsible for making their own independent assessment of the information in this documentation.
+
+Warning: This github documentation is can appear as highly technical. 
+It requires necessary technical experience and skills in the IoT domain, networking, security and web/mobile development to fully grasp the information. 
+It would take some time to digest everything. But I've tried to simplify things in Laymans terms as much as possible. 
+For any question or clarification, just message me on Skype, ftdi.richmond.umagat.
 
 
 # Background
@@ -22,95 +32,261 @@ Comparable IoT platforms for our use-case of remote device access and control in
 However, these IoT platforms are tied up to their smart devices.
 This IoT platform is generic for all smart devices and IoT devices that can be build on top of any MCU, but preferably using FT9XX MCUs.
 
+<b> 
+Note: Due to requirement changes, this IoT platform has since evolved to be used entirely for the company's new IoT device used to seamlessly manage long-range sensors.
+</b>
+
 
 # Architecture
 
+This IoT platform is the heart of the IoT system. 
+It is the main service attachment point for the IoT platform clients and IoT devices and acts as the bridge to connect clients and devices together.
+It acts as the central messaging broker that supports client to device and device to device communication.
+It maintains the state of the entire system. It stores device and sensor information and all manner of device and sensor configurations and their routing information. 
+It also ingests and stores the received sensor readings from the devices for real-time dashboard visualization and off-line analysis. 
+It also keeps track of user details and user credit details and interfaces to 3rd party cloud systems such as identity services, alerting services, payment merchants and additional services.
+
+All these are done securely as security is built-in from the design, not as an after-thought. Security by Design principle.
+Security concerns is one of the major challenges slowing down IoT adoption. For some companies, it is mostly because of neglect than lack of skills.
+Even though its impossible to defend against all sophisticated cyber-attacks, following industry-proven best practices and incorporating security and privacy in design is vital to any IoT platform. 
+As security risks can never be completely eliminated, security enhancement will be an ongoing process. Incremental security improvements will be continuously applied.
+Security will be enforced in an end-to-end approach, from physical devices and sensors, to data connections, to host systems, to the services and data stored in the cloud.
+
+
+Below are the features of this secure, scalable and reliable IoT platform:
+
+    1. Backend infrastructure
+       Utilizes microservices architecture on AWS cloud for enabling scalability, high-availability and fault-tolerance
+       A. IaaS service on reliable cloud platform using AWS EC2
+       B. Containerized microservices architecture using Docker containers
+       C. Reliable and scalable databases and message brokers using MongoDB, MongoDB Atlas, Redis and RabbitMQ
+       D. Container orchestration tools using Docker-compose or Kubernetes (tested on Minikube and AWS EKS)
+       E. Continuous integration/deployment (CI/CD) using Jenkins pipelines (automated deployment from Github to AWS EC2)
+       F. Monitoring solution using Prometheus and Grafana (cAdvisor: Docker container monitoring, NodeExporter: AWS EC2 host monitoring)
+       G. Logging solution using Elastic stack / ELK stack (Elasticsearch, Logstash, and Kibana)
+       H. Limited ports exposed to fend off attacks in infrastructure level
+
+    2. Device connectivity services
+       Utilizes lightweight MQTT protocol for device connectivity ideal for low-powered devices and long-term reliability
+       A. Device and backend communication via RabbitMQ message broker using MQTTS protocol
+       B. Device authentication using unique username and JWT-encoded password (with shared secret key) credentials
+       C. Device authentication using ECC-based X.509 client certificate with mutual authentication enforcement
+       D. Secure communication using TLS, device athorization using MQTT topic permissions
+       E. Company-generated ECC-based X.509 SSL certificates (server root certificate and client device certificates)
+       F. Device simulator (Python) as reference implementation for actual IoT device
+
+    3. Web/mobile connectivity services
+       Access Portal from your desktop web browsers or mobile apps.
+       A. Access from a specific domain (and subdomains) with SSL certificate/s from trusted certificate authorities
+       B. Web/mobile app and backend communication via RESTful APIs using HTTPS protocol
+       C. Secure communication using TLS, trusted SSL certificates, JWT authorization headers
+       D. Hybrid web/mobile apps (using Ionic framework) as reference implementation for actual web/mobile clients
+       E. SSL certificate registered in NGINX web server for specific domain mapped to EC2 instance using Amazon Route53
+
+    4. Identity management services
+       Access Portal in a secure way (using Amazon Cognito).
+       A. User sign-up (and password reset/recovery) with secure OTP (one-time password)
+       B. Login with verified email or mobile number
+       C. Login with multi-factor authentication (MFA/2FA) security - disabled by default; must be explicitly enabled by user
+       D. Login via social IDP (Facebook/Google/Amazon) via OAuth2 security
+       E. User lockout security on consecutive failed attempts to alert suspicious behavior
+
+    5. Organization and access control management services
+       Manage an organization of users and assign permissions (role-based access control aka RBAC).
+       A. Create and manage an organization, adding new/existing users
+       B. Group the users based on assigned tasks/roles
+       C. Assign permissions policies to each user groups
+
+    6. Alerting and messaging services
+       Raise alarms over sMs, Email, push Notification, mOdem, Storage (MENOS) so you can respond and analyze telemetry events in time.
+       A. sMs: sending mobile SMS alerts via Amazon Pinpoint
+       B. Email: sending email alerts via Amazon Pinpoint
+       C. push Notification: sending mobile push notifications alerts to Android/IOS mobile via Amazon Pinpoint
+       D. mOdem: sending alerts to another device
+       E. Storage: sending alerts to Amazon S3 for file storage (user can download file for later analysis)
+       *  IFTTT: trigger a 3rd-party application (like, Twitter, Facebook, Alexa, etc) via IFTTT
+       *  Lambda: trigger a user-defined Python/NodeJS function for highly customized alerting
+
+    7. Payment services
+       Conveniently pay for subscription upgrade for each device every month to avail all services for all purchased IoT devices.
+       A. Use Paypal/BrainTree to pay for subscription plan (and/or add-ons) and receive an email confirmation receipt
+       B. View payment histories fo all purchased IoT devices
+       C. Use free subscription for all purchased devices
+       D. Upgrade free subscription to Basic subscription to avail of all services
+       E. Buy add-ons on top of Basic subscription to avail more of specific services
+
+    8. Subscription and usage tracking services
+       Monitor usage of services real-time to detect usage pattern and continuously avail of premium services
+       A. Monitor usage for SMS, email, push notifications
+       B. Monitor usage for sensor data storage
+
+    9. Device (Gateway and LDSU) management services
+       Provision, manage and monitor devices
+       A. Register device manually or via QR code (QR code registration via mobile apps only)
+       B. Manager device status remotely (restart, stop, start) and view device properties including last active time
+       C. Configure and track location of a device (or a fleet of devices) via Google Maps (latitude, longitude)
+       D. Seamlessly update firmware of a device (or fleet of devices - online and/or offline) remotely over-the-air (OTA) with secure checksum validation
+       E. Organize devices into groups of devices for bulk/fleet-wide operations or for organizing several devices
+       F. View device-sensor hierarchy tree and devices configurations summary 
+       *  Configure and manage organization-owned devices
+
+    10.Sensor/actuator management services
+       Configure sensors/actuators for customizable alerts/alarms or trigger/action
+       A. Configure UART parameters and GPIO pins
+       B. Register 3rd-party sensors connected via peripherals: I2C, ADC, OneWire, TPROBE
+          INPUT  [sensors]   : potentiometer, temperature, humidity, anemometer, battery, fluid, 
+          OUTPUT [actuators] : speaker, display, light
+          User MANUALLY registers sensors connected
+          Device AUTOMATICALLY registers sensors connected on bootup
+       C. Configure sensors for data thresholding (to trigger MENOS alerts)
+       D. Configure sensors for data thresholding (to set actuators)
+       E. Configure sensors for data forwarding
+       F. Configure actuators to receive data from sensors (data forwarding)
+       G. Configure actuators to receive commands from sensors (data thresholding - item D)
+       H. View device-sensor hierarchy tree and summary of sensor configurations
+
+    11.Sensor data visualization and analytics services
+       Understand device and sensor behaviour via the dashboard charts/graphs/infographics for complete holistic insight
+       A. Ingest sensor data from sensors connected via peripherals: I2C, ADC, Onewire, TPROBE
+       B. Store sensor data to a Big Data database using MongoDB Atlas
+       C. Visualize real-time and historical sensor data via time-series line charts (with sensor filters, time range filter)
+       D. Visualize device and sensor related metrics via pie, doughnut and bar charts
+       E. Forward sensor data (forward INPUT sensor data to another OUTPUT sensor from same or different device)
+       F. Threshold sensor data (trigger MENOS alerts when threshold limits are met)
+       G. Download sensor data for data analysis, data backup, data recovery or data privacy
+       *  Analyze sensor data using 3rd-party Business Intellegence / Analytics tools (PowerBI, Tableau, Qlik)
+
+
+With IoT, the opportunities are endless. 
+Below, we outline just some of the applications in which this IoT platform can used to influence outcomes, 
+enhance business efficiencies and opportunities, and improve lives, in any type of businesses and industries:
+
+- Agricultural and urban farming
+- Amusement parks and recreational fields
+- Data centers and facilities
+- Government offices and municipals
+- Hospitals and medical clinics
+- Hotels and house rentals
+- Industrial and manufacturing warehouses
+- Logistics and transportation
+- Schools and public libraries
+- Stores and retail outlets
+- Smart homes and smart offices
+
+
 This IoT platform is a container-based IoT cloud platform that leverages 
-Flask, GUnicorn, Nginx, RabbitMQ, MongoDB, Ionic, Amazon Cognito, Amazon Pinpoint, Twilio, Nexmo, Paypal, Docker, Kubernetes, Jenkins and many more.
+Flask, GUnicorn, Nginx, RabbitMQ, MongoDB, Ionic, Amazon Cognito, Amazon Pinpoint, Twilio, Nexmo, Paypal, BrainTree, Docker, Kubernetes, Jenkins and many more.
 It can be deployed in a local PC or in the cloud - AWS EC2, Linode, Heroku, Rackspace, DigitalOcean or etc.
 The web app is made of Ionic framework so it can be compiled as Android and iOS mobile apps using one code base.
 
-- <b>LucidChart</b> UML diagrams - https://www.lucidchart.com
+- <b>Amazon EC2</b> IaaS cloud service - https://aws.amazon.com/ec2/
+- <b>Amazon Cognito</b> (sign-up/sign-in identity/authentication management with OTP, MFA/2FA, OAuth2, IdP) - https://aws.amazon.com/cognito/
+- <b>Amazon S3</b> File data storage - https://aws.amazon.com/s3
+- <b>Amazon Pinpoint</b> email/SMS/push notification messaging platform - https://aws.amazon.com/pinpoint/
+- <b>Amazon SNS</b> email/SMS messaging platform - https://aws.amazon.com/sns/
+- <b>Amazon Route 53</b> DNS domain resolution - https://aws.amazon.com/route53/
+- <b>Amazon Cloudwatch</b> monitoring/alarm platform - https://aws.amazon.com/cloudwatch/
+- <b>Amazon EKS</b> Kubernetes service - https://aws.amazon.com/eks/
+- <b>Docker</b> containerization (dockerfiles, docker-compose) - https://www.docker.com/
+- <b>Kubernetes</b> container orchestration - https://kubernetes.io/
+- <b>Minikube</b> local Kubernetes cluster - https://github.com/kubernetes/minikube/
 - <b>Nginx</b> web server - https://www.nginx.com/
 - <b>GUnicorn</b> WSGI server - https://gunicorn.org/
 - <b>Flask</b> web framework (REST API) - http://flask.pocoo.org/
-- <b>RabbitMQ</b> message broker (MQTT, AMQP) - https://www.rabbitmq.com/
+- <b>RabbitMQ</b> message broker (AMQP, MQTT plugin, Management plugin) - https://www.rabbitmq.com/
 - <b>MongoDB</b> NoSQL database - https://www.mongodb.com/
-- <b>Redis</b> database caching - https://redis.io/
-- <b>OpenSSL</b> cryptography (X509 certificates) - https://www.openssl.org/
-- <b>Amazon EC2</b> - https://aws.amazon.com/ec2/
-- <b>Amazon Cognito</b> (user sign-up/sign-in) - https://aws.amazon.com/cognito/
-- <b>Docker</b> containerization (dockerfiles, docker-compose) - https://www.docker.com/
+- <b>MongoDB Atlas</b> cloud database service - https://www.mongodb.com/cloud/atlas/
+- <b>Redis</b> fast key-value data store (flexible: database, caching, mq) - https://redis.io/
+- <b>Elastic stack/ELK stack</b> logging solution - https://www.elastic.co/elastic-stack/
+- <b>Prometheus</b> monitoring solution - https://prometheus.io/
+- <b>Grafana</b> visualization solution - https://grafana.com/
 - <b>Ionic</b> mobile/web frontend framework - https://ionicframework.com/
-- <b>Ionic Creator</b> - https://creator.ionic.io
-- <b>Postman</b> (API testing tool) - https://www.getpostman.com/
-- <b>GoDaddy</b> domain and SSL certificate - https://godaddy.com
-- <b>Amazon Route 53</b> DNS domain resolution - https://aws.amazon.com/route53
-- <b>Android Studio</b> (Building Ionic webapp to Androidapp) - https://developer.android.com/studio
-- <b>Amazon Pinpoint</b> email/SMS/push notification messaging platform - https://aws.amazon.com/pinpoint/
-- <b>Amazon SNS</b> email/SMS messaging platform - https://aws.amazon.com/sns/
+- <b>Paypal</b> payment gateway - https://developer.paypal.com/
+- <b>BrainTree</b> payment gateway - https://www.braintreepayments.com/
+- <b>Apple Push Notification service (APNs)</b> for IOS push notifications
+- <b>Google Firebase Cloud Messaging (FCM)</b> for Android push notifications
+- <b>Google Maps Platform</b> for device location - https://developers.google.com/maps/documentation/
+- <b>Chart.JS</b> Visualization charts/graphs - https://www.chartjs.org/
+- <b>D3.JS</b> Visualization charts/graphs - https://observablehq.com/@d3/gallery/
+- <b>GoDaddy</b> domain and SSL certificate - https://godaddy.com/
 - <b>Twilio</b> SMS messaging platform - https://www.twilio.com/
 - <b>Nexmo</b> SMS messaging platform - https://www.nexmo.com/
-- <b>Paypal</b> payment gateway - https://developer.paypal.com
+
+
+Below are tools and utilities being used:
+
 - <b>Jenkins</b> automation for CI/CD - https://jenkins.io/
-- <b>Kubernetes</b> container orchestration - https://kubernetes.io
-- <b>Minikube</b> local Kubernetes cluster - https://github.com/kubernetes/minikube
-- <b>Amazon EKS</b> Kubernetes service - https://aws.amazon.com/eks
-- <b>Google Firebase Cloud Messaging (FCM)</b> for Android push notifications
-- <b>Apple Push Notification service (APNs)</b> for IOS push notifications
-- <b>Chart.JS</b> for time-series charts/graphs - https://www.chartjs.org/
-
-An alternative solution is using an AWS serverless solution wherein:
-
-- <b>AWS API Gateway+AWS Lambda</b> will replace Flask+Gunicorn+Nginx
-- <b>AWS DynamoDB</b> will replace MongoDB
-- <b>AWS IoT</b> or <b>AmazonMQ</b> will replace RabbitMQ
+- <b>Github Desktop</b> Git application - https://desktop.github.com/
+- <b>MongoDB Compass</b> GUI for MongoDB - https://www.mongodb.com/products/compass
+- <b>RabbitMQ</b> Management web interface - https://www.rabbitmq.com/management.html
+- <b>Putty</b> SSH application to access AWS EC2 - https://www.putty.org/
+- <b>WinSCP</b> SSH gui application to access AWS EC2 - https://winscp.net/eng/index.php
+- <b>Docker Toolbox</b> Docker installation on Windows - https://docs.docker.com/toolbox/toolbox_install_windows/
+- <b>Kitematic</b> Docker GUI - https://kitematic.com/
+- <b>Ionic Creator</b> - https://creator.ionic.io
+- <b>Android Studio</b> (Building Ionic webapp to Androidapp) - https://developer.android.com/studio
+- <b>OpenSSL</b> cryptography (X509 certificates) - https://www.openssl.org/
+- <b>Postman</b> (API testing tool) - https://www.getpostman.com/
+- <b>LucidChart</b> UML design diagrams - https://www.lucidchart.com/
+- <b>ProjectLibre</b> Gantt Chart project management for task estimation/scheduling - https://www.projectlibre.com/
+- <b>TeamViewer</b> Remote Desktop for helping team for debugging issues - https://www.teamviewer.com/en/
 
 
 ### High-level architecture diagram:
-<img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/architecture.png" width="1000"/>
+<img src="./_images/architecture.png" width="1000"/>
 
-9 docker containers and microservices
+14 docker containerized microservices
 
 1. <b>Webserver</b> - Nginx (contains SSL certificate; all requests go to NGINX; forwards HTTP requests to webapp or restapi)
 2. <b>Webapp</b> - Ionic (front-end web framework that can also be compiled for Android and iOS)
 3. <b>Restapi</b> - Flask with Gunicorn (back-end API called by web app and mobile apps)
 4. <b>Messaging</b> - RabbitMQ (device communicates w/RabbitMQ; web/mobile apps communicates to device via RabbitMQ)
 5. <b>Database</b> - MongoDB (database for storing device information for registered devices)
-6. <b>Notification</b> - handles sending of email, SMS and mobile push notifications
-7. <b>Historian</b> - handles saving of device requests and responses for each devices of all users
-8. <b>Sensorian</b> - handles saving of sensor readings for each devices of all users
-9. <b>Configuration</b> - handles providing of device configuration for each devices during device bootup
+6. <b>Cache</b> - Redis (fast key value data store used for caching information / recording temporary information)
+7. <b>Notification</b> - handles sending of email, SMS and mobile push notifications
+8. <b>Historian</b> - handles saving of device requests and responses for each devices of all users
+9. <b>Sensorian</b> - handles saving of sensor readings for each devices of all users
+10. <b>Configuration</b> - handles providing of device configuration for each devices during device bootup
+11. <b>OTAUpdate</b> - handles OTA firmware update via MQTTS
+12. <b>Invoicing</b> - handles sending of payment receipts via email
+13. <b>Registration</b> - handles processing of sensor registration by device on bootup
+14. <b>Heartbeat</b> - handles processing of heartbeat packets aka ping
 
 
 
-<img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/architecture_frontend.png" width="1000"/>
+<img src="./_images/architecture_frontend.png" width="1000"/>
 
 <b>Front-end</b>
 
-1. <b>Android Mobile</b>: Ionic mobile app -> Backend
-2. <b>IOS Mobile</b>: Ionic mobile app -> Backend
-3. <b>Web</b>: browser -> Ionic web app -> Backend
+1. <b>Web</b>: browser -> Ionic web app -> Backend
+2. <b>Android Mobile</b>: Ionic mobile app -> Backend
+3. <b>IOS Mobile</b>: Ionic mobile app -> Backend
 4. <b>Programming Languages:</b> Javascript and AngularJS
 
 
 
-<img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/architecture_backend.png" width="1000"/>
+<img src="./_images/architecture_backend.png" width="1000"/>
 
 <b>Back-end</b>
 
-1. <b>Nginx</b> -> called by frontend, will call RestAPI or Webapp
-2. <b>RestAPI</b> (Flask) -> Cognito, MongoDB, Paypal, RabbitMQ
-3. <b>RabbitMQ</b>: accessed by restapi, device, notification service and history service
-4. <b>History service</b> -> RabbitMQ, MongoDB
-5. <b>Notification service</b> -> RabbitMQ, MongoDB, Pinpoint, Twilio, Nexmo
-6. <b>Sensor service</b> -> RabbitMQ, MongoDB
-7. <b>Configuration service</b> -> RabbitMQ, MongoDB
-8. <b>Programming Languages:</b> Python
+1. <b>Programming Languages:</b> Python
+2. <b>Nginx</b> -> called by frontend, will call RestAPI or Webapp
+3. <b>RestAPI</b> (Flask) -> Cognito, MongoDB, Paypal, BrainTree, RabbitMQ
+4. <b>MongoDB</b>: accessed by restapi, history, notification, sensor, configuration, otaupdate
+5. <b>Redis</b>: accessed by restapi
+6. <b>Notification service</b> -> RabbitMQ, MongoDB, Pinpoint, Twilio, Nexmo
+7. <b>History service</b> -> RabbitMQ, MongoDB
+8. <b>RabbitMQ</b>: accessed by restapi, device, notification service and history service
+9. <b>OTAUpdate service</b> -> RabbitMQ, MongoDB
+10. <b>Configuration service</b> -> RabbitMQ, MongoDB
+11. <b>Sensor service</b> -> RabbitMQ, MongoDB
+12. <b>Invoice service</b> -> RabbitMQ, MongoDB
+13. <b>Registration service</b> -> RabbitMQ, MongoDB
+14. <b>Heartbeat</b> - RabbitMQ, MongoDB
 
 
 
-<img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/architecture_device.png" width="1000"/>
+<img src="./_images/architecture_device.png" width="1000"/>
 
 <b>Device</b>
 
@@ -121,19 +297,36 @@ An alternative solution is using an AWS serverless solution wherein:
 
 
 ### UML Use case diagram:
-<img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/usecase.png" width="800"/>
+<img src="./_images/usecase.png" width="800"/>
 
 ### UML Sequence diagram (user sign-up/sign-in):
-<img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/sequence1.png" width="800"/>
+<img src="./_images/sequence1.png" width="800"/>
 
 ### UML Sequence diagram (device registration):
-<img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/sequence2.png" width="800"/>
+<img src="./_images/sequence2.png" width="800"/>
 
 ### UML Sequence diagram (device access/control):
-<img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/sequence3.png" width="800"/>
+<img src="./_images/sequence3.png" width="800"/>
 
 ### UML Sequence diagram (sensor live status):
-<img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/architecture_livestatus.png" width="800"/>
+<img src="./_images/architecture_livestatus.png" width="800"/>
+
+### UML Sequence diagram (OTA firmware update):
+<img src="./_images/ota_firmware_update_sequence_diagram.png" width="800"/>
+
+### UML Sequence diagram (login via social idp - facebook, google, amazon):
+<img src="./_images/login_via_idp_sequence_diagram.png" width="800"/>
+
+### UML Sequence diagram (paypal payment):
+<img src="./_images/paypal_sequence_diagram.png" width="800"/>
+
+### UML Sequence diagram (alerting UART):
+<img src="./_images/notification_sequence_UART.png" width="1000"/>
+
+### UML Sequence diagram (alerting GPIO):
+<img src="./_images/notification_sequence_GPIO.png" width="1000"/>
+
+
 
 ### Notes:
 
@@ -158,51 +351,47 @@ An alternative solution is using an AWS serverless solution wherein:
 ### User Interface
 
 User signup and login
-<img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/ui_loginsignup.png" width="800"/>
+<img src="./_images/ui_loginsignup.png" width="800"/>
 
 Device registration
-<img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/ui_deviceregistration.png" width="800"/>
+<img src="./_images/ui_deviceregistration.png" width="800"/>
 
 Device access and control
-<img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/ui_deviceaccess.png" width="800"/>
+<img src="./_images/ui_deviceaccess.png" width="800"/>
 
 Menu, account, history
-<img src="https://github.com/richmondu/libpyiotcloud/blob/master/_images/ui_menuaccounthistory.png" width="800"/>
+<img src="./_images/ui_menuaccounthistory.png" width="800"/>
 
+Device-sensor hierarchy charts
+<img src="./_images/dashboard_charts_hierarchy.png" width="800"/>
 
+Dashboard line charts
+<img src="./_images/dashboard_charts_linechart.png" width="800"/>
 
-### Features
+Dashboard pie charts
+<img src="./_images/dashboard_charts_pie.png" width="800"/>
 
-    1. User sign-up/sign-in, Device Registration, Email/SMS Notifications, Payment Gateway
-       A. Amazon Cognito for user sign-up and sign-in
-       B. MongoDB NoSQL database for storing registered device information and device requests/responses
-       C. OpenSSL for generating certificates on-demand for registered devices
-       D. Email/SMS notifications using AmazonPinpoint, Twilio, Nexmo (device-initiated, client-initiated)
-       E. Payment gateway using Paypal
-    2. Device Access/Control via Flask+GUnicorn+Nginx
-       - get/set GPIOs, get/set RTC, get MAC address, reset device
-       - get IP/Subnet/Gateway addresses, write UART
-    3. HTTPS/AMQPS/MQTTS Protocol Support
-       [client --HTTPS--> webserver <--MQTTS (or AMQPS)--> msgbroker <--MQTTS (and AMQPS)--> device]
-       A. HTTP over TLS: client app accessing REST APIs from webserver
-       B. AMQP over TLS: webserver and messagebroker communication
-       C. MQTT over TLS: messagebroker and device communication
-    4. Device examples and simulators
-       A. FT900 MCU device (LWIP-MQTT client)
-       B. MQTT device simulators (Python Paho-MQTT and NodeJS)
-       C. AMQP device simulator (Python Pika-AMQP)
-    5. Deployment to AWS EC2 as microservices using Docker, Kubernetes and Jenkins
-       - 9 microservices/docker containers [rabbitmq, mongodb, webapp, restapi, nginx, notification, historian, sensorian, configuration]
-       - with Dockerfiles, Docker-compose file, Kubernetes files and Jenkinsfile
-       - Kubernetes files tested on Minikube
-       - Jenkinsfile for automated building and testing of docker images
-    6. Ionic web app can be compiled as iOS/Android mobile apps
-       - SSL certificate bought from GoDaddy.com registered on NGINX.
-       - Webapp compiled for Android using Ionic but requiring Android Studio/SDK 
-    7. Sensor data processing
-       - Sensor data graphing/charting
-       - Sensor data forwarding (forward to another IoT Modem device)
-       - Sensor data thresholding (triggering MENOS messages - Mobile, Email, Notifications, mOdem, Storage)
+Dashboard doughnut charts
+<img src="./_images/dashboard_charts_dougnutchart.png" width="800"/>
+
+Paypal payment redirection
+<img src="./_images/paypal_payment.png" width="800"/>
+
+Paypal payment redirection
+<img src="./_images/paypal_payment_2.png" width="800"/>
+
+Paypal payment execution and verification
+<img src="./_images/paypal_payment_3.png" width="800"/>
+
+Paypal payment email notification
+<img src="./_images/paypal_payment_4.png" width="800"/>
+
+Paypal payment buyer account
+<img src="./_images/paypal_payment_5.png" width="800"/>
+
+Paypal payment merchant account
+<img src="./_images/paypal_payment_6.png" width="800"/>
+
 
 
 ### REST APIs
@@ -222,15 +411,120 @@ Menu, account, history
         L. VERIFY PHONE NUMBER            - POST   /user/verify_phone_number
         M. CONFIRM VERIFY PHONE NUMBER    - POST   /user/confirm_verify_phone_number
         N. CHANGE PASSWORD                - POST   /user/change_password
+        //
+        // login via social idp (facebook, google, amazon)
+        O. LOGIN IDP STORE CODE           - POST   /user/login/idp/code/ID
+        P. LOGIN IDP QUERY CODE           - GET    /user/login/idp/code/ID
+        //
+        // mfa (multi-factor authentication)
+        Q. ENABLE MFA                     - POST   /user/mfa
+        R. LOGIN MFA                      - POST   /user/login/mfa
+        //
+        // organization (member)
+        S. GET ORGANIZATIONS               - GET    /user/organizations
+        T. SET ACTIVE ORGANIZATION         - POST   /user/organizations
+           all ORG-related APIs below will use the organization that is active
+        U. GET ORGANIZATION                - GET    /user/organization
+        V. LEAVE ORGANIZATION              - DELETE /user/organization
+        W. ACCEPT ORGANIZATION INVITATION  - POST   /user/organization/invitation
+        X. DECLINE ORGANIZATION INVITATION - DELETE /user/organization/invitation
 
-    2. Device registration and management APIs
+
+    2. Organization management APIs
+        all APIs below will use the organization that is active (EXCEPT FOR CREATE ORGANIZATION)
+        //
+        // organization (owner, users)
+        A. CREATE ORGANIZATION             - POST   organization
+        B. DELETE ORGANIZATION             - DELETE organization
+        C. CREATE/CANCEL INVITATIONS       - POST   organization/invitation
+        D. UPDATE/REMOVE MEMBERSHIPS       - POST   organization/membership
+        //
+        // organization (owner, groups)
+        E. GET USER GROUPS                 - GET    organization/groups
+        F. CREATE USER GROUP               - POST   organization/groups/group/GROUPNAME
+        G. DELETE USER GROUP               - DELETE organization/groups/group/GROUPNAME
+        H. GET MEMBERS IN USER GROUP       - GET    organization/groups/group/GROUPNAME/members
+        I. UPDATE MEMBERS IN USER GROUP    - POST   organization/groups/group/GROUPNAME/members
+        J. ADD MEMBER TO USER GROUP        - POST   organization/groups/group/GROUPNAME/members/member/MEMBERNAME
+        K. REMOVE MEMBER FROM USER GROUP   - DELETE organization/groups/group/GROUPNAME/members/member/MEMBERNAME
+        //
+        // organization (owner, policies)
+        L. GET POLICIES                    - GET    organization/policies
+        M. GET POLICY                      - POST   organization/policies/policy/POLICYNAME
+        N. CREATE/UPDATE POLICY            - POST   organization/policies/policy/POLICYNAME
+        O. DELETE POLICY                   - DELETE organization/policies/policy/POLICYNAME
+        P. GET POLICY SETTINGS             - GET    organization/policies/settings
+        Q. GET POLICIES IN USER GROUP      - GET    organization/groups/group/GROUPNAME/policies
+        R. UPDATE POLICIES IN USER GROUP   - POST   organization/groups/group/GROUPNAME/policies
+        S. ADD POLICY TO USER GROUP        - POST   organization/groups/group/GROUPNAME/policies/policy/POLICYNAME
+        T. REMOVE POLICY FROM USER GROUP   - DELETE organization/groups/group/GROUPNAME/policies/policy/POLICYNAME
+
+    3. Device registration and management APIs
         A. GET DEVICES                    - GET    /devices
         B. GET DEVICES FILTERED           - GET    /devices/filter/FILTERSTRING
         C. ADD DEVICE                     - POST   /devices/device/DEVICENAME
         D. DELETE DEVICE                  - DELETE /devices/device/DEVICENAME
-        E. GET DEVICE                     - GET    /devices/device/DEVICENAME
+        E. UPDATE DEVICE NAME             - POST   /devices/device/DEVICENAME/name
+        F. GET DEVICE                     - GET    /devices/device/DEVICENAME
+        G. GET DEVICE DESCRIPTOR          - GET    /devices/device/DEVICENAME/descriptor
+        //
+        // location
+        H. GET DEVICES LOCATION           - GET    /devices/location
+        I. SET DEVICES LOCATION           - POST   /devices/location
+        J. DELETE DEVICES LOCATION        - DELETE /devices/location
+        K. GET DEVICE LOCATION            - GET    /devices/device/DEVICENAME/location
+        L. SET DEVICE LOCATION            - POST   /devices/device/DEVICENAME/location
+        M. DELETE DEVICE LOCATION         - DELETE /devices/device/DEVICENAME/location
+        //
+        // ota firmware update
+        N. UPDATE FIRMWARE                - POST   /devices/device/DEVICENAME/firmware
+        O. UPDATE FIRMWARES               - POST   /devices/firmware
+        P. GET OTA STATUS                 - GET    /devices/device/DEVICENAME/ota
+        Q. GET OTA STATUSES               - GET    /devices/ota
+        //
+        // device-sensor hierarchy tree
+        R. GET DEVICE HIERARCHY TREE               - GET    /devices/device/DEVICENAME/hierarchy
+        S. GET DEVICE HIERARCHY TREE (WITH STATUS) - POST   /devices/device/DEVICENAME/hierarchy
 
-    3. Device access and control APIs (STATUS, UART, GPIO)
+    4. Device group registration and management APIs
+        A. GET DEVICE GROUPS              - GET    /devicegroups
+        B. ADD DEVICE GROUP               - POST   /devicegroups/group/DEVICEGROUPNAME
+        C. REMOVE DEVICE GROUP            - DELETE /devicegroups/group/DEVICEGROUPNAME
+        D. GET DEVICE GROUP               - GET    /devicegroups/group/DEVICEGROUPNAME
+        E. GET DEVICE GROUP DETAILED      - GET    /devicegroups/group/DEVICEGROUPNAME/devices
+        F. UPDATE DEVICE GROUP NAME       - POST   /devicegroups/group/DEVICEGROUPNAME/name
+        G. ADD DEVICE TO GROUP            - POST   /devicegroups/group/DEVICEGROUPNAME/device/DEVICENAME
+        H. REMOVE DEVICE FROM GROUP       - DELETE /devicegroups/group/DEVICEGROUPNAME/device/DEVICENAME
+        I. SET DEVICES IN DEVICE GROUP    - POST   /devicegroups/group/DEVICEGROUPNAME/devices
+        J. GET UNGROUPED DEVICES          - GET    /devicegroups/ungrouped
+        K. GET DEVICE GROUPS & UNGROUPED DEVICES   - GET    /devicegroups/mixed
+        //
+        // location
+        L. GET DEVICE GROUP LOCATION      - GET    /devicegroups/group/DEVICEGROUPNAME/location
+        M. SET DEVICE GROUP LOCATION      - POST   /devicegroups/group/DEVICEGROUPNAME/location
+        N. DELETE DEVICE GROUP LOCATION   - DELETE /devicegroups/group/DEVICEGROUPNAME/location
+        //
+        // ota firmware update
+        O. GET DEVICE GROUP OTA STATUSES  - GET    /devicegroups/group/DEVICEGROUPNAME/ota
+
+    5. Device access and control APIs (LDSBUS)
+        A. GET LDS BUS                    - GET    /devices/device/DEVICENAME/ldsbus/PORT
+        B. GET LDS BUS LDSUS              - GET    /devices/device/DEVICENAME/ldsbus/PORT/ldsus
+        C. GET LDS BUS SENSORS            - GET    /devices/device/DEVICENAME/ldsbus/PORT/sensors
+        D. GET LDS BUS ACTUATORS          - GET    /devices/device/DEVICENAME/ldsbus/PORT/actuators
+        E. SCAN LDS BUS                   - POST   /devices/device/DEVICENAME/ldsbus/PORT
+        F. CHANGE LDSU NAME               - POST   /devices/device/DEVICENAME/ldsu/LDSUUUID/name
+        G. IDENTIFY LDSU                  - POST   /devices/device/DEVICENAME/ldsu/LDSUUUID/identify
+        H. GET LDSU                       - GET    /devices/device/DEVICENAME/ldsu/LDSUUUID
+        I. DELETE LDSU                    - DELETE /devices/device/DEVICENAME/ldsu/LDSUUUID
+        //
+        // LDSU DEVICE refers to SENSOR or ACTUATOR
+        J. SET LDSU DEVICE PROPERTIES     - POST   /devices/device/DEVICENAME/LDSUUUID/NUMBER/sensors/sensor/SENSORNAME/properties
+        K. GET LDSU DEVICE PROPERTIES     - GET    /devices/device/DEVICENAME/LDSUUUID/NUMBER/sensors/sensor/SENSORNAME/properties
+        L. ENABLE/DISABLE LDSU DEVICE     - POST   /devices/device/DEVICENAME/LDSUUUID/NUMBER/sensors/sensor/SENSORNAME/enable
+        M. CHANGE LDSU DEVICE NAME        - POST   /devices/device/DEVICENAME/LDSUUUID/NUMBER/sensors/sensor/SENSORNAME/name
+
+    6. Device access and control APIs (STATUS, UART, GPIO)
         // status
         A. GET STATUS                     - GET    /devices/device/DEVICENAME/status
         B. SET STATUS                     - POST   /devices/device/DEVICENAME/status
@@ -251,10 +545,15 @@ Menu, account, history
         N. SET GPIO VOLTAGE               - POST   /devices/device/DEVICENAME/gpio/voltage
            (NUMBER can be 1-4 only and corresponds to GPIO1,GPIO2,GPIO3,GPIO4)
         // sensor readings (for dashboard)
-        O. GET PERIPHERAL SENSOR READINGS    - GET    /devices/device/DEVICENAME/sensors/readings
-        P. DELETE PERIPHERAL SENSOR READINGS - DELETE /devices/device/DEVICENAME/sensors/readings
+        O. GET PERIPHERAL SENSOR READINGS                  - GET    /devices/device/DEVICENAME/sensors/readings
+        P. GET PERIPHERAL SENSOR READINGS DATASET          - GET    /devices/device/DEVICENAME/sensors/readings/dataset
+        Q. GET PERIPHERAL SENSOR READINGS DATASET FILTERED - POST   /devices/sensors/readings/dataset
+        R. DELETE PERIPHERAL SENSOR READINGS               - DELETE /devices/device/DEVICENAME/sensors/readings
+        S. DELETE PERIPHERAL SENSOR READINGS DATASET       - DELETE /devices/sensors/readings/dataset
+        // sensor properties
+        T. DELETE PERIPHERAL SENSOR PROPERTIES             - DELETE /devices/device/DEVICENAME/sensors/properties
 
-    4. Device access and control APIs (I2C)
+    7. Device access and control APIs (I2C)
         A. ADD I2C DEVICE                 - POST   /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME
         B. DELETE I2C DEVICE              - DELETE /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME
         C. GET I2C DEVICE                 - GET    /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME
@@ -271,7 +570,7 @@ Menu, account, history
         N. DELETE I2C DEVICES READINGS    - DELETE /devices/device/DEVICENAME/i2c/NUMBER/sensors/readings
            (NUMBER can be 1-4 only and corresponds to I2C1,I2C2,I2C3,I2C4)
 
-    5. Device access and control APIs (ADC)
+    8. Device access and control APIs (ADC)
         A. ADD ADC DEVICE                 - POST   /devices/device/DEVICENAME/adc/NUMBER/sensors/sensor/SENSORNAME
         B. DELETE ADC DEVICE              - DELETE /devices/device/DEVICENAME/adc/NUMBER/sensors/sensor/SENSORNAME
         C. GET ADC DEVICE                 - GET    /devices/device/DEVICENAME/adc/NUMBER/sensors/sensor/SENSORNAME
@@ -288,7 +587,7 @@ Menu, account, history
         M. GET ADC VOLTAGE                - GET    /devices/device/DEVICENAME/adc/voltage
         N. SET ADC VOLTAGE                - POST   /devices/device/DEVICENAME/adc/voltage
 
-    6. Device access and control APIs (1WIRE)
+    9. Device access and control APIs (1WIRE)
         A. ADD 1WIRE DEVICE               - POST   /devices/device/DEVICENAME/1wire/NUMBER/sensors/sensor/SENSORNAME
         B. DELETE 1WIRE DEVICE            - DELETE /devices/device/DEVICENAME/1wire/NUMBER/sensors/sensor/SENSORNAME
         C. GET 1WIRE DEVICE               - GET    /devices/device/DEVICENAME/1wire/NUMBER/sensors/sensor/SENSORNAME
@@ -303,7 +602,7 @@ Menu, account, history
         L. DELETE 1WIRE DEVICES READINGS  - DELETE /devices/device/DEVICENAME/1wire/NUMBER/sensors/readings
            (NUMBER will always be 1 since there is only 1 1wire)
 
-    7. Device access and control APIs (TPROBE)
+    10. Device access and control APIs (TPROBE)
         A. ADD TPROBE DEVICE              - POST   /devices/device/DEVICENAME/tprobe/NUMBER/sensors/sensor/SENSORNAME
         B. DELETE TPROBE DEVICE           - DELETE /devices/device/DEVICENAME/tprobe/NUMBER/sensors/sensor/SENSORNAME
         C. GET TPROBE DEVICE              - GET    /devices/device/DEVICENAME/tprobe/NUMBER/sensors/sensor/SENSORNAME
@@ -318,31 +617,34 @@ Menu, account, history
         L. DELETE TPROBE DEVICES READINGS - DELETE /devices/device/DEVICENAME/tprobe/NUMBER/sensors/readings
            (NUMBER will always be 1 since there is only 1 tprobe)
 
-    8. Device transaction recording APIs
+    11. Device transaction recording APIs
         A. GET HISTORIES                  - GET    /devices/histories
         B. GET HISTORIES FILTERED         - POST   /devices/histories
            (filter by device name, direction, topic, date start, date end)
+        C. GET MENOS HISTORIES            - GET    /devices/menos
+        D. GET MENOS HISTORIES FILTERED   - POST   /devices/menos
 
-    9. Account subscription and payment APIs
+    12. Account subscription and payment APIs
         A. GET SUBSCRIPTION               - GET    /account/subscription
         B. SET SUBSCRIPTION               - POST   /account/subscription
         C. PAYPAL SETUP                   - POST   /account/payment/paypalsetup
         D. PAYPAL EXECUTE                 - POST   /account/payment/paypalexecute
         E. PAYPAL VERIFY                  - POST   /account/payment/paypalverify
 
-    10. Mobile services
+    13. Mobile services
         A. REGISTER DEVICE TOKEN          - POST   /mobile/devicetoken
-        
-    11. Supported devices
+
+    14. Supported devices and firmware updates
         A. GET SUPPORTED I2C DEVICES      - GET    /others/i2cdevices [OBSOLETED, use GET SUPPORTED SENSOR DEVICES instead]
         B. GET SUPPORTED SENSOR DEVICES   - GET    /others/sensordevices
+        C. GET DEVICE FIRMWARE UPDATES    - GET    /others/firmwareupdates
 
-    12. Others
+    15. Others
         A. SEND FEEDBACK                  - POST   /others/feedback
         B. GET FAQS                       - GET    /others/faqs
         C. GET ABOUT                      - GET    /others/about
 
-    13. HTTP error codes
+    16. HTTP error codes
         A. HTTP_400_BAD_REQUEST           - Invalid input
         B. HTTP_401_UNAUTHORIZED          - Invalid password or invalid/expired token
         C. HTTP_404_NOT_FOUND             - User or device not found
@@ -492,8 +794,8 @@ Note: Using Kubernetes will also change the infrastracture.
        export PAYPAL_CLIENT_SECRET=""
        
     2. Build and execute Docker-compose file
-       docker-compose build
-       docker-compose up
+       docker-compose build // To rebuild from scratch, add "--no-cache"
+       docker-compose up // To run asynchronously as daemon, add "-d"
     3. Test by browsing https://192.168.99.100 or https://<aws_ec2_hostname> or https://<aws_ec2_ip>
     
 
@@ -641,8 +943,44 @@ Note: Using Kubernetes will also change the infrastracture.
        sudo service mongod start
        sudo nano /var/log/mongodb/mongod.log
 
+
        WINDOWS: [https://www.mongodb.com/download-center/community?jmp=docs]
        Download and run MSI installer from the link above
+       Update C:\Program Files\MongoDB\Server\4.0\bin\mongod.cfg
+         security:
+           authorization: "enabled"
+       Run C:\Program Files\MongoDB\Server\4.0\bin\mongo.exe
+         Create a user using db.createUser() as specified in https://docs.mongodb.com/guides/server/auth/
+       Restart MongoDB service by opening services.msc
+
+
+       MONGODB COMPASS:
+       Download MongoDB Compass from https://www.mongodb.com/download-center/compass
+         and run MongoDBCompass.exe
+         Change Authentication to Username/Password and specify both username and password fields
+
+       MongoDB Compass is a desktop application that can connect to AWS EC2 MongoDB container via SSH to 
+         This is useful for easily debugging/troubleshooting data-related issues.
+         MongoDB Compass access the database via SSH, not the MongoDB port 27017,
+         so exposing port 27017 in AWS EC2 security firewall was NOT necessary.
+         Settings:
+           AWS EC2 MongoDB container microservice
+             Hostname: 127.0.0.1
+             Port: 27017
+             SSH Hostname: <AWS EC2 URL or IP>
+             SSH Tunnel Port: <AWS EC2 SSH PORT>
+             SSH Username: <AWS EC2 SSH Username>
+             SSH Identity File: <AWS EC2 SSH Identity File .ppk>
+           MongoDB Atlas
+             Hostname: clusterX-XXXXX.mongodb.net
+             Authentication: Username/Password
+             Username: <username>
+             Password: <password>
+             More Options:
+               Replica Set Name: Cluster-shard-0
+               Read Preference: Primary
+               SSL: Syatem CA/Atlas Deployment
+               SSH Tunnel: None
 
 
 ### Setup Amazon Cognito.
@@ -666,6 +1004,44 @@ Note: Using Kubernetes will also change the infrastracture.
        A. AWS_COGNITO_USERPOOL_REGION = Region of Cognito User Pool ex. "ap-southeast-1"
        B. AWS_COGNITO_USERPOOL_ID     = Copy from General settings/Pool Id
        C. AWS_COGNITO_CLIENT_ID       = Copy from General settings/App clients/App client id
+
+       // Login via Facebook/Google/Amazon
+       A. App integration > App client settings
+          Enabled Identity Providers: Facebook, Google, LoginWithAmazon
+          Sign in and sign out URLs
+            Callback URL(s)
+          OAuth 2.0
+            Allowed OAuth Flows: Authorization code grant, Implicit grant
+            Allowed OAuth Scopes: phone, email, openid, aws.cognito.signin.user.admin
+       B. Federation > Identity providers
+          Facebook
+            Facebook app ID
+            App secret
+            Authorize scope: public_profile, email
+          Google
+            Google app ID
+            App secret
+            Authorize scope: profile email openid
+          Login with Amazon
+            Amazon app ID
+            App secret
+            Authorize scope: profile
+       C. Federation > Attribute mapping
+          Facebook
+            id: Username
+            email: Email
+            first_name: Given Name
+            last_name: Family Name
+          Google
+            sub: Username
+            email: Email
+            given_name: Given Name
+            family_name: Family Name
+          Amazon
+            user_id: Username
+            email: Email
+            name: Given Name
+            ...: Family Name
 
 
 ### Setup Amazon Pinpoint.
@@ -785,7 +1161,7 @@ Note: Using Kubernetes will also change the infrastracture.
        A. Create a t2.micro instance of Amazon Linux (or Ubuntu 16.04 if not using Docker)
        B. Dowload "Private key file for authentication" for SSH access
        C. Copy the "IPv4 Public IP" address
-       D. Enable ports: 22 (SSH), 8883 (MQTTS), 5671 (AMQPS), 443 (HTTPS), 465 (SMTP), 8080 (Jenkins)
+       D. Enable ports: 22 (SSH), 8883 (MQTTS), 443 (HTTPS)
 
        // PUTTY setup (for SSH console access)
        A. Create PPK file from the PEM file downloaded from EC2 using PuttyGEN
@@ -837,7 +1213,7 @@ Note: Using Kubernetes will also change the infrastracture.
        
        // Docker run
        docker-compose -f docker-compose.yml config
-       docker-compose build
+       docker-compose build OR docker-compose build --no-cache
        docker-compose up OR docker-compose up -d
        
        // Docker stop
@@ -1186,10 +1562,16 @@ Note: Using Kubernetes will also change the infrastracture.
 
         docker-compose -f docker-compose.yml config
         docker-compose build
+        docker-compose build --no-cache // build from scratch, note: takes too long
         docker-compose up
         docker-compose up -d // run as daemon
         docker-compose ps
         docker-compose down
+        docker-compose rm
+
+        docker image ls
+        docker image rm libpyiotcloud_rabbitmq // remove the rabbitmq image
+        docker-compose build rabbitmq // build the rabbitmq container only
 
 
 ### Ionic Web/Mobile apps
@@ -1278,6 +1660,26 @@ Note: Using Kubernetes will also change the infrastracture.
             username: richmond.umagat@gmail.com
             password: xxx
 
+        // Paypal recurring payments
+        - To support monthly payment subscription, Paypal billing plans and billing agreement are used.
+        - Steps:
+          1. Create a billing plan.
+             First month of the recurring payment: prorated based on the remaining days of the month
+             - setup_fee is used instead of TRIAL period in order for Paypal charge the customer immediately.
+             - if TRIAL period is used instead of setup_fee, the customer will only be charge at 10am the next day US timezone.
+             Succeeding months of the recurring payment: regular amount
+             - REGULAR type is used indicating Month frequency and 6-1/12-1 cycles (if 6 months or 12 months recurring)
+          2. Activate the billing plan
+          3. Creating a billing agreement
+             - The start_date is set to the start of the next month.
+          4. Execute the billing agreement.
+             - The states of the billing agreement are Active, Expired, Cancelled
+        - Refer to https://github.com/richmondu/libpypaypal for the demonstration of this feature.
+
+
+### Setup BrainTree
+
+
 ### Install Jenkins (on local and on AWS EC2)
     
        // Install Jenkins using Docker
@@ -1317,10 +1719,11 @@ Note: Using Kubernetes will also change the infrastracture.
        Update value of JENKINS_USER to "ec2-user"
        Update value of JENKINS_ARGS to "-Dmail.smtp.starttls.enable=true"
        Add JENKINS_JAVA_OPTIONS with "-Dmail.smtp.starttls.enable=true"
+       ESC
        :x
        sudo chown -R ec2-user:ec2-user /var/lib/jenkins
        sudo chown -R ec2-user:ec2-user /var/cache/jenkins
-       sudo chown -R ec2-user:ec2-user /var/log/jenkins       
+       sudo chown -R ec2-user:ec2-user /var/log/jenkins
        sudo service jenkins restart
        
        Access http://<ec2-hostname-or-ipaddress>:<port>
@@ -1423,6 +1826,16 @@ Note: Using Kubernetes will also change the infrastracture.
           eksctl delete cluster --name <CLUSTERNAME>
 
 
+### Setup Prometheus and Grafana for backend monitoring
+
+       A. Download from https://github.com/stefanprodan/dockprom
+          cAdvisor is for Docker container monitoring
+          NodeExporter is for AWS EC2 host monitoring
+       B. Change Prometheus configuration and Docker compose configuration
+          Change default port for cAdvisor (conflicts with Jenkins)
+          Remove settings related to alerting
+       C. Run docker-compose up -d
+
 
 # Production environment
 
@@ -1484,7 +1897,72 @@ Notes:
         2. Update rest_api to 'https://localhost' in webapp\src\ionicapp\www\js\server.js
         3. Run "ionic serve" in webapp\src\ionicapp
 
+### Troubleshooting CPU usage
+
+        Issues:
+        One of the CPU usage issues is caused by beam.smp
+
+        Tools:
+        1. AWS Cloudwatch
+        2. Putty SSH
+        3. MongoDB Compass
+        4. RabbitMQ Management interface
+
+        When there is CPU usage issue, AWS Cloudwatch will send email notification.
+        1. Open Putty SSH and type "top" to verify CPU usage is high.
+           Based on previous incidents, "beam.smp" process of RabbitMQ is causing the high CPU usage. 
+        2. User RabbitMQ management tool and find the device causing issue.
+        3. Open MongoDB Compass to check owner of the suspected device.
+        4. Open the device in RabbitMQ.
+           Delete/clear the permission of the device.
+           Delete/clear the topic permission of the device.
+           Change the password.
+        5. Observe if the CPU goes down.
+        6. Revert the changes in #4.
+           Revert the permission of the device.
+           Revert the topic permission of the device.
+           Revert the password.
+
+### Troubleshooting Disk usage
+
+        df
+        sudo du -x -h / | sort -h | tail -40
+
+### Troubleshooting Docker logs
+
+        docker ps // to get container_name
+        docker logs [container_name]
+
+        docker ps // to get container_name
+        docker inspect --format="{{.Id}}" container_name // to get container_id
+        cd /var/lib/docker
+        sudo ls containers/container_id
+        sudo cat containers/container_id/container_id-json.log
+
 ### Troubleshooting
+
+        After restart AWS EC2 instance in AWS console:
+        df
+        docker ps
+        sudo service docker start
+
+        Cant stop a container?
+        - docker stop container_name
+        - docker rm container_name
+        - docker kill container_name
+        - sudo service docker stop
+        - sudo service docker start
+
+        Restart a container?
+        - docker image ls
+        - docker image rm libpyiotcloud_rabbitmq // remove the rabbitmq image
+        - docker-compose build rabbitmq // build the rabbitmq container only
+
+        RabbitMQ message queue
+        - Use the Web interface (via HTTP)
+
+        MongoDB database
+        - Use the MongoDB Compass desktop app (via SSH)
 
         IP:
         - docker-machine ip
@@ -1502,6 +1980,8 @@ Notes:
         - docker image ls
 
         https://stackoverflow.com/questions/31909979/docker-machine-no-space-left-on-device
+        - docker ps --size
+        - docker system df --verbose
         - docker network ls
         - docker network prune
         - docker volume ls
@@ -1516,6 +1996,10 @@ Notes:
 
         Jenkins: // if jenkins URL is not accessible
         - sudo service jenkins start
+
+        https://stackoverflow.com/questions/51493978/how-to-migrate-a-mongodb-database-between-docker-containers
+        https://forums.docker.com/t/mongodb-migrating-container-to-a-different-server/72328
+        - migrating mongodb database
 
 
 # Performance
@@ -1539,48 +2023,136 @@ In Linux, the total round trip time is only 1 second.
 # Security
 
 Security has been the most challenging and controversial issues of IoT devices and smart devices.
+As such this IoT platform was designed so that security is built-in from the design - Security by Design principle.
+Below are security features by backend for device connectivity and frontend connectivity.
 
-### Device Connectivity
-
-Current security implementation for device connectivity:
+### Device connectivity
 
     1. MQTT connectivity over secured TLS connection
     2. ECC-based (Elliptic Curve Cryptography ECC) PKI and X.509 certificates
     3. Enforcement of mutual authentication on both MQTT broker and MQTT client configurations
-    4. Unique MQTT credentials (username and password) per device
+    4. Unique MQTT credentials (username and password) per device where password is JWT-encoded with shared secret key
     5. Strict restrictions for MQTT topic permission (subscribe and publish) per device
-    6. [TODO] ECC certificates stored in 3rd-party ATECC hardware chip 
+    6. ECC certificates stored in 3rd-party ATECC hardware chip 
+    7. Secure boot with 256-bit AES key stored in an eFuse block to prevent tampered firmware
+    8. Flash encryption to prevent copying SPI Flash contents (bootloader, partition table, app partitions) via eFuses
 
-### Front-end (Web/Mobile App) Connectivity
+### Frontend connectivity
 
-    1. TODO
+    1. HTTP connectivity over secured TLS connection
+    2. Cognito OAuth2 authorization with OTP and MFA/2FA via email and SMS
+    3. HTTP authentication header with JWT encoding and secret key
+    4. User lockout after 5 consecutive failed attempts
+
+
+
+# Youtube screen recordings
+
+1.  IoT Portal EW2020 demo stress test with device simulators
+    https://www.youtube.com/watch?v=xkrd0WblCaI
+2.  IoT Portal demo google maps
+    https://www.youtube.com/watch?v=QCfKW3920vI
+3.  IoT Portal demo login with facebook, google, amazon
+    https://www.youtube.com/watch?v=RC_CiUj8W5s
+4.  IoT Portal demo google maps move device markers
+    https://www.youtube.com/watch?v=PngyKmgQ7Cs
+5.  IoT Portal demo ota firmware update with device simulator
+    https://www.youtube.com/watch?v=pWtfvcHW0Ho
+6.  IoT Portal demo paypal payment
+    https://www.youtube.com/watch?v=IGGst_aGHfw
+7.  IoT Portal demo ota firmware update offlinedevices and devicefleet
+    https://www.youtube.com/watch?v=ZZNlmFEPPTg
+8.  IoT Portal demo storage for menos
+    https://www.youtube.com/watch?v=ObWsEfADTi0
+9.  IoT Portal demo dashboard
+    https://www.youtube.com/watch?v=cx_AiyG4aDM
+10. IoT Portal demo dashboard with time range
+    https://www.youtube.com/watch?v=xg88WW7UkAo
+11. IoT Portal demo device groups
+    https://www.youtube.com/watch?v=NMFiBhFnmCc
+12. IoT Portal demo login with multi-factor authentication (MFA)
+    https://www.youtube.com/watch?v=_bSppoJqgdc
+13. IoT Portal demo dashboard with dougnut charts
+    https://www.youtube.com/watch?v=1VNFLBg30-w
+14. IoT Portal demo device hierarchy charts using D3.js
+    https://www.youtube.com/watch?v=-SxLFtULwOc
+15. IoT Portal demo organizations users
+    https://www.youtube.com/watch?v=Hk1-3qi2Ok8
+16. IoT Portal demo organizations groups
+    https://www.youtube.com/watch?v=vFWb-CcLJOI
+17. IoT Portal demo multiple organizations
+    https://www.youtube.com/watch?v=YId8GmpC1dk&t=7s
+18. IoT Portal demo organization policies
+    https://www.youtube.com/watch?v=cJG0VGHoLug
+19. IoT Portal demo multiple organizations resources
+    https://www.youtube.com/watch?v=k35sWhx6SL4
+
+
+
+# Reminders
+
+    1. When using self-signed certificate on NGINX,
+       The Ionic iOS/Android mobile simulators can be viewed online at https://creator.ionic.io/share/xxxASKMExxx but requires the following
+       - "C:\Program Files (x86)\Google\Chrome\Application\chrome.exe" --ignore-certificate-errors
+       - OR type in browser chrome://flags/#allow-insecure-localhost
+    2. The certificate bought from GoDaddy is different from the self-signed certificate for RabbitMQ.
+       - RABBITMQ: Uses the self-signed rootca; for MQTTS/AMQPS device connectivity
+       - NGINX: Uses the trusted certificate bought from GoDaddy; for HTTPS web/mobile connectivity; currently tied up to richmondu.com
 
 
 
 # Action Items
 
-1.  Fix browser reload issue.
-2.  Add payment transaction history
-3.  Add credit card payment (Currently only Paypal is supported).
-4.  Add signup/login using Facebook account.
-5.  Add feature to enable MFA (Multi factor authentication via email/SMS).
-6.  Add message counter for free-tier subscription.
-7.  [Low] Add mobile app push notification integration to notification manager.
-8.  [Low] Add Twitter integration to notification manager.
-9.  [Low] Add file logging of microservices for easier debugging/troubleshooting
-10. [Low] Add manager/admin page in Web client (see all users and devices registered by each user)
-11. [Low] Support an online device emulator. (Each user can run 1 online device emulator.)
-12. [Low] Optimize Kubernetes support on AWS EKS. (currently using 5 EC2 instances as worker nodes.)
-13. [Low] Move Jenkins server to another AWS EC2 instance (Currently, running on same EC2 instance.)
+Below are the Post EW2020 Demo and new requirements:
 
+    1.  [DONE] API for changing devicename 
+    2.  [DONE] Optimized output format for sensor charting APIs ( x[], y[] arrays instead of [(x,y), ...] )
+    2.  [DONE] OTA firmware update (HTTPS or MQTTS, CRC32)
+    3.  [DONE] Google Maps Platform location (drag and drop markers to change device location)
+    4.  [DONE] Login via social accounts (Facebook, Google, Amazon)
+    5.  [DONE] Record Paypal transactions, Paypal API cleanup
+    6.  [DONE] Login via (an OTP-verified) phone number
+    7.  [DONE] OTA firmware update for an OFFLINE device
+    8.  [DONE] OTA firmware update for a FLEET of devices
+    9.  [DONE] "S"torage for MENOS messaging using Amazon S3
+    10. [DONE] Utilize REDIS for key value store, caching and message passing
+    11. [DONE] Custom filtering of sensors in dashboard (filter by devicename, peripheral, class, status)
+    12. [DONE] Dedicated database for BIG DATA (days, weeks, months, years) sensor data dashboards using MongDB Atlas 
+    13. [DONE] Sensor dashboarding for days, weeks, months, years (with aggregation like financial stocks)
+    14. [DONE] User lockdown security for consecutive failed login attempts (prevent brute force hacking)
+    15. [DONE] Email confirmation for payment receipt/invoice
+    16. [DONE] Automated sensor registration on device bootup (for sensor scanning feature)
+    17. [DONE] Email confirmation for payment receipt/invoice
+    18. [DONE] Modem/device groups
+    19. [DONE] Login with Multi-Factor Authentication (MFA)
+    20. [DONE] Dashboard pie, doughnut and bar charts 
+    21. [DONE] Dashboard tables for device and sensor configurations
+    22. [DONE] Device-sensor hierarychy/tree charts (using D3.js)
+    23. [DONE] Users management for Organization feature
+    24. [DONE] File logging in device simulator (as requested by QA for easy bug reporting) 
+    25. [DONE] Groups/Roles management for Organization feature
+    26. [DONE] Device authentication with JWT-encoded password for enhanced security
+    27. [DONE] Backend monitoring solution using Prometheus and Grafana for better maintainability
+    28. [DONE] Backend logging solution using custom Python script (sufficient for now)
+    29. [DONE] Multiple organizations
+    30. [DONE] Policies management for Organization feature
+    31. [DONE] Enforcement of organization membership in all APIs
+    32. [DONE] Paypal payment recurring payments for 3/6/12 months monthly subscription
 
-# Reminders
-
-1. When using self-signed certificate on NGINX,
-   The Ionic iOS/Android mobile simulators can be viewed online at https://creator.ionic.io/share/xxxASKMExxx but requires the following
-   - "C:\Program Files (x86)\Google\Chrome\Application\chrome.exe" --ignore-certificate-errors
-   - OR type in browser chrome://flags/#allow-insecure-localhost
-2. The certificate bought from GoDaddy is different from the self-signed certificate for RabbitMQ.
-   - RABBITMQ: Uses the self-signed rootca; for MQTTS/AMQPS device connectivity
-   - NGINX: Uses the trusted certificate bought from GoDaddy; for HTTPS web/mobile connectivity; currently tied up to richmondu.com
+    33. GET/SET PROPERTIES cache
+    34. New payment model (monthly, add-on)
+    35. Highly-customizable dashboard
+    36. Dashboard usage-related info
+    37. Dashboard overlay charts from different sensors from same or other devices
+    38. Business Intelligence integration with Microsoft PowerBI (or Tableau, Qlik)
+    39. Write regression tester
+    40. Microservices documentation
+    41. Databases documentation
+    42. Swagger REST API documentation
+    43. Optimize MongoDB calls (utilize Redis, query by username or deviceid instead of by sensors if possible)
+    44. Apache Hadoop integration using Amazon EMR for legit BigData database (instead of MongoDB Atlas)
+    45. "L"ambda function integration for MENLOS for custom messaging/notifications (support both Python 3, NodeJS)
+    46. IFTTT integration. (requires OAuth2 server and APIs implemented for triggers "if this" and actions "then-that" )
+    47. Clustering of RabbitMQ and REST APIs... (study federation/shovel, clustering is for LAN, federation/shovel is for WAN)
+    48. Update the Kubernetes support (a number of microservices has been added since then).
 

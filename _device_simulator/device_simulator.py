@@ -5,11 +5,21 @@ import netifaces
 import argparse
 import sys
 import os
-import psutil
+import psutil # for dynamic app restart
 import threading
 import random
 import queue
 from messaging_client import messaging_client # common module from parent directory
+import http.client
+import ssl
+import base64
+import binascii
+import logging
+from logging.handlers import RotatingFileHandler
+from logging import handlers
+import jwt # now using pyjwt instead of jose
+import device_client
+import math
 
 
 
@@ -23,6 +33,49 @@ CONFIG_USE_AMQP = False
 ###################################################################################
 # global variables
 ###################################################################################
+
+# query backend to compute device password
+CONFIG_QUERY_BACKEND_TO_COMPUTE_DEVICE_PASSWORD = True
+
+# add timestamp to sensor data
+CONFIG_ADD_SENSOR_DATA_TIMESTAMP = True
+
+# add timestamp to logs in console and file
+CONFIG_ADD_LOG_FILE_TIMESTAMP = True
+CONFIG_ADD_LOG_CONSOLE_TIMESTAMP = False
+CONFIG_LOG_FILE_MAX_SIZE = 1048576*10 # 10MB
+CONFIG_LOG_FILE_MAX_BACKUP = 10
+
+# scan sensor for automatic registration
+CONFIG_SCAN_SENSORS_AT_BOOTUP = True
+
+# ota firmware update
+CONFIG_OTA_AT_BOOTUP = True
+# FT900 is advised to use HTTPS to download the firmware (if possible).
+#   If not possible (due to memory constraints), then can use MQTTS.
+#   When using MQTTS to download the firmware, the firmware is downloaded by chunks.
+#   Since its not possible to add binary to a JSON packet, the binary chunks is Base64-encoded.
+CONFIG_OTA_DOWNLOAD_FIRMWARE_VIA_MQTTS = False
+# Below is the performance when using the device simulator.
+# LIVE
+# via HTTPS: 4 seconds
+# via MQTTS:
+#   chunk size: 8192 -  18 seconds
+#   chunk size: 4096 -  33 seconds
+#   chunk size: 2048 -  55 seconds
+#   chunk size: 1024 - 123 seconds
+#   chunk size:  512 - 237 seconds
+# LOCALHOST
+# via HTTPS: 4 seconds
+# via MQTTS:
+#   chunk size: 8192 -   5 seconds
+#   chunk size: 4096 -   7 seconds
+#   chunk size: 2048 -  15 seconds
+#   chunk size: 1024 -  27 seconds
+#   chunk size:  512 -  53 seconds
+#   chunk size:  256 -  95 seconds
+#   chunk size:  128 - 162 seconds
+CONFIG_OTA_DOWNLOAD_FIRMWARE_MQTTS_CHUNK_SIZE = 8192
 
 # device configuration on bootup
 CONFIG_REQUEST_CONFIGURATION = True
@@ -39,10 +92,21 @@ CONFIG_SEND_NOTIFICATION_PERIOD = 3600 # 1 hour
 # timer thread for publishing sensor data
 g_timer_thread_timeout = 5
 g_timer_thread = None
-g_timer_thread_use = True
-g_timer_thread_stop = threading.Event()
+g_timer_thread_stop = None
+
+# heartbeat thread for publishing heartbeat
+g_heartbeat_thread_timeout = 60
+g_heartbeat_thread = None
+g_heartbeat_thread_stop = None
+
+g_input_thread = None
+
+g_download_thread_timeout = 5
+g_download_thread = None
+g_download_thread_stop = None
 
 g_messaging_client = None
+g_device_client = None
 
 # FIRMWARE VERSION
 g_firmware_version_MAJOR = 0
@@ -125,6 +189,19 @@ g_tprobe_properties = [
     { 'enabled': 0, 'class': 255, 'attributes': {} }
 ]
 
+# GW DESCRIPTOR
+# Dynamically created based on gateway UUID
+g_gateway_descriptor = {}
+
+# LDSU DESCRIPTORS
+# UID is dynamically created based on gateway UUID + running number to ensure unique UID across device simulators
+g_ldsu_descriptors = []
+
+# LDSU DEVICE Properties
+# Dynamically created based on g_ldsu_descriptors
+g_ldsu_properties = {}
+
+
 start_timeX = 0
 
 
@@ -193,13 +270,43 @@ API_STATUS_NOTIFICATION          = "status_notification"
 # sensor reading
 API_RECEIVE_SENSOR_READING       = "rcv_sensor_reading"
 API_REQUEST_SENSOR_READING       = "req_sensor_reading"
-API_PUBLISH_SENSOR_READING       = "sensor_reading"
+API_PUBLISH_SENSOR_READING       = "pub_sensor_reading"
+
+# heartbeat
+API_PUBLISH_HEARTBEAT            = "pub_heartbeat"
 
 # configuration
-API_RECEIVE_CONFIGURATION        = "rcv_configuration"
 API_REQUEST_CONFIGURATION        = "req_configuration"
+API_RECEIVE_CONFIGURATION        = "rcv_configuration"
 API_DELETE_CONFIGURATION         = "del_configuration"
 API_SET_CONFIGURATION            = "set_configuration"
+
+# ota firmware upgrade
+API_UPGRADE_FIRMWARE             = "beg_ota"
+API_UPGRADE_FIRMWARE_COMPLETION  = "end_ota"
+API_REQUEST_FIRMWARE             = "req_firmware"
+API_RECEIVE_FIRMWARE             = "rcv_firmware"
+API_REQUEST_OTASTATUS            = "req_otastatus"
+API_REQUEST_TIME                 = "req_time"
+API_RECEIVE_TIME                 = "rcv_time"
+
+# sensor registration 
+API_SET_REGISTRATION             = "set_registration"
+
+# descriptor
+API_GET_DESCRIPTOR               = "get_descriptor"
+API_SET_DESCRIPTOR               = "set_descriptor"
+
+# lds bus
+API_SET_LDSU_DESCS               = "set_ldsu_descs"
+API_GET_LDSU_DESCS               = "get_ldsu_descs"
+API_IDENTIFY_LDSU                = "identify_ldsu"
+
+# ldsu
+API_GET_LDSU_DEVICES             = "get_ldsu_devs"
+API_ENABLE_LDSU_DEVICE           = "enable_ldsu_dev"
+API_GET_LDSU_DEVICE_PROPERTIES   = "get_ldsu_dev_prop"
+API_SET_LDSU_DEVICE_PROPERTIES   = "set_ldsu_dev_prop"
 
 
 
@@ -222,22 +329,67 @@ CONFIG_AMQP_TLS_PORT        = 5671
 CONFIG_PREPEND_REPLY_TOPIC  = "server"
 CONFIG_SEPARATOR            = '/'
 
+CONFIG_HTTP_HOST            = "localhost"
+CONFIG_HTTP_TLS_PORT        = 443
+CONFIG_HTTP_TIMEOUT         = 10
+
+CONFIG_DEVICE_SECRETKEY     = ''
+CONFIG_DEVICE_ID            = ''
+CONFIG_DEVICE_SERIAL        = ''
+CONFIG_DEVICE_MACADD        = ''
+
+
+
+###################################################################################
+# Logging
+###################################################################################
+
+printf = None
+
+def setup_logging(filename):
+    global printf
+
+    # initialize logger
+    log = logging.getLogger('')
+    log.setLevel(logging.DEBUG)
+    if CONFIG_ADD_LOG_CONSOLE_TIMESTAMP or CONFIG_ADD_LOG_FILE_TIMESTAMP:
+        format = logging.Formatter("[%(asctime)s] %(message)s", "%Y-%m-%d %H:%M:%S")
+
+    # log to console
+    ch = logging.StreamHandler(sys.stdout)
+    if CONFIG_ADD_LOG_CONSOLE_TIMESTAMP:
+        ch.setFormatter(format)
+    log.addHandler(ch)
+
+    # log to file
+    fh = handlers.RotatingFileHandler(filename, maxBytes=CONFIG_LOG_FILE_MAX_SIZE, backupCount=CONFIG_LOG_FILE_MAX_BACKUP)
+    if CONFIG_ADD_LOG_FILE_TIMESTAMP:
+        fh.setFormatter(format)
+    log.addHandler(fh)
+
+    # set printf
+    printf = logging.debug
 
 
 ###################################################################################
 # API handling
 ###################################################################################
 
-def print_json(json_object, label=None):
+def printf_json(json_object, label=None):
     json_formatted_str = json.dumps(json_object, indent=2)
     if label is None:
-        print(json_formatted_str)
+        #printf(json_formatted_str)
+        lines = json_formatted_str.split("\n")
+        for line in lines:
+            printf(line)
     else:
-        print("{}\r\n{}".format(label, json_formatted_str))
+        printf(label)
+        printf("")
+        printf(json_formatted_str)
 
-def publish(topic, payload):
+def publish(topic, payload, debug=True):
     payload = json.dumps(payload)
-    g_messaging_client.publish(topic, payload)
+    g_messaging_client.publish(topic, payload, debug)
 
 def generate_pubtopic(subtopic):
     return CONFIG_PREPEND_REPLY_TOPIC + CONFIG_SEPARATOR + subtopic
@@ -253,21 +405,67 @@ def setClassAttributes(device_class, class_attributes):
     # handle subclasses
     if class_attributes.get("subclass"):
         class_attributes.pop("subclass")
+    if class_attributes.get("source"):
+        class_attributes.pop("source")
     attributes = class_attributes
     return attributes
 
-def writeConfigToFile(json_config):
-    try:
-        now = datetime.datetime.now()
-        filename = "{}_{}.cfg".format(CONFIG_DEVICE_ID, now.strftime("%Y%m%d%H%M%S"))
-        f = open(filename, "w")
-        json_formatted_str = json.dumps(json_config, indent=2)
-        f.write(json_formatted_str)
-        f.close()
-        print("\r\nDevice configuration saved to {}\r\n".format(filename))
-    except:
-        print("exception")
-        pass
+def reset_local_configurations():
+    global g_uart_properties, g_gpio_properties
+    global g_i2c_properties, g_i2c_properties_enabled_output
+    global g_adc_properties, g_1wire_properties
+
+    # UART
+    g_uart_properties = { 'baudrate': 7, 'parity': 0, 'flowcontrol': 0, 'stopbits': 0, 'databits': 1 }
+
+    # GPIO
+    g_gpio_properties = [
+        { 'direction': 0, 'mode': 0, 'alert': 0, 'alertperiod':   0,   'polarity': 0, 'width': 0, 'mark': 0, 'space': 0, 'count': 0 },
+        { 'direction': 0, 'mode': 3, 'alert': 1, 'alertperiod':  60,   'polarity': 0, 'width': 0, 'mark': 0, 'space': 0, 'count': 0 },
+        { 'direction': 1, 'mode': 0, 'alert': 0, 'alertperiod':   0,   'polarity': 0, 'width': 0, 'mark': 0, 'space': 0, 'count': 0 },
+        { 'direction': 1, 'mode': 2, 'alert': 1, 'alertperiod': 120,   'polarity': 1, 'width': 0, 'mark': 1, 'space': 2, 'count': 0 } ]
+
+    # I2C
+    g_i2c_properties = [
+        {
+            '0': { 'enabled': 0, 'class': 255, 'attributes': {} },
+        },
+        {
+            '0': { 'enabled': 0, 'class': 255, 'attributes': {} },
+        },
+        {
+            '0': { 'enabled': 0, 'class': 255, 'attributes': {} },
+        },
+        {
+            '0': { 'enabled': 0, 'class': 255, 'attributes': {} },
+        }
+    ]
+    g_i2c_properties_enabled_output = [{},{},{},{}]
+
+    # ADC
+    g_adc_properties = [
+        { 'enabled': 0, 'class': 255, 'attributes': {} },
+        { 'enabled': 0, 'class': 255, 'attributes': {} },
+    ]
+
+    # 1WIRE
+    g_1wire_properties = [
+        { 'enabled': 0, 'class': 255, 'attributes': {} }
+    ]
+
+    # TPROBE
+    g_tprobe_properties = [
+        { 'enabled': 0, 'class': 255, 'attributes': {} }
+    ]
+
+
+def get_sensors_descriptors(obj, prv):
+    descriptor = None
+    for sensor in g_sensors:
+        if obj == sensor["OBJ"] and float(prv) == float(sensor["VER"]):
+            return sensor["SNS"]
+    return None
+
 
 def handle_api(api, subtopic, subpayload):
     global g_device_status
@@ -276,6 +474,7 @@ def handle_api(api, subtopic, subpayload):
     global g_i2c_properties
     global g_adc_voltage
     global g_device_settings
+    global g_download_thread, g_download_thread_stop
 
 
 
@@ -296,15 +495,15 @@ def handle_api(api, subtopic, subpayload):
         if status == DEVICE_STATUS_RESTART:
             if g_device_status != DEVICE_STATUS_RESTARTING:
                 g_device_status = DEVICE_STATUS_RESTARTING
-                print(g_device_statuses[g_device_status])
+                printf(g_device_statuses[g_device_status])
         elif status == DEVICE_STATUS_STOP:
             if g_device_status != DEVICE_STATUS_STOPPING and g_device_status != DEVICE_STATUS_STOPPED:
                 g_device_status = DEVICE_STATUS_STOPPING
-                print(g_device_statuses[g_device_status])
+                printf(g_device_statuses[g_device_status])
         elif status == DEVICE_STATUS_START:
             if g_device_status != DEVICE_STATUS_STARTING and g_device_status != DEVICE_STATUS_RUNNING:
                 g_device_status = DEVICE_STATUS_STARTING
-                print(g_device_statuses[g_device_status])
+                printf(g_device_statuses[g_device_status])
 
         payload = {}
         payload["value"] = {"status": g_device_status}
@@ -316,8 +515,8 @@ def handle_api(api, subtopic, subpayload):
     ####################################################
     elif api == API_RECEIVE_SENSOR_READING:
         global start_timeX
-        #print(time.time())
-        print(time.time()-start_timeX)
+        #printf(time.time())
+        printf(time.time()-start_timeX)
 
         topic = generate_pubtopic(subtopic)
         subpayload = json.loads(subpayload)
@@ -326,8 +525,8 @@ def handle_api(api, subtopic, subpayload):
         # if requested with API_REQUEST_SENSOR_READING which is already obsoleted
         if subpayload.get("source"):
             source = subpayload["source"]
-            print("{}{}:{} {}".format(source["peripheral"], source["number"], source["address"], g_device_classes[source["class"]]))
-            #print(subpayload["sensors"])
+            printf("{}{}:{} {}".format(source["peripheral"], source["number"], source["address"], g_device_classes[source["class"]]))
+            #printf(subpayload["sensors"])
 
             if source["peripheral"] == "I2C":
                 device_class = g_device_classes[source["class"]]
@@ -342,24 +541,24 @@ def handle_api(api, subtopic, subpayload):
                                 if prop["endpoint"] == 1:
                                     value = int(subpayload["sensors"][index]["value"])
                                     scaled_value = int(value * 0xFFFFFF / 255)
-                                    print("COLOR = {} scaled {} ({})".format(value, scaled_value, hex(scaled_value).upper()))
+                                    printf("COLOR = {} scaled {} ({})".format(value, scaled_value, hex(scaled_value).upper()))
                             elif g_i2c_properties[x][y]["attributes"]["color"]["usage"] == 1:
                                 # RGB as component
                                 prop = g_i2c_properties[x][y]["attributes"]["color"]["individual"]
                                 index = 0
                                 if prop["red"]["endpoint"] == 1:
                                     value = int(subpayload["sensors"][index]["value"])
-                                    print("RED   : {} ({})".format(value, hex(value).upper()))
+                                    printf("RED   : {} ({})".format(value, hex(value).upper()))
                                     index += 1
                                 if prop["green"]["endpoint"] == 1:
                                     value = int(subpayload["sensors"][index]["value"])
-                                    print("GREEN : {} ({})".format(value, hex(value).upper()))
+                                    printf("GREEN : {} ({})".format(value, hex(value).upper()))
                                     index += 1
                                 if prop["blue"]["endpoint"] == 1:
                                     value = int(subpayload["sensors"][index]["value"])
-                                    print("BLUE  : {} ({})".format(value, hex(value).upper()))
+                                    printf("BLUE  : {} ({})".format(value, hex(value).upper()))
                                     index += 1
-                            print("")
+                            printf("")
                             break
                 elif device_class == "display":
                     for y in g_i2c_properties[x]:
@@ -367,10 +566,10 @@ def handle_api(api, subtopic, subpayload):
                             index = 0
                             value = int(subpayload["sensors"][index]["value"])
                             if g_i2c_properties[x][y]["attributes"]["format"] == 0:
-                                print("HEX = {} ({})".format(hex(value).upper(), value))
+                                printf("HEX = {} ({})".format(hex(value).upper(), value))
                             elif g_i2c_properties[x][y]["attributes"]["format"] == 1:
-                                print("INT = {} ({})".format(value, hex(value).upper()))
-                            print("")
+                                printf("INT = {} ({})".format(value, hex(value).upper()))
+                            printf("")
                             break
         else:
             found = False
@@ -393,7 +592,8 @@ def handle_api(api, subtopic, subpayload):
                                     if single["endpoint"] == 1:
                                         hardware = single["hardware"]
                                         if hardware["devicename"] == devicename and hardware["peripheral"] == peripheral and hardware["sensorname"] == sensorname and hardware["attribute"] == attribute:
-                                            print("color = {} ({})\r\n".format(value, hex(value).upper()))
+                                            printf("color = {} ({})".format(value, hex(value).upper()))
+                                            printf("")
                                             g_i2c_properties_enabled_output[x][y]["value"] = value
                                             found = True
                                             break
@@ -402,28 +602,31 @@ def handle_api(api, subtopic, subpayload):
                                     if individual["red"]["endpoint"] == 1:
                                         hardware = individual["red"]["hardware"]
                                         if hardware["devicename"] == devicename and hardware["peripheral"] == peripheral and hardware["sensorname"] == sensorname and hardware["attribute"] == attribute:
-                                            print("red = {} ({})".format(value, hex(value).upper()))
+                                            printf("red = {} ({})".format(value, hex(value).upper()))
                                             g_i2c_properties_enabled_output[x][y]["value"] &= 0x00FFFF
                                             g_i2c_properties_enabled_output[x][y]["value"] |= ((value & 0xFF) << 16)
-                                            print("color = {} ({})\r\n".format(g_i2c_properties_enabled_output[x][y]["value"], hex(g_i2c_properties_enabled_output[x][y]["value"]).upper()))
+                                            printf("color = {} ({})".format(g_i2c_properties_enabled_output[x][y]["value"], hex(g_i2c_properties_enabled_output[x][y]["value"]).upper()))
+                                            printf("")
                                             found = True
                                             break
                                     if individual["green"]["endpoint"] == 1:
                                         hardware = individual["green"]["hardware"]
                                         if hardware["devicename"] == devicename and hardware["peripheral"] == peripheral and hardware["sensorname"] == sensorname and hardware["attribute"] == attribute:
-                                            print("green = {} ({})".format(value, hex(value).upper()))
+                                            printf("green = {} ({})".format(value, hex(value).upper()))
                                             g_i2c_properties_enabled_output[x][y]["value"] &= 0xFF00FF
                                             g_i2c_properties_enabled_output[x][y]["value"] |= ((value & 0xFF) << 8)
-                                            print("color = {} ({})\r\n".format(g_i2c_properties_enabled_output[x][y]["value"], hex(g_i2c_properties_enabled_output[x][y]["value"]).upper()))
+                                            printf("color = {} ({})".format(g_i2c_properties_enabled_output[x][y]["value"], hex(g_i2c_properties_enabled_output[x][y]["value"]).upper()))
+                                            printf("")
                                             found = True
                                             break
                                     if individual["blue"]["endpoint"] == 1:
                                         hardware = individual["blue"]["hardware"]
                                         if hardware["devicename"] == devicename and hardware["peripheral"] == peripheral and hardware["sensorname"] == sensorname and hardware["attribute"] == attribute:
-                                            print("blue = {} ({})".format(value, hex(value).upper()))
+                                            printf("blue = {} ({})".format(value, hex(value).upper()))
                                             g_i2c_properties_enabled_output[x][y]["value"] &= 0xFFFF00
                                             g_i2c_properties_enabled_output[x][y]["value"] |= ((value & 0xFF) << 0)
-                                            print("color = {} ({})\r\n".format(g_i2c_properties_enabled_output[x][y]["value"], hex(g_i2c_properties_enabled_output[x][y]["value"]).upper()))
+                                            printf("color = {} ({})".format(g_i2c_properties_enabled_output[x][y]["value"], hex(g_i2c_properties_enabled_output[x][y]["value"]).upper()))
+                                            printf("")
                                             found = True
                                             break
                             elif device_class == "display":
@@ -432,7 +635,8 @@ def handle_api(api, subtopic, subpayload):
                                     hardware = g_i2c_properties_enabled_output[x][y]["attributes"]["hardware"]
                                     if hardware["devicename"] == devicename and hardware["peripheral"] == peripheral and hardware["sensorname"] == sensorname and hardware["attribute"] == attribute:
                                         value = int(value)
-                                        print("text = {} ({})\r\n".format(value, hex(value).upper()))
+                                        printf("text = {} ({})".format(value, hex(value).upper()))
+                                        printf("")
                                         found = True
                                         break
                 if found == True:
@@ -444,7 +648,7 @@ def handle_api(api, subtopic, subpayload):
     elif api == API_GET_SETTINGS:
         topic = generate_pubtopic(subtopic)
 
-        #print("g_device_settings {}".format(g_device_settings))
+        #printf("g_device_settings {}".format(g_device_settings))
 
         payload = {}
         payload["value"] = g_device_settings
@@ -455,52 +659,220 @@ def handle_api(api, subtopic, subpayload):
         subpayload = json.loads(subpayload)
 
         g_device_settings = subpayload
-        #print("g_device_settings {}".format(g_device_settings))
+        #printf("g_device_settings {}".format(g_device_settings))
         g_timer_thread_timeout = g_device_settings["sensorrate"]
         g_timer_thread.set_timeout(g_timer_thread_timeout)
 
         payload = {}
         publish(topic, payload)
 
+    ####################################################
+    # GATEWAY DESCRIPTOR
+    ####################################################
+    elif api == API_GET_DESCRIPTOR:
+        topic = generate_pubtopic(subtopic)
+        payload = {}
+        payload["value"] = g_gateway_descriptor
+        publish(topic, payload)
+
+
+    ####################################################
+    # LDS BUS
+    ####################################################
+    elif api == API_IDENTIFY_LDSU:
+        topic = generate_pubtopic(subtopic)
+        subpayload = json.loads(subpayload)
+        payload = {}
+        publish(topic, payload)
+
+    elif api == API_GET_LDSU_DESCS:
+        topic = generate_pubtopic(subtopic)
+        subpayload = json.loads(subpayload)
+
+        if subpayload.get("PORT") is not None:
+            port = int(subpayload["PORT"])
+            if port >= 1 and port <= 3:
+                # if port number exist, then return LDSUs for specified port
+                reg_ldsu_descriptors(port=str(port), as_response=True)
+            else:
+                # if port number not exist, then return LDSUs for all ports
+                reg_ldsu_descriptors(port=None, as_response=True)
+        else:
+            # if port number not exist, then return LDSUs for all ports
+            reg_ldsu_descriptors(port=None, as_response=True)
+
+
+    ####################################################
+    # LDSU
+    ####################################################
+
+    elif api == API_ENABLE_LDSU_DEVICE:
+        topic = generate_pubtopic(subtopic)
+        subpayload = json.loads(subpayload)
+        #printf(subpayload)
+
+
+        # get parameters
+        #   enable
+        #   source
+        #   number
+        #   mode
+        enable = int(subpayload["enable"])
+        source = str(subpayload["UID"])
+        number = int(subpayload["SAID"])
+        if subpayload.get("MODE"):
+            mode = int(subpayload["MODE"])
+        else:
+            mode = 0
+
+        # support caching (device receives on enable, not on set)
+        if enable == 1:
+            g_ldsu_properties[source][number]["enabled"] = enable
+            g_ldsu_properties[source][number]["mode"] = mode
+
+            if g_ldsu_properties[source][number].get("attributes") is None:
+                # get OBJ given UID
+                obj = None
+                for ldsu_descriptor in g_ldsu_descriptors:
+                    if ldsu_descriptor["UID"] == source:
+                        obj = ldsu_descriptor["OBJ"]
+                        break
+                # get classname, minmax (given OBJ and number)
+                descriptor = g_device_client.get_objidx(obj, number)
+                classname = g_device_client.get_objidx_class(descriptor)
+                min,max = g_device_client.get_objidx_minmax(descriptor, mode)
+                format = g_device_client.get_objidx_format(descriptor)
+                type = g_device_client.get_objidx_type(descriptor)
+                accuracy = g_device_client.get_objidx_accuracy(descriptor)
+                g_ldsu_properties[source][number]["attributes"] = {}
+                g_ldsu_properties[source][number]["attributes"]["class"] = classname
+                g_ldsu_properties[source][number]["attributes"]["minmax"] = [min,max]
+                g_ldsu_properties[source][number]["attributes"]["format"] = format
+                g_ldsu_properties[source][number]["attributes"]["type"] = type
+                g_ldsu_properties[source][number]["attributes"]["accuracy"] = accuracy
+
+
+            # actuator
+            # if enabling output sensor, add properties to g_i2c_properties_enabled_output
+            # if disabling output sensor, remove properties from g_i2c_properties_enabled_output
+            #if g_ldsu_properties[source][number]["class"] <= 2:
+            #    if enable:
+            #        g_i2c_properties_enabled_output[source][number][address] = g_ldsu_properties[number][address]
+            #        g_i2c_properties_enabled_output[source][number][address]["value"] = 0
+            #    else:
+            #        del g_i2c_properties_enabled_output[number][address]
+        else:
+            g_ldsu_properties[source][number]["enabled"] = enable
+
+        #printf("")
+        #printf_json(g_ldsu_properties[source])
+        #printf("")
+
+        payload = {}
+        publish(topic, payload)
+
+    elif api == API_GET_LDSU_DEVICES:
+        topic = generate_pubtopic(subtopic)
+        subpayload = json.loads(subpayload)
+
+        ldsu_properties = g_ldsu_properties.copy()
+        ldsu_keys = list(ldsu_properties.keys())
+        for ldsu_key in ldsu_keys:
+            for ldsu_device in ldsu_properties[ldsu_key]:
+                if ldsu_device.get("attributes"):
+                    del ldsu_device["attributes"]
+
+        payload = {}
+        payload["value"] = ldsu_properties
+        publish(topic, payload)
+
+    #elif api == API_GET_LDSU_DEVICE_PROPERTIES:
+    #    if True:
+    #        pass
+    #    else:
+    #        topic = generate_pubtopic(subtopic)
+    #        subpayload = json.loads(subpayload)
+    #
+    #        number = int(subpayload["number"])
+    #        address = str(subpayload["address"])
+    #        source = str(subpayload["source"])
+    #        value = None 
+    #        try:
+    #            value = g_ldsu_properties[source][number]["attributes"]
+    #        except:
+    #            pass
+    #
+    #        payload = {}
+    #        if value is not None:
+    #            payload["value"] = value
+    #        publish(topic, payload)
+
+    #elif api == API_SET_LDSU_DEVICE_PROPERTIES:
+    #    if True:
+    #        pass
+    #    else:
+    #        # no longer needed for caching case
+    #
+    #        topic = generate_pubtopic(subtopic)
+    #        printf(len(subpayload))
+    #        subpayload = json.loads(subpayload)
+    #        #printf(subpayload)
+    #
+    #        number = int(subpayload["number"])
+    #        address = str(subpayload["address"])
+    #        device_class = subpayload["class"]
+    #        g_ldsu_properties[source][number] = {
+    #            'address': address,
+    #            'class': device_class,
+    #            'attributes' : setClassAttributes(device_class, subpayload),
+    #            'enabled': 0
+    #        }
+    #        #printf("")
+    #        printf(g_ldsu_properties[source])
+    #        #printf("")
+    #
+    #        payload = {}
+    #        publish(topic, payload)
+
 
     ####################################################
     # UART
     ####################################################
-    elif api == API_GET_UARTS:
-        topic = generate_pubtopic(subtopic)
-        subpayload = json.loads(subpayload)
-
-        value = {
-            'uarts': [
-                {'enabled': g_uart_enabled },
-            ]
-        }
-        #print(g_uart_enabled)
-
-        payload = {}
-        payload["value"] = value
-        publish(topic, payload)
-
-    elif api == API_GET_UART_PROPERTIES:
-        topic = generate_pubtopic(subtopic)
-        subpayload = json.loads(subpayload)
-
-        value = g_uart_properties
-        #print(g_uart_properties)
-        #print(g_uart_baudrate[g_uart_properties['baudrate']])
-        #print(g_uart_parity[g_uart_properties['parity']])
-        #print(g_uart_flowcontrol[g_uart_properties['flowcontrol']])
-        #print(g_uart_stopbits[g_uart_properties['stopbits']])
-        #print(g_uart_databits[g_uart_properties['databits']])
-
-        payload = {}
-        payload["value"] = value
-        publish(topic, payload)
+    #elif api == API_GET_UARTS:
+    #    topic = generate_pubtopic(subtopic)
+    #    subpayload = json.loads(subpayload)
+    #
+    #    value = {
+    #        'uarts': [
+    #            {'enabled': g_uart_enabled },
+    #        ]
+    #    }
+    #    #printf(g_uart_enabled)
+    #
+    #    payload = {}
+    #    payload["value"] = value
+    #    publish(topic, payload)
+    #
+    #elif api == API_GET_UART_PROPERTIES:
+    #    topic = generate_pubtopic(subtopic)
+    #    subpayload = json.loads(subpayload)
+    #
+    #    value = g_uart_properties
+    #    #printf(g_uart_properties)
+    #    #printf(g_uart_baudrate[g_uart_properties['baudrate']])
+    #    #printf(g_uart_parity[g_uart_properties['parity']])
+    #    #printf(g_uart_flowcontrol[g_uart_properties['flowcontrol']])
+    #    #printf(g_uart_stopbits[g_uart_properties['stopbits']])
+    #    #printf(g_uart_databits[g_uart_properties['databits']])
+    #
+    #    payload = {}
+    #    payload["value"] = value
+    #    publish(topic, payload)
 
     elif api == API_SET_UART_PROPERTIES:
         topic = generate_pubtopic(subtopic)
         subpayload = json.loads(subpayload)
-        #print(subpayload)
+        #printf(subpayload)
 
         g_uart_properties = { 
             'baudrate': subpayload["baudrate"], 
@@ -509,12 +881,12 @@ def handle_api(api, subtopic, subpayload):
             'stopbits': subpayload["stopbits"],
             'databits': subpayload["databits"],
         }
-        #print(g_uart_properties)
-        #print(g_uart_baudrate[g_uart_properties['baudrate']])
-        #print(g_uart_parity[g_uart_properties['parity']])
-        #print(g_uart_flowcontrol[g_uart_properties['flowcontrol']])
-        #print(g_uart_stopbits[g_uart_properties['stopbits']])
-        #print(g_uart_databits[g_uart_properties['databits']])
+        #printf(g_uart_properties)
+        #printf(g_uart_baudrate[g_uart_properties['baudrate']])
+        #printf(g_uart_parity[g_uart_properties['parity']])
+        #printf(g_uart_flowcontrol[g_uart_properties['flowcontrol']])
+        #printf(g_uart_stopbits[g_uart_properties['stopbits']])
+        #printf(g_uart_databits[g_uart_properties['databits']])
 
         payload = {}
         publish(topic, payload)
@@ -522,10 +894,10 @@ def handle_api(api, subtopic, subpayload):
     elif api == API_ENABLE_UART:
         topic = generate_pubtopic(subtopic)
         subpayload = json.loads(subpayload)
-        #print(subpayload)
+        #printf(subpayload)
 
         g_uart_enabled = int(subpayload["enable"])
-        #print(g_uart_enabled)
+        #printf(g_uart_enabled)
 
         payload = {}
         publish(topic, payload)
@@ -534,86 +906,86 @@ def handle_api(api, subtopic, subpayload):
     ####################################################
     # GPIO
     ####################################################
-    elif api == API_GET_GPIOS:
-        topic = generate_pubtopic(subtopic)
-        subpayload = json.loads(subpayload)
-
-        value = {
-            'voltage': g_gpio_voltage,
-            'gpios': [
-                {'direction': g_gpio_properties[0]['direction'], 'status': g_gpio_status[0], 'enabled': g_gpio_enabled[0] },
-                {'direction': g_gpio_properties[1]['direction'], 'status': g_gpio_status[1], 'enabled': g_gpio_enabled[1] },
-                {'direction': g_gpio_properties[2]['direction'], 'status': g_gpio_status[2], 'enabled': g_gpio_enabled[2] },
-                {'direction': g_gpio_properties[3]['direction'], 'status': g_gpio_status[3], 'enabled': g_gpio_enabled[3] }
-            ]
-        }
-        #print(g_gpio_enabled)
-
-        payload = {}
-        payload["value"] = value
-        publish(topic, payload)
-
-    elif api == API_GET_GPIO_PROPERTIES:
-        topic = generate_pubtopic(subtopic)
-        subpayload = json.loads(subpayload)
-
-        number = int(subpayload["number"])-1
-        value = g_gpio_properties[number]
-
-        payload = {}
-        payload["value"] = value
-        publish(topic, payload)
-
-    elif api == API_SET_GPIO_PROPERTIES:
-        topic = generate_pubtopic(subtopic)
-        subpayload = json.loads(subpayload)
-        #print(subpayload)
-
-        number = int(subpayload["number"])-1
-        g_gpio_properties[number] = { 
-            'direction' : subpayload["direction"], 
-            'mode' : subpayload["mode"],
-            'alert': subpayload["alert"],
-            'alertperiod': subpayload["alertperiod"],
-            'polarity': subpayload["polarity"],
-            'width': subpayload["width"],
-            'mark': subpayload["mark"],
-            'space': subpayload["space"],
-            'count': subpayload["count"] }
-        value = g_gpio_properties[number]
-
-        payload = {}
-        publish(topic, payload)
-
-    elif api == API_ENABLE_GPIO:
-        topic = generate_pubtopic(subtopic)
-        subpayload = json.loads(subpayload)
-        #print(subpayload)
-
-        g_gpio_enabled[int(subpayload["number"])-1] = subpayload["enable"]
-        #print(g_gpio_enabled)
-
-        payload = {}
-        publish(topic, payload)
-
-    elif api == API_GET_GPIO_VOLTAGE:
-        topic = generate_pubtopic(subtopic)
-
-        payload = {}
-        payload["value"] = {"voltage": g_gpio_voltage}
-        publish(topic, payload)
-        #print(g_gpio_voltages[g_gpio_voltage])
-
-    elif api == API_SET_GPIO_VOLTAGE:
-        topic = generate_pubtopic(subtopic)
-        subpayload = json.loads(subpayload)
-        #print(subpayload)
-
-        g_gpio_voltage = subpayload["voltage"]
-        #print(g_gpio_voltages[g_gpio_voltage])
-
-        payload = {}
-        publish(topic, payload)
+    #elif api == API_GET_GPIOS:
+    #    topic = generate_pubtopic(subtopic)
+    #    subpayload = json.loads(subpayload)
+    #
+    #    value = {
+    #        'voltage': g_gpio_voltage,
+    #        'gpios': [
+    #            {'direction': g_gpio_properties[0]['direction'], 'status': g_gpio_status[0], 'enabled': g_gpio_enabled[0] },
+    #            {'direction': g_gpio_properties[1]['direction'], 'status': g_gpio_status[1], 'enabled': g_gpio_enabled[1] },
+    #            {'direction': g_gpio_properties[2]['direction'], 'status': g_gpio_status[2], 'enabled': g_gpio_enabled[2] },
+    #            {'direction': g_gpio_properties[3]['direction'], 'status': g_gpio_status[3], 'enabled': g_gpio_enabled[3] }
+    #        ]
+    #    }
+    #    #printf(g_gpio_enabled)
+    #
+    #    payload = {}
+    #    payload["value"] = value
+    #    publish(topic, payload)
+    #
+    #elif api == API_GET_GPIO_PROPERTIES:
+    #    topic = generate_pubtopic(subtopic)
+    #    subpayload = json.loads(subpayload)
+    #
+    #    number = int(subpayload["number"])-1
+    #    value = g_gpio_properties[number]
+    #
+    #    payload = {}
+    #    payload["value"] = value
+    #    publish(topic, payload)
+    #
+    #elif api == API_SET_GPIO_PROPERTIES:
+    #    topic = generate_pubtopic(subtopic)
+    #    subpayload = json.loads(subpayload)
+    #    #printf(subpayload)
+    #
+    #    number = int(subpayload["number"])-1
+    #    g_gpio_properties[number] = { 
+    #        'direction' : subpayload["direction"], 
+    #        'mode' : subpayload["mode"],
+    #        'alert': subpayload["alert"],
+    #        'alertperiod': subpayload["alertperiod"],
+    #        'polarity': subpayload["polarity"],
+    #        'width': subpayload["width"],
+    #        'mark': subpayload["mark"],
+    #        'space': subpayload["space"],
+    #        'count': subpayload["count"] }
+    #    value = g_gpio_properties[number]
+    #
+    #    payload = {}
+    #    publish(topic, payload)
+    #
+    #elif api == API_ENABLE_GPIO:
+    #    topic = generate_pubtopic(subtopic)
+    #    subpayload = json.loads(subpayload)
+    #    #printf(subpayload)
+    #
+    #    g_gpio_enabled[int(subpayload["number"])-1] = subpayload["enable"]
+    #    #printf(g_gpio_enabled)
+    #
+    #    payload = {}
+    #    publish(topic, payload)
+    #
+    #elif api == API_GET_GPIO_VOLTAGE:
+    #    topic = generate_pubtopic(subtopic)
+    #
+    #    payload = {}
+    #    payload["value"] = {"voltage": g_gpio_voltage}
+    #    publish(topic, payload)
+    #    #printf(g_gpio_voltages[g_gpio_voltage])
+    #
+    #elif api == API_SET_GPIO_VOLTAGE:
+    #    topic = generate_pubtopic(subtopic)
+    #    subpayload = json.loads(subpayload)
+    #    #printf(subpayload)
+    #
+    #    g_gpio_voltage = subpayload["voltage"]
+    #    #printf(g_gpio_voltages[g_gpio_voltage])
+    #
+    #    payload = {}
+    #    publish(topic, payload)
 
 
     ####################################################
@@ -633,7 +1005,7 @@ def handle_api(api, subtopic, subpayload):
                 entry["enabled"] = g_i2c_properties[number][y]["enabled"]
                 entry["address"] = int(y)
                 value.append(entry)
-        #print(value)
+        #printf(value)
 
         payload = {}
         payload["value"] = value
@@ -642,11 +1014,20 @@ def handle_api(api, subtopic, subpayload):
     elif api == API_ENABLE_I2C_DEVICE:
         topic = generate_pubtopic(subtopic)
         subpayload = json.loads(subpayload)
-        #print(subpayload)
 
         number = int(subpayload["number"])-1
         address = str(subpayload["address"])
         enable = int(subpayload["enable"])
+
+        # support caching (device receives on enable, not on set)
+        if subpayload.get("class") and enable == 1:
+            device_class = subpayload["class"]
+            g_i2c_properties[number][address] = {
+                'class': device_class,
+                'attributes' : setClassAttributes(device_class, subpayload),
+                'enabled': 0
+            }
+
         try:
             g_i2c_properties[number][address]["enabled"] = enable
 
@@ -660,9 +1041,9 @@ def handle_api(api, subtopic, subpayload):
                     del g_i2c_properties_enabled_output[number][address]
         except:
             pass
-        #print()
-        #print(g_i2c_properties[number])
-        #print()
+        #printf("")
+        #printf(g_i2c_properties[number])
+        #printf("")
 
         payload = {}
         publish(topic, payload)
@@ -677,9 +1058,9 @@ def handle_api(api, subtopic, subpayload):
         try:
             if g_i2c_properties[number].get(address):
                 value = g_i2c_properties[number][address]["attributes"]
-                #print()
-                #print(value)
-                #print()
+                #printf("")
+                #printf(value)
+                #printf("")
         except:
             pass
 
@@ -690,9 +1071,9 @@ def handle_api(api, subtopic, subpayload):
 
     elif api == API_SET_I2C_DEVICE_PROPERTIES:
         topic = generate_pubtopic(subtopic)
-        print(len(subpayload))
+        printf(len(subpayload))
         subpayload = json.loads(subpayload)
-        #print(subpayload)
+        #printf(subpayload)
 
         number = int(subpayload["number"])-1
         address = str(subpayload["address"])
@@ -702,9 +1083,9 @@ def handle_api(api, subtopic, subpayload):
             'attributes' : setClassAttributes(device_class, subpayload),
             'enabled': 0
         }
-        #print()
-        #print(g_i2c_properties[number])
-        #print()
+        #printf("")
+        #printf(g_i2c_properties[number])
+        #printf("")
 
         payload = {}
         publish(topic, payload)
@@ -725,7 +1106,7 @@ def handle_api(api, subtopic, subpayload):
             entry["class"]   = g_adc_properties[number]["class"]
             entry["enabled"] = g_adc_properties[number]["enabled"]
             value.append(entry)
-        #print(value)
+        #printf(value)
 
         payload = {}
         payload["value"] = value
@@ -734,7 +1115,7 @@ def handle_api(api, subtopic, subpayload):
     elif api == API_ENABLE_ADC_DEVICE:
         topic = generate_pubtopic(subtopic)
         subpayload = json.loads(subpayload)
-        #print(subpayload)
+        #printf(subpayload)
 
         number = int(subpayload["number"])-1
         enable = int(subpayload["enable"])
@@ -742,9 +1123,9 @@ def handle_api(api, subtopic, subpayload):
             g_adc_properties[number]["enabled"] = enable
         except:
             pass
-        #print()
-        #print(g_adc_properties[number])
-        #print()
+        #printf("")
+        #printf(g_adc_properties[number])
+        #printf("")
 
         payload = {}
         publish(topic, payload)
@@ -757,9 +1138,9 @@ def handle_api(api, subtopic, subpayload):
         value = None 
         try:
             value = g_adc_properties[number]["attributes"]
-            #print()
-            #print(value)
-            #print()
+            #printf("")
+            #printf(value)
+            #printf("")
         except:
             pass
 
@@ -771,7 +1152,7 @@ def handle_api(api, subtopic, subpayload):
     elif api == API_SET_ADC_DEVICE_PROPERTIES:
         topic = generate_pubtopic(subtopic)
         subpayload = json.loads(subpayload)
-        #print(subpayload)
+        #printf(subpayload)
 
         number = int(subpayload["number"])-1
         device_class = subpayload["class"]
@@ -780,9 +1161,9 @@ def handle_api(api, subtopic, subpayload):
             'attributes' : setClassAttributes(device_class, subpayload),
             'enabled': 0
         }
-        #print()
-        #print(g_adc_properties[number])
-        #print()
+        #printf("")
+        #printf(g_adc_properties[number])
+        #printf("")
 
         payload = {}
         publish(topic, payload)
@@ -793,15 +1174,15 @@ def handle_api(api, subtopic, subpayload):
         payload = {}
         payload["value"] = {"voltage": g_adc_voltage}
         publish(topic, payload)
-        print(g_adc_voltages[g_adc_voltage])
+        printf(g_adc_voltages[g_adc_voltage])
 
     elif api == API_SET_ADC_VOLTAGE:
         topic = generate_pubtopic(subtopic)
         subpayload = json.loads(subpayload)
-        print(subpayload)
+        printf(subpayload)
 
         g_adc_voltage = subpayload["voltage"]
-        print(g_adc_voltages[g_adc_voltage])
+        printf(g_adc_voltages[g_adc_voltage])
 
         payload = {}
         publish(topic, payload)
@@ -822,7 +1203,7 @@ def handle_api(api, subtopic, subpayload):
             entry["class"]   = g_1wire_properties[number]["class"]
             entry["enabled"] = g_1wire_properties[number]["enabled"]
             value.append(entry)
-        #print(value)
+        #printf(value)
 
         payload = {}
         payload["value"] = value
@@ -831,7 +1212,7 @@ def handle_api(api, subtopic, subpayload):
     elif api == API_ENABLE_1WIRE_DEVICE:
         topic = generate_pubtopic(subtopic)
         subpayload = json.loads(subpayload)
-        #print(subpayload)
+        #printf(subpayload)
 
         number = int(subpayload["number"])-1
         enable = int(subpayload["enable"])
@@ -839,9 +1220,9 @@ def handle_api(api, subtopic, subpayload):
             g_1wire_properties[number]["enabled"] = enable
         except:
             pass
-        #print()
-        #print(g_1wire_properties[number])
-        #print()
+        #printf("")
+        #printf(g_1wire_properties[number])
+        #printf("")
 
         payload = {}
         publish(topic, payload)
@@ -854,9 +1235,9 @@ def handle_api(api, subtopic, subpayload):
         value = None 
         try:
             value = g_1wire_properties[number]["attributes"]
-            #print()
-            #print(value)
-            #print()
+            #printf("")
+            #printf(value)
+            #printf("")
         except:
             pass
 
@@ -868,7 +1249,7 @@ def handle_api(api, subtopic, subpayload):
     elif api == API_SET_1WIRE_DEVICE_PROPERTIES:
         topic = generate_pubtopic(subtopic)
         subpayload = json.loads(subpayload)
-        #print(subpayload)
+        #printf(subpayload)
 
         number = int(subpayload["number"])-1
         device_class = subpayload["class"]
@@ -877,9 +1258,9 @@ def handle_api(api, subtopic, subpayload):
             'attributes' : setClassAttributes(device_class, subpayload),
             'enabled': 0
         }
-        #print()
-        #print(g_1wire_properties[number])
-        #print()
+        #printf("")
+        #printf(g_1wire_properties[number])
+        #printf("")
 
         payload = {}
         publish(topic, payload)
@@ -900,7 +1281,7 @@ def handle_api(api, subtopic, subpayload):
             entry["class"]   = g_tprobe_properties[number]["class"]
             entry["enabled"] = g_tprobe_properties[number]["enabled"]
             value.append(entry)
-        #print(value)
+        #printf(value)
 
         payload = {}
         payload["value"] = value
@@ -909,7 +1290,7 @@ def handle_api(api, subtopic, subpayload):
     elif api == API_ENABLE_TPROBE_DEVICE:
         topic = generate_pubtopic(subtopic)
         subpayload = json.loads(subpayload)
-        #print(subpayload)
+        #printf(subpayload)
 
         number = int(subpayload["number"])-1
         enable = int(subpayload["enable"])
@@ -917,9 +1298,9 @@ def handle_api(api, subtopic, subpayload):
             g_tprobe_properties[number]["enabled"] = enable
         except:
             pass
-        #print()
-        #print(g_tprobe_properties[number])
-        #print()
+        #printf("")
+        #printf(g_tprobe_properties[number])
+        #printf("")
 
         payload = {}
         publish(topic, payload)
@@ -932,9 +1313,9 @@ def handle_api(api, subtopic, subpayload):
         value = None 
         try:
             value = g_tprobe_properties[number]["attributes"]
-            #print()
-            #print("GET: {}".format(value))
-            #print()
+            #printf("")
+            #printf("GET: {}".format(value))
+            #printf("")
         except:
             pass
 
@@ -946,7 +1327,7 @@ def handle_api(api, subtopic, subpayload):
     elif api == API_SET_TPROBE_DEVICE_PROPERTIES:
         topic = generate_pubtopic(subtopic)
         subpayload = json.loads(subpayload)
-        #print("SET: {}".format(subpayload))
+        #printf("SET: {}".format(subpayload))
 
         number = int(subpayload["number"])-1
         device_class = subpayload["class"]
@@ -965,9 +1346,9 @@ def handle_api(api, subtopic, subpayload):
         if device_subclass is not None:
             g_tprobe_properties[number]['subclass'] = device_subclass
 
-        #print()
-        #print(g_tprobe_properties[number])
-        #print()
+        #printf("")
+        #printf(g_tprobe_properties[number])
+        #printf("")
 
         payload = {}
         publish(topic, payload)
@@ -995,7 +1376,7 @@ def handle_api(api, subtopic, subpayload):
                     i2c_value.append(entry)
 
             label = "i2c{}".format(x+1)
-            print("{}: {}".format(label, i2c_value))
+            printf("{}: {}".format(label, i2c_value))
 
             if len(i2c_value) > 0:
                 value[label] = {}
@@ -1012,7 +1393,7 @@ def handle_api(api, subtopic, subpayload):
                 adc_value.append(entry)
 
             label = "adc{}".format(x+1)
-            print("{}: {}".format(label, adc_value))
+            printf("{}: {}".format(label, adc_value))
 
             if len(adc_value) > 0:
                 value[label] = {}
@@ -1029,7 +1410,7 @@ def handle_api(api, subtopic, subpayload):
                 onewire_value.append(entry)
 
             label = "1wire{}".format(x+1)
-            print("{}: {}".format(label, onewire_value))
+            printf("{}: {}".format(label, onewire_value))
 
             if len(onewire_value) > 0:
                 value[label] = {}
@@ -1046,16 +1427,16 @@ def handle_api(api, subtopic, subpayload):
                 tprobe_value.append(entry)
 
             label = "tprobe{}".format(x+1)
-            print("{}: {}".format(label, tprobe_value))
+            printf("{}: {}".format(label, tprobe_value))
 
             if len(tprobe_value) > 0:
                 value[label] = {}
                 value[label] = tprobe_value
 
-        print("")
+        printf("")
         payload = {}
         payload["value"] = value
-        #print(payload["value"])
+        #printf(payload["value"])
         publish(topic, payload)    
 
 
@@ -1063,23 +1444,23 @@ def handle_api(api, subtopic, subpayload):
     # NOTIFICATION
     ####################################################
 
-    elif api == API_TRIGGER_NOTIFICATION:
-        topic = generate_pubtopic(subtopic)
-        subpayload = json.loads(subpayload)
-        # Notification from cloud
-        publish(topic, subpayload)
-        print("Notification triggered to email/SMS recipient!")
+    #elif api == API_TRIGGER_NOTIFICATION:
+    #    topic = generate_pubtopic(subtopic)
+    #    subpayload = json.loads(subpayload)
+    #    # Notification from cloud
+    #    publish(topic, subpayload)
+    #    printf("Notification triggered to email/SMS recipient!")
 
     elif api == API_RECEIVE_NOTIFICATION:
         topic = generate_pubtopic(subtopic)
         subpayload = json.loads(subpayload)
         # Notification from another device
-        print("Notification received from device {}:".format(subpayload["sender"]))
-        print(subpayload["message"])
-        print("")
+        printf("Notification received from device {}:".format(subpayload["sender"]))
+        printf(subpayload["message"])
+        printf("")
 
     elif api == API_STATUS_NOTIFICATION:
-        print("")
+        printf("")
         pass
 
 
@@ -1090,36 +1471,85 @@ def handle_api(api, subtopic, subpayload):
     elif api == API_RECEIVE_CONFIGURATION:
         topic = generate_pubtopic(subtopic)
         if len(subpayload) > 2:
-            print(len(subpayload))
+            printf(len(subpayload))
         subpayload = json.loads(subpayload)
 
         if CONFIG_SAVE_CONFIGURATION_TO_FILE:
-            writeConfigToFile(subpayload)
+            save_configuration(subpayload)
 
         if CONFIG_REQUEST_CONFIGURATION_DEBUG:
-            print("")
+            printf("")
+            if subpayload.get("ldsu"):
+                printf("ldsu   {} - {}".format(subpayload["ldsu"],   len(subpayload["ldsu"])   ))
+                printf("")
             if subpayload.get("uart"):
-                print("uart   {} - {}\r\n".format(subpayload["uart"],   len(subpayload["uart"])   ))
+                printf("uart   {} - {}".format(subpayload["uart"],   len(subpayload["uart"])   ))
+                printf("")
             if subpayload.get("gpio"):
-                print("gpio   {} - {}\r\n".format(subpayload["gpio"],   len(subpayload["gpio"])   ))
+                printf("gpio   {} - {}".format(subpayload["gpio"],   len(subpayload["gpio"])   ))
+                printf("")
             if subpayload.get("i2c"):
-                print("i2c    {} - {}\r\n".format(subpayload["i2c"],    len(subpayload["i2c"])    ))
-                print("  i2c0 {} - {}\r\n".format(subpayload["i2c"][0], len(subpayload["i2c"][0]) ))
-                print("  i2c1 {} - {}\r\n".format(subpayload["i2c"][1], len(subpayload["i2c"][1]) ))
-                print("  i2c2 {} - {}\r\n".format(subpayload["i2c"][2], len(subpayload["i2c"][2]) ))
-                print("  i2c3 {} - {}\r\n".format(subpayload["i2c"][3], len(subpayload["i2c"][3]) ))
+                printf("i2c    {} - {}".format(subpayload["i2c"],    len(subpayload["i2c"])    ))
+                printf("")
+                printf("  i2c0 {} - {}".format(subpayload["i2c"][0], len(subpayload["i2c"][0]) ))
+                printf("")
+                printf("  i2c1 {} - {}".format(subpayload["i2c"][1], len(subpayload["i2c"][1]) ))
+                printf("")
+                printf("  i2c2 {} - {}".format(subpayload["i2c"][2], len(subpayload["i2c"][2]) ))
+                printf("")
+                printf("  i2c3 {} - {}".format(subpayload["i2c"][3], len(subpayload["i2c"][3]) ))
+                printf("")
             if subpayload.get("adc"):
-                print("adc    {} - {}\r\n".format(subpayload["adc"],    len(subpayload["adc"])    ))
+                printf("adc    {} - {}".format(subpayload["adc"],    len(subpayload["adc"])    ))
+                printf("")
             if subpayload.get("1wire"):
-                print("1wire  {} - {}\r\n".format(subpayload["1wire"],  len(subpayload["1wire"])  ))
+                printf("1wire  {} - {}".format(subpayload["1wire"],  len(subpayload["1wire"])  ))
+                printf("")
             if subpayload.get("tprobe"):
-                print("tprobe {} - {}\r\n".format(subpayload["tprobe"], len(subpayload["tprobe"]) ))
-            print("")
+                printf("tprobe {} - {}".format(subpayload["tprobe"], len(subpayload["tprobe"]) ))
+                printf("")
+            printf("")
+
+        # LDSU
+        if subpayload.get("ldsu"):
+            ldsus = subpayload["ldsu"]
+            for ldsu in ldsus:
+                #printf(ldsu)
+                source = ldsu["UID"]
+                number = int(ldsu["SAID"])
+                mode = int(ldsu["MODE"])
+                g_ldsu_properties[source][number]["enabled"] = ldsu["enabled"]
+                g_ldsu_properties[source][number]["mode"] = mode
+
+                if g_ldsu_properties[source][number].get("attributes") is None:
+                    # get OBJ given UID
+                    obj = None
+                    for ldsu_descriptor in g_ldsu_descriptors:
+                        if ldsu_descriptor["UID"] == source:
+                            obj = ldsu_descriptor["OBJ"]
+                            break
+                    # get classname, minmax (given OBJ and number)
+                    descriptor = g_device_client.get_objidx(obj, number)
+                    classname = g_device_client.get_objidx_class(descriptor)
+                    min,max = g_device_client.get_objidx_minmax(descriptor, mode)
+                    format = g_device_client.get_objidx_format(descriptor)
+                    type = g_device_client.get_objidx_type(descriptor)
+                    accuracy = g_device_client.get_objidx_accuracy(descriptor)
+                    g_ldsu_properties[source][number]["attributes"] = {}
+                    g_ldsu_properties[source][number]["attributes"]["class"] = classname
+                    g_ldsu_properties[source][number]["attributes"]["minmax"] = [min,max]
+                    g_ldsu_properties[source][number]["attributes"]["format"] = format
+                    g_ldsu_properties[source][number]["attributes"]["type"] = type
+                    g_ldsu_properties[source][number]["attributes"]["accuracy"] = accuracy
+                    #print(g_ldsu_properties[source][number])
+
+            #printf_json(g_ldsu_properties[source])
 
         # UART
         if subpayload.get("uart"):
             if subpayload["uart"][0].get("attributes"):
                 g_uart_properties = subpayload["uart"][0]["attributes"]
+                #printf(g_uart_properties)
 
         # GPIO
         if subpayload.get("gpio"):
@@ -1201,16 +1631,87 @@ def handle_api(api, subtopic, subpayload):
                             g_i2c_properties[x][address]["subclass"] = subpayload["i2c"][x][y]["subclass"]
 
         if CONFIG_REQUEST_CONFIGURATION_DEBUG:
-            print_json(g_uart_properties,   "uart")
-            print_json(g_gpio_properties,   "gpio")
-            print_json(g_adc_properties,    "adc")
-            print_json(g_1wire_properties,  "1wire")
-            print_json(g_tprobe_properties, "tprobe")
-            print_json(g_i2c_properties,    "i2c")
+            printf_json(g_ldsu_properties,   "ldsu")
+            printf_json(g_uart_properties,   "uart")
+            printf_json(g_gpio_properties,   "gpio")
+            printf_json(g_adc_properties,    "adc")
+            printf_json(g_1wire_properties,  "1wire")
+            printf_json(g_tprobe_properties, "tprobe")
+            printf_json(g_i2c_properties,    "i2c")
 
-        print("\r\nDEVICE CONFIGURATION")
-        print("Device is now configured with cached values from cloud.\r\n\r\n")
+        printf("")
+        printf("DEVICE CONFIGURATION")
+        printf("Device is now configured with cached values from cloud.")
+        printf("")
+        printf("")
         g_device_status = DEVICE_STATUS_RUNNING
+
+
+    ####################################################
+    # FIRMWARE UPGRADE
+    ####################################################
+
+    elif api == API_REQUEST_OTASTATUS:
+        topic = generate_pubtopic(subtopic)
+        subpayload = json.loads(subpayload)
+        printf("")
+
+
+    elif api == API_UPGRADE_FIRMWARE:
+        topic = generate_pubtopic(subtopic)
+        subpayload = json.loads(subpayload)
+
+        # stop the timer thread and heartbeat thread
+        g_timer_thread.set_pause(True)
+        g_heartbeat_thread.set_pause(True)
+
+        # reply
+        payload = {}
+        publish(topic, payload)
+
+        # start the download thread
+        printf("")
+        printf("")
+        printf("")
+        printf("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
+        printf("")
+        printf("Device is now starting to download the firmware !!!")
+        printf("")
+        g_download_thread_stop = threading.Event()
+        g_download_thread_stop.set()
+        g_download_thread = DownloadThread(g_download_thread_stop, g_download_thread_timeout)
+        g_download_thread.set_parameters(subpayload["location"], subpayload["size"], subpayload["version"], subpayload["checksum"])
+        g_download_thread.start()
+
+
+    elif api == API_RECEIVE_FIRMWARE:
+        topic = generate_pubtopic(subtopic)
+        subpayload = json.loads(subpayload)
+
+        # write to file
+        if subpayload["offset"] == 0:
+            f = open(g_download_thread.get_filename(), "wb")
+            bin = subpayload["bin"].encode("utf-8")
+            bin = base64.b64decode(bin)
+            f.write(bin)
+            f.close()
+        else:
+            f = open(g_download_thread.get_filename(), "ab")
+            bin = subpayload["bin"].encode("utf-8")
+            bin = base64.b64decode(bin)
+            f.write(bin)
+            f.close()
+        #printf("\r\nReceived {} bytes {} offset.\r\n".format(subpayload["size"], subpayload["offset"]))
+
+        # inform download thread
+        g_download_thread.set_downloaded(subpayload["size"])
+        g_download_thread_stop.set()
+
+
+    elif api == API_RECEIVE_TIME:
+        topic = generate_pubtopic(subtopic)
+        subpayload = json.loads(subpayload)
+        printf("")
 
 
     ####################################################
@@ -1218,7 +1719,121 @@ def handle_api(api, subtopic, subpayload):
     ####################################################
 
     else:
-        print("UNSUPPORTED")
+        printf("UNSUPPORTED")
+
+
+
+###################################################################################
+# LDSU helper functions
+###################################################################################
+
+def saveToLDSFile():
+    lds_filename = CONFIG_DEVICE_ID + ".json"
+    json_obj = { "LDS": g_ldsu_descriptors }
+    json_obj = json.dumps(json_obj, indent=2)
+    g_device_client.save_lds_reg(lds_filename, json_obj)
+
+def listLDSUs(port):
+    if port>0 and port<=3:
+        for ldsu in g_ldsu_descriptors:
+            if port == int(ldsu["PORT"]):
+                printf("{} Port {} [{}-{}]".format(ldsu["UID"], ldsu["PORT"], ldsu["OBJ"], ldsu["NAME"]))
+                numdevices = g_device_client.get_obj_numdevices(ldsu["OBJ"])
+                for number in range(numdevices):
+                    descriptor = g_device_client.get_objidx(ldsu["OBJ"], number)
+                    classname = g_device_client.get_objidx_class(descriptor)
+                    printf("  {} {}".format(number, classname))
+    else:
+        for ldsu in g_ldsu_descriptors:
+            printf("{} Port {} [{}-{}]".format(ldsu["UID"], ldsu["PORT"], ldsu["OBJ"], ldsu["NAME"]))
+            numdevices = g_device_client.get_obj_numdevices(ldsu["OBJ"])
+            for number in range(numdevices):
+                descriptor = g_device_client.get_objidx(ldsu["OBJ"], number)
+                classname = g_device_client.get_objidx_class(descriptor)
+                printf("  {} {}".format(number, classname))
+    printf("")
+
+def moveLDSU(uid, port):
+    found = False
+    for ldsu in g_ldsu_descriptors:
+        if uid == ldsu["UID"]:
+            ldsu["PORT"] = str(port)
+            reg_ldsu_descriptors()
+            found = True
+            break
+    if not found:
+        printf("{} not found.".format(uid))
+    else:
+        # save to file to make changes persistent on reboot
+        saveToLDSFile()
+    printf("")
+
+def generateUID():
+    uid = ""
+    while True:
+        found = False
+        uid = "{}{:02d}".format(CONFIG_DEVICE_ID, random.randint(0, 99))
+        for ldsu in g_ldsu_descriptors:
+            if ldsu["UID"] == uid:
+                found = True
+                break
+
+        if not found:
+            break
+    return uid
+
+def plugLDSU(obj, port, uid):
+    ldsu_descriptor = g_device_client.get_ldsu_reg_from_lds_reg_template(obj)
+    if ldsu_descriptor is None:
+        printf("{} is not found!".format(obj))
+        return
+    if port<=0 and port>3:
+        printf("{} is not valid!".format(port))
+        return
+
+    if uid is None:
+        # generate a uid
+        uid = generateUID()
+    else:
+        # check if uid is not present
+        for ldsu in g_ldsu_descriptors:
+            if ldsu["UID"] == uid:
+                printf("{} is not valid".format(uid))
+                return
+
+    # update LDSU descriptor and register it
+    ldsu_descriptor["UID"] = uid
+    ldsu_descriptor["PORT"] = str(port)
+    g_ldsu_descriptors.append(ldsu_descriptor)
+    reg_ldsu_descriptors()
+
+    # update LDSU properties to add for the new LDSU
+    if g_ldsu_properties.get(uid) is None:
+        obj = ldsu_descriptor["OBJ"]
+        numdevices = g_device_client.get_obj_numdevices(obj)
+        g_ldsu_properties[uid] = []
+        for device in range(numdevices):
+            g_ldsu_properties[uid].append({ 'enabled': 0, 'mode': 0 })
+
+
+    # save to file to make changes persistent on reboot
+    saveToLDSFile()
+    printf("")
+
+def unplugLDSU(uid):
+    found = False
+    for ldsu in g_ldsu_descriptors:
+        if uid == ldsu["UID"]:
+            g_ldsu_descriptors.remove(ldsu)
+            reg_ldsu_descriptors()
+            found = True
+            break
+    if not found:
+        printf("{} not found.".format(uid))
+    else:
+        # save to file to make changes persistent on reboot
+        saveToLDSFile()
+    printf("")
 
 
 
@@ -1232,24 +1847,24 @@ def on_message(subtopic, subpayload):
     expected_topic_len = len(expected_topic)
 
     if subtopic[:expected_topic_len] != expected_topic:
-        print("unexpected packet")
+        printf("unexpected packet")
         return
 
     api = subtopic[expected_topic_len:]
-    #print(api)
+    #printf(api)
     handle_api(api, subtopic, subpayload)
 
 
 def on_mqtt_message(client, userdata, msg):
 
-    print("RCV: {}".format(msg.topic))
-    print_json(json.loads(msg.payload))
+    printf("RCV: {}".format(msg.topic))
+    printf_json(json.loads(msg.payload))
     on_message(msg.topic, msg.payload)
 
   
 def on_amqp_message(ch, method, properties, body):
 
-    print("RCV: AMQP {} {}".format(method.routing_key, body))
+    printf("RCV: AMQP {} {}".format(method.routing_key, body))
     on_message(method.routing_key, body)
 
 
@@ -1275,34 +1890,39 @@ def restart():
 def process_restart():
     global g_device_status
     if g_device_status == DEVICE_STATUS_RESTARTING:
-        print("\nDevice will be restarting in 3 seconds")
+        printf("")
+        printf("Device will be restarting in 3 seconds")
         for x in range(3):
             time.sleep(1)
-            print(".")
+            printf(".")
         time.sleep(1)
         restart()
 
 def process_stop():
-    global g_device_status, g_timer_thread
+    global g_device_status, g_timer_thread, g_heartbeat_thread
     if g_device_status == DEVICE_STATUS_STOPPING:
-        print("\nDevice will be stopped...")
-        if g_timer_thread_use:
-            g_timer_thread.set_pause(True)
+        printf("")
+        printf("Device will be stopped...")
+        g_timer_thread.set_pause(True)
+        g_heartbeat_thread.set_pause(True)
         g_device_status = DEVICE_STATUS_STOPPED
-        print("Device stopped successfully!\n")
+        printf("Device stopped successfully!\n")
 
 def process_start():
-    global g_device_status, g_timer_thread
+    global g_device_status, g_timer_thread, g_heartbeat_thread
     if g_device_status == DEVICE_STATUS_STARTING:
-        print("\nDevice will be started...")
-        if g_timer_thread_use:
-            g_timer_thread.set_pause(False)
+        printf("")
+        printf("Device will be started...")
+        g_timer_thread.set_pause(False)
+        g_heartbeat_thread.set_pause(False)
         g_device_status = DEVICE_STATUS_RUNNING
-        print("Device started successfully!\n")
+        printf("Device started successfully!\n")
 
 
 def req_configuration(peripherals = None):
-    print("\r\n\r\nRequest device configuration")
+    printf("")
+    printf("")
+    printf("Request device configuration")
     topic = "{}{}{}{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_DEVICE_ID, CONFIG_SEPARATOR, API_REQUEST_CONFIGURATION)
     if peripherals is None:
         payload = {}
@@ -1310,13 +1930,12 @@ def req_configuration(peripherals = None):
         payload = { "peripherals": peripherals }
     publish(topic, payload)
 
-def del_configuration(peripherals = None):
-    print("\r\n\r\nDelete device configuration")
+def del_configuration():
+    printf("")
+    printf("")
+    printf("\Delete device configuration")
     topic = "{}{}{}{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_DEVICE_ID, CONFIG_SEPARATOR, API_DELETE_CONFIGURATION)
-    if peripherals is None:
-        payload = {}
-    else:
-        payload = { "peripherals": peripherals }
+    payload = {}
     publish(topic, payload)
 
 def set_configuration(filename = None):
@@ -1325,18 +1944,58 @@ def set_configuration(filename = None):
 
     if filename is None:
         filename = "{}.cfg".format(CONFIG_DEVICE_ID)
-    print("\r\n\r\nLoad device configuration from file {}".format(filename))
+    printf("")
+    printf("")
+    printf("Load device configuration from file {}".format(filename))
 
     try:
         f = open(filename, "r")
     except:
-        print("{} does not exist".format(filename))
+        printf("{} does not exist".format(filename))
         return
     #json_formatted_str = json.dumps(json_config, indent=2)
     config = f.read()
     payload = json.loads(config)
-    #print_json(payload)
+    #printf_json(payload)
     f.close()
+
+    publish(topic, payload)
+
+def save_configuration(json_config):
+    try:
+        now = datetime.datetime.now()
+        filename = "{}_{}.cfg".format(CONFIG_DEVICE_ID, now.strftime("%Y%m%d_%H%M%S"))
+        f = open(filename, "w")
+        json_formatted_str = json.dumps(json_config, indent=2)
+        if (json_formatted_str != "{}"):
+            f.write(json_formatted_str)
+        f.close()
+
+        printf("")
+        if (json_formatted_str != "{}"):
+            printf("Device configuration saved to {}".format(filename))
+        else:
+            printf("Device configuration is empty; not saving to file")
+        printf("")
+    except:
+        printf("exception")
+        pass
+
+def req_otastatus(ver):
+    printf("")
+    printf("")
+    printf("Request OTA status")
+    topic = "{}{}{}{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_DEVICE_ID, CONFIG_SEPARATOR, API_REQUEST_OTASTATUS)
+    payload = {"version": ver}
+    publish(topic, payload)
+
+def req_epochtime():
+    printf("")
+    printf("")
+    printf("Request EPOCH time")
+    topic = "{}{}{}{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_DEVICE_ID, CONFIG_SEPARATOR, API_REQUEST_TIME)
+    payload = {}
+    payload = json.dumps(payload)
     publish(topic, payload)
 
 
@@ -1356,6 +2015,17 @@ def get_random_data(peripheral_class):
     else:
         return float("{0:.1f}".format(random.uniform(0, 100)))
 
+def get_random_data_ex(format, accuracy, min, max):
+    if format == "integer":
+        return random.randint(min, max)
+    elif format == "float":
+        if accuracy == 1:
+            return float("{0:.1f}".format(random.uniform(min, max)))
+        elif accuracy == 2:
+            return float("{0:.2f}".format(random.uniform(min, max)))
+        return random.randint(min, max)
+    elif format == "boolean":
+        return True if random.randint(0, 1) else False
 
 class TimerThread(threading.Thread):
 
@@ -1379,6 +2049,49 @@ class TimerThread(threading.Thread):
 
     def set_exit(self):
         self.exit = True
+
+    def process_ldsu_input_devices(self):
+        topic = "{}{}{}{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_DEVICE_ID, CONFIG_SEPARATOR, API_PUBLISH_SENSOR_READING)
+
+#        sensors = { 
+#            "UID": string,          # LDSU UUID
+#            "TS": string,           # TIMESTAMP
+#            "SNS": ["", "", "", ""] # VALUES
+#        }
+
+        ldsu_keys = list(g_ldsu_properties.keys())
+        for ldsu_key in ldsu_keys:
+            has_enabled = False
+            values = []
+            # generate random value for enabled sensors of the LDSU
+            for ldsu_device in g_ldsu_properties[ldsu_key]:
+                if ldsu_device.get("attributes"):
+                    attributes = ldsu_device["attributes"]
+                    # generate random value if sensor is enabled
+                    if ldsu_device["enabled"] and attributes["type"] == "input":
+                        #print(ldsu_device)
+                        #print(attributes)
+                        #printf("{} {}".format(attributes["class"], attributes["format"] ))
+                        #printf("{}".format(int(attributes["accuracy"]) ))
+                        #printf("{} {}".format(int(attributes["minmax"][0]), int(attributes["minmax"][1]) ))
+                        value = get_random_data_ex(attributes["format"], int(attributes["accuracy"]), int(attributes["minmax"][0]), int(attributes["minmax"][1]))
+                        value = str(value)
+                        printf("{} {} {} {} {} {}".format(value, attributes["class"], attributes["format"], int(attributes["accuracy"]), int(attributes["minmax"][0]), int(attributes["minmax"][1]) ))
+                        has_enabled = True
+                    else:
+                        value = "NaN"
+                else:
+                    value = "NaN"
+                values.append(value)
+
+            # if one of the LDSU device is enabled, then publish
+            if has_enabled:
+                payload = {}
+                payload["UID"] = ldsu_key
+                payload["TS"] = str(int(time.time()))
+                payload["SNS"] = values
+                printf_json(payload)
+                publish(topic, payload)
 
     def process_input_devices(self):
         topic = "{}{}{}{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_DEVICE_ID, CONFIG_SEPARATOR, API_PUBLISH_SENSOR_READING)
@@ -1485,15 +2198,16 @@ class TimerThread(threading.Thread):
         # if any of the I2C INPUT/ADC/1WIRE/TPROBE devices are enabled, then send a packet
         if num_entries > 0:
             payload = {}
+            if CONFIG_ADD_SENSOR_DATA_TIMESTAMP:
+                payload["timestamp"] = int(time.time())
             payload["sensors"] = sensors
-            print("")
+            printf("")
             global start_timeX
             start_timeX = time.time()
-            #print(start_timeX)
+            #printf(start_timeX)
             publish(topic, payload)
-            print("")
         else:
-            #print("no enabled sensor")
+            #printf("no enabled sensor")
             pass
 
     def process_output_devices(self):
@@ -1510,7 +2224,7 @@ class TimerThread(threading.Thread):
                     i2c_class = g_device_classes[g_i2c_properties[x][y]["class"]]
                     if i2c_class == "light":
                         # if LIGHT class
-                        #print("xxx {}".format(g_i2c_properties[x][y]))
+                        #printf("xxx {}".format(g_i2c_properties[x][y]))
                         if g_i2c_properties[x][y]["attributes"]["color"]["usage"] == 0:
                             # if RGB as color
                             hw_color = g_i2c_properties[x][y]["attributes"]["color"]["single"]["endpoint"]
@@ -1533,19 +2247,19 @@ class TimerThread(threading.Thread):
                                     entry = g_i2c_properties[x][y]["attributes"]["color"]["individual"]["blue"]["hardware"]
                                     payload["sensors"].append(entry)
                         payload["source"] = {"peripheral": "I2C", "number": x+1, "address": int(y), "class": g_i2c_properties[x][y]["class"]}
-                        print("")
+                        printf("")
                         publish(topic, payload)
-                        print("")
+                        printf("")
                     elif i2c_class == "display":
                         # if DISPLAY class
-                        #print("xxx {}".format(g_i2c_properties[x][y]))
+                        #printf("xxx {}".format(g_i2c_properties[x][y]))
                         if g_i2c_properties[x][y]["attributes"]["endpoint"] == 1:
                             entry = g_i2c_properties[x][y]["attributes"]["hardware"]
                             payload["sensors"].append(entry)
                             payload["source"] = {"peripheral": "I2C", "number": x+1, "address": int(y), "class": g_i2c_properties[x][y]["class"]}
-                            print("")
+                            printf("")
                             publish(topic, payload)
-                            print("")
+                            printf("")
 
     def process_trigger_notification(self):
         self.notification_counter += 1
@@ -1555,18 +2269,201 @@ class TimerThread(threading.Thread):
             #menos_publish(MENOS_MOBILE)
 
     def run(self):
-        print("")
+        #printf("")
+        #printf("TimerThread {}".format(g_messaging_client.is_connected()))
         while not self.stopped.wait(self.timeout) and g_messaging_client.is_connected():
             if self.pause == False:
-                self.process_input_devices()
-                #self.process_output_devices()
-                if CONFIG_SEND_NOTIFICATION_PERIODICALLY:
-                    self.process_trigger_notification()
-            else:
-                print("Device is currently stopped! Not sending any sensor data.")
 
+                # For LDSU sensor
+                if True:
+                    self.process_ldsu_input_devices()
+
+                # For I2C, ADC, TPROBE, 1WIRE
+                if False:
+                    self.process_input_devices()
+
+                #self.process_output_devices()
+                if False:
+                    if CONFIG_SEND_NOTIFICATION_PERIODICALLY:
+                        self.process_trigger_notification()
+            else:
+                #printf("Device is currently stopped! Not sending any sensor data.")
+                pass
+
+            # receovery when backend is down but comes back
             if g_device_status == DEVICE_STATUS_CONFIGURING:
                 req_configuration()
+        #printf("")
+        printf("TimerThread exit! {}".format(g_messaging_client.is_connected()))
+
+
+class HeartbeatThread(threading.Thread):
+
+    def __init__(self, event, timeout):
+        threading.Thread.__init__(self)
+        self.stopped = event
+        self.timeout = timeout
+        self.pause = False
+        self.exit = False
+
+    def set_timeout(self, timeout):
+        self.timeout = timeout
+
+    def set_pause(self, pause=True):
+        self.pause = pause
+
+    def set_exit(self):
+        self.exit = True
+
+    def run(self):
+        #printf("")
+        #printf("HeartbeatThread {}".format(g_messaging_client.is_connected()))
+        pub_heartbeat()
+        while not self.stopped.wait(self.timeout) and g_messaging_client.is_connected():
+            if self.pause == False:
+                pub_heartbeat()
+
+        #printf("")
+        printf("HeartbeatThread exit! {}".format(g_messaging_client.is_connected()))
+
+
+class DownloadThread(threading.Thread):
+
+    def __init__(self, event=None, timeout=None):
+        threading.Thread.__init__(self)
+        self.stopped = event
+        self.timeout = timeout
+        self.filename = None
+        self.filesize = 0
+        self.fileversion = None
+        self.filechecksum = None
+        self.use_filename = None
+        self.start_time = 0
+
+        # for download via MQTT
+        self.downloadedsize = 0
+
+    def set_parameters(self, filename, filesize, fileversion, filechecksum):
+        self.filename = filename
+        self.filesize = filesize
+        self.fileversion = fileversion
+        self.filechecksum = filechecksum
+        index = filename.rindex("/")
+        if index == -1:
+            index = 0
+        else:
+            index += 1
+        self.use_filename = filename[index:]
+
+    # for download via MQTT
+    def get_filename(self):
+        return self.use_filename
+
+    # for download via MQTT
+    def set_downloaded(self, downloadedsize):
+        self.downloadedsize += downloadedsize
+
+    # compute check using crc32
+    def compute_checksum(self):
+        f = open(self.use_filename, "rb")
+        bin = f.read()
+        f.close()
+        checksum = binascii.crc32(bin)
+        return checksum
+
+    def send_completion_status(self, status):
+        time.sleep(1)
+        result = "completed" if status == True else "failed" 
+
+        # send completion status
+        topic = "{}{}{}{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_DEVICE_ID, CONFIG_SEPARATOR, API_UPGRADE_FIRMWARE_COMPLETION)
+        payload = {"value": {"result": result}}
+        printf("")
+        printf("Sending OTA completion status: {}\r\n".format(result))
+        printf("")
+        publish(topic, payload)
+
+        # display status
+        if status == True:
+            printf("Downloaded firmware to {} {} bytes in {} secs !!!".format(self.use_filename, self.filesize, round(time.time()-self.start_time) ))
+            printf("")
+        else:
+            printf("The firmware failed to download !!!")
+            printf("")
+        printf("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
+        printf("")
+        printf("")
+        printf("")
+
+    def process_result(self):
+        result = True
+
+        # compute checksum
+        checksum = self.compute_checksum()
+
+        # check file size
+        if self.filesize == self.downloadedsize:
+            printf("")
+            printf("File size correct: {} [0x{:02X}]".format(self.downloadedsize, self.downloadedsize))
+        else:
+            result = False
+            printf("")
+            printf("File size incorrect: {} [0x{:02X}] != {} [0x{:02X}]".format(self.downloadedsize, self.downloadedsize, self.filesize, self.filesize))
+
+        # check checksum
+        if self.filechecksum == checksum:
+            printf("")
+            printf("CRC32 checksum correct: {} [0x{:02X}]".format(checksum, checksum))
+        else:
+            result = False
+            printf("")
+            printf("CRC32 checksum incorrect: {} [0x{:02X}] != {} [0x{:02X}]".format(checksum, checksum, self.filechecksum, self.filechecksum))
+        return result
+
+    def send_request_firmware(self):
+        topic = "{}{}{}{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_DEVICE_ID, CONFIG_SEPARATOR, API_REQUEST_FIRMWARE)
+        payload = {
+            "location": self.filename,
+            "offset": self.downloadedsize,
+            "size": CONFIG_OTA_DOWNLOAD_FIRMWARE_MQTTS_CHUNK_SIZE
+        }
+        publish(topic, payload, debug=False)
+
+    def run(self):
+        self.start_time = time.time()
+
+        result = False
+        if not CONFIG_OTA_DOWNLOAD_FIRMWARE_VIA_MQTTS:
+            printf("Downloading firmware via HTTPS ...")
+            printf("")
+            result, self.downloadedsize = http_get_firmware_binary(self.filename, self.filesize)
+            if result:
+                result = self.process_result()
+            self.send_completion_status(result)
+        else:
+            printf("Downloading firmware via MQTTS ...")
+            printf("")
+            self.downloadedsize = 0
+            while g_messaging_client.is_connected() and self.downloadedsize < self.filesize:
+                while self.stopped.wait(self.timeout):
+                    if self.downloadedsize < self.filesize:
+                        self.stopped.clear()
+                        self.send_request_firmware()
+                    else:
+                        result = self.process_result()
+                        self.send_completion_status(result)
+                        break
+
+        # set the version number
+        if result:
+            global g_firmware_version_STR
+            g_firmware_version_STR = self.fileversion
+            write_file_version(g_firmware_version_STR)
+
+        # start the timer thread and heartbeat thread
+        time.sleep(g_timer_thread_timeout)
+        g_timer_thread.set_pause(False)
+        g_heartbeat_thread.set_pause(False)
 
 
 ###################################################################################
@@ -1589,6 +2486,9 @@ UART_ATCOMMAND_RESET               = "ATR"
 UART_ATCOMMAND_UPDATE              = "ATU"
 UART_ATCOMMAND_STATUS              = "AT"
 
+UART_ATCOMMAND_LDSTEST             = "ATT"
+
+
 UART_ATCOMMAND_DESC_MOBILE         = "Send message as SMS to verified mobile number"
 UART_ATCOMMAND_DESC_EMAIL          = "Send message as email to verified email address"
 UART_ATCOMMAND_DESC_NOTIFY         = "Send message as mobile app notification to verified user"
@@ -1604,6 +2504,9 @@ UART_ATCOMMAND_DESC_PAUSE          = "Pause/Resume (toggle)"
 UART_ATCOMMAND_DESC_RESET          = "Reset device"
 UART_ATCOMMAND_DESC_UPDATE         = "Enter firmware update (UART entry point inside bootloader)"
 UART_ATCOMMAND_DESC_STATUS         = "Display device status"
+
+UART_ATCOMMAND_DESC_LDSTEST        = "Simulate tests for moving/adding/removing LDSU in LDS BUS"
+
 
 MENOS_MOBILE                       = "mobile"
 MENOS_EMAIL                        = "email"
@@ -1661,12 +2564,14 @@ def uart_parse_command(cmd):
     result = 1
 
     if cmd[0] != "+":
-        print("Wrong syntax\r\n")
+        printf("Wrong syntax")
+        printf("")
         return 0, None, None
 
     cmd_list = cmd[1:].split("+", 2)
     if len(cmd_list) == 0:
-        print("Wrong syntax\r\n")
+        printf("Wrong syntax")
+        printf("")
         return 0, None, None
     elif len(cmd_list) == 1:
         recipient = cmd_list[0]
@@ -1678,13 +2583,15 @@ def uart_parse_command(cmd):
             if recipient[0] == "'":
                 recipient_len = len(recipient)
                 if recipient[recipient_len-1] != "'":
-                    print("Wrong syntax\r\n")
+                    printf("Wrong syntax")
+                    printf("")
                     return 0, None, None
                 recipient = recipient[1: recipient_len-1]
             elif recipient[0] == '"':
                 recipient_len = len(recipient)
                 if recipient[recipient_len-1] != '"':
-                    print("Wrong syntax\r\n")
+                    printf("Wrong syntax")
+                    printf("")
                     return 0, None, None
                 recipient = recipient[1: recipient_len-1]
 
@@ -1695,18 +2602,21 @@ def uart_parse_command(cmd):
             if message[0] == "'":
                 message_len = len(message)
                 if message[message_len-1] != "'":
-                    print("Wrong syntax\r\n")
+                    printf("Wrong syntax")
+                    printf("")
                     return 0, None, None
                 message = message[1: message_len-1]
             elif message[0] == '"':
                 message_len = len(message)
                 if message[message_len-1] != '"':
-                    print("Wrong syntax\r\n")
+                    printf("Wrong syntax")
+                    printf("")
                     return 0, None, None
                 message = message[1: message_len-1]
 
         if recipient is None and message is None:
-            print("Wrong syntax\r\n")
+            printf("Wrong syntax")
+            printf("")
             return 0, None, None
 
     return result, recipient, message
@@ -1743,13 +2653,74 @@ def uart_cmdhdl_default(idx, cmd):
         return
 
 def uart_cmdhdl_help(idx, cmd):
-    print('\r\nUART Commands:')
+    printf("")
+    printf('UART Commands:')
     for command in UART_ATCOMMANDS:
-        print("{}\t{}".format(command["command"], command["help"]))
-    print('')
+        printf("{}\t{}".format(command["command"], command["help"]))
+    printf('')
 
 def uart_cmdhdl_unsupported(idx, cmd):
-    print("uart_cmdhdl_unsupported")
+    printf("uart_cmdhdl_unsupported")
+
+def uart_cmdhdl_ldstest_help():
+    printf("")
+    printf("LDS Test Commands:")
+    printf("ATT+LS+<PORT>                List LDSUs in LDS BUS port (1, 2, 3)")
+    printf("                             If no port, will list LDSUs in all ports")
+    printf("ATT+MOV+<UID>+<PORT>         Move an LDSU from one port to another port")
+    printf("ATT+ADD+<OBJ>+<PORT>+<UID>   Plug an LDSU of type OBJ to specified port")
+    printf("                             Available OBJ = [32768, 32770]")
+    printf("                             UID is optional (to re-add what you removed)")
+    printf("ATT+REM+<UID>                Unplug an LDSU")
+    printf("")
+
+def uart_cmdhdl_ldstest(idx, cmd):
+    if len(cmd) == len(UART_ATCOMMANDS[idx]["command"]):
+        uart_cmdhdl_ldstest_help()
+        return
+
+    cmd_list = cmd.split("+")[1:]
+    if cmd_list[0] == "LS":
+        params = cmd_list[1:]
+        if len(params) != 1:
+            listLDSUs(0)
+            return
+        port = int(params[0])
+        listLDSUs(port)
+
+    elif cmd_list[0] == "MOV":
+        params = cmd_list[1:]
+        if len(params) != 2:
+            printf("invalid {} parameters".format(cmd_list[0]))
+            return
+        uid = params[0]
+        port = int(params[1])
+        moveLDSU(uid, port)
+
+    elif cmd_list[0] == "ADD":
+        params = cmd_list[1:]
+        if len(params) < 2:
+            printf("invalid {} parameters".format(cmd_list[0]))
+            return
+        obj = params[0]
+        port = int(params[1])
+        if len(params) == 2:
+            uid = None
+        elif len(params) == 3:
+            uid = params[2]
+        plugLDSU(obj, port, uid)
+
+    elif cmd_list[0] == "REM":
+        params = cmd_list[1:]
+        if len(params) != 1:
+            printf("invalid {} parameters".format(cmd_list[0]))
+            return
+        uid = params[0]
+        unplugLDSU(uid)
+
+    else:
+        printf("invalid command")
+        return
 
 
 UART_ATCOMMANDS = [
@@ -1760,19 +2731,23 @@ UART_ATCOMMANDS = [
     { "command": UART_ATCOMMAND_STORAGE,  "fxn": uart_cmdhdl_storage,      "help": UART_ATCOMMAND_DESC_STORAGE },
     { "command": UART_ATCOMMAND_DEFAULT,  "fxn": uart_cmdhdl_default,      "help": UART_ATCOMMAND_DESC_DEFAULT },
 
-    { "command": UART_ATCOMMAND_CONTINUE, "fxn": uart_cmdhdl_unsupported,  "help": UART_ATCOMMAND_DESC_CONTINUE },
-    { "command": UART_ATCOMMAND_ECHO,     "fxn": uart_cmdhdl_unsupported,  "help": UART_ATCOMMAND_DESC_ECHO     },
     { "command": UART_ATCOMMAND_HELP,     "fxn": uart_cmdhdl_help,         "help": UART_ATCOMMAND_DESC_HELP     },
-    { "command": UART_ATCOMMAND_INFO,     "fxn": uart_cmdhdl_unsupported,  "help": UART_ATCOMMAND_DESC_INFO     }, # = {software version, present configuration, present status, list of I2C devices and addresses, IP address, connection status to service, etc}" },
-    { "command": UART_ATCOMMAND_MORE,     "fxn": uart_cmdhdl_unsupported,  "help": UART_ATCOMMAND_DESC_MORE     },
-    { "command": UART_ATCOMMAND_PAUSE,    "fxn": uart_cmdhdl_unsupported,  "help": UART_ATCOMMAND_DESC_PAUSE    },
-    { "command": UART_ATCOMMAND_RESET,    "fxn": uart_cmdhdl_unsupported,  "help": UART_ATCOMMAND_DESC_RESET    },
-    { "command": UART_ATCOMMAND_UPDATE,   "fxn": uart_cmdhdl_unsupported,  "help": UART_ATCOMMAND_DESC_UPDATE   },
+    { "command": UART_ATCOMMAND_LDSTEST,  "fxn": uart_cmdhdl_ldstest,      "help": UART_ATCOMMAND_DESC_LDSTEST  },
+    #{ "command": UART_ATCOMMAND_CONTINUE, "fxn": uart_cmdhdl_unsupported,  "help": UART_ATCOMMAND_DESC_CONTINUE },
+    #{ "command": UART_ATCOMMAND_ECHO,     "fxn": uart_cmdhdl_unsupported,  "help": UART_ATCOMMAND_DESC_ECHO     },
+    #{ "command": UART_ATCOMMAND_INFO,     "fxn": uart_cmdhdl_unsupported,  "help": UART_ATCOMMAND_DESC_INFO     }, # = {software version, present configuration, present status, list of I2C devices and addresses, IP address, connection status to service, etc}" },
+    #{ "command": UART_ATCOMMAND_MORE,     "fxn": uart_cmdhdl_unsupported,  "help": UART_ATCOMMAND_DESC_MORE     },
+    #{ "command": UART_ATCOMMAND_PAUSE,    "fxn": uart_cmdhdl_unsupported,  "help": UART_ATCOMMAND_DESC_PAUSE    },
+    #{ "command": UART_ATCOMMAND_RESET,    "fxn": uart_cmdhdl_unsupported,  "help": UART_ATCOMMAND_DESC_RESET    },
+    #{ "command": UART_ATCOMMAND_UPDATE,   "fxn": uart_cmdhdl_unsupported,  "help": UART_ATCOMMAND_DESC_UPDATE   },
 
-    { "command": UART_ATCOMMAND_STATUS,   "fxn": uart_cmdhdl_mobile,       "help": UART_ATCOMMAND_DESC_STATUS   }, # OK if all is good, ERROR if device is in error state" },
+    #{ "command": UART_ATCOMMAND_STATUS,   "fxn": uart_cmdhdl_mobile,       "help": UART_ATCOMMAND_DESC_STATUS   }, # OK if all is good, ERROR if device is in error state" },
 ]
 
 def read_kbd_input(inputQueue):
+
+    #printf("")
+    #printf("read_kbd_input")
 
     while g_messaging_client.is_connected():
         if g_device_status == DEVICE_STATUS_RUNNING:
@@ -1786,7 +2761,455 @@ def read_kbd_input(inputQueue):
             input_str = input()
             inputQueue.put(input_str)
 
-        inputThread = None
+    g_input_thread = None
+
+    #printf("")
+    #printf("read_kbd_input exit!")
+
+
+###################################################################################
+# HTTPS client
+###################################################################################
+
+def http_write_to_file(filename, contents):
+    index = filename.rindex("/")
+    if index == -1:
+        index = 0
+    else:
+        index += 1
+    new_filename = filename[index:]
+    f = open(new_filename, "wb")
+    f.write(contents)
+    f.close()
+
+def http_initialize_connection(host=CONFIG_HTTP_HOST):
+    if True:
+        context = ssl._create_unverified_context()
+    else:
+        context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
+        context.verify_mode = ssl.CERT_REQUIRED
+        #context.load_cert_chain(config.CONFIG_TLS_CERT, config.CONFIG_TLS_PKEY)
+        #context.load_verify_locations(
+        #    config.CONFIG_TLS_CERT, config.CONFIG_TLS_CERT, config.CONFIG_TLS_PKEY)
+        #context.check_hostname = False
+    conn = http.client.HTTPSConnection(host, CONFIG_HTTP_TLS_PORT, context=context, timeout=CONFIG_HTTP_TIMEOUT)
+    return conn
+
+def http_send_request(conn, req_type, req_api, params, headers, debug=True):
+    try:
+        if headers:
+            if debug:
+                printf("http_send_request")
+                printf("  {}:{}".format(CONFIG_HTTP_HOST, CONFIG_HTTP_TLS_PORT))
+                printf("  {} {}".format(req_type, req_api))
+                printf("  {}".format(headers))
+                if params:
+                    printf("  {}".format(params))
+            conn.request(req_type, req_api, params, headers)
+            if debug:
+                printf("http_send_request")
+                printf("")
+        else:
+            conn.request(req_type, req_api, params)
+        return True
+    except:
+        printf("REQ: Could not communicate with WEBSERVER! {}".format(""))
+    return False
+
+def http_recv_response(conn, debug=True):
+    try:
+        if debug:
+            printf("http_recv_response")
+        r1 = conn.getresponse()
+        if debug:
+            printf("http_recv_response")
+            printf("  {} {} {}".format(r1.status, r1.reason, r1.length))
+            printf("")
+        if r1.status == 200:
+            file_size = r1.length
+            #printf("response = {} {} [{}]".format(r1.status, r1.reason, r1.length))
+            if file_size:
+                data = r1.read(file_size)
+            return file_size, data
+        else:
+            printf("RES: Could not communicate with DEVICE! {}".format(r1.status))
+            return 0, None
+    except Exception as e:
+        printf("RES: Could not communicate with DEVICE! {}".format(e))
+    return 0, None
+
+def compute_ota_authcode(secret_key, username, password, debug=False):
+
+    if secret_key=='' or username=='' or password=='':
+        printf("secret key, uuid, serial number and mac address should not be empty!")
+        return None
+
+    currtime = int(time.time())
+    params = {
+        "username": username, # device uuid
+        "password": password, # device serial number
+        "iat": currtime,
+        "exp": currtime + 10
+    }
+    password = jwt.encode(params, secret_key, algorithm='HS256')
+    password = password.decode("utf-8")
+
+    if debug:
+        printf("")
+        printf("compute_password")
+        printf_json(params)
+        printf(password)
+        printf("")
+
+    return password
+
+def http_get_firmware_binary(filename, filesize):
+    global CONFIG_DEVICE_SECRETKEY
+    global CONFIG_USERNAME
+    global CONFIG_PASSWORD
+
+    conn = http_initialize_connection()
+    #headers = { "Content-type": "application/octet-stream", "Accept-Ranges": "bytes", "Content-Length": filesize }
+    #headers = { "User-Agent": "PostmanRuntime/7.22.0", "Accept": "*/*", "Host": "ec2-54-166-169-66.compute-1.amazonaws.com", "Accept-Encoding": "gzip, deflate, br", "Connection": "keep-alive" }
+    authcode = compute_ota_authcode(CONFIG_DEVICE_SECRETKEY, CONFIG_USERNAME, CONFIG_PASSWORD, debug=True)
+    if authcode is None:
+        printf(CONFIG_DEVICE_SECRETKEY)
+        printf(CONFIG_USERNAME)
+        printf(CONFIG_PASSWORD)
+        return False
+    headers = { "Connection": "keep-alive", "Authorization": "Bearer " + authcode }
+
+    api = "/firmware"
+    result = http_send_request(conn, "GET", api + "/" + filename, None, headers)
+    if result:
+        length, response = http_recv_response(conn)
+        if length == 0:
+            printf("http_recv_response error")
+            conn.close()
+            return False, length
+        if length != filesize:
+            printf("error length {} != filesize {}".format(length, filesize))
+            conn.close()
+            return False, length
+        try:
+            http_write_to_file(filename, response)
+        except Exception as e:
+            printf("exception {}".format(e))
+            conn.close()
+            return False, length
+    conn.close()
+    return result, length
+
+def http_compute_device_password(uuid, serial_number, mac_address):
+
+    password = None
+
+    # initialize HTTPS connection with a specific server for the device password API
+    if "brtchip-iotportal.com" in CONFIG_HTTP_HOST:
+        # for local setup, use the DEV cloud
+        conn = http_initialize_connection(host=CONFIG_HTTP_HOST)
+    else:
+        # for local setup, use the DEV cloud
+        conn = http_initialize_connection(host="dev.brtchip-iotportal.com")
+
+    headers = { "Connection": "keep-alive", "Content-Type": "application/json" }
+    params = json.dumps({ "uuid": uuid, "serialnumber": serial_number, "poemacaddress": mac_address })
+    api = "/devicesimulator/devicepassword"
+
+    result = http_send_request(conn, "GET", api, params, headers, debug=False)
+    if result:
+        length, response = http_recv_response(conn, debug=False)
+        if length == 0:
+            printf("http_recv_response error")
+            conn.close()
+            return None
+        try:
+            response = json.loads(response)
+            password = response["password"]
+        except Exception as e:
+            printf("exception {}".format(e))
+            conn.close()
+            return None
+    conn.close()
+    return password
+
+
+###################################################################################
+# File version
+###################################################################################
+
+# Write version to file (for OTA feature)
+def write_file_version(ver):
+
+    filename = CONFIG_DEVICE_ID + ".ver"
+
+    try:
+        json_obj = { "version": ver }
+        f = open(filename, "w")
+        f.write(json.dumps(json_obj))
+        f.close()
+    except:
+        pass
+
+# Read version from file (for OTA feature)
+def read_file_version(ver):
+
+    version = ver
+    filename = CONFIG_DEVICE_ID + ".ver"
+
+    try:
+        f = open(filename, "r")
+        json_obj = f.read()
+        f.close()
+        json_obj = json.loads(json_obj)
+        version = json_obj["version"]
+    except:
+        write_file_version(ver)
+
+    return version
+
+
+###################################################################################
+# Registration of sensors
+###################################################################################
+
+# Read registered sensors from .sns file
+def read_registered_sensors_eeprom():
+
+    filename = CONFIG_DEVICE_ID + ".sns"
+
+    try:
+        f = open(filename, "r")
+        json_obj = f.read()
+        f.close()
+        json_obj = json.loads(json_obj)
+        sensors = json_obj["sensors"]
+    except Exception as e:
+        sensors = []
+
+    printf("Read registered sensors {}".format(len(sensors)))
+    return sensors
+
+# OLD
+# Send registered sensors from .sns file
+def set_registration(sensors):
+    topic = "{}{}{}{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_DEVICE_ID, CONFIG_SEPARATOR, API_SET_REGISTRATION)
+    payload = {"value": sensors}
+    #payload = json.dumps(payload)
+    publish(topic, payload)
+
+# Register gateway descriptor
+def reg_gateway_descriptor():
+    printf("")
+    printf("Register gateway descriptor")
+    topic = "{}{}{}{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_DEVICE_ID, CONFIG_SEPARATOR, API_SET_DESCRIPTOR)
+    if g_gateway_descriptor["UUID"] == "":
+        g_gateway_descriptor["UUID"] = CONFIG_DEVICE_ID
+        g_gateway_descriptor["SNO"]  = CONFIG_DEVICE_SERIAL
+        g_gateway_descriptor["PMAC"] = CONFIG_DEVICE_MACADD
+    payload = {"value": g_gateway_descriptor}
+    publish(topic, payload)
+
+# Register LDSU descriptors
+def reg_ldsu_descriptors(port=None, as_response=False):
+    printf("")
+    printf("Register LDSU descriptors")
+
+    if True: #port is None:
+        # send all LDSUs in chunks
+        if True:
+            # send LDSU descriptors in multiple MQTT packets of 1kb chunks (about 5 LDSUs possible, 172 each = 860)
+            topic = "{}{}{}{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_DEVICE_ID, CONFIG_SEPARATOR, API_SET_LDSU_DESCS)
+            chunks = 0
+            maxchunksize = 1024
+            size = 0
+            ldsu_descriptors = []
+            total_chunks = math.ceil(len(g_ldsu_descriptors)/5)
+
+            for x in range(len(g_ldsu_descriptors)):
+                estimated_len = len(json.dumps(ldsu_descriptors)) + len(json.dumps(g_ldsu_descriptors[x])) + len("{value:[]}")
+                if estimated_len < maxchunksize:
+                    # adding the descriptor will still fit the maxchunksize
+                    ldsu_descriptors.append(g_ldsu_descriptors[x])
+                    size = len(json.dumps(ldsu_descriptors))
+                else:
+                    # adding the descriptor will no longer fit the maxchunksize
+                    # so send the descriptors in the list
+                    payload = {
+                        "value": ldsu_descriptors, 
+                        "chunk": { "SEQN": str(chunks), "TSEQ": str(total_chunks), "TOT": str(len(g_ldsu_descriptors)) } 
+                    }
+                    printf(estimated_len)
+                    printf(len(json.dumps(payload)))
+                    publish(topic, payload)
+                    # reset size counter
+                    size = 0
+                    ldsu_descriptors = []
+                    chunks += 1
+
+                    # add current descriptor
+                    ldsu_descriptors.append(g_ldsu_descriptors[x])
+                    size = len(json.dumps(ldsu_descriptors))
+            if size:
+                # send the last chunk
+                payload = {
+                    "value": ldsu_descriptors, 
+                    "chunk": { "SEQN": str(chunks), "TSEQ": str(total_chunks), "TOT": str(len(g_ldsu_descriptors)) } 
+                }
+                printf(len(json.dumps(payload)))
+                publish(topic, payload)
+                # reset size counter
+                size = 0
+                ldsu_descriptors = []
+                chunks += 1
+
+            # respond to API_GET_LDSU_DESCS (note that above was all to API_SET_LDSU_DESCS)
+            if as_response:
+                topic = "{}{}{}{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_DEVICE_ID, CONFIG_SEPARATOR, API_GET_LDSU_DESCS)
+                payload = {}
+                publish(topic, payload)
+
+            printf("{} LDSUs registered in {} chunks of max size {}".format(len(g_ldsu_descriptors), chunks, maxchunksize))
+
+        elif False:
+            # send LDSU descriptors in 1 MQTT packet
+            api = API_SET_LDSU_DESCS
+            if as_response:
+                api = API_GET_LDSU_DESCS
+
+            topic = "{}{}{}{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_DEVICE_ID, CONFIG_SEPARATOR, api)
+            payload = {"value": g_ldsu_descriptors}
+            for ldsu_descriptor in g_ldsu_descriptors:
+                printf(len(json.dumps(ldsu_descriptor)))
+            printf(len(json.dumps(payload)))
+            publish(topic, payload)
+
+        elif False:
+            # send LDSU descriptors in 3 multiple chunks per port
+            # (ex. if 80 LDSUs, then can send by port or by any number of LDSUs)
+            api = API_SET_LDSU_DESCS
+            if as_response:
+                api = API_GET_LDSU_DESCS
+
+            topic = "{}{}{}{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_DEVICE_ID, CONFIG_SEPARATOR, api)
+            for port in range(3):
+                ldsu_descriptors = []
+                for ldsu_descriptor in g_ldsu_descriptors:
+                    if ldsu_descriptor["PORT"] == str(port+1):
+                        ldsu_descriptors.append(ldsu_descriptor)
+                payload = {"value": ldsu_descriptors}
+                publish(topic, payload)
+    else:
+        api = API_SET_LDSU_DESCS
+        if as_response:
+            api = API_GET_LDSU_DESCS
+
+        # send all LDSUs for specified port
+        topic = "{}{}{}{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_DEVICE_ID, CONFIG_SEPARATOR, api)
+        ldsu_descriptors = []
+        for ldsu_descriptor in g_ldsu_descriptors:
+            if ldsu_descriptor["PORT"] == port:
+                ldsu_descriptors.append(ldsu_descriptor)
+        payload = {"value": ldsu_descriptors}
+        publish(topic, payload)
+
+
+# Initialize Gateway descriptor
+def init_gw_descriptor():
+    global g_gateway_descriptor
+    global g_device_client
+    g_gateway_descriptor = g_device_client.get_gw_desc()
+    if g_gateway_descriptor is None:
+        g_gateway_descriptor = {}
+        return False
+    g_gateway_descriptor["UUID"] = CONFIG_DEVICE_ID
+    g_gateway_descriptor["SNO"]  = CONFIG_DEVICE_SERIAL
+    g_gateway_descriptor["PMAC"] = CONFIG_DEVICE_MACADD
+    return True
+
+# Initialize LDSU descriptors to ensure unique UID
+def init_ldsu_descriptors():
+    global g_ldsu_descriptors
+    global g_device_client
+    g_ldsu_descriptors = g_device_client.get_lds_reg()
+    if g_ldsu_descriptors is None:
+        g_ldsu_descriptors = []
+        return False
+    for x in range(len(g_ldsu_descriptors)):
+        if g_ldsu_descriptors[x]["UID"] == "BRTXXXXXXXXXXXXX" or g_ldsu_descriptors[x]["UID"] == "":
+            g_ldsu_descriptors[x]["UID"] = "{}{:02d}".format(CONFIG_DEVICE_ID, x)
+    return True
+
+# Initialize LDSU properties
+def init_ldsu_properties():
+    global g_ldsu_properties
+    global g_device_client
+    for ldsu_descriptor in g_ldsu_descriptors:
+        source = ldsu_descriptor["UID"]
+        obj = ldsu_descriptor["OBJ"]
+        numdevices = g_device_client.get_obj_numdevices(obj)
+        g_ldsu_properties[source] = []
+        for device in range(numdevices):
+            g_ldsu_properties[source].append({ 'enabled': 0, 'mode': 0 })
+
+
+###################################################################################
+# Heartbeat
+###################################################################################
+
+# Publish heartbeat
+def pub_heartbeat():
+    topic = "{}{}{}{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_DEVICE_ID, CONFIG_SEPARATOR, API_PUBLISH_HEARTBEAT)
+    payload = { "TS": str(int(time.time())) }
+    publish(topic, payload)
+
+
+###################################################################################
+# Password generation
+###################################################################################
+
+def decode_password(secret_key, password):
+
+    return jwt.decode(password, secret_key, algorithms=['HS256'])
+
+def compute_password(secret_key, uuid, serial_number, mac_address, debug=False):
+
+    if not CONFIG_QUERY_BACKEND_TO_COMPUTE_DEVICE_PASSWORD:
+        if secret_key=='' or uuid=='' or serial_number=='' or mac_address=='':
+            printf("secret key, uuid, serial number and mac address should not be empty!")
+            return None
+
+        params = {
+            "uuid": uuid,                  # device uuid
+            "serialnumber": serial_number, # device serial number
+            "poemacaddress": mac_address,  # device mac address in uppercase string ex. AA:BB:CC:DD:EE:FF
+        }
+        password = jwt.encode(params, secret_key, algorithm='HS256')
+        password = password.decode("utf-8")
+
+        if debug:
+            printf("")
+            printf("compute_password")
+            printf_json(params)
+            printf(password)
+            printf("")
+
+            payload = decode_password(secret_key, password)
+            printf("")
+            printf("decode_password")
+            printf_json(payload)
+            printf("")
+    else:
+        printf("CONFIG_QUERY_BACKEND_TO_COMPUTE_DEVICE_PASSWORD")
+        # in order for the device secret key to not be compromise easily,
+        # we now retrieve the password via an HTTPS API
+        # this prevents from compromising the device secret_key
+        # later we disable the API in nginx.conf so that the API cannot be used in production
+        password = http_compute_device_password(uuid, serial_number, mac_address)
+        if password is None:
+            printf("ERROR: Failed retrieving password!")
+
+    return password
 
 
 ###################################################################################
@@ -1796,66 +3219,143 @@ def read_kbd_input(inputQueue):
 def parse_arguments(argv):
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--USE_ECC',         required=False, default=1 if CONFIG_USE_ECC else 0, help='Use ECC instead of RSA')
-    parser.add_argument('--USE_AMQP',        required=False, default=1 if CONFIG_USE_AMQP else 0, help='Use AMQP instead of MQTT')
-    parser.add_argument('--USE_DEVICE_ID',   required=False, default=CONFIG_DEVICE_ID,     help='Device ID to use')
-    parser.add_argument('--USE_DEVICE_CA',   required=False, default=CONFIG_TLS_CA,        help='Device CA certificate to use')
-    parser.add_argument('--USE_DEVICE_CERT', required=False, default=CONFIG_TLS_CERT,      help='Device certificate to use')
-    parser.add_argument('--USE_DEVICE_PKEY', required=False, default=CONFIG_TLS_PKEY,      help='Device private key to use')
-    parser.add_argument('--USE_HOST',        required=False, default=CONFIG_HOST,          help='Host server to connect to')
-    parser.add_argument('--USE_PORT',        required=False, default=CONFIG_MQTT_TLS_PORT, help='Host port to connect to')
-    parser.add_argument('--USE_USERNAME',    required=False, default=CONFIG_USERNAME,      help='Username to use in connection')
-    parser.add_argument('--USE_PASSWORD',    required=False, default=CONFIG_PASSWORD,      help='Password to use in connection')
+    parser.add_argument('--USE_ECC',              required=False, default=1 if CONFIG_USE_ECC else 0, help='Use ECC instead of RSA')
+    parser.add_argument('--USE_AMQP',             required=False, default=1 if CONFIG_USE_AMQP else 0, help='Use AMQP instead of MQTT')
+
+    parser.add_argument('--USE_DEVICE_SECRETKEY', required=False, default='',                   help='Device Secret Key to use', nargs='?', const='') # added nargs and const for device restart
+    parser.add_argument('--USE_DEVICE_ID',        required=False, default='',                   help='Device ID to use')
+    parser.add_argument('--USE_DEVICE_SERIAL',    required=False, default='',                   help='Device Serial Number to use')
+    parser.add_argument('--USE_DEVICE_MACADD',    required=False, default='',                   help='Device POE MAC Address to use')
+
+    parser.add_argument('--USE_DEVICE_CA',        required=False, default=CONFIG_TLS_CA,        help='Device CA certificate to use')
+    parser.add_argument('--USE_DEVICE_CERT',      required=False, default=CONFIG_TLS_CERT,      help='Device certificate to use')
+    parser.add_argument('--USE_DEVICE_PKEY',      required=False, default=CONFIG_TLS_PKEY,      help='Device private key to use')
+
+    parser.add_argument('--USE_HOST',             required=False, default=CONFIG_HOST,          help='Host server to connect to')
+    parser.add_argument('--USE_PORT',             required=False, default=CONFIG_MQTT_TLS_PORT, help='Host port to connect to')
+
+    # for backward compatibility and troubleshooting purposes
+    parser.add_argument('--USE_USERNAME',         required=False, default='',                   help='Username to use in connection', nargs='?', const='') # added nargs and const for device restart
+    parser.add_argument('--USE_PASSWORD',         required=False, default='',                   help='Password to use in connection', nargs='?', const='') # added nargs and const for device restart
+
     return parser.parse_args(argv)
 
+def main(args):
 
-if __name__ == '__main__':
+    global g_firmware_version_STR
+    global g_messaging_client
+    global g_device_client
+    global g_device_status
+    global g_timer_thread_stop
+    global g_timer_thread_timeout
+    global g_timer_thread
+    global g_heartbeat_thread_stop
+    global g_heartbeat_thread_timeout
+    global g_heartbeat_thread
+    global g_input_thread
 
-    args = parse_arguments(sys.argv[1:])
-    CONFIG_USE_AMQP    = True if int((args.USE_AMQP))==1 else False
-    CONFIG_USE_ECC     = True if int((args.USE_ECC))==1 else False
-    CONFIG_SEPARATOR   = "." if int((args.USE_AMQP))==1 else "/"
-    CONFIG_DEVICE_ID   = args.USE_DEVICE_ID
-    CONFIG_TLS_CA      = args.USE_DEVICE_CA
-    CONFIG_TLS_CERT    = args.USE_DEVICE_CERT
-    CONFIG_TLS_PKEY    = args.USE_DEVICE_PKEY
-    CONFIG_HOST        = args.USE_HOST
+    global CONFIG_USE_AMQP
+    global CONFIG_USE_ECC
+    global CONFIG_SEPARATOR
+    global CONFIG_TLS_CA
+    global CONFIG_TLS_CERT
+    global CONFIG_TLS_PKEY
+    global CONFIG_HOST
+    global CONFIG_HTTP_HOST
+    global CONFIG_MQTT_TLS_PORT
+    global CONFIG_AMQP_TLS_PORT
+
+    global CONFIG_DEVICE_SECRETKEY
+    global CONFIG_DEVICE_ID
+    global CONFIG_DEVICE_SERIAL
+    global CONFIG_DEVICE_MACADD
+    global CONFIG_USERNAME
+    global CONFIG_PASSWORD
+
+    CONFIG_USE_AMQP      = True if int((args.USE_AMQP))==1 else False
+    CONFIG_USE_ECC       = True if int((args.USE_ECC))==1 else False
+    CONFIG_SEPARATOR     = "." if int((args.USE_AMQP))==1 else "/"
+    CONFIG_TLS_CA        = args.USE_DEVICE_CA
+    CONFIG_TLS_CERT      = args.USE_DEVICE_CERT
+    CONFIG_TLS_PKEY      = args.USE_DEVICE_PKEY
+    CONFIG_HOST          = args.USE_HOST
+    CONFIG_HTTP_HOST     = args.USE_HOST
     CONFIG_MQTT_TLS_PORT = int(args.USE_PORT)
     CONFIG_AMQP_TLS_PORT = int(args.USE_PORT)
-    CONFIG_USERNAME    = args.USE_USERNAME
-    CONFIG_PASSWORD    = args.USE_PASSWORD
 
-    print("\n\n")
-    print("Copyright (C) Bridgetek Pte Ltd")
-    print("-------------------------------------------------------")
-    print("Welcome to IoT Device Controller example...\n")
-    print("Demonstrate remote access of FT900 via Bridgetek IoT Cloud")
-    print("-------------------------------------------------------")
+    CONFIG_DEVICE_SECRETKEY = args.USE_DEVICE_SECRETKEY
+    CONFIG_DEVICE_ID        = args.USE_DEVICE_ID
+    CONFIG_DEVICE_SERIAL    = args.USE_DEVICE_SERIAL
+    CONFIG_DEVICE_MACADD    = args.USE_DEVICE_MACADD
+    setup_logging(CONFIG_DEVICE_ID + "_logs.txt")
 
-    print("\nFIRMWARE VERSION = {} ({})".format(g_firmware_version_STR, g_firmware_version))
+    # Password is now a combination of UUID, Serial Number and POE Mac Address
+    # Previously, PASSWORD is just the DEVICE_SERIAL
+    #CONFIG_PASSWORD = CONFIG_DEVICE_SERIAL
+    if args.USE_USERNAME != '' and args.USE_PASSWORD != '':
+        # backward compatibility
+        CONFIG_USERNAME = args.USE_USERNAME
+        CONFIG_PASSWORD = args.USE_PASSWORD
+        CONFIG_DEVICE_SERIAL = args.USE_PASSWORD
+        CONFIG_DEVICE_MACADD = "Unknown"
+    else:
+        CONFIG_USERNAME = CONFIG_DEVICE_ID
+        CONFIG_PASSWORD = compute_password(CONFIG_DEVICE_SECRETKEY, CONFIG_DEVICE_ID, CONFIG_DEVICE_SERIAL, CONFIG_DEVICE_MACADD, debug=False)
+        if CONFIG_PASSWORD is None:
+            return
 
-    print("\nTLS CERTIFICATES")
-    print("ca:   {}".format(args.USE_DEVICE_CA))
-    print("cert: {}".format(args.USE_DEVICE_CERT))
-    print("pkey: {}".format(args.USE_DEVICE_PKEY))
 
-    print("\nMQTT CREDENTIALS")
-    print("host: {}:{}".format(args.USE_HOST, args.USE_PORT))
-    print("id:   {}".format(args.USE_DEVICE_ID))
-    print("user: {}".format(args.USE_USERNAME))
-    print("pass: {}".format(args.USE_PASSWORD))
+    printf("-------------------------------------------------------")
+    printf("Copyright (C) Bridgetek Pte Ltd")
+    printf("-------------------------------------------------------")
+    printf("Welcome to IoT Device Simulator...")
+    printf("")
+    printf("This application simulates FT900 IoT device")
+    printf("-------------------------------------------------------")
+
+
+    # Read file version from file (for OTA feature)
+    g_firmware_version_STR = read_file_version(g_firmware_version_STR)
+
+    printf("")
+    printf("FIRMWARE VERSION = {}".format(g_firmware_version_STR))
+
+    printf("")
+    printf("DEVICE INFO")
+    printf("uuid: {}".format(CONFIG_DEVICE_ID))
+    printf("ser:  {}".format(CONFIG_DEVICE_SERIAL))
+    printf("mac:  {}".format(CONFIG_DEVICE_MACADD))
+
+    printf("")
+    printf("TLS CERTIFICATES")
+    printf("ca:   {}".format(CONFIG_TLS_CA))
+    printf("cert: {}".format(CONFIG_TLS_CERT))
+    printf("pkey: {}".format(CONFIG_TLS_PKEY))
+
+    printf("")
+    printf("MQTT CREDENTIALS")
+    printf("host: {}:{}".format(CONFIG_HOST, CONFIG_MQTT_TLS_PORT))
+    printf("id:   {}".format(CONFIG_DEVICE_ID))
+    printf("user: {}".format(CONFIG_USERNAME))
+    printf("pass: {}".format(CONFIG_PASSWORD))
 
 
     # Initialize MQTT/AMQP client
     if CONFIG_USE_AMQP:
-        g_messaging_client = messaging_client(CONFIG_USE_AMQP, on_amqp_message, device_id=CONFIG_DEVICE_ID)
+        g_messaging_client = messaging_client(CONFIG_USE_AMQP, on_amqp_message, device_id=CONFIG_DEVICE_ID, use_printf=printf)
         g_messaging_client.set_server(CONFIG_HOST, CONFIG_AMQP_TLS_PORT)
     else:
-        g_messaging_client = messaging_client(CONFIG_USE_AMQP, on_mqtt_message, device_id=CONFIG_DEVICE_ID, use_ecc=CONFIG_USE_ECC)
+        g_messaging_client = messaging_client(CONFIG_USE_AMQP, on_mqtt_message, device_id=CONFIG_DEVICE_ID, use_ecc=CONFIG_USE_ECC, use_printf=printf)
         g_messaging_client.set_server(CONFIG_HOST, CONFIG_MQTT_TLS_PORT)
     if CONFIG_USERNAME or CONFIG_PASSWORD:
         g_messaging_client.set_user_pass(CONFIG_USERNAME, CONFIG_PASSWORD)
     g_messaging_client.set_tls(CONFIG_TLS_CA, CONFIG_TLS_CERT, CONFIG_TLS_PKEY)
+
+
+    # Initialize LDSU device (sensor/actuator) client
+    lds_filename = CONFIG_DEVICE_ID + ".json"
+    g_device_client = device_client.device_client()
+    g_device_client.initialize(lds_filename=lds_filename)
 
 
     inputThread = None
@@ -1867,13 +3367,13 @@ if __name__ == '__main__':
             try:
                 (result, code) = g_messaging_client.initialize(timeout=5, ignore_hostname=ignore_hostname)
                 if not result:
-                    print("Could not connect to message broker! {}".format(code))
+                    printf("Could not connect to message broker! {}".format(code))
                     if code == 1:
                         ignore_hostname = True
                 else:
                     break
             except:
-                print("Could not connect to message broker! exception!")
+                printf("Could not connect to message broker! exception!")
                 time.sleep(1)
 
         # Subscribe to messages sent for this device
@@ -1885,37 +3385,78 @@ if __name__ == '__main__':
         #g_messaging_client.subscribe(subtopic2, subscribe=True, declare=True, consume_continuously=True)
 
 
+        # Get epoch time
+        # Not needed for the device simulator
+        # This is just for demonstration to device firmware (to be used as last resort in case SNTP fails for some reason)
+        #req_epochtime()
+
+
+        # Initialize Gateway and LDSU descriptors and properties to ensure uniqueness per device simulator
+        if init_gw_descriptor() == False:
+            printf("ERROR: Could not locate GW descriptor template file!")
+            return
+        if init_ldsu_descriptors() == False:
+            printf("ERROR: Could not locate Sample LDS Reg template file!")
+            return
+        init_ldsu_properties()
+
+        # Register gateway descriptor and ldsu descriptors
+        # TODO: send LDSU descriptors in multiple chunks (ex. 80 LDSUs)
+        reg_gateway_descriptor()
+        reg_ldsu_descriptors()
+        time.sleep(1)
+
+
+        # Scan sensor for configuration
+        #if CONFIG_SCAN_SENSORS_AT_BOOTUP:
+        #    sensors = read_registered_sensors_eeprom()
+        #    if len(sensors):
+        #        set_registration(sensors)
+
         # Delete device configuration
+        # OPTIONAL This is not really needed.
+        # This just simplifies deleting configuration of the sensors, which can be very useful when debugging configuration issues
         if CONFIG_DELETE_CONFIGURATION:
             del_configuration()
-            # can specify specific peripherals like below
-            # peripherals can be uart, gpio, i2c, adc, 1wire, tprobe
-            #del_configuration(["i2c"])
 
         # Load device configuration from file
-        if CONFIG_LOAD_CONFIGURATION_FROM_FILE:
-            time.sleep(1)
-            set_configuration()
+        # OPTIONAL This is not really needed.
+        # This just simplifies configuration of the sensors, which can be very useful when configuring several sensors
+        #if CONFIG_LOAD_CONFIGURATION_FROM_FILE:
+        #    time.sleep(1)
+        #    set_configuration()
+
 
         # Query device configuration
         if CONFIG_REQUEST_CONFIGURATION:
             g_device_status = DEVICE_STATUS_CONFIGURING
             req_configuration()
-            # can specify specific peripherals like below
-            # peripherals can be uart, gpio, i2c, adc, 1wire, tprobe
-            #req_configuration(["i2c"])
+            time.sleep(1)
 
-        # Start the timer thread
-        if g_timer_thread_use:
-            g_timer_thread = TimerThread(g_timer_thread_stop, g_timer_thread_timeout)
-            g_timer_thread.start()
+        # Check OTA status at bootup
+        if CONFIG_OTA_AT_BOOTUP:
+            req_otastatus(g_firmware_version_STR)
+            time.sleep(1)
 
-        # Start keyboard input thread
-        if inputThread == None:
+
+        # Start the heartbeat thread
+        g_heartbeat_thread_stop = threading.Event()
+        g_heartbeat_thread = HeartbeatThread(g_heartbeat_thread_stop, g_heartbeat_thread_timeout)
+        g_heartbeat_thread.start()
+
+        # Start the timer thread for sensor processing
+        g_timer_thread_stop = threading.Event()
+        g_timer_thread = TimerThread(g_timer_thread_stop, g_timer_thread_timeout)
+        g_timer_thread.start()
+
+        # Start keyboard input thread for AT commands processing
+        if g_input_thread == None:
             inputQueue = queue.Queue()
-            inputThread = threading.Thread(target=read_kbd_input, args=(inputQueue,), daemon=True)
-            inputThread.start()
+            g_input_thread = threading.Thread(target=read_kbd_input, args=(inputQueue,), daemon=True)
+            g_input_thread.start()
 
+
+        # Loop processing
         # Exit when disconnection happens
         while g_messaging_client.is_connected():
             time.sleep(1)
@@ -1936,15 +3477,27 @@ if __name__ == '__main__':
                             UART_ATCOMMANDS[idx]["fxn"](idx, cmd)
                             break
 
+
+        # Handle graceful disconnection
+        g_messaging_client.subscribe(subtopic, subscribe=False)
         time.sleep(2)
         g_messaging_client.release()
-
-        #inputThread.join()
-
-        if g_timer_thread_use:
+        if g_timer_thread:
             g_timer_thread.set_exit()
             g_timer_thread_stop.set()
             g_timer_thread.join()
+        if g_heartbeat_thread:
+            g_heartbeat_thread.set_exit()
+            g_heartbeat_thread_stop.set()
+            g_heartbeat_thread.join()
+        # When disconnected, reset the configurations
+        # and pull the configurations during reconnection
+        # This is to prevent synchronization issues with local configuration with backend configuration
+        # When deleting device, configurations will be deleted in the backend, so device shall also clear its local configuration
+        reset_local_configurations()
 
+    printf("application exits!")
 
-    print("application exits!")
+if __name__ == '__main__':
+    main(parse_arguments(sys.argv[1:]))
+

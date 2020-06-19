@@ -1,0 +1,5 @@
+docker build -t red .
+docker run -d -p 6379:6379 -v /data:/data/db --name red red
+
+docker stop red
+docker rm red

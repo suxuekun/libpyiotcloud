@@ -8,7 +8,7 @@
   <ion-content padding="true" class="has-header">
     <div class="spacer" style="width: 300px; height: 12px;"></div>
     <div id="display-markdown81" style="text-align:center;" class="show-list-numbers-and-dots">
-      <p style="color:#387EF5;font-size:18px;">
+      <p style="color:#3C5A99;font-size:18px;">
         <strong> {{ data.devicename }} </strong>
       </p>
     </div>
@@ -16,7 +16,7 @@
     <form id="display-form69" class="list">
       <div class="spacer" style="width: 300px; height: 20px;"></div>
       <div id="display-markdown94" class="show-list-numbers-and-dots">
-        <p style="color:#387EF5;">Source endpoint</p>
+        <p style="color:#3C5A99;">Source endpoint</p>
       </div>
       <label class="item item-select" id="display-select27">
         <span class="input-label"></span>
@@ -25,7 +25,7 @@
     </form>
     <form id="display-form66" class="list">
       <div id="display-markdown93" class="show-list-numbers-and-dots">
-        <p style="color:#387EF5;">Format</p>
+        <p style="color:#3C5A99;">Format</p>
       </div>
       <label class="item item-select" id="display-select30">
         <span class="input-label"></span>
@@ -34,7 +34,7 @@
     </form>
     <form id="display-form157" class="list" ng-show="data.attributes.endpoint==0">
       <div id="display-markdown294" class="show-list-numbers-and-dots">
-        <p style="color:#387EF5;">Value</p>
+        <p style="color:#3C5A99;">Value</p>
       </div>
       <label class="item item-input" id="display-input124">
         <input type="text" placeholder="" ng-model="data.attributes.text">
@@ -42,7 +42,7 @@
     </form>
     <form id="display-form156" class="list">
       <div id="display-markdown293" class="show-list-numbers-and-dots">
-        <p style="color:#387EF5;">Brightness 0x{{ data.attributes.brightness.toString(16).toUpperCase() }} ({{ data.attributes.brightness }})</p>
+        <p style="color:#3C5A99;">Brightness 0x{{ data.attributes.brightness.toString(16).toUpperCase() }} ({{ data.attributes.brightness }})</p>
       </div>
       <ion-item class="range range-positive" id="display-range25">
         <input type="range" value="127" min="0" max="255" step="1" ng-model="datatemp.brightness" ng-change="computeBrightness()">
@@ -50,7 +50,7 @@
     </form>
     <form id="display-form70" class="list" ng-show="data.attributes.endpoint==1">
       <div id="display-markdown96" class="show-list-numbers-and-dots">
-        <p style="color:#387EF5;">Hardware source</p>
+        <p style="color:#3C5A99;">Hardware source</p>
       </div>
       <label class="item item-select" id="display-select68">
         <span class="input-label">IoT Modem</span>

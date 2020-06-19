@@ -9,6 +9,7 @@ from pymongo import MongoClient # MongoDB
 #import psycopg2                # PostgreSQL
 from cognito_client import cognito_client
 from paypal_client import paypal_client
+import statistics
 
 
 
@@ -17,6 +18,21 @@ class database_models:
     MONGODB    = 0
     AWSCOGNITO = 1
     POSTGRESQL = 2
+
+class database_categorylabel:
+
+    DEVICES    = 0
+    DASHBOARDS = 1
+    PAYMENTS   = 2
+
+class database_crudindex:
+
+    CREATE = 0
+    READ   = 1
+    UPDATE = 2
+    DELETE = 3
+
+policy_labels = ["devices", "dashboards", "payments"]
 
 
 
@@ -49,13 +65,77 @@ class database_client:
         # transactions database
         self._transactions = self._devices
 
+        # idp database
+        self._idp = self._devices
+
 
     def initialize(self):
         self._users.initialize()
         self._devices.initialize()
+        self.create_default_policies()
 
     def is_using_cognito(self):
         return self.use_cognito
+
+    def create_default_policies(self):
+
+        # read-only
+        settings = []
+        for label in policy_labels:
+            settings.append({ "label": label, "crud": [False, True, False, False] })
+        self._devices.create_default_policy("ReadOnly", settings)
+
+        # read-write only
+        settings = []
+        for label in policy_labels:
+            settings.append({ "label": label, "crud": [False, True, True, False] })
+        self._devices.create_default_policy("ReadWriteOnly", settings)
+
+        # create-delete only
+        settings = []
+        for label in policy_labels:
+            settings.append({ "label": label, "crud": [True, False, False, True] })
+        self._devices.create_default_policy("CreateDeleteOnly", settings)
+
+        # full-access
+        settings = []
+        for label in policy_labels:
+            settings.append({ "label": label, "crud": [True, True, True, True] })
+        self._devices.create_default_policy("FullAccess", settings)
+
+        # operator
+        settings = []
+        for label in policy_labels:
+            if label == "devices":
+                settings.append({ "label": label, "crud": [True, True, True, True] })
+            else:
+                settings.append({ "label": label, "crud": [False, False, False, False] })
+        self._devices.create_default_policy("Operator", settings)
+
+        # analyst
+        settings = []
+        for label in policy_labels:
+            if label == "dashboards":
+                settings.append({ "label": label, "crud": [True, True, True, True] })
+            else:
+                settings.append({ "label": label, "crud": [False, False, False, False] })
+        self._devices.create_default_policy("Analyst", settings)
+
+        # finance admin
+        settings = []
+        for label in policy_labels:
+            if label == "payments":
+                settings.append({ "label": label, "crud": [True, True, True, True] })
+            else:
+                settings.append({ "label": label, "crud": [False, False, False, False] })
+        self._devices.create_default_policy("FinanceAdmin", settings)
+
+
+    def get_policy_settings(self):
+        settings = []
+        for label in policy_labels:
+            settings.append({ "label": label, "crud": [False, False, False, False] })
+        return settings
 
 
 
@@ -63,14 +143,41 @@ class database_client:
     # transactions
     ##########################################################
 
+    def record_paypal_payment(self, username, payment_result, credits, prevcredits, newcredits):
+        return self._transactions.record_paypal_payment(username, payment_result, credits, prevcredits, newcredits)
+
+    def get_paypal_payments(self, username):
+        return self._transactions.get_paypal_payments(username)
+
+    def get_paypal_payment(self, username, payment_id):
+        return self._transactions.get_paypal_payment(username, payment_id)
+
+    def get_paypal_payment_by_transaction_id(self, username, transaction_id):
+        return self._transactions.get_paypal_payment_by_transaction_id(username, transaction_id)
+
+    def get_paypal_payment_by_paymentid(self, payment_id):
+        return self._transactions.get_paypal_payment_by_paymentid(payment_id)
+
+
+
+    def paypal_set_payerid(self, payment_id, payer_id):
+        self._transactions.paypal_set_payerid(payment_id, payer_id)
+
+    def paypal_get_payerid(self, payment_id):
+        return self._transactions.paypal_get_payerid(payment_id)
+
+
     def transactions_paypal_set_payment(self, username, token, payment):
         return self._transactions.paypal_set_payment(username, token, payment)
 
-    def transactions_paypal_execute_payment(self, username, token, payment):
-        return self._transactions.paypal_execute_payment(username, token, payment)
+    def transactions_paypal_execute_payment(self, username, payment):
+        return self._transactions.paypal_execute_payment(username, payment)
 
-    def transactions_paypal_verify_payment(self, username, token, payment):
-        return self._transactions.paypal_verify_payment(username, token, payment)
+    def transactions_paypal_verify_payment(self, username, payment):
+        return self._transactions.paypal_verify_payment(username, payment)
+
+    def transactions_paypal_get_payment(self, username, payment):
+        return self._transactions.paypal_get_payment(username, payment)
 
 
     ##########################################################
@@ -85,8 +192,35 @@ class database_client:
 
 
     ##########################################################
+    # idp token
+    ##########################################################
+
+    def get_idp_token(self, id):
+        return self._idp.get_idp_token(id)
+
+    def set_idp_token(self, id, token):
+        self._idp.set_idp_token(id, token)
+
+    def delete_idp_token(self, id):
+        self._idp.delete_idp_token(id)
+
+
+    def get_idp_code(self, id):
+        return self._idp.get_idp_code(id)
+
+    def set_idp_code(self, id, code):
+        self._idp.set_idp_code(id, code)
+
+    def delete_idp_code(self, id):
+        self._idp.delete_idp_code(id)
+
+
+    ##########################################################
     # users
     ##########################################################
+
+    def get_cognito_client_id(self):
+        return self._users.get_cognito_client_id()
 
     def get_registered_users(self):
         return self._users.get_registered_users()
@@ -94,9 +228,15 @@ class database_client:
     def find_user(self, username):
         return self._users.find_user(username)
 
+    def get_username_by_phonenumber(self, phone_number):
+        return self._users.get_username_by_phonenumber(phone_number)
+
+    # find email should be avoided as several users can have the same email
+    # due to the support for login via social accounts (Facebook, Google, Amazon)
     def find_email(self, email):
         return self._users.find_email(email)
 
+    # if login via social account, it shall be treated as verified email
     def is_email_verified(self, username):
         return self._users.is_email_verified(username)
 
@@ -111,6 +251,9 @@ class database_client:
 
     def login(self, username, password):
         return self._users.login(username, password)
+
+    def login_mfa(self, username, sessionkey, mfacode):
+        return self._users.login_mfa(username, sessionkey, mfacode)
 
     def logout(self, token):
         return self._users.logout(token)
@@ -163,6 +306,74 @@ class database_client:
     def change_password(self, access_token, password, new_password):
         return self._users.change_password(access_token, password, new_password)
 
+    def reset_user_password(self, username):
+        return self._users.reset_user_password(username)
+
+    def enable_mfa(self, access_token, enable):
+        return self._users.enable_mfa(access_token, enable)
+
+    def admin_enable_mfa(self, username, enable):
+        return self._users.admin_enable_mfa(username, enable)
+
+    def admin_link_provider_for_user(self, username, email, provider):
+        return self._users.admin_link_provider_for_user(username, email, provider)
+
+    def admin_disable_provider_for_user(self, username, provider):
+        return self._users.admin_disable_provider_for_user(username, provider)
+
+    def get_last_login(self, username):
+        return self._devices.get_last_login(username)
+
+    def set_last_login(self, username, is_succesful):
+        return self._devices.set_last_login(username, is_succesful)
+
+
+    ##########################################################
+    # heartbeat
+    ##########################################################
+
+    def record_device_heartbeat(self, deviceid, timestamp):
+        if not self._devices.find_device_heartbeats_by_timestamp(deviceid, timestamp):
+            self._devices.record_device_heartbeat(deviceid, timestamp)
+
+    def delete_device_heartbeats_by_deviceid(self, deviceid):
+        self._devices.delete_device_heartbeats(deviceid)
+
+    def delete_device_heartbeats(self, username, devicename):
+        self._devices.delete_device_heartbeats(self._devices.get_deviceid(username, devicename))
+
+
+    def delete_device_heartbeats_by_timestamp(self, deviceid, timestamp):
+        self._devices.delete_device_heartbeats_by_timestamp(deviceid, timestamp)
+
+    def get_num_device_heartbeats_by_timestamp_by_day(self, deviceid, timestamp):
+        self._devices.delete_device_heartbeats_by_timestamp(deviceid, timestamp)
+        return self._devices.get_num_device_heartbeats_by_timestamp(deviceid, timestamp-config.CONFIG_HEARBEAT_DAY_RANGE), config.CONFIG_HEARBEAT_DAY_MAX
+
+    def get_num_device_heartbeats_by_timestamp_by_week(self, deviceid, timestamp):
+        self._devices.delete_device_heartbeats_by_timestamp(deviceid, timestamp)
+        return self._devices.get_num_device_heartbeats_by_timestamp(deviceid, timestamp-config.CONFIG_HEARBEAT_WEEK_RANGE), config.CONFIG_HEARBEAT_WEEK_MAX
+
+    def get_num_device_heartbeats_by_timestamp_by_month(self, deviceid, timestamp):
+        self._devices.delete_device_heartbeats_by_timestamp(deviceid, timestamp)
+        return self._devices.get_num_device_heartbeats_by_timestamp(deviceid, timestamp-config.CONFIG_HEARBEAT_MONTH_RANGE), config.CONFIG_HEARBEAT_MONTH_MAX
+
+
+    def get_num_device_heartbeats_by_devicename_by_timestamp_by_day(self, username, devicename, timestamp):
+        deviceid = self._devices.get_deviceid(username, devicename)
+        self._devices.delete_device_heartbeats_by_timestamp(deviceid, timestamp)
+        return self._devices.get_num_device_heartbeats_by_timestamp(deviceid, timestamp-config.CONFIG_HEARBEAT_DAY_RANGE), config.CONFIG_HEARBEAT_DAY_MAX
+
+    def get_num_device_heartbeats_by_devicename_by_timestamp_by_week(self, username, devicename, timestamp):
+        deviceid = self._devices.get_deviceid(username, devicename)
+        self._devices.delete_device_heartbeats_by_timestamp(deviceid, timestamp)
+        return self._devices.get_num_device_heartbeats_by_timestamp(deviceid, timestamp-config.CONFIG_HEARBEAT_WEEK_RANGE), config.CONFIG_HEARBEAT_WEEK_MAX
+
+    def get_num_device_heartbeats_by_devicename_by_timestamp_by_month(self, username, devicename, timestamp):
+        deviceid = self._devices.get_deviceid(username, devicename)
+        self._devices.delete_device_heartbeats_by_timestamp(deviceid, timestamp)
+        return self._devices.get_num_device_heartbeats_by_timestamp(deviceid, timestamp-config.CONFIG_HEARBEAT_MONTH_RANGE), config.CONFIG_HEARBEAT_MONTH_MAX
+
 
     ##########################################################
     # history
@@ -174,12 +385,23 @@ class database_client:
     def get_device_history(self, deviceid):
         return self._devices.get_device_history(deviceid)
 
-    def delete_device_history(self, deviceid):
+    def delete_device_history(self, username, devicename):
+        deviceid = self._devices.get_deviceid(username, devicename)
+        return self._devices.delete_device_history(deviceid)
+
+    def delete_device_history_by_deviceid(self, deviceid):
         return self._devices.delete_device_history(deviceid)
 
     def sort_by_timestamp(self, elem):
         return elem['timestamp']
 
+    def sort_by_devicename(self, elem):
+        return elem['devicename']
+
+    def sort_by_groupname(self, elem):
+        return elem['groupname']
+
+    # org-ready
     def get_user_history(self, username):
         user_histories = []
         devices = self._devices.get_registered_devices()
@@ -194,6 +416,7 @@ class database_client:
         user_histories.sort(key=self.sort_by_timestamp, reverse=True)
         return user_histories
 
+    # org-ready
     def get_user_history_filtered(self, username, devicename, direction, topic, datebegin, dateend):
         filter_devices = {'username': username}
         if devicename is not None:
@@ -216,10 +439,11 @@ class database_client:
             for device in devices.find(filter_devices):
                 filter['deviceid'] = device['deviceid']
                 histories = self._devices.get_device_history_filter(filter)
-                for history in histories:
-                    #print(history['timestamp'])
-                    history['timestamp'] = datetime.datetime.fromtimestamp(int(history['timestamp'])).strftime('%Y-%m-%d %H:%M:%S')
-                    user_histories.append(history)
+                #for history in histories:
+                #    #print(history['timestamp'])
+                #    #history['timestamp'] = datetime.datetime.fromtimestamp(int(history['timestamp'])).strftime('%Y-%m-%d %H:%M:%S')
+                #    user_histories.append(history)
+                user_histories += histories
                 #print(len(histories))
         #print(len(user_histories))
 
@@ -228,18 +452,24 @@ class database_client:
 
 
     ##########################################################
-    # menos
+    # menos history
     ##########################################################
 
     def add_menos_transaction(self, deviceid, recipient, message, type, source, sensorname, timestamp, condition, result):
         self._devices.add_menos_transaction(deviceid, recipient, message, type, source, sensorname, timestamp, condition, result)
 
-    def delete_menos_transaction(self, deviceid):
+    def delete_menos_transaction(self, username, devicename):
+        deviceid = self._devices.get_deviceid(username, devicename)
         self._devices.delete_menos_transaction(deviceid)
 
+    def delete_menos_transaction_by_deviceid(self, deviceid):
+        self._devices.delete_menos_transaction(deviceid)
+
+    # org-ready
     def get_menos_transaction(self, deviceid):
         return self._devices.get_menos_transaction(deviceid)
 
+    # org-ready
     def get_menos_transaction_filtered(self, deviceid, type, source, datebegin, dateend):
         return self._devices.get_menos_transaction_filtered(deviceid, type, source, datebegin, dateend)
 
@@ -252,25 +482,35 @@ class database_client:
         deviceid = self._devices.get_deviceid(username, devicename)
         return self._devices.update_device_notification(deviceid, source, notification)
 
-    def update_device_notification_with_notification_subclass(self, username, devicename, source, notification, notification_subclass):
+    def update_device_notification_with_notification_subclass(self, username, devicename, source, notification, notification_subclass, number=None):
         deviceid = self._devices.get_deviceid(username, devicename)
-        return self._devices.update_device_notification_with_notification_subclass(deviceid, source, notification, notification_subclass)
+        return self._devices.update_device_notification_with_notification_subclass(deviceid, source, notification, notification_subclass, number)
 
-    def delete_device_notification_sensor(self, username, devicename, source):
+    def delete_device_notification_sensor(self, username, devicename, source, number):
         deviceid = self._devices.get_deviceid(username, devicename)
-        return self._devices.delete_device_notification_sensor(deviceid, source)
+        return self._devices.delete_device_notification_sensor(deviceid, source, number)
+
+    def delete_device_notification_sensor_ex(self, username, devicename, source, number):
+        deviceid = self._devices.get_deviceid(username, devicename)
+        return self._devices.delete_device_notification_sensor_ex(deviceid, source, number)
+
+    def delete_device_notification_sensor_by_deviceid(self, deviceid, source, number):
+        return self._devices.delete_device_notification_sensor(deviceid, source, number)
 
     def delete_device_notification(self, username, devicename):
         deviceid = self._devices.get_deviceid(username, devicename)
+        return self._devices.delete_device_notification(deviceid)
+
+    def delete_device_notification_by_deviceid(self, deviceid):
         return self._devices.delete_device_notification(deviceid)
 
     def get_device_notification(self, username, devicename, source):
         deviceid = self._devices.get_deviceid(username, devicename)
         return self._devices.get_device_notification(deviceid, source)
 
-    def get_device_notification_with_notification_subclass(self, username, devicename, source):
+    def get_device_notification_with_notification_subclass(self, username, devicename, source, number=None):
         deviceid = self._devices.get_deviceid(username, devicename)
-        return self._devices.get_device_notification_with_notification_subclass(deviceid, source)
+        return self._devices.get_device_notification_with_notification_subclass(deviceid, source, number)
 
     def get_device_notification_with_notification_subclass_by_deviceid(self, deviceid, source):
         return self._devices.get_device_notification_with_notification_subclass_by_deviceid(deviceid, source)
@@ -286,11 +526,20 @@ class database_client:
     def update_device_peripheral_configuration(self, username, devicename, source, number, address, classid, subclassid, properties):
         return self._devices.update_device_peripheral_configuration(self._devices.get_deviceid(username, devicename), source, number, address, classid, subclassid, properties)
 
-    def delete_device_peripheral_configuration(self, username, devicename, source, number, address):
+    def delete_device_peripheral_configuration(self, username, devicename, source, number, address=None):
         return self._devices.delete_device_peripheral_configuration(self._devices.get_deviceid(username, devicename), source, number, address)
+
+    def delete_device_peripheral_configuration_by_source(self, username, devicename, source):
+        return self._devices.delete_device_peripheral_configuration_by_source(self._devices.get_deviceid(username, devicename), source)
+
+    def delete_device_peripheral_configuration_by_deviceid(self, deviceid, source, number, address):
+        return self._devices.delete_device_peripheral_configuration(deviceid, source, number, address)
 
     def delete_all_device_peripheral_configuration(self, username, devicename):
         return self._devices.delete_all_device_peripheral_configuration(self._devices.get_deviceid(username, devicename))
+
+    def get_device_peripheral_configuration_by_deviceid(self, deviceid, source, number, address):
+        return self._devices.get_device_peripheral_configuration(deviceid, source, number, address)
 
     def get_device_peripheral_configuration(self, username, devicename, source, number, address):
         return self._devices.get_device_peripheral_configuration(self._devices.get_deviceid(username, devicename), source, number, address)
@@ -303,14 +552,76 @@ class database_client:
 
 
     ##########################################################
+    # ldsu
+    ##########################################################
+
+    def set_ldsu_by_deviceid(self, username, deviceid, descriptor):
+        return self._devices.set_ldsu_by_deviceid(username, deviceid, descriptor)
+
+    def set_ldsu(self, username, devicename, descriptor):
+        return self._devices.set_ldsu_by_deviceid(username, self._devices.get_deviceid(username, devicename), descriptor)
+
+    def get_ldsus(self, username, devicename):
+        return self._devices.get_ldsus_by_deviceid(self._devices.get_deviceid(username, devicename))
+
+    def get_ldsus_by_deviceid(self, username, deviceid):
+        return self._devices.get_ldsus_by_deviceid(deviceid)
+
+    def set_ldsu_status(self, username, devicename, uid, is_reachable):
+        return self._devices.set_ldsu_status_by_deviceid(self._devices.get_deviceid(username, devicename), uid, is_reachable)
+
+    def set_ldsu_status_by_deviceid(self, username, deviceid, uid, is_reachable):
+        return self._devices.set_ldsu_status_by_deviceid(deviceid, uid, is_reachable)
+
+    def get_ldsus_by_port(self, username, devicename, port):
+        return self._devices.get_ldsus_by_port(self._devices.get_deviceid(username, devicename), port)
+
+    def change_ldsu_name(self, username, devicename, uid, name):
+        self._devices.change_ldsu_name_by_deviceid(self._devices.get_deviceid(username, devicename), uid, name)
+
+    def get_ldsu(self, username, devicename, uid):
+        return self._devices.get_ldsu(self._devices.get_deviceid(username, devicename), uid)
+
+    def delete_ldsu(self, username, devicename, uid):
+        self._devices.delete_ldsu(self._devices.get_deviceid(username, devicename), uid)
+
+    def delete_ldsus(self, username, devicename):
+        self._devices.delete_ldsus(self._devices.get_deviceid(username, devicename))
+
+    def delete_ldsus_by_deviceid(self, deviceid):
+        self._devices.delete_ldsus(deviceid)
+
+    def delete_ldsus_by_port(self, username, devicename, port):
+        self._devices.delete_ldsus_by_port(self._devices.get_deviceid(username, devicename), port)
+
+    def delete_ldsus_by_port_by_deviceid(self, deviceid, port):
+        self._devices.delete_ldsus_by_port(deviceid, port)
+
+
+    ##########################################################
     # sensors
     ##########################################################
+
+    def get_user_sensors_input(self, username):
+        return self._devices.get_user_sensors_input(username)
+
+    def change_sensor_name(self, username, devicename, source, number, name):
+        return self._devices.change_sensor_name(self._devices.get_deviceid(username, devicename), source, number, name)
+
+    def get_all_device_sensors_by_deviceid(self, deviceid):
+        return self._devices.get_all_device_sensors(deviceid)
+
+    def get_all_device_sensors_by_port_by_deviceid(self, deviceid, port):
+        return self._devices.get_all_device_sensors_by_port(deviceid, port)
+
+    def get_all_device_sensors_enabled_input(self, username, devicename, source=None, number=None, sensorclass=None, sensorstatus=1, type="input"):
+        return self._devices.get_all_device_sensors_enabled_input(username, self._devices.get_deviceid(username, devicename), source, number, sensorclass, sensorstatus, type)
 
     def get_all_device_sensors(self, username, devicename):
         return self._devices.get_all_device_sensors(self._devices.get_deviceid(username, devicename))
 
-    def get_all_device_sensors_enabled_input(self, username, devicename):
-        return self._devices.get_all_device_sensors_enabled_input(self._devices.get_deviceid(username, devicename))
+    def get_all_device_sensors_input_by_deviceid(self, deviceid):
+        return self._devices.get_all_device_sensors_input(deviceid)
 
     def get_all_device_sensors_input(self, username, devicename):
         return self._devices.get_all_device_sensors_input(self._devices.get_deviceid(username, devicename))
@@ -333,17 +644,41 @@ class database_client:
     def get_sensors_with_enabled(self, username, devicename, source, number):
         return self._devices.get_sensors_with_enabled(self._devices.get_deviceid(username, devicename), source, number)
 
+    def get_sensors_by_port(self, username, devicename, port):
+        return self._devices.get_sensors_by_port(self._devices.get_deviceid(username, devicename), port)
+
     def add_sensor(self, username, devicename, source, number, sensorname, data):
-        return self._devices.add_sensor(self._devices.get_deviceid(username, devicename), source, number, sensorname, data)
+        return self._devices.add_sensor(username, self._devices.get_deviceid(username, devicename), source, number, sensorname, data)
+
+    def add_sensor_by_deviceid(self, username, deviceid, source, number, sensorname, data):
+        return self._devices.add_sensor(username, deviceid, source, number, sensorname, data)
 
     def delete_device_sensors(self, username, devicename):
         self._devices.delete_device_sensors(self._devices.get_deviceid(username, devicename))
 
+    def delete_device_sensors_by_source(self, username, devicename, source):
+        self._devices.delete_device_sensors_by_source(self._devices.get_deviceid(username, devicename), source)
+
+    def delete_device_sensors_by_source_number(self, username, devicename, source, number):
+        self._devices.delete_device_sensors_by_source_number(self._devices.get_deviceid(username, devicename), source, number)
+
+    def delete_device_sensors_by_source_number_by_deviceid(self, deviceid, source, number):
+        self._devices.delete_device_sensors_by_source_number(deviceid, source, number)
+
+    def delete_device_sensor(self, username, devicename, sensorname):
+        self._devices.delete_device_sensor(username, devicename, sensorname)
+
     def delete_sensor(self, username, devicename, source, number, sensorname):
         self._devices.delete_sensor(self._devices.get_deviceid(username, devicename), source, number, sensorname)
 
+    def delete_sensor_by_deviceid(self, deviceid, source, number, sensorname):
+        self._devices.delete_sensor(deviceid, source, number, sensorname)
+
     def check_sensor(self, username, devicename, sensorname):
         return self._devices.check_sensor(self._devices.get_deviceid(username, devicename), sensorname)
+
+    def check_sensor_by_deviceid(self, deviceid, sensorname):
+        return self._devices.check_sensor(deviceid, sensorname)
 
     def get_sensor(self, username, devicename, source, number, sensorname):
         return self._devices.get_sensor(self._devices.get_deviceid(username, devicename), source, number, sensorname)
@@ -365,35 +700,57 @@ class database_client:
     # sensor readings
     ##########################################################
 
-    def add_sensor_reading(self, deviceid, source, address, sensor_readings):
-        self._devices.update_sensor_reading(deviceid, source, address, sensor_readings)
+    def add_sensor_reading(self, username, deviceid, source, number, sensor_readings):
+        self._devices.update_sensor_reading(username, deviceid, source, number, sensor_readings)
 
-    def delete_sensor_reading(self, username, devicename, source, address):
+    def delete_sensor_reading(self, username, devicename, source, number):
         deviceid = self._devices.get_deviceid(username, devicename)
-        self._devices.delete_sensor_reading(deviceid, source, address)
-        self._devices.delete_sensor_reading_dataset(deviceid, source, address)
+        self._devices.delete_sensor_reading(deviceid, source, number)
+        self._devices.delete_sensor_reading_dataset(deviceid, source, number)
+
+    def delete_sensor_reading_by_deviceid(self, deviceid, source, number):
+        self._devices.delete_sensor_reading(deviceid, source, number)
+        self._devices.delete_sensor_reading_dataset(deviceid, source, number)
 
     def delete_sensors_readings(self, username, devicename, source):
         deviceid = self._devices.get_deviceid(username, devicename)
         self._devices.delete_sensors_readings(deviceid, source)
         self._devices.delete_sensors_readings_dataset(deviceid, source)
 
-    def get_sensor_reading(self, username, devicename, source, address):
-        return self._devices.get_sensor_reading_by_deviceid(self._devices.get_deviceid(username, devicename), source, address)
+    def delete_device_sensor_reading(self, username, devicename):
+        deviceid = self._devices.get_deviceid(username, devicename)
+        self._devices.delete_device_sensor_reading(deviceid)
+        self._devices.delete_device_sensor_reading_dataset(deviceid)
+
+    def delete_user_sensor_reading(self, username):
+        self._devices.delete_user_sensor_reading(username)
+        self._devices.delete_user_sensor_reading_dataset(username)
+
+    def get_sensor_reading(self, username, devicename, source, number):
+        return self._devices.get_sensor_reading_by_deviceid(self._devices.get_deviceid(username, devicename), source, number)
 
     def get_sensors_readings(self, username, devicename, source):
         return self._devices.get_sensors_readings_by_deviceid(self._devices.get_deviceid(username, devicename), source)
 
-    def get_sensor_reading_by_deviceid(self, deviceid, source, address):
-        return self._devices.get_sensor_reading_by_deviceid(deviceid, source, address)
+    def get_device_sensors_readings(self, username, devicename):
+        return self._devices.get_device_sensors_readings_by_deviceid(self._devices.get_deviceid(username, devicename))
+
+    def get_user_sensors_readings(self, username):
+        return self._devices.get_user_sensors_readings(username)
+
+    def get_sensor_reading_by_deviceid(self, deviceid, source, number):
+        return self._devices.get_sensor_reading_by_deviceid(deviceid, source, number)
 
     # sensor readings datasets
 
-    def add_sensor_reading_dataset(self, deviceid, source, address, value, subclass_value):
-        self._devices.add_sensor_reading_dataset(deviceid, source, address, value, subclass_value)
+    def add_sensor_reading_dataset(self, username, deviceid, source, number, value, subclass_value):
+        self._devices.add_sensor_reading_dataset(username, deviceid, source, number, value, subclass_value)
 
-    def get_sensor_reading_dataset(self, username, devicename, source, address):
-        return self._devices.get_sensor_reading_dataset_by_deviceid(self._devices.get_deviceid(username, devicename), source, address)
+    def get_sensor_reading_dataset(self, username, devicename, source, number):
+        return self._devices.get_sensor_reading_dataset_by_deviceid(self._devices.get_deviceid(username, devicename), source, number)
+
+    def get_sensor_reading_dataset_timebound(self, username, devicename, source, number, datebegin, dateend, period, maxpoints):
+        return self._devices.get_sensor_reading_dataset_by_deviceid_timebound(self._devices.get_deviceid(username, devicename), source, number, datebegin, dateend, period, maxpoints)
 
 
     ##########################################################
@@ -420,6 +777,222 @@ class database_client:
 
 
     ##########################################################
+    # device locaton
+    ##########################################################
+
+    # org-ready
+    def get_devices_location(self, username):
+        return self._devices.get_devices_location(username)
+
+    # org-ready
+    def delete_devices_location(self, username):
+        self._devices.delete_devices_location(username)
+
+
+    # org-ready
+    def add_device_location(self, username, devicename, location):
+        deviceid = self._devices.get_deviceid(username, devicename)
+        self._devices.add_device_location(username, deviceid, location)
+
+    # org-ready
+    def get_device_location(self, username, devicename):
+        deviceid = self._devices.get_deviceid(username, devicename)
+        return self._devices.get_device_location(deviceid)
+
+
+    # org-ready
+    def delete_device_location(self, username, devicename):
+        deviceid = self._devices.get_deviceid(username, devicename)
+        self._devices.delete_device_location(deviceid)
+
+    # org-ready
+    def delete_device_location_by_deviceid(self, deviceid):
+        self._devices.delete_device_location(deviceid)
+
+
+    ##########################################################
+    # ota firmware update
+    ##########################################################
+
+    # org-ready
+    def set_ota_status_ongoing(self, username, devicename, version):
+        self.set_ota_status(username, devicename, version, "ongoing")
+
+    # org-ready
+    def set_ota_status_pending(self, username, devicename, version):
+        self.set_ota_status(username, devicename, version, "pending")
+
+    # org-ready
+    def set_ota_status(self, username, devicename, version, status):
+        deviceid = self._devices.get_deviceid(username, devicename)
+        self._devices.set_ota_status(username, deviceid, version, status)
+
+    # org-ready
+    def set_ota_status_completed_by_deviceid(self, deviceid):
+        self._devices.set_ota_status_completed(deviceid)
+
+    def set_ota_status_completed(self, username, devicename):
+        deviceid = self._devices.get_deviceid(username, devicename)
+        self._devices.set_ota_status_completed(deviceid)
+
+
+    # org-ready
+    def get_ota_statuses(self, username):
+        return self._devices.get_ota_statuses(username)
+
+    # org-ready
+    def get_ota_status(self, username, devicename):
+        deviceid = self._devices.get_deviceid(username, devicename)
+        return self._devices.get_ota_status(deviceid)
+
+    # org-ready
+    def get_ota_status_by_deviceid(self, deviceid):
+        return self._devices.get_ota_status(deviceid)
+
+    # org-ready
+    def delete_ota_status_by_deviceid(self, deviceid):
+        self._devices.delete_ota_status_by_deviceid(deviceid)
+
+    def delete_ota_statuses(self, username):
+        self._devices.delete_ota_statuses(username)
+
+    def delete_ota_status(self, username, devicename):
+        deviceid = self._devices.get_deviceid(username, devicename)
+        self._devices.delete_ota_status_by_deviceid(deviceid)
+
+
+
+    ##########################################################
+    # user organization
+    ##########################################################
+
+    def get_organizations(self, username):
+        return self._devices.get_organizations(username)
+
+    def set_active_organization(self, username, orgname, orgid):
+        return self._devices.set_active_organization(username, orgname, orgid)
+
+    def get_active_organization(self, username):
+        return self._devices.get_active_organization(username)
+
+
+    def get_organization(self, username, orgname, orgid):
+        return self._devices.get_organization(username, orgname, orgid)
+
+    def leave_organization(self, username, orgname, orgid):
+        return self._devices.leave_organization(username, orgname, orgid)
+
+    def accept_organization_invitation(self, member, orgname, orgid):
+        return self._devices.accept_organization_invitation(member, orgname, orgid)
+
+    def decline_organization_invitation(self, member, orgname, orgid):
+        return self._devices.decline_organization_invitation(member, orgname, orgid)
+
+
+    ##########################################################
+    # organizations
+    ##########################################################
+
+    def create_organization(self, username, orgname):
+        return self._devices.create_organization(username, orgname)
+
+    def delete_organization(self, username, orgname, orgid):
+        return self._devices.delete_organization(username, orgname, orgid)
+
+
+    def check_create_organization_invitations(self, username, orgname, orgid, members):
+        for member in members:
+            result, errcode = self._devices.check_create_organization_invitation(username, orgname, orgid, member)
+            if result == False:
+                return False
+        return True
+
+    def create_organization_invitation(self, username, orgname, orgid, member):
+        return self._devices.create_organization_invitation(username, orgname, orgid, member)
+
+    def check_cancel_organization_invitations(self, username, orgname, orgid, members):
+        for member in members:
+            result, errcode = self._devices.check_cancel_organization_invitation(username, orgname, orgid, member)
+            if result == False:
+                return False
+        return True
+
+    def cancel_organization_invitation(self, username, orgname, orgid, member):
+        return self._devices.cancel_organization_invitation(username, orgname, orgid, member)
+
+    def check_remove_organization_memberships(self, username, orgname, orgid, members):
+        for member in members:
+            result, errcode = self._devices.check_remove_organization_membership(username, orgname, orgid, member)
+            if result == False:
+                return False
+        return True
+
+    def remove_organization_membership(self, username, orgname, orgid, member):
+        return self._devices.remove_organization_membership(username, orgname, orgid, member)
+
+
+    ##########################################################
+    # organizations groups
+    ##########################################################
+
+    def get_organization_groups(self, username, orgname, orgid):
+        return self._devices.get_organization_groups(username, orgname, orgid)
+
+    def create_organization_group(self, username, orgname, orgid, groupname):
+        return self._devices.create_organization_group(username, orgname, orgid, groupname)
+
+    def delete_organization_group(self, username, orgname, orgid, groupname):
+        return self._devices.delete_organization_group(username, orgname, orgid, groupname)
+
+
+    def get_members_in_organization_group(self, username, orgname, orgid, groupname):
+        return self._devices.get_members_in_organization_group(username, orgname, orgid, groupname)
+
+    def update_members_in_organization_group(self, username, orgname, orgid, groupname, members):
+        return self._devices.update_members_in_organization_group(username, orgname, orgid, groupname, members)
+
+    def add_member_to_organization_group(self, username, orgname, orgid, groupname, membername):
+        return self._devices.add_member_to_organization_group(username, orgname, orgid, groupname, membername)
+
+    def remove_member_from_organization_group(self, username, orgname, orgid, groupname, membername):
+        return self._devices.remove_member_from_organization_group(username, orgname, orgid, groupname, membername)
+
+
+    def is_authorized(self, username, orgname, orgid, categorylabel, crudindex):
+        return self._devices.is_authorized(username, orgname, orgid, policy_labels[categorylabel], crudindex)
+
+
+    ##########################################################
+    # organizations policies
+    ##########################################################
+
+    def get_organization_policies(self, username, orgname, orgid):
+        return self._devices.get_organization_policies(username, orgname, orgid)
+
+    def get_organization_policy(self, username, orgname, orgid, policyname):
+        return self._devices.get_organization_policy(username, orgname, orgid, policyname)
+
+    def create_organization_policy(self, username, orgname, orgid, policyname, settings):
+        return self._devices.create_organization_policy(username, orgname, orgid, policyname, settings)
+
+    def delete_organization_policy(self, username, orgname, orgid, policyname):
+        return self._devices.delete_organization_policy(username, orgname, orgid, policyname)
+
+
+    def get_policies_in_organization_group(self, username, orgname, orgid, groupname):
+        return self._devices.get_policies_in_organization_group(username, orgname, orgid, groupname)
+
+    def update_policies_in_organization_group(self, username, orgname, orgid, groupname, policies):
+        return self._devices.update_policies_in_organization_group(username, orgname, orgid, groupname, policies)
+
+    def add_policy_to_organization_group(self, username, orgname, orgid, groupname, policyname):
+        return self._devices.add_policy_to_organization_group(username, orgname, orgid, groupname, policyname)
+
+    def remove_policy_from_organization_group(self, username, orgname, orgid, groupname, policyname):
+        return self._devices.remove_policy_from_organization_group(username, orgname, orgid, groupname, policyname)
+
+
+    ##########################################################
     # devices
     ##########################################################
 
@@ -429,24 +1002,46 @@ class database_client:
     def get_registered_devices(self):
         return self._devices.get_registered_devices()
 
+    # org-ready
     def get_devices(self, username):
         return self._devices.get_devices(username)
 
+    # org-ready
     def get_devices_with_filter(self, username, filter):
         return self._devices.get_devices_with_filter(username, filter)
 
-    def add_device(self, username, devicename, uuid, serialnumber):
-        # todo: verify uuid and serialnumber matches
-        return self._devices.add_device(username, devicename, uuid, serialnumber)
-
-    def delete_device(self, username, devicename):
-        self._devices.delete_device(username, devicename)
-
+    # org-ready
     def find_device(self, username, devicename):
         return self._devices.find_device(username, devicename)
 
+    # org-ready
     def find_device_by_id(self, deviceid):
         return self._devices.find_device_by_id(deviceid)
+
+    # org-ready
+    def find_device_by_poemacaddress(self, deviceid):
+        return self._devices.find_device_by_poemacaddress(deviceid)
+
+    # org-ready
+    def add_device(self, username, devicename, uuid, serialnumber, poemacaddress=None):
+        # todo: verify uuid and serialnumber matches
+        return self._devices.add_device(username, devicename, uuid, serialnumber, poemacaddress)
+
+    # org-ready
+    def delete_device(self, username, devicename):
+        self._devices.delete_device(username, devicename)
+
+    # org-ready
+    def delete_device_by_deviceid(self, deviceid):
+        self._devices.delete_device_by_deviceid(deviceid)
+
+    # org-ready
+    def update_devicename(self, username, devicename, new_devicename):
+        self._devices.update_devicename(username, devicename, new_devicename)
+
+
+    def get_devicenames(self, username):
+        return self._devices.get_devicenames(username)
 
     def get_device_cached_values(self, username, devicename):
         return self._devices.get_device_cached_values(username, devicename)
@@ -460,8 +1055,63 @@ class database_client:
     def save_device_version(self, username, devicename, version):
         return self._devices.save_device_version(username, devicename, version)
 
-    def update_devicename(self, username, devicename, new_devicename):
-        self._devices.update_devicename(username, devicename, new_devicename)
+
+    def get_device_descriptor(self, username, devicename):
+        return self._devices.get_device_descriptor(username, devicename)
+
+    def set_device_descriptor(self, username, devicename, descriptor):
+        self._devices.set_device_descriptor_by_deviceid(self._devices.get_deviceid(username, devicename), descriptor)
+
+    def set_device_descriptor_by_deviceid(self, deviceid, descriptor):
+        self._devices.set_device_descriptor_by_deviceid(deviceid, descriptor)
+
+
+    ##########################################################
+    # devicegroups
+    ##########################################################
+
+    # org-ready
+    def get_devicegroups(self, username):
+        return self._devices.get_devicegroups(username)
+
+
+    # org-ready
+    def get_devicegroup(self, username, groupname):
+        return self._devices.get_devicegroup(username, groupname)
+
+    # org-ready
+    def get_ungroupeddevices(self, username):
+        return self._devices.get_ungroupeddevices(username)
+
+    # org-ready
+    def add_devicegroup(self, username, groupname, devices):
+        self._devices.add_devicegroup(username, groupname, devices)
+
+    # org-ready
+    def delete_devicegroup(self, username, groupname):
+        self._devices.delete_devicegroup(username, groupname)
+
+    # org-ready
+    def update_name_devicegroup(self, username, groupname, new_groupname):
+        self._devices.update_name_devicegroup(username, groupname, new_groupname)
+
+
+    # org-ready
+    def add_device_to_devicegroup(self, username, groupname, deviceid):
+        return self._devices.add_device_to_devicegroup(username, groupname, deviceid)
+
+    # org-ready
+    def remove_device_from_devicegroup(self, username, groupname, deviceid):
+        self._devices.remove_device_from_devicegroup(username, groupname, deviceid)
+
+    # org-ready
+    def remove_device_from_devicegroups(self, username, deviceid):
+        self._devices.remove_device_from_devicegroups(username, deviceid)
+
+    # org-ready
+    def set_devices_to_devicegroup(self, username, groupname, devices):
+        self._devices.set_devices_to_devicegroup(username, groupname, devices)
+
 
 
 class database_utils:
@@ -495,6 +1145,9 @@ class database_client_cognito:
     # users
     ##########################################################
 
+    def get_cognito_client_id(self):
+        return self.client.get_cognito_client_id()
+
     def get_registered_users(self):
         (result, users) = self.client.admin_list_users()
         if not result:
@@ -511,6 +1164,19 @@ class database_client_cognito:
                     return True
         return False
 
+    def get_username_by_phonenumber(self, phone_number):
+        (result, users) = self.client.admin_list_users()
+        if result == False:
+            return None
+        if users:
+            for user in users:
+                if user.get("phone_number"):
+                    # phone number must be verified
+                    if user["phone_number"] == phone_number:
+                        if user["phone_number_verified"]:
+                            return user["username"]
+        return None
+
     def is_email_verified(self, username):
         (result, users) = self.client.admin_list_users()
         if result == False:
@@ -518,7 +1184,13 @@ class database_client_cognito:
         if users:
             for user in users:
                 if user["username"] == username:
-                    return user["status"]=="CONFIRMED"
+                    # if login via social account, status is EXTERNAL_PROVIDER
+                    # EXTERNAL_PROVIDER shall be treated as verified email
+                    if user["status"]=="CONFIRMED":
+                        return True
+                    elif user["status"]=="EXTERNAL_PROVIDER":
+                        return True
+                    break
         return False
 
     def find_email(self, email):
@@ -535,6 +1207,7 @@ class database_client_cognito:
         (result, users) = self.client.get_user(access_token)
         if result == False:
             return None
+        #print(users)
         return users
 
     def delete_user(self, username, access_token):
@@ -547,6 +1220,24 @@ class database_client_cognito:
 
     def login(self, username, password):
         (result, response) = self.client.login(username, password)
+        if not result:
+            return None, None, response
+        if response.get('AuthenticationResult'):
+            access_token = response['AuthenticationResult']['AccessToken']
+            refresh_token = response['AuthenticationResult']['RefreshToken']
+            id_token = response['AuthenticationResult']['IdToken']
+        else:
+            if response.get('ChallengeName'):
+                #print(response)
+                if response['ChallengeName'] == 'SMS_MFA':
+                    refresh_token = response['Session']
+                    id_token = 'MFARequiredException'
+                    return None, refresh_token, id_token
+            return None, None, None
+        return access_token, refresh_token, id_token
+
+    def login_mfa(self, username, sessionkey, mfacode):
+        (result, response) = self.client.login_mfa(username, sessionkey, mfacode)
         if not result:
             return None, None, None
         access_token = response['AuthenticationResult']['AccessToken']
@@ -620,7 +1311,7 @@ class database_client_cognito:
             (result, response) = self.client.sign_up(username, password, email=email, given_name=givenname, family_name=familyname)
         else:
             (result, response) = self.client.sign_up(username, password, email=email, phone_number=phonenumber, given_name=givenname, family_name=familyname)
-        return result
+        return result, response
 
     def update_user(self, access_token, phonenumber, givenname, familyname):
         if phonenumber is None:
@@ -639,7 +1330,7 @@ class database_client_cognito:
 
     def confirm_forgot_password(self, username, confirmation_code, new_password):
         (result, response) = self.client.confirm_forgot_password(username, confirmation_code, new_password)
-        return result
+        return result, response
 
     def get_user_group(self, username):
         val = self.client.admin_list_groups_for_user(username)
@@ -670,6 +1361,26 @@ class database_client_cognito:
 
     def change_password(self, access_token, password, new_password):
         (result, response) = self.client.change_password(access_token, password, new_password)
+        return result, response
+
+    def reset_user_password(self, username):
+        (result, response) = self.client.admin_reset_user_password(username)
+        return result
+
+    def enable_mfa(self, access_token, enable):
+        (result, response) = self.client.enable_mfa(access_token, enable)
+        return result
+
+    def admin_enable_mfa(self, username, enable):
+        (result, response) = self.client.admin_enable_mfa(username, enable)
+        return result
+
+    def admin_link_provider_for_user(self, username, email, provider):
+        (result, response) = self.client.admin_link_provider_for_user(username, email, provider)
+        return result
+
+    def admin_disable_provider_for_user(self, username, provider):
+        (result, response) = self.client.admin_disable_provider_for_user(username, provider)
         return result
 
 
@@ -679,18 +1390,208 @@ class database_client_mongodb:
         self.client = None
 
     def initialize(self):
+        #mongo_client = MongoClient(config.CONFIG_MONGODB_HOST, config.CONFIG_MONGODB_PORT, username=config.CONFIG_MONGODB_USERNAME, password=config.CONFIG_MONGODB_PASSWORD)
         mongo_client = MongoClient(config.CONFIG_MONGODB_HOST, config.CONFIG_MONGODB_PORT)
         self.client = mongo_client[config.CONFIG_MONGODB_DB]
+
+        # different database for sensor dashboarding
+        if "mongodb.net" in config.CONFIG_MONGODB_HOST2: 
+            connection_string = "mongodb+srv://" + config.CONFIG_MONGODB_USERNAME + ":" + config.CONFIG_MONGODB_PASSWORD + "@" + config.CONFIG_MONGODB_HOST2 + "/" + config.CONFIG_MONGODB_DB + "?retryWrites=true&w=majority"
+            mongo_client_sensor = MongoClient(connection_string)
+            self.client_sensor = mongo_client_sensor[config.CONFIG_MONGODB_DB]
+        else:
+            self.client_sensor = self.client
+
         self.paypal = paypal_client()
         self.paypal.initialize()
 
 
     ##########################################################
-    # transaction
+    # ota firmware update
     ##########################################################
 
-    def get_subscription_db(self):
-        return self.client[config.CONFIG_MONGODB_TB_TRANSACTIONS]
+    def get_otaupdates_db(self):
+        return self.client[config.CONFIG_MONGODB_TB_OTAUPDATES]
+
+    def set_ota_status(self, username, deviceid, version, status):
+        otaupdates = self.get_otaupdates_db();
+        item = {}
+        item['username'] = username
+        item['deviceid'] = deviceid
+        item['status']   = status
+        item['version']  = version
+        if status == "ongoing":
+            item['timestart'] = int(time.time())
+            item['timestamp'] = item['timestart']
+        found = otaupdates.find_one({'deviceid': deviceid})
+        if found is None:
+            otaupdates.insert_one(item)
+        else:
+            #print("set_ota_status {}".format(status))
+            #print(item)
+            otaupdates.replace_one({'deviceid': deviceid}, item)
+        return item
+
+    def set_ota_status_completed(self, deviceid):
+        otaupdates = self.get_otaupdates_db();
+        item = {}
+        item['deviceid'] = deviceid
+        item['status']   = "completed"
+        item['timestamp']  = int(time.time())
+        found = otaupdates.find_one({'deviceid': deviceid})
+        if found is None:
+            #print("set_ota_status_completed xxx")
+            #print(found)
+            otaupdates.insert_one(item)
+        else:
+            #print("set_ota_status_completed")
+            #print(found)
+            item['username'] = found["username"]
+            item['version'] = found["version"]
+            item['timestart'] = found["timestart"]
+            otaupdates.replace_one({'deviceid': deviceid}, item)
+        return item
+
+
+    def get_ota_status(self, deviceid):
+        otaupdates = self.get_otaupdates_db();
+        if otaupdates:
+            for otaupdate in otaupdates.find({'deviceid': deviceid}):
+                otaupdate.pop('_id')
+                otaupdate.pop('username')
+                return otaupdate
+        return None
+
+    def get_ota_statuses(self, username):
+        otaupdates_list = []
+        otaupdates = self.get_otaupdates_db();
+        if otaupdates:
+            for otaupdate in otaupdates.find({'username': username}):
+                otaupdate.pop('_id')
+                otaupdate.pop('username')
+                otaupdates_list.append(otaupdate)
+        return otaupdates_list
+
+    def delete_ota_statuses(self, username):
+        otaupdates = self.get_otaupdates_db()
+        try:
+            otaupdates.delete_many({'username': username})
+        except:
+            pass
+
+    def delete_ota_status_by_deviceid(self, deviceid):
+        otaupdates = self.get_otaupdates_db()
+        try:
+            otaupdates.delete_many({'deviceid': deviceid})
+        except:
+            pass
+
+
+    ##########################################################
+    # transactions
+    ##########################################################
+
+    def get_paymentpayerid_db(self):
+        return self.client[config.CONFIG_MONGODB_TB_PAYMENTPAYERIDS]
+
+    def paypal_set_payerid(self, payment_id, payer_id):
+        payerids = self.get_paymentpayerid_db()
+        item = {}
+        item['payment_id']     = payment_id
+        item['payer_id']       = payer_id
+        payerids.insert_one(item)
+
+    def paypal_get_payerid(self, payment_id):
+        payer = None
+        payerids = self.get_paymentpayerid_db()
+        if payerids:
+            for payerid in payerids.find({'payment_id': payment_id}):
+                payer = payerid["payer_id"]
+                try:
+                    payerids.delete_many({'payment_id': payment_id})
+                except:
+                    pass
+                break
+        return payer
+
+
+    def get_paymenttransactions_db(self):
+        return self.client[config.CONFIG_MONGODB_TB_PAYMENTTRANSACTIONS]
+
+    def record_paypal_payment(self, username, payment_result, value, prevcredits, credits):
+        transactions = self.get_paymenttransactions_db()
+        item = {}
+        item['username']       = username
+        item['payment_id']     = self.paypal.get_payment_id(payment_result)
+        item['payer_id']       = self.paypal.get_payer_id(payment_result)
+        item['state']          = self.paypal.get_transaction_state(payment_result)
+
+        item['id']             = self.paypal.get_transaction_id(payment_result)
+        item['amount']         = self.paypal.get_transaction_amount(payment_result)
+        item['value']          = value
+        item['prevcredits']    = prevcredits
+        item['credits']        = credits
+
+        timestamp = self.paypal.get_transaction_time(payment_result)
+        utc_time = datetime.datetime.strptime(timestamp, "%Y-%m-%dT%H:%M:%SZ")
+        item['timestamp'] = int((utc_time - datetime.datetime(1970, 1, 1)).total_seconds())
+
+        transactions.insert_one(item)
+        return item
+
+    def get_paypal_payments(self, username):
+        transactions_list = []
+        transactions = self.get_paymenttransactions_db()
+        if transactions:
+            for transaction in transactions.find({'username': username}):
+                transaction.pop('_id')
+                #if isinstance(transaction['timestamp'], float)== True:
+                #    transaction['timestamp'] = int(transaction['timestamp'])
+                #    transactions.replace_one({'username': username, 'payment_id': transaction['payment_id']}, transaction)
+                #transaction['value'] = transaction['credits']
+                #if transaction.get('newcredits'):
+                #    transaction['credits'] = transaction['newcredits']
+                #    transaction.pop('newcredits')
+                #else:
+                #    transaction.pop('credits')
+                #transactions.replace_one({'username': username, 'payment_id': transaction['payment_id']}, transaction)
+
+                transaction.pop('username')
+                transaction.pop('payment_id') # paymentid should be kept secret, to be used for accessing Paypal database only for backtracking purposes
+                transaction.pop('payer_id')
+                transaction.pop('state')
+                transactions_list.append(transaction)
+        return transactions_list
+
+    def get_paypal_payment(self, username, payment_id):
+        transactions = self.get_paymenttransactions_db()
+        if transactions:
+            for transaction in transactions.find({'username': username, 'payment_id': payment_id}):
+                transaction.pop('_id')
+                transaction.pop('username')
+                transaction.pop('payment_id') # paymentid should be kept secret, to be used for accessing Paypal database only for backtracking purposes
+                transaction.pop('payer_id')
+                transaction.pop('state')
+                return transaction
+        return None
+
+    def get_paypal_payment_by_paymentid(self, payment_id):
+        transactions = self.get_paymenttransactions_db()
+        if transactions:
+            for transaction in transactions.find({'payment_id': payment_id}):
+                transaction.pop('_id')
+                transaction.pop('payment_id') # paymentid should be kept secret, to be used for accessing Paypal database only for backtracking purposes
+                transaction.pop('state')
+                return transaction
+        return None
+
+    def get_paypal_payment_by_transaction_id(self, username, transaction_id):
+        transactions = self.get_paymenttransactions_db()
+        if transactions:
+            for transaction in transactions.find({'username': username, 'id': transaction_id}, {'payment_id': 1}):
+                return transaction['payment_id']
+        return None
+
 
     def paypal_set_payment(self, username, token, payment):
         return_url = payment['return_url']
@@ -720,43 +1621,106 @@ class database_client_mongodb:
         #print(data)
         return approval_url, data["paymentId"], data["token"]
 
-    def paypal_execute_payment(self, username, token, payment):
+    def paypal_execute_payment(self, username, payment):
         payment_id = payment["paymentId"]
         payer_id = payment["PayerID"]
-        payment_token = payment["token"]
 
-        result = self.paypal.execute_payment(payment_id, payer_id)
+        # Execute payment
+        result = False
+        trial = 0
+        while trial < 3:
+            try:
+                result = self.paypal.execute_payment(payment_id, payer_id)
+                if not result:
+                    print("Execute payment failed!")
+                    return False, None
+                break
+            except Exception as e:
+                print(e)
+                trial += 1
+                time.sleep(1)
         if not result:
-            print("Payment failed!")
-            return False
+            print("Execute payment failed!")
+            return False, None
 
-        payment_result = self.paypal.fetch_payment(payment_id)
+        # Fetch payment
+        payment_result = None
+        trial = 0
+        while trial < 3:
+            try:
+                payment_result = self.paypal.fetch_payment(payment_id)
+                if payment_result is None:
+                    print("Fetch payment failed!")
+                    return False, 0
+                break
+            except Exception as e:
+                print(e)
+                trial += 1
+                time.sleep(1)
+        if payment_result is None:
+            print("Fetch payment failed!")
+            return False, None
+
+        # Get status
         status = self.paypal.get_payment_status(payment_result)
         if status != "approved":
             print("Payment not yet completed! {}".format(status))
-            return False
+            return False, None
 
-        print("Payment completed successfully!")
-        self.paypal.display_payment_result(payment_result)
-        return True
+        #print("Payment completed successfully!")
+        #self.paypal.display_payment_result(payment_result)
+        return True, payment_result
 
-    def paypal_verify_payment(self, username, token, payment):
+    def paypal_verify_payment(self, username, payment):
         payment_id = payment["paymentId"]
         if not payment_id:
-            return False
+            return False, 0
+
+        # Fetch payment
+        payment_result = None
+        trial = 0
+        while trial < 3:
+            try:
+                payment_result = self.paypal.fetch_payment(payment_id)
+                if payment_result is None:
+                    print("Fetch payment failed!")
+                    return False, 0
+                break
+            except Exception as e:
+                print(e)
+                trial += 1
+                time.sleep(1)
+        if payment_result is None:
+            print("Fetch payment failed!")
+            return False, 0
+
+        # Get status
+        status = self.paypal.get_payment_status(payment_result)
+        if status != "approved":
+            print("Payment not yet completed! {}".format(status))
+            return False, 0
+
+        #print("Payment completed successfully!")
+        #self.paypal.display_payment_result(payment_result)
+
+        #print("\r\ninvoice")
+        #invoice = self.paypal.get_invoice(self.paypal.get_cart_id(payment_result))
+        #print(invoice)
+
+        return True, self.paypal.get_transaction_amount(payment_result)
+
+    def paypal_get_payment(self, username, payment):
+        payment_id = payment["paymentId"]
+        if not payment_id:
+            print("xxxx")
+            return None
 
         payment_result = self.paypal.fetch_payment(payment_id)
         if not payment_result:
-            return False
+            print("xx")
+            return None
 
-        status = self.paypal.get_payment_status(payment_result)
-        if status != "approved":
-            print("Payment not yet completed! {}".format(status))
-            return False
-
-        #print("Payment completed successfully!")
-        self.paypal.display_payment_result(payment_result)
-        return True
+        return payment_result
 
 
     ##########################################################
@@ -771,11 +1735,16 @@ class database_client_mongodb:
         subscriptions = self.get_subscription_db()
         if subscriptions:
             if True: # For easy reset of default type and credits
-                for subscription in subscriptions.find({'username':username},{'username': 1, 'type': 1, 'credits': 1}):
+                for subscription in subscriptions.find({'username':username}):
                     found = True
                     subscription.pop('_id')
+                    # change credits type from string to int for backward compatibility
+                    if isinstance(subscription['credits'], str) == True:
+                        #print("credits is string")
+                        subscription['credits'] = int(subscription['credits'])
+                        self.client.subscriptions.replace_one({'username':username}, subscription)
                     subscription.pop('username')
-                    return subscription 
+                    return subscription
 
         if not found:
             subscription = {}
@@ -786,23 +1755,86 @@ class database_client_mongodb:
             subscription.pop('_id')
             subscription.pop('username')
             return subscription
+
         return None, None
 
     def set_subscription(self, username, credits):
         subscriptions = self.get_subscription_db()
         if subscriptions:
             if True: # For easy reset of default type and credits
-                for subscription in subscriptions.find({'username': username},{'username': 1, 'type': 1, 'credits': 1}):
+                for subscription in subscriptions.find({'username': username}):
                     current_amount = int(subscription['credits'])
                     new_amount = int(subscription['credits']) + int(credits)
                     #print("current_amount={} new_amount={}".format(current_amount, new_amount))
                     subscription['type'] = config.CONFIG_SUBSCRIPTION_PAID_TYPE
-                    subscription['credits'] = str(new_amount)
+                    subscription['credits'] = new_amount
                     self.client.subscriptions.replace_one({'username': username}, subscription)
                     subscription.pop('_id')
                     subscription.pop('username')
                     return subscription 
         return None
+
+
+    ##########################################################
+    # idp token
+    ##########################################################
+
+    def get_idp_token_db(self):
+        return self.client[config.CONFIG_MONGODB_TB_IDPTOKENS]
+
+    def get_idp_token(self, id):
+        idptokens = self.get_idp_token_db()
+        token = None
+        if idptokens:
+            for idptoken in idptokens.find({'id': id}):
+                token = idptoken['token']
+                self.delete_idp_token(id)
+                break
+        return token
+
+    def set_idp_token(self, id, token):
+        idptokens = self.get_idp_token_db()
+        item = {}
+        item['id'] = id
+        item['token'] = token
+        item['timestamp'] = int(time.time())
+        idptokens.insert_one(item)
+
+    def delete_idp_token(self, id):
+        idptokens = self.get_idp_token_db()
+        try:
+            idptokens.delete_many({'id': id})
+        except:
+            pass
+
+
+    def get_idp_code_db(self):
+        return self.client[config.CONFIG_MONGODB_TB_IDPCODES]
+
+    def get_idp_code(self, id):
+        idpcodes = self.get_idp_code_db()
+        code = None
+        if idpcodes:
+            for idpcode in idpcodes.find({'id': id}):
+                code = idpcode['code']
+                self.delete_idp_code(id)
+                break
+        return code
+
+    def set_idp_code(self, id, code):
+        idpcodes = self.get_idp_code_db()
+        item = {}
+        item['id'] = id
+        item['code'] = code
+        item['timestamp'] = int(time.time())
+        idpcodes.insert_one(item)
+
+    def delete_idp_code(self, id):
+        idpcodes = self.get_idp_code_db()
+        try:
+            idpcodes.delete_many({'id': id})
+        except:
+            pass
 
 
     ##########################################################
@@ -905,6 +1937,51 @@ class database_client_mongodb:
 
     def confirm_forgot_password(self, username, confirmation_code, new_password):
         return False
+
+
+    ##########################################################
+    # heartbeat
+    ##########################################################
+
+    def get_heartbeat_document(self):
+        return self.client[config.CONFIG_MONGODB_TB_HEARTBEAT]
+
+    def record_device_heartbeat(self, deviceid, timestamp):
+        heartbeat = self.get_heartbeat_document()
+        item = {}
+        item['timestamp'] = timestamp
+        item['deviceid'] = deviceid
+        heartbeat.insert_one(item)
+
+    def delete_device_heartbeats(self, deviceid):
+        heartbeat = self.get_heartbeat_document()
+        try:
+            heartbeat.delete_many({'deviceid': deviceid})
+        except:
+            print("delete_device_heartbeats: Exception occurred")
+
+    def delete_device_heartbeats_by_timestamp(self, deviceid, timestamp):
+        heartbeat = self.get_heartbeat_document()
+        try:
+            heartbeat.delete_many({'deviceid': deviceid, 'timestamp': { '$lte': timestamp-config.CONFIG_HEARBEAT_MAX_RANGE } })
+        except:
+            print("delete_device_heartbeats_by_timestamp: Exception occurred")
+
+    def find_device_heartbeats_by_timestamp(self, deviceid, timestamp):
+        heartbeat = self.get_heartbeat_document()
+        if heartbeat:
+            items = heartbeat.find({'deviceid': deviceid, 'timestamp': { '$gt': timestamp-config.CONFIG_HEARBEAT_MIN_RANGE } })
+            if items and items.count():
+                return True
+        return False
+
+    def get_num_device_heartbeats_by_timestamp(self, deviceid, timestamp):
+        heartbeat = self.get_heartbeat_document()
+        if heartbeat:
+            items = heartbeat.find({'deviceid': deviceid, 'timestamp': { '$gt': timestamp } })
+            if items:
+                return items.count()
+        return 0
 
 
     ##########################################################
@@ -1049,32 +2126,53 @@ class database_client_mongodb:
             notifications.replace_one({'deviceid': deviceid, 'source': source}, item)
         return item
 
-    def update_device_notification_with_notification_subclass(self, deviceid, source, notification, notification_subclass):
+    def update_device_notification_with_notification_subclass(self, deviceid, source, notification, notification_subclass, number):
         notifications = self.get_notifications_document();
         item = {}
         #item['username'] = username
         #item['devicename'] = devicename
         item['deviceid'] = deviceid
         item['source'] = source
+        if number is not None:
+            item['number'] = number
         item['notification'] = notification
-        item['notification_subclass'] = notification_subclass
+        if notification_subclass:
+            item['notification_subclass'] = notification_subclass
         #print("update_device_notification_with_notification_subclass find_one")
-        found = notifications.find_one({'deviceid': deviceid, 'source': source})
-        if found is None:
-            print("update_device_notification_with_notification_subclass insert_one")
-            #print(found)
-            notifications.insert_one(item)
+        if number is not None:
+            found = notifications.find_one({'deviceid': deviceid, 'source': source, 'number': number})
+            if found is None:
+                print("update_device_notification_with_notification_subclass insert_one")
+                #print(found)
+                notifications.insert_one(item)
+            else:
+                print("update_device_notification_with_notification_subclass replace_one")
+                notifications.replace_one({'deviceid': deviceid, 'source': source}, item)
         else:
-            print("update_device_notification_with_notification_subclass replace_one")
-            notifications.replace_one({'deviceid': deviceid, 'source': source}, item)
+            found = notifications.find_one({'deviceid': deviceid, 'source': source})
+            if found is None:
+                print("update_device_notification_with_notification_subclass insert_one")
+                #print(found)
+                notifications.insert_one(item)
+            else:
+                print("update_device_notification_with_notification_subclass replace_one")
+                notifications.replace_one({'deviceid': deviceid, 'source': source}, item)
         return item
 
-    def delete_device_notification_sensor(self, deviceid, source):
+    def delete_device_notification_sensor(self, deviceid, source, number):
         notifications = self.get_notifications_document();
         try:
-            notifications.delete_many({'deviceid': deviceid, 'source': source})
+            notifications.delete_many({'deviceid': deviceid, 'source': source, 'number': number})
         except:
             print("delete_device_notification_sensor: Exception occurred")
+            pass
+
+    def delete_device_notification_sensor_ex(self, deviceid, source, number):
+        notifications = self.get_notifications_document();
+        try:
+            notifications.delete_one({'deviceid': deviceid, 'source': source, 'number': number})
+        except:
+            print("delete_device_notification_sensor_ex: Exception occurred")
             pass
 
     def delete_device_notification(self, deviceid):
@@ -1094,16 +2192,25 @@ class database_client_mongodb:
                 return notification['notification']
         return None
 
-    def get_device_notification_with_notification_subclass(self, deviceid, source):
+    def get_device_notification_with_notification_subclass(self, deviceid, source, number):
         notifications = self.get_notifications_document();
         if notifications:
-            for notification in notifications.find({'deviceid': deviceid, 'source': source}):
-                notification.pop('_id')
-                #print(notification['notification'])
-                if notification.get('notification_subclass'):
-                    return notification['notification'], notification['notification_subclass']
-                else:
-                    return notification['notification'], None
+            if number is not None:
+                for notification in notifications.find({'deviceid': deviceid, 'source': source, 'number': number}):
+                    notification.pop('_id')
+                    #print(notification['notification'])
+                    if notification.get('notification_subclass'):
+                        return notification['notification'], notification['notification_subclass']
+                    else:
+                        return notification['notification'], None
+            else:
+                for notification in notifications.find({'deviceid': deviceid, 'source': source}):
+                    notification.pop('_id')
+                    #print(notification['notification'])
+                    if notification.get('notification_subclass'):
+                        return notification['notification'], notification['notification_subclass']
+                    else:
+                        return notification['notification'], None
         return None, None
 
     def get_device_notification_with_notification_subclass_by_deviceid(self, deviceid, source):
@@ -1177,6 +2284,14 @@ class database_client_mongodb:
             print("delete_device_peripheral_configuration: Exception occurred")
             pass
 
+    def delete_device_peripheral_configuration_by_source(self, deviceid, source):
+        configurations = self.get_configurations_document();
+        try:
+            configurations.delete_many({'deviceid': deviceid, 'source': source})
+        except:
+            print("delete_device_peripheral_configuration_by_source: Exception occurred")
+            pass
+
     def delete_all_device_peripheral_configuration(self, deviceid):
         configurations = self.get_configurations_document();
         try:
@@ -1233,6 +2348,230 @@ class database_client_mongodb:
     def get_sensors_document(self):
         return self.client[config.CONFIG_MONGODB_TB_I2CSENSORS]
 
+    def change_sensor_name(self, deviceid, source, number, name):
+        i2csensors = self.get_sensors_document();
+        if i2csensors:
+            found = i2csensors.find_one({'deviceid': deviceid, 'source': source, 'number': number})
+            if found:
+                found["sensorname"] = name
+                i2csensors.replace_one({'deviceid': deviceid, 'source': source, 'number': number}, found)
+                return True
+        return False
+
+    def get_user_sensors_input(self, username):
+        sensor_list = []
+        i2csensors = self.get_sensors_document();
+        if i2csensors:
+            for i2csensor in i2csensors.find({'username': username, 'type': 'input'}):
+                i2csensor.pop('_id')
+                if i2csensor.get('username'):
+                    i2csensor.pop('username')
+                sensor_list.append(i2csensor)
+        return sensor_list
+
+    def get_all_device_sensors_enabled_input(self, username, deviceid, source, number, sensorclass, sensorstatus, type):
+        sensor_list = []
+        i2csensors = self.get_sensors_document();
+        if i2csensors:
+            if deviceid and source and sensorclass and sensorstatus is not None:
+                #print("1 2 3 4")
+                # 1, 2, 3, 4
+                for i2csensor in i2csensors.find({'username': username, 'type': type, 'deviceid': deviceid, 'source': source, 'number': number, 'class': sensorclass, 'enabled': sensorstatus}):
+                    i2csensor.pop('_id')
+                    if i2csensor.get('username'):
+                        i2csensor.pop('username')
+                    sensor_list.append(i2csensor)
+                try:
+                    for i2csensor in i2csensors.find({'username': username, 'type': type, 'deviceid': deviceid, 'source': source, 'number': number, 'subclass': sensorclass, 'enabled': sensorstatus}):
+                        i2csensor.pop('_id')
+                        if i2csensor.get('username'):
+                            i2csensor.pop('username')
+                        sensor_list.append(i2csensor)
+                except:
+                    pass
+
+            elif deviceid and source and sensorclass:
+                #print("1 2 3")
+                # 1, 2, 3
+                for i2csensor in i2csensors.find({'username': username, 'type': type, 'deviceid': deviceid, 'source': source, 'number': number, 'class': sensorclass}):
+                    i2csensor.pop('_id')
+                    if i2csensor.get('username'):
+                        i2csensor.pop('username')
+                    sensor_list.append(i2csensor)
+                try:
+                    for i2csensor in i2csensors.find({'username': username, 'type': type, 'deviceid': deviceid, 'source': source, 'number': number, 'subclass': sensorclass}):
+                        i2csensor.pop('_id')
+                        if i2csensor.get('username'):
+                            i2csensor.pop('username')
+                        sensor_list.append(i2csensor)
+                except:
+                    pass
+            elif deviceid and source and sensorstatus is not None:
+                #print("1 2 4")
+                # 1, 2, 4
+                for i2csensor in i2csensors.find({'username': username, 'type': type, 'deviceid': deviceid, 'source': source, 'number': number, 'enabled': sensorstatus}):
+                    i2csensor.pop('_id')
+                    if i2csensor.get('username'):
+                        i2csensor.pop('username')
+                    sensor_list.append(i2csensor)
+            elif deviceid and sensorclass and sensorstatus is not None:
+                #print("1 3 4")
+                # 1, 3, 4
+                for i2csensor in i2csensors.find({'username': username, 'type': type, 'deviceid': deviceid, 'class': sensorclass, 'enabled': sensorstatus}):
+                    i2csensor.pop('_id')
+                    if i2csensor.get('username'):
+                        i2csensor.pop('username')
+                    sensor_list.append(i2csensor)
+                try:
+                    for i2csensor in i2csensors.find({'username': username, 'type': type, 'deviceid': deviceid, 'subclass': sensorclass, 'enabled': sensorstatus}):
+                        i2csensor.pop('_id')
+                        if i2csensor.get('username'):
+                            i2csensor.pop('username')
+                        sensor_list.append(i2csensor)
+                except:
+                    pass
+            elif source and sensorclass and sensorstatus is not None:
+                #print("2 3 4")
+                # 2, 3, 4
+                for i2csensor in i2csensors.find({'username': username, 'type': type, 'source': source, 'number': number, 'class': sensorclass, 'enabled': sensorstatus}):
+                    i2csensor.pop('_id')
+                    if i2csensor.get('username'):
+                        i2csensor.pop('username')
+                    sensor_list.append(i2csensor)
+                try:
+                    for i2csensor in i2csensors.find({'username': username, 'type': type, 'source': source, 'number': number, 'subclass': sensorclass, 'enabled': sensorstatus}):
+                        i2csensor.pop('_id')
+                        if i2csensor.get('username'):
+                            i2csensor.pop('username')
+                        sensor_list.append(i2csensor)
+                except:
+                    pass
+
+            elif deviceid and source:
+                #print("1 2")
+                # 1, 2
+                for i2csensor in i2csensors.find({'username': username, 'type': type, 'deviceid': deviceid, 'source': source, 'number': number}):
+                    i2csensor.pop('_id')
+                    if i2csensor.get('username'):
+                        i2csensor.pop('username')
+                    sensor_list.append(i2csensor)
+            elif deviceid and sensorclass:
+                #print("1 3")
+                # 1, 3
+                for i2csensor in i2csensors.find({'username': username, 'type': type, 'deviceid': deviceid, 'class': sensorclass}):
+                    i2csensor.pop('_id')
+                    if i2csensor.get('username'):
+                        i2csensor.pop('username')
+                    sensor_list.append(i2csensor)
+                try:
+                    for i2csensor in i2csensors.find({'username': username, 'type': type, 'deviceid': deviceid, 'subclass': sensorclass}):
+                        i2csensor.pop('_id')
+                        if i2csensor.get('username'):
+                            i2csensor.pop('username')
+                        sensor_list.append(i2csensor)
+                except:
+                    pass
+            elif deviceid and sensorstatus is not None:
+                #print("1 4")
+                # 1, 4
+                for i2csensor in i2csensors.find({'username': username, 'type': type, 'deviceid': deviceid, 'enabled': sensorstatus}):
+                    i2csensor.pop('_id')
+                    if i2csensor.get('username'):
+                        i2csensor.pop('username')
+                    sensor_list.append(i2csensor)
+            elif source and sensorclass:
+                #print("2 3")
+                # 2, 3
+                for i2csensor in i2csensors.find({'username': username, 'type': type, 'source': source, 'number': number, 'class': sensorclass}):
+                    i2csensor.pop('_id')
+                    if i2csensor.get('username'):
+                        i2csensor.pop('username')
+                    sensor_list.append(i2csensor)
+                try:
+                    for i2csensor in i2csensors.find({'username': username, 'type': type, 'source': source, 'number': number, 'subclass': sensorclass}):
+                        i2csensor.pop('_id')
+                        if i2csensor.get('username'):
+                            i2csensor.pop('username')
+                        sensor_list.append(i2csensor)
+                except:
+                    pass
+            elif source and sensorstatus is not None:
+                #print("2 4")
+                # 2, 4
+                for i2csensor in i2csensors.find({'username': username, 'type': type, 'source': source, 'number': number, 'enabled': sensorstatus}):
+                    i2csensor.pop('_id')
+                    if i2csensor.get('username'):
+                        i2csensor.pop('username')
+                    sensor_list.append(i2csensor)
+            elif sensorclass and sensorstatus:
+                #print("3 4")
+                # 3, 4
+                for i2csensor in i2csensors.find({'username': username, 'type': type, 'class': sensorclass, 'enabled': sensorstatus}):
+                    i2csensor.pop('_id')
+                    if i2csensor.get('username'):
+                        i2csensor.pop('username')
+                    sensor_list.append(i2csensor)
+                try:
+                    for i2csensor in i2csensors.find({'username': username, 'type': type, 'subclass': sensorclass, 'enabled': sensorstatus}):
+                        i2csensor.pop('_id')
+                        if i2csensor.get('username'):
+                            i2csensor.pop('username')
+                        sensor_list.append(i2csensor)
+                except:
+                    pass
+
+            elif deviceid is not None:
+                #print("1")
+                # 1
+                for i2csensor in i2csensors.find({'username': username, 'type': type, 'deviceid': deviceid}):
+                    i2csensor.pop('_id')
+                    if i2csensor.get('username'):
+                        i2csensor.pop('username')
+                    sensor_list.append(i2csensor)
+            elif source is not None:
+                #print("2")
+                # 2
+                for i2csensor in i2csensors.find({'username': username, 'type': type, 'source': source, 'number': number}):
+                    i2csensor.pop('_id')
+                    if i2csensor.get('username'):
+                        i2csensor.pop('username')
+                    sensor_list.append(i2csensor)
+            elif sensorclass is not None:
+                #print("3")
+                # 3
+                for i2csensor in i2csensors.find({'username': username, 'type': type, 'class': sensorclass}):
+                    i2csensor.pop('_id')
+                    if i2csensor.get('username'):
+                        i2csensor.pop('username')
+                    sensor_list.append(i2csensor)
+                try:
+                    for i2csensor in i2csensors.find({'username': username, 'type': type, 'subclass': sensorclass}):
+                        i2csensor.pop('_id')
+                        if i2csensor.get('username'):
+                            i2csensor.pop('username')
+                        sensor_list.append(i2csensor)
+                except:
+                    pass
+            elif sensorstatus is not None:
+                #print("4")
+                # 4
+                for i2csensor in i2csensors.find({'username': username, 'type': type, 'enabled': sensorstatus}):
+                    i2csensor.pop('_id')
+                    if i2csensor.get('username'):
+                        i2csensor.pop('username')
+                    sensor_list.append(i2csensor)
+
+            else:
+                #print("X")
+                # X
+                for i2csensor in i2csensors.find({'username': username, 'type': type}):
+                    i2csensor.pop('_id')
+                    if i2csensor.get('username'):
+                        i2csensor.pop('username')
+                    sensor_list.append(i2csensor)
+
+        return sensor_list
+
     def get_all_device_sensors(self, deviceid):
         sensor_list = []
         i2csensors = self.get_sensors_document();
@@ -1248,18 +2587,14 @@ class database_client_mongodb:
                 sensor_list.append(i2csensor)
         return sensor_list
 
-    def get_all_device_sensors_enabled_input(self, deviceid):
+    def get_all_device_sensors_by_port(self, deviceid, port):
         sensor_list = []
         i2csensors = self.get_sensors_document();
         if i2csensors:
-            for i2csensor in i2csensors.find({'deviceid': deviceid, 'enabled': 1, 'type': 'input'}):
+            for i2csensor in i2csensors.find({'deviceid': deviceid, 'port': port}):
                 i2csensor.pop('_id')
                 if i2csensor.get('username'):
                     i2csensor.pop('username')
-                if i2csensor.get('devicename'):
-                    i2csensor.pop('devicename')
-                if i2csensor.get('deviceid'):
-                    i2csensor.pop('deviceid')
                 sensor_list.append(i2csensor)
         return sensor_list
 
@@ -1369,12 +2704,23 @@ class database_client_mongodb:
                 sensor_list.append(i2csensor)
         return sensor_list
 
-    def add_sensor(self, deviceid, source, number, sensorname, data):
+    def get_sensors_by_port(self, deviceid, port):
+        sensor_list = []
+        i2csensors = self.get_sensors_document();
+        if i2csensors:
+            for i2csensor in i2csensors.find({'deviceid': deviceid, 'port': port}):
+                #i2csensor['enabled'] = 0
+                i2csensor.pop('_id')
+                i2csensor.pop('deviceid')
+                i2csensor.pop('username')
+                sensor_list.append(i2csensor)
+        return sensor_list
+
+    def add_sensor(self, username, deviceid, source, number, sensorname, data):
         i2csensors = self.get_sensors_document();
         timestamp = str(int(time.time()))
         device = {}
-        #device['username']     = username
-        #device['devicename']   = devicename
+        device['username']     = username
         device['deviceid']     = deviceid
         device['source']       = source
         device['number']       = number
@@ -1384,14 +2730,61 @@ class database_client_mongodb:
         device_all = {}
         device_all.update(device)
         device_all.update(data)
-        #print(device_all)
-        i2csensors.insert_one(device_all)
-        return True
+
+        if data.get("address"):
+            found = i2csensors.find_one({'deviceid': deviceid, 'source': source, 'number': number, 'address': data["address"]})
+            if found is None:
+                i2csensors.insert_one(device_all)
+            else:
+                device_all["sensorname"] = found["sensorname"]
+                device_all["enabled"] = found["enabled"]
+                device_all["configured"] = found["configured"]
+                if found.get("opmode"):
+                    device_all["opmode"] = found["opmode"]
+                i2csensors.replace_one({'deviceid': deviceid, 'source': source, 'number': number, 'address': data["address"]}, device_all)
+            return True
+
+        else:
+            found = i2csensors.find_one({'deviceid': deviceid, 'source': source, 'number': number})
+            if found is None:
+                i2csensors.insert_one(device_all)
+            else:
+                device_all["sensorname"] = found["sensorname"]
+                device_all["enabled"] = found["enabled"]
+                device_all["configured"] = found["configured"]
+                if found.get("opmode"):
+                    device_all["opmode"] = found["opmode"]
+                i2csensors.replace_one({'deviceid': deviceid, 'source': source, 'number': number}, device_all)
+            return True
 
     def delete_device_sensors(self, deviceid):
         i2csensors = self.get_sensors_document();
         try:
             i2csensors.delete_many({'deviceid': deviceid})
+        except:
+            print("delete_device_sensors: Exception occurred")
+            pass
+
+    def delete_device_sensors_by_source(self, deviceid, source):
+        i2csensors = self.get_sensors_document();
+        try:
+            i2csensors.delete_many({'deviceid': deviceid, 'source': source})
+        except:
+            print("delete_device_sensors_by_source: Exception occurred")
+            pass
+
+    def delete_device_sensors_by_source_number(self, deviceid, source, number):
+        i2csensors = self.get_sensors_document();
+        try:
+            i2csensors.delete_many({'deviceid': deviceid, 'source': source, 'number': number})
+        except:
+            print("delete_device_sensors_by_source: Exception occurred")
+            pass
+
+    def delete_device_sensor(self, username, devicename, sensorname):
+        i2csensors = self.get_sensors_document();
+        try:
+            i2csensors.delete_many({'devicename': devicename, 'sensorname': sensorname})
         except:
             print("delete_device_sensors: Exception occurred")
             pass
@@ -1497,46 +2890,49 @@ class database_client_mongodb:
     ##########################################################
 
     def get_sensorreadings_document(self):
-        return self.client[config.CONFIG_MONGODB_TB_SENSORREADINGS]
+        #return self.client[config.CONFIG_MONGODB_TB_SENSORREADINGS]
+        return self.client_sensor[config.CONFIG_MONGODB_TB_SENSORREADINGS]
 
-    def update_sensor_reading(self, deviceid, source, address, sensor_readings):
+    def update_sensor_reading(self, username, deviceid, source, number, sensor_readings):
         sensorreadings = self.get_sensorreadings_document();
         item = {}
+        item['username'] = username
         item['deviceid'] = deviceid
         item['source'] = source
-        if address is not None:
-            item['address'] = address
+        item['number'] = number
         item['sensor_readings'] = sensor_readings
 
-        if address is None:
-            found = sensorreadings.find_one({'deviceid': deviceid, 'source': source})
-            if found is None:
-                #print("update_sensor_reading insert_one")
-                #print(found)
-                sensorreadings.insert_one(item)
-            else:
-                #print("update_sensor_reading replace_one")
-                sensorreadings.replace_one({'deviceid': deviceid, 'source': source}, item)
+        found = sensorreadings.find_one({'deviceid': deviceid, 'source': source, 'number': number})
+        if found is None:
+            sensorreadings.insert_one(item)
         else:
-            found = sensorreadings.find_one({'deviceid': deviceid, 'source': source, 'address': address})
-            if found is None:
-                #print("update_sensor_reading insert_one")
-                #print(found)
-                sensorreadings.insert_one(item)
-            else:
-                #print("update_sensor_reading replace_one")
-                sensorreadings.replace_one({'deviceid': deviceid, 'source': source, 'address': address}, item)
-        #print("update_sensor_reading")
+            sensorreadings.replace_one({'deviceid': deviceid, 'source': source, 'number': number}, item)
 
-    def delete_sensor_reading(self, deviceid, source, address):
+    def delete_sensor_reading(self, deviceid, source, number):
         sensorreadings = self.get_sensorreadings_document();
         try:
-            if address is None:
+            if number is None:
                 sensorreadings.delete_many({'deviceid': deviceid, 'source': source})
             else:
-                sensorreadings.delete_many({'deviceid': deviceid, 'source': source, 'address': address})
+                sensorreadings.delete_many({'deviceid': deviceid, 'source': source, 'number': number})
         except:
             print("delete_sensor_reading: Exception occurred")
+            pass
+
+    def delete_device_sensor_reading(self, deviceid):
+        sensorreadings = self.get_sensorreadings_document();
+        try:
+            sensorreadings.delete_many({'deviceid': deviceid})
+        except:
+            print("delete_device_sensor_reading: Exception occurred")
+            pass
+
+    def delete_user_sensor_reading(self, username):
+        sensorreadings = self.get_sensorreadings_document();
+        try:
+            sensorreadings.delete_many({'username': username})
+        except:
+            print("delete_user_sensor_reading: Exception occurred")
             pass
 
     def delete_sensors_readings(self, deviceid, source):
@@ -1547,19 +2943,14 @@ class database_client_mongodb:
             print("delete_sensors_readings: Exception occurred")
             pass
 
-    def get_sensor_reading_by_deviceid(self, deviceid, source, address):
+    def get_sensor_reading_by_deviceid(self, deviceid, source, number):
         sensorreadings = self.get_sensorreadings_document();
         if sensorreadings:
-            if address is None:
-                for sensorreading in sensorreadings.find({'deviceid': deviceid, 'source': source}):
-                    sensorreading.pop('_id')
-                    #print(sensorreading['sensor_readings'])
-                    return sensorreading['sensor_readings']
-            else:
-                for sensorreading in sensorreadings.find({'deviceid': deviceid, 'source': source, 'address': address}):
-                    sensorreading.pop('_id')
-                    #print(sensorreading['sensor_readings'])
-                    return sensorreading['sensor_readings']
+            for sensorreading in sensorreadings.find({'deviceid': deviceid, 'source': source, 'number': number}):
+                sensorreading.pop('_id')
+                sensorreading.pop('username')
+                #print(sensorreading['sensor_readings'])
+                return sensorreading['sensor_readings']
         return None
 
     def get_sensors_readings_by_deviceid(self, deviceid, source):
@@ -1568,7 +2959,28 @@ class database_client_mongodb:
         if sensorreadings:
             for sensorreading in sensorreadings.find({'deviceid': deviceid, 'source': source}):
                 sensorreading.pop('_id')
+                sensorreading.pop('username')
                 sensorreadings_list.append(sensorreading['sensor_readings'])
+        return sensorreadings_list
+
+    def get_device_sensors_readings_by_deviceid(self, deviceid):
+        sensorreadings_list = []
+        sensorreadings = self.get_sensorreadings_document();
+        if sensorreadings:
+            for sensorreading in sensorreadings.find({'deviceid': deviceid}):
+                sensorreading.pop('_id')
+                sensorreading.pop('username')
+                sensorreadings_list.append(sensorreading)
+        return sensorreadings_list
+
+    def get_user_sensors_readings(self, username):
+        sensorreadings_list = []
+        sensorreadings = self.get_sensorreadings_document();
+        if sensorreadings:
+            for sensorreading in sensorreadings.find({'username': username}):
+                sensorreading.pop('_id')
+                sensorreading.pop('username')
+                sensorreadings_list.append(sensorreading)
         return sensorreadings_list
 
 
@@ -1577,12 +2989,14 @@ class database_client_mongodb:
     ##########################################################
 
     def get_sensorreadings_dataset_document(self):
-        return self.client[config.CONFIG_MONGODB_TB_SENSORREADINGS_DATASET]
+        #return self.client[config.CONFIG_MONGODB_TB_SENSORREADINGS_DATASET]
+        return self.client_sensor[config.CONFIG_MONGODB_TB_SENSORREADINGS_DATASET]
 
-    def add_sensor_reading_dataset(self, deviceid, source, address, value, subclass_value):
+    def add_sensor_reading_dataset(self, username, deviceid, source, address, value, subclass_value):
         timestamp = str(int(time.time()))
         sensorreadings = self.get_sensorreadings_dataset_document();
         item = {}
+        item['username'] = username
         item['deviceid'] = deviceid
         item['source'] = source
         if address is not None:
@@ -1602,8 +3016,9 @@ class database_client_mongodb:
         #print("add_sensor_reading_dataset")
 
     def get_sensor_reading_dataset_by_deviceid(self, deviceid, source, address):
-        dataset = {"labels": [], "data": []}
-        dataset2 = {"labels": [], "data": [[],[]]}
+        # if sensor has a subclass data becomes  [[], [], ...]
+        # if sensor has no subclass data becomes [[]]
+        dataset  = {"labels": [], "data": []}
         sensorreadings = self.get_sensorreadings_dataset_document()
         if sensorreadings:
             if address is None:
@@ -1612,37 +3027,305 @@ class database_client_mongodb:
                     #print(sensorreading)
                     if sensorreading.get("value"):
                         if sensorreading.get("subclass_value"):
-                            dataset2["labels"].append(sensorreading["timestamp"])
-                            dataset2["data"][0].append(sensorreading["value"])
-                            dataset2["data"][1].append(sensorreading["subclass_value"])
+                            dataset["labels"].append(sensorreading["timestamp"])
+                            if len(dataset["data"]) == 0:
+                                dataset["data"].append([])
+                                dataset["data"].append([])
+                            dataset["data"][0].append(sensorreading["value"])
+                            dataset["data"][1].append(sensorreading["subclass_value"])
                         else:
                             dataset["labels"].append(sensorreading["timestamp"])
-                            dataset["data"].append(sensorreading["value"])
+                            if len(dataset["data"]) == 0:
+                                dataset["data"].append([])
+                            dataset["data"][0].append(sensorreading["value"])
             else:
                 readings = sensorreadings.find({'deviceid': deviceid, 'source': source, 'address': address})
                 for sensorreading in readings:
                     if sensorreading.get("value"):
                         if sensorreading.get("subclass_value"):
-                            dataset2["labels"].append(sensorreading["timestamp"])
-                            dataset2["data"][0].append(sensorreading["value"])
-                            dataset2["data"][1].append(sensorreading["subclass_value"])
+                            dataset["labels"].append(sensorreading["timestamp"])
+                            if len(dataset["data"]) == 0:
+                                dataset["data"].append([])
+                                dataset["data"].append([])
+                            dataset["data"][0].append(sensorreading["value"])
+                            dataset["data"][1].append(sensorreading["subclass_value"])
                         else:
                             dataset["labels"].append(sensorreading["timestamp"])
-                            dataset["data"].append(sensorreading["value"])
-        if len(dataset2["labels"]) > 0:
-            return dataset2
+                            if len(dataset["data"]) == 0:
+                                dataset["data"].append([])
+                            dataset["data"][0].append(sensorreading["value"])
         #print(dataset)
         return dataset
 
-    def delete_sensor_reading_dataset(self, deviceid, source, address):
+    def get_sensor_reading_dataset_by_deviceid_timebound(self, deviceid, source, number, datebegin, dateend, period, maxpoints):
+        # if sensor has a subclass data becomes  [[], [], ...]
+        # if sensor has no subclass data becomes [[]]
+        dataset  = {"labels": [], "data": []}
+        sensorreadings = self.get_sensorreadings_dataset_document()
+        if sensorreadings:
+            #print("begin:{} end:{}".format(datebegin, dateend))
+            filter = {'deviceid': deviceid, 'source': source}
+            filter['timestamp'] = {'$gte': datebegin, '$lt': dateend}
+            filter['number'] = number
+            readings = sensorreadings.find(filter)
+            #print(readings.count())
+
+            begin = datebegin
+            end = begin+period
+            if readings.count():
+                if period == 5:
+                    for reading in readings:
+                        # handle case that device has no initial data or has gaps in between
+                        while end < dateend:
+                            if reading["timestamp"] < end:
+                                break
+                            dataset["labels"].append(begin)
+                            if reading.get("subclass_value"):
+                                if len(dataset["data"]) == 0:
+                                    dataset["data"].append([])
+                                    dataset["data"].append([])
+                                dataset["data"][0].append(None)
+                                dataset["data"][1].append(None)
+                            else:
+                                if len(dataset["data"]) == 0:
+                                    dataset["data"].append([])
+                                dataset["data"][0].append(None)
+                            begin = end
+                            end += period
+                        if reading.get("value"):
+                            if reading.get("subclass_value"):
+                                dataset["labels"].append(reading["timestamp"])
+                                if len(dataset["data"]) == 0:
+                                    dataset["data"].append([])
+                                    dataset["data"].append([])
+                                dataset["data"][0].append(reading["value"])
+                                dataset["data"][1].append(reading["subclass_value"])
+                            else:
+                                dataset["labels"].append(reading["timestamp"])
+                                if len(dataset["data"]) == 0:
+                                    dataset["data"].append([])
+                                dataset["data"][0].append(reading["value"])
+                            begin = end
+                            end += period
+                    # handle case that device got disconnected, no more data
+                    while end < dateend:
+                        dataset["labels"].append(begin)
+                        if len(dataset["data"]) == 2:
+                            if len(dataset["data"]) == 0:
+                                dataset["data"].append([])
+                                dataset["data"].append([])
+                            dataset["data"][0].append(None)
+                            dataset["data"][1].append(None)
+                        else:
+                            if len(dataset["data"]) == 0:
+                                dataset["data"].append([])
+                            dataset["data"][0].append(None)
+                        begin = end
+                        end += period
+                else:
+                    #dataset["labels_actual"] = []
+                    #dataset["data_actual"] = []
+                    dataset["low"] = []
+                    dataset["high"] = []
+                    points = []
+                    points2 = []
+                    for reading in readings:
+                        if reading.get("value"):
+                            if reading.get("subclass_value"):
+                                #dataset["labels_actual"].append(reading["timestamp"])
+                                #if len(dataset["data_actual"]) == 0:
+                                #    dataset["data_actual"].append([])
+                                #    dataset["data_actual"].append([])
+                                #dataset["data_actual"][0].append(reading["value"])
+                                #dataset["data_actual"][1].append(reading["subclass_value"])
+
+                                if reading["timestamp"] < end:
+                                    # add data to temporary array for averaging
+                                    points.append(reading["value"])
+                                    points2.append(reading["subclass_value"])
+                                else:
+                                    if len(dataset["data"]) == 0:
+                                        dataset["data"].append([])
+                                        dataset["low"].append([])
+                                        dataset["high"].append([])
+                                        dataset["data"].append([])
+                                        dataset["low"].append([])
+                                        dataset["high"].append([])
+
+                                    # add label timestamp
+                                    dataset["labels"].append(begin)
+
+                                    # add data
+                                    if len(points):
+                                        # process data in temporary array for averaging, minum and maximum
+                                        dataset["data"][0].append(round(statistics.mean(points), 1))
+                                        dataset["low"][0].append(min(points))
+                                        dataset["high"][0].append(max(points))
+                                        points.clear()
+                                        if len(points2):
+                                            dataset["data"][1].append(round(statistics.mean(points2), 1))
+                                            dataset["low"][1].append(min(points2))
+                                            dataset["high"][1].append(max(points2))
+                                            points2.clear()
+                                    else:
+                                        # handle no data
+                                        dataset["data"][0].append(None)
+                                        dataset["low"][0].append(None)
+                                        dataset["high"][0].append(None)
+                                        dataset["data"][1].append(None)
+                                        dataset["low"][1].append(None)
+                                        dataset["high"][1].append(None)
+
+                                    begin = end
+                                    end += period
+                                    while end < dateend:
+                                        if reading["timestamp"] < end:
+                                            # add data to temporary array for averaging
+                                            points.append(reading["value"])
+                                            points2.append(reading["subclass_value"])
+                                            break
+                                        else:
+                                            # add label timestamp
+                                            dataset["labels"].append(begin)
+                                            # handle no data
+                                            dataset["data"][0].append(None)
+                                            dataset["low"][0].append(None)
+                                            dataset["high"][0].append(None)
+                                            dataset["data"][1].append(None)
+                                            dataset["low"][1].append(None)
+                                            dataset["high"][1].append(None)
+                                            # get the next period
+                                            begin = end
+                                            end += period
+
+                            else:
+                                #dataset["labels_actual"].append(reading["timestamp"])
+                                #if len(dataset["data_actual"]) == 0:
+                                #    dataset["data_actual"].append([])
+                                #dataset["data_actual"][0].append(reading["value"])
+
+                                if reading["timestamp"] < end:
+                                    # add data to array for averaging
+                                    points.append(reading["value"])
+                                else:
+                                    if len(dataset["data"]) == 0:
+                                        dataset["data"].append([])
+                                        dataset["low"].append([])
+                                        dataset["high"].append([])
+
+                                    # add label timestamp
+                                    dataset["labels"].append(begin)
+
+                                    # add data
+                                    if len(points):
+                                        # process data in temporary array for averaging, minum and maximum
+                                        dataset["data"][0].append(round(statistics.mean(points), 1))
+                                        dataset["low"][0].append(min(points))
+                                        dataset["high"][0].append(max(points))
+                                        points.clear()
+                                    else:
+                                        # handle no data
+                                        dataset["data"][0].append(None)
+                                        dataset["low"][0].append(None)
+                                        dataset["high"][0].append(None)
+
+                                    begin = end
+                                    end += period
+                                    while end < dateend:
+                                        if reading["timestamp"] < end:
+                                            # add data to temporary array for averaging
+                                            points.append(reading["value"])
+                                            break
+                                        else:
+                                            # add label timestamp
+                                            dataset["labels"].append(begin)
+                                            # handle no data
+                                            dataset["data"][0].append(None)
+                                            dataset["low"][0].append(None)
+                                            dataset["high"][0].append(None)
+                                            # get the next period
+                                            begin = end
+                                            end += period
+
+                    # handle last element
+                    if len(points):
+                        dataset["labels"].append(begin)
+                        if len(dataset["data"]) == 0:
+                            dataset["data"].append([])
+                            dataset["low"].append([])
+                            dataset["high"].append([])
+                        dataset["data"][0].append(round(statistics.mean(points), 1))
+                        dataset["low"][0].append(min(points))
+                        dataset["high"][0].append(max(points))
+                        begin = end
+                        end += period
+                    if len(points2):
+                        if len(dataset["data"]) == 1:
+                            dataset["data"].append([])
+                            dataset["low"].append([])
+                            dataset["high"].append([])
+                        dataset["data"][1].append(round(statistics.mean(points2), 1))
+                        dataset["low"][1].append(min(points2))
+                        dataset["high"][1].append(max(points2))
+                    # handle case that device got disconnected, no more data
+                    while end < dateend:
+                        dataset["labels"].append(begin)
+                        dataset["data"][0].append(None)
+                        dataset["low"][0].append(None)
+                        dataset["high"][0].append(None)
+                        if len(dataset["data"]) == 2:
+                            dataset["data"][1].append(None)
+                            dataset["low"][1].append(None)
+                            dataset["high"][1].append(None)
+                        begin = end
+                        end += period
+
+            else:
+                # handle no data
+                if len(dataset["data"]) == 0:
+                    dataset["data"].append([])
+                while end < dateend:
+                    dataset["labels"].append(begin)
+                    dataset["data"][0].append(None)
+                    begin = end
+                    end += period
+
+#        print(dataset["data_actual"][0][:9])
+#        print(dataset["data"][0][:3])
+#        print(dataset["low"][0][:3])
+#        print(dataset["high"][0][:3])
+#        print(len(dataset["data_actual"][0]))
+#        print(len(dataset["labels"]))
+#        print(len(dataset["data"][0]))
+#        print(len(dataset["low"][0]))
+#        print(len(dataset["high"][0]))
+        return dataset
+
+    def delete_sensor_reading_dataset(self, deviceid, source, number):
         sensorreadings = self.get_sensorreadings_dataset_document()
         try:
-            if address is None:
+            if number is None:
                 sensorreadings.delete_many({'deviceid': deviceid, 'source': source})
             else:
-                sensorreadings.delete_many({'deviceid': deviceid, 'source': source, 'address': address})
+                sensorreadings.delete_many({'deviceid': deviceid, 'source': source, 'number': number})
         except:
             print("delete_sensor_reading_dataset: Exception occurred")
+            pass
+
+    def delete_device_sensor_reading_dataset(self, deviceid):
+        sensorreadings = self.get_sensorreadings_dataset_document()
+        try:
+            sensorreadings.delete_many({'deviceid': deviceid})
+        except:
+            print("delete_device_sensor_reading_dataset: Exception occurred")
+            pass
+
+    def delete_user_sensor_reading_dataset(self, username):
+        sensorreadings = self.get_sensorreadings_dataset_document()
+        try:
+            sensorreadings.delete_many({'username': username})
+        except:
+            print("delete_user_sensor_reading_dataset: Exception occurred")
             pass
 
     def delete_sensors_readings_dataset(self, deviceid, source):
@@ -1652,6 +3335,7 @@ class database_client_mongodb:
         except:
             print("delete_sensors_readings_dataset: Exception occurred")
             pass
+
 
 
     ##########################################################
@@ -1722,6 +3406,1084 @@ class database_client_mongodb:
 
 
     ##########################################################
+    # device location
+    ##########################################################
+
+    #def get_device_location_document(self):
+    #    return self.client[config.CONFIG_MONGODB_TB_DEVICELOCATION]
+
+    #def add_device_location(self, username, deviceid, location):
+    #    devicelocations = self.get_device_location_document()
+    #    item = {}
+    #    item['username'] = username
+    #    item['deviceid'] = deviceid
+    #    item['location'] = location
+    #    found = devicelocations.find_one({'deviceid': deviceid})
+    #    if found is None:
+    #        devicelocations.insert_one(item)
+    #    else:
+    #        devicelocations.replace_one({'deviceid': deviceid}, item)
+
+    #def get_device_location(self, deviceid):
+    #    devicelocations = self.get_device_location_document()
+    #    if devicelocations:
+    #        for devicelocation in devicelocations.find({'deviceid': deviceid}):
+    #            return devicelocation["location"]
+    #    return None
+
+    #def get_devices_location(self, username):
+    #    location_list = []
+    #    devicelocations = self.get_device_location_document()
+    #    if devicelocations:
+    #        for devicelocation in devicelocations.find({'username': username}):
+    #            devicelocation.pop('_id')
+    #            devicelocation.pop('username')
+    #            location_list.append(devicelocation)
+    #    return location_list
+
+    #def delete_device_location(self, deviceid):
+    #    devicelocations = self.get_device_location_document()
+    #    if devicelocations:
+    #        try:
+    #            devicelocations.delete_one({ 'deviceid': deviceid })
+    #        except:
+    #            print("delete_device_location: Exception occurred")
+
+    #def delete_devices_location(self, username):
+    #    devicelocations = self.get_device_location_document()
+    #    if devicelocations:
+    #        try:
+    #            devicelocations.delete_many({ 'username': username })
+    #        except:
+    #            print("delete_devices_location: Exception occurred")
+
+
+    ##########################################################
+    # organizations_users
+    ##########################################################
+
+    def get_organizations_users_document(self):
+        return self.client[config.CONFIG_MONGODB_TB_ORGANIZATIONS_USERS]
+
+    def updateuser_organizations_users(self, username, orgname, orgid, status, membership):
+        timestamp = int(time.time())
+        organizations_doc = self.get_organizations_users_document()
+        item = {}
+        item['username'] = username
+        item['orgname'] = orgname
+        item['orgid'] = orgid
+        item['status'] = status
+        item['date'] = timestamp
+        item['membership'] = membership
+        found = organizations_doc.find_one({'username': username, 'orgname': orgname, 'orgid': orgid})
+        if found is None:
+            if orgname == 'Owner':
+                item['active'] = 1
+            else:
+                item['active'] = 0
+            organizations_doc.insert_one(item)
+        else:
+            found['status'] = status
+            found['date'] = timestamp
+            found['membership'] = membership
+            organizations_doc.replace_one({'username': username, 'orgname': orgname, 'orgid': orgid}, found)
+
+    def setactive_organizations_users(self, username, orgname, orgid):
+        organizations_doc = self.get_organizations_users_document()
+        for organization in organizations_doc.find({'username': username}):
+            if organization['orgname'] == orgname and organization['orgid'] == orgid:
+                organization['active'] = 1
+            else:
+                organization['active'] = 0
+            organizations_doc.replace_one({'username': username, 'orgname': organization['orgname'], 'orgid': organization['orgid']}, organization)
+
+    def getactive_organizations_users(self, username):
+        organizations_doc = self.get_organizations_users_document()
+        for organization in organizations_doc.find({'username': username}):
+            if organization.get('active') is not None:
+                if organization['active']:
+                    return organization['orgname'], organization['orgid']
+        return None, None
+
+    def updateuser_organizations_group(self, username, orgname, orgid, groupname):
+        timestamp = int(time.time())
+        organizations_doc = self.get_organizations_users_document()
+
+        found = organizations_doc.find_one({'username': username, 'orgname': orgname, 'orgid': orgid})
+        if found is not None:
+            if groupname is not None:
+                found["groupname"] = groupname
+            else:
+                if found.get("groupname"):
+                    found.pop("groupname")
+            organizations_doc.replace_one({'username': username, 'orgname': orgname, 'orgid': orgid}, found)
+
+    def removeuser_organizations_users(self, username, orgname, orgid):
+        organizations_doc = self.get_organizations_users_document()
+        try:
+            organizations_doc.delete_one({'username': username, 'orgname': orgname, 'orgid': orgid})
+        except:
+            print("remove_organization_user: Exception occurred")
+
+    def removeuser_organizations_users_by_orgname(self, orgname, orgid):
+        organizations_doc = self.get_organizations_users_document()
+        try:
+            organizations_doc.delete_many({'orgname': orgname, 'orgid': orgid})
+        except:
+            print("remove_organization_user: Exception occurred")
+
+
+    def get_user_organization(self, username, orgname='', orgid='', complete=False):
+        organizations_doc = self.get_organizations_users_document()
+        found = organizations_doc.find_one({'username': username, 'orgname': orgname, 'orgid': orgid})
+        if found is None:
+            return None
+        found.pop('_id')
+        return found
+
+    def get_user_organizations(self, username):
+        organizations_list = []
+        organizations_doc = self.get_organizations_users_document()
+        for organization in organizations_doc.find({'username': username}):
+            organization.pop('username')
+            organization.pop('_id')
+            organizations_list.append(organization)
+        return organizations_list
+
+
+    ##########################################################
+    # organizations
+    ##########################################################
+
+    def get_organizations_document(self):
+        return self.client[config.CONFIG_MONGODB_TB_ORGANIZATIONS]
+
+    def get_organizations(self, username):
+        organizations = self.get_user_organizations(username)
+        return organizations
+
+    def set_active_organization(self, username, orgname, orgid):
+        self.setactive_organizations_users(username, orgname, orgid)
+
+    def get_active_organization(self, username):
+        orgname, orgid = self.getactive_organizations_users(username)
+        return orgname, orgid
+
+
+    def get_organization(self, username, orgname, orgid):
+        ###
+        user = self.get_user_organization(username, orgname=orgname, orgid=orgid, complete=True)
+        ###
+        if user is None:
+            return None
+        if user["membership"] != "Owner":
+            if user.get("username"):
+                user.pop("username")
+            if user.get("active"):
+                user.pop("active")
+            return user
+
+        organizations_doc = self.get_organizations_document()
+        organization = organizations_doc.find_one({'orgname': orgname, 'orgid': orgid})
+        if organization is None:
+            return None
+        organization["membership"] = user["membership"]
+        organization["members"] = []
+        for userx in organization["users"]:
+            userx_info = self.get_user_organization(userx, orgname=orgname, orgid=orgid, complete=False)
+            if userx_info.get("orgname"):
+                userx_info.pop("orgname")
+            if userx_info.get("orgid"):
+                userx_info.pop("orgid")
+            if userx_info.get("active"):
+                userx_info.pop("active")
+            organization["members"].append(userx_info)
+
+        organization.pop("_id")
+        organization.pop("users")
+        organization["status"] = user["status"]
+        organization["date"] = user["date"]
+        #print(organization)
+        return organization
+
+    def leave_organization(self, username, orgname, orgid):
+        ###
+        user = self.get_user_organization(username, orgname=orgname, orgid=orgid, complete=True)
+        ###
+        if user is None:
+            return False, 401 # HTTP_401_UNAUTHORIZED
+        if user["status"] != "Joined":
+            return False, 401 # HTTP_401_UNAUTHORIZED
+
+        organizations_doc = self.get_organizations_document()
+        item = organizations_doc.find_one({'orgname': orgname, 'orgid': orgid})
+        if item is None:
+            return False, 404 # HTTP_404_NOT_FOUND, org not found
+        else:
+            self.remove_member_from_organization_group_ex(item["users"][0], orgname, orgid, username)
+
+            found = False
+            for x in item["users"]:
+                if x == username:
+                    item['users'].remove(x)
+                    organizations_doc.replace_one({'orgname': orgname, 'orgid': orgid}, item)
+                    ###
+                    self.removeuser_organizations_users(username, orgname, orgid)
+                    ###
+                    found = True
+                    break
+            if found == False:
+                return False, 404 # HTTP_404_NOT_FOUND
+            # select the new active organization
+            #self.select_new_active_org(username)
+        return True, None
+
+    def accept_organization_invitation(self, member, orgname, orgid):
+        ###
+        user = self.get_user_organization(member, orgname=orgname, orgid=orgid, complete=True)
+        ###
+        if user is None:
+            print("error 1")
+            return False, 401 # HTTP_401_UNAUTHORIZED
+        if user["status"] != "Invited":
+            print("error 2")
+            return False, 401 # HTTP_401_UNAUTHORIZED
+
+        organizations_doc = self.get_organizations_document()
+        item = organizations_doc.find_one({'orgname': orgname, 'orgid': orgid})
+        if item is None:
+            return False, 404 # HTTP_404_NOT_FOUND, org not found
+        else:
+            found = False
+            for x in item["users"]:
+                if x == member:
+                    found = True
+                    break
+            if found == False:
+                return False, 404 # HTTP_404_NOT_FOUND
+            ###
+            self.updateuser_organizations_users(member, orgname, orgid, "Joined", "Member")
+            ###
+        return True, None
+
+    def decline_organization_invitation(self, member, orgname, orgid):
+        ###
+        user = self.get_user_organization(member, orgname=orgname, orgid=orgid, complete=True)
+        ###
+        if user is None:
+            print("error 1")
+            return False, 401 # HTTP_401_UNAUTHORIZED
+        if user["status"] != "Invited":
+            print("error 2")
+            return False, 401 # HTTP_401_UNAUTHORIZED
+
+        organizations_doc = self.get_organizations_document()
+        item = organizations_doc.find_one({'orgname': orgname, 'orgid': orgid})
+        if item is None:
+            return False, 404 # HTTP_404_NOT_FOUND, org not found
+        else:
+            self.remove_member_from_organization_group_ex(item["users"][0], orgname, orgid, member)
+
+            found = False
+            for x in item["users"]:
+                if x == member:
+                    item['users'].remove(x)
+                    organizations_doc.replace_one({'orgname': orgname, 'orgid': orgid}, item)
+                    ###
+                    self.removeuser_organizations_users(member, orgname, orgid)
+                    ###
+                    found = True
+                    break
+            if found == False:
+                return False, 404 # HTTP_404_NOT_FOUND
+            # select the new active organization
+            #self.select_new_active_org(username)
+        return True, None
+
+
+    ####################
+
+
+    def create_organization(self, username, orgname):
+        # multiple organizations is allowed
+        ###
+        #orgs = self.get_user_organizations(username)
+        ###
+        #if len(orgs) == 3:
+        #    # Max of 3 organizations for now
+        #    return False, 401 # HTTP_401_UNAUTHORIZED
+
+        timestamp = int(time.time())
+        organizations_doc = self.get_organizations_document()
+        item = {}
+        item['orgname'] = orgname
+        item['orgid'] = timestamp
+        item['users'] = [username]
+        found = organizations_doc.find_one({'orgname': orgname})
+        if found is None:
+            organizations_doc.insert_one(item)
+            ###
+            self.updateuser_organizations_users(username, orgname, item["orgid"], "Joined", "Owner")
+            self.setactive_organizations_users(username, orgname, item['orgid'])
+            ###
+        else:
+            # allow adding since orgid will be different anyway
+            organizations_doc.insert_one(item)
+            ###
+            self.updateuser_organizations_users(username, orgname, item["orgid"], "Joined", "Owner")
+            self.setactive_organizations_users(username, orgname, item['orgid'])
+
+        # add the default policies
+        for policy in self.get_default_policies():
+            self.create_organization_policy(username, orgname, item['orgid'], policy["policyname"], policy["settings"], "Default")
+
+        return True, None
+
+    def get_organization_members(self, username, orgname, orgid):
+        organizations_doc = self.get_organizations_document()
+        found = organizations_doc.find_one({'orgname': orgname, 'orgid': orgid})
+        if found is None:
+            return None
+        if username != found["users"][0]:
+            return None
+        del found["users"][0]
+        return found["users"]
+
+    def select_new_active_org(self, username):
+        orgs = self.get_user_organizations(username)
+        if len(orgs):
+            self.setactive_organizations_users(username, orgs[-1]['orgname'], orgs[-1]['orgid'])
+
+    def delete_organization(self, username, orgname, orgid):
+        ###
+        self.delete_organization_policies(username, orgname, orgid)
+        ###
+
+        ###
+        self.delete_organization_groups(username, orgname, orgid)
+        ###
+
+        organizations_doc = self.get_organizations_document()
+        item = organizations_doc.find_one({'orgname': orgname, 'orgid': orgid})
+        if item is None:
+            return False, 404 # HTTP_404_NOT_FOUND
+        else:
+            if item["users"][0] != username:
+                return False, 401 # HTTP_401_UNAUTHORIZED
+            ###
+            self.removeuser_organizations_users_by_orgname(orgname, orgid)
+            ###
+            organizations_doc.delete_one(item)
+            # select the new active organization
+            #self.select_new_active_org(username)
+
+        return True, None
+
+    def check_create_organization_invitation(self, username, orgname, orgid, member):
+        ###
+        user = self.get_user_organization(member, orgname=orgname, orgid=orgid, complete=True)
+        ###
+        if user is not None:
+            return False, 400 # HTTP_400_BAD_REQUEST
+
+        return True, None
+
+    def create_organization_invitation(self, username, orgname, orgid, member):
+        organizations_doc = self.get_organizations_document()
+        item = organizations_doc.find_one({'orgname': orgname, 'orgid': orgid})
+        if item is None:
+            return False, 404 # HTTP_404_NOT_FOUND, org not found
+        else:
+            if item["users"][0] != username:
+                return False, 401 # HTTP_401_UNAUTHORIZED, only master can add or remove
+            for user in item["users"]:
+                if user == member:
+                    return False, 400 # HTTP_400_BAD_REQUEST, already a member
+            item['users'].append(member)
+            organizations_doc.replace_one({'orgname': orgname, 'orgid': orgid}, item)
+            ###
+            self.updateuser_organizations_users(member, orgname, orgid, "Invited", "Not member")
+            orgs = self.get_user_organizations(member)
+            if len(orgs) == 1:
+                self.setactive_organizations_users(member, orgname, orgid)
+            ###
+        return True, None
+
+    def check_cancel_organization_invitation(self, username, orgname, orgid, member):
+        ###
+        user = self.get_user_organization(member, orgname=orgname, orgid=orgid, complete=True)
+        ###
+        if user is None:
+            return False, 400 # HTTP_400_BAD_REQUEST
+        if user["status"] != "Invited":
+            return False, 400 # HTTP_400_BAD_REQUEST
+
+        return True, None
+
+    def cancel_organization_invitation(self, username, orgname, orgid, member):
+        self.remove_member_from_organization_group_ex(username, orgname, orgid, member)
+
+        ###
+        user = self.get_user_organization(member, orgname=orgname, orgid=orgid, complete=True)
+        ###
+        if user is None:
+            return False, 400 # HTTP_400_BAD_REQUEST
+        if user["status"] != "Invited":
+            return False, 400 # HTTP_400_BAD_REQUEST
+
+        organizations_doc = self.get_organizations_document()
+        item = organizations_doc.find_one({'orgname': orgname, 'orgid': orgid})
+        if item is None:
+            return False, 404 # HTTP_404_NOT_FOUND, org not found
+        else:
+            if item["users"][0] != username:
+                return False, 401 # HTTP_401_UNAUTHORIZED, only master can add or remove
+            if member == username:
+                return False, 401 # HTTP_401_UNAUTHORIZED, cannot remove master
+            found = False
+            for x in item["users"]:
+                if x == member:
+                    item['users'].remove(x)
+                    organizations_doc.replace_one({'orgname': orgname, 'orgid': orgid}, item)
+                    ###
+                    self.removeuser_organizations_users(member, orgname, orgid)
+                    ###
+                    found = True
+                    break
+            if found == False:
+                return False, 404 # HTTP_404_NOT_FOUND
+        return True, None
+
+
+    def check_remove_organization_membership(self, username, orgname, orgid, member):
+        ###
+        user = self.get_user_organization(member, orgname=orgname, orgid=orgid, complete=True)
+        ###
+        if user is None:
+            return False, 400 # HTTP_400_BAD_REQUEST
+        if user["status"] != "Joined":
+            return False, 400 # HTTP_400_BAD_REQUEST
+
+        return True, None
+
+    def remove_organization_membership(self, username, orgname, orgid, member):
+        self.remove_member_from_organization_group_ex(username, orgname, orgid, member)
+
+        ###
+        user = self.get_user_organization(member, orgname=orgname, orgid=orgid, complete=True)
+        ###
+        if user is None:
+            return False, 400 # HTTP_400_BAD_REQUEST
+        if user["status"] != "Joined":
+            return False, 400 # HTTP_400_BAD_REQUEST
+
+        organizations_doc = self.get_organizations_document()
+        item = organizations_doc.find_one({'orgname': orgname, 'orgid': orgid})
+        if item is None:
+            return False, 404 # HTTP_404_NOT_FOUND, org not found
+        else:
+            if item["users"][0] != username:
+                return False, 401 # HTTP_401_UNAUTHORIZED, only master can add or remove
+            if member == username:
+                return False, 401 # HTTP_401_UNAUTHORIZED, cannot remove master
+            found = False
+            for x in item["users"]:
+                if x == member:
+                    item['users'].remove(x)
+                    organizations_doc.replace_one({'orgname': orgname, 'orgid': orgid}, item)
+                    ###
+                    self.removeuser_organizations_users(member, orgname, orgid)
+                    ###
+                    found = True
+                    break
+            if found == False:
+                return False, 404 # HTTP_404_NOT_FOUND
+        return True, None
+
+
+    ##########################################################
+    # organization groups
+    ##########################################################
+
+    def get_organizations_groups_document(self):
+        return self.client[config.CONFIG_MONGODB_TB_ORGANIZATIONS_GROUPS]
+
+    def get_organization_groups(self, username, orgname, orgid, check=True):
+        if check == True:
+            ###
+            user = self.get_user_organization(username, orgname=orgname, orgid=orgid, complete=True)
+            ###
+            if user is None:
+                return False, 401 # HTTP_401_UNAUTHORIZED
+            if user["membership"] != "Owner" or user["orgname"] != orgname:
+                return False, 401 # HTTP_401_UNAUTHORIZED
+
+        group_list = []
+        organizations_groups = self.get_organizations_groups_document()
+        if organizations_groups:
+            for group in organizations_groups.find({'orgname': orgname, 'orgid': orgid}):
+                group.pop("_id")
+                group.pop("orgname")
+                group.pop("orgid")
+                group_list.append(group)
+        return group_list
+
+    def create_organization_group(self, username, orgname, orgid, groupname):
+        ###
+        user = self.get_user_organization(username, orgname=orgname, orgid=orgid, complete=True)
+        ###
+        if user is None:
+            return False, 401 # HTTP_401_UNAUTHORIZED
+        if user["membership"] != "Owner" or user["orgname"] != orgname:
+            return False, 401 # HTTP_401_UNAUTHORIZED
+
+        organizations_groups = self.get_organizations_groups_document()
+        item = {}
+        item['orgname'] = orgname
+        item['orgid'] = orgid
+        item['groupname'] = groupname
+        item['members'] = []
+        item['policies'] = ["ReadOnly"] # add ReadOnly policy by default
+        found = organizations_groups.find_one({'orgname': orgname, 'orgid': orgid, 'groupname': groupname})
+        if found is None:
+            organizations_groups.insert_one(item)
+        else:
+            return False, 409 # HTTP_409_CONFLICT
+        return True, None
+
+    def delete_organization_group(self, username, orgname, orgid, groupname):
+        ###
+        user = self.get_user_organization(username, orgname=orgname, orgid=orgid, complete=True)
+        ###
+        if user is None:
+            return False, 401 # HTTP_401_UNAUTHORIZED
+        if user["membership"] != "Owner" or user["orgname"] != orgname:
+            return False, 401 # HTTP_401_UNAUTHORIZED
+
+        organizations_groups = self.get_organizations_groups_document()
+        item = organizations_groups.find_one({'orgname': orgname, 'orgid': orgid, 'groupname': groupname})
+        if item is None:
+            return False, 404 # HTTP_404_NOT_FOUND
+        else:
+            for x in range(len(item["members"]), 0, -1):
+                ###
+                self.updateuser_organizations_group(item["members"][x-1], orgname, orgid, None)
+                ###
+                del item["members"][x-1]
+            organizations_groups.delete_one({'orgname': orgname, 'orgid': orgid, 'groupname': groupname})
+        return True, None
+
+    def delete_organization_groups(self, username, orgname, orgid):
+        ###
+        user = self.get_user_organization(username, orgname=orgname, orgid=orgid, complete=True)
+        ###
+        if user is None:
+            return False, 401 # HTTP_401_UNAUTHORIZED
+        if user["membership"] != "Owner" or user["orgname"] != orgname:
+            return False, 401 # HTTP_401_UNAUTHORIZED
+
+        organizations_groups = self.get_organizations_groups_document()
+        try:
+            organizations_groups.delete_many({'orgname': orgname, 'orgid': orgid})
+        except:
+            return False, 404 # HTTP_404_NOT_FOUND
+        return True, None
+
+
+    def get_members_in_organization_group(self, username, orgname, orgid, groupname):
+        ###
+        user = self.get_user_organization(username, orgname=orgname, orgid=orgid, complete=True)
+        ###
+        if user is None:
+            return False, 401 # HTTP_401_UNAUTHORIZED
+        if user["membership"] != "Owner" or user["orgname"] != orgname:
+            return False, 401 # HTTP_401_UNAUTHORIZED
+
+        members_list = []
+        if groupname == "Ungrouped":
+            members = self.get_organization_members(username, orgname, orgid)
+            for member in members:
+                user = self.get_user_organization(member, orgname=orgname, orgid=orgid, complete=True)
+                if user is None:
+                    return False, 401 # HTTP_401_UNAUTHORIZED
+                if user.get("groupname") is None:
+                    members_list.append(member)
+            return True, members_list
+
+        organizations_groups = self.get_organizations_groups_document()
+        item = organizations_groups.find_one({'orgname': orgname, 'orgid': orgid, 'groupname': groupname})
+        if item is None:
+            return False, 404 # HTTP_404_NOT_FOUND, org not found
+        return True, item["members"]
+
+    def update_members_in_organization_group(self, username, orgname, orgid, groupname, members):
+        ###
+        user = self.get_user_organization(username, orgname=orgname, orgid=orgid, complete=True)
+        ###
+        if user is None:
+            return False, 401 # HTTP_401_UNAUTHORIZED
+        if user["membership"] != "Owner" or user["orgname"] != orgname:
+            return False, 401 # HTTP_401_UNAUTHORIZED
+
+        organizations_groups = self.get_organizations_groups_document()
+        item = organizations_groups.find_one({'orgname': orgname, 'orgid': orgid, 'groupname': groupname})
+        if item is None:
+            return False, 404 # HTTP_404_NOT_FOUND, org not found
+        else:
+            for x in range(len(item["members"]), 0, -1):
+                if item["members"][x-1] not in members:
+                    ###
+                    self.updateuser_organizations_group(item["members"][x-1], orgname, orgid, None)
+                    ###
+                    del item["members"][x-1]
+            organizations_groups.replace_one({'orgname': orgname, 'orgid': orgid, 'groupname': groupname}, item)
+        return True, None
+
+    def add_member_to_organization_group(self, username, orgname, orgid, groupname, membername):
+        ###
+        user = self.get_user_organization(username, orgname=orgname, orgid=orgid, complete=True)
+        ###
+        if user is None:
+            return False, 401 # HTTP_401_UNAUTHORIZED
+        if user["membership"] != "Owner" or user["orgname"] != orgname:
+            return False, 401 # HTTP_401_UNAUTHORIZED
+
+        ###
+        user = self.get_user_organization(membername, orgname=orgname, orgid=orgid, complete=True)
+        ###
+        if user is None:
+            return False, 401 # HTTP_401_UNAUTHORIZED
+        if user["membership"] == "Owner" or user["orgname"] != orgname:
+            return False, 401 # HTTP_401_UNAUTHORIZED
+
+        organizations_groups = self.get_organizations_groups_document()
+        item = organizations_groups.find_one({'orgname': orgname, 'orgid': orgid, 'groupname': groupname})
+        if item is None:
+            return False, 404 # HTTP_404_NOT_FOUND, org not found
+        else:
+            if membername in item["members"]:
+                return False, 400 # HTTP_400_BAD_REQUEST, already a member
+            item['members'].append(membername)
+            organizations_groups.replace_one({'orgname': orgname, 'orgid': orgid, 'groupname': groupname}, item)
+            ###
+            self.updateuser_organizations_group(membername, orgname, orgid, groupname)
+            ###
+        return True, None
+
+    def remove_member_from_organization_group(self, username, orgname, orgid, groupname, membername):
+        ###
+        user = self.get_user_organization(username, orgname=orgname, orgid=orgid, complete=True)
+        ###
+        if user is None:
+            return False, 401 # HTTP_401_UNAUTHORIZED
+        if user["membership"] != "Owner" or user["orgname"] != orgname:
+            return False, 401 # HTTP_401_UNAUTHORIZED
+
+        ###
+        user = self.get_user_organization(membername, orgname=orgname, orgid=orgid, complete=True)
+        ###
+        if user is None:
+            return False, 401 # HTTP_401_UNAUTHORIZED
+        if user["membership"] == "Owner" or user["orgname"] != orgname:
+            return False, 401 # HTTP_401_UNAUTHORIZED
+
+        organizations_groups = self.get_organizations_groups_document()
+        item = organizations_groups.find_one({'orgname': orgname, 'orgid': orgid, 'groupname': groupname})
+        if item is None:
+            return False, 404 # HTTP_404_NOT_FOUND, org not found
+        else:
+            if membername in item["members"]:
+                item['members'].remove(membername)
+                organizations_groups.replace_one({'orgname': orgname, 'orgid': orgid, 'groupname': groupname}, item)
+            ###
+            self.updateuser_organizations_group(membername, orgname, orgid, None)
+            ###
+        return True, None
+
+    def remove_member_from_organization_group_ex(self, username, orgname, orgid, membername):
+        ###
+        user = self.get_user_organization(username, orgname=orgname, orgid=orgid, complete=True)
+        ###
+        if user is None:
+            return False, 401 # HTTP_401_UNAUTHORIZED
+        if user["membership"] != "Owner" or user["orgname"] != orgname:
+            return False, 401 # HTTP_401_UNAUTHORIZED
+
+        ###
+        user = self.get_user_organization(membername, orgname=orgname, orgid=orgid, complete=True)
+        ###
+        if user is None:
+            return False, 401 # HTTP_401_UNAUTHORIZED
+        if user["membership"] == "Owner" or user["orgname"] != orgname:
+            return False, 401 # HTTP_401_UNAUTHORIZED
+
+        if user.get("groupname") is None:
+            return True, None # member has no group
+
+        organizations_groups = self.get_organizations_groups_document()
+        item = organizations_groups.find_one({'orgname': orgname, 'orgid': orgid, 'groupname': user["groupname"]})
+        if item is None:
+            return False, 404 # HTTP_404_NOT_FOUND, org not found
+        else:
+            if membername in item["members"]:
+                item['members'].remove(membername)
+                organizations_groups.replace_one({'orgname': orgname, 'orgid': orgid, 'groupname': user["groupname"]}, item)
+            ###
+            self.updateuser_organizations_group(membername, orgname, orgid, None)
+            ###
+        return True, None
+
+
+    def get_policies_in_organization_group(self, username, orgname, orgid, groupname):
+        ###
+        user = self.get_user_organization(username, orgname=orgname, orgid=orgid, complete=True)
+        ###
+        if user is None:
+            return False, 401 # HTTP_401_UNAUTHORIZED
+        if user["membership"] != "Owner" or user["orgname"] != orgname:
+            return False, 401 # HTTP_401_UNAUTHORIZED
+
+        organizations_groups = self.get_organizations_groups_document()
+        item = organizations_groups.find_one({'orgname': orgname, 'orgid': orgid, 'groupname': groupname})
+        if item is None:
+            return False, 404 # HTTP_404_NOT_FOUND, org not found
+        return True, item["policies"]
+
+    def update_policies_in_organization_group(self, username, orgname, orgid, groupname, policies):
+        ###
+        user = self.get_user_organization(username, orgname=orgname, orgid=orgid, complete=True)
+        ###
+        if user is None:
+            return False, 401 # HTTP_401_UNAUTHORIZED
+        if user["membership"] != "Owner" or user["orgname"] != orgname:
+            return False, 401 # HTTP_401_UNAUTHORIZED
+
+        organizations_groups = self.get_organizations_groups_document()
+        item = organizations_groups.find_one({'orgname': orgname, 'orgid': orgid, 'groupname': groupname})
+        if item is None:
+            return False, 404 # HTTP_404_NOT_FOUND, org not found
+        else:
+            for x in range(len(item["policies"]), 0, -1):
+                if item["policies"][x-1] not in policies:
+                    ###
+                    #self.updateuser_organizations_group(item["policies"][x-1], orgname, orgid, None)
+                    ###
+                    del item["policies"][x-1]
+            organizations_groups.replace_one({'orgname': orgname, 'orgid': orgid, 'groupname': groupname}, item)
+        return True, None
+
+    def add_policy_to_organization_group(self, username, orgname, orgid, groupname, policyname):
+        ###
+        user = self.get_user_organization(username, orgname=orgname, orgid=orgid, complete=True)
+        ###
+        if user is None:
+            return False, 401 # HTTP_401_UNAUTHORIZED
+        if user["membership"] != "Owner" or user["orgname"] != orgname:
+            return False, 401 # HTTP_401_UNAUTHORIZED
+
+
+        organizations_groups = self.get_organizations_groups_document()
+        item = organizations_groups.find_one({'orgname': orgname, 'orgid': orgid, 'groupname': groupname})
+        if item is None:
+            return False, 404 # HTTP_404_NOT_FOUND, org not found
+        else:
+            if policyname in item["policies"]:
+                return False, 400 # HTTP_400_BAD_REQUEST, already a member
+            item['policies'].append(policyname)
+            organizations_groups.replace_one({'orgname': orgname, 'orgid': orgid, 'groupname': groupname}, item)
+            ###
+            #self.updateuser_organizations_group(policyname, orgname, orgid, groupname)
+            ###
+        return True, None
+
+    def remove_policy_from_organization_group(self, username, orgname, orgid, groupname, policyname):
+        ###
+        user = self.get_user_organization(username, orgname=orgname, orgid=orgid, complete=True)
+        ###
+        if user is None:
+            return False, 401 # HTTP_401_UNAUTHORIZED
+        if user["membership"] != "Owner" or user["orgname"] != orgname:
+            return False, 401 # HTTP_401_UNAUTHORIZED
+
+
+        organizations_groups = self.get_organizations_groups_document()
+        item = organizations_groups.find_one({'orgname': orgname, 'orgid': orgid, 'groupname': groupname})
+        if item is None:
+            return False, 404 # HTTP_404_NOT_FOUND, org not found
+        else:
+            if policyname in item["policies"]:
+                item['policies'].remove(policyname)
+                organizations_groups.replace_one({'orgname': orgname, 'orgid': orgid, 'groupname': groupname}, item)
+            ###
+            #self.updateuser_organizations_group(policyname, orgname, orgid, None)
+            ###
+        return True, None
+
+    def remove_policy_from_organization_group_ex(self, username, orgname, orgid, policyname):
+        ###
+        user = self.get_user_organization(username, orgname=orgname, orgid=orgid, complete=True)
+        ###
+        if user is None:
+            return False, 401 # HTTP_401_UNAUTHORIZED
+        if user["membership"] != "Owner" or user["orgname"] != orgname:
+            return False, 401 # HTTP_401_UNAUTHORIZED
+
+
+        organizations_groups = self.get_organizations_groups_document()
+        item = organizations_groups.find({'orgname': orgname, 'orgid': orgid})
+        if item is None:
+            return False, 404 # HTTP_404_NOT_FOUND, org not found
+        else:
+            for group in item:
+                if policyname in group["policies"]:
+                    group['policies'].remove(policyname)
+                    organizations_groups.replace_one({'orgname': orgname, 'orgid': orgid, 'groupname': group['groupname']}, group)
+        return True, None
+
+
+    def is_authorized(self, username, orgname, orgid, category, crudindex):
+
+        ###
+        user = self.get_user_organization(username, orgname=orgname, orgid=orgid, complete=True)
+        ###
+        if user is None:
+            return False
+        if user["membership"] == "Owner":
+            # check if user is the owner
+            print("is_authorized: Owner")
+            return True
+
+        # get the group of the user in the organization
+        print("is_authorized: get the group of the user in the organization")
+        found = None
+        groups = self.get_organization_groups(username, orgname, orgid, check=False)
+        for group in groups:
+            if username in group["members"]:
+                found = group
+                break
+
+        if found is None:
+            print("is_authorized: user is not part of any group, so ReadOnly by default")
+            # user is not part of any group, so ReadOnly by default
+            return True if crudindex == database_crudindex.READ else False
+
+        if len(found["policies"]) == 0:
+            # if no policy for the group, that is, user removed the default ReadOnly policy, enforce ReadOnly policy
+            print("is_authorized: if no policy for the group, that is, user removed the default ReadOnly policy, enforce ReadOnly policy")
+            return True if crudindex == database_crudindex.READ else False
+        elif len(found["policies"]) == 1:
+            # for optimization, check if policy is ReadOnly only
+            policyname = found["policies"][0]
+            print("is_authorized: single policy {}".format(policyname))
+
+            #if policyname == "ReadOnly":
+            #    print("is_authorized: for optimization, check if policy is ReadOnly only {} {}".format(crudindex, database_crudindex.READ))
+            #    return True if crudindex == database_crudindex.READ else False
+
+            # get the policy settings
+            policy = self.get_organization_policy(username, orgname, orgid, policyname, check=False)
+            if policy is None:
+                return True if crudindex == database_crudindex.READ else False
+            for setting in policy["settings"]:
+                if setting["label"] == category:
+                    print("is_authorized: 1 policy {} {}".format(policyname, setting["crud"][crudindex]))
+                    return setting["crud"][crudindex]
+            return True if crudindex == database_crudindex.READ else False
+        else:
+            print("is_authorized: multiple policies {}".format(found["policies"]))
+
+            # for multiple policies, get the union of the policies
+            for policyname in found["policies"]:
+                policy = self.get_organization_policy(username, orgname, orgid, policyname, check=False)
+                if policy is None:
+                    return True if crudindex == database_crudindex.READ else False
+                for setting in policy["settings"]:
+                    if setting["label"] == category:
+                        if setting["crud"][crudindex] == True:
+                            print("is_authorized: True")
+                            return True
+                        else:
+                            break # break the inner loop only
+        print("is_authorized: False")
+        return False
+
+
+    ##########################################################
+    # default policies
+    ##########################################################
+
+    def get_default_policies_document(self):
+        return self.client[config.CONFIG_MONGODB_TB_DEFAULT_POLICIES]
+
+    def create_default_policy(self, policyname, settings):
+        default_policies_doc = self.get_default_policies_document()
+        item = {}
+        item['policyname'] = policyname
+        item['settings'] = settings
+        found = default_policies_doc.find_one({'policyname': policyname})
+        if found is None:
+            default_policies_doc.insert_one(item)
+        else:
+            default_policies_doc.replace_one({'policyname': policyname}, item)
+        return True, None
+
+    def get_default_policies(self):
+        default_policies_doc = self.get_default_policies_document()
+        default_policies = []
+        for policy in default_policies_doc.find({}):
+            policy.pop("_id")
+            default_policies.append(policy)
+        return default_policies
+
+
+    ##########################################################
+    # organization policies
+    ##########################################################
+
+    def get_organizations_policies_document(self):
+        return self.client[config.CONFIG_MONGODB_TB_ORGANIZATIONS_POLICIES]
+
+    def get_organization_policies(self, username, orgname, orgid):
+        ###
+        user = self.get_user_organization(username, orgname=orgname, orgid=orgid, complete=True)
+        ###
+        if user is None:
+            return False, 401 # HTTP_401_UNAUTHORIZED
+        if user["membership"] != "Owner" or user["orgname"] != orgname:
+            return False, 401 # HTTP_401_UNAUTHORIZED
+
+        policy_list = []
+        organizations_policies = self.get_organizations_policies_document()
+        if organizations_policies:
+            for policy in organizations_policies.find({'orgname': orgname, 'orgid': orgid}):
+                policy.pop("_id")
+                policy.pop("orgname")
+                policy.pop("orgid")
+                policy_list.append(policy)
+        return policy_list
+
+    def get_organization_policy(self, username, orgname, orgid, policyname, check=True):
+        if check == True:
+            ###
+            user = self.get_user_organization(username, orgname=orgname, orgid=orgid, complete=True)
+            ###
+            if user is None:
+                return None
+            if user["membership"] != "Owner" or user["orgname"] != orgname:
+                return None
+
+        organizations_policies = self.get_organizations_policies_document()
+        policy = organizations_policies.find_one({'orgname': orgname, 'orgid': orgid, 'policyname': policyname})
+        if policy is None:
+            return None
+        policy.pop("_id")
+        return policy
+
+    def create_organization_policy(self, username, orgname, orgid, policyname, settings, type="Custom"):
+        ###
+        user = self.get_user_organization(username, orgname=orgname, orgid=orgid, complete=True)
+        ###
+        if user is None:
+            return False, 401 # HTTP_401_UNAUTHORIZED
+        if user["membership"] != "Owner" or user["orgname"] != orgname:
+            return False, 401 # HTTP_401_UNAUTHORIZED
+
+        organizations_policies = self.get_organizations_policies_document()
+        item = {}
+        item['orgname'] = orgname
+        item['orgid'] = user['orgid']
+        item['policyname'] = policyname
+        item['settings'] = settings
+        item['type'] = type
+        #item['members'] = []
+        found = organizations_policies.find_one({'orgname': orgname, 'orgid': orgid, 'policyname': policyname})
+        if found is None:
+            organizations_policies.insert_one(item)
+        else:
+            # prevent updating the default policies
+            if found["type"] == "Default":
+                return False, 400 # HTTP_400_BAD_REQUEST
+            organizations_policies.replace_one({'orgname': orgname, 'orgid': orgid, 'policyname': policyname}, item)
+        return True, None
+
+    def delete_organization_policy(self, username, orgname, orgid, policyname):
+        ###
+        user = self.get_user_organization(username, orgname=orgname, orgid=orgid, complete=True)
+        ###
+        if user is None:
+            return False, 401 # HTTP_401_UNAUTHORIZED
+        if user["membership"] != "Owner" or user["orgname"] != orgname:
+            return False, 401 # HTTP_401_UNAUTHORIZED
+
+        organizations_policies = self.get_organizations_policies_document()
+        item = organizations_policies.find_one({'orgname': orgname, 'orgid': orgid, 'policyname': policyname})
+        if item is None:
+            return False, 404 # HTTP_404_NOT_FOUND
+        else:
+            # prevent updating the default policies
+            if item["type"] == "Default":
+                return False, 400 # HTTP_400_BAD_REQUEST
+            #
+            self.remove_policy_from_organization_group_ex(username, orgname, orgid, policyname)
+            #
+            organizations_policies.delete_one({'orgname': orgname, 'orgid': orgid, 'policyname': policyname})
+        return True, None
+
+    def delete_organization_policies(self, username, orgname, orgid):
+        ###
+        user = self.get_user_organization(username, orgname=orgname, orgid=orgid, complete=True)
+        ###
+        if user is None:
+            return False, 401 # HTTP_401_UNAUTHORIZED
+        if user["membership"] != "Owner" or user["orgname"] != orgname:
+            return False, 401 # HTTP_401_UNAUTHORIZED
+
+        organizations_policies = self.get_organizations_policies_document()
+        item = organizations_policies.find_one({'orgname': orgname, 'orgid': orgid})
+        if item is None:
+            return False, 404 # HTTP_404_NOT_FOUND
+        else:
+            organizations_policies.delete_many({'orgname': orgname, 'orgid': orgid})
+        return True, None
+
+
+    ##########################################################
+    # lastlogin
+    ##########################################################
+
+    def get_last_login_document(self):
+        return self.client[config.CONFIG_MONGODB_TB_LASTLOGIN]
+
+    def get_last_login(self, username):
+        doc = self.get_last_login_document()
+        item = doc.find_one({'username': username})
+        if item is None:
+            return None
+        if item.get('current'):
+            item.pop('current')
+        item.pop('username')
+        item.pop('_id')
+        return item
+
+    def set_last_login(self, username, is_succesful):
+        doc = self.get_last_login_document()
+        timestamp = int(time.time())
+        item = {}
+        item['username'] = username
+        found = doc.find_one({'username': username})
+        if found is None:
+            item['current'] = int(time.time())
+            doc.insert_one(item)
+        else:
+            if is_succesful == True:
+                found['lastsuccess'] = found['current']
+                found['current'] = timestamp
+            else:
+                found['lastfailed'] = timestamp
+            doc.replace_one({'username': username}, found)
+        return True
+
+    ##########################################################
     # devices
     ##########################################################
 
@@ -1738,7 +4500,20 @@ class database_client_mongodb:
         device_list = []
         devices = self.get_registered_devices()
         if devices and devices.count():
-            for device in devices.find({'username': username},{'devicename':1, 'deviceid': 1, 'serialnumber':1, 'timestamp':1, 'heartbeat':1, 'version': 1}):
+            for device in devices.find({'username': username},{'username': 0}): #,{'devicename':1, 'deviceid': 1, 'serialnumber':1, 'timestamp':1, 'heartbeat':1, 'version': 1}):
+                device.pop('_id')
+                #if device.get('descriptor'):
+                #    device.pop('descriptor')
+                device_list.append(device)
+        return device_list
+        #devices = self.get_registered_devices()
+        #return list(devices.find({'username': username},{'devicename':1, 'deviceid': 1, 'serialnumber':1, 'timestamp':1, 'heartbeat':1, 'version': 1}))
+
+    def get_devicenames(self, username):
+        device_list = []
+        devices = self.get_registered_devices()
+        if devices and devices.count():
+            for device in devices.find({'username': username},{'devicename':1}):
                 device.pop('_id')
                 device_list.append(device)
         return device_list
@@ -1750,7 +4525,7 @@ class database_client_mongodb:
         devices = self.get_registered_devices()
         if devices and devices.count():
             filter_lo = filter.lower()
-            for device in devices.find({'username': username},{'devicename':1, 'deviceid': 1, 'serialnumber':1, 'timestamp':1, 'heartbeat':1, 'version': 1}):
+            for device in devices.find({'username': username},{'username': 0}): #,{'devicename':1, 'deviceid': 1, 'serialnumber':1, 'timestamp':1, 'heartbeat':1, 'version': 1}):
                 device.pop('_id')
                 if filter_lo in device["devicename"].lower():
                     # check the device name
@@ -1781,14 +4556,17 @@ class database_client_mongodb:
                                 break
         return device_list
 
-    def add_device(self, username, devicename, deviceid, serialnumber):
+    def add_device(self, username, devicename, deviceid, serialnumber, poemacaddress):
         timestamp = str(int(time.time()))
         device = {}
         device['username']     = username
         device['devicename']   = devicename
         device['deviceid']     = deviceid
         device['serialnumber'] = serialnumber
+        if poemacaddress is not None:
+            device['poemacaddress']= poemacaddress
         device['timestamp']    = timestamp
+        device['location']     = {"latitude": 0, "longitude": 0}
         self.client.devices.insert_one(device)
         return True
 
@@ -1797,11 +4575,16 @@ class database_client_mongodb:
         if devices:
             devices.delete_one({ 'username': username, 'devicename': devicename })
 
+    def delete_device_by_deviceid(self, deviceid):
+        devices = self.get_registered_devices()
+        if devices:
+            devices.delete_one({ 'deviceid': deviceid })
+
     # a user cannot register the same device name
     def find_device(self, username, devicename):
         devices = self.get_registered_devices()
         if devices:
-            for device in devices.find({'username': username, 'devicename': devicename},{'devicename':1, 'deviceid': 1, 'serialnumber':1, 'timestamp':1, 'heartbeat':1, 'version': 1}):
+            for device in devices.find({'username': username, 'devicename': devicename},{'username': 0}): #,{'devicename':1, 'deviceid': 1, 'serialnumber':1, 'timestamp':1, 'heartbeat':1, 'version': 1}):
                 device.pop('_id')
                 return device
         return None
@@ -1810,7 +4593,15 @@ class database_client_mongodb:
     def find_device_by_id(self, deviceid):
         devices = self.get_registered_devices()
         if devices:
-            for device in devices.find({'deviceid': deviceid},{'username': 1, 'devicename':1, 'deviceid': 1, 'serialnumber':1, 'timestamp':1, 'heartbeat':1, 'version': 1}):
+            for device in devices.find({'deviceid': deviceid}): #,{'username': 1, 'devicename':1, 'deviceid': 1, 'serialnumber':1, 'timestamp':1, 'heartbeat':1, 'version': 1}):
+                device.pop('_id')
+                return device
+        return None
+
+    def find_device_by_poemacaddress(self, poemacaddress):
+        devices = self.get_registered_devices()
+        if devices:
+            for device in devices.find({'poemacaddress': poemacaddress}): #,{'username': 1, 'devicename':1, 'deviceid': 1, 'serialnumber':1, 'timestamp':1, 'heartbeat':1, 'version': 1}):
                 device.pop('_id')
                 return device
         return None
@@ -1833,29 +4624,21 @@ class database_client_mongodb:
     def add_device_heartbeat(self, deviceid):
         devices = self.get_registered_devices()
         if devices:
-            for device in devices.find({'deviceid': deviceid},{'username': 1, 'devicename': 1, 'deviceid': 1, 'serialnumber':1, 'timestamp': 1, 'heartbeat': 1, 'version': 1}):
-                if device.get('heartbeat'):
-                    device['heartbeat'] = str(int(time.time()))
-                    devices.replace_one({'deviceid': deviceid}, device)
-                else:
-                    #print('add_device_heartbeat no heartbeat')
-                    device['heartbeat'] = str(int(time.time()))
-                    devices.replace_one({'deviceid': deviceid}, device)
+            for device in devices.find({'deviceid': deviceid}):
+                new_device = copy.deepcopy(device)
+                new_device['heartbeat'] = str(int(time.time()))
+                devices.replace_one(device, new_device)
                 return device['heartbeat']
         return None
 
     def save_device_version(self, username, devicename, version):
         devices = self.get_registered_devices()
         if devices:
-            for device in devices.find({'username': username, 'devicename': devicename},{'username': 1, 'devicename': 1, 'deviceid': 1, 'serialnumber':1, 'timestamp': 1, 'heartbeat': 1, 'version': 1}):
-                if device.get('version'):
-                    device['version'] = version
-                    devices.replace_one({'username': username, 'devicename': devicename}, device)
-                else:
-                    #print('save_device_version no version')
-                    device['version'] = version
-                    devices.replace_one({'username': username, 'devicename': devicename}, device)
-                return device['version']
+            for device in devices.find({'username': username, 'devicename': devicename}):
+                new_device = copy.deepcopy(device)
+                new_device['version'] = version
+                devices.replace_one(device, new_device)
+                return new_device['version']
         return None
 
     def update_devicename(self, username, devicename, new_devicename):
@@ -1866,6 +4649,283 @@ class database_client_mongodb:
                 new_device = copy.deepcopy(device)
                 new_device['devicename'] = new_devicename
                 devices.replace_one(device, new_device)
+                break
+
+    def get_device_descriptor(self, username, devicename):
+        devices = self.get_registered_devices()
+        if devices:
+            for device in devices.find({'username': username, 'devicename': devicename}):
+                if device.get('descriptor') is None:
+                    return None
+                return device['descriptor']
+        return None
+
+    def set_device_descriptor_by_deviceid(self, deviceid, descriptor):
+        devices = self.get_registered_devices()
+        if devices:
+            for device in devices.find({'deviceid': deviceid}):
+                new_device = copy.deepcopy(device)
+                new_device['descriptor'] = descriptor
+                devices.replace_one(device, new_device)
+                break
+
+
+    def add_device_location(self, username, deviceid, location):
+        devices = self.get_registered_devices()
+        if devices:
+            for device in devices.find({'username': username, 'deviceid': deviceid}):
+                device.pop('_id')
+                new_device = copy.deepcopy(device)
+                new_device['location'] = location
+                devices.replace_one(device, new_device)
+                break
+
+
+    def get_device_location(self, deviceid):
+        devices = self.get_registered_devices()
+        if devices:
+            for device in devices.find({'deviceid': deviceid}):
+                return device['location']
+        return None
+
+    def get_devices_location(self, username):
+        location_list = []
+        devices = self.get_registered_devices()
+        if devices:
+            for device in devices.find({'username': username}):
+                device.pop('_id')
+                device.pop('username')
+                location_list.append({'deviceid': device['deviceid'], 'location': device['location']})
+        return location_list
+
+
+    def delete_device_location(self, deviceid):
+        devices = self.get_registered_devices()
+        if devices:
+            devices.delete_one({'deviceid': deviceid})
+
+    def delete_devices_location(self, deviceid):
+        devices = self.get_registered_devices()
+        if devices:
+            devices.delete_many({'username': username})
+
+
+    ##########################################################
+    # ldsu
+    ##########################################################
+
+    def get_ldsu_document(self):
+        return self.client[config.CONFIG_MONGODB_TB_LDSUS]
+
+    def set_ldsu_by_deviceid(self, username, deviceid, descriptor):
+        ldsu_doc = self.get_ldsu_document();
+        item = {}
+        item['username'] = username
+        item['deviceid'] = deviceid
+        item['status'] = "reachable"
+        item['UID'] = descriptor["UID"]
+        item['PORT'] = descriptor["PORT"]
+        item['LABL'] = descriptor["NAME"]
+        descriptor.pop('UID')
+        descriptor.pop('PORT')
+        item['descriptor'] = descriptor
+        found = ldsu_doc.find_one({'deviceid': deviceid, 'UID': item['UID']})
+        if found is None:
+            ldsu_doc.insert_one(item)
+        else:
+            item['LABL'] = found['LABL']
+            ldsu_doc.replace_one({'deviceid': deviceid, 'UID': item['UID']}, item)
+        return item
+
+    def get_ldsus_by_deviceid(self, deviceid):
+        ldsu_list = []
+        ldsu_doc = self.get_ldsu_document()
+        if ldsu_doc:
+            for ldsu in ldsu_doc.find({'deviceid': deviceid}):
+                ldsu.pop('_id')
+                ldsu.pop('username')
+                ldsu.pop('deviceid')
+                ldsu_list.append(ldsu)
+        return ldsu_list
+
+    def set_ldsu_status_by_deviceid(self, deviceid, uid, is_reachable):
+        ldsu_doc = self.get_ldsu_document();
+        found = ldsu_doc.find_one({'deviceid': deviceid, 'UID': uid})
+        if found:
+            found['status'] = "unreachable" if is_reachable==0 else "reachable"
+            ldsu_doc.replace_one({'deviceid': deviceid, 'UID': uid}, found)
+
+    def get_ldsus_by_port(self, deviceid, port):
+        ldsu_list = []
+        ldsu_doc = self.get_ldsu_document()
+        if ldsu_doc:
+            for ldsu in ldsu_doc.find({'deviceid': deviceid, 'PORT': port}):
+                ldsu.pop('_id')
+                ldsu.pop('username')
+                ldsu.pop('deviceid')
+                ldsu_list.append(ldsu)
+        return ldsu_list
+
+    def change_ldsu_name_by_deviceid(self, deviceid, uid, name):
+        ldsu_doc = self.get_ldsu_document()
+        found = ldsu_doc.find_one({'deviceid': deviceid, 'UID': uid})
+        if found:
+            found['LABL'] = name
+            ldsu_doc.replace_one({'deviceid': deviceid, 'UID': uid}, found)
+
+    def get_ldsu(self, deviceid, uid):
+        ldsu_doc = self.get_ldsu_document()
+        if ldsu_doc:
+            for ldsu in ldsu_doc.find({'deviceid': deviceid, 'UID': uid}):
+                ldsu.pop('_id')
+                ldsu.pop('username')
+                ldsu.pop('deviceid')
+                return ldsu
+        return None
+
+    def delete_ldsu(self, deviceid, uid):
+        ldsu_doc = self.get_ldsu_document()
+        if ldsu_doc:
+            try:
+                ldsu_doc.delete_one({ 'deviceid': deviceid, 'UID': uid })
+            except:
+                print("delete_ldsu: Exception occurred")
+
+    def delete_ldsus(self, deviceid):
+        ldsu_doc = self.get_ldsu_document()
+        if ldsu_doc:
+            try:
+                ldsu_doc.delete_many({ 'deviceid': deviceid })
+            except:
+                print("delete_ldsus: Exception occurred")
+
+    def delete_ldsus_by_port(self, deviceid, port):
+        ldsu_doc = self.get_ldsu_document()
+        if ldsu_doc:
+            try:
+                ldsu_doc.delete_many({ 'deviceid': deviceid, 'PORT': port })
+            except:
+                print("delete_ldsus_by_port: Exception occurred")
+
+
+    ##########################################################
+    # devicegroups
+    ##########################################################
+
+    def sort_by_groupname(self, elem):
+        return elem['groupname']
+
+    def get_registered_devicegroups(self):
+        return self.client[config.CONFIG_MONGODB_TB_DEVICEGROUPS]
+
+    def add_devicegroup(self, username, groupname, devices):
+        devicegroups = self.get_registered_devicegroups()
+        timestamp = time.time()
+        item = {}
+        item['username'] = username
+        item['groupname'] = groupname
+        item['groupid'] = "devgrp" + str(timestamp)
+        item['timestamp'] = int(timestamp)
+        item['devices'] = devices
+        devicegroups.insert_one(item)
+        return True
+
+    def delete_devicegroup(self, username, groupname):
+        devicegroups = self.get_registered_devicegroups()
+        if devicegroups:
+            try:
+                devicegroups.delete_one({ 'username': username, 'groupname': groupname })
+            except:
+                print("delete_devicegroup: Exception occurred")
+
+    def get_devicegroup(self, username, groupname):
+        devicegroups = self.get_registered_devicegroups()
+        if devicegroups:
+            for devicegroup in devicegroups.find({ 'username': username, 'groupname': groupname }):
+                devicegroup.pop('_id')
+                devicegroup.pop('groupid')
+                devicegroup.pop('username')
+                return devicegroup
+        return None
+
+    def get_ungroupeddevices(self, username):
+        ungroupeddevices = []
+        devices = self.get_devices(username)
+        for device in devices:
+            found = False
+            devicegroups = self.get_devicegroups(username)
+            for devicegroup in devicegroups:
+                if device["deviceid"] in devicegroup["devices"]:
+                    found = True
+                    break
+            if not found:
+                ungroupeddevices.append(device)
+        print(ungroupeddevices)
+        return ungroupeddevices
+
+    def get_devicegroups(self, username):
+        devicegroups_list = []
+        devicegroups = self.get_registered_devicegroups()
+        if devicegroups and devicegroups.count():
+            for devicegroup in devicegroups.find({'username': username}):
+                devicegroup.pop('_id')
+                devicegroup.pop('groupid')
+                devicegroup.pop('username')
+                devicegroups_list.append(devicegroup)
+        devicegroups_list.sort(key=self.sort_by_groupname)
+        return devicegroups_list
+
+    def add_device_to_devicegroup(self, username, groupname, deviceid):
+        devicegroups = self.get_registered_devicegroups()
+        if devicegroups and devicegroups.count():
+            for devicegroup in devicegroups.find({ 'username': username, 'groupname': groupname }):
+                print("{} {}".format(deviceid, devicegroup['devices']))
+                if deviceid not in devicegroup['devices']:
+                    new_devicegroup = copy.deepcopy(devicegroup)
+                    new_devicegroup['devices'].append(deviceid)
+                    new_devicegroup['devices'].sort()
+                    devicegroups.replace_one(devicegroup, new_devicegroup)
+                    return True
+                else:
+                    return False
+        return False
+
+    def remove_device_from_devicegroup(self, username, groupname, deviceid):
+        devicegroups = self.get_registered_devicegroups()
+        if devicegroups and devicegroups.count():
+            for devicegroup in devicegroups.find({ 'username': username, 'groupname': groupname }):
+                if deviceid in devicegroup['devices']:
+                    new_devicegroup = copy.deepcopy(devicegroup)
+                    new_devicegroup['devices'].remove(deviceid)
+                    devicegroups.replace_one(devicegroup, new_devicegroup)
+                break
+
+    def remove_device_from_devicegroups(self, username, deviceid):
+        devicegroups = self.get_registered_devicegroups()
+        if devicegroups and devicegroups.count():
+            for devicegroup in devicegroups.find({ 'username': username }):
+                if deviceid in devicegroup['devices']:
+                    new_devicegroup = copy.deepcopy(devicegroup)
+                    new_devicegroup['devices'].remove(deviceid)
+                    devicegroups.replace_one(devicegroup, new_devicegroup)
+
+    def set_devices_to_devicegroup(self, username, groupname, devices):
+        devicegroups = self.get_registered_devicegroups()
+        if devicegroups and devicegroups.count():
+            for devicegroup in devicegroups.find({ 'username': username, 'groupname': groupname }):
+                new_devicegroup = copy.deepcopy(devicegroup)
+                new_devicegroup['devices'] = devices
+                devicegroups.replace_one(devicegroup, new_devicegroup)
+                break
+
+    def update_name_devicegroup(self, username, groupname, new_groupname):
+        devicegroups = self.get_registered_devicegroups()
+        if devicegroups:
+            for devicegroup in devicegroups.find({'username': username, 'groupname': groupname}):
+                devicegroup.pop('_id')
+                new_devicegroup= copy.deepcopy(devicegroup)
+                new_devicegroup['groupname'] = new_groupname
+                devicegroups.replace_one(devicegroup, new_devicegroup)
                 break
 
 

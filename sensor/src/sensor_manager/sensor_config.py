@@ -7,10 +7,14 @@ class config:
     CONFIG_DEBUG_SENSOR_READING   = False
 
     CONFIG_ENABLE_DATASET         = True
-    CONFIG_MAX_DATASET            = 25
+    CONFIG_MAX_DATASET            = 17280 # 24 hours = 86400 seconds; 86400/5=17280
 
     # Database settings
+    CONFIG_MONGODB_USERNAME          = os.environ["CONFIG_USE_MONGODB_USER"]
+    CONFIG_MONGODB_PASSWORD          = os.environ["CONFIG_USE_MONGODB_PASS"]
     CONFIG_MONGODB_HOST              = "mongodb"
+    #CONFIG_MONGODB_HOST2             = "mongodb"
+    CONFIG_MONGODB_HOST2             = os.environ["CONFIG_USE_MONGODB_ATLAS"]
     CONFIG_MONGODB_PORT              = 27017
     CONFIG_MONGODB_DB                = "iotcloud-database"
     CONFIG_MONGODB_TB_PROFILES       = "profiles"

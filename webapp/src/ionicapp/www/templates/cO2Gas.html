@@ -1,0 +1,140 @@
+<ion-view title="CO2 Gas" hide-back-button="true" cache-view="false" nav-transition="none" id="page80" class="page_width">
+  <ion-nav-buttons side="left" class="has-header">
+    <button class="button button-icon icon ion-android-close" ng-click="submitDeviceList()"></button>
+  </ion-nav-buttons>
+  <ion-nav-buttons side="right" class="has-header">
+    <button class="button button-positive icon ion-refresh" ng-click="submitRefresh()"></button>
+  </ion-nav-buttons>
+  <ion-content padding="true" class="has-header">
+    <div class="spacer" style="width: 300px; height: 12px;"></div>
+    <div id="cO2Gas-markdown565" style="text-align:center;" class="show-list-numbers-and-dots">
+      <p style="color:#3C5A99;font-size:18px;">
+        <strong> {{ data.devicename }} </strong>
+      </p>
+    </div>
+    <button id="cO2Gas-button240" ng-click="viewXXXDevice()" style="font-weight:500;font-size:18px;" class="button button-dark button-block button-clear icon-right ion-android-settings">{{ data.sensor.sensorname }}</button>
+    <div class="spacer" style="width: 300px; height: 20px;"></div>
+    <form id="cO2Gas-form279" class="list" ng-show="data.sensor.opmodes">
+      <div id="cO2Gas-markdown566" class="show-list-numbers-and-dots">
+        <p style="color:#3C5A99;">Opmode</p>
+      </div>
+      <label class="item item-select" id="cO2Gas-select127">
+        <span class="input-label"></span>
+        <select ng-model="data.attributes.opmode" ng-options="opmode.id as opmode.name for opmode in data.sensor.opmodes" ng-change="changeOpmode()"></select>
+      </label>
+    </form>
+    <form id="cO2Gas-form301" class="list">
+      <div id="cO2Gas-markdown587" class="show-list-numbers-and-dots">
+        <p style="color:#3C5A99;">Mode</p>
+      </div>
+      <label class="item item-select" id="cO2Gas-select142">
+        <span class="input-label"></span>
+        <select ng-model="data.attributes.mode" ng-options="mode.id as mode.label for mode in modes" ng-change="changeMode()"></select>
+      </label>
+    </form>
+    <form id="cO2Gas-form280" class="list" ng-show="data.attributes.mode==0">
+      <div id="cO2Gas-markdown567" class="show-list-numbers-and-dots">
+        <p style="color:#3C5A99;">Threshold</p>
+      </div>
+      <label class="item item-input" id="cO2Gas-input227">
+        <span class="input-label">Value</span>
+        <input type="number" placeholder="" ng-model="data.attributes.threshold.value">
+      </label>
+    </form>
+    <form id="cO2Gas-form281" class="list" ng-show="data.attributes.mode==1">
+      <div id="cO2Gas-markdown568" class="show-list-numbers-and-dots">
+        <p style="color:#3C5A99;">Threshold</p>
+      </div>
+      <label class="item item-input" id="cO2Gas-input228">
+        <span class="input-label">Minimum Limit</span>
+        <input type="number" placeholder="" ng-model="data.attributes.threshold.min">
+      </label>
+      <label class="item item-input" id="cO2Gas-input229">
+        <span class="input-label">Maximum Limit</span>
+        <input type="number" placeholder="" ng-model="data.attributes.threshold.max">
+      </label>
+      <label class="item item-select" id="cO2Gas-select128">
+        <span class="input-label">Activate when</span>
+        <select ng-model="data.attributes.threshold.activate" ng-options="activate.id as activate.label for activate in activates"></select>
+      </label>
+    </form>
+    <form id="cO2Gas-form282" class="list">
+      <div id="cO2Gas-markdown569" class="show-list-numbers-and-dots">
+        <p style="color:#3C5A99;">Alert</p>
+      </div>
+      <label class="item item-select" id="cO2Gas-select129">
+        <span class="input-label">Type</span>
+        <select ng-model="data.attributes.alert.type" ng-options="alert.id as alert.label for alert in alerts"></select>
+      </label>
+      <label class="item item-input" id="cO2Gas-input230">
+        <span class="input-label">Period (milliseconds)</span>
+        <input type="number" placeholder="" ng-model="data.attributes.alert.period">
+      </label>
+    </form>
+    <form id="cO2Gas-form283" class="list" ng-show="data.attributes.mode==2">
+      <div id="cO2Gas-markdown570" class="show-list-numbers-and-dots">
+        <p style="color:#3C5A99;">Hardware</p>
+      </div>
+      <label class="item item-select" id="cO2Gas-select130">
+        <span class="input-label">IoT Modem</span>
+        <select ng-model="data.hardware_devicename" ng-options="device.id as device.devicename for device in devices"></select>
+      </label>
+    </form>
+    <form id="cO2Gas-form284" class="list" ng-show="data.attributes.mode!=2">
+      <div id="cO2Gas-markdown571" class="show-list-numbers-and-dots">
+        <p style="color:#3C5A99;">Notification settings</p>
+      </div>
+      <ion-toggle toggle-class="toggle-positive" id="cO2Gas-toggle34" ng-change="changeNotification(data.showNotification)" ng-model="data.showNotification">Show</ion-toggle>
+    </form>
+    <form id="cO2Gas-form285" class="list" ng-show="data.showNotification==1 &amp;&amp; data.attributes.mode!=2">
+      <div id="cO2Gas-markdown572" class="show-list-numbers-and-dots">
+        <p style="color:#3C5A99;">Messages</p>
+      </div>
+      <ion-checkbox id="cO2Gas-checkbox74" ng-model="data.attributes.notification.messages[0].enable">Message on activation</ion-checkbox>
+      <label class="item item-input" id="cO2Gas-textarea28">
+        <span class="input-label"></span><textarea placeholder="" ng-model="data.attributes.notification.messages[0].message"></textarea></label>
+      <ion-checkbox id="cO2Gas-checkbox75" ng-model="data.attributes.notification.messages[1].enable">Message on deactivation</ion-checkbox>
+      <label class="item item-input" id="cO2Gas-textarea29">
+        <span class="input-label"></span><textarea placeholder="" ng-model="data.attributes.notification.messages[1].message"></textarea></label>
+    </form>
+    <form id="cO2Gas-form286" class="list" ng-show="data.showNotification==1 &amp;&amp; data.attributes.mode!=2">
+      <div id="cO2Gas-markdown573" class="show-list-numbers-and-dots">
+        <p style="color:#3C5A99;">Recipients</p>
+      </div>
+      <ion-checkbox id="cO2Gas-checkbox76" ng-model="data.attributes.notification.endpoints.email.enable">Send email to</ion-checkbox>
+      <label class="item item-input" id="cO2Gas-input231">
+        <input type="text" placeholder="Email address(es)" ng-model="data.attributes.notification.endpoints.email.recipients">
+      </label>
+      <ion-checkbox id="cO2Gas-checkbox77" ng-model="data.attributes.notification.endpoints.mobile.enable">Send SMS to</ion-checkbox>
+      <label class="item item-input" id="cO2Gas-input232">
+        <input type="text" placeholder="Phone number(s)" ng-model="data.attributes.notification.endpoints.mobile.recipients">
+      </label>
+      <ion-checkbox id="cO2Gas-checkbox78" ng-model="data.attributes.notification.endpoints.notification.enable">Send notification to</ion-checkbox>
+      <label class="item item-input" id="cO2Gas-input233">
+        <input type="text" placeholder="****************" ng-model="data.attributes.notification.endpoints.notification.recipients" readonly="">
+      </label>
+      <ion-checkbox id="cO2Gas-checkbox79" ng-model="data.attributes.notification.endpoints.modem.enable">Send to IoT Modem</ion-checkbox>
+      <label class="item item-select" id="cO2Gas-select131">
+        <span class="input-label"></span>
+        <select ng-options="device.id as device.devicename for device in devices" ng-model="data.hardware_devicename"></select>
+      </label>
+      <ion-checkbox id="cO2Gas-checkbox80" ng-model="data.attributes.notification.endpoints.storage.enable">Send to storage</ion-checkbox>
+      <div id="cO2Gas-container100" ng-show="data.attributes.notification.endpoints.storage.recipients != &quot;&quot;" class="tab_margin_1">
+        <div>
+          <br>
+          <p>
+            <a href="https://ft900-iot-portal.s3.amazonaws.com/{{ data.attributes.notification.endpoints.storage.recipients }}">
+              Storage URL
+            </a>
+          </p>
+          <br>
+        </div>
+      </div>
+    </form>
+    <form id="cO2Gas-form287" class="list">
+      <button id="cO2Gas-button241" ng-click="submit()" class="button button-positive button-block">SAVE</button>
+      <button id="cO2Gas-button242" ng-click="submitDelete()" class="button button-assertive button-block">DELETE</button>
+      <div class="spacer" style="height: 100px;"></div>
+    </form>
+  </ion-content>
+</ion-view>

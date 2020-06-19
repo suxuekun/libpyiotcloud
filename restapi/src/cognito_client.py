@@ -18,6 +18,9 @@ class cognito_client:
 		self.pool_region           = config.CONFIG_USER_POOL_REGION
 		self.keys, self.keys_iss   = self.__get_userpool_keys()
 
+	def get_cognito_client_id(self):
+		return self.client_id
+	
 	def __get_client(self):
 		#return boto3.Session(region_name=self.pool_region).client('cognito-idp')
 		return boto3.Session(
@@ -69,8 +72,11 @@ class cognito_client:
 		}
 		try:
 			response = self.__get_client().sign_up(**params)
-		except:
-			return (False, None)
+		except Exception as e:
+			error_code = e.response.get("Error", {}).get("Code")
+			if error_code == "InvalidPasswordException":
+				print(error_code)
+			return (False, error_code)
 		return (self.__get_result(response), response)
 
 	def confirm_sign_up(self, username, confirmation_code):
@@ -117,8 +123,17 @@ class cognito_client:
 		}
 		try:
 			response = self.__get_client().confirm_forgot_password(**params)
-		except:
-			return (False, None)
+		except Exception as e:
+			print("confirm_forgot_password")
+			print(e)
+			error_code = e.response.get("Error", {}).get("Code")
+			if error_code == "CodeMismatchException":
+				print(error_code)
+			elif error_code == "InvalidPasswordException":
+				print(error_code)
+			elif error_code == "LimitExceededException":
+				print(error_code)
+			return (False, error_code)
 		return (self.__get_result(response), response)
 
 
@@ -137,9 +152,17 @@ class cognito_client:
 				#start_time = time.time()
 				response = self.__get_client().initiate_auth(**params)
 				#print(time.time()-start_time)
+				#print(response)
 			except Exception as e:
-				print(e)
-				return (False, None)
+				#print("exception")
+				error_code = e.response.get("Error", {}).get("Code")
+				if error_code == "PasswordResetRequiredException":
+					print("Password reset required")
+				elif error_code == "NotAuthorizedException":
+					print("Incorrect password")
+				else:
+					print(error_code)
+				return (False, error_code)
 			return (self.__get_result(response), response)
 		else:
 			client = self.__get_client()
@@ -159,6 +182,24 @@ class cognito_client:
 				return (False, None)
 			return (self.__get_result(response), response)
 
+	def login_mfa(self, username, sessionkey, mfacode):
+		params = {
+			'ClientId' : self.client_id,
+			'ChallengeName' : 'SMS_MFA',
+			'Session'  : sessionkey,
+			'ChallengeResponses' : {
+				'SMS_MFA_CODE': mfacode,
+				'USERNAME': username
+			}
+		}
+		try:
+			response = self.__get_client().respond_to_auth_challenge(**params)
+			#print(response)
+		except Exception as e:
+			print(e)
+			return (False, None)
+		return (self.__get_result(response), response)
+
 	def logout(self, access_token):
 		params = {
 			'AccessToken': access_token
@@ -175,13 +216,18 @@ class cognito_client:
 		}
 		try:
 			response = self.__get_client().get_user(**params)
+			# convert user settings
 			user_attributes = self.__cognito_to_dict(response["UserAttributes"])
 			if 'sub' in user_attributes:
 				user_attributes.pop("sub")
-			#if 'email_verified' in user_attributes:
-			#	user_attributes.pop("email_verified")
-			#if 'phone_number_verified' in user_attributes:
-			#	user_attributes.pop("phone_number_verified")
+			# add mfa setting
+			if user_attributes.get("phone_number"):
+				if user_attributes.get("phone_number_verified"):
+					if user_attributes["phone_number_verified"] == True:
+						if response.get("PreferredMfaSetting"):
+							user_attributes["mfa_enabled"] = True
+						else:
+							user_attributes["mfa_enabled"] = False
 		except:
 			return (False, None)
 		return (self.__get_result(response), user_attributes)
@@ -229,8 +275,13 @@ class cognito_client:
 		}
 		try:
 			response = self.__get_client().change_password(**params)
-		except:
-			return (False, None)
+		except Exception as e:
+			print("change_password")
+			print(e)
+			error_code = e.response.get("Error", {}).get("Code")
+			if error_code == "InvalidPasswordException":
+				print(error_code)
+			return (False, error_code)
 		return (self.__get_result(response), response)
 
 	def request_verify_phone_number(self, access_token):
@@ -259,7 +310,36 @@ class cognito_client:
 			return (False, None)
 		return (self.__get_result(response), response)
 
+	def enable_mfa(self, access_token, enable):
+		params = {
+			'AccessToken'     : access_token,
+			'SMSMfaSettings'  : {
+				'Enabled'     : enable,
+				'PreferredMfa': enable
+			},
+		}
+		try:
+			response = self.__get_client().set_user_mfa_preference(**params)
+		except Exception as e:
+			print(e)
+			return (False, None)
+		return (self.__get_result(response), response)
 
+	def admin_enable_mfa(self, username, enable):
+		params = {
+			'Username'        : username,
+			'UserPoolId'      : self.pool_id,
+			'SMSMfaSettings'  : {
+				'Enabled'     : enable,
+				'PreferredMfa': enable
+			},
+		}
+		try:
+			response = self.__get_client().admin_set_user_mfa_preference(**params)
+		except Exception as e:
+			print(e)
+			return (False, None)
+		return (self.__get_result(response), response)
 
 	def admin_refresh_token(self, refresh_token):
 		params = {
@@ -383,10 +463,10 @@ class cognito_client:
 
 
 	def admin_list_users(self):
-		attributes = ["email", "given_name", "family_name", "email"]
+		#attributes = ["email", "given_name", "family_name", "email"]
 		params = {
 			'UserPoolId'      : self.pool_id,
-			'AttributesToGet' : attributes
+			#'AttributesToGet' : attributes
 		}
 		try:
 			response = self.__get_client().list_users(**params)
@@ -405,7 +485,8 @@ class cognito_client:
 				user_attributes["enabled"] = user["Enabled"]
 				user_attributes["status"] = user["UserStatus"]
 				user_list.append(user_attributes)
-		except:
+		except Exception as e:
+			print(e)
 			return (False, None)
 		return (self.__get_result(response), user_list)
 
@@ -421,7 +502,20 @@ class cognito_client:
 				print("  modifieddate : {}".format(user["modifieddate"]))
 				print("  enabled      : {}".format(user["enabled"]))
 				print("  status       : {}".format(user["status"]))
+				if user.get("phone_number"):
+					print("  phone_number : {}".format(user["phone_number"]))
 				print()
+
+	def admin_reset_user_password(self, username):
+		params = {
+			'UserPoolId' : self.pool_id,
+			'Username'   : username
+		}
+		try:
+			response = self.__get_client().admin_reset_user_password(**params)
+		except:
+			return (False, None)
+		return (self.__get_result(response), response)
 
 	def admin_disable_user(self, username):
 		params = {
@@ -526,4 +620,41 @@ class cognito_client:
 			return (False, None)
 		return (self.__get_result(response), response)
 
+	def admin_link_provider_for_user(self, username, email, provider):
+		params = {
+			'UserPoolId'     : self.pool_id,
+			'DestinationUser': {
+				'ProviderName': 'Cognito',
+				'ProviderAttributeName': 'email',
+				'ProviderAttributeValue': email
+			},
+			'SourceUser':{
+				'ProviderName': provider,
+				'ProviderAttributeName': 'Cognito_Subject',
+				'ProviderAttributeValue': username
+			}
+		}
+		print(params)
+		try:
+			print("admin_link_provider_for_user")
+			response = self.__get_client().admin_link_provider_for_user(**params)
+			print(response)
+		except Exception as e:
+			print(e)
+			return (False, None)
+		return (self.__get_result(response), response)
 
+	def admin_disable_provider_for_user(self, username, provider):
+		params = {
+			'UserPoolId'     : self.pool_id,
+			'User': {
+				'ProviderName': provider,
+				'ProviderAttributeName': 'email',
+				'ProviderAttributeValue': username
+			}
+		}
+		try:
+			response = self.__get_client().admin_disable_provider_for_user(**params)
+		except:
+			return (False, None)
+		return (self.__get_result(response), response)

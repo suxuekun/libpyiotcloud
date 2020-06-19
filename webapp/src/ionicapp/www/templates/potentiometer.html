@@ -8,7 +8,7 @@
   <ion-content padding="true" class="has-header">
     <div class="spacer" style="width: 300px; height: 12px;"></div>
     <div id="potentiometer-markdown83" style="text-align:center;" class="show-list-numbers-and-dots">
-      <p style="color:#387EF5;font-size:18px;">
+      <p style="color:#3C5A99;font-size:18px;">
         <strong> {{ data.devicename }} </strong>
       </p>
     </div>
@@ -16,7 +16,7 @@
     <div class="spacer" style="width: 300px; height: 20px;"></div>
     <form id="potentiometer-form68" class="list">
       <div id="potentiometer-markdown117" class="show-list-numbers-and-dots">
-        <p style="color:#387EF5;">Range</p>
+        <p style="color:#3C5A99;">Range</p>
       </div>
       <label class="item item-select" id="potentiometer-select28">
         <span class="input-label"></span>
@@ -25,7 +25,7 @@
     </form>
     <form id="potentiometer-form181" class="list">
       <div id="potentiometer-markdown308" class="show-list-numbers-and-dots">
-        <p style="color:#387EF5;">Mode</p>
+        <p style="color:#3C5A99;">Mode</p>
       </div>
       <label class="item item-select" id="potentiometer-select39">
         <span class="input-label"></span>
@@ -34,7 +34,7 @@
     </form>
     <form id="potentiometer-form73" class="list" ng-show="data.attributes.mode==0">
       <div id="potentiometer-markdown115" class="show-list-numbers-and-dots">
-        <p style="color:#387EF5;">Threshold</p>
+        <p style="color:#3C5A99;">Threshold</p>
       </div>
       <label class="item item-input" id="potentiometer-input103">
         <span class="input-label">Value</span>
@@ -43,7 +43,7 @@
     </form>
     <form id="potentiometer-form106" class="list" ng-show="data.attributes.mode==1">
       <div id="potentiometer-markdown128" class="show-list-numbers-and-dots">
-        <p style="color:#387EF5;">Threshold</p>
+        <p style="color:#3C5A99;">Threshold</p>
       </div>
       <label class="item item-input" id="potentiometer-input97">
         <span class="input-label">Minimum Limit</span>
@@ -60,7 +60,7 @@
     </form>
     <form id="potentiometer-form76" class="list">
       <div id="potentiometer-markdown114" class="show-list-numbers-and-dots">
-        <p style="color:#387EF5;">Alert</p>
+        <p style="color:#3C5A99;">Alert</p>
       </div>
       <label class="item item-select" id="potentiometer-select33">
         <span class="input-label">Type</span>
@@ -73,7 +73,7 @@
     </form>
     <form id="potentiometer-form108" class="list" ng-show="data.attributes.mode==2">
       <div id="potentiometer-markdown130" class="show-list-numbers-and-dots">
-        <p style="color:#387EF5;">Hardware</p>
+        <p style="color:#3C5A99;">Hardware</p>
       </div>
       <label class="item item-select" id="potentiometer-select45">
         <span class="input-label">IoT Modem</span>
@@ -82,13 +82,13 @@
     </form>
     <form id="potentiometer-form78" class="list" ng-show="data.attributes.mode!=2">
       <div id="potentiometer-markdown116" class="show-list-numbers-and-dots">
-        <p style="color:#387EF5;">Notification settings</p>
+        <p style="color:#3C5A99;">Notification settings</p>
       </div>
       <ion-toggle toggle-class="toggle-positive" id="potentiometer-toggle13" ng-change="changeNotification(data.showNotification)" ng-model="data.showNotification">Show</ion-toggle>
     </form>
     <form id="potentiometer-form79" class="list" ng-show="data.showNotification==1 &amp;&amp; data.attributes.mode!=2">
       <div id="potentiometer-markdown107" class="show-list-numbers-and-dots">
-        <p style="color:#387EF5;">Messages</p>
+        <p style="color:#3C5A99;">Messages</p>
       </div>
       <ion-checkbox id="potentiometer-checkbox12" ng-model="data.attributes.notification.messages[0].enable">Message on activation</ion-checkbox>
       <label class="item item-input" id="potentiometer-textarea10">
@@ -99,7 +99,7 @@
     </form>
     <form id="potentiometer-form80" class="list" ng-show="data.showNotification==1 &amp;&amp; data.attributes.mode!=2">
       <div id="potentiometer-markdown108" class="show-list-numbers-and-dots">
-        <p style="color:#387EF5;">Recipients</p>
+        <p style="color:#3C5A99;">Recipients</p>
       </div>
       <ion-checkbox id="potentiometer-checkbox14" ng-model="data.attributes.notification.endpoints.email.enable">Send email to</ion-checkbox>
       <label class="item item-input" id="potentiometer-input113">
@@ -118,9 +118,22 @@
         <span class="input-label"></span>
         <select ng-options="device.id as device.devicename for device in devices" ng-model="data.hardware_devicename"></select>
       </label>
+      <ion-checkbox id="potentiometer-checkbox52" ng-model="data.attributes.notification.endpoints.storage.enable">Send to storage</ion-checkbox>
+      <div id="potentiometer-container16" ng-show="data.attributes.notification.endpoints.storage.recipients != &quot;&quot;" class="tab_margin_1">
+        <div>
+          <br>
+          <p>
+            <a href="https://ft900-iot-portal.s3.amazonaws.com/{{ data.attributes.notification.endpoints.storage.recipients }}">
+              Storage URL
+            </a>
+          </p>
+          <br>
+        </div>
+      </div>
     </form>
     <form id="potentiometer-form91" class="list">
       <button id="potentiometer-button88" ng-click="submit()" class="button button-positive button-block">{{ data.sensor.subclass ? "DONE" : "SAVE" }}</button>
+      <div class="spacer" style="height: 100px;"></div>
     </form>
   </ion-content>
 </ion-view>

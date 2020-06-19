@@ -1,0 +1,140 @@
+<ion-view title="Ambient Light" hide-back-button="true" cache-view="false" nav-transition="none" id="page78" class="page_width">
+  <ion-nav-buttons side="left" class="has-header">
+    <button class="button button-icon icon ion-android-close" ng-click="submitDeviceList()"></button>
+  </ion-nav-buttons>
+  <ion-nav-buttons side="right" class="has-header">
+    <button class="button button-positive icon ion-refresh" ng-click="submitRefresh()"></button>
+  </ion-nav-buttons>
+  <ion-content padding="true" class="has-header">
+    <div class="spacer" style="width: 300px; height: 12px;"></div>
+    <div id="ambientLight-markdown388" style="text-align:center;" class="show-list-numbers-and-dots">
+      <p style="color:#3C5A99;font-size:18px;">
+        <strong> {{ data.devicename }} </strong>
+      </p>
+    </div>
+    <button id="ambientLight-button234" ng-click="viewXXXDevice()" style="font-weight:500;font-size:18px;" class="button button-dark button-block button-clear icon-right ion-android-settings">{{ data.sensor.sensorname }}</button>
+    <div class="spacer" style="width: 300px; height: 20px;"></div>
+    <form id="ambientLight-form261" class="list" ng-show="data.sensor.opmodes">
+      <div id="ambientLight-markdown389" class="show-list-numbers-and-dots">
+        <p style="color:#3C5A99;">Opmode</p>
+      </div>
+      <label class="item item-select" id="ambientLight-select109">
+        <span class="input-label"></span>
+        <select ng-model="data.attributes.opmode" ng-options="opmode.id as opmode.name for opmode in data.sensor.opmodes" ng-change="changeOpmode()"></select>
+      </label>
+    </form>
+    <form id="ambientLight-form299" class="list">
+      <div id="ambientLight-markdown585" class="show-list-numbers-and-dots">
+        <p style="color:#3C5A99;">Mode</p>
+      </div>
+      <label class="item item-select" id="ambientLight-select140">
+        <span class="input-label"></span>
+        <select ng-model="data.attributes.mode" ng-options="mode.id as mode.label for mode in modes" ng-change="changeMode()"></select>
+      </label>
+    </form>
+    <form id="ambientLight-form262" class="list" ng-show="data.attributes.mode==0">
+      <div id="ambientLight-markdown448" class="show-list-numbers-and-dots">
+        <p style="color:#3C5A99;">Threshold</p>
+      </div>
+      <label class="item item-input" id="ambientLight-input213">
+        <span class="input-label">Value</span>
+        <input type="number" placeholder="" ng-model="data.attributes.threshold.value">
+      </label>
+    </form>
+    <form id="ambientLight-form263" class="list" ng-show="data.attributes.mode==1">
+      <div id="ambientLight-markdown450" class="show-list-numbers-and-dots">
+        <p style="color:#3C5A99;">Threshold</p>
+      </div>
+      <label class="item item-input" id="ambientLight-input214">
+        <span class="input-label">Minimum Limit</span>
+        <input type="number" placeholder="" ng-model="data.attributes.threshold.min">
+      </label>
+      <label class="item item-input" id="ambientLight-input215">
+        <span class="input-label">Maximum Limit</span>
+        <input type="number" placeholder="" ng-model="data.attributes.threshold.max">
+      </label>
+      <label class="item item-select" id="ambientLight-select118">
+        <span class="input-label">Activate when</span>
+        <select ng-model="data.attributes.threshold.activate" ng-options="activate.id as activate.label for activate in activates"></select>
+      </label>
+    </form>
+    <form id="ambientLight-form264" class="list">
+      <div id="ambientLight-markdown451" class="show-list-numbers-and-dots">
+        <p style="color:#3C5A99;">Alert</p>
+      </div>
+      <label class="item item-select" id="ambientLight-select119">
+        <span class="input-label">Type</span>
+        <select ng-model="data.attributes.alert.type" ng-options="alert.id as alert.label for alert in alerts"></select>
+      </label>
+      <label class="item item-input" id="ambientLight-input216">
+        <span class="input-label">Period (milliseconds)</span>
+        <input type="number" placeholder="" ng-model="data.attributes.alert.period">
+      </label>
+    </form>
+    <form id="ambientLight-form265" class="list" ng-show="data.attributes.mode==2">
+      <div id="ambientLight-markdown516" class="show-list-numbers-and-dots">
+        <p style="color:#3C5A99;">Hardware</p>
+      </div>
+      <label class="item item-select" id="ambientLight-select120">
+        <span class="input-label">IoT Modem</span>
+        <select ng-model="data.hardware_devicename" ng-options="device.id as device.devicename for device in devices"></select>
+      </label>
+    </form>
+    <form id="ambientLight-form266" class="list" ng-show="data.attributes.mode!=2">
+      <div id="ambientLight-markdown518" class="show-list-numbers-and-dots">
+        <p style="color:#3C5A99;">Notification settings</p>
+      </div>
+      <ion-toggle toggle-class="toggle-positive" id="ambientLight-toggle28" ng-change="changeNotification(data.showNotification)" ng-model="data.showNotification">Show</ion-toggle>
+    </form>
+    <form id="ambientLight-form267" class="list" ng-show="data.showNotification==1 &amp;&amp; data.attributes.mode!=2">
+      <div id="ambientLight-markdown526" class="show-list-numbers-and-dots">
+        <p style="color:#3C5A99;">Messages</p>
+      </div>
+      <ion-checkbox id="ambientLight-checkbox59" ng-model="data.attributes.notification.messages[0].enable">Message on activation</ion-checkbox>
+      <label class="item item-input" id="ambientLight-textarea24">
+        <span class="input-label"></span><textarea placeholder="" ng-model="data.attributes.notification.messages[0].message"></textarea></label>
+      <ion-checkbox id="ambientLight-checkbox61" ng-model="data.attributes.notification.messages[1].enable">Message on deactivation</ion-checkbox>
+      <label class="item item-input" id="ambientLight-textarea25">
+        <span class="input-label"></span><textarea placeholder="" ng-model="data.attributes.notification.messages[1].message"></textarea></label>
+    </form>
+    <form id="ambientLight-form268" class="list" ng-show="data.showNotification==1 &amp;&amp; data.attributes.mode!=2">
+      <div id="ambientLight-markdown531" class="show-list-numbers-and-dots">
+        <p style="color:#3C5A99;">Recipients</p>
+      </div>
+      <ion-checkbox id="ambientLight-checkbox62" ng-model="data.attributes.notification.endpoints.email.enable">Send email to</ion-checkbox>
+      <label class="item item-input" id="ambientLight-input217">
+        <input type="text" placeholder="Email address(es)" ng-model="data.attributes.notification.endpoints.email.recipients">
+      </label>
+      <ion-checkbox id="ambientLight-checkbox63" ng-model="data.attributes.notification.endpoints.mobile.enable">Send SMS to</ion-checkbox>
+      <label class="item item-input" id="ambientLight-input218">
+        <input type="text" placeholder="Phone number(s)" ng-model="data.attributes.notification.endpoints.mobile.recipients">
+      </label>
+      <ion-checkbox id="ambientLight-checkbox64" ng-model="data.attributes.notification.endpoints.notification.enable">Send notification to</ion-checkbox>
+      <label class="item item-input" id="ambientLight-input219">
+        <input type="text" placeholder="****************" ng-model="data.attributes.notification.endpoints.notification.recipients" readonly="">
+      </label>
+      <ion-checkbox id="ambientLight-checkbox65" ng-model="data.attributes.notification.endpoints.modem.enable">Send to IoT Modem</ion-checkbox>
+      <label class="item item-select" id="ambientLight-select121">
+        <span class="input-label"></span>
+        <select ng-options="device.id as device.devicename for device in devices" ng-model="data.hardware_devicename"></select>
+      </label>
+      <ion-checkbox id="ambientLight-checkbox66" ng-model="data.attributes.notification.endpoints.storage.enable">Send to storage</ion-checkbox>
+      <div id="ambientLight-container98" ng-show="data.attributes.notification.endpoints.storage.recipients != &quot;&quot;" class="tab_margin_1">
+        <div>
+          <br>
+          <p>
+            <a href="https://ft900-iot-portal.s3.amazonaws.com/{{ data.attributes.notification.endpoints.storage.recipients }}">
+              Storage URL
+            </a>
+          </p>
+          <br>
+        </div>
+      </div>
+    </form>
+    <form id="ambientLight-form269" class="list">
+      <button id="ambientLight-button235" ng-click="submit()" class="button button-positive button-block">SAVE</button>
+      <button id="ambientLight-button236" ng-click="submitDelete()" class="button button-assertive button-block">DELETE</button>
+      <div class="spacer" style="height: 100px;"></div>
+    </form>
+  </ion-content>
+</ion-view>

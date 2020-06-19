@@ -1,0 +1,45 @@
+<ion-view title="Gateway Location" hide-back-button="true" nav-transition="none" id="page56" style="background-color:#FFFFFF;" class="page_width">
+  <ion-nav-buttons side="left" class="has-header">
+    <button class="button button-icon icon ion-android-close" ng-click="viewDevice()"></button>
+  </ion-nav-buttons>
+  <ion-nav-buttons side="right" class="has-header">
+    <button class="button button-positive icon ion-refresh" ng-click="getDeviceLocation(data.devicename)"></button>
+  </ion-nav-buttons>
+  <ion-content padding="true" class="has-header">
+    <div class="spacer" style="height: 12px;"></div>
+    <div id="gatewayLocation-markdown314" style="text-align:center;" class="show-list-numbers-and-dots">
+      <p style="color:#3C5A99;font-size:18px;">
+        <strong> {{ data.devicename }} </strong>
+      </p>
+    </div>
+    <div class="spacer" style="height: 12px;"></div>
+    <form id="gatewayLocation-form220" class="list">
+      <label class="item item-select" id="gatewayLocation-select106">
+        <span class="input-label">Device</span>
+        <select ng-options="device.devicename as device.devicename for device in devices" ng-model="data.devicename" ng-change="changeDevice(data.devicename)"></select>
+      </label>
+      <label class="item item-select" id="gatewayLocation-select116">
+        <span class="input-label">DeviceGroup</span>
+        <select ng-options="devicegroup.groupname as devicegroup.groupname for devicegroup in devicegroups" ng-model="data.devicegroupname" ng-change="changeDeviceGroup(data.devicegroupname)"></select>
+      </label>
+    </form>
+    <ui-gmap-google-map ng-if="map.center" center="map.center" zoom="map.zoom" options="map.options" style="height:400px;">
+
+      <ui-gmap-window coords="selectedCoords" show="windowOptions.show" closeclick="onCloseClick()">
+        <div>{{info}}</div>
+      </ui-gmap-window>
+
+      <ui-gmap-markers models="markers" coords="&quot;coords&quot;" icon="&quot;icon&quot;" options="&quot;options&quot;" fit="getFit()" click="onClickMarker">
+      </ui-gmap-markers>
+
+    </ui-gmap-google-map>
+    <div id="gatewayLocation-markdown360" ng-show="data.devicename != &quot;All devices&quot;" style="text-align:center;" class="show-list-numbers-and-dots">
+      <p style="color:#AAAAAA;font-size:12px;">{{ data.location != "UNKNOWN" &amp;&amp; data.location != "" ? "(Latitude: " + data.location.latitude + " ," + "Longitude: " + data.location.longitude + ")" : "" }}</p>
+    </div>
+    <form id="gatewayLocation-form228" class="list">
+      <button id="gatewayLocation-button152" ng-click="setDeviceLocation(data.devicename)" class="button button-positive button-block">Set</button>
+      <button id="gatewayLocation-button155" ng-click="deleteDeviceLocation(data.devicename)" class="button button-positive button-block button-outline">Delete</button>
+    </form>
+    <div class="spacer" style="width: 300px; height: 50px;"></div>
+  </ion-content>
+</ion-view>

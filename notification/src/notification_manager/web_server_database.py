@@ -161,14 +161,17 @@ class database_client:
         deviceid = self._devices.get_deviceid(username, devicename)
         return self._devices.update_device_notification(username, devicename, deviceid, source, notification)
 
+    def update_device_notification_by_deviceid(self, deviceid, source, number, notification):
+        return self._devices.update_device_notification_by_deviceid(deviceid, source, number, notification)
+
     def delete_device_notification(self, username, devicename):
         return self._devices.delete_device_notification(username, devicename)
 
     def get_device_notification(self, username, devicename, source):
         return self._devices.get_device_notification(username, devicename, source)
 
-    def get_device_notification_by_deviceid(self, deviceid, source):
-        return self._devices.get_device_notification_by_deviceid(deviceid, source)
+    def get_device_notification_by_deviceid(self, deviceid, source, number):
+        return self._devices.get_device_notification_by_deviceid(deviceid, source, number)
 
 
     ##########################################################
@@ -378,6 +381,7 @@ class database_client_mongodb:
         self.port = port
 
     def initialize(self):
+        #mongo_client = MongoClient(self.host, self.port, username=config.CONFIG_MONGODB_USERNAME, password=config.CONFIG_MONGODB_PASSWORD)
         mongo_client = MongoClient(self.host, self.port)
         self.client = mongo_client[config.CONFIG_MONGODB_DB]
 
@@ -568,6 +572,20 @@ class database_client_mongodb:
             #print("update_device_notification replace_one")
             notifications.replace_one({'username': username, 'devicename': devicename, 'deviceid': deviceid, 'source': source}, item)
 
+    def update_device_notification_by_deviceid(self, deviceid, source, number, notification):
+        notifications = self.get_notifications_document()
+        if notifications:
+            if number is None:
+                found = notifications.find_one({'deviceid': deviceid, 'source': source})
+                if found:
+                    found["notification"] = notification
+                    notifications.replace_one({'deviceid': deviceid, 'source': source}, found)
+            else:
+                found = notifications.find_one({'deviceid': deviceid, 'source': source, 'number': number})
+                if found:
+                    found["notification"] = notification
+                    notifications.replace_one({'deviceid': deviceid, 'source': source, 'number': number}, found)
+
     def delete_device_notification(self, username, devicename):
         notifications = self.get_notifications_document();
         try:
@@ -585,13 +603,19 @@ class database_client_mongodb:
                 return notification['notification']
         return None
 
-    def get_device_notification_by_deviceid(self, deviceid, source):
+    def get_device_notification_by_deviceid(self, deviceid, source, number):
         notifications = self.get_notifications_document();
         if notifications:
-            for notification in notifications.find({'deviceid': deviceid, 'source': source}):
-                notification.pop('_id')
-                #print(notification['notification'])
-                return notification['notification']
+            if number is None:
+                for notification in notifications.find({'deviceid': deviceid, 'source': source}):
+                    notification.pop('_id')
+                    #print(notification['notification'])
+                    return notification['notification']
+            else:
+                for notification in notifications.find({'deviceid': deviceid, 'source': source, 'number': number}):
+                    notification.pop('_id')
+                    #print(notification['notification'])
+                    return notification['notification']
         return None
 
 
@@ -777,7 +801,7 @@ class database_client_mongodb:
     def get_deviceid(self, username, devicename):
         devices = self.get_registered_devices()
         if devices:
-            for device in devices.find({'username': username, 'devicename': devicename},{'username': 1, 'devicename': 1, 'deviceid': 1}):
+            for device in devices.find({'username': username, 'devicename': devicename},{'deviceid': 1}):
                 return device['deviceid']
         return None
 

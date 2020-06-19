@@ -1,0 +1,74 @@
+<ion-view title="View LDSU Device" hide-back-button="true" cache-view="false" nav-transition="none" id="page52" class="page_width">
+  <ion-nav-buttons side="left" class="has-header">
+    <button class="button button-icon icon ion-android-close" ng-click="submitDeviceList()"></button>
+  </ion-nav-buttons>
+  <ion-content padding="true" class="has-header">
+    <div class="spacer" style="width: 300px; height: 12px;"></div>
+    <div id="viewLDSUDevice-markdown371" style="text-align:center;" class="show-list-numbers-and-dots">
+      <p style="color:#3C5A99;font-size:18px;">
+        <strong> {{ data.devicename }} </strong>
+      </p>
+    </div>
+    <button id="viewLDSUDevice-button229" style="font-weight:500;font-size:18px;" class="button button-dark button-block button-clear">{{ data.sensor.sensorname }}</button>
+    <form id="viewLDSUDevice-form188" class="list page_width_small">
+      <ion-item class="item-divider" id="viewLDSUDevice-list-item-divider9"> LDSU DEVICE NAME</ion-item>
+      <label class="item item-input" id="viewLDSUDevice-input180">
+        <input type="text" placeholder="" ng-model="newsensorname">
+      </label>
+      <button id="viewLDSUDevice-button230" ng-click="changeName(newsensorname)" class="button button-positive button-block button-outline">Change name</button>
+    </form>
+    <form id="viewLDSUDevice-form190" class="list page_width_small">
+      <div class="spacer" style="width: 747.778px; height: 25px;"></div>
+      <ion-item class="item-divider" id="viewLDSUDevice-list-item-divider24"> LDSU UUID</ion-item>
+      <label class="item item-input" id="viewLDSUDevice-input184">
+        <input type="text" placeholder="" ng-model="data.sensor.source" readonly="">
+      </label>
+      <ion-item class="item-divider" id="viewLDSUDevice-list-item-divider36"> LDSU NAME</ion-item>
+      <label class="item item-input" id="viewLDSUDevice-input185">
+        <input type="text" placeholder="" ng-model="data.sensor.name" readonly="">
+      </label>
+      <ion-item class="item-divider" id="viewLDSUDevice-list-item-divider37"> LDSU NUMBER</ion-item>
+      <label class="item item-input" id="viewLDSUDevice-input188">
+        <input type="text" placeholder="" ng-model="data.sensor.number" readonly="">
+      </label>
+      <ion-item class="item-divider" id="viewLDSUDevice-list-item-divider38"> LDS BUS PORT</ion-item>
+      <label class="item item-input" id="viewLDSUDevice-input187">
+        <input type="text" placeholder="" ng-model="data.sensor.port" readonly="">
+      </label>
+    </form>
+    <form id="viewLDSUDevice-form260" class="list page_width_small">
+      <div class="spacer" style="width: 747.778px; height: 25px;"></div>
+      <ion-item class="item-divider" id="viewLDSUDevice-list-item-divider39"> CLASS</ion-item>
+      <label class="item item-input" id="viewLDSUDevice-input190">
+        <input type="text" placeholder="" ng-model="data.sensor.class" readonly="">
+      </label>
+      <ion-item class="item-divider" id="viewLDSUDevice-list-item-divider40"> UNIT</ion-item>
+      <label class="item item-input" id="viewLDSUDevice-input194">
+        <input type="text" placeholder="" ng-model="data.sensor.unit" readonly="">
+      </label>
+      <ion-item class="item-divider" id="viewLDSUDevice-list-item-divider42"> ACCURACY</ion-item>
+      <label class="item item-input" id="viewLDSUDevice-input191">
+        <input type="text" placeholder="" ng-model="data.sensor.accuracy" readonly="">
+      </label>
+      <ion-item class="item-divider" id="viewLDSUDevice-list-item-divider43"> RANGE</ion-item>
+      <label class="item item-input" id="viewLDSUDevice-input192">
+        <input type="text" placeholder="" ng-model="data.sensor.minmax" readonly="">
+      </label>
+      <ion-item class="item-divider" id="viewLDSUDevice-list-item-divider41"> FORMAT</ion-item>
+      <label class="item item-input" id="viewLDSUDevice-input193">
+        <input type="text" placeholder="" ng-model="data.sensor.format" readonly="">
+      </label>
+      <ion-item class="item-divider" id="viewLDSUDevice-list-item-divider44"> TYPE</ion-item>
+      <label class="item item-input" id="viewLDSUDevice-input196">
+        <input type="text" placeholder="" ng-model="data.sensor.type" readonly="">
+      </label>
+      <ion-item class="item-divider" id="viewLDSUDevice-list-item-divider45"> OBJID</ion-item>
+      <label class="item item-input" id="viewLDSUDevice-input195">
+        <input type="text" placeholder="" ng-model="data.sensor.obj" readonly="">
+      </label>
+    </form>
+    <form id="viewLDSUDevice-form251" class="list" ng-show="data.sensor.type==&quot;input&quot;">
+      <div class="spacer" style="height: 100px;"></div>
+    </form>
+  </ion-content>
+</ion-view>

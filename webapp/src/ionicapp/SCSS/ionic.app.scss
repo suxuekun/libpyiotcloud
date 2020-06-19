@@ -1,17 +1,202 @@
+$positive: #3C5A99;
+$balanced: #00CBAF;
 $dark: #444444;
 $link-color: $dark;
 $ionicons-font-path: "../lib/ionic/fonts" !default;
 @import "../www/lib/ionic/scss";
+table, th, td {
+	border-collapse: collapse;
+	padding: 4px;
+	text-align: left;
+	border-bottom: 1px solid #ddd;
+	color: #444444;
+	font-size: 13px;
+}
+
+#chartjs-tooltip {
+	opacity: 0;
+	position: absolute;
+	background: rgba(0, 0, 0, .9);
+	color: white;
+	border-radius: 3px;
+	-webkit-transition: all .1s ease;
+	transition: all .1s ease;
+	pointer-events: none;
+	-webkit-transform: translate(-50%, 0);
+	transform: translate(-50%, 0);
+	font-size: 10px;
+}
+
+.chartjs-tooltip-key {
+	display: inline-block;
+	width: 10px;
+	height: 10px;
+	margin-right: 10px;
+	font-size: 10px;
+}
+
+.d3node circle {
+	fill: #DDDDDD;
+	stroke: #FFFFFF;
+	stroke-width: 1px;
+}
+
+.d3node text {
+	font: 12px sans-serif;
+	fill: #3C5A99}
+.d3link {
+	fill: none;
+	stroke: #DDDDDD;
+	stroke-width: 1px;
+}
+
+.d3container {
+	width: 99% !important;
+	background-color: #FFF;
+}
+
 .img_logo {
 	top: 35%;
 }
 
+.menu_margin {
+	margin-left: 15px;
+	margin-right: 15px;
+}
+
+.topup_left {
+	width: 69%;
+	display: inline-block;
+}
+
+.topup_right {
+	width: 29%;
+	display: inline-block;
+}
+
+.topup_credits_left {
+	width: 69%;
+	display: inline-block;
+}
+
+.topup_credits_right {
+	width: 29%;
+	display: inline-block;
+}
+
+.card_top_devices {
+	background-color: #FFFFFF;
+}
+
+.card_id_devices {
+	margin-left: 15px;
+	height: 16px;
+}
+
+.card_image_devices {
+	vertical-align: text-bottom;
+	margin-left: 15px;
+	display: inline-block;
+}
+
+.card_image_device {
+	vertical-align: text-bottom;
+	display: inline-block;
+}
+
+.card_label_devices {
+	display: inline-block;
+	height: 16px;
+}
+
+.card_label_dashboard_table {
+	display: inline-block;
+}
+
+.card_label_devicegroups {
+	margin-left: 15px;
+	height: 20px;
+}
+
+.device_info_top_back {
+	background-color: #3C5A99;
+}
+
+.device_info_top {
+	width: 48% !important;
+	display: inline-block;
+	padding-top: 0px;
+	padding-bottom: 0px;
+	margin-top: 0px;
+	margin-bottom: 0px;
+	height: 10px;
+	margin-right: 2px;
+}
+
+.device_info_top_ex {
+	width: 50% !important;
+	display: inline-block;
+	padding-top: 0px;
+	padding-bottom: 0px;
+	margin-top: 0px;
+	margin-bottom: 0px;
+	height: 10px;
+	margin-left: 0px;
+}
+
+.device_info_top_ex2 {
+	width: 40% !important;
+	display: inline-block;
+	padding-top: 0px;
+	padding-bottom: 0px;
+	margin-top: 0px;
+	margin-bottom: 0px;
+	height: 10px;
+	margin-left: 0px;
+}
+
+.stats_block_container {
+	padding-top: 0px;
+	padding-bottom: 0px;
+	padding-left: 0px;
+	padding-right: 0px;
+	margin-top: 0px;
+	margin-bottom: 0px;
+	margin-left: 0px;
+	margin-right: 0px;
+}
+
+.stats_block {
+	background-color: #3C5A99;
+	width: 21% !important;
+	display: inline-block;
+}
+
+.stats_block_spacer {
+	background-color: #FFFFFF;
+	width: 1% !important;
+	display: inline-block;
+}
+
 .card_top {
-	background-color: #387EF5;
+	background-color: #3C5A99;
+}
+
+.card_middle {
+	background-color: #3C5A99;
+}
+
+.tab_margin_1 {
+	margin-left: 1em;
 }
 
 .page_width {
 	max-width: 1000px;
+	margin: 0% auto;
+}
+
+.page_width_dashboard {
+	max-width: 1700px;
 	margin: 0% auto;
 }
 
@@ -20,19 +205,122 @@ $ionicons-font-path: "../lib/ionic/fonts" !default;
 	margin: 0% auto;
 }
 
+.page_width_medium {
+	max-width: 800px;
+	margin: 0% auto;
+}
+
+.widget_selection_half {
+	width: 49% !important;
+	min-width: 300px;
+	height: 55px;
+	vertical-align: text-top;
+	display: inline-block;
+}
+
+.widget_selection_half_ex {
+	width: 49% !important;
+	min-width: 300px;
+	height: 55px;
+	vertical-align: text-top;
+}
+
+.widget_title_half_50 {
+	width: 49% !important;
+	display: inline-block;
+}
+
+.widget_whole {
+	width: 98% !important;
+}
+
+.widget_half {
+	width: 49% !important;
+	display: inline-block;
+}
+
+.widget_quarter {
+	width: 24.5% !important;
+	display: inline-block;
+}
+
+.widget_third {
+	width: 33% !important;
+	display: inline-block;
+}
+
+.widget_title_half_50_noninline {
+	width: 49% !important;
+}
+
+.widget_button_backward_forward {
+	width: 8% !important;
+	display: inline-block;
+	padding-top: 0px;
+	padding-bottom: 0px;
+	margin-top: 0px;
+	margin-bottom: 0px;
+}
+
+.widget_button_backward_forward_filler {
+	width: 82% !important;
+	display: inline-block;
+	padding-top: 0px;
+	padding-bottom: 0px;
+	margin-top: 0px;
+	margin-bottom: 0px;
+}
+
+.widget_button_backward_forward_container {
+	height: 40px !important;
+	padding-top: 0px;
+	padding-bottom: 0px;
+	margin-top: 0px;
+	margin-bottom: 0px;
+}
+
 .widget_button {
 	width: 48% !important;
-	height: 65px;
+	height: 60px;
 }
 
 .widget_button_ex {
 	width: 96% !important;
-	height: 65px;
+	height: 60px;
+}
+
+.widget_button_20 {
+	width: 19% !important;
+	display: inline-block;
+}
+
+.widget_button_80 {
+	width: 79% !important;
+	display: inline-block;
+}
+
+.widget_button_40 {
+	width: 39% !important;
+	display: inline-block;
+}
+
+.widget_button_60 {
+	width: 59% !important;
+	display: inline-block;
 }
 
 .widget_button_half {
 	width: 49% !important;
 	display: inline-block;
+}
+
+.widget_button_half_device {
+	width: 49% !important;
+	display: inline-block;
+	padding-top: 0px;
+	padding-bottom: 0px;
+	margin-top: 0px;
+	margin-bottom: 0px;
 }
 
 .widget_button_half_50 {
@@ -44,6 +332,34 @@ $ionicons-font-path: "../lib/ionic/fonts" !default;
 .widget_button_third {
 	width: 33% !important;
 	display: inline-block;
+}
+
+.widget_button_third_ex {
+	width: 33% !important;
+	display: inline-block;
+	min-width: 300px;
+}
+
+.widget_button_quarter {
+	width: 24.5% !important;
+	display: inline-block;
+}
+
+.widget_button_quarter_ex {
+	width: 24.5% !important;
+	min-width: 196px;
+	display: inline-block;
+}
+
+.widget_button_fifth_ex {
+	width: 19.6% !important;
+	display: inline-block;
+	min-width: 300px;
+}
+
+.container_center {
+	margin-left: auto;
+	margin-right: auto;
 }
 
 .line_spacing {
@@ -186,3 +502,16 @@ $ionicons-font-path: "../lib/ionic/fonts" !default;
 	background-color: red;
 }
 
+// This code is required for Angular Google Maps to funciton
+ui-gmap-google-map {
+	height: 100%;
+	width: 100%;
+	display: block;
+	.angular-google-map {
+		height: 100%;
+		.angular-google-map-container {
+			height: 100%;
+		}
+		
+	}
+}

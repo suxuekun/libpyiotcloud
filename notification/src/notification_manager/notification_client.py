@@ -153,58 +153,50 @@ class notification_client_pinpoint:
         priority = "normal"
         ttl = 30
         silent = False
-        try:
-            tokens = recipient["devicetoken"]
-            services = recipient["service"]
-        except:
-            tokens = []
-            services = []
 
-        for x in range(len(tokens)):
-            token = tokens[x]
-            service = services[x]
+        token = recipient["devicetoken"]
+        service = recipient["service"]
 
-            if True:
-                print('PUSH_NOTIFICATION {} {}'.format(token, service))
-                if service == "GCM":
-                    response = self.client.send_messages(
-                        ApplicationId = self.pinpoint_project_id,
-                        MessageRequest = {
-                            'Addresses': {token: {'ChannelType': service}},
-                            'MessageConfiguration': {
-                                'GCMMessage': {
-                                    'Action': action,
-                                    'Body': message,
-                                    'Priority' : priority,
-                                    'SilentPush': silent,
-                                    'Title': title,
-                                    'TimeToLive': ttl,
-                                    'Url': url
-                                }
-                            }
+        print('PUSH_NOTIFICATION {} {}'.format(token, service))
+        if service == "GCM":
+            response = self.client.send_messages(
+                ApplicationId = self.pinpoint_project_id,
+                MessageRequest = {
+                    'Addresses': {token: {'ChannelType': service}},
+                    'MessageConfiguration': {
+                        'GCMMessage': {
+                            'Action': action,
+                            'Body': message,
+                            'Priority' : priority,
+                            'SilentPush': silent,
+                            'Title': title,
+                            'TimeToLive': ttl,
+                            'Url': url
                         }
-                    )
-                    print('PUSH_NOTIFICATION GCM ok')
-                elif service == "APNS":
-                    response = self.client.send_messages(
-                        ApplicationId = self.pinpoint_project_id,
-                        MessageRequest = {
-                            'Addresses': {token: {'ChannelType': service}},
-                            'MessageConfiguration': {
-                                'APNSMessage': {
-                                    'Action': action,
-                                    'Body': message,
-                                    'Priority' : priority,
-                                    'SilentPush': silent,
-                                    'Title': title,
-                                    'TimeToLive': ttl,
-                                    'Url': url
-                                }
-                            }
+                    }
+                }
+            )
+            print('PUSH_NOTIFICATION GCM ok')
+        elif service == "APNS":
+            response = self.client.send_messages(
+                ApplicationId = self.pinpoint_project_id,
+                MessageRequest = {
+                    'Addresses': {token: {'ChannelType': service}},
+                    'MessageConfiguration': {
+                        'APNSMessage': {
+                            'Action': action,
+                            'Body': message,
+                            'Priority' : priority,
+                            'SilentPush': silent,
+                            'Title': title,
+                            'TimeToLive': ttl,
+                            'Url': url
                         }
-                    )
-                    print('PUSH_NOTIFICATION APNS ok')
-                print(response)
+                    }
+                }
+            )
+            print('PUSH_NOTIFICATION APNS ok')
+        print(response)
         return response
 
 

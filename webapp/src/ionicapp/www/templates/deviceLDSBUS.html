@@ -1,0 +1,51 @@
+<ion-view title="Device LDS BUS" hide-back-button="true" cache-view="false" nav-transition="none" id="page72" class="page_width">
+  <ion-nav-buttons side="left" class="has-header">
+    <button class="button button-icon icon ion-android-close" ng-click="submitDeviceList()"></button>
+  </ion-nav-buttons>
+  <ion-nav-buttons side="right" class="has-header">
+    <button class="button button-positive icon ion-android-delete" ng-click="deleteLDSBUS()"></button>
+  </ion-nav-buttons>
+  <ion-content padding="true" class="has-header">
+    <div class="spacer" style="width: 300px; height: 12px;"></div>
+    <div id="deviceLDSBUS-markdown534" style="text-align:center;" class="show-list-numbers-and-dots">
+      <p style="color:#3C5A99;font-size:18px;">
+        <strong> {{ data.devicename }} </strong>
+      </p>
+    </div>
+    <form id="deviceLDSBUS-form191" class="list">
+      <div id="deviceLDSBUS-button-bar14" class="button-bar">
+        <button id="deviceLDSBUS-button219" ng-class="{'active': data.activeSection==1}" ng-click="changeSection(1)" style="font-weight:300;color:#AAAAAA;border-radius:256px 256px 256px 256px;" class="button button-stable button-small button-block">LDS BUS 1</button>
+        <button id="deviceLDSBUS-button220" ng-class="{'active': data.activeSection==2}" ng-click="changeSection(2)" style="font-weight:300;color:#AAAAAA;border-radius:256px 256px 256px 256px;" class="button button-stable button-small button-block">LDS BUS 2</button>
+        <button id="deviceLDSBUS-button222" ng-class="{'active': data.activeSection==3}" ng-click="changeSection(3)" style="font-weight:300;color:#AAAAAA;border-radius:256px 256px 256px 256px;" class="button button-stable button-small button-block">LDS BUS 3</button>
+      </div>
+    </form>
+    <div id="deviceLDSBUS-markdown542" class="show-list-numbers-and-dots">
+      <p style="color:#AAAAAA;font-size:12px;">{{ ldsbus[0].ldsus.length }} LDSUs detected with {{ ldsbus[0].sensors.length }} sensors and {{ ldsbus[0].actuators.length }} actuators</p>
+    </div>
+    <div class="list card" id="deviceLDSBUS-card226">
+      <div class="item item-body" id="deviceLDSBUS-list-item-container51" ng-click="getLDSUs()">
+        <div id="deviceLDSBUS-markdown536" class="show-list-numbers-and-dots">
+          <p style="margin-top:0px;color:#3C5A99;font-size:18px;">
+            <strong> LDSUs </strong> ({{ ldsbus.length ? ldsbus[0].ldsus.length : 0 }})</p>
+        </div>
+      </div>
+    </div>
+    <div class="list card" id="deviceLDSBUS-card227">
+      <div class="item item-body" id="deviceLDSBUS-list-item-container37" ng-click="getSensors()">
+        <div id="deviceLDSBUS-markdown528" class="show-list-numbers-and-dots">
+          <p style="margin-top:0px;color:#3C5A99;font-size:18px;">...
+            <strong> Sensors </strong> ({{ ldsbus.length ? ldsbus[0].sensors.length : 0 }})</p>
+        </div>
+      </div>
+    </div>
+    <div class="list card" id="deviceLDSBUS-card228">
+      <div class="item item-body" id="deviceLDSBUS-list-item-container40" ng-click="getActuators()">
+        <div id="deviceLDSBUS-markdown530" class="show-list-numbers-and-dots">
+          <p style="margin-top:0px;color:#3C5A99;font-size:18px;">...
+            <strong> Actuators </strong> ({{ ldsbus.length ? ldsbus[0].actuators.length : 0 }})</p>
+        </div>
+      </div>
+    </div>
+    <button id="deviceLDSBUS-button225" ng-click="scanLDSBUS()" class="button button-positive button-block">Scan</button>
+  </ion-content>
+</ion-view>

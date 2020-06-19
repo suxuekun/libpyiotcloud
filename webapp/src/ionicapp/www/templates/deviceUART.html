@@ -10,14 +10,12 @@
       <div id="deviceUART-button-bar3" class="button-bar"></div>
       <div class="spacer" style="width: 300px; height: 12px;"></div>
       <div id="deviceUART-markdown58" style="text-align:center;" class="show-list-numbers-and-dots">
-        <p style="color:#387EF5;font-size:18px;">
+        <p style="color:#3C5A99;font-size:18px;">
           <strong> {{ data.devicename }} </strong>
         </p>
       </div>
-      <ion-toggle toggle-class="toggle-positive" id="deviceUART-toggle3" ng-model="data.enableUART" ng-change="changeUART(data.enableUART)">Enable</ion-toggle>
-      <div class="spacer" style="width: 300px; height: 20px;"></div>
       <div id="deviceUART-markdown120" class="show-list-numbers-and-dots">
-        <p style="color:#387EF5;">Properties</p>
+        <p style="color:#3C5A99;">Properties</p>
       </div>
       <button id="deviceUART-button100" ng-click="setDefaultProperties()" class="button button-stable button-block button-outline">Set default values</button>
       <label class="item item-select" id="deviceUART-select9">
@@ -43,24 +41,24 @@
     </form>
     <form id="deviceUART-form22" class="list">
       <div id="deviceUART-markdown119" class="show-list-numbers-and-dots">
-        <p style="color:#387EF5;">Notification settings</p>
+        <p style="color:#3C5A99;">Notification settings</p>
       </div>
       <ion-toggle toggle-class="toggle-positive" id="deviceUART-toggle2" ng-change="changeNotification(data.showNotification)" ng-model="data.showNotification">Show</ion-toggle>
     </form>
     <form id="deviceUART-form43" class="list" ng-show="data.showNotification==1">
-      <h5 id="deviceUART-heading12" style="color:#387EF5;font-weight:400;">Message</h5>
+      <h5 id="deviceUART-heading12" style="color:#3C5A99;font-weight:400;">Message</h5>
       <label class="item item-input" id="deviceUART-textarea4">
         <span class="input-label"></span><textarea placeholder="" ng-model="data.uart.notification.messages[0].message">Type message here</textarea></label>
     </form>
     <form id="deviceUART-form40" class="list" ng-show="data.showNotification==1">
-      <h5 id="deviceUART-heading13" style="color:#387EF5;font-weight:400;">Recipients</h5>
+      <h5 id="deviceUART-heading13" style="color:#3C5A99;font-weight:400;">Recipients</h5>
       <ion-checkbox id="deviceUART-checkbox1" ng-model="data.uart.notification.endpoints.email.enable">Send email to </ion-checkbox>
       <label class="item item-input" id="deviceUART-input66">
-        <input type="text" placeholder="Email address(es)" ng-model="data.uart.notification.endpoints.email.recipients" readonly="">
+        <input type="text" placeholder="Email address(es)" ng-model="data.uart.notification.endpoints.email.recipients">
       </label>
       <ion-checkbox id="deviceUART-checkbox2" ng-model="data.uart.notification.endpoints.mobile.enable">Send SMS to </ion-checkbox>
       <label class="item item-input" id="deviceUART-input68">
-        <input type="text" placeholder="Phone number(s)" ng-model="data.uart.notification.endpoints.mobile.recipients" readonly="">
+        <input type="text" placeholder="Phone number(s)" ng-model="data.uart.notification.endpoints.mobile.recipients">
       </label>
       <ion-checkbox id="deviceUART-checkbox3" ng-model="data.uart.notification.endpoints.notification.enable">Send notification to </ion-checkbox>
       <label class="item item-input" id="deviceUART-input67">
@@ -71,7 +69,20 @@
         <span class="input-label"></span>
         <select ng-options="device.id as device.devicename for device in devices" ng-model="data.hardware_devicename"></select>
       </label>
+      <ion-checkbox id="deviceUART-checkbox48" ng-model="data.uart.notification.endpoints.storage.enable">Send to Storage</ion-checkbox>
+      <div id="deviceUART-container12" ng-show="data.uart.notification.endpoints.storage.recipients != &quot;&quot;" class="tab_margin_1">
+        <div>
+          <br>
+          <p>
+            <a href="https://ft900-iot-portal.s3.amazonaws.com/{{ data.uart.notification.endpoints.storage.recipients }}">
+              Storage URL
+            </a>
+          </p>
+          <br>
+        </div>
+      </div>
     </form>
     <button id="deviceUART-button28" ng-click="submit()" class="button button-positive button-block">SAVE</button>
+    <div class="spacer" style="height: 100px;"></div>
   </ion-content>
 </ion-view>

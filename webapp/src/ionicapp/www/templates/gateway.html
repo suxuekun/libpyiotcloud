@@ -1,0 +1,98 @@
+<ion-view title="Gateway" hide-back-button="true" nav-transition="none" id="page15" style="background-color:#FFFFFF;" class="page_width">
+  <ion-nav-buttons side="left" class="has-header">
+    <button class="button button-icon icon ion-android-close" ng-click="exitPage()"></button>
+  </ion-nav-buttons>
+  <ion-nav-buttons side="right" class="has-header">
+    <button class="button button-positive icon ion-refresh" ng-click="getStatus(data.devicename, 1)"></button>
+  </ion-nav-buttons>
+  <ion-content padding="true" class="has-header">
+    <button id="gateway-button43" ng-click="getDevice(data.devicename)" style="font-weight:600;font-size:18px;" class="button button-positive button-block button-clear icon-right ion-android-settings">{{ data.devicename }}</button>
+    <div id="gateway-container24">
+      <div id="gateway-markdown454" style="text-align:right;" class="show-list-numbers-and-dots device_info_top">
+        <p style="color:#AAAAAA;font-size:14px;">UUID</p>
+      </div>
+      <div id="gateway-markdown455" class="show-list-numbers-and-dots device_info_top_ex">
+        <p style="color:#AAAAAA;font-size:14px;">{{ data.deviceid }}</p>
+      </div>
+      <div id="gateway-markdown456" style="text-align:right;" class="show-list-numbers-and-dots device_info_top">
+        <p style="color:#AAAAAA;font-size:14px;">Serial Number</p>
+      </div>
+      <div id="gateway-markdown457" class="show-list-numbers-and-dots device_info_top_ex">
+        <p style="color:#AAAAAA;font-size:14px;">{{ data.serialnumber }}</p>
+      </div>
+      <div id="gateway-markdown460" style="text-align:right;" class="show-list-numbers-and-dots device_info_top">
+        <p style="color:#AAAAAA;font-size:14px;">Firmware Version</p>
+      </div>
+      <div id="gateway-markdown461" class="show-list-numbers-and-dots device_info_top_ex">
+        <p style="color:#AAAAAA;font-size:14px;">{{ data.deviceversion }}</p>
+      </div>
+      <div id="gateway-markdown464" ng-click="viewDeviceLocation(data)" style="text-align:right;" class="show-list-numbers-and-dots device_info_top">
+        <p style="color:#888888;font-size:14px;">Location</p>
+      </div>
+      <div id="gateway-markdown514" ng-click="viewDeviceLocation(data)" class="show-list-numbers-and-dots device_info_top_ex">
+        <p style="color:#888888;font-size:14px;">lat: {{ data.location.latitude }}</p>
+      </div>
+      <div id="gateway-markdown465" ng-click="viewDeviceLocation(data)" style="text-align:right;" class="show-list-numbers-and-dots device_info_top"></div>
+      <div id="gateway-markdown515" ng-click="viewDeviceLocation(data)" class="show-list-numbers-and-dots device_info_top_ex">
+        <p style="color:#888888;font-size:14px;">lon: {{ data.location.longitude }}</p>
+      </div>
+      <div id="gateway-markdown251" style="text-align:right;" class="show-list-numbers-and-dots device_info_top">
+        <p style="color:#AAAAAA;font-size:14px;">Status</p>
+      </div>
+      <div class="card_image_device">
+        <img src="img/r8uDrUoTtmuVJnh4Na2A_offline.png" style="display: block; margin-left: auto; margin-right: auto;" ng-show="data.status != &quot;Online&quot;">
+      </div>
+      <div class="card_image_device">
+        <img src="img/Ly1Pw1dNTnek4ynCL8dS_online.png" style="display: block; margin-left: auto; margin-right: auto;" ng-show="data.status == &quot;Online&quot;">
+      </div>
+      <div id="gateway-markdown532" class="show-list-numbers-and-dots device_info_top_ex2">
+        <p style="color:#AAAAAA;font-size:14px;">{{ data.status != "Online" &amp;&amp; data.status != "Offline" ? "Please wait..." : data.status }}</p>
+      </div>
+    </div>
+    <div class="spacer" style="height: 20px;"></div>
+    <div class="list card widget_button_half_device" id="gateway-card210" ng-click="submitLDSBUS(1)">
+      <div class="item item-body" id="gateway-list-item-container33">
+        <div id="gateway-markdown502" style="text-align:center;" class="show-list-numbers-and-dots">
+          <p style="margin-top:0px;color:#3C5A99;font-size:18px;">
+            <strong> LDS BUS 1 </strong>
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="list card widget_button_half_device" id="gateway-card221" ng-click="submitLDSBUS(2)">
+      <div class="item item-body" id="gateway-list-item-container35">
+        <div id="gateway-markdown525" style="text-align:center;" class="show-list-numbers-and-dots">
+          <p style="margin-top:0px;color:#3C5A99;font-size:18px;">
+            <strong> LDS BUS 2 </strong>
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="spacer" style="width: 747.778px; height: 3px;"></div>
+    <div class="list card widget_button_half_device" id="gateway-card212" ng-click="submitLDSBUS(3)">
+      <div class="item item-body" id="gateway-list-item-container41">
+        <div id="gateway-markdown505" style="text-align:center;" class="show-list-numbers-and-dots">
+          <p style="margin-top:0px;color:#3C5A99;font-size:18px;">
+            <strong> LDS BUS 3 </strong>
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="list card widget_button_half_device" id="gateway-card225" ng-click="submitUART()">
+      <div class="item item-body" id="gateway-list-item-container50">
+        <div id="gateway-markdown533" style="text-align:center;" class="show-list-numbers-and-dots">
+          <p style="margin-top:0px;color:#3C5A99;font-size:18px;">
+            <strong> UART </strong>
+          </p>
+        </div>
+      </div>
+    </div>
+    <button id="gateway-button231" ng-click="scanLDSBUS()" class="button button-positive button-block">Scan</button>
+    <div class="list card d3container" id="gateway-card219" ng-show="1">
+      <div class="hierarchychart" width="1000" height="450">
+        <svg id="{{data.devicename_ex}}" width="1000" height="450">
+        </svg>
+      </div>
+    </div>
+  </ion-content>
+</ion-view>

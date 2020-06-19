@@ -1,96 +1,424 @@
-<ion-view title="Sensor Dashboard" hide-back-button="true" cache-view="false" nav-transition="none" id="page17" class="page_width">
+<ion-view title="Sensor Dashboard" hide-back-button="true" nav-transition="none" id="page17" class="page_width_dashboard">
   <ion-nav-buttons side="left" class="has-header">
     <button class="button button-icon icon ion-android-close" ng-click="submitExit()"></button>
   </ion-nav-buttons>
   <ion-nav-buttons side="right" class="has-header">
-    <button class="button button-positive icon ion-refresh" ng-click="submitQuery()"></button>
+    <button class="button button-positive icon ion-refresh" ng-click="submitRefresh()"></button>
   </ion-nav-buttons>
   <ion-content padding="true" class="has-header">
     <div class="spacer" style="width: 300px; height: 12px;"></div>
     <div id="sensorDashboard-markdown57" style="text-align:center;" class="show-list-numbers-and-dots">
-      <p style="color:#387EF5;font-size:18px;">
+      <p style="color:#3C5A99;font-size:18px;">
         <strong> {{ data.devicename }} </strong>
       </p>
     </div>
     <div class="spacer" style="width: 300px; height: 20px;"></div>
     <form id="sensorDashboard-form222" class="list">
-      <ion-toggle toggle-class="toggle-positive" id="sensorDashboard-toggle35" ng-model="hide_settings" ng-change="changeHideSettings(hide_settings)">.</ion-toggle>
+      <ion-toggle toggle-class="toggle-positive" id="sensorDashboard-toggle35" ng-model="hide_settings" ng-change="changeHideSettings(hide_settings)" class="widget_whole">.</ion-toggle>
     </form>
     <form id="sensorDashboard-form168" class="list" ng-show="!hide_settings">
-      <div id="sensorDashboard-button-bar12" class="button-bar">
-        <button id="sensorDashboard-button114" ng-class="{'active': data.activeSection==2}" ng-click="changeSection(2)" class="button button-positive button-small button-block">Charts</button>
-        <button id="sensorDashboard-button101" ng-class="{'active': data.activeSection==1}" ng-click="changeSection(1)" class="button button-positive button-small button-block">Values</button>
+      <div id="sensorDashboard-markdown413" class="show-list-numbers-and-dots widget_title_half_50">
+        <p style="color:#3C5A99;">Sensor Filter</p>
       </div>
-      <label class="item item-select" id="sensorDashboard-select98">
+      <div id="sensorDashboard-markdown492" class="show-list-numbers-and-dots widget_title_half_50"></div>
+      <label class="item item-select widget_button_fifth_ex" id="sensorDashboard-select98">
         <span class="input-label">Device</span>
-        <select ng-options="device.devicename as device.devicename for device in devices" ng-model="data.devicename" ng-change="changeDevice(data.devicename)"></select>
+        <select ng-options="device.devicename as device.devicename for device in devices" ng-model="data.devicename" ng-change="changeDevice(data.devicename)" ng-disabled="refresh_automatically"></select>
       </label>
-      <label class="item item-input item-stacked-label widget_button_half_50" id="sensorDashboard-input144">
-        <span class="input-label">Refresh time (sec)</span>
-        <input type="number" placeholder="" ng-model="refresh_time" ng-disabled="refresh_automatically">
+      <label class="item item-select widget_button_fifth_ex" id="sensorDashboard-select110">
+        <span class="input-label">Sensor Class</span>
+        <select ng-options="sensorclass for sensorclass in sensorclasses" ng-model="sensorclass" ng-change="changeSensorClass(sensorclass)" ng-disabled="refresh_automatically"></select>
       </label>
-      <ion-toggle toggle-class="toggle-positive" id="sensorDashboard-toggle14" ng-model="refresh_automatically" ng-change="changeRefresh(refresh_automatically, refresh_time)" class="widget_button_half_50">Refresh automatically</ion-toggle>
-      <button id="sensorDashboard-button126" ng-click="submitDelete()" class="button button-dark button-block button-outline">Reset values</button>
+      <label class="item item-select widget_button_fifth_ex" id="sensorDashboard-select111">
+        <span class="input-label">Sensor Status</span>
+        <select ng-options="sensorstatus for sensorstatus in sensorstatuses" ng-model="sensorstatus" ng-change="changeSensorStatus(sensorstatus)" ng-disabled="refresh_automatically"></select>
+      </label>
+      <label class="item item-select widget_button_fifth_ex" id="sensorDashboard-select112">
+        <span class="input-label">Showing data for</span>
+        <select ng-options="timerange for timerange in timeranges" ng-model="timerange" ng-change="changeTimeRange(timerange)" ng-disabled="refresh_automatically"></select>
+      </label>
+      <div class="spacer" style="height: 1px;"></div>
+      <div id="sensorDashboard-markdown434" class="show-list-numbers-and-dots widget_title_half_50">
+        <p style="color:#3C5A99;">Dashboard Settings</p>
+      </div>
+      <div id="sensorDashboard-markdown480" class="show-list-numbers-and-dots widget_title_half_50"></div>
+      <label class="item item-input widget_button_fifth_ex" id="sensorDashboard-input144">
+        <input type="number" placeholder="Refresh time (sec)" ng-model="refresh_time" ng-disabled="refresh_automatically">
+      </label>
+      <ion-toggle toggle-class="toggle-positive" id="sensorDashboard-toggle14" ng-model="refresh_automatically" ng-change="changeRefresh(refresh_automatically, refresh_time)" class="widget_button_fifth_ex">Refresh automatically</ion-toggle>
+      <ion-toggle toggle-class="toggle-positive" id="sensorDashboard-toggle24" ng-model="big_charts" ng-change="changeBigChart(big_charts)" class="widget_button_fifth_ex">Big charts</ion-toggle>
+      <ion-toggle toggle-class="toggle-positive" id="sensorDashboard-toggle27" ng-model="online_charts" ng-change="changeOnlineChart(online_charts)" class="widget_button_fifth_ex">Online charts</ion-toggle>
+      <button id="sensorDashboard-button126" ng-click="submitDelete()" ng-disabled="refresh_automatically" class="button button-positive button-block button-outline widget_whole">Reset values</button>
     </form>
-    <div id="sensorDashboard-markdown311" class="show-list-numbers-and-dots">
-      <p style="color:#AAAAAA;font-size:12px;">{{ sensors_counthdr }}</p>
-    </div>
-    <div class="list card" id="sensorDashboard-card25" ng-repeat="sensor in sensors" ng-show="data.activeSection==1">
-      <div class="item item-body card_top" id="sensorDashboard-list-item-container29">
-        <div id="sensorDashboard-markdown434" class="show-list-numbers-and-dots">
-          <p style="margin-top:0px;color:#FFFFFF;font-size:18px;">
-            <strong>{{ sensor.sensorname }}</strong>
-          </p>
-        </div>
-        <div id="sensorDashboard-markdown435" class="show-list-numbers-and-dots">
-          <p style="margin-top:0px;color:#FFFFFF;font-size:10px;">{{ sensor.manufacturer }} - {{ sensor.model }}</p>
-        </div>
-        <div id="sensorDashboard-markdown436" class="show-list-numbers-and-dots">
-          <p style="margin-top:0px;color:#FFFFFF;font-size:10px;">{{ sensor.subclass ? sensor.source.toUpperCase() + "" + sensor.number + " " + sensor.class.toUpperCase() + " | " + sensor.subclass.toUpperCase() : sensor.source.toUpperCase() + "" + sensor.number + " " + sensor.class.toUpperCase() }}</p>
-        </div>
-      </div>
-      <div class="item item-body" id="sensorDashboard-list-item-container30" ng-click="submitQuery()">
-        <div id="sensorDashboard-markdown438" style="text-align:center;" class="show-list-numbers-and-dots">
-          <p style="margin-top:0px;color:#FFFFFF;font-size:10px;">.</p>
-        </div>
-        <div id="sensorDashboard-markdown441" style="text-align:center;" class="show-list-numbers-and-dots">
-          <p style="margin-top:0px;color:#387EF5;font-size:35px;">
-            <strong> {{ sensor.subclass ? sensor.readings.value + " " + sensor.units[0] + " | " + sensor.readings.subclass.value + " " + sensor.units[1] : sensor.readings.value + " " + sensor.units[0] }} </strong>
-          </p>
-        </div>
-        <div id="sensorDashboard-markdown439" style="text-align:center;" class="show-list-numbers-and-dots">
-          <p style="margin-top:0px;color:#FFFFFF;font-size:10px;">.</p>
-        </div>
-        <div id="sensorDashboard-markdown440" style="text-align:center;" class="show-list-numbers-and-dots">
-          <p style="margin-top:0px;color:#387EF5;font-size:10px;">{{ sensor.subclass ? "Low: " + sensor.readings.lowest + " " + sensor.units[0] + " High: " + sensor.readings.highest + " " + sensor.units[0] + " | " + "Low: " + sensor.readings.subclass.lowest + " " + sensor.units[1] + " High: " + sensor.readings.subclass.highest
-            + " " + sensor.units[1] : "Low: " + sensor.readings.lowest + " " + sensor.units[0] + " High: " + sensor.readings.highest + " " + sensor.units[0] }}</p>
-        </div>
+    <div id="sensorDashboard-container22" ng-show="sensors.length == 0">
+      <div id="sensorDashboard-markdown441" class="show-list-numbers-and-dots">
+        <p style="color:#AAAAAA;font-size:12px;">{{ sensors_counthdr }}</p>
       </div>
     </div>
-    <div class="list card" id="sensorDashboard-card28" ng-repeat="sensor in sensors" ng-show="data.activeSection==2" ng-click="submitQuery()">
-      <div class="item item-body card_top" id="sensorDashboard-list-item-container19">
+    <div class="list card widget_whole" id="sensorDashboard-card217" ng-show="sensors.length > 0">
+      <div class="item item-body" id="sensorDashboard-list-item-container32" ng-click="changeDeviceTableHide()">
+        <div id="sensorDashboard-markdown463" class="show-list-numbers-and-dots">
+          <p style="margin-top:0px;color:#888888;font-size:16px;">
+            <strong> Devices Summary </strong>
+          </p>
+        </div>
+      </div>
+      <div id="sensorDashboard-container30" ng-show="!devicesummaryshow" class="tab_margin_1">
+        <div>
+
+          <div class="row">
+
+            <div class="column" style="width:25%;">
+              <canvas id="pie1" class="chart chart-pie" chart-data="stats.devices.statuses.data" chart-labels="stats.devices.statuses.labels" chart-colors="sensors_datachart_colors_options" chart-options="sensors_datachart_piechart_devices_statuses_options">
+              </canvas>
+            </div>
+
+            <div class="column" style="width:25%;">
+              <canvas id="pie2" class="chart chart-pie" chart-data="stats.devices.groups.data" chart-labels="stats.devices.groups.labels" chart-colors="sensors_datachart_colors_options" chart-options="sensors_datachart_piechart_devices_groups_options">
+              </canvas>
+            </div>
+
+
+            <div class="column" style="width:25%;">
+              <canvas id="pie3" class="chart chart-pie" chart-data="stats.devices.versions.data" chart-labels="stats.devices.versions.labels" chart-colors="sensors_datachart_colors_options" chart-options="sensors_datachart_piechart_devices_versions_options">
+              </canvas>
+            </div>
+
+            <div class="column" style="width:25%;">
+              <canvas id="pie4" class="chart chart-pie" chart-data="stats.devices.locations.data" chart-labels="stats.devices.locations.labels" chart-colors="sensors_datachart_colors_options" chart-options="sensors_datachart_piechart_devices_locations_options">
+              </canvas>
+            </div>
+
+
+          </div>
+
+
+          <br>
+        </div>
+      </div>
+      <div id="sensorDashboard-container33" ng-show="devicesummaryshow" class="tab_margin_1">
+        <div class="spacer" style="height: 28px;"></div>
+        <table style="width:100%" bordercolor="#444444">
+          <tbody>
+            <tr>
+              <th style="width:3%">&nbsp;</th>
+              <th style="width:25%">
+                <b>Device</b>
+              </th>
+              <th style="width:20%">
+                <b>Version</b>
+              </th>
+              <th style="width:20%">
+                <b>Group</b>
+              </th>
+              <th style="width:32%">
+                <b>Location</b>
+              </th>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div id="sensorDashboard-container31" ng-repeat="device in devicesummary" ng-show="devicesummaryshow" class="tab_margin_1">
+        <table style="width:100%">
+          <tbody>
+            <tr>
+              <td style="width:3%">
+                <div ng-show="device.status==0">
+                  <img src="img/xqcc2stgTNmAeM8gxhQ7_offline.png" style="width:16px; height:16px">
+                </div>
+                <div ng-show="device.status==1">
+                  <img src="img/6RNUgrQwRemftiOCX3pw_online.png" style="width:16px; height:16px">
+                </div>
+
+              </td>
+              <td style="width:25%">{{ device.devicename }}</td>
+              <td style="width:20%">{{ device.version }}</td>
+              <td style="width:20%">{{ device.group }}</td>
+              <td style="width:32%">{{ device.location }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="list card widget_whole" id="sensorDashboard-card220" ng-show="sensors.length > 0">
+      <div class="item item-body" id="sensorDashboard-list-item-container43" ng-click="changeSensorTableHide()">
+        <div id="sensorDashboard-markdown462" class="show-list-numbers-and-dots">
+          <p style="margin-top:0px;color:#888888;font-size:16px;">
+            <strong> Sensors Summary </strong>
+          </p>
+        </div>
+      </div>
+      <div id="sensorDashboard-container35" ng-show="!sensorsummaryshow" class="tab_margin_1">
+        <div>
+
+          <div class="row">
+
+            <div class="column" style="width:25%;">
+              <canvas id="doughnut1" class="chart chart-doughnut" chart-data="stats.sensors.statuses.data" chart-labels="stats.sensors.statuses.labels" chart-colors="sensors_datachart_colors_options_ex" chart-options="sensors_datachart_piechart_sensors_statuses_options">
+              </canvas>
+            </div>
+
+
+            <div class="column" style="width:25%;">
+              <canvas id="doughnut2" class="chart chart-doughnut" chart-data="stats.sensors.peripherals.data" chart-labels="stats.sensors.peripherals.labels" chart-colors="sensors_datachart_colors_options_ex" chart-options="sensors_datachart_piechart_sensors_peripherals_options">
+              </canvas>
+            </div>
+
+            <div class="column" style="width:25%;">
+              <canvas id="doughnut3" class="chart chart-doughnut" chart-data="stats.sensors.classes.data" chart-labels="stats.sensors.classes.labels" chart-colors="sensors_datachart_colors_options_ex" chart-options="sensors_datachart_piechart_sensors_classes_options">
+              </canvas>
+            </div>
+
+            <div class="column" style="width:25%;">
+              <canvas id="doughnut4" class="chart chart-doughnut" chart-data="stats.sensors.types.data" chart-labels="stats.sensors.types.labels" chart-colors="sensors_datachart_colors_options_ex" chart-options="sensors_datachart_piechart_sensors_types_options">
+              </canvas>
+            </div>
+
+
+          </div>
+
+
+          <br>
+        </div>
+      </div>
+      <div id="sensorDashboard-container36" ng-show="sensorsummaryshow" class="tab_margin_1">
+        <div class="spacer" style="height: 28px;"></div>
+        <table style="width:100%" bordercolor="#444444">
+          <tbody>
+            <tr>
+              <th style="width:3%">&nbsp;</th>
+              <th style="width:17%">
+                <b>Sensor</b>
+              </th>
+              <th style="width:13%">
+                <b>Device</b>
+              </th>
+              <th style="width:7%">
+                <b>Type</b>
+              </th>
+              <th style="width:8%">
+                <b>LDSU</b>
+              </th>
+              <th style="width:17%">
+                <b>Class</b>
+              </th>
+              <th style="width:35%">
+                <b>Configuration</b>
+              </th>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div id="sensorDashboard-container37" ng-repeat="sensor in sensorsummary" ng-show="sensorsummaryshow" class="tab_margin_1">
+        <table style="width:100%">
+          <tbody>
+            <tr>
+              <td style="width:3%">
+                <div ng-show="sensor.enabled==0">
+                  <img src="img/xqcc2stgTNmAeM8gxhQ7_offline.png" style="width:16px; height:16px">
+                </div>
+                <div ng-show="sensor.enabled==1">
+                  <img src="img/6RNUgrQwRemftiOCX3pw_online.png" style="width:16px; height:16px">
+                </div>
+
+              </td>
+              <td style="width:17%">{{ sensor.sensorname }}</td>
+              <td style="width:13%">{{ sensor.devicename }}</td>
+              <td style="width:7%">{{ sensor.type }}</td>
+              <td style="width:8%">{{ sensor.peripheral }}</td>
+              <td style="width:17%">{{ sensor.classes }}</td>
+              <td style="width:35%">{{ sensor.configuration }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="list card widget_whole" id="sensorDashboard-card211" ng-show="sensors.length > 0">
+      <div class="item item-body" id="sensorDashboard-list-item-container34" ng-click="changeUsageTableHide()">
+        <div id="sensorDashboard-markdown469" class="show-list-numbers-and-dots">
+          <p style="margin-top:0px;color:#888888;font-size:16px;">
+            <strong> Usage Summary </strong>
+          </p>
+        </div>
+      </div>
+      <div id="sensorDashboard-container38" ng-show="!usagesshow" class="tab_margin_1">
+        <div>
+
+          <div class="row">
+
+
+            <div class="column" style="width:25%;">
+              <canvas id="bar1" class="chart chart-horizontal-bar" chart-data="usages.login.data" chart-labels="usages.login.labels" chart-colors="sensors_datachart_colors_options_ex2" chart-options="sensors_datachart_barchart_usages_login_options" chart-series="sensors_datachart_barchart_usages_login_series">
+              </canvas>
+            </div>
+
+
+            <div class="column" style="width:25%;">
+              <canvas id="bar2" class="chart chart-horizontal-bar" chart-data="usages.alerts.data" chart-labels="usages.alerts.labels" chart-colors="sensors_datachart_colors_options_ex2" chart-options="sensors_datachart_barchart_usages_alerts_options" chart-series="sensors_datachart_barchart_usages_alerts_series">
+              </canvas>
+            </div>
+
+
+            <div class="column" style="width:25%;">
+              <canvas id="bar3" class="chart chart-horizontal-bar" chart-data="usages.storage.data" chart-labels="usages.storage.labels" chart-colors="sensors_datachart_colors_options_ex2" chart-options="sensors_datachart_barchart_usages_storage_options" chart-series="sensors_datachart_barchart_usages_storage_series">
+              </canvas>
+            </div>
+
+
+          </div>
+
+          <br>
+        </div>
+      </div>
+      <div id="sensorDashboard-container39" ng-show="false" class="tab_margin_1">
+        <div class="spacer" style="height: 28px;"></div>
+        <table style="width:100%" bordercolor="#444444">
+          <tbody>
+            <tr>
+              <th style="width:3%">&nbsp;</th>
+              <th style="width:17%">
+                <b>Sensor</b>
+              </th>
+              <th style="width:13%">
+                <b>Device</b>
+              </th>
+              <th style="width:7%">
+                <b>Type</b>
+              </th>
+              <th style="width:8%">
+                <b>Peripheral</b>
+              </th>
+              <th style="width:17%">
+                <b>Class</b>
+              </th>
+              <th style="width:35%">
+                <b>Configuration</b>
+              </th>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div id="sensorDashboard-container40" ng-repeat="sensor in sensorsummary" ng-show="false" class="tab_margin_1">
+        <table style="width:100%">
+          <tbody>
+            <tr>
+              <td style="width:3%">
+                <div ng-show="sensor.enabled==0">
+                  <img src="img/xqcc2stgTNmAeM8gxhQ7_offline.png" style="width:16px; height:16px">
+                </div>
+                <div ng-show="sensor.enabled==1">
+                  <img src="img/6RNUgrQwRemftiOCX3pw_online.png" style="width:16px; height:16px">
+                </div>
+
+              </td>
+              <td style="width:17%">{{ sensor.sensorname }}</td>
+              <td style="width:13%">{{ sensor.devicename }}</td>
+              <td style="width:7%">{{ sensor.type }}</td>
+              <td style="width:8%">{{ sensor.peripheral }}</td>
+              <td style="width:17%">{{ sensor.classes }}</td>
+              <td style="width:35%">{{ sensor.configuration }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="list card widget_quarter" id="sensorDashboard-card28" ng-repeat="sensor in sensors" ng-show="!big_charts">
+      <div class="item item-body" id="sensorDashboard-list-item-container19" ng-click="changeSensorHide(sensor)">
         <div id="sensorDashboard-markdown295" class="show-list-numbers-and-dots">
-          <p style="margin-top:0px;color:#FFFFFF;font-size:18px;">
+          <p style="margin-top:0px;color:#888888;font-size:16px;">
             <strong>{{ sensor.sensorname }}</strong>
           </p>
         </div>
-        <div id="sensorDashboard-markdown305" class="show-list-numbers-and-dots">
-          <p style="margin-top:0px;color:#FFFFFF;font-size:10px;">{{ sensor.manufacturer }} - {{ sensor.model }}</p>
+        <div id="sensorDashboard-markdown305" class="show-list-numbers-and-dots widget_button_half">
+          <p style="margin-top:0px;color:#3C5A99;font-size:10px;">{{ sensor.devicename }} : LDS BUS {{ sensor.port }} : {{ sensor.name }}</p>
         </div>
-        <div id="sensorDashboard-markdown310" class="show-list-numbers-and-dots">
-          <p style="margin-top:0px;color:#FFFFFF;font-size:10px;">{{ sensor.subclass ? sensor.source.toUpperCase() + "" + sensor.number + " " + sensor.class.toUpperCase() + " | " + sensor.subclass.toUpperCase() : sensor.source.toUpperCase() + "" + sensor.number + " " + sensor.class.toUpperCase() }}</p>
+        <div id="sensorDashboard-markdown459" style="text-align:right;" class="show-list-numbers-and-dots widget_button_half">
+          <p style="margin-top:0px;color:#888888;font-size:16px;">
+            <strong> {{ sensor.subclass ? sensor.readings.value + " " + sensor.unit + " | " + sensor.readings.subclass.value + " " + sensor.unit : sensor.readings.value + " " + sensor.unit }} </strong>
+          </p>
+        </div>
+        <div id="sensorDashboard-markdown310" class="show-list-numbers-and-dots widget_button_40">
+          <p style="margin-top:0px;color:#3C5A99;font-size:10px;">{{ sensor.source.toUpperCase() }}</p>
+        </div>
+        <div id="sensorDashboard-markdown458" style="text-align:right;" class="show-list-numbers-and-dots widget_button_60">
+          <p style="margin-top:0px;color:#3C5A99;font-size:10px;">{{ sensor.subclass ? "Low: " + sensor.readings.lowest + " " + sensor.unit + " High: " + sensor.readings.highest + " " + sensor.unit + " | " + "Low: " + sensor.readings.subclass.lowest + " " + sensor.unit + " High: " + sensor.readings.subclass.highest
+            + " " + sensor.unit : "Low: " + sensor.readings.lowest + " " + sensor.unit + " High: " + sensor.readings.highest + " " + sensor.unit }}</p>
         </div>
       </div>
-      <div id="canvas-holder" style="width:97%; margin:0px 0px 0px 3%;">
+      <div id="sensorDashboard-container29" ng-show="sensor.show" class="widget_button_backward_forward_container">
+        <button id="sensorDashboard-button171" ng-click="changeTimeRangeIndexBackward()" class="button button-positive button-small button-block button-clear icon-left ion-android-arrow-dropleft widget_button_backward_forward"></button>
+        <button id="sensorDashboard-button178" ng-disabled="true" class="button button-positive button-small button-block button-clear widget_button_backward_forward_filler"></button>
+        <button id="sensorDashboard-button179" ng-disabled="timerangeindex==0" ng-click="changeTimeRangeIndexForward()" class="button button-positive button-small button-block button-clear icon-right ion-android-arrow-dropright widget_button_backward_forward"></button>
+      </div>
+      <div id="sensorDashboard-container20" ng-show="sensor.show" ng-click="submitViewSensorChart(sensor)">
+        <div id="canvas-holder" style="width:94%; margin:0px 3% 3% 3%;">
 
-        <br>
+          <canvas id="{{sensor.devicename}}.{{sensor.sensorname}}" title="{{sensor.devicename}}.{{sensor.sensorname}}" class="chart chart-line" chart-colors="chartColors(sensor)" chart-data="chartData(sensor)" chart-labels="chartLabels(sensor)" chart-series="chartSeries(sensor)"
+            chart-options="chartOptions(sensor)">
+          </canvas>
 
-        <canvas id="line" class="chart chart-line" chart-colors="sensors_datachart_colors" chart-data="chartData(sensor)" chart-labels="chartLabels(sensor)" chart-options="sensors_datachart_options">
-        </canvas>
+        </div>
+      </div>
+    </div>
+    <div class="list card widget_whole" id="sensorDashboard-card25" ng-repeat="sensor in sensors" ng-show="big_charts">
+      <div class="item item-body" id="sensorDashboard-list-item-container22" ng-click="changeSensorHide(sensor)">
+        <div id="sensorDashboard-markdown435" class="show-list-numbers-and-dots">
+          <p style="margin-top:0px;color:#888888;font-size:18px;">
+            <strong>{{ sensor.sensorname }}</strong>
+          </p>
+        </div>
+        <div id="sensorDashboard-markdown436" class="show-list-numbers-and-dots widget_button_half">
+          <p style="margin-top:0px;color:#3C5A99;font-size:10px;">{{ sensor.devicename }} : LDS BUS {{ sensor.port }} : {{ sensor.name }}</p>
+        </div>
+        <div id="sensorDashboard-markdown438" style="text-align:right;" class="show-list-numbers-and-dots widget_button_half">
+          <p style="margin-top:0px;color:#888888;font-size:28px;">
+            <strong> {{ sensor.subclass ? sensor.readings.value + " " + sensor.unit + " | " + sensor.readings.subclass.value + " " + sensor.unit : sensor.readings.value + " " + sensor.unit }} </strong>
+          </p>
+        </div>
+        <div id="sensorDashboard-markdown439" class="show-list-numbers-and-dots widget_button_half">
+          <p style="margin-top:0px;color:#3C5A99;font-size:10px;">{{ sensor.class.toUpperCase() }}</p>
+        </div>
+        <div id="sensorDashboard-markdown440" style="text-align:right;" class="show-list-numbers-and-dots widget_button_half">
+          <p style="margin-top:0px;color:#3C5A99;font-size:10px;">{{ sensor.subclass ? "Low: " + sensor.readings.lowest + " " + sensor.unit + " High: " + sensor.readings.highest + " " + sensor.unit + " | " + "Low: " + sensor.readings.subclass.lowest + " " + sensor.unit + " High: " + sensor.readings.subclass.highest
+            + " " + sensor.unit : "Low: " + sensor.readings.lowest + " " + sensor.unit + " High: " + sensor.readings.highest + " " + sensor.unit }}</p>
+        </div>
+      </div>
+      <div id="sensorDashboard-container21" ng-show="sensor.show" ng-click="submitViewSensorChart(sensor)">
+        <div id="sensorDashboard-container23" class="widget_button_backward_forward_container">
+          <button id="sensorDashboard-button101" ng-click="changeTimeRangeIndexBackward()" class="button button-positive button-small button-block button-clear icon ion-arrow-left-b widget_button_backward_forward"></button>
+          <button id="sensorDashboard-button114" ng-disabled="true" class="button button-light button-small button-block widget_button_backward_forward_filler"></button>
+          <button id="sensorDashboard-button154" ng-disabled="timerangeindex==0" ng-click="changeTimeRangeIndexForward()" class="button button-positive button-small button-block button-clear icon ion-arrow-right-b widget_button_backward_forward"></button>
+        </div>
+        <div id="canvas-holder" style="width:94%; margin:0% 3% 3% 3%;">
 
-        <p>
-        </p>
+          <canvas id="{{sensor.devicename}}.{{sensor.sensorname}}" title="{{sensor.devicename}}.{{sensor.sensorname}}" class="chart chart-line" chart-colors="chartColors(sensor)" chart-data="chartData(sensor)" chart-labels="chartLabels(sensor)" chart-series="chartSeries(sensor)"
+            chart-options="chartOptions(sensor)">
+          </canvas>
 
+        </div>
+      </div>
+    </div>
+    <div class="spacer" style="width: 747.778px; height: 10px;"></div>
+    <div class="list card widget_quarter" id="sensorDashboard-card218" ng-repeat="comparison in comparisons" ng-show="false">
+      <div class="item item-body" id="sensorDashboard-list-item-container42" ng-click="changeSensorComparisonsHide(comparison)">
+        <div id="sensorDashboard-markdown252" class="show-list-numbers-and-dots">
+          <p style="margin-top:0px;color:#888888;font-size:16px;">
+            <strong>{{ comparison.class.toUpperCase() }}</strong>
+          </p>
+        </div>
+      </div>
+      <div id="sensorDashboard-container32" ng-show="comparison.show" class="widget_button_backward_forward_container">
+        <button id="sensorDashboard-button180" ng-click="changeTimeRangeIndexBackward()" class="button button-positive button-small button-block button-clear icon-left ion-android-arrow-dropleft widget_button_backward_forward"></button>
+        <button id="sensorDashboard-button181" ng-disabled="true" class="button button-positive button-small button-block button-clear widget_button_backward_forward_filler"></button>
+        <button id="sensorDashboard-button182" ng-disabled="timerangeindex==0" ng-click="changeTimeRangeIndexForward()" class="button button-positive button-small button-block button-clear icon-right ion-android-arrow-dropright widget_button_backward_forward"></button>
+      </div>
+      <div id="sensorDashboard-container34" ng-show="comparison.show">
+        <div id="canvas-holder" style="width:94%; margin:0px 3% 3% 3%;">
+
+          <canvas id="barchart0" class="chart-bar" chart-data="comparison.data" chart-labels="comparison.labels" chart-colors="sensors_datachart_colors_options" chart-options="sensors_datachart_barchart_options">
+          </canvas>
+
+        </div>
       </div>
     </div>
   </ion-content>

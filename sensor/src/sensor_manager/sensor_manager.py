@@ -64,7 +64,7 @@ CONFIG_SEPARATOR            = '/'
 
 API_RECEIVE_SENSOR_READING  = "rcv_sensor_reading"
 API_REQUEST_SENSOR_READING  = "req_sensor_reading"
-API_PUBLISH_SENSOR_READING  = "sensor_reading"
+API_PUBLISH_SENSOR_READING  = "pub_sensor_reading"
 
 
 
@@ -102,25 +102,19 @@ def print_json(json_object):
     print(json_formatted_str)
 
 
-def store_sensor_reading(database_client, deviceid, source, address, value, subclass_value):
+def store_sensor_reading(database_client, username, devicename, deviceid, source, number, value, timestamp):
 
     try:
         #
         # get last record
-        #print("{} source:{} address:{} value:{}".format(deviceid, source, address, value))
-        sensor_readings = database_client.get_sensor_reading_by_deviceid(deviceid, source, address)
+        #print("{} source:{} number:{} value:{}".format(deviceid, source, number, value))
+        sensor_readings = database_client.get_sensor_reading_by_deviceid(deviceid, source, number)
         if sensor_readings is None:
             #print("no readings")
             sensor_readings = {}
             sensor_readings["value"] = value
             sensor_readings["lowest"] = value
             sensor_readings["highest"] = value
-            if subclass_value is not None:
-                sensor_readings["subclass"] = {}
-                sensor_readings["subclass"]["value"] = subclass_value
-                sensor_readings["subclass"]["lowest"] = subclass_value
-                sensor_readings["subclass"]["highest"] = subclass_value
-
         else:
             #
             # handle class
@@ -130,44 +124,29 @@ def store_sensor_reading(database_client, deviceid, source, address, value, subc
             elif value < sensor_readings["lowest"]:
                 sensor_readings["lowest"] = value
 
-            #
-            # handle subclass
-            if subclass_value is not None:
-                sensor_readings["subclass"]["value"] = subclass_value
-                if subclass_value > sensor_readings["subclass"]["highest"]:
-                    sensor_readings["subclass"]["highest"] = subclass_value
-                elif subclass_value < sensor_readings["subclass"]["lowest"]:
-                    sensor_readings["subclass"]["lowest"] = subclass_value
-
         #
         # update sensor reading
         #print(sensor_readings)
         sensor_readings["value"] = float(sensor_readings["value"])
         sensor_readings["lowest"] = float(sensor_readings["lowest"])
         sensor_readings["highest"] = float(sensor_readings["highest"])
-        if sensor_readings.get("subclass"):
-            sensor_readings["subclass"]["value"] = float(sensor_readings["subclass"]["value"])
-            sensor_readings["subclass"]["lowest"] = float(sensor_readings["subclass"]["lowest"])
-            sensor_readings["subclass"]["highest"] = float(sensor_readings["subclass"]["highest"])
-        database_client.add_sensor_reading(deviceid, source, address, sensor_readings)
+        database_client.add_sensor_reading(username, deviceid, source, number, sensor_readings)
 
         #
         # update sensor reading with timestamp for charting/graphing
         if sensor_config.CONFIG_ENABLE_DATASET:
-            database_client.add_sensor_reading_dataset(deviceid, source, address, value, subclass_value)
-    except:
+            database_client.add_sensor_reading_dataset(username, deviceid, source, number, value, timestamp)
+    except Exception as e:
+        print(e)
         print("exception store_sensor_reading")
         pass
 
 
 # for notification triggering used in thresholding modes
-def menos_publish(menos, deviceid, recipient=None, message=None, peripheral="uart", number="", address=None, activate=None, condition=None):
+def menos_publish(menos, deviceid, recipient=None, message=None, peripheral="uart", number="", activate=None, condition=None):
 
     # set the topic
-    if address is None:
-        topic = "{}/{}/trigger_notification/{}{}/{}".format(CONFIG_PREPEND_REPLY_TOPIC, deviceid, peripheral, number, menos)
-    else:
-        topic = "{}/{}/trigger_notification/{}{}/{}/{}".format(CONFIG_PREPEND_REPLY_TOPIC, deviceid, peripheral, number, menos, address)
+    topic = "{}/{}/trigger_notification/{}{}/{}".format(CONFIG_PREPEND_REPLY_TOPIC, deviceid, peripheral, number, menos)
 
     # set the payload
     payload = {}
@@ -188,7 +167,7 @@ def menos_publish(menos, deviceid, recipient=None, message=None, peripheral="uar
 
 
 # for notification triggering used in thresholding modes
-def process_thresholding_notification(attributes, value, classname, sensor, source, deviceid, peripheral, number, address):
+def process_thresholding_notification(attributes, value, classname, sensor, source, deviceid, peripheral, number):
     mode = attributes["mode"]
     threshold = attributes["threshold"]
     alert_type = attributes["alert"]["type"]
@@ -207,13 +186,13 @@ def process_thresholding_notification(attributes, value, classname, sensor, sour
                 if deviceid_source_sensor not in g_queue_activated_sensors:
                     #print("activate: value > threshold_value; alert once")
                     condition = "{} {} > {} (activation)".format(classname, value, threshold_value)
-                    menos_publish(MENOS_DEFAULT, deviceid, None, None, peripheral, number, address, 1, condition )
+                    menos_publish(MENOS_DEFAULT, deviceid, None, None, peripheral, number, 1, condition )
                 g_queue_activated_sensors[deviceid_source_sensor] = threshold_value
             elif alert_type == ALERT_CONTINUOUSLY:
                 #print("activate: value > threshold_value; alert continuously")
                 g_queue_activated_sensors[deviceid_source_sensor] = threshold_value
                 condition = "{} {} > {} (activation)".format(classname, value, threshold_value)
-                menos_publish(MENOS_DEFAULT, deviceid, None, None, peripheral, number, address, 1, condition )
+                menos_publish(MENOS_DEFAULT, deviceid, None, None, peripheral, number, 1, condition )
         else:
             # check for deactivation
             if deviceid_source_sensor in g_queue_activated_sensors:
@@ -221,7 +200,7 @@ def process_thresholding_notification(attributes, value, classname, sensor, sour
                 queue_value = g_queue_activated_sensors[deviceid_source_sensor]
                 g_queue_activated_sensors.pop(deviceid_source_sensor)
                 condition = "{} {} <= {} (deactivation)".format(classname, value, threshold_value)
-                menos_publish(MENOS_DEFAULT, deviceid, None, None, peripheral, number, address, 0, condition )
+                menos_publish(MENOS_DEFAULT, deviceid, None, None, peripheral, number, 0, condition )
 
     elif mode == MODE_THRESHOLD_DUAL:
         # dual threshold
@@ -243,7 +222,7 @@ def process_thresholding_notification(attributes, value, classname, sensor, sour
                             condition = "{} {} < {} (activation)".format(classname, value, threshold_min)
                         else:
                             condition = "{} {} > {} (activation)".format(classname, value, threshold_max)
-                        menos_publish(MENOS_DEFAULT, deviceid, None, None, peripheral, number, address, 1, condition )
+                        menos_publish(MENOS_DEFAULT, deviceid, None, None, peripheral, number, 1, condition )
                     g_queue_activated_sensors[deviceid_source_sensor] = value
                 elif alert_type == ALERT_CONTINUOUSLY:
                     #print("activate: value > threshold_value; alert continuously")
@@ -252,7 +231,7 @@ def process_thresholding_notification(attributes, value, classname, sensor, sour
                         condition = "{} {} < {} (activation)".format(classname, value, threshold_min)
                     else:
                         condition = "{} {} > {} (activation)".format(classname, value, threshold_max)
-                    menos_publish(MENOS_DEFAULT, deviceid, None, None, peripheral, number, address, 1, condition )
+                    menos_publish(MENOS_DEFAULT, deviceid, None, None, peripheral, number, 1, condition )
             else:
                 # check for deactivation
                 if deviceid_source_sensor in g_queue_activated_sensors:
@@ -260,7 +239,7 @@ def process_thresholding_notification(attributes, value, classname, sensor, sour
                     queue_value = g_queue_activated_sensors[deviceid_source_sensor]
                     g_queue_activated_sensors.pop(deviceid_source_sensor)
                     condition = "{} {} <= {} <= {} (deactivation)".format(classname, threshold_min, value, threshold_max)
-                    menos_publish(MENOS_DEFAULT, deviceid, None, None, peripheral, number, address, 0, condition)
+                    menos_publish(MENOS_DEFAULT, deviceid, None, None, peripheral, number, 0, condition)
 
         elif threshold_activate == ACTIVATE_WITHIN_RANGE:
 
@@ -270,13 +249,13 @@ def process_thresholding_notification(attributes, value, classname, sensor, sour
                     if deviceid_source_sensor not in g_queue_activated_sensors:
                         #print("activate: value > threshold_value; alert once")
                         condition = "{} {} <= {} <= {} (activation)".format(classname, threshold_min, value, threshold_max)
-                        menos_publish(MENOS_DEFAULT, deviceid, None, None, peripheral, number, address, 1, condition)
+                        menos_publish(MENOS_DEFAULT, deviceid, None, None, peripheral, number, 1, condition)
                     g_queue_activated_sensors[deviceid_source_sensor] = value
                 elif alert_type == ALERT_CONTINUOUSLY:
                     #print("activate: value > threshold_value; alert continuously")
                     g_queue_activated_sensors[deviceid_source_sensor] = value
                     condition = "{} {} <= {} <= {} (activation)".format(classname, threshold_min, value, threshold_max)
-                    menos_publish(MENOS_DEFAULT, deviceid, None, None, peripheral, number, address, 1, condition)
+                    menos_publish(MENOS_DEFAULT, deviceid, None, None, peripheral, number, 1, condition)
             else:
                 # check for deactivation
                 if deviceid_source_sensor in g_queue_activated_sensors:
@@ -287,19 +266,18 @@ def process_thresholding_notification(attributes, value, classname, sensor, sour
                         condition = "{} {} < {} (deactivation)".format(classname, value, threshold_min)
                     else:
                         condition = "{} {} > {} (deactivation)".format(classname, value, threshold_max)
-                    menos_publish(MENOS_DEFAULT, deviceid, None, None, peripheral, number, address, 0, value)
+                    menos_publish(MENOS_DEFAULT, deviceid, None, None, peripheral, number, 0, value)
 
 
-def forward_sensor_reading(database_client, deviceid, source, address, value, subclass_value):
+def forward_sensor_reading(database_client, username, devicename, deviceid, source, number, value):
 
     #
     # forward the packet to the specified recipient in the properties
     try:
-        peripheral = source[0:len(source)-1]
-        number = source[len(source)-1:]
-        #print("source {} {} {} {}".format(source, peripheral, number, address))
+        peripheral = source
+        #print("source {} {} {} {}".format(source, peripheral, str(number), number))
 
-        configuration = database_client.get_device_peripheral_configuration(deviceid, peripheral, int(number), address)
+        configuration = database_client.get_device_peripheral_configuration(deviceid, peripheral, number)
         #print_json(configuration)
         if configuration is not None:
             mode = configuration["attributes"]["mode"]
@@ -309,11 +287,8 @@ def forward_sensor_reading(database_client, deviceid, source, address, value, su
                 dest_devicename = configuration["attributes"]["hardware"]["devicename"]
                 if dest_devicename != "":
                     #print(dest_devicename)
-                    sensor = database_client.get_sensor_by_deviceid(deviceid, peripheral, number, address)
+                    sensor = database_client.get_sensor_by_deviceid(deviceid, peripheral, str(number))
                     if sensor is not None:
-                        username, devicename = database_client.get_username_devicename(deviceid)
-                        if username is None or devicename is None:
-                            return
                         #print_json(sensor)
                         #print("")
                         dest_deviceid = database_client.get_deviceid(username, dest_devicename)
@@ -323,17 +298,13 @@ def forward_sensor_reading(database_client, deviceid, source, address, value, su
                         #print("Hello")
                         dest_payload = {"sensors": []}
                         packet = {}
-                        if sensor["formats"][0] == "int":
+                        if sensor["format"] == "int":
                             packet = {
                                 "devicename": devicename,
                                 "peripheral": sensor["source"].upper(),
                                 "sensorname": sensor["sensorname"],
                                 "attribute":  sensor["attributes"][0],
                                 "value":      int(value), 
-                                #"peripheral": sensor["source"].upper(), 
-                                #"number":     int(sensor["number"]), 
-                                #"address":    int(sensor["address"]), 
-                                #"class":      int
                             }
                         else:
                             packet = {
@@ -343,17 +314,6 @@ def forward_sensor_reading(database_client, deviceid, source, address, value, su
                                 "attribute":  sensor["attributes"][0],
                                 "value":      value, 
                             }
-                        if subclass_value is not None:
-                            if sensor["formats"][1] == "int":
-                                packet["subclass"] = { 
-                                    "attribute":  sensor["attributes"][1], 
-                                    "value": int(subclass_value) 
-                                }
-                            else:
-                                packet["subclass"] = { 
-                                    "attribute":  sensor["attributes"][1], 
-                                    "value": subclass_value 
-                                }
 
                         dest_payload["sensors"].append(packet)
                         #print_json(dest_payload)
@@ -363,50 +323,13 @@ def forward_sensor_reading(database_client, deviceid, source, address, value, su
             else:
                 # thresholding mode (notification triggering)
                 if CONFIG_THRESHOLDING_NOTIFICATIONS:
-                    sensor = database_client.get_sensor_by_deviceid(deviceid, peripheral, number, address)
+                    sensor = database_client.get_sensor_by_deviceid(deviceid, peripheral, str(number))
                     if sensor is not None:
-                        process_thresholding_notification(configuration["attributes"], value, sensor["class"], sensor, source, deviceid, peripheral, number, address)
-                        if subclass_value is not None:
-                            process_thresholding_notification(configuration["attributes"]["subattributes"], subclass_value, sensor["subclass"], sensor, source, deviceid, peripheral, number, address)
-                        #print("")
+                        process_thresholding_notification(configuration["attributes"], value, sensor["class"], sensor, source, deviceid, peripheral, str(number))
 
     except:
         print("exception forward_sensor_reading")
         pass
-
-
-def process_sensor_reading(database_client, deviceid, source, sensor):
-
-    #
-    # get address
-    address = None
-    if sensor.get("address"):
-        address = sensor["address"]
-
-    #
-    # get value (for class and subclass)
-    value = sensor["value"]
-    # handle subclass
-    subclass_value = None
-    if sensor.get("subclass"):
-        subclass_value = sensor["subclass"]["value"]
-
-    #
-    # store sensor reading
-    thr1 = threading.Thread(target = store_sensor_reading, args = (database_client, deviceid, source, address, value, subclass_value, ))
-    thr1.start()
-    #store_sensor_reading(database_client, deviceid, source, address, value, subclass_value)
-
-    #
-    # forward sensor reading (if applicable)
-    thr2 = threading.Thread(target = forward_sensor_reading, args = (database_client, deviceid, source, address, value, subclass_value, ))
-    thr2.start()
-    #forward_sensor_reading(database_client, deviceid, source, address, value, subclass_value)
-
-    #
-    # wait for store and forward threads to complete
-    thr1.join()
-    thr2.join()
 
 
 def add_sensor_reading(database_client, deviceid, topic, payload):
@@ -416,15 +339,26 @@ def add_sensor_reading(database_client, deviceid, topic, payload):
     #print(topic)
     payload = json.loads(payload)
 
+    username, devicename = database_client.get_username_devicename(deviceid)
+    if username is None or devicename is None:
+        return
 
     thr_list = []
+    for number in range(len(payload["SNS"])):
+        value = payload["SNS"][number]
+        # Ignore if value is "NaN"
+        if payload["SNS"][number] != "NaN":
+            #
+            # store sensor reading
+            thr1 = threading.Thread(target = store_sensor_reading, args = (database_client, username, devicename, deviceid, payload["UID"], number, float(value), int(payload["TS"]), ))
+            thr1.start()
+            thr_list.append(thr1)
 
-    for source in payload["sensors"]:
-        for sensor in payload["sensors"][source]:
-            thr = threading.Thread(target = process_sensor_reading, args = (database_client, deviceid, source, sensor, ))
-            thr.start()
-            thr_list.append(thr)
-            #process_sensor_reading(database_client, deviceid, source, sensor)
+            #
+            # forward sensor reading (if applicable)
+            thr2 = threading.Thread(target = forward_sensor_reading, args = (database_client, username, devicename, deviceid, payload["UID"], number, float(value), ))
+            thr2.start()
+            thr_list.append(thr2)
 
     for thr in thr_list:
         thr.join()
@@ -433,56 +367,6 @@ def add_sensor_reading(database_client, deviceid, topic, payload):
     # print elapsed time
     #print(time.time() - start_time) 
     #print("")
-
-
-def get_sensor_reading(database_client, deviceid, topic, payload):
-    #print("get_sensor_reading")
-    #print(deviceid)
-    payload = json.loads(payload)
-    #print(payload["type"])
-    #print(payload["sensors"])
-
-    new_payload = {"sensors": []}
-    for sensor in payload["sensors"]:
-        value = 0
-
-        # TODO: handle multiclass using sensor["attribute"]
-
-        # elements are incomplete
-        if sensor.get("peripheral") is None or sensor.get("number") is None:
-            new_payload["sensors"].append({"value": value})
-            print("{} elements are incomplete".format(deviceid))
-            continue
-
-        # read value from database
-        peripheral = sensor["peripheral"].lower()
-        source = "{}{}".format(peripheral, sensor["number"])
-        address = None
-        if peripheral == "i2c":
-            if sensor.get("address") is None:
-                new_payload["sensors"].append({"value": value})
-                print("{} elements are incomplete".format(deviceid))
-                continue
-            address = sensor["address"]
-        sensor_readings = database_client.get_sensor_reading_by_deviceid(sensor["deviceid"], source, address)
-
-        # use the retrieved value if exists
-        entry = {}
-        entry["sensorname"] = sensor["sensorname"]
-        if sensor_readings is None:
-            entry["value"] = value
-        else:
-            entry["value"] = sensor_readings["value"]
-        new_payload["sensors"].append(entry)
-
-    if len(new_payload["sensors"]) > 0:
-        # add the source parameter
-        if payload.get("source"):
-            new_payload["source"] = payload["source"]
-
-        new_topic = "{}/{}".format(deviceid, API_RECEIVE_SENSOR_READING)
-        new_payload = json.dumps(new_payload)
-        g_messaging_client.publish(new_topic, new_payload, debug=False) # NOTE: enable to DEBUG
 
 
 def on_message(subtopic, subpayload):
@@ -504,14 +388,6 @@ def on_message(subtopic, subpayload):
             thr.start()
         except Exception as e:
             print("exception API_PUBLISH_SENSOR_READING")
-            print(e)
-            return
-    elif topic == API_REQUEST_SENSOR_READING:
-        try:
-            thr = threading.Thread(target = get_sensor_reading, args = (g_database_client, deviceid, topic, payload ))
-            thr.start()
-        except Exception as e:
-            print("exception API_REQUEST_SENSOR_READING")
             print(e)
             return
 
@@ -576,8 +452,8 @@ if __name__ == '__main__':
     print("USE_DEVICE_PKEY={}".format(args.USE_DEVICE_PKEY))
     print("USE_HOST={}".format(args.USE_HOST))
     print("USE_DBHOST={}".format(args.USE_DBHOST))
-    print("USE_USERNAME={}".format(args.USE_USERNAME))
-    print("USE_PASSWORD={}".format(args.USE_PASSWORD))
+    #print("USE_USERNAME={}".format(args.USE_USERNAME))
+    #print("USE_PASSWORD={}".format(args.USE_PASSWORD))
     print("")
 
 

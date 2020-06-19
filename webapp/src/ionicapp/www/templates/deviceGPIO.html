@@ -8,7 +8,7 @@
   <ion-content padding="true" class="has-header">
     <div class="spacer" style="width: 300px; height: 12px;"></div>
     <div id="deviceGPIO-markdown298" style="text-align:center;" class="show-list-numbers-and-dots">
-      <p style="color:#387EF5;font-size:18px;">
+      <p style="color:#3C5A99;font-size:18px;">
         <strong> {{ data.devicename }} </strong>
       </p>
     </div>
@@ -29,7 +29,7 @@
       <button id="deviceGPIO-button137" ng-click="set_gpio_voltage()" class="button button-stable button-block button-outline">Set Voltage</button>
       <div class="spacer" style="width: 300px; height: 20px;"></div>
       <div id="deviceGPIO-markdown299" class="show-list-numbers-and-dots">
-        <p style="color:#387EF5;">Properties</p>
+        <p style="color:#3C5A99;">Properties</p>
       </div>
       <label class="item item-select" id="deviceGPIO-select81">
         <span class="input-label">Direction</span>
@@ -74,7 +74,7 @@
     </form>
     <form id="deviceGPIO-form163" class="list" ng-show="data.gpio.direction==0">
       <div id="deviceGPIO-markdown300" class="show-list-numbers-and-dots">
-        <p style="color:#387EF5;">Alert</p>
+        <p style="color:#3C5A99;">Alert</p>
       </div>
       <label class="item item-select" id="deviceGPIO-select85">
         <span class="input-label">Type</span>
@@ -87,13 +87,13 @@
     </form>
     <form id="deviceGPIO-form164" class="list" ng-show="data.gpio.direction==0">
       <div id="deviceGPIO-markdown301" class="show-list-numbers-and-dots">
-        <p style="color:#387EF5;">Notification settings</p>
+        <p style="color:#3C5A99;">Notification settings</p>
       </div>
       <ion-toggle toggle-class="toggle-positive" id="deviceGPIO-toggle17" ng-change="changeNotification(data.showNotification)" ng-model="data.showNotification">Show</ion-toggle>
     </form>
     <form id="deviceGPIO-form165" class="list" ng-show="data.showNotification==1 &amp;&amp; data.gpio.direction==0">
       <div id="deviceGPIO-markdown302" class="show-list-numbers-and-dots">
-        <p style="color:#387EF5;">Messages</p>
+        <p style="color:#3C5A99;">Messages</p>
       </div>
       <ion-checkbox id="deviceGPIO-checkbox30" ng-model="data.gpio.notification.messages[0].enable">Message on activation</ion-checkbox>
       <label class="item item-input" id="deviceGPIO-textarea16">
@@ -104,7 +104,7 @@
     </form>
     <form id="deviceGPIO-form166" class="list" ng-show="data.showNotification==1 &amp;&amp; data.gpio.direction==0">
       <div id="deviceGPIO-markdown303" class="show-list-numbers-and-dots">
-        <p style="color:#387EF5;">Recipients</p>
+        <p style="color:#3C5A99;">Recipients</p>
       </div>
       <ion-checkbox id="deviceGPIO-checkbox32" ng-model="data.gpio.notification.endpoints.email.enable">Send email to </ion-checkbox>
       <label class="item item-input" id="deviceGPIO-input132">
@@ -123,7 +123,20 @@
         <span class="input-label"></span>
         <select ng-options="device.id as device.devicename for device in devices" ng-model="data.hardware_devicename"></select>
       </label>
+      <ion-checkbox id="deviceGPIO-checkbox49" ng-model="data.gpio.notification.endpoints.storage.enable">Send to storage</ion-checkbox>
+      <div id="deviceGPIO-container13" ng-show="data.gpio.notification.endpoints.storage.recipients != &quot;&quot;" class="tab_margin_1">
+        <div>
+          <br>
+          <p>
+            <a href="https://ft900-iot-portal.s3.amazonaws.com/{{ data.gpio.notification.endpoints.storage.recipients }}">
+              Storage URL
+            </a>
+          </p>
+          <br>
+        </div>
+      </div>
     </form>
     <button id="deviceGPIO-button138" ng-click="submit()" class="button button-positive button-block">SAVE</button>
+    <div class="spacer" style="height: 100px;"></div>
   </ion-content>
 </ion-view>

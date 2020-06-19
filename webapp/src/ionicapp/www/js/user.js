@@ -6,25 +6,25 @@ angular.module('user', [])
     
     var ret = {
         set: function(user_data) {
-            //console.log("set " + user_data.username);
-            window.localStorage.user_data = JSON.stringify(user_data);  
-            //console.log("get " + JSON.parse(window.localStorage.user_data).username);
+            window.localStorage.setItem("user_data", JSON.stringify(user_data));
         },
-        
+
         clear: function() {
-            window.localStorage.user_data = JSON.stringify({"username": "", "token": ""});  
+            window.localStorage.setItem("user_data", JSON.stringify({"username": "", "token": "", "name": ""}));
         },
-        
+
         get_username: function() {
-            return JSON.parse(window.localStorage.user_data).username;
+            return JSON.parse(window.localStorage.getItem("user_data")).username;
         },
 
         get_token: function() {
-            return JSON.parse(window.localStorage.user_data).token;
+            return JSON.parse(window.localStorage.getItem("user_data")).token;
+        },
+
+        get_name: function() {
+            return JSON.parse(window.localStorage.getItem("user_data")).name;
         }
-    }
-    
-    ret.clear();
-    
+    };
+
     return ret;
 }]);

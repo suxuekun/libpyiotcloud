@@ -1,0 +1,56 @@
+<ion-view title="Troubleshooting" hide-back-button="true" nav-transition="none" id="page14" class="page_width">
+  <ion-content padding="true" class="has-header">
+    <div class="spacer" style="width: 300px; height: 15px;"></div>
+    <form id="troubleshooting-form34" class="list">
+      <ion-toggle toggle-class="toggle-positive" id="troubleshooting-toggle19" ng-model="hide_settings">.</ion-toggle>
+    </form>
+    <form id="troubleshooting-form193" class="list" ng-show="!hide_settings">
+      <div id="troubleshooting-markdown291" class="show-list-numbers-and-dots">
+        <p style="color:#3C5A99;">Filter options</p>
+      </div>
+      <div class="spacer" style="width: 300px; height: 5px;"></div>
+      <label class="item item-select widget_button_third_ex" id="troubleshooting-select99">
+        <span class="input-label">Device</span>
+        <select ng-options="devices.indexOf(deviceidx) as deviceidx for deviceidx in devices" ng-model="deviceidx"></select>
+      </label>
+      <label class="item item-select widget_button_third_ex" id="troubleshooting-select100">
+        <span class="input-label">Direction</span>
+        <select ng-options="directions.indexOf(directionidx) as directionidx for directionidx in directions" ng-model="directionidx"></select>
+      </label>
+      <label class="item item-select widget_button_third_ex" id="troubleshooting-select101">
+        <span class="input-label">Topic</span>
+        <select ng-options="topics.indexOf(topicidx) as topicidx for topicidx in topics" ng-model="topicidx"></select>
+      </label>
+      <div class="spacer" style="width: 300px; height: 5px;"></div>
+      <label class="item item-input item-stacked-label widget_button_third_ex" id="troubleshooting-input156">
+        <span class="input-label">Begin Date</span>
+        <input type="text" placeholder="YYYY-MM-DD HH:MM:SS" ng-model="date.begin">
+      </label>
+      <label class="item item-input item-stacked-label widget_button_third_ex" id="troubleshooting-input159">
+        <span class="input-label">End Date</span>
+        <input type="text" placeholder="YYYY-MM-DD HH:MM:SS" ng-model="date.end">
+      </label>
+      <button id="troubleshooting-button150" ng-click="applyFilter(deviceidx, directionidx, topicidx)" class="button button-positive button-block">Apply</button>
+    </form>
+    <div id="troubleshooting-markdown61" class="show-list-numbers-and-dots">
+      <p style="color:#AAAAAA;font-size:12px;">Result: {{ items.length }} transactions</p>
+    </div>
+    <ion-list id="troubleshooting-list14">
+      <div class="item item-body" id="troubleshooting-list-item-container3" ng-repeat="item in items">
+        <div id="troubleshooting-markdown49" class="show-list-numbers-and-dots">
+          <p style="margin-top:0px;color:#3C5A99;font-size:16px;">{{ item.direction }}
+            <strong> {{ item.devicename }} </strong> {{ item.deviceid }}</p>
+        </div>
+        <div id="troubleshooting-markdown50" class="show-list-numbers-and-dots">
+          <p style="margin-top:0px;color:#444444;font-size:10px;">{{ item.timestamp }}</p>
+        </div>
+        <div id="troubleshooting-markdown56" class="show-list-numbers-and-dots">
+          <p style="margin-top:0px;color:#444444;font-size:10px;">Topic: {{ item.topic }}</p>
+        </div>
+        <div id="troubleshooting-markdown52" class="show-list-numbers-and-dots">
+          <p style="margin-top:0px;color:#444444;font-size:10px;">Message: {{ item.payload }}</p>
+        </div>
+      </div>
+    </ion-list>
+  </ion-content>
+</ion-view>

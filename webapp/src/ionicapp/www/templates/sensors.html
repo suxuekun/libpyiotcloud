@@ -1,0 +1,57 @@
+<ion-view title="Sensors" hide-back-button="true" cache-view="false" nav-transition="none" id="page75" class="page_width">
+  <ion-nav-buttons side="left" class="has-header">
+    <button class="button button-icon icon ion-android-close" ng-click="submitDeviceList()"></button>
+  </ion-nav-buttons>
+  <ion-content padding="true" class="has-header">
+    <div class="spacer" style="width: 300px; height: 12px;"></div>
+    <div id="sensors-markdown541" style="text-align:center;" class="show-list-numbers-and-dots">
+      <p style="color:#3C5A99;font-size:18px;">
+        <strong> {{ data.devicename }} </strong>
+      </p>
+    </div>
+    <div class="spacer" style="width: 747.778px; height: 10px;"></div>
+    <form id="sensors-form255" class="list">
+      <div id="sensors-markdown543" class="show-list-numbers-and-dots">
+        <p style="color:#3C5A99;font-size:18px;">
+          <strong> LDS BUS {{ data.activeSection }} </strong>
+        </p>
+      </div>
+      <div id="sensors-markdown544" class="show-list-numbers-and-dots">
+        <p style="color:#AAAAAA;font-size:12px;">{{ data.sensors.length }} sensors detected on LDS BUS port {{ data.activeSection }}</p>
+      </div>
+      <div class="list card" id="sensors-card230" ng-repeat="sensor in data.sensors">
+        <div class="item item-body" id="sensors-list-item-container52" ng-click="processSensor(sensor)">
+          <div id="sensors-markdown545" class="show-list-numbers-and-dots">
+            <p style="margin-top:0px;color:#3C5A99;font-size:18px;">
+              <strong> {{ sensor.sensorname }} </strong>
+            </p>
+          </div>
+          <div id="sensors-markdown333" class="show-list-numbers-and-dots">
+            <p style="margin-top:0px;color:#888888;font-size:12px;">{{ sensor.class }}</p>
+          </div>
+        </div>
+        <div class="item item-body" id="sensors-list-item-container14" ng-click="getSensorReadings(sensor)">
+          <div id="sensors-markdown592" style="text-align:center;" class="show-list-numbers-and-dots">
+            <p style="margin-top:0px;color:#FFFFFF;font-size:6px;">{{ sensor.readings ? "." : "" }}</p>
+          </div>
+          <div id="sensors-markdown596" style="text-align:center;" class="show-list-numbers-and-dots">
+            <p style="margin-top:0px;color:#3C5A99;font-size:35px;">
+              <strong> {{ sensor.readings ? sensor.readings.value + " " + sensor.unit : "" }} </strong>
+            </p>
+          </div>
+          <div id="sensors-markdown593" style="text-align:center;" class="show-list-numbers-and-dots">
+            <p style="margin-top:0px;color:#FFFFFF;font-size:6px;">{{ sensor.readings ? "." : "" }}</p>
+          </div>
+          <div id="sensors-markdown594" style="text-align:center;" class="show-list-numbers-and-dots">
+            <p style="margin-top:0px;color:#3C5A99;font-size:12px;">{{ sensor.readings ? "Low: " + sensor.readings.lowest + " " + sensor.unit + " High: " + sensor.readings.highest + " " + sensor.unit : "" }}</p>
+          </div>
+        </div>
+        <div id="sensors-container97">
+          <form id="sensors-form259" class="list">
+            <ion-toggle toggle-class="toggle-positive" id="sensors-toggle33" ng-show="sensor.configured" ng-model="sensor.enabled_bool" ng-click="enableSensor(sensor, sensor.enabled_bool)">.</ion-toggle>
+          </form>
+        </div>
+      </div>
+    </form>
+  </ion-content>
+</ion-view>

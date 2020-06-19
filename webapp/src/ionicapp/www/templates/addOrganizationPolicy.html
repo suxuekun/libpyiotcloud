@@ -1,0 +1,73 @@
+<ion-view title="Add Organization Policy" hide-back-button="true" nav-transition="none" id="page70" class="page_width">
+  <ion-nav-buttons side="left" class="has-header">
+    <button class="button button-icon icon ion-android-close" ng-click="exitPage()"></button>
+  </ion-nav-buttons>
+  <ion-content padding="true" class="has-header">
+    <div class="spacer" style="width: 300px; height: 20px;"></div>
+    <form id="addOrganizationPolicy-form247" class="list page_width_small" ng-show="organization == null">
+      <button id="addOrganizationPolicy-button189" style="font-weight:600;font-size:18px;" class="button button-positive button-block button-clear">{{ data.orgname }}</button>
+      <div id="addOrganizationPolicy-markdown510" style="text-align:center;" class="show-list-numbers-and-dots">
+        <p style="color:#AAAAAA;font-size:12px;">Create a custom policy for the organization.</p>
+      </div>
+      <div class="spacer" style="width: 500px; height: 30px;"></div>
+      <div id="addOrganizationPolicy-markdown499" class="show-list-numbers-and-dots">
+        <p style="color:#AAAAAA;font-size:12px;">Set the policy permissions.</p>
+      </div>
+      <div id="addOrganizationPolicy-container91">
+        <table style="width:100%" bordercolor="#444444">
+          <tbody>
+            <tr>
+              <th style="width:60%">
+                <b>Resource</b>
+              </th>
+              <th style="width:10%">
+                <b>Create</b>
+              </th>
+              <th style="width:10%">
+                <b>Read</b>
+              </th>
+              <th style="width:10%">
+                <b>Update</b>
+              </th>
+              <th style="width:10%">
+                <b>Delete</b>
+              </th>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div id="addOrganizationPolicy-container92" ng-repeat="setting in data.settings">
+        <table style="width:100%">
+          <tbody>
+            <tr>
+              <td style="width:60%">{{ setting.label }}</td>
+
+
+              <td style="width:10%">
+                <input type="checkbox" ng-model="setting.crud[0]">
+              </td>
+              <td style="width:10%">
+                <input type="checkbox" ng-model="setting.crud[1]">
+              </td>
+              <td style="width:10%">
+                <input type="checkbox" ng-model="setting.crud[2]">
+              </td>
+              <td style="width:10%">
+                <input type="checkbox" ng-model="setting.crud[3]">
+              </td>
+
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="spacer" style="width: 500px; height: 30px;"></div>
+      <div id="addOrganizationPolicy-markdown523" class="show-list-numbers-and-dots">
+        <p style="color:#AAAAAA;font-size:12px;">Set the policy name.</p>
+      </div>
+      <label class="item item-input" id="addOrganizationPolicy-input182">
+        <input type="text" placeholder="Policy name" ng-model="data.policyname">
+      </label>
+      <button id="addOrganizationPolicy-button194" ng-click="createPolicy()" class="button button-positive button-block">Create</button>
+    </form>
+  </ion-content>
+</ion-view>

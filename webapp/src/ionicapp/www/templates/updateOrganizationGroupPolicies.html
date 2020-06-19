@@ -1,0 +1,34 @@
+<ion-view title="Update Organization Group Policies" hide-back-button="true" nav-transition="none" id="page71" class="page_width">
+  <ion-nav-buttons side="left" class="has-header">
+    <button class="button button-icon icon ion-android-close" ng-click="exitPage()"></button>
+  </ion-nav-buttons>
+  <ion-content padding="true" class="has-header">
+    <div class="spacer" style="width: 300px; height: 20px;"></div>
+    <form id="updateOrganizationGroupPolicies-form249" class="list page_width_small" ng-show="organization == null">
+      <button id="updateOrganizationGroupPolicies-button204" style="font-weight:600;font-size:18px;" class="button button-positive button-block button-clear">{{ data.orgname }}</button>
+      <div id="updateOrganizationGroupPolicies-markdown511" class="show-list-numbers-and-dots">
+        <p style="color:#3C5A99;font-size:18px;">{{ data.groupname }}</p>
+      </div>
+      <div class="spacer" style="width: 500px; height: 50px;"></div>
+      <div id="updateOrganizationGroupPolicies-markdown512" ng-show="policies.length != 0" class="show-list-numbers-and-dots">
+        <p style="color:#AAAAAA;font-size:12px;">Update policies in the organization group. Unchecked policies will be removed from the group.</p>
+      </div>
+      <ion-checkbox id="updateOrganizationGroupPolicies-checkbox58" ng-repeat="policy in policies" ng-model="policy.enabled">{{ policy.policyname }}</ion-checkbox>
+      <button id="updateOrganizationGroupPolicies-button205" ng-click="updateGroupPolicies()" ng-show="policies.length > 0" class="button button-positive button-block">Update</button>
+      <div id="updateOrganizationGroupPolicies-markdown513" ng-show="policies.length == 0" class="show-list-numbers-and-dots">
+        <p style="color:#AAAAAA;font-size:12px;">There are no policies in the group.</p>
+      </div>
+    </form>
+    <form id="updateOrganizationGroupPolicies-form250" class="list page_width_small">
+      <div class="spacer" style="width: 500px; height: 50px;"></div>
+      <div id="updateOrganizationGroupPolicies-markdown517" class="show-list-numbers-and-dots">
+        <p style="color:#AAAAAA;font-size:12px;">Assign a policy to the group.</p>
+      </div>
+      <label class="item item-select" id="updateOrganizationGroupPolicies-select114">
+        <span class="input-label">Select</span>
+        <select ng-options="policy.id as policy.policyname for policy in orgPolicies" ng-model="policySelected" ng-change="changePolicy(policySelected)"></select>
+      </label>
+      <button id="updateOrganizationGroupPolicies-button206" ng-click="addGroupPolicy()" class="button button-positive button-block">Add</button>
+    </form>
+  </ion-content>
+</ion-view>

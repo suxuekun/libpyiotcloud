@@ -1,0 +1,143 @@
+<ion-view title="OTA Firmware Update" hide-back-button="true" nav-transition="none" id="page57" style="background-color:#FFFFFF;" class="page_width">
+  <ion-nav-buttons side="left" class="has-header">
+    <button class="button button-icon icon ion-android-close" ng-click="exitPage()"></button>
+  </ion-nav-buttons>
+  <ion-nav-buttons side="right" class="has-header">
+    <button class="button button-positive icon ion-refresh" ng-click="queryDevice(data.devicename)"></button>
+  </ion-nav-buttons>
+  <ion-content padding="true" class="has-header">
+    <div class="spacer" style="height: 12px;"></div>
+    <div id="oTAFirmwareUpdate-markdown349" style="text-align:center;" class="show-list-numbers-and-dots">
+      <p style="color:#3C5A99;font-size:18px;">
+        <strong> {{ data.devicename }} </strong>
+      </p>
+    </div>
+    <div class="spacer" style="height: 12px;"></div>
+    <form id="oTAFirmwareUpdate-form217" class="list">
+      <div id="oTAFirmwareUpdate-markdown351" class="show-list-numbers-and-dots"></div>
+      <label class="item item-select" id="oTAFirmwareUpdate-select105">
+        <span class="input-label"> Device to update</span>
+        <select ng-options="device.devicename as device.devicename for device in devices" ng-model="data.devicename" ng-change="changeDevice(data.devicename)" ng-disabled="timer != null"></select>
+      </label>
+      <label class="item item-select" id="oTAFirmwareUpdate-select117">
+        <span class="input-label"> Device Group to update</span>
+        <select ng-options="devicegroup.groupname as devicegroup.groupname for devicegroup in devicegroups" ng-model="data.devicegroupname" ng-change="changeDeviceGroup(data.devicegroupname)" ng-disabled="timer != null"></select>
+      </label>
+      <label class="item item-select" id="oTAFirmwareUpdate-select108">
+        <span class="input-label">Version to use</span>
+        <select ng-options="firmware.version as firmware.version for firmware in data.firmwares.ft900.firmware" ng-model="versiontouse" ng-change="changeDescription(versiontouse)" ng-disabled="timer != null"></select>
+      </label>
+    </form>
+    <form id="oTAFirmwareUpdate-form224" class="list" ng-show="data.devicename != &quot;All devices&quot;">
+      <div id="oTAFirmwareUpdate-markdown357" class="show-list-numbers-and-dots"></div>
+      <div id="oTAFirmwareUpdate-markdown358" class="show-list-numbers-and-dots">
+        <p style="color:#3C5A99;">Device Information</p>
+      </div>
+      <label class="item item-input" id="oTAFirmwareUpdate-input169">
+        <span class="input-label">Device Name</span>
+        <input type="text" placeholder="" ng-model="data.devicename" readonly="">
+      </label>
+      <label class="item item-input" id="oTAFirmwareUpdate-input173">
+        <span class="input-label">Device Version</span>
+        <input type="text" placeholder="" ng-model="data.version" readonly="">
+      </label>
+      <label class="item item-input" id="oTAFirmwareUpdate-input172">
+        <span class="input-label">Update Version</span>
+        <input type="text" placeholder="" ng-model="ota_status.version" readonly="">
+      </label>
+      <label class="item item-input" id="oTAFirmwareUpdate-input165">
+        <span class="input-label">Update Status</span>
+        <input type="text" placeholder="" ng-model="ota_status.status" readonly="">
+      </label>
+      <label class="item item-input" id="oTAFirmwareUpdate-input166">
+        <span class="input-label">Update Time</span>
+        <input type="text" placeholder="" ng-model="ota_status.time" readonly="">
+      </label>
+      <label class="item item-input" id="oTAFirmwareUpdate-input171">
+        <span class="input-label">Update Timestamp</span>
+        <input type="text" placeholder="" ng-model="ota_status.timestamp" readonly="">
+      </label>
+    </form>
+    <form id="oTAFirmwareUpdate-form229" class="list" ng-show="data.devicename == &quot;All devices&quot;">
+      <div id="oTAFirmwareUpdate-markdown403" class="show-list-numbers-and-dots"></div>
+      <div id="oTAFirmwareUpdate-markdown409" class="show-list-numbers-and-dots">
+        <p style="color:#3C5A99;">Device Information</p>
+      </div>
+      <div id="oTAFirmwareUpdate-container11" class="tab_margin_1">
+        <table style="width:100%" bordercolor="#444444">
+          <tbody>
+            <tr>
+              <th style="width:4%">&nbsp;</th>
+              <th style="width:23%">
+                <b>Device ID</b>
+              </th>
+              <th style="width:19%">
+                <b>Device Name</b>
+              </th>
+              <th style="width:19%">
+                <b>Update Version</b>
+              </th>
+              <th style="width:18%">
+                <b>Update Status</b>
+              </th>
+              <th style="width:17%">
+                <b>Update Time</b>
+              </th>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div id="oTAFirmwareUpdate-container10" ng-repeat="device in devices_ota" class="tab_margin_1">
+        <table style="width:100%">
+          <tbody>
+            <tr>
+              <td style="width:4%">
+                <input type="checkbox" id="{{" device.devicename="" }}="" ng-click="onChecked(device)" ng-model="device.checked">
+              </td>
+              <td style="width:23%">{{ device.deviceid }}</td>
+              <td style="width:19%">{{ device.devicename }}</td>
+              <td style="width:19%">Version {{ device.version }}</td>
+              <td style="width:18%">{{ device.status }}</td>
+              <td style="width:17%">{{ device.time }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </form>
+    <div id="oTAFirmwareUpdate-markdown497" ng-show="data.devicename == &quot;All devices&quot;" style="text-align:center;" class="show-list-numbers-and-dots">
+      <p style="color:#AAAAAA;font-size:10px;">If a device is offline, it will automatically be updated upon device bootup.</p>
+    </div>
+    <form id="oTAFirmwareUpdate-form221" class="list">
+      <div id="oTAFirmwareUpdate-markdown353" class="show-list-numbers-and-dots"></div>
+      <div id="oTAFirmwareUpdate-markdown354" class="show-list-numbers-and-dots">
+        <p style="color:#3C5A99;">Online Upgrade</p>
+      </div>
+      <div id="oTAFirmwareUpdate-markdown356" class="show-list-numbers-and-dots tab_margin_1">
+        <p style="color:#444444;font-size:16px;">
+          <strong> Version to use: {{ versiontouse }} - {{ datetouse }} </strong>
+        </p>
+      </div>
+      <div id="oTAFirmwareUpdate-markdown237" ng-repeat="description in descriptiontouse" class="show-list-numbers-and-dots tab_margin_1">
+        <p style="color:#444444;font-size:16px;">{{ description }}</p>
+      </div>
+    </form>
+    <form id="oTAFirmwareUpdate-form223" class="list">
+      <div id="oTAFirmwareUpdate-markdown355" class="show-list-numbers-and-dots"></div>
+      <button id="oTAFirmwareUpdate-button158" ng-click="upgradeFirmware(versiontouse, data.devicename)" ng-disabled="disable == true" class="button button-positive button-block">Update</button>
+      <button id="oTAFirmwareUpdate-button159" ng-click="cancelFirmware()" ng-show="disable == true" class="button button-positive button-block button-outline">Cancel</button>
+    </form>
+    <center>
+      <a href="https://ft900-iot-portal.s3.amazonaws.com/latest_firmware_updates.json" target="_blank">
+        <font size="2" color="#AAAAAA">https://ft900-iot-portal.s3.amazonaws.com/latest_firmware_updates.json </font>
+
+      </a>
+    </center>
+    <div id="oTAFirmwareUpdate-markdown236" style="text-align:center;" class="show-list-numbers-and-dots">
+      <p style="color:#AAAAAA;font-size:6px;">...</p>
+    </div>
+    <div id="oTAFirmwareUpdate-markdown156" ng-repeat="firmware in data.firmwares.ft900.firmware" style="text-align:center;" class="show-list-numbers-and-dots">
+      <p style="color:#AAAAAA;font-size:12px;">
+        <strong>{{ firmware.version }}</strong> - {{ firmware.date }} - {{ firmware.location }} - {{ firmware.size }}</p>
+    </div>
+  </ion-content>
+</ion-view>
