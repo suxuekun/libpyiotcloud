@@ -32,6 +32,45 @@ def throw_bad_db_query(ret=None):
         return func
     return atholder
 
+class BaseReadOnlyService(BaseSimpleApiService):
+    @throw_bad_db_query()
+    def get_one(self, query):
+        raw = self.repo.get_one(query)
+        if not raw:
+            return None
+        entity = self.model(raw, strict=False, validate=True)
+        return entity
+
+    @throw_bad_db_query()
+    def rawlist(self, filter=None):
+        l = self.list(filter)
+        if l:
+            return [x.to_primitive() for x in l]
+        return l
+
+    @throw_bad_db_query()
+    def list(self, filter=None):
+        raws = self.repo.gets(filter)
+        if not raws:
+            return []
+        entities = [self.model(raw, strict=False, validate=True) for raw in raws]
+        return entities
+
+    @throw_bad_db_query()
+    def get(self, id):
+        raw = self.repo.getById(id)
+        if not raw:
+            return None
+        entity = self.model(raw, strict=False, validate=True)
+        return entity
+
+class BaseS3Service(BaseReadOnlyService):
+    pass
+
+class BaseFileService(BaseReadOnlyService):
+    pass
+
+
 class BaseMongoService(BaseSimpleApiService):
     @throw_bad_db_query()
     def get_one(self,query):

@@ -12,7 +12,6 @@ class IMongoBaseRepository:
     def gets(self, query=None, projection=None):
         pass
 
-
 class MongoBaseRepository(BaseRepository, IMongoBaseRepository):
 
     def __init__(self, mongoclient: MongoClient, db, collectionName: str):

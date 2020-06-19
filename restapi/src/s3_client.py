@@ -4,7 +4,7 @@ from s3_config import config
 
 
 
-class s3_client:
+class S3_client:
 
 	def __init__(self):
 		self.aws_access_key_id     = config.CONFIG_ACCESS_KEY
@@ -47,6 +47,9 @@ class s3_client:
 
 		return (self.__get_result(response), json_obj)
 
+	def get_raw_file_bytes(self, filename):
+		return self.__get_file(filename,True)[1];
+
 
 	def get_supported_i2c_devices(self):
 		return self.__get_file(self.file_i2cdevices)
@@ -59,3 +62,5 @@ class s3_client:
 
 	def get_firmware(self, filename):
 		return self.__get_file(filename, raw=True)
+
+s3_client = S3_client()

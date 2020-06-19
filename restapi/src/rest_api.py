@@ -1026,7 +1026,7 @@ def initialize():
     print("g_database_client")
     g_database_client = db_client
     # Initialize S3 client
-    g_storage_client = s3_client()
+    g_storage_client = s3_client
 
     # Initialize Redis client
     g_redis_client = redis_client()
