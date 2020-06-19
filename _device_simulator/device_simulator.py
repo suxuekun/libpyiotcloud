@@ -2904,7 +2904,14 @@ def http_compute_device_password(uuid, serial_number, mac_address):
 
     password = None
 
-    conn = http_initialize_connection(host="dev.brtchip-iotportal.com")
+    # initialize HTTPS connection with a specific server for the device password API
+    if "brtchip-iotportal.com" in CONFIG_HTTP_HOST:
+        # for local setup, use the DEV cloud
+        conn = http_initialize_connection(host=CONFIG_HTTP_HOST)
+    else:
+        # for local setup, use the DEV cloud
+        conn = http_initialize_connection(host="dev.brtchip-iotportal.com")
+
     headers = { "Connection": "keep-alive", "Content-Type": "application/json" }
     params = json.dumps({ "uuid": uuid, "serialnumber": serial_number, "poemacaddress": mac_address })
     api = "/devicesimulator/devicepassword"
