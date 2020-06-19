@@ -124,6 +124,14 @@ class device_ldsbus:
             # get ldsus and sensors in database
             ldsus = self.database_client.get_ldsus_by_port(entityname, devicename, portnumber)
             sensors = self.database_client.get_sensors_by_port(entityname, devicename, portnumber)
+
+            # get the sensor reading for all enabled sensors
+            for sensor in sensors:
+                if sensor["enabled"]:
+                    reading = self.database_client.get_sensor_reading(entityname, devicename, sensor["source"], int(sensor["number"]))
+                    if reading:
+                        sensor["readings"] = reading
+
             ldsbus = [
                 {
                     "ldsus": ldsus,
@@ -239,6 +247,14 @@ class device_ldsbus:
                 msg['ldsus'] = ldsus
         elif component == "sensors":
             sensors = self.database_client.get_sensors_by_port(entityname, devicename, portnumber)
+
+            # get the sensor reading for all enabled sensors
+            for sensor in sensors:
+                if sensor["enabled"]:
+                    reading = self.database_client.get_sensor_reading(entityname, devicename, sensor["source"], int(sensor["number"]))
+                    if reading:
+                        sensor["readings"] = reading
+
             if sensors:
                 msg['sensors'] = sensors
         elif component == "actuators":
@@ -397,9 +413,15 @@ class device_ldsbus:
 
         # get ldsus and sensors in database
         ldsus = self.database_client.get_ldsus_by_port(entityname, devicename, portnumber)
-        print(len(ldsus))
         if len(ldsus):
             sensors = self.database_client.get_sensors_by_port(entityname, devicename, portnumber)
+
+            # get the sensor reading for all enabled sensors
+            for sensor in sensors:
+                if sensor["enabled"]:
+                    reading = self.database_client.get_sensor_reading(entityname, devicename, sensor["source"], int(sensor["number"]))
+                    if reading:
+                        sensor["readings"] = reading
         else:
             sensors = []
         ldsbus = [

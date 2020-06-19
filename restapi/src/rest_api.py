@@ -814,6 +814,11 @@ def delete_all_device_sensors_properties(devicename):
     return g_device_peripheral_properties.delete_all_device_sensors_properties(devicename)
 
 
+@app.route('/devices/device/<devicename>/<xxx>/<number>/sensors/sensor/<sensorname>/readings', methods=['GET'])
+def get_xxx_dev_readings(devicename, xxx, number, sensorname):
+    return g_device_peripheral_properties.get_xxx_dev_readings(devicename, xxx, number, sensorname)
+
+
 g_device_peripheral_properties_list = [
 #    { "name": "GET UARTS",                    "func": get_uarts,           "api": "/devices/device/<devicename>/uarts",           "method": "GET"    },
     { "name": "GET UART PROPERTIES",          "func": get_uart_prop,       "api": "/devices/device/<devicename>/uart/properties", "method": "POST"   },
@@ -828,6 +833,9 @@ g_device_peripheral_properties_list = [
     { "name": "CHANGE LDS DEVICE NAME",       "func": change_xxx_dev_name, "api": "/devices/device/<devicename>/<xxx>/<number>/sensors/sensor/<sensorname>/name",       "method": "POST"   },
 
     { "name": "ENABLE LDS DEVICE PROPERTIES", "func": delete_all_device_sensors_properties, "api": "/devices/device/<devicename>/sensors/properties",                   "method": "DELETE" },
+
+    { "name": "GET LDS DEVICE READINGS",      "func": get_xxx_dev_readings,"api": "/devices/device/<devicename>/<xxx>/<number>/sensors/sensor/<sensorname>/readings",   "method": "GET"    },
+
 ]
 
 

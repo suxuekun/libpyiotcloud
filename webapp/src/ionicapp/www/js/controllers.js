@@ -527,7 +527,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
 
     $scope.changeActiveSection = function(s) {
         $scope.activeSection = s;
-        $scope.submitRefresh();
+        $scope.submitRefresh(livestatus=true);
     };
     
     $scope.viewDevice = function(device) {
@@ -608,8 +608,14 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         }
     };
 
-    $scope.getDiffString = function(currdate, devicedate) {
+    $scope.getDiffString = function(currdate, devicedate, offline=false) {
         let diffString = "";
+        
+        if (devicedate === null) {
+            return "Last active: N/A";
+        }
+        
+        
         let diff = currdate-devicedate;
 
         //console.log(diff);
@@ -619,8 +625,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                 diffString += "s";
             }
             diffString += " ago";
-            // just make it online
-            if (diff < 10) {
+            // since heartbeat rate is 60 seconds, just make it online
+            if (diff < 60 && offline === false) {
                 diffString = "Online";
             }
         }
@@ -709,6 +715,27 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                 // DEVICE GROUPS AND UNGROUPED DEVICES
                 
                 DeviceGroups.get_mixed_devices($scope.data).then(function(res) {
+
+                    // copy the devicestatus    
+                    for (let devicex in res.data.devices) {
+                        if ($scope.devices.length > 0) {
+                            for (let device in $scope.devices) {
+                                if ($scope.devices[device].devicename === res.data.devices[devicex].devicename) {
+                                    if ($scope.devices[device].devicestatus !== undefined) {
+                                        res.data.devices[devicex].devicestatus = $scope.devices[device].devicestatus;
+                                    }
+                                    else {
+                                        res.data.devices[devicex].devicestatus = "Last active: N/A";
+                                    }
+                                    break;
+                                }
+                            }
+                        }
+                        else {
+                            res.data.devices[devicex].devicestatus = "Last active: N/A";
+                        }
+                    }
+
                     $scope.devicegroups = res.data.devicegroups;
                     $scope.devices = res.data.devices;
                     $scope.data.token = User.get_token();
@@ -743,12 +770,14 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                             for (indexy=0; indexy<$scope.devices.length; indexy++) {
                                 //console.log("indexy=" + indexy.toString() + " " + $scope.devices[indexy].devicename);
                                 
+                                /*
                                 if ($scope.devices[indexy].heartbeat !== undefined) {
                                     $scope.devices[indexy].devicestatus = $scope.getDiffString(currdate, $scope.devices[indexy].heartbeat);
                                 }
                                 else {
                                     $scope.devices[indexy].devicestatus = "Last active: N/A";
                                 }
+                                */
                                 
                                 query_device(indexy, $scope.devices[indexy].devicename);
                             }
@@ -858,6 +887,22 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                 
                 // Fetch devices
                 Devices.fetch($scope.data, $scope.data.devices_filter).then(function(res) {
+                    
+                    // copy the devicestatus    
+                    for (let device in $scope.devices) {
+                        if ($scope.devices[device].devicestatus !== undefined) {
+                            for (let devicex in res.data.devices) {
+                                if ($scope.devices[devicex].devicename === res.data.devices[device].devicename) {
+                                    res.data.devices[device].devicestatus = $scope.devices[devicex].devicestatus;
+                                    break;
+                                }
+                            }
+                        }
+                        else {
+                            res.data.devices[device].devicestatus = "Last active: N/A";
+                        }
+                    }                    
+                    
                     $scope.devices = res;
                     $scope.data.token = User.get_token();
                     if ($scope.devices.length !== 0) {
@@ -877,12 +922,14 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                             for (indexy=0; indexy<$scope.devices.length; indexy++) {
                                 //console.log("indexy=" + indexy.toString() + " " + $scope.devices[indexy].devicename);
                                 
+                                /*
                                 if ($scope.devices[indexy].heartbeat !== undefined) {
                                     $scope.devices[indexy].devicestatus = $scope.getDiffString(currdate, $scope.devices[indexy].heartbeat);
                                 }
                                 else {
                                     $scope.devices[indexy].devicestatus = "Last active: N/A";
                                 }
+                                */
                                 
                                 query_device(indexy, $scope.devices[indexy].devicename);
                             }
@@ -918,6 +965,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             
             // Fetch devicegroups
             DeviceGroups.fetch($scope.data).then(function(res) {
+                
                 $scope.devicegroups = res;
                 $scope.data.token = User.get_token();
                 if ($scope.devicegroups.length !== 0) {
@@ -926,38 +974,6 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                     }
                     else {
                         $scope.devices_counthdr = $scope.devicegroups.length.toString() + " gateway groups registered";
-                    }
-                    
-                    
-                    let currdate = parseInt(new Date().valueOf()/ 1000, 10);
-                    console.log(currdate);
-                    
-                    if (livestatus === true) {
-                        //console.log($scope.devices.length);
-                        let indexy = 0;
-                        for (indexy=0; indexy<$scope.devices.length; indexy++) {
-                            //console.log("indexy=" + indexy.toString() + " " + $scope.devices[indexy].devicename);
-                            
-                            if ($scope.devices[indexy].heartbeat !== undefined) {
-                                $scope.devices[indexy].devicestatus = $scope.getDiffString(currdate, $scope.devices[indexy].heartbeat);
-                            }
-                            else {
-                                $scope.devices[indexy].devicestatus = "Last active: N/A";
-                            }
-                            
-                            query_device(indexy, $scope.devices[indexy].devicename);
-                        }
-                    }
-                    else {
-                        let indexy = 0;
-                        for (indexy=0; indexy<$scope.devices.length; indexy++) {
-                            if ($scope.devices[indexy].heartbeat !== undefined) {
-                                $scope.devices[indexy].devicestatus = $scope.getDiffString(currdate, $scope.devices[indexy].heartbeat);
-                            }
-                            else {
-                                $scope.devices[indexy].devicestatus = "Last active: N/A";
-                            }
-                        }
                     }
                 }
                 else {
@@ -988,6 +1004,27 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             
             // Fetch devices
             DeviceGroups.get_ungrouped_devices($scope.data).then(function(res) {
+                
+                // copy the devicestatus    
+                for (let devicex in res) {
+                    if ($scope.devices.length > 0) {
+                        for (let device in $scope.devices) {
+                            if ($scope.devices[device].devicename === res[devicex].devicename) {
+                                if ($scope.devices[device].devicestatus !== undefined) {
+                                    res[devicex].devicestatus = $scope.devices[device].devicestatus;
+                                }
+                                else {
+                                    res[devicex].devicestatus = "Last active: N/A";
+                                }
+                                break;
+                            }
+                        }
+                    }
+                    else {
+                        res[devicex].devicestatus = "Last active: N/A";
+                    }
+                }
+
                 $scope.devices = res;
                 $scope.data.token = User.get_token();
                 if ($scope.devices.length !== 0) {
@@ -1006,12 +1043,14 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                         for (indexy=0; indexy<$scope.devices.length; indexy++) {
                             //console.log("indexy=" + indexy.toString() + " " + $scope.devices[indexy].devicename);
                             
+                            /*
                             if ($scope.devices[indexy].heartbeat !== undefined) {
                                 $scope.devices[indexy].devicestatus = $scope.getDiffString(currdate, $scope.devices[indexy].heartbeat);
                             }
                             else {
                                 $scope.devices[indexy].devicestatus = "Last active: N/A";
                             }
+                            */
                             
                             query_device(indexy, $scope.devices[indexy].devicename);
                         }
@@ -1033,7 +1072,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                 }
             })
             .catch(function (error) {
-                console.log("Devices.get failed!!!");
+                console.log("Devices.get_ungrouped_devices failed!!!");
                 $scope.handle_error(error);
             }); 
         }
@@ -1129,9 +1168,16 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         .then(function (result) {
             console.log(result.data);
             //console.log(devicename + ": Online");
-            $scope.devices[index].devicestatus = 'Online';    
+            $scope.devices[index].devicestatus = 'Online';
         })
         .catch(function (error) {
+            let currdate = parseInt(new Date().valueOf()/ 1000, 10);
+            if ($scope.devices[index].heartbeat !== undefined) {
+                $scope.devices[index].devicestatus = $scope.getDiffString(currdate, $scope.devices[index].heartbeat, true);
+            }
+            else {
+                $scope.devices[index].devicestatus = $scope.getDiffString(currdate, null, true);
+            }
             $scope.handle_error(error);
         }); 
     };    
@@ -5013,7 +5059,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
 
     $scope.changeActiveSection = function(s) {
         $scope.activeSection = s;
-        $scope.submitRefresh();
+        $scope.submitRefresh(true);
     };
     
     $scope.viewDevice = function(device) {
@@ -5057,8 +5103,14 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         $state.go('updateGatewayGroup', device_param, {reload:true} );
     };    
     
-    $scope.getDiffString = function(currdate, devicedate) {
+    $scope.getDiffString = function(currdate, devicedate, offline=false) {
         let diffString = "";
+        
+        if (devicedate === null) {
+            return "Last active: N/A";
+        }
+        
+        
         let diff = currdate-devicedate;
 
         //console.log(diff);
@@ -5068,8 +5120,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                 diffString += "s";
             }
             diffString += " ago";
-            // just make it online
-            if (diff < 10) {
+            // since heartbeat rate is 60 seconds, just make it online
+            if (diff < 60 && offline === false) {
                 diffString = "Online";
             }
         }
@@ -5156,6 +5208,27 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             
             // Fetch devices
             DeviceGroups.get_detailed($scope.data, $scope.data.devicegroupname).then(function(res) {
+                
+                // copy the devicestatus    
+                for (let devicex in res) {
+                    if ($scope.devices.length > 0) {
+                        for (let device in $scope.devices) {
+                            if ($scope.devices[device].devicename === res[devicex].devicename) {
+                                if ($scope.devices[device].devicestatus !== undefined) {
+                                    res[devicex].devicestatus = $scope.devices[device].devicestatus;
+                                }
+                                else {
+                                    res[devicex].devicestatus = "Last active: N/A";
+                                }
+                                break;
+                            }
+                        }
+                    }
+                    else {
+                        res[devicex].devicestatus = "Last active: N/A";
+                    }
+                }
+                
                 $scope.devices = res;
                 $scope.data.token = User.get_token();
                 if ($scope.devices.length !== 0) {
@@ -5175,12 +5248,14 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                         for (indexy=0; indexy<$scope.devices.length; indexy++) {
                             //console.log("indexy=" + indexy.toString() + " " + $scope.devices[indexy].devicename);
                             
+                            /*
                             if ($scope.devices[indexy].heartbeat !== undefined) {
                                 $scope.devices[indexy].devicestatus = $scope.getDiffString(currdate, $scope.devices[indexy].heartbeat);
                             }
                             else {
                                 $scope.devices[indexy].devicestatus = "Last active: N/A";
                             }
+                            */
                             
                             $scope.query_device(indexy, $scope.devices[indexy].devicename);
                         }
@@ -5230,6 +5305,13 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             $scope.devices[index].devicestatus = 'Online';    
         })
         .catch(function (error) {
+            let currdate = parseInt(new Date().valueOf()/ 1000, 10);
+            if ($scope.devices[index].heartbeat !== undefined) {
+                $scope.devices[index].devicestatus = $scope.getDiffString(currdate, $scope.devices[index].heartbeat, true);
+            }
+            else {
+                $scope.devices[index].devicestatus = $scope.getDiffString(currdate, null, true);
+            }
             $scope.handle_error(error);
         }); 
     };    
@@ -5247,7 +5329,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             else if (error.status == 401 && error.data.message.includes('Please check with the organization owner') === true ) {
                 $ionicPopup.alert({ title: 'Error', template: error.data.message, buttons: [{text: 'OK', type: 'button-assertive'}] });
             }         
-            else {
+            else if (error.status !== 503) {
                 $ionicPopup.alert({ title: 'Error', template: error.data.message, buttons: [{text: 'OK', type: 'button-assertive'}] });
             }
         }
@@ -11183,6 +11265,53 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         }
     };
 
+
+    $scope.getSensorReadings = function(sensor) {
+        console.log("getSensorReadings!"); 
+        if (sensor.enabled === 0) {
+            return;
+        }
+        
+        $scope.get_lds_bus_sensor_reading(sensor);
+    };
+    
+    $scope.get_lds_bus_sensor_reading = function(sensor) {
+        //
+        // GET LDS BUS SENSOR READING
+        //
+        // - Request:
+        //   GET /devices/device/<devicename>/<peripheral>/<number>/sensors/sensor/<sensorname>/readings
+        //   headers: { 'Authorization': 'Bearer ' + token.access }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string, }
+        //   { 'status': 'NG', 'message': string }
+        //
+        $http({
+            method: 'GET',
+            url: server + '/devices/device/' + $scope.data.devicename + '/' + sensor.source + '/' + sensor.number.toString() + '/sensors/sensor/' + sensor.sensorname + '/readings',
+            headers: {'Authorization': 'Bearer ' + $scope.data.token.access}
+        })
+        .then(function (result) {
+            console.log(result.data);
+            
+            if  ($scope.data.sensors !== undefined) {
+                for (let x in $scope.data.sensors) {
+                    if ($scope.data.sensors[x].source === result.data.sensor.source && 
+                        $scope.data.sensors[x].number === result.data.sensor.number) 
+                        {
+                            $scope.data.sensors[x].readings = result.data.sensor.readings;
+                            break;
+                        }
+                }
+            }
+        })
+        .catch(function (error) {
+            $scope.handle_error(error);
+        }); 
+    };
+
+
     // GET LDS BUS
     $scope.getLDSBUSSensors = function() {
         console.log("getLDSBUSSensors");
@@ -11311,6 +11440,13 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             
             // update
             //get_i2c_sensors();
+            sensor.enabled = enable_int;
+            if (sensor.enabled === 1) {
+                $scope.getSensorReadings(sensor);
+            }
+            else {
+                delete sensor.readings;
+            }
         })
         .catch(function (error) {
             $scope.handle_error(error);

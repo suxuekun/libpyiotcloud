@@ -65,7 +65,7 @@ CONFIG_AMQP_TLS_PORT        = 5671
 CONFIG_PREPEND_REPLY_TOPIC  = "server"
 CONFIG_SEPARATOR            = '/'
 
-API_SET_REGISTRATION        = "set_registration"
+#API_SET_REGISTRATION        = "set_registration"
 API_SET_DESCRIPTOR          = "set_descriptor" # gateway descriptor
 API_SET_LDSU_DESCS          = "set_ldsu_descs" # ldsu descriptors
 
@@ -225,7 +225,7 @@ def set_ldsu_descs_ex(database_client, deviceid, topic, payload, devicename, use
     # check if the number of LDSUs is correct
     if payload["chunk"].get("TOT") is not None:
         if len(new_ldsus) != int(payload["chunk"]["TOT"]):
-            print("ERROR: number of LDSUs do not match".format(len(new_ldsus), int(payload["chunk"]["TOT"])))
+            print("ERROR: number of LDSUs do not match {} {}".format(len(new_ldsus), int(payload["chunk"]["TOT"])))
             return
 
     # set status for non-present LDSUs
@@ -262,65 +262,65 @@ def set_ldsu_descs(database_client, deviceid, topic, payload):
     _save_ldsus(database_client, username, deviceid, payload["value"])
 
 
-def set_registration(database_client, deviceid, topic, payload):
-
-    print("{} {}".format(topic, deviceid))
-
-    # find if deviceid exists
-    devicename = database_client.get_devicename(deviceid)
-    if devicename is None:
-        return
-
-    payload = json.loads(payload)
-    print_json(payload)
-
-    for sensor in payload["value"]:
-        # parse sensor
-        peripheral = sensor["source"]
-        sensor.pop("source")
-        source = peripheral[:len(peripheral)-1]
-        number = peripheral[len(peripheral)-1:]
-
-        # add enabled and configured states
-        sensor["enabled"] = 0
-        sensor["configured"] = 0
-
-        # generate sensorname
-        sensorname = ""
-        index = 1
-        while True:
-            sensorname = "{} {}".format(sensor["model"], index)
-            item = database_client.check_sensor_by_deviceid(deviceid, sensorname)
-            if item is None:
-                break
-            #print_json(item)
-            if item["source"] == source and item["number"] == number:
-                if item["manufacturer"] == sensor["manufacturer"] and item["model"] == sensor["model"]:
-                    if item["class"] == sensor["class"] and item["type"] == sensor["type"]:
-                        #if item["units"][0] == sensor["units"][0] and item["formats"][0] == sensor["formats"][0]:
-                        if source == "i2c":
-                            if item["address"] == sensor["address"]:
-                                index = 0
-                                print("Sensor already registered! {}".format(sensorname))
-                                break
-                        else:
-                            index = 0
-                            print("Sensor already registered! {}".format(sensorname))
-                            break
-            index += 1
-        if index == 0:
-            continue
-
-        # register sensor
-        print()
-        print(sensorname)
-        print(source)
-        print(number)
-        print_json(sensor)
-        print()
-        database_client.add_sensor_by_deviceid(deviceid, source, number, sensorname, sensor)
-
-    print()
+#def set_registration(database_client, deviceid, topic, payload):
+#
+#    print("{} {}".format(topic, deviceid))
+#
+#    # find if deviceid exists
+#    devicename = database_client.get_devicename(deviceid)
+#    if devicename is None:
+#        return
+#
+#    payload = json.loads(payload)
+#    print_json(payload)
+#
+#    for sensor in payload["value"]:
+#        # parse sensor
+#        peripheral = sensor["source"]
+#        sensor.pop("source")
+#        source = peripheral[:len(peripheral)-1]
+#        number = peripheral[len(peripheral)-1:]
+#
+#        # add enabled and configured states
+#        sensor["enabled"] = 0
+#        sensor["configured"] = 0
+#
+#        # generate sensorname
+#        sensorname = ""
+#        index = 1
+#        while True:
+#            sensorname = "{} {}".format(sensor["model"], index)
+#            item = database_client.check_sensor_by_deviceid(deviceid, sensorname)
+#            if item is None:
+#                break
+#            #print_json(item)
+#            if item["source"] == source and item["number"] == number:
+#                if item["manufacturer"] == sensor["manufacturer"] and item["model"] == sensor["model"]:
+#                    if item["class"] == sensor["class"] and item["type"] == sensor["type"]:
+#                        #if item["units"][0] == sensor["units"][0] and item["formats"][0] == sensor["formats"][0]:
+#                        if source == "i2c":
+#                            if item["address"] == sensor["address"]:
+#                                index = 0
+#                                print("Sensor already registered! {}".format(sensorname))
+#                                break
+#                        else:
+#                            index = 0
+#                            print("Sensor already registered! {}".format(sensorname))
+#                            break
+#            index += 1
+#        if index == 0:
+#            continue
+#
+#        # register sensor
+#        print()
+#        print(sensorname)
+#        print(source)
+#        print(number)
+#        print_json(sensor)
+#        print()
+#        database_client.add_sensor_by_deviceid(deviceid, source, number, sensorname, sensor)
+#
+#    print()
 
 
 def on_message(subtopic, subpayload):
@@ -336,15 +336,7 @@ def on_message(subtopic, subpayload):
     topic = arr_subtopic[2]
     payload = subpayload.decode("utf-8")
 
-    if topic == API_SET_REGISTRATION:
-        try:
-            thr = threading.Thread(target = set_registration, args = (g_database_client, deviceid, topic, payload ))
-            thr.start()
-        except Exception as e:
-            print("exception API_SET_REGISTRATION")
-            print(e)
-            return
-    elif topic == API_SET_DESCRIPTOR:
+    if topic == API_SET_DESCRIPTOR:
         try:
             thr = threading.Thread(target = set_descriptor, args = (g_database_client, deviceid, topic, payload ))
             thr.start()
@@ -360,6 +352,14 @@ def on_message(subtopic, subpayload):
             print("exception API_SET_LDSU_DESCS")
             print(e)
             return
+    #elif topic == API_SET_REGISTRATION:
+    #    try:
+    #        thr = threading.Thread(target = set_registration, args = (g_database_client, deviceid, topic, payload ))
+    #        thr.start()
+    #    except Exception as e:
+    #        print("exception API_SET_REGISTRATION")
+    #        print(e)
+    #        return
 
 
 def on_mqtt_message(client, userdata, msg):
@@ -459,12 +459,12 @@ if __name__ == '__main__':
 
     # Subscribe to messages sent for this device
     time.sleep(1)
-    subtopic = "{}{}+{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_SEPARATOR, API_SET_REGISTRATION)
-    subtopic2 = "{}{}+{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_SEPARATOR, API_SET_DESCRIPTOR)
-    subtopic3 = "{}{}+{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_SEPARATOR, API_SET_LDSU_DESCS)
+    subtopic = "{}{}+{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_SEPARATOR, API_SET_DESCRIPTOR)
+    subtopic2 = "{}{}+{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_SEPARATOR, API_SET_LDSU_DESCS)
+    #subtopic3 = "{}{}+{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_SEPARATOR, API_SET_REGISTRATION)
     g_messaging_client.subscribe(subtopic, subscribe=True, declare=True, consume_continuously=True)
     g_messaging_client.subscribe(subtopic2, subscribe=True, declare=True, consume_continuously=True)
-    g_messaging_client.subscribe(subtopic3, subscribe=True, declare=True, consume_continuously=True)
+    #g_messaging_client.subscribe(subtopic3, subscribe=True, declare=True, consume_continuously=True)
 
 
     while g_messaging_client.is_connected():

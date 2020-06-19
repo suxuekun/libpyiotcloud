@@ -895,3 +895,88 @@ class device_peripheral_properties:
         response = json.dumps(msg)
         print('\r\nDelete All Device Sensors Properties successful: {} {}\r\n'.format(username, devicename))
         return response
+
+
+
+    ########################################################################################################
+    #
+    # GET LDSU DEVICE READINGS
+    #
+    # - Request:
+    #   POST /devices/device/<devicename>/i2c/number/sensors/sensor/<sensorname>/readings
+    #   headers: {'Authorization': 'Bearer ' + token.access}
+    #
+    # - Response:
+    #   {'status': 'OK', 'message': string, 'value': {}}
+    #   {'status': 'NG', 'message': string}
+    #
+    ########################################################################################################
+    def get_xxx_dev_readings(self, devicename, xxx, number, sensorname):
+        print('get_{}_dev_readings'.format(xxx))
+
+        # get token from Authorization header
+        auth_header_token = rest_api_utils.utils().get_auth_header_token()
+        if auth_header_token is None:
+            response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
+            print('\r\nERROR Get {} Sensor Readings: Invalid authorization header\r\n'.format(xxx))
+            return response, status.HTTP_401_UNAUTHORIZED
+        token = {'access': auth_header_token} 
+        # get username from token
+        username = self.database_client.get_username_from_token(token)
+        if username is None:
+            response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+            print('\r\nERROR Get {} Sensor Readings: Token expired\r\n'.format(xxx))
+            return response, status.HTTP_401_UNAUTHORIZED
+        print('{} devicename={} number={} sensorname={}'.format(username, devicename, number, sensorname))
+
+        # check if a parameter is empty
+        if len(username) == 0 or len(token) == 0 or len(devicename) == 0 or len(sensorname) == 0:
+            response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+            print('\r\nERROR Get {} Sensor Readings: Empty parameter found\r\n'.format(xxx))
+            return response, status.HTTP_400_BAD_REQUEST
+
+        # check if username and token is valid
+        verify_ret, new_token = self.database_client.verify_token(username, token)
+        if verify_ret == 2:
+            response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+            print('\r\nERROR Get {} Sensor Readings: Token expired [{}]\r\n'.format(xxx, username))
+            return response, status.HTTP_401_UNAUTHORIZED
+        elif verify_ret != 0:
+            response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
+            print('\r\nERROR Get {} Sensor Readings: Token is invalid [{}]\r\n'.format(xxx, username))
+            return response, status.HTTP_401_UNAUTHORIZED
+
+
+        # get entity using the active organization
+        orgname, orgid = self.database_client.get_active_organization(username)
+        if orgname is not None:
+            # check authorization
+            if self.database_client.is_authorized(username, orgname, orgid, database_categorylabel.DEVICES, database_crudindex.READ) == False:
+                response = json.dumps({'status': 'NG', 'message': 'Authorization failed! User is not allowed to access resource. Please check with the organization owner regarding policies assigned.'})
+                print('\r\nERROR Get Peripheral Sensor Readings: Authorization not allowed [{}]\r\n'.format(username))
+                return response, status.HTTP_401_UNAUTHORIZED
+
+            # has active organization
+            entityname = "{}.{}".format(orgname, orgid)
+        else:
+            # no active organization, just a normal user
+            entityname = username
+
+
+        # check if sensor is registered
+        sensor = self.database_client.get_sensor(entityname, devicename, xxx, number, sensorname)
+        if not sensor:
+            response = json.dumps({'status': 'NG', 'message': 'Sensor is not registered'})
+            print('\r\nERROR Get {} Sensor Readings: Sensor is not registered [{},{}]\r\n'.format(xxx, entityname, devicename))
+            return response, status.HTTP_404_NOT_FOUND
+
+        # get the sensor reading for all enabled sensors
+        if sensor["enabled"]:
+            reading = self.database_client.get_sensor_reading(entityname, devicename, xxx, int(number))
+            if reading:
+                sensor["readings"] = reading
+
+
+        msg = {'status': 'OK', 'message': 'Sensor readings retrieved successfully.', 'sensor': sensor}
+        response = json.dumps(msg)
+        return response
