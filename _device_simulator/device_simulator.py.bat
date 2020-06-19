@@ -52,8 +52,9 @@ set DEVICE_PKEY="cert_ecc/ft900device1_pkey.pem"
 ::
 ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 ::
-:: DEV environment              - set HOST to dev.brtchip-iotportal.com
-:: PROD/TEST environment        - set HOST to prod.brtchip-iotportal.com
+:: DEV  environment             - set HOST to dev.brtchip-iotportal.com
+:: TEST environment             - set HOST to test.brtchip-iotportal.com
+:: PROD environment             - set HOST to prod.brtchip-iotportal.com
 ::
 :: LOCAL non-docker environment - set HOST to localhost
 :: LOCAL docker environment     - set HOST to 192.168.99.100 [double check with docker-machine ip]
