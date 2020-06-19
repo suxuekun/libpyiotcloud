@@ -970,7 +970,6 @@ def on_amqp_message(ch, method, properties, body):
 ###################################################################################
 from dashboards.dashboards_app import DashboardsApp
 from charts.charts_app import ChartsApp
-
 # from payment.app import PaymentApp
 
 def initialize():

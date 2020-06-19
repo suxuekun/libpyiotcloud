@@ -56,8 +56,9 @@ class config:
     CONFIG_MONGODB_USERNAME          = os.environ["CONFIG_USE_MONGODB_USER"]
     CONFIG_MONGODB_PASSWORD          = os.environ["CONFIG_USE_MONGODB_PASS"]
     if debugging:
-        CONFIG_MONGODB_HOST          = "127.0.0.1"
+        # CONFIG_MONGODB_HOST          = "127.0.0.1"
         # CONFIG_MONGODB_HOST          = "localhost"
+        CONFIG_MONGODB_HOST          = "192.168.99.100"
         # MongoDB Atlas is used for sensor-data database
         # to revert to containerized MongoDB, just set this to 127.0.0.1
         CONFIG_MONGODB_HOST2         = os.environ["CONFIG_USE_MONGODB_ATLAS"]
