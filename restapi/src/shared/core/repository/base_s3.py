@@ -16,9 +16,9 @@ class S3Repository(ReadOnlyRepo):
         self.reload()
 
     def reload(self):
+        print('s3-reload')
         self.raw = self.s3_client.get_raw_file_bytes(self.file_name)
         self._handler(self.raw)
-        pass
 
     def _handler(self,raw):
         print('--s3promo--',raw)
