@@ -79,7 +79,6 @@
       "FORMAT": "integer",
       "TYPE": "INPUT",
       "UNIT": "ppm",
-      "ACCURACY": "0",
       "OPTIONS": ["MODE"],
       "MODE": [
         {
@@ -87,31 +86,31 @@
           "Name": "Idle",
           "Min": "0",
           "Max": "1000",
-          "Accuracy": "",
+          "Accuracy": "0",
           "Description": "Measurements are disabled in this mode"
         },
         {
           "ID": "1",
           "Name": "Constant power mode",
-          "Min": "",
-          "Max": "",
-          "Accuracy": "",
+          "Min": "0",
+          "Max": "1000",
+          "Accuracy": "0",
           "Description": "Constant power mode, IAQ measurement every second"
         },
         {
           "ID": "2",
           "Name": "Pulse heating mode",
-          "Min": "",
-          "Max": "",
-          "Accuracy": "",
+          "Min": "0",
+          "Max": "1000",
+          "Accuracy": "0",
           "Description": " Pulse heating mode IAQ measurement every 10 seconds"
         },
         {
           "ID": "1",
           "Name": "Low power pulse heating mode",
-          "Min": "",
-          "Max": "",
-          "Accuracy": "",
+          "Min": "0",
+          "Max": "1000",
+          "Accuracy": "0",
           "Description": " Low power pulse heating mode IAQ measurement every 60"
         }
       ]
@@ -128,7 +127,6 @@
       "FORMAT": "integer",
       "TYPE": "INPUT",
       "UNIT": "ppm",
-      "ACCURACY": "0",
       "OPTIONS": ["MODE"],
       "MODE": [
         {
@@ -136,31 +134,31 @@
           "Name": "Idle",
           "Min": "0",
           "Max": "1000",
-          "Accuracy": "",
+          "Accuracy": "0",
           "Description": "Measurements are disabled in this mode"
         },
         {
           "ID": "1",
           "Name": "Constant power mode",
-          "Min": "",
-          "Max": "",
-          "Accuracy": "",
+          "Min": "0",
+          "Max": "100",
+          "Accuracy": "0",
           "Description": "Constant power mode, IAQ measurement every second"
         },
         {
           "ID": "2",
           "Name": "Pulse heating mode",
-          "Min": "",
-          "Max": "",
-          "Accuracy": "",
+          "Min": "0",
+          "Max": "100",
+          "Accuracy": "0",
           "Description": " Pulse heating mode IAQ measurement every 10 seconds"
         },
         {
           "ID": "1",
           "Name": "Low power pulse heating mode",
-          "Min": "",
-          "Max": "",
-          "Accuracy": "",
+          "Min": "0",
+          "Max": "100",
+          "Accuracy": "0",
           "Description": " Low power pulse heating mode IAQ measurement every 60"
         }
       ]
