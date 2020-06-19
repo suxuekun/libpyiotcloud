@@ -58,6 +58,7 @@ CONFIG_AMQP_TLS_PORT        = 5671
 
 CONFIG_PREPEND_REPLY_TOPIC  = "server"
 CONFIG_SEPARATOR            = '/'
+CONFIG_WILDCARD             = '#'
 
 CONFIG_SENSOR_READING_TOPIC = "sensor_reading"
 
@@ -223,7 +224,7 @@ if __name__ == '__main__':
     time.sleep(1)
     # TODO: process publish packets only, not device requests from web/mobile apps
     #subtopic = "#"
-    subtopic = "{}{}#".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR)
+    subtopic = "{}{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_WILDCARD)
     g_messaging_client.subscribe(subtopic, subscribe=True, declare=True, consume_continuously=True)
 
 

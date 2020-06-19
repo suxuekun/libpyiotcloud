@@ -48,7 +48,7 @@
       <div id="viewGateway-markdown346" style="text-align:center;" class="show-list-numbers-and-dots">
         <p style="color:#AAAAAA;font-size:12px;">{{ newfirmwareavailable ? "New firmware is available" : "" }}</p>
       </div>
-      <button id="viewGateway-button21" ng-click="upgradeDeviceFirmware()" ng-disabled="newfirmwareversion < data.version &amp;&amp; data.version != &quot;UNKNOWN&quot;" class="button button-positive button-block">Update Firmware</button>
+      <button id="viewGateway-button21" ng-click="upgradeDeviceFirmware()" class="button button-positive button-block">Update Firmware</button>
     </form>
     <button id="viewGateway-button153" ng-click="getDevice(data.devicename)" style="text-align:left;" class="button button-positive button-block button-outline icon-right ion-android-arrow-dropright">Query Gateway</button>
     <button id="viewGateway-button56" ng-click="setDevice(data.devicename, &quot;restart&quot;)" style="text-align:left;" class="button button-positive button-block button-outline icon-right ion-android-arrow-dropright">Restart Gateway</button>

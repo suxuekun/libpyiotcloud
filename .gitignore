@@ -13,6 +13,7 @@ _device_simulator/device_simulator.py_guest.bat
 _device_simulator/device_simulator.js_localhost.bat
 _device_simulator/device_simulator.py_localhost.bat
 _device_simulator/localhost/*.cfg
+_device_simulator/javascript
 _device_simulator/*.cfg
 _device_simulator/*.bat
 _device_simulator/*.bin
@@ -35,6 +36,7 @@ webapp/src/ionicapp/www/js/env.js
 get_logs.py
 _test_regression/*
 .idea/*
+_ota_uploader/*.sh
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -155,3 +157,5 @@ restapi/src/.idea
 .project
 .pydevproject
 restapi/src/test
+password
+.git.bfg-report

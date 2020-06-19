@@ -41,7 +41,7 @@ class config:
     # Message broker settings
     CONFIG_USE_AMQP             = False
     if debugging:
-        CONFIG_HOST             = "192.168.99.100"
+        CONFIG_HOST             = "127.0.0.1"
     else:
         CONFIG_HOST             = "rabbitmq"
     CONFIG_MQTT_TLS_PORT        = 8883
@@ -55,7 +55,7 @@ class config:
     CONFIG_MONGODB_USERNAME          = os.environ["CONFIG_USE_MONGODB_USER"]
     CONFIG_MONGODB_PASSWORD          = os.environ["CONFIG_USE_MONGODB_PASS"]
     if debugging:
-        CONFIG_MONGODB_HOST          = "192.168.99.100"
+        CONFIG_MONGODB_HOST          = "127.0.0.1"
         # CONFIG_MONGODB_HOST          = "localhost"
         # MongoDB Atlas is used for sensor-data database
         # to revert to containerized MongoDB, just set this to 127.0.0.1
@@ -95,11 +95,11 @@ class config:
     CONFIG_MONGODB_TB_DEFAULT_POLICIES       = "defaultpolicies"
     CONFIG_MONGODB_TB_LASTLOGIN              = "lastlogin"
     CONFIG_MONGODB_TB_LDSUS                  = "ldsus"
+    CONFIG_MONGODB_TB_HEARTBEAT              = "heartbeat"
 
     # Caching settings
     if debugging:
-        # CONFIG_REDIS_HOST            = "127.0.0.1"
-        CONFIG_REDIS_HOST            = "192.168.99.100"
+        CONFIG_REDIS_HOST            = "127.0.0.1"
     else:
         CONFIG_REDIS_HOST            = "redis"
     CONFIG_REDIS_PORT                = 6379
@@ -118,3 +118,16 @@ class config:
     CONFIG_JWT_SECRET_KEY            = os.environ["CONFIG_USE_JWT_SECRET_KEY"]
     CONFIG_JWT_EXPIRATION            = 10
     CONFIG_JWT_ADJUSTMENT            = 60
+
+    # Heartbeat settings
+    CONFIG_HEARBEAT_RATE             = 60      # 1minute: 60 seconds
+    CONFIG_HEARBEAT_DAY_RANGE        = 86400   # 1day   : 60*60*24*1  seconds
+    CONFIG_HEARBEAT_WEEK_RANGE       = 604800  # 7days  : 60*60*24*7  seconds
+    CONFIG_HEARBEAT_MONTH_RANGE      = 2592000 # 30days : 60*60*24*30 seconds
+    CONFIG_HEARBEAT_MIN_RANGE        = CONFIG_HEARBEAT_RATE
+    CONFIG_HEARBEAT_MAX_RANGE        = CONFIG_HEARBEAT_MONTH_RANGE
+    CONFIG_HEARBEAT_DAY_MAX          = int(CONFIG_HEARBEAT_DAY_RANGE/CONFIG_HEARBEAT_RATE)
+    CONFIG_HEARBEAT_WEEK_MAX         = int(CONFIG_HEARBEAT_WEEK_RANGE/CONFIG_HEARBEAT_RATE)
+    CONFIG_HEARBEAT_MONTH_MAX        = int(CONFIG_HEARBEAT_MONTH_RANGE/CONFIG_HEARBEAT_RATE)
+
+

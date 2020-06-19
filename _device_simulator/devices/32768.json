@@ -32,14 +32,6 @@
           "Max": "150",
           "Accuracy": "2",
           "Description": ""
-        },
-        {
-          "ID": "255",
-          "Name": "Custom",
-          "Min": "-25",
-          "Max": "150",
-          "Accuracy": "2",
-          "Description": ""
         }
       ]
     },

@@ -591,7 +591,7 @@ class device_dashboard_old:
             response = json.dumps({'status': 'NG', 'message': 'Token expired'})
             print('\r\nERROR Get All Device Sensors Dataset: Token expired\r\n')
             return response, status.HTTP_401_UNAUTHORIZED
-        print('get_all_device_sensors_enabled_input_readings_dataset_filtered {}'.format(username))
+        #print('get_all_device_sensors_enabled_input_readings_dataset_filtered {}'.format(username))
 
         # check if a parameter is empty
         if len(username) == 0 or len(token) == 0:

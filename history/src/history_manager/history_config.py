@@ -6,7 +6,7 @@ class config:
     # General settings
     CONFIG_DEBUG_HISTORY          = False
     CONFIG_ENABLE_MAX_HISTORY     = True
-    CONFIG_MAX_HISTORY_PER_DEVICE = 50
+    CONFIG_MAX_HISTORY_PER_DEVICE = 20
 
     # Database settings
     CONFIG_MONGODB_USERNAME       = os.environ["CONFIG_USE_MONGODB_USER"]

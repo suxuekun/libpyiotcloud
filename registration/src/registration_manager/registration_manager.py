@@ -36,6 +36,8 @@ g_sensor_client = None
 g_database_client = None
 g_device_client = None
 
+g_chunks = []
+
 
 
 ###################################################################################
@@ -96,24 +98,13 @@ def set_descriptor(database_client, deviceid, topic, payload):
         database_client.set_device_descriptor_by_deviceid(deviceid, payload["value"])
 
 
-def set_ldsu_descs(database_client, deviceid, topic, payload):
-
-    print("{} {}".format(topic, deviceid))
-
-    # find if deviceid exists
-    devicename, username = database_client.get_devicename_username(deviceid)
-    if devicename is None:
-        return
-
-    payload = json.loads(payload)
-    #print_json(payload)
-
+def _set_status_for_nonpresent_ldsus(database_client, username, deviceid, new_ldsus):
 
     # set status for non-present LDSUs
     ldsus = database_client.get_ldsus_by_deviceid(username, deviceid)
     for ldsu in ldsus:
         found = False
-        for descriptor in payload["value"]:
+        for descriptor in new_ldsus:
             if ldsu["UID"] == descriptor["UID"]:
                 found = True
                 break
@@ -122,8 +113,10 @@ def set_ldsu_descs(database_client, deviceid, topic, payload):
             database_client.set_ldsu_status_by_deviceid(username, deviceid, ldsu["UID"], 0)
 
 
+def _save_ldsus(database_client, username, deviceid, new_ldsus):
+
     # save each ldsu to database
-    for descriptor in payload["value"]:
+    for descriptor in new_ldsus:
         #print_json(descriptor)
 
         # add or update ldsu
@@ -154,6 +147,17 @@ def set_ldsu_descs(database_client, deviceid, topic, payload):
                     'minmax'   : g_device_client.get_objidx_minmax(descriptor),
                     'obj'      : obj,
                 }
+                opmodes = g_device_client.get_objidx_modes(descriptor)
+                if opmodes:
+                    sensor['opmodes'] = []
+                    for opmode in opmodes:
+                        sensor['opmodes'].append({
+                            'id'         : int(opmode['ID']),
+                            'name'       : opmode['Name'],
+                            'minmax'     : [opmode['Min'], opmode['Max']],
+                            'accuracy'   : opmode['Accuracy'],
+                            'description': opmode['Description']
+                        })
                 #print("source     {}".format(source))
                 #print("number     {}".format(number))
                 #print("sensorname {}".format(sensorname))
@@ -168,6 +172,94 @@ def set_ldsu_descs(database_client, deviceid, topic, payload):
                 #print()
                 #print("{} {} {} {}".format(source, number, sensorname, sensor["class"]))
                 database_client.add_sensor_by_deviceid(username, deviceid, source, number, sensorname, sensor)
+
+
+def _sort_by_uuid(elem):
+
+    return elem['UID']
+
+
+def set_ldsu_descs_ex(database_client, deviceid, topic, payload, devicename, username):
+
+    g_chunks.append({
+        "deviceid": deviceid, 
+        "payload": payload
+#        ,"timestamp": int(time.time()) 
+    })
+
+    # check if this is the last chunk in the sequence
+    if int(payload["chunk"]["TSEQ"])-1 != int(payload["chunk"]["SEQN"]):
+        return
+
+    # this is the last chunk in the sequence 
+    complete = False
+    retries = 0
+    while retries < 10:
+        count = 0
+        for chunk in g_chunks:
+            if chunk["deviceid"] == deviceid:
+                count += 1
+        if count == int(payload["chunk"]["TSEQ"]):
+            complete = True
+            break
+        time.sleep(1)
+        retries += 1
+
+    # if some issue with the sequence, discard the data
+    if not complete:
+        for x in range(len(g_chunks)-1, -1, -1):
+            if g_chunks[x]["deviceid"] == deviceid:
+                g_chunks.remove(g_chunks[x])
+        return
+
+    # combine all the ldsus
+    new_ldsus = []
+    for x in range(len(g_chunks)-1, -1, -1):
+        if g_chunks[x]["deviceid"] == deviceid:
+            new_ldsus = [*new_ldsus, *g_chunks[x]["payload"]["value"]]
+            g_chunks.remove(g_chunks[x])
+    new_ldsus.sort(key=_sort_by_uuid)
+    #print(len(g_chunks))
+    #print(len(new_ldsus))
+
+    # check if the number of LDSUs is correct
+    if payload["chunk"].get("TOT") is not None:
+        if len(new_ldsus) != int(payload["chunk"]["TOT"]):
+            print("ERROR: number of LDSUs do not match".format(len(new_ldsus), int(payload["chunk"]["TOT"])))
+            return
+
+    # set status for non-present LDSUs
+    # save each ldsu to database
+    _set_status_for_nonpresent_ldsus(database_client, username, deviceid, new_ldsus)
+    _save_ldsus(database_client, username, deviceid, new_ldsus)
+
+
+def set_ldsu_descs(database_client, deviceid, topic, payload):
+
+    print("{} {}".format(topic, deviceid))
+
+    # find if deviceid exists
+    devicename, username = database_client.get_devicename_username(deviceid)
+    if devicename is None:
+        return
+
+    payload = json.loads(payload)
+    #print_json(payload)
+
+    # support for multiple chunks in LDSU registration
+    if payload.get("chunk"):
+        if payload["chunk"].get("TSEQ") is None:
+            return
+        if payload["chunk"].get("SEQN") is None:
+            return
+        if int(payload["chunk"]["TSEQ"]) > 1:
+            set_ldsu_descs_ex(database_client, deviceid, topic, payload, devicename, username)
+            return
+
+    # set status for non-present LDSUs
+    # save each ldsu to database
+    _set_status_for_nonpresent_ldsus(database_client, username, deviceid, payload["value"])
+    _save_ldsus(database_client, username, deviceid, payload["value"])
 
 
 def set_registration(database_client, deviceid, topic, payload):

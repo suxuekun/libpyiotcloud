@@ -113,7 +113,8 @@ class device_groups:
                 for deviceid in devicegroup['devices']:
                     device = self.database_client.find_device_by_id(deviceid)
                     if device:
-                        devicenames.append(device["devicename"])
+                        device.pop("username")
+                        devicenames.append(device)
                 devicegroup['devices'] = devicenames
 
 
@@ -228,7 +229,8 @@ class device_groups:
             for deviceid in msg['devicegroup']['devices']:
                 device = self.database_client.find_device_by_id(deviceid)
                 if device:
-                    devicenames.append(device["devicename"])
+                    device.pop("username")
+                    devicenames.append(device)
             msg['devicegroup']['devices'] = devicenames
 
         elif flask.request.method == 'POST':
@@ -383,6 +385,8 @@ class device_groups:
         for deviceid in msg['devicegroup']['devices']:
             for device in devices:
                 if deviceid == device["deviceid"]:
+                    if device.get("username"):
+                        device.pop("username")
                     device_list.append(device)
                     break
         msg['devicegroup']['devices'] = device_list
@@ -541,7 +545,8 @@ class device_groups:
                 for deviceid in devicegroup['devices']:
                     device = self.database_client.find_device_by_id(deviceid)
                     if device:
-                        devicenames.append(device["devicename"])
+                        device.pop("username")
+                        devicenames.append(device)
                 devicegroup['devices'] = devicenames
 
         msg = {'status': 'OK', 'message': 'Mixed devices retrieved successfully.', 'data': {'devices': devices, 'devicegroups': devicegroups} }

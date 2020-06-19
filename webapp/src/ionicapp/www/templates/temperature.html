@@ -14,11 +14,20 @@
     </div>
     <button id="temperature-button93" ng-click="viewXXXDevice()" style="font-weight:500;font-size:18px;" class="button button-dark button-block button-clear icon-right ion-android-settings">{{ data.sensor.sensorname }}</button>
     <div class="spacer" style="width: 300px; height: 20px;"></div>
-    <form id="temperature-form83" class="list">
-      <div id="temperature-markdown111" class="show-list-numbers-and-dots">
+    <form id="temperature-form83" class="list" ng-show="data.sensor.opmodes">
+      <div id="temperature-markdown583" class="show-list-numbers-and-dots">
+        <p style="color:#3C5A99;">Opmode</p>
+      </div>
+      <label class="item item-select" id="temperature-select137">
+        <span class="input-label"></span>
+        <select ng-model="data.attributes.opmode" ng-options="opmode.id as opmode.name for opmode in data.sensor.opmodes" ng-change="changeOpmode()"></select>
+      </label>
+    </form>
+    <form id="temperature-form297" class="list">
+      <div id="temperature-markdown584" class="show-list-numbers-and-dots">
         <p style="color:#3C5A99;">Mode</p>
       </div>
-      <label class="item item-select" id="temperature-select37">
+      <label class="item item-select" id="temperature-select138">
         <span class="input-label"></span>
         <select ng-model="data.attributes.mode" ng-options="mode.id as mode.label for mode in modes" ng-change="changeMode()"></select>
       </label>

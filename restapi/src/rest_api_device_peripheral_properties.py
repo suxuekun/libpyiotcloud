@@ -350,26 +350,10 @@ class device_peripheral_properties:
 
     ########################################################################################################
     #
-    # SET I2C DEVICE PROPERTIES
+    # SET LDSU DEVICE PROPERTIES
     #
     # - Request:
     #   POST /devices/device/<devicename>/i2c/number/sensors/sensor/<sensorname>/properties
-    #   headers: {'Authorization': 'Bearer ' + token.access}
-    #   data: adsasdasdasdasdasdasdasd
-    #
-    # - Response:
-    #   {'status': 'OK', 'message': string}
-    #   {'status': 'NG', 'message': string}
-    #
-    #
-    # SET ADC DEVICE PROPERTIES
-    # SET 1WIRE DEVICE PROPERTIES
-    # SET TPROBE DEVICE PROPERTIES
-    #
-    # - Request:
-    #   POST /devices/device/<devicename>/adc/number/sensors/sensor/<sensorname>/properties
-    #   POST /devices/device/<devicename>/1wire/number/sensors/sensor/<sensorname>/properties
-    #   POST /devices/device/<devicename>/tprobe/number/sensors/sensor/<sensorname>/properties
     #   headers: {'Authorization': 'Bearer ' + token.access}
     #   data: adsasdasdasdasdasdasdasd
     #
@@ -480,32 +464,18 @@ class device_peripheral_properties:
         item = self.database_client.update_device_peripheral_configuration(entityname, devicename, xxx, int(number), None, None, None, data)
 
 
-        response = json.dumps({'status': 'OK', 'message': 'Sensor set successfully'})
+        msg = {'status': 'OK', 'message': 'Sensor properties set successfully.'}
+        response = json.dumps(msg)
         return response
 
 
 
     ########################################################################################################
     #
-    # GET I2C DEVICE PROPERTIES
+    # GET LDSU DEVICE PROPERTIES
     #
     # - Request:
     #   POST /devices/device/<devicename>/i2c/number/sensors/sensor/<sensorname>/properties
-    #   headers: {'Authorization': 'Bearer ' + token.access}
-    #
-    # - Response:
-    #   {'status': 'OK', 'message': string, 'value': {}}
-    #   {'status': 'NG', 'message': string}
-    #
-    #
-    # GET ADC DEVICE PROPERTIES
-    # GET 1WIRE DEVICE PROPERTIES
-    # GET TPROBE DEVICE PROPERTIES
-    #
-    # - Request:
-    #   POST /devices/device/<devicename>/adc/number/sensors/sensor/<sensorname>/properties
-    #   POST /devices/device/<devicename>/1wire/number/sensors/sensor/<sensorname>/properties
-    #   POST /devices/device/<devicename>/tprobe/number/sensors/sensor/<sensorname>/properties
     #   headers: {'Authorization': 'Bearer ' + token.access}
     #
     # - Response:
@@ -573,54 +543,29 @@ class device_peripheral_properties:
             return response, status.HTTP_404_NOT_FOUND
 
         # get sensor configuration
+        value = {}
         configuration = self.database_client.get_device_peripheral_configuration(entityname, devicename, xxx, int(number), None)
         if configuration:
-            response = {'value': configuration["attributes"]}
-            print(configuration["attributes"])
-        else:
-            response = {'value': {}}
+            value = configuration["attributes"]
 
         # get sensor notification
         (notification, subattributes_notification) = self.database_client.get_device_notification_with_notification_subclass(entityname, devicename, xxx, int(number))
         if notification is not None:
-            if response.get('value'):
-                response['value']['notification'] = notification
-            else:
-                response['value'] = {}
-                response['value']['notification'] = notification
-            response = json.dumps(response)
+            value['notification'] = notification
         else:
-            if response.get('value'):
-                response['value']['notification'] = rest_api_utils.utils().build_default_notifications(xxx, token, self.database_client)
-            else:
-                response['value'] = {}
-                response['value']['notification'] = rest_api_utils.utils().build_default_notifications(xxx, token, self.database_client)
-            response = json.dumps(response)
+            value['notification'] = rest_api_utils.utils().build_default_notifications(xxx, token, self.database_client)
 
+        msg = {'status': 'OK', 'message': 'Sensor properties retrieved successfully.', 'value': value}
+        response = json.dumps(msg)
         return response
 
 
     ########################################################################################################
     #
-    # GET I2C DEVICE PROPERTIES
+    # DELETE LDSU DEVICE PROPERTIES
     #
     # - Request:
-    #   POST /devices/device/<devicename>/i2c/number/sensors/sensor/<sensorname>/properties
-    #   headers: {'Authorization': 'Bearer ' + token.access}
-    #
-    # - Response:
-    #   {'status': 'OK', 'message': string, 'value': {}}
-    #   {'status': 'NG', 'message': string}
-    #
-    #
-    # GET ADC DEVICE PROPERTIES
-    # GET 1WIRE DEVICE PROPERTIES
-    # GET TPROBE DEVICE PROPERTIES
-    #
-    # - Request:
-    #   POST /devices/device/<devicename>/adc/number/sensors/sensor/<sensorname>/properties
-    #   POST /devices/device/<devicename>/1wire/number/sensors/sensor/<sensorname>/properties
-    #   POST /devices/device/<devicename>/tprobe/number/sensors/sensor/<sensorname>/properties
+    #   DELETE /devices/device/<devicename>/i2c/number/sensors/sensor/<sensorname>/properties
     #   headers: {'Authorization': 'Bearer ' + token.access}
     #
     # - Response:
@@ -703,26 +648,10 @@ class device_peripheral_properties:
 
     ########################################################################################################
     #
-    # ENABLE/DISABLE I2C DEVICE
+    # ENABLE/DISABLE LDSU DEVICE
     #
     # - Request:
     #   POST /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME/enable
-    #   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
-    #   data: { 'enable': int }
-    #
-    # - Response:
-    #   { 'status': 'OK', 'message': string }
-    #   { 'status': 'NG', 'message': string }
-    #
-    #
-    # ENABLE/DISABLE ADC DEVICE
-    # ENABLE/DISABLE 1WIRE DEVICE
-    # ENABLE/DISABLE TPROBE DEVICE
-    #
-    # - Request:
-    #   POST /devices/device/DEVICENAME/adc/NUMBER/sensors/sensor/SENSORNAME/enable
-    #   POST /devices/device/DEVICENAME/1wire/NUMBER/sensors/sensor/SENSORNAME/enable
-    #   POST /devices/device/DEVICENAME/tprobe/NUMBER/sensors/sensor/SENSORNAME/enable
     #   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
     #   data: { 'enable': int }
     #
@@ -792,11 +721,19 @@ class device_peripheral_properties:
         print('enable_{}_dev {} devicename={} number={}'.format(xxx, entityname, devicename, number))
 
 
+        # get opmode
+        mode = str(0)
+        configuration = self.database_client.get_device_peripheral_configuration(entityname, devicename, xxx, int(number), None)
+        if configuration:
+            if configuration["attributes"].get("opmode") is not None:
+                mode = str(configuration["attributes"]["opmode"])
+
+
         # communicate with device
         do_enable = data['enable']
         data["UID"] = xxx
         data['SAID'] = number
-        data['MODE'] = str(0)
+        data['MODE'] = mode
         response, status_return = self.messaging_requests.process(api, data)
         if status_return != 200:
             return response, status_return
@@ -808,6 +745,8 @@ class device_peripheral_properties:
         # set enabled
         self.database_client.set_enable_device_peripheral_configuration(entityname, devicename, xxx, int(number), None, do_enable)
 
+        msg = {'status': 'OK', 'message': 'Sensor enabled/disabled successfully.'}
+        response = json.dumps(msg)
         return response
 
 

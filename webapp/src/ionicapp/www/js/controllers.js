@@ -1,12 +1,10 @@
-
 ;(function(_global){
-
 
 app = angular.module('app.controllers', [])
 
 _global.app = app
 
-app 
+app
 .controller('homeCtrl', ['$scope', '$stateParams', '$state', '$ionicPopup', '$http', 'Server', 'User', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
 // You can include any angular dependencies as parameters for this function
 // TIP: Access Route Parameters for your page via $stateParams.parameterName
@@ -550,7 +548,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             'poemacaddress': device.poemacaddress === undefined || device.poemacaddress === "" ? 'UNKNOWN' : device.poemacaddress,
             'devicestatus': "Status: UNKNOWN",
             'deviceversion': "UNKNOWN",
-            'location': "UNKNOWN"
+            'location': device.location
         };
 
         if (device.heartbeat !== undefined) {
@@ -1156,9 +1154,9 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             else if (error.status == 401 && error.data.message.includes('Please check with the organization owner') === true ) {
                 $ionicPopup.alert({ title: 'Error', template: error.data.message, buttons: [{text: 'OK', type: 'button-assertive'}] });
             }         
-            else {
-                $ionicPopup.alert({ title: 'Error', template: error.data.message, buttons: [{text: 'OK', type: 'button-assertive'}] });
-            }
+            //else {
+            //    $ionicPopup.alert({ title: 'Error', template: error.data.message, buttons: [{text: 'OK', type: 'button-assertive'}] });
+            //}
         }
         else {
             console.log("ERROR: Server is down!"); 
@@ -4327,7 +4325,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         'poemacaddress': $stateParams.poemacaddress === undefined || $stateParams.poemacaddress === "" ? "UNKNOWN" : $stateParams.poemacaddress,
         'timestamp'    : $stateParams.timestamp,
         'heartbeat'    : $stateParams.heartbeat,
-        'version'      : $stateParams.version
+        'version'      : $stateParams.version,
+        'location'     : $stateParams.location,
     };
 
     $scope.newfirmwareavailable = false;
@@ -4524,6 +4523,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             'timestamp'    : $scope.data.timestamp,
             'heartbeat'    : $scope.data.heartbeat,
             'version'      : $scope.data.version,
+            'location'     : $scope.data.location,
         };
        
         $state.go('gatewayGeneralSettings', device_param);    
@@ -4541,6 +4541,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             'timestamp'    : $scope.data.timestamp,
             'heartbeat'    : $scope.data.heartbeat,
             'version'      : $scope.data.version,
+            'location'     : $scope.data.location,
         };
        
         $state.go('gatewayDescriptor', device_param);    
@@ -4596,7 +4597,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             'serialnumber' : $scope.data.serialnumber,
             'deviceversion': $scope.data.version,
             'devicestatus' : "Last active: " + $scope.data.heartbeat,
-            'location'     : "UNKNOWN",
+            'location'     : $scope.data.location,
         };
 
         $state.go('gateway', device_param);    
@@ -4666,31 +4667,14 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             'timestamp'    : $scope.data.timestamp,
             'heartbeat'    : $scope.data.heartbeat,
             'version'      : $scope.data.version,
+            'location'     : $scope.data.location,
             'firmware'     : $scope.newfirmwareupdates
         };
        
         $state.go('oTAFirmwareUpdate', device_param);    
     };
     
-    // VIEW DEVICE LOCATION
-    $scope.viewDeviceLocation = function() {
-        console.log("viewDeviceLocation= " + $scope.data.devicename);
-        
-        var device_param = {
-            'username'     : $scope.data.username,
-            'token'        : $scope.data.token,
-            'devicename'   : $scope.data.devicename,
-            'deviceid'     : $scope.data.deviceid,
-            'serialnumber' : $scope.data.serialnumber,
-            'timestamp'    : $scope.data.timestamp,
-            'heartbeat'    : $scope.data.heartbeat,
-            'version'      : $scope.data.version,
-        };
-       
-        $state.go('viewGatewayLocation', device_param);    
-    };
 
-    
     $scope.$on('$ionicView.enter', function(e) {
         console.log($scope.data.poemacaddress);
         $scope.get_latest_firmware();
@@ -4892,7 +4876,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                 if (res.data.status === "OK") {
                     $scope.devicegroup = [];
                     for (var device in res.data.devicegroup.devices) {
-                        $scope.devicegroup.push({'devicename': res.data.devicegroup.devices[device], 'enabled': true});
+                        $scope.devicegroup.push({'devicename': res.data.devicegroup.devices[device].devicename, 'enabled': true});
                     }
                 }
                 else {
@@ -5475,10 +5459,34 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         }
         
         if (devicename === "All devices") {
-            $scope.get_devices_location();
+            //$scope.get_devices_location();
+            
+            for (let device in $scope.devices) {
+                if ($scope.devices[device].location != undefined) {
+                    $scope.data.locations.push({
+                        'devicename': $scope.devices[device].devicename,
+                        'location': {
+                            "latitude": $scope.devices[device].location.latitude, 
+                            "longitude": $scope.devices[device].location.longitude
+                        }
+                    });
+                }
+            }
+            console.log($scope.data.locations);
+            $scope.maplocations();
         }
         else {
-            $scope.get_device_location(devicename);
+            //$scope.get_device_location(devicename);
+            
+            for (let device in $scope.devices) {
+                if ($scope.devices[device].devicename === devicename) {
+                    $scope.data.location.latitude = $scope.devices[device].location.latitude;
+                    $scope.data.location.longitude = $scope.devices[device].location.longitude;
+                    $scope.maplocation();
+                    break;
+                }
+            }
+            
         }
     };
 
@@ -5506,6 +5514,83 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             $scope.process_devices_location(result);
         });
     };
+    
+    $scope.maplocations = function() {
+        
+        
+        //console.log($scope.data.locations);
+     
+        // find the center
+        var center = {'latitude': 0, 'longitude':0};
+        for (let indexy=0; indexy<$scope.data.locations.length; indexy++)
+        {
+            center.latitude += $scope.data.locations[indexy].location.latitude;
+            center.longitude += $scope.data.locations[indexy].location.longitude;
+        }
+        center.latitude /= $scope.data.locations.length;
+        center.longitude /= $scope.data.locations.length;
+        //console.log(center);
+     
+        //$scope.infowindow = new google.maps.InfoWindow();
+        
+        // uiGmapGoogleMapApi is a promise.
+        // The "then" callback function provides the google.maps object.
+        uiGmapGoogleMapApi.then(function(maps) {
+            
+            // Configuration needed to display the road-map with traffic
+            // Displaying Ile-de-france (Paris neighbourhood)
+            $scope.map = {
+                center: center,
+                zoom: $scope.data.zoom,
+                options: {
+                    mapTypeId: google.maps.MapTypeId.ROADMAP, // This is an example of a variable that cannot be placed outside of uiGmapGooogleMapApi without forcing of calling the google.map helper outside of the function
+                    streetViewControl: true, // streetview
+                    mapTypeControl: true, // satellite
+                    scaleControl: true,
+                    rotateControl: true,
+                    zoomControl: true,
+                    panControl: true
+                }, 
+                showTraficLayer:false
+            };
+
+            $scope.windowOptions = {
+                show: false
+            };
+
+            // add markers
+            $scope.markers = [];
+            for (var indexy=0; indexy<$scope.data.locations.length; indexy++)
+            {
+                $scope.markers.push({
+                    id: $scope.data.locations[indexy].devicename,
+                    coords: $scope.data.locations[indexy].location,
+                    data: [],//$scope.data.locations[indexy].devicename,
+                    options: { draggable: true, animation: google.maps.Animation.DROP },
+                    icon: "https://maps.google.com/mapfiles/ms/icons/red-dot.png",
+                    //draggable: true
+                });
+            }
+
+            $scope.getFit = function() {
+              return true;  
+            };
+            
+            $scope.onClickMarker = function(marker, eventName, markerobj) {
+                console.log("onClickMarker");
+                //alert(markerobj.data);
+                $scope.windowOptions.show = !$scope.windowOptions.show;
+                $scope.selectedCoords = markerobj.coords;
+                $scope.info = markerobj.data;                        
+            };
+
+            $scope.onCloseClick = function () {
+                $scope.windowOptions.show = false;
+            };                    
+        });        
+        
+    };
+    
     
     $scope.process_devices_location = function(result) {
         if ( result.data.locations === undefined ) {
@@ -5548,80 +5633,61 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             }
             //console.log($scope.data.locations);
          
-            // find the center
-            var center = {'latitude': 0, 'longitude':0};
-            for (let indexy=0; indexy<$scope.data.locations.length; indexy++)
-            {
-                center.latitude += $scope.data.locations[indexy].location.latitude;
-                center.longitude += $scope.data.locations[indexy].location.longitude;
-            }
-            center.latitude /= $scope.data.locations.length;
-            center.longitude /= $scope.data.locations.length;
-            //console.log(center);
-         
-            //$scope.infowindow = new google.maps.InfoWindow();
-            
-            // uiGmapGoogleMapApi is a promise.
-            // The "then" callback function provides the google.maps object.
-            uiGmapGoogleMapApi.then(function(maps) {
-                
-                // Configuration needed to display the road-map with traffic
-                // Displaying Ile-de-france (Paris neighbourhood)
-                $scope.map = {
-                    center: center,
-                    zoom: $scope.data.zoom,
-                    options: {
-                        mapTypeId: google.maps.MapTypeId.ROADMAP, // This is an example of a variable that cannot be placed outside of uiGmapGooogleMapApi without forcing of calling the google.map helper outside of the function
-                        streetViewControl: true, // streetview
-                        mapTypeControl: true, // satellite
-                        scaleControl: true,
-                        rotateControl: true,
-                        zoomControl: true,
-                        panControl: true
-                    }, 
-                    showTraficLayer:false
-                };
-
-                $scope.windowOptions = {
-                    show: false
-                };
-
-                // add markers
-                $scope.markers = [];
-                for (var indexy=0; indexy<$scope.data.locations.length; indexy++)
-                {
-                    $scope.markers.push({
-                        id: $scope.data.locations[indexy].devicename,
-                        coords: $scope.data.locations[indexy].location,
-                        data: $scope.data.locations[indexy].devicename,
-                        options: { draggable: false, animation: google.maps.Animation.DROP },
-                        icon: "https://maps.google.com/mapfiles/ms/icons/red-dot.png",
-                        //draggable: true
-                    });
-                }
-
-                $scope.getFit = function() {
-                  return true;  
-                };
-                
-                $scope.onClickMarker = function(marker, eventName, markerobj) {
-                    console.log("onClickMarker");
-                    //alert(markerobj.data);
-                    $scope.windowOptions.show = !$scope.windowOptions.show;
-                    $scope.selectedCoords = markerobj.coords;
-                    $scope.info = markerobj.data;                        
-                };
-
-                $scope.onCloseClick = function () {
-                    $scope.windowOptions.show = false;
-                };                    
-            });
+            $scope.maplocations();
         }
         
         $scope.get_statuses();        
     };
 
 
+
+    $scope.maplocation = function() {
+        uiGmapGoogleMapApi.then(function(maps){
+            $scope.map = {
+                center: $scope.data.location,
+                zoom: $scope.data.zoom,
+                options: {
+                    mapTypeId: google.maps.MapTypeId.ROADMAP, // This is an example of a variable that cannot be placed outside of uiGmapGooogleMapApi without forcing of calling the google.map helper outside of the function
+                    streetViewControl: true, // streetview
+                    mapTypeControl: true, // satellite
+                    scaleControl: true,
+                    rotateControl: true,
+                    zoomControl: true,
+                    panControl: true
+                }, 
+                showTraficLayer:false
+            };
+            
+            $scope.windowOptions = {
+                show: false
+            };
+
+            // add markers
+            $scope.markers = [{
+                id: $scope.data.devicename,
+                coords: $scope.data.location,
+                data: [],
+                options: { draggable: true, animation: google.maps.Animation.DROP },
+                icon: "https://maps.google.com/mapfiles/ms/icons/red-dot.png",
+            }];
+            
+            $scope.getFit = function() {
+                return false;  
+            };
+
+            $scope.onClickMarker = function(marker, eventName, markerobj) {
+                $scope.windowOptions.show = !$scope.windowOptions.show;
+                $scope.selectedCoords = markerobj.coords;
+                $scope.info = markerobj.id;
+            };
+
+            $scope.onCloseClick = function () {
+                $scope.windowOptions.show = false;
+            };
+            
+        });
+        
+    };
 
     // GET DEVICE LOCATION
     $scope.get_device_location = function(devicename) {
@@ -5660,57 +5726,14 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                 $scope.data.devicelocation.latitude = result.data.location.latitude;
                 $scope.data.devicelocation.longitude = result.data.location.longitude;
             }
-            
+
+
             if (result.data.location !== undefined) {
                 $scope.data.location = {};
                 $scope.data.location.latitude = result.data.location.latitude;
                 $scope.data.location.longitude = result.data.location.longitude;
              
-                
-                uiGmapGoogleMapApi.then(function(maps){
-                    $scope.map = {
-                        center: $scope.data.location,
-                        zoom: $scope.data.zoom,
-                        options: {
-                            mapTypeId: google.maps.MapTypeId.ROADMAP, // This is an example of a variable that cannot be placed outside of uiGmapGooogleMapApi without forcing of calling the google.map helper outside of the function
-                            streetViewControl: true, // streetview
-                            mapTypeControl: true, // satellite
-                            scaleControl: true,
-                            rotateControl: true,
-                            zoomControl: true,
-                            panControl: true
-                        }, 
-                        showTraficLayer:false
-                    };
-                    
-                    $scope.windowOptions = {
-                        show: false
-                    };
-
-                    // add markers
-                    $scope.markers = [{
-                        id: $scope.data.devicename,
-                        coords: $scope.data.location,
-                        data: [],
-                        options: { draggable: true, animation: google.maps.Animation.DROP },
-                        icon: "https://maps.google.com/mapfiles/ms/icons/red-dot.png",
-                    }];
-                    
-                    $scope.getFit = function() {
-                        return false;  
-                    };
-
-                    $scope.onClickMarker = function(marker, eventName, markerobj) {
-                        $scope.windowOptions.show = !$scope.windowOptions.show;
-                        $scope.selectedCoords = markerobj.coords;
-                        $scope.info = markerobj.id;
-                    };
-
-                    $scope.onCloseClick = function () {
-                        $scope.windowOptions.show = false;
-                    };
-                    
-                });
+                $scope.maplocation(devicename);            
             }
             
             $scope.get_status($scope.data.devicename);
@@ -5857,8 +5880,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             console.log(result.data);
             console.log($scope.data.location);
             console.log($scope.data.devicelocation);
-            $scope.data.devicelocation.latitude = $scope.data.location.latitude;
-            $scope.data.devicelocation.longitude = $scope.data.location.longitude;
+            //$scope.data.devicelocation.latitude = $scope.data.location.latitude;
+            //$scope.data.devicelocation.longitude = $scope.data.location.longitude;
             $ionicPopup.alert({ title: 'Device location', template: 'Device location has been saved!', buttons: [{text: 'OK', type: 'button-positive'}] });
         })
         .catch(function (error) {
@@ -6071,6 +6094,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             'timestamp'    : $scope.data.timestamp,
             'heartbeat'    : $scope.data.heartbeat,
             'version'      : $scope.data.version,
+            'location'     : $scope.data.location,
         };
         $state.go('viewGateway', device_param);    
     };    
@@ -6103,7 +6127,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         'timestamp'   : $stateParams.timestamp,
         'heartbeat'   : $stateParams.heartbeat,
         'version'     : $stateParams.version,
-        'firmwares'   : $stateParams.firmware
+        'firmwares'   : $stateParams.firmware,
+        'location'    : $stateParams.location,
     };
 
     $scope.ota_status = {
@@ -6816,6 +6841,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                 'timestamp'    : $scope.data.timestamp,
                 'heartbeat'    : $scope.data.heartbeat,
                 'version'      : $scope.data.version,
+                'location'     : $scope.data.location,
             };
            
             $state.go('viewGateway', device_param); 
@@ -6863,7 +6889,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         'serialnumber': $stateParams.serialnumber,
         'timestamp'   : $stateParams.timestamp,
         'heartbeat'   : $stateParams.heartbeat,
-        'version'     : $stateParams.version
+        'version'     : $stateParams.version,
+        'location'    : $stateParams.location,
     };
 
     $scope.settings =  {
@@ -6985,6 +7012,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             'timestamp'    : $scope.data.timestamp,
             'heartbeat'    : $scope.data.heartbeat,
             'version'      : $scope.data.version,
+            'location'     : $scope.data.location,
         };
        
         $state.go('viewGateway', device_param);    
@@ -7010,7 +7038,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         'serialnumber': $stateParams.serialnumber,
         'timestamp'   : $stateParams.timestamp,
         'heartbeat'   : $stateParams.heartbeat,
-        'version'     : $stateParams.version
+        'version'     : $stateParams.version,
+        'location'    : $stateParams.location
     };
 
     $scope.descriptor = "";
@@ -7079,6 +7108,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             'timestamp'    : $scope.data.timestamp,
             'heartbeat'    : $scope.data.heartbeat,
             'version'      : $scope.data.version,
+            'location'     : $scope.data.location
         };
        
         $state.go('viewGateway', device_param);    
@@ -7109,7 +7139,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         'devicestatus': $stateParams.devicestatus,
         'deviceversion': $stateParams.deviceversion,
         'location': $state.params.location,
-        'devicelocation': $state.params.location !== "UNKNOWN" && $state.params.location !== undefined ? $state.params.location.latitude.toFixed(4) + "... , " + $state.params.location.longitude.toFixed(4) + "..." : "UNKNOWN",
+        //'devicelocation': $state.params.location, // !== "UNKNOWN" && $state.params.location !== undefined ? $state.params.location.latitude.toFixed(4) + "... , " + $state.params.location.longitude.toFixed(4) + "..." : "UNKNOWN",
         'status': $stateParams.devicestatus,
     };
     $scope.treeData = null;
@@ -7281,6 +7311,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         }); 
     };
 
+
     // GET DEVICE
     $scope.getDevice = function(devicename) {
         $scope.get_device(devicename);
@@ -7326,7 +7357,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
                 'poemacaddress': result.data.device.poemacaddress === undefined ? 'UNKNOWN' : result.data.device.poemacaddress,
                 'timestamp': "" + timestamp,
                 'heartbeat': "" + heartbeat,
-                'version': $scope.data.deviceversion
+                'version': $scope.data.deviceversion,
+                'location': result.data.device.location
             };
             
 //            $state.go('menu.mapsExample', device_param, {reload:true});
@@ -7338,6 +7370,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
     };
 
 
+/*
     // GET DEVICE LOCATION
     $scope.get_device_location = function(devicename) {
         console.log("get_device_location " + devicename);
@@ -7368,6 +7401,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             $scope.handle_error(error);
         });         
     };
+*/
 
 
     // VIEW DEVICE LOCATION
@@ -7385,12 +7419,6 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             'location'     : $scope.data.location,
         };
        
-        if ($stateParams.devicelocation !== undefined) {
-            device_param.location = $stateParams.devicelocation;
-        }
-        else if ($stateParams.devicelocation === "UKNOWN") {
-            device_param.location = null;
-        }
         $state.go('gatewayLocation', device_param, {reload: true});    
     };
     
@@ -7476,6 +7504,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         //console.log($state.params.location.longitude);
         //console.log($scope.data.devicename_ex);
         
+        /*
         if ($state.params.location === "" || $state.params.location === "UNKNOWN" || $state.params.location === undefined) {
             $scope.data.devicelocation = "UNKNOWN";
             $scope.get_device_location($scope.data.devicename);
@@ -7485,11 +7514,12 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
             $scope.get_device_location($scope.data.devicename);
         }
         else {
-            $stateParams.location = $state.params.location;
-            $scope.data.location = $state.params.location;
-            $scope.data.devicelocation = $stateParams.location !== "UNKNOWN" ? $stateParams.location.latitude.toFixed(4) + "..., " + $stateParams.location.longitude.toFixed(4) + "..." : "UNKNOWN";
-            $scope.getStatus($scope.data.devicename);
-        }
+        */
+        //$stateParams.location = $state.params.location;
+        //$scope.data.location = $state.params.location;
+        //$scope.data.devicelocation = $stateParams.location !== "UNKNOWN" ? $stateParams.location.latitude.toFixed(4) + "..., " + $stateParams.location.longitude.toFixed(4) + "..." : "UNKNOWN";
+        $scope.getStatus($scope.data.devicename);
+        //}
     });   
    
     $scope.$on('$ionicView.beforeLeave', function(e) {
@@ -10697,6 +10727,66 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
     };
 
 
+    // DELETE LDS BUS
+    $scope.deleteLDSBUS = function() {
+        console.log("deleteLDSBUS");
+
+        $ionicPopup.alert({
+            title: 'Delete LDSU',
+            template: 'Are you sure you want to delete all LDSUs in LDS BUS Port ' + $scope.data.activeSection.toString() + '?' + 'This will delete all associated sensors and actuators information.',
+            buttons: [
+                { 
+                    text: 'No',
+                    type: 'button-negative',
+                },
+                {
+                    text: 'Yes',
+                    type: 'button-positive',
+                    onTap: function(e) {
+                        $scope.delete_lds_bus();
+                    }
+                }
+            ]            
+        });
+    };
+
+    $scope.delete_lds_bus = function() {
+        //
+        // DELETE LDS BUS
+        //
+        // - Request:
+        //   DELETE /devices/device/DEVICENAME/ldsbus/PORTNUMBER
+        //   headers: { 'Authorization': 'Bearer ' + token.access }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string }
+        //   { 'status': 'NG', 'message': string }
+        //
+        $http({
+            method: 'DELETE',
+            url: server + '/devices/device/' + $scope.data.devicename + '/ldsbus/' + $scope.data.activeSection.toString(),
+            headers: {'Authorization': 'Bearer ' + $scope.data.token.access}
+        })
+        .then(function (result) {
+            console.log(result.data);
+            $scope.ldsbus = [
+                {
+                    'ldsus': [],
+                    'sensors': [],
+                    'actuators': [],
+                }
+            ];
+            $ionicPopup.alert({
+                title: 'Delete LDS BUS',
+                template: 'Delete LDS BUS was successful!',
+            });
+        })
+        .catch(function (error) {
+            $scope.handle_error(error);
+        }); 
+    };    
+
+
     // SCAN LDS BUS
     $scope.scanLDSBUS = function() {
         console.log("scanLDSBUS");
@@ -11168,14 +11258,17 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         else if (sensor.class === "humidity") {
             $state.go('humidity', param);
         }
-        else if (sensor.class === "Co2 gas" || sensor.class === "VOC gas") {
-            $state.go('gas', param);
-        }
         else if (sensor.class === "ambient light") {
             $state.go('ambientLight', param);
         }
         else if (sensor.class === "motion detection") {
             $state.go('motionDetection', param);
+        }
+        else if (sensor.class === "Co2 gas") {
+            $state.go('cO2Gas', param);
+        }
+        else if (sensor.class === "VOC gas") {
+            $state.go('vOCGas', param);
         }
         else {
             $state.go('unknown', param);
@@ -13801,6 +13894,21 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
                 else if (sensor.class === "humidity") {
                     $state.go('humidity', param);
                 }
+                else if (sensor.class === "ambient light") {
+                    $state.go('ambientLight', param);
+                }
+                else if (sensor.class === "motion detection") {
+                    $state.go('motionDetection', param);
+                }
+                else if (sensor.class === "Co2 gas") {
+                    $state.go('cO2Gas', param);
+                }
+                else if (sensor.class === "VOC gas") {
+                    $state.go('vOCGas', param);
+                }
+                else {
+                    $state.go('unknown', param);
+                }
                 /*
                 else if (sensor.class === "speaker") {
                     $state.go('speaker', param);
@@ -15452,473 +15560,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
 
     var server = Server.rest_api;
 
-    $scope.modes = [
-        { "id":0,  "label": "Single Threshold"  },
-        { "id":1,  "label": "Dual Threshold"  },
-        { "id":2,  "label": "Continuous" },
-    ];
-
-    $scope.activates = [
-        { "id":0,  "label": "Out of range" },
-        { "id":1,  "label": "Within range" },
-    ];
-    
-    $scope.alerts = [
-        { "id":0,  "label": "Once"         },
-        { "id":1,  "label": "Continuously" },
-    ];    
-    
-    $scope.devices = [ {"id":0, "devicename": ""} ];
-    
-    $scope.data = {
-        'username': User.get_username(),
-        'token': User.get_token(),
-        'devicename': $stateParams.devicename,
-        'devicestatus': $stateParams.devicestatus,
-        'deviceid': $stateParams.deviceid,
-        'serialnumber': $stateParams.serialnumber,
-        
-        'location': $stateParams.location,
-        'activeSection': $stateParams.activeSection,
-        'sensors': $stateParams.sensors,        
-        
-        'sensor': $stateParams.sensor,
-        'source': $stateParams.source,
-        'hardware_devicename': $scope.devices[0].id,
-        
-        'attributes': {
-            'mode': $scope.modes[0].id,
-            'threshold': {
-                'value': parseInt($stateParams.sensor.minmax[1], 10),
-                'min': parseInt($stateParams.sensor.minmax[0], 10),
-                'max': parseInt($stateParams.sensor.minmax[1], 10),
-                'activate': $scope.activates[0].id,
-            },
-            'alert': {
-                'type': $scope.alerts[0].id,
-                'period': 60000,
-            },
-            'hardware': {
-                'devicename': '',  
-            },
-            
-            'notification': {
-                'messages': [ 
-                    { 
-                        'message': 'Hello World!', 
-                        'enable': true 
-                    },
-                    { 
-                        'message': 'Hi World!', 
-                        'enable': false 
-                    },
-                ],
-                'endpoints' : {
-                    'mobile': {
-                        'enable': false,
-                        'recipients': '',
-                    },
-                    'email': {
-                        'enable': false,
-                        'recipients': '',
-                    },
-                    'notification': {
-                        'enable': false,
-                        'recipients': '',
-                    },
-                    'modem': {
-                        'enable': false,
-                        'recipients': '',
-                    },
-                    'storage': {
-                        'enable': false,
-                        'recipients': '',
-                    },
-                }
-            }
-        },
-        
-        'showNotification': 0,       
-        
-        // support for multiclasses
-        //'multiclass_attributes': $stateParams.multiclass_attributes,
-        //'multiclass_subattributes': $stateParams.multiclass_subattributes,
-        'multiclass': $stateParams.multiclass
-    };
-
-
-    handle_error = function(error, showerror) {
-        if (error.data !== null) {
-            console.log("ERROR: Temperature failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
-
-            if (error.data.message === "Token expired") {
-                Token.refresh({'username': $scope.data.username, 'token': $scope.data.token});
-                $scope.data.token = User.get_token();
-            }
-            
-            if (error.status == 503 && showerror === true ) {
-                $ionicPopup.alert({ title: 'Error', template: 'Device is unreachable!', buttons: [{text: 'OK', type: 'button-assertive'}] });
-            }
-            else if (error.status === 401) {
-                $ionicPopup.alert({ title: 'Error', template: error.data.message, buttons: [{text: 'OK', type: 'button-assertive'}] });
-            }
-        }
-        else {
-            console.log("ERROR: Server is down!"); 
-            $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
-        }
-    };
-    
-    $scope.changeNotification = function(i) {
-        $scope.data.showNotification = i;
-        if (i===true) {
-            get_devices(false);    
-        }    
-    };
-    
-    
-    $scope.submitRefresh = function() {
-        console.log("submitRefresh");
-        console.log($scope.data.attributes);
-        get_devices(true);
-    };
-
-    get_xxx_device_properties = function(peripheral) {
-        //
-        // GET XXX DEVICE PROPERTIES
-        //
-        // - Request:
-        //   GET /devices/device/<devicename>/<peripheral>/<number>/sensors/sensor/<sensorname>/properties
-        //   headers: { 'Authorization': 'Bearer ' + token.access }
-        //
-        // - Response:
-        //   { 'status': 'OK', 'message': string }
-        //   { 'status': 'NG', 'message': string }        
-        //
-        $http({
-            method: 'GET',
-            url: server + '/devices/device/' + $scope.data.devicename + '/' + peripheral + '/' + $scope.data.sensor.number.toString() + '/sensors/sensor/' + $scope.data.sensor.sensorname + '/properties',
-            headers: { 'Authorization': 'Bearer ' + $scope.data.token.access },
-        })
-        .then(function (result) {
-            console.log(result.data);
-            if (result.data.value !== undefined) {
-                if (result.data.value.threshold !== undefined) {
-                    $scope.data.attributes = result.data.value;
-                    
-                    $scope.data.hardware_devicename = 0;
-                    let indexy = 0;
-                    
-                    if ($scope.data.attributes.mode != 2) {
-                        // SINGLE/DUAL THRESHOLD modes - use notification.endpoints.modem.recipients
-                        for (indexy=0; indexy<$scope.devices.length; indexy++) {
-                            if ($scope.devices[indexy].devicename === $scope.data.attributes.notification.endpoints.modem.recipients) {
-                                $scope.data.hardware_devicename = indexy;
-                                break;
-                            }
-                        }
-                    }
-                    else {
-                        // CONTINUOUS mode - use hardware.devicename
-                        for (indexy=0; indexy<$scope.devices.length; indexy++) {
-                            if ($scope.devices[indexy].devicename === $scope.data.attributes.hardware.devicename) {
-                                $scope.data.hardware_devicename = indexy;
-                                break;
-                            }
-                        }
-                        $scope.data.attributes.alert.type = 1; // always be continuous
-                    }
-                }
-                else {
-                    $scope.data.attributes.notification = result.data.value.notification;
-                }
-            }
-        })
-        .catch(function (error) {
-            handle_error(error, true);
-        }); 
-    };
-
-    set_xxx_device_properties = function(peripheral) {
-        //
-        // SET XXX DEVICE PROPERTIES
-        //
-        // - Request:
-        //   POST /devices/device/<devicename>/i2c/<number>/sensors/sensor/<sensorname>/properties
-        //   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
-        //   data: 
-        //   { 
-        //   }
-        //
-        // - Response:
-        //   { 'status': 'OK', 'message': string }
-        //   { 'status': 'NG', 'message': string }        
-        //
-        $http({
-            method: 'POST',
-            url: server + '/devices/device/' + $scope.data.devicename + '/' + peripheral + '/' + $scope.data.sensor.number.toString() + '/sensors/sensor/' + $scope.data.sensor.sensorname + '/properties',
-            headers: { 'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json' },
-            data: $scope.data.attributes
-        })
-        .then(function (result) {
-            console.log(result.data);
-            $ionicPopup.alert({
-                title: peripheral.toUpperCase() + ' device',
-                template: $scope.data.sensor.sensorname + ' was configured successfully!',
-            });
-        })
-        .catch(function (error) {
-            handle_error(error, true);
-        }); 
-    };
-
-
-    $scope.submitDelete = function() {
-        console.log("submitDelete");
-        $scope.delete_xxx_device_properties($scope.data.sensor.source);
-    };
-    
-    $scope.delete_xxx_device_properties = function(peripheral) {
-        //
-        // DELETE XXX DEVICE PROPERTIES
-        //
-        // - Request:
-        //   DELETE /devices/device/<devicename>/i2c/<number>/sensors/sensor/<sensorname>/properties
-        //   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
-        //   data: 
-        //   { 
-        //   }
-        //
-        // - Response:
-        //   { 'status': 'OK', 'message': string }
-        //   { 'status': 'NG', 'message': string }        
-        //
-        $http({
-            method: 'DELETE',
-            url: server + '/devices/device/' + $scope.data.devicename + '/' + peripheral + '/' + $scope.data.sensor.number.toString() + '/sensors/sensor/' + $scope.data.sensor.sensorname + '/properties',
-            headers: { 'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json' },
-            data: $scope.data.attributes
-        })
-        .then(function (result) {
-            console.log(result.data);
-            $ionicPopup.alert({
-                title: peripheral.toUpperCase() + ' device',
-                template: $scope.data.sensor.sensorname + ' configuration was deleted successfully!',
-            });            
-            get_xxx_device_properties(peripheral);
-        })
-        .catch(function (error) {
-            handle_error(error, true);
-        }); 
-    };
-
-
-    
-    $scope.submit = function() {
-        console.log("submit");
-        console.log($scope.data.attributes);
-        if ($scope.data.hardware_devicename >= $scope.devices.length) {
-            return;
-        }
-        if ($scope.data.attributes.mode!=2) {
-            // SINGLE/DUAL THRESHOLD modes
-            $scope.data.attributes.notification.endpoints.modem.recipients = $scope.devices[$scope.data.hardware_devicename].devicename;
-        }
-        else {
-            // CONTINUOUS mode
-            $scope.data.attributes.hardware.devicename = $scope.devices[$scope.data.hardware_devicename].devicename;
-        }
-        
-        
-        if ($scope.data.sensor.subclass !== undefined) {
-            var classname = "temperature";
-            
-            // support for multiclasses
-            var param = {
-                'username': $scope.data.username,
-                'token': $scope.data.token,
-                'devicename': $scope.data.devicename,
-                'devicestatus': $scope.data.devicestatus,
-                'deviceid': $scope.data.deviceid,
-                'serialnumber': $scope.data.serialnumber,
-                'sensor': $scope.data.sensor,
-                'source': $scope.data.source,
-                'multiclass': $scope.data.multiclass,             
-            };
-
-            if ($scope.data.sensor.class === classname) {
-                param.multiclass.attributes = $scope.data.attributes;
-            }
-            else if ($scope.data.sensor.subclass === classname) {
-                param.multiclass.subattributes = $scope.data.attributes;
-            }
-            $state.go('multiclass', param, {reload: true});
-        }
-        else {
-            
-            // Add prompt when setting properties
-            $ionicPopup.alert({ title: 'Set Properties', template: 'Are you sure you want to set this properties?',
-                buttons: [
-                    { text: 'No', type: 'button-assertive', },
-                    { text: 'Yes', type: 'button-positive',
-                        onTap: function(e) {
-                            
-                            if ($scope.data.source === "LDSU") {
-                                set_xxx_device_properties($scope.data.sensor.source);
-                            }
-                            else if ($scope.data.source === "I2C") {
-                                set_xxx_device_properties("i2c");
-                            }
-                            else if ($scope.data.source === "TPROBE") {
-                                set_xxx_device_properties("tprobe");
-                            }
-                            else if ($scope.data.source === "1WIRE") {
-                                set_xxx_device_properties("1wire");
-                            }
-                        }
-                    }
-                ]            
-            });
-        }
-    };
-
-
-
-
-    get_devices = function(flag) {
-        
-        param = {
-            'username': $scope.data.username,
-            'token': $scope.data.token     
-        };
-        
-        // Fetch devices
-        Devices.fetch(param, "").then(function(res) {
-            $scope.devices = res;
-            
-            let indexy = 0;
-            for (indexy=0; indexy<$scope.devices.length; indexy++) {
-                $scope.devices[indexy].id = indexy;
-            }
-            
-            console.log($scope.devices);
-            $scope.data.token = User.get_token();
-            
-            if (flag) {
-                if ($scope.data.source === "LDSU") {
-                    get_xxx_device_properties($scope.data.sensor.source);
-                }
-                else if ($scope.data.source === "I2C") {
-                    get_xxx_device_properties("i2c");
-                }
-                else if ($scope.data.source === "ADC") {
-                    get_xxx_device_properties("adc");
-                }
-                else if ($scope.data.source === "TPROBE") {
-                    get_xxx_device_properties("tprobe");
-                }
-                else if ($scope.data.source === "1WIRE") {
-                    get_xxx_device_properties("1wire");
-                }
-            }
-        });
-    };
-
-    // VIEW I2C DEVICE
-    $scope.viewXXXDevice = function() {
-        var device_param = {
-            'username': $scope.data.username,
-            'token': $scope.data.token,
-            'devicename': $scope.data.devicename,
-            'devicestatus': $scope.data.devicestatus,
-            'deviceid': $scope.data.deviceid,
-            'serialnumber': $scope.data.serialnumber,
-
-            'location': $scope.data.location,
-            'activeSection': $scope.data.activeSection,
-            'sensors': $scope.data.sensors,            
-    
-            'sensor': $scope.data.sensor,
-            'source': $scope.data.source,
-
-            'multiclass': $scope.data.multiclass,
-        };
-        if ($scope.data.source === "LDSU") {
-            console.log("viewLDSUDevice");
-            $state.go('viewLDSUDevice', device_param);
-        }
-        else if ($scope.data.source === "I2C") {
-            console.log("viewI2CDevice");
-            $state.go('viewI2CDevice', device_param);
-        }
-        else if ($scope.data.source === "ADC") {
-            console.log("viewADCDevice");
-            $state.go('viewADCDevice', device_param);
-        }
-        else if ($scope.data.source === "TPROBE") {
-            console.log("viewTPROBEDevice");
-            $state.go('viewTPROBEDevice', device_param);
-        }
-        else if ($scope.data.source === "1WIRE") {
-            console.log("view1WIREDevice");
-            $state.go('view1WIREDevice', device_param);
-        }
-    };
-
-    // EXIT PAGE
-    $scope.submitDeviceList = function() {
-        console.log("submitDeviceList");
-        var device_param = {
-            'username': $scope.data.username,
-            'token': $scope.data.token,
-            'devicename': $scope.data.devicename,
-            'devicestatus': $scope.data.devicestatus,
-            'deviceid': $scope.data.deviceid,
-            'serialnumber': $scope.data.serialnumber,
-        };
-        
-        if ($scope.data.sensor.subclass !== undefined) {
-            device_param.sensor = $scope.data.sensor;
-            device_param.source = $scope.data.source;
-            device_param.multiclass = $scope.data.multiclass;
-            $state.go('multiclass', device_param);
-        }
-        else {
-            if ($scope.data.source === "LDSU") {
-                device_param.location = $scope.data.location;
-                device_param.activeSection = $scope.data.activeSection;
-                device_param.sensors = $scope.data.sensors;
-                $state.go('sensors', device_param);
-            }
-            else if ($scope.data.source === "I2C") {
-               $state.go('deviceI2C', device_param);
-            }
-            else if ($scope.data.source === "ADC") {
-               $state.go('deviceADC', device_param);
-            }
-            else if ($scope.data.source === "TPROBE") {
-               $state.go('deviceTPROBE', device_param);
-            }
-            else if ($scope.data.source === "1WIRE") {
-               $state.go('device1WIRE', device_param);
-            }
-        }
-    };
-    
-    $scope.changeMode = function() {
-        console.log("changeMode");
-        get_devices(false);    
-    };    
-    
-    $scope.submitRefresh();  
-}])
-   
-.controller('humidityCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', 'Devices', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
-// You can include any angular dependencies as parameters for this function
-// TIP: Access Route Parameters for your page via $stateParams.parameterName
-function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token, Devices) {
-
-    var server = Server.rest_api;
+    $scope.classname = "temperature";
 
     $scope.modes = [
         { "id":0,  "label": "Single Threshold"  },
@@ -15955,6 +15597,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         'hardware_devicename': $scope.devices[0].id,
         
         'attributes': {
+            'opmode': 0,
             'mode': $scope.modes[0].id,
             'threshold': {
                 'value': parseInt($stateParams.sensor.minmax[1], 10),
@@ -16016,7 +15659,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
 
     handle_error = function(error, showerror) {
         if (error.data !== null) {
-            console.log("ERROR: Humidity failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
+            console.log("ERROR: " + $scope.classname + " failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
 
             if (error.data.message === "Token expired") {
                 Token.refresh({'username': $scope.data.username, 'token': $scope.data.token});
@@ -16101,6 +15744,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                         $scope.data.attributes.notification = result.data.value.notification;
                     }
                 }
+                /*
                 else {
                     if (result.data.value.subattributes.threshold !== undefined) {
                         $scope.data.attributes = result.data.value.subattributes;
@@ -16132,13 +15776,14 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                         $scope.data.attributes.notification = result.data.value.subattributes.notification;
                     }
                     
-                    if ($scope.data.sensor.class === "humidity") {
+                    if ($scope.data.sensor.class === "vOCGas") {
                         $scope.data.multiclass.attributes = $scope.data.attributes;
                     }
-                    else if ($scope.data.sensor.subclass === "humidity") {
+                    else if ($scope.data.sensor.subclass === "vOCGas") {
                         $scope.data.multiclass.subattributes = $scope.data.attributes;
                     }
                 }
+                */
             }
         })
         .catch(function (error) {
@@ -16237,7 +15882,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         
         
         if ($scope.data.sensor.subclass !== undefined) {
-            var classname = "humidity";
+            var classname = $scope.classname;
             
             // support for multiclasses
             var param = {
@@ -16414,6 +16059,2580 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         console.log("changeMode");
         get_devices(false);    
     };    
+    
+    $scope.changeOpmode = function() {
+        console.log("changeOpmode " + $scope.data.attributes.opmode);
+    };
+    
+    $scope.submitRefresh();  
+}])
+   
+.controller('humidityCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', 'Devices', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+// You can include any angular dependencies as parameters for this function
+// TIP: Access Route Parameters for your page via $stateParams.parameterName
+function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token, Devices) {
+
+    var server = Server.rest_api;
+
+    $scope.classname = "humidity";
+
+    $scope.modes = [
+        { "id":0,  "label": "Single Threshold"  },
+        { "id":1,  "label": "Dual Threshold"  },
+        { "id":2,  "label": "Continuous" },
+    ];
+
+    $scope.activates = [
+        { "id":0,  "label": "Out of range" },
+        { "id":1,  "label": "Within range" },
+    ];
+    
+    $scope.alerts = [
+        { "id":0,  "label": "Once"         },
+        { "id":1,  "label": "Continuously" },
+    ];    
+    
+    $scope.devices = [ {"id":0, "devicename": ""} ];
+    
+    $scope.data = {
+        'username': User.get_username(),
+        'token': User.get_token(),
+        'devicename': $stateParams.devicename,
+        'devicestatus': $stateParams.devicestatus,
+        'deviceid': $stateParams.deviceid,
+        'serialnumber': $stateParams.serialnumber,
+
+        'location': $stateParams.location,
+        'activeSection': $stateParams.activeSection,
+        'sensors': $stateParams.sensors,        
+        
+        'sensor': $stateParams.sensor,
+        'source': $stateParams.source,
+        'hardware_devicename': $scope.devices[0].id,
+        
+        'attributes': {
+            'opmode': 0,
+            'mode': $scope.modes[0].id,
+            'threshold': {
+                'value': parseInt($stateParams.sensor.minmax[1], 10),
+                'min': parseInt($stateParams.sensor.minmax[0], 10),
+                'max': parseInt($stateParams.sensor.minmax[1], 10),
+                'activate': $scope.activates[0].id,
+            },
+            'alert': {
+                'type': $scope.alerts[0].id,
+                'period': 60000,
+            },
+            'hardware': {
+                'devicename': '',  
+            },
+            
+            'notification': {
+                'messages': [ 
+                    { 
+                        'message': 'Hello World!', 
+                        'enable': true 
+                    },
+                    { 
+                        'message': 'Hi World!', 
+                        'enable': false 
+                    },
+                ],
+                'endpoints' : {
+                    'mobile': {
+                        'enable': false,
+                        'recipients': '',
+                    },
+                    'email': {
+                        'enable': false,
+                        'recipients': '',
+                    },
+                    'notification': {
+                        'enable': false,
+                        'recipients': '',
+                    },
+                    'modem': {
+                        'enable': false,
+                        'recipients': '',
+                    },
+                    'storage': {
+                        'enable': false,
+                        'recipients': '',
+                    },
+                }
+            }
+        },
+        
+        'showNotification': 0,  
+        
+        // support for multiclasses
+        //'multiclass_attributes': $stateParams.multiclass_attributes,
+        //'multiclass_subattributes': $stateParams.multiclass_subattributes,
+        'multiclass': $stateParams.multiclass
+    };
+
+    handle_error = function(error, showerror) {
+        if (error.data !== null) {
+            console.log("ERROR: " + $scope.classname + " failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
+
+            if (error.data.message === "Token expired") {
+                Token.refresh({'username': $scope.data.username, 'token': $scope.data.token});
+                $scope.data.token = User.get_token();
+            }
+            
+            if (error.status == 503 && showerror === true ) {
+                $ionicPopup.alert({ title: 'Error', template: 'Device is unreachable!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+            }            
+            else if (error.status === 401) {
+                $ionicPopup.alert({ title: 'Error', template: error.data.message, buttons: [{text: 'OK', type: 'button-assertive'}] });
+            }
+        }
+        else {
+            console.log("ERROR: Server is down!"); 
+            $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+        }
+    };
+
+    $scope.changeNotification = function(i) {
+        $scope.data.showNotification = i;
+        if (i===true) {
+            get_devices(false);    
+        }    
+    };
+    
+    
+    $scope.submitRefresh = function() {
+        console.log("submitRefresh");
+        console.log($scope.data.attributes);
+        get_devices(true); 
+    };
+
+    get_xxx_device_properties = function(peripheral) {
+        //
+        // GET xxx DEVICE PROPERTIES
+        //
+        // - Request:
+        //   GET /devices/device/<devicename>/<peripheral>/<number>/sensors/sensor/<sensorname>/properties
+        //   headers: { 'Authorization': 'Bearer ' + token.access }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string }
+        //   { 'status': 'NG', 'message': string }        
+        //
+        $http({
+            method: 'GET',
+            url: server + '/devices/device/' + $scope.data.devicename + '/' + peripheral + '/' + $scope.data.sensor.number.toString() + '/sensors/sensor/' + $scope.data.sensor.sensorname + '/properties',
+            headers: { 'Authorization': 'Bearer ' + $scope.data.token.access },
+        })
+        .then(function (result) {
+            console.log(result.data);
+            if (result.data.value !== undefined) {
+                if (result.data.value.subattributes === undefined) {
+                    if (result.data.value.threshold !== undefined) {
+                        $scope.data.attributes = result.data.value;
+                        
+                        $scope.data.hardware_devicename = 0;
+                        let indexy = 0;
+
+                        if ($scope.data.attributes.mode != 2) {
+                            // SINGLE/DUAL THRESHOLD modes - use notification.endpoints.modem.recipients
+                            for (indexy=0; indexy<$scope.devices.length; indexy++) {
+                                if ($scope.devices[indexy].devicename === $scope.data.attributes.notification.endpoints.modem.recipients) {
+                                    $scope.data.hardware_devicename = indexy;
+                                    break;
+                                }
+                            }
+                        }
+                        else {
+                            // CONTINUOUS mode - use hardware.devicename
+                            for (indexy=0; indexy<$scope.devices.length; indexy++) {
+                                if ($scope.devices[indexy].devicename === $scope.data.attributes.hardware.devicename) {
+                                    $scope.data.hardware_devicename = indexy;
+                                    break;
+                                }
+                            }
+                            $scope.data.attributes.alert.type = 1; // always be continuous
+                        }                        
+                    }
+                    else {
+                        $scope.data.attributes.notification = result.data.value.notification;
+                    }
+                }
+                /*
+                else {
+                    if (result.data.value.subattributes.threshold !== undefined) {
+                        $scope.data.attributes = result.data.value.subattributes;
+                        
+                        $scope.data.hardware_devicename = 0;
+                        let indexy = 0;
+                        
+                        if ($scope.data.attributes.mode != 2) {
+                            // SINGLE/DUAL THRESHOLD modes - use notification.endpoints.modem.recipients
+                            for (indexy=0; indexy<$scope.devices.length; indexy++) {
+                                if ($scope.devices[indexy].devicename === $scope.data.attributes.notification.endpoints.modem.recipients) {
+                                    $scope.data.hardware_devicename = indexy;
+                                    break;
+                                }
+                            }
+                        }
+                        else {
+                            // CONTINUOUS mode - use hardware.devicename
+                            for (indexy=0; indexy<$scope.devices.length; indexy++) {
+                                if ($scope.devices[indexy].devicename === $scope.data.attributes.hardware.devicename) {
+                                    $scope.data.hardware_devicename = indexy;
+                                    break;
+                                }
+                            }
+                            $scope.data.attributes.alert.type = 1; // always be continuous
+                        }                        
+                    }
+                    else {
+                        $scope.data.attributes.notification = result.data.value.subattributes.notification;
+                    }
+                    
+                    if ($scope.data.sensor.class === "vOCGas") {
+                        $scope.data.multiclass.attributes = $scope.data.attributes;
+                    }
+                    else if ($scope.data.sensor.subclass === "vOCGas") {
+                        $scope.data.multiclass.subattributes = $scope.data.attributes;
+                    }
+                }
+                */
+            }
+        })
+        .catch(function (error) {
+            handle_error(error, true);
+        }); 
+    };
+
+    set_xxx_device_properties = function(peripheral) {
+        //
+        // SET XXX DEVICE PROPERTIES
+        //
+        // - Request:
+        //   POST /devices/device/<devicename>/i2c/<number>/sensors/sensor/<sensorname>/properties
+        //   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
+        //   data: 
+        //   { 
+        //   }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string }
+        //   { 'status': 'NG', 'message': string }        
+        //
+        $http({
+            method: 'POST',
+            url: server + '/devices/device/' + $scope.data.devicename + '/' + peripheral + '/' + $scope.data.sensor.number.toString() + '/sensors/sensor/' + $scope.data.sensor.sensorname + '/properties',
+            headers: { 'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json' },
+            data: $scope.data.attributes
+        })
+        .then(function (result) {
+            console.log(result.data);
+            $ionicPopup.alert({
+                title: peripheral.toUpperCase() + ' device',
+                template: $scope.data.sensor.sensorname + ' was configured successfully!',
+            });            
+        })
+        .catch(function (error) {
+            handle_error(error, true);
+        }); 
+    };
+    
+    
+    
+    $scope.submitDelete = function() {
+        console.log("submitDelete");
+        $scope.delete_xxx_device_properties($scope.data.sensor.source);
+    };
+    
+    $scope.delete_xxx_device_properties = function(peripheral) {
+        //
+        // DELETE XXX DEVICE PROPERTIES
+        //
+        // - Request:
+        //   DELETE /devices/device/<devicename>/i2c/<number>/sensors/sensor/<sensorname>/properties
+        //   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
+        //   data: 
+        //   { 
+        //   }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string }
+        //   { 'status': 'NG', 'message': string }        
+        //
+        $http({
+            method: 'DELETE',
+            url: server + '/devices/device/' + $scope.data.devicename + '/' + peripheral + '/' + $scope.data.sensor.number.toString() + '/sensors/sensor/' + $scope.data.sensor.sensorname + '/properties',
+            headers: { 'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json' },
+            data: $scope.data.attributes
+        })
+        .then(function (result) {
+            console.log(result.data);
+            $ionicPopup.alert({
+                title: peripheral.toUpperCase() + ' device',
+                template: $scope.data.sensor.sensorname + ' configuration was deleted successfully!',
+            });            
+            get_xxx_device_properties(peripheral);
+        })
+        .catch(function (error) {
+            handle_error(error, true);
+        }); 
+    };
+    
+    $scope.submit = function() {
+        console.log("submit");
+        console.log($scope.data.attributes);
+        if ($scope.data.hardware_devicename >= $scope.devices.length) {
+            return;
+        }
+        if ($scope.data.attributes.mode!=2) {
+            // SINGLE/DUAL THRESHOLD modes
+            $scope.data.attributes.notification.endpoints.modem.recipients = $scope.devices[$scope.data.hardware_devicename].devicename;
+        }
+        else {
+            // CONTINUOUS mode
+            $scope.data.attributes.hardware.devicename = $scope.devices[$scope.data.hardware_devicename].devicename;
+        }
+        
+        
+        if ($scope.data.sensor.subclass !== undefined) {
+            var classname = $scope.classname;
+            
+            // support for multiclasses
+            var param = {
+                'username': $scope.data.username,
+                'token': $scope.data.token,
+                'devicename': $scope.data.devicename,
+                'devicestatus': $scope.data.devicestatus,
+                'deviceid': $scope.data.deviceid,
+                'serialnumber': $scope.data.serialnumber,
+                'sensor': $scope.data.sensor,
+                'source': $scope.data.source,
+                'multiclass': $scope.data.multiclass,             
+            };
+
+            if ($scope.data.sensor.class === classname) {
+                param.multiclass.attributes = $scope.data.attributes;
+            }
+            else if ($scope.data.sensor.subclass === classname) {
+                param.multiclass.subattributes = $scope.data.attributes;
+            }
+            $state.go('multiclass', param, {reload: true});
+        }
+        else {
+            
+            // Add prompt when setting properties
+            $ionicPopup.alert({ title: 'Set Properties', template: 'Are you sure you want to set this properties?',
+                buttons: [
+                    { text: 'No', type: 'button-assertive', },
+                    { text: 'Yes', type: 'button-positive',
+                        onTap: function(e) {
+                            
+                            if ($scope.data.source === "LDSU") {
+                                set_xxx_device_properties($scope.data.sensor.source);
+                            }
+                            else if ($scope.data.source === "I2C") {
+                                set_xxx_device_properties("i2c");
+                            }
+                            else if ($scope.data.source === "TPROBE") {
+                                set_xxx_device_properties("tprobe");
+                            }
+                            else if ($scope.data.source === "1WIRE") {
+                                set_xxx_device_properties("1wire");
+                            }
+                        }
+                    }
+                ]            
+            });
+        }
+    };
+
+
+
+    get_devices = function(flag) {
+        
+        param = {
+            'username': $scope.data.username,
+            'token': $scope.data.token     
+        };
+        
+        // Fetch devices
+        Devices.fetch(param, "").then(function(res) {
+            $scope.devices = res;
+            
+            let indexy = 0;
+            for (indexy=0; indexy<$scope.devices.length; indexy++) {
+                $scope.devices[indexy].id = indexy;
+            }
+            
+            console.log($scope.devices);
+            $scope.data.token = User.get_token();
+            
+            if (flag) {
+                if ($scope.data.source === "LDSU") {
+                    get_xxx_device_properties($scope.data.sensor.source);
+                }
+                else if ($scope.data.source === "I2C") {
+                    get_xxx_device_properties("i2c");
+                }
+                else if ($scope.data.source === "ADC") {
+                    get_xxx_device_properties("adc");
+                }
+                else if ($scope.data.source === "TPROBE") {
+                    get_xxx_device_properties("tprobe");
+                }
+                else if ($scope.data.source === "1WIRE") {
+                    get_xxx_device_properties("1wire");
+                }
+            }
+        });
+    };
+
+    // VIEW I2C DEVICE
+    $scope.viewXXXDevice = function() {
+        var device_param = {
+            'username': $scope.data.username,
+            'token': $scope.data.token,
+            'devicename': $scope.data.devicename,
+            'devicestatus': $scope.data.devicestatus,
+            'deviceid': $scope.data.deviceid,
+            'serialnumber': $scope.data.serialnumber,
+    
+            'location': $scope.data.location,
+            'activeSection': $scope.data.activeSection,
+            'sensors': $scope.data.sensors,
+    
+            'sensor': $scope.data.sensor,
+            'source': $scope.data.source,
+
+            'multiclass': $scope.data.multiclass,             
+        };
+        if ($scope.data.source === "LDSU") {
+            console.log("viewLDSUDevice");
+            $state.go('viewLDSUDevice', device_param);
+        }
+        else if ($scope.data.source === "I2C") {
+            console.log("viewI2CDevice");
+            $state.go('viewI2CDevice', device_param);
+        }
+        else if ($scope.data.source === "ADC") {
+            console.log("viewADCDevice");
+            $state.go('viewADCDevice', device_param);
+        }
+        else if ($scope.data.source === "TPROBE") {
+            console.log("viewTPROBEDevice");
+            $state.go('viewTPROBEDevice', device_param);
+        }
+        else if ($scope.data.source === "1WIRE") {
+            console.log("view1WIREDevice");
+            $state.go('view1WIREDevice', device_param);
+        }
+    };
+
+    // EXIT PAGE
+    $scope.submitDeviceList = function() {
+        console.log("submitDeviceList");
+        var device_param = {
+            'username': $scope.data.username,
+            'token': $scope.data.token,
+            'devicename': $scope.data.devicename,
+            'devicestatus': $scope.data.devicestatus,
+            'deviceid': $scope.data.deviceid,
+            'serialnumber': $scope.data.serialnumber,
+        };
+        
+        if ($scope.data.sensor.subclass !== undefined) {
+            device_param.sensor = $scope.data.sensor;
+            device_param.source = $scope.data.source;
+            device_param.multiclass = $scope.data.multiclass;
+            $state.go('multiclass', device_param);
+        }
+        else {
+            if ($scope.data.source === "LDSU") {
+                device_param.location = $scope.data.location;
+                device_param.activeSection = $scope.data.activeSection;
+                device_param.sensors = $scope.data.sensors;
+                $state.go('sensors', device_param);
+            }
+            else if ($scope.data.source === "I2C") {
+               $state.go('deviceI2C', device_param);
+            }
+            else if ($scope.data.source === "ADC") {
+               $state.go('deviceADC', device_param);
+            }
+            else if ($scope.data.source === "TPROBE") {
+               $state.go('deviceTPROBE', device_param);
+            }
+            else if ($scope.data.source === "1WIRE") {
+               $state.go('device1WIRE', device_param);
+            }
+        }
+    };
+    
+    $scope.changeMode = function() {
+        console.log("changeMode");
+        get_devices(false);    
+    };    
+    
+    $scope.changeOpmode = function() {
+        console.log("changeOpmode " + $scope.data.attributes.opmode);
+    };
+    
+    $scope.submitRefresh();  
+}])
+   
+.controller('ambientLightCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', 'Devices', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+// You can include any angular dependencies as parameters for this function
+// TIP: Access Route Parameters for your page via $stateParams.parameterName
+function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token, Devices) {
+
+    var server = Server.rest_api;
+
+    $scope.classname = "ambient light";
+
+    $scope.modes = [
+        { "id":0,  "label": "Single Threshold"  },
+        { "id":1,  "label": "Dual Threshold"  },
+        { "id":2,  "label": "Continuous" },
+    ];
+
+    $scope.activates = [
+        { "id":0,  "label": "Out of range" },
+        { "id":1,  "label": "Within range" },
+    ];
+    
+    $scope.alerts = [
+        { "id":0,  "label": "Once"         },
+        { "id":1,  "label": "Continuously" },
+    ];    
+    
+    $scope.devices = [ {"id":0, "devicename": ""} ];
+    
+    $scope.data = {
+        'username': User.get_username(),
+        'token': User.get_token(),
+        'devicename': $stateParams.devicename,
+        'devicestatus': $stateParams.devicestatus,
+        'deviceid': $stateParams.deviceid,
+        'serialnumber': $stateParams.serialnumber,
+
+        'location': $stateParams.location,
+        'activeSection': $stateParams.activeSection,
+        'sensors': $stateParams.sensors,        
+        
+        'sensor': $stateParams.sensor,
+        'source': $stateParams.source,
+        'hardware_devicename': $scope.devices[0].id,
+        
+        'attributes': {
+            'opmode': 0,
+            'mode': $scope.modes[0].id,
+            'threshold': {
+                'value': parseInt($stateParams.sensor.minmax[1], 10),
+                'min': parseInt($stateParams.sensor.minmax[0], 10),
+                'max': parseInt($stateParams.sensor.minmax[1], 10),
+                'activate': $scope.activates[0].id,
+            },
+            'alert': {
+                'type': $scope.alerts[0].id,
+                'period': 60000,
+            },
+            'hardware': {
+                'devicename': '',  
+            },
+            
+            'notification': {
+                'messages': [ 
+                    { 
+                        'message': 'Hello World!', 
+                        'enable': true 
+                    },
+                    { 
+                        'message': 'Hi World!', 
+                        'enable': false 
+                    },
+                ],
+                'endpoints' : {
+                    'mobile': {
+                        'enable': false,
+                        'recipients': '',
+                    },
+                    'email': {
+                        'enable': false,
+                        'recipients': '',
+                    },
+                    'notification': {
+                        'enable': false,
+                        'recipients': '',
+                    },
+                    'modem': {
+                        'enable': false,
+                        'recipients': '',
+                    },
+                    'storage': {
+                        'enable': false,
+                        'recipients': '',
+                    },
+                }
+            }
+        },
+        
+        'showNotification': 0,  
+        
+        // support for multiclasses
+        //'multiclass_attributes': $stateParams.multiclass_attributes,
+        //'multiclass_subattributes': $stateParams.multiclass_subattributes,
+        'multiclass': $stateParams.multiclass
+    };
+
+    handle_error = function(error, showerror) {
+        if (error.data !== null) {
+            console.log("ERROR: " + $scope.classname + " failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
+
+            if (error.data.message === "Token expired") {
+                Token.refresh({'username': $scope.data.username, 'token': $scope.data.token});
+                $scope.data.token = User.get_token();
+            }
+            
+            if (error.status == 503 && showerror === true ) {
+                $ionicPopup.alert({ title: 'Error', template: 'Device is unreachable!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+            }            
+            else if (error.status === 401) {
+                $ionicPopup.alert({ title: 'Error', template: error.data.message, buttons: [{text: 'OK', type: 'button-assertive'}] });
+            }
+        }
+        else {
+            console.log("ERROR: Server is down!"); 
+            $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+        }
+    };
+
+    $scope.changeNotification = function(i) {
+        $scope.data.showNotification = i;
+        if (i===true) {
+            get_devices(false);    
+        }    
+    };
+    
+    
+    $scope.submitRefresh = function() {
+        console.log("submitRefresh");
+        console.log($scope.data.attributes);
+        get_devices(true); 
+    };
+
+    get_xxx_device_properties = function(peripheral) {
+        //
+        // GET xxx DEVICE PROPERTIES
+        //
+        // - Request:
+        //   GET /devices/device/<devicename>/<peripheral>/<number>/sensors/sensor/<sensorname>/properties
+        //   headers: { 'Authorization': 'Bearer ' + token.access }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string }
+        //   { 'status': 'NG', 'message': string }        
+        //
+        $http({
+            method: 'GET',
+            url: server + '/devices/device/' + $scope.data.devicename + '/' + peripheral + '/' + $scope.data.sensor.number.toString() + '/sensors/sensor/' + $scope.data.sensor.sensorname + '/properties',
+            headers: { 'Authorization': 'Bearer ' + $scope.data.token.access },
+        })
+        .then(function (result) {
+            console.log(result.data);
+            if (result.data.value !== undefined) {
+                if (result.data.value.subattributes === undefined) {
+                    if (result.data.value.threshold !== undefined) {
+                        $scope.data.attributes = result.data.value;
+                        
+                        $scope.data.hardware_devicename = 0;
+                        let indexy = 0;
+
+                        if ($scope.data.attributes.mode != 2) {
+                            // SINGLE/DUAL THRESHOLD modes - use notification.endpoints.modem.recipients
+                            for (indexy=0; indexy<$scope.devices.length; indexy++) {
+                                if ($scope.devices[indexy].devicename === $scope.data.attributes.notification.endpoints.modem.recipients) {
+                                    $scope.data.hardware_devicename = indexy;
+                                    break;
+                                }
+                            }
+                        }
+                        else {
+                            // CONTINUOUS mode - use hardware.devicename
+                            for (indexy=0; indexy<$scope.devices.length; indexy++) {
+                                if ($scope.devices[indexy].devicename === $scope.data.attributes.hardware.devicename) {
+                                    $scope.data.hardware_devicename = indexy;
+                                    break;
+                                }
+                            }
+                            $scope.data.attributes.alert.type = 1; // always be continuous
+                        }                        
+                    }
+                    else {
+                        $scope.data.attributes.notification = result.data.value.notification;
+                    }
+                }
+                /*
+                else {
+                    if (result.data.value.subattributes.threshold !== undefined) {
+                        $scope.data.attributes = result.data.value.subattributes;
+                        
+                        $scope.data.hardware_devicename = 0;
+                        let indexy = 0;
+                        
+                        if ($scope.data.attributes.mode != 2) {
+                            // SINGLE/DUAL THRESHOLD modes - use notification.endpoints.modem.recipients
+                            for (indexy=0; indexy<$scope.devices.length; indexy++) {
+                                if ($scope.devices[indexy].devicename === $scope.data.attributes.notification.endpoints.modem.recipients) {
+                                    $scope.data.hardware_devicename = indexy;
+                                    break;
+                                }
+                            }
+                        }
+                        else {
+                            // CONTINUOUS mode - use hardware.devicename
+                            for (indexy=0; indexy<$scope.devices.length; indexy++) {
+                                if ($scope.devices[indexy].devicename === $scope.data.attributes.hardware.devicename) {
+                                    $scope.data.hardware_devicename = indexy;
+                                    break;
+                                }
+                            }
+                            $scope.data.attributes.alert.type = 1; // always be continuous
+                        }                        
+                    }
+                    else {
+                        $scope.data.attributes.notification = result.data.value.subattributes.notification;
+                    }
+                    
+                    if ($scope.data.sensor.class === "vOCGas") {
+                        $scope.data.multiclass.attributes = $scope.data.attributes;
+                    }
+                    else if ($scope.data.sensor.subclass === "vOCGas") {
+                        $scope.data.multiclass.subattributes = $scope.data.attributes;
+                    }
+                }
+                */
+            }
+        })
+        .catch(function (error) {
+            handle_error(error, true);
+        }); 
+    };
+
+    set_xxx_device_properties = function(peripheral) {
+        //
+        // SET XXX DEVICE PROPERTIES
+        //
+        // - Request:
+        //   POST /devices/device/<devicename>/i2c/<number>/sensors/sensor/<sensorname>/properties
+        //   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
+        //   data: 
+        //   { 
+        //   }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string }
+        //   { 'status': 'NG', 'message': string }        
+        //
+        $http({
+            method: 'POST',
+            url: server + '/devices/device/' + $scope.data.devicename + '/' + peripheral + '/' + $scope.data.sensor.number.toString() + '/sensors/sensor/' + $scope.data.sensor.sensorname + '/properties',
+            headers: { 'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json' },
+            data: $scope.data.attributes
+        })
+        .then(function (result) {
+            console.log(result.data);
+            $ionicPopup.alert({
+                title: peripheral.toUpperCase() + ' device',
+                template: $scope.data.sensor.sensorname + ' was configured successfully!',
+            });            
+        })
+        .catch(function (error) {
+            handle_error(error, true);
+        }); 
+    };
+    
+    
+    
+    $scope.submitDelete = function() {
+        console.log("submitDelete");
+        $scope.delete_xxx_device_properties($scope.data.sensor.source);
+    };
+    
+    $scope.delete_xxx_device_properties = function(peripheral) {
+        //
+        // DELETE XXX DEVICE PROPERTIES
+        //
+        // - Request:
+        //   DELETE /devices/device/<devicename>/i2c/<number>/sensors/sensor/<sensorname>/properties
+        //   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
+        //   data: 
+        //   { 
+        //   }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string }
+        //   { 'status': 'NG', 'message': string }        
+        //
+        $http({
+            method: 'DELETE',
+            url: server + '/devices/device/' + $scope.data.devicename + '/' + peripheral + '/' + $scope.data.sensor.number.toString() + '/sensors/sensor/' + $scope.data.sensor.sensorname + '/properties',
+            headers: { 'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json' },
+            data: $scope.data.attributes
+        })
+        .then(function (result) {
+            console.log(result.data);
+            $ionicPopup.alert({
+                title: peripheral.toUpperCase() + ' device',
+                template: $scope.data.sensor.sensorname + ' configuration was deleted successfully!',
+            });            
+            get_xxx_device_properties(peripheral);
+        })
+        .catch(function (error) {
+            handle_error(error, true);
+        }); 
+    };
+    
+    $scope.submit = function() {
+        console.log("submit");
+        console.log($scope.data.attributes);
+        if ($scope.data.hardware_devicename >= $scope.devices.length) {
+            return;
+        }
+        if ($scope.data.attributes.mode!=2) {
+            // SINGLE/DUAL THRESHOLD modes
+            $scope.data.attributes.notification.endpoints.modem.recipients = $scope.devices[$scope.data.hardware_devicename].devicename;
+        }
+        else {
+            // CONTINUOUS mode
+            $scope.data.attributes.hardware.devicename = $scope.devices[$scope.data.hardware_devicename].devicename;
+        }
+        
+        
+        if ($scope.data.sensor.subclass !== undefined) {
+            var classname = $scope.classname;
+            
+            // support for multiclasses
+            var param = {
+                'username': $scope.data.username,
+                'token': $scope.data.token,
+                'devicename': $scope.data.devicename,
+                'devicestatus': $scope.data.devicestatus,
+                'deviceid': $scope.data.deviceid,
+                'serialnumber': $scope.data.serialnumber,
+                'sensor': $scope.data.sensor,
+                'source': $scope.data.source,
+                'multiclass': $scope.data.multiclass,             
+            };
+
+            if ($scope.data.sensor.class === classname) {
+                param.multiclass.attributes = $scope.data.attributes;
+            }
+            else if ($scope.data.sensor.subclass === classname) {
+                param.multiclass.subattributes = $scope.data.attributes;
+            }
+            $state.go('multiclass', param, {reload: true});
+        }
+        else {
+            
+            // Add prompt when setting properties
+            $ionicPopup.alert({ title: 'Set Properties', template: 'Are you sure you want to set this properties?',
+                buttons: [
+                    { text: 'No', type: 'button-assertive', },
+                    { text: 'Yes', type: 'button-positive',
+                        onTap: function(e) {
+                            
+                            if ($scope.data.source === "LDSU") {
+                                set_xxx_device_properties($scope.data.sensor.source);
+                            }
+                            else if ($scope.data.source === "I2C") {
+                                set_xxx_device_properties("i2c");
+                            }
+                            else if ($scope.data.source === "TPROBE") {
+                                set_xxx_device_properties("tprobe");
+                            }
+                            else if ($scope.data.source === "1WIRE") {
+                                set_xxx_device_properties("1wire");
+                            }
+                        }
+                    }
+                ]            
+            });
+        }
+    };
+
+
+
+    get_devices = function(flag) {
+        
+        param = {
+            'username': $scope.data.username,
+            'token': $scope.data.token     
+        };
+        
+        // Fetch devices
+        Devices.fetch(param, "").then(function(res) {
+            $scope.devices = res;
+            
+            let indexy = 0;
+            for (indexy=0; indexy<$scope.devices.length; indexy++) {
+                $scope.devices[indexy].id = indexy;
+            }
+            
+            console.log($scope.devices);
+            $scope.data.token = User.get_token();
+            
+            if (flag) {
+                if ($scope.data.source === "LDSU") {
+                    get_xxx_device_properties($scope.data.sensor.source);
+                }
+                else if ($scope.data.source === "I2C") {
+                    get_xxx_device_properties("i2c");
+                }
+                else if ($scope.data.source === "ADC") {
+                    get_xxx_device_properties("adc");
+                }
+                else if ($scope.data.source === "TPROBE") {
+                    get_xxx_device_properties("tprobe");
+                }
+                else if ($scope.data.source === "1WIRE") {
+                    get_xxx_device_properties("1wire");
+                }
+            }
+        });
+    };
+
+    // VIEW I2C DEVICE
+    $scope.viewXXXDevice = function() {
+        var device_param = {
+            'username': $scope.data.username,
+            'token': $scope.data.token,
+            'devicename': $scope.data.devicename,
+            'devicestatus': $scope.data.devicestatus,
+            'deviceid': $scope.data.deviceid,
+            'serialnumber': $scope.data.serialnumber,
+    
+            'location': $scope.data.location,
+            'activeSection': $scope.data.activeSection,
+            'sensors': $scope.data.sensors,
+    
+            'sensor': $scope.data.sensor,
+            'source': $scope.data.source,
+
+            'multiclass': $scope.data.multiclass,             
+        };
+        if ($scope.data.source === "LDSU") {
+            console.log("viewLDSUDevice");
+            $state.go('viewLDSUDevice', device_param);
+        }
+        else if ($scope.data.source === "I2C") {
+            console.log("viewI2CDevice");
+            $state.go('viewI2CDevice', device_param);
+        }
+        else if ($scope.data.source === "ADC") {
+            console.log("viewADCDevice");
+            $state.go('viewADCDevice', device_param);
+        }
+        else if ($scope.data.source === "TPROBE") {
+            console.log("viewTPROBEDevice");
+            $state.go('viewTPROBEDevice', device_param);
+        }
+        else if ($scope.data.source === "1WIRE") {
+            console.log("view1WIREDevice");
+            $state.go('view1WIREDevice', device_param);
+        }
+    };
+
+    // EXIT PAGE
+    $scope.submitDeviceList = function() {
+        console.log("submitDeviceList");
+        var device_param = {
+            'username': $scope.data.username,
+            'token': $scope.data.token,
+            'devicename': $scope.data.devicename,
+            'devicestatus': $scope.data.devicestatus,
+            'deviceid': $scope.data.deviceid,
+            'serialnumber': $scope.data.serialnumber,
+        };
+        
+        if ($scope.data.sensor.subclass !== undefined) {
+            device_param.sensor = $scope.data.sensor;
+            device_param.source = $scope.data.source;
+            device_param.multiclass = $scope.data.multiclass;
+            $state.go('multiclass', device_param);
+        }
+        else {
+            if ($scope.data.source === "LDSU") {
+                device_param.location = $scope.data.location;
+                device_param.activeSection = $scope.data.activeSection;
+                device_param.sensors = $scope.data.sensors;
+                $state.go('sensors', device_param);
+            }
+            else if ($scope.data.source === "I2C") {
+               $state.go('deviceI2C', device_param);
+            }
+            else if ($scope.data.source === "ADC") {
+               $state.go('deviceADC', device_param);
+            }
+            else if ($scope.data.source === "TPROBE") {
+               $state.go('deviceTPROBE', device_param);
+            }
+            else if ($scope.data.source === "1WIRE") {
+               $state.go('device1WIRE', device_param);
+            }
+        }
+    };
+    
+    $scope.changeMode = function() {
+        console.log("changeMode");
+        get_devices(false);    
+    };    
+    
+    $scope.changeOpmode = function() {
+        console.log("changeOpmode " + $scope.data.attributes.opmode);
+    };
+    
+    $scope.submitRefresh();  
+}])
+   
+.controller('motionDetectionCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', 'Devices', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+// You can include any angular dependencies as parameters for this function
+// TIP: Access Route Parameters for your page via $stateParams.parameterName
+function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token, Devices) {
+
+    var server = Server.rest_api;
+
+    $scope.classname = "motion detection";
+
+    $scope.modes = [
+        { "id":0,  "label": "Single Threshold"  },
+        { "id":1,  "label": "Dual Threshold"  },
+        { "id":2,  "label": "Continuous" },
+    ];
+
+    $scope.activates = [
+        { "id":0,  "label": "Out of range" },
+        { "id":1,  "label": "Within range" },
+    ];
+    
+    $scope.alerts = [
+        { "id":0,  "label": "Once"         },
+        { "id":1,  "label": "Continuously" },
+    ];    
+    
+    $scope.devices = [ {"id":0, "devicename": ""} ];
+    
+    $scope.data = {
+        'username': User.get_username(),
+        'token': User.get_token(),
+        'devicename': $stateParams.devicename,
+        'devicestatus': $stateParams.devicestatus,
+        'deviceid': $stateParams.deviceid,
+        'serialnumber': $stateParams.serialnumber,
+
+        'location': $stateParams.location,
+        'activeSection': $stateParams.activeSection,
+        'sensors': $stateParams.sensors,        
+        
+        'sensor': $stateParams.sensor,
+        'source': $stateParams.source,
+        'hardware_devicename': $scope.devices[0].id,
+        
+        'attributes': {
+            'opmode': 0,
+            'mode': $scope.modes[0].id,
+            'threshold': {
+                'value': parseInt($stateParams.sensor.minmax[1], 10),
+                'min': parseInt($stateParams.sensor.minmax[0], 10),
+                'max': parseInt($stateParams.sensor.minmax[1], 10),
+                'activate': $scope.activates[0].id,
+            },
+            'alert': {
+                'type': $scope.alerts[0].id,
+                'period': 60000,
+            },
+            'hardware': {
+                'devicename': '',  
+            },
+            
+            'notification': {
+                'messages': [ 
+                    { 
+                        'message': 'Hello World!', 
+                        'enable': true 
+                    },
+                    { 
+                        'message': 'Hi World!', 
+                        'enable': false 
+                    },
+                ],
+                'endpoints' : {
+                    'mobile': {
+                        'enable': false,
+                        'recipients': '',
+                    },
+                    'email': {
+                        'enable': false,
+                        'recipients': '',
+                    },
+                    'notification': {
+                        'enable': false,
+                        'recipients': '',
+                    },
+                    'modem': {
+                        'enable': false,
+                        'recipients': '',
+                    },
+                    'storage': {
+                        'enable': false,
+                        'recipients': '',
+                    },
+                }
+            }
+        },
+        
+        'showNotification': 0,  
+        
+        // support for multiclasses
+        //'multiclass_attributes': $stateParams.multiclass_attributes,
+        //'multiclass_subattributes': $stateParams.multiclass_subattributes,
+        'multiclass': $stateParams.multiclass
+    };
+
+    handle_error = function(error, showerror) {
+        if (error.data !== null) {
+            console.log("ERROR: " + $scope.classname + " failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
+
+            if (error.data.message === "Token expired") {
+                Token.refresh({'username': $scope.data.username, 'token': $scope.data.token});
+                $scope.data.token = User.get_token();
+            }
+            
+            if (error.status == 503 && showerror === true ) {
+                $ionicPopup.alert({ title: 'Error', template: 'Device is unreachable!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+            }            
+            else if (error.status === 401) {
+                $ionicPopup.alert({ title: 'Error', template: error.data.message, buttons: [{text: 'OK', type: 'button-assertive'}] });
+            }
+        }
+        else {
+            console.log("ERROR: Server is down!"); 
+            $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+        }
+    };
+
+    $scope.changeNotification = function(i) {
+        $scope.data.showNotification = i;
+        if (i===true) {
+            get_devices(false);    
+        }    
+    };
+    
+    
+    $scope.submitRefresh = function() {
+        console.log("submitRefresh");
+        console.log($scope.data.attributes);
+        get_devices(true); 
+    };
+
+    get_xxx_device_properties = function(peripheral) {
+        //
+        // GET xxx DEVICE PROPERTIES
+        //
+        // - Request:
+        //   GET /devices/device/<devicename>/<peripheral>/<number>/sensors/sensor/<sensorname>/properties
+        //   headers: { 'Authorization': 'Bearer ' + token.access }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string }
+        //   { 'status': 'NG', 'message': string }        
+        //
+        $http({
+            method: 'GET',
+            url: server + '/devices/device/' + $scope.data.devicename + '/' + peripheral + '/' + $scope.data.sensor.number.toString() + '/sensors/sensor/' + $scope.data.sensor.sensorname + '/properties',
+            headers: { 'Authorization': 'Bearer ' + $scope.data.token.access },
+        })
+        .then(function (result) {
+            console.log(result.data);
+            if (result.data.value !== undefined) {
+                if (result.data.value.subattributes === undefined) {
+                    if (result.data.value.threshold !== undefined) {
+                        $scope.data.attributes = result.data.value;
+                        
+                        $scope.data.hardware_devicename = 0;
+                        let indexy = 0;
+
+                        if ($scope.data.attributes.mode != 2) {
+                            // SINGLE/DUAL THRESHOLD modes - use notification.endpoints.modem.recipients
+                            for (indexy=0; indexy<$scope.devices.length; indexy++) {
+                                if ($scope.devices[indexy].devicename === $scope.data.attributes.notification.endpoints.modem.recipients) {
+                                    $scope.data.hardware_devicename = indexy;
+                                    break;
+                                }
+                            }
+                        }
+                        else {
+                            // CONTINUOUS mode - use hardware.devicename
+                            for (indexy=0; indexy<$scope.devices.length; indexy++) {
+                                if ($scope.devices[indexy].devicename === $scope.data.attributes.hardware.devicename) {
+                                    $scope.data.hardware_devicename = indexy;
+                                    break;
+                                }
+                            }
+                            $scope.data.attributes.alert.type = 1; // always be continuous
+                        }                        
+                    }
+                    else {
+                        $scope.data.attributes.notification = result.data.value.notification;
+                    }
+                }
+                /*
+                else {
+                    if (result.data.value.subattributes.threshold !== undefined) {
+                        $scope.data.attributes = result.data.value.subattributes;
+                        
+                        $scope.data.hardware_devicename = 0;
+                        let indexy = 0;
+                        
+                        if ($scope.data.attributes.mode != 2) {
+                            // SINGLE/DUAL THRESHOLD modes - use notification.endpoints.modem.recipients
+                            for (indexy=0; indexy<$scope.devices.length; indexy++) {
+                                if ($scope.devices[indexy].devicename === $scope.data.attributes.notification.endpoints.modem.recipients) {
+                                    $scope.data.hardware_devicename = indexy;
+                                    break;
+                                }
+                            }
+                        }
+                        else {
+                            // CONTINUOUS mode - use hardware.devicename
+                            for (indexy=0; indexy<$scope.devices.length; indexy++) {
+                                if ($scope.devices[indexy].devicename === $scope.data.attributes.hardware.devicename) {
+                                    $scope.data.hardware_devicename = indexy;
+                                    break;
+                                }
+                            }
+                            $scope.data.attributes.alert.type = 1; // always be continuous
+                        }                        
+                    }
+                    else {
+                        $scope.data.attributes.notification = result.data.value.subattributes.notification;
+                    }
+                    
+                    if ($scope.data.sensor.class === "vOCGas") {
+                        $scope.data.multiclass.attributes = $scope.data.attributes;
+                    }
+                    else if ($scope.data.sensor.subclass === "vOCGas") {
+                        $scope.data.multiclass.subattributes = $scope.data.attributes;
+                    }
+                }
+                */
+            }
+        })
+        .catch(function (error) {
+            handle_error(error, true);
+        }); 
+    };
+
+    set_xxx_device_properties = function(peripheral) {
+        //
+        // SET XXX DEVICE PROPERTIES
+        //
+        // - Request:
+        //   POST /devices/device/<devicename>/i2c/<number>/sensors/sensor/<sensorname>/properties
+        //   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
+        //   data: 
+        //   { 
+        //   }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string }
+        //   { 'status': 'NG', 'message': string }        
+        //
+        $http({
+            method: 'POST',
+            url: server + '/devices/device/' + $scope.data.devicename + '/' + peripheral + '/' + $scope.data.sensor.number.toString() + '/sensors/sensor/' + $scope.data.sensor.sensorname + '/properties',
+            headers: { 'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json' },
+            data: $scope.data.attributes
+        })
+        .then(function (result) {
+            console.log(result.data);
+            $ionicPopup.alert({
+                title: peripheral.toUpperCase() + ' device',
+                template: $scope.data.sensor.sensorname + ' was configured successfully!',
+            });            
+        })
+        .catch(function (error) {
+            handle_error(error, true);
+        }); 
+    };
+    
+    
+    
+    $scope.submitDelete = function() {
+        console.log("submitDelete");
+        $scope.delete_xxx_device_properties($scope.data.sensor.source);
+    };
+    
+    $scope.delete_xxx_device_properties = function(peripheral) {
+        //
+        // DELETE XXX DEVICE PROPERTIES
+        //
+        // - Request:
+        //   DELETE /devices/device/<devicename>/i2c/<number>/sensors/sensor/<sensorname>/properties
+        //   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
+        //   data: 
+        //   { 
+        //   }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string }
+        //   { 'status': 'NG', 'message': string }        
+        //
+        $http({
+            method: 'DELETE',
+            url: server + '/devices/device/' + $scope.data.devicename + '/' + peripheral + '/' + $scope.data.sensor.number.toString() + '/sensors/sensor/' + $scope.data.sensor.sensorname + '/properties',
+            headers: { 'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json' },
+            data: $scope.data.attributes
+        })
+        .then(function (result) {
+            console.log(result.data);
+            $ionicPopup.alert({
+                title: peripheral.toUpperCase() + ' device',
+                template: $scope.data.sensor.sensorname + ' configuration was deleted successfully!',
+            });            
+            get_xxx_device_properties(peripheral);
+        })
+        .catch(function (error) {
+            handle_error(error, true);
+        }); 
+    };
+    
+    $scope.submit = function() {
+        console.log("submit");
+        console.log($scope.data.attributes);
+        if ($scope.data.hardware_devicename >= $scope.devices.length) {
+            return;
+        }
+        if ($scope.data.attributes.mode!=2) {
+            // SINGLE/DUAL THRESHOLD modes
+            $scope.data.attributes.notification.endpoints.modem.recipients = $scope.devices[$scope.data.hardware_devicename].devicename;
+        }
+        else {
+            // CONTINUOUS mode
+            $scope.data.attributes.hardware.devicename = $scope.devices[$scope.data.hardware_devicename].devicename;
+        }
+        
+        
+        if ($scope.data.sensor.subclass !== undefined) {
+            var classname = $scope.classname;
+            
+            // support for multiclasses
+            var param = {
+                'username': $scope.data.username,
+                'token': $scope.data.token,
+                'devicename': $scope.data.devicename,
+                'devicestatus': $scope.data.devicestatus,
+                'deviceid': $scope.data.deviceid,
+                'serialnumber': $scope.data.serialnumber,
+                'sensor': $scope.data.sensor,
+                'source': $scope.data.source,
+                'multiclass': $scope.data.multiclass,             
+            };
+
+            if ($scope.data.sensor.class === classname) {
+                param.multiclass.attributes = $scope.data.attributes;
+            }
+            else if ($scope.data.sensor.subclass === classname) {
+                param.multiclass.subattributes = $scope.data.attributes;
+            }
+            $state.go('multiclass', param, {reload: true});
+        }
+        else {
+            
+            // Add prompt when setting properties
+            $ionicPopup.alert({ title: 'Set Properties', template: 'Are you sure you want to set this properties?',
+                buttons: [
+                    { text: 'No', type: 'button-assertive', },
+                    { text: 'Yes', type: 'button-positive',
+                        onTap: function(e) {
+                            
+                            if ($scope.data.source === "LDSU") {
+                                set_xxx_device_properties($scope.data.sensor.source);
+                            }
+                            else if ($scope.data.source === "I2C") {
+                                set_xxx_device_properties("i2c");
+                            }
+                            else if ($scope.data.source === "TPROBE") {
+                                set_xxx_device_properties("tprobe");
+                            }
+                            else if ($scope.data.source === "1WIRE") {
+                                set_xxx_device_properties("1wire");
+                            }
+                        }
+                    }
+                ]            
+            });
+        }
+    };
+
+
+
+    get_devices = function(flag) {
+        
+        param = {
+            'username': $scope.data.username,
+            'token': $scope.data.token     
+        };
+        
+        // Fetch devices
+        Devices.fetch(param, "").then(function(res) {
+            $scope.devices = res;
+            
+            let indexy = 0;
+            for (indexy=0; indexy<$scope.devices.length; indexy++) {
+                $scope.devices[indexy].id = indexy;
+            }
+            
+            console.log($scope.devices);
+            $scope.data.token = User.get_token();
+            
+            if (flag) {
+                if ($scope.data.source === "LDSU") {
+                    get_xxx_device_properties($scope.data.sensor.source);
+                }
+                else if ($scope.data.source === "I2C") {
+                    get_xxx_device_properties("i2c");
+                }
+                else if ($scope.data.source === "ADC") {
+                    get_xxx_device_properties("adc");
+                }
+                else if ($scope.data.source === "TPROBE") {
+                    get_xxx_device_properties("tprobe");
+                }
+                else if ($scope.data.source === "1WIRE") {
+                    get_xxx_device_properties("1wire");
+                }
+            }
+        });
+    };
+
+    // VIEW I2C DEVICE
+    $scope.viewXXXDevice = function() {
+        var device_param = {
+            'username': $scope.data.username,
+            'token': $scope.data.token,
+            'devicename': $scope.data.devicename,
+            'devicestatus': $scope.data.devicestatus,
+            'deviceid': $scope.data.deviceid,
+            'serialnumber': $scope.data.serialnumber,
+    
+            'location': $scope.data.location,
+            'activeSection': $scope.data.activeSection,
+            'sensors': $scope.data.sensors,
+    
+            'sensor': $scope.data.sensor,
+            'source': $scope.data.source,
+
+            'multiclass': $scope.data.multiclass,             
+        };
+        if ($scope.data.source === "LDSU") {
+            console.log("viewLDSUDevice");
+            $state.go('viewLDSUDevice', device_param);
+        }
+        else if ($scope.data.source === "I2C") {
+            console.log("viewI2CDevice");
+            $state.go('viewI2CDevice', device_param);
+        }
+        else if ($scope.data.source === "ADC") {
+            console.log("viewADCDevice");
+            $state.go('viewADCDevice', device_param);
+        }
+        else if ($scope.data.source === "TPROBE") {
+            console.log("viewTPROBEDevice");
+            $state.go('viewTPROBEDevice', device_param);
+        }
+        else if ($scope.data.source === "1WIRE") {
+            console.log("view1WIREDevice");
+            $state.go('view1WIREDevice', device_param);
+        }
+    };
+
+    // EXIT PAGE
+    $scope.submitDeviceList = function() {
+        console.log("submitDeviceList");
+        var device_param = {
+            'username': $scope.data.username,
+            'token': $scope.data.token,
+            'devicename': $scope.data.devicename,
+            'devicestatus': $scope.data.devicestatus,
+            'deviceid': $scope.data.deviceid,
+            'serialnumber': $scope.data.serialnumber,
+        };
+        
+        if ($scope.data.sensor.subclass !== undefined) {
+            device_param.sensor = $scope.data.sensor;
+            device_param.source = $scope.data.source;
+            device_param.multiclass = $scope.data.multiclass;
+            $state.go('multiclass', device_param);
+        }
+        else {
+            if ($scope.data.source === "LDSU") {
+                device_param.location = $scope.data.location;
+                device_param.activeSection = $scope.data.activeSection;
+                device_param.sensors = $scope.data.sensors;
+                $state.go('sensors', device_param);
+            }
+            else if ($scope.data.source === "I2C") {
+               $state.go('deviceI2C', device_param);
+            }
+            else if ($scope.data.source === "ADC") {
+               $state.go('deviceADC', device_param);
+            }
+            else if ($scope.data.source === "TPROBE") {
+               $state.go('deviceTPROBE', device_param);
+            }
+            else if ($scope.data.source === "1WIRE") {
+               $state.go('device1WIRE', device_param);
+            }
+        }
+    };
+    
+    $scope.changeMode = function() {
+        console.log("changeMode");
+        get_devices(false);    
+    };    
+    
+    $scope.changeOpmode = function() {
+        console.log("changeOpmode " + $scope.data.attributes.opmode);
+    };
+    
+    $scope.submitRefresh();  
+}])
+   
+.controller('cO2GasCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', 'Devices', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+// You can include any angular dependencies as parameters for this function
+// TIP: Access Route Parameters for your page via $stateParams.parameterName
+function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token, Devices) {
+
+    var server = Server.rest_api;
+
+    $scope.classname = "co2 gas";
+
+    $scope.modes = [
+        { "id":0,  "label": "Single Threshold"  },
+        { "id":1,  "label": "Dual Threshold"  },
+        { "id":2,  "label": "Continuous" },
+    ];
+
+    $scope.activates = [
+        { "id":0,  "label": "Out of range" },
+        { "id":1,  "label": "Within range" },
+    ];
+    
+    $scope.alerts = [
+        { "id":0,  "label": "Once"         },
+        { "id":1,  "label": "Continuously" },
+    ];    
+    
+    $scope.devices = [ {"id":0, "devicename": ""} ];
+    
+    $scope.data = {
+        'username': User.get_username(),
+        'token': User.get_token(),
+        'devicename': $stateParams.devicename,
+        'devicestatus': $stateParams.devicestatus,
+        'deviceid': $stateParams.deviceid,
+        'serialnumber': $stateParams.serialnumber,
+
+        'location': $stateParams.location,
+        'activeSection': $stateParams.activeSection,
+        'sensors': $stateParams.sensors,        
+        
+        'sensor': $stateParams.sensor,
+        'source': $stateParams.source,
+        'hardware_devicename': $scope.devices[0].id,
+        
+        'attributes': {
+            'opmode': 0,
+            'mode': $scope.modes[0].id,
+            'threshold': {
+                'value': parseInt($stateParams.sensor.minmax[1], 10),
+                'min': parseInt($stateParams.sensor.minmax[0], 10),
+                'max': parseInt($stateParams.sensor.minmax[1], 10),
+                'activate': $scope.activates[0].id,
+            },
+            'alert': {
+                'type': $scope.alerts[0].id,
+                'period': 60000,
+            },
+            'hardware': {
+                'devicename': '',  
+            },
+            
+            'notification': {
+                'messages': [ 
+                    { 
+                        'message': 'Hello World!', 
+                        'enable': true 
+                    },
+                    { 
+                        'message': 'Hi World!', 
+                        'enable': false 
+                    },
+                ],
+                'endpoints' : {
+                    'mobile': {
+                        'enable': false,
+                        'recipients': '',
+                    },
+                    'email': {
+                        'enable': false,
+                        'recipients': '',
+                    },
+                    'notification': {
+                        'enable': false,
+                        'recipients': '',
+                    },
+                    'modem': {
+                        'enable': false,
+                        'recipients': '',
+                    },
+                    'storage': {
+                        'enable': false,
+                        'recipients': '',
+                    },
+                }
+            }
+        },
+        
+        'showNotification': 0,  
+        
+        // support for multiclasses
+        //'multiclass_attributes': $stateParams.multiclass_attributes,
+        //'multiclass_subattributes': $stateParams.multiclass_subattributes,
+        'multiclass': $stateParams.multiclass
+    };
+
+    handle_error = function(error, showerror) {
+        if (error.data !== null) {
+            console.log("ERROR: " + $scope.classname + " failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
+
+            if (error.data.message === "Token expired") {
+                Token.refresh({'username': $scope.data.username, 'token': $scope.data.token});
+                $scope.data.token = User.get_token();
+            }
+            
+            if (error.status == 503 && showerror === true ) {
+                $ionicPopup.alert({ title: 'Error', template: 'Device is unreachable!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+            }            
+            else if (error.status === 401) {
+                $ionicPopup.alert({ title: 'Error', template: error.data.message, buttons: [{text: 'OK', type: 'button-assertive'}] });
+            }
+        }
+        else {
+            console.log("ERROR: Server is down!"); 
+            $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+        }
+    };
+
+    $scope.changeNotification = function(i) {
+        $scope.data.showNotification = i;
+        if (i===true) {
+            get_devices(false);    
+        }    
+    };
+    
+    
+    $scope.submitRefresh = function() {
+        console.log("submitRefresh");
+        console.log($scope.data.attributes);
+        get_devices(true); 
+    };
+
+    get_xxx_device_properties = function(peripheral) {
+        //
+        // GET xxx DEVICE PROPERTIES
+        //
+        // - Request:
+        //   GET /devices/device/<devicename>/<peripheral>/<number>/sensors/sensor/<sensorname>/properties
+        //   headers: { 'Authorization': 'Bearer ' + token.access }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string }
+        //   { 'status': 'NG', 'message': string }        
+        //
+        $http({
+            method: 'GET',
+            url: server + '/devices/device/' + $scope.data.devicename + '/' + peripheral + '/' + $scope.data.sensor.number.toString() + '/sensors/sensor/' + $scope.data.sensor.sensorname + '/properties',
+            headers: { 'Authorization': 'Bearer ' + $scope.data.token.access },
+        })
+        .then(function (result) {
+            console.log(result.data);
+            if (result.data.value !== undefined) {
+                if (result.data.value.subattributes === undefined) {
+                    if (result.data.value.threshold !== undefined) {
+                        $scope.data.attributes = result.data.value;
+                        
+                        $scope.data.hardware_devicename = 0;
+                        let indexy = 0;
+
+                        if ($scope.data.attributes.mode != 2) {
+                            // SINGLE/DUAL THRESHOLD modes - use notification.endpoints.modem.recipients
+                            for (indexy=0; indexy<$scope.devices.length; indexy++) {
+                                if ($scope.devices[indexy].devicename === $scope.data.attributes.notification.endpoints.modem.recipients) {
+                                    $scope.data.hardware_devicename = indexy;
+                                    break;
+                                }
+                            }
+                        }
+                        else {
+                            // CONTINUOUS mode - use hardware.devicename
+                            for (indexy=0; indexy<$scope.devices.length; indexy++) {
+                                if ($scope.devices[indexy].devicename === $scope.data.attributes.hardware.devicename) {
+                                    $scope.data.hardware_devicename = indexy;
+                                    break;
+                                }
+                            }
+                            $scope.data.attributes.alert.type = 1; // always be continuous
+                        }                        
+                    }
+                    else {
+                        $scope.data.attributes.notification = result.data.value.notification;
+                    }
+                }
+                /*
+                else {
+                    if (result.data.value.subattributes.threshold !== undefined) {
+                        $scope.data.attributes = result.data.value.subattributes;
+                        
+                        $scope.data.hardware_devicename = 0;
+                        let indexy = 0;
+                        
+                        if ($scope.data.attributes.mode != 2) {
+                            // SINGLE/DUAL THRESHOLD modes - use notification.endpoints.modem.recipients
+                            for (indexy=0; indexy<$scope.devices.length; indexy++) {
+                                if ($scope.devices[indexy].devicename === $scope.data.attributes.notification.endpoints.modem.recipients) {
+                                    $scope.data.hardware_devicename = indexy;
+                                    break;
+                                }
+                            }
+                        }
+                        else {
+                            // CONTINUOUS mode - use hardware.devicename
+                            for (indexy=0; indexy<$scope.devices.length; indexy++) {
+                                if ($scope.devices[indexy].devicename === $scope.data.attributes.hardware.devicename) {
+                                    $scope.data.hardware_devicename = indexy;
+                                    break;
+                                }
+                            }
+                            $scope.data.attributes.alert.type = 1; // always be continuous
+                        }                        
+                    }
+                    else {
+                        $scope.data.attributes.notification = result.data.value.subattributes.notification;
+                    }
+                    
+                    if ($scope.data.sensor.class === "vOCGas") {
+                        $scope.data.multiclass.attributes = $scope.data.attributes;
+                    }
+                    else if ($scope.data.sensor.subclass === "vOCGas") {
+                        $scope.data.multiclass.subattributes = $scope.data.attributes;
+                    }
+                }
+                */
+            }
+        })
+        .catch(function (error) {
+            handle_error(error, true);
+        }); 
+    };
+
+    set_xxx_device_properties = function(peripheral) {
+        //
+        // SET XXX DEVICE PROPERTIES
+        //
+        // - Request:
+        //   POST /devices/device/<devicename>/i2c/<number>/sensors/sensor/<sensorname>/properties
+        //   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
+        //   data: 
+        //   { 
+        //   }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string }
+        //   { 'status': 'NG', 'message': string }        
+        //
+        $http({
+            method: 'POST',
+            url: server + '/devices/device/' + $scope.data.devicename + '/' + peripheral + '/' + $scope.data.sensor.number.toString() + '/sensors/sensor/' + $scope.data.sensor.sensorname + '/properties',
+            headers: { 'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json' },
+            data: $scope.data.attributes
+        })
+        .then(function (result) {
+            console.log(result.data);
+            $ionicPopup.alert({
+                title: peripheral.toUpperCase() + ' device',
+                template: $scope.data.sensor.sensorname + ' was configured successfully!',
+            });            
+        })
+        .catch(function (error) {
+            handle_error(error, true);
+        }); 
+    };
+    
+    
+    
+    $scope.submitDelete = function() {
+        console.log("submitDelete");
+        $scope.delete_xxx_device_properties($scope.data.sensor.source);
+    };
+    
+    $scope.delete_xxx_device_properties = function(peripheral) {
+        //
+        // DELETE XXX DEVICE PROPERTIES
+        //
+        // - Request:
+        //   DELETE /devices/device/<devicename>/i2c/<number>/sensors/sensor/<sensorname>/properties
+        //   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
+        //   data: 
+        //   { 
+        //   }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string }
+        //   { 'status': 'NG', 'message': string }        
+        //
+        $http({
+            method: 'DELETE',
+            url: server + '/devices/device/' + $scope.data.devicename + '/' + peripheral + '/' + $scope.data.sensor.number.toString() + '/sensors/sensor/' + $scope.data.sensor.sensorname + '/properties',
+            headers: { 'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json' },
+            data: $scope.data.attributes
+        })
+        .then(function (result) {
+            console.log(result.data);
+            $ionicPopup.alert({
+                title: peripheral.toUpperCase() + ' device',
+                template: $scope.data.sensor.sensorname + ' configuration was deleted successfully!',
+            });            
+            get_xxx_device_properties(peripheral);
+        })
+        .catch(function (error) {
+            handle_error(error, true);
+        }); 
+    };
+    
+    $scope.submit = function() {
+        console.log("submit");
+        console.log($scope.data.attributes);
+        if ($scope.data.hardware_devicename >= $scope.devices.length) {
+            return;
+        }
+        if ($scope.data.attributes.mode!=2) {
+            // SINGLE/DUAL THRESHOLD modes
+            $scope.data.attributes.notification.endpoints.modem.recipients = $scope.devices[$scope.data.hardware_devicename].devicename;
+        }
+        else {
+            // CONTINUOUS mode
+            $scope.data.attributes.hardware.devicename = $scope.devices[$scope.data.hardware_devicename].devicename;
+        }
+        
+        
+        if ($scope.data.sensor.subclass !== undefined) {
+            var classname = $scope.classname;
+            
+            // support for multiclasses
+            var param = {
+                'username': $scope.data.username,
+                'token': $scope.data.token,
+                'devicename': $scope.data.devicename,
+                'devicestatus': $scope.data.devicestatus,
+                'deviceid': $scope.data.deviceid,
+                'serialnumber': $scope.data.serialnumber,
+                'sensor': $scope.data.sensor,
+                'source': $scope.data.source,
+                'multiclass': $scope.data.multiclass,             
+            };
+
+            if ($scope.data.sensor.class === classname) {
+                param.multiclass.attributes = $scope.data.attributes;
+            }
+            else if ($scope.data.sensor.subclass === classname) {
+                param.multiclass.subattributes = $scope.data.attributes;
+            }
+            $state.go('multiclass', param, {reload: true});
+        }
+        else {
+            
+            // Add prompt when setting properties
+            $ionicPopup.alert({ title: 'Set Properties', template: 'Are you sure you want to set this properties?',
+                buttons: [
+                    { text: 'No', type: 'button-assertive', },
+                    { text: 'Yes', type: 'button-positive',
+                        onTap: function(e) {
+                            
+                            if ($scope.data.source === "LDSU") {
+                                set_xxx_device_properties($scope.data.sensor.source);
+                            }
+                            else if ($scope.data.source === "I2C") {
+                                set_xxx_device_properties("i2c");
+                            }
+                            else if ($scope.data.source === "TPROBE") {
+                                set_xxx_device_properties("tprobe");
+                            }
+                            else if ($scope.data.source === "1WIRE") {
+                                set_xxx_device_properties("1wire");
+                            }
+                        }
+                    }
+                ]            
+            });
+        }
+    };
+
+
+
+    get_devices = function(flag) {
+        
+        param = {
+            'username': $scope.data.username,
+            'token': $scope.data.token     
+        };
+        
+        // Fetch devices
+        Devices.fetch(param, "").then(function(res) {
+            $scope.devices = res;
+            
+            let indexy = 0;
+            for (indexy=0; indexy<$scope.devices.length; indexy++) {
+                $scope.devices[indexy].id = indexy;
+            }
+            
+            console.log($scope.devices);
+            $scope.data.token = User.get_token();
+            
+            if (flag) {
+                if ($scope.data.source === "LDSU") {
+                    get_xxx_device_properties($scope.data.sensor.source);
+                }
+                else if ($scope.data.source === "I2C") {
+                    get_xxx_device_properties("i2c");
+                }
+                else if ($scope.data.source === "ADC") {
+                    get_xxx_device_properties("adc");
+                }
+                else if ($scope.data.source === "TPROBE") {
+                    get_xxx_device_properties("tprobe");
+                }
+                else if ($scope.data.source === "1WIRE") {
+                    get_xxx_device_properties("1wire");
+                }
+            }
+        });
+    };
+
+    // VIEW I2C DEVICE
+    $scope.viewXXXDevice = function() {
+        var device_param = {
+            'username': $scope.data.username,
+            'token': $scope.data.token,
+            'devicename': $scope.data.devicename,
+            'devicestatus': $scope.data.devicestatus,
+            'deviceid': $scope.data.deviceid,
+            'serialnumber': $scope.data.serialnumber,
+    
+            'location': $scope.data.location,
+            'activeSection': $scope.data.activeSection,
+            'sensors': $scope.data.sensors,
+    
+            'sensor': $scope.data.sensor,
+            'source': $scope.data.source,
+
+            'multiclass': $scope.data.multiclass,             
+        };
+        if ($scope.data.source === "LDSU") {
+            console.log("viewLDSUDevice");
+            $state.go('viewLDSUDevice', device_param);
+        }
+        else if ($scope.data.source === "I2C") {
+            console.log("viewI2CDevice");
+            $state.go('viewI2CDevice', device_param);
+        }
+        else if ($scope.data.source === "ADC") {
+            console.log("viewADCDevice");
+            $state.go('viewADCDevice', device_param);
+        }
+        else if ($scope.data.source === "TPROBE") {
+            console.log("viewTPROBEDevice");
+            $state.go('viewTPROBEDevice', device_param);
+        }
+        else if ($scope.data.source === "1WIRE") {
+            console.log("view1WIREDevice");
+            $state.go('view1WIREDevice', device_param);
+        }
+    };
+
+    // EXIT PAGE
+    $scope.submitDeviceList = function() {
+        console.log("submitDeviceList");
+        var device_param = {
+            'username': $scope.data.username,
+            'token': $scope.data.token,
+            'devicename': $scope.data.devicename,
+            'devicestatus': $scope.data.devicestatus,
+            'deviceid': $scope.data.deviceid,
+            'serialnumber': $scope.data.serialnumber,
+        };
+        
+        if ($scope.data.sensor.subclass !== undefined) {
+            device_param.sensor = $scope.data.sensor;
+            device_param.source = $scope.data.source;
+            device_param.multiclass = $scope.data.multiclass;
+            $state.go('multiclass', device_param);
+        }
+        else {
+            if ($scope.data.source === "LDSU") {
+                device_param.location = $scope.data.location;
+                device_param.activeSection = $scope.data.activeSection;
+                device_param.sensors = $scope.data.sensors;
+                $state.go('sensors', device_param);
+            }
+            else if ($scope.data.source === "I2C") {
+               $state.go('deviceI2C', device_param);
+            }
+            else if ($scope.data.source === "ADC") {
+               $state.go('deviceADC', device_param);
+            }
+            else if ($scope.data.source === "TPROBE") {
+               $state.go('deviceTPROBE', device_param);
+            }
+            else if ($scope.data.source === "1WIRE") {
+               $state.go('device1WIRE', device_param);
+            }
+        }
+    };
+    
+    $scope.changeMode = function() {
+        console.log("changeMode");
+        get_devices(false);    
+    };    
+    
+    $scope.changeOpmode = function() {
+        console.log("changeOpmode " + $scope.data.attributes.opmode);
+    };
+    
+    $scope.submitRefresh();  
+}])
+   
+.controller('vOCGasCtrl', ['$scope', '$stateParams', '$state', '$http', '$ionicPopup', 'Server', 'User', 'Token', 'Devices', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+// You can include any angular dependencies as parameters for this function
+// TIP: Access Route Parameters for your page via $stateParams.parameterName
+function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token, Devices) {
+
+    var server = Server.rest_api;
+
+    $scope.classname = "voc gas";
+
+    $scope.modes = [
+        { "id":0,  "label": "Single Threshold"  },
+        { "id":1,  "label": "Dual Threshold"  },
+        { "id":2,  "label": "Continuous" },
+    ];
+
+    $scope.activates = [
+        { "id":0,  "label": "Out of range" },
+        { "id":1,  "label": "Within range" },
+    ];
+    
+    $scope.alerts = [
+        { "id":0,  "label": "Once"         },
+        { "id":1,  "label": "Continuously" },
+    ];    
+    
+    $scope.devices = [ {"id":0, "devicename": ""} ];
+    
+    $scope.data = {
+        'username': User.get_username(),
+        'token': User.get_token(),
+        'devicename': $stateParams.devicename,
+        'devicestatus': $stateParams.devicestatus,
+        'deviceid': $stateParams.deviceid,
+        'serialnumber': $stateParams.serialnumber,
+
+        'location': $stateParams.location,
+        'activeSection': $stateParams.activeSection,
+        'sensors': $stateParams.sensors,        
+        
+        'sensor': $stateParams.sensor,
+        'source': $stateParams.source,
+        'hardware_devicename': $scope.devices[0].id,
+        
+        'attributes': {
+            'opmode': 0,
+            'mode': $scope.modes[0].id,
+            'threshold': {
+                'value': parseInt($stateParams.sensor.minmax[1], 10),
+                'min': parseInt($stateParams.sensor.minmax[0], 10),
+                'max': parseInt($stateParams.sensor.minmax[1], 10),
+                'activate': $scope.activates[0].id,
+            },
+            'alert': {
+                'type': $scope.alerts[0].id,
+                'period': 60000,
+            },
+            'hardware': {
+                'devicename': '',  
+            },
+            
+            'notification': {
+                'messages': [ 
+                    { 
+                        'message': 'Hello World!', 
+                        'enable': true 
+                    },
+                    { 
+                        'message': 'Hi World!', 
+                        'enable': false 
+                    },
+                ],
+                'endpoints' : {
+                    'mobile': {
+                        'enable': false,
+                        'recipients': '',
+                    },
+                    'email': {
+                        'enable': false,
+                        'recipients': '',
+                    },
+                    'notification': {
+                        'enable': false,
+                        'recipients': '',
+                    },
+                    'modem': {
+                        'enable': false,
+                        'recipients': '',
+                    },
+                    'storage': {
+                        'enable': false,
+                        'recipients': '',
+                    },
+                }
+            }
+        },
+        
+        'showNotification': 0,  
+        
+        // support for multiclasses
+        //'multiclass_attributes': $stateParams.multiclass_attributes,
+        //'multiclass_subattributes': $stateParams.multiclass_subattributes,
+        'multiclass': $stateParams.multiclass
+    };
+
+    handle_error = function(error, showerror) {
+        if (error.data !== null) {
+            console.log("ERROR: " + $scope.classname + " failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
+
+            if (error.data.message === "Token expired") {
+                Token.refresh({'username': $scope.data.username, 'token': $scope.data.token});
+                $scope.data.token = User.get_token();
+            }
+            
+            if (error.status == 503 && showerror === true ) {
+                $ionicPopup.alert({ title: 'Error', template: 'Device is unreachable!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+            }            
+            else if (error.status === 401) {
+                $ionicPopup.alert({ title: 'Error', template: error.data.message, buttons: [{text: 'OK', type: 'button-assertive'}] });
+            }
+        }
+        else {
+            console.log("ERROR: Server is down!"); 
+            $ionicPopup.alert({ title: 'Error', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+        }
+    };
+
+    $scope.changeNotification = function(i) {
+        $scope.data.showNotification = i;
+        if (i===true) {
+            get_devices(false);    
+        }    
+    };
+    
+    
+    $scope.submitRefresh = function() {
+        console.log("submitRefresh");
+        console.log($scope.data.attributes);
+        get_devices(true); 
+    };
+
+    get_xxx_device_properties = function(peripheral) {
+        //
+        // GET xxx DEVICE PROPERTIES
+        //
+        // - Request:
+        //   GET /devices/device/<devicename>/<peripheral>/<number>/sensors/sensor/<sensorname>/properties
+        //   headers: { 'Authorization': 'Bearer ' + token.access }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string }
+        //   { 'status': 'NG', 'message': string }        
+        //
+        $http({
+            method: 'GET',
+            url: server + '/devices/device/' + $scope.data.devicename + '/' + peripheral + '/' + $scope.data.sensor.number.toString() + '/sensors/sensor/' + $scope.data.sensor.sensorname + '/properties',
+            headers: { 'Authorization': 'Bearer ' + $scope.data.token.access },
+        })
+        .then(function (result) {
+            console.log(result.data);
+            if (result.data.value !== undefined) {
+                if (result.data.value.subattributes === undefined) {
+                    if (result.data.value.threshold !== undefined) {
+                        $scope.data.attributes = result.data.value;
+                        
+                        $scope.data.hardware_devicename = 0;
+                        let indexy = 0;
+
+                        if ($scope.data.attributes.mode != 2) {
+                            // SINGLE/DUAL THRESHOLD modes - use notification.endpoints.modem.recipients
+                            for (indexy=0; indexy<$scope.devices.length; indexy++) {
+                                if ($scope.devices[indexy].devicename === $scope.data.attributes.notification.endpoints.modem.recipients) {
+                                    $scope.data.hardware_devicename = indexy;
+                                    break;
+                                }
+                            }
+                        }
+                        else {
+                            // CONTINUOUS mode - use hardware.devicename
+                            for (indexy=0; indexy<$scope.devices.length; indexy++) {
+                                if ($scope.devices[indexy].devicename === $scope.data.attributes.hardware.devicename) {
+                                    $scope.data.hardware_devicename = indexy;
+                                    break;
+                                }
+                            }
+                            $scope.data.attributes.alert.type = 1; // always be continuous
+                        }                        
+                    }
+                    else {
+                        $scope.data.attributes.notification = result.data.value.notification;
+                    }
+                }
+                /*
+                else {
+                    if (result.data.value.subattributes.threshold !== undefined) {
+                        $scope.data.attributes = result.data.value.subattributes;
+                        
+                        $scope.data.hardware_devicename = 0;
+                        let indexy = 0;
+                        
+                        if ($scope.data.attributes.mode != 2) {
+                            // SINGLE/DUAL THRESHOLD modes - use notification.endpoints.modem.recipients
+                            for (indexy=0; indexy<$scope.devices.length; indexy++) {
+                                if ($scope.devices[indexy].devicename === $scope.data.attributes.notification.endpoints.modem.recipients) {
+                                    $scope.data.hardware_devicename = indexy;
+                                    break;
+                                }
+                            }
+                        }
+                        else {
+                            // CONTINUOUS mode - use hardware.devicename
+                            for (indexy=0; indexy<$scope.devices.length; indexy++) {
+                                if ($scope.devices[indexy].devicename === $scope.data.attributes.hardware.devicename) {
+                                    $scope.data.hardware_devicename = indexy;
+                                    break;
+                                }
+                            }
+                            $scope.data.attributes.alert.type = 1; // always be continuous
+                        }                        
+                    }
+                    else {
+                        $scope.data.attributes.notification = result.data.value.subattributes.notification;
+                    }
+                    
+                    if ($scope.data.sensor.class === "vOCGas") {
+                        $scope.data.multiclass.attributes = $scope.data.attributes;
+                    }
+                    else if ($scope.data.sensor.subclass === "vOCGas") {
+                        $scope.data.multiclass.subattributes = $scope.data.attributes;
+                    }
+                }
+                */
+            }
+        })
+        .catch(function (error) {
+            handle_error(error, true);
+        }); 
+    };
+
+    set_xxx_device_properties = function(peripheral) {
+        //
+        // SET XXX DEVICE PROPERTIES
+        //
+        // - Request:
+        //   POST /devices/device/<devicename>/i2c/<number>/sensors/sensor/<sensorname>/properties
+        //   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
+        //   data: 
+        //   { 
+        //   }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string }
+        //   { 'status': 'NG', 'message': string }        
+        //
+        $http({
+            method: 'POST',
+            url: server + '/devices/device/' + $scope.data.devicename + '/' + peripheral + '/' + $scope.data.sensor.number.toString() + '/sensors/sensor/' + $scope.data.sensor.sensorname + '/properties',
+            headers: { 'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json' },
+            data: $scope.data.attributes
+        })
+        .then(function (result) {
+            console.log(result.data);
+            $ionicPopup.alert({
+                title: peripheral.toUpperCase() + ' device',
+                template: $scope.data.sensor.sensorname + ' was configured successfully!',
+            });            
+        })
+        .catch(function (error) {
+            handle_error(error, true);
+        }); 
+    };
+    
+    
+    
+    $scope.submitDelete = function() {
+        console.log("submitDelete");
+        $scope.delete_xxx_device_properties($scope.data.sensor.source);
+    };
+    
+    $scope.delete_xxx_device_properties = function(peripheral) {
+        //
+        // DELETE XXX DEVICE PROPERTIES
+        //
+        // - Request:
+        //   DELETE /devices/device/<devicename>/i2c/<number>/sensors/sensor/<sensorname>/properties
+        //   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
+        //   data: 
+        //   { 
+        //   }
+        //
+        // - Response:
+        //   { 'status': 'OK', 'message': string }
+        //   { 'status': 'NG', 'message': string }        
+        //
+        $http({
+            method: 'DELETE',
+            url: server + '/devices/device/' + $scope.data.devicename + '/' + peripheral + '/' + $scope.data.sensor.number.toString() + '/sensors/sensor/' + $scope.data.sensor.sensorname + '/properties',
+            headers: { 'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json' },
+            data: $scope.data.attributes
+        })
+        .then(function (result) {
+            console.log(result.data);
+            $ionicPopup.alert({
+                title: peripheral.toUpperCase() + ' device',
+                template: $scope.data.sensor.sensorname + ' configuration was deleted successfully!',
+            });            
+            get_xxx_device_properties(peripheral);
+        })
+        .catch(function (error) {
+            handle_error(error, true);
+        }); 
+    };
+    
+    $scope.submit = function() {
+        console.log("submit");
+        console.log($scope.data.attributes);
+        if ($scope.data.hardware_devicename >= $scope.devices.length) {
+            return;
+        }
+        if ($scope.data.attributes.mode!=2) {
+            // SINGLE/DUAL THRESHOLD modes
+            $scope.data.attributes.notification.endpoints.modem.recipients = $scope.devices[$scope.data.hardware_devicename].devicename;
+        }
+        else {
+            // CONTINUOUS mode
+            $scope.data.attributes.hardware.devicename = $scope.devices[$scope.data.hardware_devicename].devicename;
+        }
+        
+        
+        if ($scope.data.sensor.subclass !== undefined) {
+            var classname = $scope.classname;
+            
+            // support for multiclasses
+            var param = {
+                'username': $scope.data.username,
+                'token': $scope.data.token,
+                'devicename': $scope.data.devicename,
+                'devicestatus': $scope.data.devicestatus,
+                'deviceid': $scope.data.deviceid,
+                'serialnumber': $scope.data.serialnumber,
+                'sensor': $scope.data.sensor,
+                'source': $scope.data.source,
+                'multiclass': $scope.data.multiclass,             
+            };
+
+            if ($scope.data.sensor.class === classname) {
+                param.multiclass.attributes = $scope.data.attributes;
+            }
+            else if ($scope.data.sensor.subclass === classname) {
+                param.multiclass.subattributes = $scope.data.attributes;
+            }
+            $state.go('multiclass', param, {reload: true});
+        }
+        else {
+            
+            // Add prompt when setting properties
+            $ionicPopup.alert({ title: 'Set Properties', template: 'Are you sure you want to set this properties?',
+                buttons: [
+                    { text: 'No', type: 'button-assertive', },
+                    { text: 'Yes', type: 'button-positive',
+                        onTap: function(e) {
+                            
+                            if ($scope.data.source === "LDSU") {
+                                set_xxx_device_properties($scope.data.sensor.source);
+                            }
+                            else if ($scope.data.source === "I2C") {
+                                set_xxx_device_properties("i2c");
+                            }
+                            else if ($scope.data.source === "TPROBE") {
+                                set_xxx_device_properties("tprobe");
+                            }
+                            else if ($scope.data.source === "1WIRE") {
+                                set_xxx_device_properties("1wire");
+                            }
+                        }
+                    }
+                ]            
+            });
+        }
+    };
+
+
+
+    get_devices = function(flag) {
+        
+        param = {
+            'username': $scope.data.username,
+            'token': $scope.data.token     
+        };
+        
+        // Fetch devices
+        Devices.fetch(param, "").then(function(res) {
+            $scope.devices = res;
+            
+            let indexy = 0;
+            for (indexy=0; indexy<$scope.devices.length; indexy++) {
+                $scope.devices[indexy].id = indexy;
+            }
+            
+            console.log($scope.devices);
+            $scope.data.token = User.get_token();
+            
+            if (flag) {
+                if ($scope.data.source === "LDSU") {
+                    get_xxx_device_properties($scope.data.sensor.source);
+                }
+                else if ($scope.data.source === "I2C") {
+                    get_xxx_device_properties("i2c");
+                }
+                else if ($scope.data.source === "ADC") {
+                    get_xxx_device_properties("adc");
+                }
+                else if ($scope.data.source === "TPROBE") {
+                    get_xxx_device_properties("tprobe");
+                }
+                else if ($scope.data.source === "1WIRE") {
+                    get_xxx_device_properties("1wire");
+                }
+            }
+        });
+    };
+
+    // VIEW I2C DEVICE
+    $scope.viewXXXDevice = function() {
+        var device_param = {
+            'username': $scope.data.username,
+            'token': $scope.data.token,
+            'devicename': $scope.data.devicename,
+            'devicestatus': $scope.data.devicestatus,
+            'deviceid': $scope.data.deviceid,
+            'serialnumber': $scope.data.serialnumber,
+    
+            'location': $scope.data.location,
+            'activeSection': $scope.data.activeSection,
+            'sensors': $scope.data.sensors,
+    
+            'sensor': $scope.data.sensor,
+            'source': $scope.data.source,
+
+            'multiclass': $scope.data.multiclass,             
+        };
+        if ($scope.data.source === "LDSU") {
+            console.log("viewLDSUDevice");
+            $state.go('viewLDSUDevice', device_param);
+        }
+        else if ($scope.data.source === "I2C") {
+            console.log("viewI2CDevice");
+            $state.go('viewI2CDevice', device_param);
+        }
+        else if ($scope.data.source === "ADC") {
+            console.log("viewADCDevice");
+            $state.go('viewADCDevice', device_param);
+        }
+        else if ($scope.data.source === "TPROBE") {
+            console.log("viewTPROBEDevice");
+            $state.go('viewTPROBEDevice', device_param);
+        }
+        else if ($scope.data.source === "1WIRE") {
+            console.log("view1WIREDevice");
+            $state.go('view1WIREDevice', device_param);
+        }
+    };
+
+    // EXIT PAGE
+    $scope.submitDeviceList = function() {
+        console.log("submitDeviceList");
+        var device_param = {
+            'username': $scope.data.username,
+            'token': $scope.data.token,
+            'devicename': $scope.data.devicename,
+            'devicestatus': $scope.data.devicestatus,
+            'deviceid': $scope.data.deviceid,
+            'serialnumber': $scope.data.serialnumber,
+        };
+        
+        if ($scope.data.sensor.subclass !== undefined) {
+            device_param.sensor = $scope.data.sensor;
+            device_param.source = $scope.data.source;
+            device_param.multiclass = $scope.data.multiclass;
+            $state.go('multiclass', device_param);
+        }
+        else {
+            if ($scope.data.source === "LDSU") {
+                device_param.location = $scope.data.location;
+                device_param.activeSection = $scope.data.activeSection;
+                device_param.sensors = $scope.data.sensors;
+                $state.go('sensors', device_param);
+            }
+            else if ($scope.data.source === "I2C") {
+               $state.go('deviceI2C', device_param);
+            }
+            else if ($scope.data.source === "ADC") {
+               $state.go('deviceADC', device_param);
+            }
+            else if ($scope.data.source === "TPROBE") {
+               $state.go('deviceTPROBE', device_param);
+            }
+            else if ($scope.data.source === "1WIRE") {
+               $state.go('device1WIRE', device_param);
+            }
+        }
+    };
+    
+    $scope.changeMode = function() {
+        console.log("changeMode");
+        get_devices(false);    
+    };    
+    
+    $scope.changeOpmode = function() {
+        console.log("changeOpmode " + $scope.data.attributes.opmode);
+    };
     
     $scope.submitRefresh();  
 }])

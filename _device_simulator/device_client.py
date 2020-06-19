@@ -173,15 +173,21 @@ class device_client:
 
 	# get accuracy - decimal place
 	def get_objidx_accuracy(self, descriptor, mode=0):
-		if descriptor.get("MODE"):
+		if descriptor.get("MODE") is not None:
 			return descriptor["MODE"][mode]["Accuracy"]
 		return descriptor["ACCURACY"]
 
 	# get minmax
 	def get_objidx_minmax(self, descriptor, mode=0):
-		if descriptor.get("MODE"):
+		if descriptor.get("MODE") is not None:
 			return descriptor["MODE"][mode]["Min"], descriptor["MODE"][mode]["Max"]
 		return descriptor["MIN"], descriptor["MAX"]
+
+	# get modes
+	def get_objidx_modes(self, descriptor):
+		if descriptor.get("MODE") is not None:
+			return descriptor["MODE"]
+		return None
 
 
 	def test(self):
