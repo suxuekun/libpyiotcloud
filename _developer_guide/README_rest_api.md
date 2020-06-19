@@ -170,6 +170,10 @@ SUMMARY:
 		N. ENABLE/DISABLE LDSU DEVICE     - POST   /devices/device/DEVICENAME/LDSUUUID/NUMBER/sensors/sensor/SENSORNAME/enable
 		O. CHANGE LDSU DEVICE NAME        - POST   /devices/device/DEVICENAME/LDSUUUID/NUMBER/sensors/sensor/SENSORNAME/name
 
+		//
+		// LDSU DEVICE SENSOR READINGS
+		P. GET LDSU SENSOR READINGS       - GET    /devices/device/DEVICENAME/LDSUUUID/NUMBER/sensors/sensor/SENSORNAME/readings
+
 
 	6. Device access and control APIs (STATUS, UART, GPIO)
 
@@ -1570,7 +1574,15 @@ DETAILED:
 
 		             // for enabled/disabled/configured
 		             "configured": int, 
-		             "enabled":    int, 
+		             "enabled":    int,
+
+		             // optional, appears if sensor is enabled
+		             'readings': {
+		                 'value': float, 
+		                 'lowest': float, 
+		                 'highest': float
+		             },
+
 		           },
 		           ...
 		         ], 
@@ -1679,6 +1691,14 @@ DETAILED:
 		         // for enabled/disabled/configured
 		         "configured": int, 
 		         "enabled":    int, 
+
+		         // optional, appears if sensor is enabled
+		         'readings': {
+		             'value': float, 
+		             'lowest': float, 
+		             'highest': float
+		         }
+
 		       },
 		       ...
 		     ] 
@@ -1900,6 +1920,23 @@ DETAILED:
 		   data: { 'name': string }
 		-  Response:
 		   { 'status': 'OK', 'message': string }
+		   { 'status': 'NG', 'message': string }
+		   // LDSUUUID refers to the sensor["source"]. Refer to GET LDS BUS SENSORS.
+		   // NUMBER refers to the sensor["number"]. Refer to GET LDS BUS SENSORS.
+		   // SENSORNAME refers to the sensor["sensorname"]. Refer to GET LDS BUS SENSORS.
+
+		P. GET LDSU DEVICE SENSOR READINGS
+		-  Request:
+		   GET /devices/device/DEVICENAME/LDSUUUID/NUMBER/sensors/sensor/SENSORNAME/readings
+		   headers: {'Authorization': 'Bearer ' + token.access}
+		-  Response:
+		   { 'status': 'OK', 'message': string,
+		     'readings': {
+		       'value': float, 
+		       'lowest': float, 
+		       'highest': float
+		     }
+		   }
 		   { 'status': 'NG', 'message': string }
 		   // LDSUUUID refers to the sensor["source"]. Refer to GET LDS BUS SENSORS.
 		   // NUMBER refers to the sensor["number"]. Refer to GET LDS BUS SENSORS.
