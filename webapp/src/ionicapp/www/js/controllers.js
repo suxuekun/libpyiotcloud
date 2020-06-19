@@ -11451,12 +11451,11 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token)
         .catch(function (error) {
             $scope.handle_error(error);
             $ionicPopup.alert({ title: 'Error', template: error.data.message, buttons: [{text: 'OK', type: 'button-assertive'}] });
-            for (var x in $scope.data.sensors) {
-                if ($scope.data.sensors[x].source === sensor.source && 
-                    $scope.data.sensors[x].number === sensor.number) {
-                        $scope.data.sensors[x].enabled_bool = !enable;
-                        break;
-                    }
+            if (enable_int === 1) {
+                sensor.enabled_bool = !enable;
+            }
+            else {
+                delete sensor.readings;
             }
         }); 
     };

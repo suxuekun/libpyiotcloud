@@ -736,6 +736,13 @@ class device_peripheral_properties:
         data['MODE'] = mode
         response, status_return = self.messaging_requests.process(api, data)
         if status_return != 200:
+            # allow disabling even if device is offline
+            # but do not allow enabling if device is online
+            if do_enable == 0:
+                # set enabled to do_enable and configured to 1
+                self.database_client.set_enable_configure_sensor(entityname, devicename, xxx, number, sensorname, do_enable, 1)
+                # set enabled
+                self.database_client.set_enable_device_peripheral_configuration(entityname, devicename, xxx, int(number), None, do_enable)
             return response, status_return
 
 
