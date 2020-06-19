@@ -7,7 +7,8 @@ from charts.dtos.chart_gateway_dto import ChartGatewayDto
 GATEWAYS = "GATEWAYS"
 SENSORS = "SENSORS"
 
-class DashboardDevice(BaseModel, MongoIdMixin):
+class DashboardDevice(BaseModel):
+    deviceUUID = StringType()
     type = StringType(default="")
 
 class ChartModel(BaseModel, MongoIdMixin, TimeStampMixin):
@@ -28,7 +29,7 @@ class Chart:
         model = ChartModel(strict=False)
         model.userId = userId
         model.dashboardId = dashboardId
-        model.device = DashboardDevice({"_id": dto.gatewayId, "type": GATEWAYS})
+        model.device = DashboardDevice({"deviceUUID": dto.gatewayId, "type": GATEWAYS})
         model.typeId = dto.chartTypeId
         model.attributeId = dto.attributeId
         return Chart(model)

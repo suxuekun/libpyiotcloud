@@ -27,7 +27,7 @@ angular.module('app.routes', [])
         },
         views: {
           'side-menu21': {
-            templateUrl: 'templates/dashboards1.html',
+            templateUrl: 'templates/dashboards/dashboards1.html',
             controller: 'dashboardsCtrl'
           }
         }
@@ -39,19 +39,19 @@ angular.module('app.routes', [])
           username: "",
           token: "",
         },
-        templateUrl: 'templates/addDashboard.html',
+        templateUrl: 'templates/dashboards/addDashboard.html',
         controller: 'addDashboardCtrl'
       })
 
-      .state('updateDashboard', {
-        url: '/dashboard/{dashboardId}',
+      .state('addNewChartGateway', {
+        url: '/chart/new/gateway',
         params: {
           username: "",
           token: "",
           dashboard: {}
         },
-        templateUrl: 'templates/dashboardDetail.html',
-        controller: 'updateDashboardCtrl'
+        templateUrl: 'templates/dashboards/addNewChartGateway.html',
+        controller: 'addNewChartGatewayCtrl'
       })
 
       .state('menu.gateways', {

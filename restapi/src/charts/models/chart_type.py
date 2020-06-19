@@ -4,16 +4,16 @@ from schematics.types import StringType, DecimalType, IntType, BooleanType, List
 from shared.core.model import BaseModel, TimeStampMixin
 
 
-PIE_CHART = "PIE"
+PIE_CHART = "Pie"
 PIE_CHART_ID = 0
 
-DONUT_CHART = "DONUT"
+DONUT_CHART = "Donut"
 DONUT_CHART_ID = 1
 
-BAR_CHART = "BAR"
+BAR_CHART = "Bar"
 BAR_CHART_ID = 2
 
-LINE_CHART = "LINE"
+LINE_CHART = "Line"
 LINE_CHART_ID = 3
 
 class ChartTypeModel(BaseModel):

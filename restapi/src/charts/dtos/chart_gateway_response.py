@@ -3,7 +3,9 @@
 class ChartGatewayResponse:
     attribute: {}
     dashboardId: str
-    dataset: []
+    datasets: []
     typeId: int
     userId: str
     id: str
+    deviceName: str
+    deviceUUID: str

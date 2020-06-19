@@ -2,6 +2,6 @@ from schematics import Model
 from schematics.types import StringType, DecimalType, IntType, BooleanType, ListType, ModelType
 
 class ChartGatewayDto(Model):
-    gatewayId = StringType()
-    attributeId = IntType()
-    chartTypeId = IntType()
+    gatewayId = StringType(required=True, min_length=1)
+    attributeId = IntType(required=True)
+    chartTypeId = IntType(required=True)

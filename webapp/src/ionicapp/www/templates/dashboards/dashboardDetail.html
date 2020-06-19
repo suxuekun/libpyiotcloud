@@ -1,9 +1,8 @@
-<ion-view title="Add Dashboard" hide-back-button="true" nav-transition="none" id="page12" style="background-color:#FFFFFF;" class="page_width_small">
+<ion-view title="Add Dashboard" hide-back-button="true" nav-transition="none" id="page12" style="background-color:#FFFFFF;" class="page_width_medium">
   <ion-nav-buttons side="left" class="has-header">
     <button class="button button-icon icon ion-android-close" ng-click="close()"></button>
   </ion-nav-buttons>
   <ion-content padding="true" class="has-header">
-
     <div class="dashboard-container dashboard-border dashboard-round-border">
       <h3>Information</h3>
       <form>
@@ -60,8 +59,19 @@
                   class="button button-stable button-small button-block">Sensors</button>
         </div>
       </form>
-      <div class="list card" ng-show="activeTab==0">
-        <h1>Gateways</h1>
+      <div  ng-show="activeTab==0">
+         <div class="item item-body" ng-repeat="chart in chartsGatewaysView">
+            <div class="column">
+                <h2><strong>{{chart.deviceName}}</strong></h2>
+                <canvas class="chart chart-doughnut"
+                chart-data="chart.values"
+                chart-labels="chart.labels"
+                chart-colors="sensors_datachart_colors_options_ex"
+                chart-options="sensors_datachart_piechart_sensors_statuses_options">
+                </canvas>
+            </div>
+         </div>
+
       </div>
       <div class="list card" ng-show="activeTab==1">
         <h1>Sensors</h1>

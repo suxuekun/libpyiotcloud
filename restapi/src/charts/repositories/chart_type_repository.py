@@ -7,9 +7,6 @@ from charts.models.chart_type import PIE_CHART, DONUT_CHART, LINE_CHART, BAR_CHA
 
 class IChartTypeRepository(BaseRepository, IMongoBaseRepository):
     
-    def create_many(self, inputs):
-        pass
-    
     def gets_for_gateway(self):
         pass
     
@@ -20,28 +17,33 @@ class ChartTypeRepository(MongoBaseRepository, IChartTypeRepository):
     
     def __init__(self, mongoclient, db, collectionName):
         super().__init__(mongoclient, db, collectionName)
+       
+    def gets(self, query=None, projection=None):
+        cursors = self.collection.find(query, projection)
+        results = list(cursors)
+        return results
         
-    def create_many(self, inputs):
-        try:
-            result = self.collection.insert_many(inputs)
-            return True
-        except Exception as e:
-            print(e)
-            raise CreatedExeception(str(e))
-    
     def gets_for_gateway(self):
-        names = [PIE_CHART, DONUT_CHART]
+        names = [PIE_CHART, DONUT_CHART, BAR_CHART]
         query = {
             "name": {"$in": names}
         }
-        return super().gets(query=query)
+        
+        projection = {
+            "parrentId": 0
+        }
+        return self.gets(query=query, projection=projection)
     
     def gets_for_sensor(self):
         names = [BAR_CHART, LINE_CHART]
         query = {
             "name": {"$in": names}
         }
-        return super().gets(query=query)
+        
+        projection = {
+            "parrentId": 0
+        }
+        return self.gets(query=query, projection=projection)
     
    
     

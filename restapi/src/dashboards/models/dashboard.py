@@ -28,7 +28,7 @@ class Dashboard:
         model = DashboardModel()
         model.name = dto.name
         model.userId = userId
-        model.option = Option({'color': dto.color})
+        model.option = Option({'color': dto.color.replace("#", "")})
         model.gateways = []
         model.sensors = []
         model.actuators = []
@@ -36,7 +36,7 @@ class Dashboard:
 
     def update_name_and_option(self, dto: DashboardDto):
         self.model.name = dto.name
-        self.model.option = Option({'color': dto.color})
+        self.model.option =  Option({'color': dto.color.replace("#", "")})
 
     def add_chart_gateway(self, chartId: str):
         self.model.gateways.append(chartId)
@@ -54,3 +54,5 @@ class Dashboard:
     def to_domain(data):
         model = DashboardModel(data, strict=False)
         return Dashboard(model)
+
+

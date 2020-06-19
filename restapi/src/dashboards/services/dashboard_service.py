@@ -18,8 +18,7 @@ class DashboardService:
         try:
             dto.validate()
             dashboard = Dashboard.create(userId, dto)
-            result = self.dashboardRepository.create(
-                dashboard.model.to_primitive())
+            self.dashboardRepository.create(dashboard.model.to_primitive())
             return Response.success(True, "Create dashboard successfully")
 
         except ModelValidationError as e:

@@ -13,6 +13,8 @@ ON_OFF_LINE_ID = 1
 COUNT_OF_ALERTS = "Count of alerts"
 COUNT_OF_ALERTS_ID = 2
 
+BAND_WIDTH_ID = 3
+BAND_WIDTH = "Upload bandwidth consumption"
 
 class AttributeValue(BaseModel):
     name = StringType()
@@ -34,7 +36,11 @@ class FactoryGatewayAttribute:
             return OnOffLineStatusAttribute.create()
         if name == COUNT_OF_ALERTS:
             return CountOfAlertsAttribute.create()
+        if name == BAND_WIDTH:
+            return BandwidthAttribute.create()
+            
         return GatewayAttributeModel()
+        
 
 # LABELS
 USED_STORAGE_VALUE = "Used"
@@ -117,7 +123,7 @@ NOTIFICATIONS_ID = 2
 class CountOfAlertsAttribute(GatewayAttributeModel):
 
     @staticmethod
-    def create() -> GatewayAttributeModel:
+    def create():
         model = GatewayAttributeModel()
         model._id = COUNT_OF_ALERTS_ID
         model.name = COUNT_OF_ALERTS
@@ -132,3 +138,25 @@ class CountOfAlertsAttribute(GatewayAttributeModel):
                 {"id": NOTIFICATIONS_ID, "name": NOTIFICATIONS_VALUE})
         ]
         return model
+    
+
+
+
+# Label
+BAND_WIDTH_STORE_ID = 0
+BAND_WIDTH_STORE_VALUE = "Store"
+# Filter
+
+
+class BandwidthAttribute(GatewayAttributeModel):
+    
+    @staticmethod
+    def create():
+        model = GatewayAttributeModel()
+        model._id = BAND_WIDTH_ID
+        model.name = BAND_WIDTH
+        model.lables = [
+             AttributeValue({"id": BAND_WIDTH_STORE_ID, "name": BAND_WIDTH_STORE_VALUE}),
+        ]
+        return model
+
