@@ -16,6 +16,7 @@ class S3PromoCodeRepository(S3Repository):
     #         'remark':('description',None)
     #     },
     # }
+    ID = "_id"
     def _make_promocode(self,raw):
         line = raw.split(',')
         if len(line)<8:
@@ -42,10 +43,7 @@ class S3PromoCodeRepository(S3Repository):
     def _handler(self,raw):
         # print(raw)
         l = [x for x in raw.decode('UTF-8').replace("\r\n","\n").split('\n')]
-        self.collection = [self._make_promocode(x) for x in l]
-        self.collection = filter(lambda x:x is not None,self.collection)
+        self.collection = [self._make_promocode(x) for x in l[1:]]
+        self.collection = list(filter(lambda x:x is not None,self.collection))
         self._make_index()
-        print('--promo--')
-        [print(x) for x in self.collection]
-        print(self.index)
     pass

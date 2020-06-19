@@ -15,7 +15,7 @@ class PromocodeResource(Resource,BaseResource):
     @throw_custome_error_request()
     def get(self, code):
         data = self.service.get_one({'code':code})
-        print(code,data)
+        # print(code,data)
         if data:
             res = self.to_api_data(data)
             return self.to_result(res)
