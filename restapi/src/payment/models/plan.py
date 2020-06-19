@@ -1,26 +1,30 @@
 import datetime
 import json
+from decimal import Decimal
 
+from schematics import Model
 from schematics.types import StringType, DecimalType, IntType, BooleanType, ListType, ModelType
 
-from shared.core.model import BaseModel, TimeStampMixin
+from shared.core.model import BaseModel, TimeStampMixin, BaseIotModel
 from shared.utils.schema_util import create_schema, model_to_json_schema
 
-class Usage():
-    sms = IntType()
-    email = IntType()
-    notification = IntType()
-    storage = IntType()  # count on MB 1000 up ?
+TWOPLACES = Decimal('0.01')
 
+class Usage(Model):
+    sms = DecimalType(default=0)
+    email = IntType(default=0)
+    notification = IntType(default=0)
+    storage = IntType(default=0)  # count on MB 1000 up ?
 
-class Plan(BaseModel, TimeStampMixin, Usage):
+class AbstractPlan(BaseIotModel,Usage):
     name = StringType()
     price = DecimalType()
     period = IntType()
     currency = StringType()
 
-    bt_plan_id = StringType(max_length=255)
-    active = BooleanType(default=True)
+    def get_price_str(self,gst=0):
+        price = self.price * Decimal(1+gst/100)
+        return str(price.quantize(TWOPLACES))
 
     def __str__(self):
         return self.name
@@ -28,8 +32,13 @@ class Plan(BaseModel, TimeStampMixin, Usage):
     def is_free(self):
         return self.price <= 0
 
+
+class Plan(AbstractPlan,TimeStampMixin,):
+    bt_plan_id = StringType(max_length=255)
+    active = BooleanType(default=True)
+
 if __name__ == "__main__":
-    plan = Plan()
+    plan = Plan.get_mock_object()
     raw = {
         'sms':10,
         'wtf':'wtf'
@@ -51,8 +60,8 @@ if __name__ == "__main__":
 
     # print(a.model_class)
 
-    # print(PlanModel.testList.model_class)
+    # print(Plan.testList.model_class)
 
-    ds = model_to_json_schema(Plan)
-    print(json.dumps(ds, indent=4, sort_keys=True)) # schema
+    # ds = model_to_json_schema(Plan)
+    # print(json.dumps(ds, indent=4, sort_keys=True)) # schema
 

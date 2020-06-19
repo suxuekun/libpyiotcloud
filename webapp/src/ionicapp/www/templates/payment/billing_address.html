@@ -1,0 +1,31 @@
+<ion-view title="Billing Address" hide-back-button="true" nav-transition="none" id="pagesubdetail" class="page_width">
+	<ion-nav-buttons side="right" class="has-header">
+    <button class="button button-positive icon ion-refresh" ng-click=""></button>
+  </ion-nav-buttons>
+  <ion-content padding="true" class="has-header" overflow-scroll="true">
+    <div class="list">
+    	<label class="item item-input">
+            <input placeholder ="Name" class="item-input" ng-model = "data.name"/>
+        </label>
+        <label class="item item-input">
+            <input placeholder ="Billing Address" class="item-input" ng-model = "data.billing_address"/>
+        </label>
+        <label class="item item-input">
+            <input placeholder ="Country" class="item-input" ng-model = "data.country"/>
+        </label>
+        <label class="item item-input">
+            <input placeholder ="City" class="item-input" ng-model = "data.city"/>
+        </label>
+        <label class="item item-input">
+            <input placeholder ="Zip/Postal code" class="item-input" ng-model = "data.postal"/>
+        </label>
+        <label class="item item-input">
+            <input placeholder ="State/Province/Region" class="item-input" ng-model = "data.region"/>
+        </label>
+
+    </div>
+    <button id="topUpCredits-button13" ng-click="update_address()" class="button button-positive button-block">UPDATE</button>
+    
+  </ion-content>
+</ion-view>
+

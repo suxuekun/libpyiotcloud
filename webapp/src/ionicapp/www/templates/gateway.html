@@ -29,8 +29,12 @@
       <div id="gateway-markdown464" ng-click="viewDeviceLocation(data)" style="text-align:right;" class="show-list-numbers-and-dots device_info_top">
         <p style="color:#888888;font-size:14px;">Location</p>
       </div>
-      <div id="gateway-markdown465" ng-click="viewDeviceLocation(data)" class="show-list-numbers-and-dots device_info_top_ex">
-        <p style="color:#888888;font-size:14px;">{{ data.devicelocation }}</p>
+      <div id="gateway-markdown514" ng-click="viewDeviceLocation(data)" class="show-list-numbers-and-dots device_info_top_ex">
+        <p style="color:#888888;font-size:14px;">lat: {{ data.location.latitude }}</p>
+      </div>
+      <div id="gateway-markdown465" ng-click="viewDeviceLocation(data)" style="text-align:right;" class="show-list-numbers-and-dots device_info_top"></div>
+      <div id="gateway-markdown515" ng-click="viewDeviceLocation(data)" class="show-list-numbers-and-dots device_info_top_ex">
+        <p style="color:#888888;font-size:14px;">lon: {{ data.location.longitude }}</p>
       </div>
       <div id="gateway-markdown251" style="text-align:right;" class="show-list-numbers-and-dots device_info_top">
         <p style="color:#AAAAAA;font-size:14px;">Status</p>

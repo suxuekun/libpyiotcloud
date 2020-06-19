@@ -53,9 +53,9 @@ class BaseResource():
         dict_util.updates(list_filter,query,self._get_default_filter())
         return list_filter
 
-    def to_result(self,res,status="OK"):
+    def to_result(self,res,status="OK",**kwargs):
         if self.wrapper_class:
-            return self.wrapper_class(res,status=status).to_json_response()
+            return self.wrapper_class(res,status=status,**kwargs).to_json_response()
         return res
 
     def to_valid_request_data(self,raw):

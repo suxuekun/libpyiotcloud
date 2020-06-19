@@ -19,6 +19,7 @@ from logging.handlers import RotatingFileHandler
 from logging import handlers
 import jwt # now using pyjwt instead of jose
 import device_client
+import math
 
 
 
@@ -32,6 +33,9 @@ CONFIG_USE_AMQP = False
 ###################################################################################
 # global variables
 ###################################################################################
+
+# query backend to compute device password
+CONFIG_QUERY_BACKEND_TO_COMPUTE_DEVICE_PASSWORD = True
 
 # add timestamp to sensor data
 CONFIG_ADD_SENSOR_DATA_TIMESTAMP = True
@@ -89,7 +93,11 @@ CONFIG_SEND_NOTIFICATION_PERIOD = 3600 # 1 hour
 g_timer_thread_timeout = 5
 g_timer_thread = None
 g_timer_thread_stop = None
-g_timer_thread_use = True
+
+# heartbeat thread for publishing heartbeat
+g_heartbeat_thread_timeout = 60
+g_heartbeat_thread = None
+g_heartbeat_thread_stop = None
 
 g_input_thread = None
 
@@ -264,6 +272,9 @@ API_RECEIVE_SENSOR_READING       = "rcv_sensor_reading"
 API_REQUEST_SENSOR_READING       = "req_sensor_reading"
 API_PUBLISH_SENSOR_READING       = "pub_sensor_reading"
 
+# heartbeat
+API_PUBLISH_HEARTBEAT            = "pub_heartbeat"
+
 # configuration
 API_REQUEST_CONFIGURATION        = "req_configuration"
 API_RECEIVE_CONFIGURATION        = "rcv_configuration"
@@ -292,10 +303,10 @@ API_GET_LDSU_DESCS               = "get_ldsu_descs"
 API_IDENTIFY_LDSU                = "identify_ldsu"
 
 # ldsu
-API_GET_LDSU_DEVICES              = "get_ldsu_devs"
-API_ENABLE_LDSU_DEVICE            = "enable_ldsu_dev"
-API_GET_LDSU_DEVICE_PROPERTIES    = "get_ldsu_dev_prop"
-API_SET_LDSU_DEVICE_PROPERTIES    = "set_ldsu_dev_prop"
+API_GET_LDSU_DEVICES             = "get_ldsu_devs"
+API_ENABLE_LDSU_DEVICE           = "enable_ldsu_dev"
+API_GET_LDSU_DEVICE_PROPERTIES   = "get_ldsu_dev_prop"
+API_SET_LDSU_DEVICE_PROPERTIES   = "set_ldsu_dev_prop"
 
 
 
@@ -1649,8 +1660,9 @@ def handle_api(api, subtopic, subpayload):
         topic = generate_pubtopic(subtopic)
         subpayload = json.loads(subpayload)
 
-        # stop the timer thread
+        # stop the timer thread and heartbeat thread
         g_timer_thread.set_pause(True)
+        g_heartbeat_thread.set_pause(True)
 
         # reply
         payload = {}
@@ -1886,22 +1898,22 @@ def process_restart():
         restart()
 
 def process_stop():
-    global g_device_status, g_timer_thread
+    global g_device_status, g_timer_thread, g_heartbeat_thread
     if g_device_status == DEVICE_STATUS_STOPPING:
         printf("")
         printf("Device will be stopped...")
-        if g_timer_thread_use:
-            g_timer_thread.set_pause(True)
+        g_timer_thread.set_pause(True)
+        g_heartbeat_thread.set_pause(True)
         g_device_status = DEVICE_STATUS_STOPPED
         printf("Device stopped successfully!\n")
 
 def process_start():
-    global g_device_status, g_timer_thread
+    global g_device_status, g_timer_thread, g_heartbeat_thread
     if g_device_status == DEVICE_STATUS_STARTING:
         printf("")
         printf("Device will be started...")
-        if g_timer_thread_use:
-            g_timer_thread.set_pause(False)
+        g_timer_thread.set_pause(False)
+        g_heartbeat_thread.set_pause(False)
         g_device_status = DEVICE_STATUS_RUNNING
         printf("Device started successfully!\n")
 
@@ -2070,7 +2082,7 @@ class TimerThread(threading.Thread):
             if has_enabled:
                 payload = {}
                 payload["UID"] = ldsu_key
-                payload["TS"] = int(time.time())
+                payload["TS"] = str(int(time.time()))
                 payload["SNS"] = values
                 printf_json(payload)
                 publish(topic, payload)
@@ -2265,16 +2277,48 @@ class TimerThread(threading.Thread):
                     self.process_input_devices()
 
                 #self.process_output_devices()
-                if CONFIG_SEND_NOTIFICATION_PERIODICALLY:
-                    self.process_trigger_notification()
+                if False:
+                    if CONFIG_SEND_NOTIFICATION_PERIODICALLY:
+                        self.process_trigger_notification()
             else:
                 #printf("Device is currently stopped! Not sending any sensor data.")
                 pass
 
+            # receovery when backend is down but comes back
             if g_device_status == DEVICE_STATUS_CONFIGURING:
                 req_configuration()
         #printf("")
-        #printf("TimerThread exit! {}".format(g_messaging_client.is_connected()))
+        printf("TimerThread exit! {}".format(g_messaging_client.is_connected()))
+
+
+class HeartbeatThread(threading.Thread):
+
+    def __init__(self, event, timeout):
+        threading.Thread.__init__(self)
+        self.stopped = event
+        self.timeout = timeout
+        self.pause = False
+        self.exit = False
+
+    def set_timeout(self, timeout):
+        self.timeout = timeout
+
+    def set_pause(self, pause=True):
+        self.pause = pause
+
+    def set_exit(self):
+        self.exit = True
+
+    def run(self):
+        #printf("")
+        #printf("HeartbeatThread {}".format(g_messaging_client.is_connected()))
+        pub_heartbeat()
+        while not self.stopped.wait(self.timeout) and g_messaging_client.is_connected():
+            if self.pause == False:
+                pub_heartbeat()
+
+        #printf("")
+        printf("HeartbeatThread exit! {}".format(g_messaging_client.is_connected()))
 
 
 class DownloadThread(threading.Thread):
@@ -2410,9 +2454,10 @@ class DownloadThread(threading.Thread):
             g_firmware_version_STR = self.fileversion
             write_file_version(g_firmware_version_STR)
 
-        # start the timer thread
+        # start the timer thread and heartbeat thread
         time.sleep(g_timer_thread_timeout)
         g_timer_thread.set_pause(False)
+        g_heartbeat_thread.set_pause(False)
 
 
 ###################################################################################
@@ -2731,7 +2776,7 @@ def http_write_to_file(filename, contents):
     f.write(contents)
     f.close()
 
-def http_initialize_connection():
+def http_initialize_connection(host=CONFIG_HTTP_HOST):
     if True:
         context = ssl._create_unverified_context()
     else:
@@ -2741,19 +2786,23 @@ def http_initialize_connection():
         #context.load_verify_locations(
         #    config.CONFIG_TLS_CERT, config.CONFIG_TLS_CERT, config.CONFIG_TLS_PKEY)
         #context.check_hostname = False
-    conn = http.client.HTTPSConnection(CONFIG_HTTP_HOST, CONFIG_HTTP_TLS_PORT, context=context, timeout=CONFIG_HTTP_TIMEOUT)
+    conn = http.client.HTTPSConnection(host, CONFIG_HTTP_TLS_PORT, context=context, timeout=CONFIG_HTTP_TIMEOUT)
     return conn
 
-def http_send_request(conn, req_type, req_api, params, headers):
+def http_send_request(conn, req_type, req_api, params, headers, debug=True):
     try:
         if headers:
-            printf("http_send_request")
-            printf("  {}:{}".format(CONFIG_HTTP_HOST, CONFIG_HTTP_TLS_PORT))
-            printf("  {} {}".format(req_type, req_api))
-            printf("  {}".format(headers))
+            if debug:
+                printf("http_send_request")
+                printf("  {}:{}".format(CONFIG_HTTP_HOST, CONFIG_HTTP_TLS_PORT))
+                printf("  {} {}".format(req_type, req_api))
+                printf("  {}".format(headers))
+                if params:
+                    printf("  {}".format(params))
             conn.request(req_type, req_api, params, headers)
-            printf("http_send_request")
-            printf("")
+            if debug:
+                printf("http_send_request")
+                printf("")
         else:
             conn.request(req_type, req_api, params)
         return True
@@ -2761,13 +2810,15 @@ def http_send_request(conn, req_type, req_api, params, headers):
         printf("REQ: Could not communicate with WEBSERVER! {}".format(""))
     return False
 
-def http_recv_response(conn):
+def http_recv_response(conn, debug=True):
     try:
-        printf("http_recv_response")
+        if debug:
+            printf("http_recv_response")
         r1 = conn.getresponse()
-        printf("http_recv_response")
-        printf("  {} {} {}".format(r1.status, r1.reason, r1.length))
-        printf("")
+        if debug:
+            printf("http_recv_response")
+            printf("  {} {} {}".format(r1.status, r1.reason, r1.length))
+            printf("")
         if r1.status == 200:
             file_size = r1.length
             #printf("response = {} {} [{}]".format(r1.status, r1.reason, r1.length))
@@ -2828,16 +2879,46 @@ def http_get_firmware_binary(filename, filesize):
         length, response = http_recv_response(conn)
         if length == 0:
             printf("http_recv_response error")
-            return False
+            conn.close()
+            return False, length
         if length != filesize:
             printf("error length {} != filesize {}".format(length, filesize))
-            return False
+            conn.close()
+            return False, length
         try:
             http_write_to_file(filename, response)
         except Exception as e:
             printf("exception {}".format(e))
-            return False
+            conn.close()
+            return False, length
+    conn.close()
     return result, length
+
+def http_compute_device_password(uuid, serial_number, mac_address):
+
+    password = None
+
+    conn = http_initialize_connection(host="dev.brtchip-iotportal.com")
+    headers = { "Connection": "keep-alive", "Content-Type": "application/json" }
+    params = json.dumps({ "uuid": uuid, "serialnumber": serial_number, "poemacaddress": mac_address })
+    api = "/devicesimulator/devicepassword"
+
+    result = http_send_request(conn, "GET", api, params, headers, debug=False)
+    if result:
+        length, response = http_recv_response(conn, debug=False)
+        if length == 0:
+            printf("http_recv_response error")
+            conn.close()
+            return None
+        try:
+            response = json.loads(response)
+            password = response["password"]
+        except Exception as e:
+            printf("exception {}".format(e))
+            conn.close()
+            return None
+    conn.close()
+    return password
 
 
 ###################################################################################
@@ -2920,15 +3001,83 @@ def reg_gateway_descriptor():
 def reg_ldsu_descriptors(port=None, as_response=False):
     printf("")
     printf("Register LDSU descriptors")
-    api = API_SET_LDSU_DESCS
-    if as_response:
-        api = API_GET_LDSU_DESCS
 
-    if port is None:
-        # send all LDSUs
-        if False:
-            # send LDSU descriptors in multiple chunks 
+    if True: #port is None:
+        # send all LDSUs in chunks
+        if True:
+            # send LDSU descriptors in multiple MQTT packets of 1kb chunks (about 5 LDSUs possible, 172 each = 860)
+            topic = "{}{}{}{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_DEVICE_ID, CONFIG_SEPARATOR, API_SET_LDSU_DESCS)
+            chunks = 0
+            maxchunksize = 1024
+            size = 0
+            ldsu_descriptors = []
+            total_chunks = math.ceil(len(g_ldsu_descriptors)/5)
+
+            for x in range(len(g_ldsu_descriptors)):
+                estimated_len = len(json.dumps(ldsu_descriptors)) + len(json.dumps(g_ldsu_descriptors[x])) + len("{value:[]}")
+                if estimated_len < maxchunksize:
+                    # adding the descriptor will still fit the maxchunksize
+                    ldsu_descriptors.append(g_ldsu_descriptors[x])
+                    size = len(json.dumps(ldsu_descriptors))
+                else:
+                    # adding the descriptor will no longer fit the maxchunksize
+                    # so send the descriptors in the list
+                    payload = {
+                        "value": ldsu_descriptors, 
+                        "chunk": { "SEQN": str(chunks), "TSEQ": str(total_chunks), "TOT": str(len(g_ldsu_descriptors)) } 
+                    }
+                    printf(estimated_len)
+                    printf(len(json.dumps(payload)))
+                    publish(topic, payload)
+                    # reset size counter
+                    size = 0
+                    ldsu_descriptors = []
+                    chunks += 1
+
+                    # add current descriptor
+                    ldsu_descriptors.append(g_ldsu_descriptors[x])
+                    size = len(json.dumps(ldsu_descriptors))
+            if size:
+                # send the last chunk
+                payload = {
+                    "value": ldsu_descriptors, 
+                    "chunk": { "SEQN": str(chunks), "TSEQ": str(total_chunks), "TOT": str(len(g_ldsu_descriptors)) } 
+                }
+                printf(len(json.dumps(payload)))
+                publish(topic, payload)
+                # reset size counter
+                size = 0
+                ldsu_descriptors = []
+                chunks += 1
+
+            # respond to API_GET_LDSU_DESCS (note that above was all to API_SET_LDSU_DESCS)
+            if as_response:
+                topic = "{}{}{}{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_DEVICE_ID, CONFIG_SEPARATOR, API_GET_LDSU_DESCS)
+                payload = {}
+                publish(topic, payload)
+
+            printf("{} LDSUs registered in {} chunks of max size {}".format(len(g_ldsu_descriptors), chunks, maxchunksize))
+
+        elif False:
+            # send LDSU descriptors in 1 MQTT packet
+            api = API_SET_LDSU_DESCS
+            if as_response:
+                api = API_GET_LDSU_DESCS
+
+            topic = "{}{}{}{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_DEVICE_ID, CONFIG_SEPARATOR, api)
+            payload = {"value": g_ldsu_descriptors}
+            for ldsu_descriptor in g_ldsu_descriptors:
+                printf(len(json.dumps(ldsu_descriptor)))
+            printf(len(json.dumps(payload)))
+            publish(topic, payload)
+
+        elif False:
+            # send LDSU descriptors in 3 multiple chunks per port
             # (ex. if 80 LDSUs, then can send by port or by any number of LDSUs)
+            api = API_SET_LDSU_DESCS
+            if as_response:
+                api = API_GET_LDSU_DESCS
+
             topic = "{}{}{}{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_DEVICE_ID, CONFIG_SEPARATOR, api)
             for port in range(3):
                 ldsu_descriptors = []
@@ -2937,12 +3086,11 @@ def reg_ldsu_descriptors(port=None, as_response=False):
                         ldsu_descriptors.append(ldsu_descriptor)
                 payload = {"value": ldsu_descriptors}
                 publish(topic, payload)
-        else:
-            # send in 1 MQTT packet
-            topic = "{}{}{}{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_DEVICE_ID, CONFIG_SEPARATOR, api)
-            payload = {"value": g_ldsu_descriptors}
-            publish(topic, payload)
     else:
+        api = API_SET_LDSU_DESCS
+        if as_response:
+            api = API_GET_LDSU_DESCS
+
         # send all LDSUs for specified port
         topic = "{}{}{}{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_DEVICE_ID, CONFIG_SEPARATOR, api)
         ldsu_descriptors = []
@@ -2993,6 +3141,17 @@ def init_ldsu_properties():
 
 
 ###################################################################################
+# Heartbeat
+###################################################################################
+
+# Publish heartbeat
+def pub_heartbeat():
+    topic = "{}{}{}{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_DEVICE_ID, CONFIG_SEPARATOR, API_PUBLISH_HEARTBEAT)
+    payload = { "TS": str(int(time.time())) }
+    publish(topic, payload)
+
+
+###################################################################################
 # Password generation
 ###################################################################################
 
@@ -3002,30 +3161,40 @@ def decode_password(secret_key, password):
 
 def compute_password(secret_key, uuid, serial_number, mac_address, debug=False):
 
-    if secret_key=='' or uuid=='' or serial_number=='' or mac_address=='':
-        printf("secret key, uuid, serial number and mac address should not be empty!")
-        return None
+    if not CONFIG_QUERY_BACKEND_TO_COMPUTE_DEVICE_PASSWORD:
+        if secret_key=='' or uuid=='' or serial_number=='' or mac_address=='':
+            printf("secret key, uuid, serial number and mac address should not be empty!")
+            return None
 
-    params = {
-        "uuid": uuid,                  # device uuid
-        "serialnumber": serial_number, # device serial number
-        "poemacaddress": mac_address,  # device mac address in uppercase string ex. AA:BB:CC:DD:EE:FF
-    }
-    password = jwt.encode(params, secret_key, algorithm='HS256')
-    password = password.decode("utf-8")
+        params = {
+            "uuid": uuid,                  # device uuid
+            "serialnumber": serial_number, # device serial number
+            "poemacaddress": mac_address,  # device mac address in uppercase string ex. AA:BB:CC:DD:EE:FF
+        }
+        password = jwt.encode(params, secret_key, algorithm='HS256')
+        password = password.decode("utf-8")
 
-    if debug:
-        printf("")
-        printf("compute_password")
-        printf_json(params)
-        printf(password)
-        printf("")
+        if debug:
+            printf("")
+            printf("compute_password")
+            printf_json(params)
+            printf(password)
+            printf("")
 
-        payload = decode_password(secret_key, password)
-        printf("")
-        printf("decode_password")
-        printf_json(payload)
-        printf("")
+            payload = decode_password(secret_key, password)
+            printf("")
+            printf("decode_password")
+            printf_json(payload)
+            printf("")
+    else:
+        printf("CONFIG_QUERY_BACKEND_TO_COMPUTE_DEVICE_PASSWORD")
+        # in order for the device secret key to not be compromise easily,
+        # we now retrieve the password via an HTTPS API
+        # this prevents from compromising the device secret_key
+        # later we disable the API in nginx.conf so that the API cannot be used in production
+        password = http_compute_device_password(uuid, serial_number, mac_address)
+        if password is None:
+            printf("ERROR: Failed retrieving password!")
 
     return password
 
@@ -3040,7 +3209,7 @@ def parse_arguments(argv):
     parser.add_argument('--USE_ECC',              required=False, default=1 if CONFIG_USE_ECC else 0, help='Use ECC instead of RSA')
     parser.add_argument('--USE_AMQP',             required=False, default=1 if CONFIG_USE_AMQP else 0, help='Use AMQP instead of MQTT')
 
-    parser.add_argument('--USE_DEVICE_SECRETKEY', required=False, default='',                   help='Device Secret Key to use')
+    parser.add_argument('--USE_DEVICE_SECRETKEY', required=False, default='',                   help='Device Secret Key to use', nargs='?', const='') # added nargs and const for device restart
     parser.add_argument('--USE_DEVICE_ID',        required=False, default='',                   help='Device ID to use')
     parser.add_argument('--USE_DEVICE_SERIAL',    required=False, default='',                   help='Device Serial Number to use')
     parser.add_argument('--USE_DEVICE_MACADD',    required=False, default='',                   help='Device POE MAC Address to use')
@@ -3051,8 +3220,11 @@ def parse_arguments(argv):
 
     parser.add_argument('--USE_HOST',             required=False, default=CONFIG_HOST,          help='Host server to connect to')
     parser.add_argument('--USE_PORT',             required=False, default=CONFIG_MQTT_TLS_PORT, help='Host port to connect to')
-    parser.add_argument('--USE_USERNAME',         required=False, default='',                   help='Username to use in connection')
-    parser.add_argument('--USE_PASSWORD',         required=False, default='',                   help='Password to use in connection')
+
+    # for backward compatibility and troubleshooting purposes
+    parser.add_argument('--USE_USERNAME',         required=False, default='',                   help='Username to use in connection', nargs='?', const='') # added nargs and const for device restart
+    parser.add_argument('--USE_PASSWORD',         required=False, default='',                   help='Password to use in connection', nargs='?', const='') # added nargs and const for device restart
+
     return parser.parse_args(argv)
 
 def main(args):
@@ -3061,10 +3233,12 @@ def main(args):
     global g_messaging_client
     global g_device_client
     global g_device_status
-    global g_timer_thread_use
     global g_timer_thread_stop
     global g_timer_thread_timeout
     global g_timer_thread
+    global g_heartbeat_thread_stop
+    global g_heartbeat_thread_timeout
+    global g_heartbeat_thread
     global g_input_thread
 
     global CONFIG_USE_AMQP
@@ -3252,11 +3426,15 @@ def main(args):
             time.sleep(1)
 
 
+        # Start the heartbeat thread
+        g_heartbeat_thread_stop = threading.Event()
+        g_heartbeat_thread = HeartbeatThread(g_heartbeat_thread_stop, g_heartbeat_thread_timeout)
+        g_heartbeat_thread.start()
+
         # Start the timer thread for sensor processing
-        if g_timer_thread_use:
-            g_timer_thread_stop = threading.Event()
-            g_timer_thread = TimerThread(g_timer_thread_stop, g_timer_thread_timeout)
-            g_timer_thread.start()
+        g_timer_thread_stop = threading.Event()
+        g_timer_thread = TimerThread(g_timer_thread_stop, g_timer_thread_timeout)
+        g_timer_thread.start()
 
         # Start keyboard input thread for AT commands processing
         if g_input_thread == None:
@@ -3291,10 +3469,14 @@ def main(args):
         g_messaging_client.subscribe(subtopic, subscribe=False)
         time.sleep(2)
         g_messaging_client.release()
-        if g_timer_thread_use:
+        if g_timer_thread:
             g_timer_thread.set_exit()
             g_timer_thread_stop.set()
             g_timer_thread.join()
+        if g_heartbeat_thread:
+            g_heartbeat_thread.set_exit()
+            g_heartbeat_thread_stop.set()
+            g_heartbeat_thread.join()
         # When disconnected, reset the configurations
         # and pull the configurations during reconnection
         # This is to prevent synchronization issues with local configuration with backend configuration

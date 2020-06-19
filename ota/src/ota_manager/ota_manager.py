@@ -40,6 +40,10 @@ g_storage_client = None
 
 g_document_firmwares = None
 
+g_timer_thread_timeout = 86400 # 1 day (60*60*24=86400 seconds)
+g_timer_thread = None
+g_timer_thread_stop = None
+
 
 
 ###################################################################################
@@ -70,8 +74,8 @@ CONFIG_SEPARATOR            = '/'
 # download firmware via MQTT
 API_UPGRADE_FIRMWARE             = "beg_ota"
 API_UPGRADE_FIRMWARE_COMPLETION  = "end_ota"
-API_REQUEST_FIRMWARE             = "req_firmware"
-API_RECEIVE_FIRMWARE             = "rcv_firmware"
+#API_REQUEST_FIRMWARE             = "req_firmware"
+#API_RECEIVE_FIRMWARE             = "rcv_firmware"
 API_REQUEST_OTASTATUS            = "req_otastatus"
 API_REQUEST_TIME                 = "req_time"
 API_RECEIVE_TIME                 = "rcv_time"
@@ -79,40 +83,42 @@ API_RECEIVE_TIME                 = "rcv_time"
 
 
 ###################################################################################
-# MQTT/AMQP callback functions
+# Helper functions
 ###################################################################################
-
 
 def print_json(json_object):
     json_formatted_str = json.dumps(json_object, indent=2)
     print(json_formatted_str)
 
+#def read_file(filename, offset, size):
+#    # read segment from file
+#    f = open(filename, "rb")
+#    f.seek(offset)
+#    bin = f.read(size)
+#    f.close()
+#    return bin
+#
+#def read_file_chunk(payload):
+#    # get file name
+#    index = payload["location"].rindex("/")
+#    if index == -1:
+#        index = 0
+#    else:
+#        index += 1
+#    filename = payload["location"][index:]
+#
+#    # read segment from file
+#    bin = read_file(filename, payload["offset"], payload["size"])
+#
+#    # convert bin to be JSON compatible
+#    actualsize = len(bin)
+#    bin = base64.b64encode(bin).decode("utf-8")
+#    return bin, actualsize
 
-def read_file(filename, offset, size):
-    # read segment from file
-    f = open(filename, "rb")
-    f.seek(offset)
-    bin = f.read(size)
-    f.close()
-    return bin
 
-def read_file_chunk(payload):
-    # get file name
-    index = payload["location"].rindex("/")
-    if index == -1:
-        index = 0
-    else:
-        index += 1
-    filename = payload["location"][index:]
-
-    # read segment from file
-    bin = read_file(filename, payload["offset"], payload["size"])
-
-    # convert bin to be JSON compatible
-    actualsize = len(bin)
-    bin = base64.b64encode(bin).decode("utf-8")
-    return bin, actualsize
-
+###################################################################################
+# Threaded callback functions
+###################################################################################
 
 def request_time(database_client, deviceid, topic, payload):
 
@@ -120,43 +126,6 @@ def request_time(database_client, deviceid, topic, payload):
     new_payload = {
         "time": int(time.time())
     }
-    new_payload = json.dumps(new_payload)
-    g_messaging_client.publish(new_topic, new_payload, debug=False) # NOTE: enable to DEBUG
-
-
-def request_firmware(database_client, deviceid, topic, payload):
-
-    new_topic = "{}{}{}".format(deviceid, CONFIG_SEPARATOR, API_RECEIVE_FIRMWARE)
-    #print("{} {}".format(topic, deviceid))
-    #print("{}".format(payload))
-
-    # find if deviceid exists
-    devicename = database_client.get_devicename(deviceid)
-    if devicename is None:
-        # if no entry found, just send an empty json
-        new_payload = {}
-        new_payload = json.dumps(new_payload)
-        g_messaging_client.publish(new_topic, new_payload, debug=False) # NOTE: enable to DEBUG
-        return
-
-    payload = json.loads(payload)
-    if payload["offset"] == 0:
-        print("")
-    print("{}: {} {} {}".format(deviceid, payload["location"], payload["size"], payload["offset"]))
-
-    # read segment from file
-    bin, actualsize = read_file_chunk(payload)
-
-    # set topic and payload template for the response
-    new_payload = {
-        "location": payload["location"],
-        "size"    : actualsize,
-        "offset"  : payload["offset"],
-        "bin"     : bin
-    }
-
-    # publish packet response to device
-    #print_json(new_payload)
     new_payload = json.dumps(new_payload)
     g_messaging_client.publish(new_topic, new_payload, debug=False) # NOTE: enable to DEBUG
 
@@ -183,7 +152,7 @@ def request_otastatus(database_client, deviceid, topic, payload):
         g_messaging_client.publish(new_topic, new_payload, debug=False) # NOTE: enable to DEBUG
         return
     #print(ota_status["status"])
-    if ota_status["status"] == "completed" or ota_status["status"] == "failed":
+    if ota_status["status"] == "completed": #or ota_status["status"] == "failed":
         # if no entry found, just send an empty json
         new_payload = {}
         new_payload = json.dumps(new_payload)
@@ -191,7 +160,15 @@ def request_otastatus(database_client, deviceid, topic, payload):
         return
 
 
+    # make sure we have the latest firmware details synching with AWS S3
+    # get the details of the requested firmware
+    download_firmwares()
     firmware = get_firmware_object(ota_status["version"])
+    if firmware is None:
+        new_payload = {}
+        new_payload = json.dumps(new_payload)
+        g_messaging_client.publish(new_topic, new_payload, debug=False) # NOTE: enable to DEBUG
+        return
     #print_json(firmware)
 
     new_topic = "{}{}{}".format(deviceid, CONFIG_SEPARATOR, API_UPGRADE_FIRMWARE)
@@ -201,6 +178,7 @@ def request_otastatus(database_client, deviceid, topic, payload):
         "version"  : firmware["version"],
         "checksum" : firmware["checksum"],
     }
+
 
     # publish packet response to device
     #print_json(new_payload)
@@ -232,35 +210,73 @@ def upgrade_firmware_completion(database_client, deviceid, topic, payload):
     #print_json(ota_status)
 
 
+#def request_firmware(database_client, deviceid, topic, payload):
+#
+#    new_topic = "{}{}{}".format(deviceid, CONFIG_SEPARATOR, API_RECEIVE_FIRMWARE)
+#
+#    # find if deviceid exists
+#    devicename = database_client.get_devicename(deviceid)
+#    if devicename is None:
+#        # if no entry found, just send an empty json
+#        new_payload = {}
+#        new_payload = json.dumps(new_payload)
+#        g_messaging_client.publish(new_topic, new_payload, debug=False) # NOTE: enable to DEBUG
+#        return
+#
+#    payload = json.loads(payload)
+#    if payload["offset"] == 0:
+#        print("")
+#    print("{}: {} {} {}".format(deviceid, payload["location"], payload["size"], payload["offset"]))
+#
+#    # read segment from file
+#    bin, actualsize = read_file_chunk(payload)
+#
+#    # set topic and payload template for the response
+#    new_payload = {
+#        "location": payload["location"],
+#        "size"    : actualsize,
+#        "offset"  : payload["offset"],
+#        "bin"     : bin
+#    }
+#
+#    # publish packet response to device
+#    #print_json(new_payload)
+#    new_payload = json.dumps(new_payload)
+#    g_messaging_client.publish(new_topic, new_payload, debug=False) # NOTE: enable to DEBUG
+
+
+###################################################################################
+# MQTT Packet Processing
+###################################################################################
+
 def on_message(subtopic, subpayload):
 
     #print(subtopic)
     #print(subpayload)
 
+    # parse parameters
     arr_subtopic = subtopic.split(CONFIG_SEPARATOR, 2)
     if len(arr_subtopic) != 3:
         return
-
     deviceid = arr_subtopic[1]
     topic = arr_subtopic[2]
     payload = subpayload.decode("utf-8")
 
+    # process mqtt packet based on topic
     if topic == API_REQUEST_OTASTATUS:
         try:
             thr = threading.Thread(target = request_otastatus, args = (g_database_client, deviceid, topic, payload ))
             thr.start()
         except Exception as e:
-            print("exception API_DOWNLOAD_FIRMWARE")
+            print("exception API_REQUEST_OTASTATUS")
             print(e)
-            return
     elif topic == API_UPGRADE_FIRMWARE_COMPLETION:
         try:
             thr = threading.Thread(target = upgrade_firmware_completion, args = (g_database_client, deviceid, topic, payload ))
             thr.start()
         except Exception as e:
-            print("exception API_DOWNLOAD_FIRMWARE")
+            print("exception API_UPGRADE_FIRMWARE_COMPLETION")
             print(e)
-            return
     elif topic == API_REQUEST_TIME:
         try:
             thr = threading.Thread(target = request_time, args = (g_database_client, deviceid, topic, payload ))
@@ -268,17 +284,14 @@ def on_message(subtopic, subpayload):
         except Exception as e:
             print("exception API_REQUEST_TIME")
             print(e)
-            return
-    elif topic == API_REQUEST_FIRMWARE: 
-        # to be removed later; device will download via HTTPS instead of MQTTS
-        try:
-            thr = threading.Thread(target = request_firmware, args = (g_database_client, deviceid, topic, payload ))
-            thr.start()
-        except Exception as e:
-            print("exception API_DOWNLOAD_FIRMWARE")
-            print(e)
-            return
-
+    #elif topic == API_REQUEST_FIRMWARE: 
+    #    # to be removed later; device will download via HTTPS instead of MQTTS
+    #    try:
+    #        thr = threading.Thread(target = request_firmware, args = (g_database_client, deviceid, topic, payload ))
+    #        thr.start()
+    #    except Exception as e:
+    #        print("exception API_REQUEST_FIRMWARE")
+    #        print(e)
 
 def on_mqtt_message(client, userdata, msg):
 
@@ -310,62 +323,83 @@ def get_firmware_object(version):
             return firmware
     return None
 
-def get_filename(filename):
-    index = filename.rindex("/")
-    if index == -1:
-        index = 0
-    else:
-        index += 1
-    new_filename = filename[index:]
-    return new_filename
-
-def write_to_file(filename, contents):
-    f = open(filename, "wb")
-    f.write(contents)
-    f.close()
-
-def read_file(filename):
-    try:
-        f = open(filename, "rb")
-        contents = f.read()
-        f.close()
-        return contents
-    except:
-        pass
-    return None
-
-def compute_checksum(contents):
-    return binascii.crc32(contents)
-
-def download_firmware(location, checksum):
-    filename = get_filename(location)
-
-    # dont download file from S3 if existing file already exists
-    contents = read_file(filename)
-    if contents is not None:
-        # check if file is the same using checksum
-        if compute_checksum(contents) == checksum:
-            return True
-
-    # download the file from S3
-    print("{} does not exist (or checksum not same). Proceeding to download from S3.".format(filename))
-    file_path = "firmware/" + location
-    result, binary = g_storage_client.get_firmware(file_path)
-    if result:
-        # save contents to file
-        write_to_file(filename, binary)
-
-    return result
-
 def download_firmwares():
     global g_document_firmwares
-    result, g_document_firmwares = g_storage_client.get_device_firmware_updates()
+    print(datetime.now())
+    result, document_firmwares = g_storage_client.get_device_firmware_updates()
     if result:
+        g_document_firmwares = document_firmwares
         for firmware in g_document_firmwares["ft900"]["firmware"]:
-            result = download_firmware(firmware["location"], firmware["checksum"])
-            if result:
-                print("Downloaded {} {} {} {} {} [{}]".format(firmware["version"], firmware["date"], firmware["location"], firmware["size"], firmware["checksum"], result))
+            print("{} {} {} {} {}".format(firmware["version"], firmware["date"], firmware["location"], firmware["size"], firmware["checksum"]))
+            #result = download_firmware(firmware["location"], firmware["checksum"])
+            #if result:
+            #    print("Downloaded {} {} {} {} {} [{}]".format(firmware["version"], firmware["date"], firmware["location"], firmware["size"], firmware["checksum"], result))
+    print("")
     return result
+
+#def get_filename(filename):
+#    index = filename.rindex("/")
+#    if index == -1:
+#        index = 0
+#    else:
+#        index += 1
+#    new_filename = filename[index:]
+#    return new_filename
+#
+#def write_to_file(filename, contents):
+#    f = open(filename, "wb")
+#    f.write(contents)
+#    f.close()
+#
+#def read_file(filename):
+#    try:
+#        f = open(filename, "rb")
+#        contents = f.read()
+#        f.close()
+#        return contents
+#    except:
+#        pass
+#    return None
+#
+#def compute_checksum(contents):
+#    return binascii.crc32(contents)
+#
+#def download_firmware(location, checksum):
+#    filename = get_filename(location)
+#
+#    # dont download file from S3 if existing file already exists
+#    contents = read_file(filename)
+#    if contents is not None:
+#        # check if file is the same using checksum
+#        if compute_checksum(contents) == checksum:
+#            return True
+#
+#    # download the file from S3
+#    print("{} does not exist (or checksum not same). Proceeding to download from S3.".format(filename))
+#    file_path = "firmware/" + location
+#    result, binary = g_storage_client.get_firmware(file_path)
+#    if result:
+#        # save contents to file
+#        write_to_file(filename, binary)
+#
+#    return result
+
+
+###################################################################################
+# Timer thread for daily synching with AWS S3
+###################################################################################
+
+class TimerThread(threading.Thread):
+
+    def __init__(self, event, timeout):
+        threading.Thread.__init__(self)
+        self.stopped = event
+        self.timeout = timeout
+
+    def run(self):
+        while not self.stopped.wait(self.timeout) and g_messaging_client.is_connected(): 
+            download_firmwares()
+        print("TimerThread exits")
 
 
 ###################################################################################
@@ -443,27 +477,37 @@ if __name__ == '__main__':
     # Initialize S3 client
     g_storage_client = s3_client()
     try:
-        print("\r\nDownloading firmwares...")
-        result = download_firmwares()
-        print("Downloading firmwares...done!\r\n")
+        print("")
+        download_firmwares()
     except Exception as e:
         print(e)
 
 
     # Subscribe to messages sent for this device
     time.sleep(1)
-    subtopic  = "{}{}+{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_SEPARATOR, API_REQUEST_FIRMWARE)
-    subtopic2 = "{}{}+{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_SEPARATOR, API_REQUEST_OTASTATUS)
-    subtopic3 = "{}{}+{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_SEPARATOR, API_UPGRADE_FIRMWARE_COMPLETION)
-    subtopic4 = "{}{}+{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_SEPARATOR, API_REQUEST_TIME)
+    subtopic  = "{}{}+{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_SEPARATOR, API_REQUEST_OTASTATUS)
+    subtopic2 = "{}{}+{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_SEPARATOR, API_UPGRADE_FIRMWARE_COMPLETION)
+    subtopic3 = "{}{}+{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_SEPARATOR, API_REQUEST_TIME)
+    #subtopic4  = "{}{}+{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_SEPARATOR, API_REQUEST_FIRMWARE)
     g_messaging_client.subscribe(subtopic,  subscribe=True, declare=True, consume_continuously=True)
     g_messaging_client.subscribe(subtopic2, subscribe=True, declare=True, consume_continuously=True)
     g_messaging_client.subscribe(subtopic3, subscribe=True, declare=True, consume_continuously=True)
-    g_messaging_client.subscribe(subtopic4, subscribe=True, declare=True, consume_continuously=True)
+    #g_messaging_client.subscribe(subtopic4,  subscribe=True, declare=True, consume_continuously=True)
 
 
+    # Initialize timer thread for synchronizing with AWS S3
+    g_timer_thread_stop = threading.Event()
+    g_timer_thread = TimerThread(g_timer_thread_stop, g_timer_thread_timeout)
+    g_timer_thread.start()
+
+    # Main loop
     while g_messaging_client.is_connected():
         time.sleep(3)
         pass
 
+    # Uninitialize timer thread
+    g_timer_thread_stop.set()
+    g_timer_thread.join()
+
     print("application exits!")
+

@@ -36,6 +36,8 @@ g_sensor_client = None
 g_database_client = None
 g_device_client = None
 
+g_chunks = []
+
 
 
 ###################################################################################
@@ -63,7 +65,7 @@ CONFIG_AMQP_TLS_PORT        = 5671
 CONFIG_PREPEND_REPLY_TOPIC  = "server"
 CONFIG_SEPARATOR            = '/'
 
-API_SET_REGISTRATION        = "set_registration"
+#API_SET_REGISTRATION        = "set_registration"
 API_SET_DESCRIPTOR          = "set_descriptor" # gateway descriptor
 API_SET_LDSU_DESCS          = "set_ldsu_descs" # ldsu descriptors
 
@@ -96,24 +98,13 @@ def set_descriptor(database_client, deviceid, topic, payload):
         database_client.set_device_descriptor_by_deviceid(deviceid, payload["value"])
 
 
-def set_ldsu_descs(database_client, deviceid, topic, payload):
-
-    print("{} {}".format(topic, deviceid))
-
-    # find if deviceid exists
-    devicename, username = database_client.get_devicename_username(deviceid)
-    if devicename is None:
-        return
-
-    payload = json.loads(payload)
-    #print_json(payload)
-
+def _set_status_for_nonpresent_ldsus(database_client, username, deviceid, new_ldsus):
 
     # set status for non-present LDSUs
     ldsus = database_client.get_ldsus_by_deviceid(username, deviceid)
     for ldsu in ldsus:
         found = False
-        for descriptor in payload["value"]:
+        for descriptor in new_ldsus:
             if ldsu["UID"] == descriptor["UID"]:
                 found = True
                 break
@@ -122,8 +113,10 @@ def set_ldsu_descs(database_client, deviceid, topic, payload):
             database_client.set_ldsu_status_by_deviceid(username, deviceid, ldsu["UID"], 0)
 
 
+def _save_ldsus(database_client, username, deviceid, new_ldsus):
+
     # save each ldsu to database
-    for descriptor in payload["value"]:
+    for descriptor in new_ldsus:
         #print_json(descriptor)
 
         # add or update ldsu
@@ -154,6 +147,17 @@ def set_ldsu_descs(database_client, deviceid, topic, payload):
                     'minmax'   : g_device_client.get_objidx_minmax(descriptor),
                     'obj'      : obj,
                 }
+                opmodes = g_device_client.get_objidx_modes(descriptor)
+                if opmodes:
+                    sensor['opmodes'] = []
+                    for opmode in opmodes:
+                        sensor['opmodes'].append({
+                            'id'         : int(opmode['ID']),
+                            'name'       : opmode['Name'],
+                            'minmax'     : [opmode['Min'], opmode['Max']],
+                            'accuracy'   : opmode['Accuracy'],
+                            'description': opmode['Description']
+                        })
                 #print("source     {}".format(source))
                 #print("number     {}".format(number))
                 #print("sensorname {}".format(sensorname))
@@ -170,65 +174,153 @@ def set_ldsu_descs(database_client, deviceid, topic, payload):
                 database_client.add_sensor_by_deviceid(username, deviceid, source, number, sensorname, sensor)
 
 
-def set_registration(database_client, deviceid, topic, payload):
+def _sort_by_uuid(elem):
+
+    return elem['UID']
+
+
+def set_ldsu_descs_ex(database_client, deviceid, topic, payload, devicename, username):
+
+    g_chunks.append({
+        "deviceid": deviceid, 
+        "payload": payload
+#        ,"timestamp": int(time.time()) 
+    })
+
+    # check if this is the last chunk in the sequence
+    if int(payload["chunk"]["TSEQ"])-1 != int(payload["chunk"]["SEQN"]):
+        return
+
+    # this is the last chunk in the sequence 
+    complete = False
+    retries = 0
+    while retries < 10:
+        count = 0
+        for chunk in g_chunks:
+            if chunk["deviceid"] == deviceid:
+                count += 1
+        if count == int(payload["chunk"]["TSEQ"]):
+            complete = True
+            break
+        time.sleep(1)
+        retries += 1
+
+    # if some issue with the sequence, discard the data
+    if not complete:
+        for x in range(len(g_chunks)-1, -1, -1):
+            if g_chunks[x]["deviceid"] == deviceid:
+                g_chunks.remove(g_chunks[x])
+        return
+
+    # combine all the ldsus
+    new_ldsus = []
+    for x in range(len(g_chunks)-1, -1, -1):
+        if g_chunks[x]["deviceid"] == deviceid:
+            new_ldsus = [*new_ldsus, *g_chunks[x]["payload"]["value"]]
+            g_chunks.remove(g_chunks[x])
+    new_ldsus.sort(key=_sort_by_uuid)
+    #print(len(g_chunks))
+    #print(len(new_ldsus))
+
+    # check if the number of LDSUs is correct
+    if payload["chunk"].get("TOT") is not None:
+        if len(new_ldsus) != int(payload["chunk"]["TOT"]):
+            print("ERROR: number of LDSUs do not match {} {}".format(len(new_ldsus), int(payload["chunk"]["TOT"])))
+            return
+
+    # set status for non-present LDSUs
+    # save each ldsu to database
+    _set_status_for_nonpresent_ldsus(database_client, username, deviceid, new_ldsus)
+    _save_ldsus(database_client, username, deviceid, new_ldsus)
+
+
+def set_ldsu_descs(database_client, deviceid, topic, payload):
 
     print("{} {}".format(topic, deviceid))
 
     # find if deviceid exists
-    devicename = database_client.get_devicename(deviceid)
+    devicename, username = database_client.get_devicename_username(deviceid)
     if devicename is None:
         return
 
     payload = json.loads(payload)
-    print_json(payload)
+    #print_json(payload)
 
-    for sensor in payload["value"]:
-        # parse sensor
-        peripheral = sensor["source"]
-        sensor.pop("source")
-        source = peripheral[:len(peripheral)-1]
-        number = peripheral[len(peripheral)-1:]
+    # support for multiple chunks in LDSU registration
+    if payload.get("chunk"):
+        if payload["chunk"].get("TSEQ") is None:
+            return
+        if payload["chunk"].get("SEQN") is None:
+            return
+        if int(payload["chunk"]["TSEQ"]) > 1:
+            set_ldsu_descs_ex(database_client, deviceid, topic, payload, devicename, username)
+            return
 
-        # add enabled and configured states
-        sensor["enabled"] = 0
-        sensor["configured"] = 0
+    # set status for non-present LDSUs
+    # save each ldsu to database
+    _set_status_for_nonpresent_ldsus(database_client, username, deviceid, payload["value"])
+    _save_ldsus(database_client, username, deviceid, payload["value"])
 
-        # generate sensorname
-        sensorname = ""
-        index = 1
-        while True:
-            sensorname = "{} {}".format(sensor["model"], index)
-            item = database_client.check_sensor_by_deviceid(deviceid, sensorname)
-            if item is None:
-                break
-            #print_json(item)
-            if item["source"] == source and item["number"] == number:
-                if item["manufacturer"] == sensor["manufacturer"] and item["model"] == sensor["model"]:
-                    if item["class"] == sensor["class"] and item["type"] == sensor["type"]:
-                        #if item["units"][0] == sensor["units"][0] and item["formats"][0] == sensor["formats"][0]:
-                        if source == "i2c":
-                            if item["address"] == sensor["address"]:
-                                index = 0
-                                print("Sensor already registered! {}".format(sensorname))
-                                break
-                        else:
-                            index = 0
-                            print("Sensor already registered! {}".format(sensorname))
-                            break
-            index += 1
-        if index == 0:
-            continue
 
-        # register sensor
-        print()
-        print(sensorname)
-        print(source)
-        print(number)
-        print_json(sensor)
-        print()
-        database_client.add_sensor_by_deviceid(deviceid, source, number, sensorname, sensor)
-
-    print()
+#def set_registration(database_client, deviceid, topic, payload):
+#
+#    print("{} {}".format(topic, deviceid))
+#
+#    # find if deviceid exists
+#    devicename = database_client.get_devicename(deviceid)
+#    if devicename is None:
+#        return
+#
+#    payload = json.loads(payload)
+#    print_json(payload)
+#
+#    for sensor in payload["value"]:
+#        # parse sensor
+#        peripheral = sensor["source"]
+#        sensor.pop("source")
+#        source = peripheral[:len(peripheral)-1]
+#        number = peripheral[len(peripheral)-1:]
+#
+#        # add enabled and configured states
+#        sensor["enabled"] = 0
+#        sensor["configured"] = 0
+#
+#        # generate sensorname
+#        sensorname = ""
+#        index = 1
+#        while True:
+#            sensorname = "{} {}".format(sensor["model"], index)
+#            item = database_client.check_sensor_by_deviceid(deviceid, sensorname)
+#            if item is None:
+#                break
+#            #print_json(item)
+#            if item["source"] == source and item["number"] == number:
+#                if item["manufacturer"] == sensor["manufacturer"] and item["model"] == sensor["model"]:
+#                    if item["class"] == sensor["class"] and item["type"] == sensor["type"]:
+#                        #if item["units"][0] == sensor["units"][0] and item["formats"][0] == sensor["formats"][0]:
+#                        if source == "i2c":
+#                            if item["address"] == sensor["address"]:
+#                                index = 0
+#                                print("Sensor already registered! {}".format(sensorname))
+#                                break
+#                        else:
+#                            index = 0
+#                            print("Sensor already registered! {}".format(sensorname))
+#                            break
+#            index += 1
+#        if index == 0:
+#            continue
+#
+#        # register sensor
+#        print()
+#        print(sensorname)
+#        print(source)
+#        print(number)
+#        print_json(sensor)
+#        print()
+#        database_client.add_sensor_by_deviceid(deviceid, source, number, sensorname, sensor)
+#
+#    print()
 
 
 def on_message(subtopic, subpayload):
@@ -244,15 +336,7 @@ def on_message(subtopic, subpayload):
     topic = arr_subtopic[2]
     payload = subpayload.decode("utf-8")
 
-    if topic == API_SET_REGISTRATION:
-        try:
-            thr = threading.Thread(target = set_registration, args = (g_database_client, deviceid, topic, payload ))
-            thr.start()
-        except Exception as e:
-            print("exception API_SET_REGISTRATION")
-            print(e)
-            return
-    elif topic == API_SET_DESCRIPTOR:
+    if topic == API_SET_DESCRIPTOR:
         try:
             thr = threading.Thread(target = set_descriptor, args = (g_database_client, deviceid, topic, payload ))
             thr.start()
@@ -268,6 +352,14 @@ def on_message(subtopic, subpayload):
             print("exception API_SET_LDSU_DESCS")
             print(e)
             return
+    #elif topic == API_SET_REGISTRATION:
+    #    try:
+    #        thr = threading.Thread(target = set_registration, args = (g_database_client, deviceid, topic, payload ))
+    #        thr.start()
+    #    except Exception as e:
+    #        print("exception API_SET_REGISTRATION")
+    #        print(e)
+    #        return
 
 
 def on_mqtt_message(client, userdata, msg):
@@ -367,12 +459,12 @@ if __name__ == '__main__':
 
     # Subscribe to messages sent for this device
     time.sleep(1)
-    subtopic = "{}{}+{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_SEPARATOR, API_SET_REGISTRATION)
-    subtopic2 = "{}{}+{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_SEPARATOR, API_SET_DESCRIPTOR)
-    subtopic3 = "{}{}+{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_SEPARATOR, API_SET_LDSU_DESCS)
+    subtopic = "{}{}+{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_SEPARATOR, API_SET_DESCRIPTOR)
+    subtopic2 = "{}{}+{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_SEPARATOR, API_SET_LDSU_DESCS)
+    #subtopic3 = "{}{}+{}{}".format(CONFIG_PREPEND_REPLY_TOPIC, CONFIG_SEPARATOR, CONFIG_SEPARATOR, API_SET_REGISTRATION)
     g_messaging_client.subscribe(subtopic, subscribe=True, declare=True, consume_continuously=True)
     g_messaging_client.subscribe(subtopic2, subscribe=True, declare=True, consume_continuously=True)
-    g_messaging_client.subscribe(subtopic3, subscribe=True, declare=True, consume_continuously=True)
+    #g_messaging_client.subscribe(subtopic3, subscribe=True, declare=True, consume_continuously=True)
 
 
     while g_messaging_client.is_connected():

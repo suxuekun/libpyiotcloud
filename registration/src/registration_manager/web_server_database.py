@@ -731,6 +731,8 @@ class database_client_mongodb:
                 device_all["sensorname"] = found["sensorname"]
                 device_all["enabled"] = found["enabled"]
                 device_all["configured"] = found["configured"]
+                if found.get("opmode"):
+                    device_all["opmode"] = found["opmode"]
                 i2csensors.replace_one({'deviceid': deviceid, 'source': source, 'number': number, 'address': data["address"]}, device_all)
             return True
 
@@ -742,6 +744,8 @@ class database_client_mongodb:
                 device_all["sensorname"] = found["sensorname"]
                 device_all["enabled"] = found["enabled"]
                 device_all["configured"] = found["configured"]
+                if found.get("opmode"):
+                    device_all["opmode"] = found["opmode"]
                 i2csensors.replace_one({'deviceid': deviceid, 'source': source, 'number': number}, device_all)
             return True
 
@@ -935,6 +939,9 @@ class database_client_mongodb:
             for device in devices.find({'deviceid': deviceid}):
                 new_device = copy.deepcopy(device)
                 new_device['descriptor'] = descriptor
+                if device.get("poemacaddress") is None:
+                    if descriptor.get("PMAC") is not None:
+                        new_device['poemacaddress'] = descriptor['PMAC']
                 devices.replace_one(device, new_device)
                 break
 

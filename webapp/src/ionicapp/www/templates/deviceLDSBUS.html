@@ -3,7 +3,7 @@
     <button class="button button-icon icon ion-android-close" ng-click="submitDeviceList()"></button>
   </ion-nav-buttons>
   <ion-nav-buttons side="right" class="has-header">
-    <button class="button button-positive icon ion-refresh" ng-click="submitRefresh()"></button>
+    <button class="button button-positive icon ion-android-delete" ng-click="deleteLDSBUS()"></button>
   </ion-nav-buttons>
   <ion-content padding="true" class="has-header">
     <div class="spacer" style="width: 300px; height: 12px;"></div>
@@ -33,7 +33,7 @@
     <div class="list card" id="deviceLDSBUS-card227">
       <div class="item item-body" id="deviceLDSBUS-list-item-container37" ng-click="getSensors()">
         <div id="deviceLDSBUS-markdown528" class="show-list-numbers-and-dots">
-          <p style="margin-top:0px;color:#3C5A99;font-size:18px;">
+          <p style="margin-top:0px;color:#3C5A99;font-size:18px;">...
             <strong> Sensors </strong> ({{ ldsbus.length ? ldsbus[0].sensors.length : 0 }})</p>
         </div>
       </div>
@@ -41,7 +41,7 @@
     <div class="list card" id="deviceLDSBUS-card228">
       <div class="item item-body" id="deviceLDSBUS-list-item-container40" ng-click="getActuators()">
         <div id="deviceLDSBUS-markdown530" class="show-list-numbers-and-dots">
-          <p style="margin-top:0px;color:#3C5A99;font-size:18px;">
+          <p style="margin-top:0px;color:#3C5A99;font-size:18px;">...
             <strong> Actuators </strong> ({{ ldsbus.length ? ldsbus[0].actuators.length : 0 }})</p>
         </div>
       </div>

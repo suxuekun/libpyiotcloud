@@ -1,0 +1,26 @@
+<ion-view title="Subscription" hide-back-button="true" nav-transition="none" id="page61" class="page_width">
+  <ion-nav-buttons side="right" class="has-header">
+    <button class="button button-positive icon ion-refresh" ng-click=""></button>
+  </ion-nav-buttons>
+
+  <ion-content padding="true" class="has-header">
+    <div class = list>
+      <div class="item card" ng-repeat = "subscription in data.subscriptions" ng-click="viewSubscription(subscription)">
+        <div class="item item-header">
+          <p style="margin-top:0px;color:#3C5A99;font-size:18px;">
+              <strong> {{ subscription.devicename }} </strong>
+            </p>
+        </div>
+        <div class="item item-body" >
+          <div class="show-list-numbers-and-dots">
+            <strong><p style="margin-top:0px;color:#444444;font-size:16px;">Plan: {{ subscription.current.plan.name }}<span ng-if ="subscription.status == 'cancel'" style="color:red">(CANCELLED)</span></p><strong>
+          </div>
+          <div class="show-list-numbers-and-dots">
+            <p style="margin-top:0px;color:#444444;font-size:12px;">UUID: {{ subscription.deviceid }}</p>
+          </div>
+          
+        </div>
+      </div>
+    </div>
+  </ion-content>
+</ion-view>

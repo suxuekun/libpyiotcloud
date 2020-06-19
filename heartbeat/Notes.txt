@@ -1,0 +1,8 @@
+docker build -t png .
+docker run -d --name png png
+
+	docker ps -a
+	docker-machine ls // get the ip address for testing with MQTT.FX
+
+docker stop png
+docker rm png

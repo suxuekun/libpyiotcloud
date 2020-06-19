@@ -350,7 +350,7 @@ def add_sensor_reading(database_client, deviceid, topic, payload):
         if payload["SNS"][number] != "NaN":
             #
             # store sensor reading
-            thr1 = threading.Thread(target = store_sensor_reading, args = (database_client, username, devicename, deviceid, payload["UID"], number, float(value), payload["TS"], ))
+            thr1 = threading.Thread(target = store_sensor_reading, args = (database_client, username, devicename, deviceid, payload["UID"], number, float(value), int(payload["TS"]), ))
             thr1.start()
             thr_list.append(thr1)
 

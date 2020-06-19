@@ -1,4 +1,5 @@
-
+class S3Exception(Exception):
+    pass
 
 class CreatedExeception(Exception):
     """ Create failed """

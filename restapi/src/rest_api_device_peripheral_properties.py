@@ -350,26 +350,10 @@ class device_peripheral_properties:
 
     ########################################################################################################
     #
-    # SET I2C DEVICE PROPERTIES
+    # SET LDSU DEVICE PROPERTIES
     #
     # - Request:
     #   POST /devices/device/<devicename>/i2c/number/sensors/sensor/<sensorname>/properties
-    #   headers: {'Authorization': 'Bearer ' + token.access}
-    #   data: adsasdasdasdasdasdasdasd
-    #
-    # - Response:
-    #   {'status': 'OK', 'message': string}
-    #   {'status': 'NG', 'message': string}
-    #
-    #
-    # SET ADC DEVICE PROPERTIES
-    # SET 1WIRE DEVICE PROPERTIES
-    # SET TPROBE DEVICE PROPERTIES
-    #
-    # - Request:
-    #   POST /devices/device/<devicename>/adc/number/sensors/sensor/<sensorname>/properties
-    #   POST /devices/device/<devicename>/1wire/number/sensors/sensor/<sensorname>/properties
-    #   POST /devices/device/<devicename>/tprobe/number/sensors/sensor/<sensorname>/properties
     #   headers: {'Authorization': 'Bearer ' + token.access}
     #   data: adsasdasdasdasdasdasdasd
     #
@@ -480,32 +464,18 @@ class device_peripheral_properties:
         item = self.database_client.update_device_peripheral_configuration(entityname, devicename, xxx, int(number), None, None, None, data)
 
 
-        response = json.dumps({'status': 'OK', 'message': 'Sensor set successfully'})
+        msg = {'status': 'OK', 'message': 'Sensor properties set successfully.'}
+        response = json.dumps(msg)
         return response
 
 
 
     ########################################################################################################
     #
-    # GET I2C DEVICE PROPERTIES
+    # GET LDSU DEVICE PROPERTIES
     #
     # - Request:
     #   POST /devices/device/<devicename>/i2c/number/sensors/sensor/<sensorname>/properties
-    #   headers: {'Authorization': 'Bearer ' + token.access}
-    #
-    # - Response:
-    #   {'status': 'OK', 'message': string, 'value': {}}
-    #   {'status': 'NG', 'message': string}
-    #
-    #
-    # GET ADC DEVICE PROPERTIES
-    # GET 1WIRE DEVICE PROPERTIES
-    # GET TPROBE DEVICE PROPERTIES
-    #
-    # - Request:
-    #   POST /devices/device/<devicename>/adc/number/sensors/sensor/<sensorname>/properties
-    #   POST /devices/device/<devicename>/1wire/number/sensors/sensor/<sensorname>/properties
-    #   POST /devices/device/<devicename>/tprobe/number/sensors/sensor/<sensorname>/properties
     #   headers: {'Authorization': 'Bearer ' + token.access}
     #
     # - Response:
@@ -573,54 +543,29 @@ class device_peripheral_properties:
             return response, status.HTTP_404_NOT_FOUND
 
         # get sensor configuration
+        value = {}
         configuration = self.database_client.get_device_peripheral_configuration(entityname, devicename, xxx, int(number), None)
         if configuration:
-            response = {'value': configuration["attributes"]}
-            print(configuration["attributes"])
-        else:
-            response = {'value': {}}
+            value = configuration["attributes"]
 
         # get sensor notification
         (notification, subattributes_notification) = self.database_client.get_device_notification_with_notification_subclass(entityname, devicename, xxx, int(number))
         if notification is not None:
-            if response.get('value'):
-                response['value']['notification'] = notification
-            else:
-                response['value'] = {}
-                response['value']['notification'] = notification
-            response = json.dumps(response)
+            value['notification'] = notification
         else:
-            if response.get('value'):
-                response['value']['notification'] = rest_api_utils.utils().build_default_notifications(xxx, token, self.database_client)
-            else:
-                response['value'] = {}
-                response['value']['notification'] = rest_api_utils.utils().build_default_notifications(xxx, token, self.database_client)
-            response = json.dumps(response)
+            value['notification'] = rest_api_utils.utils().build_default_notifications(xxx, token, self.database_client)
 
+        msg = {'status': 'OK', 'message': 'Sensor properties retrieved successfully.', 'value': value}
+        response = json.dumps(msg)
         return response
 
 
     ########################################################################################################
     #
-    # GET I2C DEVICE PROPERTIES
+    # DELETE LDSU DEVICE PROPERTIES
     #
     # - Request:
-    #   POST /devices/device/<devicename>/i2c/number/sensors/sensor/<sensorname>/properties
-    #   headers: {'Authorization': 'Bearer ' + token.access}
-    #
-    # - Response:
-    #   {'status': 'OK', 'message': string, 'value': {}}
-    #   {'status': 'NG', 'message': string}
-    #
-    #
-    # GET ADC DEVICE PROPERTIES
-    # GET 1WIRE DEVICE PROPERTIES
-    # GET TPROBE DEVICE PROPERTIES
-    #
-    # - Request:
-    #   POST /devices/device/<devicename>/adc/number/sensors/sensor/<sensorname>/properties
-    #   POST /devices/device/<devicename>/1wire/number/sensors/sensor/<sensorname>/properties
-    #   POST /devices/device/<devicename>/tprobe/number/sensors/sensor/<sensorname>/properties
+    #   DELETE /devices/device/<devicename>/i2c/number/sensors/sensor/<sensorname>/properties
     #   headers: {'Authorization': 'Bearer ' + token.access}
     #
     # - Response:
@@ -703,26 +648,10 @@ class device_peripheral_properties:
 
     ########################################################################################################
     #
-    # ENABLE/DISABLE I2C DEVICE
+    # ENABLE/DISABLE LDSU DEVICE
     #
     # - Request:
     #   POST /devices/device/DEVICENAME/i2c/NUMBER/sensors/sensor/SENSORNAME/enable
-    #   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
-    #   data: { 'enable': int }
-    #
-    # - Response:
-    #   { 'status': 'OK', 'message': string }
-    #   { 'status': 'NG', 'message': string }
-    #
-    #
-    # ENABLE/DISABLE ADC DEVICE
-    # ENABLE/DISABLE 1WIRE DEVICE
-    # ENABLE/DISABLE TPROBE DEVICE
-    #
-    # - Request:
-    #   POST /devices/device/DEVICENAME/adc/NUMBER/sensors/sensor/SENSORNAME/enable
-    #   POST /devices/device/DEVICENAME/1wire/NUMBER/sensors/sensor/SENSORNAME/enable
-    #   POST /devices/device/DEVICENAME/tprobe/NUMBER/sensors/sensor/SENSORNAME/enable
     #   headers: { 'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json' }
     #   data: { 'enable': int }
     #
@@ -792,11 +721,19 @@ class device_peripheral_properties:
         print('enable_{}_dev {} devicename={} number={}'.format(xxx, entityname, devicename, number))
 
 
+        # get opmode
+        mode = str(0)
+        configuration = self.database_client.get_device_peripheral_configuration(entityname, devicename, xxx, int(number), None)
+        if configuration:
+            if configuration["attributes"].get("opmode") is not None:
+                mode = str(configuration["attributes"]["opmode"])
+
+
         # communicate with device
         do_enable = data['enable']
         data["UID"] = xxx
         data['SAID'] = number
-        data['MODE'] = str(0)
+        data['MODE'] = mode
         response, status_return = self.messaging_requests.process(api, data)
         if status_return != 200:
             return response, status_return
@@ -808,6 +745,8 @@ class device_peripheral_properties:
         # set enabled
         self.database_client.set_enable_device_peripheral_configuration(entityname, devicename, xxx, int(number), None, do_enable)
 
+        msg = {'status': 'OK', 'message': 'Sensor enabled/disabled successfully.'}
+        response = json.dumps(msg)
         return response
 
 
@@ -955,4 +894,89 @@ class device_peripheral_properties:
             msg['new_token'] = new_token
         response = json.dumps(msg)
         print('\r\nDelete All Device Sensors Properties successful: {} {}\r\n'.format(username, devicename))
+        return response
+
+
+
+    ########################################################################################################
+    #
+    # GET LDSU DEVICE READINGS
+    #
+    # - Request:
+    #   POST /devices/device/<devicename>/i2c/number/sensors/sensor/<sensorname>/readings
+    #   headers: {'Authorization': 'Bearer ' + token.access}
+    #
+    # - Response:
+    #   {'status': 'OK', 'message': string, 'value': {}}
+    #   {'status': 'NG', 'message': string}
+    #
+    ########################################################################################################
+    def get_xxx_dev_readings(self, devicename, xxx, number, sensorname):
+        print('get_{}_dev_readings'.format(xxx))
+
+        # get token from Authorization header
+        auth_header_token = rest_api_utils.utils().get_auth_header_token()
+        if auth_header_token is None:
+            response = json.dumps({'status': 'NG', 'message': 'Invalid authorization header'})
+            print('\r\nERROR Get {} Sensor Readings: Invalid authorization header\r\n'.format(xxx))
+            return response, status.HTTP_401_UNAUTHORIZED
+        token = {'access': auth_header_token} 
+        # get username from token
+        username = self.database_client.get_username_from_token(token)
+        if username is None:
+            response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+            print('\r\nERROR Get {} Sensor Readings: Token expired\r\n'.format(xxx))
+            return response, status.HTTP_401_UNAUTHORIZED
+        print('{} devicename={} number={} sensorname={}'.format(username, devicename, number, sensorname))
+
+        # check if a parameter is empty
+        if len(username) == 0 or len(token) == 0 or len(devicename) == 0 or len(sensorname) == 0:
+            response = json.dumps({'status': 'NG', 'message': 'Empty parameter found'})
+            print('\r\nERROR Get {} Sensor Readings: Empty parameter found\r\n'.format(xxx))
+            return response, status.HTTP_400_BAD_REQUEST
+
+        # check if username and token is valid
+        verify_ret, new_token = self.database_client.verify_token(username, token)
+        if verify_ret == 2:
+            response = json.dumps({'status': 'NG', 'message': 'Token expired'})
+            print('\r\nERROR Get {} Sensor Readings: Token expired [{}]\r\n'.format(xxx, username))
+            return response, status.HTTP_401_UNAUTHORIZED
+        elif verify_ret != 0:
+            response = json.dumps({'status': 'NG', 'message': 'Unauthorized access'})
+            print('\r\nERROR Get {} Sensor Readings: Token is invalid [{}]\r\n'.format(xxx, username))
+            return response, status.HTTP_401_UNAUTHORIZED
+
+
+        # get entity using the active organization
+        orgname, orgid = self.database_client.get_active_organization(username)
+        if orgname is not None:
+            # check authorization
+            if self.database_client.is_authorized(username, orgname, orgid, database_categorylabel.DEVICES, database_crudindex.READ) == False:
+                response = json.dumps({'status': 'NG', 'message': 'Authorization failed! User is not allowed to access resource. Please check with the organization owner regarding policies assigned.'})
+                print('\r\nERROR Get Peripheral Sensor Readings: Authorization not allowed [{}]\r\n'.format(username))
+                return response, status.HTTP_401_UNAUTHORIZED
+
+            # has active organization
+            entityname = "{}.{}".format(orgname, orgid)
+        else:
+            # no active organization, just a normal user
+            entityname = username
+
+
+        # check if sensor is registered
+        sensor = self.database_client.get_sensor(entityname, devicename, xxx, number, sensorname)
+        if not sensor:
+            response = json.dumps({'status': 'NG', 'message': 'Sensor is not registered'})
+            print('\r\nERROR Get {} Sensor Readings: Sensor is not registered [{},{}]\r\n'.format(xxx, entityname, devicename))
+            return response, status.HTTP_404_NOT_FOUND
+
+        # get the sensor reading for all enabled sensors
+        if sensor["enabled"]:
+            reading = self.database_client.get_sensor_reading(entityname, devicename, xxx, int(number))
+            if reading:
+                sensor["readings"] = reading
+
+
+        msg = {'status': 'OK', 'message': 'Sensor readings retrieved successfully.', 'sensor': sensor}
+        response = json.dumps(msg)
         return response

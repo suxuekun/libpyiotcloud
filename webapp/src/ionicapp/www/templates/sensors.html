@@ -30,6 +30,22 @@
             <p style="margin-top:0px;color:#888888;font-size:12px;">{{ sensor.class }}</p>
           </div>
         </div>
+        <div class="item item-body" id="sensors-list-item-container14" ng-click="getSensorReadings(sensor)">
+          <div id="sensors-markdown592" style="text-align:center;" class="show-list-numbers-and-dots">
+            <p style="margin-top:0px;color:#FFFFFF;font-size:6px;">{{ sensor.readings ? "." : "" }}</p>
+          </div>
+          <div id="sensors-markdown596" style="text-align:center;" class="show-list-numbers-and-dots">
+            <p style="margin-top:0px;color:#3C5A99;font-size:35px;">
+              <strong> {{ sensor.readings ? sensor.readings.value + " " + sensor.unit : "" }} </strong>
+            </p>
+          </div>
+          <div id="sensors-markdown593" style="text-align:center;" class="show-list-numbers-and-dots">
+            <p style="margin-top:0px;color:#FFFFFF;font-size:6px;">{{ sensor.readings ? "." : "" }}</p>
+          </div>
+          <div id="sensors-markdown594" style="text-align:center;" class="show-list-numbers-and-dots">
+            <p style="margin-top:0px;color:#3C5A99;font-size:12px;">{{ sensor.readings ? "Low: " + sensor.readings.lowest + " " + sensor.unit + " High: " + sensor.readings.highest + " " + sensor.unit : "" }}</p>
+          </div>
+        </div>
         <div id="sensors-container97">
           <form id="sensors-form259" class="list">
             <ion-toggle toggle-class="toggle-positive" id="sensors-toggle33" ng-show="sensor.configured" ng-model="sensor.enabled_bool" ng-click="enableSensor(sensor, sensor.enabled_bool)">.</ion-toggle>

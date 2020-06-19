@@ -162,10 +162,9 @@ class device_locations:
                 print('\r\nERROR Set Devices Locations: Parameters not included [{},{}]\r\n'.format(username, devicename))
                 return response, status.HTTP_400_BAD_REQUEST
 
-            # get devices of the user
-            devices = self.database_client.get_devices(entityname)
 
             # set the location to database
+            print(data["locations"])
             for location in data["locations"]:
                 self.database_client.add_device_location(entityname, location["devicename"], location["location"])
 
