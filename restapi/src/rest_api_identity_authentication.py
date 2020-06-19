@@ -751,10 +751,11 @@ class identity_authentication:
 
             # add last login information
             last_login = self.database_client.get_last_login(username)
-            if 'lastsuccess' in last_login:
-                info['last_login'] = last_login['lastsuccess']
-            if 'lastfailed' in last_login:
-                info['last_failed_login'] = last_login['lastfailed']
+            if last_login is not None:
+                if 'lastsuccess' in last_login:
+                    info['last_login'] = last_login['lastsuccess']
+                if 'lastfailed' in last_login:
+                    info['last_failed_login'] = last_login['lastfailed']
 
 
         msg = {'status': 'OK', 'message': 'Userinfo queried successfully.'}
