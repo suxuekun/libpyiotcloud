@@ -383,7 +383,7 @@ DETAILED:
 		     "chunk": {
 		       "TSEQ": string // total num of chunks in the sequence (ex. 16 chunks)
 		       "SEQN": string // sequence number (ex. 0-15)
-		       "TOT": string  // total num of LDSUs in the sequence (used for verification)
+		       "TOT":  string // total num of LDSUs in the sequence (used for verification, only used in the last chunk)
 		     }
 		   }
 		
@@ -442,7 +442,7 @@ DETAILED:
 		     "chunk": {
 		       "TSEQ": string // total num of chunks in the sequence (ex. 16 chunks)
 		       "SEQN": string // sequence number (ex. 0-15)
-		       "TOT": string  // total num of LDSUs in the sequence (used for verification)
+		       "TOT":  string // total num of LDSUs in the sequence (used for verification, only used in the last chunk)
 		     }
 		   }
 		   // PART 2. 
