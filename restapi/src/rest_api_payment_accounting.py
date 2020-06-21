@@ -189,7 +189,7 @@ class payment_accounting:
         orgname, orgid = self.database_client.get_active_organization(username)
         if orgname is not None:
             # check authorization
-            if self.database_client.is_authorized(username, orgname, orgid, database_categorylabel.PAYMENTS, database_crudindex.UPDATE) == False:
+            if self.database_client.is_authorized(username, orgname, orgid, database_categorylabel.PAYMENTS, database_crudindex.CREATE) == False:
                 response = json.dumps({'status': 'NG', 'message': 'Authorization failed! User is not allowed to access resource. Please check with the organization owner regarding policies assigned.'})
                 print('\r\nERROR Paypal Setup: Authorization not allowed [{}]\r\n'.format(username))
                 return response, status.HTTP_401_UNAUTHORIZED

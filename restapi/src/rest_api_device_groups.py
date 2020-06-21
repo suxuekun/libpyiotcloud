@@ -739,11 +739,6 @@ class device_groups:
         # get entity using the active organization
         orgname, orgid = self.database_client.get_active_organization(username)
         if orgname is not None:
-            # check authorization
-            if self.database_client.is_authorized(username, orgname, orgid, database_categorylabel.DEVICES, database_crudindex.UPDATE) == False:
-                response = json.dumps({'status': 'NG', 'message': 'Authorization failed! User is not allowed to access resource. Please check with the organization owner regarding policies assigned.'})
-                print('\r\nERROR Add/Delete Device To/From DeviceGroup: Authorization not allowed [{}]\r\n'.format(username))
-                return response, status.HTTP_401_UNAUTHORIZED
             # has active organization
             entityname = "{}.{}".format(orgname, orgid)
         else:
@@ -765,6 +760,13 @@ class device_groups:
             return response, status.HTTP_404_NOT_FOUND
 
         if flask.request.method == 'POST':
+            if orgname is not None:
+                # check authorization
+                if self.database_client.is_authorized(username, orgname, orgid, database_categorylabel.DEVICES, database_crudindex.UPDATE) == False:
+                    response = json.dumps({'status': 'NG', 'message': 'Authorization failed! User is not allowed to access resource. Please check with the organization owner regarding policies assigned.'})
+                    print('\r\nERROR Add Device To DeviceGroup: Authorization not allowed [{}]\r\n'.format(username))
+                    return response, status.HTTP_401_UNAUTHORIZED
+
             msg = {'status': 'OK', 'message': ''}
 
             # check if new device name is already registered
@@ -816,6 +818,13 @@ class device_groups:
                     return response, status.HTTP_400_BAD_REQUEST
 
         elif flask.request.method == 'DELETE':
+            if orgname is not None:
+                # check authorization
+                if self.database_client.is_authorized(username, orgname, orgid, database_categorylabel.DEVICES, database_crudindex.DELETE) == False:
+                    response = json.dumps({'status': 'NG', 'message': 'Authorization failed! User is not allowed to access resource. Please check with the organization owner regarding policies assigned.'})
+                    print('\r\nERROR Delete Device From DeviceGroup: Authorization not allowed [{}]\r\n'.format(username))
+                    return response, status.HTTP_401_UNAUTHORIZED
+
             msg = {'status': 'OK', 'message': 'Device removed from device group successfully.'}
 
             # remove device from device group
