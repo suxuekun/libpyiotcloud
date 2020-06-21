@@ -4823,7 +4823,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         //        
         $http({
             method: 'POST',
-            url: server + '/devicegroups/' + devicegroupname + '/name',
+            url: server + '/devicegroups/group/' + devicegroupname + '/name',
             headers: {'Authorization': 'Bearer ' +  $scope.data.token.access, 'Content-Type': 'application/json' },
             data: {'new_groupname': new_devicegroupname}
         })

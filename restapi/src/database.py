@@ -1102,7 +1102,7 @@ class database_client:
 
     # org-ready
     def remove_device_from_devicegroup(self, username, groupname, deviceid):
-        self._devices.remove_device_from_devicegroup(username, groupname, deviceid)
+        return self._devices.remove_device_from_devicegroup(username, groupname, deviceid)
 
     # org-ready
     def remove_device_from_devicegroups(self, username, deviceid):
@@ -4898,7 +4898,9 @@ class database_client_mongodb:
                     new_devicegroup = copy.deepcopy(devicegroup)
                     new_devicegroup['devices'].remove(deviceid)
                     devicegroups.replace_one(devicegroup, new_devicegroup)
+                    return True
                 break
+        return False
 
     def remove_device_from_devicegroups(self, username, deviceid):
         devicegroups = self.get_registered_devicegroups()

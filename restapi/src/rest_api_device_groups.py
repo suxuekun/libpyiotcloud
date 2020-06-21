@@ -257,6 +257,19 @@ class device_groups:
             deviceids = []
             data = flask.request.get_json()
             if data is not None and data.get("devices") is not None:
+                # check if devices are valid
+                devices = self.database_client.get_devices(entityname)
+                for device in data["devices"]:
+                    found = False
+                    for devicex in devices:
+                        if device == devicex["devicename"]:
+                            found = True
+                            break
+                    if not found:
+                        response = json.dumps({'status': 'NG', 'message': 'One of the devices specified is not registered'})
+                        print('\r\nERROR Add DeviceGroup: One of the devices specified is not registered\r\n')
+                        return response, status.HTTP_400_BAD_REQUEST
+
                 # check if the devices dont belong to a group already
                 if len(data["devices"]):
                     ungrouped_devices = self.database_client.get_ungroupeddevices(entityname)
@@ -647,7 +660,7 @@ class device_groups:
         if self.database_client.get_devicegroup(entityname, data["new_groupname"]) is not None:
             response = json.dumps({'status': 'NG', 'message': 'Device group name is already registered'})
             print('\r\nERROR Update Device Group Name: Device group name is already registered [{},{}]\r\n'.format(entityname, devicegroupname))
-            return response, status.HTTP_400_BAD_REQUEST
+            return response, status.HTTP_409_CONFLICT
 
 
         # update the device group name
@@ -806,7 +819,11 @@ class device_groups:
             msg = {'status': 'OK', 'message': 'Device removed from device group successfully.'}
 
             # remove device from device group
-            self.database_client.remove_device_from_devicegroup(entityname, devicegroupname, device['deviceid'])
+            result = self.database_client.remove_device_from_devicegroup(entityname, devicegroupname, device['deviceid'])
+            if result == False:
+                response = json.dumps({'status': 'NG', 'message': 'Device not part of device group'})
+                print('\r\nERROR Remove Device From DeviceGroup: Device not part of device group\r\n')
+                return response, status.HTTP_400_BAD_REQUEST
 
 
         print('\r\n%s: {}\r\n{}\r\n'.format(username, msg["message"]))
