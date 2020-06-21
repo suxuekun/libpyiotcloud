@@ -1,5 +1,9 @@
-Peer Review of Payment APIs (06/03/2020) by Richmond
+Peer Review Comments by Richmond
 
+
+===============================================
+
+June 3, 2020
 
 1. all dates return should be in epoch format because of timezone issues.
    backend always return epoch so front end can display based on the user's timezone.
@@ -81,5 +85,57 @@ Peer Review of Payment APIs (06/03/2020) by Richmond
     backend create braintree transaction 
     backend create braintree subscription
 
-17. GST information displays the currency conversion for SGD to USD.
-    backend needs to dynamically update the latest currency conversion from some website OR from a JSON file that can be updated by marketing department.
+17. GST information should be displayed with estimated currency conversion for SGD to USD.
+
+
+===============================================
+
+June 16, 2020
+
+18. WHY DID YOU COMMIT THE .SH FILE CONTAINING CONFIDENTIAL INFORMATION?
+
+    NOW WE HAVE TO CHANGE IT IN THE FIRMWARE AND BACKEND
+    THIS MEANS ALL DEVICES HAVE TO BE INVALIDATED.
+
+19. WHY IS THE BRAINTREE CONFIGURATION HARDCODED AND COMMITTED IN GITHUB?
+ 
+    THIS NEEDS TO BE SET TO ENVIRONMENT VARIABLES.
+
+
+===============================================
+
+June 18, 2020
+
+20. Generic error handling for all functions
+
+21. Please update api-doc
+
+22. Plans should be retrieved from Braintree account, not hardcoded in the backend
+
+23. Promocodes should be retrieved from amazon s3, not hardcoded in the backend
+
+24. The last paypal user used should appear automatically on succeeding transactions
+    But user should still be required to approve for new succeeding upgrades
+ 
+25. Database collections should be prepended with "payments"
+
+
+===============================================
+
+June 21, 2020
+
+26. Could not find code where username is retrieved from token and token is verified if expired/invalid.
+    All APIs should do this.
+
+27. provide a summary of APIs for the entry points of each API in the respective files containing the API entry points
+
+   this makes it easy to debug and troubleshoot the code
+
+   #g_identity_authentication_list = [
+   #    { "name": "SIGN-UP",                         "func": signup,                          "api": "/user/signup",                      "method": "POST"   },
+   #    { "name": "CONFIRM SIGN-UP",                 "func": confirm_signup,                  "api": "/user/confirm_signup",              "method": "POST"   },
+   #    { "name": "RESEND CONFIRMATION CODE",        "func": resend_confirmation_code,        "api": "/user/resend_confirmation_code",    "method": "POST"   },
+   #    { "name": "FORGOT PASSWORD",                 "func": forgot_password,                 "api": "/user/forgot_password",             "method": "POST"   },
+   #    { "name": "CONFIRM FORGOT PASSWORD",         "func": confirm_forgot_password,         "api": "/user/confirm_forgot_password",     "method": "POST"   },
+
+
