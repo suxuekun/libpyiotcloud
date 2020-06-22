@@ -740,13 +740,13 @@ def handle_api(api, subtopic, subpayload):
                 # get classname, minmax (given OBJ and number)
                 descriptor = g_device_client.get_objidx(obj, number)
                 classname = g_device_client.get_objidx_class(descriptor)
-                minmax = g_device_client.get_objidx_minmax(descriptor, mode)
+                min,max = g_device_client.get_objidx_minmax(descriptor, mode)
                 format = g_device_client.get_objidx_format(descriptor)
                 type = g_device_client.get_objidx_type(descriptor)
                 accuracy = g_device_client.get_objidx_accuracy(descriptor)
                 g_ldsu_properties[source][number]["attributes"] = {}
                 g_ldsu_properties[source][number]["attributes"]["class"] = classname
-                g_ldsu_properties[source][number]["attributes"]["minmax"] = minmax
+                g_ldsu_properties[source][number]["attributes"]["minmax"] = [min,max]
                 g_ldsu_properties[source][number]["attributes"]["format"] = format
                 g_ldsu_properties[source][number]["attributes"]["type"] = type
                 g_ldsu_properties[source][number]["attributes"]["accuracy"] = accuracy
@@ -1531,16 +1531,17 @@ def handle_api(api, subtopic, subpayload):
                     # get classname, minmax (given OBJ and number)
                     descriptor = g_device_client.get_objidx(obj, number)
                     classname = g_device_client.get_objidx_class(descriptor)
-                    minmax = g_device_client.get_objidx_minmax(descriptor, mode)
+                    min,max = g_device_client.get_objidx_minmax(descriptor, mode)
                     format = g_device_client.get_objidx_format(descriptor)
                     type = g_device_client.get_objidx_type(descriptor)
                     accuracy = g_device_client.get_objidx_accuracy(descriptor)
                     g_ldsu_properties[source][number]["attributes"] = {}
                     g_ldsu_properties[source][number]["attributes"]["class"] = classname
-                    g_ldsu_properties[source][number]["attributes"]["minmax"] = minmax
+                    g_ldsu_properties[source][number]["attributes"]["minmax"] = [min,max]
                     g_ldsu_properties[source][number]["attributes"]["format"] = format
                     g_ldsu_properties[source][number]["attributes"]["type"] = type
                     g_ldsu_properties[source][number]["attributes"]["accuracy"] = accuracy
+                    #print(g_ldsu_properties[source][number])
 
             #printf_json(g_ldsu_properties[source])
 
@@ -2068,6 +2069,11 @@ class TimerThread(threading.Thread):
                     attributes = ldsu_device["attributes"]
                     # generate random value if sensor is enabled
                     if ldsu_device["enabled"] and attributes["type"] == "input":
+                        #print(ldsu_device)
+                        #print(attributes)
+                        #printf("{} {}".format(attributes["class"], attributes["format"] ))
+                        #printf("{}".format(int(attributes["accuracy"]) ))
+                        #printf("{} {}".format(int(attributes["minmax"][0]), int(attributes["minmax"][1]) ))
                         value = get_random_data_ex(attributes["format"], int(attributes["accuracy"]), int(attributes["minmax"][0]), int(attributes["minmax"][1]))
                         value = str(value)
                         printf("{} {} {} {} {} {}".format(value, attributes["class"], attributes["format"], int(attributes["accuracy"]), int(attributes["minmax"][0]), int(attributes["minmax"][1]) ))
@@ -2898,7 +2904,14 @@ def http_compute_device_password(uuid, serial_number, mac_address):
 
     password = None
 
-    conn = http_initialize_connection(host="dev.brtchip-iotportal.com")
+    # initialize HTTPS connection with a specific server for the device password API
+    if "brtchip-iotportal.com" in CONFIG_HTTP_HOST:
+        # for local setup, use the DEV cloud
+        conn = http_initialize_connection(host=CONFIG_HTTP_HOST)
+    else:
+        # for local setup, use the DEV cloud
+        conn = http_initialize_connection(host="dev.brtchip-iotportal.com")
+
     headers = { "Connection": "keep-alive", "Content-Type": "application/json" }
     params = json.dumps({ "uuid": uuid, "serialnumber": serial_number, "poemacaddress": mac_address })
     api = "/devicesimulator/devicepassword"

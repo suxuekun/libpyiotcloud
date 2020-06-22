@@ -4,7 +4,7 @@ from flask_restful import Api
 
 from payment.routes.billing_address import BillingAddressResource
 from payment.routes.checkout import CheckoutResource, CancelSubscriptionResource
-from payment.routes.plan import PlanResource, PlanListResource
+from payment.routes.plan import PlanResource, PlanListResource, PlanReloadResource
 from payment.routes.promocode import PromocodeListResource, PromocodeResource
 from payment.routes.prorate import ProrateResource
 from payment.routes.subscription import SubscriptionResource, SubscriptionListResource
@@ -25,6 +25,9 @@ payment_blueprint = Blueprint('payment_blueprint', __name__)
         'method':'GET',
     },{
         'endpoint':'payment_blueprint.plan',
+        'methods':['GET'],
+    },{
+        'endpoint':'payment_blueprint.plan_reload',
         'methods':['GET'],
     }]
 })
@@ -48,6 +51,7 @@ api.add_resource(BillingAddressResource,'/billing_address/')
 
 api.add_resource(PlanListResource,'/plan/',endpoint='planlist')
 api.add_resource(PlanResource,'/plan/<id>/',endpoint='plan')
+api.add_resource(PlanReloadResource,'/plan_reload/',endpoint='plan_reload')
 
 api.add_resource(PromocodeListResource,'/promocode/',endpoint='promocodelist')
 api.add_resource(PromocodeResource,'/promocode/<code>/',endpoint='promocode')

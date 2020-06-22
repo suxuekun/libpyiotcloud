@@ -12,15 +12,15 @@ TWOPLACES = Decimal('0.01')
 
 class Usage(Model):
     sms = DecimalType(default=0)
-    email = IntType(default=0)
-    notification = IntType(default=0)
-    storage = IntType(default=0)  # count on MB 1000 up ?
+    email = StringType(default=0)
+    notification = StringType(default=0)
+    storage = StringType(default=0)  # count on MB 1000 up ?
 
 class AbstractPlan(BaseIotModel,Usage):
     name = StringType()
     price = DecimalType()
-    period = IntType()
-    currency = StringType()
+    # period = IntType()
+    # currency = StringType()
 
     def get_price_str(self,gst=0):
         price = self.price * Decimal(1+gst/100)
@@ -35,7 +35,7 @@ class AbstractPlan(BaseIotModel,Usage):
 
 class Plan(AbstractPlan,TimeStampMixin,):
     bt_plan_id = StringType(max_length=255)
-    active = BooleanType(default=True)
+    # active = BooleanType(default=True)
 
 if __name__ == "__main__":
     plan = Plan.get_mock_object()

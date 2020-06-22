@@ -8,7 +8,7 @@ from shared.utils import timestamp_util
 
 class PROMOTYPE():
     DISCOUNT = "discount"
-    PERCENT_DISCOUNT = "percent_discount"
+    PERCENT_DISCOUNT = "price"
 
 _DISCOUNT_MAPPING={
 
@@ -36,7 +36,7 @@ class Promo(AbstractPromo,TimeStampMixin):
 
 class PromoCode(AbstractPromoCode,UserMixin):
     info = ModelType(Promo)
-    username = StringType()# related to username or orgid.orgname
+    # username = StringType()# related to username or orgid.orgname
 
     @property
     def expired(self):

@@ -1,91 +1,96 @@
 from payment.core import payment_client
 from payment.models.plan import Plan
 from shared.services.logger_service import LoggerService
-from shared.simple_api.service import BaseSimpleApiService, BaseMongoService
+from shared.simple_api.service import BaseSimpleApiService, BaseMongoService, BaseS3Service, BaseFileService
 
 
-class PlanService(BaseMongoService):
-    def __init__(self,*args,**kwargs):
-        super(PlanService,self).__init__(*args,**kwargs)
-        self.create_dummy()
-        plans = payment_client.plans
-        print("--plans-- ",[plan.id for plan in plans])
+class PlanService(BaseFileService):
+    # def __init__(self,*args,**kwargs):
+    #     super(PlanService,self).__init__(*args,**kwargs)
+    #     # # self.create_dummy()
+    #     # plans = payment_client.plans
+    #     # print("--plans-- ",[plan.id for plan in plans])
 
     def get_free_plan(self):
-        return self._free
-    def create_dummy(self):
-        querys = [
-            {
-                'bt_plan_id': '',
-                'name': 'Free Plan',
+        print('--free',self.repo.free)
+        return self.model(self.repo.free,strict=False)
 
-            },
-            {
-                'bt_plan_id': 'Basic10',
-                'name': 'Plan B',
+    def reload(self):
+        return self.repo.reload()
 
-            },
-            {
-                'bt_plan_id': 'Pro30',
-                'name': 'Plan C',
-
-            },
-            {
-                'bt_plan_id': 'Enterprise50',
-                'name': 'Plan D',
-
-            },
-        ]
-        dummy = [
-            {
-                'bt_plan_id': '',
-                'name': 'Free Plan',
-                'price': "0",
-                'period': 0,
-                'currency': '',
-                'sms': '0',
-                'email': 30,
-                'notification': 100,
-                'storage': 50,
-            },
-            {
-                'bt_plan_id': 'Basic10',
-                'name': 'Plan B',
-                'price': "10",
-                'period': 1,
-                'currency': 'USD',
-                'sms': '5',
-                'email': 100,
-                'notification': 1000,
-                'storage':1000,
-            },
-            {
-                'bt_plan_id': 'Pro30',
-                'name': 'Plan C',
-                'price': "30",
-                'period': 1,
-                'currency': 'USD',
-                'sms': '20',
-                'email': 1000,
-                'notification': 100000,
-                'storage': 3000,
-            },
-            {
-                'bt_plan_id': 'Enterprise50',
-                'name': 'Plan D',
-                'price': "50",
-                'period': 1,
-                'currency': 'USD',
-                'sms': '30',
-                'email': 10000,
-                'notification': 1000000,
-                'storage': 10000,
-            },
-
-        ]
-        # plans = [Plan(x) for x in dummy]
-        entities = [self.get_or_create_one(x) for x in dummy]
-        self._free = entities[0]
+    # def create_dummy(self):
+    #     querys = [
+    #         {
+    #             'bt_plan_id': '',
+    #             'name': 'Free Plan',
+    #
+    #         },
+    #         {
+    #             'bt_plan_id': 'Basic10',
+    #             'name': 'Plan B',
+    #
+    #         },
+    #         {
+    #             'bt_plan_id': 'Pro30',
+    #             'name': 'Plan C',
+    #
+    #         },
+    #         {
+    #             'bt_plan_id': 'Enterprise50',
+    #             'name': 'Plan D',
+    #
+    #         },
+    #     ]
+    #     dummy = [
+    #         {
+    #             'bt_plan_id': '',
+    #             'name': 'Free Plan',
+    #             'price': "0",
+    #             'period': 0,
+    #             'currency': '',
+    #             'sms': '0',
+    #             'email': 30,
+    #             'notification': 100,
+    #             'storage': 50,
+    #         },
+    #         {
+    #             'bt_plan_id': 'Basic10',
+    #             'name': 'Plan B',
+    #             'price': "10",
+    #             'period': 1,
+    #             'currency': 'USD',
+    #             'sms': '5',
+    #             'email': 100,
+    #             'notification': 1000,
+    #             'storage':1000,
+    #         },
+    #         {
+    #             'bt_plan_id': 'Pro30',
+    #             'name': 'Plan C',
+    #             'price': "30",
+    #             'period': 1,
+    #             'currency': 'USD',
+    #             'sms': '20',
+    #             'email': 1000,
+    #             'notification': 100000,
+    #             'storage': 3000,
+    #         },
+    #         {
+    #             'bt_plan_id': 'Enterprise50',
+    #             'name': 'Plan D',
+    #             'price': "50",
+    #             'period': 1,
+    #             'currency': 'USD',
+    #             'sms': '30',
+    #             'email': 10000,
+    #             'notification': 1000000,
+    #             'storage': 10000,
+    #         },
+    #
+    #     ]
+    #     # plans = [Plan(x) for x in dummy]
+    #     entities = [self.get_or_create_one(x) for x in dummy]
+    #     self._free = entities[0]
 
 
     pass

@@ -203,6 +203,7 @@ class PaymentService():
             transaction.status = TransactionStatus.PENDING
             transaction.name = "First Month Payment"
             transaction.remark = 'First Month Payments For Device Plan Subscription'
+            transaction.username = username
             self.record_transaction(transaction)
         return True
 

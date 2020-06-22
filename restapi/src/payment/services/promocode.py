@@ -3,8 +3,10 @@ from bson import ObjectId
 from payment.models.plan import Plan
 from payment.models.promocode import Promo
 from shared.services.logger_service import LoggerService
-from shared.simple_api.service import BaseSimpleApiService, BaseMongoService
+from shared.simple_api.service import BaseSimpleApiService, BaseMongoService, BaseS3Service
 
+class PromocodeS3Service(BaseS3Service):
+    pass
 
 class PromocodeService(BaseMongoService):
     def __init__(self,*args,**kwargs):

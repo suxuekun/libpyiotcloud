@@ -25,16 +25,15 @@ SUMMARY:
     6. payment setup and checkout
         A. get client token                - GET    /payment/client_token/
         B. checkout                        - POST   /payment/checkout/
+        C. cancel subscription             - pOST   /payment/cancel_subscription/
         
     7. billing address
         A. get billing address             - GET    /payment/billing_address/
         B. create billing address          - POST   /payment/billing_address/
-        C. update billing address          - PUT    /payment/billing_address/
         
     8. transaction history
         A. GET transactions                - GET    /payment/transaction/{filter}
         B. GET transactions Detail         - GET    /payment/transaction/{id}/
-        C. GET transaction reciept         - GET    /payment/transaction/reciept/{id}
       
     x. cart # TODO replace payment check out
         A. get cartitems                   - GET    /payment/cartitem/
@@ -51,43 +50,82 @@ DETAIL:
         - Request:
         GET: /payment/plan/
         headers: {'Content-Type': 'application/json'}
-        - Reponse:
-        { 
-            'status': 'OK', 
-            'message': string, 
-            'plans': [
-              {
-                id:"id",
-                name:"Free Plan",
-                price:0,
-                period:1, // every period month as one cycle ,1 = monthly 12 = yearly
-                sms:5,
-                notification:50,
-                email:50,
-                storage:50, // in MB
-              },
-              {...}
-            ]
+        - Response:
+        {
+          "status": "OK",
+          "message": "",
+          "data": [
+            {
+              "_id": "Free",
+              "createdAt": "1592538065",
+              "modifiedAt": "1592538065",
+              "sms": "0",
+              "email": "30",
+              "notification": "100",
+              "storage": "0.05",
+              "name": "PlanA",
+              "price": "0.00",
+              "bt_plan_id": "Free"
+            },
+            {
+              "_id": "Basic10",
+              "createdAt": "1592538065",
+              "modifiedAt": "1592538065",
+              "sms": "0",
+              "email": "100",
+              "notification": "1000",
+              "storage": "1",
+              "name": "PlanB",
+              "price": "10.00",
+              "bt_plan_id": "Basic10"
+            },
+            {
+              "_id": "Pro30",
+              "createdAt": "1592538065",
+              "modifiedAt": "1592538065",
+              "sms": "0",
+              "email": "1000",
+              "notification": "100000",
+              "storage": "3",
+              "name": "PlanC",
+              "price": "30.00",
+              "bt_plan_id": "Pro30"
+            },
+            {
+              "_id": "Enterprise50",
+              "createdAt": "1592538065",
+              "modifiedAt": "1592538065",
+              "sms": "0",
+              "email": "10000",
+              "notification": "1000000",
+              "storage": "10",
+              "name": "PlanD",
+              "price": "50.00",
+              "bt_plan_id": "Enterprise50"
+            }
+          ]
         }
          
         B. Get Plan Detail
         - Request:
         GET: /payment/plan/{id}/
         headers: {'Content-Type': 'application/json'}
-        - Reponse:
+        - Response:
         { 
             'status': 'OK', 
             'message': string, 
-            'plan':{
-                id:"id",
-                name:"Free Plan",
-                price:0,
-                period:1, // every period month as one cycle ,1 = monthly 12 = yearly
-                sms:5,
-                notification:50,
-                email:50,
-                storage:50, // in MB
-            } 
+            'data':{
+              "_id": "Free",
+              "createdAt": "1592538065",
+              "modifiedAt": "1592538065",
+              "sms": "0",
+              "email": "30",
+              "notification": "100",
+              "storage": "0.05",
+              "name": "PlanA",
+              "price": "0.00",
+              "bt_plan_id": "Free"
+            },
         }
 
     2. Subscription
@@ -95,172 +133,172 @@ DETAIL:
         - Request:
         GET: /payment/subscription/
         headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-        - Reponse:
-        { 
-            'status': 'OK', 
-            'message': string, 
-            'subscriptions':[
-                {
-                    id:"id",
-                    device_id:"id",
-                    device_uuid:"uuid",
-                    current:{
-                        plan:{
-                            name:"Free Plan",
-                            price:0,
-                            period:1, // every period month as one cycle ,1 = monthly 12 = yearly
-                            sms:5,
-                            notification:50,
-                            email:50,
-                            storage:50, // in MB
-                        },
-                        usage:{
-                            sms:1,
-                            notification:20,
-                            email:10,
-                            storage:20, // in MB
-                        }
-                    },
-                    next:{
-                        plan:{
-                            name:"Free Plan",
-                            price:0,
-                            period:1, // every period month as one cycle ,1 = monthly 12 = yearly
-                            sms:5,
-                            notification:50,
-                            email:50,
-                            storage:50, // in MB
-                        }
-                    },
-                    
+        - Response:
+        {
+          "status": "OK",
+          "message": "",
+          "data": [
+            {
+              "_id": "5eec927aa7053179739ac852",
+              "username": "su-org.1592316898",
+              "deviceid": "PH80XXRR0616207E",
+              "devicename": "G1",
+              "status": "normal",
+              "draft_status": false,
+              "current": {
+                "_id": null,
+                "start": null,
+                "end": null,
+                "sms": "0",
+                "email": "0",
+                "notification": "0",
+                "storage": "0",
+                "plan": {
+                  "_id": "Free",
+                  "createdAt": "1592533498",
+                  "modifiedAt": "1592533498",
+                  "sms": "0",
+                  "email": "30",
+                  "notification": "100",
+                  "storage": "0.05",
+                  "name": "PlanA",
+                  "price": "0.00",
+                  "bt_plan_id": "Free"
                 },
-                {...}
-            ] 
+                "bt_sub": null
+              },
+              "next": {
+                "_id": null,
+                "plan": {
+                  "_id": "Free",
+                  "createdAt": "1592533498",
+                  "modifiedAt": "1592533498",
+                  "sms": "0",
+                  "email": "30",
+                  "notification": "100",
+                  "storage": "0.05",
+                  "name": "PlanA",
+                  "price": "0.00",
+                  "bt_plan_id": "Free"
+                },
+                "bt_sub": null
+              },
+              "draft": null
+            },
+            {...}
+          ]
         }
         
         B. Get Subscription Detail
         - Request:
         GET: /payment/subscription/{id}/
         headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-        - Reponse:
+        - Response:
         { 
             'status': 'OK', 
             'message': string, 
-            'subscription':{
-                id:"id",
-                device_id:"id",
-                device_uuid:"uuid",
-                current:{ // current month subscription
-                    plan:{
-                        name:"Free Plan",
-                        price:0,
-                        period:1, // every period month as one cycle ,1 = monthly 12 = yearly
-                        sms:5,
-                        notification:50,
-                        email:50,
-                        storage:50, // in MB
+            'data':{
+                      "_id": "5eec927aa7053179739ac852",
+                      "username": "su-org.1592316898",
+                      "deviceid": "PH80XXRR0616207E",
+                      "devicename": "G1",
+                      "status": "normal",
+                      "draft_status": false,
+                      "current": {
+                        "_id": null,
+                        "start": null,
+                        "end": null,
+                        "sms": "0",
+                        "email": "0",
+                        "notification": "0",
+                        "storage": "0",
+                        "plan": {
+                          "_id": "Free",
+                          "createdAt": "1592533498",
+                          "modifiedAt": "1592533498",
+                          "sms": "0",
+                          "email": "30",
+                          "notification": "100",
+                          "storage": "0.05",
+                          "name": "PlanA",
+                          "price": "0.00",
+                          "bt_plan_id": "Free"
+                        },
+                        "bt_sub": null
+                      },
+                      "next": {
+                        "_id": null,
+                        "plan": {
+                          "_id": "Free",
+                          "createdAt": "1592533498",
+                          "modifiedAt": "1592533498",
+                          "sms": "0",
+                          "email": "30",
+                          "notification": "100",
+                          "storage": "0.05",
+                          "name": "PlanA",
+                          "price": "0.00",
+                          "bt_plan_id": "Free"
+                        },
+                        "bt_sub": null
+                      },
+                      "draft": null
                     },
-                    usage:{
-                        sms:1,
-                        notification:20,
-                        email:10,
-                        storage:20, // in MB
-                    }
-                },
-                next:{ // next month subscription , different from current subscription if cancelled or downgraded
-                    plan:{
-                        name:"Free Plan",
-                        price:0,
-                        period:1, // every period month as one cycle ,1 = monthly 12 = yearly
-                        sms:5,
-                        notification:50,
-                        email:50,
-                        storage:50, // in MB
-                    }
-                },    
-            }
-        }
 
     3. Promocode
         A. get user promocodes
         - Request:
         GET: /payment/promocode/
         headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-        - Reponse:
-        { 
-            'status': 'OK', 
-            'message': string, 
-            'promocodes':[
-                {
-                    id:"id",
-                    code:string,
-                    promo:{
-                        id:'',
-                        name:'10% off for first month',
-                        type:'discount',// Choice('discount','addOn')
-                        period:1,
-                        value: 10   // discount percentage  
-                    },
-                },
-                {// current no addOn type yet
-                    id:"id",
-                    code:string,//promocode string
-                    promo:{
-                        id:'',
-                        name:'free xx addOn for one month',
-                        type:'discount',// Choice('discount','addOn')
-                        period:1,
-                        value: 1   // addOn id
-                    },
-                     
-                },
-                {...}
-            ] 
+        - Response:
+        {
+          "status": "OK",
+          "message": "",
+          "data": [
+            {
+              "username": "su-org.1592316898",
+              "code": "5eeca30abe5dc00806f53915",
+              "expire": "1592186175",
+              "info": {
+                "_id": null,
+                "createdAt": "1592186175",
+                "modifiedAt": "1592186175",
+                "name": "10 discount",
+                "type": "percent_discount", // real type name not decided yet
+                "period": 1,
+                "value": "10",  // percentage of discount 
+                "remark": "get 10% discount for first month"
+              }
+            },
+            {...}
+          ]
         }
         
         B. get user promocodes
         - Request:
         GET: /payment/promocode/{id}/
         headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-        - Reponse:
+        - Response:
         { 
             'status': 'OK', 
             'message': string, 
-            'promocode':{
-                id:"id",
-                code:string,
-                promo:{
-                    id:'',
-                    name:'10% off for first month',
-                    type:'discount',// Choice('discount','addOn')
-                    period:1,
-                    value: 10   // discount percentage  
-                },
-            }
+            'data':{
+              "username": "su-org.1592316898",
+              "code": "5eeca30abe5dc00806f53915",
+              "expire": "1592186175",
+              "info": {
+                "_id": null,
+                "createdAt": "1592186175",
+                "modifiedAt": "1592186175",
+                "name": "10 discount",
+                "type": "percent_discount", // real type name not decided yet
+                "period": 1,
+                "value": "10",  // percentage of discount 
+                "remark": "get 10% discount for first month"
+              }
+            },
         }
         
-        C. verify promocode
-        - Request:
-        POST: /payment/verify_promocode/
-        headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-        data: { 'code': string }
-        - Reponse:
-        { 
-            'status': 'OK', 
-            'message': string, 
-            'promocode':{
-                id:"id",
-                code:string,
-                promo:{
-                    id:'',
-                    name:'10% off for first month',
-                    type:'discount',// Choice('discount','addOn')
-                    period:1,
-                    value: 10   // discount percentage  
-                },
-            }
-        }
-
     4. AddOn # TODO
 
     5. Calculation Prorate
@@ -269,16 +307,25 @@ DETAIL:
         POST: /payment/prorate/calc/
         headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
         data: { // current PLAN id , and change to PLAN id
-            current: 2,
-            change: 4 ,
-            promocode: 'promocode', // if have
+            "new_plan_id": 'Enterprise50',
+            "old_plan_id": 'Free',
+            "promocode": 'the code' // if have
         }
-        - Reponse:
+        - Response:
         {
-            'status': 'OK', 
-            'message': string,
-            "prorate": "38.67",
-            "discount": "1.33"
+          "status": "OK",
+          "message": "",
+          "data": {
+            "price": "50.00",
+            "total_payable": "20.00",
+            "plan_rebate": "0.00",
+            "total_discount": "0.00",
+            "promo_discount": 0.0,
+            "prorate": "20.00",
+            "remaining_days": 12,
+            "total_days": 30,
+            "gst": 0.0
+          }
         }
 
     6. payment setup and checkout
@@ -286,11 +333,11 @@ DETAIL:
         - Request:
         GET: /payment/client_token/
         headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-        - Reponse:
+        - Response:
         {
-            'status': 'OK', 
-            'message': string,
-            "token": string,
+            "status": 'OK', 
+            "message": '',
+            "data": 'the token string',
         }
         
         B. checkout
@@ -298,61 +345,59 @@ DETAIL:
         POST: /payment/checkout/
         headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
         data:{
-            'nonce':string,
-            'devices':[
+              "items": [
                 {
-                    'id':'device_id',
-                    'plan_id':'new_plan_id',
-                    'promocode':'promocode', // if have else null
-                    'addOns':[// TODO // if have else null
-                        {
-                            'id':'addOn_id',
-                            'other_attr':'other_attr',//TODO
-                        }
-                    ]
+                  "subscription_id": "5eec927aa7053179739ac852",
+                  "plan_id": "Enterprise50",
+                  "promocode": "5eeca30abe5dc00806f53916"
                 },
-                {...} // can have more than one changes , so this api can apply one or more changes on upgrade / downgrade / cancel / recover 
-            ]
-        }
-        - Reponse:
+                {...}
+              ],
+              "nonce": "7fea609c-bad1-07d6-72b0-0a1728cc50ed"
+            }
+        - Response:
         {
             'status': 'OK', 
             'message': string,
-        }   
+            "data": true
+        } 
+
+        C. cancel subscription
+        - Request:
+        POST: /payment/cancel_subscription/
+        headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+        data:{subscription_id: "5eec927aa7053179739ac852"}
+        - Response:
+        {
+            'status': 'OK', 
+            'message': string,
+            "data": true
+        } 
 
     7. billing address
         A. get billing address  
         - Request:
         GET: /payment/billing_address/
         headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-        - Reponse:
+        - Response:
         {
-            'status': 'OK', 
-            'message': string,
-            "billing_address": {
-                name:'',
-                billing_address:'',
-                country:'',
-                city:'',
-                postal:'',
-                region:'',
-            },
-        }
-        // or have info
-        {
-            'status': 'OK', 
-            'message': string,
-            "billing_address": {
-                name:'xxx',
-                billing_address:'somewhere in singapore',
-                country:'Singapore',
-                city:'Singapore',
-                postal:'222222',
-                region:'Singapore',
-            },
+          "status": "OK",
+          "message": "",
+          "data": {
+            "_id": "5eeb1473e34825134f79c6f7",
+            "username": "su-org.1592316898",
+            "createdAt": "1592435699",
+            "modifiedAt": "1592446926",
+            "name": "aaa",
+            "billing_address": "bbb",
+            "country": "ccc",
+            "city": "ddd",
+            "postal": "123",
+            "region": "aaaaaa"
+          }
         }
         
-        B. create billing address 
+        B. update billing address 
         - Request:
         POST: /payment/billing_address/
         headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
@@ -364,40 +409,11 @@ DETAIL:
             postal:'222222',
             region:'Singapore',
         }
-        - Reponse:
+        - Response:
         {
-            'status': 'OK', 
-            'message': string,
-            "billing_address": {
-                name:'xxx',
-                billing_address:'somewhere in singapore',
-                country:'Singapore',
-                city:'Singapore',
-                postal:'222222',
-                region:'Singapore',
-            },
-        }
-        
-        C. update billing address 
-        - Request:
-        PUT: /payment/billing_address/
-        headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-        data:{// put can have only changed lines , the key not in the data will keep the same
-            billing_address:'somewhere else in singapore',
-            postal:'555555',
-        }
-        - Reponse:
-        {
-            'status': 'OK', 
-            'message': string,
-            "billing_address": {
-                name:'xxx',
-                billing_address:'somewhere else in singapore',
-                country:'Singapore',
-                city:'Singapore',
-                postal:'555555',
-                region:'Singapore',
-            },
+          "status": "OK",
+          "message": "",
+          "data": true
         }
 
     8. transaction history
@@ -405,47 +421,51 @@ DETAIL:
         - Request:
         GET: /payment/transaction/{filter} // e.g. /payment/transaction/?start=2019-01-01&end=2020-01-01
         headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-        - Reponse:
+        - Response:
         {
-            'status': 'OK', 
-            'message': string,
-            "transactions": [
-                {
-                    'id':'id',
-                    'remark':'remark',
-                    'date':'2020-01-01',//payment date
-                    'device_id':'device_id',// if have
-                    'payment_type':'',
-                    'account':string,//paypal transaction id or other payment account if have
-                    'recurring':true,
-                    'start':'2019-01-01', // if recurring , the period start date
-                    'end':'2019-01-31', // if recurring , the period end date
-                },
-                {...} // more transactions
-            ]
+          "status": "OK",
+          "message": "",
+          "data": [
+            {
+              "_id": "5eeca72bbe5dc00806f53922",
+              "username": "su-org.1592316898",
+              "createdAt": "1592538786",
+              "modifiedAt": "1592538786",
+              "start": null,
+              "end": null,
+              "name": "First Month Payment",
+              "value": "20.00",
+              "remark": "First Month Payments For Device Plan Subscription",
+              "date": "1592538795",
+              "status": "pending",
+              "bt_trans_id": "0wc3k4rn"
+            },
+            {...}
+          ]
         }
         B. GET transactions 
         - Request:
         GET: /payment/transaction/{id}/
         headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-        - Reponse:
+        - Response:
         {
             'status': 'OK', 
             'message': string,
-            "transaction": {
-                'id':'id',
-                'remark':'remark',
-                'date':'2020-01-01',//payment date
-                'device_id':'device_id',// if have
-                'payment_type':'',
-                'account':string,//paypal transaction id or other payment account if have
-                'recurring':true,
-                'start':'2019-01-01', // if recurring , the period start date
-                'end':'2019-01-31', // if recurring , the period end date
-            }
+            "data": {
+              "_id": "5eeca72bbe5dc00806f53922",
+              "username": "su-org.1592316898",
+              "createdAt": "1592538786",
+              "modifiedAt": "1592538786",
+              "start": null,
+              "end": null,
+              "name": "First Month Payment",
+              "value": "20.00",
+              "remark": "First Month Payments For Device Plan Subscription",
+              "date": "1592538795",
+              "status": "pending",
+              "bt_trans_id": "0wc3k4rn"
+            },
         }
-
-        C. GET transaction reciept #TODO
                  
 
 
