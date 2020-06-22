@@ -34,7 +34,7 @@ class CheckoutResource(Resource,BaseResource):
             data = self.service.checkout(username,dto.nonce,dto.items);
         except Exception as e:
             data = None
-            make_custom_error_response({'status': 'NG', 'message': 'check out fail'}, 503)
+            make_custom_error_response({'status': 'NG', 'message': 'check out fail with braintree'}, 503)
         if data:
             res = self.to_api_data(data)
             return self.to_result(res)
