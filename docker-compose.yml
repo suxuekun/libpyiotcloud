@@ -134,6 +134,7 @@ services:
       - AWS_S3_BUCKET
       - CONFIG_USE_MONGODB_USER
       - CONFIG_USE_MONGODB_PASS
+      - AWS_S3_FILE_SMS_COUNTRY_POINTS
   invoice:
     build: ./invoice
     restart: always

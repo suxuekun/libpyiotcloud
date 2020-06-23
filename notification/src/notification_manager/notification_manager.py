@@ -43,10 +43,11 @@ CONFIG_DBHOST = notification_config.CONFIG_MONGODB_HOST
 # global variables
 ###################################################################################
 
-g_messaging_client = None
+g_messaging_client    = None
 g_notification_client = None
-g_database_client = None
-g_storage_client = None
+g_database_client     = None
+g_storage_client      = None
+g_sms_country_points  = None
 
 
 
@@ -208,6 +209,18 @@ def get_sms_details(phonenumber):
         networkcarrier = None
     return country.name, isocode, networkcarrier
 
+
+def check_balance_sms(points):
+    return True
+
+def check_cost_sms(recipient, country, isocode, networkcarrier):
+    for item in g_sms_country_points:
+        if item["code"] == isocode:
+            return int(item["points"])
+    print("Error: points not found for {} {} {} {}".format(recipient, country, isocode, networkcarrier))
+    return 1
+
+
 def notification_thread(messaging_client, deviceid, recipient, message, subject, type, options, source, sensor, payload):
 
     if not source.startswith("uart"):
@@ -305,6 +318,15 @@ def notification_thread(messaging_client, deviceid, recipient, message, subject,
         recipients = recipient.replace(" ", "").split(",")
         for recipient in recipients:
             country, isocode, networkcarrier = get_sms_details(recipient)
+
+            # get the cost to send the message
+            points = check_cost_sms(recipient, country, isocode, networkcarrier)
+            # check the balance if sending the message will be allowed
+            allow = check_balance_sms(points)
+            if not allow:
+                print("sending SMS not permitted, no more available balance.")
+                return
+
             try:
                 response = g_notification_client.send_message(recipient, message_updated, subject=subject, type=type)
             except:
@@ -318,7 +340,7 @@ def notification_thread(messaging_client, deviceid, recipient, message, subject,
                 send_notification_status(messaging_client, deviceid, "NG")
 
             g_database_client.add_menos_transaction(deviceid, recipient, message, type_str, source.upper(), sensorname, timestamp, condition, result)
-            print("{} {} {} [{}-{}-{}]".format(deviceid, recipient, result, country, isocode, networkcarrier))
+            print("{} {} {} [{}-{}-{}] {}".format(deviceid, recipient, result, country, isocode, networkcarrier, points))
 
 
     #print(g_database_client.get_menos_transaction(deviceid))
@@ -656,6 +678,7 @@ if __name__ == '__main__':
 
     # Initialize S3 client
     g_storage_client = s3_client()
+    g_sms_country_points = g_storage_client.get_sms_country_points_list()
 
 
     # Initialize MongoDB
