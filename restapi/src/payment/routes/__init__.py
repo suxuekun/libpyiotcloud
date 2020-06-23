@@ -46,49 +46,58 @@ def payment_middleware_func():
 api =Api(payment_blueprint)
 # PlanApi(api,prefix="plan")
 # SubscriptionApi(api,prefix="subscription")
-
+'''
+7. billing address
+    A. get billing address             - GET    /payment/billing_address/
+    B. create billing address          - POST   /payment/billing_address/
+'''
 api.add_resource(BillingAddressResource,'/billing_address/')
-
+'''
+1. Plan:
+    A. Get Plans                       - GET    /payment/plan/
+    B. Get Plan Detail                 - GET    /payment/plan/{id}/
+'''
 api.add_resource(PlanListResource,'/plan/',endpoint='planlist')
 api.add_resource(PlanResource,'/plan/<id>/',endpoint='plan')
 api.add_resource(PlanReloadResource,'/plan_reload/',endpoint='plan_reload')
+'''
+3. Promocode
+    A. get user promocodes             - GET    /payment/promocode/
+    B. get user promocode              - GET    /payment/promocode/{id}/
+'''
 
 api.add_resource(PromocodeListResource,'/promocode/',endpoint='promocodelist')
 api.add_resource(PromocodeResource,'/promocode/<code>/',endpoint='promocode')
-
+'''
+2. Subscription
+    A. Get Subscriptions               - GET    /payment/subscription/
+    B. Get Subscription Detail         - GET    /payment/subscription/{id}/
+'''
 api.add_resource(SubscriptionListResource ,'/subscription/',endpoint='subscriptionlist')
 api.add_resource(SubscriptionResource,'/subscription/<id>/',endpoint='subscription')
-
+'''
+8. transaction history
+    A. GET transactions                - GET    /payment/transaction/
+    B. GET transactions Detail         - GET    /payment/transaction/{id}/
+'''
 api.add_resource(TransactionListResource ,'/transaction/',endpoint='transactionlist')
 api.add_resource(TransactionResource,'/transaction/<id>/',endpoint='transaction')
-
-
-
 '''
 5 payment_blueprint5 Calculation Prorate
-    A. prorate                         - POST   /payment/prorate/calc/
+A. prorate                         - POST   /payment/prorate/calc/
 '''
 api.add_resource(ProrateResource,'/prorate/calc/',endpoint='prorate_calc')
 
 '''
 6. payment setup and checkout
-    A. get client token                - GET    /payment/client_token/
-    
+A. get client token                - GET    /payment/client_token/ 
+B. checkout                        - POST   /payment/checkout/
+C. cancel subscription             - pOST   /payment/cancel_subscription/
 '''
-
 api.add_resource(TokenResource,'/client_token/',endpoint='client_token')
-
-'''B. checkout                        - POST   /payment/checkout/'''
 api.add_resource(CheckoutResource,'/checkout/',endpoint='checkout')
 api.add_resource(CancelSubscriptionResource,'/cancel_subscription/',endpoint="cancel_subscription")
 #
 # api.add_resource(PlanListResource,'/plan/')
 # api.add_resource(PlanResource,'/plan/<id>/')
-
-
-
-
-
-
-
 # api.add_resource(OtherPlanResourced,'/plan/<int:id>/somthinbg/')
