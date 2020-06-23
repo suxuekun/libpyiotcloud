@@ -1085,15 +1085,40 @@ class device_groups:
                     print('\r\nERROR Set DeviceGroup Locations: Authorization not allowed [{}]\r\n'.format(username))
                     return response, status.HTTP_401_UNAUTHORIZED
 
-            # check if new device name is already registered
+            # get device group if exist
+            devicegroup = self.database_client.get_devicegroup(entityname, devicegroupname)
+            if devicegroup is None:
+                response = json.dumps({'status': 'NG', 'message': 'Device group not found'})
+                print('\r\nERROR Set DeviceGroup Locations: Device group not found [{},{}]\r\n'.format(entityname, devicegroupname))
+                return response, status.HTTP_400_BAD_REQUEST
+
+            # get parameters
             data = flask.request.get_json()
             if data.get("locations") is None:
                 response = json.dumps({'status': 'NG', 'message': 'Parameters not included'})
-                print('\r\nERROR Set DeviceGroup Locations: Parameters not included [{},{}]\r\n'.format(username, devicename))
+                print('\r\nERROR Set DeviceGroup Locations: Parameters not included [{},{}]\r\n'.format(entityname, devicename))
                 return response, status.HTTP_400_BAD_REQUEST
 
             # get devices of the user
-            #devices = self.database_client.get_devices(entityname)
+            devices = self.database_client.get_devices(entityname)
+
+            # verify that the devices are valid devices
+            for location in data["locations"]:
+                found = False
+                for device in devices:
+                    if location["devicename"] == device["devicename"]:
+                        if device["deviceid"] in devicegroup["devices"]:
+                            found = True
+                            break
+                        else:
+                            response = json.dumps({'status': 'NG', 'message': 'Device is not part of group'})
+                            print('\r\nERROR Set DeviceGroup Locations: Device is not part of group [{},{}]\r\n'.format(entityname, devicegroupname))
+                            return response, status.HTTP_400_BAD_REQUEST
+                if not found:
+                    response = json.dumps({'status': 'NG', 'message': 'Device name is not valid'})
+                    print('\r\nERROR Set DeviceGroup Locations: Device name is not valid [{},{}]\r\n'.format(entityname, devicegroupname))
+                    return response, status.HTTP_400_BAD_REQUEST
+
 
             # set the location to database
             for location in data["locations"]:
