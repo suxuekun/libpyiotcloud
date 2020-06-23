@@ -436,7 +436,7 @@ class device_otaupdates:
             for ota_status in ota_statuses:
                 if device["deviceid"] == ota_status["deviceid"]:
                     ota_status["devicename"] = device["devicename"]
-                    if ota_status["status"] == "completed":
+                    if ota_status["status"] == "completed" or ota_status["status"] == "failed":
                         #print(ota_status)
                         if ota_status.get("timestamp") and ota_status.get("timestart"):
                             ota_status["time"] = "{} seconds".format(ota_status["timestamp"] - ota_status["timestart"])
