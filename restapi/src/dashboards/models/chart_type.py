@@ -20,7 +20,7 @@ class ChartTypeModel(BaseModel):
     _id = IntType()
     name = StringType(required=True)
     parrentId = StringType()
-
+    
 class FactoryChartTypeModel:
     
     @staticmethod

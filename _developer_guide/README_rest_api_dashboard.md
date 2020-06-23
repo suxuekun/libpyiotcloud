@@ -234,7 +234,14 @@ DETAIL:
                 }
             ]
         }
-    
+
+        B. DATA STRUCTURES
+            id: 0 => Storgae Usage
+            id: 1 => On-line/Offline status
+            id: 2 => Count of alerts
+            id: 3 => Upload bandwidth consumption
+
+
     4. Sensors
 
         A. CREATE
@@ -340,3 +347,11 @@ DETAIL:
         }
         - Notes: 
             {valueType}: gateways, sensors
+
+        B. DATA STRUCTURES
+
+            id: 0 => Pie
+            id: 1 => Donut
+            id: 2 => Bar
+            id: 3 => Line
+

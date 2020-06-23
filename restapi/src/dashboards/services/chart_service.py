@@ -111,7 +111,7 @@ class ChartService:
     def gets_chart_gateway(self, dashboardId: str, userId: str, query: {}):
         try:
             attributes = self.attributeRepository.gets()
-            chartEntites = self.chartRepository.get_charts_gateways(dashboardId, userId)
+            chartEntites = self.chartRepository.get_charts(dashboardId, userId)
             
             responses = list(map(lambda c: map_chart_gateway_to_response(c, attributes), chartEntites))
             return Response.success(data = responses, message="Get chart responses successfully")
@@ -120,10 +120,10 @@ class ChartService:
             LoggerService().error(str(e), tag=self.tag)
             return Response.fail("Sorry, there is something wrong")
         
-    def get_chart_gateway_detail(self, dashboardId: str, chartId: str, query: {}):
+    def get_chart_gateway_detail(self, dashboardId: str, userId: str, chartId: str, query: {} = None):
         try:
             attributes = self.attributeRepository.gets()
-            chartEntity = self.chartRepository.get_detail(dashboardId, chartId, query)
+            chartEntity = self.chartRepository.get_detail(dashboardId, userId, chartId, query)
             
             response = map_chart_gateway_to_response(chartEntity, attributes)
             return Response.success(data = response, message="Get chart responses successfully")
@@ -131,4 +131,18 @@ class ChartService:
         except Exception as e:
             LoggerService().error(str(e), tag=self.tag)
             return Response.fail("Sorry, there is something wrong")
+    
+    def gets_chart_sensor(self, dashboardId: str, userId: str, query:{} = None):
+        try:
+            return Response.success(data = [], message="Get chart responses successfully")
+            
+        except Exception as e:
+            LoggerService().error(str(e), tag=self.tag)
+            return Response.fail("Sorry, there is something wrong")
         
+    def get_chart_sensor_detail(self, dashboarId: str, userId: str, chartId: str, query: {} = None):
+        try:
+            return Response.success(data = {}, message="Get chart responses successfully")
+        except Exception as e:
+            LoggerService().error(str(e), tag=self.tag)
+            return Response.fail("Sorry, there is something wrong")  

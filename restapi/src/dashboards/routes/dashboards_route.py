@@ -108,27 +108,43 @@ def delete_chart_gateway(dashboardId: str, id: str):
 @dashboards_blueprint.route("/<dashboardId>/gateways", methods=['GET'])
 @default_middleware
 @login_required()
-def get_charts_gateway(dashboardId: str):
+def gets_chart_gateway(dashboardId: str):
     user = request.environ.get('user')
     queryParams = request.args
     query = {
         "attributeId": queryParams.get("attributeId", ""),
         "filterId": queryParams.get("filterId", "")
     }
-    print(query)
     response = chartService.gets_chart_gateway(dashboardId, user["username"], query)
     return response
 
 
-@dashboards_blueprint.route("/<dashboardId>/gateways/<id>", methods=['GET'])
+@dashboards_blueprint.route("/<dashboardId>/gateways/<chartId>", methods=['GET'])
 @default_middleware
 @login_required()
-def get_chart_gateway(dashboardId: str, id: str):
-    
+def get_chart_gateway(dashboardId: str, chartId: str):
+    user = request.environ.get('user')
     queryParams = request.args
     query = {
         "attributeId": queryParams.get("attributeId", ""),
         "filterId": queryParams.get("filterId", "")
     }
-    response = chartService.get_chart_gateway_detail(dashboardId, id, query)
+    response = chartService.get_chart_gateway_detail(dashboardId, user["username"], chartId, query)
+    return response
+
+
+@dashboards_blueprint.route("/<dashboardId>/sensors", methods=['GET'])
+@default_middleware
+@login_required()
+def gets_chart_sensor(dashboardId: str):
+    user = request.environ.get('user')
+    response = chartService.gets_chart_sensor(dashboardId, user["username"])
+    return response
+
+@dashboards_blueprint.route("/<dashboardId>/sensors/<chartId>", methods=['GET'])
+@default_middleware
+@login_required()
+def get_chart_sensor(dashboardId: str, chartId: str):
+    user = request.environ.get('user')
+    response = chartService.get_chart_sensor_detail(dashboardId, user["username"])
     return response

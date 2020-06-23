@@ -21,12 +21,12 @@
 ::
 ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-set DEVICE_ID=""
-set DEVICE_SECRETKEY=""
+set DEVICE_ID="PH80XXRR06232088"
+set DEVICE_SECRETKEY="warol8fmesdl23pse039tfyawetagtoi"
 
 :: For new devices
-set DEVICE_SERIAL=""
-set DEVICE_MACADD=""
+set DEVICE_SERIAL="00136"
+set DEVICE_MACADD="27:7E:33:64:2A:0D"
 
 :: For existing devices (backward compatibility)
 set USER=""
@@ -65,7 +65,7 @@ set DEVICE_PKEY="cert_ecc/ft900device1_pkey.pem"
 ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 set PORT="8883"
-set HOST="localhost"
+set HOST="192.168.99.100"
 
 
 

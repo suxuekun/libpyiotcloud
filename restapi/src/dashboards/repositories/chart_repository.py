@@ -6,16 +6,16 @@ from bson.objectid import ObjectId
 
 class IChartRepository(BaseRepository, IMongoBaseRepository):
 
-    def get_charts_gateways(self, dashboardId, userId):
+    def get_charts(self, dashboardId, userId):
         pass
 
-    def get_detail(self, dashboarId, chartId, query: {}):
+    def get_detail(self, dashboarId, userId, chartId, query: {}):
         pass
 
 
 class ChartRepository(MongoBaseRepository, IChartRepository):
 
-    def get_charts_gateways(self, dashboardId, userId):
+    def get_charts(self, dashboardId, userId):
 
         pipeline = [
             {
@@ -54,12 +54,13 @@ class ChartRepository(MongoBaseRepository, IChartRepository):
         results = list(map(lambda r: self._cast_object_without_objectId(r), cursors))
         return results
 
-    def get_detail(self, dashboardId, chartId, queyr: {}):
+    def get_detail(self, dashboardId, userId, chartId, queyr: {}):
         pipeline = [
             {
                 "$match": {
                     'dashboardId': dashboardId,
                     '_id': ObjectId(chartId),
+                    'userId': userId
                 },
             },
             {
