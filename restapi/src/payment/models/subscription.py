@@ -14,6 +14,11 @@ class SubScriptionStatus():
     DOWNGRADE = "downgrade" # current = paid plan subscription != next = paid plan subscription , next.plan.price < current.plan.price, switch plan to a lower plan in ext month
     # DRAFT = "draft" # draft, submitted but not yet confirm paid from payment side
 
+class SubScriptionCancelReason():
+    USER_INTERNAL = 'user_internal'
+    USER_EXTERNAL = 'user_external'
+    SYSTEM = 'system'
+
 class AbstractSubscription(BaseIotModel,DeviceMixin):
     status = StringType()
     cancel_reason = StringType()
