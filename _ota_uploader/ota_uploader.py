@@ -94,8 +94,16 @@ def get_firmware(filename_desc, filename_bin):
 def upload_firmware(client, doc, desc, bin):
     if doc["ft900"]["latest"] != desc["version"]:
         doc["ft900"]["latest"] = desc["version"]
+        for x in range(len(doc["ft900"]["firmware"])):
+            if doc["ft900"]["firmware"][x]["version"] == desc["version"]:
+                doc["ft900"]["firmware"][x] = desc
+                return client.update_device_firmware_updates(json.dumps(doc, indent=2), bin, desc["location"])
         doc["ft900"]["firmware"].insert(0, desc)
     else:
+        for x in range(len(doc["ft900"]["firmware"])):
+            if doc["ft900"]["firmware"][x]["version"] == desc["version"]:
+                doc["ft900"]["firmware"][x] = desc
+                return client.update_device_firmware_updates(json.dumps(doc, indent=2), bin, desc["location"])
         doc["ft900"]["firmware"][0] = desc
     #print_json(doc)
     return client.update_device_firmware_updates(json.dumps(doc, indent=2), bin, desc["location"])
@@ -107,26 +115,35 @@ def verify_upload(client, doc, desc, bin):
         print("Error: Could not read device firmware updates file!")
         return
 
+    index = 0
+    for x in range(len(doc["ft900"]["firmware"])):
+        if doc["ft900"]["firmware"][x]["version"] == desc["version"]:
+            index = x
+            break
+
     if doc["ft900"]["latest"] != doc_new["ft900"]["latest"]:
         print("Error: Read latest firmware incorrect! 1")
         return
-    if doc["ft900"]["firmware"][0]["version"] != doc_new["ft900"]["firmware"][0]["version"]:
+    if doc["ft900"]["firmware"][index]["version"] != doc_new["ft900"]["firmware"][index]["version"]:
         print("Error: Read latest firmware incorrect! 2")
         return
-    if doc["ft900"]["latest"] != doc_new["ft900"]["firmware"][0]["version"]:
+    if doc["ft900"]["latest"] != doc_new["ft900"]["firmware"][index]["version"]:
         print("Error: Read latest firmware incorrect! 3")
         return
-    if doc["ft900"]["firmware"][0]["location"] != doc_new["ft900"]["firmware"][0]["location"]:
+    if doc["ft900"]["firmware"][index]["location"] != doc_new["ft900"]["firmware"][index]["location"]:
         print("Error: Read latest firmware incorrect! 4")
         return
 
-    result, firmware_bin = client.get_firmware(doc_new["ft900"]["firmware"][0]["location"])
+    result, firmware_bin = client.get_firmware(doc_new["ft900"]["firmware"][index]["location"])
     if not result:
         print("Error: Could not read new firmware")
         return
     checksum = bin_compute_checksum(firmware_bin)
-    if checksum != doc_new["ft900"]["firmware"][0]["checksum"]:
+    if checksum != doc_new["ft900"]["firmware"][index]["checksum"]:
         print("Error: Checksum does not match! {} {}".format(checksum, desc["checksum"]))
+        return None, None
+    if len(firmware_bin) != doc_new["ft900"]["firmware"][index]["size"]:
+        print("Error: Size does not match! {} {}".format(len(bin), desc["size"]))
         return None, None
 
     return True
