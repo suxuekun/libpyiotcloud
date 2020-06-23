@@ -5,6 +5,7 @@ SUMMARY:
     1. Plan:
         A. Get Plans                       - GET    /payment/plan/
         B. Get Plan Detail                 - GET    /payment/plan/{id}/
+        C. Plan Reload From S3             - GET    /payment/plan_reload/
         
     2. Subscription
         A. Get Subscriptions               - GET    /payment/subscription/
@@ -12,8 +13,7 @@ SUMMARY:
        
     3. Promocode
         A. get user promocodes             - GET    /payment/promocode/
-        B. get user promocode              - GET    /payment/promocode/{id}/
-        C. verify promocode                - POST   /payment/verify_promocode/
+        B. get user promocode              - GET    /payment/promocode/{code}/
         
     4. AddOn # TODO
         A. get addOns                      - GET    /payment/addon/
@@ -32,7 +32,7 @@ SUMMARY:
         B. create billing address          - POST   /payment/billing_address/
         
     8. transaction history
-        A. GET transactions                - GET    /payment/transaction/{filter}
+        A. GET transactions                - GET    /payment/transaction/
         B. GET transactions Detail         - GET    /payment/transaction/{id}/
       
     x. cart # TODO replace payment check out
@@ -126,6 +126,17 @@ DETAIL:
               "price": "0.00",
               "bt_plan_id": "Free"
             },
+        }
+
+        C. Plan reload from s3
+        - Request:
+        GET: /payment/plan_reload/
+        headers: {'Content-Type': 'application/json'}
+        - Response:
+        { 
+            'status': 'OK', 
+            'message': string, 
+            'data':true
         }
 
     2. Subscription
@@ -276,7 +287,7 @@ DETAIL:
         
         B. get user promocodes
         - Request:
-        GET: /payment/promocode/{id}/
+        GET: /payment/promocode/{code}/
         headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
         - Response:
         { 
@@ -330,6 +341,13 @@ DETAIL:
 
     6. payment setup and checkout
         A. get client token   
+        // client_token is a token frontend get from backend, (which backend get from braintree with customer_id)
+        // client_token is for geting a one time use nonce for frontend from braintree 
+        // nonce is a string , only can be used for one time
+        // front end need to pass the nonce to backend when checkout
+        // backend will provide the nonce to braintree to get the payment token for user transaction or subscription changes
+        
+
         - Request:
         GET: /payment/client_token/
         headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
