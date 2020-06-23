@@ -1662,6 +1662,8 @@ def handle_api(api, subtopic, subpayload):
         subpayload = json.loads(subpayload)
 
         # stop the timer thread and heartbeat thread
+        while g_timer_thread is None or g_heartbeat_thread is None:
+            time.sleep(1)
         g_timer_thread.set_pause(True)
         g_heartbeat_thread.set_pause(True)
 
