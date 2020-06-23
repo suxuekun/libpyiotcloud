@@ -2881,6 +2881,7 @@ def http_get_firmware_binary(filename, filesize):
         return False
     headers = { "Connection": "keep-alive", "Authorization": "Bearer " + authcode }
 
+    length = 0
     api = "/firmware"
     result = http_send_request(conn, "GET", api + "/" + filename, None, headers)
     if result:
