@@ -1185,19 +1185,21 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
     $scope.handle_error = function(error) {
         // Handle failed login
         if (error.data !== null) {
-            console.log("ERROR: Get Device failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
-
-            if (error.data.message === "Token expired") {
-                Token.refresh({'username': $scope.data.username, 'token': $scope.data.token});
-                $scope.data.token = User.get_token();
-                //$ionicPopup.alert({ title: 'Error', template: 'Token expired!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+            if (error.data.message !== undefined) {
+                console.log("ERROR: Get Device failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
+    
+                if (error.data.message === "Token expired") {
+                    Token.refresh({'username': $scope.data.username, 'token': $scope.data.token});
+                    $scope.data.token = User.get_token();
+                    //$ionicPopup.alert({ title: 'Error', template: 'Token expired!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+                }
+                else if (error.status == 401 && error.data.message.includes('Please check with the organization owner') === true ) {
+                    $ionicPopup.alert({ title: 'Error', template: error.data.message, buttons: [{text: 'OK', type: 'button-assertive'}] });
+                }         
+                //else {
+                //    $ionicPopup.alert({ title: 'Error', template: error.data.message, buttons: [{text: 'OK', type: 'button-assertive'}] });
+                //}
             }
-            else if (error.status == 401 && error.data.message.includes('Please check with the organization owner') === true ) {
-                $ionicPopup.alert({ title: 'Error', template: error.data.message, buttons: [{text: 'OK', type: 'button-assertive'}] });
-            }         
-            //else {
-            //    $ionicPopup.alert({ title: 'Error', template: error.data.message, buttons: [{text: 'OK', type: 'button-assertive'}] });
-            //}
         }
         else {
             console.log("ERROR: Server is down!"); 
@@ -3364,6 +3366,42 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server) {
     
     $scope.submitCancel = function() {
         $state.go('recover');
+    };   
+
+    $scope.submitResendOTP = function() {
+        //
+        // FORGOT PASSWORD
+        //
+        // - Request:
+        //   POST /user/forgot_password
+        //   { 'email': string }
+        //
+        // - Response:
+        //   {'status': 'OK', 'message': string, 'username': string}
+        //   {'status': 'NG', 'message': string}         
+        //         
+        $http({
+            method: 'POST',
+            url: server + '/user/forgot_password',
+            headers: {'Content-Type': 'application/json'},
+            data: {'email': $scope.data.username}
+        })
+        .then(function (result) {
+            console.log(result.data);
+            $ionicPopup.alert({title: 'Resend OTP', template: 'OTP resent successfully'});
+        })
+        .catch(function (error) {
+            // Handle failed login
+            console.log(error);
+            if (error.data !== null) {
+                console.log(error.status + " " + error.statusText);
+                $ionicPopup.alert({title: 'Resend OTP', template: error.data.message});
+            }
+            else {
+                $ionicPopup.alert({ title: 'Resend OTP', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+            }
+            return;
+        });
     };   
     
 }])
