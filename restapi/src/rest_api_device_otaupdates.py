@@ -102,6 +102,10 @@ class device_otaupdates:
             print('\r\nERROR Upgrade Device Firmware: Could not retrieve JSON document [{}]\r\n'.format(entityname))
             return response, status.HTTP_500_INTERNAL_SERVER_ERROR
 
+        # remove devices parameter, issue with Android
+        if data.get("devices"):
+            data.pop("devices")
+
         # get the size and location
         if data.get("version"):
             for firmware in document["ft900"]["firmware"]:
@@ -244,7 +248,12 @@ class device_otaupdates:
                     continue
             #print(device["devicename"])
             data_thr = copy.deepcopy(data)
+
+            # remove devices parameter
+            if data_thr.get("devices"):
+                data_thr.pop("devices")
             data_thr["devicename"] = device["devicename"]
+
             thr = threading.Thread(target = self.update_firmwares_thread, args = (api, data_thr, entityname, device["devicename"], data["version"], ))
             thr.start()
             thread_list.append(thr) 
