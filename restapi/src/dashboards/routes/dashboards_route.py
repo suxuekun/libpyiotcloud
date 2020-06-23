@@ -15,7 +15,7 @@ from dashboards.dtos.chart_gateway_dto import ChartGatewayDto
 from dashboards.repositories.chart_repository import ChartRepository
 from dashboards.repositories.gateway_attribute_repository import GatewayAttributeRepository
 
-from dashboards.services.chart_gateway_service import ChartGatewayService
+from dashboards.services.chart_service import ChartService
 from dashboards.repositories.dashboard_repository import DashboardRepository
 from dashboards.repositories.device_repository import DeviceRepository
 
@@ -87,7 +87,7 @@ chartRepository = ChartRepository(mongoclient=mongo_client, db = db, collectionN
 deviceRepository = DeviceRepository(mongoclient=mongo_client, db = db, collectionName="devices")
 
 # Init Gateway service 
-chartGatewayService = ChartGatewayService(dashboardRepository, chartRepository, attributeRepository, deviceRepository)
+chartService = ChartService(dashboardRepository, chartRepository, attributeRepository, deviceRepository)
 
 @dashboards_blueprint.route("/<dashboardId>/gateways", methods=['POST'])
 @default_middleware
@@ -95,14 +95,14 @@ chartGatewayService = ChartGatewayService(dashboardRepository, chartRepository, 
 def add_chart_gateway(dashboardId: str):
     body = request.get_json()
     dto = ChartGatewayDto(body)
-    response = chartGatewayService.create_for_gateway(dashboardId, dto)
+    response = chartService.create_for_gateway(dashboardId, dto)
     return response
 
 @dashboards_blueprint.route("/<dashboardId>/gateways/<id>", methods=['DELETE'])
 @default_middleware
 @login_required()
 def delete_chart_gateway(dashboardId: str, id: str):
-    response = chartGatewayService.delete(dashboardId, id)
+    response = chartService.delete(dashboardId, id)
     return response
 
 @dashboards_blueprint.route("/<dashboardId>/gateways", methods=['GET'])
@@ -116,7 +116,7 @@ def get_charts_gateway(dashboardId: str):
         "filterId": queryParams.get("filterId", "")
     }
     print(query)
-    response = chartGatewayService.gets(dashboardId, user["username"], query)
+    response = chartService.gets_chart_gateway(dashboardId, user["username"], query)
     return response
 
 
@@ -130,5 +130,5 @@ def get_chart_gateway(dashboardId: str, id: str):
         "attributeId": queryParams.get("attributeId", ""),
         "filterId": queryParams.get("filterId", "")
     }
-    response = chartGatewayService.get(dashboardId, id, query)
+    response = chartService.get_chart_gateway_detail(dashboardId, id, query)
     return response

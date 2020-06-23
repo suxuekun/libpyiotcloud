@@ -5,7 +5,6 @@
 from dashboards.routes.dashboards_route import dashboards_blueprint
 from dashboards.routes.chart_types_route import chart_types_blueprint
 from dashboards.routes.gateway_attributes_route import gateway_attributes_blueprint
-from dashboards.routes.charts_gateways_route import charts_gateways_blueprint
 import flask
 
 class DashboardsApp:
