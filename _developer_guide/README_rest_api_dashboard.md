@@ -161,8 +161,10 @@ DETAIL:
                           "value": string,
                       }
                   ],
-                  "deviceName": string,
-                  "deviceUUID": string,
+                  "device": {
+                      "name": string,
+                      "uuid": string
+                  },
                   "attribute": {
                       "name: string,
                       "id": string,
@@ -196,8 +198,10 @@ DETAIL:
                           "value": string,
                       }
                   ],
-                  "deviceName": string,
-                  "deviceUUID": string,
+                  "device": {
+                      "name": string,
+                      "uuid": string
+                  },
                   "attribute": {
                       "name: string,
                       "id": string,

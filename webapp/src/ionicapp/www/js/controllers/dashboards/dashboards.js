@@ -161,9 +161,9 @@ angular.module('app.dashboardsCtrl', [])
               return {
                 "labels": labels,
                 "values": values,
-                "deviceName": c.deviceName,
+                "deviceName": c.device.name,
                 "id": c.id,
-                "deviceUUID": c.deviceUUID,
+                "deviceUUID": c.device.uuid,
                 "typeId": c.typeId,
                 "attribute": c.attribute,
                 "currentSelectFilter": c.attribute.filters.length > 0 ? c.attribute.filters[0] : {}

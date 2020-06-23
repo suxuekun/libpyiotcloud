@@ -13,10 +13,13 @@ class AttributeResponse(Model):
     id = IntType()
     filters = ListType(ModelType(AttributeValue), default=[])
 
+class DeviceResponse(Model):
+    name = StringType()
+    uuid = StringType()
+
 class ChartGatewayResponse(Model):
     attribute = ModelType(AttributeResponse)
     datasets = ListType(ModelType(DataSetResponse), default=[])
     typeId = IntType()
     id = StringType()
-    deviceName = StringType()
-    deviceUUID = StringType()
+    device = ModelType(DeviceResponse)

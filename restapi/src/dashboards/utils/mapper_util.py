@@ -2,7 +2,7 @@
 
 from dashboards.dtos.dashboard_summary_response import DashboardSummaryResponse
 import json
-from dashboards.dtos.chart_gateway_response import ChartGatewayResponse, DataSetResponse, AttributeResponse
+from dashboards.dtos.chart_gateway_response import ChartGatewayResponse, DataSetResponse, AttributeResponse, DeviceResponse
 from dashboards.models.gateway_attribute import *
 from shared.utils.mapper_util import formart_id_with_entity
 
@@ -31,9 +31,10 @@ def map_chart_gateway_to_response(chartGateway, attributes: []):
     chartResponse = ChartGatewayResponse()
     chartResponse.typeId = chartGateway["typeId"]
     chartResponse.id = chartGateway["_id"]
-    chartResponse.deviceName = chartGateway["device_info"]["devicename"]
-    chartResponse.deviceUUID = chartGateway["device_info"]["deviceid"]
-    
+    chartResponse.device = DeviceResponse({
+        "name": chartGateway["device_info"]["devicename"],
+        "uuid": chartGateway["device_info"]["deviceid"]
+    })
     foundedAttribute = list(
         filter(lambda a: a["_id"] == chartGateway["attributeId"], attributes))[0]
     chartResponse.attribute = map_attribute_to_attribute_response(foundedAttribute)
