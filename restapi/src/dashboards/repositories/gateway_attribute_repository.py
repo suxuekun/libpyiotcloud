@@ -20,7 +20,7 @@ class GatewayAttributeRepository(MongoBaseRepository, IGatewayAttributeRepositor
     
     def gets_summary(self):
         projection = {
-            "lables": 0,
+            "labels": 0,
             "filters": 0,
             "createdAt": 0,
             "modifiedAt": 0

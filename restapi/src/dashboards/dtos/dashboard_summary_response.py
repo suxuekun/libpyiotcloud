@@ -1,8 +1,9 @@
+from schematics import Model
+from schematics.types import StringType
 
-
-class DashboardSummaryResponse:
-    id: str
-    name: str
-    color: str
-    createdAt: str
-    modifiedAt: str
+class DashboardSummaryResponse(Model):
+    id = StringType()
+    name = StringType()
+    color = StringType()
+    createdAt = StringType()
+    modifiedAt = StringType()

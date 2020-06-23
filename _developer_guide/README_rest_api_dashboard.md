@@ -15,10 +15,9 @@ SUMMARY:
     2. Gateways:
 
         A. CREATE                          - POST   /dashboards/{dashboardId}/gateways
-        B. UPDATE                          - PUT    /dashboards/{dashboardId}/gateways/{chartId}
-        C. GETS                            - GET    /dashboards/{dashboardId}/gateways
-        D. GET DETAIL                      - GET    /dashboards/{dashboardId}/gateways/{chartId}
-        E. DELETE                          - DELETE /dashboards/{dashboardId}/gateways/{chartId}
+        B. GETS                            - GET    /dashboards/{dashboardId}/gateways
+        C. GET DETAIL                      - GET    /dashboards/{dashboardId}/gateways/{chartId}
+        D. DELETE                          - DELETE /dashboards/{dashboardId}/gateways/{chartId}
 
     3. Gateway Attritubes:
 
@@ -27,10 +26,9 @@ SUMMARY:
     4. Sensors: 
 
         A. CREATE                          - POST   /dashboards/{dashboardId}/sensors
-        B. UPDATE                          - PUT    /dashboards/{dashboardId}/sensors/{chartId}
-        C. GETS                            - GET    /dashboards/{dashboardId}/sensors
-        D. GET DETAIL                      - GET    /dashboards/{dashboardId}/sensors/{chartId}
-        E. DELETE                          - DELETE /dashboards/{dashboardId}/sensors/{chartId}
+        B. GETS                            - GET    /dashboards/{dashboardId}/sensors
+        C. GET DETAIL                      - GET    /dashboards/{dashboardId}/sensors/{chartId}
+        D. DELETE                          - DELETE /dashboards/{dashboardId}/sensors/{chartId}
         
     5. ChartTypes:
 
@@ -47,9 +45,7 @@ DETAIL:
         headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
         data: {
             'name': string,
-            'options': {
-                'color': string
-            }
+            'color': string
         }
         - Reponse:
         { 
@@ -64,9 +60,7 @@ DETAIL:
         headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
         data: {
             'name': string,
-            'options': {
-                'color': string
-            }
+            'color': string
         }
         - Reponse:
         { 
@@ -85,9 +79,10 @@ DETAIL:
                 {
                     'id': string,
                     'name': string,
-                    'options': {
-                        'color': string
-                    }
+                    'name': string,
+                    'color': string,
+                    'createdAt': string
+                    'modifiedAt': string
                 }
             ]
         }
@@ -98,13 +93,14 @@ DETAIL:
         headers: {'Authorization': 'Bearer ' + token.access}
         - Response:
         {
-            data: {
-                'name': string,
-                'id': string,
-                'options': {
-                    'color': string
+            data:{
+                    'id': string,
+                    'name': string,
+                    'name': string,
+                    'color': string,
+                    'createdAt': string
+                    'modifiedAt': string
                 }
-            }
         }
 
         E. DELETE
@@ -125,10 +121,9 @@ DETAIL:
         POST: /dashboards/{dashboardId}/gateways/
         headers: {'Authorization': 'Bearer ' + token.access}
         data: {
-            'dashboardId': string,
             'chartTypeId': number, #id # 0: pie, 1: donut description: pie, donut chart 
-            'gateways': [], # gateways ids
-            'attributes': [] # ids
+            'gatewayId': string
+            'attributeId': number
         }
         - Response:
         {
@@ -144,82 +139,77 @@ DETAIL:
                     3. Chart of gateway2 has "Count of alert" attribute.
                     4. Chart of gateway2 has "Online/ Offline" attribute.
         
-        B. UPDATE
-        - Request:
-        PUT: /dashboards/{dashboardId}/gateways/{chartId}
-        headers: {'Authorization': 'Bearer ' + token.access}
-        data: {
-            'attribute': {
-                'lables': [],
-                'filters': []
-            },
-            'chartTypeId': string
-        }
-        - Response:
-        {
-            'status': 'OK',
-            'data': true
-            'message': 'Update successfully'
-        }
-        - Notes:
-            Attributes:
-            - User just only edit label name or filter type
-            - User can't change type of attribute
-
-        C. GETS
+       
+        B. GETS
         - Request:
         GET: /dashboards/{dashboardId}/gateways
         headers: {'Authorization': 'Bearer ' + token.access}
         queryParams:
-            - attributes: [], #ids string
-            - gateways: [], #ids string 
+            - attributeId: string
+            - filterId: string, # get from attribute.filters 
         - Response:
         {
             'status': 'OK',
             'data': [
                 {
-                    'id': string,
-                    'device': {
-                        'id': string,
-                        'name': string,
-                    },
-                    'chartTypeId': number, #id # 0: pie, 1: donut description: pie, donut chart
-                    'dataset': [],
-                    'attribute': {
-                        'id': string , # (uuid)
-                        'name': string,
-                        'lables': [],
-                        'filters': [],
-                    },
+                  "id": string,
+                  "typeId": number,
+                  "datasets": [
+                      {
+                          "id": string,
+                          "name": string,
+                          "value": string,
+                      }
+                  ],
+                  "deviceName": string,
+                  "deviceUUID": string,
+                  "attribute": {
+                      "name: string,
+                      "id": string,
+                      "filters": [
+                          "name": string,
+                          "id": number
+                      ]
+                  }
                 }
             ]
         }
 
-        D. GET
+        C. GET
         - Request:
         GET: /dashboards/{dashboardId}/gateways/{chartId}
         headers: {'Authorization': 'Bearer ' + token.access}
+        queryParams:
+            - attributeId: string
+            - filterId: string, # get from attribute.filters 
         - Response:
         {
             status: 'OK',
-            data:  {
-                'id': string,
-                'device': {
-                    'id': string,
-                    'name': string,
-                },
-                'chartTypeId': number, #id # 0: pie, 1: donut description: pie, donut chart
-                'dataset': [],
-                'attribute': {
-                    'id': string , # (uuid)
-                    'name': string,
-                    'lables': [],
-                    'filters': [],
-                },
-            }
+            data:
+                {
+                  "id": string,
+                  "typeId": number,
+                  "datasets": [
+                      {
+                          "id": string,
+                          "name": string,
+                          "value": string,
+                      }
+                  ],
+                  "deviceName": string,
+                  "deviceUUID": string,
+                  "attribute": {
+                      "name: string,
+                      "id": string,
+                      "filters": [
+                          "name": string,
+                          "id": number
+                      ]
+                  }
+                }
         }
 
-        E. DELETE
+        D. DELETE
         - Request:
         DELETE: /dashboards/{dashboardId}/gateways/{chartId}
         headers: {'Authorization': 'Bearer ' + token.access}
@@ -263,22 +253,7 @@ DETAIL:
             'message': 'Create successfully'
         }
 
-        B. UPDATE
-        - Request:
-        PUT: /dashboards/{dashboardId}/sensors/{chartId}
-        headers: {'Authorization': 'Bearer ' + token.access}
-        data: 
-        {
-            chartTypeId: number
-        }
-        - Response:
-        {
-            'data': true,
-            'message': 'Update successfully',
-            'status': 'OK' 
-        }
-
-        C. GETS
+        B. GETS
         - Request:
         GET: /dashboards/{dashboardId}/sensors
         headers: {'Authorization': 'Bearer ' + token.access}
@@ -309,7 +284,7 @@ DETAIL:
             ]
         }
 
-        D. GET
+        C. GET
         - Request:
         GET: /dashboards/{dashboardId}/sensors/{chartId}
         headers: {'Authorization': 'Bearer ' + token.access}
@@ -336,7 +311,7 @@ DETAIL:
             }
         }
 
-        E. DELETE
+        D. DELETE
         - Request:
         DELETE: /dashboards/{dashboardId}/sensors/{chartId}
         headers: {'Authorization': 'Bearer ' + token.access}
@@ -365,52 +340,3 @@ DETAIL:
         }
         - Notes: 
             {valueType}: gateways, sensors
-
-
-SCHEMA DATABASE:
-
-    1. Dashboard:
-        {
-            id: string,
-            name: string,
-            userId: string,
-            options: {
-                color: string
-            }
-        }
-
-    2. Chart:
-        {
-            id: string, # (uuid) 
-            userId: string,
-            dashboardId: string,
-            device: {
-                id: string,
-                type: string #  (Gateways, Sensors, Actuators)
-            },
-            chartTypeId: string,
-            attribute: { # clone from default attribute collection
-                id: string , # (uuid)
-                name: string,
-                lables: [],
-                filters: [],
-            }
-        }
-    
-    3. Attributes:
-        {
-            id: string , # (uuid)
-            name: string,
-            lables: [], # id
-            filters: [],
-        }
-
-    4. ChartTypes:
-        {
-            id: number, # 0 : Pie chart
-            parrentId: string, # (optional) , reference to root of group chart type
-            name: string,
-        }
-
-        * Note: In future, one type chart can have multiple child charts type. For example: Pie chart can have pie chart 1, pie chart 2, ...
-

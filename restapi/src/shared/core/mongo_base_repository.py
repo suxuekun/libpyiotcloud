@@ -17,6 +17,9 @@ class IMongoBaseRepository:
     
     def get_one(self,query):
         pass
+    
+    def create_many(self, inputs):
+        pass
 
 class MongoBaseRepository(BaseRepository, IMongoBaseRepository):
 
@@ -36,6 +39,14 @@ class MongoBaseRepository(BaseRepository, IMongoBaseRepository):
                 
             res = self.collection.insert_one(input)
             return str(res.inserted_id)
+        except Exception as e:
+            print(e)
+            raise CreatedExeception(str(e))
+
+    def create_many(self, inputs):
+        try:
+            self.collection.insert_many(inputs)
+            return True
         except Exception as e:
             print(e)
             raise CreatedExeception(str(e))

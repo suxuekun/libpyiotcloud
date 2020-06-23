@@ -8,6 +8,28 @@
   transform: translateY(-50%);
 }
 
+hr {
+  display: block;
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+  margin-left: auto;
+  margin-right: auto;
+  border-style: inset;
+  border-width: 1px;
+}
+
+.dashboard-list-column {
+  float: left;
+  width: 35%;
+  padding: 10px;
+}
+
+.dasboard-detail-column {
+  float: left;
+  width: 65%;
+  padding: 10px;
+}
+
 .dashboard-item-icon-column {
   float: left;
   width: 10%;
@@ -16,13 +38,13 @@
 
 .dashboard-item-main-column {
   float: left;
-  width: 60%;
+  width: 70%;
   padding: 10px;
 }
 
 .dashboard-item-action-column {
   float: left;
-  width: 30%;
+  width: 20%;
   padding: 10px;
 }
 
@@ -40,7 +62,6 @@
 }
 
 .box-color {
-  width: 50%;
   float: left;
   border: 2px;
   border-radius: 5px;
@@ -106,7 +127,7 @@
 }
 
 .dashboard-container {
-  padding: 10px;
+  padding: 20px;
 }
 
 .dashboard-round-border {

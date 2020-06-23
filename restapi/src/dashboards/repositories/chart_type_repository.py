@@ -3,7 +3,7 @@
 from shared.core.base_repository import BaseRepository
 from shared.core.mongo_base_repository import MongoBaseRepository, IMongoBaseRepository
 from shared.core.exceptions import CreatedExeception
-from charts.models.chart_type import PIE_CHART, DONUT_CHART, LINE_CHART, BAR_CHART
+from dashboards.models.chart_type import PIE_CHART, DONUT_CHART, LINE_CHART, BAR_CHART
 
 class IChartTypeRepository(BaseRepository, IMongoBaseRepository):
     

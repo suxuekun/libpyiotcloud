@@ -23,7 +23,7 @@ class AttributeValue(BaseModel):
 class GatewayAttributeModel(BaseModel, TimeStampMixin):
     name = StringType()
     _id = IntType()
-    lables = ListType(ModelType(AttributeValue), default=[])
+    labels = ListType(ModelType(AttributeValue), default=[])
     filters = ListType(ModelType(AttributeValue), default=[])
 
 class FactoryGatewayAttribute:
@@ -57,7 +57,7 @@ class StorageUsageAttribute(GatewayAttributeModel):
         model = GatewayAttributeModel()
         model._id = STORAGE_USAGE_ID
         model.name = STORAGE_USAGE
-        model.lables = [
+        model.labels = [
             AttributeValue({"id": USED_STORAGE_ID, "name": USED_STORAGE_VALUE}),
             AttributeValue({"id": FREE_STORAGE_ID, "name": FREE_STORAGE_VALUE})
         ]
@@ -90,7 +90,7 @@ class OnOffLineStatusAttribute(GatewayAttributeModel):
         model = GatewayAttributeModel()
         model._id = ON_OFF_LINE_ID
         model.name = ON_OFF_LINE
-        model.lables = [
+        model.labels = [
             AttributeValue({"id": ONLINE_ID, "name": ONLINE_VALUE}),
             AttributeValue({"id": OFFLINE_ID, "name": OFFLINE_VALUE})
         ]
@@ -127,7 +127,7 @@ class CountOfAlertsAttribute(GatewayAttributeModel):
         model = GatewayAttributeModel()
         model._id = COUNT_OF_ALERTS_ID
         model.name = COUNT_OF_ALERTS
-        model.lables = [
+        model.labels = [
             AttributeValue({"id": SENT_ID, "name": SENT_VALUE}),
             AttributeValue({"id": REMAINING_ID, "name": REMAINING_VALUE})
         ]
@@ -155,7 +155,7 @@ class BandwidthAttribute(GatewayAttributeModel):
         model = GatewayAttributeModel()
         model._id = BAND_WIDTH_ID
         model.name = BAND_WIDTH
-        model.lables = [
+        model.labels = [
              AttributeValue({"id": BAND_WIDTH_STORE_ID, "name": BAND_WIDTH_STORE_VALUE}),
         ]
         return model

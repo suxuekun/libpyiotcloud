@@ -969,7 +969,6 @@ def on_amqp_message(ch, method, properties, body):
 # Main entry point
 ###################################################################################
 from dashboards.dashboards_app import DashboardsApp
-from charts.charts_app import ChartsApp
 # from payment.app import PaymentApp
 
 def initialize():
@@ -1052,7 +1051,6 @@ def initialize():
     g_utils                        = rest_api_utils.utils()
 
     dashboardsApp = DashboardsApp(app)
-    chartsApp = ChartsApp(app)
     # paymentapp = PaymentApp(app)
     g_payment_accounting           = payment_accounting(g_database_client, g_messaging_client, g_redis_client)
     g_device_dashboard_old         = device_dashboard_old(g_database_client, g_messaging_requests)

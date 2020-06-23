@@ -44,7 +44,7 @@ angular.module('app.routes', [])
       })
 
       .state('addNewChartGateway', {
-        url: '/chart/new/gateway',
+        url: 'dashboards/{dashboardId}/chart/new/gateway',
         params: {
           username: "",
           token: "",

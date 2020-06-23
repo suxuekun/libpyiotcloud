@@ -1,9 +1,9 @@
 
-from charts.repositories.gateway_attribute_repository import IGatewayAttributeRepository
-from charts.models.gateway_attribute import FactoryGatewayAttribute, STORAGE_USAGE, COUNT_OF_ALERTS, ON_OFF_LINE, BAND_WIDTH
+from dashboards.repositories.gateway_attribute_repository import IGatewayAttributeRepository
+from dashboards.models.gateway_attribute import FactoryGatewayAttribute, STORAGE_USAGE, COUNT_OF_ALERTS, ON_OFF_LINE, BAND_WIDTH
 from shared.services.logger_service import LoggerService
 from shared.core.response import Response
-from  shared.utils.mapper_util import formart_id_with_entitites
+from shared.utils.mapper_util import formart_id_with_entitites
 
 class GatewayAttributeService:
     
