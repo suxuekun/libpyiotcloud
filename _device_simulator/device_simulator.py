@@ -2355,9 +2355,6 @@ class DownloadThread(threading.Thread):
             index += 1
         self.use_filename = filename[index:]
 
-    def set_pause(self, pause=True):
-        self.pause = pause
-
     # for download via MQTT
     def get_filename(self):
         return self.use_filename
