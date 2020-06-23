@@ -16,6 +16,7 @@ class SubScriptionStatus():
 
 class AbstractSubscription(BaseIotModel,DeviceMixin):
     status = StringType()
+    cancel_reason = StringType()
     draft_status = BooleanType(default=False)
 
 class AbstractSubscriptionHistory(BaseIotModel,Usage,PeriodMixin):

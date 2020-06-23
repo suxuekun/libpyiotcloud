@@ -65,7 +65,7 @@ def request_pass_test(test_func):
                     ret = make_error_response(error)
                     return ret
                 else:
-                    return make_custom_error_response({'status':'NG','message':'unexpected access'},404)
+                    return make_custom_error_response({'status':'NG','message':'unexpected access'},403)
             return ret
         return func
     return atholder
