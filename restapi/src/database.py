@@ -1110,7 +1110,7 @@ class database_client:
 
     # org-ready
     def set_devices_to_devicegroup(self, username, groupname, devices):
-        self._devices.set_devices_to_devicegroup(username, groupname, devices)
+        return self._devices.set_devices_to_devicegroup(username, groupname, devices)
 
 
 
@@ -4918,7 +4918,8 @@ class database_client_mongodb:
                 new_devicegroup = copy.deepcopy(devicegroup)
                 new_devicegroup['devices'] = devices
                 devicegroups.replace_one(devicegroup, new_devicegroup)
-                break
+                return True
+        return False
 
     def update_name_devicegroup(self, username, groupname, new_groupname):
         devicegroups = self.get_registered_devicegroups()

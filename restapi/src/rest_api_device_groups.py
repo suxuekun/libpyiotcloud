@@ -909,19 +909,24 @@ class device_groups:
         data = flask.request.get_json()
         if data is None or data.get("devices") is None:
             response = json.dumps({'status': 'NG', 'message': 'Parameters not included'})
-            print('\r\nERROR Add/Delete Device To/From DeviceGroup: Parameters not included [{},{}]\r\n'.format(username, devicegroupname))
+            print('\r\nERROR Add/Delete Device To/From DeviceGroup: Parameters not included [{},{}]\r\n'.format(entityname, devicegroupname))
             return response, status.HTTP_400_BAD_REQUEST
 
+        # check if device group is valid
+        devicegroup = self.database_client.get_devicegroup(entityname, devicegroupname)
+        if devicegroup is None:
+            response = json.dumps({'status': 'NG', 'message': 'Device group not found'})
+            print('\r\nERROR Add/Delete Device To/From DeviceGroup: device group not found [{},{}]\r\n'.format(entityname, devicegroupname))
+            return response, status.HTTP_404_NOT_FOUND
 
         # check if the devices dont belong to a group already
         if len(data["devices"]):
-            devicegroup = self.database_client.get_devicegroup(entityname, devicegroupname)
-            if devicegroup:
-                devicenames = []
-                for deviceid in devicegroup['devices']:
-                    device = self.database_client.find_device_by_id(deviceid)
-                    if device:
-                        devicenames.append(device["devicename"])
+
+            devicenames = []
+            for deviceid in devicegroup['devices']:
+                device = self.database_client.find_device_by_id(deviceid)
+                if device:
+                    devicenames.append(device["devicename"])
 
             ungrouped_devices = self.database_client.get_ungroupeddevices(entityname)
             for devicename in data["devices"]:
@@ -943,7 +948,14 @@ class device_groups:
             if device:
                 deviceids.append(device["deviceid"])
 
-        self.database_client.set_devices_to_devicegroup(entityname, devicegroupname, deviceids)
+        result = self.database_client.set_devices_to_devicegroup(entityname, devicegroupname, deviceids)
+
+        # if device group not found, return error
+        if not result:
+            response = json.dumps({'status': 'NG', 'message': 'Device group not found'})
+            print('\r\nERROR Add/Delete Device To/From DeviceGroup: device group not found [{},{}]\r\n'.format(entityname, devicegroupname))
+            return response, status.HTTP_404_NOT_FOUND
+
         msg = {'status': 'OK', 'message': 'Devices set to device group successfully.'}
 
 
