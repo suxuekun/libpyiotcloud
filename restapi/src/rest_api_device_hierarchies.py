@@ -496,15 +496,15 @@ class device_hierarchies:
 
         # generate hierarchy
         checkdevice = 0
-        status = None
+        statusx = None
         data = flask.request.get_json()
         if data is not None:
             if data.get("checkdevice") is not None:
                 checkdevice = data["checkdevice"]
             if data.get("status") is not None:
-                status = data["status"]
+                statusx = data["status"]
         hierarchy = self.get_default_device_hierarchy_ex(devicename)
-        hierarchy = self.generate_device_hierarchy_ex(username, devicename, hierarchy, checkdevice, status, token)
+        hierarchy = self.generate_device_hierarchy_ex(username, devicename, hierarchy, checkdevice, statusx, token)
 
 
         msg = {'status': 'OK', 'message': 'Get hierarchy tree successful.', 'hierarchy': hierarchy}
