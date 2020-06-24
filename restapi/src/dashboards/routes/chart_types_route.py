@@ -1,25 +1,11 @@
 from flask import Blueprint
+from dashboards.ioc import init_chart_type_service
 
-# Import config mongo
-from shared.client.connection.mongo import DefaultMongoConnection
-from shared.client.db.mongo.default import DefaultMongoDB
-
-from dashboards.services.chart_type_service import ChartTypeService
-from dashboards.repositories.chart_type_repository import ChartTypeRepository
-
-#  Get config mongodb
-mongo_client = DefaultMongoDB().conn
-db = DefaultMongoDB().db
-
-chartTypeRepository = ChartTypeRepository(mongoclient=mongo_client, db = db, collectionName="chartTypes")
-
-# Init ChartTypeService
-chartTypeService = ChartTypeService(chartTypeRepository)
+chartTypeService = init_chart_type_service()
 chartTypeService.setup_chart_types()
 
 # Init routes
 chart_types_blueprint = Blueprint('chart_types_blueprint', __name__)
-
 
 #  Chart Types
 @chart_types_blueprint.route("/gateway", methods=['GET'])

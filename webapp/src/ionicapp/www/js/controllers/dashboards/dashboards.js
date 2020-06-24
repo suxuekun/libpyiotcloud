@@ -149,22 +149,22 @@ angular.module('app.dashboardsCtrl', [])
       getChartGateways = () => {
         $http({
           method: 'GET',
-          url: `${server}/dashboards/${$scope.dashboardDetail.id}/gateways`,
+          url: `${server}/dashboards/dashboard/${$scope.dashboardDetail.id}/gateways`,
           headers: { 'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json' },
         })
           .then(function (result) {
             console.log(result.data.data);
             $scope.chartsGateways = result.data.data;
             $scope.chartsGatewaysView = $scope.chartsGateways.map((c) => {
-              labels = c.datasets.map((d) => d.name);
-              values = c.datasets.map((d) => d.value);
+              labels = c.datasets.labels;
+              values = c.datasets.data;
               return {
                 "labels": labels,
                 "values": values,
                 "deviceName": c.device.name,
                 "id": c.id,
                 "deviceUUID": c.device.uuid,
-                "typeId": c.typeId,
+                "typeId": c.chartTypeId,
                 "attribute": c.attribute,
                 "currentSelectFilter": c.attribute.filters.length > 0 ? c.attribute.filters[0] : {}
               }
@@ -178,7 +178,7 @@ angular.module('app.dashboardsCtrl', [])
       $scope.getChartGatewayDetail = (chartId, attributeId, filterId) => {
 
         console.log(`Filter chart by id ${chartId} ${attributeId} ${filterId}`);
-        let url = `${server}/dashboards/${$scope.dashboardDetail.id}/gateways/${chartId}`
+        let url = `${server}/dashboards/dashboard/${$scope.dashboardDetail.id}/gateways/${chartId}`
         if (attributeId && filterId)
           url = `${url}?attributeId=${attributeId}&fiterId=${filterId}`;
 
@@ -203,7 +203,7 @@ angular.module('app.dashboardsCtrl', [])
 
         $http({
           method: 'PUT',
-          url: `${server}/dashboards/${$scope.dashboardDetail.id}`,
+          url: `${server}/dashboards/dashboard/${$scope.dashboardDetail.id}`,
           headers: { 'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json' },
           data: request
         })
@@ -240,7 +240,7 @@ angular.module('app.dashboardsCtrl', [])
               onTap: (e) => {
                 $http({
                   method: 'DELETE',
-                  url: `${server}/dashboards/${$scope.dashboardDetail.id}/gateways/${chartId}`,
+                  url: `${server}/dashboards/dashboard/${$scope.dashboardDetail.id}/gateways/${chartId}`,
                   headers: { 'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json' }
                 })
                   .then(function (result) {
@@ -481,14 +481,14 @@ angular.module('app.dashboardsCtrl', [])
           return;
         }
         const request = {
-          "gatewayId": $scope.selectedGateway.deviceid,
+          "deviceId": $scope.selectedGateway.deviceid,
           "attributeId": parseInt($scope.selectedAttribute.id),
           "chartTypeId": parseInt($scope.selectedChartType.id)
         }
 
         $http({
           method: 'POST',
-          url: `${server}/dashboards/${dashboard.id}/gateways`,
+          url: `${server}/dashboards/dashboard/${dashboard.id}/gateways`,
           headers: { 'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json' },
           data: request
         })

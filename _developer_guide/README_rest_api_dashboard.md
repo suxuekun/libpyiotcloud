@@ -7,17 +7,17 @@ SUMMARY:
     1. Dashboards:
 
         A. CREATE                          - POST   /dashboards
-        B. UPDATE                          - PUT    /dashboards/{id}
+        B. UPDATE                          - PUT    /dashboards/dashboard/{dashboardId}
         C. GETS                            - GET    /dashboards
-        D. GET DETAIL                      - GET    /dashboards/{id}
-        E. DELETE                          - DELETE /dashboards/{id}
+        D. GET DETAIL                      - GET    /dashboards/dashboard/{dashboardId}
+        E. DELETE                          - DELETE /dashboards/dashboard/{dashboardId}
 
     2. Gateways:
 
-        A. CREATE                          - POST   /dashboards/{dashboardId}/gateways
-        B. GETS                            - GET    /dashboards/{dashboardId}/gateways
-        C. GET DETAIL                      - GET    /dashboards/{dashboardId}/gateways/{chartId}
-        D. DELETE                          - DELETE /dashboards/{dashboardId}/gateways/{chartId}
+        A. CREATE                          - POST   /dashboards/dashboard/{dashboardId}/gateways
+        B. GETS                            - GET    /dashboards/dashboard/{dashboardId}/gateways
+        C. GET DETAIL                      - GET    /dashboards/dashboard/{dashboardId}/gateways/{chartId}
+        D. DELETE                          - DELETE /dashboards/dashboard/{dashboardId}/gateways/{chartId}
 
     3. Gateway Attritubes:
 
@@ -25,10 +25,10 @@ SUMMARY:
 
     4. Sensors: 
 
-        A. CREATE                          - POST   /dashboards/{dashboardId}/sensors
-        B. GETS                            - GET    /dashboards/{dashboardId}/sensors
-        C. GET DETAIL                      - GET    /dashboards/{dashboardId}/sensors/{chartId}
-        D. DELETE                          - DELETE /dashboards/{dashboardId}/sensors/{chartId}
+        A. CREATE                          - POST   /dashboards/dashboard/{dashboardId}/sensors
+        B. GETS                            - GET    /dashboards/dashboard/{dashboardId}/sensors
+        C. GET DETAIL                      - GET    /dashboards/dashboard/{dashboardId}/sensors/{chartId}
+        D. DELETE                          - DELETE /dashboards/dashboard/{dashboardId}/sensors/{chartId}
         
     5. ChartTypes:
 
@@ -56,7 +56,7 @@ DETAIL:
 
         B. UPDATE
         - Request:
-        PUT: /dashboards/{id}
+        PUT: /dashboards/dashboard/{dashboardId}
         headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
         data: {
             'name': string,
@@ -89,7 +89,7 @@ DETAIL:
 
         D. GET DETAIL
         - Request:
-        GET: /dashboards/{dashboardId}
+        GET: /dashboards/dashboard/{dashboardId}
         headers: {'Authorization': 'Bearer ' + token.access}
         - Response:
         {
@@ -105,7 +105,7 @@ DETAIL:
 
         E. DELETE
         - Request:
-        DELETE: /dashboards/{dashboardId}
+        DELETE: /dashboards/dashboard/{dashboardId}
         headers: {'Authorization': 'Bearer ' + token.access}
         - Response:
         {
@@ -118,11 +118,11 @@ DETAIL:
 
         A. CREATE
         - Request:
-        POST: /dashboards/{dashboardId}/gateways/
+        POST: /dashboards/{dashboardId}/gateways
         headers: {'Authorization': 'Bearer ' + token.access}
         data: {
             'chartTypeId': number, #id # 0: pie, 1: donut description: pie, donut chart 
-            'gatewayId': string
+            'deviceId': string
             'attributeId': number
         }
         - Response:
@@ -142,23 +142,26 @@ DETAIL:
        
         B. GETS
         - Request:
-        GET: /dashboards/{dashboardId}/gateways
+        GET: /dashboards/dashboard/{dashboardId}/gateways
         headers: {'Authorization': 'Bearer ' + token.access}
         queryParams:
             - attributeId: string
-            - filterId: string, # get from attribute.filters 
+            - filterId: string, # get from attribute.filters
+            * Example:
+                /dashboards/{dashboardId}/gateways?attributeId=1&filterId=0
+            * Note:
+                attributeId & filterId get from api (3)
         - Response:
         {
             'status': 'OK',
             'data': [
                 {
                   "id": string,
-                  "typeId": number,
+                  "chartTypeId": number,
                   "datasets": [
                       {
-                          "id": string,
-                          "name": string,
-                          "value": string,
+                        "labels": [string]
+                        "data": [number]
                       }
                   ],
                   "device": {
@@ -179,23 +182,28 @@ DETAIL:
 
         C. GET
         - Request:
-        GET: /dashboards/{dashboardId}/gateways/{chartId}
+        GET: /dashboards/dashboard/{dashboardId}/gateways/{chartId}
         headers: {'Authorization': 'Bearer ' + token.access}
         queryParams:
             - attributeId: string
             - filterId: string, # get from attribute.filters 
+
+            * Example:
+                /dashboards/dashboard/{dashboardId}/gateways/{chartId}?attributeId=1&filterId=0
+            * Note:
+                attributeId & filterId get from api (3)
+
         - Response:
         {
             status: 'OK',
             data:
                 {
                   "id": string,
-                  "typeId": number,
+                  "chartTypeId": number,
                   "datasets": [
                       {
-                          "id": string,
-                          "name": string,
-                          "value": string,
+                        "labels": [string]
+                        "data": [number]
                       }
                   ],
                   "device": {
@@ -211,11 +219,12 @@ DETAIL:
                       ]
                   }
                 }
+            ]
         }
 
         D. DELETE
         - Request:
-        DELETE: /dashboards/{dashboardId}/gateways/{chartId}
+        DELETE: /dashboards/dashboard/{dashboardId}/gateways/{chartId}
         headers: {'Authorization': 'Bearer ' + token.access}
         - Response:
         {
@@ -250,12 +259,12 @@ DETAIL:
 
         A. CREATE
         - Request:
-        POST: /dashboards/{dashboardId}/sensors
+        POST: /dashboards/dashboard/{dashboardId}/sensors
         headers: {'Authorization': 'Bearer ' + token.access}
         data:
         {
             'chartTypeId': number, #id # 0: pie, 1: donut description: pie, donut chart 
-            'sensorsId': [] # list sensors id string 
+            'deviceId': [] # list sensors id string 
         }
         - Response:
         {
@@ -266,7 +275,7 @@ DETAIL:
 
         B. GETS
         - Request:
-        GET: /dashboards/{dashboardId}/sensors
+        GET: /dashboards/dashboard/{dashboardId}/sensors
         headers: {'Authorization': 'Bearer ' + token.access}
         queryParams:
             - type: string # sensor type
@@ -297,7 +306,7 @@ DETAIL:
 
         C. GET
         - Request:
-        GET: /dashboards/{dashboardId}/sensors/{chartId}
+        GET: /dashboards/dashboard/{dashboardId}/sensors/{chartId}
         headers: {'Authorization': 'Bearer ' + token.access}
         - Response:
         {
@@ -324,7 +333,7 @@ DETAIL:
 
         D. DELETE
         - Request:
-        DELETE: /dashboards/{dashboardId}/sensors/{chartId}
+        DELETE: /dashboards/dashboard/{dashboardId}/sensors/{chartId}
         headers: {'Authorization': 'Bearer ' + token.access}
         - Response:
         {

@@ -6,7 +6,7 @@ from bson.objectid import ObjectId
 
 class IChartRepository(BaseRepository, IMongoBaseRepository):
 
-    def get_charts(self, dashboardId, userId):
+    def get_charts_gateway(self, dashboardId, userId):
         pass
 
     def get_detail(self, dashboarId, userId, chartId, query: {}):
@@ -15,20 +15,20 @@ class IChartRepository(BaseRepository, IMongoBaseRepository):
 
 class ChartRepository(MongoBaseRepository, IChartRepository):
 
-    def get_charts(self, dashboardId, userId):
+    def get_charts_gateway(self, dashboardId, userId):
 
         pipeline = [
             {
                 "$match": {
                     'dashboardId': dashboardId,
                     'userId': userId,
-                    "device.type": "GATEWAYS"
+                    "type": "GATEWAYS"
                 },
             },
             {
                 "$lookup": {
                     "from": "devices",
-                    "localField": "device.deviceUUID",
+                    "localField": "deviceId",
                     "foreignField": "deviceid",
                     "as": "device_info"
                 }
@@ -36,7 +36,7 @@ class ChartRepository(MongoBaseRepository, IChartRepository):
             {
                 "$unwind": {
                     'path': '$device_info',
-                     "preserveNullAndEmptyArrays": True 
+                    "preserveNullAndEmptyArrays": True 
                 }
             },
             {
@@ -44,7 +44,7 @@ class ChartRepository(MongoBaseRepository, IChartRepository):
                     '_id': 1,
                     'userId' : 1, 
                     'dashboardId' : 1,
-                    'typeId': 1,
+                    'chartTypeId': 1,
                     'attributeId': 1,
                     'device_info': 1
                 }
@@ -71,7 +71,7 @@ class ChartRepository(MongoBaseRepository, IChartRepository):
             {
                 "$lookup": {
                     "from": "devices",
-                    "localField": "device.deviceUUID",
+                    "localField": "deviceId",
                     "foreignField": "deviceid",
                     "as": "device_info"
                 }
@@ -87,7 +87,7 @@ class ChartRepository(MongoBaseRepository, IChartRepository):
                     '_id': 1,
                     'userId' : 1, 
                     'dashboardId' : 1,
-                    'typeId': 1,
+                    'chartTypeId': 1,
                     'attributeId': 1,
                     'device_info': 1
                 }

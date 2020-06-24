@@ -1,12 +1,11 @@
 
 from dashboards.models.gateway_attribute import AttributeValue
 from schematics import Model
-from schematics.types import StringType, ModelType, IntType, ListType
+from schematics.types import StringType, ModelType, IntType, ListType, FloatType
 
 class DataSetResponse(Model): 
-    id = StringType()
-    name =  StringType()
-    value = StringType()
+    labels = ListType(StringType)
+    data = ListType(FloatType)
 
 class AttributeResponse(Model):
     name = StringType()
@@ -19,7 +18,7 @@ class DeviceResponse(Model):
 
 class ChartGatewayResponse(Model):
     attribute = ModelType(AttributeResponse)
-    datasets = ListType(ModelType(DataSetResponse), default=[])
-    typeId = IntType()
+    datasets = ModelType(DataSetResponse)
+    chartTypeId = IntType()
     id = StringType()
     device = ModelType(DeviceResponse)

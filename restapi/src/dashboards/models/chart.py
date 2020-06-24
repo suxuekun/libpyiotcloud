@@ -16,31 +16,37 @@ class DashboardDevice(BaseModel):
 class ChartModel(BaseModel, MongoIdMixin, TimeStampMixin):
     userId = StringType()
     dashboardId = StringType()
-    device = ModelType(DashboardDevice)
-    typeId = IntType()
+    deviceId = StringType()
+    chartTypeId = StringType()
+    type = StringType()
+    
     # Attribute is optional
-    attributeId = IntType() 
-    
+    attributeId = IntType()
+
+
 class Chart:
-    
+
     def __init__(self, model: ChartModel):
         self.model = model
-        
+
     @staticmethod
     def create_for_gateway(dashboardId: str, userId: str, dto: ChartGatewayDto):
         model = ChartModel()
         model.userId = userId
         model.dashboardId = dashboardId
-        model.device = DashboardDevice({"deviceUUID": dto.gatewayId, "type": GATEWAYS})
-        model.typeId = dto.chartTypeId
+        model.deviceId = dto.deviceId
+        model.type = GATEWAYS
+        model.chartTypeId = dto.chartTypeId
         model.attributeId = dto.attributeId
         return Chart(model)
-    
+
     @staticmethod
     def create_for_sensor(dashboardId: str, userId: str, dto: ChartSensorDto):
         model = ChartModel()
         model.userId = userId
         model.dashboardId = dashboardId
-        model.device = DashboardDevice({"deviceUUID": dto.gatewayId, "type": SENSORS})
-        model.typeId = dto.chartTypeId
+        model.deviceId = dto.deviceId
+        model.type = SENSORS
+        model.chartTypeId = dto.chartTypeId
+        model.attributeId = dto.attributeId
         return Chart(model)

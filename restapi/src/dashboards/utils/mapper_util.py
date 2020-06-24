@@ -6,6 +6,7 @@ from dashboards.dtos.chart_gateway_response import ChartGatewayResponse, DataSet
 from dashboards.models.gateway_attribute import *
 from shared.utils.mapper_util import formart_id_with_entity
 
+
 def map_entity_to_summary_response(entity):
     response = DashboardSummaryResponse()
     response.id = entity["_id"]
@@ -15,10 +16,12 @@ def map_entity_to_summary_response(entity):
     response.modifiedAt = entity["modifiedAt"]
     return response.to_primitive()
 
+
 def map_entities_to_summaries_response(entities):
     responses = list(
         map(lambda e: map_entity_to_summary_response(e), entities))
     return responses
+
 
 def map_attribute_to_attribute_response(attribute):
     response = AttributeResponse()
@@ -26,10 +29,11 @@ def map_attribute_to_attribute_response(attribute):
     response.name = attribute.get("name")
     response.filters = attribute.get("filters")
     return response
-    
+
+
 def map_chart_gateway_to_response(chartGateway, attributes: []):
     chartResponse = ChartGatewayResponse()
-    chartResponse.typeId = chartGateway["typeId"]
+    chartResponse.chartTypeId = chartGateway["chartTypeId"]
     chartResponse.id = chartGateway["_id"]
     chartResponse.device = DeviceResponse({
         "name": chartGateway["device_info"]["devicename"],
@@ -37,59 +41,48 @@ def map_chart_gateway_to_response(chartGateway, attributes: []):
     })
     foundedAttribute = list(
         filter(lambda a: a["_id"] == chartGateway["attributeId"], attributes))[0]
-    chartResponse.attribute = map_attribute_to_attribute_response(foundedAttribute)
-    
+    chartResponse.attribute = map_attribute_to_attribute_response(
+        foundedAttribute)
+
     if chartGateway["attributeId"] == STORAGE_USAGE_ID:
-        chartResponse.datasets = [
-            DataSetResponse({
-                "id": USED_STORAGE_ID,
-                "name": USED_STORAGE_VALUE,
-                "value": 60
-            }),
-            DataSetResponse({
-                "id": FREE_STORAGE_ID,
-                "name": FREE_STORAGE_VALUE,
-                "value": 40
-            })
+        datasetResponse = DataSetResponse()
+        datasetResponse.labels = [
+            USED_STORAGE_VALUE, FREE_STORAGE_VALUE
         ]
+        datasetResponse.data = [
+            60, 50
+        ]
+        chartResponse.datasets = datasetResponse
         return chartResponse.to_primitive()
 
     if chartGateway["attributeId"] == ON_OFF_LINE_ID:
-        chartResponse.datasets = [
-            DataSetResponse({
-                "id": ONLINE_ID,
-                "name": ONLINE_VALUE,
-                "value": 55
-            }),
-            DataSetResponse({
-                "id": OFFLINE_ID,
-                "name": OFFLINE_VALUE,
-                "value": 45
-            })
+        datasetResponse = DataSetResponse()
+        datasetResponse.labels = [
+            ONLINE_VALUE, OFFLINE_VALUE
         ]
+        datasetResponse.data = [
+            55, 45
+        ]
+        chartResponse.datasets = datasetResponse
         return chartResponse.to_primitive()
 
     if chartGateway["attributeId"] == COUNT_OF_ALERTS_ID:
-        chartResponse.datasets = [
-            DataSetResponse({
-                "id": SENT_ID,
-                "name": SENT_VALUE,
-                "value": 80
-            }),
-            DataSetResponse({
-                "id": REMAINING_ID,
-                "name": REMAINING_VALUE,
-                "value": 20
-            })
+        datasetResponse = DataSetResponse()
+        datasetResponse.labels = [
+            SENT_VALUE, REMAINING_VALUE
         ]
+        datasetResponse.data = [
+            80, 20
+        ]
+        chartResponse.datasets = datasetResponse
         return chartResponse.to_primitive()
         
     if chartGateway["attributeId"] == BAND_WIDTH_ID:
-        chartResponse.datasets = [
-            DataSetResponse({
-                "id": BAND_WIDTH_STORE_ID,
-                "name": BAND_WIDTH,
-                "value": 80
-            })
+        datasetResponse = DataSetResponse()
+        datasetResponse.labels = [
+            SENT_VALUE, REMAINING_VALUE
+        ]
+        datasetResponse.data = [
+            80, 20
         ]
         return chartResponse.to_primitive()

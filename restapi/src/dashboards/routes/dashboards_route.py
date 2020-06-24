@@ -1,41 +1,16 @@
 
 from flask import Blueprint, request
 
-# Import config mongo
-from shared.client.connection.mongo import DefaultMongoConnection
-from shared.client.db.mongo.default import DefaultMongoDB
-
-# Import dashboards
-from dashboards.repositories.dashboard_repository import DashboardRepository
-from dashboards.services.dashboard_service import DashboardService
-from dashboards.dtos.dashboard_dto import DashboardDto
-
-#  Import charts
-from dashboards.dtos.chart_gateway_dto import ChartGatewayDto
-from dashboards.repositories.chart_repository import ChartRepository
-from dashboards.repositories.gateway_attribute_repository import GatewayAttributeRepository
-
-from dashboards.services.chart_service import ChartService
-from dashboards.repositories.dashboard_repository import DashboardRepository
-from dashboards.repositories.device_repository import DeviceRepository
-
-# Import gateway attribute
-from dashboards.repositories.gateway_attribute_repository import GatewayAttributeRepository
+from dashboards.ioc import init_dashboard_service
 
 # Import middleware and Auth
 from shared.middlewares.default_middleware import default_middleware
 from shared.middlewares.request.permission.login import login_required
 
-
-#  Get config mongodb
-mongo_client = DefaultMongoDB().conn
-db = DefaultMongoDB().db
-
-# Init Repositories
-dashboardRepository = DashboardRepository(mongoclient=mongo_client, db = db, collectionName="dashboards")
+from dashboards.dtos.dashboard_dto import DashboardDto
 
 # Init Dashboard Service
-dashboardService = DashboardService(dashboardRepository)
+dashboardService = init_dashboard_service()
 
 # Init routes
 dashboards_blueprint = Blueprint('dashboards_blueprint', __name__)
@@ -58,93 +33,22 @@ def gets():
     user = request.environ.get('user')
     return dashboardService.gets(user["username"])
 
-@dashboards_blueprint.route("/<id>", methods=['GET'])
+@dashboards_blueprint.route("/dashboard/<dashboardId>", methods=['GET'])
 @default_middleware
 @login_required()
-def get(id: str):
-    return dashboardService.get(id)
+def get(dashboardId: str):
+    return dashboardService.get(dashboardId)
 
-@dashboards_blueprint.route("/<id>", methods=['PUT'])
+@dashboards_blueprint.route("/dashboard/<dashboardId>", methods=['PUT'])
 @default_middleware
 @login_required()
-def update(id: str):
+def update(dashboardId: str):
     body = request.get_json()
     dto = DashboardDto(body)
-    response = dashboardService.updateNameAndOption(id, dto)
+    response = dashboardService.updateNameAndOption(dashboardId, dto)
     return response
 
 @dashboards_blueprint.route("/<id>", methods=['DELETE'])
 def delete(id: str):
     response = dashboardService.delete(id)
-    return response
-
-# ------- Chart Gateways ------
-
-# Init Repositories
-dashboardRepository = DashboardRepository(mongoclient=mongo_client, db = db, collectionName="dashboards")
-attributeRepository = GatewayAttributeRepository(mongoclient=mongo_client, db = db, collectionName="gatewayAttributes")
-chartRepository = ChartRepository(mongoclient=mongo_client, db = db, collectionName="charts")
-deviceRepository = DeviceRepository(mongoclient=mongo_client, db = db, collectionName="devices")
-
-# Init Gateway service 
-chartService = ChartService(dashboardRepository, chartRepository, attributeRepository, deviceRepository)
-
-@dashboards_blueprint.route("/<dashboardId>/gateways", methods=['POST'])
-@default_middleware
-@login_required()
-def add_chart_gateway(dashboardId: str):
-    body = request.get_json()
-    dto = ChartGatewayDto(body)
-    response = chartService.create_for_gateway(dashboardId, dto)
-    return response
-
-@dashboards_blueprint.route("/<dashboardId>/gateways/<id>", methods=['DELETE'])
-@default_middleware
-@login_required()
-def delete_chart_gateway(dashboardId: str, id: str):
-    response = chartService.delete(dashboardId, id)
-    return response
-
-@dashboards_blueprint.route("/<dashboardId>/gateways", methods=['GET'])
-@default_middleware
-@login_required()
-def gets_chart_gateway(dashboardId: str):
-    user = request.environ.get('user')
-    queryParams = request.args
-    query = {
-        "attributeId": queryParams.get("attributeId", ""),
-        "filterId": queryParams.get("filterId", "")
-    }
-    response = chartService.gets_chart_gateway(dashboardId, user["username"], query)
-    return response
-
-
-@dashboards_blueprint.route("/<dashboardId>/gateways/<chartId>", methods=['GET'])
-@default_middleware
-@login_required()
-def get_chart_gateway(dashboardId: str, chartId: str):
-    user = request.environ.get('user')
-    queryParams = request.args
-    query = {
-        "attributeId": queryParams.get("attributeId", ""),
-        "filterId": queryParams.get("filterId", "")
-    }
-    response = chartService.get_chart_gateway_detail(dashboardId, user["username"], chartId, query)
-    return response
-
-
-@dashboards_blueprint.route("/<dashboardId>/sensors", methods=['GET'])
-@default_middleware
-@login_required()
-def gets_chart_sensor(dashboardId: str):
-    user = request.environ.get('user')
-    response = chartService.gets_chart_sensor(dashboardId, user["username"])
-    return response
-
-@dashboards_blueprint.route("/<dashboardId>/sensors/<chartId>", methods=['GET'])
-@default_middleware
-@login_required()
-def get_chart_sensor(dashboardId: str, chartId: str):
-    user = request.environ.get('user')
-    response = chartService.get_chart_sensor_detail(dashboardId, user["username"])
     return response

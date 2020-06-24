@@ -11,9 +11,8 @@ from schematics.exceptions import ValidationError, ModelValidationError
 from dashboards.utils.mapper_util import map_chart_gateway_to_response
 from dashboards.repositories.gateway_attribute_repository import IGatewayAttributeRepository
 from dashboards.repositories.device_repository import IDeviceRepostory
-from dashboards.dtos.chart_sensor_dto import ChartSensorDto
 
-class ChartService:
+class ChartGatewayService:
     
     def __init__(self, dashboardRepository: IDashboardRepository, 
                  chartRepository: IChartRepository,
@@ -26,39 +25,11 @@ class ChartService:
         self.attributeRepository = attributeRepository
         self.tag = type(self).__name__
     
-    def create_for_sensor(self, dashboardId: str, dto: ChartSensorDto):
-        try:
-            dto.validate()
-            dashboardEntity = self.dashboardRepository.getById(dashboardId)
-            dashoard = Dashboard.to_domain(dashboardEntity)
-            
-            # Create chart
-            chart = Chart.create_for_sensor(dashboardId=dashoard.model._id, userId=dashoard.model.userId, dto=dto)
-            chartId = self.chartRepository.create(chart.model.to_primitive())
-            
-            # Update dashboard
-            dashoard.add_chart_gateway(chartId)
-            self.dashboardRepository.update(dashboardId, dashoard.model.to_primitive())
-            
-            return Response.success(data=True, message="Create chart sensor successfully")
-            
-        except ModelValidationError as e:
-            LoggerService().error(str(e), tag=self.tag)
-            return Response.fail(str(e))
-
-        except CreatedExeception as e:
-            LoggerService().error(str(e), tag=self.tag)
-            return Response.fail("Sorry, Create chart gatway faield")
-
-        except Exception as e:
-            LoggerService().error(str(e), tag=self.tag)
-            return Response.fail("Sorry, there is something wrong")
-    
-    def create_for_gateway(self, dashboardId: str, dto: ChartGatewayDto):
+    def create(self, dashboardId: str, dto: ChartGatewayDto):
         try:
             # Validate step
             dto.validate()
-            gatewayDevice = self.deviceRepository.get_by_uuid(dto.gatewayId)
+            gatewayDevice = self.deviceRepository.get_by_uuid(dto.deviceId)
             
             if gatewayDevice is None:
                 return Response.fail("This device was not existed")
@@ -108,10 +79,10 @@ class ChartService:
             LoggerService().error(str(e), tag=self.tag)
             return Response.fail("Sorry, there is something wrong")
         
-    def gets_chart_gateway(self, dashboardId: str, userId: str, query: {}):
+    def gets(self, dashboardId: str, userId: str, query: {}):
         try:
             attributes = self.attributeRepository.gets()
-            chartEntites = self.chartRepository.get_charts(dashboardId, userId)
+            chartEntites = self.chartRepository.get_charts_gateway(dashboardId, userId)
             
             responses = list(map(lambda c: map_chart_gateway_to_response(c, attributes), chartEntites))
             return Response.success(data = responses, message="Get chart responses successfully")
@@ -120,7 +91,7 @@ class ChartService:
             LoggerService().error(str(e), tag=self.tag)
             return Response.fail("Sorry, there is something wrong")
         
-    def get_chart_gateway_detail(self, dashboardId: str, userId: str, chartId: str, query: {} = None):
+    def get(self, dashboardId: str, userId: str, chartId: str, query: {} = None):
         try:
             attributes = self.attributeRepository.gets()
             chartEntity = self.chartRepository.get_detail(dashboardId, userId, chartId, query)
@@ -132,17 +103,3 @@ class ChartService:
             LoggerService().error(str(e), tag=self.tag)
             return Response.fail("Sorry, there is something wrong")
     
-    def gets_chart_sensor(self, dashboardId: str, userId: str, query:{} = None):
-        try:
-            return Response.success(data = [], message="Get chart responses successfully")
-            
-        except Exception as e:
-            LoggerService().error(str(e), tag=self.tag)
-            return Response.fail("Sorry, there is something wrong")
-        
-    def get_chart_sensor_detail(self, dashboarId: str, userId: str, chartId: str, query: {} = None):
-        try:
-            return Response.success(data = {}, message="Get chart responses successfully")
-        except Exception as e:
-            LoggerService().error(str(e), tag=self.tag)
-            return Response.fail("Sorry, there is something wrong")  

@@ -1,20 +1,9 @@
 from flask import Blueprint
 
-# Import config mongo
-from shared.client.connection.mongo import DefaultMongoConnection
-from shared.client.db.mongo.default import DefaultMongoDB
-
-from dashboards.repositories.gateway_attribute_repository import GatewayAttributeRepository
-from dashboards.services.gateway_attribute_service import GatewayAttributeService
-
-#  Get config mongodb
-mongo_client = DefaultMongoDB().conn
-db = DefaultMongoDB().db
-
-attributeRepository = GatewayAttributeRepository(mongoclient=mongo_client, db = db, collectionName="gatewayAttributes")
+from dashboards.ioc import init_gateway_attribute_service
 
 # Init Dashboard Gateway Attributes services
-gatewayAttributeService = GatewayAttributeService(attributeRepository)
+gatewayAttributeService = init_gateway_attribute_service()
 gatewayAttributeService.setup_attributes()
 
 # Init routes
