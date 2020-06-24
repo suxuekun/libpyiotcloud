@@ -48,7 +48,7 @@ def update(dashboardId: str):
     response = dashboardService.updateNameAndOption(dashboardId, dto)
     return response
 
-@dashboards_blueprint.route("/<id>", methods=['DELETE'])
-def delete(id: str):
-    response = dashboardService.delete(id)
+@dashboards_blueprint.route("/dashboard/<dashboardId>", methods=['DELETE'])
+def delete(dashboardId: str):
+    response = dashboardService.delete(dashboardId)
     return response

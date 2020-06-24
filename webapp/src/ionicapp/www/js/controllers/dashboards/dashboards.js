@@ -48,7 +48,7 @@ angular.module('app.dashboardsCtrl', [])
               onTap: (e) => {
                 $http({
                   method: 'DELETE',
-                  url: `${server}/dashboards/${id}`,
+                  url: `${server}/dashboards/dashboard/${id}`,
                   headers: { 'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json' }
                 })
                   .then(function (result) {
@@ -147,6 +147,21 @@ angular.module('app.dashboardsCtrl', [])
         }
       };
 
+      mappingChartGatewayToView = (c) => {
+        console.log("Cho ma: ", c);
+        const labels = c.datasets.labels;
+        const values = c.datasets.data;
+        return {
+          "labels": labels,
+          "values": values,
+          "deviceName": c.device.name,
+          "id": c.id,
+          "deviceUUID": c.device.uuid,
+          "typeId": c.chartTypeId,
+          "attribute": c.attribute,
+          "currentSelectFilter": c.attribute.filters.length > 0 ? c.attribute.filters[0] : {}
+        }
+      }
       getChartGateways = () => {
         $http({
           method: 'GET',
@@ -154,22 +169,8 @@ angular.module('app.dashboardsCtrl', [])
           headers: { 'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json' },
         })
           .then(function (result) {
-            console.log(result.data.data);
             $scope.chartsGateways = result.data.data;
-            $scope.chartsGatewaysView = $scope.chartsGateways.map((c) => {
-              labels = c.datasets.labels;
-              values = c.datasets.data;
-              return {
-                "labels": labels,
-                "values": values,
-                "deviceName": c.device.name,
-                "id": c.id,
-                "deviceUUID": c.device.uuid,
-                "typeId": c.chartTypeId,
-                "attribute": c.attribute,
-                "currentSelectFilter": c.attribute.filters.length > 0 ? c.attribute.filters[0] : {}
-              }
-            });
+            $scope.chartsGatewaysView = $scope.chartsGateways.map((c) => mappingChartGatewayToView(c));
           })
           .catch(function (error) {
             console.log(error);
@@ -189,7 +190,9 @@ angular.module('app.dashboardsCtrl', [])
           headers: { 'Authorization': 'Bearer ' + $scope.data.token.access, 'Content-Type': 'application/json' },
         })
           .then(function (result) {
-            console.log(result.data.data);
+            const chart = result.data.data;
+            const foundIndex = $scope.chartsGatewaysView.findIndex((c) => c.id == chart.id);
+            $scope.chartsGatewaysView[foundIndex] = mappingChartGatewayToView(chart);
           })
           .catch(function (error) {
             console.log(error);

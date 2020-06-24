@@ -19,7 +19,6 @@ charts_gateway_blueprint = Blueprint('charts_gateway_blueprint', __name__)
 @default_middleware
 @login_required()
 def create(dashboardId: str):
-    print("Try to create chart")
     body = request.get_json()
     dto = ChartGatewayDto(body)
     response = chartGatewayService.create(dashboardId, dto)
