@@ -6,8 +6,9 @@ angular.module('app.dashboardsCtrl', [])
         'search': '',
         'token': User.get_token(),
       };
-
+      const defaultColor = "#00c0ef";
       $scope.dashboardDetail = {};
+      $scope.selectedColor = defaultColor;
 
       const server = Server.rest_api;
       let cachedDashboards = [];
@@ -55,6 +56,8 @@ angular.module('app.dashboardsCtrl', [])
                     const dashboards = $scope.dashboards
                     cachedDashboards.splice(cachedDashboards.findIndex((d) => d.id === id), 1)
                     $scope.dashboards.splice($scope.dashboards.findIndex((d) => d.id === id), 1);
+                    if ($scope.dashboards.length > 0)
+                      $scope.viewDetail($scope.dashboards[0])
                   })
                   .catch(function (error) {
                     console.error(error);
@@ -76,7 +79,6 @@ angular.module('app.dashboardsCtrl', [])
 
       $scope.viewDetail = (dashboard) => {
         $scope.dashboardDetail = dashboard;
-        console.log("View Detail ",  $scope.dashboardDetail);
         $scope.selectedColor = $scope.dashboardDetail.color ? `${$scope.dashboardDetail.color}` : defaultColor;
         getChartGateways();
       }
@@ -105,6 +107,7 @@ angular.module('app.dashboardsCtrl', [])
             renderDashdoards(cachedDashboards);
             if (cachedDashboards.length > 0) {
               $scope.dashboardDetail = cachedDashboards[0];
+              $scope.selectedColor = $scope.dashboardDetail.color ? `#${$scope.dashboardDetail.color}` : defaultColor;
               getChartGateways();
             }
           })
@@ -128,8 +131,6 @@ angular.module('app.dashboardsCtrl', [])
         '#F012BE'
       ];
 
-      const defaultColor = "#00c0ef";
-      $scope.selectedColor = defaultColor;
       $scope.chartsGateways = [];
       $scope.chartsGatewaysView = []
       $scope.activeTab = 0
@@ -225,7 +226,7 @@ angular.module('app.dashboardsCtrl', [])
           'dashboard': $scope.dashboardDetail,
           'dashboardId': $scope.dashboardDetail.id
         }
-        $state.go('addNewChartGateway', params,  { reload: true });
+        $state.go('addNewChartGateway', params, { reload: true });
       }
 
       $scope.deleteChartGateway = (chartId) => {

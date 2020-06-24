@@ -79,7 +79,6 @@ DETAIL:
                 {
                     'id': string,
                     'name': string,
-                    'name': string,
                     'color': string,
                     'createdAt': string
                     'modifiedAt': string
@@ -95,7 +94,6 @@ DETAIL:
         {
             data:{
                     'id': string,
-                    'name': string,
                     'name': string,
                     'color': string,
                     'createdAt': string
@@ -118,7 +116,7 @@ DETAIL:
 
         A. CREATE
         - Request:
-        POST: /dashboards/{dashboardId}/gateways
+        POST: /dashboards/dashboard/{dashboardId}/gateways
         headers: {'Authorization': 'Bearer ' + token.access}
         data: {
             'chartTypeId': number, #id # 0: pie, 1: donut description: pie, donut chart 
