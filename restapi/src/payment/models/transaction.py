@@ -1,4 +1,4 @@
-from schematics.types import StringType, DecimalType
+from schematics.types import StringType, DecimalType, ListType, ModelType
 
 from shared.core.model import UserMixin, BaseIotModel, TimeStampMixin, PeriodMixin
 
@@ -13,6 +13,7 @@ class AbstractTransaction(BaseIotModel,TimeStampMixin,PeriodMixin):
     remark = StringType()
     date = StringType()
     status = StringType()
+    receipt = StringType()
 
     def pending(self):
         self.status = TransactionStatus.PENDING
@@ -23,5 +24,11 @@ class AbstractTransaction(BaseIotModel,TimeStampMixin,PeriodMixin):
     def complete(self):
         self.status = TransactionStatus.COMPLETE
 
+class TransactionItem(BaseIotModel):
+    name = StringType()
+    remark = StringType()
+    value = DecimalType()
+
 class Transaction(AbstractTransaction,UserMixin):
     bt_trans_id = StringType()
+    items = ListType(ModelType(TransactionItem))
