@@ -118,8 +118,8 @@ Below are the features of this secure, scalable and reliable IoT platform:
        F. Monitor usage for SMS, email, push notifications
        G. Monitor usage for sensor data storage
 
-    8. Device (Gateway and LDSU) management services
-       Provision, manage and monitor devices
+    8. Device fleet management services
+       Provision, manage and monitor devices or fleets of devices
        A. Register device manually or via QR code (QR code registration via mobile apps only)
        B. Manager device status remotely (restart, stop, start) and view device properties including last active time
        C. Configure and track location of a device (or a fleet of devices) via Google Maps (latitude, longitude)
