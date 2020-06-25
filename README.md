@@ -205,6 +205,8 @@ The web app is made of Ionic framework so it can be compiled as Android and iOS 
 - <b>BrainTree</b> payment gateway - https://www.braintreepayments.com/
 - <b>Apple Push Notification service (APNs)</b> for IOS push notifications
 - <b>Google Firebase Cloud Messaging (FCM)</b> for Android push notifications
+- <b>Apple IOS Test Flight</b> app distribution - https://developer.apple.com/testflight/
+- <b>Google Firebase</b> app distribution - https://firebase.google.com/docs/app-distribution/
 - <b>Google Maps Platform</b> for device location - https://developers.google.com/maps/documentation/
 - <b>Chart.JS</b> Visualization charts/graphs - https://www.chartjs.org/
 - <b>D3.JS</b> Visualization charts/graphs - https://observablehq.com/@d3/gallery/
