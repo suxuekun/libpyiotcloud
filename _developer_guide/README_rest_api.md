@@ -420,6 +420,8 @@ DETAILED:
 		   //   To resend OTP for CONFIRM SIGN-UP page, use RESEND CONFIRMATION CODE api
 		   //   To resend OTP for CONFIRM FORGOT PASSWORD page, use FORGOT PASSWORD api
 		   //   To resend OTP for CONFIRM VERIFY PHONE NUMBER page, use VERIFY PHONE NUMBER api
+		   //   To resend OTP for USER LOCKOUT RESET PASSWORD page, use FORGOT PASSWORD api
+		   //   To resend OTP for LOGIN MFA page is NOT possible with Cognito
 		   //
 		   // There is no lockout due for invalid OTP. Lockout is only for invalid password
 
@@ -464,6 +466,8 @@ DETAILED:
 		   //   To resend OTP for CONFIRM SIGN-UP page, use RESEND CONFIRMATION CODE api
 		   //   To resend OTP for CONFIRM FORGOT PASSWORD page, use FORGOT PASSWORD api
 		   //   To resend OTP for CONFIRM VERIFY PHONE NUMBER page, use VERIFY PHONE NUMBER api
+		   //   To resend OTP for USER LOCKOUT RESET PASSWORD page, use FORGOT PASSWORD api
+		   //   To resend OTP for LOGIN MFA page is NOT possible with Cognito
 		   //
 		   // There is no lockout due for invalid OTP. Lockout is only for invalid password
 		   
@@ -610,6 +614,8 @@ DETAILED:
 		   //   To resend OTP for CONFIRM SIGN-UP page, use RESEND CONFIRMATION CODE api
 		   //   To resend OTP for CONFIRM FORGOT PASSWORD page, use FORGOT PASSWORD api
 		   //   To resend OTP for CONFIRM VERIFY PHONE NUMBER page, use VERIFY PHONE NUMBER api
+		   //   To resend OTP for USER LOCKOUT RESET PASSWORD page, use FORGOT PASSWORD api
+		   //   To resend OTP for LOGIN MFA page is NOT possible with Cognito
 		   //
 		   // There is no lockout due for invalid OTP. Lockout is only for invalid password
 
@@ -764,6 +770,15 @@ DETAILED:
 		   {'status': 'NG', 'message': string}
 		   MFA must be manually enabled before Login within MFA
 		   MFA code has 3 minutes validity. It cannot be modified in Cognito.
+		   //
+		   // Resend OTP 
+		   //   To resend OTP for CONFIRM SIGN-UP page, use RESEND CONFIRMATION CODE api
+		   //   To resend OTP for CONFIRM FORGOT PASSWORD page, use FORGOT PASSWORD api
+		   //   To resend OTP for CONFIRM VERIFY PHONE NUMBER page, use VERIFY PHONE NUMBER api
+		   //   To resend OTP for USER LOCKOUT RESET PASSWORD page, use FORGOT PASSWORD api
+		   //   To resend OTP for LOGIN MFA page is NOT possible with Cognito
+		   //
+		   // There is no lockout due for invalid OTP. Lockout is only for invalid password
 
 		S. GET ORGANIZATIONS
 		-  Request:
