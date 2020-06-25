@@ -420,6 +420,8 @@ DETAILED:
 		   //   To resend OTP for CONFIRM SIGN-UP page, use RESEND CONFIRMATION CODE api
 		   //   To resend OTP for CONFIRM FORGOT PASSWORD page, use FORGOT PASSWORD api
 		   //   To resend OTP for CONFIRM VERIFY PHONE NUMBER page, use VERIFY PHONE NUMBER api
+		   //
+		   // There is no lockout due for invalid OTP. Lockout is only for invalid password
 
 		D. FORGOT PASSWORD
 		-  Request:
@@ -462,6 +464,8 @@ DETAILED:
 		   //   To resend OTP for CONFIRM SIGN-UP page, use RESEND CONFIRMATION CODE api
 		   //   To resend OTP for CONFIRM FORGOT PASSWORD page, use FORGOT PASSWORD api
 		   //   To resend OTP for CONFIRM VERIFY PHONE NUMBER page, use VERIFY PHONE NUMBER api
+		   //
+		   // There is no lockout due for invalid OTP. Lockout is only for invalid password
 		   
 		F. LOGIN
 		-  Request:
@@ -606,6 +610,8 @@ DETAILED:
 		   //   To resend OTP for CONFIRM SIGN-UP page, use RESEND CONFIRMATION CODE api
 		   //   To resend OTP for CONFIRM FORGOT PASSWORD page, use FORGOT PASSWORD api
 		   //   To resend OTP for CONFIRM VERIFY PHONE NUMBER page, use VERIFY PHONE NUMBER api
+		   //
+		   // There is no lockout due for invalid OTP. Lockout is only for invalid password
 
 		N. CHANGE PASSWORD
 		-  Request:
