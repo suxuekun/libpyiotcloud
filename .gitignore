@@ -38,6 +38,8 @@ get_logs.py
 _test_regression/*
 .idea/*
 _ota_uploader/*.sh
+notification/src/notification_manager/*.csv
+
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
