@@ -252,7 +252,7 @@ Below are tools and utilities being used:
 11. <b>OTAUpdate</b> - handles OTA firmware update via MQTTS
 12. <b>Invoicing</b> - handles sending of payment receipts via email
 13. <b>Registration</b> - handles processing of sensor registration by device on bootup
-14. <b>Heartbeat</b> - handles processing of heartbeat packets aka ping
+14. <b>Heartbeat</b> - handles processing of heartbeat packets
 
 
 
