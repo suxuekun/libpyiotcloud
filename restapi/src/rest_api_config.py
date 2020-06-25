@@ -3,7 +3,10 @@ import os
 
 
 class config:
-    debugging = True # config for debugging locally or not , not only windows local but mac local
+
+    debugging = os.environ['DEBUG_MODE']
+
+    # config for debugging locally or not , not only windows local but mac local
     # Web server settings
     # if os.name == 'nt' or "posix":
     #     debugging = True
