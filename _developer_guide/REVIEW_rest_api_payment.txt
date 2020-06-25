@@ -160,7 +160,7 @@ June 25, 2020
 34. Storage does not display label (GB). 
 
 
-35. I get username su in my local database in promocode
+35. I get username su in my local database in payment_promocode database collection
     This is my local database, your username should not even appear.
 
 36. I have not started upgrading plans, but promo codes entries in the databased already appear but for user "su ..."
