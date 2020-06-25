@@ -164,6 +164,7 @@ June 25, 2020
     This is my local database, your username should not even appear.
 
 36. I have not started upgrading plans, but promo codes entries in the database already appear but for user "su ..."
+    this is NOT optimal in terms of database size.
 
 37. There should be a database collection for the MASTERLIST of promo codes
     This shall synchronize with the promocodes.csv file in AWS S3
