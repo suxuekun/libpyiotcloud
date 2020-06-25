@@ -415,6 +415,11 @@ DETAILED:
 		-  Response:
 		   {'status': 'OK', 'message': string}
 		   {'status': 'NG', 'message': string}
+		   //
+		   // Resend OTP 
+		   //   To resend OTP for CONFIRM SIGN-UP page, use RESEND CONFIRMATION CODE api
+		   //   To resend OTP for CONFIRM FORGOT PASSWORD page, use FORGOT PASSWORD api
+		   //   To resend OTP for CONFIRM VERIFY PHONE NUMBER page, use VERIFY PHONE NUMBER api
 
 		D. FORGOT PASSWORD
 		-  Request:
@@ -452,7 +457,12 @@ DETAILED:
 		     )));
 		   JWT = base64UrlEncodedHeader + "." base64UrlEncodedPayload + "." + base64UrlEncodedSignature
 		   Double check your results here: https://jwt.io/
-
+		   //
+		   // Resend OTP 
+		   //   To resend OTP for CONFIRM SIGN-UP page, use RESEND CONFIRMATION CODE api
+		   //   To resend OTP for CONFIRM FORGOT PASSWORD page, use FORGOT PASSWORD api
+		   //   To resend OTP for CONFIRM VERIFY PHONE NUMBER page, use VERIFY PHONE NUMBER api
+		   
 		F. LOGIN
 		-  Request:
 		   POST /user/login
@@ -591,6 +601,11 @@ DETAILED:
 		-  Response:
 		   {'status': 'OK', 'message': string}
 		   {'status': 'NG', 'message': string}
+		   //
+		   // Resend OTP 
+		   //   To resend OTP for CONFIRM SIGN-UP page, use RESEND CONFIRMATION CODE api
+		   //   To resend OTP for CONFIRM FORGOT PASSWORD page, use FORGOT PASSWORD api
+		   //   To resend OTP for CONFIRM VERIFY PHONE NUMBER page, use VERIFY PHONE NUMBER api
 
 		N. CHANGE PASSWORD
 		-  Request:
