@@ -163,7 +163,7 @@ June 25, 2020
 35. I get username su in my local database in payment_promocode database collection
     This is my local database, your username should not even appear.
 
-36. I have not started upgrading plans, but promo codes entries in the databased already appear but for user "su ..."
+36. I have not started upgrading plans, but promo codes entries in the database already appear but for user "su ..."
 
 37. There should be a database collection for the MASTERLIST of promo codes
     This shall synchronize with the promocodes.csv file in AWS S3
