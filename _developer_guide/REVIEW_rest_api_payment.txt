@@ -171,11 +171,11 @@ June 25, 2020
 38. There can be two types of promo code applicability
     a. based on device plan to be upgraded to and validity of the plan (ex. June)
        For example, a promo code is only valid for Supersize50/Enterprise50 for the month of June
-       This means that only this promo code should appear on the list of promo codes available
+       This means that if user is upgrading to Supersize50/Enterprise50 for the month of June, then this promocode should appear on the available promocodes
 
     b. based on user's join date (new users) - common feature in Lazada
        For example, a promo code is valid for new users for the month of June
-       This means that only this promo code should appear on the list of promo codes for users who created account in June
+       This means that if user created account in June, then this promocode should appear on the available promocodes
 
 39. actually you dont even need a new collection for the list of promo codes for user/device. 
     you can simply return the MASTERLIST "database collection" and then FILTER OUT based on the specific username-device subscription plan not applicable to the specified user/device
