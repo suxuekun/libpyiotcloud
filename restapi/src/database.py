@@ -585,6 +585,9 @@ class database_client:
     def delete_ldsu(self, username, devicename, uid):
         self._devices.delete_ldsu(self._devices.get_deviceid(username, devicename), uid)
 
+    def delete_ldsu_by_deviceid(self, deviceid, uid):
+        self._devices.delete_ldsu(deviceid, uid)
+
     def delete_ldsus(self, username, devicename):
         self._devices.delete_ldsus(self._devices.get_deviceid(username, devicename))
 
@@ -613,6 +616,9 @@ class database_client:
 
     def get_all_device_sensors_by_port_by_deviceid(self, deviceid, port):
         return self._devices.get_all_device_sensors_by_port(deviceid, port)
+
+    def get_all_device_sensors_by_source_by_deviceid(self, deviceid, source):
+        return self._devices.get_all_device_sensors_by_source(deviceid, source)
 
     def get_all_device_sensors_enabled_input(self, username, devicename, source=None, number=None, sensorclass=None, sensorstatus=1, type="input"):
         return self._devices.get_all_device_sensors_enabled_input(username, self._devices.get_deviceid(username, devicename), source, number, sensorclass, sensorstatus, type)
@@ -2592,6 +2598,17 @@ class database_client_mongodb:
         i2csensors = self.get_sensors_document();
         if i2csensors:
             for i2csensor in i2csensors.find({'deviceid': deviceid, 'port': port}):
+                i2csensor.pop('_id')
+                if i2csensor.get('username'):
+                    i2csensor.pop('username')
+                sensor_list.append(i2csensor)
+        return sensor_list
+
+    def get_all_device_sensors_by_source(self, deviceid, source):
+        sensor_list = []
+        i2csensors = self.get_sensors_document();
+        if i2csensors:
+            for i2csensor in i2csensors.find({'deviceid': deviceid, 'source': source}):
                 i2csensor.pop('_id')
                 if i2csensor.get('username'):
                     i2csensor.pop('username')
