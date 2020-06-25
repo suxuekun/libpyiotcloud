@@ -139,3 +139,46 @@ June 21, 2020
    #    { "name": "CONFIRM FORGOT PASSWORD",         "func": confirm_forgot_password,         "api": "/user/confirm_forgot_password",     "method": "POST"   },
 
 
+===============================================
+
+June 25, 2020
+
+28. multiple instances of "s3-reload" "payment blue print" appears when running the dev branch in your fork https://github.com/suxuekun/libpyiotcloud/tree/dev
+
+29. ionic web app couldnt run. some conflict in package-lock.json.
+    if i replace package-lock.json, then it works
+
+30. could not login. changes in server.js should be generic for local and live setup. should use env.js.
+
+31. remove billing address and billling history in the menu. 
+    just add as some buttons or links inside subscriptions instead
+
+32. Credits menu have already been changed to Credits OLD
+
+33. The names displayed in are not correct. Plan name appear as Plan A instead of Free Plan. Update braintree accordingly.
+
+34. Storage does not display label (GB). 
+
+
+35. I get username su in my local database in promocode
+    This is my local database, your username should not even appear.
+
+36. I have not started upgrading plans, but promo codes entries in the databased already appear but for user "su ..."
+
+37. There should be a database collection for the MASTERLIST of promo codes
+    This shall synchronize with the promocodes.csv file in AWS S3
+
+38. There can be two types of promo code applicability
+    a. based on device plan to be upgraded to and validity of the plan (ex. June)
+       For example, a promo code is only valid for Supersize50/Enterprise50 for the month of June
+       This means that only this promo code should appear on the list of promo codes available
+
+    b. based on user's join date (new users) - common feature in Lazada
+       For example, a promo code is valid for new users for the month of June
+       This means that only this promo code should appear on the list of promo codes for users who created account in June
+
+39. actually you dont even need a new collection for the list of promo codes for user/device. 
+    you can simply return the MASTERLIST "database collection" and then FILTER OUT based on the specific username-device subscription plan not applicable to the specified user/device
+
+    this is more optimal in terms of database size.
+
