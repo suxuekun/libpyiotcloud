@@ -100,10 +100,11 @@ June 26, 2020
    'message': string
 
    - this still does NOT appear on ALL responses
-     please ADD to all APIs
+     please ADD to all APIs and update documentation accordingly.
 
 15. remove 'data' parameter if value is true/false
     that is redundant with 'status' OK/NG
+    update documentation accordingly.
 
 16. i should not be allowed to add the same gateway attribute more than once.
 
