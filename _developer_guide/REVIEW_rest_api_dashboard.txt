@@ -104,3 +104,10 @@ June 26, 2020
 
 15. remove 'data' parameter if value is true/false
     that is redundant with 'status' OK/NG
+
+16. i should not be allowed to add the same gateway attribute more than once.
+
+    i selected device 1, same donut chart, online/offline attribute.
+    it did not fail. i can see the chart two times.
+
+    the api should prevent adding the same chart for same device, same device attribute
