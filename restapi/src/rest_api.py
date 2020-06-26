@@ -1059,7 +1059,6 @@ def initialize():
 # Initialize globally so that no issue with GUnicorn integration
 if os.name == 'posix':
     initialize()
-initialize()
 
 if __name__ == '__main__':
 
