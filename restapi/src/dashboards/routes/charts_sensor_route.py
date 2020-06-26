@@ -12,7 +12,7 @@ chartSensorService = init_chart_sensor_service()
 # Init routes
 charts_sensor_blueprint = Blueprint('charts_sensor_blueprint', __name__)
 
-@charts_sensor_blueprint.route("/", methods=['POST'])
+@charts_sensor_blueprint.route("", methods=['POST'])
 @default_middleware
 @login_required()
 def create(dashboardId: str):
@@ -21,7 +21,7 @@ def create(dashboardId: str):
     response = chartSensorService.create(dashboardId, dto)
     return response
 
-@charts_sensor_blueprint.route("/", methods=['GET'])
+@charts_sensor_blueprint.route("", methods=['GET'])
 @default_middleware
 @login_required()
 def gets(dashboardId: str):

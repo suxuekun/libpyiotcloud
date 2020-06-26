@@ -48,5 +48,4 @@ class Chart:
         model.deviceId = dto.deviceId
         model.type = SENSORS
         model.chartTypeId = dto.chartTypeId
-        model.attributeId = dto.attributeId
         return Chart(model)

@@ -1022,7 +1022,6 @@ def initialize():
             print("Could not connect to message broker! exception! {}".format(e))
 
     # Initialize Database client
-    print("g_database_client")
     g_database_client = db_client
 
     # Initialize S3 client

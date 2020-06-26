@@ -20,13 +20,13 @@ hr {
 
 .dashboard-list-column {
   float: left;
-  width: 35%;
+  width: 30%;
   padding: 10px;
 }
 
 .dasboard-detail-column {
   float: left;
-  width: 65%;
+  width: 70%;
   padding: 10px;
 }
 
@@ -40,6 +40,7 @@ hr {
   float: left;
   width: 70%;
   padding: 10px;
+  padding-left: 30px;
 }
 
 .dashboard-item-action-column {

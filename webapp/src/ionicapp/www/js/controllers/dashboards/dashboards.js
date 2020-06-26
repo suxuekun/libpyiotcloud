@@ -6,7 +6,7 @@ angular.module('app.dashboardsCtrl', [])
         'search': '',
         'token': User.get_token(),
       };
-      const defaultColor = "#00c0ef";
+      const defaultColor = "#f2495e";
       $scope.dashboardDetail = {};
       $scope.selectedColor = defaultColor;
 
@@ -281,7 +281,7 @@ angular.module('app.dashboardsCtrl', [])
       $scope.data = {
         'token': User.get_token(),
         'name': '',
-        'selectedColor': '#00c0ef',
+        'selectedColor': '#f2495e',
         'colors': [
           '#f2495e',
           '#f2994a',
@@ -375,11 +375,10 @@ angular.module('app.dashboardsCtrl', [])
             const allDevices = result.data.data;
             $scope.devicesGroups = allDevices.devicegroups;
             devices = allDevices.devices;
-
             if (devices.length > 0) {
               deviceUngroup = {
                 groupname: "Ungroup",
-                devicesInfo: devices
+                devices: devices
               }
               $scope.devicesGroups.push(deviceUngroup);
             }
@@ -437,7 +436,7 @@ angular.module('app.dashboardsCtrl', [])
 
         // Set device name
         for (const group of $scope.devicesGroups) {
-          for (const device of group.devicesInfo) {
+          for (const device of group.devices) {
             if (device.deviceid == $scope.selectedGateway.deviceid) {
               $scope.selectedGateway.devicename = device.devicename;
               return;
