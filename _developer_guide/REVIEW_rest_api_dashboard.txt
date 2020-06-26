@@ -90,3 +90,17 @@ June 21, 2020
    #    { "name": "FORGOT PASSWORD",                 "func": forgot_password,                 "api": "/user/forgot_password",             "method": "POST"   },
    #    { "name": "CONFIRM FORGOT PASSWORD",         "func": confirm_forgot_password,         "api": "/user/confirm_forgot_password",     "method": "POST"   },
 
+
+===============================================
+
+June 26, 2020
+
+14. all responses should have
+   'status': string, 
+   'message': string
+
+   - this still does NOT appear on ALL responses
+     please ADD to all APIs
+
+15. remove data parameter if value is true
+    that is redundant with status OK
