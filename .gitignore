@@ -16,6 +16,7 @@ _device_simulator/localhost/*.cfg
 _device_simulator/javascript
 _device_simulator/*.cfg
 _device_simulator/*.bat
+_device_simulator/*.sh
 _device_simulator/*.bin
 _device_simulator/*.ver
 _device_simulator/*.sns
