@@ -1,5 +1,5 @@
 import flask_cors
-from flask import Blueprint
+from flask import Blueprint, Response
 from flask_restful import Api
 
 from payment.routes.billing_address import BillingAddressResource
@@ -10,7 +10,9 @@ from payment.routes.prorate import ProrateResource
 from payment.routes.subscription import SubscriptionResource, SubscriptionListResource
 from payment.routes.token import TokenResource
 from payment.routes.transaction import TransactionListResource, TransactionResource
+from payment.webhook import test_dummy_webhook
 from shared.middlewares.default_middleware import default_middleware
+from shared.middlewares.request.permission.base import getRequest
 from shared.middlewares.request.permission.login import login_required
 
 print('---payment_blueprint---')
@@ -29,7 +31,7 @@ payment_blueprint = Blueprint('payment_blueprint', __name__)
     },{
         'endpoint':'payment_blueprint.plan_reload',
         'methods':['GET'],
-    }]
+    },'payment_blueprint.test_dummy_webhook']
 })
 def payment_middleware_func():
     pass
@@ -101,3 +103,13 @@ api.add_resource(CancelSubscriptionResource,'/cancel_subscription/',endpoint="ca
 # api.add_resource(PlanListResource,'/plan/')
 # api.add_resource(PlanResource,'/plan/<id>/')
 # api.add_resource(OtherPlanResourced,'/plan/<int:id>/somthinbg/')
+
+
+'''
+TEST
+'''
+@payment_blueprint.route("/test_dummy_webhook/", methods=['GET'],endpoint="test_dummy_webhook")
+def test_dummy_webhook_api():
+    test_dummy_webhook()
+    return Response(status=200)
+

@@ -159,3 +159,4 @@ restapi/src/.idea
 restapi/src/test
 password
 .git.bfg-report
+restapi/src/.vscode

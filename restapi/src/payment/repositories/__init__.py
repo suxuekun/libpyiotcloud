@@ -8,6 +8,7 @@ from payment.repositories.plan import PlanRepository
 from payment.repositories.promocode import PromoCodeRepository, S3PromoCodeRepository
 from payment.repositories.subscription import SubscriptionRepository
 from payment.repositories.transaction import TransactionRepository
+from payment.repositories.webhook import WebhookRepository
 from rest_api_config import config
 from s3_client import s3_client
 from shared.client.db.mongo.default import DefaultMongoDB
@@ -24,7 +25,9 @@ SUBSCRIPTION_COLLECTION = 'payment_subscription'
 BILLING_ADDRESS_COLLECTION = 'payment_billing_address'
 TRANSACTION_COLLECTION = "payment_transaction"
 USER_CUSTOMER = 'payment_user_customer'
+WEBHOOK = 'payment_webhook'
 
+webhook_repo = WebhookRepository(payment_db,WEBHOOK)
 
 device_repo = DeviceRepository(payment_db,config.CONFIG_MONGODB_TB_DEVICES)
 

@@ -3,7 +3,8 @@ from decimal import Decimal
 from bson import ObjectId
 
 from payment.models.plan import Plan
-from payment.models.subscription import NextSubscription, Subscription, CurrentSubscription, SubScriptionStatus
+from payment.models.subscription import NextSubscription, Subscription, CurrentSubscription, SubScriptionStatus, \
+    SubScriptionCancelReason
 from payment.models.transaction import Transaction, TransactionStatus
 from shared.simple_api.service import throw_bad_db_query
 from shared.utils import timestamp_util
@@ -95,6 +96,7 @@ class PaymentService():
         self._assign_draft(subscription,free_plan)
         payment_client.cancel_subscription(sub_id)
         subscription.status = SubScriptionStatus.CANCEL
+        subscription.cancel_reason = SubScriptionCancelReason.USER_INTERNAL
         print(subscription.to_primitive())
         self._confirm_subscription_plan_change(subscription, commit=True)
         return True
