@@ -375,11 +375,10 @@ angular.module('app.dashboardsCtrl', [])
             const allDevices = result.data.data;
             $scope.devicesGroups = allDevices.devicegroups;
             devices = allDevices.devices;
-
             if (devices.length > 0) {
               deviceUngroup = {
                 groupname: "Ungroup",
-                devicesInfo: devices
+                devices: devices
               }
               $scope.devicesGroups.push(deviceUngroup);
             }

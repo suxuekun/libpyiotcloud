@@ -17,7 +17,7 @@
             <h2>Select Gateway</h2>
             <div ng-repeat="group in devicesGroups">
                 <h3>{{group.groupname}}</h3>
-                <div ng-repeat="device in group.devicesInfo" class="item item-body" >
+                <div ng-repeat="device in group.devices" class="item item-body" >
                     <div class="dashboard-item-main-column">
                         <p>Gateway name: {{device.devicename}}</p>
                         <p>UUID: {{device.deviceid}}</p>
