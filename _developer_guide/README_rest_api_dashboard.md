@@ -7,18 +7,17 @@ SUMMARY:
     1. Dashboards:
 
         A. CREATE                          - POST   /dashboards
-        B. UPDATE                          - PUT    /dashboards/{id}
+        B. UPDATE                          - PUT    /dashboards/dashboard/{dashboardId}
         C. GETS                            - GET    /dashboards
-        D. GET DETAIL                      - GET    /dashboards/{id}
-        E. DELETE                          - DELETE /dashboards/{id}
+        D. GET DETAIL                      - GET    /dashboards/dashboard/{dashboardId}
+        E. DELETE                          - DELETE /dashboards/dashboard/{dashboardId}
 
     2. Gateways:
 
-        A. CREATE                          - POST   /dashboards/{dashboardId}/gateways
-        B. UPDATE                          - PUT    /dashboards/{dashboardId}/gateways/{chartId}
-        C. GETS                            - GET    /dashboards/{dashboardId}/gateways
-        D. GET DETAIL                      - GET    /dashboards/{dashboardId}/gateways/{chartId}
-        E. DELETE                          - DELETE /dashboards/{dashboardId}/gateways/{chartId}
+        A. CREATE                          - POST   /dashboards/dashboard/{dashboardId}/gateways
+        B. GETS                            - GET    /dashboards/dashboard/{dashboardId}/gateways
+        C. GET DETAIL                      - GET    /dashboards/dashboard/{dashboardId}/gateways/{chartId}
+        D. DELETE                          - DELETE /dashboards/dashboard/{dashboardId}/gateways/{chartId}
 
     3. Gateway Attritubes:
 
@@ -26,11 +25,10 @@ SUMMARY:
 
     4. Sensors: 
 
-        A. CREATE                          - POST   /dashboards/{dashboardId}/sensors
-        B. UPDATE                          - PUT    /dashboards/{dashboardId}/sensors/{chartId}
-        C. GETS                            - GET    /dashboards/{dashboardId}/sensors
-        D. GET DETAIL                      - GET    /dashboards/{dashboardId}/sensors/{chartId}
-        E. DELETE                          - DELETE /dashboards/{dashboardId}/sensors/{chartId}
+        A. CREATE                          - POST   /dashboards/dashboard/{dashboardId}/sensors
+        B. GETS                            - GET    /dashboards/dashboard/{dashboardId}/sensors
+        C. GET DETAIL                      - GET    /dashboards/dashboard/{dashboardId}/sensors/{chartId}
+        D. DELETE                          - DELETE /dashboards/dashboard/{dashboardId}/sensors/{chartId}
         
     5. ChartTypes:
 
@@ -47,9 +45,7 @@ DETAIL:
         headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
         data: {
             'name': string,
-            'options': {
-                'color': string
-            }
+            'color': string
         }
         - Reponse:
         { 
@@ -60,13 +56,11 @@ DETAIL:
 
         B. UPDATE
         - Request:
-        PUT: /dashboards/{id}
+        PUT: /dashboards/dashboard/{dashboardId}
         headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
         data: {
             'name': string,
-            'options': {
-                'color': string
-            }
+            'color': string
         }
         - Reponse:
         { 
@@ -85,31 +79,31 @@ DETAIL:
                 {
                     'id': string,
                     'name': string,
-                    'options': {
-                        'color': string
-                    }
+                    'color': string,
+                    'createdAt': string
+                    'modifiedAt': string
                 }
             ]
         }
 
         D. GET DETAIL
         - Request:
-        GET: /dashboards/{dashboardId}
+        GET: /dashboards/dashboard/{dashboardId}
         headers: {'Authorization': 'Bearer ' + token.access}
         - Response:
         {
-            data: {
-                'name': string,
-                'id': string,
-                'options': {
-                    'color': string
+            data:{
+                    'id': string,
+                    'name': string,
+                    'color': string,
+                    'createdAt': string
+                    'modifiedAt': string
                 }
-            }
         }
 
         E. DELETE
         - Request:
-        DELETE: /dashboards/{dashboardId}
+        DELETE: /dashboards/dashboard/{dashboardId}
         headers: {'Authorization': 'Bearer ' + token.access}
         - Response:
         {
@@ -122,13 +116,12 @@ DETAIL:
 
         A. CREATE
         - Request:
-        POST: /dashboards/{dashboardId}/gateways/
+        POST: /dashboards/dashboard/{dashboardId}/gateways
         headers: {'Authorization': 'Bearer ' + token.access}
         data: {
-            'dashboardId': string,
             'chartTypeId': number, #id # 0: pie, 1: donut description: pie, donut chart 
-            'gateways': [], # gateways ids
-            'attributes': [] # ids
+            'deviceId': string
+            'attributeId': number
         }
         - Response:
         {
@@ -144,84 +137,92 @@ DETAIL:
                     3. Chart of gateway2 has "Count of alert" attribute.
                     4. Chart of gateway2 has "Online/ Offline" attribute.
         
-        B. UPDATE
+       
+        B. GETS
         - Request:
-        PUT: /dashboards/{dashboardId}/gateways/{chartId}
-        headers: {'Authorization': 'Bearer ' + token.access}
-        data: {
-            'attribute': {
-                'lables': [],
-                'filters': []
-            },
-            'chartTypeId': string
-        }
-        - Response:
-        {
-            'status': 'OK',
-            'data': true
-            'message': 'Update successfully'
-        }
-        - Notes:
-            Attributes:
-            - User just only edit label name or filter type
-            - User can't change type of attribute
-
-        C. GETS
-        - Request:
-        GET: /dashboards/{dashboardId}/gateways
+        GET: /dashboards/dashboard/{dashboardId}/gateways
         headers: {'Authorization': 'Bearer ' + token.access}
         queryParams:
-            - attributes: [], #ids string
-            - gateways: [], #ids string 
+            - attributeId: string
+            - filterId: string, # get from attribute.filters
+            * Example:
+                /dashboards/{dashboardId}/gateways?attributeId=1&filterId=0
+            * Note:
+                attributeId & filterId get from api (3)
         - Response:
         {
             'status': 'OK',
             'data': [
                 {
-                    'id': string,
-                    'device': {
-                        'id': string,
-                        'name': string,
-                    },
-                    'chartTypeId': number, #id # 0: pie, 1: donut description: pie, donut chart
-                    'dataset': [],
-                    'attribute': {
-                        'id': string , # (uuid)
-                        'name': string,
-                        'lables': [],
-                        'filters': [],
-                    },
+                  "id": string,
+                  "chartTypeId": number,
+                  "datasets": [
+                      {
+                        "labels": [string]
+                        "data": [number]
+                      }
+                  ],
+                  "device": {
+                      "name": string,
+                      "uuid": string
+                  },
+                  "attribute": {
+                      "name: string,
+                      "id": string,
+                      "filters": [
+                          "name": string,
+                          "id": number
+                      ]
+                  }
                 }
             ]
         }
 
-        D. GET
+        C. GET
         - Request:
-        GET: /dashboards/{dashboardId}/gateways/{chartId}
+        GET: /dashboards/dashboard/{dashboardId}/gateways/{chartId}
         headers: {'Authorization': 'Bearer ' + token.access}
+        queryParams:
+            - attributeId: string
+            - filterId: string, # get from attribute.filters 
+
+            * Example:
+                /dashboards/dashboard/{dashboardId}/gateways/{chartId}?attributeId=1&filterId=0
+            * Note:
+                attributeId & filterId get from api (3)
+
         - Response:
         {
             status: 'OK',
-            data:  {
-                'id': string,
-                'device': {
-                    'id': string,
-                    'name': string,
-                },
-                'chartTypeId': number, #id # 0: pie, 1: donut description: pie, donut chart
-                'dataset': [],
-                'attribute': {
-                    'id': string , # (uuid)
-                    'name': string,
-                    'lables': [],
-                    'filters': [],
-                },
-            }
+            data:
+                {
+                  "id": string,
+                  "chartTypeId": number,
+                  "datasets": [
+                      {
+                        "labels": [string]
+                        "data": [number]
+                      }
+                  ],
+                  "device": {
+                      "name": string,
+                      "uuid": string
+                  },
+                  "attribute": {
+                      "name: string,
+                      "id": string,
+                      "filters": [
+                          "name": string,
+                          "id": number
+                      ]
+                  }
+                }
+            ]
         }
 
-        E. DELETE
+        D. DELETE
         - Request:
-        DELETE: /dashboards/{dashboardId}/gateways/{chartId}
+        DELETE: /dashboards/dashboard/{dashboardId}/gateways/{chartId}
         headers: {'Authorization': 'Bearer ' + token.access}
         - Response:
         {
@@ -244,17 +245,24 @@ DETAIL:
                 }
             ]
         }
-    
+
+        B. DATA STRUCTURES
+            id: 0 => Storgae Usage
+            id: 1 => On-line/Offline status
+            id: 2 => Count of alerts
+            id: 3 => Upload bandwidth consumption
+
+
     4. Sensors
 
         A. CREATE
         - Request:
-        POST: /dashboards/{dashboardId}/sensors
+        POST: /dashboards/dashboard/{dashboardId}/sensors
         headers: {'Authorization': 'Bearer ' + token.access}
         data:
         {
             'chartTypeId': number, #id # 0: pie, 1: donut description: pie, donut chart 
-            'sensorsId': [] # list sensors id string 
+            'deviceId': [] # list sensors id string 
         }
         - Response:
         {
@@ -263,24 +271,9 @@ DETAIL:
             'message': 'Create successfully'
         }
 
-        B. UPDATE
+        B. GETS
         - Request:
-        PUT: /dashboards/{dashboardId}/sensors/{chartId}
-        headers: {'Authorization': 'Bearer ' + token.access}
-        data: 
-        {
-            chartTypeId: number
-        }
-        - Response:
-        {
-            'data': true,
-            'message': 'Update successfully',
-            'status': 'OK' 
-        }
-
-        C. GETS
-        - Request:
-        GET: /dashboards/{dashboardId}/sensors
+        GET: /dashboards/dashboard/{dashboardId}/sensors
         headers: {'Authorization': 'Bearer ' + token.access}
         queryParams:
             - type: string # sensor type
@@ -309,9 +302,9 @@ DETAIL:
             ]
         }
 
-        D. GET
+        C. GET
         - Request:
-        GET: /dashboards/{dashboardId}/sensors/{chartId}
+        GET: /dashboards/dashboard/{dashboardId}/sensors/{chartId}
         headers: {'Authorization': 'Bearer ' + token.access}
         - Response:
         {
@@ -336,9 +329,9 @@ DETAIL:
             }
         }
 
-        E. DELETE
+        D. DELETE
         - Request:
-        DELETE: /dashboards/{dashboardId}/sensors/{chartId}
+        DELETE: /dashboards/dashboard/{dashboardId}/sensors/{chartId}
         headers: {'Authorization': 'Bearer ' + token.access}
         - Response:
         {
@@ -366,51 +359,10 @@ DETAIL:
         - Notes: 
             {valueType}: gateways, sensors
 
+        B. DATA STRUCTURES
 
-SCHEMA DATABASE:
-
-    1. Dashboard:
-        {
-            id: string,
-            name: string,
-            userId: string,
-            options: {
-                color: string
-            }
-        }
-
-    2. Chart:
-        {
-            id: string, # (uuid) 
-            userId: string,
-            dashboardId: string,
-            device: {
-                id: string,
-                type: string #  (Gateways, Sensors, Actuators)
-            },
-            chartTypeId: string,
-            attribute: { # clone from default attribute collection
-                id: string , # (uuid)
-                name: string,
-                lables: [],
-                filters: [],
-            }
-        }
-    
-    3. Attributes:
-        {
-            id: string , # (uuid)
-            name: string,
-            lables: [], # id
-            filters: [],
-        }
-
-    4. ChartTypes:
-        {
-            id: number, # 0 : Pie chart
-            parrentId: string, # (optional) , reference to root of group chart type
-            name: string,
-        }
-
-        * Note: In future, one type chart can have multiple child charts type. For example: Pie chart can have pie chart 1, pie chart 2, ...
+            id: 0 => Pie
+            id: 1 => Donut
+            id: 2 => Bar
+            id: 3 => Line
 
