@@ -95,25 +95,29 @@ June 21, 2020
 
 June 26, 2020
 
-14. all responses should have
+13. use color pallette provided in Figma UI design
+
+14. the 3rd button should be Actuators, not Sensors (Sensors repeated twice)
+
+15. all responses should have
    'status': string, 
    'message': string
 
    - this still does NOT appear on ALL responses
      please ADD to all APIs and update documentation accordingly.
 
-15. remove 'data' parameter if value is true/false
+16. remove 'data' parameter if value is true/false
     that is redundant with 'status' OK/NG
     update documentation accordingly.
 
-16. i should not be allowed to add the same gateway attribute more than once.
+17. i should not be allowed to add the same gateway attribute more than once.
 
     i selected device 1, same donut chart, online/offline attribute.
     it did not fail. i can see the chart two times.
 
     the api should prevent adding the same chart for same device, same device attribute
 
-17. the colors of the bar chart or donut chart are the same color everytime.
+18. the colors of the bar chart or donut chart are the same color everytime.
     it should at least round robin
 
-18. the dashboard list on the left side is still too big. reduce size to two-thirds
+19. the dashboard list on the left side is still too big. reduce size to two-thirds
