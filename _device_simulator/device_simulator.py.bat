@@ -21,12 +21,12 @@
 ::
 ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-set DEVICE_ID="PH80XXRR06232088"
-set DEVICE_SECRETKEY="warol8fmesdl23pse039tfyawetagtoi"
+set DEVICE_ID=""
+set DEVICE_SECRETKEY=""
 
 :: For new devices
-set DEVICE_SERIAL="00136"
-set DEVICE_MACADD="27:7E:33:64:2A:0D"
+set DEVICE_SERIAL=""
+set DEVICE_MACADD=""
 
 :: For existing devices (backward compatibility)
 set USER=""

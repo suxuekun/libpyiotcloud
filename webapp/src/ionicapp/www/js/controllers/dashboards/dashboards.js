@@ -6,7 +6,7 @@ angular.module('app.dashboardsCtrl', [])
         'search': '',
         'token': User.get_token(),
       };
-      const defaultColor = "#00c0ef";
+      const defaultColor = "#f2495e";
       $scope.dashboardDetail = {};
       $scope.selectedColor = defaultColor;
 
@@ -118,17 +118,16 @@ angular.module('app.dashboardsCtrl', [])
       // Scope of dashboard detail
       $scope.sensors_datachart_colors_options_ex = ['#EF473A', '#F38124', '#FFC900', '#33CD5F', '#11C1F3', '#3C5A99', '#B6A2FC', '#F58CF6'];
       $scope.colors = [
-        '#00c0ef',
-        '#0073b7',
-        '#3c8dbc',
-        '#39CCCC',
-        '#f39c12',
-        '#FF851B',
-        '#00a65a',
-        '#01FF70',
-        '#dd4b39',
-        '#605ca8',
-        '#F012BE'
+        '#f2495e',
+        '#f2994a',
+        '#f2c94c',
+        '#219653',
+        '#2f80ed',
+        '#56ccf2',
+        '#bb6bd9',
+        '#41b2af',
+        '#df54a1',
+        '#82c771'
       ];
 
       $scope.chartsGateways = [];
@@ -282,19 +281,18 @@ angular.module('app.dashboardsCtrl', [])
       $scope.data = {
         'token': User.get_token(),
         'name': '',
-        'selectedColor': '#00c0ef',
+        'selectedColor': '#f2495e',
         'colors': [
-          '#00c0ef',
-          '#0073b7',
-          '#3c8dbc',
-          '#39CCCC',
-          '#f39c12',
-          '#FF851B',
-          '#00a65a',
-          '#01FF70',
-          '#dd4b39',
-          '#605ca8',
-          '#F012BE'
+          '#f2495e',
+          '#f2994a',
+          '#f2c94c',
+          '#219653',
+          '#2f80ed',
+          '#56ccf2',
+          '#bb6bd9',
+          '#41b2af',
+          '#df54a1',
+          '#82c771'
         ]
       };
       console.log("Name: ", $scope.data.name);
