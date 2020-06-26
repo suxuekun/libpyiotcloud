@@ -14,6 +14,45 @@ angular.module('app.routes', [])
     templateUrl: 'templates/home.html',
     controller: 'homeCtrl'
   })
+      .state('menu.dashboards', {
+        url: '/dashboards',
+        params: {
+          devicename: "",
+          username: "",
+          token: "",
+          devicestatus: "",
+          deviceid: "",
+          serialnumber: "",
+          location: ""
+        },
+        views: {
+          'side-menu21': {
+            templateUrl: 'templates/dashboards/dashboards1.html',
+            controller: 'dashboardsCtrl'
+          }
+        }
+      })
+
+      .state('addDashboard', {
+        url: '/dashboard_register',
+        params: {
+          username: "",
+          token: "",
+        },
+        templateUrl: 'templates/dashboards/addDashboard.html',
+        controller: 'addDashboardCtrl'
+      })
+
+      .state('addNewChartGateway', {
+        url: 'dashboards/{dashboardId}/chart/new/gateway',
+        params: {
+          username: "",
+          token: "",
+          dashboard: {}
+        },
+        templateUrl: 'templates/dashboards/addNewChartGateway.html',
+        controller: 'addNewChartGatewayCtrl'
+      })
 
   .state('menu.gateways', {
     url: '/page_devices',

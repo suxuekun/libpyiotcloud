@@ -6,7 +6,7 @@ from flask_api import status
 #from certificate_generator import certificate_generator
 from messaging_client import messaging_client
 from rest_api_config import config
-from database import database_client, database_categorylabel, database_crudindex
+from database import database_categorylabel, database_crudindex
 from s3_client import s3_client
 from redis_client import redis_client
 from device_client import device_client
@@ -40,6 +40,10 @@ from rest_api_device_ldsbus import device_ldsbus
 from rest_api_device_dashboard_old import device_dashboard_old
 from rest_api_other_stuffs import other_stuffs
 import rest_api_utils
+from shared.client.clients.database_client import db_client
+from shared.middlewares.default_middleware import DefaultMiddleWare
+from dashboards.dashboards_app import DashboardsApp
+# from payment.app import PaymentApp
 
 
 
@@ -66,6 +70,7 @@ g_queue_dict  = {} # no longer used; replaced by redis
 g_event_dict  = {} # still used to trigger event from callback thread to rest api thread
 app = flask.Flask(__name__)
 CORS(app)
+# app.wsgi_app = DefaultMiddleWare(app.wsgi_app)
 
 ########################################################################################################
 # Class instances
@@ -1017,11 +1022,11 @@ def initialize():
             print("Could not connect to message broker! exception! {}".format(e))
 
     # Initialize Database client
-    g_database_client = database_client()
-    g_database_client.initialize()
+    print("g_database_client")
+    g_database_client = db_client
 
     # Initialize S3 client
-    g_storage_client = s3_client()
+    g_storage_client = s3_client
 
     # Initialize Redis client
     g_redis_client = redis_client()
@@ -1045,6 +1050,9 @@ def initialize():
     g_device_peripheral_properties = device_peripheral_properties(g_database_client, g_messaging_requests)
     g_other_stuffs                 = other_stuffs(g_database_client, g_storage_client)
     g_utils                        = rest_api_utils.utils()
+
+    dashboardsApp = DashboardsApp(app)
+    # paymentapp = PaymentApp(app)
 
     # To be replaced
     g_payment_accounting           = payment_accounting(g_database_client, g_messaging_client, g_redis_client)

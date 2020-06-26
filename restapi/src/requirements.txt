@@ -18,3 +18,5 @@ dnspython==1.16.0
 pyjwt==1.7.1
 pycountry==19.8.18
 phonenumbers==8.12.2
+schematics
+Flask-RESTful==0.3.8

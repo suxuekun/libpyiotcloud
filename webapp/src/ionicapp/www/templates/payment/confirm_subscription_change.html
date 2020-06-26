@@ -1,0 +1,87 @@
+<ion-view title="{{data.ui.title}}" hide-back-button="true" nav-transition="none" id="pagesubchange" class="page_width">
+  <ion-nav-buttons side="left" class="has-header">
+    <button class="button button-icon icon ion-android-close" ng-click="back()"></button>
+  </ion-nav-buttons>
+  <ion-content padding="true" class="has-header" overflow-scroll="true">
+    <div class="item card item-balanced">
+      <div class="item item-header">
+        <p style="margin-top:0px;color:#3C5A99;font-size:18px;">
+            <strong> {{ data.plan.name }} </strong>
+          </p>
+      </div>
+      <div class="item item-body" >
+        <div class="list">
+
+          <label class="item item-input item-divider">
+            <span class="input-label">Email</span>
+            <span class="input-label">{{data.plan.email}}</span>
+          </label>
+          <label class="item item-input item-divider">
+            <span class="input-label">Notification</span>
+            <span class="input-label">{{data.plan.notification}}</span>
+          </label>
+          <label class="item item-input item-divider">
+            <span class="input-label">SMS</span>
+            <span class="input-label">{{data.plan.sms | currency}}</span>
+          </label>
+
+          <label class="item item-input item-divider">
+            <span class="input-label">Storage</span>
+            <span class="input-label">{{data.plan.storage}}</span>
+          </label>
+
+        </div>
+
+        
+      </div>
+    </div>
+
+    <div class="list">
+        <p>make payment for this month:</p>
+        <ion-item class="item item-input">
+          <span class="input-label">remaining days</span>
+          <span class="input-label">{{data.prorate.remaining_days}}</span>
+        </ion-item>
+        <label class="item item-input">
+          <span class="input-label">Subscription Amount - {{data.plan.name}}</span>
+          <span class="input-label" slot='end'>{{data.prorate.total_payable}}</span>
+        </label>
+        <label class="item item-input" ng-if = "data.prorate.plan_rebate">
+          <span class="input-label">Rebate Amount - {{get_use_plan_name()}}</span>
+          <span class="input-label" slot='end'> - {{data.prorate.plan_rebate}}</span>
+        </label>
+        
+
+    </div>
+    
+    <div class="list">
+        <ion-item class="item" ng-click = "applyCode()" ng-show="!data.promocode">
+          Apply Promocode
+        </ion-item>
+        <ion-item class="item" ng-show="data.promocode">
+          Promocode <strong>{{data.promocode.info.name}}</strong> Applied!
+          <div class="item-icon-right"><i class = "icon ion-ios-close" ng-click="removeCode()"> </i></div>
+        </ion-item>
+        <label class="item item-input">
+          <span class="input-label">Discount Amount</span>
+          <span class="input-label">- {{data.prorate.promo_discount}}</span>
+        </label>
+        
+
+    </div>
+
+    <div class="list">
+        
+        <label class="item item-input">
+          <span class="input-label">Total Amount</span>
+          <span class="input-label">{{data.prorate.prorate}}</span>
+        </label>
+
+        <p style="color:#AAAAAA;font-size:12px;" class="ng-binding" ng-if='prorate.gst'>GST {{data.prorate.gst}} % percent</p>
+
+    </div>
+    
+    <button ng-click="pay()" class="button button-positive button-block">Pay Now</button>
+    
+  </ion-content>
+</ion-view>

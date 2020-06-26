@@ -1,5 +1,10 @@
-angular.module('app.controllers', [])
-  
+;(function(_global){
+
+app = angular.module('app.controllers', [])
+
+_global.app = app
+
+app
 .controller('homeCtrl', ['$scope', '$stateParams', '$state', '$ionicPopup', '$http', 'Server', 'User', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
 // You can include any angular dependencies as parameters for this function
 // TIP: Access Route Parameters for your page via $stateParams.parameterName
@@ -24751,4 +24756,6 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         $state.go('menu.organizations', param, {reload:true} );    
     };  
 }])
+
+}(window))
  

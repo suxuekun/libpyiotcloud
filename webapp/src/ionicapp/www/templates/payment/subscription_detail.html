@@ -1,0 +1,37 @@
+<ion-view title="Subscription Detail" hide-back-button="true" nav-transition="none" id="pagesubdetail" class="page_width">
+  <ion-nav-buttons side="left" class="has-header">
+    <button class="button button-icon icon ion-android-close" ng-click="back()"></button>
+  </ion-nav-buttons>
+  <ion-content padding="true" class="has-header" overflow-scroll="true">
+    <label class="item item-input">
+      <span class="input-label"><strong>{{data.subscription.current.plan.name}}</strong><span ng-if ="data.subscription.status == 'cancel'" style="color:red">(CANCELLED)</span></span><span class="pull-right"> {{data.subscription.current.plan.price | currency}}/month</span>
+    
+    </label>
+    <hr/>
+    <label class="item item-input">
+      <span class="input-label">Balance</span>
+    </label>
+      <label class="item item-input item-divider">
+        <span class="input-label">Email</span>
+        <span class="input-label">{{data.subscription.current.email}} / {{data.subscription.current.plan.email}}</span>
+      </label>
+      <label class="item item-input item-divider">
+        <span class="input-label">Notification</span>
+        <span class="input-label">{{data.subscription.current.notification}} / {{data.subscription.current.plan.notification}}</span>
+      </label>
+      <label class="item item-input item-divider">
+        <span class="input-label">SMS</span>
+        <span class="input-label">{{data.subscription.current.sms | currency}} / {{data.subscription.current.plan.sms | currency}}</span>
+      </label>
+      <hr/>
+    <label class="item item-input">
+      <span class="input-label">Storage</span>
+    </label>
+      <label class="item item-input item-divider">
+        <span class="input-label">{{data.subscription.current.storage}} / {{data.subscription.current.plan.storage}}</span>
+        <span class="input-label"></span>
+      </label>
+    <button id="topUpCredits-button13" ng-click="upgrade()" class="button button-positive button-block">UPGRADE SUBSCRIPTION</button>
+    <button ng-if="!(data.subscription.status == 'cancel') && !(data.subscription.current.plan.price ==0) " ng-click="cancel()" class="button button-assertive button-block">CANCEL SUBSCRIPTION</button>
+  </ion-content>
+</ion-view>
