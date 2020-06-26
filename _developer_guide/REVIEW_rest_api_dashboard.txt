@@ -112,3 +112,8 @@ June 26, 2020
     it did not fail. i can see the chart two times.
 
     the api should prevent adding the same chart for same device, same device attribute
+
+17. the colors of the bar chart or donut chart are the same color everytime.
+    it should at least round robin
+
+18. the dashboard list on the left side is still too big. reduce size to two-thirds
