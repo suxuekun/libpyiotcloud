@@ -542,18 +542,12 @@ class device_groups:
         if devicegroups:
             for devicegroup in devicegroups:
                 devicenames = []
-                devicesInfo = []
                 for deviceid in devicegroup['devices']:
                     device = self.database_client.find_device_by_id(deviceid)
                     if device:
                         device.pop("username")
                         devicenames.append(device)
-                        devicesInfo.append({
-                            'devicename': device['devicename'],
-                            'deviceid': device['deviceid']
-                        })
                 devicegroup['devices'] = devicenames
-                devicegroup['devicesInfo'] = devicesInfo
 
         msg = {'status': 'OK', 'message': 'Mixed devices retrieved successfully.', 'data': {'devices': devices, 'devicegroups': devicegroups} }
 

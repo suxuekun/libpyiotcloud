@@ -437,7 +437,7 @@ angular.module('app.dashboardsCtrl', [])
 
         // Set device name
         for (const group of $scope.devicesGroups) {
-          for (const device of group.devicesInfo) {
+          for (const device of group.devices) {
             if (device.deviceid == $scope.selectedGateway.deviceid) {
               $scope.selectedGateway.devicename = device.devicename;
               return;

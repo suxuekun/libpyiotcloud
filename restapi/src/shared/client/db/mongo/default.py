@@ -14,7 +14,7 @@ class DefaultMongoDB(IotDBConnection,IotMongoDB):
 
 class SensorMongoDb(IotDBConnection, IotMongoDB):
     def __init__(self, connectionString: str):
-        super(DefaultMongoDB,self).__init__()
+        super(SensorMongoDb,self).__init__()
         self._conn = MongoClient(connectionString)
         self._db = self.conn[config.CONFIG_MONGODB_DB]
 

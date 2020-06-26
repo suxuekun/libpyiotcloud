@@ -1059,13 +1059,10 @@ def initialize():
 # Initialize globally so that no issue with GUnicorn integration
 if os.name == 'posix':
     initialize()
-# initialize()
+initialize()
 
 if __name__ == '__main__':
 
-
-    print("Check Config")
-    print(config.debugging)
     if config.debugging:
         initialize()
 
