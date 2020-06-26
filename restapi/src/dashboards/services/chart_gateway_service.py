@@ -45,7 +45,7 @@ class ChartGatewayService:
             dashoard.add_chart_gateway(chartId)
             self.dashboardRepository.update(dashboardId, dashoard.model.to_primitive())
             
-            return Response.success(True, "Create chart gateway successfully")
+            return Response.success_without_data("Create chart gateway successfully")
         
         except ModelValidationError as e:
             LoggerService().error(str(e), tag=self.tag)
@@ -69,7 +69,7 @@ class ChartGatewayService:
             self.dashboardRepository.update(dashboardId, dashoard.model.to_primitive())
             self.chartRepository.delete(chartId)
             
-            return Response.success(data=True, message="Delete chart gateway successfully")
+            return Response.success_without_data(message="Delete chart gateway successfully")
 
         except DeletedException as e:
             LoggerService().error(str(e), tag=self.tag)

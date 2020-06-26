@@ -19,7 +19,7 @@ class DashboardService:
             dto.validate()
             dashboard = Dashboard.create(userId, dto)
             self.dashboardRepository.create(dashboard.model.to_primitive())
-            return Response.success(True, "Create dashboard successfully")
+            return Response.success_without_data("Create dashboard successfully")
 
         except ModelValidationError as e:
             LoggerService().error(str(e), tag=self.tag)
@@ -41,7 +41,7 @@ class DashboardService:
             dashboard = Dashboard.to_domain(entity)
             dashboard.update_name_and_option(dto)
             self.dashboardRepository.update(id, dashboard.model.to_primitive())
-            return Response.success(True, "Update dashboard successfully")
+            return Response.success_without_data("Update dashboard successfully")
 
         except ModelValidationError as e:
             LoggerService().error(str(e), tag=self.tag)
@@ -83,7 +83,7 @@ class DashboardService:
     def delete(self, id):
         try:
             self.dashboardRepository.delete(id)
-            return Response.success(data=True, message="Delete dashboards successfully")
+            return Response.success_without_data(message="Delete dashboards successfully")
 
         except DeletedException as e:
             LoggerService().error(str(e), tag=self.tag)

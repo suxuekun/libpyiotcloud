@@ -43,3 +43,10 @@ def get(dashboardId: str, chartId: str):
 def delete(dashboardId: str, chartId: str):
     response = chartSensorService.delete(dashboardId, chartId)
     return response
+
+
+@charts_sensor_blueprint.route("/data/readings/<sensorId>", methods=['GET'])
+@default_middleware
+def get_test(dashboardId: str, sensorId: str):
+    response = chartSensorService.get_sensor_data_reading(sensorId)
+    return response

@@ -2,7 +2,7 @@
 
 # Import config mongo
 from shared.client.connection.mongo import DefaultMongoConnection
-from shared.client.db.mongo.default import DefaultMongoDB
+from shared.client.db.mongo.default import DefaultMongoDB, SensorMongoDb
 
 from dashboards.repositories.chart_repository import ChartRepository
 from dashboards.repositories.gateway_attribute_repository import GatewayAttributeRepository
@@ -18,29 +18,36 @@ from dashboards.services.gateway_attribute_service import GatewayAttributeServic
 from dashboards.services.chart_type_service import ChartTypeService
 from dashboards.repositories.chart_type_repository import ChartTypeRepository
 
+from dashboards.repositories.sensor_repository import SensorRepository
+
 #  Get config mongodb
-mongo_client = DefaultMongoDB().conn
+mongoClient = DefaultMongoDB().conn
 db = DefaultMongoDB().db
 
-dashboardRepository = DashboardRepository(
-    mongoclient=mongo_client, db=db, collectionName="dashboards")
-attributeRepository = GatewayAttributeRepository(
-    mongoclient=mongo_client, db=db, collectionName="dashboards_gatewayAttributes")
-chartRepository = ChartRepository(
-    mongoclient=mongo_client, db=db, collectionName="dashboards_charts")
+sensorMongoCLient = DefaultMongoConnection().conn
+sensorDb = SensorMongoDb().db
 
-chartTypeRepository = ChartTypeRepository(mongoclient=mongo_client, db = db, collectionName="dashboards_chartTypes")
+dashboardRepository = DashboardRepository(
+    mongoclient=mongoClient, db=db, collectionName="dashboards")
+attributeRepository = GatewayAttributeRepository(
+    mongoclient=mongoClient, db=db, collectionName="dashboards_gatewayAttributes")
+chartRepository = ChartRepository(
+    mongoclient=mongoClient, db=db, collectionName="dashboards_charts")
+
+chartTypeRepository = ChartTypeRepository(mongoclient=mongoClient, db = db, collectionName="dashboards_chartTypes")
+
 
 deviceRepository = DeviceRepository(
-    mongoclient=mongo_client, db=db, collectionName="devices")
+    mongoclient=mongoClient, db=db, collectionName="devices")
 
 def init_chart_gateway_service():
     return ChartGatewayService(
         dashboardRepository, chartRepository, attributeRepository, deviceRepository)
     
 def init_chart_sensor_service():
+    sensorRepository = SensorRepository(mongoclient=sensorMongoCLient, db = sensorDb, collectionName="i2csensors")
     return ChartSensorService(
-        dashboardRepository, chartRepository, attributeRepository, deviceRepository)
+        dashboardRepository, chartRepository, attributeRepository, deviceRepository, sensorRepository)
 
 def init_dashboard_service():
     return DashboardService(dashboardRepository)

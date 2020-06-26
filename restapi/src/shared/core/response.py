@@ -17,6 +17,10 @@ class Response:
     def success(data, message: str):
         return Response(data = data, message=message, status="Ok").toJson(), 200
     
+    @staticmethod
+    def success_without_data(message: str):
+        return Response(data = None, message = message, status="OK").toJson(), 200
+        
     def toJson(self):
         response = {
             'message': self.message,

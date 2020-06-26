@@ -64,16 +64,16 @@ class ChartRepository(MongoBaseRepository, IChartRepository):
                 },
             },
             {
-                "$sort": {
-                    "createdAt": -1
-                }
-            },
-            {
                 "$lookup": {
                     "from": "devices",
                     "localField": "deviceId",
                     "foreignField": "deviceid",
                     "as": "device_info"
+                }
+            },
+            {
+                "$sort": {
+                    "createdAt": -1
                 }
             },
             {

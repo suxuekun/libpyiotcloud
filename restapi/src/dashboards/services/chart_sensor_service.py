@@ -13,21 +13,32 @@ from dashboards.utils.mapper_util import map_chart_gateway_to_response
 from dashboards.repositories.gateway_attribute_repository import IGatewayAttributeRepository
 from dashboards.repositories.device_repository import IDeviceRepostory
 from dashboards.dtos.chart_sensor_dto import ChartSensorDto
+from dashboards.repositories.sensor_repository import ISensorRepository
 
 class ChartSensorService:
     
       def __init__(self, dashboardRepository: IDashboardRepository, 
                  chartRepository: IChartRepository,
                  attributeRepository: IGatewayAttributeRepository,
-                 deviceRepository: IDeviceRepostory):
+                 deviceRepository: IDeviceRepostory,
+                 sensorRepository: ISensorRepository):
         
             self.deviceRepository = deviceRepository
             self.dashboardRepository = dashboardRepository
             self.chartRepository = chartRepository
             self.attributeRepository = attributeRepository
+            self.sensorRepository = sensorRepository
             self.tag = type(self).__name__
             
-        
+      
+      def get_sensor_data_reading(self, id: str):
+            try:
+                  results = self.sensorRepository.get_data_reading(id)
+                  return Response.success(data=results, message="Get data successfully")
+            except Exception as e:
+                  LoggerService().error(str(e), tag=self.tag)
+                  return Response.fail("Sorry, there is something wrong")
+
       def create(self, dashboardId: str, dto: ChartSensorDto):
             try:
                   dto.validate()
@@ -42,7 +53,7 @@ class ChartSensorService:
                   dashoard.add_chart_gateway(chartId)
                   self.dashboardRepository.update(dashboardId, dashoard.model.to_primitive())
                   
-                  return Response.success(data=True, message="Create chart sensor successfully")
+                  return Response.success_without_data(message="Create chart sensor successfully")
             
             except ModelValidationError as e:
                   LoggerService().error(str(e), tag=self.tag)
