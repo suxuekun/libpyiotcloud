@@ -42,7 +42,7 @@ class ChartSensorService:
                   dashoard.add_chart_gateway(chartId)
                   self.dashboardRepository.update(dashboardId, dashoard.model.to_primitive())
                   
-                  return Response.success(data=True, message="Create chart sensor successfully")
+                  return Response.success_without_data(message="Create chart sensor successfully")
             
             except ModelValidationError as e:
                   LoggerService().error(str(e), tag=self.tag)
