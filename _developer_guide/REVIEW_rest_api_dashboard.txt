@@ -102,5 +102,5 @@ June 26, 2020
    - this still does NOT appear on ALL responses
      please ADD to all APIs
 
-15. remove data parameter if value is true
-    that is redundant with status OK
+15. remove 'data' parameter if value is true/false
+    that is redundant with 'status' OK/NG
