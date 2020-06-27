@@ -95,6 +95,14 @@ class device_otaupdates:
             entityname = username
 
 
+        # check if device is valid
+        device = self.database_client.find_device(entityname, devicename)
+        if device is None:
+            response = json.dumps({'status': 'NG', 'message': 'Invalid device'})
+            print('\r\nERROR Upgrade Device Firmware: Invalid device\r\n')
+            return response, status.HTTP_400_BAD_REQUEST
+
+
         # check if a parameter is empty
         result, document = self.storage_client.get_device_firmware_updates()
         if not result:
@@ -107,6 +115,7 @@ class device_otaupdates:
             data.pop("devices")
 
         # get the size and location
+        found = False
         if data.get("version"):
             for firmware in document["ft900"]["firmware"]:
                 if firmware["version"] == data["version"]:
@@ -114,6 +123,7 @@ class device_otaupdates:
                     data["location"] = firmware["location"]
                     data["version"]  = firmware["version"]
                     data["checksum"] = firmware["checksum"]
+                    found = True
                     break
         else:
             for firmware in document["ft900"]["firmware"]:
@@ -122,7 +132,15 @@ class device_otaupdates:
                     data["location"] = firmware["location"]
                     data["version"]  = firmware["version"]
                     data["checksum"] = firmware["checksum"]
+                    found = True
                     break
+
+        # check if version is valid
+        if not found:
+            response = json.dumps({'status': 'NG', 'message': 'Invalid version'})
+            print('\r\nERROR Upgrade Device Firmware: Invalid version\r\n')
+            return response, status.HTTP_400_BAD_REQUEST
+
 
         # trigger device to update firmware
         response, status_return = self.messaging_requests.process(api, data)
@@ -219,6 +237,7 @@ class device_otaupdates:
             return response, status.HTTP_500_INTERNAL_SERVER_ERROR
 
         # get the size and location
+        found = False
         if data.get("version"):
             for firmware in document["ft900"]["firmware"]:
                 if firmware["version"] == data["version"]:
@@ -226,6 +245,7 @@ class device_otaupdates:
                     data["location"] = firmware["location"]
                     data["version"]  = firmware["version"]
                     data["checksum"] = firmware["checksum"]
+                    found = True
                     break
         else:
             for firmware in document["ft900"]["firmware"]:
@@ -234,14 +254,30 @@ class device_otaupdates:
                     data["location"] = firmware["location"]
                     data["version"]  = firmware["version"]
                     data["checksum"] = firmware["checksum"]
+                    found = True
                     break
 
-        #if data.get("devices"):
-        #    print(data["devices"])
+        # check if version is valid
+        if not found:
+            response = json.dumps({'status': 'NG', 'message': 'Invalid version'})
+            print('\r\nERROR Upgrade Firmwares: Invalid version\r\n')
+            return response, status.HTTP_400_BAD_REQUEST
 
         device_list = self.database_client.get_devices(entityname)
-        thread_list = []
 
+        # check if all devices are valid
+        for devicename in data["devices"]:
+            found = False
+            for device in device_list:
+                if device["devicename"] == devicename:
+                    found = True
+                    break
+            if not found:
+                response = json.dumps({'status': 'NG', 'message': 'Atleast one of the devices is invalid'})
+                print('\r\nERROR Upgrade Firmwares: Atleast one of the devices is invalid\r\n')
+                return response, status.HTTP_400_BAD_REQUEST
+
+        thread_list = []
         for device in device_list:
             if data.get("devices"):
                 if device["devicename"] not in data["devices"]:
