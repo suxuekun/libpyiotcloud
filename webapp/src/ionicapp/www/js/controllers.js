@@ -15783,7 +15783,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                 'period': 60000,
             },
             'hardware': {
-                'devicename': '',  
+                'devicename': '',
+                'enable': false
             },
             
             'notification': {
@@ -16298,6 +16299,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             },
             'hardware': {
                 'devicename': '',  
+                'enable': false
             },
             
             'notification': {
@@ -16812,6 +16814,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             },
             'hardware': {
                 'devicename': '',  
+                'enable': false
             },
             
             'notification': {
@@ -17326,6 +17329,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             },
             'hardware': {
                 'devicename': '',  
+                'enable': false
             },
             
             'notification': {
@@ -17840,6 +17844,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             },
             'hardware': {
                 'devicename': '',  
+                'enable': false
             },
             
             'notification': {
@@ -18354,6 +18359,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             },
             'hardware': {
                 'devicename': '',  
+                'enable': false
             },
             
             'notification': {

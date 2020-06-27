@@ -514,6 +514,9 @@ def handle_api(api, subtopic, subpayload):
     # SENSOR READING
     ####################################################
     elif api == API_RECEIVE_SENSOR_READING:
+        pass
+
+    elif api == "asdasdjhadkjasd":
         global start_timeX
         #printf(time.time())
         printf(time.time()-start_timeX)

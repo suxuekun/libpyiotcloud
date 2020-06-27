@@ -1866,7 +1866,7 @@ DETAILED:
 		           "mode": int, 
 		           "threshold": {"value": int, "min": int, "max": int, "activate": int}, 
 		           "alert": {"type": int, 'period': int}, 
-		           "hardware": {"devicename": string}, 
+		           "hardware": {"devicename": string, "enable": boolean}, 
 		           "notification": json_obj,
 		      }
 		   //
@@ -1876,7 +1876,7 @@ DETAILED:
 		           "mode": int, 
 		           "threshold": {"value": int, "min": int, "max": int, "activate": int}, 
 		           "alert": {"type": int, 'period': int}, 
-		           "hardware": {"devicename": string}, 
+		           "hardware": {"devicename": string, "enable": boolean}, 
 		           "notification": json_obj,
 		      }
 		   //
@@ -1894,8 +1894,12 @@ DETAILED:
 		   //   alert period is the time in milliseconds for the alert when alert type points to Continuously
 		   //   notification refers to the the same notification settings for MENOS alerting
 		   //   hardware
-		   //     appears when mode is continuous
-		   //
+		   //     appears when mode is Continuous
+		   //     enable
+		   //       if true, data is to be forwarded to an actuator given the specified devicename
+		   //       else, data is not to be forwarded to an actuator
+		   //     devicename
+		   //       used when enable is set to true
 
 		L. GET LDSU DEVICE (SENSOR/ACTUATOR) PROPERTIES
 		-  Request:
@@ -1910,7 +1914,7 @@ DETAILED:
 		           "mode": int, 
 		           "threshold": {"value": int, "min": int, "max": int, "activate": int}, 
 		           "alert": {"type": int, 'period': int}, 
-		           "hardware": {"devicename": string}, 
+		           "hardware": {"devicename": string, "enable": boolean}, 
 		           "notification": json_obj,
 		      }
 		   //
@@ -1920,7 +1924,7 @@ DETAILED:
 		           "mode": int, 
 		           "threshold": {"value": int, "min": int, "max": int, "activate": int}, 
 		           "alert": {"type": int, 'period': int}, 
-		           "hardware": {"devicename": string}, 
+		           "hardware": {"devicename": string, "enable": boolean}, 
 		           "notification": json_obj,
 		      }
 
