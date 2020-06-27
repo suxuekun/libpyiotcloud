@@ -1896,6 +1896,7 @@ DETAILED:
 		   //   hardware
 		   //     appears when mode is Continuous
 		   //     enable
+		   //       default value is false in UI
 		   //       if true, data is to be forwarded to an actuator given the specified devicename
 		   //       else, data is not to be forwarded to an actuator
 		   //     devicename
