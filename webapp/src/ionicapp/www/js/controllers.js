@@ -4242,7 +4242,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, Devices, Use
             if (error.data !== null) {
                 console.log("ERROR: Register Device failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
 
-                if (error.status == 409) {
+                if (error.status == 409 || error.status == 400) {
                     $ionicPopup.alert({ title: 'Error', template: error.data.message, buttons: [{text: 'OK', type: 'button-assertive'}] });
                 }
                 else {
