@@ -1221,7 +1221,7 @@ DETAILED:
 		   { 'status': 'OK', 'message': string, 'locations': [{'devicename': string, location: {'latitude': float, 'longitude': float}}, ...] }
 		   { 'status': 'NG', 'message': string}
 		   // latitude and longitude can be negative values
-		   // locations will not be present if no device location has not yet been set
+		   // by default, location is set to latitude = 0, longitude = 0
 
 		I. SET DEVICES LOCATION
 		-  Request:
@@ -1240,6 +1240,7 @@ DETAILED:
 		-  Response:
 		   { 'status': 'OK', 'message': string}
 		   { 'status': 'NG', 'message': string}
+		   // This will just reset location to latitude = 0, longitude = 0 of all devices
 
 		K. GET DEVICE LOCATION
 		-  Request:
@@ -1249,7 +1250,7 @@ DETAILED:
 		   { 'status': 'OK', 'message': string, 'location': {'latitude': float, 'longitude': float} }
 		   { 'status': 'NG', 'message': string}
 		   // latitude and longitude can be negative values
-		   // location will not be present if device location has not yet been set
+		   // by default, location is set to latitude = 0, longitude = 0
 
 		L. SET DEVICE LOCATION
 		-  Request:
@@ -1268,6 +1269,7 @@ DETAILED:
 		-  Response:
 		   { 'status': 'OK', 'message': string}
 		   { 'status': 'NG', 'message': string}
+		   // This will just reset location to latitude = 0, longitude = 0
 
 		N. UPDATE FIRMWARE
 		-  Request:
@@ -1510,7 +1512,7 @@ DETAILED:
 		   { 'status': 'OK', 'message': string, 'locations': [{'devicename': string, location: {'latitude': float, 'longitude': float}}, ...] }
 		   { 'status': 'NG', 'message': string}
 		   // latitude and longitude can be negative values
-		   // locations will not be present if no device location has not yet been set
+		   // by default, location is set to latitude = 0, longitude = 0
 
 		M. SET DEVICE GROUP LOCATION
 		-  Request:
@@ -1529,7 +1531,8 @@ DETAILED:
 		-  Response:
 		   { 'status': 'OK', 'message': string}
 		   { 'status': 'NG', 'message': string}
-
+		   // This will just reset location to latitude = 0, longitude = 0 of each device in the group
+	
 		O. GET DEVICE GROUP OTA STATUSES
 		-  Request:
 		   GET /devicegroups/group/DEVICEGROUPNAME/ota
