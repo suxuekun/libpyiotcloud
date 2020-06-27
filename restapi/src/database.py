@@ -4716,16 +4716,24 @@ class database_client_mongodb:
                 location_list.append({'deviceid': device['deviceid'], 'location': device['location']})
         return location_list
 
-
+    # will only reset to 0,0
     def delete_device_location(self, deviceid):
         devices = self.get_registered_devices()
         if devices:
-            devices.delete_one({'deviceid': deviceid})
+            for device in devices.find({'deviceid': deviceid}):
+                new_device = copy.deepcopy(device)
+                new_device['location'] = {'latitude': 0, 'longitude': 0}
+                devices.replace_one(device, new_device)
+                break
 
+    # will only reset to 0,0
     def delete_devices_location(self, deviceid):
         devices = self.get_registered_devices()
         if devices:
-            devices.delete_many({'username': username})
+            for device in devices.find({'deviceid': deviceid}):
+                new_device = copy.deepcopy(device)
+                new_device['location'] = {'latitude': 0, 'longitude': 0}
+                devices.replace_one(device, new_device)
 
 
     ##########################################################
