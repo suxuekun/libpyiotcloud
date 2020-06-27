@@ -1115,8 +1115,17 @@ class device_groups:
                             print('\r\nERROR Set DeviceGroup Locations: Device is not part of group [{},{}]\r\n'.format(entityname, devicegroupname))
                             return response, status.HTTP_400_BAD_REQUEST
                 if not found:
-                    response = json.dumps({'status': 'NG', 'message': 'Device name is not valid'})
-                    print('\r\nERROR Set DeviceGroup Locations: Device name is not valid [{},{}]\r\n'.format(entityname, devicegroupname))
+                    response = json.dumps({'status': 'NG', 'message': 'Atleast one of the device is invalid'})
+                    print('\r\nERROR Set DeviceGroup Locations: Atleast one of the device is invalid [{},{}]\r\n'.format(entityname, devicegroupname))
+                    return response, status.HTTP_400_BAD_REQUEST
+
+                # check if latitude and longitude are valid
+                try:
+                    latitude = float(location["location"]["latitude"])
+                    longitude = float(location["location"]["longitude"])
+                except:
+                    response = json.dumps({'status': 'NG', 'message': 'Atleast one of the location is invalid'})
+                    print('\r\nERROR Set DeviceGroup Location: Atleast one of the location is invalid [{},{}]\r\n'.format(entityname, devicename))
                     return response, status.HTTP_400_BAD_REQUEST
 
 

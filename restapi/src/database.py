@@ -4727,10 +4727,10 @@ class database_client_mongodb:
                 break
 
     # will only reset to 0,0
-    def delete_devices_location(self, deviceid):
+    def delete_devices_location(self, username):
         devices = self.get_registered_devices()
         if devices:
-            for device in devices.find({'deviceid': deviceid}):
+            for device in devices.find({'username': username}):
                 new_device = copy.deepcopy(device)
                 new_device['location'] = {'latitude': 0, 'longitude': 0}
                 devices.replace_one(device, new_device)
