@@ -19,7 +19,6 @@ class ProrateResource(Resource,BaseResource):
         old_plan_id = request.args.get('old_plan_id')
         new_plan_id = request.args.get('new_plan_id')
         promocode = request.args.get('promocode')
-        created = informations.get_user_created_timestamp(request)
         query = self.filtered()
         data = self.service.prorate(old_plan_id=old_plan_id,new_plan_id=new_plan_id,query=query,promocode=promocode)
 

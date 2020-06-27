@@ -47,8 +47,8 @@ class PaymentService():
             self.customer_service.update(customer._id,customer)
         return customer
 
-    def make_transaction(self,amount, payment_method_token,descriptor):
-        return payment_client.create_transaction(amount, payment_method_token,descriptor, None, True)
+    def make_transaction(self,amount, payment_method_token):
+        return payment_client.create_transaction(amount, payment_method_token, None, True)
 
     def _assign_draft(self,subscription,plan):
         draft = NextSubscription()
@@ -81,8 +81,6 @@ class PaymentService():
         }
         print('new_sub',option,subscription.draft)
         bt_subscription = payment_client.create_subscription(option)
-        if (promocode):
-            self.promocode_service.add_promocode_usage(subscription._id, promocode)
         if (bt_subscription):
             subscription.current = CurrentSubscription(subscription.draft.to_primitive())
             subscription.current.validate()
@@ -115,8 +113,6 @@ class PaymentService():
         }
         print('upgrade sub', option)
         bt_subscription = payment_client.update_subscription(sub_id,option)
-        if (promocode):
-            self.promocode_service.add_promocode_usage(subscription._id, promocode)
         if bt_subscription:
             subscription.current.import_data(subscription.draft.to_primitive())
             subscription.status = SubScriptionStatus.NORMAL
@@ -173,18 +169,24 @@ class PaymentService():
         return payment_method.token
 
     def record_transaction(self,transaction):
+
         self.transaction_repo.create(transaction.to_primitive())
 
     # @throw_bad_db_query()
     def checkout(self,username,nonce,changes):
+        print('username',username,nonce)
         customer = self.get_user_customer(username)
+        print('get customer',customer)
         bt_customer_id = customer.bt_customer_id
         payment_token = self.get_payment_method_token(bt_customer_id, nonce)
+        print('get token', payment_token)
         if not payment_token:
             return None
+
         bill = Decimal(0.00)
         b = self.billing_address_service.get_or_create_one({'username':username})
         gst = b.get_gst()
+        print('get gst', gst)
         transaction = Transaction()
         for change in changes:
             prorate = self.change_subscription(**change.to_primitive(),payment_token= payment_token,gst=gst)
@@ -196,12 +198,7 @@ class PaymentService():
                 bill += Decimal(prorate)
         print('changes done bill is : ', bill)
         if (bill > 0):
-            descriptor= {
-                'name': "brt*subscription",
-            }
-            bt_transaction = self.make_transaction(bill, payment_token,descriptor)
-            print(bt_transaction)
-            print('after make transaction')
+            bt_transaction = self.make_transaction(bill, payment_token)
             transaction.bt_trans_id = bt_transaction.id
             transaction.date = timestamp_util.get_timestamp()
             transaction.value = bill
@@ -210,11 +207,9 @@ class PaymentService():
             transaction.remark = 'First Month Payments For Device Plan Subscription'
             transaction.username = username
             self.record_transaction(transaction)
-            print('after record transaction')
         return True
 
     def _prorate_without_gst(self,current_plan,next_plan,promocode):
-        print(current_plan,next_plan,promocode)
 
         _, remain, total = percent_of_month_left()
         rate = 1
@@ -223,18 +218,14 @@ class PaymentService():
         _discount, total_payable = payment_client._get_discounted_amount(next_plan.price, remain, total)
         _, plan_rebate = payment_client._get_discounted_amount(current_plan.price, remain, total)
         prorate = total_payable - plan_rebate
+        total_discount = plan_rebate
         promo_discount = 0.00
-        if prorate <= 0:
-            prorate = 0
-            total_discount = plan_rebate = total_payable
-        else:
-            total_discount = plan_rebate
-            if promocode:
-                promoModel = self.promocode_service.get(promocode)
-                if promoModel:
-                    payable, promo_discount = promoModel.calc(prorate)
-                    prorate = payable
-                    total_discount += promo_discount
+        if promocode:
+            promoModel = self.promocode_service.get_by_code(promocode)
+            if promoModel:
+                payable, promo_discount = promoModel.calc(prorate)
+                prorate = payable
+                total_discount += promo_discount
         res = {
             'price': next_plan.price,
             'total_payable': total_payable,

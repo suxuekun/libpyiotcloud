@@ -52,16 +52,6 @@ class cognito_client:
 			attr_dict[name] = value
 		return attr_dict
 
-	def __cognito_response_to_dict(self,response):
-		res = {}
-		for key in response:
-			item = response[key]
-			if isinstance(item,list):
-				res[key] = self.__cognito_to_dict(item)
-			else:
-				res[key] = item
-		return res
-
 	def __get_userpool_keys(self):
 		import urllib.request
 		import json
@@ -219,21 +209,6 @@ class cognito_client:
 		except:
 			return (False, None)
 		return (self.__get_result(response), response)
-
-	def admin_get_user(self,username):
-		params = {
-			"Username": username,
-			"UserPoolId": self.pool_id
-		}
-		try:
-			response = self.__get_client().admin_get_user(**params)
-			res = self.__cognito_response_to_dict(response)
-			return (True,res)
-		except Exception as e:
-			print(e)
-			return (False, None)
-
-
 
 	def get_user(self, access_token):
 		params = {

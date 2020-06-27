@@ -98,8 +98,8 @@
 		function($scope,$http,BraintreePayment,User,$ionicPopup,$stateParams,$state){
 			$scope.data = {}
 			$scope.start = function(){
-				console.log('go in detail')
 				$scope.data = $stateParams
+				
 		    }
 		    $scope.clean = function(){
 
@@ -203,7 +203,7 @@
 				var new_id = $scope.data.plan._id
 				var promocode = null
 				if ($scope.data.promocode){
-					promocode = $scope.data.promocode._id
+					promocode = $scope.data.promocode.code
 				}
 				BraintreePayment.prorate(old_id,new_id,promocode)
 				.then(function(res){
@@ -305,7 +305,7 @@
 					}
 
 				if ($scope.data.promocode){
-					one_change.promocode = $scope.data.promocode._id
+					one_change.promocode = $scope.data.promocode.code
 				}
 				var data = {
 					items:[one_change],
@@ -324,15 +324,9 @@
 		function($scope,$http,BraintreePayment,User,$ionicPopup,$stateParams,$state){
 			
 			$scope.data = {}
-			$scope.query = {}
 			$scope.start = function(){
 				$scope.data = $stateParams
-				console.log($scope.data)
-				promocode_query = {
-					subscription_id : $scope.data.subscription._id,
-					plan_id : $scope.data.plan._id
-				}
-				BraintreePayment.get_promocodes(promocode_query)
+				BraintreePayment.get_promocodes()
 		    	.then(function(res){
 		    		$scope.data.promocodes = res.data.data
 		    	},function(res){
@@ -342,15 +336,8 @@
 		    $scope.clean = function(){
 
 		    }
-		    $scope.verifyCode = function(){
-		    	console.log('verify code',$scope.query.promocode)
-		    	var query = {
-		    		code:$scope.query.promocode,
-		    		subscription_id : $scope.data.subscription._id,
-					plan_id : $scope.data.plan._id
-		    	}
-		    	console.log(query)
-		    	BraintreePayment.verify_promocode(query)
+		    $scope.verifyCode = function(code){
+		    	BraintreePayment.verify_promocode(code)
 		    	.then(function(res){
 		    		promocode = res.data.data
 		    		$scope.chooseCode(promocode)

@@ -35,11 +35,11 @@
                 get_transactions:function(){
                     return this.get(Server.rest_api + '/payment/transaction/')
                 },
-                get_promocodes:function(params){
-                    return this.get(Server.rest_api + '/payment/promocode/',params)
+                get_promocodes:function(){
+                    return this.get(Server.rest_api + '/payment/promocode/')
                 },
-                verify_promocode:function(data){
-                    return this.post(Server.rest_api + '/payment/promocode_verify/',data)
+                verify_promocode:function(promocode){
+                    return this.get(Server.rest_api + '/payment/promocode/'+promocode+"/")
                 },
                 get_billing_address:function(){
                     return this.get(Server.rest_api + '/payment/billing_address/')

@@ -41,8 +41,10 @@ class BaseResource():
     service = None
     wrapper_class = None
     def _get_default_filter(self):
+        print (self.FILTER)
         if self.FILTER:
             if callable(self.FILTER):
+                print(self.FILTER())
                 return self.FILTER()
             else:
                 return self.FILTER
@@ -79,6 +81,7 @@ class BaseResource():
 
 
 class GetMixin(BaseResource):
+    @throw_bad_request
     def get(self,id):
         data = self.service.get(id)
         res = self.to_api_data(data)

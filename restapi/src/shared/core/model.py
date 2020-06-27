@@ -16,7 +16,6 @@ class UUIDMixin(Model):
 class MongoIdMixin(Model):
     _id = StringType()
 
-
 class BaseMongoModel(BaseModel,MongoIdMixin):
     pass
 

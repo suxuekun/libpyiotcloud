@@ -1,7 +1,7 @@
 from flask_restful import Resource
 
 from payment.dtos.checkout import CheckoutDTO
-from payment.services import payment_service, promocode_service
+from payment.services import payment_service
 from shared.middlewares.request import informations
 from shared.middlewares.request.informations import requestWrap, get_entityname_query
 from shared.middlewares.request.permission.base import getRequest
@@ -33,8 +33,8 @@ class CheckoutResource(Resource,BaseResource):
         try:
             data = self.service.checkout(username,dto.nonce,dto.items);
         except Exception as e:
-            print(e)
-            return make_custom_error_response({'status': 'NG', 'message': 'check out fail with braintree'}, 503)
+            data = None
+            make_custom_error_response({'status': 'NG', 'message': 'check out fail with braintree'}, 503)
         if data:
             res = self.to_api_data(data)
             return self.to_result(res)

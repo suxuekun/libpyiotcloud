@@ -5,7 +5,7 @@ from flask_restful import Api
 from payment.routes.billing_address import BillingAddressResource
 from payment.routes.checkout import CheckoutResource, CancelSubscriptionResource
 from payment.routes.plan import PlanResource, PlanListResource, PlanReloadResource
-from payment.routes.promocode import PromocodeListResource, PromocodeResource, PromocodeVerifyResource
+from payment.routes.promocode import PromocodeListResource, PromocodeResource
 from payment.routes.prorate import ProrateResource
 from payment.routes.subscription import SubscriptionResource, SubscriptionListResource
 from payment.routes.token import TokenResource
@@ -35,10 +35,13 @@ payment_blueprint = Blueprint('payment_blueprint', __name__)
 })
 def payment_middleware_func():
     pass
-
+#
 # @payment_blueprint.after_request
-# @refresh_token
 # def after_request(response):
+#     response.headers.add('Access-Control-Allow-Origin', '*')
+#     response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+#     response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
+#     print(response.headers)
 #     return response
 
 
@@ -67,7 +70,6 @@ api.add_resource(PlanReloadResource,'/plan_reload/',endpoint='plan_reload')
 
 api.add_resource(PromocodeListResource,'/promocode/',endpoint='promocodelist')
 api.add_resource(PromocodeResource,'/promocode/<code>/',endpoint='promocode')
-api.add_resource(PromocodeVerifyResource,'/promocode_verify/',endpoint="promocode_verify")
 '''
 2. Subscription
     A. Get Subscriptions               - GET    /payment/subscription/

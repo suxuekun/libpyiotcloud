@@ -27,13 +27,6 @@ def percent_of_month_left(from_date=None):
     remaining_days = total_days - from_date.day + 1
     return remaining_days/total_days,remaining_days,total_days
 
-def datetime_from_string(date_string,string_format = '%m/%d/%Y'):
-    return datetime.strptime(date_string,string_format)
-
-def timestamp_from_date_string(date_string,string_format = '%m/%d/%Y'):
-    d = datetime_from_string(date_string,string_format)
-    return str(int(d.timestamp()))
-
 if __name__ == "__main__":
     r = percent_of_month_left()
     print (r)
@@ -68,11 +61,5 @@ if __name__ == "__main__":
 
     print('also int(time.time()) is same with int(datetime.now().timestamp())')
     print('int(time.time()) = ',int(time.time()),'int(datetime.now().timestamp()) =',int(datetime.now().timestamp()))
-
-    # print(d_now.strftime("%Y-%m-%d %H %M %S"))
-    sd = datetime.strptime('7/1/2018','%m/%d/%Y')
-    print (sd.timestamp())
-
-
 
 

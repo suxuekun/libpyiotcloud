@@ -244,9 +244,6 @@ class database_client:
     def get_user_info(self, access_token):
         return self._users.get_user_info(access_token)
 
-    def admin_get_user(self,username):
-        return self._users.admin_get_user(username)
-
     def delete_user(self, username, access_token):
         return self._users.delete_user(username, access_token)
 
@@ -1217,10 +1214,6 @@ class database_client_cognito:
     def delete_user(self, username, access_token):
         (result, response) = self.client.delete_user(username, access_token)
         return result
-    
-    def admin_get_user(self,username):
-        (result, response) = self.client.admin_get_user(username)
-        return response
 
     def admin_delete_user(self, username):
         (result, response) = self.client.admin_delete_user(username)

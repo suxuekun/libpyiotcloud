@@ -14,7 +14,6 @@ SUMMARY:
     3. Promocode
         A. get user promocodes             - GET    /payment/promocode/
         B. get user promocode              - GET    /payment/promocode/{code}/
-        C. verify                          - POST   /payment/promocode_verify/
         
     4. AddOn # TODO
         A. get addOns                      - GET    /payment/addon/

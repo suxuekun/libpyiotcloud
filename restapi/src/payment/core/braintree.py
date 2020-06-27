@@ -20,6 +20,7 @@ class BrainTreeClient(PaymentClient):
     ' authentication
     '''
     def generate_client_token(self,option=None):
+        print('token',option)
         client_token = self.gateway.client_token.generate(option)
         return client_token
     '''
@@ -28,7 +29,7 @@ class BrainTreeClient(PaymentClient):
     def find_transaction(self,tid):
         return self.gateway.transaction.find(tid)
     
-    def create_transaction(self, amount, payment_method_token, descriptor=None, device_data = None,submit = True):
+    def create_transaction(self, amount, payment_method_token, device_data = None,submit = True):
         str(Decimal(amount))
         options = {
             'amount': two_decimal_str(amount),
@@ -40,13 +41,9 @@ class BrainTreeClient(PaymentClient):
         print(options)
         if device_data:
             options['device_data'] = device_data
-        if descriptor:
-            options['descriptor'] = descriptor
         result = self.gateway.transaction.sale(options)
         if (result.is_success):
             return result.transaction
-        else:
-            print(result)
         return None
     def commit_transaction(self,tid):
         return self.gateway.transaction.submit_for_settlement(tid)
@@ -74,7 +71,6 @@ class BrainTreeClient(PaymentClient):
         print("--create--",result)
         if result.is_success:
             return result.subscription
-        print(result)
         return None
     
     def update_subscription(self,sub_id,options):
@@ -90,14 +86,12 @@ class BrainTreeClient(PaymentClient):
         print("--update--", result)
         if result.is_success:
             return result.subscription
-        print(result)
         return None
     
     def cancel_subscription(self,sub_id):
         result = self.gateway.subscription.cancel(sub_id)
         if result.is_success:
             return result.subscription
-        print(result)
         return None
     
     '''
@@ -107,7 +101,6 @@ class BrainTreeClient(PaymentClient):
         result = self.gateway.customer.find(id)
         if result.is_success:
             return result.customer
-        print(result)
         return None
     
     def create_customer(self,options=None):
@@ -120,7 +113,6 @@ class BrainTreeClient(PaymentClient):
         result = self.gateway.customer.create(options)
         if result.is_success:
             return result.customer
-        print(result)
         return None
     
     def create_payment_method(self,customer_id,nonce):
@@ -128,9 +120,9 @@ class BrainTreeClient(PaymentClient):
             "customer_id": customer_id,
             "payment_method_nonce": nonce
         })
+        print("--create payment method--",result)
         if result.is_success:
             return result.payment_method
-        print(result)
         return None
     
     

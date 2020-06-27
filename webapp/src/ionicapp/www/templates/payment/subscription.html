@@ -4,15 +4,7 @@
   </ion-nav-buttons>
 
   <ion-content padding="true" class="has-header">
-    <div class = "list">
-        <ion-item class="item-icon-left positive menu_margin" id="menu-list-item7" ui-sref="menu.billing_address({&quot;username&quot;:&quot;&quot;+ data.username +&quot;&quot;,&quot;token&quot;:&quot;&quot;+ data.token +&quot;&quot;})"
-          menu-close="">
-          <i class="icon ion-email"></i>Billing Address</ion-item>
-        <ion-item class="item-icon-left positive menu_margin" id="menu-list-item7" ui-sref="menu.transaction({&quot;username&quot;:&quot;&quot;+ data.username +&quot;&quot;,&quot;token&quot;:&quot;&quot;+ data.token +&quot;&quot;})"
-          menu-close="">
-          <i class="icon ion-cash"></i>Billing History</ion-item>
-    </div>
-    <div class = 'list'>
+    <div class = list>
       <div class="item card" ng-repeat = "subscription in data.subscriptions" ng-click="viewSubscription(subscription)">
         <div class="item item-header">
           <p style="margin-top:0px;color:#3C5A99;font-size:18px;">
