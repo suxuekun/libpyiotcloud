@@ -21,5 +21,5 @@ class S3Repository(ReadOnlyRepo):
         self._handler(self.raw)
 
     def _handler(self,raw):
-        print('--s3promo--',raw)
+        print('--s3-- handler not impl',raw)
         pass
