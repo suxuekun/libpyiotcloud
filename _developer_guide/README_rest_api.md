@@ -1136,12 +1136,14 @@ DETAILED:
 		   // deviceid refers to UUID and must be unique
 		   // serialnumber is some derivative of UUID
 		   // poemacaddress is a unique mac address in uppercase string ex. AA:BB:CC:DD:EE:FF
-		   // format of UUID and Serial Number has not yet been finalized by Sree
-		   // currently no checking is performed on the UUID and Serial Number format
-		   // web prototype temporarily uses the format from PanL
-		   //   UUID: PH80XXRRMMDDYYzz (16 characters)
-		   //   SerialNumber: SSSSS (5 digits)
-		   //   where ZZ hexadecimal is equivalent to SSSSS in decimal
+		   //
+		   //   Actual definition of UUID and Serial Number is not yet fully defined
+		   //   For now, below are the KNOWN restrictions:
+		   //
+		   //     UUID: PH80XXRRMMDDYYZZ (16 characters - digits and uppercase letters) 
+		   //     SerialNumber: SSSSS (5 characters - digits and uppercase letters)
+		   //     POE MAC Address: 00:00:00:00:00:00 (17 characters - digits and A-F uppercase letters)
+		   //
 		   // registering a device using an already used devicename returns HTTP_409_CONFLICT with 'Device name is already taken'
 		   // registering a device using an already used deviceid returns HTTP_409_CONFLICT with 'Device UUID is already registered'
 		-  Response:
