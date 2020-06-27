@@ -1,6 +1,7 @@
 import os
 
 from payment.core import payment_client
+from payment.repositories.promocode_usecount import PromoCodeUseCountRepository
 from payment.repositories.billing_address import BillingAddressRepository
 from payment.repositories.customer import CustomerRepository
 from payment.repositories.device import DeviceRepository
@@ -19,7 +20,8 @@ payment_db = DefaultMongoDB()#TestMongoDB()
 # will config later in config file
 PLAN_COLLECTION = "payment_plan"
 PROMOCODE_S3 = os.environ['AWS_S3_FILE_PROMOCODE']
-PORMOCODE_COLLECTION = "payment_promocode"
+PROMOCODE_COLLECTION = "payment_promocode"
+PROMOCODE_USECOUNT_COLLECTION = "payment_promocode_usecount"
 
 SUBSCRIPTION_COLLECTION = 'payment_subscription'
 BILLING_ADDRESS_COLLECTION = 'payment_billing_address'
@@ -38,7 +40,8 @@ plan_repo = PlanRepository(payment_client,PLAN_COLLECTION)
 
 subscription_repo = SubscriptionRepository(payment_db,SUBSCRIPTION_COLLECTION)
 
-promocode_repo = PromoCodeRepository(payment_db,PORMOCODE_COLLECTION)
+promocode_repo = PromoCodeRepository(payment_db, PROMOCODE_COLLECTION)
+promocode_usecount_repo = PromoCodeUseCountRepository(payment_db,PROMOCODE_USECOUNT_COLLECTION)
 s3_promocode_repo = S3PromoCodeRepository(s3_client,PROMOCODE_S3)
 
 billing_address_repo = BillingAddressRepository(payment_db,BILLING_ADDRESS_COLLECTION)

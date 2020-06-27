@@ -32,6 +32,7 @@ class PlanRepository(PaymentRepository):
         return res
     def _handler(self,raw):
         self.collection = list(map(self._make_plan,raw))
+        self.collection.sort(key=lambda x: x.get('price'))
         self._make_index()
 
     @property
