@@ -115,9 +115,13 @@
         <input type="text" placeholder="****************" ng-model="data.attributes.notification.endpoints.notification.recipients" readonly="">
       </label>
       <ion-checkbox id="motionDetection-checkbox72" ng-model="data.attributes.notification.endpoints.modem.enable">Send to IoT Modem</ion-checkbox>
+      <ion-checkbox id="motionDetection-checkbox98" ng-model="data.attributes.notification.endpoints.modem.isgroup">... check if recipients is device groups instead of devices</ion-checkbox>
+      <label class="item item-input" id="motionDetection-input249">
+        <input type="text" placeholder="" ng-model="data.attributes.notification.endpoints.modem.recipients">
+      </label>
       <label class="item item-select" id="motionDetection-select126">
         <span class="input-label"></span>
-        <select ng-options="device.id as device.devicename for device in devices" ng-model="data.hardware_devicename"></select>
+        <select ng-options="device.id as device.devicename for device in devices" ng-model="data.hardware_devicename" ng-show="0"></select>
       </label>
       <ion-checkbox id="motionDetection-checkbox73" ng-model="data.attributes.notification.endpoints.storage.enable">Send to storage</ion-checkbox>
       <div id="motionDetection-container99" ng-show="data.attributes.notification.endpoints.storage.recipients != &quot;&quot;" class="tab_margin_1">

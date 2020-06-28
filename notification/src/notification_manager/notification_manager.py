@@ -251,16 +251,35 @@ def notification_thread(messaging_client, deviceid, recipient, message, subject,
         #
         username = g_database_client.get_username(deviceid)
 
+        # modem is enabled, so check the recipients
+        modem = notification["endpoints"]["modem"]
+        isgroup = False
+        if modem.get("isgroup") is not None:
+            isgroup = modem["isgroup"]
+
         recipients = recipient.replace(" ", "").split(",")
-        for devicename_recipient in recipients:
-            result = False
 
-            deviceid_recipient = g_database_client.get_deviceid(username, devicename_recipient)
-            if deviceid_recipient is not None:
-                result = send_notification_device(messaging_client, deviceid, deviceid_recipient, message)
-                print("{}: {} [{} {}] {}".format(deviceid, type_str, len(recipient), len(message), result ))
+        if isgroup == False:
+            # send to all devices in the list
+            for devicename_recipient in recipients:
+                result = False
+                deviceid_recipient = g_database_client.get_deviceid(username, devicename_recipient)
+                if deviceid_recipient is not None:
+                    result = send_notification_device(messaging_client, deviceid, deviceid_recipient, message_updated)
+                    print("{}: {} [{} {}] {}".format(deviceid, type_str, len(recipient), len(message_updated), result ))
+                g_database_client.add_menos_transaction(deviceid, recipient, message_updated, type_str, source.upper(), sensorname, timestamp, condition, result)
+        else:
+            # send to all group members in the list
+            for devicegroup_recipient in recipients:
+                # get the group details
+                devicegroup = g_database_client.get_devicegroup(username, devicegroup_recipient)
+                if devicegroup:
+                    # send to group members
+                    for deviceid_recipient in devicegroup["devices"]:
+                        result = send_notification_device(messaging_client, deviceid, deviceid_recipient, message_updated)
+                        print("{}: {} [{} {}] {}".format(deviceid, type_str, len(recipient), len(message_updated), result ))
+                        g_database_client.add_menos_transaction(deviceid, recipient, message_updated, type_str, source.upper(), sensorname, timestamp, condition, result)
 
-            g_database_client.add_menos_transaction(deviceid, recipient, message, type_str, source.upper(), sensorname, timestamp, condition, result)
 
     elif type == notification_types.STORAGE:
         #

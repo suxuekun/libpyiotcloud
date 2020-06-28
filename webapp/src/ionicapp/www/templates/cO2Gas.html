@@ -115,9 +115,13 @@
         <input type="text" placeholder="****************" ng-model="data.attributes.notification.endpoints.notification.recipients" readonly="">
       </label>
       <ion-checkbox id="cO2Gas-checkbox79" ng-model="data.attributes.notification.endpoints.modem.enable">Send to IoT Modem</ion-checkbox>
+      <ion-checkbox id="cO2Gas-checkbox99" ng-model="data.attributes.notification.endpoints.modem.isgroup">... check if recipients is device groups instead of devices</ion-checkbox>
+      <label class="item item-input" id="cO2Gas-input250">
+        <input type="text" placeholder="" ng-model="data.attributes.notification.endpoints.modem.recipients">
+      </label>
       <label class="item item-select" id="cO2Gas-select131">
         <span class="input-label"></span>
-        <select ng-options="device.id as device.devicename for device in devices" ng-model="data.hardware_devicename"></select>
+        <select ng-options="device.id as device.devicename for device in devices" ng-model="data.hardware_devicename" ng-show="0"></select>
       </label>
       <ion-checkbox id="cO2Gas-checkbox80" ng-model="data.attributes.notification.endpoints.storage.enable">Send to storage</ion-checkbox>
       <div id="cO2Gas-container100" ng-show="data.attributes.notification.endpoints.storage.recipients != &quot;&quot;" class="tab_margin_1">
