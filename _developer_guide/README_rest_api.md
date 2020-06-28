@@ -1852,6 +1852,7 @@ DETAILED:
 		                'modem': {
 		                    'enable': boolean,
 		                    'recipients': string, // can be multiple items separated by comma
+		                    'isgroup': boolean    // true if all recipients are device groups, false if all recipients are devices
 		                },
 		                'storage': {
 		                    'enable': boolean,
@@ -2118,6 +2119,7 @@ DETAILED:
 		                'modem': {
 		                    'enable': boolean,
 		                    'recipients': string,   // can be multiple items separated by comma
+		                    'isgroup': boolean      // true if all recipients are device groups, false if all recipients are devices
 		                },
 		                'storage': {
 		                    'enable': boolean,

@@ -315,7 +315,8 @@ class utils:
             },
             "modem": {
                 "enable": False,
-                "recipients": ""
+                "recipients": "",
+                "isgroup": False
             },
             "storage": {
                 "enable": False,
