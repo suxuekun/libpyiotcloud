@@ -130,22 +130,16 @@ class device_peripheral_properties:
 
         configuration = self.database_client.get_device_peripheral_configuration(entityname, devicename, "uart", 1, None)
         if configuration:
-            response = {'value': configuration["attributes"]}
+            value = configuration["attributes"]
             print(configuration["attributes"])
         else:
-            response = {'value': 
-                {
-                    "baudrate": 7,
-                    "parity": 0,
-                    "flowcontrol": 0,
-                    "stopbits": 0,
-                    "databits": 1,
-                }
+            value = {
+                "baudrate": 7,
+                "parity": 0,
+                "flowcontrol": 0,
+                "stopbits": 0,
+                "databits": 1,
             }
-
-        #response, status_return = self.messaging_requests.process(api, data)
-        #if status_return != 200:
-        #    return response, status_return
 
         source = "uart"
         notification = self.database_client.get_device_notification(entityname, devicename, source)
@@ -156,12 +150,12 @@ class device_peripheral_properties:
             # notification recipients should be empty
             if notification["endpoints"]["notification"].get("recipients"):
                 notification["endpoints"]["notification"]["recipients"] = ""
-            response['value']['notification'] = notification
-            response = json.dumps(response)
+            value['notification'] = notification
         else:
-            response['value']['notification'] = rest_api_utils.utils().build_default_notifications("uart", token, self.database_client)
-            response = json.dumps(response)
+            value['notification'] = rest_api_utils.utils().build_default_notifications("uart", token, self.database_client)
 
+        msg = {'status': 'OK', 'message': 'UART properties retrieved successfully.', 'value': value}
+        response = json.dumps(msg)
         return response
 
 
@@ -255,6 +249,8 @@ class device_peripheral_properties:
         if status_return != 200:
             return response, status_return
 
+        msg = {'status': 'OK', 'message': 'UART properties set successfully.'}
+        response = json.dumps(msg)
         return response
 
 
