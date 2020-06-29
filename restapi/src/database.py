@@ -525,7 +525,10 @@ class database_client:
 
     def get_menos_num_sensordata_by_currmonth(self, username, devicename):
         deviceid = self._devices.get_deviceid(username, devicename)
-        return self._devices.get_menos_num_sensordata(deviceid, self.get_current_month_epoch(), self.get_next_month_epoch())
+        bytes = self._devices.get_menos_num_sensordata(deviceid, self.get_current_month_epoch(), self.get_next_month_epoch())
+        if bytes:
+            return bytes, self.bytes_to_kilobytes(bytes), self.bytes_to_megabytes(bytes), self.bytes_to_gigabytes(bytes)
+        return 0, 0, 0, 0
 
 
     def get_menos_num_sms_by_deviceid_by_currmonth(self, deviceid):
