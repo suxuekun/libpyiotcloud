@@ -235,7 +235,7 @@ DETAIL:
 
         A. GETS
         - Request:
-        GET: /dashboards/gateways/attributes
+        GET: /dashboards/gateway/attributes
         headers: {'Authorization': 'Bearer ' + token.access}
         - Response:
         {
