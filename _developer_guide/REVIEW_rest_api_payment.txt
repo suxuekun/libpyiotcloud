@@ -198,6 +198,40 @@ June 29, 2020
     option 1: dont store devicename; retrieve it dynamically
     option 2: add your function to handle devicename changes in rest_api_device.py update_devicename()
 
+42. Theres no PlanA, PlanB anymore so update the documnentation.
+    mobile team will get confused what this is.     
 
+43. example values is different from definition values
+
+    variable definition should string/int/float/etc 
+    then add comments as applicable
+
+    separate definition from example values
  
+44. Remove "data" value in return values
+    (ex. C. Plan reload from s3, update billing address, cancel subscription, checkout )
 
+    Thang has fixed this issue in dashboard
+    its redundant with status OK/NG.
+
+45. Plan reload from s3 API
+    GET: /payment/plan_reload/
+
+    - what does this function do? Frontend should not trigger reloading from S3
+    - backend should not be informed by frontend to reload from S3
+
+    remove this API
+
+46. Fix your documentation
+    Add comments for parameters as much as possible
+
+    Ex. 1. In Get Subscriptions,  
+           its unclear if the sms, email, notification, storage are the current consumed OR remaining balance.
+
+    Ex. 2. In get user promocodes,
+           its unclear if _id  should be displayed as the label in the list of promo 
+
+    Ex. 3. In get user promocodes,
+           its unclear if plan_id is the new plan, not the existing plan
+
+    Document the API properly so that mobile team does NOT need to ask question anymore, that is the documentation can stand by its own.
