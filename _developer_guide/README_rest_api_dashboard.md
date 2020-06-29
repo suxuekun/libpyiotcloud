@@ -50,7 +50,6 @@ DETAIL:
         - Reponse:
         { 
             'status': 'OK', 
-            'data': true, 
             'message': 'Create successfully'
         }
 
@@ -65,7 +64,6 @@ DETAIL:
         - Reponse:
         { 
             'status': 'OK', 
-            'data': true, 
             'message': 'Update successfully'
         }
 
@@ -108,7 +106,6 @@ DETAIL:
         - Response:
         {
             'status': 'OK',
-            'data': true,
             'message': 'Delete successfully'
         }
 
@@ -126,7 +123,6 @@ DETAIL:
         - Response:
         {
             'status': 'OK',
-            'data': true,
             'message': 'Create successfully'
         }
         - Note After finish to create charts, there are some business in here.
@@ -227,7 +223,6 @@ DETAIL:
         - Response:
         {
             'status': 'OK',
-            'data': true
             'message': 'Delete successfully'
         }
     3. Attributes
@@ -266,7 +261,6 @@ DETAIL:
         }
         - Response:
         {
-            'data': true,
             'status': 'OK',
             'message': 'Create successfully'
         }
@@ -336,7 +330,6 @@ DETAIL:
         - Response:
         {
             'status': 'OK',
-            'data': true,
             'message': 'Delete successfully'
         }
 

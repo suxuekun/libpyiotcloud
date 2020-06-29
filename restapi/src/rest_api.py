@@ -1060,6 +1060,8 @@ def initialize():
 if os.name == 'posix':
     initialize()
 
+initialize()
+
 if __name__ == '__main__':
 
     if config.debugging:

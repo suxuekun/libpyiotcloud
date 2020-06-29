@@ -20,20 +20,20 @@ hr {
 
 .dashboard-list-column {
   float: left;
-  width: 30%;
-  padding: 10px;
+  width: 27%;
+  padding: 5px;
 }
 
 .dasboard-detail-column {
   float: left;
-  width: 70%;
-  padding: 10px;
+  width: 73%;
+  padding: 5px;
 }
 
 .dashboard-item-icon-column {
   float: left;
   width: 10%;
-  padding: 10px;
+  padding: 5px;
 }
 
 .dashboard-item-main-column {

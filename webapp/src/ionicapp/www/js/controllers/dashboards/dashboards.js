@@ -116,7 +116,9 @@ angular.module('app.dashboardsCtrl', [])
           });
       }
       // Scope of dashboard detail
-      $scope.sensors_datachart_colors_options_ex = ['#EF473A', '#F38124', '#FFC900', '#33CD5F', '#11C1F3', '#3C5A99', '#B6A2FC', '#F58CF6'];
+      $scope.sensors_datachart_colors_options     = ['#11C1F3', '#33CD5F', '#FFC900', '#F38124', '#EF473A', '#F58CF6', '#B6A2FC', '#3C5A99'];
+      $scope.sensors_datachart_colors_options_ex  = ['#EF473A', '#F38124', '#FFC900', '#33CD5F', '#11C1F3', '#3C5A99', '#B6A2FC', '#F58CF6'];
+      $scope.sensors_datachart_colors_options_ex2 = ['#F58CF6', '#B6A2FC', '#3C5A99', '#EF473A', '#F38124', '#FFC900', '#33CD5F', '#11C1F3'];
       $scope.colors = [
         '#f2495e',
         '#f2994a',
@@ -501,7 +503,7 @@ angular.module('app.dashboardsCtrl', [])
             console.log(error);
             $ionicPopup.alert({
               title: 'Dashboard',
-              template: 'Create new dashboard was failed!',
+              template: error.data.message,
             });
           });
       }

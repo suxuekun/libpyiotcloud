@@ -9,9 +9,11 @@ class IChartRepository(BaseRepository, IMongoBaseRepository):
     def get_charts_gateway(self, dashboardId, userId):
         pass
 
-    def get_detail(self, dashboarId, userId, chartId, query: {}):
+    def get_detail(self, dashboardId, userId, chartId, query: {}):
         pass
-
+    
+    def get_same_chart_gateway(self, dashboardId, deviceId, attributeId, chartTypeId):
+        pass
 
 class ChartRepository(MongoBaseRepository, IChartRepository):
 
@@ -97,3 +99,15 @@ class ChartRepository(MongoBaseRepository, IChartRepository):
         cursors = self.collection.aggregate(pipeline)
         results = list(map(lambda r: self._cast_object_without_objectId(r), cursors))
         return results[0]
+    
+    def get_same_chart_gateway(self, dashboardId, deviceId, attributeId, chartTypeId):
+        query = {
+            "dashboardId": dashboardId,
+            "deviceId": deviceId,
+            "attributeId": attributeId,
+            "chartTypeId": chartTypeId
+        }
+        
+        chart = self.get_one(query)
+        
+        return chart

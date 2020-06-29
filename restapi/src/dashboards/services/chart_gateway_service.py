@@ -27,12 +27,17 @@ class ChartGatewayService:
     
     def create(self, dashboardId: str, dto: ChartGatewayDto):
         try:
-            # Validate step
+            # Validate request
             dto.validate()
             gatewayDevice = self.deviceRepository.get_by_uuid(dto.deviceId)
             
             if gatewayDevice is None:
                 return Response.fail("This device was not existed")
+            
+            #  Validate same chart
+            sameChart = self.chartRepository.get_same_chart_gateway(dashboardId, dto.deviceId, dto.attributeId, dto.chartTypeId)
+            if sameChart is not None:
+                return Response.fail("Sorry, This chart should not have same device, same attribute and same type")
             
             dashboardEntity = self.dashboardRepository.getById(dashboardId)
             dashoard = Dashboard.to_domain(dashboardEntity)
