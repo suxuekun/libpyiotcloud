@@ -3,6 +3,8 @@ from flask import Response
 from shared.utils.json_util import to_json
 class HttpResponseWrapper():
     def to_json(self):
+        if isinstance(self.data,bool):
+            del self.data
         return to_json(self.__dict__);
     def to_json_response(self):
         return Response(self.to_json(),mimetype='application/json')

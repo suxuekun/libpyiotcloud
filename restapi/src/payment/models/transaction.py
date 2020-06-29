@@ -7,13 +7,14 @@ class TransactionStatus():
     CANCEL = "cancel"
     COMPLETE = "complete"
 
-class AbstractTransaction(BaseIotModel,TimeStampMixin,PeriodMixin):
+class AbstractTransaction(BaseIotModel,PeriodMixin):
     name = StringType()
     value = DecimalType()
     remark = StringType()
     date = StringType()
     status = StringType()
     receipt = StringType()
+    bt_trans_id = StringType()
 
     def pending(self):
         self.status = TransactionStatus.PENDING
@@ -29,6 +30,5 @@ class TransactionItem(BaseIotModel):
     remark = StringType()
     value = DecimalType()
 
-class Transaction(AbstractTransaction,UserMixin):
-    bt_trans_id = StringType()
+class Transaction(AbstractTransaction,UserMixin,TimeStampMixin):
     items = ListType(ModelType(TransactionItem))
