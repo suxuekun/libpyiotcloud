@@ -37,8 +37,9 @@ class MongoBaseRepository(BaseRepository, IMongoBaseRepository):
             }
             if input["_id"] is not None:
                 input.pop("_id")
-                
-            input["modifiedAt"] = timestamp_util.get_timestamp()# always update modifiedAt
+
+            if 'modifiedAt' in input:# always update modifiedAt if exist
+                input["modifiedAt"] = timestamp_util.get_timestamp()
             if 'createdAt' in input:# no touch create for update , so will be no changes on this field
                 input.pop('createdAt')
             self.collection.update_one(query, {"$set": input})

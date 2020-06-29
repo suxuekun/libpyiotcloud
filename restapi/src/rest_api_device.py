@@ -11,6 +11,7 @@ import flask
 #from flask_json import FlaskJSON, JsonError, json_response, as_json
 #from certificate_generator import certificate_generator
 #from messaging_client import messaging_client
+from payment.services import subscription_service
 from rest_api_config import config
 #from database import database_client
 #from flask_cors import CORS
@@ -102,6 +103,13 @@ class device:
 
         # delete device from database
         self.database_client.delete_device_by_deviceid(deviceid)
+
+        # delete device subscription
+        try:
+            subscription = subscription_service.get_one({'deviceid':deviceid})
+            subscription_service.delete(subscription._id)
+        except Exception as e:
+            print(e)
 
         # delete device from message broker
         try:
@@ -796,6 +804,9 @@ class device:
 
         # check if device is registered
         device = self.database_client.find_device(entityname, devicename)
+        # get device id for update subscription
+        deviceid = device.get('deviceid')
+
         if not device:
             response = json.dumps({'status': 'NG', 'message': 'Device is not registered'})
             print('\r\nERROR Update Device Name: Device is not registered [{},{}]\r\n'.format(entityname, devicename))
@@ -821,6 +832,15 @@ class device:
 
         # update the device name
         self.database_client.update_devicename(entityname, devicename, data["new_devicename"])
+
+        # update device name in subscription
+        try:
+            subscription = subscription_service.get_one({'deviceid': deviceid})
+            subscription.devicename = data["new_devicename"]
+            subscription_service.update(subscription._id,subscription)
+        except Exception as e:
+            print(e)
+
 
 
         msg = {'status': 'OK', 'message': 'Device name updated successfully.', 'device': device}
