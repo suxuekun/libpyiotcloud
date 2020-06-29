@@ -20,8 +20,8 @@ SUMMARY:
         A. get addOns                      - GET    /payment/addon/
         B. get addOn Details               - GET    /payment/addon/{id}
         
-    5 Calculation Prorate
-        A. prorate                         - POST   /payment/prorate/calc/
+    5. Calculation Prorate
+        A. prorate                         - GET    /payment/prorate/calc/
         
     6. payment setup and checkout
         A. get client token                - GET    /payment/client_token/
@@ -259,56 +259,143 @@ DETAIL:
 
     3. Promocode
         A. get user promocodes
+        // get user promocode avaliable for which subscription update to which plan 
+
         - Request:
         GET: /payment/promocode/
         headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+        queryParams:
+          subscription_id: string,
+          plan_id: string,
         - Response:
         {
           "status": "OK",
           "message": "",
           "data": [
             {
-              "username": "su-org.1592316898",
-              "code": "5eeca30abe5dc00806f53915",
-              "expire": "1592186175",
-              "info": {
-                "_id": null,
-                "createdAt": "1592186175",
-                "modifiedAt": "1592186175",
-                "name": "10 discount",
-                "type": "percent_discount", // real type name not decided yet
-                "period": 1,
-                "value": "10",  // percentage of discount 
-                "remark": "get 10% discount for first month"
-              }
+              "_id": "D05-30-50-twice",
+              "start": "1593532800",
+              "end": "1594742400",
+              "name": "$5.00 ",
+              "type": "discount",
+              "value": "5",
+              "sms": "0",
+              "email": "0",
+              "notification": "0",
+              "storage": "0",
+              "remark": "$5 discount",
+              "period": 1,
+              "plans": [
+                "Upsize30",
+                "Supersize50"
+              ],
+              "max_usage": 2
             },
-            {...}
+            {
+              "_id": "PD10-30-50-twice",
+              "start": "1594742400",
+              "end": "1596124800",
+              "name": "10%",
+              "type": "p_discount",
+              "value": "10.0",
+              "sms": "0",
+              "email": "0",
+              "notification": "0",
+              "storage": "0",
+              "remark": "get 10% discount for current month",
+              "period": 1,
+              "plans": [
+                "Upsize30",
+                "Supersize50"
+              ],
+              "max_usage": 2
+            }
           ]
+        }
+        // missing params 
+        {
+            "status": "NG",
+            "message": "Bad Request"
+        }
+        // wrong subscription_id or plan_id will always return empty list but with ok status
+        {
+            "status": "OK",
+            "message": "",
+            "data": []
         }
         
         B. get user promocodes
         - Request:
         GET: /payment/promocode/{code}/
+        // if code exist then return this code , no checking on plan and validity period
         headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
         - Response:
-        { 
-            'status': 'OK', 
-            'message': string, 
-            'data':{
-              "username": "su-org.1592316898",
-              "code": "5eeca30abe5dc00806f53915",
-              "expire": "1592186175",
-              "info": {
-                "_id": null,
-                "createdAt": "1592186175",
-                "modifiedAt": "1592186175",
-                "name": "10 discount",
-                "type": "percent_discount", // real type name not decided yet
+        {
+          "status": "OK",
+          "message": "",
+          "data": {
+            "_id": "D05-30-50-twice", // promocode 
+            "start": "1593532800",    // for user register between start and end 
+            "end": "1594742400",
+            "name": "$5.00 ",         // name of promocde 
+            "type": "discount",       // value type, current support discount( direct $ discount ) and p_discount (percent discount)
+            "value": "5",
+            "sms": "0",               // add-on value ( currently not impl)
+            "email": "0",
+            "notification": "0",
+            "storage": "0",
+            "remark": "$5 discount",  // description text
+            "period": 1,              // effect for x month ,currently only 1 , for more month currently no impl
+            "plans": [                // avaliable plans 
+              "Upsize30",
+              "Supersize50"
+            ],
+            "max_usage": 2            // max_usage for one device ( not for user)
+          }
+        }
+        // NG
+        {
+            "status": "NG",
+            "message": "Data Not Found"
+        }
+
+        C. verify promocode 
+        - Request:
+        POST : /payment/promocode_verify/
+        // verify if the code is avaliable for subscription change to the specific plan
+         
+        headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
+          subscription_id: string,
+          plan_id: string,
+          code: string,
+        - Response:
+        {
+            "status": "OK",
+            "message": "",
+            "data": {
+                "_id": "D05-30-50-twice",
+                "start": "1593532800",
+                "end": "1594742400",
+                "name": "$5.00 ",
+                "type": "discount",
+                "value": "5",
+                "sms": "0",
+                "email": "0",
+                "notification": "0",
+                "storage": "0",
+                "remark": "$5 discount",
                 "period": 1,
-                "value": "10",  // percentage of discount 
-                "remark": "get 10% discount for first month"
-              }
-            },
+                "plans": [
+                    "Upsize30",
+                    "Supersize50"
+                ],
+                "max_usage": 2
+            }
+        }
+        // NG 
+        {
+            "status": "NG",
+            "message": "NO CODE FOUND OR CODE NOT AVALIABLE FOR THIS PLAN"
         }
         
     4. AddOn # TODO
@@ -316,10 +403,10 @@ DETAIL:
     5. Calculation Prorate
         A. prorate 
         - Request:
-        POST: /payment/prorate/calc/
+        GET: /payment/prorate/calc/
         headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
         data: { // current PLAN id , and change to PLAN id
-            "new_plan_id": 'Enterprise50',
+            "new_plan_id": 'Supersize50',
             "old_plan_id": 'Free',
             "promocode": 'the code' // if have
         }
@@ -338,6 +425,36 @@ DETAIL:
             "total_days": 30,
             "gst": 0.0
           }
+        }
+        // with invalid promocode will return but with bad promocode 
+        {
+            "status": "OK",
+            "message": "bad promocode",
+            "data": {
+                "price": "50.00",
+                "total_payable": "3.33",
+                "plan_rebate": "0.00",
+                "total_discount": "0.00",
+                "promo_discount": 0,
+                "prorate": "3.33",
+                "remaining_days": 2,
+                "total_days": 30,
+                "gst": 0
+            }
+        }
+        // with invalid new_plan_id or old_plan_id
+        {
+            "status": "NG",
+            "message": "bad new plan id"
+        }
+        {
+            "status": "NG",
+            "message": "bad old plan id"
+        }
+        // missing new_plan_id or old_plan_id
+        {
+            "status": "NG",
+            "message": "Bad Request"
         }
 
     6. payment setup and checkout
@@ -380,6 +497,15 @@ DETAIL:
             'message': string,
             "data": true
         } 
+        // wrong post data format http : 400
+        {
+            "status": "NG",
+            "message": "Bad Request"
+        }
+        // problem with braintree httpcode : 503
+        {'status': 'NG', 'message': 'check out fail with braintree'}
+        // problem with data base format  httpcode: 503
+        {'status':'NG','message':'data format fail'}
 
         C. cancel subscription
         - Request:

@@ -70,7 +70,7 @@ class PaymentService():
             self.subscription_repo.update(subscription._id,subscription.to_primitive())
 
     def _new_subscription(self,payment_method_token,subscription,plan,promocode,gst):
-        prorate_dict = self._prorate_without_gst(subscription.next.plan,plan,promocode)
+        prorate_dict,_ = self._prorate_without_gst(subscription.next.plan,plan,promocode)
         prorate = prorate_dict.get('prorate')
         self._assign_draft(subscription, plan)
         option = {
@@ -104,7 +104,7 @@ class PaymentService():
         return True
 
     def _upgrade_subscription(self,payment_method_token,subscription,plan,promocode,gst):
-        prorate_dict = self._prorate_without_gst(subscription.next.plan,plan,promocode)
+        prorate_dict,_ = self._prorate_without_gst(subscription.next.plan,plan,promocode)
         prorate = prorate_dict.get('prorate')
         sub_id = subscription.next.get_braintree_subscription_id()
         self._assign_draft(subscription, plan)
@@ -214,7 +214,11 @@ class PaymentService():
         return True
 
     def _prorate_without_gst(self,current_plan,next_plan,promocode):
-        print(current_plan,next_plan,promocode)
+        if (not current_plan._id):
+            return None,'bad old plan id'
+        if (not next_plan._id):
+            return None,'bad new plan id'
+        # print(current_plan,next_plan,promocode)
 
         _, remain, total = percent_of_month_left()
         rate = 1
@@ -224,6 +228,7 @@ class PaymentService():
         _, plan_rebate = payment_client._get_discounted_amount(current_plan.price, remain, total)
         prorate = total_payable - plan_rebate
         promo_discount = 0.00
+        message = ""
         if prorate <= 0:
             prorate = 0
             total_discount = plan_rebate = total_payable
@@ -235,6 +240,8 @@ class PaymentService():
                     payable, promo_discount = promoModel.calc(prorate)
                     prorate = payable
                     total_discount += promo_discount
+                else:
+                    message = "bad promocode"
         res = {
             'price': next_plan.price,
             'total_payable': total_payable,
@@ -245,7 +252,7 @@ class PaymentService():
             'remaining_days': remain,
             'total_days': total,
         }
-        return res
+        return res,message
 
 
     @throw_bad_db_query()
@@ -254,13 +261,13 @@ class PaymentService():
         current_plan.validate()
         next_plan = Plan(self.plan_repo.getById(new_plan_id), strict=False)
         next_plan.validate()
-        res = self._prorate_without_gst(current_plan,next_plan,promocode)
+        res,message = self._prorate_without_gst(current_plan,next_plan,promocode)
         try:
             b = self.billing_address_service.get_or_create_one(query)
             res['gst'] = b.get_gst();
         except Exception as _:
             print(_)
-        return res
+        return res,message
 
 
     def test(self):

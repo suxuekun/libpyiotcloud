@@ -7,10 +7,10 @@ from shared.middlewares.request.informations import get_entityname_query, reques
 from shared.middlewares.request.permission.base import getRequest
 from shared.middlewares.response import make_error_response, http4xx, make_custom_error_response
 from shared.simple_api.resource import ListMixin, BaseResource, \
-    throw_custome_error_request, throw_bad_request
+    throw_custome_error_request, throw_bad_request, GetMixin
 from shared.wrapper.response import IotHttpResponseWrapper
 
-class PromocodeResource(Resource,BaseResource):
+class PromocodeResource(Resource,GetMixin):
     FILTER = requestWrap(get_entityname_query)
     service = promocode_service
     wrapper_class = IotHttpResponseWrapper

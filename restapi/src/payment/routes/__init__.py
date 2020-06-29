@@ -63,10 +63,11 @@ api.add_resource(PlanReloadResource,'/plan_reload/',endpoint='plan_reload')
 3. Promocode
     A. get user promocodes             - GET    /payment/promocode/
     B. get user promocode              - GET    /payment/promocode/{id}/
+    C. verify                          - POST   /payment/promocode_verify/
 '''
 
 api.add_resource(PromocodeListResource,'/promocode/',endpoint='promocodelist')
-api.add_resource(PromocodeResource,'/promocode/<code>/',endpoint='promocode')
+api.add_resource(PromocodeResource,'/promocode/<id>/',endpoint='promocode')
 api.add_resource(PromocodeVerifyResource,'/promocode_verify/',endpoint="promocode_verify")
 '''
 2. Subscription
@@ -84,7 +85,7 @@ api.add_resource(TransactionListResource ,'/transaction/',endpoint='transactionl
 api.add_resource(TransactionResource,'/transaction/<id>/',endpoint='transaction')
 '''
 5 payment_blueprint5 Calculation Prorate
-A. prorate                         - POST   /payment/prorate/calc/
+A. prorate                         - GET   /payment/prorate/calc/
 '''
 api.add_resource(ProrateResource,'/prorate/calc/',endpoint='prorate_calc')
 
