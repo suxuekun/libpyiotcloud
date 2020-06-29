@@ -178,8 +178,8 @@ class database_client:
     # menos
     ##########################################################
 
-    def add_menos_transaction(self, deviceid, recipient, message, type, source, sensorname, timestamp, condition, result):
-        self._devices.add_menos_transaction(deviceid, recipient, message, type, source, sensorname, timestamp, condition, result)
+    def add_menos_transaction(self, username, deviceid, recipient, message, type, source, number, timestamp, condition, result):
+        self._devices.add_menos_transaction(username, deviceid, recipient, message, type, source, number, timestamp, condition, result)
 
     def delete_menos_transaction(self, deviceid):
         self._devices.delete_menos_transaction(deviceid)
@@ -634,17 +634,21 @@ class database_client_mongodb:
     def get_menos_document(self):
         return self.client[config.CONFIG_MONGODB_TB_MENOS]
 
-    def add_menos_transaction(self, deviceid, recipient, message, type, source, sensorname, timestamp, condition, result):
+    def add_menos_transaction(self, username, deviceid, recipient, message, type, source, number, timestamp, condition, result):
         menos = self.get_menos_document()
         item = {}
-        item['deviceid'] = deviceid
         item['timestamp'] = timestamp
+        item['type'] = type
+
+        item['username'] = username
+        item['deviceid'] = deviceid
+        item['source'] = source
+        if number is not None:
+            item['number'] = number
+
         item['recipient'] = recipient
         item['messagelen'] = len(message)
-        item['type'] = type
-        item['source'] = source
-        if sensorname is not None:
-            item['sensorname'] = sensorname
+
         if condition is not None:
             item['condition'] = condition
         item['result'] = result
