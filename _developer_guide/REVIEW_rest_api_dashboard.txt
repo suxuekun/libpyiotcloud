@@ -121,3 +121,12 @@ June 26, 2020
     it should at least round robin
 
 19. the dashboard list on the left side is still too big. reduce size to two-thirds
+
+
+===============================================
+
+June 29, 2020
+
+20. deleting device should delete related entries in the dashboards gateways and dashboard sensors
+    add your function in rest_api_device.py device_cleanup()
+
