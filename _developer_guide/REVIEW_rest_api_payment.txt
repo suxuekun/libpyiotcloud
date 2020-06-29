@@ -187,7 +187,7 @@ June 25, 2020
 
 June 29, 2020
 
-40. deleting device should delete related entries in in payment db collections (ex. payment_subscription)
+40. deleting device should delete related entries in payment db collections (ex. payment_subscription)
 
     add your function in rest_api_device.py device_cleanup()
 
