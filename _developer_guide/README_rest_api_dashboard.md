@@ -358,7 +358,7 @@ DETAIL:
                     'name': string,
                 }
             ]
-            message: 'Get chart responses successfully'
+            'message': 'Get chart responses successfully'
         }
         - Notes: 
             {valueType}: gateway, sensor
