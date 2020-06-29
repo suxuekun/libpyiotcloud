@@ -9,7 +9,7 @@
       <h4 style="text-align: center;">No dashboards</h4>
     </div>
     <div class="row" ng-show="dashboards.length != 0">
-        <div class="dashboard-list-column dashboard-container">
+        <div class="dashboard-list-column dashboard-container" style="margin-top: -10px;">
             <div class="dashboard-container dashboard-border dashboard-round-border">
               <h2>Dashboards</h2>
               <div  ng-repeat="dashboard in dashboards">
@@ -166,7 +166,7 @@
                                 ng-show="chart.typeId==0"
                                 chart-data="chart.values"
                                 chart-labels="chart.labels"
-                                chart-colors="sensors_datachart_colors_options_ex"
+                                chart-colors="sensors_datachart_colors_options"
                                 chart-options="sensors_datachart_piechart_sensors_statuses_options">
                         </canvas>
 

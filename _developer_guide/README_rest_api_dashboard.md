@@ -21,7 +21,7 @@ SUMMARY:
 
     3. Gateway Attritubes:
 
-        A. GETS                            - GET   /dashboards/gateways/attributes
+        A. GETS                            - GET   /dashboards/gateway/attributes
 
     4. Sensors: 
 
@@ -32,7 +32,7 @@ SUMMARY:
         
     5. ChartTypes:
 
-        A. GETS                            - GET    /dashboards/charts/types/{valueType}
+        A. GETS                            - GET    /dashboards/charts/types/{valueType}   
 
 
 DETAIL:
@@ -50,7 +50,6 @@ DETAIL:
         - Reponse:
         { 
             'status': 'OK', 
-            'data': true, 
             'message': 'Create successfully'
         }
 
@@ -65,7 +64,6 @@ DETAIL:
         - Reponse:
         { 
             'status': 'OK', 
-            'data': true, 
             'message': 'Update successfully'
         }
 
@@ -75,7 +73,8 @@ DETAIL:
         headers: {'Authorization': 'Bearer ' + token.access}
         - Response:
         {
-            data: [
+            'status': 'OK',
+            'data': [
                 {
                     'id': string,
                     'name': string,
@@ -83,7 +82,8 @@ DETAIL:
                     'createdAt': string
                     'modifiedAt': string
                 }
-            ]
+            ],
+            'message': 'Get dashboards successfully'
         }
 
         D. GET DETAIL
@@ -92,13 +92,15 @@ DETAIL:
         headers: {'Authorization': 'Bearer ' + token.access}
         - Response:
         {
-            data:{
+            'status': 'OK'
+            'data':{
                     'id': string,
                     'name': string,
                     'color': string,
                     'createdAt': string
                     'modifiedAt': string
-                }
+            },
+            'message': 'Get dashboard detail successfully'
         }
 
         E. DELETE
@@ -108,7 +110,6 @@ DETAIL:
         - Response:
         {
             'status': 'OK',
-            'data': true,
             'message': 'Delete successfully'
         }
 
@@ -126,7 +127,6 @@ DETAIL:
         - Response:
         {
             'status': 'OK',
-            'data': true,
             'message': 'Create successfully'
         }
         - Note After finish to create charts, there are some business in here.
@@ -175,7 +175,8 @@ DETAIL:
                       ]
                   }
                 }
-            ]
+            ],
+            'message': 'Get chart responses successfully'
         }
 
         C. GET
@@ -193,8 +194,8 @@ DETAIL:
 
         - Response:
         {
-            status: 'OK',
-            data:
+            'status': 'OK',
+            'data':
                 {
                   "id": string,
                   "chartTypeId": number,
@@ -217,7 +218,8 @@ DETAIL:
                       ]
                   }
                 }
-            ]
+            ],
+            'message': 'Get chart response successfully'
         }
 
         D. DELETE
@@ -227,7 +229,6 @@ DETAIL:
         - Response:
         {
             'status': 'OK',
-            'data': true
             'message': 'Delete successfully'
         }
     3. Attributes
@@ -238,12 +239,14 @@ DETAIL:
         headers: {'Authorization': 'Bearer ' + token.access}
         - Response:
         {
+            'status': 'OK',
             'data': [
                 {
                     'id': string ,
                     'name': string
                 }
-            ]
+            ],
+            'message': 'Get attributes successully'
         }
 
         B. DATA STRUCTURES
@@ -266,7 +269,6 @@ DETAIL:
         }
         - Response:
         {
-            'data': true,
             'status': 'OK',
             'message': 'Create successfully'
         }
@@ -299,7 +301,8 @@ DETAIL:
                         'filters': [],
                     },
                 }
-            ]
+            ],
+            'message': 'Get charts sensors successfully'
         }
 
         C. GET
@@ -326,7 +329,8 @@ DETAIL:
                         'filters': [],
                     },
                 }
-            }
+            },
+            'message': 'Get chart detail successfully'
         }
 
         D. DELETE
@@ -336,7 +340,6 @@ DETAIL:
         - Response:
         {
             'status': 'OK',
-            'data': true,
             'message': 'Delete successfully'
         }
 
@@ -355,9 +358,10 @@ DETAIL:
                     'name': string,
                 }
             ]
+            message: 'Get chart responses successfully'
         }
         - Notes: 
-            {valueType}: gateways, sensors
+            {valueType}: gateway, sensor
 
         B. DATA STRUCTURES
 
