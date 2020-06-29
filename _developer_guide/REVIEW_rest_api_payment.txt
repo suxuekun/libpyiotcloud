@@ -241,3 +241,17 @@ June 29, 2020
            its unclear if plan_id is the new plan, not the existing plan
 
     Document the API properly so that mobile team does NOT need to ask question anymore, that is the documentation can stand by its own.
+
+49. Please use these functions in database.py for getting the current consumed MENOS alerts for the current month
+
+    For Usages:
+    SMS                 - get_menos_num_sms_by_currmonth
+    Email               - get_menos_num_email_by_currmonth
+    Push Notification   - get_menos_num_notification_by_currmonth
+    Sensor Data Storage - get_menos_num_sensordata_by_currmonth
+    or
+    SMS                 - get_menos_num_sms_by_deviceid_by_currmonth
+    Email               - get_menos_num_email_by_deviceid_by_currmonth
+    Push Notification   - get_menos_num_notification_by_deviceid_by_currmonth
+    Sensor Data Storage - get_menos_num_sensordata_by_deviceid_by_currmonth
+
