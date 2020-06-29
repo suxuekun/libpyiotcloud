@@ -130,3 +130,12 @@ June 29, 2020
 20. deleting device should delete related entries in the dashboards gateways and dashboard sensors
     add your function in rest_api_device.py device_cleanup()
 
+21. The GETS api only returns dataset for the 1st attribute.
+    so for count of alerts, sms is the 1st attribute
+
+    to get data for email, need to call GET DETAIL.
+
+    Please prepare a new API, GETS EX api 
+    - this should return all datasets/datasetsEx for all attributes 
+      (ex. for count of alerts, it should return dataset for sms, email, notification in 1 API call)
+
