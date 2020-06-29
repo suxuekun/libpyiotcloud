@@ -79,6 +79,7 @@ class BaseResource():
 
 
 class GetMixin(BaseResource):
+    @throw_bad_request
     def get(self,id):
         data = self.service.get(id)
         res = self.to_api_data(data)

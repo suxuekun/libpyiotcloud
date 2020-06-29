@@ -1,4 +1,6 @@
 from flask_restful import Resource
+
+from payment.dtos.subscription import SubscriptionDTO
 from payment.services import subscription_service
 from shared.middlewares.request import informations
 from shared.middlewares.request.informations import requestWrap, get_entityname_query
@@ -11,11 +13,13 @@ class SubscriptionResource(Resource,GetMixin):
     FILTER = requestWrap(get_entityname_query)
     service = subscription_service
     wrapper_class = IotHttpResponseWrapper
+    ENTITYDTO = SubscriptionDTO
 
 class SubscriptionListResource(Resource,BaseResource):
     FILTER = requestWrap(get_entityname_query)
     service = subscription_service
     wrapper_class = IotHttpResponseWrapper
+    ENTITYDTO = SubscriptionDTO
     @throw_bad_request
     def get(self):
         request = getRequest()

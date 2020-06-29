@@ -51,6 +51,11 @@ class PeriodMixin(Model):
         # TODO
         pass
 
+class MonthPeriodMixin(PeriodMixin):
+    start = StringType(default = timestamp_util.get_timestamp)
+    end = StringType(default = timestamp_util.get_last_day_of_month_timestamp)
+
+
 class DateMixin(Model):
     date = StringType()
     def set_now(self):

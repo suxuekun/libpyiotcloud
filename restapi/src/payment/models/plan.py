@@ -33,7 +33,7 @@ class AbstractPlan(BaseIotModel,Usage):
         return self.price <= 0
 
 
-class Plan(AbstractPlan,TimeStampMixin,):
+class Plan(AbstractPlan,TimeStampMixin):
     bt_plan_id = StringType(max_length=255)
     # active = BooleanType(default=True)
 

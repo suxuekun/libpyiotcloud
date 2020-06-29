@@ -20,7 +20,6 @@ class CheckoutResource(Resource,BaseResource):
         try:
             request = getRequest()
             data = request.get_json()
-            print(data)
             username = informations.get_entityname(request)
             # query = informations.get_entityname_query(request)
             dto =self.to_valid_request_data(data)
@@ -45,11 +44,9 @@ class CancelSubscriptionResource(Resource,BaseResource):
     FILTER = requestWrap(get_entityname_query)
     service = payment_service
     wrapper_class = IotHttpResponseWrapper
-
     def post(self):
         request = getRequest()
         data = request.get_json()
-        print(data)
         subscription_id = data.get('subscription_id')
         data = self.service.cancel_subscription(subscription_id)
         if data:

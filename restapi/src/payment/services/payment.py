@@ -8,6 +8,7 @@ from payment.models.subscription import NextSubscription, Subscription, CurrentS
 from payment.models.transaction import Transaction, TransactionStatus
 from shared.simple_api.service import throw_bad_db_query
 from shared.utils import timestamp_util
+from shared.utils.decimal_util import two_decimal_str
 from shared.utils.timestamp_util import percent_of_month_left
 from payment.core import payment_client
 
@@ -54,6 +55,9 @@ class PaymentService():
         draft = NextSubscription()
         draft.bt_sub = str(ObjectId())
         draft.plan = plan
+        next_month_first_day = timestamp_util.get_next_month_first_day()
+        draft.start = timestamp_util.get_next_month_first_day_timestamp()
+        draft.end = timestamp_util.get_last_day_of_month_timestamp(timestamp_util.get_next_month_first_day())
         draft.validate()
 
         subscription.draft = draft
@@ -85,6 +89,8 @@ class PaymentService():
             self.promocode_service.add_promocode_usage(subscription._id, promocode)
         if (bt_subscription):
             subscription.current = CurrentSubscription(subscription.draft.to_primitive())
+            subscription.current.start = timestamp_util.get_timestamp()
+            subscription.current.end = timestamp_util.get_last_day_of_month_timestamp()
             subscription.current.validate()
             subscription.status = SubScriptionStatus.NORMAL
             self._confirm_subscription_plan_change(subscription,commit=True)
@@ -136,7 +142,6 @@ class PaymentService():
         print('downgrade sub', option)
         bt_subscription= payment_client.update_subscription(sub_id, option)
         if bt_subscription:
-            subscription.current.import_data(subscription.draft.to_primitive())
             subscription.status = SubScriptionStatus.DOWNGRADE
             subscription.current.validate()
             self._confirm_subscription_plan_change(subscription, commit=True)
@@ -247,8 +252,8 @@ class PaymentService():
             'total_payable': total_payable,
             'plan_rebate': plan_rebate,
             'total_discount': total_discount,
-            'promo_discount': promo_discount,
-            'prorate': prorate,
+            'promo_discount':two_decimal_str(promo_discount),
+            'prorate': two_decimal_str(prorate),
             'remaining_days': remain,
             'total_days': total,
         }
