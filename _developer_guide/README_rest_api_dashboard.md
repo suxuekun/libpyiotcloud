@@ -73,7 +73,8 @@ DETAIL:
         headers: {'Authorization': 'Bearer ' + token.access}
         - Response:
         {
-            data: [
+            'status': 'OK',
+            'data': [
                 {
                     'id': string,
                     'name': string,
@@ -81,7 +82,8 @@ DETAIL:
                     'createdAt': string
                     'modifiedAt': string
                 }
-            ]
+            ],
+            'message': 'Get dashboards successfully'
         }
 
         D. GET DETAIL
@@ -90,13 +92,15 @@ DETAIL:
         headers: {'Authorization': 'Bearer ' + token.access}
         - Response:
         {
-            data:{
+            'status': 'OK'
+            'data':{
                     'id': string,
                     'name': string,
                     'color': string,
                     'createdAt': string
                     'modifiedAt': string
-                }
+            },
+            'message': 'Get dashboard detail successfully'
         }
 
         E. DELETE
@@ -171,7 +175,8 @@ DETAIL:
                       ]
                   }
                 }
-            ]
+            ],
+            'message': 'Get chart responses successfully'
         }
 
         C. GET
@@ -189,8 +194,8 @@ DETAIL:
 
         - Response:
         {
-            status: 'OK',
-            data:
+            'status': 'OK',
+            'data':
                 {
                   "id": string,
                   "chartTypeId": number,
@@ -213,7 +218,8 @@ DETAIL:
                       ]
                   }
                 }
-            ]
+            ],
+            'message': 'Get chart response successfully'
         }
 
         D. DELETE
@@ -233,12 +239,14 @@ DETAIL:
         headers: {'Authorization': 'Bearer ' + token.access}
         - Response:
         {
+            'status': 'OK',
             'data': [
                 {
                     'id': string ,
                     'name': string
                 }
-            ]
+            ],
+            'message': 'Get attributes successully'
         }
 
         B. DATA STRUCTURES
@@ -293,7 +301,8 @@ DETAIL:
                         'filters': [],
                     },
                 }
-            ]
+            ],
+            'message': 'Get charts sensors successfully'
         }
 
         C. GET
@@ -320,7 +329,8 @@ DETAIL:
                         'filters': [],
                     },
                 }
-            }
+            },
+            'message': 'Get chart detail successfully'
         }
 
         D. DELETE
@@ -348,6 +358,7 @@ DETAIL:
                     'name': string,
                 }
             ]
+            message: 'Get chart responses successfully'
         }
         - Notes: 
             {valueType}: gateway, sensor
