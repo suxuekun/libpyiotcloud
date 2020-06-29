@@ -22793,70 +22793,44 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Device
         // status
         "get_status", 
         "set_status",
+        "pub_heartbeat",
 
         // settings
         "get_settings", 
         "set_settings",
         
         // uart
-        "get_uarts",
-        "get_uart_prop",
         "set_uart_prop",
-        "enable_uart",
 
-        // gpio
-        "get_gpios",
-        "get_gpio_prop",
-        "set_gpio_prop",
-        "enable_gpio",
-        "get_gpio_voltage",
-        "set_gpio_voltage",
-
-        // i2c
-        "get_i2c_devs",
-        "enable_i2c_dev",
-        "get_i2c_dev_prop",
-        "set_i2c_dev_prop",
-
-        // adc
-        "get_adc_devs",
-        "enable_adc_dev",
-        "get_adc_dev_prop",
-        "set_adc_dev_prop",
-        "get_adc_voltage",
-        "set_adc_voltage",
-
-        // 1wire
-        "get_1wire_devs",
-        "enable_1wire_dev",
-        "get_1wire_dev_prop",
-        "set_1wire_dev_prop",
-
-        // tprobe
-        "get_tprobe_devs",
-        "enable_tprobe_dev",
-        "get_tprobe_dev_prop",
-        "set_tprobe_dev_prop",
+        // gateway and ldsbus
+        "set_descriptor",
+        "get_descriptor",
+        "set_ldsu_descriptors",
+        "get_ldsu_descriptors",
+        "identify_ldsu",
+        "enable_ldsu_dev",
         
-        // notification
-        "get_devs",
+        // configuratrions
+        "req_configuration",
+        "rcv_configuration",
+        "del_configuration",
         
+        // sensor readings
+        "pub_sensor_reading",
+        "rcv_sensor_reading",
+        "req_sensor_reading",
+        
+        // ota
+        "beg_ota",
+        "end_ota",
+        "req_otastatus",
+        "req_time",
+        "rcv_time",
+
         // notification
         "recv_notification",
         "trigger_notification",
         "status_notification",
-        
-        // sensor reading
-        "rcv_sensor_reading",
-        "req_sensor_reading",
-        "sensor_reading",
-
-        // configuration
-        "rcv_configuration",
-        "req_configuration",
-        "del_configuration",
-        "set_configuration"
-        
     ];
     $scope.topicidx = 0;
 
@@ -22981,24 +22955,9 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Device
     ];
     $scope.type = "All types";
 
-    // Filter by peripherals
-    $scope.peripherals = [ 
-        "All peripherals",
-        "UART", 
-        "GPIO1",
-        "GPIO2",
-        "GPIO3",
-        "GPIO4",
-        "I2C1",
-        "I2C2",
-        "I2C3",
-        "I2C4",
-        "ADC1",
-        "ADC2",
-        "1WIRE1",
-        "TPROBE1"
-    ];
-    $scope.peripheral = "All peripherals";
+    // Filter by sources
+    $scope.sources = [ "All sources", "UART" ];
+    $scope.source = "All sources";
 
     // Filter by date    
     $scope.date = {
@@ -23008,7 +22967,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Device
     
     
     
-    $scope.applyFilter = function(deviceidx, type, peripheral) {
+    $scope.applyFilter = function(deviceidx, type, source=null) {
 
         var devicename = null;
         var deviceid = null;
@@ -23042,7 +23001,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Device
 
         //console.log(devicename);
         //console.log(type);
-        //console.log(peripheral);
+        //console.log(source);
         //console.log(datebegin);
         //console.log(dateend);
 
@@ -23052,8 +23011,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Device
             type_use = type;
         }
         var source_use = null;
-        if (peripheral !== "All peripherals") {
-            source_use = peripheral;
+        if (source !== null) {
+            source_use = source;
         }
         Notifications.fetch_filtered($scope.data, devicename, type_use, source_use, datebegin, dateend).then(function(res) {
             $scope.items = res;

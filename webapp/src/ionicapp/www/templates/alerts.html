@@ -13,10 +13,6 @@
         <span class="input-label">Device</span>
         <select ng-options="devices.indexOf(deviceidx) as deviceidx for deviceidx in devices" ng-model="deviceidx"></select>
       </label>
-      <label class="item item-select widget_button_third_ex" id="alerts-select103">
-        <span class="input-label">Peripherals</span>
-        <select ng-options="peripheral for peripheral in peripherals" ng-model="peripheral"></select>
-      </label>
       <label class="item item-select widget_button_third_ex" id="alerts-select104">
         <span class="input-label">Types</span>
         <select ng-options="type for type in types" ng-model="type"></select>
@@ -30,7 +26,7 @@
         <span class="input-label">End Date</span>
         <input type="text" placeholder="YYYY-MM-DD HH:MM:SS" ng-model="date.end">
       </label>
-      <button id="alerts-button151" ng-click="applyFilter(deviceidx, type, peripheral)" class="button button-positive button-block">Apply</button>
+      <button id="alerts-button151" ng-click="applyFilter(deviceidx, type)" class="button button-positive button-block">Apply</button>
     </form>
     <div id="alerts-markdown289" class="show-list-numbers-and-dots">
       <p style="color:#AAAAAA;font-size:12px;">Result: {{ items.length }} transactions</p>
@@ -51,7 +47,7 @@
           <p style="margin-top:0px;color:#444444;font-size:10px;">Message: {{ item.messagelen }} bytes</p>
         </div>
         <div id="alerts-markdown313" class="show-list-numbers-and-dots">
-          <p style="margin-top:0px;color:#444444;font-size:10px;">{{ item.sensorname &amp;&amp; item.condition ? item.source + " : " + item.sensorname + " : " + item.condition : item.sensorname ? item.source + " : " + item.sensorname : item.source }}
+          <p style="margin-top:0px;color:#444444;font-size:10px;">{{ item.number &amp;&amp; item.condition ? item.source + " : " + item.number + " : " + item.condition : item.number ? item.source + " : " + item.number : item.source }}
           </p>
         </div>
       </div>
