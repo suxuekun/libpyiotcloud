@@ -23015,7 +23015,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Device
             source_use = source;
         }
         Notifications.fetch_filtered($scope.data, devicename, type_use, source_use, datebegin, dateend).then(function(res) {
-            $scope.items = res;
+            $scope.items = res.transactions;
+            $scope.usages = res.usages;
             $scope.data.token = User.get_token();
         }); 
     };
@@ -23035,7 +23036,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Device
         });
     
         Notifications.fetch($scope.data).then(function(res) {
-            $scope.items = res;
+            $scope.items = res.transactions;
+            $scope.usages = res.usages;
             $scope.data.token = User.get_token();
         }); 
     };

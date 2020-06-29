@@ -6,7 +6,7 @@ import time
 #import hashlib
 import flask
 #import base64
-#import datetime
+import datetime
 #import calendar
 #from flask_json import FlaskJSON, JsonError, json_response, as_json
 #from certificate_generator import certificate_generator

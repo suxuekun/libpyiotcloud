@@ -139,6 +139,21 @@ class database_client:
         return settings
 
 
+    def get_current_month_epoch(self):
+        today = datetime.datetime.now()
+        currmonth = datetime.datetime(today.year, today.month, 1)
+        currmonth_epoch = int((currmonth - datetime.datetime(1970, 1, 1)).total_seconds())
+        return currmonth_epoch
+
+    def get_next_month_epoch(self):
+        today = datetime.datetime.now()
+        if today.month == 12:
+            nextmonth = datetime.datetime(today.year + 1, 1, 1) 
+        else:
+            nextmonth = datetime.datetime(today.year, today.month + 1, 1)
+        nextmonth_epoch = int((nextmonth - datetime.datetime(1970, 1, 1)).total_seconds())
+        return nextmonth_epoch
+
 
     ##########################################################
     # transactions
@@ -467,12 +482,53 @@ class database_client:
         self._devices.delete_menos_transaction(deviceid)
 
     # org-ready
+    def get_menos_transaction_by_username(self, username):
+        return self._devices.get_menos_transaction_by_username(username)
+
+    # org-ready
     def get_menos_transaction(self, deviceid):
         return self._devices.get_menos_transaction(deviceid)
 
     # org-ready
     def get_menos_transaction_filtered(self, deviceid, type, source, datebegin, dateend):
         return self._devices.get_menos_transaction_filtered(deviceid, type, source, datebegin, dateend)
+
+
+    def get_menos_num_sms_by_currmonth(self, username, devicename):
+        deviceid = self._devices.get_deviceid(username, devicename)
+        return self._devices.get_menos_num_sms(deviceid, self.get_current_month_epoch(), self.get_next_month_epoch())
+
+    def get_menos_num_email_by_currmonth(self, username, devicename):
+        deviceid = self._devices.get_deviceid(username, devicename)
+        return self._devices.get_menos_num_email(deviceid, self.get_current_month_epoch(), self.get_next_month_epoch())
+
+    def get_menos_num_notification_by_currmonth(self, username, devicename):
+        deviceid = self._devices.get_deviceid(username, devicename)
+        return self._devices.get_menos_num_notification(deviceid, self.get_current_month_epoch(), self.get_next_month_epoch())
+
+    def get_menos_num_device_by_currmonth(self, username, devicename):
+        deviceid = self._devices.get_deviceid(username, devicename)
+        return self._devices.get_menos_num_device(deviceid, self.get_current_month_epoch(), self.get_next_month_epoch())
+
+    def get_menos_num_storage_by_currmonth(self, username, devicename):
+        deviceid = self._devices.get_deviceid(username, devicename)
+        return self._devices.get_menos_num_storage(deviceid, self.get_current_month_epoch(), self.get_next_month_epoch())
+
+
+    def get_menos_num_sms_by_deviceid_by_currmonth(self, deviceid):
+        return self._devices.get_menos_num_sms(deviceid, self.get_current_month_epoch(), self.get_next_month_epoch())
+
+    def get_menos_num_email_by_deviceid_by_currmonth(self, deviceid):
+        return self._devices.get_menos_num_email(deviceid, self.get_current_month_epoch(), self.get_next_month_epoch())
+
+    def get_menos_num_notification_by_deviceid_by_currmonth(self, deviceid):
+        return self._devices.get_menos_num_notification(deviceid, self.get_current_month_epoch(), self.get_next_month_epoch())
+
+    def get_menos_num_device_by_deviceid_by_currmonth(self, deviceid):
+        return self._devices.get_menos_num_device(deviceid, self.get_current_month_epoch(), self.get_next_month_epoch())
+
+    def get_menos_num_storage_by_deviceid_by_currmonth(self, deviceid):
+        return self._devices.get_menos_num_storage(deviceid, self.get_current_month_epoch(), self.get_next_month_epoch())
 
 
     ##########################################################
@@ -2072,6 +2128,15 @@ class database_client_mongodb:
             print("delete_menos_transaction: Exception occurred")
             pass
 
+    def get_menos_transaction_by_username(self, username):
+        menos_list = []
+        menos = self.get_menos_document()
+        if menos and menos.count():
+            for menos_item in menos.find({'username': username}):
+                menos_item.pop('_id')
+                menos_list.append(menos_item)
+        return menos_list
+
     def get_menos_transaction(self, deviceid):
         menos_list = []
         menos = self.get_menos_document()
@@ -2105,6 +2170,30 @@ class database_client_mongodb:
                 menos_list.append(menos_item)
 
         return menos_list
+
+
+    def get_menos_num_type(self, deviceid, datestart, dateend, type):
+        menos = self.get_menos_document()
+        if menos:
+            items = menos.find({'deviceid': deviceid, 'type': type, 'timestamp': { '$gt': datestart, '$lte': dateend } })
+            if items:
+                return items.count()
+        return 0
+
+    def get_menos_num_sms(self, deviceid, datestart, dateend):
+        return self.get_menos_num_type(deviceid, datestart, dateend, "Mobile")
+
+    def get_menos_num_email(self, deviceid, datestart, dateend):
+        return self.get_menos_num_type(deviceid, datestart, dateend, "Email")
+
+    def get_menos_num_notification(self, deviceid, datestart, dateend):
+        return self.get_menos_num_type(deviceid, datestart, dateend, "Notification")
+
+    def get_menos_num_device(self, deviceid, datestart, dateend):
+        return self.get_menos_num_type(deviceid, datestart, dateend, "Modem")
+
+    def get_menos_num_storage(self, deviceid, datestart, dateend):
+        return self.get_menos_num_type(deviceid, datestart, dateend, "Storage")
 
 
     ##########################################################
