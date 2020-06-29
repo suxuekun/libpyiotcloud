@@ -26,7 +26,7 @@ import threading
 import rest_api_utils
 from database import database_categorylabel, database_crudindex
 from message_broker_api import message_broker_api
-
+from dashboards.ioc import init_chart_gateway_service
 
 
 #CONFIG_SEPARATOR            = '/'
@@ -108,6 +108,9 @@ class device:
             message_broker_api().unregister(deviceid)
         except:
             pass
+        
+        
+        init_chart_gateway_service().delete_by_deviceId(deviceid)
 
     #
     # when deleting a sensor,

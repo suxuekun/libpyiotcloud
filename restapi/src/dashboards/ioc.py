@@ -40,9 +40,11 @@ chartTypeRepository = ChartTypeRepository(mongoclient=mongoClient, db = db, coll
 deviceRepository = DeviceRepository(
     mongoclient=mongoClient, db=db, collectionName="devices")
 
+dashboardService =  DashboardService(dashboardRepository)
+chartGatewayService = ChartGatewayService(dashboardRepository, chartRepository, attributeRepository, deviceRepository, dashboardService)
+
 def init_chart_gateway_service():
-    return ChartGatewayService(
-        dashboardRepository, chartRepository, attributeRepository, deviceRepository)
+    return chartGatewayService
     
 def init_chart_sensor_service():
     sensorRepository = SensorRepository(mongoclient=sensorMongoCLient, db = sensorDb, collectionName="i2csensors")
@@ -50,7 +52,7 @@ def init_chart_sensor_service():
         dashboardRepository, chartRepository, attributeRepository, deviceRepository, sensorRepository)
 
 def init_dashboard_service():
-    return DashboardService(dashboardRepository)
+    return dashboardService
 
 def init_gateway_attribute_service():
     return GatewayAttributeService(attributeRepository)

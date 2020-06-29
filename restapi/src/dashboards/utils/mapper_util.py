@@ -6,7 +6,6 @@ from dashboards.dtos.chart_gateway_response import ChartGatewayResponse, DataSet
 from dashboards.models.gateway_attribute import *
 from shared.utils.mapper_util import formart_id_with_entity
 
-
 def map_entity_to_summary_response(entity):
     response = DashboardSummaryResponse()
     response.id = entity["_id"]
