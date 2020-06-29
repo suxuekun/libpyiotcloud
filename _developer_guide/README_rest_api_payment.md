@@ -428,9 +428,9 @@ DETAIL:
           "message": string,
           "data": [
             {
-                "_id": string,
-                "start": string,                      //start timestamp
-                "end": string,                        //end timestamp
+                "_id": string,                        // _id is also promocode
+                "start": string,                      // start timestamp
+                "end": string,                        // end timestamp
                 "name": string,
                 "type": string,                       // 'discount' / 'p_discount' / '' 
                 "value": string,                      // a decimal string , if percentage , '5' = 5%
@@ -513,7 +513,7 @@ DETAIL:
             "status": "OK",
             "message": string,
             "data": {
-                "_id": string,
+                "_id": string,                        // _id is also promocode
                 "start": string,                      //start timestamp
                 "end": string,                        //end timestamp
                 "name": string,
