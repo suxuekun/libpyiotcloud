@@ -228,7 +228,9 @@ June 29, 2020
 
 47. i also dont want to see your username appearing in the examples
 
-48. Fix your documentation
+48. bt_plan_id should not be returned
+
+49. Fix your documentation
     Add comments for parameters as much as possible
 
     Ex. 1. In Get Subscriptions,  
@@ -242,7 +244,7 @@ June 29, 2020
 
     Document the API properly so that mobile team does NOT need to ask question anymore, that is the documentation can stand by its own.
 
-49. Please use these functions in database.py for getting the current consumed MENOS alerts for the current month
+50. Please use these functions in database.py for getting the current consumed MENOS alerts for the current month
 
     For Usages:
     SMS                 - get_menos_num_sms_by_currmonth
