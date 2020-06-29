@@ -21,7 +21,7 @@ SUMMARY:
 
     3. Gateway Attritubes:
 
-        A. GETS                            - GET   /dashboards/gateways/attributes
+        A. GETS                            - GET   /dashboards/gateway/attributes
 
     4. Sensors: 
 
@@ -32,7 +32,7 @@ SUMMARY:
         
     5. ChartTypes:
 
-        A. GETS                            - GET    /dashboards/charts/types/{valueType}
+        A. GETS                            - GET    /dashboards/charts/types/{valueType}   
 
 
 DETAIL:
@@ -350,7 +350,7 @@ DETAIL:
             ]
         }
         - Notes: 
-            {valueType}: gateways, sensors
+            {valueType}: gateway, sensor
 
         B. DATA STRUCTURES
 
