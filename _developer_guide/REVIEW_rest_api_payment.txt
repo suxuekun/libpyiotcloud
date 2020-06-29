@@ -222,7 +222,13 @@ June 29, 2020
 
     remove this API
 
-46. Fix your documentation
+46. "username": "su-org.1592316898",
+
+    username should not be returned
+
+47. i also dont want to see your username appearing in the examples
+
+48. Fix your documentation
     Add comments for parameters as much as possible
 
     Ex. 1. In Get Subscriptions,  
