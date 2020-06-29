@@ -41,8 +41,8 @@ class config:
     # Message broker settings
     CONFIG_USE_AMQP             = False
     if debugging:
-        CONFIG_HOST             = "192.168.99.100"
-        # CONFIG_HOST             = "localhost"
+        # CONFIG_HOST             = "192.168.99.100"
+        CONFIG_HOST             = "localhost"
     else:
         CONFIG_HOST             = "rabbitmq"
     CONFIG_MQTT_TLS_PORT        = 8883
@@ -57,8 +57,8 @@ class config:
     CONFIG_MONGODB_PASSWORD          = os.environ["CONFIG_USE_MONGODB_PASS"]
     if debugging:
         # CONFIG_MONGODB_HOST          = "127.0.0.1"
-        # CONFIG_MONGODB_HOST          = "localhost"
-        CONFIG_MONGODB_HOST          = "192.168.99.100"
+        CONFIG_MONGODB_HOST          = "localhost"
+        # CONFIG_MONGODB_HOST          = "192.168.99.100"
         # MongoDB Atlas is used for sensor-data database
         # to revert to containerized MongoDB, just set this to 127.0.0.1
         CONFIG_MONGODB_HOST2         = os.environ["CONFIG_USE_MONGODB_ATLAS"]
@@ -102,8 +102,8 @@ class config:
     # Caching settings
     if debugging:
         # CONFIG_REDIS_HOST            = "127.0.0.1"
-        CONFIG_REDIS_HOST            = "192.168.99.100"
-        # CONFIG_REDIS_HOST            = "localhost"
+        # CONFIG_REDIS_HOST            = "192.168.99.100"
+        CONFIG_REDIS_HOST            = "localhost"
 
     else:
         CONFIG_REDIS_HOST            = "redis"
