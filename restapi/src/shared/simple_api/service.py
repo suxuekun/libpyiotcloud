@@ -4,7 +4,7 @@ from schematics.exceptions import ValidationError
 
 
 class BaseSimpleApiService():
-    def __init__(self,model,repo,**kwargs):
+    def __init__(self,model,repo,*args,**kwargs):
         self.repo = repo
         self.model = model
     def rawlist(self,filter = None):
