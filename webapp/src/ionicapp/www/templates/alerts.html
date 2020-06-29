@@ -35,23 +35,26 @@
       <table style="width:100%" bordercolor="#444444">
         <tbody>
           <tr>
-            <th style="width:25%">
+            <th style="width:20%">
               <b>Device Name</b>
             </th>
-            <th style="width:15%">
+            <th style="width:13%">
               <b>SMS</b>
             </th>
-            <th style="width:15%">
+            <th style="width:13%">
               <b>Email</b>
             </th>
-            <th style="width:15%">
+            <th style="width:13%">
               <b>Notification</b>
             </th>
-            <th style="width:15%">
+            <th style="width:13%">
               <b>Device</b>
             </th>
-            <th style="width:15%">
+            <th style="width:13%">
               <b>Storage</b>
+            </th>
+            <th style="width:15%">
+              <b>SensorData (MB)</b>
             </th>
           </tr>
         </tbody>
@@ -61,12 +64,13 @@
       <table style="width:100%">
         <tbody>
           <tr>
-            <td style="width:25%">{{ usage.devicename }}</td>
-            <td style="width:15%">{{ usage.Mobile }}</td>
-            <td style="width:15%">{{ usage.Email }}</td>
-            <td style="width:15%">{{ usage.Notification }}</td>
-            <td style="width:15%">{{ usage.Modem }}</td>
-            <td style="width:15%">{{ usage.Storage }}</td>
+            <td style="width:20%">{{ usage.devicename }}</td>
+            <td style="width:13%">{{ usage.Mobile }}</td>
+            <td style="width:13%">{{ usage.Email }}</td>
+            <td style="width:13%">{{ usage.Notification }}</td>
+            <td style="width:13%">{{ usage.Modem }}</td>
+            <td style="width:13%">{{ usage.Storage }}</td>
+            <td style="width:15%">{{ usage.SensorData[2] }}</td>
           </tr>
         </tbody>
       </table>

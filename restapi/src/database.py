@@ -154,6 +154,15 @@ class database_client:
         nextmonth_epoch = int((nextmonth - datetime.datetime(1970, 1, 1)).total_seconds())
         return nextmonth_epoch
 
+    def bytes_to_gigabytes(self, bytes):
+        return float("{:.9f}".format(bytes/config.CONFIG_GIGABYTE_CONVERSION))
+
+    def bytes_to_megabytes(self, bytes):
+        return float("{:.6f}".format(bytes/config.CONFIG_MEGABYTE_CONVERSION))
+
+    def bytes_to_kilobytes(self, bytes):
+        return float("{:.3f}".format(bytes/config.CONFIG_KILOBYTE_CONVERSION))
+
 
     ##########################################################
     # transactions
@@ -514,6 +523,10 @@ class database_client:
         deviceid = self._devices.get_deviceid(username, devicename)
         return self._devices.get_menos_num_storage(deviceid, self.get_current_month_epoch(), self.get_next_month_epoch())
 
+    def get_menos_num_sensordata_by_currmonth(self, username, devicename):
+        deviceid = self._devices.get_deviceid(username, devicename)
+        return self._devices.get_menos_num_sensordata(deviceid, self.get_current_month_epoch(), self.get_next_month_epoch())
+
 
     def get_menos_num_sms_by_deviceid_by_currmonth(self, deviceid):
         return self._devices.get_menos_num_sms(deviceid, self.get_current_month_epoch(), self.get_next_month_epoch())
@@ -529,6 +542,12 @@ class database_client:
 
     def get_menos_num_storage_by_deviceid_by_currmonth(self, deviceid):
         return self._devices.get_menos_num_storage(deviceid, self.get_current_month_epoch(), self.get_next_month_epoch())
+
+    def get_menos_num_sensordata_by_deviceid_by_currmonth(self, deviceid):
+        bytes = self._devices.get_menos_num_sensordata(deviceid, self.get_current_month_epoch(), self.get_next_month_epoch())
+        if bytes:
+            return bytes, self.bytes_to_kilobytes(bytes), self.bytes_to_megabytes(bytes), self.bytes_to_gigabytes(bytes)
+        return 0, 0, 0, 0
 
 
     ##########################################################
@@ -2194,6 +2213,16 @@ class database_client_mongodb:
 
     def get_menos_num_storage(self, deviceid, datestart, dateend):
         return self.get_menos_num_type(deviceid, datestart, dateend, "Storage")
+
+    def get_menos_num_sensordata(self, deviceid, datestart, dateend):
+        size = 0
+        sensorreadings = self.get_sensorreadings_dataset_document()
+        if sensorreadings:
+            items = sensorreadings.find({'deviceid': deviceid})
+            for item in items:
+                item.pop("_id")
+                size += len(str(item)) 
+        return size
 
 
     ##########################################################
