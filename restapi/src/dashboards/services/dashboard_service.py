@@ -131,6 +131,6 @@ class DashboardService:
             self.dashboardRepository.update_many(dashboardIds, list(
                 map(lambda d: d.model.to_primitive, dashboards)))
             return True
-        except Exception as identifier:
+        except Exception as e:
             LoggerService().error(str(e), tag=self.tag)
             return False
