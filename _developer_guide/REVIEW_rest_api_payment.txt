@@ -182,3 +182,22 @@ June 25, 2020
 
     this is more optimal in terms of database size.
 
+
+===============================================
+
+June 29, 2020
+
+40. deleting device should delete related entries in in payment db collections (ex. payment_subscription)
+
+    add your function in rest_api_device.py device_cleanup()
+
+41. devicename is stored in payment_subscription db collection.
+
+    since devicename can be changed by user, then you need to handle when name is changed
+
+    option 1: dont store devicename; retrieve it dynamically
+    option 2: add your function to handle devicename changes in rest_api_device.py update_devicename()
+
+
+ 
+
