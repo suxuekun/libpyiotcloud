@@ -235,7 +235,7 @@ DETAIL:
 
         A. GETS
         - Request:
-        GET: /dashboards/gateways/attributes
+        GET: /dashboards/gateway/attributes
         headers: {'Authorization': 'Bearer ' + token.access}
         - Response:
         {
@@ -358,7 +358,7 @@ DETAIL:
                     'name': string,
                 }
             ]
-            message: 'Get chart responses successfully'
+            'message': 'Get chart responses successfully'
         }
         - Notes: 
             {valueType}: gateway, sensor
