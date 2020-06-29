@@ -8,7 +8,7 @@ from shared.services.logger_service import LoggerService
 from dashboards.models.chart import Chart
 from shared.core.response import Response
 from schematics.exceptions import ValidationError, ModelValidationError
-from dashboards.utils.mapper_util import map_chart_gateway_to_response
+from dashboards.utils.mapper_util import map_chart_gateway_to_response, map_chart_gateway_to_ex_response
 from dashboards.repositories.gateway_attribute_repository import IGatewayAttributeRepository
 from dashboards.repositories.device_repository import IDeviceRepostory
 from dashboards.services.dashboard_service import DashboardService
@@ -118,7 +118,19 @@ class ChartGatewayService:
         except Exception as e:
             LoggerService().error(str(e), tag=self.tag)
             return Response.fail("Sorry, there is something wrong")
-        
+
+    def gets_ex(self, dashboardId: str, userId: str, query: {}):
+        try:
+            attributes = self.attributeRepository.gets()
+            chartEntites = self.chartRepository.get_charts_gateway(dashboardId, userId)
+            
+            responses = list(map(lambda c: map_chart_gateway_to_ex_response(c, attributes), chartEntites))
+            return Response.success(data = responses, message="Get chart responses successfully")
+            
+        except Exception as e:
+            LoggerService().error(str(e), tag=self.tag)
+            return Response.fail("Sorry, there is something wrong")
+
     def get(self, dashboardId: str, userId: str, chartId: str, query: {} = None):
         try:
             attributes = self.attributeRepository.gets()
@@ -131,3 +143,14 @@ class ChartGatewayService:
             LoggerService().error(str(e), tag=self.tag)
             return Response.fail("Sorry, there is something wrong")
     
+    def get_ex_detail(self, dashboardId: str, userId: str, chartId: str, query: {} = None):
+        try:
+            attributes = self.attributeRepository.gets()
+            chartEntity = self.chartRepository.get_detail(dashboardId, userId, chartId, query)
+            
+            response = map_chart_gateway_to_ex_response(chartEntity, attributes)
+            return Response.success(data = response, message="Get chart responses successfully")
+        
+        except Exception as e:
+            LoggerService().error(str(e), tag=self.tag)
+            return Response.fail("Sorry, there is something wrong")
