@@ -3,14 +3,8 @@ import os
 
 
 class config:
-    debugging = True # config for debugging locally or not , not only windows local but mac local
 
-    debugging = os.environ['DEBUG_MODE']
-
-    # config for debugging locally or not , not only windows local but mac local
-    # Web server settings
-    # if os.name == 'nt' or "posix":
-    #     debugging = True
+    debugging = int(os.environ['CONFIG_USE_DEBUG_MODE'])
     if debugging:
         CONFIG_HTTP_USE_TLS     = True
     else:
@@ -60,7 +54,6 @@ class config:
     CONFIG_MONGODB_PASSWORD          = os.environ["CONFIG_USE_MONGODB_PASS"]
     if debugging:
         CONFIG_MONGODB_HOST          = "127.0.0.1"
-        # CONFIG_MONGODB_HOST          = "localhost"
         # MongoDB Atlas is used for sensor-data database
         # to revert to containerized MongoDB, just set this to 127.0.0.1
         CONFIG_MONGODB_HOST2         = os.environ["CONFIG_USE_MONGODB_ATLAS"]
