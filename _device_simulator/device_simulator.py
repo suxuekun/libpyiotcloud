@@ -514,6 +514,9 @@ def handle_api(api, subtopic, subpayload):
     # SENSOR READING
     ####################################################
     elif api == API_RECEIVE_SENSOR_READING:
+        pass
+
+    elif api == "asdasdjhadkjasd":
         global start_timeX
         #printf(time.time())
         printf(time.time()-start_timeX)
@@ -1662,6 +1665,8 @@ def handle_api(api, subtopic, subpayload):
         subpayload = json.loads(subpayload)
 
         # stop the timer thread and heartbeat thread
+        while g_timer_thread is None or g_heartbeat_thread is None:
+            time.sleep(1)
         g_timer_thread.set_pause(True)
         g_heartbeat_thread.set_pause(True)
 
@@ -2838,47 +2843,26 @@ def http_recv_response(conn, debug=True):
         printf("RES: Could not communicate with DEVICE! {}".format(e))
     return 0, None
 
-def compute_ota_authcode(secret_key, username, password, debug=False):
-
-    if secret_key=='' or username=='' or password=='':
-        printf("secret key, uuid, serial number and mac address should not be empty!")
-        return None
-
-    currtime = int(time.time())
-    params = {
-        "username": username, # device uuid
-        "password": password, # device serial number
-        "iat": currtime,
-        "exp": currtime + 10
-    }
-    password = jwt.encode(params, secret_key, algorithm='HS256')
-    password = password.decode("utf-8")
-
-    if debug:
-        printf("")
-        printf("compute_password")
-        printf_json(params)
-        printf(password)
-        printf("")
-
-    return password
-
 def http_get_firmware_binary(filename, filesize):
-    global CONFIG_DEVICE_SECRETKEY
+    global CONFIG_DEVICE_ID
     global CONFIG_USERNAME
     global CONFIG_PASSWORD
+
+    # in order for the device secret key to not be compromise easily,
+    # we now retrieve the authcode via an HTTPS API
+    # this prevents from compromising the device secret_key
+    # later we disable the API in nginx.conf so that the API cannot be used in production
+    authcode = http_compute_ota_authcode(CONFIG_DEVICE_ID, CONFIG_USERNAME, CONFIG_PASSWORD)
+    if authcode is None:
+        printf("ERROR: Failed retrieving ota authcode!")
+        return False
+
 
     conn = http_initialize_connection()
     #headers = { "Content-type": "application/octet-stream", "Accept-Ranges": "bytes", "Content-Length": filesize }
     #headers = { "User-Agent": "PostmanRuntime/7.22.0", "Accept": "*/*", "Host": "ec2-54-166-169-66.compute-1.amazonaws.com", "Accept-Encoding": "gzip, deflate, br", "Connection": "keep-alive" }
-    authcode = compute_ota_authcode(CONFIG_DEVICE_SECRETKEY, CONFIG_USERNAME, CONFIG_PASSWORD, debug=True)
-    if authcode is None:
-        printf(CONFIG_DEVICE_SECRETKEY)
-        printf(CONFIG_USERNAME)
-        printf(CONFIG_PASSWORD)
-        return False
     headers = { "Connection": "keep-alive", "Authorization": "Bearer " + authcode }
-
+    length = 0
     api = "/firmware"
     result = http_send_request(conn, "GET", api + "/" + filename, None, headers)
     if result:
@@ -2899,6 +2883,39 @@ def http_get_firmware_binary(filename, filesize):
             return False, length
     conn.close()
     return result, length
+
+def http_compute_ota_authcode(uuid, username, password):
+
+    otaauthcode = None
+
+    # initialize HTTPS connection with a specific server for the ota authcode
+    if "brtchip-iotportal.com" in CONFIG_HTTP_HOST:
+        # for local setup, use the DEV cloud
+        conn = http_initialize_connection(host=CONFIG_HTTP_HOST)
+    else:
+        # for local setup, use the DEV cloud
+        conn = http_initialize_connection(host="dev.brtchip-iotportal.com")
+
+    headers = { "Connection": "keep-alive", "Content-Type": "application/json" }
+    params = json.dumps({ "uuid": uuid, "username": username, "password": password })
+    api = "/devicesimulator/otaauthcode"
+
+    result = http_send_request(conn, "GET", api, params, headers, debug=False)
+    if result:
+        length, response = http_recv_response(conn, debug=False)
+        if length == 0:
+            printf("http_recv_response error")
+            conn.close()
+            return None
+        try:
+            response = json.loads(response)
+            otaauthcode = response["otaauthcode"]
+        except Exception as e:
+            printf("exception {}".format(e))
+            conn.close()
+            return None
+    conn.close()
+    return otaauthcode
 
 def http_compute_device_password(uuid, serial_number, mac_address):
 
@@ -3175,30 +3192,8 @@ def decode_password(secret_key, password):
 def compute_password(secret_key, uuid, serial_number, mac_address, debug=False):
 
     if not CONFIG_QUERY_BACKEND_TO_COMPUTE_DEVICE_PASSWORD:
-        if secret_key=='' or uuid=='' or serial_number=='' or mac_address=='':
-            printf("secret key, uuid, serial number and mac address should not be empty!")
-            return None
-
-        params = {
-            "uuid": uuid,                  # device uuid
-            "serialnumber": serial_number, # device serial number
-            "poemacaddress": mac_address,  # device mac address in uppercase string ex. AA:BB:CC:DD:EE:FF
-        }
-        password = jwt.encode(params, secret_key, algorithm='HS256')
-        password = password.decode("utf-8")
-
-        if debug:
-            printf("")
-            printf("compute_password")
-            printf_json(params)
-            printf(password)
-            printf("")
-
-            payload = decode_password(secret_key, password)
-            printf("")
-            printf("decode_password")
-            printf_json(payload)
-            printf("")
+        # code removed
+        pass
     else:
         printf("CONFIG_QUERY_BACKEND_TO_COMPUTE_DEVICE_PASSWORD")
         # in order for the device secret key to not be compromise easily,

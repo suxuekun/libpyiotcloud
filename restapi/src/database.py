@@ -11,7 +11,7 @@ from cognito_client import cognito_client
 from paypal_client import paypal_client
 import statistics
 from shared.client.connection.mongo import DefaultMongoConnection
-from shared.client.db.mongo.default import DefaultMongoDB
+from shared.client.db.mongo.default import DefaultMongoDB, SensorMongoDb
 
 
 class database_models:
@@ -138,6 +138,30 @@ class database_client:
             settings.append({ "label": label, "crud": [False, False, False, False] })
         return settings
 
+
+    def get_current_month_epoch(self):
+        today = datetime.datetime.now()
+        currmonth = datetime.datetime(today.year, today.month, 1)
+        currmonth_epoch = int((currmonth - datetime.datetime(1970, 1, 1)).total_seconds())
+        return currmonth_epoch
+
+    def get_next_month_epoch(self):
+        today = datetime.datetime.now()
+        if today.month == 12:
+            nextmonth = datetime.datetime(today.year + 1, 1, 1)
+        else:
+            nextmonth = datetime.datetime(today.year, today.month + 1, 1)
+        nextmonth_epoch = int((nextmonth - datetime.datetime(1970, 1, 1)).total_seconds())
+        return nextmonth_epoch
+
+    def bytes_to_gigabytes(self, bytes):
+        return float("{:.9f}".format(bytes/config.CONFIG_GIGABYTE_CONVERSION))
+
+    def bytes_to_megabytes(self, bytes):
+        return float("{:.6f}".format(bytes/config.CONFIG_MEGABYTE_CONVERSION))
+
+    def bytes_to_kilobytes(self, bytes):
+        return float("{:.3f}".format(bytes/config.CONFIG_KILOBYTE_CONVERSION))
 
 
     ##########################################################
@@ -470,12 +494,66 @@ class database_client:
         self._devices.delete_menos_transaction(deviceid)
 
     # org-ready
+    def get_menos_transaction_by_username(self, username):
+        return self._devices.get_menos_transaction_by_username(username)
+
+    # org-ready
     def get_menos_transaction(self, deviceid):
         return self._devices.get_menos_transaction(deviceid)
 
     # org-ready
     def get_menos_transaction_filtered(self, deviceid, type, source, datebegin, dateend):
         return self._devices.get_menos_transaction_filtered(deviceid, type, source, datebegin, dateend)
+
+
+    def get_menos_num_sms_by_currmonth(self, username, devicename):
+        deviceid = self._devices.get_deviceid(username, devicename)
+        return self._devices.get_menos_num_sms(deviceid, self.get_current_month_epoch(), self.get_next_month_epoch())
+
+    def get_menos_num_email_by_currmonth(self, username, devicename):
+        deviceid = self._devices.get_deviceid(username, devicename)
+        return self._devices.get_menos_num_email(deviceid, self.get_current_month_epoch(), self.get_next_month_epoch())
+
+    def get_menos_num_notification_by_currmonth(self, username, devicename):
+        deviceid = self._devices.get_deviceid(username, devicename)
+        return self._devices.get_menos_num_notification(deviceid, self.get_current_month_epoch(), self.get_next_month_epoch())
+
+    def get_menos_num_device_by_currmonth(self, username, devicename):
+        deviceid = self._devices.get_deviceid(username, devicename)
+        return self._devices.get_menos_num_device(deviceid, self.get_current_month_epoch(), self.get_next_month_epoch())
+
+    def get_menos_num_storage_by_currmonth(self, username, devicename):
+        deviceid = self._devices.get_deviceid(username, devicename)
+        return self._devices.get_menos_num_storage(deviceid, self.get_current_month_epoch(), self.get_next_month_epoch())
+
+    def get_menos_num_sensordata_by_currmonth(self, username, devicename):
+        deviceid = self._devices.get_deviceid(username, devicename)
+        bytes = self._devices.get_menos_num_sensordata(deviceid, self.get_current_month_epoch(), self.get_next_month_epoch())
+        if bytes:
+            return bytes, self.bytes_to_kilobytes(bytes), self.bytes_to_megabytes(bytes), self.bytes_to_gigabytes(bytes)
+        return 0, 0, 0, 0
+
+
+    def get_menos_num_sms_by_deviceid_by_currmonth(self, deviceid):
+        return self._devices.get_menos_num_sms(deviceid, self.get_current_month_epoch(), self.get_next_month_epoch())
+
+    def get_menos_num_email_by_deviceid_by_currmonth(self, deviceid):
+        return self._devices.get_menos_num_email(deviceid, self.get_current_month_epoch(), self.get_next_month_epoch())
+
+    def get_menos_num_notification_by_deviceid_by_currmonth(self, deviceid):
+        return self._devices.get_menos_num_notification(deviceid, self.get_current_month_epoch(), self.get_next_month_epoch())
+
+    def get_menos_num_device_by_deviceid_by_currmonth(self, deviceid):
+        return self._devices.get_menos_num_device(deviceid, self.get_current_month_epoch(), self.get_next_month_epoch())
+
+    def get_menos_num_storage_by_deviceid_by_currmonth(self, deviceid):
+        return self._devices.get_menos_num_storage(deviceid, self.get_current_month_epoch(), self.get_next_month_epoch())
+
+    def get_menos_num_sensordata_by_deviceid_by_currmonth(self, deviceid):
+        bytes = self._devices.get_menos_num_sensordata(deviceid, self.get_current_month_epoch(), self.get_next_month_epoch())
+        if bytes:
+            return bytes, self.bytes_to_kilobytes(bytes), self.bytes_to_megabytes(bytes), self.bytes_to_gigabytes(bytes)
+        return 0, 0, 0, 0
 
 
     ##########################################################
@@ -589,6 +667,9 @@ class database_client:
     def delete_ldsu(self, username, devicename, uid):
         self._devices.delete_ldsu(self._devices.get_deviceid(username, devicename), uid)
 
+    def delete_ldsu_by_deviceid(self, deviceid, uid):
+        self._devices.delete_ldsu(deviceid, uid)
+
     def delete_ldsus(self, username, devicename):
         self._devices.delete_ldsus(self._devices.get_deviceid(username, devicename))
 
@@ -617,6 +698,9 @@ class database_client:
 
     def get_all_device_sensors_by_port_by_deviceid(self, deviceid, port):
         return self._devices.get_all_device_sensors_by_port(deviceid, port)
+
+    def get_all_device_sensors_by_source_by_deviceid(self, deviceid, source):
+        return self._devices.get_all_device_sensors_by_source(deviceid, source)
 
     def get_all_device_sensors_enabled_input(self, username, devicename, source=None, number=None, sensorclass=None, sensorstatus=1, type="input"):
         return self._devices.get_all_device_sensors_enabled_input(username, self._devices.get_deviceid(username, devicename), source, number, sensorclass, sensorstatus, type)
@@ -1106,7 +1190,7 @@ class database_client:
 
     # org-ready
     def remove_device_from_devicegroup(self, username, groupname, deviceid):
-        self._devices.remove_device_from_devicegroup(username, groupname, deviceid)
+        return self._devices.remove_device_from_devicegroup(username, groupname, deviceid)
 
     # org-ready
     def remove_device_from_devicegroups(self, username, deviceid):
@@ -1114,7 +1198,7 @@ class database_client:
 
     # org-ready
     def set_devices_to_devicegroup(self, username, groupname, devices):
-        self._devices.set_devices_to_devicegroup(username, groupname, devices)
+        return self._devices.set_devices_to_devicegroup(username, groupname, devices)
 
 
 
@@ -1217,7 +1301,7 @@ class database_client_cognito:
     def delete_user(self, username, access_token):
         (result, response) = self.client.delete_user(username, access_token)
         return result
-    
+
     def admin_get_user(self,username):
         (result, response) = self.client.admin_get_user(username)
         return response
@@ -1423,7 +1507,7 @@ class database_client_mongodb:
         # different database for sensor dashboarding
         if "mongodb.net" in config.CONFIG_MONGODB_HOST2:
             connection_string = "mongodb+srv://" + config.CONFIG_MONGODB_USERNAME + ":" + config.CONFIG_MONGODB_PASSWORD + "@" + config.CONFIG_MONGODB_HOST2 + "/" + config.CONFIG_MONGODB_DB + "?retryWrites=true&w=majority"
-            mongo_client_sensor = MongoClient(connection_string)
+            mongo_client_sensor = SensorMongoDb(connection_string).conn
             self.client_sensor = mongo_client_sensor[config.CONFIG_MONGODB_DB]
         else:
             self.client_sensor = self.client
@@ -2091,6 +2175,15 @@ class database_client_mongodb:
             print("delete_menos_transaction: Exception occurred")
             pass
 
+    def get_menos_transaction_by_username(self, username):
+        menos_list = []
+        menos = self.get_menos_document()
+        if menos and menos.count():
+            for menos_item in menos.find({'username': username}):
+                menos_item.pop('_id')
+                menos_list.append(menos_item)
+        return menos_list
+
     def get_menos_transaction(self, deviceid):
         menos_list = []
         menos = self.get_menos_document()
@@ -2124,6 +2217,40 @@ class database_client_mongodb:
                 menos_list.append(menos_item)
 
         return menos_list
+
+
+    def get_menos_num_type(self, deviceid, datestart, dateend, type):
+        menos = self.get_menos_document()
+        if menos:
+            items = menos.find({'deviceid': deviceid, 'type': type, 'timestamp': { '$gt': datestart, '$lte': dateend } })
+            if items:
+                return items.count()
+        return 0
+
+    def get_menos_num_sms(self, deviceid, datestart, dateend):
+        return self.get_menos_num_type(deviceid, datestart, dateend, "Mobile")
+
+    def get_menos_num_email(self, deviceid, datestart, dateend):
+        return self.get_menos_num_type(deviceid, datestart, dateend, "Email")
+
+    def get_menos_num_notification(self, deviceid, datestart, dateend):
+        return self.get_menos_num_type(deviceid, datestart, dateend, "Notification")
+
+    def get_menos_num_device(self, deviceid, datestart, dateend):
+        return self.get_menos_num_type(deviceid, datestart, dateend, "Modem")
+
+    def get_menos_num_storage(self, deviceid, datestart, dateend):
+        return self.get_menos_num_type(deviceid, datestart, dateend, "Storage")
+
+    def get_menos_num_sensordata(self, deviceid, datestart, dateend):
+        size = 0
+        sensorreadings = self.get_sensorreadings_dataset_document()
+        if sensorreadings:
+            items = sensorreadings.find({'deviceid': deviceid})
+            for item in items:
+                item.pop("_id")
+                size += len(str(item))
+        return size
 
 
     ##########################################################
@@ -2618,6 +2745,17 @@ class database_client_mongodb:
         i2csensors = self.get_sensors_document();
         if i2csensors:
             for i2csensor in i2csensors.find({'deviceid': deviceid, 'port': port}):
+                i2csensor.pop('_id')
+                if i2csensor.get('username'):
+                    i2csensor.pop('username')
+                sensor_list.append(i2csensor)
+        return sensor_list
+
+    def get_all_device_sensors_by_source(self, deviceid, source):
+        sensor_list = []
+        i2csensors = self.get_sensors_document();
+        if i2csensors:
+            for i2csensor in i2csensors.find({'deviceid': deviceid, 'source': source}):
                 i2csensor.pop('_id')
                 if i2csensor.get('username'):
                     i2csensor.pop('username')
@@ -4724,16 +4862,24 @@ class database_client_mongodb:
                 location_list.append({'deviceid': device['deviceid'], 'location': device['location']})
         return location_list
 
-
+    # will only reset to 0,0
     def delete_device_location(self, deviceid):
         devices = self.get_registered_devices()
         if devices:
-            devices.delete_one({'deviceid': deviceid})
+            for device in devices.find({'deviceid': deviceid}):
+                new_device = copy.deepcopy(device)
+                new_device['location'] = {'latitude': 0, 'longitude': 0}
+                devices.replace_one(device, new_device)
+                break
 
-    def delete_devices_location(self, deviceid):
+    # will only reset to 0,0
+    def delete_devices_location(self, username):
         devices = self.get_registered_devices()
         if devices:
-            devices.delete_many({'username': username})
+            for device in devices.find({'username': username}):
+                new_device = copy.deepcopy(device)
+                new_device['location'] = {'latitude': 0, 'longitude': 0}
+                devices.replace_one(device, new_device)
 
 
     ##########################################################
@@ -4924,7 +5070,9 @@ class database_client_mongodb:
                     new_devicegroup = copy.deepcopy(devicegroup)
                     new_devicegroup['devices'].remove(deviceid)
                     devicegroups.replace_one(devicegroup, new_devicegroup)
+                    return True
                 break
+        return False
 
     def remove_device_from_devicegroups(self, username, deviceid):
         devicegroups = self.get_registered_devicegroups()
@@ -4942,7 +5090,8 @@ class database_client_mongodb:
                 new_devicegroup = copy.deepcopy(devicegroup)
                 new_devicegroup['devices'] = devices
                 devicegroups.replace_one(devicegroup, new_devicegroup)
-                break
+                return True
+        return False
 
     def update_name_devicegroup(self, username, groupname, new_groupname):
         devicegroups = self.get_registered_devicegroups()

@@ -283,43 +283,45 @@ def forward_sensor_reading(database_client, username, devicename, deviceid, sour
             mode = configuration["attributes"]["mode"]
             # check if continuous mode (sensor forwarding) or thresholding mode (notification triggering)
             if mode == MODE_CONTINUOUS: 
-                # continuous mode (sensor forwarding)
-                dest_devicename = configuration["attributes"]["hardware"]["devicename"]
-                if dest_devicename != "":
-                    #print(dest_devicename)
-                    sensor = database_client.get_sensor_by_deviceid(deviceid, peripheral, str(number))
-                    if sensor is not None:
-                        #print_json(sensor)
-                        #print("")
-                        dest_deviceid = database_client.get_deviceid(username, dest_devicename)
-                        if dest_deviceid is None:
-                            return
-                        dest_topic = "{}/{}".format(dest_deviceid, API_RECEIVE_SENSOR_READING)
-                        #print("Hello")
-                        dest_payload = {"sensors": []}
-                        packet = {}
-                        if sensor["format"] == "int":
-                            packet = {
-                                "devicename": devicename,
-                                "peripheral": sensor["source"].upper(),
-                                "sensorname": sensor["sensorname"],
-                                "attribute":  sensor["attributes"][0],
-                                "value":      int(value), 
-                            }
-                        else:
-                            packet = {
-                                "devicename": devicename,
-                                "peripheral": sensor["source"].upper(),
-                                "sensorname": sensor["sensorname"],
-                                "attribute":  sensor["attributes"][0],
-                                "value":      value, 
-                            }
+                enabled = False
+                if configuration["attributes"]["hardware"].get("enable") is not None:
+                    enabled = configuration["attributes"]["hardware"]["enable"]
+                #print(enabled)
 
-                        dest_payload["sensors"].append(packet)
-                        #print_json(dest_payload)
-                        #print("")
-                        dest_payload = json.dumps(dest_payload)
-                        g_messaging_client.publish(dest_topic, dest_payload, debug=False) # NOTE: enable to DEBUG
+                if enabled:
+                    # continuous mode (sensor forwarding)
+                    dest_devicename = configuration["attributes"]["hardware"]["devicename"]
+                    if dest_devicename != "":
+                        #print(dest_devicename)
+                        sensor = database_client.get_sensor_by_deviceid(deviceid, peripheral, str(number))
+                        if sensor is not None:
+                            #print_json(sensor)
+                            #print("")
+                            dest_deviceid = database_client.get_deviceid(username, dest_devicename)
+                            if dest_deviceid is None:
+                                return
+                            dest_topic = "{}/{}".format(dest_deviceid, API_RECEIVE_SENSOR_READING)
+                            #print("Hello")
+                            dest_payload = {"sensors": []}
+                            packet = {}
+                            if sensor["format"] == "integer":
+                                packet = {
+                                    "UID":   sensor["source"],
+                                    "SAID":  sensor["number"],
+                                    "value": int(value), 
+                                }
+                            else:
+                                packet = {
+                                    "UID":   sensor["source"],
+                                    "SAID":  sensor["number"],
+                                    "value": value, 
+                                }
+
+                            dest_payload["sensors"].append(packet)
+                            #print_json(dest_payload)
+                            #print("")
+                            dest_payload = json.dumps(dest_payload)
+                            g_messaging_client.publish(dest_topic, dest_payload, debug=False) # NOTE: enable to DEBUG
             else:
                 # thresholding mode (notification triggering)
                 if CONFIG_THRESHOLDING_NOTIFICATIONS:

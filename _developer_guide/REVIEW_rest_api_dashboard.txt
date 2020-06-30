@@ -1,0 +1,141 @@
+Peer Review Comments by Richmond
+
+
+===============================================
+
+May 28, 2020
+
+1. Follow the documentation format in README_rest_api.md
+
+2. userid should not be provided by the frontend
+   it is retrieved dynamically from the token in the authorization header
+
+
+===============================================
+
+June 18, 2020
+
+3. all dates return should be in epoch format because of timezone issues.
+   backend always return epoch so front end can display based on the user's timezone.
+
+4. whats is the color format? please add description in the documentation. #FFFFFF or FFFFFF?
+
+5. please add description on parameters
+   the documentation should good enough such that frontend team does not NEED to consult the backend team in order to use the APIs
+
+6. for gateway dashboards, only need devicename or deviceid; no need for both
+   backend can retrieve the database
+
+   for sensors, you need devicename OR deviceid,    
+   AND sensor LDSU UUID, sensor LDSU number
+   - this refers to "source" and "number" parameters in the "i2csensors" database collection
+   - LDSU is a multisensor. the number represents the index. ergo both needed
+
+7. expose functions to delete DEVICE and delete LDSU (no need for delete SENSOR because user can only delete LDSU) .
+
+   EX. when user deletes the LDSU, then the associated sensors in all user's/org's dashboards should be deleted
+   EX. when user unregisters the DEVICE, then the associated device and sensors in user's/org's dashboards should also be deleted
+
+   - no need for rabbitmq for deleting apis. deleting resources will be synchronous anyways. message queuing is only for asynchronous container-to-container / microservice-to-microservice communication
+
+   - also no need for events unless the threads for deleting will run in different thread with the restapi thread
+
+   - if you use events, can simply use threading.Events. no need to a new library, pyemitter. that will only increase memory usage.
+
+
+===============================================
+
+June 21, 2020
+
+8. could not find code where username is retrieved from token and token is verified if expired/invalid.
+   all APIs should do this.
+
+9. all responses should have
+   'status': string, 
+   'message': string
+
+10. why is the implementation separates /dashboards and /charts?
+   this is WRONG.
+   previous rest api definition was already correct.
+
+   dashboards can contain multiple dashboard
+   dashboard can contain multiple charts
+   dont separate charts from dashboard
+
+   To prevent conflicts with the API definitions, 
+   use
+   /dashboards/dashboard/{dashboardid}
+   /dashboards/dashboard/{dashboardid}/charts/chart/{chartid}
+
+   instead of
+   /dashboards/{dashboardid}
+   /dashboards/charts
+
+11. put restapi/src/charts folder inside restapi/src/dashboards folder
+
+12. all new dashboard-related database collections should start with "dashboard"
+   all new payment-related database collections should start with "payment"
+
+   makes it easy to debug/troubleshoot database issues
+
+
+13. provide a summary of APIs for the entry points of each API in the respective files containing the API entry points
+
+   this makes it easy to debug and troubleshoot the code
+
+   #g_identity_authentication_list = [
+   #    { "name": "SIGN-UP",                         "func": signup,                          "api": "/user/signup",                      "method": "POST"   },
+   #    { "name": "CONFIRM SIGN-UP",                 "func": confirm_signup,                  "api": "/user/confirm_signup",              "method": "POST"   },
+   #    { "name": "RESEND CONFIRMATION CODE",        "func": resend_confirmation_code,        "api": "/user/resend_confirmation_code",    "method": "POST"   },
+   #    { "name": "FORGOT PASSWORD",                 "func": forgot_password,                 "api": "/user/forgot_password",             "method": "POST"   },
+   #    { "name": "CONFIRM FORGOT PASSWORD",         "func": confirm_forgot_password,         "api": "/user/confirm_forgot_password",     "method": "POST"   },
+
+
+===============================================
+
+June 26, 2020
+
+13. use color pallette provided in Figma UI design
+
+14. the 3rd button should be Actuators, not Sensors (Sensors repeated twice)
+
+15. all responses should have
+   'status': string, 
+   'message': string
+
+   - this still does NOT appear on ALL responses
+     please ADD to all APIs and update documentation accordingly.
+
+16. remove 'data' parameter if value is true/false
+    that is redundant with 'status' OK/NG
+    update documentation accordingly.
+
+17. i should not be allowed to add the same gateway attribute more than once.
+
+    i selected device 1, same donut chart, online/offline attribute.
+    it did not fail. i can see the chart two times.
+
+    the api should prevent adding the same chart for same device, same device attribute
+
+18. the colors of the bar chart or donut chart are the same color everytime.
+    it should at least round robin
+
+19. the dashboard list on the left side is still too big. reduce size to two-thirds
+
+
+===============================================
+
+June 29, 2020
+
+20. deleting device should delete related entries in the dashboards gateways and dashboard sensors
+    add your function in rest_api_device.py device_cleanup()
+
+21. The GETS api only returns dataset for the 1st attribute.
+    so for count of alerts, sms is the 1st attribute
+
+    to get data for email, need to call GET DETAIL.
+
+    Please prepare a new API, GETS EX api 
+    - this should return all datasets/datasetsEx for all attributes 
+      (ex. for count of alerts, it should return dataset for sms, email, notification in 1 API call)
+

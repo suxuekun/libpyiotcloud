@@ -1,0 +1,33 @@
+<ion-view title="Add Dashboard" hide-back-button="true" nav-transition="none" id="page12" style="background-color:#FFFFFF;" class="page_width_small">
+  <ion-nav-buttons side="left" class="has-header">
+    <button class="button button-icon icon ion-android-close" ng-click="close()"></button>
+  </ion-nav-buttons>
+  <ion-content padding="true" class="has-header">
+
+   <form>
+      <div class="row">
+        <div ng-repeat="color in data.colors">
+          <div class="item item-body box-color"
+               ng-if="data.selectedColor !== color"
+               ng-click="selectColor(color)"
+               ng-style="{'background-color': color}">
+          </div>
+          <div class="item item-body box-color box-selected-color"
+               ng-if="data.selectedColor === color"
+               ng-click="selectColor(color)"
+               ng-style="{'background-color': color}">
+          </div>
+        </div>
+      </div>
+      <ion-item class="item-divider" id="addGateway-list-item-divider22"> Name</ion-item>
+      <label class="item item-input" id="addGateway-input28" name="input-name">
+      <input type="text" placeholder="Dashboard Name" ng-model="data.name">
+      </label>
+       <button id="addGateway-button55"
+               ng-click="save()"
+               ng-style="{'background-color': data.selectedColor}"
+               class="button button-positive button-block">SAVE</button>
+    </form>
+
+  </ion-content>
+</ion-view>

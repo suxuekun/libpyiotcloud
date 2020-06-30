@@ -17,4 +17,4 @@ class config:
 
     CONFIG_S3_REGION                            = os.environ["AWS_S3_REGION"]
     CONFIG_S3_BUCKET                            = os.environ["AWS_S3_BUCKET"]
-
+    CONFIG_S3_FILE_SMS_COUNTRY_POINTS           = os.environ["AWS_S3_FILE_SMS_COUNTRY_POINTS"]

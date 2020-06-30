@@ -90,6 +90,7 @@ Below are the features of this secure, scalable and reliable IoT platform:
        C. Login with multi-factor authentication (MFA/2FA) security - disabled by default; must be explicitly enabled by user
        D. Login via social IDP (Facebook/Google/Amazon) via OAuth2 security
        E. User lockout security on consecutive failed attempts to alert suspicious behavior
+       *  MFA/2FA using Google Authenticator
 
     5. Organization and access control management services
        Manage an organization of users and assign permissions (role-based access control aka RBAC).
@@ -98,30 +99,27 @@ Below are the features of this secure, scalable and reliable IoT platform:
        C. Assign permissions policies to each user groups
 
     6. Alerting and messaging services
-       Raise alarms over sMs, Email, push Notification, mOdem, Storage (MENOS) so you can respond and analyze telemetry events in time.
+       Raise alarms over sMs, Email, push Notification, Other gateway, Storage (MENOS) so you can respond and analyze telemetry events in time.
        A. sMs: sending mobile SMS alerts via Amazon Pinpoint
        B. Email: sending email alerts via Amazon Pinpoint
        C. push Notification: sending mobile push notifications alerts to Android/IOS mobile via Amazon Pinpoint
-       D. mOdem: sending alerts to another device
+       D. Other gateway: sending alerts to another gateway device
        E. Storage: sending alerts to Amazon S3 for file storage (user can download file for later analysis)
        *  IFTTT: trigger a 3rd-party application (like, Twitter, Facebook, Alexa, etc) via IFTTT
        *  Lambda: trigger a user-defined Python/NodeJS function for highly customized alerting
 
-    7. Payment services
+    7. Subscription and payment services
        Conveniently pay for subscription upgrade for each device every month to avail all services for all purchased IoT devices.
-       A. Use Paypal/BrainTree to pay for subscription plan (and/or add-ons) and receive an email confirmation receipt
-       B. View payment histories fo all purchased IoT devices
+       A. Use Paypal/BrainTree to pay for recurring subscription plan (and/or add-ons) and receive an email confirmation receipt
+       B. View payment histories for all purchased IoT devices
        C. Use free subscription for all purchased devices
-       D. Upgrade free subscription to Basic subscription to avail of all services
-       E. Buy add-ons on top of Basic subscription to avail more of specific services
+       D. Upgrade free subscription to Basic/Pro/Enterprise subscription plans to avail bigger allotment of all services
+       E. Buy SMS add-ons on top of non-free subscription plans to avail SMS-based alerts
+       F. Monitor usage for SMS, email, push notifications
+       G. Monitor usage for sensor data storage
 
-    8. Subscription and usage tracking services
-       Monitor usage of services real-time to detect usage pattern and continuously avail of premium services
-       A. Monitor usage for SMS, email, push notifications
-       B. Monitor usage for sensor data storage
-
-    9. Device (Gateway and LDSU) management services
-       Provision, manage and monitor devices
+    8. Device fleet management services
+       Provision, manage and monitor devices or fleets of devices
        A. Register device manually or via QR code (QR code registration via mobile apps only)
        B. Manager device status remotely (restart, stop, start) and view device properties including last active time
        C. Configure and track location of a device (or a fleet of devices) via Google Maps (latitude, longitude)
@@ -130,7 +128,7 @@ Below are the features of this secure, scalable and reliable IoT platform:
        F. View device-sensor hierarchy tree and devices configurations summary 
        *  Configure and manage organization-owned devices
 
-    10.Sensor/actuator management services
+    9. Sensor/actuator management services
        Configure sensors/actuators for customizable alerts/alarms or trigger/action
        A. Configure UART parameters and GPIO pins
        B. Register 3rd-party sensors connected via peripherals: I2C, ADC, OneWire, TPROBE
@@ -145,7 +143,7 @@ Below are the features of this secure, scalable and reliable IoT platform:
        G. Configure actuators to receive commands from sensors (data thresholding - item D)
        H. View device-sensor hierarchy tree and summary of sensor configurations
 
-    11.Sensor data visualization and analytics services
+    10.Sensor data visualization and analytics services
        Understand device and sensor behaviour via the dashboard charts/graphs/infographics for complete holistic insight
        A. Ingest sensor data from sensors connected via peripherals: I2C, ADC, Onewire, TPROBE
        B. Store sensor data to a Big Data database using MongoDB Atlas
@@ -205,6 +203,8 @@ The web app is made of Ionic framework so it can be compiled as Android and iOS 
 - <b>BrainTree</b> payment gateway - https://www.braintreepayments.com/
 - <b>Apple Push Notification service (APNs)</b> for IOS push notifications
 - <b>Google Firebase Cloud Messaging (FCM)</b> for Android push notifications
+- <b>Apple IOS Test Flight</b> app distribution - https://developer.apple.com/testflight/
+- <b>Google Firebase</b> app distribution - https://firebase.google.com/docs/app-distribution/
 - <b>Google Maps Platform</b> for device location - https://developers.google.com/maps/documentation/
 - <b>Chart.JS</b> Visualization charts/graphs - https://www.chartjs.org/
 - <b>D3.JS</b> Visualization charts/graphs - https://observablehq.com/@d3/gallery/
@@ -250,7 +250,7 @@ Below are tools and utilities being used:
 11. <b>OTAUpdate</b> - handles OTA firmware update via MQTTS
 12. <b>Invoicing</b> - handles sending of payment receipts via email
 13. <b>Registration</b> - handles processing of sensor registration by device on bootup
-14. <b>Heartbeat</b> - handles processing of heartbeat packets aka ping
+14. <b>Heartbeat</b> - handles processing of heartbeat packets
 
 
 

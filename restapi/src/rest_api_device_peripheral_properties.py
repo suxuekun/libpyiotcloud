@@ -43,9 +43,12 @@ class device_peripheral_properties:
         email = notification["endpoints"]["email"]
         if email["enable"] == False:
             return True
+
         # email is enabled, so check the recipients
         recipients = email["recipients"]
         recipients = recipients.replace(" ", "").split(",")
+
+        # check if the emails are valid
         for recipient in recipients:
             found = False
             for user in users:
@@ -61,9 +64,12 @@ class device_peripheral_properties:
         mobile = notification["endpoints"]["mobile"]
         if mobile["enable"] == False:
             return True
+
         # mobile is enabled, so check the recipients
         recipients = mobile["recipients"]
         recipients = recipients.replace(" ", "").split(",")
+
+        # check if the numbers are valid
         for recipient in recipients:
             found = False
             for user in users:
@@ -76,6 +82,46 @@ class device_peripheral_properties:
             if not found:
                 print("email {} not found".format(recipient))
                 return False
+        return True
+
+    def is_device_list_valid(self, notification, entityname):
+        modem = notification["endpoints"]["modem"]
+        if modem["enable"] == False:
+            return True
+
+        # modem is enabled, so check the recipients
+        isgroup = False
+        if modem.get("isgroup") is not None:
+            isgroup = modem["isgroup"]
+
+        recipients = modem["recipients"]
+        recipients = recipients.replace(" ", "").split(",")
+
+        if isgroup == False:
+            # check if the device recipients are valid
+            devices = self.database_client.get_devices(entityname)
+            for recipient in recipients:
+                found = False
+                for device in devices:
+                    if recipient == device["devicename"]:
+                        found = True
+                        break
+                if not found:
+                    print("device {} not found".format(recipient))
+                    return False
+        else:
+            # check if the devicegroup recipients are valid
+            devicegroups = self.database_client.get_devicegroups(entityname)
+            for recipient in recipients:
+                found = False
+                for devicegroup in devicegroups:
+                    if recipient == devicegroup["groupname"]:
+                        found = True
+                        break
+                if not found:
+                    print("devicegroup {} not found".format(recipient))
+                    return False
+
         return True
 
 
@@ -130,22 +176,16 @@ class device_peripheral_properties:
 
         configuration = self.database_client.get_device_peripheral_configuration(entityname, devicename, "uart", 1, None)
         if configuration:
-            response = {'value': configuration["attributes"]}
+            value = configuration["attributes"]
             print(configuration["attributes"])
         else:
-            response = {'value': 
-                {
-                    "baudrate": 7,
-                    "parity": 0,
-                    "flowcontrol": 0,
-                    "stopbits": 0,
-                    "databits": 1,
-                }
+            value = {
+                "baudrate": 7,
+                "parity": 0,
+                "flowcontrol": 0,
+                "stopbits": 0,
+                "databits": 1,
             }
-
-        #response, status_return = self.messaging_requests.process(api, data)
-        #if status_return != 200:
-        #    return response, status_return
 
         source = "uart"
         notification = self.database_client.get_device_notification(entityname, devicename, source)
@@ -156,12 +196,12 @@ class device_peripheral_properties:
             # notification recipients should be empty
             if notification["endpoints"]["notification"].get("recipients"):
                 notification["endpoints"]["notification"]["recipients"] = ""
-            response['value']['notification'] = notification
-            response = json.dumps(response)
+            value['notification'] = notification
         else:
-            response['value']['notification'] = rest_api_utils.utils().build_default_notifications("uart", token, self.database_client)
-            response = json.dumps(response)
+            value['notification'] = rest_api_utils.utils().build_default_notifications("uart", token, self.database_client)
 
+        msg = {'status': 'OK', 'message': 'UART properties retrieved successfully.', 'value': value}
+        response = json.dumps(msg)
         return response
 
 
@@ -228,7 +268,7 @@ class device_peripheral_properties:
             entityname = username
 
 
-        # check list of email and sms are valid
+        # check list of email and sms and devices are valid
         users = self.database_client.get_registered_users()
         if not self.is_email_list_valid(notification, users):
             response = json.dumps({'status': 'NG', 'message': 'At least one of the emails do not belong to a verified user account. All email recipients should belong to a valid user account.'})
@@ -237,6 +277,10 @@ class device_peripheral_properties:
         if not self.is_sms_list_valid(notification, users):
             response = json.dumps({'status': 'NG', 'message': 'At least one of the mobile numbers do not belong to a verified user account. All SMS recipients should belong to a valid user account.'})
             print('\r\nERROR Set Uart: Mobile number list is not valid [{}]\r\n'.format(username))
+            return response, status.HTTP_401_UNAUTHORIZED
+        if not self.is_device_list_valid(notification, entityname):
+            response = json.dumps({'status': 'NG', 'message': 'At least one of the device/devicegroup is not valid. All device/devicegroup recipients should be valid.'})
+            print('\r\nERROR Set Uart: Device/device group list is not valid [{}]\r\n'.format(username))
             return response, status.HTTP_401_UNAUTHORIZED
 
 
@@ -255,6 +299,8 @@ class device_peripheral_properties:
         if status_return != 200:
             return response, status_return
 
+        msg = {'status': 'OK', 'message': 'UART properties set successfully.'}
+        response = json.dumps(msg)
         return response
 
 
@@ -444,7 +490,7 @@ class device_peripheral_properties:
         notification = data['notification']
         data.pop('notification')
 
-        # check list of email and sms are valid
+        # check list of email and sms and devices are valid
         users = self.database_client.get_registered_users()
         if not self.is_email_list_valid(notification, users):
             response = json.dumps({'status': 'NG', 'message': 'At least one of the emails do not belong to a verified user account. All email recipients should belong to a valid user account.'})
@@ -453,6 +499,10 @@ class device_peripheral_properties:
         if not self.is_sms_list_valid(notification, users):
             response = json.dumps({'status': 'NG', 'message': 'At least one of the mobile numbers do not belong to a verified user account. All SMS recipients should belong to a valid user account.'})
             print('\r\nERROR Set Peripheral Sensor: Mobile number list is not valid [{}]\r\n'.format(username))
+            return response, status.HTTP_401_UNAUTHORIZED
+        if not self.is_device_list_valid(notification, entityname):
+            response = json.dumps({'status': 'NG', 'message': 'At least one of the device/devicegroup is not valid. All device/devicegroup recipients should be valid.'})
+            print('\r\nERROR Set Uart: Device/device group list is not valid [{}]\r\n'.format(username))
             return response, status.HTTP_401_UNAUTHORIZED
 
 

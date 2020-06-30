@@ -127,7 +127,6 @@ class device_locations:
 
             # get devices of the user
             devices = self.database_client.get_devices(entityname)
-            print(devices)
 
             # get the devices location from database
             locations = self.database_client.get_devices_location(entityname)
@@ -155,6 +154,8 @@ class device_locations:
                     print('\r\nERROR Set Devices Locations: Authorization not allowed [{}]\r\n'.format(username))
                     return response, status.HTTP_401_UNAUTHORIZED
 
+            devices = self.database_client.get_devices(entityname)
+
             # check if new device name is already registered
             data = flask.request.get_json()
             if data.get("locations") is None:
@@ -162,9 +163,29 @@ class device_locations:
                 print('\r\nERROR Set Devices Locations: Parameters not included [{},{}]\r\n'.format(username, devicename))
                 return response, status.HTTP_400_BAD_REQUEST
 
+            # check if the locations are valid
+            for location in data["locations"]:
+                # check if latitude and longitude are valid
+                try:
+                    latitude = float(location["location"]["latitude"])
+                    longitude = float(location["location"]["longitude"])
+                except:
+                    response = json.dumps({'status': 'NG', 'message': 'Atleast one of the location is invalid'})
+                    print('\r\nERROR Set Devices Locations: Atleast one of the location is invalid [{},{}]\r\n'.format(entityname, devicename))
+                    return response, status.HTTP_400_BAD_REQUEST
+
+                # check if device is valid
+                found = False
+                for device in devices:
+                    if location["devicename"] == device["devicename"]:
+                        found = True
+                        break
+                if not found:
+                    response = json.dumps({'status': 'NG', 'message': 'Atleast one of the devices is invalid'})
+                    print('\r\nERROR Set Devices Locations: Atleast one of the devices is invalid [{},{}]\r\n'.format(entityname, devicename))
+                    return response, status.HTTP_400_BAD_REQUEST
 
             # set the location to database
-            print(data["locations"])
             for location in data["locations"]:
                 self.database_client.add_device_location(entityname, location["devicename"], location["location"])
 
@@ -290,13 +311,6 @@ class device_locations:
                     print('\r\nERROR Set Device Location: Authorization not allowed [{}]\r\n'.format(username))
                     return response, status.HTTP_401_UNAUTHORIZED
 
-            # check if device is registered
-            device = self.database_client.find_device(entityname, devicename)
-            if not device:
-                response = json.dumps({'status': 'NG', 'message': 'Device is not registered'})
-                print('\r\nERROR Get Device Location: Device is not registered [{},{}]\r\n'.format(entityname, devicename))
-                return response, status.HTTP_404_NOT_FOUND
-
             # get the location from database
             location  = self.database_client.get_device_location(entityname, devicename)
 
@@ -325,6 +339,14 @@ class device_locations:
                 print('\r\nERROR Set Device Location: Parameters not included [{},{}]\r\n'.format(entityname, devicename))
                 return response, status.HTTP_400_BAD_REQUEST
 
+            # check if latitude and longitude are valid
+            try:
+                latitude = float(data["latitude"])
+                longitude = float(data["longitude"])
+            except:
+                response = json.dumps({'status': 'NG', 'message': 'Location is invalid'})
+                print('\r\nERROR Set Device Location: Location is invalid [{},{}]\r\n'.format(entityname, devicename))
+                return response, status.HTTP_400_BAD_REQUEST
 
             # set the location to database
             self.database_client.add_device_location(entityname, devicename, data)

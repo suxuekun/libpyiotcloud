@@ -35,6 +35,29 @@ class device_histories:
     def sort_by_timestamp(self, elem):
         return elem['timestamp']
 
+    def get_menos_usage(self, entityname, devicename, deviceid):
+        usage = {}
+        usage["devicename"] = devicename
+        if deviceid is None:
+            usage["Mobile"]       = self.database_client.get_menos_num_sms_by_currmonth(entityname, devicename)
+            usage["Email"]        = self.database_client.get_menos_num_email_by_currmonth(entityname, devicename)
+            usage["Notification"] = self.database_client.get_menos_num_notification_by_currmonth(entityname, devicename)
+            usage["Modem"]        = self.database_client.get_menos_num_device_by_currmonth(entityname, devicename)
+            usage["Storage"]      = self.database_client.get_menos_num_storage_by_currmonth(entityname, devicename)
+            bytes, kb, mb, gb     = self.database_client.get_menos_num_sensordata_by_currmonth(entityname, devicename)
+            usage["SensorData"]   = [bytes, kb, mb, gb]
+        else:
+            usage["Mobile"]       = self.database_client.get_menos_num_sms_by_deviceid_by_currmonth(deviceid)
+            usage["Email"]        = self.database_client.get_menos_num_email_by_deviceid_by_currmonth(deviceid)
+            usage["Notification"] = self.database_client.get_menos_num_notification_by_deviceid_by_currmonth(deviceid)
+            usage["Modem"]        = self.database_client.get_menos_num_device_by_deviceid_by_currmonth(deviceid)
+            usage["Storage"]      = self.database_client.get_menos_num_storage_by_deviceid_by_currmonth(deviceid)
+            bytes, kb, mb, gb     = self.database_client.get_menos_num_sensordata_by_deviceid_by_currmonth(deviceid)
+            usage["SensorData"]   = [bytes, kb, mb, gb]
+        #print(usage["SensorData"])
+        return usage
+
+
     ########################################################################################################
     #
     # GET HISTORIES
@@ -281,7 +304,17 @@ class device_histories:
             histories += transactions
         histories.sort(key=self.sort_by_timestamp, reverse=True)
 
+
+        # get menos usage summary per device
+        usages = []
+        for device in devices:
+            usage = self.get_menos_usage(entityname, device["devicename"], device["deviceid"])
+            usages.append(usage)
+
+
         msg = {'status': 'OK', 'message': 'User MENOS histories queried successfully.', 'transactions': histories}
+        if usages:
+            msg['usages'] = usages
         if new_token:
             msg['new_token'] = new_token
         response = json.dumps(msg)
@@ -295,7 +328,7 @@ class device_histories:
     # - Request:
     #   POST /devices/menos
     #   headers: {'Authorization': 'Bearer ' + token.access, 'Content-Type': 'application/json'}
-    #   data: { 'devicename': string, 'deviceid': string, 'type': string, 'peripheral': string, 'datebegin': int, 'dateend': int }
+    #   data: { 'devicename': string, 'deviceid': string, 'type': string, 'source': string, 'datebegin': int, 'dateend': int }
     #
     # - Response:
     #   { 'status': 'OK', 'message': string, 
@@ -392,7 +425,21 @@ class device_histories:
                 histories += transactions
         histories.sort(key=self.sort_by_timestamp, reverse=True)
 
+
+        # get menos usage summary per device
+        usages = []
+        if devicename is not None:
+            usage = self.get_menos_usage(entityname, devicename, None)
+            usages.append(usage)
+        else:
+            for device in devices:
+                usage = self.get_menos_usage(entityname, device["devicename"], device["deviceid"])
+                usages.append(usage)
+
+
         msg = {'status': 'OK', 'message': 'User MENOS histories queried successfully.', 'transactions': histories}
+        if usages:
+            msg['usages'] = usages
         if new_token:
             msg['new_token'] = new_token
         response = json.dumps(msg)

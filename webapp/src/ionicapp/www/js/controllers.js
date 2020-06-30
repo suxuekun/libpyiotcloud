@@ -1190,19 +1190,21 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
     $scope.handle_error = function(error) {
         // Handle failed login
         if (error.data !== null) {
-            console.log("ERROR: Get Device failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
-
-            if (error.data.message === "Token expired") {
-                Token.refresh({'username': $scope.data.username, 'token': $scope.data.token});
-                $scope.data.token = User.get_token();
-                //$ionicPopup.alert({ title: 'Error', template: 'Token expired!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+            if (error.data.message !== undefined) {
+                console.log("ERROR: Get Device failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
+    
+                if (error.data.message === "Token expired") {
+                    Token.refresh({'username': $scope.data.username, 'token': $scope.data.token});
+                    $scope.data.token = User.get_token();
+                    //$ionicPopup.alert({ title: 'Error', template: 'Token expired!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+                }
+                else if (error.status == 401 && error.data.message.includes('Please check with the organization owner') === true ) {
+                    $ionicPopup.alert({ title: 'Error', template: error.data.message, buttons: [{text: 'OK', type: 'button-assertive'}] });
+                }         
+                //else {
+                //    $ionicPopup.alert({ title: 'Error', template: error.data.message, buttons: [{text: 'OK', type: 'button-assertive'}] });
+                //}
             }
-            else if (error.status == 401 && error.data.message.includes('Please check with the organization owner') === true ) {
-                $ionicPopup.alert({ title: 'Error', template: error.data.message, buttons: [{text: 'OK', type: 'button-assertive'}] });
-            }         
-            //else {
-            //    $ionicPopup.alert({ title: 'Error', template: error.data.message, buttons: [{text: 'OK', type: 'button-assertive'}] });
-            //}
         }
         else {
             console.log("ERROR: Server is down!"); 
@@ -3370,6 +3372,42 @@ function ($scope, $stateParams, $state, $ionicPopup, $http, Server) {
     $scope.submitCancel = function() {
         $state.go('recover');
     };   
+
+    $scope.submitResendOTP = function() {
+        //
+        // FORGOT PASSWORD
+        //
+        // - Request:
+        //   POST /user/forgot_password
+        //   { 'email': string }
+        //
+        // - Response:
+        //   {'status': 'OK', 'message': string, 'username': string}
+        //   {'status': 'NG', 'message': string}         
+        //         
+        $http({
+            method: 'POST',
+            url: server + '/user/forgot_password',
+            headers: {'Content-Type': 'application/json'},
+            data: {'email': $scope.data.username}
+        })
+        .then(function (result) {
+            console.log(result.data);
+            $ionicPopup.alert({title: 'Resend OTP', template: 'OTP resent successfully'});
+        })
+        .catch(function (error) {
+            // Handle failed login
+            console.log(error);
+            if (error.data !== null) {
+                console.log(error.status + " " + error.statusText);
+                $ionicPopup.alert({title: 'Resend OTP', template: error.data.message});
+            }
+            else {
+                $ionicPopup.alert({ title: 'Resend OTP', template: 'Server is down!', buttons: [{text: 'OK', type: 'button-assertive'}] });
+            }
+            return;
+        });
+    };   
     
 }])
    
@@ -4204,7 +4242,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, Devices, Use
             if (error.data !== null) {
                 console.log("ERROR: Register Device failed with " + error.status + " " + error.statusText + "! " + error.data.message); 
 
-                if (error.status == 409) {
+                if (error.status == 409 || error.status == 400) {
                     $ionicPopup.alert({ title: 'Error', template: error.data.message, buttons: [{text: 'OK', type: 'button-assertive'}] });
                 }
                 else {
@@ -4828,7 +4866,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
         //        
         $http({
             method: 'POST',
-            url: server + '/devicegroups/' + devicegroupname + '/name',
+            url: server + '/devicegroups/group/' + devicegroupname + '/name',
             headers: {'Authorization': 'Bearer ' +  $scope.data.token.access, 'Content-Type': 'application/json' },
             data: {'new_groupname': new_devicegroupname}
         })
@@ -9829,27 +9867,23 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                     'mobile': {
                         'recipients': '',
                         'enable': false,
-                        'recipients_list': [],
                     },
                     'email': {
                         'recipients': '',
                         'enable': false,
-                        'recipients_list': [],
                     },
                     'notification': {
                         'recipients': '',
                         'enable': false,
-                        'recipients_list': [],
                     },
                     'modem': {
                         'recipients': '',
                         'enable': false,
-                        'recipients_list': [],
+                        'isgroup': false,
                     },
                     'storage': {
                         'recipients': '',
                         'enable': false,
-                        'recipients_list': [],
                     },
                 }
             }
@@ -10188,7 +10222,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
 
 
     $scope.submit = function() {
-        $scope.data.uart.notification.endpoints.modem.recipients = $scope.devices[$scope.data.hardware_devicename].devicename;
+        //$scope.data.uart.notification.endpoints.modem.recipients = $scope.devices[$scope.data.hardware_devicename].devicename;
         console.log($scope.data.uart.notification.endpoints.modem.recipients);
         console.log($scope.data.uart);
         set_uart_properties($scope.data.uart);
@@ -15745,7 +15779,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                 'period': 60000,
             },
             'hardware': {
-                'devicename': '',  
+                'devicename': '',
+                'enable': false
             },
             
             'notification': {
@@ -15775,6 +15810,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                     'modem': {
                         'enable': false,
                         'recipients': '',
+                        'isgroup': false,
                     },
                     'storage': {
                         'enable': false,
@@ -16003,6 +16039,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
     $scope.submit = function() {
         console.log("submit");
         console.log($scope.data.attributes);
+        
+        /*
         if ($scope.data.hardware_devicename >= $scope.devices.length) {
             return;
         }
@@ -16014,6 +16052,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             // CONTINUOUS mode
             $scope.data.attributes.hardware.devicename = $scope.devices[$scope.data.hardware_devicename].devicename;
         }
+        */
         
         
         if ($scope.data.sensor.subclass !== undefined) {
@@ -16260,6 +16299,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             },
             'hardware': {
                 'devicename': '',  
+                'enable': false
             },
             
             'notification': {
@@ -16289,6 +16329,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                     'modem': {
                         'enable': false,
                         'recipients': '',
+                        'isgroup': false,
                     },
                     'storage': {
                         'enable': false,
@@ -16517,6 +16558,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
     $scope.submit = function() {
         console.log("submit");
         console.log($scope.data.attributes);
+        
+        /*
         if ($scope.data.hardware_devicename >= $scope.devices.length) {
             return;
         }
@@ -16528,6 +16571,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             // CONTINUOUS mode
             $scope.data.attributes.hardware.devicename = $scope.devices[$scope.data.hardware_devicename].devicename;
         }
+        */
         
         
         if ($scope.data.sensor.subclass !== undefined) {
@@ -16774,6 +16818,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             },
             'hardware': {
                 'devicename': '',  
+                'enable': false
             },
             
             'notification': {
@@ -16803,6 +16848,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                     'modem': {
                         'enable': false,
                         'recipients': '',
+                        'isgroup': false,
                     },
                     'storage': {
                         'enable': false,
@@ -17031,6 +17077,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
     $scope.submit = function() {
         console.log("submit");
         console.log($scope.data.attributes);
+        
+        /*
         if ($scope.data.hardware_devicename >= $scope.devices.length) {
             return;
         }
@@ -17042,6 +17090,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             // CONTINUOUS mode
             $scope.data.attributes.hardware.devicename = $scope.devices[$scope.data.hardware_devicename].devicename;
         }
+        */
         
         
         if ($scope.data.sensor.subclass !== undefined) {
@@ -17288,6 +17337,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             },
             'hardware': {
                 'devicename': '',  
+                'enable': false
             },
             
             'notification': {
@@ -17317,6 +17367,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                     'modem': {
                         'enable': false,
                         'recipients': '',
+                        'isgroup': false,
                     },
                     'storage': {
                         'enable': false,
@@ -17545,6 +17596,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
     $scope.submit = function() {
         console.log("submit");
         console.log($scope.data.attributes);
+        
+        /*
         if ($scope.data.hardware_devicename >= $scope.devices.length) {
             return;
         }
@@ -17556,6 +17609,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             // CONTINUOUS mode
             $scope.data.attributes.hardware.devicename = $scope.devices[$scope.data.hardware_devicename].devicename;
         }
+        */
         
         
         if ($scope.data.sensor.subclass !== undefined) {
@@ -17802,6 +17856,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             },
             'hardware': {
                 'devicename': '',  
+                'enable': false
             },
             
             'notification': {
@@ -17831,6 +17886,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                     'modem': {
                         'enable': false,
                         'recipients': '',
+                        'isgroup': false,
                     },
                     'storage': {
                         'enable': false,
@@ -18059,6 +18115,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
     $scope.submit = function() {
         console.log("submit");
         console.log($scope.data.attributes);
+        
+        /*
         if ($scope.data.hardware_devicename >= $scope.devices.length) {
             return;
         }
@@ -18070,6 +18128,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             // CONTINUOUS mode
             $scope.data.attributes.hardware.devicename = $scope.devices[$scope.data.hardware_devicename].devicename;
         }
+        */
         
         
         if ($scope.data.sensor.subclass !== undefined) {
@@ -18316,6 +18375,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             },
             'hardware': {
                 'devicename': '',  
+                'enable': false
             },
             
             'notification': {
@@ -18345,6 +18405,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                     'modem': {
                         'enable': false,
                         'recipients': '',
+                        'isgroup': false,
                     },
                     'storage': {
                         'enable': false,
@@ -18573,6 +18634,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
     $scope.submit = function() {
         console.log("submit");
         console.log($scope.data.attributes);
+        
+        /*
         if ($scope.data.hardware_devicename >= $scope.devices.length) {
             return;
         }
@@ -18584,6 +18647,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             // CONTINUOUS mode
             $scope.data.attributes.hardware.devicename = $scope.devices[$scope.data.hardware_devicename].devicename;
         }
+        */
         
         
         if ($scope.data.sensor.subclass !== undefined) {
@@ -22729,70 +22793,44 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Device
         // status
         "get_status", 
         "set_status",
+        "pub_heartbeat",
 
         // settings
         "get_settings", 
         "set_settings",
         
         // uart
-        "get_uarts",
-        "get_uart_prop",
         "set_uart_prop",
-        "enable_uart",
 
-        // gpio
-        "get_gpios",
-        "get_gpio_prop",
-        "set_gpio_prop",
-        "enable_gpio",
-        "get_gpio_voltage",
-        "set_gpio_voltage",
-
-        // i2c
-        "get_i2c_devs",
-        "enable_i2c_dev",
-        "get_i2c_dev_prop",
-        "set_i2c_dev_prop",
-
-        // adc
-        "get_adc_devs",
-        "enable_adc_dev",
-        "get_adc_dev_prop",
-        "set_adc_dev_prop",
-        "get_adc_voltage",
-        "set_adc_voltage",
-
-        // 1wire
-        "get_1wire_devs",
-        "enable_1wire_dev",
-        "get_1wire_dev_prop",
-        "set_1wire_dev_prop",
-
-        // tprobe
-        "get_tprobe_devs",
-        "enable_tprobe_dev",
-        "get_tprobe_dev_prop",
-        "set_tprobe_dev_prop",
+        // gateway and ldsbus
+        "set_descriptor",
+        "get_descriptor",
+        "set_ldsu_descriptors",
+        "get_ldsu_descriptors",
+        "identify_ldsu",
+        "enable_ldsu_dev",
         
-        // notification
-        "get_devs",
+        // configuratrions
+        "req_configuration",
+        "rcv_configuration",
+        "del_configuration",
         
+        // sensor readings
+        "pub_sensor_reading",
+        "rcv_sensor_reading",
+        "req_sensor_reading",
+        
+        // ota
+        "beg_ota",
+        "end_ota",
+        "req_otastatus",
+        "req_time",
+        "rcv_time",
+
         // notification
         "recv_notification",
         "trigger_notification",
         "status_notification",
-        
-        // sensor reading
-        "rcv_sensor_reading",
-        "req_sensor_reading",
-        "sensor_reading",
-
-        // configuration
-        "rcv_configuration",
-        "req_configuration",
-        "del_configuration",
-        "set_configuration"
-        
     ];
     $scope.topicidx = 0;
 
@@ -22917,24 +22955,9 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Device
     ];
     $scope.type = "All types";
 
-    // Filter by peripherals
-    $scope.peripherals = [ 
-        "All peripherals",
-        "UART", 
-        "GPIO1",
-        "GPIO2",
-        "GPIO3",
-        "GPIO4",
-        "I2C1",
-        "I2C2",
-        "I2C3",
-        "I2C4",
-        "ADC1",
-        "ADC2",
-        "1WIRE1",
-        "TPROBE1"
-    ];
-    $scope.peripheral = "All peripherals";
+    // Filter by sources
+    $scope.sources = [ "All sources", "UART" ];
+    $scope.source = "All sources";
 
     // Filter by date    
     $scope.date = {
@@ -22944,7 +22967,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Device
     
     
     
-    $scope.applyFilter = function(deviceidx, type, peripheral) {
+    $scope.applyFilter = function(deviceidx, type, source=null) {
 
         var devicename = null;
         var deviceid = null;
@@ -22978,7 +23001,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Device
 
         //console.log(devicename);
         //console.log(type);
-        //console.log(peripheral);
+        //console.log(source);
         //console.log(datebegin);
         //console.log(dateend);
 
@@ -22988,11 +23011,12 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Device
             type_use = type;
         }
         var source_use = null;
-        if (peripheral !== "All peripherals") {
-            source_use = peripheral;
+        if (source !== null) {
+            source_use = source;
         }
         Notifications.fetch_filtered($scope.data, devicename, type_use, source_use, datebegin, dateend).then(function(res) {
-            $scope.items = res;
+            $scope.items = res.transactions;
+            $scope.usages = res.usages;
             $scope.data.token = User.get_token();
         }); 
     };
@@ -23012,7 +23036,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Device
         });
     
         Notifications.fetch($scope.data).then(function(res) {
-            $scope.items = res;
+            $scope.items = res.transactions;
+            $scope.usages = res.usages;
             $scope.data.token = User.get_token();
         }); 
     };

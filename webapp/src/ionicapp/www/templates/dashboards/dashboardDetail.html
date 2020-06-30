@@ -1,0 +1,82 @@
+<ion-view title="Add Dashboard" hide-back-button="true" nav-transition="none" id="page12" style="background-color:#FFFFFF;" class="page_width_medium">
+  <ion-nav-buttons side="left" class="has-header">
+    <button class="button button-icon icon ion-android-close" ng-click="close()"></button>
+  </ion-nav-buttons>
+  <ion-content padding="true" class="has-header">
+    <div class="dashboard-container dashboard-border dashboard-round-border">
+      <h3>Information</h3>
+      <form>
+        <div class="row">
+          <div ng-repeat="color in data.colors">
+            <div class="item item-body box-color"
+                ng-if="data.selectedColor !== color"
+                ng-click="selectColor(color)"
+                ng-style="{'background-color': color}">
+            </div>
+            <div class="item item-body box-color box-selected-color"
+                ng-if="data.selectedColor === color"
+                ng-click="selectColor(color)"
+                ng-style="{'background-color': color}">
+            </div>
+          </div>
+        </div>
+        <ion-item class="item-divider" id="addGateway-list-item-divider22"> Name</ion-item>
+        <label class="item item-input" id="addGateway-input28" name="input-name">
+        <input type="text" placeholder="Dashboard Name" ng-model="data.name">
+        </label>
+        <button id="addGateway-button55"
+                ng-click="save()"
+                ng-style="{'background-color': data.selectedColor}"
+                class="button button-positive button-block">SAVE</button>
+      </form>
+    </div>
+
+    <div class="dashboard-container dashboard-border dashboard-round-border"
+         style="margin-top: 10px;">
+       <div class="row">
+        <div class="dashboard-item-main-column" style="width: 90%">
+          <h3>Charts</h3>
+        </div>
+
+        <div class="dashboard-item-action-column" style="width: 10%; height:20px">
+          <button class="button button-large button-icon ion-android-add-circle"
+                  style="font-weight:600;"
+                  ng-click="add()"></button>
+        </div>
+       </div>
+
+       <form id="gateways-form54" class="list">
+        <div id="gateways-button-bar11" class="button-bar">
+          <button id="gateways-button164"
+                  ng-click="changeActiveTab(0)"
+                  ng-class="{'active': activeTab==0}"
+                  style="font-weight:300;color:#AAAAAA;font-size:12px;border-radius:256px 256px 256px 256px;"
+                  class="button button-stable button-small button-block">Gateways</button>
+          <button id="gateways-button165"
+                  ng-click="changeActiveTab(1)"
+                  ng-class="{'active': activeTab==1}"
+                  style="font-weight:300;color:#AAAAAA;font-size:12px;border-radius:256px 256px 256px 256px;"
+                  class="button button-stable button-small button-block">Sensors</button>
+        </div>
+      </form>
+      <div  ng-show="activeTab==0">
+         <div class="item item-body" ng-repeat="chart in chartsGatewaysView">
+            <div class="column">
+                <h2><strong>{{chart.deviceName}}</strong></h2>
+                <canvas class="chart chart-doughnut"
+                chart-data="chart.values"
+                chart-labels="chart.labels"
+                chart-colors="sensors_datachart_colors_options_ex"
+                chart-options="sensors_datachart_piechart_sensors_statuses_options">
+                </canvas>
+            </div>
+         </div>
+
+      </div>
+      <div class="list card" ng-show="activeTab==1">
+        <h1>Sensors</h1>
+      </div>
+    </div>
+
+  </ion-content>
+</ion-view>
