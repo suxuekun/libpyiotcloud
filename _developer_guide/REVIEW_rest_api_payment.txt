@@ -257,3 +257,49 @@ June 29, 2020
     Push Notification   - get_menos_num_notification_by_deviceid_by_currmonth
     Sensor Data Storage - get_menos_num_sensordata_by_deviceid_by_currmonth
 
+
+===============================================
+
+June 30, 2020
+
+51. When upgrading, the storage does not have units (GB)
+
+52. im on free plan but choose upgrade, free plan also appears
+
+53. can't we just cancel without haveing user go to paypal?
+
+54. the braintree dropin UI seems very slow to load (>5 seconds?)
+
+55. check out fails but it appeared successful in the main Subsctri
+    i probably clicked twice. need to fix the web app so it wont allow clicking twice
+
+56. its not appearing in the transactions
+    paypal tax > 0.33  ???
+
+    it appears in the subscription though
+    so only the transaction for current prorated month failed ?.
+
+57. i upgraded basic plan to basic plan seems the backend allowed it
+    still no transaction appeared in braintree
+
+58. please fix user experienc
+    displaying prompts indicating success or fail (not blank)
+    disabling Pay button before braintree options appear
+    disabling Pay button after transaction completed.
+ 
+    Pay button should only appear when user has logged in and approved Paypal
+
+59. when CANCELLED. when will CANCELLED be removed
+    tomorrow is a new month, July, so this should disappear tomorrow?
+
+60. transaction history devicename does not appear?
+
+61. for billing address, i was not asked to fillup billing address first before payment
+    i was able to upgrade without filling up billing address
+
+
+
+when i deleted device, the subscription was not cancelled. it still appears in braintree.
+should auto cancel subscription when device is deleted.
+
+
