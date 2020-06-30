@@ -297,9 +297,23 @@ June 30, 2020
 61. for billing address, i was not asked to fillup billing address first before payment
     i was able to upgrade without filling up billing address
 
+62. promo code, nothing appears
 
+63. your not checking the date yet in promo code? 
+    in the CSV file, the start dates are from July so technically all promo codes should not appear yet. 
+    will update promo code file so it covers today.
 
-when i deleted device, the subscription was not cancelled. it still appears in braintree.
-should auto cancel subscription when device is deleted.
+64. Dev 2 is Pro 30 already
+    but when i click it, it appears as Free plan
+    if i upgrade, it also appears Current Plan as Free PLAN
+
+    see screenshot. it happens for Dev1, Dev2, Dev3, Dev4
+    Dev4 is free so no issue
+
+65. when i deleted device, the subscription was not cancelled. it still appears in braintree.
+    should autocancel subscription when device is deleted because user has no way to map it in his paypal account. 
+
+    to cancel it, user will have to cancel all subscriptions in his paypal account which is not good for us.
+    so we should auto cancel when user deletes the device.
 
 
