@@ -14,12 +14,11 @@ def get_usage(data):
     sms = db_client.get_menos_num_sms_by_deviceid_by_currmonth(data.deviceid)
     email = db_client.get_menos_num_email_by_deviceid_by_currmonth(data.deviceid)
     notification = db_client.get_menos_num_notification_by_deviceid_by_currmonth(data.deviceid)
-
-    storage = db_client.get_menos_num_sensordata_by_deviceid_by_currmonth(data.deviceid)
+    # storage = db_client.get_menos_num_sensordata_by_deviceid_by_currmonth(data.deviceid)
     data.sms = sms
     data.email = email
     data.notification = notification
-    data.storage = storage
+    # data.storage = storage
     data.validate()
 
 class SubscriptionResource(Resource,GetMixin):
@@ -31,8 +30,7 @@ class SubscriptionResource(Resource,GetMixin):
     @throw_bad_request
     def get(self, id):
         data = self.service.get(id)
-
-
+        get_usage(data)
         res = self.to_api_data(data)
         if res:
             return self.to_result(res)

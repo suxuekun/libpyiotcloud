@@ -24,8 +24,8 @@ class AbstractPromocodeService(BaseSimpleApiService):
         '''
         currently no checking for new user
         '''
-        # if not model_instance.within_validity(create_time):
-        #     return False
+        if not model_instance.within_validity(create_time):
+            return False
         query = {
             'promocode':model_instance._id,
             'subscription_id':subscription_id,
@@ -40,9 +40,7 @@ class AbstractPromocodeService(BaseSimpleApiService):
 
     def list_valid_code(self,subscription_id,plan_id,create_time):
         l = self.list()
-        print('l',l)
         filtered_list = list(filter(lambda x:x and self._verify(x,subscription_id,plan_id,create_time),l))
-        print('fl', filtered_list)
         return filtered_list
 
 

@@ -167,10 +167,11 @@ class PaymentService():
             if (plan.is_free()):#paid to free , cancel
                 self._cancel_subscription(subscription)
             else:
-                if (plan.price > subscription.next.plan.price):
+                if (plan.price >= subscription.next.plan.price):
                     prorate = self._upgrade_subscription(payment_token,subscription,plan,promocode,gst)
                 else:
                     self._downgrade_subscription(payment_token,subscription,plan)
+
         return prorate
 
     def get_payment_method_token(self,bt_customer_id, nonce):
@@ -193,7 +194,7 @@ class PaymentService():
         transaction = Transaction()
         for change in changes:
             prorate = Decimal(self.change_subscription(**change.to_primitive(),payment_token= payment_token,gst=gst))
-            print(prorate,isinstance(prorate,str))
+
             if (prorate < 0 ):
                 #error
                 #should stop
@@ -202,6 +203,8 @@ class PaymentService():
                 bill += Decimal(prorate)
         print('changes done bill is : ', bill)
         if (bill > 0):
+            if (gst):
+                bill = Decimal(1+gst/100) * bill
             descriptor= {
                 'name': "brt*subscription",
             }
@@ -270,7 +273,9 @@ class PaymentService():
         res,message = self._prorate_without_gst(current_plan,next_plan,promocode)
         try:
             b = self.billing_address_service.get_or_create_one(query)
-            res['gst'] = b.get_gst();
+            res['gst'] = Decimal(b.get_gst());
+            res['gst_price'] = next_plan.get_price_str(res['gst'])
+            res['gst_prorate'] = str((1 +Decimal(res['gst'])/100) * Decimal(res['prorate']))
         except Exception as _:
             print(_)
         return res,message

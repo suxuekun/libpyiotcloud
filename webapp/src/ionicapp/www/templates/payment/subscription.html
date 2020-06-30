@@ -13,18 +13,18 @@
           <i class="icon ion-cash"></i>Billing History</ion-item>
     </div>
     <div class = 'list'>
-      <div class="item card" ng-repeat = "subscription in data.subscriptions" ng-click="viewSubscription(subscription)">
+      <div class="item card" ng-repeat = "sub in data.subscriptions" ng-click="viewSubscription(sub)">
         <div class="item item-header">
           <p style="margin-top:0px;color:#3C5A99;font-size:18px;">
-              <strong> {{ subscription.devicename }} </strong>
+              <strong> {{ sub.devicename }} </strong>
             </p>
         </div>
         <div class="item item-body" >
           <div class="show-list-numbers-and-dots">
-            <strong><p style="margin-top:0px;color:#444444;font-size:16px;">Plan: {{ subscription.current.plan.name }}<span ng-if ="subscription.status == 'cancel'" style="color:red">(CANCELLED)</span><span ng-if ="subscription.status == 'downgrade'" style="color:red">(CHANGING TO PLAN:{{subscription.next.plan.name}})</span></p><strong>
+            <strong><p style="margin-top:0px;color:#444444;font-size:16px;">Plan: {{ sub.current.plan.name }}<span ng-if ="sub.status == 'cancel'" style="color:red">(CANCELLED)</span><span ng-if ="sub.status == 'downgrade'" style="color:red">(CHANGING TO PLAN:{{sub.next.plan.name}})</span></p><strong>
           </div>
           <div class="show-list-numbers-and-dots">
-            <p style="margin-top:0px;color:#444444;font-size:12px;">UUID: {{ subscription.deviceid }}</p>
+            <p style="margin-top:0px;color:#444444;font-size:12px;">UUID: {{ sub.deviceid }}</p>
           </div>
           
         </div>

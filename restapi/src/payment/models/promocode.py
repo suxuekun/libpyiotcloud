@@ -47,9 +47,10 @@ class PromoCode(AbstractPromoCode):
     #     return self.expire < timestamp_util.get_timestamp()
 
     def within_validity(self,time):
-        if (self.start and self.start > time):
+        # print(self.start,self.end,time)
+        if (self.start and int(self.start) > int(time)):
             return False
-        if (self.end and self.end < time):
+        if (self.end and int(self.end) < int(time)):
             return False
         return True
 
