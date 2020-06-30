@@ -566,7 +566,7 @@ class device_groups:
 
 
 
-        print('\r\n {}\r\n{}\r\n'.format(username, msg["message"]))
+        #print('\r\n {}\r\n{}\r\n'.format(username, msg["message"]))
         response = json.dumps(msg)
         return response
 

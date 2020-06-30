@@ -54,6 +54,8 @@ def percent_of_month_left(from_date=None):
     return remaining_days/total_days,remaining_days,total_days
 
 def datetime_from_string(date_string,string_format = '%m/%d/%Y'):
+    if date_string == "":
+        date_string = "6/30/2020" # temporary to fix crash
     return datetime.strptime(date_string,string_format)
 
 def timestamp_from_date_string(date_string,string_format = '%m/%d/%Y'):

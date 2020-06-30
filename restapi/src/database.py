@@ -2258,9 +2258,20 @@ class database_client_mongodb:
         sensorreadings = self.get_sensorreadings_dataset_document()
         if sensorreadings:
             items = sensorreadings.find({'deviceid': deviceid})
-            for item in items:
-                item.pop("_id")
-                size += len(str(item)) 
+            if False:
+                #start = int(time.time())
+                for item in items:
+                    item.pop("_id")
+                    size += len(str(item))
+                #print("{} items took {} seconds".format(items.count(), int(time.time()-start)))
+            else:
+                # estimate the size based on the size of the first element
+                #start = int(time.time())
+                for item in items:
+                    item.pop("_id")
+                    size = len(str(item)) * items.count()
+                    break
+                #print("{} items took {} seconds".format(items.count(), int(time.time()-start)))
         return size
 
 
@@ -5050,7 +5061,7 @@ class database_client_mongodb:
                     break
             if not found:
                 ungroupeddevices.append(device)
-        print(ungroupeddevices)
+        #print(ungroupeddevices)
         return ungroupeddevices
 
     def get_devicegroups(self, username):
