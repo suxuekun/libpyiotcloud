@@ -1,5 +1,6 @@
 import os
 import flask
+#from example_module.app import ExampleApp
 from flask_json import FlaskJSON, JsonError, json_response, as_json
 from flask_cors import CORS
 from flask_api import status
@@ -43,7 +44,7 @@ import rest_api_utils
 from shared.client.clients.database_client import db_client
 from shared.middlewares.default_middleware import DefaultMiddleWare
 from dashboards.dashboards_app import DashboardsApp
-# from payment.app import PaymentApp
+#from payment.app import PaymentApp
 
 
 
@@ -1051,8 +1052,8 @@ def initialize():
     g_utils                        = rest_api_utils.utils()
 
     dashboardsApp = DashboardsApp(app)
-    # paymentapp = PaymentApp(app)
-
+    #paymentapp = PaymentApp(app)
+    #exampleapp = ExampleApp(app,prefix = "/example")
     # To be replaced
     g_payment_accounting           = payment_accounting(g_database_client, g_messaging_client, g_redis_client)
     g_device_dashboard_old         = device_dashboard_old(g_database_client, g_messaging_requests)
@@ -1065,7 +1066,7 @@ if os.name == 'posix':
 
 if __name__ == '__main__':
 
-    if os.name == 'nt':
+    if config.debugging:
         initialize()
 
     # Initialize HTTP server
@@ -1076,9 +1077,9 @@ if __name__ == '__main__':
         context = None
         port = config.CONFIG_HTTP_PORT
     app.run(ssl_context = context,
-        host     = config.CONFIG_HTTP_HOST, 
-        port     = port, 
-        threaded = True, 
-        debug    = True)
+        host     = config.CONFIG_HTTP_HOST,
+        port     = port,
+        threaded = True,
+        debug    = (config.debugging==1))
 
 
