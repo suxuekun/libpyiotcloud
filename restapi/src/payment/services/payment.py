@@ -167,10 +167,11 @@ class PaymentService():
             if (plan.is_free()):#paid to free , cancel
                 self._cancel_subscription(subscription)
             else:
-                if (plan.price > subscription.next.plan.price):
+                if (plan.price >= subscription.next.plan.price):
                     prorate = self._upgrade_subscription(payment_token,subscription,plan,promocode,gst)
                 else:
                     self._downgrade_subscription(payment_token,subscription,plan)
+
         return prorate
 
     def get_payment_method_token(self,bt_customer_id, nonce):

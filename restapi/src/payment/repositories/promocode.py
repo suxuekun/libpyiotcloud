@@ -8,7 +8,10 @@ def _parse_time(time_string):
     '''
     ' default_format = '%m/%d/%Y'  7/1/2017    year 2017 month 7 day 1
     '''
-    return timestamp_from_date_string(time_string)
+    if (time_string):
+        return timestamp_from_date_string(time_string)
+    else:
+        return None
 
 def _parse_value(value_string):
     try:

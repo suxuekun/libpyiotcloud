@@ -55,9 +55,6 @@
 		    $scope.clean = function(){
 
 		    }
-		    $scope.viewSubscription = function(subscription){
-		    	$state.go('menu.subscription_detail',{'subscription':subscription})
-		    }
 			$scope.$on('$ionicView.enter', function(e) {
 				$scope.start()
 		    });
@@ -72,6 +69,8 @@
 		function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token, BraintreePayment) {
 		    $scope.data ={}
 		    $scope.start = function(){
+		    	$scope.data.subscriptions=[]
+		    	console.log('in subscriptions',$scope.data)
 		    	BraintreePayment.get_subscriptions()
 		    	.then(function(res){
 		    		$scope.data.subscriptions = res.data.data
@@ -83,8 +82,9 @@
 		    $scope.clean = function(){
 
 		    }
-		    $scope.viewSubscription = function(subscription){
-		    	$state.go('menu.subscription_detail',{'subscription':subscription})
+		    $scope.viewSubscription = function(sub){
+		    	console.log('sub',sub)
+		    	$state.go('menu.subscription_detail',{'subscription':sub})
 		    }
 			$scope.$on('$ionicView.enter', function(e) {
 				$scope.start()
@@ -98,8 +98,8 @@
 		function($scope,$http,BraintreePayment,User,$ionicPopup,$stateParams,$state){
 			$scope.data = {}
 			$scope.start = function(){
-				console.log('go in detail')
-				$scope.data = $stateParams
+				console.log('go in detail',$state.params)
+				$scope.data = $state.params
 		    }
 		    $scope.clean = function(){
 
@@ -115,6 +115,12 @@
 		    	BraintreePayment.cancel_subscription({subscription_id:$scope.data.subscription._id})
 		    	.then(function(res){
 		    		$scope.data.subscription.status = 'cancel'
+		    		$ionicPopup.alert({ title: 'Success', template: 'You have canceled this subscription', buttons: [{text: 'OK', type: 'button-assertive'}] })
+		    		.then(function(res){
+		    			$scope.back()
+		    		})
+		    	},function(res){
+		    		$ionicPopup.alert({ title: 'Error', template: res.message, buttons: [{text: 'OK', type: 'button-assertive'}] });
 		    	})
 
 		    }
@@ -135,7 +141,7 @@
 			$scope.data = {}
 			
 			$scope.start = function(){
-				$scope.data = $stateParams
+				$scope.data = $state.params
 				BraintreePayment.get_plans()
 		    	.then(function(res){
 		    		$scope.data.plans = res.data.data
@@ -178,7 +184,7 @@
 			
 			$scope.start = function(){
 				console.log('enter confirm page')
-				$scope.data = $stateParams
+				$scope.data = $state.params
 				// console.log($scope.data,$stateParams)
 				$scope.calc_prorate()
 
@@ -242,10 +248,12 @@
 		function($scope,$http,BraintreePayment,User,$ionicPopup,$stateParams,$state){
 			
 			$scope.data = {}
+			$scope.loading = true
 			
 			$scope.start = function(){
 				console.log('enter confirm page')
-				$scope.data = $stateParams
+				$scope.loading = true
+				$scope.data = $state.params
 				// console.log($scope.data,$stateParams)
 
 				BraintreePayment.get_client_token().then(function(res){
@@ -260,6 +268,7 @@
 						}
 					}, function (createErr, instance) {
 						console.log('rebuild instance',instance,createErr)
+						$scope.loading = false
 						if (instance){
 							$scope.ready = true
 							$scope.instance = instance
@@ -291,9 +300,11 @@
 		    });
 
 			$scope.pay = function(){
+				$scope.loading =true
 				$scope.instance.requestPaymentMethod(function (err, payload) {
 					console.log(err,"NONCE: " + payload.nonce);
 					$scope.executePay(payload.nonce)
+					
 //					FinalizePayment(plan, payload.nonce, payload.details, payload.type)
 				});
 			}
@@ -313,9 +324,19 @@
 				}
 				console.log(data)
 				BraintreePayment.checkout(data).then(function(res){
-					alert(res.data.message)
+					$scope.loading = false
+					$ionicPopup.alert({ title: 'Success', template: res.data.message, buttons: [{text: 'OK', type: 'button-assertive'}] })
+					.then(function(res){
+						$state.go('menu.subscription')
+					})
+					
+
 				},function(res){
-					alert(res.data.message)
+					$scope.loading = false
+					$ionicPopup.alert({ title: 'Fail', template: res.data.message, buttons: [{text: 'OK', type: 'button-assertive'}] })
+					.then(function(res){
+						// $state.go('menu.subscription',$scope.data)
+					})
 				})
 			}
 
@@ -326,8 +347,8 @@
 			$scope.data = {}
 			$scope.query = {}
 			$scope.start = function(){
-				$scope.data = $stateParams
-				console.log($scope.data)
+				$scope.data = $state.params
+				console.log('promocode page',$scope.data)
 				promocode_query = {
 					subscription_id : $scope.data.subscription._id,
 					plan_id : $scope.data.plan._id
