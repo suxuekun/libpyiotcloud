@@ -2,6 +2,7 @@ from flask_restful import Resource
 
 from payment.dtos.subscription import SubscriptionDTO
 from payment.services import subscription_service
+from shared.client.clients.database_client import db_client
 from shared.middlewares.request import informations
 from shared.middlewares.request.informations import requestWrap, get_entityname_query
 from shared.middlewares.request.permission.base import getRequest

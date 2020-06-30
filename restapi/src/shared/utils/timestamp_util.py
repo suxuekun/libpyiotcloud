@@ -42,8 +42,6 @@ def get_last_day_of_month(from_date = None):
 def get_last_day_of_month_timestamp(from_date = None):
     return int(get_last_day_of_month(from_date).timestamp())
 
-
-
 def remaining_days_of_month(from_date=None):
     from_date = from_date or datetime.now()
     total_days = totalday_of_month()
