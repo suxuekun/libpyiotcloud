@@ -164,6 +164,24 @@ angular.module('app.routes', [])
           }
         }
       })
+      .state('menu.subscription_address_ensure', {
+        url: '/page_subscription_address_ensure',
+        params: {
+          ui:{
+            title:"",
+            name:""
+          },
+          subscription:null,
+          plan:null,
+        },
+        views: {
+          'side-menu21': {
+            templateUrl: 'templates/payment/billing_address_ensure.html',
+            controller: 'billingAddressEnsureCtrl'
+          }
+        }
+      })
+      
       .state('menu.subscription_change_confirm', {
         url: '/page_subscription_change_confirm',
         params: {

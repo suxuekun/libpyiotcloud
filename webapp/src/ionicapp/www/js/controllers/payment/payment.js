@@ -44,13 +44,56 @@
 					$ionicPopup.alert({ title: 'Error', template: res.data.message, buttons: [{text: 'OK', type: 'button-assertive'}] });
 		    	})
 		    }
-		    $scope.update_address = function(){
+		    $scope.update_address = function(valid){
+		    	if (! valid) return
 		    	BraintreePayment.save_billing_address($scope.data)
 		    	.then(function(res){
 		    		$ionicPopup.alert({ title: 'Success', template: res.data.message, buttons: [{text: 'OK', type: 'button-assertive'}] });
 		    	},function(res){
 					$ionicPopup.alert({ title: 'Error', template: res.data.message, buttons: [{text: 'OK', type: 'button-assertive'}] });
 		    	})
+		    }
+		    $scope.clean = function(){
+
+		    }
+			$scope.$on('$ionicView.enter', function(e) {
+				$scope.start()
+		    });
+		    $scope.$on('$ionicView.beforeLeave', function(e) {
+		    	$scope.clean()
+		    });
+		}
+	])
+	.controller('billingAddressEnsureCtrl', ['$scope', '$stateParams', '$state', '$ionicPopup', '$http', 'Server', 'User', 'Token','BraintreePayment', // The following is the constructor function for this page's controller. See https://docs.angularjs.org/guide/controller
+	// You can include any angular dependencies as parameters for this function
+	// TIP: Access Route Parameters for your page via $stateParams.parameterName
+		function ($scope, $stateParams, $state, $ionicPopup, $http, Server, User, Token, BraintreePayment) {
+		    $scope.data ={}
+		    $scope.start = function(){
+
+		    	$scope.pass = $state.params
+		    	console.log('enter ensure address',$scope.data)
+		    	BraintreePayment.get_billing_address()
+		    	.then(function(res){
+		    		$scope.data = res.data.data
+		    	},function(res){
+					$ionicPopup.alert({ title: 'Error', template: res.data.message, buttons: [{text: 'OK', type: 'button-assertive'}] });
+		    	})
+		    }
+		    $scope.update_address = function(valid){
+		    	if (! valid) return
+		    	BraintreePayment.save_billing_address($scope.data)
+		    	.then(function(res){
+		    		$scope.forward()
+		    	},function(res){
+					$ionicPopup.alert({ title: 'Error', template: res.data.message, buttons: [{text: 'OK', type: 'button-assertive'}] });
+		    	})
+		    }
+		    $scope.forward = function(){
+		    	$state.go('menu.subscription_change_confirm',$scope.pass)
+		    }
+		    $scope.back = function(){
+		    	$state.go('menu.subscription_change',$scope.pass)
 		    }
 		    $scope.clean = function(){
 
@@ -83,7 +126,6 @@
 
 		    }
 		    $scope.viewSubscription = function(sub){
-		    	console.log('sub',sub)
 		    	$state.go('menu.subscription_detail',{'subscription':sub})
 		    }
 			$scope.$on('$ionicView.enter', function(e) {
@@ -105,11 +147,13 @@
 
 		    }
 		    $scope.upgrade = function(){
+		    	
 		    	$scope.data.ui = {
 		    		title :'Upgrade Plan',
 		    		name :'Upgrade',
 		    	}
 		    	$state.go('menu.subscription_change',$scope.data)
+		    	
 		    }
 		    $scope.cancel = function(){
 		    	BraintreePayment.cancel_subscription({subscription_id:$scope.data.subscription._id})
@@ -142,6 +186,7 @@
 			
 			$scope.start = function(){
 				$scope.data = $state.params
+				console.log('enter change',$scope.data)
 				BraintreePayment.get_plans()
 		    	.then(function(res){
 		    		$scope.data.plans = res.data.data
@@ -161,9 +206,36 @@
 		    	plan.choose = true
 		    	$scope.data.plan = plan
 		    }
+		    $scope.hasaddress = function(address){
+		    	console.log('hasaddress',address,address.name && address.billing_address,address.name &&
+		    	address.billing_address &&
+		    	address.country &&
+		    	address.city &&
+		    	address.region &&
+		    	address.postal)
+
+		    	return address.name &&
+		    	address.billing_address &&
+		    	address.country &&
+		    	address.city &&
+		    	address.region &&
+		    	address.postal
+		    }
 		    $scope.changePlan = function(){
-		    	console.log('change plan')
-		    	$state.go('menu.subscription_change_confirm',$scope.data)
+		    	BraintreePayment.get_billing_address()
+		    	.then(function(res){
+		    		if ($scope.hasaddress(res.data.data)){
+		    			console.log('change plan')
+		    			$state.go('menu.subscription_change_confirm',$scope.data)
+		    		}else{
+		    			console.log('add address')
+		    			$state.go('menu.subscription_address_ensure',$scope.data)
+		    		}
+		    	},function(res){
+					
+		    	})
+		    	
+		    	
 		    }
 		    $scope.back = function(){
 		    	$state.go('menu.subscription_detail',$scope.data)
@@ -183,8 +255,9 @@
 			$scope.data = {}
 			
 			$scope.start = function(){
-				console.log('enter confirm page')
 				$scope.data = $state.params
+
+				console.log('enter confirm page',$scope.data)
 				// console.log($scope.data,$stateParams)
 				$scope.calc_prorate()
 
@@ -251,14 +324,15 @@
 			$scope.loading = true
 			
 			$scope.start = function(){
-				console.log('enter confirm page')
+				console.log('enter pay page',$scope.data)
 				$scope.loading = true
 				$scope.data = $state.params
 				// console.log($scope.data,$stateParams)
 
 				BraintreePayment.get_client_token().then(function(res){
-					console.log('get token',$scope.token)
+					
 					$scope.token = res.data.data
+					console.log('get token',$scope.token)
 					braintree.dropin.create({
 						authorization: $scope.token,
 						container: '#dropin-container',

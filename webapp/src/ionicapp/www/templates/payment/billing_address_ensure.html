@@ -1,11 +1,12 @@
-<ion-view title="Billing Address" hide-back-button="true" nav-transition="none" id="pagesubdetail" class="page_width">
-	<ion-nav-buttons side="right" class="has-header">
-    <button class="button button-positive icon ion-refresh" ng-click=""></button>
+<ion-view title="Billing Address Required" hide-back-button="true" nav-transition="none" id="pagesubdetail" class="page_width">
+    <ion-nav-buttons side="left" class="has-header">
+        <button class="button button-icon icon ion-arrow-left-c" ng-click="back()"></button>
+    </ion-nav-buttons>
   </ion-nav-buttons>
   <ion-content padding="true" class="has-header" overflow-scroll="true">
     <form name="form">
     <div class="list">
-        <label class="item item-input">
+    	<label class="item item-input">
             <input name ="name" placeholder ="Name" class="item-input" required ng-model = "data.name"/>
         </label>
         <error ng-if = 'form.name.$error.required'><span style="color:red">Name required</span></error>
@@ -35,7 +36,7 @@
         <error ng-if = 'form.state.$error.required'><span style="color:red">State/Province/Region required</span></error>
     </div>
     
-    <button id="topUpCredits-button13" ng-click="update_address(form.$valid)" class="button button-positive button-block">UPDATE</button>
+    <button id="topUpCredits-button13" ng-click="update_address(form.$valid)" class="button button-positive button-block">CONTINUE</button>
     </form>
   </ion-content>
 </ion-view>

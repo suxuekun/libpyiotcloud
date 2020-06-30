@@ -23,7 +23,7 @@ class AbstractPlan(BaseIotModel,Usage):
     # currency = StringType()
 
     def get_price_str(self,gst=0):
-        price = self.price * Decimal(1+gst/100)
+        price = self.price * Decimal(1+Decimal(gst)/100)
         return str(price.quantize(TWOPLACES))
 
     def __str__(self):

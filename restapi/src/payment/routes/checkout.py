@@ -15,7 +15,7 @@ class CheckoutResource(Resource,BaseResource):
     service = payment_service
     wrapper_class = IotHttpResponseWrapper
     POSTDTO = CheckoutDTO
-    @throw_custome_error_request()
+    # @throw_custome_error_request()
     def post(self):
         try:
             request = getRequest()
@@ -29,11 +29,11 @@ class CheckoutResource(Resource,BaseResource):
             make_error_response(http4xx.BAD_REQUEST)
 
         print(dto.to_primitive())
-        try:
-            data = self.service.checkout(username,dto.nonce,dto.items);
-        except Exception as e:
-            print(e)
-            return make_custom_error_response({'status': 'NG', 'message': 'check out fail with braintree'}, 503)
+        # try:
+        data = self.service.checkout(username,dto.nonce,dto.items);
+        # except Exception as e:
+        #     print(e)
+        #     return make_custom_error_response({'status': 'NG', 'message': 'check out fail with braintree'}, 503)
         if data:
             res = self.to_api_data(data)
             return self.to_result(res)
