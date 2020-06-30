@@ -721,6 +721,8 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                 
                 DeviceGroups.get_mixed_devices($scope.data).then(function(res) {
 
+                    $scope.data.token = User.get_token();
+
                     // copy the devicestatus    
                     for (let devicex in res.data.devices) {
                         if ($scope.devices.length > 0) {
@@ -743,7 +745,6 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
 
                     $scope.devicegroups = res.data.devicegroups;
                     $scope.devices = res.data.devices;
-                    $scope.data.token = User.get_token();
                     
                     
                     if ($scope.devicegroups.length !== 0) {
@@ -1009,6 +1010,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             
             // Fetch devices
             DeviceGroups.get_ungrouped_devices($scope.data).then(function(res) {
+                $scope.data.token = User.get_token();
                 
                 // copy the devicestatus    
                 for (let devicex in res) {
@@ -1031,7 +1033,6 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                 }
 
                 $scope.devices = res;
-                $scope.data.token = User.get_token();
                 if ($scope.devices.length !== 0) {
                     if ($scope.devices.length === 1) {
                         $scope.devices_counthdr = $scope.devices.length.toString() + " ungrouped gateway registered";
