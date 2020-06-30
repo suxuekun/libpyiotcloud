@@ -99,7 +99,7 @@
 			$scope.data = {}
 			$scope.start = function(){
 				console.log('go in detail')
-				$scope.data = $stateParams
+				$scope.data = $state.params
 		    }
 		    $scope.clean = function(){
 
@@ -135,7 +135,7 @@
 			$scope.data = {}
 			
 			$scope.start = function(){
-				$scope.data = $stateParams
+				$scope.data = $state.params
 				BraintreePayment.get_plans()
 		    	.then(function(res){
 		    		$scope.data.plans = res.data.data
@@ -178,7 +178,7 @@
 			
 			$scope.start = function(){
 				console.log('enter confirm page')
-				$scope.data = $stateParams
+				$scope.data = $state.params
 				// console.log($scope.data,$stateParams)
 				$scope.calc_prorate()
 
@@ -245,7 +245,7 @@
 			
 			$scope.start = function(){
 				console.log('enter confirm page')
-				$scope.data = $stateParams
+				$scope.data = $state.params
 				// console.log($scope.data,$stateParams)
 
 				BraintreePayment.get_client_token().then(function(res){
@@ -326,7 +326,7 @@
 			$scope.data = {}
 			$scope.query = {}
 			$scope.start = function(){
-				$scope.data = $stateParams
+				$scope.data = $state.params
 				console.log($scope.data)
 				promocode_query = {
 					subscription_id : $scope.data.subscription._id,
