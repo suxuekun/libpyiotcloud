@@ -10,6 +10,17 @@ from shared.middlewares.response import make_error_response, http4xx
 from shared.simple_api.resource import GetMixin, throw_bad_request, BaseResource
 from shared.wrapper.response import IotHttpResponseWrapper
 
+def get_usage(data):
+    sms = db_client.get_menos_num_sms_by_deviceid_by_currmonth(data.deviceid)
+    email = db_client.get_menos_num_email_by_deviceid_by_currmonth(data.deviceid)
+    notification = db_client.get_menos_num_notification_by_deviceid_by_currmonth(data.deviceid)
+
+    storage = db_client.get_menos_num_sensordata_by_deviceid_by_currmonth(data.deviceid)
+    data.sms = sms
+    data.email = email
+    data.notification = notification
+    data.storage = storage
+    data.validate()
 
 class SubscriptionResource(Resource,GetMixin):
     FILTER = requestWrap(get_entityname_query)
@@ -20,6 +31,8 @@ class SubscriptionResource(Resource,GetMixin):
     @throw_bad_request
     def get(self, id):
         data = self.service.get(id)
+
+
         res = self.to_api_data(data)
         if res:
             return self.to_result(res)
@@ -36,5 +49,7 @@ class SubscriptionListResource(Resource,BaseResource):
         request = getRequest()
         query = informations.get_entityname_query(request)
         data = self.service.get_current_subscriptions(query)
+        for item in data:
+            get_usage(item)
         res = [self.to_api_data(x) for x in data]
         return self.to_result(res)
