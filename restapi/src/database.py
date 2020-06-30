@@ -2257,21 +2257,24 @@ class database_client_mongodb:
         size = 0
         sensorreadings = self.get_sensorreadings_dataset_document()
         if sensorreadings:
-            items = sensorreadings.find({'deviceid': deviceid})
             if False:
                 #start = int(time.time())
+                items = sensorreadings.find({'deviceid': deviceid})
                 for item in items:
-                    item.pop("_id")
+                    if item.get("_id"):
+                        item.pop("_id")
                     size += len(str(item))
                 #print("{} items took {} seconds".format(items.count(), int(time.time()-start)))
             else:
                 # estimate the size based on the size of the first element
-                #start = int(time.time())
+                start = int(time.time())
+                items = sensorreadings.find({'deviceid': deviceid})
                 for item in items:
-                    item.pop("_id")
+                    if item.get("_id"):
+                        item.pop("_id")
                     size = len(str(item)) * items.count()
                     break
-                #print("{} items took {} seconds".format(items.count(), int(time.time()-start)))
+                print("{} items took {} seconds".format(items.count(), int(time.time()-start)))
         return size
 
 
