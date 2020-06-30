@@ -268,6 +268,9 @@ class database_client:
     def get_user_info(self, access_token):
         return self._users.get_user_info(access_token)
 
+    def admin_get_user(self,username):
+        return self._users.admin_get_user(username)
+
     def delete_user(self, username, access_token):
         return self._users.delete_user(username, access_token)
 
@@ -1298,6 +1301,10 @@ class database_client_cognito:
     def delete_user(self, username, access_token):
         (result, response) = self.client.delete_user(username, access_token)
         return result
+    
+    def admin_get_user(self,username):
+        (result, response) = self.client.admin_get_user(username)
+        return response
 
     def admin_delete_user(self, username):
         (result, response) = self.client.admin_delete_user(username)
@@ -1324,11 +1331,29 @@ class database_client_cognito:
     def login_mfa(self, username, sessionkey, mfacode):
         (result, response) = self.client.login_mfa(username, sessionkey, mfacode)
         if not result:
+            return None, None, response
+        if response.get('AuthenticationResult'):
+            access_token = response['AuthenticationResult']['AccessToken']
+            refresh_token = response['AuthenticationResult']['RefreshToken']
+            id_token = response['AuthenticationResult']['IdToken']
+        else:
+            if response.get('ChallengeName'):
+                #print(response)
+                if response['ChallengeName'] == 'SMS_MFA':
+                    refresh_token = response['Session']
+                    id_token = 'MFARequiredException'
+                    return None, refresh_token, id_token
             return None, None, None
-        access_token = response['AuthenticationResult']['AccessToken']
-        refresh_token = response['AuthenticationResult']['RefreshToken']
-        id_token = response['AuthenticationResult']['IdToken']
         return access_token, refresh_token, id_token
+
+    #def login_mfa(self, username, sessionkey, mfacode):
+        #(result, response) = self.client.login_mfa(username, sessionkey, mfacode)
+        #if not result:
+            #return None, None, None
+        #access_token = response['AuthenticationResult']['AccessToken']
+        #refresh_token = response['AuthenticationResult']['RefreshToken']
+        #id_token = response['AuthenticationResult']['IdToken']
+        #return access_token, refresh_token, id_token
 
     def logout(self, token):
         (result, response) = self.client.logout(token)
@@ -1478,6 +1503,7 @@ class database_client_mongodb:
         #mongo_client = MongoClient(config.CONFIG_MONGODB_HOST, config.CONFIG_MONGODB_PORT, username=config.CONFIG_MONGODB_USERNAME, password=config.CONFIG_MONGODB_PASSWORD)
         mongo_client = DefaultMongoDB().conn
         self.client = DefaultMongoDB().db
+        self.patch()
 
         # different database for sensor dashboarding
         if "mongodb.net" in config.CONFIG_MONGODB_HOST2: 
@@ -1489,6 +1515,14 @@ class database_client_mongodb:
 
         self.paypal = paypal_client()
         self.paypal.initialize()
+
+    def patch(self):
+        devices = self.get_registered_devices()
+        if devices:
+            for device in devices.find():
+                new_device = copy.deepcopy(device)
+                new_device = self.fix_timestamps(new_device)
+                devices.replace_one(device, new_device)
 
 
     ##########################################################
@@ -1986,7 +2020,7 @@ class database_client_mongodb:
             users.delete_one(myquery)
 
     def add_user(self, username, password, email, givenname, familyname):
-        timestamp = str(int(time.time()))
+        timestamp = int(time.time())
         token = database_utils().compute_token(timestamp, username, password, email, givenname, familyname)
         confirmationcode = ''.join(["%s" % random.randint(0, 9) for num in range(0, 6)])
         profile = {}
@@ -2857,7 +2891,7 @@ class database_client_mongodb:
 
     def add_sensor(self, username, deviceid, source, number, sensorname, data):
         i2csensors = self.get_sensors_document();
-        timestamp = str(int(time.time()))
+        timestamp = int(time.time())
         device = {}
         device['username']     = username
         device['deviceid']     = deviceid
@@ -3132,7 +3166,7 @@ class database_client_mongodb:
         return self.client_sensor[config.CONFIG_MONGODB_TB_SENSORREADINGS_DATASET]
 
     def add_sensor_reading_dataset(self, username, deviceid, source, address, value, subclass_value):
-        timestamp = str(int(time.time()))
+        timestamp = int(time.time())
         sensorreadings = self.get_sensorreadings_dataset_document();
         item = {}
         item['username'] = username
@@ -4635,14 +4669,20 @@ class database_client_mongodb:
             for device in devices.find({'username': username},{'username': 1, 'devicename':1, 'deviceid': 1, 'serialnumber':1, 'timestamp':1, 'heartbeat': 1, 'version': 1}):
                 print(device)
 
+    def fix_timestamps(self, device):
+        if type(device['timestamp']) is str:
+            device['timestamp'] = int(device['timestamp'])
+        if device.get('heartbeat') is not None:
+            if type(device['heartbeat']) is str:
+                device['heartbeat'] = int(device['heartbeat'])
+        return device
+
     def get_devices(self, username):
         device_list = []
         devices = self.get_registered_devices()
         if devices and devices.count():
             for device in devices.find({'username': username},{'username': 0}): #,{'devicename':1, 'deviceid': 1, 'serialnumber':1, 'timestamp':1, 'heartbeat':1, 'version': 1}):
                 device.pop('_id')
-                #if device.get('descriptor'):
-                #    device.pop('descriptor')
                 device_list.append(device)
         return device_list
         #devices = self.get_registered_devices()
@@ -4696,7 +4736,7 @@ class database_client_mongodb:
         return device_list
 
     def add_device(self, username, devicename, deviceid, serialnumber, poemacaddress):
-        timestamp = str(int(time.time()))
+        timestamp = int(time.time())
         device = {}
         device['username']     = username
         device['devicename']   = devicename
@@ -4765,7 +4805,7 @@ class database_client_mongodb:
         if devices:
             for device in devices.find({'deviceid': deviceid}):
                 new_device = copy.deepcopy(device)
-                new_device['heartbeat'] = str(int(time.time()))
+                new_device['heartbeat'] = int(time.time())
                 devices.replace_one(device, new_device)
                 return device['heartbeat']
         return None
