@@ -192,8 +192,9 @@ class PaymentService():
         gst = b.get_gst()
         transaction = Transaction()
         for change in changes:
-            prorate = self.change_subscription(**change.to_primitive(),payment_token= payment_token,gst=gst)
-            if (prorate <0):
+            prorate = Decimal(self.change_subscription(**change.to_primitive(),payment_token= payment_token,gst=gst))
+            print(prorate,isinstance(prorate,str))
+            if (prorate < 0 ):
                 #error
                 #should stop
                 pass
