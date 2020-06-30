@@ -5,6 +5,7 @@ from payment.services import subscription_service
 from shared.middlewares.request import informations
 from shared.middlewares.request.informations import requestWrap, get_entityname_query
 from shared.middlewares.request.permission.base import getRequest
+from shared.middlewares.response import make_error_response, http4xx
 from shared.simple_api.resource import GetMixin, throw_bad_request, BaseResource
 from shared.wrapper.response import IotHttpResponseWrapper
 
@@ -14,6 +15,15 @@ class SubscriptionResource(Resource,GetMixin):
     service = subscription_service
     wrapper_class = IotHttpResponseWrapper
     ENTITYDTO = SubscriptionDTO
+
+    @throw_bad_request
+    def get(self, id):
+        data = self.service.get(id)
+        res = self.to_api_data(data)
+        if res:
+            return self.to_result(res)
+        else:
+            return make_error_response(http4xx.DATA_NOT_FOUND)
 
 class SubscriptionListResource(Resource,BaseResource):
     FILTER = requestWrap(get_entityname_query)

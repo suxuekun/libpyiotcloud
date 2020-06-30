@@ -1,4 +1,5 @@
 from payment.models.device import DeviceLinkModel
+from shared.client.clients.database_client import db_client
 from shared.simple_api.service import BaseMongoService, throw_bad_db_query
 
 
@@ -40,12 +41,11 @@ class SubscriptionService(BaseMongoService):
         result = self.repo.gets(query)
         subscriptions =[self.model(x,strict=False) for x in result]
 
-
-
         add_devs,remove_subs = self._match_device_subscription(device_models,subscriptions)
         [self.delete(str(x._id)) for x in remove_subs]
         add_list = [self.create_free_sub_for_new_device(x) for x in add_devs]
-        return subscriptions + add_list
+        current_list = subscriptions + add_list
+        return current_list
 
 if __name__ == "__main__":
     pass
