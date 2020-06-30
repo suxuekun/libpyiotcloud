@@ -72,6 +72,7 @@ services:
       - CONFIG_USE_MONGODB_USER
       - CONFIG_USE_MONGODB_PASS
       - CONFIG_USE_MONGODB_ATLAS
+      - CONFIG_USE_DEBUG_MODE
   webapp:
     build: 
       context: ./webapp
