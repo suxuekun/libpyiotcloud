@@ -3,6 +3,7 @@ from functools import wraps
 from flask_api import status
 from flask_restful import Resource
 
+from payment.dtos.plan import PlanDTO
 from payment.services import plan_service
 from shared.middlewares.request.informations import requestWrap, get_entityname_query
 from shared.middlewares.response import http5xx, make_custom_error_response
@@ -28,11 +29,13 @@ from shared.wrapper.response import IotHttpResponseWrapper
 class PlanResource(Resource,GetMixin):
     service = plan_service
     wrapper_class = IotHttpResponseWrapper
+    ENTITYDTO = PlanDTO
     pass
 
 class PlanListResource(Resource,ListMixin):
     service = plan_service
     wrapper_class = IotHttpResponseWrapper
+    ENTITYDTO = PlanDTO
     pass
 
 class PlanReloadResource(Resource,BaseResource):

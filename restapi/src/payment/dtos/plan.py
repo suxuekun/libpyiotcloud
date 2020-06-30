@@ -1,5 +1,7 @@
-from payment.models.plan import Usage, AbstractPlan
+from payment.models.plan import Usage, AbstractPlan, Plan
+from shared.simple_api.dto import BaseDTO
 
 
-class PlanDTO(AbstractPlan):
+class PlanDTO(BaseDTO,AbstractPlan):
+    MODEL = Plan
     pass

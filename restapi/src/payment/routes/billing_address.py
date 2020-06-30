@@ -1,4 +1,6 @@
 from flask_restful import Resource
+
+from payment.dtos.billing_address import BillingAddressDTO
 from payment.services import billing_address_service
 from shared.middlewares.request import informations
 from shared.middlewares.request.permission.base import getRequest
@@ -10,6 +12,7 @@ from shared.wrapper.response import IotHttpResponseWrapper
 class BillingAddressResource(Resource,PostMixin):
     service = billing_address_service
     wrapper_class = IotHttpResponseWrapper
+    ENTITYDTO = BillingAddressDTO
     @throw_bad_request
     def get(self):
         request = getRequest()

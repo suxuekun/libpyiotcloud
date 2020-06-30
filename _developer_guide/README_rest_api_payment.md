@@ -166,8 +166,8 @@ DETAIL:
                     "status": string,                               // 'normal' / 'cancel' / 'downgrade'
                     "cancel_reason": string or null,                // null / 'user_internal' / 'user_external' / 'system'                        
                     "current": {
-                        "start": string,                            // start timestamp
-                        "end": string,                              // end timestamp (e.g. end of this month 2020-06-30 23:59:59)
+                        "start": int,                               // start timestamp
+                        "end": int,                                 // end timestamp (e.g. end of this month 2020-06-30 23:59:59)
                         "sms": string,                              // current usage of sms
                         "email": string,                            // current usage of email
                         "notification": string,                     // current usage of notificaiton
@@ -211,8 +211,8 @@ DETAIL:
                     "draft_status": false,
                     "current": {
                         "_id": null,
-                        "start": "1593390426",
-                        "end": "1593532799",
+                        "start": 1593390426,
+                        "end": 1593532799,
                         "sms": "0",
                         "email": "0",
                         "notification": "0",
@@ -238,8 +238,8 @@ DETAIL:
                     "draft_status": false,
                     "current": {
                         "_id": null,
-                        "start": "1593390455",
-                        "end": "1593532799",
+                        "start": 1593390455,
+                        "end": 1593532799,
                         "sms": "0",
                         "email": "0",
                         "notification": "0",
@@ -265,8 +265,8 @@ DETAIL:
                     "draft_status": false,
                     "current": {
                         "_id": null,
-                        "start": "1593390542",
-                        "end": "1593532799",
+                        "start": 1593390542,
+                        "end": 1593532799,
                         "sms": "0",
                         "email": "0",
                         "notification": "0",
@@ -303,8 +303,8 @@ DETAIL:
                     "draft_status": false,
                     "current": {
                         "_id": null,
-                        "start": "1593390499",
-                        "end": "1593532799",
+                        "start": 1593390499,
+                        "end": 1593532799,
                         "sms": "0",
                         "email": "0",
                         "notification": "0",
@@ -339,8 +339,8 @@ DETAIL:
                     "status": string,                               // 'normal' / 'cancel' / 'downgrade'
                     "cancel_reason": string or null,                // null / 'user_internal' / 'user_external' / 'system'                        
                     "current": {
-                        "start": string,                            // start timestamp
-                        "end": string,                              // end timestamp (e.g. end of this month 2020-06-30 23:59:59)
+                        "start": int,                               // start timestamp
+                        "end": int,                                 // end timestamp (e.g. end of this month 2020-06-30 23:59:59)
                         "sms": string,                              // current usage of sms
                         "email": string,                            // current usage of email
                         "notification": string,                     // current usage of notificaiton
@@ -381,8 +381,8 @@ DETAIL:
                 "cancel_reason": null,
                 "current": {
                     "_id": null,
-                    "start": "1593390426",
-                    "end": "1593532799",
+                    "start": 1593390426,
+                    "end": 1593532799,
                     "sms": "0",
                     "email": "0",
                     "notification": "0",
@@ -431,8 +431,8 @@ DETAIL:
           "data": [
             {
                 "_id": string,                        // _id is also promocode
-                "start": string,                      // start timestamp
-                "end": string,                        // end timestamp
+                "start": int,                         // start timestamp
+                "end": int,                           // end timestamp
                 "name": string,
                 "type": string,                       // 'discount' / 'p_discount' / '' 
                 "value": string,                      // a decimal string , if percentage , '5' = 5%
@@ -455,8 +455,8 @@ DETAIL:
           "data": [
             {
               "_id": "D05-30-50-twice",
-              "start": "1593532800",
-              "end": "1594742400",
+              "start": 1593532800,
+              "end": 1594742400,
               "name": "$5.00 ",
               "type": "discount",
               "value": "5",
@@ -474,8 +474,8 @@ DETAIL:
             },
             {
               "_id": "PD10-30-50-twice",
-              "start": "1594742400",
-              "end": "1596124800",
+              "start": 1594742400,
+              "end": 1596124800,
               "name": "10%",
               "type": "p_discount",
               "value": "10.0",
@@ -516,8 +516,8 @@ DETAIL:
             "message": string,
             "data": {
                 "_id": string,                        // _id is also promocode
-                "start": string,                      //start timestamp
-                "end": string,                        //end timestamp
+                "start": int,                         //start timestamp
+                "end": int,                           //end timestamp
                 "name": string,
                 "type": string,                       // 'discount' / 'p_discount' / '' 
                 "value": string,                      // a decimal string , if percentage , '0.05' = 5%
@@ -537,8 +537,8 @@ DETAIL:
             "message": "",
             "data": {
                 "_id": "D05-30-50-twice",
-                "start": "1593532800",
-                "end": "1594742400",
+                "start": 1593532800,
+                "end": 1594742400,
                 "name": "$5.00 discount",
                 "type": "discount",
                 "value": "5",
@@ -576,8 +576,8 @@ DETAIL:
             "message": string,
             "data": {
                 "_id": string,
-                "start": string,                      //start timestamp
-                "end": string,                        //end timestamp
+                "start": int,                         //start timestamp
+                "end": int,                           //end timestamp
                 "name": string,
                 "type": string,                       // 'discount' / 'p_discount' / '' 
                 "value": string,                      // a decimal string , if percentage , '0.05' = 5%
@@ -597,8 +597,8 @@ DETAIL:
             "message": "",
             "data": {
                 "_id": "D05-30-50-twice",
-                "start": "1593532800",
-                "end": "1594742400",
+                "start": 1593532800,
+                "end": 1594742400,
                 "name": "$5.00 discount",
                 "type": "discount",
                 "value": "5",
@@ -646,10 +646,29 @@ DETAIL:
             "prorate": string,                    // the prorated amount to PAY
             "remaining_days": int,                // remaining days of this month
             "total_days": int,                    // total days of this month
-            "gst": string                         // gst if avaliable
+            "gst": string                         // gst "7.00" = 7% if avaliable
+            "gst_price": string                   // if have gst then have the gst_price = (1+gst/100) * price             
+            "gst_prorate": string                 // if have gst then have the gst_prorate = (1+gst/100) * prorate
           }
         }
         //example
+        {
+            "status": "OK",
+            "message": "",
+            "data": {
+                "price": "50.00",                 //  Supersize50 price is 50
+                "total_payable": "3.33",          //  50 * 2/30 = 3.33
+                "plan_rebate": "0.67",            //  basic plan price is 10 , 10 * 2/30 = 0.67 need to rebate 
+                "total_discount": "3.33",         //  0.67 + 2.66 = 3.33
+                "promo_discount": "2.66",         //  promocode have $5 discount , but total payment less than $5 so only 2.66
+                "prorate": "0.00",                //  payment is 0.00 
+                "remaining_days": 2,              //  2 days left in this month
+                "total_days": 30,                 //  30 days total in this month
+                "gst": "7.00"                     //  if have gst
+                "gst_price": "53.50"              //  then have gst_price
+                "gst_prorate": "1.7869"           //  and also have gst_proraed
+            }
+        }
         {
             "status": "OK",
             "message": "",
@@ -844,12 +863,12 @@ DETAIL:
             "data": [
                 {
                     "_id": string,
-                    "start": string,            // start timestamp if it is a record of recurring payment
-                    "end": string,              // end timestamp if it is a record of recurring payment
+                    "start": int,               // start timestamp if it is a record of recurring payment
+                    "end": int,                 // end timestamp if it is a record of recurring payment
                     "name": string,             
                     "value": string,            // payment amount
                     "remark": string,           // description
-                    "date": string,             // payment date timestamp
+                    "date": int,                // payment date timestamp
                     "status": string,           // payment status    // not defined yet, will align to braintree transaction status
                     "receipt": string,          // receipt pdf url   // not impl yet
                     "bt_trans_id": string       // the transaction id from braintree 
@@ -868,7 +887,7 @@ DETAIL:
                     "name": "First Month Payment",
                     "value": "20.00",
                     "remark": "First Month Payments For Device Plan Subscription",
-                    "date": "1592538795",
+                    "date": 1592538795,
                     "status": "pending",
                     "receipt": null,
                     "bt_trans_id": "0wc3k4rn"
@@ -880,7 +899,7 @@ DETAIL:
                     "name": "First Month Payment",
                     "value": "6.003",
                     "remark": "First Month Payments For Device Plan Subscription",
-                    "date": "1593212270",
+                    "date": 1593212270,
                     "status": "pending",
                     "receipt": null,
                     "bt_trans_id": "5znqtyav"
@@ -897,12 +916,12 @@ DETAIL:
             'message': string,
             "data": {
                 "_id": string,
-                "start": string,            // start timestamp if it is a record of recurring payment
-                "end": string,              // end timestamp if it is a record of recurring payment
+                "start": int,               // start timestamp if it is a record of recurring payment
+                "end": int,                 // end timestamp if it is a record of recurring payment
                 "name": string,             
                 "value": string,            // payment amount
                 "remark": string,           // description
-                "date": string,             // payment date timestamp
+                "date": int,                // payment date timestamp
                 "status": string,           // payment status    // not defined yet, will align to braintree transaction status
                 "receipt": string,          // receipt pdf url   // not impl yet
                 "bt_trans_id": string       // the transaction id from braintree 

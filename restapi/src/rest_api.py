@@ -44,7 +44,7 @@ import rest_api_utils
 from shared.client.clients.database_client import db_client
 from shared.middlewares.default_middleware import DefaultMiddleWare
 from dashboards.dashboards_app import DashboardsApp
-#from payment.app import PaymentApp
+from payment.app import PaymentApp
 
 
 
@@ -1052,7 +1052,7 @@ def initialize():
     g_utils                        = rest_api_utils.utils()
 
     dashboardsApp = DashboardsApp(app)
-    #paymentapp = PaymentApp(app)
+    paymentapp = PaymentApp(app)
     #exampleapp = ExampleApp(app,prefix = "/example")
     # To be replaced
     g_payment_accounting           = payment_accounting(g_database_client, g_messaging_client, g_redis_client)

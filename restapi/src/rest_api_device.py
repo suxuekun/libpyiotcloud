@@ -11,7 +11,6 @@ import flask
 #from flask_json import FlaskJSON, JsonError, json_response, as_json
 #from certificate_generator import certificate_generator
 #from messaging_client import messaging_client
-#from payment.services import subscription_service
 from rest_api_config import config
 #from database import database_client
 #from flask_cors import CORS
@@ -28,6 +27,7 @@ import rest_api_utils
 from database import database_categorylabel, database_crudindex
 from message_broker_api import message_broker_api
 from dashboards.ioc import init_chart_gateway_service
+from payment.services import subscription_service
 import re
 
 
@@ -190,12 +190,11 @@ class device:
             print(e)
 
         # delete device subscription
-        if 0:
-            try:
-                subscription = subscription_service.get_one({'deviceid':deviceid})
-                subscription_service.delete(subscription._id)
-            except Exception as e:
-                print(e)
+        try:
+            subscription = subscription_service.get_one({'deviceid':deviceid})
+            subscription_service.delete(subscription._id)
+        except Exception as e:
+            print(e)
 
         # delete device from database
         self.database_client.delete_device_by_deviceid(deviceid)
@@ -941,13 +940,12 @@ class device:
         self.database_client.update_devicename(entityname, devicename, data["new_devicename"])
 
         # update device name in subscription
-        if 0:
-            try:
-                subscription = subscription_service.get_one({'deviceid': device["deviceid"]})
-                subscription.devicename = data["new_devicename"]
-                subscription_service.update(subscription._id,subscription)
-            except Exception as e:
-                print(e)
+        try:
+            subscription = subscription_service.get_one({'deviceid': device["deviceid"]})
+            subscription.devicename = data["new_devicename"]
+            subscription_service.update(subscription._id,subscription)
+        except Exception as e:
+            print(e)
 
 
 
