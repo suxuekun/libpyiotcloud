@@ -40,6 +40,7 @@ _test_regression/*
 .idea/*
 _ota_uploader/*.sh
 notification/src/notification_manager/*.csv
+restapi/src/.vscode
 
 
 # Byte-compiled / optimized / DLL files

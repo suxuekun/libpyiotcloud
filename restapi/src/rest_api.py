@@ -1,8 +1,5 @@
 import os
 import flask
-import datetime
-import calendar
-
 from example_module.app import ExampleApp
 from flask_json import FlaskJSON, JsonError, json_response, as_json
 from flask_cors import CORS
@@ -52,7 +49,7 @@ import rest_api_utils
 from shared.client.clients.database_client import db_client
 from shared.middlewares.default_middleware import DefaultMiddleWare
 from dashboards.dashboards_app import DashboardsApp
-# from payment.app import PaymentApp
+#from payment.app import PaymentApp
 
 
 
@@ -1078,9 +1075,6 @@ if os.name == 'posix':
 
 if __name__ == '__main__':
 
-
-    print("Check Config")
-    print(config.debugging)
     if config.debugging:
         initialize()
 
@@ -1095,6 +1089,6 @@ if __name__ == '__main__':
         host     = config.CONFIG_HTTP_HOST,
         port     = port,
         threaded = True,
-        debug    = True)
+        debug    = (config.debugging==1))
 
 

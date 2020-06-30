@@ -861,7 +861,7 @@ class database_client_mongodb:
         if devices:
             for device in devices.find({'deviceid': deviceid}):
                 new_device = copy.deepcopy(device)
-                new_device['heartbeat'] = str(int(time.time()))
+                new_device['heartbeat'] = int(time.time())
                 if device.get('location') is None:
                     new_device['location'] = {'latitude': 0, 'longitude': 0}
                 devices.replace_one(device, new_device)
