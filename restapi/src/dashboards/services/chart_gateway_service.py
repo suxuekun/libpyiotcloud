@@ -96,7 +96,7 @@ class ChartGatewayService:
         try:
             self.chartRepository.delete(chartId)
             # Notify to dashboard update
-            self.dashboardService.remove_chartId(chartId)
+            self.dashboardService.remove_chartId(dashboardId, chartId)
             return Response.success_without_data(message="Delete chart gateway successfully")
 
         except DeletedException as e:

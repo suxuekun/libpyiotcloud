@@ -6,6 +6,8 @@ from schematics.types import StringType, ModelType, IntType, ListType, FloatType
 class DatasetResponse(Model): 
     labels = ListType(StringType)
     data = ListType(FloatType)
+    filterId = IntType()
+    filterName = StringType()
 
 class DatasetExResponse(Model):
     label = StringType()

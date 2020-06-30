@@ -1,5 +1,5 @@
 
-
+from datetime import datetime, timezone, timedelta
 from dashboards.repositories.dashboard_repository import IDashboardRepository
 from dashboards.repositories.chart_repository import IChartRepository
 from dashboards.dtos.chart_gateway_dto import ChartGatewayDto
@@ -15,25 +15,28 @@ from dashboards.repositories.device_repository import IDeviceRepostory
 from dashboards.dtos.chart_sensor_dto import ChartSensorDto
 from dashboards.repositories.sensor_repository import ISensorRepository
 
+
 class ChartSensorService:
-    
-      def __init__(self, dashboardRepository: IDashboardRepository, 
+
+      def __init__(self, dashboardRepository: IDashboardRepository,
                  chartRepository: IChartRepository,
                  attributeRepository: IGatewayAttributeRepository,
                  deviceRepository: IDeviceRepostory,
                  sensorRepository: ISensorRepository):
-        
+
             self.deviceRepository = deviceRepository
             self.dashboardRepository = dashboardRepository
             self.chartRepository = chartRepository
             self.attributeRepository = attributeRepository
             self.sensorRepository = sensorRepository
             self.tag = type(self).__name__
-            
-      
+
       def get_sensor_data_reading(self, id: str):
             try:
-                  results = self.sensorRepository.get_data_reading(id)
+                  # Default time is last 5 mins
+
+                  lastFiveMinutes = datetime.now() - timedelta(minutes=5)
+                  results=self.sensorRepository.get_data_reading(id, int(lastFiveMinutes.timestamp()))
                   return Response.success(data=results, message="Get data successfully")
             except Exception as e:
                   LoggerService().error(str(e), tag=self.tag)
@@ -42,19 +45,22 @@ class ChartSensorService:
       def create(self, dashboardId: str, dto: ChartSensorDto):
             try:
                   dto.validate()
-                  dashboardEntity = self.dashboardRepository.getById(dashboardId)
-                  dashoard = Dashboard.to_domain(dashboardEntity)
-                  
+                  dashboardEntity=self.dashboardRepository.getById(dashboardId)
+                  dashoard=Dashboard.to_domain(dashboardEntity)
+
                   # Create chart
-                  chart = Chart.create_for_sensor(dashboardId=dashoard.model._id, userId=dashoard.model.userId, dto=dto)
-                  chartId = self.chartRepository.create(chart.model.to_primitive())
-                  
+                  chart=Chart.create_for_sensor(
+                      dashboardId=dashoard.model._id, userId=dashoard.model.userId, dto=dto)
+                  chartId=self.chartRepository.create(
+                      chart.model.to_primitive())
+
                   # Update dashboard
                   dashoard.add_chart_gateway(chartId)
-                  self.dashboardRepository.update(dashboardId, dashoard.model.to_primitive())
-                  
+                  self.dashboardRepository.update(
+                      dashboardId, dashoard.model.to_primitive())
+
                   return Response.success_without_data(message="Create chart sensor successfully")
-            
+
             except ModelValidationError as e:
                   LoggerService().error(str(e), tag=self.tag)
                   return Response.fail(str(e))
@@ -66,18 +72,18 @@ class ChartSensorService:
             except Exception as e:
                   LoggerService().error(str(e), tag=self.tag)
                   return Response.fail("Sorry, there is something wrong")
-      
-      def gets(self, dashboardId: str, userId: str, query:{} = None):
+
+      def gets(self, dashboardId: str, userId: str, query: {}=None):
             try:
-                  return Response.success(data = [], message="Get chart responses successfully")
-            
+                  return Response.success(data=[], message="Get chart responses successfully")
+
             except Exception as e:
                   LoggerService().error(str(e), tag=self.tag)
                   return Response.fail("Sorry, there is something wrong")
-        
-      def get(self, dashboarId: str, userId: str, chartId: str, query: {} = None):
+
+      def get(self, dashboarId: str, userId: str, chartId: str, query: {}=None):
             try:
-                  return Response.success(data = {}, message="Get chart responses successfully")
+                  return Response.success(data={}, message="Get chart responses successfully")
             except Exception as e:
                   LoggerService().error(str(e), tag=self.tag)
-                  return Response.fail("Sorry, there is something wrong")  
+                  return Response.fail("Sorry, there is something wrong")
