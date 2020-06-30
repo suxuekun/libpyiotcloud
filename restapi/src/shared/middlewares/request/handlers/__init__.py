@@ -1,6 +1,8 @@
 from shared.client.clients.database_client import db_client
 from shared.middlewares.response import http4xx
-from shared.utils import require_util
+from shared.utils import require_util, timestamp_util
+from shared.utils.pretty_print_util import pretty_print
+
 
 def add_user(request):
     request.environ['user'] = request.environ.get('user') or {}
@@ -10,13 +12,14 @@ def add_user(request):
         return
 
     token = {'access': auth_header_token}
+    access_token = auth_header_token
     username = db_client.get_username_from_token(token)
     if not username:
         request.environ['user'].update({'reason': http4xx.TOKEN_EXPIRE})
         return
 
     verify_ret, new_token = db_client.verify_token(username, token)
-  
+
     if verify_ret ==2:
         request.environ['user'].update({'reason': http4xx.TOKEN_EXPIRE})
         return
@@ -26,6 +29,18 @@ def add_user(request):
 
     request.environ['user'].update({
         'username':username,
+    })
+    if new_token:
+        request.environ['user'].update({
+            'new_token':new_token
+        })
+        access_token = new_token.get('access')
+    userinfo = db_client.admin_get_user(username)
+    created = userinfo.get('UserCreateDate')
+    last_modified = userinfo.get('UserLastModifiedDate')
+    request.environ['user'].update({
+        'created': created,
+        'last_modified':last_modified
     })
 
 def add_org(request):

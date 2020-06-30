@@ -14,7 +14,10 @@ class IChartRepository(BaseRepository, IMongoBaseRepository):
     
     def get_same_chart_gateway(self, dashboardId, deviceId, attributeId, chartTypeId):
         pass
-
+    
+    def get_chart_by_device(self, deviceId):
+        pass
+    
 class ChartRepository(MongoBaseRepository, IChartRepository):
 
     def get_charts_gateway(self, dashboardId, userId):
@@ -111,3 +114,10 @@ class ChartRepository(MongoBaseRepository, IChartRepository):
         chart = self.get_one(query)
         
         return chart
+
+    def get_chart_by_device(self, deviceId):
+        query = {
+            "deviceId": deviceId,
+        }
+        charts = self.gets(query)
+        return charts

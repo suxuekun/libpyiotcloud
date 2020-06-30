@@ -19,31 +19,35 @@ from dashboards.services.chart_type_service import ChartTypeService
 from dashboards.repositories.chart_type_repository import ChartTypeRepository
 
 #  Get config mongodb
-mongo_client = DefaultMongoDB().conn
+mongoClient = DefaultMongoDB().conn
 db = DefaultMongoDB().db
 
-dashboardRepository = DashboardRepository(
-    mongoclient=mongo_client, db=db, collectionName="dashboards")
-attributeRepository = GatewayAttributeRepository(
-    mongoclient=mongo_client, db=db, collectionName="dashboards_gatewayAttributes")
-chartRepository = ChartRepository(
-    mongoclient=mongo_client, db=db, collectionName="dashboards_charts")
 
-chartTypeRepository = ChartTypeRepository(mongoclient=mongo_client, db = db, collectionName="dashboards_chartTypes")
+dashboardRepository = DashboardRepository(
+    mongoclient=mongoClient, db=db, collectionName="dashboards")
+attributeRepository = GatewayAttributeRepository(
+    mongoclient=mongoClient, db=db, collectionName="dashboards_gatewayAttributes")
+chartRepository = ChartRepository(
+    mongoclient=mongoClient, db=db, collectionName="dashboards_charts")
+
+chartTypeRepository = ChartTypeRepository(mongoclient=mongoClient, db = db, collectionName="dashboards_chartTypes")
+
 
 deviceRepository = DeviceRepository(
-    mongoclient=mongo_client, db=db, collectionName="devices")
+    mongoclient=mongoClient, db=db, collectionName="devices")
+
+dashboardService =  DashboardService(dashboardRepository)
+chartGatewayService = ChartGatewayService(dashboardRepository, chartRepository, attributeRepository, deviceRepository, dashboardService)
 
 def init_chart_gateway_service():
-    return ChartGatewayService(
-        dashboardRepository, chartRepository, attributeRepository, deviceRepository)
+    return chartGatewayService
     
 def init_chart_sensor_service():
     return ChartSensorService(
         dashboardRepository, chartRepository, attributeRepository, deviceRepository)
 
 def init_dashboard_service():
-    return DashboardService(dashboardRepository)
+    return dashboardService
 
 def init_gateway_attribute_service():
     return GatewayAttributeService(attributeRepository)

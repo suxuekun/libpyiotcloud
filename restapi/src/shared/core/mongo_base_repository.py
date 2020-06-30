@@ -21,6 +21,16 @@ class IMongoBaseRepository:
     def create_many(self, inputs):
         pass
 
+    def delete_many_by_id(self, ids):
+        pass
+
+    def update_many(self, ids, inputs):
+        pass
+
+    def gets_with_ids(self, ids, projection=None):
+        pass
+
+
 class MongoBaseRepository(BaseRepository, IMongoBaseRepository):
 
     def __init__(self, mongoclient: MongoClient, db, collectionName: str):
@@ -58,8 +68,9 @@ class MongoBaseRepository(BaseRepository, IMongoBaseRepository):
             }
             if input["_id"] is not None:
                 input.pop("_id")
-                
-            input["modifiedAt"] = timestamp_util.get_timestamp()# always update modifiedAt
+
+            if 'modifiedAt' in input:# always update modifiedAt if exist
+                input["modifiedAt"] = timestamp_util.get_timestamp()
             if 'createdAt' in input:# no touch create for update , so will be no changes on this field
                 input.pop('createdAt')
             self.collection.update_one(query, {"$set": input})
@@ -114,5 +125,39 @@ class MongoBaseRepository(BaseRepository, IMongoBaseRepository):
             print('get_one',e)
             raise QueriedByIdException(str(e))
 
+    def delete_many_by_id(self, ids):
+        try:
+            query = {
+                "_id": {
+                    "$in": list(map(lambda id: ObjectId(id), ids))
+                }
+            }
+            self.collection.delete_many(query)
+            return True
+        except Exception as e:
+            print('get_one', e)
+            raise DeletedException(str(e))
 
+    def gets_with_ids(self, ids, projection=None):
 
+        query = {
+            "_id": {
+                "$in": list(map(lambda id: ObjectId(id), ids))
+            }
+        }
+        cursors = self.collection.find(query, projection)
+        results = list(
+            map(lambda r: self._cast_object_without_objectId(r), cursors))
+        return results
+
+    def update_many(self, ids, inputs):
+        try:
+            query = {
+                "_id": {
+                    "$in": list(map(lambda id: ObjectId(id), ids))
+                }
+            }
+            self.collection.update_many(query, {"$set": inputs})
+        except Exception as e:
+            print(e)
+            raise UpdatedException(str(e))

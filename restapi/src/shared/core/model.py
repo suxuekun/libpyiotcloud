@@ -1,5 +1,7 @@
 import datetime
 import uuid
+
+from bson import ObjectId
 from schematics import Model
 from schematics.types import DateTimeType, BooleanType, TimestampType, StringType, UUIDType
 
@@ -13,6 +15,7 @@ class UUIDMixin(Model):
 
 class MongoIdMixin(Model):
     _id = StringType()
+
 
 class BaseMongoModel(BaseModel,MongoIdMixin):
     pass
@@ -47,6 +50,11 @@ class PeriodMixin(Model):
     def set_now_to_year_end(self):
         # TODO
         pass
+
+class MonthPeriodMixin(PeriodMixin):
+    start = StringType(default = timestamp_util.get_timestamp)
+    end = StringType(default = timestamp_util.get_last_day_of_month_timestamp)
+
 
 class DateMixin(Model):
     date = StringType()
