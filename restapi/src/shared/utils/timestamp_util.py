@@ -9,7 +9,7 @@ def get_timestamp_int():
     return int(get_timestamp_float())
 
 def get_timestamp():
-    return str(get_timestamp_int())
+    return get_timestamp_int()
 
 def totalday_of_month(from_date=None):
     from_date = from_date or datetime.now()
@@ -22,7 +22,7 @@ def get_first_day_of_month(from_date = None):
     return res_date
 
 def get_first_day_of_month_timestamp(from_date = None):
-    return str(int(get_first_day_of_month(from_date).timestamp()))
+    return int(get_first_day_of_month(from_date).timestamp())
 
 def get_next_month_first_day(from_date = None):
     from_date = from_date or datetime.now()
@@ -32,7 +32,7 @@ def get_next_month_first_day(from_date = None):
 
 def get_next_month_first_day_timestamp(from_date = None):
     next_month_first_day = get_next_month_first_day(from_date)
-    return str(int(next_month_first_day.timestamp()))
+    return int(next_month_first_day.timestamp())
 
 def get_last_day_of_month(from_date = None):
     next_month_first_day = get_next_month_first_day(from_date)
@@ -40,7 +40,7 @@ def get_last_day_of_month(from_date = None):
     return res_date
 
 def get_last_day_of_month_timestamp(from_date = None):
-    return str(int(get_last_day_of_month(from_date).timestamp()))
+    return int(get_last_day_of_month(from_date).timestamp())
 
 
 
@@ -60,17 +60,18 @@ def datetime_from_string(date_string,string_format = '%m/%d/%Y'):
 
 def timestamp_from_date_string(date_string,string_format = '%m/%d/%Y'):
     d = datetime_from_string(date_string,string_format)
-    return str(int(d.timestamp()))
+    return int(d.timestamp())
+
+# if __name__ == "__main__":
+#     r = percent_of_month_left()
+#     print (r)
 
 if __name__ == "__main__":
-    r = percent_of_month_left()
-    print (r)
-
-if __name__ == "__main__":
+    # print(int(time.time()),int(datetime.now().timestamp()))
     d_now = datetime.now()# get local time naive time , no time zone awared
     d_utc = datetime.utcnow()# get local time as utc time // bug or feature ? this utc time is no time zone awared!!!
     correct_utc = d_utc.replace(tzinfo=timezone.utc)
-
+    print(int(time.time()), int(datetime.now().timestamp()),int(correct_utc.timestamp()))
     timestamp_from_now = d_now.timestamp()#this is real unix timestamp
     timestamp_from_utc = d_utc.timestamp()#this is not correct unix timestamp , this is utc time using local time zone problem
     timestamp_correct = correct_utc.timestamp()#this is correct unix timestamp,utc time using utc timezone,you need to manually assign utc time to a utcnow()!!!
