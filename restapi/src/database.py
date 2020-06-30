@@ -11,7 +11,7 @@ from cognito_client import cognito_client
 from paypal_client import paypal_client
 import statistics
 from shared.client.connection.mongo import DefaultMongoConnection
-from shared.client.db.mongo.default import DefaultMongoDB, SensorMongoDb
+from shared.client.db.mongo.default import DefaultMongoDB, SensorMongoDb, SENSOR_CONNECTION
 
 
 class database_models:
@@ -1506,12 +1506,14 @@ class database_client_mongodb:
         self.patch()
 
         # different database for sensor dashboarding
-        if "mongodb.net" in config.CONFIG_MONGODB_HOST2: 
+        if "mongodb.net" in config.CONFIG_MONGODB_HOST2:
             connection_string = "mongodb+srv://" + config.CONFIG_MONGODB_USERNAME + ":" + config.CONFIG_MONGODB_PASSWORD + "@" + config.CONFIG_MONGODB_HOST2 + "/" + config.CONFIG_MONGODB_DB + "?retryWrites=true&w=majority"
-            mongo_client_sensor = SensorMongoDb(connection_string).conn
+            SENSOR_CONNECTION = connection_string
+            mongo_client_sensor = SensorMongoDb().conn
             self.client_sensor = mongo_client_sensor[config.CONFIG_MONGODB_DB]
         else:
             self.client_sensor = self.client
+            
 
         self.paypal = paypal_client()
         self.paypal.initialize()
@@ -4670,8 +4672,9 @@ class database_client_mongodb:
                 print(device)
 
     def fix_timestamps(self, device):
-        if type(device['timestamp']) is str:
-            device['timestamp'] = int(device['timestamp'])
+        if device.get('timestamp') is not None:
+            if type(device['timestamp']) is str:
+                device['timestamp'] = int(device['timestamp'])
         if device.get('heartbeat') is not None:
             if type(device['heartbeat']) is str:
                 device['heartbeat'] = int(device['heartbeat'])
