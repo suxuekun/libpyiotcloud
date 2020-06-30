@@ -264,9 +264,9 @@ June 30, 2020
 
 51. When upgrading, the storage does not have units (GB)
 
-52. im on free plan but choose upgrade, free plan also appears
+52. im on free plan BUT free plan is available on the list of plans to upgrade to
 
-53. can't we just cancel without haveing user go to paypal?
+53. can't we just cancel without having user go to paypal?
 
 54. the braintree dropin UI seems very slow to load (>5 seconds?)
 
