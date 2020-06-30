@@ -1,5 +1,6 @@
 import boto3
 import json
+import csv
 from aws_config import config
 import urllib.parse
 
@@ -12,6 +13,7 @@ class s3_client:
 		self.aws_secret_access_key = config.CONFIG_SECRET_KEY
 		self.region                = config.CONFIG_S3_REGION
 		self.bucket                = config.CONFIG_S3_BUCKET
+		self.sms_country_points    = config.CONFIG_S3_FILE_SMS_COUNTRY_POINTS
 
 	def __print_json(self, json_object, is_json=True, label=None):
 		if is_json:
@@ -114,3 +116,45 @@ class s3_client:
 			return None
 
 		return urllib.parse.quote(file)
+
+
+	def __read_file_csv_to_json(self, filename):
+
+		json_obj = []
+
+		with open(self.sms_country_points) as csv_data:
+			csv_reader = csv.DictReader(csv_data)
+
+			for csv_row in csv_reader:
+				code = csv_row["Code"]
+				country = csv_row["Country"]
+				points = csv_row["Points Cost"]
+				if code != "" and country != "" and points != "":
+					item = {
+						"code": code, 
+						"country": country, 
+						"points": points
+					}
+					json_obj.append(item)
+					#print(item)
+
+		return json_obj
+
+
+	def get_sms_country_points_list(self):
+
+		result, contents = self.__get_file(self.sms_country_points, raw=True)
+		if not result:
+			return []
+
+		with open(self.sms_country_points, 'w') as csv_data:
+			csv_data.write(contents)
+
+		try:
+			json_obj = self.__read_file_csv_to_json(self.sms_country_points)
+		except:
+			json_obj = []
+
+		#print(self.__print_json(json_obj))
+		return json_obj
+

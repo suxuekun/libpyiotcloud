@@ -529,10 +529,23 @@ class device_ldsbus:
                     print('\r\nERROR Delete LDSU: Authorization not allowed [{}]\r\n'.format(username))
                     return response, status.HTTP_401_UNAUTHORIZED
 
-            self.database_client.delete_device_notification_sensor(entityname, devicename, ldsuuuid)
-            self.database_client.delete_device_peripheral_configuration_by_source(entityname, devicename, ldsuuuid)
-            self.database_client.delete_device_sensors_by_source(entityname, devicename, ldsuuuid)
-            self.database_client.delete_ldsu(entityname, devicename, ldsuuuid)
+            # check if device is registered
+            deviceinfo = self.database_client.find_device(entityname, devicename)
+            if not deviceinfo:
+                response = json.dumps({'status': 'NG', 'message': 'Device is not registered'})
+                print('\r\nERROR Delete LDSU: Device is not registered [{},{}]\r\n'.format(entityname, devicename))
+                return response, status.HTTP_404_NOT_FOUND
+
+            # cleanup sensors of the LDSUs in the specified port
+            device_client = device(self.database_client, self.messaging_requests)
+            sensors = self.database_client.get_all_device_sensors_by_source_by_deviceid(deviceinfo["deviceid"], ldsuuuid)
+            if sensors is not None:
+                for sensor in sensors:
+                    if sensor.get("source") and sensor.get("number") and sensor.get("sensorname"):
+                        device_client.sensor_cleanup(None, None, deviceinfo["deviceid"], sensor["source"], sensor["number"], sensor["sensorname"], sensor)
+
+            # cleanup LDSU
+            self.database_client.delete_ldsu_by_deviceid(deviceinfo["deviceid"], ldsuuuid)
             msg = {'status': 'OK', 'message': 'LDSU deleted successfully.'}
 
 

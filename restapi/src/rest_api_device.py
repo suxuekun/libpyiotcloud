@@ -27,6 +27,7 @@ import threading
 import rest_api_utils
 from database import database_categorylabel, database_crudindex
 from message_broker_api import message_broker_api
+import re
 
 
 
@@ -40,6 +41,86 @@ class device:
     def __init__(self, database_client, messaging_requests):
         self.database_client = database_client
         self.messaging_requests = messaging_requests
+
+
+    def _check_deviceid(self, deviceid):
+        # UUID: PH80XXRRMMDDYYZZ (16 characters - digits and uppercase letters)
+
+        #if re.match("[A-Z]{2}[0-9A-Z]{4}[0-9A-Z]{2}[0-9]{6}[0-9A-F]{2}$", deviceid) is None:
+        if re.match("[0-9A-Z]{16}$", deviceid) is None:
+            return False
+
+        prodfamily  = deviceid[0:2]
+        prodid      = deviceid[2:6]
+        reserved    = deviceid[6:8]
+        month       = deviceid[8:10]
+        day         = deviceid[10:12]
+        year        = deviceid[12:14]
+        running_num = deviceid[14:16]
+
+        #print(prodfamily)
+        #print(prodid)
+        #print(reserved)
+        #print(month)
+        #print(day)
+        #print(year)
+        #print(running_num)
+
+        # check prodfamily
+        #if prodfamily != "PH":
+        #    print("Invalid prodfamily {}".format(prodfamily))
+        #    return False
+
+        # check prodid
+        #if prodid != "80XX":
+        #    print("Invalid prodid {}".format(prodid))
+        #    return False
+
+        # check reserved
+
+        # check month, day, year
+        #if int(month) < 1 or int(month) > 12:
+        #    print("Invalid month {}".format(month))
+        #    return False
+        #if int(day) < 1 or int(day) > 31:
+        #    print("Invalid day {}".format(day))
+        #    return False
+        #if int(year) < 0 or int(year) > 99:
+        #    print("Invalid year {}".format(year))
+        #    return False
+
+        # check running number
+        #if int(runningnum, 16) > 255:
+        #    print("Invalid running number {}".format(runningnum))
+        #    return False
+
+        return True
+
+    def _check_serialnumber(self, deviceid, serialnumber):
+        # SerialNumber: SSSSS (5 characters - digits and uppercase letters)
+
+        if re.match("[0-9A-Z]{5}$", serialnumber) is None:
+            return False
+
+        # serialnumber should be from 00000 to 00255
+        #serial = int(serialnumber)
+        #if serial > 255:
+        #    return False
+
+        # serialnumber should match running number of 
+        #sequencenumber = deviceid[14:]
+        #if serial != int(sequencenumber, 16):
+        #    return False
+
+        return True
+
+    def _check_macaddress(self, macaddress):
+        # POE MAC Address: 00:00:00:00:00:00 (17 characters - digits and A-F uppercase letters)
+
+        if re.match("[0-9A-F]{2}([-:]?)[0-9A-F]{2}(\\1[0-9A-F]{2}){4}$", macaddress) is None:
+            return False
+
+        return True
 
 
     def decode_password(self, secret_key, password):
@@ -436,7 +517,7 @@ class device:
                     print('\r\nERROR Add Device: Authorization not allowed [{}]\r\n'.format(username))
                     return response, status.HTTP_401_UNAUTHORIZED
 
-            # check parameters
+            # check parameters exist
             data = flask.request.get_json()
             #print(data)
             if not data.get("deviceid") or not data.get("serialnumber") or not data.get("poemacaddress"):
@@ -445,6 +526,25 @@ class device:
                 return response, status.HTTP_400_BAD_REQUEST
             #print(data["deviceid"])
             #print(data["serialnumber"])
+
+
+            # check parameters are valid format and length
+            result1 = self._check_deviceid(data["deviceid"])
+            result2 = self._check_serialnumber(data["deviceid"], data["serialnumber"])
+            result3 = self._check_macaddress(data["poemacaddress"])
+            if not result1:
+                response = json.dumps({'status': 'NG', 'message': 'UUID is invalid'})
+                print('\r\nERROR Add Device: Device UUID is invalid [{},{}]\r\n'.format(entityname, devicename))
+                return response, status.HTTP_400_BAD_REQUEST
+            if not result2:
+                response = json.dumps({'status': 'NG', 'message': 'Serial Number is invalid'})
+                print('\r\nERROR Add Device: Serial Number is invalid [{},{}]\r\n'.format(entityname, devicename))
+                return response, status.HTTP_400_BAD_REQUEST
+            if not result3:
+                response = json.dumps({'status': 'NG', 'message': 'POE MAC Address is invalid'})
+                print('\r\nERROR Add Device: POE MAC Address is invalid [{},{}]\r\n'.format(entityname, devicename))
+                return response, status.HTTP_400_BAD_REQUEST
+
 
             # check if device is registered
             # a user cannot register the same device name
@@ -467,6 +567,7 @@ class device:
                 response = json.dumps({'status': 'NG', 'message': 'Device POE MAC Address is already registered'})
                 print('\r\nERROR Add Device: Device POE MAC Address is already registered[{}]\r\n'.format(data["deviceid"]))
                 return response, status.HTTP_409_CONFLICT
+
 
             # add device to database
             result = self.database_client.add_device(entityname, devicename, data["deviceid"], data["serialnumber"], data['poemacaddress'])

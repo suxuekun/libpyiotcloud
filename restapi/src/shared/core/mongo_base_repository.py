@@ -12,20 +12,41 @@ class IMongoBaseRepository:
     def gets(self, query=None, projection=None):
         pass
 
+    def drop(self):
+        pass
+
+    def get_one(self,query):
+        pass
+
+    def create_many(self, inputs):
+        pass
+
 class MongoBaseRepository(BaseRepository, IMongoBaseRepository):
 
     def __init__(self, mongoclient: MongoClient, db, collectionName: str):
         self.mongoclient = mongoclient
         self.db = db
+        self.collectionName = collectionName
         self.collection = db[collectionName]
 
-    def create(self, input) -> bool:
+    def check_collection_existed(self):
+        return self.collectionName in self.db.list_collection_names()
+
+    def create(self, input) -> str:
         try:
             if "_id" in input:
                 input.pop("_id")
                 
             res = self.collection.insert_one(input)
-            return res.inserted_id
+            return str(res.inserted_id)
+        except Exception as e:
+            print(e)
+            raise CreatedExeception(str(e))
+
+    def create_many(self, inputs):
+        try:
+            self.collection.insert_many(inputs)
+            return True
         except Exception as e:
             print(e)
             raise CreatedExeception(str(e))

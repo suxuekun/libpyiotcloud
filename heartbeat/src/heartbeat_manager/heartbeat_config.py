@@ -13,12 +13,14 @@ class config:
     CONFIG_MONGODB_PORT              = 27017
     CONFIG_MONGODB_DB                = "iotcloud-database"
     CONFIG_MONGODB_TB_PROFILES       = "profiles"
+
     CONFIG_MONGODB_TB_DEVICES        = "devices"
-    CONFIG_MONGODB_TB_HISTORY        = "history"
-    CONFIG_MONGODB_TB_NOTIFICATIONS  = "notifications"
-    CONFIG_MONGODB_TB_SENSORREADINGS = "sensorreadings"
-    CONFIG_MONGODB_TB_CONFIGURATIONS = "configurations"
-    CONFIG_MONGODB_TB_HEARTBEAT      = "heartbeat"
+    CONFIG_MONGODB_TB_HISTORY        = "devices_history"
+    CONFIG_MONGODB_TB_HEARTBEAT      = "devices_heartbeat"
+
+    CONFIG_MONGODB_TB_CONFIGURATIONS = "sensors_configurations"
+    CONFIG_MONGODB_TB_NOTIFICATIONS  = "sensors_notifications"
+    CONFIG_MONGODB_TB_SENSORREADINGS = "sensors_readings_latest"
 
     # RabbitMQ settings
     CONFIG_MQTT_DEFAULT_USER         = os.environ["CONFIG_USE_MQTT_DEFAULT_USER"]

@@ -1,0 +1,259 @@
+Peer Review Comments by Richmond
+
+
+===============================================
+
+June 3, 2020
+
+1. all dates return should be in epoch format because of timezone issues.
+   backend always return epoch so front end can display based on the user's timezone.
+
+2. device_id:"id",
+   device_uuid:"uuid",
+   - this is just the same
+
+3. for Get Subscription, there's no flag to determine if its cancelled
+   the issue with this is its too big packet with repeated information if just the same plan
+
+4. calculate prorate should also return the remaining days
+   because the remaining days is based on the backend's timezone, not the users timezone
+   timezone is based on the backends timezone because frontend will have different timezone based on user's country or phone settings
+
+5. can't find GST. (GST is applicable if user billing address is in SG)
+   backend should provide api related to GST
+   because the decision for GST is currently just for SG country but later if we change the decision to include all a number of countries, 
+   then there should be no changes in the frontend. only in the backend
+   so backend decides if GST is applicable or not
+
+6. so combining prorate remaining days with gst will be good for the frontend,
+   just 1 api call instead of multiple API calls for 1 page
+
+7. improve the documentation of checkout
+   checkout api is generic for all checkouts. thats good.
+   but please provide some actual examples to make things more clear 
+   provide examples for cancel, upgrade.
+
+8. improve documentation of get client token 
+   assume they are not familiar with braintree. assume they are not familiar with CLIENT TOKEN and NONCE. 
+   so this needs to be described. 
+
+9. the checkout API is also a crucial API since it is when the transaction with Braintree/paypal can fail. 
+   so adding the errors is very important for this API. 
+   promocode and invalid new_plan_id
+
+10. GET transactions API should have the transaction amount and URL for the PDF receipt
+    GET transaction reciept should not in separate, it can simply be a URL in GET transactions API (one API call for frontend)
+
+11. Please check the PDF receipt format from the marketing team (see attached - also in PRD). 
+    In case you there is some item you need to store in the database to asynchronusly create the PDF in another docker microservice.
+
+12. for Get Subscription, in addition to adding a flag for cancellation. 
+    There should also in a reason for cancellation because it can be:
+    a cancellation by user in iotportal
+    a cancellation by user in Paypal account
+    a cancellation by us (ex. recurring payment failed. so we cancel it) 
+
+13. in the receipt, there should be a breakdown (especially important for prorated current month)
+
+14. for braintree transactions for multiple devices: (2 device example below)
+    a) 1 transaction for device A - prorated current month
+       1 transaction for device B - prorated current month 
+       1 subscription for device A - recurring months
+       1 subscription for device B - recurring months
+    b) 1 transaction for device A and B
+       1 subscription for device A - recurring months
+       1 subscription for device B - recurring months
+    1 trasnaction is ok but we need to add supply the breakdown so that when customer checks the Paypal page, the he can see the breakdown too
+
+
+15. In braintree, is each subscription associated with the specific deviceid?
+    or do we do it in the association in our backend?
+    If we handle the association in our backend, then it means user dont know which subscription to cancel in their Paypal page
+    because they can cancel a recurring payment in their paypal page
+
+16. Create a UML sequence diagram to highlight the communication between backend, frontend and Braintree API.
+    This will help the frontend guys and other team members understanding the whole picture.
+    For sample reference, refer to the payment UML sequence with Paypal API.
+    https://github.com/richmondu/libpyiotcloud/blob/dev/_images/paypal_sequence_diagram.png
+    Include the following:
+    frontend gets client token API from backend 
+    frontend uses client token to communicate with Braintree
+    user approves payment in paypal 
+    frontend retrieves NONCE from Braintree
+    frontend checkout API (with NONCE)
+    backend create braintree customer if not exist in vault
+    backend create braintree transaction 
+    backend create braintree subscription
+
+17. GST information should be displayed with estimated currency conversion for SGD to USD.
+
+
+===============================================
+
+June 16, 2020
+
+18. WHY DID YOU COMMIT THE .SH FILE CONTAINING CONFIDENTIAL INFORMATION?
+
+    NOW WE HAVE TO CHANGE IT IN THE FIRMWARE AND BACKEND
+    THIS MEANS ALL DEVICES HAVE TO BE INVALIDATED.
+
+19. WHY IS THE BRAINTREE CONFIGURATION HARDCODED AND COMMITTED IN GITHUB?
+ 
+    THIS NEEDS TO BE SET TO ENVIRONMENT VARIABLES.
+
+
+===============================================
+
+June 18, 2020
+
+20. Generic error handling for all functions
+
+21. Please update api-doc
+
+22. Plans should be retrieved from Braintree account, not hardcoded in the backend
+
+23. Promocodes should be retrieved from amazon s3, not hardcoded in the backend
+
+24. The last paypal user used should appear automatically on succeeding transactions
+    But user should still be required to approve for new succeeding upgrades
+ 
+25. Database collections should be prepended with "payments"
+
+
+===============================================
+
+June 21, 2020
+
+26. Could not find code where username is retrieved from token and token is verified if expired/invalid.
+    All APIs should do this.
+
+27. provide a summary of APIs for the entry points of each API in the respective files containing the API entry points
+
+   this makes it easy to debug and troubleshoot the code
+
+   #g_identity_authentication_list = [
+   #    { "name": "SIGN-UP",                         "func": signup,                          "api": "/user/signup",                      "method": "POST"   },
+   #    { "name": "CONFIRM SIGN-UP",                 "func": confirm_signup,                  "api": "/user/confirm_signup",              "method": "POST"   },
+   #    { "name": "RESEND CONFIRMATION CODE",        "func": resend_confirmation_code,        "api": "/user/resend_confirmation_code",    "method": "POST"   },
+   #    { "name": "FORGOT PASSWORD",                 "func": forgot_password,                 "api": "/user/forgot_password",             "method": "POST"   },
+   #    { "name": "CONFIRM FORGOT PASSWORD",         "func": confirm_forgot_password,         "api": "/user/confirm_forgot_password",     "method": "POST"   },
+
+
+===============================================
+
+June 25, 2020
+
+28. multiple instances of "s3-reload" "payment blue print" appears when running the dev branch in your fork https://github.com/suxuekun/libpyiotcloud/tree/dev
+
+29. ionic web app couldnt run. some conflict in package-lock.json.
+    if i replace package-lock.json, then it works
+
+30. could not login. changes in server.js should be generic for local and live setup. should use env.js.
+
+31. remove billing address and billling history in the menu. 
+    just add as some buttons or links inside subscriptions instead
+
+32. Credits menu have already been changed to Credits OLD
+
+33. The names displayed in are not correct. Plan name appear as Plan A instead of Free Plan. Update braintree accordingly.
+
+34. Storage does not display label (GB). 
+
+35. I get username su in my local database in payment_promocode database collection
+    This is my local database, your username should not even appear.
+
+36. I have not started upgrading plans, but promo codes entries in the database already appear but for user "su ..."
+    this is NOT optimal in terms of database size.
+
+37. There should be a database collection for the MASTERLIST of promo codes
+    This shall synchronize with the promocodes.csv file in AWS S3
+
+38. There can be two types of promo code applicability
+    a. based on device plan to be upgraded to and validity of the plan (ex. June)
+       For example, a promo code is only valid for Supersize50/Enterprise50 for the month of June
+       This means that if user is upgrading to Supersize50/Enterprise50 for the month of June, then this promocode should appear on the available promocodes
+
+    b. based on user's join date (new users) - common feature in Lazada
+       For example, a promo code is valid for new users for the month of June
+       This means that if user created account in June, then this promocode should appear on the available promocodes
+
+39. actually you dont even need a new collection for the list of promo codes for user/device. 
+    you can simply return the MASTERLIST "database collection" and then FILTER OUT based on the specific username-device subscription plan not applicable to the specified user/device
+
+    this is more optimal in terms of database size.
+
+
+===============================================
+
+June 29, 2020
+
+40. deleting device should delete related entries in payment db collections (ex. payment_subscription)
+
+    add your function in rest_api_device.py device_cleanup()
+
+41. devicename is stored in payment_subscription db collection.
+
+    since devicename can be changed by user, then you need to handle when name is changed
+
+    option 1: dont store devicename; retrieve it dynamically
+    option 2: add your function to handle devicename changes in rest_api_device.py update_devicename()
+
+42. Theres no PlanA, PlanB anymore so update the documnentation.
+    mobile team will get confused what this is.     
+
+43. example values is different from definition values
+
+    variable definition should string/int/float/etc 
+    then add comments as applicable
+
+    separate definition from example values
+ 
+44. Remove "data" value in return values
+    (ex. C. Plan reload from s3, update billing address, cancel subscription, checkout )
+
+    Thang has fixed this issue in dashboard
+    its redundant with status OK/NG.
+
+45. Plan reload from s3 API
+    GET: /payment/plan_reload/
+
+    - what does this function do? Frontend should not trigger reloading from S3
+    - backend should not be informed by frontend to reload from S3
+
+    remove this API
+
+46. "username": "su-org.1592316898",
+
+    username should not be returned
+
+47. i also dont want to see your username appearing in the examples
+
+48. bt_plan_id should not be returned
+
+49. Fix your documentation
+    Add comments for parameters as much as possible
+
+    Ex. 1. In Get Subscriptions,  
+           its unclear if the sms, email, notification, storage are the current consumed OR remaining balance.
+
+    Ex. 2. In get user promocodes,
+           its unclear if _id  should be displayed as the label in the list of promo 
+
+    Ex. 3. In get user promocodes,
+           its unclear if plan_id is the new plan, not the existing plan
+
+    Document the API properly so that mobile team does NOT need to ask question anymore, that is the documentation can stand by its own.
+
+50. Please use these functions in database.py for getting the current consumed MENOS alerts for the current month
+
+    For Usages:
+    SMS                 - get_menos_num_sms_by_currmonth
+    Email               - get_menos_num_email_by_currmonth
+    Push Notification   - get_menos_num_notification_by_currmonth
+    Sensor Data Storage - get_menos_num_sensordata_by_currmonth
+    or
+    SMS                 - get_menos_num_sms_by_deviceid_by_currmonth
+    Email               - get_menos_num_email_by_deviceid_by_currmonth
+    Push Notification   - get_menos_num_notification_by_deviceid_by_currmonth
+    Sensor Data Storage - get_menos_num_sensordata_by_deviceid_by_currmonth
+

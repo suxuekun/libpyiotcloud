@@ -49,11 +49,16 @@ from rest_api_device_ldsbus import device_ldsbus
 from rest_api_device_dashboard_old import device_dashboard_old
 from rest_api_other_stuffs import other_stuffs
 import rest_api_utils
-###################################################################################
-# Some configurations
-###################################################################################
 from shared.client.clients.database_client import db_client
 from shared.middlewares.default_middleware import DefaultMiddleWare
+from dashboards.dashboards_app import DashboardsApp
+# from payment.app import PaymentApp
+
+
+
+########################################################################################################
+# Some configurations
+###################################################################################
 
 CONFIG_DEVICE_ID            = "restapi_manager"
 CONFIG_SEPARATOR            = '/'
@@ -907,12 +912,18 @@ def get_supported_sensors():
 def get_device_firmware_updates():
     return g_other_stuffs.get_device_firmware_updates()
 
+
 # This is for the device simulator.
 # This can be easily blocked by removing entry in nginx.conf.
 @app.route('/devicesimulator/devicepassword', methods=['GET'])
 def compute_device_password():
     return g_other_stuffs.compute_device_password()
 
+# This is for the device simulator.
+# This can be easily blocked by removing entry in nginx.conf.
+@app.route('/devicesimulator/otaauthcode', methods=['GET'])
+def compute_ota_authcode():
+    return g_other_stuffs.compute_ota_authcode()
 
 
 
@@ -1022,6 +1033,7 @@ def initialize():
             print("Could not connect to message broker! exception! {}".format(e))
 
     # Initialize Database client
+    g_database_client = db_client
 
     print("g_database_client")
     g_database_client = db_client

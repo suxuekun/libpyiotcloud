@@ -9,7 +9,7 @@ def get_timestamp_int():
     return int(get_timestamp_float())
 
 def get_timestamp():
-    return str(int(datetime.utcnow().timestamp()))
+    return str(get_timestamp_int())
 
 def totalday_of_month(from_date=None):
     from_date = from_date or datetime.now()

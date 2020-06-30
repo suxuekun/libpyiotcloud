@@ -415,6 +415,15 @@ DETAILED:
 		-  Response:
 		   {'status': 'OK', 'message': string}
 		   {'status': 'NG', 'message': string}
+		   //
+		   // Resend OTP 
+		   //   To resend OTP for CONFIRM SIGN-UP page, use RESEND CONFIRMATION CODE api
+		   //   To resend OTP for CONFIRM FORGOT PASSWORD page, use FORGOT PASSWORD api
+		   //   To resend OTP for CONFIRM VERIFY PHONE NUMBER page, use VERIFY PHONE NUMBER api
+		   //   To resend OTP for USER LOCKOUT RESET PASSWORD page, use FORGOT PASSWORD api
+		   //   To resend OTP for LOGIN MFA page is NOT possible with Cognito
+		   //
+		   // There is no lockout due for invalid OTP. Lockout is only for invalid password
 
 		D. FORGOT PASSWORD
 		-  Request:
@@ -452,7 +461,16 @@ DETAILED:
 		     )));
 		   JWT = base64UrlEncodedHeader + "." base64UrlEncodedPayload + "." + base64UrlEncodedSignature
 		   Double check your results here: https://jwt.io/
-
+		   //
+		   // Resend OTP 
+		   //   To resend OTP for CONFIRM SIGN-UP page, use RESEND CONFIRMATION CODE api
+		   //   To resend OTP for CONFIRM FORGOT PASSWORD page, use FORGOT PASSWORD api
+		   //   To resend OTP for CONFIRM VERIFY PHONE NUMBER page, use VERIFY PHONE NUMBER api
+		   //   To resend OTP for USER LOCKOUT RESET PASSWORD page, use FORGOT PASSWORD api
+		   //   To resend OTP for LOGIN MFA page is NOT possible with Cognito
+		   //
+		   // There is no lockout due for invalid OTP. Lockout is only for invalid password
+		   
 		F. LOGIN
 		-  Request:
 		   POST /user/login
@@ -591,6 +609,15 @@ DETAILED:
 		-  Response:
 		   {'status': 'OK', 'message': string}
 		   {'status': 'NG', 'message': string}
+		   //
+		   // Resend OTP 
+		   //   To resend OTP for CONFIRM SIGN-UP page, use RESEND CONFIRMATION CODE api
+		   //   To resend OTP for CONFIRM FORGOT PASSWORD page, use FORGOT PASSWORD api
+		   //   To resend OTP for CONFIRM VERIFY PHONE NUMBER page, use VERIFY PHONE NUMBER api
+		   //   To resend OTP for USER LOCKOUT RESET PASSWORD page, use FORGOT PASSWORD api
+		   //   To resend OTP for LOGIN MFA page is NOT possible with Cognito
+		   //
+		   // There is no lockout due for invalid OTP. Lockout is only for invalid password
 
 		N. CHANGE PASSWORD
 		-  Request:
@@ -743,6 +770,15 @@ DETAILED:
 		   {'status': 'NG', 'message': string}
 		   MFA must be manually enabled before Login within MFA
 		   MFA code has 3 minutes validity. It cannot be modified in Cognito.
+		   //
+		   // Resend OTP 
+		   //   To resend OTP for CONFIRM SIGN-UP page, use RESEND CONFIRMATION CODE api
+		   //   To resend OTP for CONFIRM FORGOT PASSWORD page, use FORGOT PASSWORD api
+		   //   To resend OTP for CONFIRM VERIFY PHONE NUMBER page, use VERIFY PHONE NUMBER api
+		   //   To resend OTP for USER LOCKOUT RESET PASSWORD page, use FORGOT PASSWORD api
+		   //   To resend OTP for LOGIN MFA page is NOT possible with Cognito
+		   //
+		   // There is no lockout due for invalid OTP. Lockout is only for invalid password
 
 		S. GET ORGANIZATIONS
 		-  Request:
@@ -1100,12 +1136,14 @@ DETAILED:
 		   // deviceid refers to UUID and must be unique
 		   // serialnumber is some derivative of UUID
 		   // poemacaddress is a unique mac address in uppercase string ex. AA:BB:CC:DD:EE:FF
-		   // format of UUID and Serial Number has not yet been finalized by Sree
-		   // currently no checking is performed on the UUID and Serial Number format
-		   // web prototype temporarily uses the format from PanL
-		   //   UUID: PH80XXRRMMDDYYzz (16 characters)
-		   //   SerialNumber: SSSSS (5 digits)
-		   //   where ZZ hexadecimal is equivalent to SSSSS in decimal
+		   //
+		   //   Actual definition of UUID and Serial Number is not yet fully defined
+		   //   For now, below are the KNOWN restrictions:
+		   //
+		   //     UUID: PH80XXRRMMDDYYZZ (16 characters - digits and uppercase letters) 
+		   //     SerialNumber: SSSSS (5 characters - digits and uppercase letters)
+		   //     POE MAC Address: 00:00:00:00:00:00 (17 characters - digits and A-F uppercase letters)
+		   //
 		   // registering a device using an already used devicename returns HTTP_409_CONFLICT with 'Device name is already taken'
 		   // registering a device using an already used deviceid returns HTTP_409_CONFLICT with 'Device UUID is already registered'
 		-  Response:
@@ -1185,7 +1223,7 @@ DETAILED:
 		   { 'status': 'OK', 'message': string, 'locations': [{'devicename': string, location: {'latitude': float, 'longitude': float}}, ...] }
 		   { 'status': 'NG', 'message': string}
 		   // latitude and longitude can be negative values
-		   // locations will not be present if no device location has not yet been set
+		   // by default, location is set to latitude = 0, longitude = 0
 
 		I. SET DEVICES LOCATION
 		-  Request:
@@ -1204,6 +1242,7 @@ DETAILED:
 		-  Response:
 		   { 'status': 'OK', 'message': string}
 		   { 'status': 'NG', 'message': string}
+		   // This will just reset location to latitude = 0, longitude = 0 of all devices
 
 		K. GET DEVICE LOCATION
 		-  Request:
@@ -1213,7 +1252,7 @@ DETAILED:
 		   { 'status': 'OK', 'message': string, 'location': {'latitude': float, 'longitude': float} }
 		   { 'status': 'NG', 'message': string}
 		   // latitude and longitude can be negative values
-		   // location will not be present if device location has not yet been set
+		   // by default, location is set to latitude = 0, longitude = 0
 
 		L. SET DEVICE LOCATION
 		-  Request:
@@ -1232,6 +1271,7 @@ DETAILED:
 		-  Response:
 		   { 'status': 'OK', 'message': string}
 		   { 'status': 'NG', 'message': string}
+		   // This will just reset location to latitude = 0, longitude = 0
 
 		N. UPDATE FIRMWARE
 		-  Request:
@@ -1474,7 +1514,7 @@ DETAILED:
 		   { 'status': 'OK', 'message': string, 'locations': [{'devicename': string, location: {'latitude': float, 'longitude': float}}, ...] }
 		   { 'status': 'NG', 'message': string}
 		   // latitude and longitude can be negative values
-		   // locations will not be present if no device location has not yet been set
+		   // by default, location is set to latitude = 0, longitude = 0
 
 		M. SET DEVICE GROUP LOCATION
 		-  Request:
@@ -1493,7 +1533,8 @@ DETAILED:
 		-  Response:
 		   { 'status': 'OK', 'message': string}
 		   { 'status': 'NG', 'message': string}
-
+		   // This will just reset location to latitude = 0, longitude = 0 of each device in the group
+	
 		O. GET DEVICE GROUP OTA STATUSES
 		-  Request:
 		   GET /devicegroups/group/DEVICEGROUPNAME/ota
@@ -1811,6 +1852,7 @@ DETAILED:
 		                'modem': {
 		                    'enable': boolean,
 		                    'recipients': string, // can be multiple items separated by comma
+		                    'isgroup': boolean    // true if all recipients are device groups, false if all recipients are devices
 		                },
 		                'storage': {
 		                    'enable': boolean,
@@ -1825,7 +1867,7 @@ DETAILED:
 		           "mode": int, 
 		           "threshold": {"value": int, "min": int, "max": int, "activate": int}, 
 		           "alert": {"type": int, 'period': int}, 
-		           "hardware": {"devicename": string}, 
+		           "hardware": {"devicename": string, "enable": boolean}, 
 		           "notification": json_obj,
 		      }
 		   //
@@ -1835,7 +1877,7 @@ DETAILED:
 		           "mode": int, 
 		           "threshold": {"value": int, "min": int, "max": int, "activate": int}, 
 		           "alert": {"type": int, 'period': int}, 
-		           "hardware": {"devicename": string}, 
+		           "hardware": {"devicename": string, "enable": boolean}, 
 		           "notification": json_obj,
 		      }
 		   //
@@ -1853,8 +1895,13 @@ DETAILED:
 		   //   alert period is the time in milliseconds for the alert when alert type points to Continuously
 		   //   notification refers to the the same notification settings for MENOS alerting
 		   //   hardware
-		   //     appears when mode is continuous
-		   //
+		   //     appears when mode is Continuous
+		   //     enable
+		   //       default value is false in UI
+		   //       if true, data is to be forwarded to an actuator given the specified devicename
+		   //       else, data is not to be forwarded to an actuator
+		   //     devicename
+		   //       used when enable is set to true
 
 		L. GET LDSU DEVICE (SENSOR/ACTUATOR) PROPERTIES
 		-  Request:
@@ -1869,7 +1916,7 @@ DETAILED:
 		           "mode": int, 
 		           "threshold": {"value": int, "min": int, "max": int, "activate": int}, 
 		           "alert": {"type": int, 'period': int}, 
-		           "hardware": {"devicename": string}, 
+		           "hardware": {"devicename": string, "enable": boolean}, 
 		           "notification": json_obj,
 		      }
 		   //
@@ -1879,7 +1926,7 @@ DETAILED:
 		           "mode": int, 
 		           "threshold": {"value": int, "min": int, "max": int, "activate": int}, 
 		           "alert": {"type": int, 'period': int}, 
-		           "hardware": {"devicename": string}, 
+		           "hardware": {"devicename": string, "enable": boolean}, 
 		           "notification": json_obj,
 		      }
 
@@ -2072,6 +2119,7 @@ DETAILED:
 		                'modem': {
 		                    'enable': boolean,
 		                    'recipients': string,   // can be multiple items separated by comma
+		                    'isgroup': boolean      // true if all recipients are device groups, false if all recipients are devices
 		                },
 		                'storage': {
 		                    'enable': boolean,

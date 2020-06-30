@@ -26,9 +26,12 @@ class config:
     CONFIG_MONGODB_PORT                = 27017
     CONFIG_MONGODB_DB                  = "iotcloud-database"
     CONFIG_MONGODB_TB_PROFILES         = "profiles"
+
     CONFIG_MONGODB_TB_DEVICES          = "devices"
-    CONFIG_MONGODB_TB_HISTORY          = "history"
-    CONFIG_MONGODB_TB_NOTIFICATIONS    = "notifications"
-    CONFIG_MONGODB_TB_DEVICETOKENS     = "devicetokens"
-    CONFIG_MONGODB_TB_I2CSENSORS       = "i2csensors"
-    CONFIG_MONGODB_TB_MENOS            = "menos"
+    CONFIG_MONGODB_TB_HISTORY          = "devices_history"
+    CONFIG_MONGODB_TB_DEVICETOKENS     = "devices_tokens"
+    CONFIG_MONGODB_TB_DEVICEGROUPS     = "devices_groups"
+
+    CONFIG_MONGODB_TB_I2CSENSORS       = "sensors"
+    CONFIG_MONGODB_TB_NOTIFICATIONS    = "sensors_notifications"
+    CONFIG_MONGODB_TB_MENOS            = "sensors_menos"

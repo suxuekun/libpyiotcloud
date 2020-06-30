@@ -3,6 +3,7 @@ import os
 
 
 class config:
+    debugging = True # config for debugging locally or not , not only windows local but mac local
 
     debugging = os.environ['DEBUG_MODE']
 
@@ -73,32 +74,37 @@ class config:
     # Database records
     CONFIG_MONGODB_DB                        = "iotcloud-database"
     CONFIG_MONGODB_TB_PROFILES               = "profiles"
+
+    CONFIG_MONGODB_TB_LASTLOGIN              = "login_lastlogin"
+    CONFIG_MONGODB_TB_IDPTOKENS              = "login_idptokens"
+    CONFIG_MONGODB_TB_IDPCODES               = "login_idpcodes"
+
     CONFIG_MONGODB_TB_DEVICES                = "devices"
-    CONFIG_MONGODB_TB_HISTORY                = "history"
-    CONFIG_MONGODB_TB_NOTIFICATIONS          = "notifications"
-    CONFIG_MONGODB_TB_RECIPIENTS             = "recipients"
-    CONFIG_MONGODB_TB_I2CSENSORS             = "i2csensors"
-    CONFIG_MONGODB_TB_SUBSCRIPTIONS          = "subscriptions"
-    CONFIG_MONGODB_TB_CONFIGURATIONS         = "configurations"
-    CONFIG_MONGODB_TB_SENSORREADINGS         = "sensorreadings"
-    CONFIG_MONGODB_TB_SENSORREADINGS_DATASET = "sensorreadingsdataset"
-    CONFIG_MONGODB_TB_DEVICETOKENS           = "devicetokens"
-    CONFIG_MONGODB_TB_MENOS                  = "menos"
-    CONFIG_MONGODB_TB_DEVICELOCATION         = "devicelocation"
-    CONFIG_MONGODB_TB_IDPTOKENS              = "idptokens"
-    CONFIG_MONGODB_TB_IDPCODES               = "idpcodes"
-    CONFIG_MONGODB_TB_PAYMENTTRANSACTIONS    = "paymenttransactions"
-    CONFIG_MONGODB_TB_PAYMENTPAYERIDS        = "paymentpayerids"
-    CONFIG_MONGODB_TB_OTAUPDATES             = "otaupdates"
-    CONFIG_MONGODB_TB_DEVICEGROUPS           = "devicegroups"
+    CONFIG_MONGODB_TB_HISTORY                = "devices_history"
+    CONFIG_MONGODB_TB_DEVICETOKENS           = "devices_tokens"
+    CONFIG_MONGODB_TB_OTAUPDATES             = "devices_otaupdates"
+    CONFIG_MONGODB_TB_DEVICEGROUPS           = "devices_groups"
+    CONFIG_MONGODB_TB_LDSUS                  = "devices_ldsus"
+    CONFIG_MONGODB_TB_HEARTBEAT              = "devices_heartbeat"
+    CONFIG_MONGODB_TB_DEVICELOCATION         = "devices_location"
+
+    CONFIG_MONGODB_TB_I2CSENSORS             = "sensors"
+    CONFIG_MONGODB_TB_NOTIFICATIONS          = "sensors_notifications"
+    CONFIG_MONGODB_TB_CONFIGURATIONS         = "sensors_configurations"
+    CONFIG_MONGODB_TB_SENSORREADINGS         = "sensors_readings_latest"
+    CONFIG_MONGODB_TB_SENSORREADINGS_DATASET = "sensors_readings_dataset"
+    CONFIG_MONGODB_TB_MENOS                  = "sensors_menos"
+
     CONFIG_MONGODB_TB_ORGANIZATIONS          = "organizations"
-    CONFIG_MONGODB_TB_ORGANIZATIONS_USERS    = "organizationsusers"
-    CONFIG_MONGODB_TB_ORGANIZATIONS_GROUPS   = "organizationsgroups"
-    CONFIG_MONGODB_TB_ORGANIZATIONS_POLICIES = "organizationspolicies"
-    CONFIG_MONGODB_TB_DEFAULT_POLICIES       = "defaultpolicies"
-    CONFIG_MONGODB_TB_LASTLOGIN              = "lastlogin"
-    CONFIG_MONGODB_TB_LDSUS                  = "ldsus"
-    CONFIG_MONGODB_TB_HEARTBEAT              = "heartbeat"
+    CONFIG_MONGODB_TB_ORGANIZATIONS_USERS    = "organizations_users"
+    CONFIG_MONGODB_TB_ORGANIZATIONS_GROUPS   = "organizations_groups"
+    CONFIG_MONGODB_TB_ORGANIZATIONS_POLICIES = "organizations_policies"
+    CONFIG_MONGODB_TB_DEFAULT_POLICIES       = "organizations_defaultpolicies"
+
+    CONFIG_MONGODB_TB_SUBSCRIPTIONS          = "oldpayment_subscriptions"
+    CONFIG_MONGODB_TB_PAYMENTTRANSACTIONS    = "oldpayment_transactions"
+    CONFIG_MONGODB_TB_PAYMENTPAYERIDS        = "oldpayment_payerids"
+
 
     # Caching settings
     if debugging:
@@ -133,4 +139,13 @@ class config:
     CONFIG_HEARBEAT_WEEK_MAX         = int(CONFIG_HEARBEAT_WEEK_RANGE/CONFIG_HEARBEAT_RATE)
     CONFIG_HEARBEAT_MONTH_MAX        = int(CONFIG_HEARBEAT_MONTH_RANGE/CONFIG_HEARBEAT_RATE)
 
-
+    # Storage size settings
+    CONFIG_GIGABYTE_GB               = 1000000000 # 1000*1000*1000
+    CONFIG_GIGABYTE_GiB              = 1073741824 # 1024*1024*1024
+    CONFIG_MEGABYTE_MB               = 1000000    # 1000*1000
+    CONFIG_MEGABYTE_MiB              = 1048576    # 1024*1024
+    CONFIG_KILOBYTE_KB               = 1000       # 1000
+    CONFIG_KILOBYTE_KiB              = 1024       # 1024
+    CONFIG_GIGABYTE_CONVERSION       = CONFIG_GIGABYTE_GB
+    CONFIG_MEGABYTE_CONVERSION       = CONFIG_MEGABYTE_MB
+    CONFIG_KILOBYTE_CONVERSION       = CONFIG_KILOBYTE_KB
