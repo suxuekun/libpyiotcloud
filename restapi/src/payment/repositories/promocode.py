@@ -70,12 +70,11 @@ class S3PromoCodeRepository(S3Repository):
             'max_usage':max_usage
         }
         # pretty_print(item)
-        if (value):
-            return item
-        return None
+
+        return item
+        # return None
 
     def _handler(self,raw):
-        # print(raw)
         l = [x for x in raw.decode('UTF-8').replace("\r\n","\n").split('\n')]
         self.collection = [self._make_promocode(x) for x in l[1:]]
         self.collection = list(filter(lambda x:x is not None,self.collection))
