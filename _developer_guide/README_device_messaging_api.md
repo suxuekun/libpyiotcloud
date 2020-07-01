@@ -528,14 +528,17 @@ DETAILED:
 		-  Publish:
 		   topic: DEVICEID/str_sensor_reading
 		   payload: 
-		   [
-		     {
-		       "UID": string,              // LDSU UUID
-		       "TS":  [string, ...]        // array of timestamp in epoch
-		       "SNS": [[string, ...], ...] // array of arrays
-		     }
-			 , ...
-		   ]
+		   {
+		     "cached": 
+			 [
+		       {
+		         "UID": string,              // LDSU UUID
+		         "TS":  [string, ...]        // array of timestamp in epoch
+		         "SNS": [[string, ...], ...] // array of arrays
+		       }
+			   , ...
+		     ]
+		   }
 		   // This is for storing cached sensor readings to the cloud
 		   // This makes storing and sending data efficiently
 
