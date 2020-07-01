@@ -11,10 +11,10 @@ class IMongoBaseRepository:
     
     def gets(self, query=None, projection=None):
         pass
-
+    
     def drop(self):
         pass
-
+    
     def get_one(self,query):
         pass
     
