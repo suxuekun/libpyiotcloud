@@ -1320,10 +1320,6 @@ class database_client_cognito:
         (result, response) = self.client.admin_get_user(username)
         return response
 
-    def admin_get_user(self,username):
-        (result, response) = self.client.admin_get_user(username)
-        return response
-
     def admin_delete_user(self, username):
         (result, response) = self.client.admin_delete_user(username)
         return result
