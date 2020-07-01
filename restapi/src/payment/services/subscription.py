@@ -22,8 +22,8 @@ class SubscriptionService(BaseMongoService):
                 sub.devicename = dev.devicename
                 self.repo.update(sub._id,sub)
 
-        add_devs = filter(lambda x:not sub_idx.get(x.deviceid),devices)
-        remove_subs = filter(lambda x:not dev_idx.get(x.deviceid),subscriptions)
+        add_devs = list(filter(lambda x:not sub_idx.get(x.deviceid),devices))
+        remove_subs = list(filter(lambda x:not dev_idx.get(x.deviceid),subscriptions))
         return add_devs,remove_subs
 
     def create_free_sub_for_new_device(self,device):
@@ -45,11 +45,13 @@ class SubscriptionService(BaseMongoService):
         [self._cancel(x) for x in remove_subs]
         [self.delete(str(x._id)) for x in remove_subs]
         add_list = [self.create_free_sub_for_new_device(x) for x in add_devs]
-        current_list = subscriptions + add_list
+        current_list = [item for item in subscriptions if item not in remove_subs]
+        current_list = current_list + add_list
         return current_list
 
     @throw_bad_db_query(False)
     def delete(self, id):
+        print('delete', id)
         res = self.repo.delete(id)
         return res
 
@@ -57,19 +59,25 @@ class SubscriptionService(BaseMongoService):
         self._cancel(subscription)
 
     def _cancel(self,subscription):
-        if (subscription.next.bt_sub):
+        print('cancel',subscription.to_primitive())
+        if (subscription.next and subscription.next.bt_sub):
             try:
-                res = payment_client.cancel_subscription(id)
-                return True
+                res = payment_client.cancel_subscription(subscription.next.bt_sub)
+                if res:
+                    return True
+                return False
             except Exception as e:
                 print (e)
                 return False
         return True
 
     def cleanup(self,deviceid):
+        print('inter subscription delete')
         subscription = self.get_one({'deviceid': deviceid})
+        print('cleanup', subscription.to_primitive())
         self.cancel(subscription)
         self.delete(subscription._id)
+
 
 
 if __name__ == "__main__":

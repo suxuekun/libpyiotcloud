@@ -186,10 +186,11 @@ class device:
         self.database_client.delete_device_by_deviceid(deviceid)
 
         # delete device subscription
+        print('delete device subscription',deviceid)
         try:
             subscription_service.cleanup(deviceid)
-
         except Exception as e:
+            print('error in delete device subscription', deviceid)
             print(e)
 
         # delete device from message broker

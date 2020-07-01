@@ -114,6 +114,7 @@ class PaymentService():
         prorate = prorate_dict.get('prorate')
         sub_id = subscription.next.get_braintree_subscription_id()
         self._assign_draft(subscription, plan)
+        subscription.draft.bt_sub = subscription.next.bt_sub
         option = {
             'payment_method_token': payment_method_token,
             'plan_id': plan.bt_plan_id,
@@ -134,6 +135,7 @@ class PaymentService():
     def _downgrade_subscription(self,payment_method_token,subscription,plan):
         sub_id = subscription.next.get_braintree_subscription_id()
         self._assign_draft(subscription, plan)
+        subscription.draft.bt_sub = subscription.next.bt_sub
         option = {
             'payment_method_token': payment_method_token,
             'plan_id': plan.bt_plan_id,
