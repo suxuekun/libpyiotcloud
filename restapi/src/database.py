@@ -1364,24 +1364,6 @@ class database_client_cognito:
             return None, None, None
         return access_token, refresh_token, id_token
 
-    def login_mfa(self, username, sessionkey, mfacode):
-        (result, response) = self.client.login_mfa(username, sessionkey, mfacode)
-        if not result:
-            return None, None, response
-        if response.get('AuthenticationResult'):
-            access_token = response['AuthenticationResult']['AccessToken']
-            refresh_token = response['AuthenticationResult']['RefreshToken']
-            id_token = response['AuthenticationResult']['IdToken']
-        else:
-            if response.get('ChallengeName'):
-                #print(response)
-                if response['ChallengeName'] == 'SMS_MFA':
-                    refresh_token = response['Session']
-                    id_token = 'MFARequiredException'
-                    return None, refresh_token, id_token
-            return None, None, None
-        return access_token, refresh_token, id_token
-
     #def login_mfa(self, username, sessionkey, mfacode):
         #(result, response) = self.client.login_mfa(username, sessionkey, mfacode)
         #if not result:

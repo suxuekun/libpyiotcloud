@@ -1,6 +1,6 @@
 import os
 import flask
-from example_module.app import ExampleApp
+#from example_module.app import ExampleApp
 from flask_json import FlaskJSON, JsonError, json_response, as_json
 from flask_cors import CORS
 from flask_api import status
@@ -8,12 +8,7 @@ from flask_api import status
 from messaging_client import messaging_client
 from rest_api_config import config
 from database import database_categorylabel, database_crudindex
-from flask_cors import CORS
-from flask_api import status
-import jwt
-#from jose import jwk, jwt
 from s3_client import s3_client
-import threading
 from redis_client import redis_client
 from device_client import device_client
 #import ssl
@@ -29,7 +24,7 @@ from device_client import device_client
 #import http.client
 #import threading
 #import copy
-import statistics
+#import statistics
 from message_broker_api import message_broker_api
 from rest_api_messaging_requests import messaging_requests
 from rest_api_identity_authentication import identity_authentication
@@ -55,7 +50,7 @@ from payment.app import PaymentApp
 
 ########################################################################################################
 # Some configurations
-###################################################################################
+########################################################################################################
 
 CONFIG_DEVICE_ID            = "restapi_manager"
 CONFIG_SEPARATOR            = '/'
@@ -916,7 +911,7 @@ def get_device_firmware_updates():
 def compute_device_password():
     return g_other_stuffs.compute_device_password()
 
-# This is for the device simulator.
+# This is for the device simulator. 
 # This can be easily blocked by removing entry in nginx.conf.
 @app.route('/devicesimulator/otaauthcode', methods=['GET'])
 def compute_ota_authcode():
