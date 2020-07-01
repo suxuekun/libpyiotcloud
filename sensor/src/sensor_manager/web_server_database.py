@@ -257,6 +257,14 @@ class database_client:
         return self._devices.get_username_devicename(deviceid)
 
 
+    ##########################################################
+    # devicegroups
+    ##########################################################
+
+    def get_devicegroup(self, username, groupname):
+        return self._devices.get_devicegroup(username, groupname)
+
+
 class database_utils:
 
     def __init__(self):
@@ -870,6 +878,24 @@ class database_client_mongodb:
             for device in devices.find({'deviceid': deviceid},{'username': 1, 'devicename': 1}):
                 return device['username'], device['devicename']
         return None, None
+
+
+    ##########################################################
+    # devicegroups
+    ##########################################################
+
+    def get_registered_devicegroups(self):
+        return self.client[config.CONFIG_MONGODB_TB_DEVICEGROUPS]
+
+    def get_devicegroup(self, username, groupname):
+        devicegroups = self.get_registered_devicegroups()
+        if devicegroups:
+            for devicegroup in devicegroups.find({ 'username': username, 'groupname': groupname }):
+                devicegroup.pop('_id')
+                devicegroup.pop('groupid')
+                devicegroup.pop('username')
+                return devicegroup
+        return None
 
 
 class database_client_postgresql:

@@ -21,6 +21,7 @@ class config:
 
     CONFIG_MONGODB_TB_DEVICES                = "devices"
     CONFIG_MONGODB_TB_HISTORY                = "devices_history"
+    CONFIG_MONGODB_TB_DEVICEGROUPS           = "devices_groups"
 
     CONFIG_MONGODB_TB_I2CSENSORS             = "sensors"
     CONFIG_MONGODB_TB_CONFIGURATIONS         = "sensors_configurations"

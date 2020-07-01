@@ -286,42 +286,60 @@ def forward_sensor_reading(database_client, username, devicename, deviceid, sour
                 enabled = False
                 if configuration["attributes"]["hardware"].get("enable") is not None:
                     enabled = configuration["attributes"]["hardware"]["enable"]
+                isgroup = False
+                if configuration["attributes"]["hardware"].get("isgroup") is not None:
+                    isgroup = configuration["attributes"]["hardware"]["isgroup"]
                 #print(enabled)
 
                 if enabled:
+                    if configuration["attributes"]["hardware"].get("recipients") is None:
+                        return
                     # continuous mode (sensor forwarding)
-                    dest_devicename = configuration["attributes"]["hardware"]["devicename"]
-                    if dest_devicename != "":
-                        #print(dest_devicename)
-                        sensor = database_client.get_sensor_by_deviceid(deviceid, peripheral, str(number))
-                        if sensor is not None:
-                            #print_json(sensor)
-                            #print("")
-                            dest_deviceid = database_client.get_deviceid(username, dest_devicename)
-                            if dest_deviceid is None:
-                                return
-                            dest_topic = "{}/{}".format(dest_deviceid, API_RECEIVE_SENSOR_READING)
-                            #print("Hello")
-                            dest_payload = {"sensors": []}
-                            packet = {}
-                            if sensor["format"] == "integer":
-                                packet = {
-                                    "UID":   sensor["source"],
-                                    "SAID":  sensor["number"],
-                                    "value": int(value), 
-                                }
-                            else:
-                                packet = {
-                                    "UID":   sensor["source"],
-                                    "SAID":  sensor["number"],
-                                    "value": value, 
-                                }
+                    recipients = configuration["attributes"]["hardware"]["recipients"]
+                    recipients = recipients.replace(" ", "").split(",")
 
-                            dest_payload["sensors"].append(packet)
-                            #print_json(dest_payload)
-                            #print("")
-                            dest_payload = json.dumps(dest_payload)
-                            g_messaging_client.publish(dest_topic, dest_payload, debug=False) # NOTE: enable to DEBUG
+                    sensor = database_client.get_sensor_by_deviceid(deviceid, peripheral, str(number))
+                    if sensor is not None:
+                        if isgroup == False:
+                            for dest_devicename in recipients:
+                                dest_deviceid = database_client.get_deviceid(username, dest_devicename)
+                                if dest_deviceid is None:
+                                    return
+
+                                dest_topic = "{}/{}".format(dest_deviceid, API_RECEIVE_SENSOR_READING)
+                                dest_payload = {"sensors": []}
+                                packet = {
+                                    "UID":   sensor["source"],
+                                    "SAID":  sensor["number"],
+                                }
+                                if sensor["format"] == "integer":
+                                    packet["value"] = int(value)
+                                else:
+                                    packet["value"] = value
+                                dest_payload["sensors"].append(packet)
+                                dest_payload = json.dumps(dest_payload)
+                                g_messaging_client.publish(dest_topic, dest_payload, debug=False) # NOTE: enable to DEBUG
+                        else:
+                            for devicegroup_recipient in recipients:
+                                # get the group details
+                                devicegroup = database_client.get_devicegroup(username, devicegroup_recipient)
+                                if devicegroup:
+                                    # send to group members
+                                    for dest_deviceid in devicegroup["devices"]:
+
+                                        dest_topic = "{}/{}".format(dest_deviceid, API_RECEIVE_SENSOR_READING)
+                                        dest_payload = {"sensors": []}
+                                        packet = {
+                                            "UID":   sensor["source"],
+                                            "SAID":  sensor["number"],
+                                        }
+                                        if sensor["format"] == "integer":
+                                            packet["value"] = int(value)
+                                        else:
+                                            packet["value"] = value
+                                        dest_payload["sensors"].append(packet)
+                                        dest_payload = json.dumps(dest_payload)
+                                        g_messaging_client.publish(dest_topic, dest_payload, debug=False) # NOTE: enable to DEBUG
             else:
                 # thresholding mode (notification triggering)
                 if CONFIG_THRESHOLDING_NOTIFICATIONS:

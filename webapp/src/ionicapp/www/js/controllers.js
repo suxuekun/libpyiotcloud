@@ -15780,8 +15780,9 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                 'period': 60000,
             },
             'hardware': {
-                'devicename': '',
-                'enable': false
+                'enable': false,
+                'recipients': '',
+                'isgroup': false,
             },
             
             'notification': {
@@ -15841,7 +15842,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             if (error.status == 503 && showerror === true ) {
                 $ionicPopup.alert({ title: 'Error', template: 'Device is unreachable!', buttons: [{text: 'OK', type: 'button-assertive'}] });
             }            
-            else if (error.status === 401) {
+            else if (error.status === 400 || error.status === 401 || error.status === 404) {
                 $ionicPopup.alert({ title: 'Error', template: error.data.message, buttons: [{text: 'OK', type: 'button-assertive'}] });
             }
         }
@@ -16299,8 +16300,9 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                 'period': 60000,
             },
             'hardware': {
-                'devicename': '',  
-                'enable': false
+                'enable': false,
+                'recipients': '',
+                'isgroup': false,
             },
             
             'notification': {
@@ -16360,7 +16362,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             if (error.status == 503 && showerror === true ) {
                 $ionicPopup.alert({ title: 'Error', template: 'Device is unreachable!', buttons: [{text: 'OK', type: 'button-assertive'}] });
             }            
-            else if (error.status === 401) {
+            else if (error.status === 400 || error.status === 401 || error.status === 404) {
                 $ionicPopup.alert({ title: 'Error', template: error.data.message, buttons: [{text: 'OK', type: 'button-assertive'}] });
             }
         }
@@ -16818,8 +16820,9 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                 'period': 60000,
             },
             'hardware': {
-                'devicename': '',  
-                'enable': false
+                'enable': false,
+                'recipients': '',
+                'isgroup': false,
             },
             
             'notification': {
@@ -16879,7 +16882,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             if (error.status == 503 && showerror === true ) {
                 $ionicPopup.alert({ title: 'Error', template: 'Device is unreachable!', buttons: [{text: 'OK', type: 'button-assertive'}] });
             }            
-            else if (error.status === 401) {
+            else if (error.status === 400 || error.status === 401 || error.status === 404) {
                 $ionicPopup.alert({ title: 'Error', template: error.data.message, buttons: [{text: 'OK', type: 'button-assertive'}] });
             }
         }
@@ -17337,8 +17340,9 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                 'period': 60000,
             },
             'hardware': {
-                'devicename': '',  
-                'enable': false
+                'enable': false,
+                'recipients': '',
+                'isgroup': false,
             },
             
             'notification': {
@@ -17398,7 +17402,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             if (error.status == 503 && showerror === true ) {
                 $ionicPopup.alert({ title: 'Error', template: 'Device is unreachable!', buttons: [{text: 'OK', type: 'button-assertive'}] });
             }            
-            else if (error.status === 401) {
+            else if (error.status === 400 || error.status === 401 || error.status === 404) {
                 $ionicPopup.alert({ title: 'Error', template: error.data.message, buttons: [{text: 'OK', type: 'button-assertive'}] });
             }
         }
@@ -17856,8 +17860,9 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                 'period': 60000,
             },
             'hardware': {
-                'devicename': '',  
-                'enable': false
+                'enable': false,
+                'recipients': '',
+                'isgroup': false,
             },
             
             'notification': {
@@ -17917,7 +17922,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             if (error.status == 503 && showerror === true ) {
                 $ionicPopup.alert({ title: 'Error', template: 'Device is unreachable!', buttons: [{text: 'OK', type: 'button-assertive'}] });
             }            
-            else if (error.status === 401) {
+            else if (error.status === 400 || error.status === 401 || error.status === 404) {
                 $ionicPopup.alert({ title: 'Error', template: error.data.message, buttons: [{text: 'OK', type: 'button-assertive'}] });
             }
         }
@@ -18375,8 +18380,9 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
                 'period': 60000,
             },
             'hardware': {
-                'devicename': '',  
-                'enable': false
+                'enable': false,
+                'recipients': '',
+                'isgroup': false,
             },
             
             'notification': {
@@ -18436,7 +18442,7 @@ function ($scope, $stateParams, $state, $http, $ionicPopup, Server, User, Token,
             if (error.status == 503 && showerror === true ) {
                 $ionicPopup.alert({ title: 'Error', template: 'Device is unreachable!', buttons: [{text: 'OK', type: 'button-assertive'}] });
             }            
-            else if (error.status === 401) {
+            else if (error.status === 400 || error.status === 401 || error.status === 404) {
                 $ionicPopup.alert({ title: 'Error', template: error.data.message, buttons: [{text: 'OK', type: 'button-assertive'}] });
             }
         }

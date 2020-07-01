@@ -75,10 +75,14 @@
       <div id="ambientLight-markdown516" class="show-list-numbers-and-dots">
         <p style="color:#3C5A99;">Hardware</p>
       </div>
-      <ion-checkbox id="ambientLight-checkbox90" ng-model="data.attributes.hardware.enable">Forward to device</ion-checkbox>
+      <ion-checkbox id="ambientLight-checkbox90" ng-model="data.attributes.hardware.enable">Send to IoT Modem</ion-checkbox>
+      <ion-checkbox id="ambientLight-checkbox103" ng-model="data.attributes.hardware.enable">... check if recipients is device groups instead of devices</ion-checkbox>
+      <label class="item item-input data.attributes.hardware.recipients" id="ambientLight-input252">
+        <input type="text" placeholder="">
+      </label>
       <label class="item item-select" id="ambientLight-select120">
         <span class="input-label">IoT Modem</span>
-        <select ng-model="data.hardware_devicename" ng-options="device.id as device.devicename for device in devices"></select>
+        <select ng-model="data.hardware_devicename" ng-options="device.id as device.devicename for device in devices" ng-show="0"></select>
       </label>
     </form>
     <form id="ambientLight-form266" class="list" ng-show="data.attributes.mode!=2">

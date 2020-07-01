@@ -1861,24 +1861,26 @@ DETAILED:
 		            }
 		        }
 		   //
-		   // TEMPERATURE class
+		   // TEMPERATURE/HUMIDITY/AMBIENTLIGHT/MOTIONSENSOR/CO2GAS/VOCGAS class
 		   data: {
 		           "opmode": int,
-		           "mode": int, 
-		           "threshold": {"value": int, "min": int, "max": int, "activate": int}, 
-		           "alert": {"type": int, 'period': int}, 
-		           "hardware": {"devicename": string, "enable": boolean}, 
-		           "notification": json_obj,
-		      }
-		   //
-		   // HUMIDITY class
-		   data: {
-		           "opmode": int,
-		           "mode": int, 
-		           "threshold": {"value": int, "min": int, "max": int, "activate": int}, 
-		           "alert": {"type": int, 'period': int}, 
-		           "hardware": {"devicename": string, "enable": boolean}, 
-		           "notification": json_obj,
+		           "mode": int,              // single threshold, dual threshold, continuous
+		           "threshold": {
+		               "value": int,         // for single threshold mode
+		               "min": int,           // for dual threshold mode
+		               "max": int,           // for dual threshold mode
+		               "activate": int       // for dual threshold mode
+		           }, 
+		           "alert": {
+		               "type": int, 
+		               "period": int
+		           }, 
+		           "hardware": {             // for continuous mode
+		               'enable': boolean
+		               'recipients': string, // can be multiple items separated by comma
+		               'isgroup': boolean    // true if all recipients are device groups, false if all recipients are devices
+		           }, 
+		           "notification": json_obj, // see above
 		      }
 		   //
 		   //   mode is an index to the list of modes
